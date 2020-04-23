@@ -26,7 +26,7 @@ import app.zxtune.fs.amp.Group;
 import app.zxtune.fs.amp.Identifier;
 import app.zxtune.fs.amp.Track;
 import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 @Icon(R.drawable.ic_browser_vfs_amp)
 final class VfsRootAmp extends StubObject implements VfsRoot {
@@ -38,7 +38,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   private final CachingCatalog catalog;
   private final GroupingDir[] groupings;
 
-  VfsRootAmp(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootAmp(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
     this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);

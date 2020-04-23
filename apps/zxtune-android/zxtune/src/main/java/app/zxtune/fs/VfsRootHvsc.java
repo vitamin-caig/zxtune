@@ -8,13 +8,12 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import androidx.annotation.Nullable;
 
-import java.io.IOException;
+import androidx.annotation.Nullable;
 
 import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
 import app.zxtune.fs.hvsc.Path;
@@ -26,7 +25,7 @@ final class VfsRootHvsc extends HttpRootBase implements VfsRoot {
 
   private final Context context;
 
-  VfsRootHvsc(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootHvsc(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
     super(parent, Catalog.create(context, http, cache, "hvsc"), Path.create());
     this.context = context;
   }

@@ -17,7 +17,7 @@ import app.zxtune.TimeStamp;
 public class Timestamps {
 
   private static class Table {
-    static enum Fields {
+    enum Fields {
       _id, stamp
     }
 
@@ -46,7 +46,7 @@ public class Timestamps {
   private final SQLiteStatement queryStatement;
   private final SQLiteStatement updateStatement;
 
-  public Timestamps(DBProvider helper) throws IOException {
+  public Timestamps(DBProvider helper) {
     this.queryStatement = helper.getReadableDatabase().compileStatement(Table.QUERY_STATEMENT);
     this.updateStatement = helper.getWritableDatabase().compileStatement(Table.INSERT_STATEMENT);
   }

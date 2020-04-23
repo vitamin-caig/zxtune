@@ -13,7 +13,7 @@ import java.util.Locale;
 
 public class Grouping extends Objects {
 
-  private static enum Fields {
+  private enum Fields {
     _id
   }
 
@@ -25,7 +25,7 @@ public class Grouping extends Objects {
     return String.format(Locale.US, "CREATE TABLE %s (%s INTEGER PRIMARY KEY);", tableName, Fields._id.name());
   }
 
-  public Grouping(DBProvider helper, String tableName, int bitsForObject) throws IOException {
+  public Grouping(DBProvider helper, String tableName, int bitsForObject) {
     super(helper, tableName, Fields.values().length);
     this.tableName = tableName;
     this.bitsForObject = bitsForObject;

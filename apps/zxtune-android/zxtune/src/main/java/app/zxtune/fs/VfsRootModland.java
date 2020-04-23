@@ -32,7 +32,7 @@ import java.util.List;
 
 import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.modland.CachingCatalog;
 import app.zxtune.fs.modland.Catalog;
 import app.zxtune.fs.modland.Group;
@@ -73,7 +73,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
   private final CachingCatalog catalog;
   private final GroupsDir[] groups;
 
-  VfsRootModland(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootModland(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
     this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);

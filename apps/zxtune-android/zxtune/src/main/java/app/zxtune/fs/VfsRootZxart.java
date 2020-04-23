@@ -22,7 +22,7 @@ import java.util.Locale;
 
 import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.zxart.Author;
 import app.zxtune.fs.zxart.CachingCatalog;
 import app.zxtune.fs.zxart.Catalog;
@@ -38,9 +38,9 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   private final VfsObject parent;
   private final Context context;
   private final CachingCatalog catalog;
-  private final GroupingDir groups[];
+  private final GroupingDir[] groups;
 
-  public VfsRootZxart(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  public VfsRootZxart(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
     this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
@@ -295,7 +295,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private class AuthorTrackFile extends BaseTrackFile {
 
-    public AuthorTrackFile(Uri uri, Track track) {
+    AuthorTrackFile(Uri uri, Track track) {
       super(uri, track);
     }
 

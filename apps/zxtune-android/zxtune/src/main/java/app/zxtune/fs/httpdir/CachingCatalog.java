@@ -32,7 +32,7 @@ final class CachingCatalog extends Catalog {
   private final CacheDir cache;
   private final CommandExecutor executor;
 
-  CachingCatalog(Context ctx, RemoteCatalog remote, CacheDir cache, String id) throws IOException {
+  CachingCatalog(Context ctx, RemoteCatalog remote, CacheDir cache, String id) {
     this.tag = CachingCatalog.class.getName() + "@" + id;
     this.remote = remote;
     this.db = new FileTree(ctx, id);
@@ -79,7 +79,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 

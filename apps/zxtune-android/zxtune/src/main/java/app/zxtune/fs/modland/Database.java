@@ -64,7 +64,7 @@ final class Database {
                 + " INTEGER);";
       }
 
-      Groups(DBProvider helper, String name) throws IOException {
+      Groups(DBProvider helper, String name) {
         super(helper, name, Fields.values().length);
       }
 
@@ -77,14 +77,6 @@ final class Database {
         final String title = cursor.getString(Fields.name.ordinal());
         final int tracks = cursor.getInt(Fields.tracks.ordinal());
         return new Group(id, title, tracks);
-      }
-
-      static ContentValues createValues(Group obj) {
-        final ContentValues res = new ContentValues();
-        res.put(Fields._id.name(), obj.id);
-        res.put(Fields.name.name(), obj.name);
-        res.put(Fields.tracks.name(), obj.tracks);
-        return res;
       }
     }
 
@@ -103,7 +95,7 @@ final class Database {
       static final String NAME = "formats";
     }
 
-    static final String LIST[] = {Authors.NAME, Collections.NAME, Formats.NAME};
+    static final String[] LIST = {Authors.NAME, Collections.NAME, Formats.NAME};
 
     static final class Tracks extends Objects {
 
@@ -116,7 +108,7 @@ final class Database {
       static final String CREATE_QUERY = "CREATE TABLE " + NAME + " (" + Fields._id
               + " INTEGER PRIMARY KEY, " + Fields.path + " TEXT NOT NULL, " + Fields.size + " INTEGER);";
 
-      Tracks(DBProvider helper) throws IOException {
+      Tracks(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
 
@@ -146,7 +138,7 @@ final class Database {
         return createQuery(name(category));
       }
 
-      GroupTracks(DBProvider helper, String category) throws IOException {
+      GroupTracks(DBProvider helper, String category) {
         super(helper, name(category), 32);
       }
     }
@@ -158,7 +150,7 @@ final class Database {
   private final Tables.Tracks tracks;
   private final Timestamps timestamps;
 
-  Database(Context context) throws IOException {
+  Database(Context context) {
     this.helper = new DBProvider(Helper.create(context));
     this.groups = new HashMap<>();
     this.groupTracks = new HashMap<>();
@@ -170,7 +162,7 @@ final class Database {
     this.timestamps = new Timestamps(helper);
   }
 
-  final Transaction startTransaction() throws IOException {
+  final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
 

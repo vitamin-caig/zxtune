@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.zxtunes.Author;
 import app.zxtune.fs.zxtunes.CachingCatalog;
 import app.zxtune.fs.zxtunes.Catalog;
@@ -38,7 +38,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   private final CachingCatalog catalog;
   private final GroupingDir[] groups;
 
-  VfsRootZxtunes(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootZxtunes(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
     this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);
@@ -377,7 +377,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   private class AuthorsSearchEngine implements VfsExtensions.SearchEngine {
 
     @Override
-    public void find(String query, final Visitor visitor) throws IOException {
+    public void find(String query, final Visitor visitor) {
       catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
 
         @Override

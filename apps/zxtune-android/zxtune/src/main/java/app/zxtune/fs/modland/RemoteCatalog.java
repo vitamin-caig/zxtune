@@ -22,7 +22,6 @@ import app.zxtune.StubProgressCallback;
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
 
@@ -47,15 +46,13 @@ class RemoteCatalog extends Catalog {
   private static final Pattern TRACKS =
           Pattern.compile("file=(pub/modules/.+?).>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
 
-  private final HttpProvider http;
-  private final MultisourceHttpProvider multiHttp;
+  private final MultisourceHttpProvider http;
   private final Grouping authors;
   private final Grouping collections;
   private final Grouping formats;
 
-  RemoteCatalog(HttpProvider http) {
+  RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
-    this.multiHttp = new MultisourceHttpProvider(http);
     this.authors = new Authors();
     this.collections = new Collections();
     this.formats = new Formats();
@@ -132,6 +129,7 @@ class RemoteCatalog extends Catalog {
       return result;
     }
 
+    @NonNull
     @Override
     public Group getGroup(final int id) throws IOException {
       Log.d(TAG, "getGroup(type=%s, id=%d)", getCategoryTag(), id);
@@ -176,6 +174,7 @@ class RemoteCatalog extends Catalog {
       });
     }
 
+    @NonNull
     @Override
     public Track getTrack(int id, final String filename) throws IOException {
       Log.d(TAG, "getGroupTrack(type=%s, id=%d, filename=%s)", getCategoryTag(), id, filename);
@@ -260,12 +259,12 @@ class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(String id) throws IOException {
     Log.d(TAG, "getTrackContent(%s)", id);
-    return Io.readFrom(multiHttp.getInputStream(getContentUris(id)));
+    return Io.readFrom(http.getInputStream(getContentUris(id)));
   }
 
   final HttpObject getTrackObject(String id) throws IOException {
     Log.d(TAG, "getTrackContent(%s)", id);
-    return multiHttp.getObject(getContentUris(id));
+    return http.getObject(getContentUris(id));
   }
 
   private static Uri[] getContentUris(String id) {

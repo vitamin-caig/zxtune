@@ -63,7 +63,7 @@ final class Database {
               "real_name TEXT NOT NULL" +
               ");";
 
-      Authors(DBProvider helper) throws IOException {
+      Authors(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
 
@@ -97,7 +97,7 @@ final class Database {
               "size INTEGER NOT NULL" +
               ");";
 
-      Tracks(DBProvider helper) throws IOException {
+      Tracks(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
 
@@ -126,7 +126,7 @@ final class Database {
       static final String NAME = "author_tracks";
       static final String CREATE_QUERY = Grouping.createQuery(NAME);
 
-      AuthorTracks(DBProvider helper) throws IOException {
+      AuthorTracks(DBProvider helper) {
         super(helper, NAME, 32);
       }
 
@@ -144,7 +144,7 @@ final class Database {
       static final String NAME = "country_authors";
       static final String CREATE_QUERY = Grouping.createQuery(NAME);
 
-      CountryAuthors(DBProvider helper) throws IOException {
+      CountryAuthors(DBProvider helper) {
         super(helper, NAME, 32);
       }
 
@@ -170,7 +170,7 @@ final class Database {
               "name TEXT NOT NULL" +
               ");";
 
-      Groups(DBProvider helper) throws IOException {
+      Groups(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
 
@@ -190,7 +190,7 @@ final class Database {
       static final String NAME = "group_authors";
       static final String CREATE_QUERY = Grouping.createQuery(NAME);
 
-      GroupAuthors(DBProvider helper) throws IOException {
+      GroupAuthors(DBProvider helper) {
         super(helper, NAME, 32);
       }
 
@@ -214,7 +214,7 @@ final class Database {
   private final Timestamps timestamps;
   private final String findQuery;
 
-  Database(Context context) throws IOException {
+  Database(Context context) {
     this.helper = new DBProvider(Helper.create(context));
     this.countryAuthors = new Tables.CountryAuthors(helper);
     this.groupAuthors = new Tables.GroupAuthors(helper);
@@ -229,7 +229,7 @@ final class Database {
             " WHERE tracks.filename LIKE '%' || ? || '%'";
   }
 
-  final Transaction startTransaction() throws IOException {
+  final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
 

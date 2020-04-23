@@ -20,7 +20,6 @@ import java.util.regex.Pattern;
 import app.zxtune.Log;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
 
@@ -95,12 +94,10 @@ class RemoteCatalog extends Catalog {
                   AUTHOR_ANCHOR +
                   TRACK_SIZE, Pattern.DOTALL);
 
-  private final HttpProvider http;
-  private final MultisourceHttpProvider multiHttp;
+  private final MultisourceHttpProvider http;
 
-  RemoteCatalog(HttpProvider http) {
+  RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
-    this.multiHttp = new MultisourceHttpProvider(http);
   }
 
   private static String decodeHtml(String txt) {
@@ -207,12 +204,12 @@ class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(%d)", id);
-    return Io.readFrom(multiHttp.getInputStream(getContentUris(id)));
+    return Io.readFrom(http.getInputStream(getContentUris(id)));
   }
 
   final HttpObject getTrackObject(int id) throws IOException {
     Log.d(TAG, "getTrackObject(%d)", id);
-    return multiHttp.getObject(getContentUris(id));
+    return http.getObject(getContentUris(id));
   }
 
   private static Uri[] getContentUris(int id) {

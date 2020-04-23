@@ -10,16 +10,16 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.io.InputStream;
 
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.Path;
 
 public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
 
-  private final HttpProvider simpleHttp;
+  private final MultisourceHttpProvider http;
 
-  public RemoteCatalog(HttpProvider http) {
+  public RemoteCatalog(MultisourceHttpProvider http) {
     super(http);
-    this.simpleHttp = http;
+    this.http = http;
   }
 
   @Override
@@ -56,7 +56,7 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
                         .path("tree")
                         .appendQueryParameter("path", "mods")
                         .build();
-    return simpleHttp.getInputStream(uri);
+    return http.getInputStream(uri);
   }
 
   private void parseDir(String path, DirVisitor visitor) throws IOException {
@@ -67,7 +67,7 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
   }
 
   public final boolean searchSupported() {
-    return simpleHttp.hasConnection();
+    return http.hasConnection();
   }
 
   public final void find(String query, DirVisitor visitor) throws IOException {
@@ -105,6 +105,6 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
 
   private InputStream readPage(Uri.Builder base, int start) throws IOException {
     final Uri uri = base.appendQueryParameter("start", Integer.toString(start)).build();
-    return simpleHttp.getInputStream(uri);
+    return http.getInputStream(uri);
   }
 }

@@ -28,7 +28,7 @@ import java.util.Locale;
 import app.zxtune.Log;
 import app.zxtune.Util;
 import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
 
 final class RemoteCatalog extends Catalog {
@@ -56,9 +56,9 @@ final class RemoteCatalog extends Catalog {
   private static final String TOP_TRACKS_QUERY = API + ACTION_TOP + LIMIT;
   private static final String FIND_TRACKS_QUERY = API + ACTION_SEARCH + "/query:%s";
 
-  private final HttpProvider http;
+  private final MultisourceHttpProvider http;
 
-  public RemoteCatalog(HttpProvider http) {
+  public RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
   }
 

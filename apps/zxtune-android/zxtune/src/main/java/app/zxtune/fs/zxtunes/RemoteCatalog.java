@@ -29,6 +29,7 @@ import java.util.Locale;
 import app.zxtune.Log;
 import app.zxtune.fs.http.HttpObject;
 import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
 
 final class RemoteCatalog extends Catalog {
@@ -44,9 +45,9 @@ final class RemoteCatalog extends Catalog {
   private static final String AUTHOR_TRACKS_QUERY = ALL_TRACKS_QUERY + "&author_id=%d";
   private static final String DOWNLOAD_QUERY = SITE + "downloads.php?id=%d";
 
-  private final HttpProvider http;
+  private final MultisourceHttpProvider http;
 
-  RemoteCatalog(HttpProvider http) {
+  RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
   }
 

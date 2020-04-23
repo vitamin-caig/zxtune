@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public abstract class Catalog {
 
@@ -39,13 +39,13 @@ public abstract class Catalog {
    */
   public abstract void parseDir(Path path, DirVisitor visitor) throws IOException;
 
-  public static CachingCatalog create(Context ctx, HttpProvider http, CacheDir cache, String id) throws IOException {
+  public static CachingCatalog create(Context ctx, MultisourceHttpProvider http, CacheDir cache, String id) {
     final RemoteCatalog remote = new RemoteCatalog(http);
     return create(ctx, remote, cache, id);
   }
 
   public static CachingCatalog create(Context ctx, RemoteCatalog remote, CacheDir cache,
-                                     String id) throws IOException {
+                                     String id) {
     return new CachingCatalog(ctx, remote, cache, id);
   }
 }

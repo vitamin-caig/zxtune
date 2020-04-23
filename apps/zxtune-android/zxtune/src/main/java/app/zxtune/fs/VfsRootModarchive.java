@@ -21,7 +21,7 @@ import java.util.Locale;
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.modarchive.Author;
 import app.zxtune.fs.modarchive.CachingCatalog;
 import app.zxtune.fs.modarchive.Catalog;
@@ -39,7 +39,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   private final CachingCatalog catalog;
   private final GroupingDir[] groupings;
 
-  VfsRootModarchive(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootModarchive(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
     this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http, cache);

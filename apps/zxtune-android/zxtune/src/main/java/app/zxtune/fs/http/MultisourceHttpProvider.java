@@ -22,6 +22,10 @@ public final class MultisourceHttpProvider {
     this.delegate = delegate;
   }
 
+  public final boolean hasConnection() {
+    return delegate.hasConnection();
+  }
+
   @NonNull
   public final HttpObject getObject(Uri[] uris) throws IOException {
     final long now = System.currentTimeMillis();
@@ -41,6 +45,16 @@ public final class MultisourceHttpProvider {
         }
       }
     }
+  }
+
+  @NonNull
+  public final HttpObject getObject(Uri uri) throws IOException {
+    return delegate.getObject(uri);
+  }
+
+  @NonNull
+  public final InputStream getInputStream(Uri uri) throws IOException {
+    return delegate.getInputStream(uri);
   }
 
   @NonNull

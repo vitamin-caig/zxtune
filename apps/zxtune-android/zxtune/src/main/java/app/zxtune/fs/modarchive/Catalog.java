@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public abstract class Catalog {
 
@@ -100,7 +100,7 @@ public abstract class Catalog {
   @NonNull
   public abstract ByteBuffer getTrackContent(int id) throws IOException;
 
-  public static CachingCatalog create(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  public static CachingCatalog create(Context context, MultisourceHttpProvider http, CacheDir cache) {
     final RemoteCatalog remote = new RemoteCatalog(context, http);
     final Database db = new Database(context);
     return new CachingCatalog(remote, db, cache);

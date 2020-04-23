@@ -2,16 +2,18 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
+
+import java.io.IOException;
+
 import app.zxtune.R;
 import app.zxtune.fs.aminet.Path;
 import app.zxtune.fs.aminet.RemoteCatalog;
 import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
-
-import java.io.IOException;
 
 @Icon(R.drawable.ic_browser_vfs_aminet)
 final class VfsRootAminet extends HttpRootBase implements VfsRoot {
@@ -19,11 +21,11 @@ final class VfsRootAminet extends HttpRootBase implements VfsRoot {
   private final Context context;
   private final RemoteCatalog remote;
 
-  VfsRootAminet(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootAminet(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
     this(parent, context, new RemoteCatalog(http), cache);
   }
 
-  private VfsRootAminet(VfsObject parent, Context context, RemoteCatalog remote, CacheDir cache) throws IOException {
+  private VfsRootAminet(VfsObject parent, Context context, RemoteCatalog remote, CacheDir cache) {
     super(parent, Catalog.create(context, remote, cache, "aminet"), Path.create());
     this.context = context;
     this.remote = remote;

@@ -10,17 +10,16 @@ import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.cache.CacheFactory;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.HttpProviderFactory;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 @Icon(R.drawable.ic_browser_vfs_network)
 class VfsRootNetwork extends VfsRootComposite {
 
   private final Context ctx;
 
-  VfsRootNetwork(Context appContext) throws IOException {
+  VfsRootNetwork(Context appContext, MultisourceHttpProvider http, CacheDir cache) {
     super("online");
     this.ctx = appContext;
-    final HttpProvider http = HttpProviderFactory.createProvider(appContext);
-    final CacheDir cache = CacheFactory.create(appContext);
     addSubroot(new VfsRootZxtunes(this, appContext, http, cache));
     addSubroot(new VfsRootModland(this, appContext, http, cache));
     addSubroot(new VfsRootHvsc(this, appContext, http, cache));

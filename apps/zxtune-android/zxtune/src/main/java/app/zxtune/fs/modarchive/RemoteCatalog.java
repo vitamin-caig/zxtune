@@ -116,13 +116,11 @@ class RemoteCatalog extends Catalog {
     }
   }
 
-  private final HttpProvider http;
-  private final MultisourceHttpProvider multiHttp;
+  private final MultisourceHttpProvider http;
   private final String key;
 
-  RemoteCatalog(Context context, HttpProvider http) {
+  RemoteCatalog(Context context, MultisourceHttpProvider http) {
     this.http = http;
-    this.multiHttp = new MultisourceHttpProvider(http);
     final Bundle metaData = getAppMetadata(context);
     this.key = metaData.getString("key.modarchive");
   }
@@ -193,12 +191,12 @@ class RemoteCatalog extends Catalog {
   @NonNull
   public ByteBuffer getTrackContent(int id) throws IOException {
     Log.d(TAG, "getTrackContent(id=%d)", id);
-    return Io.readFrom(multiHttp.getInputStream(getContentUris(id)));
+    return Io.readFrom(http.getInputStream(getContentUris(id)));
   }
 
   final HttpObject getTrackObject(int id) throws IOException {
     Log.d(TAG, "getTrackObject(id=%d)", id);
-    return multiHttp.getObject(getContentUris(id));
+    return http.getObject(getContentUris(id));
   }
 
   private static Uri[] getContentUris(int id) {
@@ -466,7 +464,7 @@ class RemoteCatalog extends Catalog {
   }
 
   private void loadPages(String baseUri, RootElement root, final ProgressCallback progress) throws IOException {
-    final int totalPages[] = new int[]{1};
+    final int[] totalPages = new int[]{1};
     root.getChild("totalpages").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {

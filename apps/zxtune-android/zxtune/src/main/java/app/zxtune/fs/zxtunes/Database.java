@@ -59,7 +59,7 @@ final class Database {
               + " INTEGER PRIMARY KEY, " + Fields.nickname + " TEXT NOT NULL, " + Fields.name
               + " TEXT);";
 
-      Authors(DBProvider helper) throws IOException {
+      Authors(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
 
@@ -87,7 +87,7 @@ final class Database {
               + " INTEGER PRIMARY KEY, " + Fields.filename + " TEXT NOT NULL, " + Fields.title
               + " TEXT, " + Fields.duration + " INTEGER, " + Fields.date + " INTEGER);";
 
-      Tracks(DBProvider helper) throws IOException {
+      Tracks(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
 
@@ -118,7 +118,7 @@ final class Database {
       static final String NAME = "authors_tracks";
       static final String CREATE_QUERY = Grouping.createQuery(NAME);
 
-      AuthorsTracks(DBProvider helper) throws IOException {
+      AuthorsTracks(DBProvider helper) {
         super(helper, NAME, 32);
       }
 
@@ -139,7 +139,7 @@ final class Database {
   private final Timestamps timestamps;
   private final String findQuery;
 
-  Database(Context context) throws IOException {
+  Database(Context context) {
     this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorsTracks = new Tables.AuthorsTracks(helper);
@@ -151,7 +151,7 @@ final class Database {
             " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
   }
 
-  final Transaction startTransaction() throws IOException {
+  final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
 

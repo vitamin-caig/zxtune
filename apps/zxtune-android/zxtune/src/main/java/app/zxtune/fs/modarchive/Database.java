@@ -11,8 +11,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import java.io.IOException;
-
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.DBProvider;
@@ -57,7 +55,7 @@ final class Database {
               "alias TEXT NOT NULL" +
               ");";
 
-      Authors(DBProvider helper) throws IOException {
+      Authors(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
 
@@ -87,7 +85,7 @@ final class Database {
               "size INTEGER NOT NULL" +
               ");";
 
-      Tracks(DBProvider helper) throws IOException {
+      Tracks(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
 
@@ -117,7 +115,7 @@ final class Database {
       static final String NAME = "author_tracks";
       static final String CREATE_QUERY = Grouping.createQuery(NAME);
 
-      AuthorTracks(DBProvider helper) throws IOException {
+      AuthorTracks(DBProvider helper) {
         super(helper, NAME, 32);
       }
 
@@ -144,7 +142,7 @@ final class Database {
               "tracks INTEGER NOT NULL" +
               ");";
 
-      Genres(DBProvider helper) throws IOException {
+      Genres(DBProvider helper) {
         super(helper, NAME, Fields.values().length);
       }
 
@@ -165,7 +163,7 @@ final class Database {
       static final String NAME = "genre_tracks";
       static final String CREATE_QUERY = Grouping.createQuery(NAME);
 
-      GenreTracks(DBProvider helper) throws IOException {
+      GenreTracks(DBProvider helper) {
         super(helper, NAME, 32);
       }
 
@@ -188,7 +186,7 @@ final class Database {
   private final Timestamps timestamps;
   private final String findQuery;
 
-  Database(Context context) throws IOException {
+  Database(Context context) {
     this.helper = new DBProvider(Helper.create(context));
     this.authors = new Tables.Authors(helper);
     this.authorTracks = new Tables.AuthorTracks(helper);
@@ -202,7 +200,7 @@ final class Database {
             " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
   }
 
-  final Transaction startTransaction() throws IOException {
+  final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
 

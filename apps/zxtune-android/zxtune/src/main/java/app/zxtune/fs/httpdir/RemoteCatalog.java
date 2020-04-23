@@ -1,11 +1,9 @@
 package app.zxtune.fs.httpdir;
 
 import android.net.Uri;
+
 import androidx.annotation.NonNull;
-import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.fs.http.MultisourceHttpProvider;
-import app.zxtune.io.Io;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -15,12 +13,16 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
+import app.zxtune.fs.http.HttpObject;
+import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.io.Io;
+
 public class RemoteCatalog extends Catalog {
 
   private final MultisourceHttpProvider http;
 
-  public RemoteCatalog(HttpProvider http) {
-    this.http = new MultisourceHttpProvider(http);
+  public RemoteCatalog(MultisourceHttpProvider http) {
+    this.http = http;
   }
 
   @NonNull
