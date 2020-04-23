@@ -13,7 +13,6 @@ import android.text.format.Formatter;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import app.zxtune.R;
@@ -489,11 +488,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     public String getSize() {
       return Formatter.formatShortFileSize(context, track.size * 1024);
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(track.id);
     }
 
     @Override

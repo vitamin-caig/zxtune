@@ -11,7 +11,6 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.cache.CacheDir;
@@ -73,14 +72,6 @@ public abstract class Catalog {
   public abstract Grouping getCollections();
 
   public abstract Grouping getFormats();
-
-  /**
-   * Get track file content
-   * @param path path to module starting from /pub/..
-   * @return content
-   */
-  @NonNull
-  public abstract ByteBuffer getTrackContent(String path) throws IOException;
 
   public static CachingCatalog create(Context context, MultisourceHttpProvider http, CacheDir cache) {
     final RemoteCatalog remote = new RemoteCatalog(http);

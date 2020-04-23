@@ -14,7 +14,6 @@ import android.util.SparseIntArray;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
@@ -715,11 +714,6 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     @Override
     public String getSize() {
       return module.duration;
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(module.id);
     }
 
     private String getShareUrl() {

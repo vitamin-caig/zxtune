@@ -6,24 +6,18 @@
 
 package app.zxtune.fs.amp;
 
-import android.net.Uri;
-
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
-import app.zxtune.fs.dbhelpers.DownloadCommand;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Transaction;
-import app.zxtune.fs.http.HttpObject;
 
 final public class CachingCatalog extends Catalog {
 
@@ -64,7 +58,7 @@ final public class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -100,7 +94,7 @@ final public class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -136,7 +130,7 @@ final public class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -173,7 +167,7 @@ final public class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -210,7 +204,7 @@ final public class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -239,24 +233,6 @@ final public class CachingCatalog extends Catalog {
     } else {
       db.findTracks(query, visitor);
     }
-  }
-
-  @Override
-  @NonNull
-  public ByteBuffer getTrackContent(final int id) throws IOException {
-    return executor.executeDownloadCommand(new DownloadCommand() {
-      @NonNull
-      @Override
-      public File getCache() throws IOException {
-        return cache.findOrCreate(Integer.toString(id));
-      }
-
-      @NonNull
-      @Override
-      public HttpObject getRemote() throws IOException {
-        return remote.getTrackObject(id);
-      }
-    });
   }
 
   @Nullable

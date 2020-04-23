@@ -8,11 +8,9 @@ package app.zxtune.fs.modarchive;
 
 import android.content.Context;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.cache.CacheDir;
@@ -91,14 +89,6 @@ public abstract class Catalog {
    */
   @Nullable
   public abstract void findRandomTracks(TracksVisitor visitor) throws IOException;
-
-  /**
-   * Get track file content
-   * @param id track identifier
-   * @return content
-   */
-  @NonNull
-  public abstract ByteBuffer getTrackContent(int id) throws IOException;
 
   public static CachingCatalog create(Context context, MultisourceHttpProvider http, CacheDir cache) {
     final RemoteCatalog remote = new RemoteCatalog(context, http);

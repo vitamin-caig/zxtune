@@ -27,7 +27,6 @@ import android.text.format.Formatter;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import app.zxtune.R;
@@ -382,11 +381,6 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     @Override
     public String getSize() {
       return Formatter.formatShortFileSize(context, track.size);
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(track.path);
     }
 
     @Override

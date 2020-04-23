@@ -11,7 +11,6 @@ import android.net.Uri;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import app.zxtune.fs.StubObject;
 import app.zxtune.fs.VfsDir;
@@ -126,7 +125,6 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
   protected class HttpFile extends HttpObject implements VfsFile {
 
     private final String size;
-    private ByteBuffer content;
 
     public HttpFile(Path path, String descr, String size) {
       super(path, descr);
@@ -136,14 +134,6 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
     @Override
     public String getSize() {
       return size;
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      if (content == null) {
-        content = catalog.getFileContent(path);
-      }
-      return content;
     }
 
     @Override

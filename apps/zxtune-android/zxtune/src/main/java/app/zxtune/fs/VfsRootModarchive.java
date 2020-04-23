@@ -13,7 +13,6 @@ import android.text.format.Formatter;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Locale;
@@ -451,12 +450,6 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     public String getSize() {
       return Formatter.formatShortFileSize(context, track.size);
     }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(track.id);
-    }
-
 
     private String getShareUrl() {
       return String.format(Locale.US, "http://modarchive.org/index.php?request=view_player&query=%d",

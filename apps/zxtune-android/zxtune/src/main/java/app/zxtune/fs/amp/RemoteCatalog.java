@@ -9,17 +9,13 @@ package app.zxtune.fs.amp;
 import android.net.Uri;
 import android.text.Html;
 
-import androidx.annotation.NonNull;
-
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.zxtune.Log;
 import app.zxtune.fs.api.Cdn;
-import app.zxtune.fs.http.HttpObject;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
 
@@ -198,18 +194,6 @@ public class RemoteCatalog extends Catalog {
       final Integer size = Integer.valueOf(matcher.group(5));
       visitor.accept(new Author(authorId, authorHandle, ""/*realName*/), new Track(trackId, trackName, size));
     }
-  }
-
-  @Override
-  @NonNull
-  public ByteBuffer getTrackContent(int id) throws IOException {
-    Log.d(TAG, "getTrackContent(%d)", id);
-    return Io.readFrom(http.getInputStream(getTrackUris(id)));
-  }
-
-  final HttpObject getTrackObject(int id) throws IOException {
-    Log.d(TAG, "getTrackObject(%d)", id);
-    return http.getObject(getTrackUris(id));
   }
 
   public static Uri[] getTrackUris(int id) {

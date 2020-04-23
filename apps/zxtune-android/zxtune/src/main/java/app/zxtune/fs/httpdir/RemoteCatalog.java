@@ -2,8 +2,6 @@ package app.zxtune.fs.httpdir;
 
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,7 +11,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
-import app.zxtune.fs.http.HttpObject;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
 
@@ -25,14 +22,8 @@ public class RemoteCatalog extends Catalog {
     this.http = http;
   }
 
-  @NonNull
-  @Override
-  public ByteBuffer getFileContent(Path path) throws IOException {
+  private ByteBuffer getFileContent(Path path) throws IOException {
     return Io.readFrom(http.getInputStream(path.getRemoteUris()));
-  }
-
-  HttpObject getFileObject(Path path) throws IOException {
-    return http.getObject(path.getRemoteUris());
   }
 
   @Override
@@ -41,6 +32,7 @@ public class RemoteCatalog extends Catalog {
     parseDir(data, visitor);
   }
 
+  // TODO: operate with streams
   void parseDir(ByteBuffer data, DirVisitor visitor) throws IOException {
     final Document doc = Jsoup.parse(new ByteArrayInputStream(data.array()), null, "");
     if (parseXmlIndex(doc, visitor) || parseTableMarkup(doc, visitor) || parsePreMarkup(doc, visitor)) {

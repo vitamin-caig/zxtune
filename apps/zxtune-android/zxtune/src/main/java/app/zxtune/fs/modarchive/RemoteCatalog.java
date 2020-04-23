@@ -19,7 +19,6 @@ import android.sax.RootElement;
 import android.text.Html;
 import android.util.Xml;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.xml.sax.SAXException;
@@ -27,16 +26,12 @@ import org.xml.sax.SAXException;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
 import app.zxtune.StubProgressCallback;
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.api.Cdn;
-import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.MultisourceHttpProvider;
-import app.zxtune.io.Io;
 
 /**
  * API entry point:
@@ -185,18 +180,6 @@ public class RemoteCatalog extends Catalog {
     final String uri = ApiUriBuilder.forQuery(key).setRequest("random").build();
     final RootElement root = createTracksParserRoot(visitor);
     loadSinglePage(uri, root);
-  }
-
-  @Override
-  @NonNull
-  public ByteBuffer getTrackContent(int id) throws IOException {
-    Log.d(TAG, "getTrackContent(id=%d)", id);
-    return Io.readFrom(http.getInputStream(getTrackUris(id)));
-  }
-
-  final HttpObject getTrackObject(int id) throws IOException {
-    Log.d(TAG, "getTrackObject(id=%d)", id);
-    return http.getObject(getTrackUris(id));
   }
 
   public static Uri[] getTrackUris(int id) {

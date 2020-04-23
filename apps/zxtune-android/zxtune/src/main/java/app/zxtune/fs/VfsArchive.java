@@ -13,7 +13,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -312,12 +311,6 @@ public final class VfsArchive {
     @Override
     public String getSize() {
       return track.duration.toString();
-    }
-
-    @NonNull
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      throw new IOException("Should not be called");
     }
   }
 

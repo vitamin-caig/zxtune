@@ -13,7 +13,6 @@ import android.util.SparseIntArray;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -360,11 +359,6 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
       return module.duration != null
               ? FRAME_DURATION.multiplies(module.duration).toString()
               : "";
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(module.id);
     }
 
     @Nullable

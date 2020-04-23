@@ -1,18 +1,18 @@
 package app.zxtune.fs;
 
 import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import app.zxtune.core.Identifier;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+
 import app.zxtune.Log;
+import app.zxtune.core.Identifier;
 import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator.Entry;
 import app.zxtune.playlist.XspfIterator;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Comparator;
 
 final class VfsPlaylistDir implements VfsDir {
 
@@ -87,7 +87,6 @@ final class VfsPlaylistDir implements VfsDir {
     }
   }
 
-
   @Override
   public void enumerate(Visitor visitor) {
     visitor.onItemsCount(entries.size());
@@ -134,11 +133,6 @@ final class VfsPlaylistDir implements VfsDir {
     @Override
     public String getSize() {
       return entry.duration.toString();
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      throw new IOException("Should not be called");
     }
   }
 

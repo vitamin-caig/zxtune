@@ -7,10 +7,10 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import app.zxtune.R;
 import app.zxtune.playlist.XspfStorage;
@@ -88,16 +88,6 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
     @Override
     public String getSize() {
       return getDescription();
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      final VfsObject obj = Vfs.resolve(uri);
-      if (obj instanceof VfsFile) {
-        return Vfs.read((VfsFile) obj);
-      } else {
-        throw new IOException("Not a file " + uri);
-      }
     }
   }
 }
