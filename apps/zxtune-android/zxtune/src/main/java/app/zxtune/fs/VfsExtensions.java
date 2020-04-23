@@ -33,4 +33,7 @@ public final class VfsExtensions {
 
   // File
   public static final String CACHE = "CACHE";
+
+  // File
+  public static final String FILE = "FILE";
 }

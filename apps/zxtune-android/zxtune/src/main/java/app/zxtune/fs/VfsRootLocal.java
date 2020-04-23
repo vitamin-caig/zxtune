@@ -302,5 +302,15 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
     public ByteBuffer getContent() throws IOException {
       return Io.readFrom(object);
     }
+
+    @Nullable
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.FILE.equals(id)) {
+        return object;
+      } else {
+        return super.getExtension(id);
+      }
+    }
   }
 }
