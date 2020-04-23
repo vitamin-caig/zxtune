@@ -128,10 +128,10 @@ public final class Scanner {
     if (filename == null) {
       return false;
     } else if (filename.endsWith(".ayl")) {
-      analyzePlaylist(file.getUri(), AylIterator.create(file.getContent()), cb);
+      analyzePlaylist(file.getUri(), AylIterator.create(Vfs.read(file)), cb);
       return true;
     } else if (filename.endsWith(".xspf")) {
-      analyzePlaylist(file.getUri(), XspfIterator.create(file.getContent()), cb);
+      analyzePlaylist(file.getUri(), XspfIterator.create(Vfs.read(file)), cb);
       return true;
     } else {
       return false;

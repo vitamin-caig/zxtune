@@ -9,7 +9,10 @@ package app.zxtune.fs;
 import android.content.Context;
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import app.zxtune.MainApplication;
 
@@ -43,5 +46,9 @@ public final class Vfs {
       rootSingleton = composite;
     }
     return rootSingleton;
+  }
+
+  public static ByteBuffer read(@NonNull VfsFile file) throws IOException {
+    return file.getContent();
   }
 }

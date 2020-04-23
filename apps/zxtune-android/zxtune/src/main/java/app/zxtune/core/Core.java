@@ -22,7 +22,7 @@ public class Core {
 
   @NonNull
   public static Module loadModule(@NonNull VfsFile file, @NonNull String subpath) throws IOException, ResolvingException {
-    final ByteBuffer content = file.getContent();
+    final ByteBuffer content = Vfs.read(file);
     final LogContext log = new LogContext(file.getUri(), subpath, content.limit());
     log.action("loadModule begin");
     final Module obj = JniModule.load(makeDirectBuffer(content), subpath);
@@ -40,7 +40,7 @@ public class Core {
   }
 
   public static void detectModules(@NonNull VfsFile file, @NonNull ModuleDetectCallback callback) throws IOException {
-    final ByteBuffer content = file.getContent();
+    final ByteBuffer content = Vfs.read(file);
     final LogContext log = new LogContext(file.getUri(), "*", content.limit());
     final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback, log);
     log.action("detectModules begin");
@@ -170,7 +170,7 @@ public class Core {
       if (file == null) {
         throw new IOException(String.format(Locale.US, "Failed to find additional file '%s'", name));
       }
-      return file.getContent();
+      return Vfs.read(file);
     }
 
     @Nullable

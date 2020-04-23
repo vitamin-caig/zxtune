@@ -32,9 +32,9 @@ final class VfsPlaylistDir implements VfsDir {
     }
     try {
       if (filename.endsWith(TYPE_AYL)) {
-        return new VfsPlaylistDir(file, AylIterator.parse(file.getContent()));
+        return new VfsPlaylistDir(file, AylIterator.parse(Vfs.read(file)));
       } else if (filename.endsWith(TYPE_XSPF)) {
-        return new VfsPlaylistDir(file, XspfIterator.parse(file.getContent()));
+        return new VfsPlaylistDir(file, XspfIterator.parse(Vfs.read(file)));
       }
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to parse playlist");

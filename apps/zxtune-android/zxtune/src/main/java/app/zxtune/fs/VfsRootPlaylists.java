@@ -21,7 +21,7 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
 
   private final Context context;
 
-  public VfsRootPlaylists(Context context) {
+  VfsRootPlaylists(Context context) {
     this.context = context;
   }
 
@@ -94,7 +94,7 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
     public ByteBuffer getContent() throws IOException {
       final VfsObject obj = Vfs.resolve(uri);
       if (obj instanceof VfsFile) {
-        return ((VfsFile) obj).getContent();
+        return Vfs.read((VfsFile) obj);
       } else {
         throw new IOException("Not a file " + uri);
       }
