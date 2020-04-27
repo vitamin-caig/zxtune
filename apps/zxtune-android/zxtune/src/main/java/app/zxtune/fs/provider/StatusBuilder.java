@@ -15,4 +15,10 @@ class StatusBuilder {
     result.addRow(Schema.Status.makeProgress(done));
     return result;
   }
+
+  static Cursor makeProgress(int done, int total) {
+    final MatrixCursor result = new MatrixCursor(Schema.Status.COLUMNS, 1);
+    result.addRow(Schema.Status.makeProgress(done, total));
+    return result;
+  }
 }

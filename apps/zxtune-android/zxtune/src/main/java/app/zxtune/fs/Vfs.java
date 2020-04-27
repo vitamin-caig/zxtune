@@ -10,6 +10,7 @@ import android.content.Context;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,6 +58,11 @@ public final class Vfs {
 
   @NonNull
   public static ByteBuffer read(@NonNull final VfsFile file) throws IOException {
+    return read(file, null);
+  }
+
+  @NonNull
+  public static ByteBuffer read(@NonNull final VfsFile file, @Nullable ProgressCallback progress) throws IOException {
     final Uri uri = file.getUri();
     {
       final Object asFile = file.getExtension(VfsExtensions.FILE);
@@ -87,7 +93,7 @@ public final class Vfs {
         }
         throw new IOException("Failed to get download uris for " + uri);
       }
-    });
+    }, progress);
   }
 
   private static boolean createParentDirFor(@NonNull File file) {

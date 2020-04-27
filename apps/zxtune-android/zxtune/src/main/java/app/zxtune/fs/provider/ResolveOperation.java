@@ -19,7 +19,7 @@ class ResolveOperation implements AsyncQueryOperation {
   private final Uri uri;
   private final LruCache<Uri, VfsObject> cache;
   private VfsObject result;
-  private final int[] progress = {-1};
+  private final int[] progress = {-1, -1};
 
   ResolveOperation(@NonNull Uri uri, LruCache<Uri, VfsObject> cache) {
     this.uri = uri;
@@ -45,6 +45,7 @@ class ResolveOperation implements AsyncQueryOperation {
         public void onProgressUpdate(int done, int total) {
           checkForCancel();
           progress[0] = done;
+          progress[1] = total;
         }
       });
     }
@@ -60,6 +61,6 @@ class ResolveOperation implements AsyncQueryOperation {
 
   @Override
   public Cursor status() {
-    return StatusBuilder.makeProgress(progress[0]);
+    return StatusBuilder.makeProgress(progress[0], progress[1]);
   }
 }

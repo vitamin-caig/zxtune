@@ -7,9 +7,12 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.http.HttpObject;
 import app.zxtune.io.Io;
 import app.zxtune.io.TransactionalOutputStream;
@@ -69,7 +72,7 @@ public class CommandExecutor {
     return remote;
   }
 
-  public final ByteBuffer executeDownloadCommand(DownloadCommand cmd) throws IOException {
+  public final ByteBuffer executeDownloadCommand(DownloadCommand cmd, ProgressCallback progress) throws IOException {
     final String scope = "file";
     int action = Analytics.VFS_ACTION_CACHED_FETCH;
     HttpObject remote = null;
@@ -81,7 +84,7 @@ public class CommandExecutor {
           remote = cmd.getRemote();
           if (isEmpty || needUpdate(cache, remote)) {
             Log.d(TAG,"Download %s to %s", remote.getUri(), cache.getAbsolutePath());
-            download(remote, cache);
+            download(remote, cache, progress);
           } else {
             Log.d(TAG, "Update timestamp of %s", cache.getAbsolutePath());
             Io.touch(cache);
@@ -106,7 +109,7 @@ public class CommandExecutor {
     if (remote == null) {
       remote = cmd.getRemote();
     }
-    final ByteBuffer result = download(remote);
+    final ByteBuffer result = download(remote, progress);
     Analytics.sendVfsEvent(id, scope, Analytics.VFS_ACTION_REMOTE_FALLBACK);
     return result;
   }
@@ -147,12 +150,14 @@ public class CommandExecutor {
     }
   }
 
-  private void download(HttpObject remote, File cache) throws IOException {
+  private void download(HttpObject remote, File cache, @Nullable ProgressCallback progress) throws IOException {
     checkAvailableSpace(remote, cache);
     final TransactionalOutputStream output = new TransactionalOutputStream(cache);
     try {
       final InputStream input = remote.getInput();
-      Io.copy(input, output);
+      final Long remoteSize = remote.getContentLength();
+      final InputStream in = ProgressTrackingInput.wrap(input, remoteSize, progress);
+      Io.copy(in, output);
       output.flush();
       //TODO: differ fetch/update
       Analytics.sendVfsEvent(id, "file", Analytics.VFS_ACTION_REMOTE_FETCH);
@@ -172,9 +177,63 @@ public class CommandExecutor {
     }
   }
 
-  private static ByteBuffer download(HttpObject remote) throws IOException {
+  private static ByteBuffer download(HttpObject remote, @Nullable ProgressCallback progress) throws IOException {
     final Long remoteSize = remote.getContentLength();
     final InputStream input = remote.getInput();
-    return remoteSize != null ? Io.readFrom(input, remoteSize) : Io.readFrom(input);
+    if (remoteSize != null) {
+      final InputStream in = ProgressTrackingInput.wrap(input, remoteSize, progress);
+      return Io.readFrom(in, remoteSize);
+    } else {
+      return Io.readFrom(input);
+    }
+  }
+
+  private static class ProgressTrackingInput extends InputStream {
+    private final InputStream delegate;
+    private final ProgressCallback progress;
+    private final int total;
+    private long done;
+
+    static InputStream wrap(InputStream in, Long size, ProgressCallback progress) {
+      return size != null && progress != null
+          ? new ProgressTrackingInput(in, progress, size)
+          : in;
+    }
+
+    private ProgressTrackingInput(InputStream delegate, ProgressCallback progress, long total) {
+      this.delegate = delegate;
+      this.progress = progress;
+      this.total = (int) (total / 1024);
+    }
+
+    @Override
+    public void close() throws IOException {
+      delegate.close();
+    }
+
+    @Override
+    public int read() throws IOException {
+      final int res = delegate.read();
+      if (res != -1) {
+        update(1);
+      }
+      return res;
+    }
+
+    @Override
+    public int read(@NonNull byte[] b, int off, int len) throws IOException {
+      final int res = delegate.read(b, off, len);
+      if (res >= 0) {
+        update(res);
+      }
+      return res;
+    }
+
+    private void update(int len) {
+      done += len;
+      if (len >= 1024) {
+        progress.onProgressUpdate((int)(done / 1024), total);
+      }
+    }
   }
 }
