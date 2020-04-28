@@ -10,7 +10,6 @@ import java.io.IOException;
 import app.zxtune.R;
 import app.zxtune.fs.aminet.Path;
 import app.zxtune.fs.aminet.RemoteCatalog;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
@@ -21,12 +20,12 @@ final class VfsRootAminet extends HttpRootBase implements VfsRoot {
   private final Context context;
   private final RemoteCatalog remote;
 
-  VfsRootAminet(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
-    this(parent, context, new RemoteCatalog(http), cache);
+  VfsRootAminet(VfsObject parent, Context context, MultisourceHttpProvider http) {
+    this(parent, context, new RemoteCatalog(http));
   }
 
-  private VfsRootAminet(VfsObject parent, Context context, RemoteCatalog remote, CacheDir cache) {
-    super(parent, Catalog.create(context, remote, cache, "aminet"), Path.create());
+  private VfsRootAminet(VfsObject parent, Context context, RemoteCatalog remote) {
+    super(parent, Catalog.create(context, remote, "aminet"), Path.create());
     this.context = context;
     this.remote = remote;
   }

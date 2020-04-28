@@ -19,7 +19,6 @@ import java.util.Locale;
 
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.modarchive.Author;
 import app.zxtune.fs.modarchive.CachingCatalog;
@@ -39,10 +38,10 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   private final CachingCatalog catalog;
   private final GroupingDir[] groupings;
 
-  VfsRootModarchive(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
+  VfsRootModarchive(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
+    this.catalog = Catalog.create(context, http);
     this.groupings = new GroupingDir[]{
             new AuthorsDir(),
             new GenresDir(),
@@ -429,8 +428,8 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.CACHE.equals(id)) {
-        return catalog.getTrackCache(track.id);
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return Integer.toString(track.id);
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return RemoteCatalog.getTrackUris(track.id);
       } else if (VfsExtensions.SHARE_URL.equals(id)) {

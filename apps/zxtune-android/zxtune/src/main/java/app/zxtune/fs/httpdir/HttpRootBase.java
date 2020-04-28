@@ -138,8 +138,8 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.CACHE.equals(id)) {
-        return catalog.getFileCache(path);
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return path.getLocalId();
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return path.getRemoteUris();
       } else {

@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.concurrent.CancellationException;
 
 import app.zxtune.fs.DefaultComparator;
+import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
@@ -111,8 +112,8 @@ class ListingCursorBuilder extends VfsDir.Visitor {
     return null != obj.getExtension(VfsExtensions.FEED);
   }
 
-  private static Boolean isCached(@NonNull VfsObject obj) {
-    final File f = (File) obj.getExtension(VfsExtensions.CACHE);
+  private static Boolean isCached(@NonNull VfsFile obj) {
+    final File f = Vfs.getCache(obj);
     return f != null ? f.isFile() : null;
   }
 

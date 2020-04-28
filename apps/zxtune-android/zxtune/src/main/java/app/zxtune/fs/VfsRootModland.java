@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.util.List;
 
 import app.zxtune.R;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.modland.CachingCatalog;
 import app.zxtune.fs.modland.Catalog;
@@ -70,13 +69,12 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
   private final VfsObject parent;
   private final Context context;
-  private final CachingCatalog catalog;
   private final GroupsDir[] groups;
 
-  VfsRootModland(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
+  VfsRootModland(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
+    final CachingCatalog catalog = Catalog.create(context, http);
     this.groups = new GroupsDir[]{
         new GroupsDir("Authors",
             R.string.vfs_modland_authors_name, R.string.vfs_modland_authors_description,
@@ -194,7 +192,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     }
 
     @Override
-    public void enumerate(Visitor visitor) throws IOException {
+    public void enumerate(Visitor visitor) {
       visitor.onDir(new GroupByLetterDir(NOT_LETTER));
       for (char c = 'A'; c <= 'Z'; ++c) {
         visitor.onDir(new GroupByLetterDir(String.valueOf(c)));
@@ -385,8 +383,8 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.CACHE.equals(id)) {
-        return catalog.getTrackCache(track.path);
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return track.path;
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return RemoteCatalog.getTrackUris(track.path);
       } else {

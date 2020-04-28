@@ -8,6 +8,4 @@ public interface CacheDir {
 
   @Nullable
   File find(String... ids);
-
-  CacheDir createNested(String id);
 }

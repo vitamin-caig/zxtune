@@ -12,7 +12,6 @@ import android.net.Uri;
 import androidx.annotation.Nullable;
 
 import app.zxtune.R;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
@@ -25,8 +24,8 @@ final class VfsRootHvsc extends HttpRootBase implements VfsRoot {
 
   private final Context context;
 
-  VfsRootHvsc(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
-    super(parent, Catalog.create(context, http, cache, "hvsc"), Path.create());
+  VfsRootHvsc(VfsObject parent, Context context, MultisourceHttpProvider http) {
+    super(parent, Catalog.create(context, http, "hvsc"), Path.create());
     this.context = context;
   }
 

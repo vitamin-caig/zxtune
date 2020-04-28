@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.zxtunes.Author;
 import app.zxtune.fs.zxtunes.CachingCatalog;
@@ -38,10 +37,10 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   private final CachingCatalog catalog;
   private final GroupingDir[] groups;
 
-  VfsRootZxtunes(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
+  VfsRootZxtunes(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
+    this.catalog = Catalog.create(context, http);
     this.groups = new GroupingDir[]{
             new AuthorsDir()
     };
@@ -343,8 +342,8 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.CACHE.equals(id)) {
-        return catalog.getTrackCache(module.id);
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return Integer.toString(module.id);
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return RemoteCatalog.getTrackUris(module.id);
       } else if (VfsExtensions.SHARE_URL.equals(id)) {

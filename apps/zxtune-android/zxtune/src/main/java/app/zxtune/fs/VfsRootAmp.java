@@ -25,7 +25,6 @@ import app.zxtune.fs.amp.Group;
 import app.zxtune.fs.amp.Identifier;
 import app.zxtune.fs.amp.RemoteCatalog;
 import app.zxtune.fs.amp.Track;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
 @Icon(R.drawable.ic_browser_vfs_amp)
@@ -38,10 +37,10 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   private final CachingCatalog catalog;
   private final GroupingDir[] groupings;
 
-  VfsRootAmp(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
+  VfsRootAmp(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
+    this.catalog = Catalog.create(context, http);
     this.groupings = new GroupingDir[]{
             new HandlesDir(),
             new CountriesDir(),
@@ -492,8 +491,8 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.CACHE.equals(id)) {
-        return catalog.getTrackCache(track.id);
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return Integer.toString(track.id);
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return RemoteCatalog.getTrackUris(track.id);
       } else {

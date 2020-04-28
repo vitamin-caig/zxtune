@@ -2,16 +2,12 @@ package app.zxtune.fs.httpdir;
 
 import android.content.Context;
 
-import androidx.annotation.Nullable;
-
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.FileTree;
 import app.zxtune.fs.dbhelpers.QueryCommand;
@@ -22,23 +18,14 @@ final class CachingCatalog extends Catalog {
 
   private final static TimeStamp DIR_TTL = TimeStamp.createFrom(1, TimeUnit.DAYS);
 
-  private final String tag;
   private final RemoteCatalog remote;
   private final FileTree db;
-  private final CacheDir cache;
   private final CommandExecutor executor;
 
-  CachingCatalog(Context ctx, RemoteCatalog remote, CacheDir cache, String id) {
-    this.tag = CachingCatalog.class.getName() + "@" + id;
+  CachingCatalog(Context ctx, RemoteCatalog remote, String id) {
     this.remote = remote;
     this.db = new FileTree(ctx, id);
-    this.cache = cache.createNested(id);
     this.executor = new CommandExecutor(id);
-  }
-
-  @Nullable
-  final File getFileCache(Path path) {
-    return cache.find(path.getLocalId());
   }
 
   @Override

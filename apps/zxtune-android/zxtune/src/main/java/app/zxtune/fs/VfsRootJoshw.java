@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 import java.util.TreeSet;
 
 import app.zxtune.R;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
@@ -27,8 +26,8 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
   private final Context context;
   private final AudiobaseDir[] bases;
 
-  VfsRootJoshw(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
-    super(parent, Catalog.create(context, http, cache, "joshw"), Path.create());
+  VfsRootJoshw(VfsObject parent, Context context, MultisourceHttpProvider http) {
+    super(parent, Catalog.create(context, http, "joshw"), Path.create());
     this.context = context;
     this.bases = new AudiobaseDir[]{
             new AudiobaseDir("gbs", R.string.vfs_joshw_gbs_name, R.string.vfs_joshw_gbs_description),

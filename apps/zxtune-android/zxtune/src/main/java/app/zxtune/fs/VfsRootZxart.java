@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Locale;
 
 import app.zxtune.R;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.zxart.Author;
 import app.zxtune.fs.zxart.CachingCatalog;
@@ -40,10 +39,10 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   private final CachingCatalog catalog;
   private final GroupingDir[] groups;
 
-  public VfsRootZxart(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
+  public VfsRootZxart(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
+    this.catalog = Catalog.create(context, http);
     this.groups = new GroupingDir[]{
             new AuthorsDir(),
             new PartiesDir(),
@@ -495,13 +494,13 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
           : (lhPlace < rhPlace ? -1 : +1);
     }
 
-    public static Comparator<VfsObject> instance() {
+    static Comparator<VfsObject> instance() {
       return Holder.INSTANCE;
     }
 
     //onDemand holder idiom
     private static class Holder {
-      public static final PartyCompoTracksComparator INSTANCE = new PartyCompoTracksComparator();
+      static final PartyCompoTracksComparator INSTANCE = new PartyCompoTracksComparator();
     }
   }
 
@@ -587,13 +586,13 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
           ((VfsFile) rh).getSize());
     }
 
-    public static Comparator<VfsObject> instance() {
+    static Comparator<VfsObject> instance() {
       return Holder.INSTANCE;
     }
 
     //onDemand holder idiom
     private static class Holder {
-      public static final TopTracksComparator INSTANCE = new TopTracksComparator();
+      static final TopTracksComparator INSTANCE = new TopTracksComparator();
     }
   }
 
@@ -700,8 +699,8 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.CACHE.equals(id)) {
-        return catalog.getTrackCache(module.id);
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return Integer.toString(module.id);
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return RemoteCatalog.getTrackUris(module.id);
       } else if (VfsExtensions.SHARE_URL.equals(id)) {

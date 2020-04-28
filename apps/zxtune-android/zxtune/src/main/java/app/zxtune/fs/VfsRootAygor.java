@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 
 import app.zxtune.R;
 import app.zxtune.fs.aygor.Path;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
@@ -23,8 +22,8 @@ final class VfsRootAygor extends HttpRootBase implements VfsRoot {
 
   private final Context context;
 
-  VfsRootAygor(VfsObject parent, Context context, MultisourceHttpProvider http, CacheDir cache) {
-    super(parent, Catalog.create(context, http, cache, "aygor"), Path.create());
+  VfsRootAygor(VfsObject parent, Context context, MultisourceHttpProvider http) {
+    super(parent, Catalog.create(context, http, "aygor"), Path.create());
     this.context = context;
   }
 

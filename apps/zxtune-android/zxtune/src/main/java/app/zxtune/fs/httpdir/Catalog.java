@@ -10,7 +10,6 @@ import android.content.Context;
 
 import java.io.IOException;
 
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public abstract class Catalog {
@@ -22,19 +21,17 @@ public abstract class Catalog {
   }
 
   /**
-   *
-   * @param path resource location
+   * @param path    resource location
    * @param visitor result receiver
    */
   public abstract void parseDir(Path path, DirVisitor visitor) throws IOException;
 
-  public static CachingCatalog create(Context ctx, MultisourceHttpProvider http, CacheDir cache, String id) {
+  public static CachingCatalog create(Context ctx, MultisourceHttpProvider http, String id) {
     final RemoteCatalog remote = new RemoteCatalog(http);
-    return create(ctx, remote, cache, id);
+    return create(ctx, remote, id);
   }
 
-  public static CachingCatalog create(Context ctx, RemoteCatalog remote, CacheDir cache,
-                                     String id) {
-    return new CachingCatalog(ctx, remote, cache, id);
+  public static CachingCatalog create(Context ctx, RemoteCatalog remote, String id) {
+    return new CachingCatalog(ctx, remote, id);
   }
 }

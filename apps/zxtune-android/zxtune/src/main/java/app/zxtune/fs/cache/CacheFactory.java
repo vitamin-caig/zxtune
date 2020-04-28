@@ -27,18 +27,6 @@ public final class CacheFactory {
     }
   }
 
-  public static CacheDir createMinimal(Context context) {
-    final CacheDir externalCache = makeCache(context.getExternalCacheDir());
-    if (externalCache != null) {
-      return externalCache;
-    }
-    final CacheDir internalCache = makeCache(context.getCacheDir());
-    if (internalCache != null) {
-      return internalCache;
-    }
-    return new StubCacheDir();
-  }
-
   private static CacheDir makeCache(File dir) {
     if (dir != null) {
       return new PersistentCacheDir(dir);

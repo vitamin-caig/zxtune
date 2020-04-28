@@ -28,11 +28,6 @@ final class PersistentCacheDir implements CacheDir {
     return result;
   }
 
-  @Override
-  public CacheDir createNested(String id) {
-    return new PersistentCacheDir(getSub(id));
-  }
-
   private File getSub(String id) {
     return new File(dir, id);
   }

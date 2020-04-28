@@ -8,6 +8,7 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -74,12 +75,9 @@ public final class Vfs {
       @NonNull
       @Override
       public File getCache() throws IOException {
-        final Object cache = file.getExtension(VfsExtensions.CACHE);
-        if (cache instanceof File) {
-          final File res = (File) cache;
-          if (createParentDirFor(res)) {
-            return res;
-          }
+        final File res = Vfs.getCache(file);
+        if (res != null && (res.isFile() || createParentDirFor(res))) {
+          return res;
         }
         throw new IOException("Failed to get cache for " + uri);
       }
@@ -96,6 +94,37 @@ public final class Vfs {
     }, progress);
   }
 
+  public static File getCache(@NonNull VfsFile obj) {
+    final String id = obj.getUri().getScheme();
+    if (TextUtils.isEmpty(id)) {
+      return null;
+    }
+    final String path = (String) obj.getExtension(VfsExtensions.CACHE_PATH);
+    if (path == null) {
+      return null;
+    }
+    final String compatId = getCacheCompatId(id);
+    return Holder.INSTANCE.cache.find(id + "/" + path,
+        compatId + "/" + path);
+  }
+
+  private static String getCacheCompatId(String id) {
+    switch (id) {
+      case "amp":
+        return "amp.dascene.net";
+      case "modarchive":
+        return "modarchive.org";
+      case "modland":
+        return "ftp.modland.com";
+      case "zxart":
+        return "www.zxart.ee";
+      case "zxtunes":
+        return "www.zxtunes.com";
+      default:
+        return id;
+    }
+  }
+
   private static boolean createParentDirFor(@NonNull File file) {
     final File parent = file.getParentFile();
     return parent.isDirectory() || (parent.mkdirs() && parent.isDirectory());
@@ -104,7 +133,7 @@ public final class Vfs {
   private VfsRoot createRoot(Context appContext) {
     final VfsRootComposite composite = new VfsRootComposite(null);
     composite.addSubroot(new VfsRootLocal(appContext));
-    composite.addSubroot(new VfsRootNetwork(appContext, network, cache));
+    composite.addSubroot(new VfsRootNetwork(appContext, network));
     composite.addSubroot(new VfsRootPlaylists(appContext));
     composite.addSubroot(new VfsRootRadio(appContext));
     return composite;
@@ -112,6 +141,6 @@ public final class Vfs {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final Vfs INSTANCE = new Vfs();
+    static final Vfs INSTANCE = new Vfs();
   }
 }

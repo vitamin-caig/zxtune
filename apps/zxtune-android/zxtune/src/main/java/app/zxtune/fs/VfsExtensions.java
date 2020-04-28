@@ -31,8 +31,8 @@ public final class VfsExtensions {
   // java.util.Iterator<VfsFile>
   public static final String FEED = "FEED";
 
-  // File
-  public static final String CACHE = "CACHE";
+  // String
+  public static final String CACHE_PATH = "CACHE_PATH";
 
   // File
   public static final String FILE = "FILE";

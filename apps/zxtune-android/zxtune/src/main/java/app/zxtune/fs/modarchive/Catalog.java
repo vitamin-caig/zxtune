@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import java.io.IOException;
 
 import app.zxtune.fs.ProgressCallback;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public abstract class Catalog {
@@ -90,9 +89,9 @@ public abstract class Catalog {
   @Nullable
   public abstract void findRandomTracks(TracksVisitor visitor) throws IOException;
 
-  public static CachingCatalog create(Context context, MultisourceHttpProvider http, CacheDir cache) {
+  public static CachingCatalog create(Context context, MultisourceHttpProvider http) {
     final RemoteCatalog remote = new RemoteCatalog(context, http);
     final Database db = new Database(context);
-    return new CachingCatalog(remote, db, cache);
+    return new CachingCatalog(remote, db);
   }
 }

@@ -4,7 +4,7 @@ import java.io.File;
 
 final class CompositeCacheDir implements CacheDir {
 
-  private final CacheDir delegates[];
+  private final CacheDir[] delegates;
 
   CompositeCacheDir(CacheDir... delegates) {
     this.delegates = delegates;
@@ -24,14 +24,5 @@ final class CompositeCacheDir implements CacheDir {
       }
     }
     return result;
-  }
-
-  @Override
-  public CacheDir createNested(String id) {
-    final CacheDir[] nested = new CacheDir[delegates.length];
-    for (int idx = 0; idx < delegates.length; ++idx) {
-      nested[idx] = delegates[idx].createNested(id);
-    }
-    return new CompositeCacheDir(nested);
   }
 }

@@ -8,9 +8,4 @@ final class StubCacheDir implements CacheDir {
   public File find(String... ids) {
     return null;
   }
-
-  @Override
-  public CacheDir createNested(String id) {
-    return this;
-  }
 }

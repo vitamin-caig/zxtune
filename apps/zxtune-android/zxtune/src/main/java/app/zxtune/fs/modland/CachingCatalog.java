@@ -7,9 +7,7 @@
 package app.zxtune.fs.modland;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -17,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.StubProgressCallback;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.ProgressCallback;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.FetchCommand;
 import app.zxtune.fs.dbhelpers.QueryCommand;
@@ -35,18 +32,14 @@ final public class CachingCatalog extends Catalog {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
   }
 
-  private final RemoteCatalog remote;
   private final Database db;
-  private final CacheDir cache;
   private final Grouping authors;
   private final Grouping collections;
   private final Grouping formats;
   private final CommandExecutor executor;
 
-  CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
-    this.remote = remote;
+  CachingCatalog(RemoteCatalog remote, Database db) {
     this.db = db;
-    this.cache = cache.createNested("ftp.modland.com");
     this.authors = new CachedGrouping(Database.Tables.Authors.NAME, remote.getAuthors());
     this.collections = new CachedGrouping(Database.Tables.Collections.NAME, remote.getCollections());
     this.formats = new CachedGrouping(Database.Tables.Formats.NAME, remote.getFormats());
@@ -94,7 +87,7 @@ final public class CachingCatalog extends Catalog {
         }
 
         @Override
-        public Transaction startTransaction() throws IOException {
+        public Transaction startTransaction() {
           return db.startTransaction();
         }
 
@@ -132,6 +125,7 @@ final public class CachingCatalog extends Catalog {
           return db.queryGroup(category, id);
         }
 
+        @NonNull
         @Override
         public Group updateCache() throws IOException {
           final Group res = remote.getGroup(id);
@@ -157,7 +151,7 @@ final public class CachingCatalog extends Catalog {
         }
 
         @Override
-        public Transaction startTransaction() throws IOException {
+        public Transaction startTransaction() {
           return db.startTransaction();
         }
 
@@ -196,6 +190,7 @@ final public class CachingCatalog extends Catalog {
           return db.findTrack(category, id, filename);
         }
 
+        @NonNull
         @Override
         public Track updateCache() throws IOException {
           queryTracks(id, new TracksVisitor() {
@@ -216,10 +211,5 @@ final public class CachingCatalog extends Catalog {
         }
       });
     }
-  }
-
-  @Nullable
-  public final File getTrackCache(String id) {
-    return cache.find(id);
   }
 }

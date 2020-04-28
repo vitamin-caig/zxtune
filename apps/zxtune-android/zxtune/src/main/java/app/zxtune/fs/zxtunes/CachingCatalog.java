@@ -6,15 +6,11 @@
 
 package app.zxtune.fs.zxtunes;
 
-import androidx.annotation.Nullable;
-
-import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
@@ -33,13 +29,11 @@ final public class CachingCatalog extends Catalog {
 
   private final RemoteCatalog remote;
   private final Database db;
-  private final CacheDir cache;
   private final CommandExecutor executor;
 
-  CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
+  CachingCatalog(RemoteCatalog remote, Database db) {
     this.remote = remote;
     this.db = db;
-    this.cache = cache.createNested("www.zxtunes.com");
     this.executor = new CommandExecutor("zxtunes");
   }
 
@@ -58,7 +52,7 @@ final public class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -94,7 +88,7 @@ final public class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -132,10 +126,5 @@ final public class CachingCatalog extends Catalog {
   public void findTracks(String query, FoundTracksVisitor visitor) {
     //TODO: query also remote catalog when search will be enabled
     db.findTracks(query, visitor);
-  }
-
-  @Nullable
-  public final File getTrackCache(int id) {
-    return cache.find(Integer.toString(id));
   }
 }
