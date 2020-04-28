@@ -55,6 +55,7 @@ public class BrowserFragment extends Fragment {
   //private static final String TAG = BrowserFragment.class.getName();
   private static final String SEARCH_QUERY_KEY = "search_query";
 
+  private RecyclerView listing;
   private SearchView search;
   private State stateStorage;
   private SelectionTracker<Uri> selectionTracker;
@@ -83,7 +84,7 @@ public class BrowserFragment extends Fragment {
     final Model model = Model.of(this);
     setupRootsView(view);
     setupBreadcrumbs(model, view);
-    setupListing(model, view);
+    listing = setupListing(model, view);
     search = setupSearchView(model, view);
 
     if (model.getState().getValue() == null) {
@@ -133,7 +134,7 @@ public class BrowserFragment extends Fragment {
     });
   }
 
-  private void setupListing(@NonNull Model model, @NonNull View view) {
+  private RecyclerView setupListing(@NonNull Model model, @NonNull View view) {
     final RecyclerView listing = view.findViewById(R.id.browser_content);
     listing.setHasFixedSize(true);
 
@@ -215,6 +216,7 @@ public class BrowserFragment extends Fragment {
         getLifecycle().removeObserver(this);
       }
     });
+    return listing;
   }
 
   private void storeCurrentViewPosition(RecyclerView listing) {
@@ -254,7 +256,8 @@ public class BrowserFragment extends Fragment {
 
       @Override
       public boolean onQueryTextChange(String query) {
-        return false;
+        ((ListingViewAdapter) listing.getAdapter()).setFilter(query);
+        return true;
       }
     });
     search.setOnCloseListener(new SearchView.OnCloseListener() {

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,6 +29,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
     ListingViewAdapter.ViewHolder> {
 
   private final SparseIntArray positionsCache;
+  private final SearchFilter filter;
   private Selection<Uri> selection;
   private List<ListingEntry> lastContent;
 
@@ -48,6 +50,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
       }
     });
     positionsCache = new SparseIntArray();
+    filter = new SearchFilter();
     setHasStableIds(true);
   }
 
@@ -80,6 +83,16 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
     positionsCache.clear();
     lastContent = entries == lastContent ? new ArrayList<>(entries) : entries;
     super.submitList(lastContent, cb);
+  }
+
+  final void setFilter(String pattern) {
+    filter.filter(pattern);
+  }
+
+  @Override
+  public void submitList(List<ListingEntry> entries) {
+    positionsCache.clear();
+    super.submitList(entries);
   }
 
   @Override
@@ -190,6 +203,34 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
         return new HolderItemDetails(holder);
       }
       return null;
+    }
+  }
+
+  private class SearchFilter extends Filter {
+
+    @Override
+    protected FilterResults performFiltering(CharSequence constraint) {
+      final FilterResults result = new FilterResults();
+      if (TextUtils.isEmpty(constraint)) {
+        result.count = lastContent.size();
+        result.values = lastContent;
+      } else {
+        final ArrayList<ListingEntry> filtered = new ArrayList<>();
+        final String pattern = constraint.toString().toLowerCase().trim();
+        for (ListingEntry entry : lastContent) {
+          if (entry.title.toLowerCase().contains(pattern) || entry.description.toLowerCase().contains(pattern)) {
+            filtered.add(entry);
+          }
+        }
+        result.count = filtered.size();
+        result.values = filtered;
+      }
+      return result;
+    }
+
+    @Override
+    protected void publishResults(CharSequence constraint, FilterResults results) {
+      submitList((List<ListingEntry>) results.values);
     }
   }
 }
