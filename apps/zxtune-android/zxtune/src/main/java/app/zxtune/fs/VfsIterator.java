@@ -20,22 +20,6 @@ public final class VfsIterator {
     void onIOError(IOException e);
   }
 
-  public static class KeepLastErrorHandler implements ErrorHandler {
-
-    private IOException lastError;
-
-    @Override
-    public void onIOError(IOException e) {
-      lastError = e;
-    }
-
-    public final void throwLastIOError() throws IOException {
-      if (lastError != null) {
-        throw lastError;
-      }
-    }
-  }
-
   private static final String TAG = VfsIterator.class.getName();
 
   private final ErrorHandler handler;

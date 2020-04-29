@@ -7,6 +7,8 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.core.os.OperationCanceledException;
 
+import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import app.zxtune.Log;
@@ -80,7 +82,17 @@ class SearchOperation implements AsyncQueryOperation {
     if (engine != null) {
       engine.find(query, visitor);
     } else {
-      for (final VfsIterator iter = new VfsIterator(new Uri[]{dir.getUri()}); iter.isValid(); iter.next()) {
+      final VfsIterator iter = new VfsIterator(new Uri[]{dir.getUri()}, new VfsIterator.ErrorHandler() {
+        @Override
+        public void onIOError(IOException e) {
+          if (e instanceof InterruptedIOException) {
+            throwCanceled();
+          } else {
+            Log.w(TAG, e, "Ignore I/O error");
+          }
+        }
+      });
+      for (; iter.isValid(); iter.next()) {
         final VfsFile file = iter.getFile();
         if (match(file.getName()) || match(file.getDescription())) {
           visitor.onFile(file);
@@ -97,9 +109,13 @@ class SearchOperation implements AsyncQueryOperation {
 
   private void checkForCancel() {
     if (Thread.interrupted()) {
-      Log.d(TAG, "Canceled search for %s at %s", query, uri);
-      throw new OperationCanceledException();
+      throwCanceled();
     }
+  }
+
+  private void throwCanceled() {
+    Log.d(TAG, "Canceled search for %s at %s", query, uri);
+    throw new OperationCanceledException();
   }
 
   @Override
