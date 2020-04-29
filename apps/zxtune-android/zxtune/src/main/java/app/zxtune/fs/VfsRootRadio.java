@@ -15,8 +15,8 @@ final class VfsRootRadio extends StubObject implements VfsRoot {
 
   private final Uri URI = Uri.fromParts("radio", "", "");
 
-  private Context ctx;
-  private ArrayList<VfsDir> children = new ArrayList<>();
+  private final Context ctx;
+  private final ArrayList<VfsDir> children = new ArrayList<>();
 
   VfsRootRadio(Context ctx) {
     this.ctx = ctx;

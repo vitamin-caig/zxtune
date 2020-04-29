@@ -33,7 +33,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootModarchive.class.getName();
 
-  private VfsObject parent;
+  private final VfsObject parent;
   private final Context context;
   private final CachingCatalog catalog;
   private final GroupingDir[] groupings;

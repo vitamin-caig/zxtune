@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 // TODO: use provider notifications instead of polling
 public class VfsProviderClient {
 
-  public interface StatusCallback {
+  interface StatusCallback {
     void onProgress(int done, int total);
   }
 

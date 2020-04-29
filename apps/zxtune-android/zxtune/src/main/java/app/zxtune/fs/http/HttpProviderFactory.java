@@ -5,9 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
 import java.io.IOException;
-import java.util.Locale;
 
-import app.zxtune.BuildConfig;
 import app.zxtune.R;
 
 public final class HttpProviderFactory {

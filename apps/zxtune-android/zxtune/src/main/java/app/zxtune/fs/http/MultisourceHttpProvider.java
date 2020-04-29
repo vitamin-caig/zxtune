@@ -15,8 +15,8 @@ public final class MultisourceHttpProvider {
 
   private static final long QUARANTINE_PERIOD_MS = 60 * 60 * 1000;
 
-  private HttpProvider delegate;
-  private HashMap<String, Long> hostDisabledTill = new HashMap<>();
+  private final HttpProvider delegate;
+  private final HashMap<String, Long> hostDisabledTill = new HashMap<>();
 
   public MultisourceHttpProvider(HttpProvider delegate) {
     this.delegate = delegate;
@@ -48,11 +48,6 @@ public final class MultisourceHttpProvider {
   }
 
   @NonNull
-  public final HttpObject getObject(Uri uri) throws IOException {
-    return delegate.getObject(uri);
-  }
-
-  @NonNull
   public final InputStream getInputStream(Uri uri) throws IOException {
     return delegate.getInputStream(uri);
   }
@@ -80,7 +75,8 @@ public final class MultisourceHttpProvider {
 
   private boolean isDisabled(Uri uri, long now) {
     final String host = uri.getHost();
-    return hostDisabledTill.containsKey(host) && hostDisabledTill.get(host) > now;
+    final Long till = hostDisabledTill.get(host);
+    return till != null && till > now;
   }
 
   private void disable(Uri uri, long now, IOException e) {

@@ -6,7 +6,6 @@
 
 package app.zxtune.fs.modland;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -15,7 +14,6 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
-import java.io.IOException;
 import java.util.HashMap;
 
 import app.zxtune.Log;

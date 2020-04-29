@@ -113,8 +113,9 @@ class SearchOperation implements AsyncQueryOperation {
 
   private static ListingCursorBuilder makeBuilder() {
     return new ListingCursorBuilder(new ListingCursorBuilder.TracksCountSource() {
+      @NonNull
       @Override
-      public Integer[] getTracksCount(Uri[] uris) {
+      public Integer[] getTracksCount(@NonNull Uri[] uris) {
         return VfsArchive.getModulesCount(uris);
       }
     });

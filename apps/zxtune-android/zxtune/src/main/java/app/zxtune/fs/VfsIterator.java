@@ -17,7 +17,7 @@ import app.zxtune.Log;
 public final class VfsIterator {
 
   public interface ErrorHandler {
-    public void onIOError(IOException e);
+    void onIOError(IOException e);
   }
 
   public static class KeepLastErrorHandler implements ErrorHandler {

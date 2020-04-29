@@ -11,8 +11,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import java.io.IOException;
-
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.amp.Catalog.AuthorsVisitor;

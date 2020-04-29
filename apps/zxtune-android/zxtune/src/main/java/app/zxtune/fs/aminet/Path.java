@@ -24,7 +24,6 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
 
   @Override
   public Uri[] getRemoteUris() {
-    assert (isFile());
     final String path = getLocalId();
     return new Uri[]{
         Cdn.aminet(path),

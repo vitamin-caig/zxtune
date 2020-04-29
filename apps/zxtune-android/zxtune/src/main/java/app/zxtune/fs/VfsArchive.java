@@ -232,7 +232,7 @@ public final class VfsArchive {
     }
 
     @Override
-    public void enumerate(@NonNull Visitor visitor) throws IOException {
+    public void enumerate(@NonNull Visitor visitor) {
       listArchive(this, visitor);
     }
   }
@@ -278,7 +278,7 @@ public final class VfsArchive {
     }
 
     @Override
-    public void enumerate(@NonNull Visitor visitor) throws IOException {
+    public void enumerate(@NonNull Visitor visitor) {
       listArchive(this, visitor);
     }
   }

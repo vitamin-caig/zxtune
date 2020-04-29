@@ -8,7 +8,6 @@ package app.zxtune.fs.dbhelpers;
 
 import android.database.sqlite.SQLiteQueryBuilder;
 
-import java.io.IOException;
 import java.util.Locale;
 
 public class Grouping extends Objects {

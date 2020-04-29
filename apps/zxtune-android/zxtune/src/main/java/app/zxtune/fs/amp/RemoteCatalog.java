@@ -160,9 +160,9 @@ public class RemoteCatalog extends Catalog {
     final String content = Io.readHtml(http.getInputStream(Uri.parse(uri)));
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
-      final Integer id = Integer.valueOf(matcher.group(1));
+      final int id = Integer.parseInt(matcher.group(1));
       final String name = decodeHtml(matcher.group(2));
-      final Integer size = Integer.valueOf(matcher.group(3));
+      final int size = Integer.parseInt(matcher.group(3));
       visitor.accept(new Track(id, name, size));
     }
   }
@@ -187,11 +187,11 @@ public class RemoteCatalog extends Catalog {
   private static void parseFoundTracks(CharSequence content, FoundTracksVisitor visitor) {
     final Matcher matcher = FOUND_TRACKS.matcher(content);
     while (matcher.find()) {
-      final Integer trackId = Integer.valueOf(matcher.group(1));
+      final int trackId = Integer.parseInt(matcher.group(1));
       final String trackName = decodeHtml(matcher.group(2));
-      final Integer authorId = Integer.valueOf(matcher.group(3));
+      final int authorId = Integer.parseInt(matcher.group(3));
       final String authorHandle = decodeHtml(matcher.group(4));
-      final Integer size = Integer.valueOf(matcher.group(5));
+      final int size = Integer.parseInt(matcher.group(5));
       visitor.accept(new Author(authorId, authorHandle, ""/*realName*/), new Track(trackId, trackName, size));
     }
   }

@@ -8,8 +8,6 @@ package app.zxtune.fs.modarchive;
 
 import android.content.Context;
 
-import androidx.annotation.Nullable;
-
 import java.io.IOException;
 
 import app.zxtune.fs.ProgressCallback;
@@ -86,7 +84,6 @@ public abstract class Catalog {
    * Queries next random track
    * @throws IOException
    */
-  @Nullable
   public abstract void findRandomTracks(TracksVisitor visitor) throws IOException;
 
   public static CachingCatalog create(Context context, MultisourceHttpProvider http) {

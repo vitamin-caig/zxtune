@@ -9,7 +9,6 @@ package app.zxtune.fs.dbhelpers;
 import android.database.sqlite.SQLiteDoneException;
 import android.database.sqlite.SQLiteStatement;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
