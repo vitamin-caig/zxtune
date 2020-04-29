@@ -11,6 +11,7 @@ import android.widget.Filter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.util.ObjectsCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.selection.ItemDetailsLookup;
 import androidx.recyclerview.selection.ItemKeyProvider;
@@ -46,7 +47,9 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
             && oldItem.icon == newItem.icon
             && TextUtils.equals(oldItem.title, newItem.title)
             && TextUtils.equals(oldItem.description, newItem.description)
-            && TextUtils.equals(oldItem.details, newItem.details);
+            && TextUtils.equals(oldItem.details, newItem.details)
+            && ObjectsCompat.equals(oldItem.tracks, newItem.tracks)
+            && ObjectsCompat.equals(oldItem.cached, newItem.cached);
       }
     });
     positionsCache = new SparseIntArray();
