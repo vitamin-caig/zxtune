@@ -213,9 +213,11 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
 
     @Override
     protected FilterResults performFiltering(CharSequence constraint) {
+      if (lastContent == null) {
+        return null;
+      }
       final FilterResults result = new FilterResults();
       if (TextUtils.isEmpty(constraint)) {
-        result.count = lastContent.size();
         result.values = lastContent;
       } else {
         final ArrayList<ListingEntry> filtered = new ArrayList<>();
@@ -225,7 +227,6 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
             filtered.add(entry);
           }
         }
-        result.count = filtered.size();
         result.values = filtered;
       }
       return result;
@@ -233,7 +234,9 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
 
     @Override
     protected void publishResults(CharSequence constraint, FilterResults results) {
-      submitList((List<ListingEntry>) results.values);
+      if (results != null && results.values != null) {
+        submitList((List<ListingEntry>) results.values);
+      }
     }
   }
 }
