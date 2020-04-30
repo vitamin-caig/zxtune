@@ -8,28 +8,36 @@ package app.zxtune;
 
 import android.Manifest;
 import android.app.PendingIntent;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
+
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+
+import android.os.StrictMode;
 import android.support.v4.media.session.MediaControllerCompat;
+
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+
 import app.zxtune.analytics.Analytics;
 import app.zxtune.models.MediaSessionConnection;
 import app.zxtune.models.MediaSessionModel;
@@ -92,6 +100,11 @@ public class MainActivity extends AppCompatActivity {
       subscribeForPendingOpenRequest();
     }
     Analytics.sendUiEvent(Analytics.UI_ACTION_OPEN);
+
+    if (!BuildConfig.BUILD_TYPE.equals("release")) {
+      StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().build());
+      StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().build());
+    }
   }
 
   @Override
