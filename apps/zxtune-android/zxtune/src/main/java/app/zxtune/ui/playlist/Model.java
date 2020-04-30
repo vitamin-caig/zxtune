@@ -21,17 +21,18 @@ import app.zxtune.core.Identifier;
 import app.zxtune.playlist.Database;
 import app.zxtune.playlist.ProviderClient;
 
-public class PlaylistViewModel extends AndroidViewModel {
+// public for provider
+public class Model extends AndroidViewModel {
 
   private final ProviderClient client;
   private final ExecutorService async;
-  private MutableLiveData<List<PlaylistEntry>> items;
+  private MutableLiveData<List<Entry>> items;
 
-  public static PlaylistViewModel of(Fragment owner) {
-    return ViewModelProviders.of(owner).get(PlaylistViewModel.class);
+  static Model of(Fragment owner) {
+    return ViewModelProviders.of(owner).get(Model.class);
   }
 
-  public PlaylistViewModel(@NonNull Application application) {
+  public Model(@NonNull Application application) {
     super(application);
     this.client = new ProviderClient(application);
     this.async = Executors.newSingleThreadExecutor();
@@ -46,7 +47,7 @@ public class PlaylistViewModel extends AndroidViewModel {
     });
   }
 
-  public final LiveData<List<PlaylistEntry>> getItems() {
+  final LiveData<List<Entry>> getItems() {
     if (items == null) {
       items = new MutableLiveData<>();
       loadAsync();
@@ -67,7 +68,7 @@ public class PlaylistViewModel extends AndroidViewModel {
     final Cursor cursor = client.query(null);
     if (cursor != null) {
       try {
-        final ArrayList<PlaylistEntry> items = new ArrayList<>(cursor.getCount());
+        final ArrayList<Entry> items = new ArrayList<>(cursor.getCount());
         while (cursor.moveToNext()) {
           items.add(createItem(cursor));
         }
@@ -78,8 +79,8 @@ public class PlaylistViewModel extends AndroidViewModel {
     }
   }
 
-  private static PlaylistEntry createItem(Cursor cursor) {
-    final PlaylistEntry item = new PlaylistEntry();
+  private static Entry createItem(Cursor cursor) {
+    final Entry item = new Entry();
     item.id = cursor.getLong(Database.Tables.Playlist.Fields._id.ordinal());
     item.location = Identifier.parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal()));
     item.title = cursor.getString(Database.Tables.Playlist.Fields.title.ordinal());

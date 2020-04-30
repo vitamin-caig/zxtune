@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
         <import type="android.view.View"/>
-        <variable name="entry" type="app.zxtune.ui.playlist.PlaylistEntry"/>
+        <variable name="entry" type="app.zxtune.ui.playlist.Entry"/>
         <variable name="isPlaying" type="boolean"/>
     </data>
     <RelativeLayout

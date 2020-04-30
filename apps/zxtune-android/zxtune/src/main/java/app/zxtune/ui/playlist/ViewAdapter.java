@@ -22,29 +22,29 @@ import java.util.List;
 import app.zxtune.R;
 import app.zxtune.databinding.PlaylistEntryBinding;
 
-public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistViewAdapter.EntryViewHolder> {
+class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
 
-  public interface Client {
+  interface Client {
     boolean onDrag(@NonNull RecyclerView.ViewHolder holder);
   }
 
   private final Client client;
   private final LongSparseArray<Integer> positionsCache;
-  private List<PlaylistEntry> list;
+  private List<Entry> list;
   private Selection<Long> selection;
   private boolean isPlaying = false;
   private Long nowPlaying = null;
   private Integer nowPlayingPos = null;
 
-  public PlaylistViewAdapter(Client client) {
-    super(new DiffUtil.ItemCallback<PlaylistEntry>() {
+  ViewAdapter(Client client) {
+    super(new DiffUtil.ItemCallback<Entry>() {
       @Override
-      public boolean areItemsTheSame(@NonNull PlaylistEntry oldItem, @NonNull PlaylistEntry newItem) {
+      public boolean areItemsTheSame(@NonNull Entry oldItem, @NonNull Entry newItem) {
         return oldItem.id == newItem.id;
       }
 
       @Override
-      public boolean areContentsTheSame(@NonNull PlaylistEntry oldItem, @NonNull PlaylistEntry newItem) {
+      public boolean areContentsTheSame(@NonNull Entry oldItem, @NonNull Entry newItem) {
         return oldItem.title.equals(newItem.title)
                    && oldItem.author.equals(newItem.author)
                    && 0 == oldItem.duration.compareTo(newItem.duration);
@@ -55,18 +55,18 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
     setHasStableIds(true);
   }
 
-  public final void setSelection(@Nullable Selection<Long> selection) {
+  final void setSelection(@Nullable Selection<Long> selection) {
     this.selection = selection;
   }
 
-  public final void setIsPlaying(boolean isPlaying) {
+  final void setIsPlaying(boolean isPlaying) {
     if (this.isPlaying != isPlaying) {
       updateNowPlaying();
       this.isPlaying = isPlaying;
     }
   }
 
-  public final void setNowPlaying(@Nullable Long id) {
+  final void setNowPlaying(@Nullable Long id) {
     if (nowPlaying != null && !nowPlaying.equals(id)) {
       updateNowPlaying();
     }
@@ -101,7 +101,7 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
     return null;
   }
 
-  public final void onItemMove(int fromPosition, int toPosition) {
+  final void onItemMove(int fromPosition, int toPosition) {
     if (fromPosition == toPosition) {
       return;
     }
@@ -114,7 +114,7 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
   }
 
   private void moveForward(int fromPosition, int toPosition) {
-    final PlaylistEntry moved = list.get(fromPosition);
+    final Entry moved = list.get(fromPosition);
     for (int pos = fromPosition; pos < toPosition; ++pos) {
       placeItem(pos, list.get(pos + 1));
     }
@@ -122,20 +122,20 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
   }
 
   private void moveBackward(int fromPosition, int toPosition) {
-    final PlaylistEntry moved = list.get(fromPosition);
+    final Entry moved = list.get(fromPosition);
     for (int pos = fromPosition; pos > toPosition; --pos) {
       placeItem(pos, list.get(pos - 1));
     }
     placeItem(toPosition, moved);
   }
 
-  private void placeItem(int pos, PlaylistEntry entry) {
+  private void placeItem(int pos, Entry entry) {
     list.set(pos, entry);
     positionsCache.put(entry.id, pos);
   }
 
   @Override
-  public void submitList(List<PlaylistEntry> list) {
+  public void submitList(List<Entry> list) {
     this.list = list;
     this.positionsCache.clear();
     super.submitList(list);
@@ -156,7 +156,7 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
 
   @Override
   public void onBindViewHolder(@NonNull final EntryViewHolder holder, int position) {
-    final PlaylistEntry entry = getItem(position);
+    final Entry entry = getItem(position);
     holder.bind(entry, isPlaying && isNowPlaying(entry.id), isSelected(entry.id));
   }
 
@@ -194,7 +194,7 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
       this.binding = binding;
     }
 
-    final void bind(@NonNull PlaylistEntry entry, boolean isPlaying, boolean isSelected) {
+    final void bind(@NonNull Entry entry, boolean isPlaying, boolean isSelected) {
       binding.setEntry(entry);
       binding.setIsPlaying(isPlaying);
       binding.executePendingBindings();
@@ -223,11 +223,11 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
     }
   }
 
-  public static class KeyProvider extends ItemKeyProvider<Long> {
+  static class KeyProvider extends ItemKeyProvider<Long> {
 
-    private final PlaylistViewAdapter adapter;
+    private final ViewAdapter adapter;
 
-    public KeyProvider(PlaylistViewAdapter adapter) {
+    KeyProvider(ViewAdapter adapter) {
       super(SCOPE_MAPPED);
       this.adapter = adapter;
     }
@@ -245,11 +245,11 @@ public class PlaylistViewAdapter extends ListAdapter<PlaylistEntry, PlaylistView
     }
   }
 
-  public static class DetailsLookup extends ItemDetailsLookup<Long> {
+  static class DetailsLookup extends ItemDetailsLookup<Long> {
 
     private final RecyclerView listing;
 
-    public DetailsLookup(RecyclerView view) {
+    DetailsLookup(RecyclerView view) {
       this.listing = view;
     }
 

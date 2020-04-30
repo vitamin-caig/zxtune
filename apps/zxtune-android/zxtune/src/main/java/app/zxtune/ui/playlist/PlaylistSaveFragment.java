@@ -7,7 +7,7 @@
  * @author vitamin.caig@gmail.com
  *
  */
-package app.zxtune.ui;
+package app.zxtune.ui.playlist;
 
 import android.app.Dialog;
 import android.content.Context;

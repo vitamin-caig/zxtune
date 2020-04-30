@@ -3,7 +3,8 @@ package app.zxtune.ui.playlist;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Identifier;
 
-public class PlaylistEntry {
+// public for binding
+public class Entry {
   public long id;
   public Identifier location;
   public String title;

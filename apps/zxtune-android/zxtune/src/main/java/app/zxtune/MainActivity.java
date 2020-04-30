@@ -44,7 +44,7 @@ import app.zxtune.models.MediaSessionModel;
 import app.zxtune.ui.AboutFragment;
 import app.zxtune.ui.browser.BrowserFragment;
 import app.zxtune.ui.NowPlayingFragment;
-import app.zxtune.ui.PlaylistFragment;
+import app.zxtune.ui.playlist.PlaylistFragment;
 import app.zxtune.ui.ViewPagerAdapter;
 
 public class MainActivity extends AppCompatActivity {

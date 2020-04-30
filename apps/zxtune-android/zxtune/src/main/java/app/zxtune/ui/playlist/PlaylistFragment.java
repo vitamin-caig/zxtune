@@ -4,7 +4,7 @@
  * @author vitamin.caig@gmail.com
  */
 
-package app.zxtune.ui;
+package app.zxtune.ui.playlist;
 
 import android.content.Context;
 import android.net.Uri;
@@ -45,9 +45,6 @@ import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.models.MediaSessionModel;
 import app.zxtune.playlist.ProviderClient;
-import app.zxtune.ui.playlist.PlaylistEntry;
-import app.zxtune.ui.playlist.PlaylistViewAdapter;
-import app.zxtune.ui.playlist.PlaylistViewModel;
 import app.zxtune.ui.utils.SelectionUtils;
 
 public class PlaylistFragment extends Fragment {
@@ -148,13 +145,13 @@ public class PlaylistFragment extends Fragment {
     listing = view.findViewById(R.id.playlist_content);
     listing.setHasFixedSize(true);
 
-    final PlaylistViewAdapter adapter = new PlaylistViewAdapter(new AdapterClient());
+    final ViewAdapter adapter = new ViewAdapter(new AdapterClient());
     listing.setAdapter(adapter);
 
     selectionTracker = new SelectionTracker.Builder<>("playlist_selection",
         listing,
-        new PlaylistViewAdapter.KeyProvider(adapter),
-        new PlaylistViewAdapter.DetailsLookup(listing),
+        new ViewAdapter.KeyProvider(adapter),
+        new ViewAdapter.DetailsLookup(listing),
         StorageStrategy.createLongStorage())
                            .withSelectionPredicate(SelectionPredicates.<Long>createSelectAnything())
                            .withOnItemActivatedListener(new ItemActivatedListener())
@@ -174,10 +171,10 @@ public class PlaylistFragment extends Fragment {
 
     stub = view.findViewById(R.id.playlist_stub);
 
-    final PlaylistViewModel playlistModel = PlaylistViewModel.of(this);
-    playlistModel.getItems().observe(this, new Observer<List<PlaylistEntry>>() {
+    final Model playlistModel = Model.of(this);
+    playlistModel.getItems().observe(this, new Observer<List<Entry>>() {
       @Override
-      public void onChanged(@NonNull List<PlaylistEntry> entries) {
+      public void onChanged(@NonNull List<Entry> entries) {
         if (touchHelperCallback.isDragging()) {
           return;
         }
@@ -231,7 +228,7 @@ public class PlaylistFragment extends Fragment {
     }
   }
 
-  private class AdapterClient implements PlaylistViewAdapter.Client {
+  private class AdapterClient implements ViewAdapter.Client {
     @Override
     public boolean onDrag(@NonNull RecyclerView.ViewHolder holder) {
       return onItemDrag(holder);
@@ -387,7 +384,7 @@ public class PlaylistFragment extends Fragment {
         draggedItem = source.getItemId();
       }
       dragDelta += tgtPos - srcPos;
-      final PlaylistViewAdapter adapter = ((PlaylistViewAdapter) recyclerView.getAdapter());
+      final ViewAdapter adapter = ((ViewAdapter) recyclerView.getAdapter());
       if (adapter != null) {
         adapter.onItemMove(srcPos, tgtPos);
       }

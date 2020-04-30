@@ -8,7 +8,7 @@
  *
  */
 
-package app.zxtune.ui;
+package app.zxtune.ui.playlist;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -17,7 +17,6 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.loader.app.LoaderManager;
-import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
 import androidx.appcompat.app.AlertDialog;
 import android.widget.ArrayAdapter;
