@@ -8,8 +8,6 @@ interface Sink {
 
   void logException(Throwable e);
 
-  void logMessage(String msg);
-
   void sendPlayEvent(PlayableItem item, Player player);
 
   void sendBrowserEvent(Uri path, @Analytics.BrowserAction int action);

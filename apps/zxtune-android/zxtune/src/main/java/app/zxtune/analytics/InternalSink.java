@@ -34,10 +34,6 @@ final class InternalSink implements Sink {
   }
 
   @Override
-  public void logMessage(String msg) {
-  }
-
-  @Override
   public void sendPlayEvent(PlayableItem item, Player player) {
     final UrlsBuilder builder = new UrlsBuilder("track/done");
     builder.addUri(item.getDataId().getFullLocation());

@@ -5,20 +5,20 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import app.zxtune.analytics.Analytics;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Locale;
+
 import app.zxtune.Log;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.core.jni.JniModule;
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Locale;
 
 public class Core {
   private static final String TAG = Core.class.getName();
@@ -33,16 +33,14 @@ public class Core {
                                   @Nullable ProgressCallback progress) throws IOException,
       ResolvingException {
     final ByteBuffer content = Vfs.read(file);
-    final LogContext log = new LogContext(file.getUri(), subpath, content.limit());
-    log.action("loadModule begin");
+    Analytics.setNativeCallTags(file.getUri(), subpath, content.limit());
     final Module obj = JniModule.load(makeDirectBuffer(content), subpath);
-    log.action("loadModule end");
     final String[] files = obj.getAdditionalFiles();
     if (files == null || files.length == 0) {
       return obj;
     } else if (subpath.isEmpty()) {
       Log.d(TAG, "Resolve additional files for opened %s", file.getUri());
-      return new Resolver(file, progress, log).resolve(obj, files);
+      return new Resolver(file, progress).resolve(obj, files);
     } else {
       //was not resolved by ZXTune library core
       throw new ResolvingException(String.format(Locale.US, "Unresolved additional files '%s'", Arrays.toString(files)));
@@ -57,12 +55,10 @@ public class Core {
                                    @NonNull ModuleDetectCallback callback,
                                    @Nullable ProgressCallback progress) throws IOException {
     final ByteBuffer content = Vfs.read(file, progress);
-    final LogContext log = new LogContext(file.getUri(), "*", content.limit());
     final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback,
-        progress, log);
-    log.action("detectModules begin");
+        progress);
+    Analytics.setNativeCallTags(file.getUri(), "*", content.limit());
     JniModule.detect(makeDirectBuffer(content), adapter);
-    log.action("detectModules end");
     if (0 == adapter.getDetectedModulesCount()) {
       Analytics.sendNoTracksFoundEvent(file.getUri());
     }
@@ -89,16 +85,14 @@ public class Core {
     private final VfsFile location;
     private final ModuleDetectCallback delegate;
     private final ProgressCallback progress;
-    private final LogContext log;
     private Resolver resolver;
     private int modulesCount = 0;
 
     ModuleDetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate,
-                                ProgressCallback progress, LogContext log) {
+                                ProgressCallback progress) {
       this.location = location;
       this.delegate = delegate;
       this.progress = progress;
-      this.log = log;
     }
 
     final int getDetectedModulesCount() {
@@ -136,7 +130,7 @@ public class Core {
 
     private Resolver getResolver() {
       if (resolver == null) {
-        resolver = new Resolver(location, progress, log);
+        resolver = new Resolver(location, progress);
       }
       return resolver;
     }
@@ -147,18 +141,15 @@ public class Core {
     @Nullable
     private VfsDir parent;
     private final ProgressCallback progress;
-    private final LogContext log;
     private final HashMap<String, VfsFile> files = new HashMap<>();
     private final HashMap<String, VfsDir> dirs = new HashMap<>();
 
-    Resolver(@NonNull VfsFile content, @Nullable ProgressCallback progress,
-             @NonNull LogContext log) {
+    Resolver(@NonNull VfsFile content, @Nullable ProgressCallback progress) {
       final VfsObject parent = content.getParent();
       if (parent instanceof VfsDir) {
         this.parent = (VfsDir) parent;
       }
       this.progress = progress;
-      this.log = log;
     }
 
     @NonNull
@@ -178,9 +169,7 @@ public class Core {
       try {
         for (String name : files) {
           final ByteBuffer content = getFileContent(name);
-          log.action("resolveAdditionalFile " + name);
           module.resolveAdditionalFile(name, makeDirectBuffer(content));
-          log.action("resolveAdditionalFile end");
         }
         return module.getAdditionalFiles();
       } catch (Exception e) {

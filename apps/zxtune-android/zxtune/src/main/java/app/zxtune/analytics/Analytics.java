@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.Uri;
 import androidx.annotation.IntDef;
 
+import com.crashlytics.android.Crashlytics;
+
 import java.lang.annotation.Retention;
 import java.util.Locale;
 
@@ -30,9 +32,12 @@ public class Analytics {
     }
   }
 
-  public static void logMessage(String msg) {
-    for (Sink s : sinks) {
-      s.logMessage(msg);
+  public static void setNativeCallTags(Uri uri, String subpath, int size) {
+    if (FabricSink.isEnabled()) {
+      Crashlytics.setString("file", "file".equals(uri.getScheme()) ? uri.getLastPathSegment() :
+          uri.toString());
+      Crashlytics.setString("subpath", subpath);
+      Crashlytics.setInt("size", size);
     }
   }
 

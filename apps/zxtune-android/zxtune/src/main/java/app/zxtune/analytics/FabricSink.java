@@ -60,11 +60,6 @@ final class FabricSink implements Sink {
   }
 
   @Override
-  public void logMessage(String msg) {
-    Crashlytics.log(msg);
-  }
-
-  @Override
   public void sendPlayEvent(PlayableItem item, Player player) {}
 
   @Override
