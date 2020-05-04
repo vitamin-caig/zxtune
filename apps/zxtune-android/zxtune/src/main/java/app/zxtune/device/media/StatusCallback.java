@@ -8,12 +8,15 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.SystemClock;
+
 import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
+
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.widget.Toast;
+
 import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
@@ -23,6 +26,7 @@ import app.zxtune.TimeStamp;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsExtensions;
+import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.VfsUtils;
 import app.zxtune.playback.CallbackSubscription;
@@ -31,6 +35,7 @@ import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.Callback;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 //! Events gate from local service to mediasession
@@ -74,8 +79,8 @@ class StatusCallback implements Callback {
   private void sendState(PlaybackControl.State state, TimeStamp pos) {
     final boolean isPlaying = state == PlaybackControl.State.PLAYING;
     final int stateCompat = isPlaying
-                                ? PlaybackStateCompat.STATE_PLAYING
-                                : PlaybackStateCompat.STATE_STOPPED;
+        ? PlaybackStateCompat.STATE_PLAYING
+        : PlaybackStateCompat.STATE_STOPPED;
     final long position = pos.convertTo(TimeUnit.MILLISECONDS);
     final float speed = isPlaying ? 1 : 0;
     builder.setState(stateCompat, position, speed, SystemClock.elapsedRealtime());
@@ -110,7 +115,7 @@ class StatusCallback implements Callback {
       builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, getLocationIcon(dataId.getDataLocation()));
       builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, dataId.toString());
       builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, item.getId().toString());
-      builder.putString(VfsExtensions.SHARE_URL, getShareUrl(dataId.getDataLocation()));
+      fillObjectUrls(dataId.getDataLocation(), dataId.getSubpath(), builder);
       session.setMetadata(builder.build());
     } catch (Exception e) {
       Log.w(TAG, e, "onItemChanged()");
@@ -162,12 +167,19 @@ class StatusCallback implements Callback {
     }
   }
 
-  private static String getShareUrl(Uri location) {
+  private static void fillObjectUrls(Uri location,
+                                     String subpath, MediaMetadataCompat.Builder builder) {
     try {
       final VfsObject obj = Vfs.resolve(location);
-      return (String) obj.getExtension(VfsExtensions.SHARE_URL);
+      putString(builder, VfsExtensions.SHARE_URL, (String) obj.getExtension(VfsExtensions.SHARE_URL));
+      if (subpath.isEmpty() && obj instanceof VfsFile) {
+        final File file = Vfs.getCacheOrFile((VfsFile) obj);
+        if (file != null && file.isFile()) {
+          putString(builder, VfsExtensions.FILE, file.getAbsolutePath());
+        }
+      }
     } catch (Exception e) {
-      return null;
+      Log.w(TAG, e, "Failed to get object urls");
     }
   }
 }

@@ -6,6 +6,7 @@
 
 package app.zxtune.ui;
 
+import androidx.core.content.FileProvider;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -19,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,11 +28,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import java.io.File;
+
 import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
+import app.zxtune.core.Identifier;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.models.MediaSessionModel;
 
@@ -139,12 +145,14 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
 
     private final MenuItem trackMenu;
     private final MenuItem add;
+    private final MenuItem send;
     private final MenuItem share;
     private TrackActionsData data;
 
     TrackActionsMenu(Menu menu) {
       this.trackMenu = menu.findItem(R.id.action_track);
       this.add = menu.findItem(R.id.action_add);
+      this.send = menu.findItem(R.id.action_send);
       this.share = menu.findItem(R.id.action_share);
       setData(null);
     }
@@ -157,12 +165,10 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
         case R.id.action_add:
           addCurrent();
           break;
-          /* TODO: rework
         case R.id.action_send:
           final Intent toSend = data.makeSendIntent();
           pickAndSend(toSend, item.getTitle(), REQUEST_SEND);
           break;
-          */
         case R.id.action_share:
           final Intent toShare = data.makeShareIntent();
           pickAndSend(toShare, item.getTitle(), REQUEST_SHARE);
@@ -192,6 +198,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
       trackMenu.setEnabled(data != null);
       if (data != null) {
         add.setEnabled(!data.isFromPlaylist());
+        send.setEnabled(data.canBeSent());
         share.setEnabled(data.hasRemotePage());
       }
     }
@@ -217,7 +224,11 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
     }
 
     final boolean isFromPlaylist() {
-      return !description.getMediaUri().toString().equals(description.getMediaId());
+      return !getFullLocation().toString().equals(description.getMediaId());
+    }
+
+    final boolean canBeSent() {
+      return null != getLocalPath();
     }
 
     final boolean hasRemotePage() {
@@ -226,6 +237,21 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
 
     final Uri getFullLocation() {
       return description.getMediaUri();
+    }
+
+    final Intent makeSendIntent() {
+      final String localPath = getLocalPath();
+      final Intent result = makeIntent("application/octet");
+      result.putExtra(Intent.EXTRA_SUBJECT, description.getTitle());
+      result.putExtra(Intent.EXTRA_TEXT, getSendText());
+      result.putExtra(Intent.EXTRA_STREAM, makeApkUri(localPath));
+      result.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      return result;
+    }
+
+    private Uri makeApkUri(String path) {
+      final File file = new File(path);
+      return FileProvider.getUriForFile(context, "app.zxtune.files", file);
     }
 
     final Intent makeShareIntent() {
@@ -240,12 +266,22 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
       final Intent result = new Intent(Intent.ACTION_SEND);
       result.setType(mime);
       result.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-      result.putExtra(EXTRA_ITEM_LOCATION, description.getMediaUri());
+      result.putExtra(EXTRA_ITEM_LOCATION, getFullLocation());
       return result;
+    }
+
+    private String getSendText() {
+      final String remotePage = getRemotePage();
+      return context.getString(R.string.send_text, remotePage != null ? remotePage : "");
     }
 
     private String getShareText() {
       return context.getString(R.string.share_text, getRemotePage());
+    }
+
+    @Nullable
+    private String getLocalPath() {
+      return metadata.getString(VfsExtensions.FILE);
     }
 
     @Nullable
