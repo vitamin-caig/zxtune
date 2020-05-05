@@ -19,7 +19,7 @@ public class Archive {
     this.modules = modules;
   }
 
-  public static Archive fromCursor(Cursor cursor) {
+  static Archive fromCursor(Cursor cursor) {
     final Uri path = Uri.parse(cursor.getString(Database.Tables.Archives.Fields.path.ordinal()));
     final int modules = cursor.getInt(Database.Tables.Archives.Fields.modules.ordinal());
     return new Archive(path, modules);

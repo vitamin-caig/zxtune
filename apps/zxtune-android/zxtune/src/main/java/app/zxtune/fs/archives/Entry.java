@@ -29,7 +29,7 @@ public class Entry {
             : null;
   }
 
-  public static Entry fromCursor(Cursor cursor) {
+  static Entry fromCursor(Cursor cursor) {
     final Identifier path = new Identifier(Uri.parse(cursor.getString(Database.Tables.Entries.Fields.path.ordinal())));
     final String description = cursor.getString(Database.Tables.Entries.Fields.description.ordinal());
     final long durationValue = cursor.getInt(Database.Tables.Entries.Fields.duration.ordinal());

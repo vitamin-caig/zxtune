@@ -6,19 +6,17 @@
 
 package app.zxtune.fs.modarchive;
 
-import androidx.annotation.NonNull;
-
-import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.dbhelpers.*;
-import app.zxtune.fs.http.HttpObject;
+import app.zxtune.fs.ProgressCallback;
+import app.zxtune.fs.dbhelpers.CommandExecutor;
+import app.zxtune.fs.dbhelpers.QueryCommand;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
 
-final class CachingCatalog extends Catalog {
+final public class CachingCatalog extends Catalog {
 
   //private static final String TAG = CachingCatalog.class.getName();
 
@@ -32,18 +30,16 @@ final class CachingCatalog extends Catalog {
 
   private final RemoteCatalog remote;
   private final Database db;
-  private CacheDir cache;
   private final CommandExecutor executor;
 
-  CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
+  CachingCatalog(RemoteCatalog remote, Database db) {
     this.remote = remote;
     this.db = db;
-    this.cache = cache.createNested("modarchive.org");
     this.executor = new CommandExecutor("modarchive");
   }
 
   @Override
-  public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
+  public void queryAuthors(final AuthorsVisitor visitor, final ProgressCallback progress) throws IOException {
     executor.executeQuery(new QueryCommand() {
 
       @Override
@@ -57,7 +53,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -68,7 +64,7 @@ final class CachingCatalog extends Catalog {
           public void accept(Author obj) {
             db.addAuthor(obj);
           }
-        });
+        }, progress);
       }
 
       @Override
@@ -93,7 +89,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -115,7 +111,8 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
-  public void queryTracks(final Author author, final TracksVisitor visitor) throws IOException {
+  public void queryTracks(final Author author, final TracksVisitor visitor,
+                          final ProgressCallback progress) throws IOException {
     executor.executeQuery(new QueryCommand() {
 
       @Override
@@ -129,7 +126,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -141,7 +138,7 @@ final class CachingCatalog extends Catalog {
             db.addTrack(obj);
             db.addAuthorTrack(author, obj);
           }
-        });
+        }, progress);
       }
 
       @Override
@@ -152,7 +149,8 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
-  public void queryTracks(final Genre genre, final TracksVisitor visitor) throws IOException {
+  public void queryTracks(final Genre genre, final TracksVisitor visitor,
+                          final ProgressCallback progress) throws IOException {
     executor.executeQuery(new QueryCommand() {
 
       @Override
@@ -166,7 +164,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -178,7 +176,7 @@ final class CachingCatalog extends Catalog {
             db.addTrack(obj);
             db.addGenreTrack(genre, obj);
           }
-        });
+        }, progress);
       }
 
       @Override
@@ -186,11 +184,6 @@ final class CachingCatalog extends Catalog {
         return db.queryTracks(genre, visitor);
       }
     });
-  }
-
-  @Override
-  public boolean searchSupported() {
-    return true;
   }
 
   @Override
@@ -210,24 +203,6 @@ final class CachingCatalog extends Catalog {
     } else {
       db.queryRandomTracks(visitor);
     }
-  }
-
-  @Override
-  @NonNull
-  public ByteBuffer getTrackContent(final int id) throws IOException {
-    return executor.executeDownloadCommand(new DownloadCommand() {
-      @NonNull
-      @Override
-      public File getCache() throws IOException {
-        return cache.findOrCreate(Integer.toString(id));
-      }
-
-      @NonNull
-      @Override
-      public HttpObject getRemote() throws IOException {
-        return remote.getTrackObject(id);
-      }
-    });
   }
 
   private class TracksCacher extends TracksVisitor {

@@ -6,18 +6,16 @@
 
 package app.zxtune.fs.zxart;
 
-import androidx.annotation.NonNull;
-import app.zxtune.TimeStamp;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.dbhelpers.*;
-import app.zxtune.fs.http.HttpObject;
-
-import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
-final class CachingCatalog extends Catalog {
+import app.zxtune.TimeStamp;
+import app.zxtune.fs.dbhelpers.CommandExecutor;
+import app.zxtune.fs.dbhelpers.QueryCommand;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
+
+final public class CachingCatalog extends Catalog {
 
   private static final String TAG = CachingCatalog.class.getName();
 
@@ -31,13 +29,11 @@ final class CachingCatalog extends Catalog {
 
   private final RemoteCatalog remote;
   private final Database db;
-  private final CacheDir cache;
   private final CommandExecutor executor;
 
-  public CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
+  CachingCatalog(RemoteCatalog remote, Database db) {
     this.remote = remote;
     this.db = db;
-    this.cache = cache.createNested("www.zxart.ee");
     this.executor = new CommandExecutor("zxart");
   }
 
@@ -56,7 +52,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -93,7 +89,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -130,7 +126,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -167,7 +163,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -204,7 +200,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 
@@ -226,33 +222,11 @@ final class CachingCatalog extends Catalog {
   }
 
   @Override
-  public boolean searchSupported() {
-    return true;
-  }
-
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
     if (remote.searchSupported()) {
       remote.findTracks(query, visitor);
     } else {
       db.findTracks(query, visitor);
     }
-  }
-
-  @Override
-  @NonNull
-  public ByteBuffer getTrackContent(final int id) throws IOException {
-    return executor.executeDownloadCommand(new DownloadCommand() {
-      @NonNull
-      @Override
-      public File getCache() throws IOException {
-        return cache.findOrCreate(Integer.toString(id));
-      }
-
-      @NonNull
-      @Override
-      public HttpObject getRemote() throws IOException {
-        return remote.getTrackObject(id);
-      }
-    });
   }
 }

@@ -14,9 +14,13 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.Uri;
 
+import androidx.fragment.app.Fragment;
+
 import java.util.Locale;
 
-class BrowserState {
+import app.zxtune.Preferences;
+
+class State {
   
   private static final String PREF_BROWSER = "browser_";
   private static final String PREF_BROWSER_CURRENT = PREF_BROWSER + "current";
@@ -25,8 +29,8 @@ class BrowserState {
   private final SharedPreferences prefs;
   private PathAndPosition current;
   
-  BrowserState(SharedPreferences prefs) {
-    this.prefs = prefs;
+  State(Fragment fragment) {
+    this.prefs = Preferences.getDefaultSharedPreferences(fragment.getActivity());
     this.current = new PathAndPosition();
   }
   

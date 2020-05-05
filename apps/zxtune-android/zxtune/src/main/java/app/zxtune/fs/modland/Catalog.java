@@ -7,13 +7,13 @@
 package app.zxtune.fs.modland;
 
 import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.ProgressCallback;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public abstract class Catalog {
 
@@ -41,7 +41,7 @@ public abstract class Catalog {
      * @param filter letter(s) or '#' for non-letter entries
      * @param visitor result receiver
      */
-    void queryGroups(String filter, GroupsVisitor visitor) throws IOException;
+    void queryGroups(String filter, GroupsVisitor visitor, ProgressCallback progress) throws IOException;
 
     /**
      * Query single group object
@@ -55,7 +55,7 @@ public abstract class Catalog {
      * @param id object identifier
      * @param visitor result receiver
      */
-    void queryTracks(int id, TracksVisitor visitor) throws IOException;
+    void queryTracks(int id, TracksVisitor visitor, ProgressCallback progress) throws IOException;
 
     /**
      * Query track by name
@@ -72,17 +72,9 @@ public abstract class Catalog {
 
   public abstract Grouping getFormats();
 
-  /**
-   * Get track file content
-   * @param path path to module starting from /pub/..
-   * @return content
-   */
-  @NonNull
-  public abstract ByteBuffer getTrackContent(String path) throws IOException;
-
-  public static Catalog create(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  public static CachingCatalog create(Context context, MultisourceHttpProvider http) {
     final RemoteCatalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
-    return new CachingCatalog(remote, db, cache);
+    return new CachingCatalog(remote, db);
   }
 }

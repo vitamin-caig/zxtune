@@ -9,6 +9,7 @@ package app.zxtune.fs;
 import android.net.Uri;
 
 import androidx.annotation.Nullable;
+import androidx.core.util.ObjectsCompat;
 
 import java.util.ArrayList;
 
@@ -58,9 +59,7 @@ class VfsRootComposite extends StubObject implements VfsRoot {
   }
 
   private boolean matchScheme(String scheme) {
-    return this.scheme != null
-               ? this.scheme.equals(scheme)
-               : scheme == null;
+    return ObjectsCompat.equals(this.scheme, scheme);
   }
 
   @Override

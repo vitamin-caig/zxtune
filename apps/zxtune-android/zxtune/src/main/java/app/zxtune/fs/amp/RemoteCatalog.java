@@ -7,20 +7,17 @@
 package app.zxtune.fs.amp;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.text.Html;
-import app.zxtune.Log;
-import app.zxtune.fs.api.Cdn;
-import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.fs.http.MultisourceHttpProvider;
-import app.zxtune.io.Io;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import app.zxtune.Log;
+import app.zxtune.fs.api.Cdn;
+import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.io.Io;
 
 /**
  * Authors:
@@ -48,7 +45,7 @@ import java.util.regex.Pattern;
  *   http://amp.dascene.net/newresult.php?request=module&search=${whatever}
  */
 
-class RemoteCatalog extends Catalog {
+public class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
@@ -93,12 +90,10 @@ class RemoteCatalog extends Catalog {
                   AUTHOR_ANCHOR +
                   TRACK_SIZE, Pattern.DOTALL);
 
-  private final HttpProvider http;
-  private final MultisourceHttpProvider multiHttp;
+  private final MultisourceHttpProvider http;
 
-  RemoteCatalog(HttpProvider http) {
+  RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
-    this.multiHttp = new MultisourceHttpProvider(http);
   }
 
   private static String decodeHtml(String txt) {
@@ -165,15 +160,14 @@ class RemoteCatalog extends Catalog {
     final String content = Io.readHtml(http.getInputStream(Uri.parse(uri)));
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
-      final Integer id = Integer.valueOf(matcher.group(1));
+      final int id = Integer.parseInt(matcher.group(1));
       final String name = decodeHtml(matcher.group(2));
-      final Integer size = Integer.valueOf(matcher.group(3));
+      final int size = Integer.parseInt(matcher.group(3));
       visitor.accept(new Track(id, name, size));
     }
   }
 
-  @Override
-  public boolean searchSupported() {
+  final boolean searchSupported() {
     return http.hasConnection();
   }
 
@@ -193,28 +187,16 @@ class RemoteCatalog extends Catalog {
   private static void parseFoundTracks(CharSequence content, FoundTracksVisitor visitor) {
     final Matcher matcher = FOUND_TRACKS.matcher(content);
     while (matcher.find()) {
-      final Integer trackId = Integer.valueOf(matcher.group(1));
+      final int trackId = Integer.parseInt(matcher.group(1));
       final String trackName = decodeHtml(matcher.group(2));
-      final Integer authorId = Integer.valueOf(matcher.group(3));
+      final int authorId = Integer.parseInt(matcher.group(3));
       final String authorHandle = decodeHtml(matcher.group(4));
-      final Integer size = Integer.valueOf(matcher.group(5));
+      final int size = Integer.parseInt(matcher.group(5));
       visitor.accept(new Author(authorId, authorHandle, ""/*realName*/), new Track(trackId, trackName, size));
     }
   }
 
-  @Override
-  @NonNull
-  public ByteBuffer getTrackContent(int id) throws IOException {
-    Log.d(TAG, "getTrackContent(%d)", id);
-    return Io.readFrom(multiHttp.getInputStream(getContentUris(id)));
-  }
-
-  final HttpObject getTrackObject(int id) throws IOException {
-    Log.d(TAG, "getTrackObject(%d)", id);
-    return multiHttp.getObject(getContentUris(id));
-  }
-
-  private static Uri[] getContentUris(int id) {
+  public static Uri[] getTrackUris(int id) {
     return new Uri[]{
       Cdn.amp(id),
       getMainUriBuilder().appendPath("downmod.php").appendQueryParameter("index", Integer.toString(id)).build()

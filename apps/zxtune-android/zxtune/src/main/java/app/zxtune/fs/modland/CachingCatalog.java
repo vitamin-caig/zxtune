@@ -7,18 +7,21 @@
 package app.zxtune.fs.modland;
 
 import androidx.annotation.NonNull;
-import app.zxtune.TimeStamp;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.dbhelpers.*;
-import app.zxtune.fs.http.HttpObject;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-final class CachingCatalog extends Catalog {
+import app.zxtune.StubProgressCallback;
+import app.zxtune.TimeStamp;
+import app.zxtune.fs.ProgressCallback;
+import app.zxtune.fs.dbhelpers.CommandExecutor;
+import app.zxtune.fs.dbhelpers.FetchCommand;
+import app.zxtune.fs.dbhelpers.QueryCommand;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
+
+final public class CachingCatalog extends Catalog {
 
   private static final String TAG = CachingCatalog.class.getName();
 
@@ -29,18 +32,14 @@ final class CachingCatalog extends Catalog {
     return TimeStamp.createFrom(val, TimeUnit.DAYS);
   }
 
-  private final RemoteCatalog remote;
   private final Database db;
-  private final CacheDir cache;
   private final Grouping authors;
   private final Grouping collections;
   private final Grouping formats;
   private final CommandExecutor executor;
 
-  public CachingCatalog(RemoteCatalog remote, Database db, CacheDir cache) {
-    this.remote = remote;
+  CachingCatalog(RemoteCatalog remote, Database db) {
     this.db = db;
-    this.cache = cache.createNested("ftp.modland.com");
     this.authors = new CachedGrouping(Database.Tables.Authors.NAME, remote.getAuthors());
     this.collections = new CachedGrouping(Database.Tables.Collections.NAME, remote.getCollections());
     this.formats = new CachedGrouping(Database.Tables.Formats.NAME, remote.getFormats());
@@ -73,7 +72,8 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
-    public void queryGroups(final String filter, final GroupsVisitor visitor) throws IOException {
+    public void queryGroups(final String filter, final GroupsVisitor visitor,
+                            final ProgressCallback progress) throws IOException {
       executor.executeQuery(new QueryCommand() {
 
         @Override
@@ -87,7 +87,7 @@ final class CachingCatalog extends Catalog {
         }
 
         @Override
-        public Transaction startTransaction() throws IOException {
+        public Transaction startTransaction() {
           return db.startTransaction();
         }
 
@@ -98,7 +98,7 @@ final class CachingCatalog extends Catalog {
             public void accept(Group obj) {
               db.addGroup(category, obj);
             }
-          });
+          }, progress);
         }
 
         @Override
@@ -125,6 +125,7 @@ final class CachingCatalog extends Catalog {
           return db.queryGroup(category, id);
         }
 
+        @NonNull
         @Override
         public Group updateCache() throws IOException {
           final Group res = remote.getGroup(id);
@@ -135,7 +136,8 @@ final class CachingCatalog extends Catalog {
     }
 
     @Override
-    public void queryTracks(final int id, final TracksVisitor visitor) throws IOException {
+    public void queryTracks(final int id, final TracksVisitor visitor,
+                            final ProgressCallback progress) throws IOException {
       executor.executeQuery(new QueryCommand() {
 
         @Override
@@ -149,7 +151,7 @@ final class CachingCatalog extends Catalog {
         }
 
         @Override
-        public Transaction startTransaction() throws IOException {
+        public Transaction startTransaction() {
           return db.startTransaction();
         }
 
@@ -162,7 +164,7 @@ final class CachingCatalog extends Catalog {
               db.addGroupTrack(category, id, obj);
               return true;
             }
-          });
+          }, progress);
         }
 
         @Override
@@ -188,6 +190,7 @@ final class CachingCatalog extends Catalog {
           return db.findTrack(category, id, filename);
         }
 
+        @NonNull
         @Override
         public Track updateCache() throws IOException {
           queryTracks(id, new TracksVisitor() {
@@ -199,7 +202,7 @@ final class CachingCatalog extends Catalog {
               }
               return true;
             }
-          });
+          }, StubProgressCallback.instance());
           final Track result = resultRef[0];
           if (result != null) {
             return result;
@@ -208,23 +211,5 @@ final class CachingCatalog extends Catalog {
         }
       });
     }
-  }
-
-  @Override
-  @NonNull
-  public ByteBuffer getTrackContent(final String id) throws IOException {
-    return executor.executeDownloadCommand(new DownloadCommand() {
-      @NonNull
-      @Override
-      public File getCache() throws IOException {
-        return cache.findOrCreate(id);
-      }
-
-      @NonNull
-      @Override
-      public HttpObject getRemote() throws IOException {
-        return remote.getTrackObject(id);
-      }
-    });
   }
 }

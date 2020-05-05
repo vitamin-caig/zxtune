@@ -1,42 +1,54 @@
 package app.zxtune.fs;
 
 import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import app.zxtune.core.Identifier;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+
 import app.zxtune.Log;
+import app.zxtune.core.Identifier;
 import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator.Entry;
 import app.zxtune.playlist.XspfIterator;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Comparator;
 
 final class VfsPlaylistDir implements VfsDir {
 
   private final static String TAG = VfsPlaylistDir.class.getName();
 
+  private static final String TYPE_AYL = ".ayl";
+  private static final String TYPE_XSPF = ".xspf";
+
   private final VfsFile file;
   private final ArrayList<Entry> entries;
 
   @Nullable
-  public static VfsDir resolveAsPlaylist(@NonNull VfsFile file) {
+  static VfsDir resolveAsPlaylist(@NonNull VfsFile file) {
     final String filename = file.getUri().getLastPathSegment();
     if (filename == null) {
       return null;
     }
     try {
-      if (filename.endsWith(".ayl")) {
-        return new VfsPlaylistDir(file, AylIterator.parse(file.getContent()));
-      } else if (filename.endsWith(".xspf")) {
-        return new VfsPlaylistDir(file, XspfIterator.parse(file.getContent()));
+      if (filename.endsWith(TYPE_AYL)) {
+        return new VfsPlaylistDir(file, AylIterator.parse(Vfs.read(file)));
+      } else if (filename.endsWith(TYPE_XSPF)) {
+        return new VfsPlaylistDir(file, XspfIterator.parse(Vfs.read(file)));
       }
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to parse playlist");
     }
     return null;
+  }
+
+  static boolean maybePlaylist(@NonNull Uri uri) {
+    final String filename = uri.getLastPathSegment();
+    if (filename == null) {
+      return false;
+    } else {
+      return filename.endsWith(TYPE_AYL) || filename.endsWith(TYPE_XSPF);
+    }
   }
 
   private VfsPlaylistDir(VfsFile file, ArrayList<Entry> entries) {
@@ -74,7 +86,6 @@ final class VfsPlaylistDir implements VfsDir {
       return null;
     }
   }
-
 
   @Override
   public void enumerate(Visitor visitor) {
@@ -122,11 +133,6 @@ final class VfsPlaylistDir implements VfsDir {
     @Override
     public String getSize() {
       return entry.duration.toString();
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      throw new IOException("Should not be called");
     }
   }
 

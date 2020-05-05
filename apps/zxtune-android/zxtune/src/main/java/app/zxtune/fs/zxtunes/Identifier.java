@@ -89,10 +89,11 @@ public class Identifier {
     if (path.size() > POS_AUTHOR_NICK) {
       final String nick = path.get(POS_AUTHOR_NICK);
       final String id = uri.getQueryParameter(PARAM_AUTHOR_ID);
-      return new Author(Integer.valueOf(id), nick, ""/*fake*/);
-    } else {
-      return null;
+      if (nick != null && id != null) {
+        return new Author(Integer.parseInt(id), nick, ""/*fake*/);
+      }
     }
+    return null;
   }
 
   @Nullable

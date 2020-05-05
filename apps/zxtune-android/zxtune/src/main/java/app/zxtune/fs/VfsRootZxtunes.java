@@ -8,22 +8,23 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import androidx.annotation.Nullable;
 import android.util.SparseIntArray;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.zxtunes.Author;
+import app.zxtune.fs.zxtunes.CachingCatalog;
 import app.zxtune.fs.zxtunes.Catalog;
 import app.zxtune.fs.zxtunes.Identifier;
+import app.zxtune.fs.zxtunes.RemoteCatalog;
 import app.zxtune.fs.zxtunes.Track;
 
 @Icon(R.drawable.ic_browser_vfs_zxtunes)
@@ -33,13 +34,13 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
   private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
-  private final GroupingDir groups[];
+  private final CachingCatalog catalog;
+  private final GroupingDir[] groups;
 
-  VfsRootZxtunes(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootZxtunes(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
+    this.catalog = Catalog.create(context, http);
     this.groups = new GroupingDir[]{
             new AuthorsDir()
     };
@@ -341,7 +342,11 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SHARE_URL.equals(id)) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return Integer.toString(module.id);
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(module.id);
+      } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {
         return super.getExtension(id);
@@ -353,11 +358,6 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
       return module.duration != null
               ? FRAME_DURATION.multiplies(module.duration).toString()
               : "";
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(module.id);
     }
 
     @Nullable
@@ -373,7 +373,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   private class AuthorsSearchEngine implements VfsExtensions.SearchEngine {
 
     @Override
-    public void find(String query, final Visitor visitor) throws IOException {
+    public void find(String query, final Visitor visitor) {
       catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
 
         @Override

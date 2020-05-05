@@ -9,23 +9,24 @@ package app.zxtune.fs;
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
-import androidx.annotation.Nullable;
 import android.util.SparseIntArray;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
 import app.zxtune.R;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.zxart.Author;
+import app.zxtune.fs.zxart.CachingCatalog;
 import app.zxtune.fs.zxart.Catalog;
 import app.zxtune.fs.zxart.Identifier;
 import app.zxtune.fs.zxart.Party;
+import app.zxtune.fs.zxart.RemoteCatalog;
 import app.zxtune.fs.zxart.Track;
 
 @Icon(R.drawable.ic_browser_vfs_zxart)
@@ -35,13 +36,13 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
-  private final GroupingDir groups[];
+  private final CachingCatalog catalog;
+  private final GroupingDir[] groups;
 
-  public VfsRootZxart(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  public VfsRootZxart(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
+    this.catalog = Catalog.create(context, http);
     this.groups = new GroupingDir[]{
             new AuthorsDir(),
             new PartiesDir(),
@@ -72,7 +73,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
       //assume search by authors from root
       return new AuthorsSearchEngine();
     } else {
@@ -145,7 +146,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
         return new AuthorsSearchEngine();
       } else {
         return super.getExtension(id);
@@ -293,7 +294,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private class AuthorTrackFile extends BaseTrackFile {
 
-    public AuthorTrackFile(Uri uri, Track track) {
+    AuthorTrackFile(Uri uri, Track track) {
       super(uri, track);
     }
 
@@ -493,13 +494,13 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
           : (lhPlace < rhPlace ? -1 : +1);
     }
 
-    public static Comparator<VfsObject> instance() {
+    static Comparator<VfsObject> instance() {
       return Holder.INSTANCE;
     }
 
     //onDemand holder idiom
     private static class Holder {
-      public static final PartyCompoTracksComparator INSTANCE = new PartyCompoTracksComparator();
+      static final PartyCompoTracksComparator INSTANCE = new PartyCompoTracksComparator();
     }
   }
 
@@ -585,13 +586,13 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
           ((VfsFile) rh).getSize());
     }
 
-    public static Comparator<VfsObject> instance() {
+    static Comparator<VfsObject> instance() {
       return Holder.INSTANCE;
     }
 
     //onDemand holder idiom
     private static class Holder {
-      public static final TopTracksComparator INSTANCE = new TopTracksComparator();
+      static final TopTracksComparator INSTANCE = new TopTracksComparator();
     }
   }
 
@@ -698,7 +699,11 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SHARE_URL.equals(id)) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return Integer.toString(module.id);
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(module.id);
+      } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {
         return super.getExtension(id);
@@ -708,11 +713,6 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     @Override
     public String getSize() {
       return module.duration;
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(module.id);
     }
 
     private String getShareUrl() {

@@ -12,12 +12,12 @@
         android:title="@string/add"
         sabd:showAsAction="never"
       />
-      <!--<item
+      <item
         android:id="@+id/action_send"
         android:icon="@drawable/ic_menu_send"
         android:title="@string/send"
         sabd:showAsAction="never"
-      />-->
+      />
       <item
         android:id="@+id/action_share"
         android:icon="@drawable/ic_menu_share"

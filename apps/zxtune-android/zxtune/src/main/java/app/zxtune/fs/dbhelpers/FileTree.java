@@ -12,9 +12,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 
-import androidx.annotation.Nullable;
-
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,7 +54,7 @@ final public class FileTree {
     private final SQLiteDatabase db;
     private final SQLiteStatement insertStatement;
 
-    Table(DBProvider helper) throws IOException {
+    Table(DBProvider helper) {
       this.db = helper.getWritableDatabase();
       this.insertStatement = db.compileStatement("INSERT OR REPLACE INTO dirs VALUES(?, ?);");
     }
@@ -79,13 +83,13 @@ final public class FileTree {
   private final Table entries;
   private final Timestamps timestamps;
 
-  public FileTree(Context context, String id) throws IOException {
+  public FileTree(Context context, String id) {
     this.helper = new DBProvider(Helper.create(context, id));
     this.entries = new Table(helper);
     this.timestamps = new Timestamps(helper);
   }
 
-  public final Transaction startTransaction() throws IOException {
+  public final Transaction startTransaction() {
     return new Transaction(helper.getWritableDatabase());
   }
 

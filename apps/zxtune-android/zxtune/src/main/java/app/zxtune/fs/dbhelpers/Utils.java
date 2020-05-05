@@ -17,7 +17,7 @@ import app.zxtune.Log;
 public final class Utils {
 
   public static void cleanupDb(SQLiteDatabase db) {
-    final String TYPES[] = {"table", "view", "index", "trigger"};
+    final String[] TYPES = {"table", "view", "index", "trigger"};
     for (String type : TYPES) {
       for (String name : getObjects(db, type)) {
         Log.d("CleanupDb", "Drop %s '%s'", type, name);

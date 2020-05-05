@@ -48,6 +48,7 @@ import app.zxtune.playlist.ProviderClient;
 import app.zxtune.ui.playlist.PlaylistEntry;
 import app.zxtune.ui.playlist.PlaylistViewAdapter;
 import app.zxtune.ui.playlist.PlaylistViewModel;
+import app.zxtune.ui.utils.SelectionUtils;
 
 public class PlaylistFragment extends Fragment {
 
@@ -258,7 +259,7 @@ public class PlaylistFragment extends Fragment {
     }
   }
 
-  // Client for selection
+  // ArchivesService for selection
   private class SelectionClient implements SelectionUtils.Client<Long> {
     @NonNull
     @Override

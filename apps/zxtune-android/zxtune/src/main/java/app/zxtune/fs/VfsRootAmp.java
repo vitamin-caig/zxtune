@@ -8,23 +8,24 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import androidx.annotation.Nullable;
 import android.text.format.Formatter;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import app.zxtune.R;
 import app.zxtune.fs.amp.Author;
+import app.zxtune.fs.amp.CachingCatalog;
 import app.zxtune.fs.amp.Catalog;
 import app.zxtune.fs.amp.Catalog.GroupsVisitor;
 import app.zxtune.fs.amp.Country;
 import app.zxtune.fs.amp.Group;
 import app.zxtune.fs.amp.Identifier;
+import app.zxtune.fs.amp.RemoteCatalog;
 import app.zxtune.fs.amp.Track;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 @Icon(R.drawable.ic_browser_vfs_amp)
 final class VfsRootAmp extends StubObject implements VfsRoot {
@@ -33,13 +34,13 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
   private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
-  private final GroupingDir groupings[];
+  private final CachingCatalog catalog;
+  private final GroupingDir[] groupings;
 
-  VfsRootAmp(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootAmp(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
+    this.catalog = Catalog.create(context, http);
     this.groupings = new GroupingDir[]{
             new HandlesDir(),
             new CountriesDir(),
@@ -70,7 +71,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
     } else {
@@ -152,7 +153,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     @Nullable
     public Object getExtension(String id) {
-      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
         //assume all the groups will search by authors
         return new AuthorsSearchEngine();
       } else {
@@ -162,8 +163,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     abstract String getPath();
   }
-
-  ;
 
   private abstract class HandleByGroupingDir extends StubObject implements VfsDir {
 
@@ -231,11 +230,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(letter, new Catalog.AuthorsVisitor() {
-        @Override
-        public void setCountHint(int count) {
-          visitor.onItemsCount(count);
-        }
-
         @Override
         public void accept(Author obj) {
           visitor.onDir(makeSubdir(obj));
@@ -496,8 +490,14 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     }
 
     @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(track.id);
+    public Object getExtension(String id) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return Integer.toString(track.id);
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(track.id);
+      } else {
+        return super.getExtension(id);
+      }
     }
   }
 

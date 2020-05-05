@@ -11,24 +11,23 @@ import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.text.Html;
 import android.util.Xml;
-import app.zxtune.Log;
-import app.zxtune.Util;
-import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.io.Io;
+
+import androidx.annotation.Nullable;
+
 import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.Locale;
 
-final class RemoteCatalog extends Catalog {
+import app.zxtune.Log;
+import app.zxtune.Util;
+import app.zxtune.fs.http.MultisourceHttpProvider;
+
+public final class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
@@ -53,9 +52,9 @@ final class RemoteCatalog extends Catalog {
   private static final String TOP_TRACKS_QUERY = API + ACTION_TOP + LIMIT;
   private static final String FIND_TRACKS_QUERY = API + ACTION_SEARCH + "/query:%s";
 
-  private final HttpProvider http;
+  private final MultisourceHttpProvider http;
 
-  public RemoteCatalog(HttpProvider http) {
+  public RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
   }
 
@@ -99,11 +98,11 @@ final class RemoteCatalog extends Catalog {
     performQuery(stream, root);
   }
 
-  @Override
-  public boolean searchSupported() {
+  final boolean searchSupported() {
     return http.hasConnection();
   }
 
+  @Override
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
     Log.d(TAG, "findTracks(query=%s)", query);
     final String uri = String.format(Locale.US, FIND_TRACKS_QUERY, Uri.encode(query));
@@ -112,18 +111,9 @@ final class RemoteCatalog extends Catalog {
     performQuery(stream, root);
   }
 
-  @Override
-  @NonNull
-  public ByteBuffer getTrackContent(int id) throws IOException {
-    Log.d(TAG, "getTrackContent(id=%d)", id);
+  public static Uri[] getTrackUris(int id) {
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    return Io.readFrom(http.getInputStream(Uri.parse(query)));
-  }
-
-  final HttpObject getTrackObject(int id) throws IOException {
-    Log.d(TAG, "getTrackObject(id=%d)", id);
-    final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    return http.getObject(Uri.parse(query));
+    return new Uri[]{Uri.parse(query)};
   }
 
   private void performQuery(InputStream httpStream, RootElement root)

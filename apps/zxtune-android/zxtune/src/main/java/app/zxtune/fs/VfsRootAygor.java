@@ -8,14 +8,12 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import androidx.annotation.Nullable;
 
-import java.io.IOException;
+import androidx.annotation.Nullable;
 
 import app.zxtune.R;
 import app.zxtune.fs.aygor.Path;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
 
@@ -24,8 +22,8 @@ final class VfsRootAygor extends HttpRootBase implements VfsRoot {
 
   private final Context context;
 
-  VfsRootAygor(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
-    super(parent, Catalog.create(context, http, cache, "aygor"), Path.create());
+  VfsRootAygor(VfsObject parent, Context context, MultisourceHttpProvider http) {
+    super(parent, Catalog.create(context, http, "aygor"), Path.create());
     this.context = context;
   }
 
@@ -41,7 +39,7 @@ final class VfsRootAygor extends HttpRootBase implements VfsRoot {
 
   @Override
   @Nullable
-  public VfsObject resolve(Uri uri) throws IOException {
+  public VfsObject resolve(Uri uri) {
     return resolve(Path.parse(uri));
   }
 }

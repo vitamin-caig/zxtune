@@ -14,7 +14,7 @@ public interface QueryCommand {
 
   Timestamps.Lifetime getLifetime();
 
-  Transaction startTransaction() throws IOException;
+  Transaction startTransaction();
 
   void updateCache() throws IOException;
 

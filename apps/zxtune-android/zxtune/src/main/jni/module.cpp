@@ -19,6 +19,7 @@
 #include "properties.h"
 //common includes
 #include <contract.h>
+#include <progress_callback.h>
 //library includes
 #include <core/module_open.h>
 #include <core/module_detect.h>
@@ -94,7 +95,8 @@ namespace
     return NativeModuleJni::Create(env, handle);
   }
 
-  class DetectCallback : public Module::DetectCallback
+  class DetectCallback : public Module::DetectCallback,
+                         public Log::ProgressCallback
   {
   public:
     explicit DetectCallback(JNIEnv* env, jobject delegate)
@@ -102,6 +104,8 @@ namespace
       , Delegate(delegate)
       , CallbackClass()
       , OnModuleMethod()
+      , OnProgressMethod()
+      , LastProgress(0)
     {
     }
 
@@ -116,23 +120,56 @@ namespace
 
     Log::ProgressCallback* GetProgress() const override
     {
-      return nullptr;
+      return const_cast<Log::ProgressCallback*>(static_cast<const Log::ProgressCallback*>(this));
     }
   private:
+    void OnProgress(uint_t current) override
+    {
+      if (LastProgress != current)
+      {
+        Env->CallVoidMethod(Delegate, GetProgressMethodId(), LastProgress = current);
+        Jni::ThrowIfError(Env);
+      }
+    }
+
+    void OnProgress(uint_t current, const String&) override
+    {
+      OnProgress(current);
+    }
+
     jmethodID GetMethodId() const
     {
       if (!OnModuleMethod)
       {
-        CallbackClass = Env->GetObjectClass(Delegate);
-        OnModuleMethod = Env->GetMethodID(CallbackClass, "onModule", "(Ljava/lang/String;Lapp/zxtune/core/Module;)V");
+        OnModuleMethod = Env->GetMethodID(GetCallbackClass(), "onModule", "(Ljava/lang/String;Lapp/zxtune/core/Module;)V");
       }
       return OnModuleMethod;
+    }
+
+    jmethodID GetProgressMethodId() const
+    {
+      if (!OnProgressMethod)
+      {
+        OnProgressMethod = Env->GetMethodID(GetCallbackClass(), "onProgress", "(I)V");
+      }
+      return OnProgressMethod;
+    }
+
+    jclass GetCallbackClass() const
+    {
+      if (!CallbackClass)
+      {
+        CallbackClass = Env->GetObjectClass(Delegate);
+      }
+      return CallbackClass;
     }
   private:
     JNIEnv* const Env;
     const jobject Delegate;
     mutable jclass CallbackClass;
     mutable jmethodID OnModuleMethod;
+    mutable jmethodID OnProgressMethod;
+    uint_t LastProgress;
   };
 }
 

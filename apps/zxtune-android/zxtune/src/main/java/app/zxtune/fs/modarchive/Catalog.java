@@ -7,14 +7,11 @@
 package app.zxtune.fs.modarchive;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.ProgressCallback;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public abstract class Catalog {
 
@@ -54,7 +51,7 @@ public abstract class Catalog {
    * Query authors by handle filter
    * @param visitor result receiver
    */
-  public abstract void queryAuthors(AuthorsVisitor visitor) throws IOException;
+  public abstract void queryAuthors(AuthorsVisitor visitor, ProgressCallback progress) throws IOException;
 
   /**
    * Query all genres 
@@ -67,19 +64,14 @@ public abstract class Catalog {
    * @param author scope
    * @param visitor result receiver
    */
-  public abstract void queryTracks(Author author, TracksVisitor visitor) throws IOException;
+  public abstract void queryTracks(Author author, TracksVisitor visitor, ProgressCallback progress) throws IOException;
 
   /**
    * Query genre's tracks
    * @param genre scope
    * @param visitor result receiver
    */
-  public abstract void queryTracks(Genre genre, TracksVisitor visitor) throws IOException;
-
-  /**
-   * Checks whether tracks can be found directly from catalogue instead of scanning
-   */
-  public abstract boolean searchSupported();
+  public abstract void queryTracks(Genre genre, TracksVisitor visitor, ProgressCallback progress) throws IOException;
 
   /**
    * Find tracks by query substring
@@ -92,20 +84,11 @@ public abstract class Catalog {
    * Queries next random track
    * @throws IOException
    */
-  @Nullable
   public abstract void findRandomTracks(TracksVisitor visitor) throws IOException;
 
-  /**
-   * Get track file content
-   * @param id track identifier
-   * @return content
-   */
-  @NonNull
-  public abstract ByteBuffer getTrackContent(int id) throws IOException;
-
-  public static Catalog create(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  public static CachingCatalog create(Context context, MultisourceHttpProvider http) {
     final RemoteCatalog remote = new RemoteCatalog(context, http);
     final Database db = new Database(context);
-    return new CachingCatalog(remote, db, cache);
+    return new CachingCatalog(remote, db);
   }
 }

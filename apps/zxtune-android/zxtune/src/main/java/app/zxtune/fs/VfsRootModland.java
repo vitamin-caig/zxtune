@@ -22,18 +22,19 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import androidx.annotation.Nullable;
 import android.text.format.Formatter;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import app.zxtune.R;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.fs.modland.CachingCatalog;
 import app.zxtune.fs.modland.Catalog;
 import app.zxtune.fs.modland.Group;
+import app.zxtune.fs.modland.RemoteCatalog;
 import app.zxtune.fs.modland.Track;
 
 @Icon(R.drawable.ic_browser_vfs_modland)
@@ -53,7 +54,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
     static Uri.Builder makeUri() {
       return new Uri.Builder().scheme(SCHEME)
-              .authority(HOST);
+                 .authority(HOST);
     }
   }
 
@@ -68,23 +69,22 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
   private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
-  private final GroupsDir groups[];
+  private final GroupsDir[] groups;
 
-  VfsRootModland(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootModland(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
+    final CachingCatalog catalog = Catalog.create(context, http);
     this.groups = new GroupsDir[]{
-            new GroupsDir("Authors",
-                    R.string.vfs_modland_authors_name, R.string.vfs_modland_authors_description,
-                    catalog.getAuthors()),
-            new GroupsDir("Collections",
-                    R.string.vfs_modland_collections_name, R.string.vfs_modland_collections_description,
-                    catalog.getCollections()),
-            new GroupsDir("Formats",
-                    R.string.vfs_modland_formats_name, R.string.vfs_modland_formats_description,
-                    catalog.getFormats())
+        new GroupsDir("Authors",
+            R.string.vfs_modland_authors_name, R.string.vfs_modland_authors_description,
+            catalog.getAuthors()),
+        new GroupsDir("Collections",
+            R.string.vfs_modland_collections_name, R.string.vfs_modland_collections_description,
+            catalog.getCollections()),
+        new GroupsDir("Formats",
+            R.string.vfs_modland_formats_name, R.string.vfs_modland_formats_description,
+            catalog.getFormats())
     };
   }
 
@@ -192,7 +192,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     }
 
     @Override
-    public void enumerate(Visitor visitor) throws IOException {
+    public void enumerate(Visitor visitor) {
       visitor.onDir(new GroupByLetterDir(NOT_LETTER));
       for (char c = 'A'; c <= 'Z'; ++c) {
         visitor.onDir(new GroupByLetterDir(String.valueOf(c)));
@@ -253,7 +253,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
           public void accept(Group obj) {
             visitor.onDir(new GroupDir(obj));
           }
-        });
+        }, visitor);
       }
 
       @Nullable
@@ -313,10 +313,9 @@ final class VfsRootModland extends StubObject implements VfsRoot {
               visitor.onFile(new TrackFile(obj));
               return true;
             }
-          });
+          }, visitor);
         }
 
-        @Nullable
         final VfsObject resolve(List<String> path) throws IOException {
           if (POS_NAME == path.size() - 1) {
             return this;
@@ -329,8 +328,8 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
         final Uri.Builder groupUri() {
           return groupLetterUri()
-                  .appendPath(obj.name)
-                  .appendQueryParameter(PARAM_ID, String.valueOf(obj.id));
+                     .appendPath(obj.name)
+                     .appendQueryParameter(PARAM_ID, String.valueOf(obj.id));
         }
 
         private class TrackFile extends FreeTrackFile {
@@ -347,7 +346,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
           @Override
           Uri.Builder trackUri() {
             return groupUri()
-                    .appendPath(track.filename);
+                       .appendPath(track.filename);
           }
         }
       }
@@ -383,8 +382,14 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     }
 
     @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(track.path);
+    public Object getExtension(String id) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return track.path;
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(track.path);
+      } else {
+        return super.getExtension(id);
+      }
     }
 
     Uri.Builder trackUri() {

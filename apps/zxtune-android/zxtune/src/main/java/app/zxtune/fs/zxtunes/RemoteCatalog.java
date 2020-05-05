@@ -7,24 +7,27 @@
 package app.zxtune.fs.zxtunes;
 
 import android.net.Uri;
-import android.sax.*;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.sax.Element;
+import android.sax.EndElementListener;
+import android.sax.EndTextElementListener;
+import android.sax.RootElement;
+import android.sax.StartElementListener;
 import android.util.Xml;
-import app.zxtune.Log;
-import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.io.Io;
+
+import androidx.annotation.Nullable;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.Locale;
 
-final class RemoteCatalog extends Catalog {
+import app.zxtune.Log;
+import app.zxtune.fs.http.MultisourceHttpProvider;
+
+public final class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
@@ -37,9 +40,9 @@ final class RemoteCatalog extends Catalog {
   private static final String AUTHOR_TRACKS_QUERY = ALL_TRACKS_QUERY + "&author_id=%d";
   private static final String DOWNLOAD_QUERY = SITE + "downloads.php?id=%d";
 
-  private final HttpProvider http;
+  private final MultisourceHttpProvider http;
 
-  public RemoteCatalog(HttpProvider http) {
+  RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
   }
 
@@ -73,18 +76,9 @@ final class RemoteCatalog extends Catalog {
     throw new IOException("Search is not supported on remote side");
   }
 
-  @Override
-  @NonNull
-  public ByteBuffer getTrackContent(int id) throws IOException {
-    Log.d(TAG, "getTrackContent(id=%d)", id);
+  public static Uri[] getTrackUris(int id) {
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    return Io.readFrom(http.getInputStream(Uri.parse(query)));
-  }
-
-  final HttpObject getTrackObject(int id) throws IOException {
-    Log.d(TAG, "getTrackObject(id=%d)", id);
-    final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    return http.getObject(Uri.parse(query));
+    return new Uri[]{Uri.parse(query)};
   }
 
   private void performQuery(InputStream httpStream, RootElement root)

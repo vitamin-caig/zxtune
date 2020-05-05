@@ -3,6 +3,8 @@ package app.zxtune.core;
 import android.net.Uri;
 import androidx.annotation.NonNull;
 import android.util.LruCache;
+
+import app.zxtune.StubProgressCallback;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsArchive;
@@ -126,10 +128,10 @@ public final class Scanner {
     if (filename == null) {
       return false;
     } else if (filename.endsWith(".ayl")) {
-      analyzePlaylist(file.getUri(), AylIterator.create(file.getContent()), cb);
+      analyzePlaylist(file.getUri(), AylIterator.create(Vfs.read(file)), cb);
       return true;
     } else if (filename.endsWith(".xspf")) {
-      analyzePlaylist(file.getUri(), XspfIterator.create(file.getContent()), cb);
+      analyzePlaylist(file.getUri(), XspfIterator.create(Vfs.read(file)), cb);
       return true;
     } else {
       return false;
@@ -160,6 +162,9 @@ public final class Scanner {
       public void onModule(@NonNull String subpath, @NonNull Module obj) {
         cb.onModule(new Identifier(uri, subpath), obj);
       }
+
+      @Override
+      public void onProgress(int done) {}
     });
   }
 
@@ -170,7 +175,7 @@ public final class Scanner {
       cb.onModule(id, module);
     } catch (ResolvingException e) {
       final Uri uri = id.getFullLocation();
-      final VfsObject obj = VfsArchive.resolveForced(uri);
+      final VfsObject obj = VfsArchive.resolveForced(uri, StubProgressCallback.instance());
       if (obj instanceof VfsDir) {
         analyzeDirObject((VfsDir) obj, cb);
       } else {

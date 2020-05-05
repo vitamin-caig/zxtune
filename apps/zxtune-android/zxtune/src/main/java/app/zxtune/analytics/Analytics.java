@@ -43,11 +43,12 @@ public class Analytics {
   }
 
   @Retention(SOURCE)
-  @IntDef({BROWSER_ACTION_BROWSE, BROWSER_ACTION_SEARCH})
+  @IntDef({BROWSER_ACTION_BROWSE, BROWSER_ACTION_BROWSE_PARENT, BROWSER_ACTION_SEARCH})
   @interface BrowserAction {}
 
   public static final int BROWSER_ACTION_BROWSE = 0;
-  public static final int BROWSER_ACTION_SEARCH = 1;
+  public static final int BROWSER_ACTION_BROWSE_PARENT = 1;
+  public static final int BROWSER_ACTION_SEARCH = 2;
 
   public static void sendBrowserEvent(Uri path, @BrowserAction int action) {
     for (Sink s : sinks) {

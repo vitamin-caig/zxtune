@@ -1,11 +1,14 @@
 package app.zxtune.core;
 
 import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.core.jni.JniModule;
+import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
@@ -22,7 +25,14 @@ public class Core {
 
   @NonNull
   public static Module loadModule(@NonNull VfsFile file, @NonNull String subpath) throws IOException, ResolvingException {
-    final ByteBuffer content = file.getContent();
+    return loadModule(file, subpath, null);
+  }
+
+  @NonNull
+  public static Module loadModule(@NonNull VfsFile file, @NonNull String subpath,
+                                  @Nullable ProgressCallback progress) throws IOException,
+      ResolvingException {
+    final ByteBuffer content = Vfs.read(file);
     final LogContext log = new LogContext(file.getUri(), subpath, content.limit());
     log.action("loadModule begin");
     final Module obj = JniModule.load(makeDirectBuffer(content), subpath);
@@ -32,7 +42,7 @@ public class Core {
       return obj;
     } else if (subpath.isEmpty()) {
       Log.d(TAG, "Resolve additional files for opened %s", file.getUri());
-      return new Resolver(file, log).resolve(obj, files);
+      return new Resolver(file, progress, log).resolve(obj, files);
     } else {
       //was not resolved by ZXTune library core
       throw new ResolvingException(String.format(Locale.US, "Unresolved additional files '%s'", Arrays.toString(files)));
@@ -40,9 +50,16 @@ public class Core {
   }
 
   public static void detectModules(@NonNull VfsFile file, @NonNull ModuleDetectCallback callback) throws IOException {
-    final ByteBuffer content = file.getContent();
+    detectModules(file, callback, null);
+  }
+
+  public static void detectModules(@NonNull VfsFile file,
+                                   @NonNull ModuleDetectCallback callback,
+                                   @Nullable ProgressCallback progress) throws IOException {
+    final ByteBuffer content = Vfs.read(file, progress);
     final LogContext log = new LogContext(file.getUri(), "*", content.limit());
-    final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback, log);
+    final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback,
+        progress, log);
     log.action("detectModules begin");
     JniModule.detect(makeDirectBuffer(content), adapter);
     log.action("detectModules end");
@@ -71,13 +88,16 @@ public class Core {
 
     private final VfsFile location;
     private final ModuleDetectCallback delegate;
+    private final ProgressCallback progress;
     private final LogContext log;
     private Resolver resolver;
     private int modulesCount = 0;
 
-    ModuleDetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate, LogContext log) {
+    ModuleDetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate,
+                                ProgressCallback progress, LogContext log) {
       this.location = location;
       this.delegate = delegate;
+      this.progress = progress;
       this.log = log;
     }
 
@@ -104,6 +124,11 @@ public class Core {
       }
     }
 
+    @Override
+    public void onProgress(int done) {
+      delegate.onProgress(done);
+    }
+
     @NonNull
     private Module resolve(@NonNull Module obj, String[] files) throws ResolvingException {
       return getResolver().resolve(obj, files);
@@ -111,7 +136,7 @@ public class Core {
 
     private Resolver getResolver() {
       if (resolver == null) {
-        resolver = new Resolver(location, log);
+        resolver = new Resolver(location, progress, log);
       }
       return resolver;
     }
@@ -121,15 +146,18 @@ public class Core {
 
     @Nullable
     private VfsDir parent;
+    private final ProgressCallback progress;
     private final LogContext log;
     private final HashMap<String, VfsFile> files = new HashMap<>();
     private final HashMap<String, VfsDir> dirs = new HashMap<>();
 
-    Resolver(@NonNull VfsFile content, @NonNull LogContext log) {
+    Resolver(@NonNull VfsFile content, @Nullable ProgressCallback progress,
+             @NonNull LogContext log) {
       final VfsObject parent = content.getParent();
       if (parent instanceof VfsDir) {
         this.parent = (VfsDir) parent;
       }
+      this.progress = progress;
       this.log = log;
     }
 
@@ -165,7 +193,7 @@ public class Core {
       if (file == null) {
         throw new IOException(String.format(Locale.US, "Failed to find additional file '%s'", name));
       }
-      return file.getContent();
+      return Vfs.read(file, progress);
     }
 
     @Nullable
@@ -211,11 +239,6 @@ public class Core {
     private void preloadDir(@NonNull VfsDir dir, @NonNull final String relPath) throws IOException {
       Log.d(TAG, "Preload content of %s as '%s'", dir.getUri(), relPath);
       dir.enumerate(new VfsDir.Visitor() {
-
-        @Override
-        public void onItemsCount(int count) {
-        }
-
         @Override
         public void onDir(@NonNull VfsDir dir) {
           final String name = relPath + dir.getName();

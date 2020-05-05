@@ -7,20 +7,21 @@
 package app.zxtune.fs.modland;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.text.Html;
-import app.zxtune.Log;
-import app.zxtune.fs.api.Cdn;
-import app.zxtune.fs.http.HttpObject;
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.fs.http.MultisourceHttpProvider;
-import app.zxtune.io.Io;
+
+import androidx.annotation.NonNull;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import app.zxtune.Log;
+import app.zxtune.StubProgressCallback;
+import app.zxtune.fs.ProgressCallback;
+import app.zxtune.fs.api.Cdn;
+import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.io.Io;
 
 /**
  * Use pure http response parsing via regex in despite that page structure seems to be xml well formed.
@@ -29,7 +30,7 @@ import java.util.regex.Pattern;
  * http://www.exotica.org.uk/mediawiki/extensions/ExoticASearch/Modland_xbmc.php
  * but it seems to be not working and has no such wide catalogue as http gate does.
  */
-class RemoteCatalog extends Catalog {
+public class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
@@ -43,15 +44,13 @@ class RemoteCatalog extends Catalog {
   private static final Pattern TRACKS =
           Pattern.compile("file=(pub/modules/.+?).>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
 
-  private final HttpProvider http;
-  private final MultisourceHttpProvider multiHttp;
+  private final MultisourceHttpProvider http;
   private final Grouping authors;
   private final Grouping collections;
   private final Grouping formats;
 
-  RemoteCatalog(HttpProvider http) {
+  RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
-    this.multiHttp = new MultisourceHttpProvider(http);
     this.authors = new Authors();
     this.collections = new Collections();
     this.formats = new Formats();
@@ -94,34 +93,41 @@ class RemoteCatalog extends Catalog {
     }
 
     @Override
-    public void queryGroups(String filter, final GroupsVisitor visitor) throws IOException {
+    public void queryGroups(String filter, final GroupsVisitor visitor,
+                            final ProgressCallback progress) throws IOException {
       Log.d(TAG, "queryGroups(type=%s, filter=%s)", getCategoryTag(), filter);
       loadPages(makeGroupsQuery(getCategoryTag(), filter), new PagesVisitor() {
 
-        private boolean countReported;
+        private int total = 0;
+        private int done = 0;
 
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
-          if (!countReported) {
-            visitor.setCountHint(results);
-            countReported = true;
+          if (total == 0) {
+            total = results;
+            visitor.setCountHint(total);
           }
-          parseAuthors(content, visitor);
+          done += parseAuthors(content, visitor);
+          progress.onProgressUpdate(done, total);
           return true;
         }
       });
     }
 
-    private void parseAuthors(CharSequence content, GroupsVisitor visitor) {
+    private int parseAuthors(CharSequence content, GroupsVisitor visitor) {
+      int result = 0;
       final Matcher matcher = entries.matcher(content);
       while (matcher.find()) {
         final String id = matcher.group(1);
         final String name = decodeHtml(matcher.group(2));
         final String tracks = matcher.group(3);
         visitor.accept(new Group(Integer.valueOf(id), name, Integer.valueOf(tracks)));
+        ++result;
       }
+      return result;
     }
 
+    @NonNull
     @Override
     public Group getGroup(final int id) throws IOException {
       Log.d(TAG, "getGroup(type=%s, id=%d)", getCategoryTag(), id);
@@ -145,23 +151,28 @@ class RemoteCatalog extends Catalog {
     }
 
     @Override
-    public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
+    public void queryTracks(int id, final TracksVisitor visitor, final ProgressCallback progress) throws IOException {
       Log.d(TAG, "queryGroupTracks(type=%s, id=%d)", getCategoryTag(), id);
       loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
 
-        private boolean countReported;
+        private int total = 0;
+        private int done = 0;
 
         @Override
         public boolean onPage(String header, int results, CharSequence content) {
-          if (!countReported) {
-            visitor.setCountHint(results);
-            countReported = true;
+          if (total == 0) {
+            total = results;
+            visitor.setCountHint(total);
           }
-          return parseTracks(content, visitor);
+          final int tracks = parseTracks(content, visitor);
+          done += tracks;
+          progress.onProgressUpdate(done, total);
+          return tracks != 0;
         }
       });
     }
 
+    @NonNull
     @Override
     public Track getTrack(int id, final String filename) throws IOException {
       Log.d(TAG, "getGroupTrack(type=%s, id=%d, filename=%s)", getCategoryTag(), id, filename);
@@ -176,7 +187,7 @@ class RemoteCatalog extends Catalog {
             return true;
           }
         }
-      });
+      }, StubProgressCallback.instance());
       final Track result = resultRef[0];
       if (result != null) {
         return result;
@@ -228,31 +239,21 @@ class RemoteCatalog extends Catalog {
     }
   }
 
-  private static boolean parseTracks(CharSequence content, TracksVisitor visitor) {
+  private static int parseTracks(CharSequence content, TracksVisitor visitor) {
+    int result = 0;
     final Matcher matcher = TRACKS.matcher(content);
     while (matcher.find()) {
       final String path = "/" + matcher.group(1);
       final String size = matcher.group(2);
       if (!visitor.accept(new Track(path, Integer.valueOf(size)))) {
-        return false;
+        return 0;
       }
+      ++result;
     }
-    return true;
+    return result;
   }
 
-  @Override
-  @NonNull
-  public ByteBuffer getTrackContent(String id) throws IOException {
-    Log.d(TAG, "getTrackContent(%s)", id);
-    return Io.readFrom(multiHttp.getInputStream(getContentUris(id)));
-  }
-
-  final HttpObject getTrackObject(String id) throws IOException {
-    Log.d(TAG, "getTrackContent(%s)", id);
-    return multiHttp.getObject(getContentUris(id));
-  }
-
-  private static Uri[] getContentUris(String id) {
+  public static Uri[] getTrackUris(String id) {
     return new Uri[]{
         Cdn.modland(id),
         Uri.parse("http://ftp.amigascne.org/mirrors/ftp.modland.com" + id)

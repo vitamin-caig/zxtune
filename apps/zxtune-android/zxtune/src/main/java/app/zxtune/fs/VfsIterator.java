@@ -17,23 +17,7 @@ import app.zxtune.Log;
 public final class VfsIterator {
 
   public interface ErrorHandler {
-    public void onIOError(IOException e);
-  }
-
-  public static class KeepLastErrorHandler implements ErrorHandler {
-
-    private IOException lastError;
-
-    @Override
-    public void onIOError(IOException e) {
-      lastError = e;
-    }
-
-    public final void throwLastIOError() throws IOException {
-      if (lastError != null) {
-        throw lastError;
-      }
-    }
+    void onIOError(IOException e);
   }
 
   private static final String TAG = VfsIterator.class.getName();
@@ -89,10 +73,6 @@ public final class VfsIterator {
   private void scan(VfsDir root) {
     try {
       root.enumerate(new VfsDir.Visitor() {
-        @Override
-        public void onItemsCount(int count) {
-        }
-
         @Override
         public void onDir(VfsDir dir) {
           //move to depth first

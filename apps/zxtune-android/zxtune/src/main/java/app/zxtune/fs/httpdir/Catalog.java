@@ -7,13 +7,10 @@
 package app.zxtune.fs.httpdir;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public abstract class Catalog {
 
@@ -24,26 +21,17 @@ public abstract class Catalog {
   }
 
   /**
-   * Get file content
-   * @param path resource location
-   * @return content
-   */
-  @NonNull
-  public abstract ByteBuffer getFileContent(Path path) throws IOException;
-
-  /**
-   *
-   * @param path resource location
+   * @param path    resource location
    * @param visitor result receiver
    */
   public abstract void parseDir(Path path, DirVisitor visitor) throws IOException;
 
-  public static Catalog create(Context ctx, HttpProvider http, CacheDir cache, String id) throws IOException {
+  public static CachingCatalog create(Context ctx, MultisourceHttpProvider http, String id) {
     final RemoteCatalog remote = new RemoteCatalog(http);
-    return create(ctx, remote, cache, id);
+    return create(ctx, remote, id);
   }
 
-  public static Catalog create(Context ctx, RemoteCatalog remote, CacheDir cache, String id) throws IOException {
-    return new CachingCatalog(ctx, remote, cache, id);
+  public static CachingCatalog create(Context ctx, RemoteCatalog remote, String id) {
+    return new CachingCatalog(ctx, remote, id);
   }
 }

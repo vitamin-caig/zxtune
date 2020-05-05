@@ -7,23 +7,24 @@
 package app.zxtune.fs.httpdir;
 
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import app.zxtune.fs.StubObject;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 
 public abstract class HttpRootBase extends StubObject implements VfsDir {
 
   private final VfsObject parent;
-  private final Catalog catalog;
+  private final CachingCatalog catalog;
   protected final Path rootPath;
 
-  protected HttpRootBase(VfsObject parent, Catalog catalog, Path path) {
+  protected HttpRootBase(VfsObject parent, CachingCatalog catalog, Path path) {
     this.parent = parent;
     this.catalog = catalog;
     this.rootPath = path;
@@ -58,7 +59,6 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
     }
   }
 
-  @Nullable
   protected VfsDir makeDir(Path path, String descr) {
     return new HttpDir(path, descr);
   }
@@ -124,7 +124,6 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
   protected class HttpFile extends HttpObject implements VfsFile {
 
     private final String size;
-    private ByteBuffer content;
 
     public HttpFile(Path path, String descr, String size) {
       super(path, descr);
@@ -137,11 +136,14 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
     }
 
     @Override
-    public ByteBuffer getContent() throws IOException {
-      if (content == null) {
-        content = catalog.getFileContent(path);
+    public Object getExtension(String id) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return path.getLocalId();
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return path.getRemoteUris();
+      } else {
+        return super.getExtension(id);
       }
-      return content;
     }
   }
 }

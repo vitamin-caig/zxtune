@@ -130,6 +130,7 @@ final class FabricSink implements Sink {
   private static String serializeBrowserAction(@Analytics.BrowserAction int action) {
     switch (action) {
       case Analytics.BROWSER_ACTION_BROWSE:
+      case Analytics.BROWSER_ACTION_BROWSE_PARENT:
         return "Browse";
       case Analytics.BROWSER_ACTION_SEARCH:
         return "Search";

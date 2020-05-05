@@ -13,21 +13,20 @@ import android.os.Build;
 import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
-import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.text.format.Formatter;
+
+import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Scanner;
 
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.io.Io;
 
 @Icon(R.drawable.ic_browser_vfs_local)
 final class VfsRootLocal extends StubObject implements VfsRoot {
@@ -298,9 +297,14 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
       return Formatter.formatShortFileSize(context, object.length());
     }
 
+    @Nullable
     @Override
-    public ByteBuffer getContent() throws IOException {
-      return Io.readFrom(object);
+    public Object getExtension(String id) {
+      if (VfsExtensions.FILE.equals(id)) {
+        return object;
+      } else {
+        return super.getExtension(id);
+      }
     }
   }
 }

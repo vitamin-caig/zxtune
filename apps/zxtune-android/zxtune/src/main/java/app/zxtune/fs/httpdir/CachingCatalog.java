@@ -1,53 +1,31 @@
 package app.zxtune.fs.httpdir;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
-import app.zxtune.TimeStamp;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.dbhelpers.*;
-import app.zxtune.fs.http.HttpObject;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import app.zxtune.TimeStamp;
+import app.zxtune.fs.dbhelpers.CommandExecutor;
+import app.zxtune.fs.dbhelpers.FileTree;
+import app.zxtune.fs.dbhelpers.QueryCommand;
+import app.zxtune.fs.dbhelpers.Timestamps;
+import app.zxtune.fs.dbhelpers.Transaction;
 
 final class CachingCatalog extends Catalog {
 
   private final static TimeStamp DIR_TTL = TimeStamp.createFrom(1, TimeUnit.DAYS);
 
-  private final String tag;
   private final RemoteCatalog remote;
   private final FileTree db;
-  private final CacheDir cache;
   private final CommandExecutor executor;
 
-  CachingCatalog(Context ctx, RemoteCatalog remote, CacheDir cache, String id) throws IOException {
-    this.tag = CachingCatalog.class.getName() + "@" + id;
+  CachingCatalog(Context ctx, RemoteCatalog remote, String id) {
     this.remote = remote;
     this.db = new FileTree(ctx, id);
-    this.cache = cache.createNested(id);
     this.executor = new CommandExecutor(id);
-  }
-
-  @NonNull
-  @Override
-  public ByteBuffer getFileContent(final Path path) throws IOException {
-    return executor.executeDownloadCommand(new DownloadCommand() {
-      @NonNull
-      @Override
-      public File getCache() throws IOException {
-        return cache.findOrCreate(path.getLocalId());
-      }
-
-      @NonNull
-      @Override
-      public HttpObject getRemote() throws IOException {
-        return remote.getFileObject(path);
-      }
-    });
   }
 
   @Override
@@ -66,7 +44,7 @@ final class CachingCatalog extends Catalog {
       }
 
       @Override
-      public Transaction startTransaction() throws IOException {
+      public Transaction startTransaction() {
         return db.startTransaction();
       }
 

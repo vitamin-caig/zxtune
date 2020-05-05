@@ -7,13 +7,10 @@
 package app.zxtune.fs.amp;
 
 import android.content.Context;
-import androidx.annotation.NonNull;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public abstract class Catalog {
 
@@ -86,28 +83,15 @@ public abstract class Catalog {
   public abstract void queryTracks(Author author, TracksVisitor visitor) throws IOException;
 
   /**
-   * Checks whether tracks can be found directly from catalogue instead of scanning
-   */
-  public abstract boolean searchSupported();
-
-  /**
    * Find tracks by query substring
    * @param query string to search in filename/title
    * @param visitor result receiver
    */
   public abstract void findTracks(String query, FoundTracksVisitor visitor) throws IOException;
 
-  /**
-   * Get track file content
-   * @param id track identifier
-   * @return content
-   */
-  @NonNull
-  public abstract ByteBuffer getTrackContent(int id) throws IOException;
-
-  public static Catalog create(Context context, HttpProvider http, CacheDir cache) throws IOException {
+  public static CachingCatalog create(Context context, MultisourceHttpProvider http) {
     final RemoteCatalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
-    return new CachingCatalog(remote, db, cache);
+    return new CachingCatalog(remote, db);
   }
 }

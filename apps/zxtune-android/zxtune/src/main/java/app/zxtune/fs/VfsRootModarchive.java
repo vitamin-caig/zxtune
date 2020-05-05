@@ -13,19 +13,19 @@ import android.text.format.Formatter;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Locale;
 
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.fs.cache.CacheDir;
-import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.modarchive.Author;
+import app.zxtune.fs.modarchive.CachingCatalog;
 import app.zxtune.fs.modarchive.Catalog;
 import app.zxtune.fs.modarchive.Genre;
 import app.zxtune.fs.modarchive.Identifier;
+import app.zxtune.fs.modarchive.RemoteCatalog;
 import app.zxtune.fs.modarchive.Track;
 
 @Icon(R.drawable.ic_browser_vfs_modarchive)
@@ -33,15 +33,15 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootModarchive.class.getName();
 
-  private VfsObject parent;
+  private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
-  private final GroupingDir groupings[];
+  private final CachingCatalog catalog;
+  private final GroupingDir[] groupings;
 
-  VfsRootModarchive(VfsObject parent, Context context, HttpProvider http, CacheDir cache) throws IOException {
+  VfsRootModarchive(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
+    this.catalog = Catalog.create(context, http);
     this.groupings = new GroupingDir[]{
             new AuthorsDir(),
             new GenresDir(),
@@ -72,7 +72,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
     } else {
@@ -141,7 +141,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
         //assume all the groups will search by authors
         return new AuthorsSearchEngine();
       } else {
@@ -181,7 +181,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
         public void accept(Author obj) {
           visitor.onDir(new AuthorDir(obj));
         }
-      });
+      }, visitor);
     }
 
     @Override
@@ -352,7 +352,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
           final Uri fileUri = Identifier.forTrack(Identifier.forAuthor(author), obj).build();
           visitor.onFile(new TrackFile(fileUri, obj));
         }
-      });
+      }, visitor);
     }
   }
 
@@ -397,7 +397,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
           final Uri fileUri = Identifier.forTrack(Identifier.forGenre(genre), obj).build();
           visitor.onFile(new TrackFile(fileUri, obj));
         }
-      });
+      }, visitor);
     }
   }
 
@@ -428,7 +428,11 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SHARE_URL.equals(id)) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return Integer.toString(track.id);
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(track.id);
+      } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {
         return super.getExtension(id);
@@ -445,12 +449,6 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     public String getSize() {
       return Formatter.formatShortFileSize(context, track.size);
     }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(track.id);
-    }
-
 
     private String getShareUrl() {
       return String.format(Locale.US, "http://modarchive.org/index.php?request=view_player&query=%d",
