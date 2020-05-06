@@ -5,9 +5,8 @@ import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
-import androidx.loader.content.CursorLoader;
-import androidx.loader.content.Loader;
 
 import app.zxtune.analytics.Analytics;
 
@@ -102,9 +101,20 @@ public final class ProviderClient {
         100 * by.ordinal() + order.ordinal());
   }
 
-  //TODO: remove
-  public static Loader<Cursor> createStatisticsLoader(Context ctx, @Nullable long[] ids) {
-    return new CursorLoader(ctx, PlaylistQuery.STATISTICS, null,
+  @Nullable
+  public final Statistics statistics(@Nullable long[] ids) {
+    final Cursor cursor = resolver.query(PlaylistQuery.STATISTICS, null,
         PlaylistQuery.selectionFor(ids), null, null);
+    if (cursor == null) {
+      return null;
+    }
+    try {
+      if (cursor.moveToFirst()) {
+        return new Statistics(cursor);
+      }
+    } finally {
+      cursor.close();
+    }
+    return null;
   }
 }
