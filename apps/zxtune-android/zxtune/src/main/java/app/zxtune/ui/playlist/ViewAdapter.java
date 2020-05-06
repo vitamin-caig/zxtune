@@ -1,6 +1,7 @@
 package app.zxtune.ui.playlist;
 
 import android.graphics.Rect;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -45,9 +46,9 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
 
       @Override
       public boolean areContentsTheSame(@NonNull Entry oldItem, @NonNull Entry newItem) {
-        return oldItem.title.equals(newItem.title)
-                   && oldItem.author.equals(newItem.author)
-                   && 0 == oldItem.duration.compareTo(newItem.duration);
+        return TextUtils.equals(oldItem.title, newItem.title)
+            && TextUtils.equals(oldItem.author, newItem.author)
+            && 0 == oldItem.duration.compareTo(newItem.duration);
       }
     });
     this.client = client;
@@ -267,8 +268,8 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
         y -= item.getY();
         // return detail only if not d'n'd event
         return rect.contains((int) x, (int) y)
-                   ? null
-                   : new HolderItemDetails(holder);
+            ? null
+            : new HolderItemDetails(holder);
       }
       return null;
     }

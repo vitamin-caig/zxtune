@@ -15,6 +15,8 @@ import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.appcompat.app.AlertDialog;
@@ -41,7 +43,7 @@ public class PlaylistSaveFragment extends DialogFragment {
   private XspfStorage storage;
   private EditText name;
   
-  public static DialogFragment createInstance(@Nullable long[] ids) {
+  static DialogFragment createInstance(@Nullable long[] ids) {
     final DialogFragment res = new PlaylistSaveFragment();
     final Bundle args = new Bundle();
     args.putLongArray(IDS_KEY, ids);
@@ -50,13 +52,13 @@ public class PlaylistSaveFragment extends DialogFragment {
   }
   
   @Override
-  public void onAttach(Context ctx) {
+  public void onAttach(@NonNull Context ctx) {
     super.onAttach(ctx);
     storage = new XspfStorage(ctx);
   }
   
   @Override
-  public Dialog onCreateDialog(Bundle savedInstanceState) {
+  public Dialog onCreateDialog(@NonNull Bundle savedInstanceState) {
     final Context ctx = getActivity();
     
     name = createEditText(ctx);
@@ -135,7 +137,7 @@ public class PlaylistSaveFragment extends DialogFragment {
   }
   
   @Override
-  public void onSaveInstanceState(Bundle outState) {
+  public void onSaveInstanceState(@NonNull Bundle outState) {
     super.onSaveInstanceState(outState);
     outState.putParcelable(NAME_KEY, name.onSaveInstanceState());
   }

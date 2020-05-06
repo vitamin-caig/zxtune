@@ -64,7 +64,7 @@ public class PlaylistFragment extends Fragment {
   }
 
   @Override
-  public void onAttach(Context ctx) {
+  public void onAttach(@NonNull Context ctx) {
     super.onAttach(ctx);
 
     ctrl = new ProviderClient(ctx);
@@ -78,7 +78,7 @@ public class PlaylistFragment extends Fragment {
   }
 
   @Override
-  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+  public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.playlist, menu);
@@ -358,7 +358,8 @@ public class PlaylistFragment extends Fragment {
     @Override
     public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
       if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
-        viewHolder.itemView.setActivated(isActive = true);
+        isActive = true;
+        viewHolder.itemView.setActivated(true);
       }
       super.onSelectedChanged(viewHolder, actionState);
     }
@@ -366,7 +367,8 @@ public class PlaylistFragment extends Fragment {
     @Override
     public void clearView(@NonNull RecyclerView view, @NonNull RecyclerView.ViewHolder viewHolder) {
       super.clearView(view, viewHolder);
-      viewHolder.itemView.setActivated(isActive = false);
+      isActive = false;
+      viewHolder.itemView.setActivated(false);
 
       if (draggedItem != -1 && dragDelta != 0) {
         ctrl.move(draggedItem, dragDelta);
