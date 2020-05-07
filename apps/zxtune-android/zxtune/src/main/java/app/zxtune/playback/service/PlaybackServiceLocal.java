@@ -73,7 +73,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.holder = new AtomicReference<>(Holder.instance());
     this.player = AsyncPlayer.create(target, events);
     callbacks.onInitialState(PlaybackControl.State.STOPPED);
-    restoreSession();
   }
 
   public final Item getNowPlaying() {
@@ -101,7 +100,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     }
   }
 
-  private void restoreSession() {
+  public final void restoreSession() {
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(context);
     final String path = prefs.getString(PREF_LAST_PLAYED_PATH, null);
     if (path != null) {

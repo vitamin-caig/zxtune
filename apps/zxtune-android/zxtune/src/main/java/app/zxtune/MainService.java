@@ -43,11 +43,14 @@ public class MainService extends MediaBrowserServiceCompat {
     super.onCreate();
     Log.d(TAG, "Creating");
 
+    final Context ctx = getApplicationContext();
     //Should be first call in order to initialize JNI and avoid deadlocks in Runtime
-    settingsChangedHandler = ChangedSettingsReceiver.subscribe(getApplicationContext());
-    service = new PlaybackServiceLocal(getApplicationContext());
+    settingsChangedHandler = ChangedSettingsReceiver.subscribe(ctx);
+    service = new PlaybackServiceLocal(ctx);
 
-    setupCallbacks(getApplicationContext());
+    setupCallbacks(ctx);
+
+    service.restoreSession();
   }
 
   @Override
