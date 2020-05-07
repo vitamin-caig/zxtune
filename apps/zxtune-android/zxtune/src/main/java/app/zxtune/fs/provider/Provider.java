@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import app.zxtune.Log;
+import app.zxtune.MainApplication;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsObject;
 
@@ -43,7 +44,13 @@ public class Provider extends ContentProvider {
 
   @Override
   public boolean onCreate() {
-    return true;
+    final Context ctx = getContext();
+    if (ctx != null) {
+      MainApplication.initialize(ctx.getApplicationContext());
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Nullable

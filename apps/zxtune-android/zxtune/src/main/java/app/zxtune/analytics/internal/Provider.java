@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import app.zxtune.Log;
+import app.zxtune.MainApplication;
 import app.zxtune.analytics.Analytics;
 
 public final class Provider extends ContentProvider {
@@ -37,9 +38,12 @@ public final class Provider extends ContentProvider {
 
   @Override
   public boolean onCreate() {
-    final Context ctx = getContext().getApplicationContext();
-    Analytics.initialize(ctx);
-    delegate = new Dispatcher(ctx);
+    final Context ctx = getContext();
+    if (ctx == null) {
+      return false;
+    }
+    MainApplication.initialize(ctx.getApplicationContext());
+    delegate = new Dispatcher(ctx.getApplicationContext());
     final Thread thread = new Thread("IASender") {
       @Override
       public void run() {

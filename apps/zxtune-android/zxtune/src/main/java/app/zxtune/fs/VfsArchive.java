@@ -37,7 +37,7 @@ public final class VfsArchive {
   private final ArchivesService service;
 
   private VfsArchive() {
-    this.service = new ArchivesService(MainApplication.getInstance());
+    this.service = new ArchivesService(MainApplication.getGlobalContext());
   }
 
   @NonNull

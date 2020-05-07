@@ -19,6 +19,8 @@ import android.util.SparseIntArray;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import app.zxtune.MainApplication;
+
 public class Provider extends ContentProvider {
 
   private static final String METHOD_SORT = "sort";
@@ -31,6 +33,7 @@ public class Provider extends ContentProvider {
   public boolean onCreate() {
     final Context ctx = getContext();
     if (ctx != null) {
+      MainApplication.initialize(ctx.getApplicationContext());
       db = new Database(ctx);
       resolver = ctx.getContentResolver();
       return true;

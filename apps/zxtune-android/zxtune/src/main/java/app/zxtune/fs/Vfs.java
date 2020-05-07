@@ -35,7 +35,7 @@ public final class Vfs {
   private final VfsRoot root;
 
   private Vfs() {
-    final Context appContext = MainApplication.getInstance();
+    final Context appContext = MainApplication.getGlobalContext();
     final HttpProvider http = HttpProviderFactory.createProvider(appContext);
     network = new MultisourceHttpProvider(http);
     cache = CacheFactory.create(appContext);

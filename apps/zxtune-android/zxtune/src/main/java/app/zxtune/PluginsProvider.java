@@ -13,6 +13,7 @@ package app.zxtune;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
@@ -62,7 +63,13 @@ public final class PluginsProvider extends ContentProvider {
   
   @Override
   public boolean onCreate() {
-    return true;
+    final Context ctx = getContext();
+    if (ctx != null) {
+      MainApplication.initialize(ctx.getApplicationContext());
+      return true;
+    } else {
+      return false;
+    }
   }
   
   @Override
