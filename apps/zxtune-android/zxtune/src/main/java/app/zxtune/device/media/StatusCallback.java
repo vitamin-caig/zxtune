@@ -1,5 +1,6 @@
 package app.zxtune.device.media;
 
+import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -8,47 +9,46 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.SystemClock;
-
-import androidx.annotation.NonNull;
-import androidx.core.content.res.ResourcesCompat;
-
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.widget.Toast;
 
-import app.zxtune.core.Identifier;
+import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
+
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.Log;
-import app.zxtune.MainApplication;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
+import app.zxtune.core.Identifier;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.VfsUtils;
+import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
-import app.zxtune.playback.Callback;
-
-import java.io.File;
-import java.util.concurrent.TimeUnit;
 
 //! Events gate from local service to mediasession
 class StatusCallback implements Callback {
 
   private static final String TAG = StatusCallback.class.getName();
 
+  private final Context ctx;
   private final MediaSessionCompat session;
   private final PlaybackStateCompat.Builder builder;
   private final Handler handler = new Handler();
 
-  static Releaseable subscribe(PlaybackService svc, MediaSessionCompat session) {
-    final StatusCallback cb = new StatusCallback(session);
+  static Releaseable subscribe(Context ctx, PlaybackService svc, MediaSessionCompat session) {
+    final StatusCallback cb = new StatusCallback(ctx, session);
     final PlaybackControl ctrl = svc.getPlaybackControl();
     //TODO: rework repeat/shuffle model
     session.setShuffleMode(ctrl.getSequenceMode().ordinal());
@@ -56,7 +56,8 @@ class StatusCallback implements Callback {
     return new CallbackSubscription(svc, cb);
   }
 
-  private StatusCallback(MediaSessionCompat session) {
+  private StatusCallback(Context ctx, MediaSessionCompat session) {
+    this.ctx = ctx;
     this.session = session;
     this.builder = new PlaybackStateCompat.Builder();
     this.builder.setActions(
@@ -127,7 +128,7 @@ class StatusCallback implements Callback {
     handler.post(new Runnable() {
       @Override
       public void run() {
-        Toast.makeText(MainApplication.getInstance(), e, Toast.LENGTH_SHORT).show();
+        Toast.makeText(ctx, e, Toast.LENGTH_SHORT).show();
       }
     });
   }
@@ -140,7 +141,7 @@ class StatusCallback implements Callback {
 
   private Bitmap getLocationIcon(Uri location) {
     try {
-      final Resources resources = MainApplication.getInstance().getResources();
+      final Resources resources = ctx.getResources();
       final int id = getLocationIconResource(location);
       final Drawable drawable = ResourcesCompat.getDrawableForDensity(resources, id, 320/*XHDPI*/, null);
       if (drawable instanceof BitmapDrawable) {
@@ -153,6 +154,7 @@ class StatusCallback implements Callback {
         return result;
       }
     } catch (Exception e) {
+      Log.w(TAG, e, "Failed to get location icon");
     }
     return null;
   }
