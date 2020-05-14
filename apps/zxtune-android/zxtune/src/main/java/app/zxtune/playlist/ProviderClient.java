@@ -29,6 +29,7 @@ public final class ProviderClient {
   }
 
   private final ContentResolver resolver;
+  private ContentObserver contentObserver;
 
   public ProviderClient(Context ctx) {
     this.resolver = ctx.getContentResolver();
@@ -54,7 +55,10 @@ public final class ProviderClient {
   }
 
   public final void registerObserver(final ChangesObserver observer) {
-    resolver.registerContentObserver(PlaylistQuery.ALL, true, new ContentObserver(null) {
+    if (contentObserver != null) {
+      throw new IllegalStateException();
+    }
+    contentObserver = new ContentObserver(null) {
       @Override
       public boolean deliverSelfNotifications() {
         return false;
@@ -64,7 +68,15 @@ public final class ProviderClient {
       public void onChange(boolean selfChange) {
         observer.onChange();
       }
-    });
+    };
+    resolver.registerContentObserver(PlaylistQuery.ALL, true, contentObserver);
+  }
+
+  public final void unregisterObserver() {
+    if (contentObserver != null) {
+      resolver.unregisterContentObserver(contentObserver);
+      contentObserver = null;
+    }
   }
 
   @Nullable

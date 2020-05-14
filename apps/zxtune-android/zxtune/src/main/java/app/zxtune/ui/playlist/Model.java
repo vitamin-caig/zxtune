@@ -47,6 +47,11 @@ public class Model extends AndroidViewModel {
     });
   }
 
+  @Override
+  public void onCleared() {
+    client.unregisterObserver();
+  }
+
   final LiveData<List<Entry>> getItems() {
     if (items == null) {
       items = new MutableLiveData<>();
