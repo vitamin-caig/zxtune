@@ -38,6 +38,10 @@ android {
     }
 }
 
+configurations {
+    developImplementation {}
+}
+
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.appcompat:appcompat-resources:1.1.0'
@@ -54,6 +58,8 @@ dependencies {
     }
     implementation "org.jsoup:jsoup:1.11.3"
     implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"
+
+    developImplementation 'com.squareup.leakcanary:leakcanary-android:2.3'
 }
 
 apply from: "${treeRoot}/make/android/android.gradle"
