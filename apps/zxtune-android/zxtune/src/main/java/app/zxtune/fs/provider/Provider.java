@@ -6,11 +6,13 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.ParcelFileDescriptor;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.LruCache;
 
+import java.io.FileNotFoundException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -21,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
 import app.zxtune.fs.VfsDir;
+import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 
 public class Provider extends ContentProvider {
@@ -61,7 +64,7 @@ public class Provider extends ContentProvider {
       if (existing != null) {
         return existing.status();
       } else {
-        final AsyncQueryOperation op = createOperation(uri);
+        final AsyncQueryOperation op = createOperation(uri, projection);
         if (op == null) {
           return null;
         }
@@ -74,7 +77,7 @@ public class Provider extends ContentProvider {
   }
 
   @Nullable
-  private AsyncQueryOperation createOperation(@NonNull Uri uri) {
+  private AsyncQueryOperation createOperation(@NonNull Uri uri, @Nullable String[] projection) {
     final Uri path = Query.getPathFrom(uri);
     switch (Query.getUriType(uri)) {
       case Query.TYPE_RESOLVE:
@@ -85,6 +88,8 @@ public class Provider extends ContentProvider {
         return createParentsOperation(path, objectsCache.get(path));
       case Query.TYPE_SEARCH:
         return createSearchOperation(path, objectsCache.get(path), Query.getQueryFrom(uri));
+      case Query.TYPE_FILE:
+        return createFileOperation(path, objectsCache.get(path), projection);
       default:
         throw new UnsupportedOperationException("Unsupported uri " + uri);
     }
@@ -121,6 +126,14 @@ public class Provider extends ContentProvider {
     }
   }
 
+  private AsyncQueryOperation createFileOperation(@NonNull Uri uri, @Nullable VfsObject cached, @Nullable String[] projection) {
+    if (cached instanceof VfsFile) {
+      return new FileOperation(projection, (VfsFile) cached);
+    } else {
+      return new FileOperation(projection, uri);
+    }
+  }
+
   @Nullable
   @Override
   public String getType(@NonNull Uri uri) {
@@ -147,6 +160,19 @@ public class Provider extends ContentProvider {
   @Override
   public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
     return 0;
+  }
+
+  @Override
+  public ParcelFileDescriptor openFile(@NonNull Uri uri, @NonNull String mode)
+      throws FileNotFoundException {
+    try {
+      final AsyncQueryOperation op = createOperation(uri, null);
+      if (op instanceof FileOperation) {
+        return ((FileOperation) op).openFile(mode);
+      }
+    } catch (Exception e) {
+    }
+    throw new FileNotFoundException(uri.toString());
   }
 
   private void notifyUpdate(Uri uri) {

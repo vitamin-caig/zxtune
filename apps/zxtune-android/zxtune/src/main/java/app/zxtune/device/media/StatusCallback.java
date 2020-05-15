@@ -31,6 +31,7 @@ import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.VfsUtils;
+import app.zxtune.fs.provider.VfsProviderClient;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
@@ -175,9 +176,8 @@ class StatusCallback implements Callback {
       final VfsObject obj = Vfs.resolve(location);
       putString(builder, VfsExtensions.SHARE_URL, (String) obj.getExtension(VfsExtensions.SHARE_URL));
       if (subpath.isEmpty() && obj instanceof VfsFile) {
-        final File file = Vfs.getCacheOrFile((VfsFile) obj);
-        if (file != null && file.isFile()) {
-          putString(builder, VfsExtensions.FILE, file.getAbsolutePath());
+        if (null != Vfs.getCacheOrFile((VfsFile) obj)) {
+          putString(builder, VfsExtensions.FILE, VfsProviderClient.getFileUriFor(location).toString());
         }
       }
     } catch (Exception e) {

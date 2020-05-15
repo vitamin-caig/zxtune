@@ -186,7 +186,7 @@
               android:exported="false"/>
     <provider android:name="app.zxtune.fs.provider.Provider"
             android:authorities="app.zxtune.vfs" android:process=":service"
-            android:exported="false"/>
+            android:exported="false" android:grantUriPermissions="true"/>
     <receiver android:name=".device.ui.WidgetHandler">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
@@ -199,14 +199,5 @@
         <action android:name="android.intent.action.MEDIA_BUTTON"/>
       </intent-filter>
     </receiver>
-    <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="app.zxtune.files"
-            android:exported="false"
-            android:grantUriPermissions="true">
-      <meta-data
-              android:name="android.support.FILE_PROVIDER_PATHS"
-              android:resource="@xml/provider_paths"/>
-    </provider>
   </application>
 </manifest>

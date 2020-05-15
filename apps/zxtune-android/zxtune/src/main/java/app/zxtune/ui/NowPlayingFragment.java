@@ -6,21 +6,13 @@
 
 package app.zxtune.ui;
 
-import androidx.core.content.FileProvider;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,14 +21,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import java.io.File;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
-import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
-import app.zxtune.core.Identifier;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.models.MediaSessionModel;
 
@@ -244,14 +240,9 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
       final Intent result = makeIntent("application/octet");
       result.putExtra(Intent.EXTRA_SUBJECT, description.getTitle());
       result.putExtra(Intent.EXTRA_TEXT, getSendText());
-      result.putExtra(Intent.EXTRA_STREAM, makeApkUri(localPath));
+      result.putExtra(Intent.EXTRA_STREAM, Uri.parse(localPath));
       result.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
       return result;
-    }
-
-    private Uri makeApkUri(String path) {
-      final File file = new File(path);
-      return FileProvider.getUriForFile(context, "app.zxtune.files", file);
     }
 
     final Intent makeShareIntent() {

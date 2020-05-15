@@ -94,6 +94,7 @@ public final class Vfs {
     }, progress);
   }
 
+  @Nullable
   public static File getCacheOrFile(@NonNull VfsFile obj) {
     final Object asFile = obj.getExtension(VfsExtensions.FILE);
     if (asFile instanceof File) {
@@ -102,6 +103,7 @@ public final class Vfs {
     return getCache(obj);
   }
 
+  @Nullable
   public static File getCache(@NonNull VfsFile obj) {
     final String id = obj.getUri().getScheme();
     if (TextUtils.isEmpty(id)) {

@@ -24,18 +24,20 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
  * content://app.zxtune.vfs/listing/${path} - get directory content by full path
  * content://app.zxtune.vfs/parents/${path} - get object parents chain
  * content://app.zxtune.vfs/search/${path}?query=${query} - start search
+ * content://app.zxtune.vfs/file/${path} - get information about and file object about local file
  */
 
 class Query {
 
   @Retention(SOURCE)
-  @IntDef({TYPE_RESOLVE, TYPE_LISTING, TYPE_PARENTS, TYPE_SEARCH})
+  @IntDef({TYPE_RESOLVE, TYPE_LISTING, TYPE_PARENTS, TYPE_SEARCH, TYPE_FILE})
   @interface Type {}
 
   static final int TYPE_RESOLVE = 0;
   static final int TYPE_LISTING = 1;
   static final int TYPE_PARENTS = 2;
   static final int TYPE_SEARCH = 3;
+  static final int TYPE_FILE = 4;
 
   private static final String AUTHORITY = "app.zxtune.vfs";
   private static final String RESOLVE_PATH = "resolve";
@@ -43,6 +45,7 @@ class Query {
   private static final String PARENTS_PATH = "parents";
   private static final String SEARCH_PATH = "search";
   private static final String QUERY_PARAM = "query";
+  private static final String FILE_PATH = "file";
 
   private static final String ITEM_SUBTYPE = "vnd." + AUTHORITY + ".item";
   private static final String SIMPLE_ITEM_SUBTYPE = "vnd." + AUTHORITY + ".simple_item";
@@ -66,12 +69,14 @@ class Query {
     uriTemplate.addURI(AUTHORITY, PARENTS_PATH + "/*", TYPE_PARENTS);
     uriTemplate.addURI(AUTHORITY, SEARCH_PATH + "*", TYPE_SEARCH);
     uriTemplate.addURI(AUTHORITY, SEARCH_PATH + "/*", TYPE_SEARCH);
+    uriTemplate.addURI(AUTHORITY, FILE_PATH + "/*", TYPE_FILE);
   }
 
   //! @return Mime type of uri (used in content provider)
   static String mimeTypeOf(Uri uri) {
     switch (uriTemplate.match(uri)) {
       case TYPE_RESOLVE:
+      case TYPE_FILE:
         return MIME_ITEM;
       case TYPE_LISTING:
       case TYPE_SEARCH:
@@ -89,6 +94,7 @@ class Query {
       case TYPE_LISTING:
       case TYPE_PARENTS:
       case TYPE_SEARCH:
+      case TYPE_FILE:
         final List<String> segments = uri.getPathSegments();
         return segments.size() > 1 ? Uri.parse(segments.get(1)) : Uri.EMPTY;
       default:
@@ -123,6 +129,10 @@ class Query {
 
   static Uri searchUriFor(Uri uri, String query) {
     return makeUri(SEARCH_PATH, uri).appendQueryParameter(QUERY_PARAM, query).build();
+  }
+
+  static Uri fileUriFor(Uri uri) {
+    return makeUri(FILE_PATH, uri).build();
   }
 
   private static Uri.Builder makeUri(String path, Uri uri) {

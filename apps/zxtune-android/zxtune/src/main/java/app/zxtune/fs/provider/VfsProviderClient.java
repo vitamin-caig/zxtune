@@ -127,6 +127,10 @@ public class VfsProviderClient {
     }
   }
 
+  public static Uri getFileUriFor(@NonNull Uri uri) {
+    return Query.fileUriFor(uri);
+  }
+
   private void checkForCancel(@NonNull Uri resolverUri) throws Exception {
     if (Thread.interrupted()) {
       resolver.delete(resolverUri, null, null);
