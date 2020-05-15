@@ -80,11 +80,11 @@ public class Provider extends ContentProvider {
       case Query.TYPE_RESOLVE:
         return new ResolveOperation(path, objectsCache);
       case Query.TYPE_LISTING:
-        return createListingOperation(path, objectsCache.get(uri));
+        return createListingOperation(path, objectsCache.get(path));
       case Query.TYPE_PARENTS:
-        return createParentsOperation(path, objectsCache.get(uri));
+        return createParentsOperation(path, objectsCache.get(path));
       case Query.TYPE_SEARCH:
-        return createSearchOperation(path, objectsCache.get(uri), Query.getQueryFrom(uri));
+        return createSearchOperation(path, objectsCache.get(path), Query.getQueryFrom(uri));
       default:
         throw new UnsupportedOperationException("Unsupported uri " + uri);
     }
