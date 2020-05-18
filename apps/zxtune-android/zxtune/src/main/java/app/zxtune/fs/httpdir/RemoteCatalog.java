@@ -2,17 +2,17 @@ package app.zxtune.fs.httpdir;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.InputStream;
 import java.util.Locale;
 
 import app.zxtune.fs.http.MultisourceHttpProvider;
-import app.zxtune.io.Io;
 
 public class RemoteCatalog extends Catalog {
 
@@ -22,23 +22,27 @@ public class RemoteCatalog extends Catalog {
     this.http = http;
   }
 
-  private ByteBuffer getFileContent(Path path) throws IOException {
-    return Io.readFrom(http.getInputStream(path.getRemoteUris()));
-  }
-
   @Override
   public void parseDir(Path path, DirVisitor visitor) throws IOException {
-    final ByteBuffer data = getFileContent(path);
-    parseDir(data, visitor);
+    final InputStream input = http.getInputStream(path.getRemoteUris());
+    parseDir(input, visitor);
   }
 
-  // TODO: operate with streams
-  void parseDir(ByteBuffer data, DirVisitor visitor) throws IOException {
-    final Document doc = Jsoup.parse(new ByteArrayInputStream(data.array()), null, "");
+  // used in testing
+  void parseDir(@NonNull InputStream input, DirVisitor visitor) throws IOException {
+    final Document doc = parseDoc(input);
     if (parseXmlIndex(doc, visitor) || parseTableMarkup(doc, visitor) || parsePreMarkup(doc, visitor)) {
       return;
     }
     throw new IOException("Unsupported format of html page");
+  }
+
+  private static Document parseDoc(InputStream input) throws IOException {
+    try {
+      return Jsoup.parse(input, null, "");
+    } finally {
+      input.close();
+    }
   }
 
   /*
@@ -108,7 +112,7 @@ public class RemoteCatalog extends Catalog {
         continue;
       }
       final Element datetime = row.selectFirst("td:has(a) ~ td:matches(^ *([0-9]{4}-[01][0-9]-[0-3][0-9] " +
-                                                   "[0-5][0-9]:[0-5][0-9]) *$)");
+          "[0-5][0-9]:[0-5][0-9]) *$)");
       final String description = datetime != null ? datetime.text().trim() : "";
       final Element size = row.selectFirst("td:has(a) ~ td:matches(^ *([0-9.]+[KM]?) *$)");
       if (size != null) {
