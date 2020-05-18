@@ -13,7 +13,6 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import app.zxtune.auth.Auth;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.HttpProviderFactory;
 import app.zxtune.fs.http.MultisourceHttpProvider;
@@ -41,21 +40,20 @@ public class CatalogTest {
         result.add(obj);
       }
     });
-    //TODO: fix
-    assertEquals(8754/*8756*/, result.size());
+    assertEquals(8756, result.size());
 
     final SparseArrayCompat<Group> checkpoints = new SparseArrayCompat<>();
     // several groups w/o title
     checkpoints.append(0, new Group(6130, ""));
-    //checkpoints.append(1, new Group(9703, ""));
-    checkpoints.append(1/*2*/, new Group(9846, ""));
-    //checkpoints.append(3, new Group(10001, ""));
-    checkpoints.append(2/*4*/, new Group(6018, "0-Dezign"));
-    checkpoints.append(98/*100*/, new Group(6013, "ABSENCE"));
+    checkpoints.append(1, new Group(9703, ""));
+    checkpoints.append(2, new Group(9846, ""));
+    checkpoints.append(3, new Group(10001, ""));
+    checkpoints.append(4, new Group(6018, "0-Dezign"));
+    checkpoints.append(100, new Group(6013, "ABSENCE"));
     // multiline
-    checkpoints.append(442/*443*/, new Group(677, "Anexia"));
+    checkpoints.append(444, new Group(677, "Anexia"));
     // utf-8
-    checkpoints.append(8752/*8754*/, new Group(9016, "Åltalános Védelmi Hiba (AHV)"));
+    checkpoints.append(8754, new Group(9016, "Åltalános Védelmi Hiba (AHV)"));
 
     for (int i = 0; i < checkpoints.size(); ++i) {
       final int pos = checkpoints.keyAt(i);
@@ -150,9 +148,9 @@ public class CatalogTest {
 
     final SparseArrayCompat<Track> checkpoints = new SparseArrayCompat<>();
     // first
-    checkpoints.append(0, new Track(15892, "\240egometriosporasie", 186));
+    checkpoints.append(0, new Track(15892, "egometriosporasie", 186));
     // instead unavailable
-    checkpoints.append(12, new Track(15934, "\240un\240peu\240+\240a\240l'ouest", 309));
+    checkpoints.append(12, new Track(15934, "un peu + a l'ouest", 309));
     // last
     checkpoints.append(166, new Track(15804, "yapleindmondalagas", 190));
 
@@ -190,7 +188,7 @@ public class CatalogTest {
     {
       final SparseArrayCompat<Track> checkpoints = new SparseArrayCompat<>();
       // first
-      checkpoints.append(0, new Track(121325, "\240\"bzzzt-chip\2404\"", 7));
+      checkpoints.append(0, new Track(121325, "\"bzzzt-chip 4\"", 7));
       // last
       checkpoints.append(49, new Track(22313, "zzzzzzzzz", 50));
 
