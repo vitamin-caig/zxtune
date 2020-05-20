@@ -7,6 +7,8 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Before;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -14,6 +16,8 @@ import java.util.Map;
 
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.HttpProviderFactory;
+import app.zxtune.fs.http.MultisourceHttpProvider;
+
 import org.junit.Test;
 
 public class RemoteCatalogTest {
@@ -30,7 +34,7 @@ public class RemoteCatalogTest {
   public void setUp() {
     final Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
     final HttpProvider http = HttpProviderFactory.createProvider(ctx);
-    catalog = new RemoteCatalog(http);
+    catalog = new RemoteCatalog(new MultisourceHttpProvider(http));
   }
 
   @Test
@@ -108,7 +112,7 @@ public class RemoteCatalogTest {
 
   protected final void test(String data, String[] entries, Mode mode) throws IOException {
     final CheckingVisitor visitor = new CheckingVisitor(entries, mode);
-    catalog.parseDir(ByteBuffer.wrap(data.getBytes()), visitor);
+    catalog.parseDir(new ByteArrayInputStream(data.getBytes()), visitor);
     visitor.check();
   }
 

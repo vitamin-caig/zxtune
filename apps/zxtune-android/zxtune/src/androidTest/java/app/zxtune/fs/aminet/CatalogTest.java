@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.RemoteCatalogTest;
 
 @RunWith(AndroidJUnit4.class)
@@ -22,7 +23,7 @@ public class CatalogTest extends RemoteCatalogTest {
   public void setUp() {
     final Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
     final HttpProvider http = HttpProviderFactory.createProvider(ctx);
-    catalog = new RemoteCatalog(http);
+    catalog = new RemoteCatalog(new MultisourceHttpProvider(http));
   }
 
   @Test
@@ -31,7 +32,7 @@ public class CatalogTest extends RemoteCatalogTest {
     //hardcoded entries, filtered in Root
     final String[] entries = {
         "32bit", "@MP3s by 32bit choonz (2 packages)",
-        "xm", "@Multichannel xm mods (411 packages)"
+        "xm", "@Multichannel xm mods (412 packages)"
     };
     test(path, entries, Mode.CHECK_MISSED);
   }

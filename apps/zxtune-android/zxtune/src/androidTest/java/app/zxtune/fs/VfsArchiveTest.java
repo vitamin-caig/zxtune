@@ -2,11 +2,15 @@ package app.zxtune.fs;
 
 import android.content.res.Resources;
 import android.net.Uri;
+
 import androidx.annotation.RawRes;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import app.zxtune.StubProgressCallback;
 import app.zxtune.io.Io;
 import app.zxtune.io.TransactionalOutputStream;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -331,7 +335,8 @@ public class VfsArchiveTest {
       final Uri normalizedUri = file.getUri();
       final Uri subUri = normalizedUri.buildUpon().fragment("+unGZIP").build();
       {
-        final VfsFile resolvedFile = (VfsFile) VfsArchive.resolveForced(subUri);
+        final VfsFile resolvedFile = (VfsFile) VfsArchive.resolveForced(subUri,
+            StubProgressCallback.instance());
         assertNotNull(resolvedFile);
         assertEquals(subUri, resolvedFile.getUri());
         assertEquals("+unGZIP", resolvedFile.getName());
@@ -352,7 +357,8 @@ public class VfsArchiveTest {
       final Uri normalizedUri = file.getUri();
       final Uri subUri = normalizedUri.buildUpon().fragment("#2").build();
       {
-        final VfsFile resolvedFile = (VfsFile) VfsArchive.resolveForced(subUri);
+        final VfsFile resolvedFile = (VfsFile) VfsArchive.resolveForced(subUri,
+            StubProgressCallback.instance());
         assertNotNull(resolvedFile);
         assertEquals(subUri, resolvedFile.getUri());
         assertEquals("#2", resolvedFile.getName());
@@ -377,7 +383,8 @@ public class VfsArchiveTest {
       final Uri normalizedUri = file.getUri();
       final Uri subFileUri = normalizedUri.buildUpon().fragment("auricom.pt3").build();
       {
-        final VfsFile resolvedFile = (VfsFile) VfsArchive.resolveForced(subFileUri);
+        final VfsFile resolvedFile = (VfsFile) VfsArchive.resolveForced(subFileUri,
+            StubProgressCallback.instance());
         assertNotNull(resolvedFile);
         assertEquals(subFileUri, resolvedFile.getUri());
         assertEquals("auricom.pt3", resolvedFile.getName());
@@ -402,7 +409,8 @@ public class VfsArchiveTest {
       final Uri normalizedUri = file.getUri();
       final Uri subDirUri = normalizedUri.buildUpon().fragment("coop-Jeffie").build();
       {
-        final VfsDir resolvedDir = (VfsDir) VfsArchive.resolveForced(subDirUri);
+        final VfsDir resolvedDir = (VfsDir) VfsArchive.resolveForced(subDirUri,
+            StubProgressCallback.instance());
         assertNotNull(resolvedDir);
         assertEquals(subDirUri, resolvedDir.getUri());
         assertEquals("coop-Jeffie", resolvedDir.getName());

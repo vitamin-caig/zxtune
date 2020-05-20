@@ -2,7 +2,8 @@ package app.zxtune.fs.aminet;
 
 import android.net.Uri;
 
-import org.jsoup.Jsoup;
+import androidx.annotation.NonNull;
+
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -10,6 +11,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.io.InputStream;
 
+import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.Path;
 
@@ -32,7 +34,7 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
   }
 
   private void parseRoot(DirVisitor visitor) throws IOException {
-    final Document doc = Jsoup.parse(readRoot(), null, "");
+    final Document doc = HtmlUtils.parseDoc(readRoot());
     for (Element el : doc.select("li:has(a[href]:containsOwn(mods))")) {
       // mods/[author] - [desc]
       final String line = el.text();
@@ -47,22 +49,23 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
 
   private Uri.Builder getBase() {
     return new Uri.Builder()
-               .scheme("http")
-               .authority("aminet.net");
+        .scheme("http")
+        .authority("aminet.net");
   }
 
+  @NonNull
   private InputStream readRoot() throws IOException {
     final Uri uri = getBase()
-                        .path("tree")
-                        .appendQueryParameter("path", "mods")
-                        .build();
+        .path("tree")
+        .appendQueryParameter("path", "mods")
+        .build();
     return http.getInputStream(uri);
   }
 
   private void parseDir(String path, DirVisitor visitor) throws IOException {
     final Uri.Builder base = getBase()
-                                 .path("search")
-                                 .appendQueryParameter("path", "mods/" + path);
+        .path("search")
+        .appendQueryParameter("path", "mods/" + path);
     parseDir(base, visitor);
   }
 
@@ -72,11 +75,11 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
 
   public final void find(String query, DirVisitor visitor) throws IOException {
     final Uri.Builder base = getBase()
-                                 .path("search")
-                                 .appendQueryParameter("name", query)
-                                 .appendQueryParameter("q_desc", "OR")
-                                 .appendQueryParameter("desc", query)
-                                 .appendQueryParameter("path[]", "mods");
+        .path("search")
+        .appendQueryParameter("name", query)
+        .appendQueryParameter("q_desc", "OR")
+        .appendQueryParameter("desc", query)
+        .appendQueryParameter("path[]", "mods");
     parseDir(base, visitor);
   }
 
@@ -84,7 +87,7 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
     //http://aminet.net/search?name=disco&path[]=mods&q_desc=OR&desc=disco
     int start = 0;
     for (; ; ) {
-      final Document doc = Jsoup.parse(readPage(base, start), null, "");
+      final Document doc = HtmlUtils.parseDoc(readPage(base, start));
       final Elements listing = doc.select("tr.lightrow,tr.darkrow");
       if (listing.isEmpty()) {
         break;
