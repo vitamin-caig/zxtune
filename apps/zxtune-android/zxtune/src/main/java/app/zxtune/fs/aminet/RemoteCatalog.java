@@ -4,7 +4,6 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -12,6 +11,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.io.InputStream;
 
+import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.Path;
 
@@ -34,7 +34,7 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
   }
 
   private void parseRoot(DirVisitor visitor) throws IOException {
-    final Document doc = parseDoc(readRoot());
+    final Document doc = HtmlUtils.parseDoc(readRoot());
     for (Element el : doc.select("li:has(a[href]:containsOwn(mods))")) {
       // mods/[author] - [desc]
       final String line = el.text();
@@ -44,14 +44,6 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
         final String desc = line.substring(separator + 3);
         visitor.acceptDir(name, desc);
       }
-    }
-  }
-
-  private static Document parseDoc(InputStream input) throws IOException {
-    try {
-      return Jsoup.parse(input, null, "");
-    } finally {
-      input.close();
     }
   }
 
@@ -95,7 +87,7 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
     //http://aminet.net/search?name=disco&path[]=mods&q_desc=OR&desc=disco
     int start = 0;
     for (; ; ) {
-      final Document doc = parseDoc(readPage(base, start));
+      final Document doc = HtmlUtils.parseDoc(readPage(base, start));
       final Elements listing = doc.select("tr.lightrow,tr.darkrow");
       if (listing.isEmpty()) {
         break;

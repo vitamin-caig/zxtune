@@ -7,11 +7,9 @@
 package app.zxtune.fs.amp;
 
 import android.net.Uri;
-import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
@@ -19,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import app.zxtune.Log;
+import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
@@ -58,20 +57,13 @@ public class RemoteCatalog extends Catalog {
     this.http = http;
   }
 
-  private static Document parseDoc(InputStream input) throws IOException {
-    try {
-      return Jsoup.parse(input, null, "");
-    } finally {
-      input.close();
-    }
-  }
-
   @Override
   public void queryGroups(GroupsVisitor visitor) throws IOException {
     Log.d(TAG, "queryGroups()");
-    final Document doc = parseDoc(http.getInputStream(getQueryUriBuilder("groups", "").build()));
+    final Document doc =
+        HtmlUtils.parseDoc(http.getInputStream(getQueryUriBuilder("groups", "").build()));
     for (Element el : doc.select("tr>td>a[href^=newresult.php?request=groupid]")) {
-      final Integer id = getQueryInt(el, "search");
+      final Integer id = HtmlUtils.getQueryInt(el, "search");
       final String name = el.text();
       if (id != null && name != null) {
         visitor.accept(new Group(id, name));
@@ -111,7 +103,7 @@ public class RemoteCatalog extends Catalog {
     for (Element el : doc.select("table:has(>caption)>tbody>tr>td>table>tbody")) {
       final Element handleEl = el.selectFirst("a[href^=detail.php]");
       final Element realNameEl = el.selectFirst("td:containsOwn(Real Name) + td");
-      final Integer id = getQueryInt(handleEl, "view");
+      final Integer id = HtmlUtils.getQueryInt(handleEl, "view");
       final String name = handleEl.text();
       final String realName = realNameEl.text();
       if (id != null && name != null && realName != null) {
@@ -123,11 +115,11 @@ public class RemoteCatalog extends Catalog {
   @Override
   public void queryTracks(Author author, TracksVisitor visitor) throws IOException {
     Log.d(TAG, "queryTracks(author=%d)", author.id);
-    final Document doc = parseDoc(http.getInputStream(getAuthorTracksUri(author.id)));
+    final Document doc = HtmlUtils.parseDoc(http.getInputStream(getAuthorTracksUri(author.id)));
     for (Element el : doc.select("table>tbody>tr:has(>td>a[href^=downmod.php])")) {
       final Element nameEl = el.child(0).child(0);
       final Element sizeEl = el.child(3);
-      final Integer id = getQueryInt(nameEl, "index");
+      final Integer id = HtmlUtils.getQueryInt(nameEl, "index");
       final String name = nameEl.text();
       final Integer size = getSize(sizeEl.text());
       if (id != null && name != null && size != null) {
@@ -158,9 +150,9 @@ public class RemoteCatalog extends Catalog {
       final Element nameEl = el.child(0).child(0);
       final Element authorEl = el.child(1).child(0);
       final Element sizeEl = el.child(3);
-      final Integer trackId = getQueryInt(nameEl, "index");
+      final Integer trackId = HtmlUtils.getQueryInt(nameEl, "index");
       final String trackName = nameEl.text();
-      final Integer authorId = getQueryInt(authorEl, "view");
+      final Integer authorId = HtmlUtils.getQueryInt(authorEl, "view");
       final String authorHandle = authorEl.text();
       final Integer size = getSize(sizeEl.text());
       if (trackId != null && trackName != null && authorId != null && authorHandle != null && size != null) {
@@ -192,21 +184,9 @@ public class RemoteCatalog extends Catalog {
   }
 
   @Nullable
-  private static Integer getQueryInt(Element anchor, String param) {
-    final String raw = Uri.parse(anchor.attr("href")).getQueryParameter(param);
-    return tryGetInteger(raw);
-  }
-
-  @Nullable
-  private static Integer tryGetInteger(String raw) {
-    final String txt = TextUtils.isEmpty(raw) ? raw : raw.trim();
-    return TextUtils.isEmpty(txt) || !TextUtils.isDigitsOnly(txt) ? null : Integer.valueOf(txt);
-  }
-
-  @Nullable
   private static Integer getSize(String sizeKb) {
     final String raw = sizeKb.endsWith("Kb") ? sizeKb.substring(0, sizeKb.length() - 2) : null;
-    return tryGetInteger(raw);
+    return HtmlUtils.tryGetInteger(raw);
   }
 
   interface PagesVisitor {
@@ -215,23 +195,26 @@ public class RemoteCatalog extends Catalog {
 
   private void loadPages(Uri.Builder query, PagesVisitor visitor) throws IOException {
     for (int offset = 0; ; ) {
-      final Uri uri =
-          query.appendQueryParameter("position", Integer.toString(offset)).build();
-      final Document doc = parseDoc(http.getInputStream(uri));
+      final Document doc = HtmlUtils.parseDoc(readPage(query, offset));
       final Element paginator = doc.selectFirst("table>caption");
       if (paginator == null || paginator.childrenSize() > 2) {
         break;
       }
-      Log.d(TAG, "Load page: %s", uri);
       final Element nextPage = paginator.selectFirst("a[href^=newresult" +
           ".php?request=]:has(img[src$=/right.gif])");
       final Integer next = nextPage != null ?
-          getQueryInt(nextPage, "position") : null;
+          HtmlUtils.getQueryInt(nextPage, "position") : null;
       if (visitor.onPage(doc) && next != null && next != offset) {
         offset = next;
         continue;
       }
       break;
     }
+  }
+
+  private InputStream readPage(Uri.Builder base, int start) throws IOException {
+    final Uri uri = base.appendQueryParameter("position", Integer.toString(start)).build();
+    Log.d(TAG, "Load page: " + uri);
+    return http.getInputStream(uri);
   }
 }

@@ -7,12 +7,9 @@
 package app.zxtune.fs.modland;
 
 import android.net.Uri;
-import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
@@ -24,6 +21,7 @@ import java.util.regex.Pattern;
 
 import app.zxtune.Log;
 import app.zxtune.StubProgressCallback;
+import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.MultisourceHttpProvider;
@@ -187,9 +185,9 @@ public class RemoteCatalog extends Catalog {
     for (Element el : doc.select("table:has(>caption)>tbody>tr:has(>td>a[href*=md=])")) {
       final Element nameEl = el.child(0).child(0);
       final Element countEl = el.child(1);
-      final Integer id = getQueryInt(nameEl, "id");
+      final Integer id = HtmlUtils.getQueryInt(nameEl, "id");
       final String name = nameEl.text();
-      final Integer tracks = tryGetInteger(countEl.text());
+      final Integer tracks = HtmlUtils.tryGetInteger(countEl.text());
       if (id != null && name != null && tracks != null) {
         visitor.accept(new Group(id, name, tracks));
         ++result;
@@ -206,7 +204,7 @@ public class RemoteCatalog extends Catalog {
       final String href = pathEl.attr("href");
       final int pathPos = href.indexOf("pub/modules/");
       final String path = "/" + href.substring(pathPos);
-      final Integer size = tryGetInteger(sizeEl.text());
+      final Integer size = HtmlUtils.tryGetInteger(sizeEl.text());
       if (size != null) {
         if (!visitor.accept(new Track(path, size))) {
           return 0;
@@ -224,26 +222,13 @@ public class RemoteCatalog extends Catalog {
     };
   }
 
-  @Nullable
-  private static Integer getQueryInt(Element anchor, String param) {
-    final String raw = Uri.parse(anchor.attr("href")).getQueryParameter(param);
-    return tryGetInteger(raw);
-  }
-
-  @Nullable
-  private static Integer tryGetInteger(String raw) {
-    final String txt = TextUtils.isEmpty(raw) ? raw : raw.trim();
-    return TextUtils.isEmpty(txt) || !TextUtils.isDigitsOnly(txt) ? null : Integer.valueOf(txt);
-  }
-
   interface PagesVisitor {
     boolean onPage(String title, int results, Document doc);
   }
 
   private void loadPages(Uri.Builder query, PagesVisitor visitor) throws IOException {
     for (int pg = 1; ; ++pg) {
-      final Uri uri = query.appendQueryParameter("pg", Integer.toString(pg)).build();
-      final Document doc = parseDoc(http.getInputStream(uri));
+      final Document doc = HtmlUtils.parseDoc(readPage(query, pg));
       final Element hdr = doc.selectFirst("table>caption");
       final Matcher matcher = hdr != null ? PAGINATOR.matcher(hdr.text()) : null;
       if (matcher != null && matcher.find()) {
@@ -264,11 +249,8 @@ public class RemoteCatalog extends Catalog {
     }
   }
 
-  private static Document parseDoc(InputStream input) throws IOException {
-    try {
-      return Jsoup.parse(input, null, "");
-    } finally {
-      input.close();
-    }
+  private InputStream readPage(Uri.Builder base, int start) throws IOException {
+    final Uri uri = base.appendQueryParameter("pg", Integer.toString(start)).build();
+    return http.getInputStream(uri);
   }
 }

@@ -4,7 +4,6 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
@@ -12,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
 
+import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public class RemoteCatalog extends Catalog {
@@ -30,19 +30,11 @@ public class RemoteCatalog extends Catalog {
 
   // used in testing
   void parseDir(@NonNull InputStream input, DirVisitor visitor) throws IOException {
-    final Document doc = parseDoc(input);
+    final Document doc = HtmlUtils.parseDoc(input);
     if (parseXmlIndex(doc, visitor) || parseTableMarkup(doc, visitor) || parsePreMarkup(doc, visitor)) {
       return;
     }
     throw new IOException("Unsupported format of html page");
-  }
-
-  private static Document parseDoc(InputStream input) throws IOException {
-    try {
-      return Jsoup.parse(input, null, "");
-    } finally {
-      input.close();
-    }
   }
 
   /*
