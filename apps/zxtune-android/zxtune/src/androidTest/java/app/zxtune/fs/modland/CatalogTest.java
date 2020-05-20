@@ -148,10 +148,10 @@ public class CatalogTest {
         final int pos = checkpoints.keyAt(i);
         final Track ref = checkpoints.valueAt(i);
         final Track real = result.get(pos);
-        assertEquals(ref.id, real.id);
         assertEquals(ref.filename, real.filename);
         assertEquals(ref.path, real.path);
         assertEquals(ref.size, real.size);
+        assertEquals(ref.id, real.id);
       }
     }
 

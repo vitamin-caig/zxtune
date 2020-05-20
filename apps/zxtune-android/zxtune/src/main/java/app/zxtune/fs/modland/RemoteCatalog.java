@@ -7,11 +7,17 @@
 package app.zxtune.fs.modland;
 
 import android.net.Uri;
-import android.text.Html;
+import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,11 +27,8 @@ import app.zxtune.StubProgressCallback;
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.MultisourceHttpProvider;
-import app.zxtune.io.Io;
 
 /**
- * Use pure http response parsing via regex in despite that page structure seems to be xml well formed.
- *
  * There's additional api gate for xbmc plugin at
  * http://www.exotica.org.uk/mediawiki/extensions/ExoticASearch/Modland_xbmc.php
  * but it seems to be not working and has no such wide catalogue as http gate does.
@@ -34,15 +37,8 @@ public class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
-  private static final String SITE = "https://www.exotica.org.uk/";
-  private static final String API = SITE + "mediawiki/index.php?title=Special:Modland";
-  private static final String GROUPS_QUERY = API + "&md=b_%s&st=%s";
-  private static final String GROUP_TRACKS_QUERY = API + "&md=%s&id=%d";
-
   private static final Pattern PAGINATOR =
-          Pattern.compile("<caption>Browsing (.+?) - (\\d+) results? - showing page (\\d+) of (\\d+).</caption>");
-  private static final Pattern TRACKS =
-          Pattern.compile("file=(pub/modules/.+?).>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
+          Pattern.compile("Browsing (.+?) - (\\d+) results? - showing page (\\d+) of (\\d+).");
 
   private final MultisourceHttpProvider http;
   private final Grouping authors;
@@ -51,9 +47,9 @@ public class RemoteCatalog extends Catalog {
 
   RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
-    this.authors = new Authors();
-    this.collections = new Collections();
-    this.formats = new Formats();
+    this.authors = new BaseGrouping("aut", "Modules from author ");
+    this.collections = new BaseGrouping("col", "Modules from collection ");
+    this.formats = new BaseGrouping("for", "Modules in format ");
   }
 
   @Override
@@ -71,74 +67,64 @@ public class RemoteCatalog extends Catalog {
     return formats;
   }
 
-  private static String decodeHtml(String txt) {
-    return Html.fromHtml(txt).toString();
+  private static Uri.Builder getMainUriBuilder() {
+    return new Uri.Builder().scheme("https").authority("www.exotica.org.uk").path("mediawiki" +
+        "/index.php").appendQueryParameter("title", "Special:Modland");
   }
 
-  private static String makeGroupsQuery(String type, String filter) {
-    return String.format(Locale.US, GROUPS_QUERY, type, Uri.encode(filter));
+  private static Uri.Builder getGroupsUriBuilder(String type, String filter) {
+    return getMainUriBuilder().appendQueryParameter("md", "b_" + type).appendQueryParameter("st",
+        filter);
   }
 
-  private static String makeGroupTracksQuery(String type, int authorId) {
-    return String.format(Locale.US, GROUP_TRACKS_QUERY, type, authorId);
+  private static Uri.Builder getTracksUriBuilder(String type, int id) {
+    return getMainUriBuilder().appendQueryParameter("md", type).appendQueryParameter("id",
+        Integer.toString(id));
   }
 
-  private abstract class BaseGrouping implements Grouping {
+  private class BaseGrouping implements Grouping {
 
-    private final Pattern entries;
+    private final String tag;
+    private final String headerPrefix;
 
-    BaseGrouping() {
-      this.entries = Pattern.compile(
-              "<td><a href=.+?md=" + getCategoryTag() + "&amp;id=(\\d+).>(.+?)</a>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
+    BaseGrouping(String tag, String headerPrefix) {
+      this.tag = tag;
+      this.headerPrefix = headerPrefix;
     }
 
     @Override
     public void queryGroups(String filter, final GroupsVisitor visitor,
                             final ProgressCallback progress) throws IOException {
-      Log.d(TAG, "queryGroups(type=%s, filter=%s)", getCategoryTag(), filter);
-      loadPages(makeGroupsQuery(getCategoryTag(), filter), new PagesVisitor() {
+      Log.d(TAG, "queryGroups(type=%s, filter=%s)", tag, filter);
+      loadPages(getGroupsUriBuilder(tag, filter), new PagesVisitor() {
 
         private int total = 0;
         private int done = 0;
 
         @Override
-        public boolean onPage(String header, int results, CharSequence content) {
+        public boolean onPage(String header, int results, Document doc) {
           if (total == 0) {
             total = results;
             visitor.setCountHint(total);
           }
-          done += parseAuthors(content, visitor);
+          done += parseGroups(doc, visitor);
           progress.onProgressUpdate(done, total);
           return true;
         }
       });
     }
 
-    private int parseAuthors(CharSequence content, GroupsVisitor visitor) {
-      int result = 0;
-      final Matcher matcher = entries.matcher(content);
-      while (matcher.find()) {
-        final String id = matcher.group(1);
-        final String name = decodeHtml(matcher.group(2));
-        final String tracks = matcher.group(3);
-        visitor.accept(new Group(Integer.valueOf(id), name, Integer.valueOf(tracks)));
-        ++result;
-      }
-      return result;
-    }
-
     @NonNull
     @Override
     public Group getGroup(final int id) throws IOException {
-      Log.d(TAG, "getGroup(type=%s, id=%d)", getCategoryTag(), id);
+      Log.d(TAG, "getGroup(type=%s, id=%d)", tag, id);
       final Group[] resultRef = new Group[1];
-      loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
+      loadPages(getTracksUriBuilder(tag, id), new PagesVisitor() {
         @Override
-        public boolean onPage(String header, int results, CharSequence content) {
-          final String tracksHeader = getTracksHeader();
-          if (header.startsWith(tracksHeader)) {
-            final String name = header.substring(tracksHeader.length());
-            resultRef[0] = new Group(id, decodeHtml(name), results);
+        public boolean onPage(String header, int results, Document doc) {
+          if (header.startsWith(headerPrefix)) {
+            final String name = header.substring(headerPrefix.length());
+            resultRef[0] = new Group(id, name, results);
           }
           return false;
         }
@@ -152,19 +138,19 @@ public class RemoteCatalog extends Catalog {
 
     @Override
     public void queryTracks(int id, final TracksVisitor visitor, final ProgressCallback progress) throws IOException {
-      Log.d(TAG, "queryGroupTracks(type=%s, id=%d)", getCategoryTag(), id);
-      loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
+      Log.d(TAG, "queryGroupTracks(type=%s, id=%d)", tag, id);
+      loadPages(getTracksUriBuilder(tag, id), new PagesVisitor() {
 
         private int total = 0;
         private int done = 0;
 
         @Override
-        public boolean onPage(String header, int results, CharSequence content) {
+        public boolean onPage(String header, int results, Document doc) {
           if (total == 0) {
             total = results;
             visitor.setCountHint(total);
           }
-          final int tracks = parseTracks(content, visitor);
+          final int tracks = parseTracks(doc, visitor);
           done += tracks;
           progress.onProgressUpdate(done, total);
           return tracks != 0;
@@ -175,7 +161,7 @@ public class RemoteCatalog extends Catalog {
     @NonNull
     @Override
     public Track getTrack(int id, final String filename) throws IOException {
-      Log.d(TAG, "getGroupTrack(type=%s, id=%d, filename=%s)", getCategoryTag(), id, filename);
+      Log.d(TAG, "getGroupTrack(type=%s, id=%d, filename=%s)", tag, id, filename);
       final Track[] resultRef = {null};
       queryTracks(id, new TracksVisitor() {
         @Override
@@ -194,61 +180,39 @@ public class RemoteCatalog extends Catalog {
       }
       throw new IOException(String.format(Locale.US, "Failed to get track '%s' with id=%d", filename, id));
     }
-
-    abstract String getTracksHeader();
-
-    abstract String getCategoryTag();
   }
 
-  private class Authors extends BaseGrouping {
-
-    @Override
-    String getTracksHeader() {
-      return "Modules from author ";
-    }
-
-    @Override
-    String getCategoryTag() {
-      return "aut";
-    }
-  }
-
-  private class Collections extends BaseGrouping {
-
-    @Override
-    String getTracksHeader() {
-      return "Modules from collection ";
-    }
-
-    @Override
-    String getCategoryTag() {
-      return "col";
-    }
-  }
-
-  private class Formats extends BaseGrouping {
-
-    @Override
-    String getTracksHeader() {
-      return "Modules in format ";
-    }
-
-    @Override
-    String getCategoryTag() {
-      return "for";
-    }
-  }
-
-  private static int parseTracks(CharSequence content, TracksVisitor visitor) {
+  private static int parseGroups(Document doc, GroupsVisitor visitor) {
     int result = 0;
-    final Matcher matcher = TRACKS.matcher(content);
-    while (matcher.find()) {
-      final String path = "/" + matcher.group(1);
-      final String size = matcher.group(2);
-      if (!visitor.accept(new Track(path, Integer.valueOf(size)))) {
-        return 0;
+    for (Element el : doc.select("table:has(>caption)>tbody>tr:has(>td>a[href*=md=])")) {
+      final Element nameEl = el.child(0).child(0);
+      final Element countEl = el.child(1);
+      final Integer id = getQueryInt(nameEl, "id");
+      final String name = nameEl.text();
+      final Integer tracks = tryGetInteger(countEl.text());
+      if (id != null && name != null && tracks != null) {
+        visitor.accept(new Group(id, name, tracks));
+        ++result;
       }
-      ++result;
+    }
+    return result;
+  }
+
+  private static int parseTracks(Document doc, TracksVisitor visitor) {
+    int result = 0;
+    for (Element el : doc.select("table:has(>caption)>tbody>tr:has(>td>a[href*=file=pub/])")) {
+      final Element pathEl = el.child(0).child(0);
+      final Element sizeEl = el.child(4);
+      final String href = pathEl.attr("href");
+      final int pathPos = href.indexOf("pub/modules/");
+      final String path = "/" + href.substring(pathPos);
+      final Integer size = tryGetInteger(sizeEl.text());
+      if (size != null) {
+        if (!visitor.accept(new Track(path, size))) {
+          return 0;
+        }
+        ++result;
+      }
     }
     return result;
   }
@@ -260,30 +224,51 @@ public class RemoteCatalog extends Catalog {
     };
   }
 
-  interface PagesVisitor {
-    boolean onPage(String title, int results, CharSequence content);
+  @Nullable
+  private static Integer getQueryInt(Element anchor, String param) {
+    final String raw = Uri.parse(anchor.attr("href")).getQueryParameter(param);
+    return tryGetInteger(raw);
   }
 
-  private void loadPages(String query, PagesVisitor visitor) throws IOException {
+  @Nullable
+  private static Integer tryGetInteger(String raw) {
+    final String txt = TextUtils.isEmpty(raw) ? raw : raw.trim();
+    return TextUtils.isEmpty(txt) || !TextUtils.isDigitsOnly(txt) ? null : Integer.valueOf(txt);
+  }
+
+  interface PagesVisitor {
+    boolean onPage(String title, int results, Document doc);
+  }
+
+  private void loadPages(Uri.Builder query, PagesVisitor visitor) throws IOException {
     for (int pg = 1; ; ++pg) {
-      final String uri = query + String.format(Locale.US, "&pg=%d", pg);
-      final String chars = Io.readHtml(http.getInputStream(Uri.parse(uri)));
-      final Matcher matcher = PAGINATOR.matcher(chars);
-      if (matcher.find()) {
-        Log.d(TAG, "Load page: %s", matcher.group());
+      final Uri uri = query.appendQueryParameter("pg", Integer.toString(pg)).build();
+      final Document doc = parseDoc(http.getInputStream(uri));
+      final Element hdr = doc.selectFirst("table>caption");
+      final Matcher matcher = hdr != null ? PAGINATOR.matcher(hdr.text()) : null;
+      if (matcher != null && matcher.find()) {
+        Log.d(TAG, "Load page: " + hdr.text());
         final String header = matcher.group(1);
         final String results = matcher.group(2);
         final String page = matcher.group(3);
         final String pagesTotal = matcher.group(4);
-        if (pg != Integer.valueOf(page)) {
+        if (pg != Integer.parseInt(page)) {
           throw new IOException("Invalid paginator structure");
         }
-        if (visitor.onPage(header, Integer.valueOf(results), chars)
-                && pg < Integer.valueOf(pagesTotal)) {
+        if (visitor.onPage(header, Integer.parseInt(results), doc)
+                && pg < Integer.parseInt(pagesTotal)) {
           continue;
         }
       }
       break;
+    }
+  }
+
+  private static Document parseDoc(InputStream input) throws IOException {
+    try {
+      return Jsoup.parse(input, null, "");
+    } finally {
+      input.close();
     }
   }
 }
