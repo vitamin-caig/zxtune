@@ -1,118 +1,168 @@
 /**
- *
  * @file
- *
  * @brief Dialog fragment with information about program
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.ui;
 
-import android.app.Activity;
-import android.app.Dialog;
+import android.app.Application;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
-import androidx.fragment.app.DialogFragment;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.CursorLoader;
-import androidx.loader.content.Loader;
-import androidx.collection.ArrayMap;
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.app.AlertDialog;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ExpandableListView;
+import android.view.ViewGroup;
 import android.widget.SimpleExpandableListAdapter;
-import android.widget.TextView;
-import app.zxtune.BuildConfig;
-import app.zxtune.PluginsProvider;
-import app.zxtune.R;
+
+import androidx.annotation.NonNull;
+import androidx.collection.ArrayMap;
+import androidx.collection.SparseArrayCompat;
+import androidx.databinding.DataBindingUtil;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
 import java.util.ArrayList;
 import java.util.Locale;
 
+import app.zxtune.BuildConfig;
+import app.zxtune.PluginsProvider;
+import app.zxtune.R;
+import app.zxtune.databinding.AboutBinding;
+
 public class AboutFragment extends DialogFragment {
+
+  private AboutBinding binding;
 
   public static DialogFragment createInstance() {
     return new AboutFragment();
   }
 
   @Override
-  public Dialog onCreateDialog(Bundle savedInstanceState) {
-    final Context ctx = getActivity();
+  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                           Bundle savedInstanceState) {
 
-    final View view = ((Activity) ctx).getLayoutInflater().inflate(R.layout.about, null, false);
-    ((TextView) view.findViewById(R.id.about_system)).setText(getSystemInfo());
-    final ViewPager pager = view.findViewById(R.id.about_pager);
-    pager.setAdapter(new ViewPagerAdapter(pager));
-    final ExpandableListView plugins = view.findViewById(R.id.about_plugins);
-    fillPlugins(plugins);
+    binding = DataBindingUtil.inflate(inflater, R.layout.about, container, false);
 
-    final AlertDialog result = new AlertDialog.Builder(ctx)
-        .setTitle(getApplicationInfo())
-        .setView(view)
-        .create();
+    binding.aboutTitle.setText(getApplicationInfo());
+    binding.aboutSystem.setText(getSystemInfo());
+
+    binding.aboutPager.setAdapter(new ViewPagerAdapter(binding.aboutPager));
+    Model.of(this).getData().observe(this, new Observer<SparseArrayCompat<ArrayList<String>>>() {
+      @Override
+      public void onChanged(SparseArrayCompat<ArrayList<String>> data) {
+        fillPlugins(data);
+      }
+    });
+
+    return binding.getRoot();
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+
+    Model.of(this).populate();
+  }
+
+  private void fillPlugins(SparseArrayCompat<ArrayList<String>> data) {
+
+    final String TYPE = "type";
+    final String DESCR = "descr";
+
+    final ArrayList<ArrayMap<String, String>> groups = new ArrayList<>(data.size());
+    final ArrayList<ArrayList<ArrayMap<String, String>>> children = new ArrayList<>();
+
+    for (int idx = 0; idx < data.size(); ++idx) {
+      final int type = data.keyAt(idx);
+      groups.add(makeRowMap(TYPE, getPluginTypeString(type)));
+
+      {
+        final ArrayList<ArrayMap<String, String>> child = new ArrayList<>();
+        for (String plugin : data.valueAt(idx)) {
+          child.add(makeRowMap(DESCR, "\t" + plugin));
+        }
+        children.add(child);
+      }
+    }
+
+    final String[] groupFrom = {TYPE};
+    final int[] groupTo = {android.R.id.text1};
+    final String[] childFrom = {DESCR};
+    final int[] childTo = {android.R.id.text1};
+    final SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(getActivity(),
+        groups, android.R.layout.simple_expandable_list_item_1, groupFrom, groupTo,
+        children, android.R.layout.simple_list_item_1, childFrom, childTo);
+    binding.aboutPlugins.setAdapter(adapter);
+  }
+
+  private String getPluginTypeString(int type) {
+    final int resId = PluginsProvider.Types.values()[type].nameId();
+    return getString(resId);
+  }
+
+  private static ArrayMap<String, String> makeRowMap(String key, String value) {
+    final ArrayMap<String, String> result = new ArrayMap<>();
+    result.put(key, value);
     return result;
   }
 
-  private void fillPlugins(final ExpandableListView plugins) {
-    getLoaderManager().initLoader(0, null, new LoaderManager.LoaderCallbacks<Cursor>() {
+  public static class Model extends AndroidViewModel {
 
-      @Override
-      public Loader<Cursor> onCreateLoader(int arg0, Bundle arg1) {
-        return new CursorLoader(getActivity(), PluginsProvider.getUri(), null, null, null, null);
+    // resId => [description]
+    private MutableLiveData<SparseArrayCompat<ArrayList<String>>> data = new MutableLiveData<>();
+
+    static Model of(Fragment owner) {
+      return ViewModelProviders.of(owner).get(Model.class);
+    }
+
+    public Model(@NonNull Application app) {
+      super(app);
+    }
+
+    LiveData<SparseArrayCompat<ArrayList<String>>> getData() {
+      return data;
+    }
+
+    final void populate() {
+      if (data.getValue() == null) {
+        load();
       }
+    }
 
-      @Override
-      public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        final Context ctx = getActivity();
-        final ArrayList<ArrayMap<String, String>> groups = new ArrayList<>();
-        final ArrayList<ArrayList<ArrayMap<String, String>>> children = new ArrayList<>();
-        for (cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+    private void load() {
+      final ContentResolver resolver = getApplication().getContentResolver();
+      final Cursor cursor = resolver.query(PluginsProvider.getUri(), null, null, null, null);
+      final SparseArrayCompat<ArrayList<String>> result = new SparseArrayCompat<>();
+      try {
+        while (cursor != null && cursor.moveToNext()) {
           final int type = cursor.getInt(PluginsProvider.Columns.Type.ordinal());
           final String descr = cursor.getString(PluginsProvider.Columns.Description.ordinal());
-          while (type >= groups.size()) {
-            groups.add(new ArrayMap<String, String>());
-            children.add(new ArrayList<ArrayMap<String, String>>());
+          if (!result.containsKey(type)) {
+            result.append(type, new ArrayList<String>());
           }
-          final ArrayMap<String, String> plugin = new ArrayMap<>(1);
-          plugin.put(PluginsProvider.Columns.Description.name(), "\t" + descr);
-          children.get(type).add(plugin);
+          result.get(type, null).add(descr);
         }
-        for (int type = 0; type != groups.size(); ++type) {
-          groups.get(type).put(PluginsProvider.Columns.Type.name(), ctx.getString(getPluginTypeString(type)));
-        }
-        
-        final String[] groupFrom = {PluginsProvider.Columns.Type.name()};
-        final int[] groupTo = {android.R.id.text1};
-        final String[] childFrom = {PluginsProvider.Columns.Description.name()};
-        final int[] childTo = {android.R.id.text1};
-        final SimpleExpandableListAdapter adapter = new SimpleExpandableListAdapter(getActivity(), 
-            groups, android.R.layout.simple_expandable_list_item_1, groupFrom, groupTo,
-                children, android.R.layout.simple_list_item_1, childFrom, childTo);
-        
-        plugins.setAdapter(adapter);
+      } finally {
+        cursor.close();
       }
-
-      @Override
-      public void onLoaderReset(Loader<Cursor> arg0) {
-      }
-    });
+      data.postValue(result);
+    }
   }
 
-  private static int getPluginTypeString(int type) {
-    return PluginsProvider.Types.values()[type].nameId();
-  }
-  
   private String getApplicationInfo() {
-    return String.format(Locale.US, "%s b%d (%s)", getActivity().getString(R.string.app_name),
-            BuildConfig.VERSION_CODE, BuildConfig.FLAVOR);
+    return String.format(Locale.US, "%s b%d (%s)", getString(R.string.app_name),
+        BuildConfig.VERSION_CODE, BuildConfig.FLAVOR);
   }
 
   private String getSystemInfo() {
@@ -132,16 +182,17 @@ public class AboutFragment extends DialogFragment {
       this.context = context;
     }
 
-    public void buildOSInfo() {
-      addString(String.format("Android %s (API v%d)", Build.VERSION.RELEASE, Build.VERSION.SDK_INT));
+    final void buildOSInfo() {
+      addString(String.format(Locale.US, "Android %s (API v%d)", Build.VERSION.RELEASE, Build.VERSION.SDK_INT));
       if (Build.VERSION.SDK_INT >= 21) {
-        addString(String.format("%s (%s)", Build.MODEL, TextUtils.join("/", Build.SUPPORTED_ABIS)));
+        addString(String.format(Locale.US, "%s (%s)", Build.MODEL, TextUtils.join("/",
+            Build.SUPPORTED_ABIS)));
       } else {
-        addString(String.format("%s (%s/%s)", Build.MODEL, Build.CPU_ABI, Build.CPU_ABI2));
+        addString(String.format(Locale.US, "%s (%s/%s)", Build.MODEL, Build.CPU_ABI, Build.CPU_ABI2));
       }
     }
 
-    public void buildConfigurationInfo() {
+    final void buildConfigurationInfo() {
       final Configuration config = context.getResources().getConfiguration();
       final DisplayMetrics metrics = context.getResources().getDisplayMetrics();
       addWord(getLayoutSize(config.screenLayout));
@@ -200,7 +251,7 @@ public class AboutFragment extends DialogFragment {
           return "orientation-undef";
       }
     }
-    
+
     private static String getDensity(int density) {
       switch (density) {
         case DisplayMetrics.DENSITY_LOW:
