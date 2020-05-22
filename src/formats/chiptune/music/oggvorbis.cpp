@@ -487,7 +487,7 @@ namespace Chiptune
         "'v'o'r'b'i's" //signature
         "00{4}"        //version
         "01-02"        //mono/stereo supported
-        "? 0f-bb 00 00"//8-48kHz
+        "? ? 00-01 00" //up to 96kHz
         "?{12}"        //bitrate
         "66-dd"
         "%xxxxxxx1"    //frame sync
