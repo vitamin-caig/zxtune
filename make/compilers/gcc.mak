@@ -1,6 +1,6 @@
 #basic definitions for tools
-tools.cxx = $($(platform).$(arch).execprefix)g++
-tools.cc = $($(platform).$(arch).execprefix)gcc
+tools.cxx = $(tools.cxxwrapper) $($(platform).$(arch).execprefix)g++
+tools.cc = $(tools.ccwrapper) $($(platform).$(arch).execprefix)gcc
 tools.ld ?= $($(platform).$(arch).execprefix)g++
 tools.ar ?= $($(platform).$(arch).execprefix)ar
 tools.objcopy ?= $($(platform).$(arch).execprefix)objcopy

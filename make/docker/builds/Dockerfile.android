@@ -47,6 +47,13 @@ COPY android_env android_env/
 RUN cd android_env && ./gradlew resolveDependencies && \
     rm -Rf .gradle build
 
+#ccache support
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+            ccache && \
+    rm -rf /var/lib/apt/lists/*
+ENV CCACHE_DIR=/ccache
+
 #Sources
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
