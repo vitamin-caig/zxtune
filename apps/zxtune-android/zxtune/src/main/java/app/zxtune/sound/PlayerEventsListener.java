@@ -6,8 +6,6 @@
 
 package app.zxtune.sound;
 
-import androidx.annotation.NonNull;
-
 /**
  * All calls are synchronous and may be performed from background thread
  */
@@ -37,5 +35,5 @@ public interface PlayerEventsListener {
    * Called on unexpected error occurred
    * @param e Exception happened
    */
-  void onError(@NonNull Exception e);
+  void onError(Exception e);
 }

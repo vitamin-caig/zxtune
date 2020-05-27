@@ -1,6 +1,6 @@
 package app.zxtune.sound;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.concurrent.Exchanger;
 import java.util.concurrent.TimeUnit;
@@ -15,10 +15,12 @@ class AsyncSamplesTarget {
   private final SamplesTarget target;
   private final Thread thread;
   private final Exchanger<short[]> exchanger;
+  @Nullable
   private short[] inputBuffer;
+  @Nullable
   private short[] outputBuffer;
 
-  AsyncSamplesTarget(@NonNull SamplesTarget target) {
+  AsyncSamplesTarget(SamplesTarget target) {
     this.target = target;
     this.exchanger = new Exchanger<>();
     this.thread = new Thread("ConsumeSoundThread") {
@@ -58,7 +60,6 @@ class AsyncSamplesTarget {
     target.stop();
   }
 
-  @NonNull
   final short[] getBuffer() throws Exception {
     final short[] result = inputBuffer;
     if (result != null) {

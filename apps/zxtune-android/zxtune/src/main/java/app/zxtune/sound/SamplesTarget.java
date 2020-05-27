@@ -6,8 +6,6 @@
 
 package app.zxtune.sound;
 
-import androidx.annotation.NonNull;
-
 public interface SamplesTarget {
 
   /**
@@ -28,7 +26,7 @@ public interface SamplesTarget {
   /**
    * @param buffer sound data in S16/stereo/interleaved format
    */
-  void writeSamples(@NonNull short[] buffer) throws Exception;
+  void writeSamples(short[] buffer) throws Exception;
 
   /**
    * Deinitialize target

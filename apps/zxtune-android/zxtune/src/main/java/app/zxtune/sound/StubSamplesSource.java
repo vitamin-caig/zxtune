@@ -1,6 +1,5 @@
 package app.zxtune.sound;
 
-import androidx.annotation.NonNull;
 import app.zxtune.TimeStamp;
 
 final public class StubSamplesSource implements SamplesSource {
@@ -11,7 +10,7 @@ final public class StubSamplesSource implements SamplesSource {
   public void initialize(int sampleRate) {}
 
   @Override
-  public boolean getSamples(@NonNull short[] buf) {
+  public boolean getSamples(short[] buf) {
     return false;
   }
 
@@ -30,7 +29,7 @@ final public class StubSamplesSource implements SamplesSource {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final StubSamplesSource INSTANCE = new StubSamplesSource();
+    static final StubSamplesSource INSTANCE = new StubSamplesSource();
   }
 
 }
