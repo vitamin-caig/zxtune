@@ -14,7 +14,6 @@ import app.zxtune.core.Identifier;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
-import app.zxtune.core.Properties;
 
 import java.util.concurrent.TimeUnit;
 

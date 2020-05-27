@@ -29,6 +29,7 @@ public final class ProviderClient {
   }
 
   private final ContentResolver resolver;
+  @Nullable
   private ContentObserver contentObserver;
 
   public ProviderClient(Context ctx) {
