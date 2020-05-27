@@ -10,7 +10,10 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.media.session.MediaSessionCompat;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import app.zxtune.BroadcastReceiverConnection;
 import app.zxtune.Log;
@@ -20,17 +23,12 @@ import app.zxtune.ReleaseableStub;
 import app.zxtune.ScanService;
 import app.zxtune.TimeStamp;
 import app.zxtune.device.sound.SoundOutputSamplesTarget;
-import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.SeekControl;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.playback.stubs.CallbackStub;
 import app.zxtune.playback.stubs.PlayableItemStub;
-import app.zxtune.playback.SeekControl;
-
-import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 class ControlCallback extends MediaSessionCompat.Callback {
 
@@ -63,7 +61,7 @@ class ControlCallback extends MediaSessionCompat.Callback {
     this.session = session;
     svc.subscribe(new CallbackStub() {
       @Override
-      public void onStateChanged(@NonNull PlaybackControl.State state, @NonNull TimeStamp pos) {
+      public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
         if (focusState == FocusState.RELEASED && state == PlaybackControl.State.PLAYING) {
           if (!connectToAudioSystem()) {
             Log.d(TAG, "Failed to gain focus");
@@ -126,12 +124,14 @@ class ControlCallback extends MediaSessionCompat.Callback {
     }
   }
 
-  private void add(Parcelable[] params) {
-    final Uri[] uris = new Uri[params.length];
-    for (int idx = 0, lim = params.length; idx < lim; ++idx) {
-      uris[idx] = (Uri) params[idx];
+  private void add(@Nullable Parcelable[] params) {
+    if (params != null) {
+      final Uri[] uris = new Uri[params.length];
+      for (int idx = 0, lim = params.length; idx < lim; ++idx) {
+        uris[idx] = (Uri) params[idx];
+      }
+      ScanService.add(ctx, uris);
     }
-    ScanService.add(ctx, uris);
   }
 
   @Override

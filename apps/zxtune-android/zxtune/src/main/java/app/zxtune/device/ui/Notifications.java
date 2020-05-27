@@ -6,7 +6,6 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
 import androidx.annotation.DrawableRes;
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.annotation.StringRes;
 import androidx.core.app.NotificationCompat;
@@ -52,11 +51,11 @@ public final class Notifications {
     }
   }
 
-  public static Controller createForService(@NonNull Context ctx, @DrawableRes int icon) {
+  public static Controller createForService(Context ctx, @DrawableRes int icon) {
     return new Controller(ctx, icon);
   }
 
-  public static void sendEvent(@NonNull Context ctx, @DrawableRes int icon, @StringRes int title, @NonNull String text) {
+  public static void sendEvent(Context ctx, @DrawableRes int icon, @StringRes int title, String text) {
     final NotificationManager manager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
     if (manager != null) {
       final NotificationCompat.Builder builder = new NotificationCompat.Builder(ctx, EVENTS_CHANNEL_ID);
@@ -68,7 +67,7 @@ public final class Notifications {
     }
   }
 
-  public static void setup(@NonNull Context ctx) {
+  public static void setup(Context ctx) {
     if (Build.VERSION.SDK_INT >= 26) {
       final NotificationManager manager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
       if (manager != null) {
