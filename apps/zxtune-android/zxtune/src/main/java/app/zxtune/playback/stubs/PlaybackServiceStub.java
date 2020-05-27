@@ -50,6 +50,6 @@ public class PlaybackServiceStub implements PlaybackService {
   
   //onDemand holder idiom
   private static class Holder {
-    public static final PlaybackService INSTANCE = new PlaybackServiceStub();
+    static final PlaybackService INSTANCE = new PlaybackServiceStub();
   }  
 }

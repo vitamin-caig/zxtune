@@ -8,7 +8,14 @@ package app.zxtune.playback;
 
 import android.content.Context;
 import android.net.Uri;
-import androidx.annotation.NonNull;
+
+import androidx.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.concurrent.LinkedBlockingQueue;
+
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.StubProgressCallback;
@@ -23,12 +30,6 @@ import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.playback.stubs.PlayableItemStub;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.concurrent.LinkedBlockingQueue;
-
 // TODO: support cleanup of iterator itself
 public class FileIterator implements Iterator {
 
@@ -39,6 +40,7 @@ public class FileIterator implements Iterator {
   private static class OnDemandUpdateItem {
 
     private final Identifier location;
+    @Nullable
     private PlayableItem cached;
     private final long dataSize;
 
@@ -91,7 +93,7 @@ public class FileIterator implements Iterator {
     return new FileIterator(ctx, filesIterator);
   }
 
-  private FileIterator(Context context, @NonNull java.util.Iterator<VfsFile> files) throws Exception {
+  private FileIterator(Context context, java.util.Iterator<VfsFile> files) throws Exception {
     this.itemsQueue = new LinkedBlockingQueue<>(1);
     this.history = new ArrayList<>(100);
     this.lastError = new Exception[1];
@@ -150,6 +152,7 @@ public class FileIterator implements Iterator {
         this.lastError = lastError;
       }
 
+      @Nullable
       @Override
       public VfsFile getNextFile() {
         final int doneFiles = counter[0]++;
@@ -163,7 +166,7 @@ public class FileIterator implements Iterator {
       }
 
       @Override
-      public Reply onItem(@NonNull PlayableItem item) {
+      public Reply onItem(PlayableItem item) {
         if (itemsQueue.offer(item)) {
           ++counter[1];
           return Reply.CONTINUE;
@@ -215,7 +218,6 @@ public class FileIterator implements Iterator {
     }
   }
 
-  @NonNull
   private static java.util.Iterator<VfsFile> creatDirFilesIterator(Uri start) throws Exception {
     final ArrayList<VfsFile> result = new ArrayList<>();
     final VfsObject obj = VfsArchive.resolveForced(start, StubProgressCallback.instance());
@@ -276,7 +278,8 @@ public class FileIterator implements Iterator {
   // Adapter to prepend feed with already known item
   private static class FeedIterator implements java.util.Iterator<VfsFile> {
 
-    final private java.util.Iterator<VfsFile> delegate;
+    private final java.util.Iterator<VfsFile> delegate;
+    @Nullable
     private VfsFile first;
 
     FeedIterator(VfsFile first, java.util.Iterator<VfsFile> delegate) {

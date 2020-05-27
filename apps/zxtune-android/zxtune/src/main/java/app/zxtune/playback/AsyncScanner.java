@@ -2,23 +2,23 @@ package app.zxtune.playback;
 
 import android.net.Uri;
 import android.os.SystemClock;
-import androidx.annotation.NonNull;
+
 import androidx.annotation.Nullable;
 import androidx.core.os.OperationCanceledException;
-
-import app.zxtune.core.Identifier;
-import app.zxtune.Log;
-import app.zxtune.TimeStamp;
-import app.zxtune.core.Module;
-import app.zxtune.core.ModuleAttributes;
-import app.zxtune.core.Scanner;
-import app.zxtune.fs.VfsFile;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import app.zxtune.Log;
+import app.zxtune.TimeStamp;
+import app.zxtune.core.Identifier;
+import app.zxtune.core.Module;
+import app.zxtune.core.ModuleAttributes;
+import app.zxtune.core.Scanner;
+import app.zxtune.fs.VfsFile;
 
 public final class AsyncScanner {
 
@@ -33,16 +33,15 @@ public final class AsyncScanner {
     @Nullable
     VfsFile getNextFile();
 
-    Reply onItem(@NonNull PlayableItem item);
+    Reply onItem(PlayableItem item);
 
     void onError(Identifier id, Exception e);
   }
 
-  private final ExecutorService executor;
-  private AtomicInteger scansDone = new AtomicInteger(0);
+  private final ExecutorService executor = Executors.newCachedThreadPool();
+  private final AtomicInteger scansDone = new AtomicInteger(0);
 
   private AsyncScanner() {
-    this.executor = Executors.newCachedThreadPool();
   }
 
   //! @return handle to scan session
@@ -66,7 +65,7 @@ public final class AsyncScanner {
       return delegate.get().getNextFile();
     }
 
-    final void onItem(@NonNull PlayableItem item) {
+    final void onItem(PlayableItem item) {
       while (Callback.Reply.RETRY == delegate.get().onItem(item)) {
         waitOrStop();
       }
@@ -149,7 +148,7 @@ public final class AsyncScanner {
     private static final String EMPTY_STRING = "";
     private final Uri id;
     private final Identifier dataId;
-    private Module module;
+    private final Module module;
 
     FileItem(Identifier id, Module module) {
       this.module = module;
@@ -204,6 +203,6 @@ public final class AsyncScanner {
   }
 
   private static class Holder {
-    public static final AsyncScanner INSTANCE = new AsyncScanner();
+    static final AsyncScanner INSTANCE = new AsyncScanner();
   }
 }

@@ -39,6 +39,6 @@ public final class IteratorStub implements Iterator {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final Iterator INSTANCE = new IteratorStub();
+    static final Iterator INSTANCE = new IteratorStub();
   }  
 }

@@ -13,7 +13,7 @@ package app.zxtune.playback;
 import app.zxtune.Releaseable;
 
 public class CallbackSubscription implements Releaseable {
-  
+
   private PlaybackService service;
   private Callback callback;
 

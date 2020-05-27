@@ -25,6 +25,6 @@ public class VisualizerStub implements Visualizer {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final Visualizer INSTANCE = new VisualizerStub();
+    static final Visualizer INSTANCE = new VisualizerStub();
   }  
 }
