@@ -22,7 +22,6 @@ import android.view.SubMenu;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -53,10 +52,15 @@ public class PlaylistFragment extends Fragment {
 
   private static final String LISTING_STATE_KEY = "listing_state";
 
+  @Nullable
   private ProviderClient ctrl;
+  @Nullable
   private RecyclerView listing;
+  @Nullable
   private ItemTouchHelper touchHelper;
+  @Nullable
   private View stub;
+  @Nullable
   private SelectionTracker<Long> selectionTracker;
 
   public static Fragment createInstance() {
@@ -64,21 +68,21 @@ public class PlaylistFragment extends Fragment {
   }
 
   @Override
-  public void onAttach(@NonNull Context ctx) {
+  public void onAttach(Context ctx) {
     super.onAttach(ctx);
 
     ctrl = new ProviderClient(ctx);
   }
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     setHasOptionsMenu(true);
   }
 
   @Override
-  public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+  public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     super.onCreateOptionsMenu(menu, inflater);
 
     inflater.inflate(R.menu.playlist, menu);
@@ -134,12 +138,13 @@ public class PlaylistFragment extends Fragment {
 
   @Override
   @Nullable
-  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
     return container != null ? inflater.inflate(R.layout.playlist, container, false) : null;
   }
 
   @Override
-  public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
     listing = view.findViewById(R.id.playlist_content);
@@ -174,7 +179,7 @@ public class PlaylistFragment extends Fragment {
     final Model playlistModel = Model.of(this);
     playlistModel.getItems().observe(this, new Observer<List<Entry>>() {
       @Override
-      public void onChanged(@NonNull List<Entry> entries) {
+      public void onChanged(List<Entry> entries) {
         if (touchHelperCallback.isDragging()) {
           return;
         }
@@ -207,7 +212,7 @@ public class PlaylistFragment extends Fragment {
     });
   }
 
-  private void restoreState(@NonNull Bundle savedInstanceState) {
+  private void restoreState(Bundle savedInstanceState) {
     selectionTracker.onRestoreInstanceState(savedInstanceState);
     final Parcelable listingState = savedInstanceState.getParcelable(LISTING_STATE_KEY);
     if (listingState != null) {
@@ -216,21 +221,21 @@ public class PlaylistFragment extends Fragment {
   }
 
   @Override
-  public void onSaveInstanceState(@NonNull Bundle outState) {
+  public void onSaveInstanceState(Bundle outState) {
     selectionTracker.onSaveInstanceState(outState);
     outState.putParcelable(LISTING_STATE_KEY, listing.getLayoutManager().onSaveInstanceState());
   }
 
   private class ItemActivatedListener implements OnItemActivatedListener<Long> {
     @Override
-    public boolean onItemActivated(@NonNull ItemDetailsLookup.ItemDetails<Long> item, @NonNull MotionEvent e) {
+    public boolean onItemActivated(ItemDetailsLookup.ItemDetails<Long> item, MotionEvent e) {
       return onItemClick(item.getSelectionKey());
     }
   }
 
   private class AdapterClient implements ViewAdapter.Client {
     @Override
-    public boolean onDrag(@NonNull RecyclerView.ViewHolder holder) {
+    public boolean onDrag(RecyclerView.ViewHolder holder) {
       return onItemDrag(holder);
     }
   }
@@ -246,7 +251,7 @@ public class PlaylistFragment extends Fragment {
     return false;
   }
 
-  private boolean onItemDrag(@NonNull RecyclerView.ViewHolder holder) {
+  private boolean onItemDrag(RecyclerView.ViewHolder holder) {
     // Disable dragging in selection mode
     if (!selectionTracker.hasSelection()) {
       touchHelper.startDrag(holder);
@@ -258,14 +263,12 @@ public class PlaylistFragment extends Fragment {
 
   // ArchivesService for selection
   private class SelectionClient implements SelectionUtils.Client<Long> {
-    @NonNull
     @Override
     public String getTitle(int count) {
       return getResources().getQuantityString(R.plurals.tracks,
           count, count);
     }
 
-    @NonNull
     @Override
     public List<Long> getAllItems() {
       final RecyclerView.Adapter adapter = listing.getAdapter();
@@ -311,6 +314,7 @@ public class PlaylistFragment extends Fragment {
     return true;
   }
 
+  @Nullable
   private static long[] convertSelection(@Nullable Selection<Long> selection) {
     if (selection == null || selection.size() == 0) {
       return null;
@@ -356,8 +360,8 @@ public class PlaylistFragment extends Fragment {
     }
 
     @Override
-    public void onSelectedChanged(RecyclerView.ViewHolder viewHolder, int actionState) {
-      if (actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
+    public void onSelectedChanged(@Nullable RecyclerView.ViewHolder viewHolder, int actionState) {
+      if (viewHolder != null && actionState != ItemTouchHelper.ACTION_STATE_IDLE) {
         isActive = true;
         viewHolder.itemView.setActivated(true);
       }
@@ -365,7 +369,7 @@ public class PlaylistFragment extends Fragment {
     }
 
     @Override
-    public void clearView(@NonNull RecyclerView view, @NonNull RecyclerView.ViewHolder viewHolder) {
+    public void clearView(RecyclerView view, RecyclerView.ViewHolder viewHolder) {
       super.clearView(view, viewHolder);
       isActive = false;
       viewHolder.itemView.setActivated(false);
@@ -378,7 +382,7 @@ public class PlaylistFragment extends Fragment {
     }
 
     @Override
-    public boolean onMove(@NonNull RecyclerView recyclerView, RecyclerView.ViewHolder source,
+    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder source,
                           RecyclerView.ViewHolder target) {
       final int srcPos = source.getAdapterPosition();
       final int tgtPos = target.getAdapterPosition();
@@ -394,7 +398,7 @@ public class PlaylistFragment extends Fragment {
     }
 
     @Override
-    public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
     }
   }
 }

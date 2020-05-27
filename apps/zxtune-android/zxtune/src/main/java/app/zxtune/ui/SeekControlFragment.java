@@ -11,7 +11,7 @@ import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import androidx.annotation.NonNull;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.support.v4.media.MediaMetadataCompat;
@@ -39,11 +39,15 @@ public class SeekControlFragment extends Fragment {
   private final Handler timer;
   private final UpdateViewTask updateTask;
 
+  @Nullable
   private TextView currentTime;
+  @Nullable
   private SeekBar currentPosition;
+  @Nullable
   private TextView totalTime;
+  @Nullable
   private ImageView trackMode;
-
+  @Nullable
   private MediaControllerCompat.TransportControls ctrl;
   private int trackModeValue = 0;
 
@@ -53,7 +57,7 @@ public class SeekControlFragment extends Fragment {
   }
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
@@ -97,12 +101,13 @@ public class SeekControlFragment extends Fragment {
 
   @Override
   @Nullable
-  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
     return inflater.inflate(R.layout.position, container, false);
   }
 
   @Override
-  public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
     currentTime = view.findViewById(R.id.position_time);

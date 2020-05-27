@@ -4,7 +4,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.view.ActionMode;
 import androidx.recyclerview.selection.Selection;
@@ -18,10 +18,8 @@ import app.zxtune.R;
 final public class SelectionUtils<T> extends SelectionTracker.SelectionObserver<T> {
 
   public interface Client<T> {
-    @NonNull
     String getTitle(int count);
 
-    @NonNull
     List<T> getAllItems();
 
     void fillMenu(MenuInflater inflater, Menu menu);
@@ -32,6 +30,7 @@ final public class SelectionUtils<T> extends SelectionTracker.SelectionObserver<
   private final AppCompatActivity activity;
   private final SelectionTracker<T> selectionTracker;
   private final Client client;
+  @Nullable
   private ActionMode action;
 
   public static <T> void install(AppCompatActivity activity, SelectionTracker<T> selectionTracker,
@@ -102,7 +101,7 @@ final public class SelectionUtils<T> extends SelectionTracker.SelectionObserver<
     }
   }
 
-  public boolean processActionItemClick(int itemId) {
+  private boolean processActionItemClick(int itemId) {
     switch (itemId) {
       case R.id.action_select_all:
         selectionTracker.setItemsSelected(client.getAllItems(), true);

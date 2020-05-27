@@ -12,7 +12,6 @@ import android.content.Context;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
@@ -45,7 +44,7 @@ public class PlaylistStatisticsFragment extends DialogFragment {
   }
 
   @Override
-  public Dialog onCreateDialog(@NonNull Bundle savedInstanceState) {
+  public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
     final Context ctx = getActivity();
 
     final ArrayAdapter<String> adapter = new ArrayAdapter<>(ctx, android.R.layout.simple_list_item_1);
@@ -74,16 +73,17 @@ public class PlaylistStatisticsFragment extends DialogFragment {
     return result;
   }
 
+  // public for provider
   public static class Model extends AndroidViewModel {
     private final ProviderClient client;
     private final ExecutorService async;
-    private MutableLiveData<Statistics> data;
+    private final MutableLiveData<Statistics> data;
 
     static Model of(Fragment owner) {
       return ViewModelProviders.of(owner).get(Model.class);
     }
 
-    public Model(@NonNull Application application) {
+    public Model(Application application) {
       super(application);
       this.client = new ProviderClient(application);
       this.async = Executors.newSingleThreadExecutor();

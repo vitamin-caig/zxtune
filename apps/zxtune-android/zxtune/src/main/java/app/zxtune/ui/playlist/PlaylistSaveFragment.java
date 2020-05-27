@@ -15,24 +15,24 @@ import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
-import androidx.appcompat.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import app.zxtune.analytics.Analytics;
-import app.zxtune.Log;
-import app.zxtune.R;
-import app.zxtune.playlist.ProviderClient;
-import app.zxtune.playlist.XspfStorage;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 
 import java.lang.ref.WeakReference;
+
+import app.zxtune.Log;
+import app.zxtune.R;
+import app.zxtune.analytics.Analytics;
+import app.zxtune.playlist.ProviderClient;
+import app.zxtune.playlist.XspfStorage;
 
 public class PlaylistSaveFragment extends DialogFragment {
 
@@ -40,7 +40,9 @@ public class PlaylistSaveFragment extends DialogFragment {
   private static final String IDS_KEY = "ids";
   private static final String NAME_KEY = "name";
 
+  @Nullable
   private XspfStorage storage;
+  @Nullable
   private EditText name;
   
   static DialogFragment createInstance(@Nullable long[] ids) {
@@ -52,13 +54,13 @@ public class PlaylistSaveFragment extends DialogFragment {
   }
   
   @Override
-  public void onAttach(@NonNull Context ctx) {
+  public void onAttach(Context ctx) {
     super.onAttach(ctx);
     storage = new XspfStorage(ctx);
   }
-  
+
   @Override
-  public Dialog onCreateDialog(@NonNull Bundle savedInstanceState) {
+  public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
     final Context ctx = getActivity();
     
     name = createEditText(ctx);
@@ -94,7 +96,8 @@ public class PlaylistSaveFragment extends DialogFragment {
     result.setSingleLine();
     
     result.addTextChangedListener(new TextWatcher() {
-      
+
+      @Nullable
       private Button okButton;
 
       @Override
@@ -137,7 +140,7 @@ public class PlaylistSaveFragment extends DialogFragment {
   }
   
   @Override
-  public void onSaveInstanceState(@NonNull Bundle outState) {
+  public void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
     outState.putParcelable(NAME_KEY, name.onSaveInstanceState());
   }

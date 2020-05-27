@@ -4,6 +4,7 @@ import android.net.Uri;
 
 import androidx.annotation.DrawableRes;
 import androidx.annotation.IntDef;
+import androidx.annotation.Nullable;
 
 import java.lang.annotation.Retention;
 
@@ -15,7 +16,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 public class ListingEntry {
   @Retention(SOURCE)
   @IntDef({FOLDER, FILE})
-  @interface Type {}
+  private @interface Type {}
 
   public static final int FOLDER = 0;
   public static final int FILE = 1;
@@ -27,9 +28,18 @@ public class ListingEntry {
   public int icon;
   public String title;
   public String description;
+  @Nullable
   public String details;
+  @Nullable
   public Integer tracks;
+  @Nullable
   public Boolean cached;
+
+  ListingEntry(Uri uri, String title, String description) {
+    this.uri = uri;
+    this.title = title;
+    this.description = description;
+  }
 
   @DrawableRes
   public int getDisplayIcon() {

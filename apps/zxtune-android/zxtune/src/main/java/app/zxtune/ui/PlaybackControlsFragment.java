@@ -9,7 +9,7 @@ package app.zxtune.ui;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -25,15 +25,18 @@ import app.zxtune.ui.utils.UiUtils;
 
 public class PlaybackControlsFragment extends Fragment {
 
+  @Nullable
   private ImageButton playPause;
+  @Nullable
   private ImageButton sequenceMode;
 
+  @Nullable
   private MediaControllerCompat.TransportControls ctrl;
   private boolean isPlaying = false;
   private int sequenceModeValue = 0;
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
@@ -61,12 +64,13 @@ public class PlaybackControlsFragment extends Fragment {
 
   @Override
   @Nullable
-  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
     return inflater.inflate(R.layout.controls, container, false);
   }
 
   @Override
-  public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
     view.findViewById(R.id.controls_prev).setOnClickListener(new View.OnClickListener() {

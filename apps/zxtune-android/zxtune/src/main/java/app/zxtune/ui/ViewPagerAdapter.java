@@ -11,11 +11,12 @@
 package app.zxtune.ui;
 
 import android.content.Context;
+import android.view.View;
+import android.view.ViewGroup;
+
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.PagerTabStrip;
 import androidx.viewpager.widget.ViewPager;
-import android.view.View;
-import android.view.ViewGroup;
 
 public class ViewPagerAdapter extends PagerAdapter {
 

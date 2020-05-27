@@ -10,4 +10,12 @@ public class Entry {
   public String title;
   public String author;
   public TimeStamp duration;
+
+  Entry(long id, Identifier location, String title, String author, TimeStamp duration) {
+    this.id = id;
+    this.location = location;
+    this.title = title;
+    this.author = author;
+    this.duration = duration;
+  }
 }

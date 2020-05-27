@@ -3,7 +3,6 @@ package app.zxtune.ui.browser;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
@@ -18,12 +17,12 @@ class BreadcrumbsViewAdapter extends ListAdapter<BreadcrumbsEntry,
   BreadcrumbsViewAdapter() {
     super(new DiffUtil.ItemCallback<BreadcrumbsEntry>() {
       @Override
-      public boolean areItemsTheSame(@NonNull BreadcrumbsEntry oldItem, @NonNull BreadcrumbsEntry newItem) {
+      public boolean areItemsTheSame(BreadcrumbsEntry oldItem, BreadcrumbsEntry newItem) {
         return oldItem.uri.equals(newItem.uri);
       }
 
       @Override
-      public boolean areContentsTheSame(@NonNull BreadcrumbsEntry oldItem, @NonNull BreadcrumbsEntry newItem) {
+      public boolean areContentsTheSame(BreadcrumbsEntry oldItem, BreadcrumbsEntry newItem) {
         return oldItem.title.equals(newItem.title)
             && oldItem.icon == newItem.icon;
       }
@@ -31,9 +30,8 @@ class BreadcrumbsViewAdapter extends ListAdapter<BreadcrumbsEntry,
     setHasStableIds(true);
   }
 
-  @NonNull
   @Override
-  public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+  public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
     final BrowserBreadcrumbsEntryBinding binding = DataBindingUtil.inflate(inflater,
         R.layout.browser_breadcrumbs_entry,
@@ -42,7 +40,7 @@ class BreadcrumbsViewAdapter extends ListAdapter<BreadcrumbsEntry,
   }
 
   @Override
-  public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+  public void onBindViewHolder(ViewHolder holder, int position) {
     final BreadcrumbsEntry entry = getItem(position);
     holder.bind(entry);
   }
@@ -62,7 +60,7 @@ class BreadcrumbsViewAdapter extends ListAdapter<BreadcrumbsEntry,
       this.binding = binding;
     }
 
-    final void bind(@NonNull BreadcrumbsEntry entry) {
+    final void bind(BreadcrumbsEntry entry) {
       binding.setEntry(entry);
       binding.executePendingBindings();
     }

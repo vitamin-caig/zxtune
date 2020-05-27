@@ -23,6 +23,8 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import app.zxtune.Log;
 import app.zxtune.R;
 
@@ -36,16 +38,17 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
 
   private int maxValue = 100;
   private int currentValue;
+  @Nullable
   private SeekBar seekBar;
-
+  @Nullable
   private TextView statusText;
 
-  public SeekBarPreference(Context context, AttributeSet attrs) {
+  private SeekBarPreference(Context context, AttributeSet attrs) {
     super(context, attrs);
     initPreference(context, attrs);
   }
 
-  public SeekBarPreference(Context context, AttributeSet attrs, int defStyle) {
+  private SeekBarPreference(Context context, AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
     initPreference(context, attrs);
   }
@@ -81,7 +84,7 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
     try {
       // move our seekbar to the new view we've been given
       final ViewParent oldContainer = seekBar.getParent();
-      final ViewGroup newContainer = (ViewGroup) view.findViewById(R.id.seekBarPrefBarContainer);
+      final ViewGroup newContainer = view.findViewById(R.id.seekBarPrefBarContainer);
 
       if (oldContainer != newContainer) {
         // remove the seekbar from the old view
@@ -114,7 +117,7 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
   private void updateView(View view) {
 
     try {
-      statusText = (TextView) view.findViewById(R.id.seekBarPrefValue);
+      statusText = view.findViewById(R.id.seekBarPrefValue);
 
       statusText.setText(String.valueOf(currentValue));
 
