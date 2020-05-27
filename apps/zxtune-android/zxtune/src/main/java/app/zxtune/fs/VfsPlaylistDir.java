@@ -2,7 +2,6 @@ package app.zxtune.fs;
 
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -25,7 +24,7 @@ final class VfsPlaylistDir implements VfsDir {
   private final ArrayList<Entry> entries;
 
   @Nullable
-  static VfsDir resolveAsPlaylist(@NonNull VfsFile file) {
+  static VfsDir resolveAsPlaylist(VfsFile file) {
     final String filename = file.getUri().getLastPathSegment();
     if (filename == null) {
       return null;
@@ -42,7 +41,7 @@ final class VfsPlaylistDir implements VfsDir {
     return null;
   }
 
-  static boolean maybePlaylist(@NonNull Uri uri) {
+  static boolean maybePlaylist(Uri uri) {
     final String filename = uri.getLastPathSegment();
     if (filename == null) {
       return false;

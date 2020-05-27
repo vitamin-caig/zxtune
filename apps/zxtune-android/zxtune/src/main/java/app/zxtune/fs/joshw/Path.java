@@ -15,6 +15,7 @@ import java.util.List;
 public final class Path implements app.zxtune.fs.httpdir.Path {
 
   private static final String SCHEME = "joshw";
+  private static final String EMPTY_CATALOGUE = "";
 
   private final String catalogue;
   private final List<String> elements;
@@ -48,7 +49,7 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
     final int count = elements.size();
     switch (count) {
       case 0:
-        return TextUtils.isEmpty(catalogue) ? null : new Path(null, Collections.EMPTY_LIST);
+        return TextUtils.isEmpty(catalogue) ? null : new Path(EMPTY_CATALOGUE, Collections.EMPTY_LIST);
       case 1:
         return new Path(catalogue, Collections.EMPTY_LIST);
       default:
@@ -69,7 +70,6 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   }
 
   @Override
-  @Nullable
   public final String getName() {
     final int count = elements.size();
     return count > 0
@@ -118,7 +118,7 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
       final int count = elements.size();
       switch (count) {
         case 0:
-          return new Path(null, Collections.EMPTY_LIST);
+          return new Path(EMPTY_CATALOGUE, Collections.EMPTY_LIST);
         case 1:
           return new Path(elements.get(0), Collections.EMPTY_LIST);
         default:
@@ -136,6 +136,6 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   }
 
   public static Path create() {
-    return new Path(null, Collections.EMPTY_LIST);
+    return new Path(EMPTY_CATALOGUE, Collections.EMPTY_LIST);
   }
 }

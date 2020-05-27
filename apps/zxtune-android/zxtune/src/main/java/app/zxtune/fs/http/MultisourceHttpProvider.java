@@ -1,13 +1,13 @@
 package app.zxtune.fs.http;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
-import app.zxtune.analytics.Analytics;
-import app.zxtune.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+
+import app.zxtune.Log;
+import app.zxtune.analytics.Analytics;
 
 public final class MultisourceHttpProvider {
 
@@ -26,7 +26,6 @@ public final class MultisourceHttpProvider {
     return delegate.hasConnection();
   }
 
-  @NonNull
   public final HttpObject getObject(Uri[] uris) throws IOException {
     final long now = System.currentTimeMillis();
     for (int idx = 0; ; ++idx) {
@@ -47,12 +46,10 @@ public final class MultisourceHttpProvider {
     }
   }
 
-  @NonNull
   public final InputStream getInputStream(Uri uri) throws IOException {
     return delegate.getInputStream(uri);
   }
 
-  @NonNull
   public final InputStream getInputStream(Uri[] uris) throws IOException {
     final long now = System.currentTimeMillis();
     for (int idx = 0; ; ++idx) {
@@ -81,8 +78,10 @@ public final class MultisourceHttpProvider {
 
   private void disable(Uri uri, long now, IOException e) {
     final String host = uri.getHost();
-    Log.w(TAG, e, "Temporarily disable requests to %s", host);
-    Analytics.sendHostUnavailableEvent(host);
-    hostDisabledTill.put(host, now + QUARANTINE_PERIOD_MS);
+    if (host != null) {
+      Log.w(TAG, e, "Temporarily disable requests to %s", host);
+      Analytics.sendHostUnavailableEvent(host);
+      hostDisabledTill.put(host, now + QUARANTINE_PERIOD_MS);
+    }
   }
 }

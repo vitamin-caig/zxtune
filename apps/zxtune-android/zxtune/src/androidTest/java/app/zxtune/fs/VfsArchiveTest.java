@@ -444,7 +444,7 @@ public class VfsArchiveTest {
         }
       });
     } catch (Exception e) {
-      list.append(e.toString());
+      list.append(e);
     }
   }
 }

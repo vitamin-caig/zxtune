@@ -2,6 +2,8 @@ package app.zxtune.fs.cache;
 
 import android.content.Context;
 
+import androidx.annotation.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -27,7 +29,8 @@ public final class CacheFactory {
     }
   }
 
-  private static CacheDir makeCache(File dir) {
+  @Nullable
+  private static CacheDir makeCache(@Nullable File dir) {
     if (dir != null) {
       return new PersistentCacheDir(dir);
     } else {

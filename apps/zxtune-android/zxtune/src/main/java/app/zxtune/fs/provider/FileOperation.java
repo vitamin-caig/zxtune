@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
@@ -22,21 +21,24 @@ class FileOperation implements AsyncQueryOperation {
   private static final String[] COLUMNS = {
       OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE };
 
+  @Nullable
   private final String[] projection;
   private final Uri uri;
+  @Nullable
   private VfsFile file;
 
-  FileOperation(@Nullable String[] projection, @NonNull Uri uri) {
+  FileOperation(@Nullable String[] projection, Uri uri) {
     this.projection = projection;
     this.uri = uri;
   }
 
-  FileOperation(@Nullable String[] projection, @NonNull VfsFile file) {
+  FileOperation(@Nullable String[] projection, VfsFile file) {
     this.projection = projection;
     this.uri = file.getUri();
     this.file = file;
   }
 
+  @Nullable
   @Override
   public Cursor call() throws Exception {
     final File f = maybeGetFile();
@@ -49,22 +51,32 @@ class FileOperation implements AsyncQueryOperation {
 
   @Nullable
   private File maybeGetFile() throws Exception {
+    maybeResolve();
+    if (file != null) {
+      final File res = Vfs.getCacheOrFile(file);
+      if (res != null && res.isFile()) {
+        return res;
+      }
+    }
+    return null;
+  }
+
+  private void maybeResolve() throws IOException {
     if (file == null) {
       final VfsObject obj = VfsArchive.resolve(uri);
       if (obj instanceof VfsFile) {
         file = (VfsFile) obj;
       }
     }
-    final File res = Vfs.getCacheOrFile(file);
-    return res != null && res.isFile() ? res : null;
   }
 
+  @Nullable
   @Override
   public Cursor status() {
     return null;
   }
 
-  final ParcelFileDescriptor openFile(@NonNull String mode) throws Exception {
+  final ParcelFileDescriptor openFile(String mode) throws Exception {
     final File f = maybeGetFile();
     if (f == null) {
       throw new IOException("Failed to get file content of " + uri);
@@ -75,7 +87,7 @@ class FileOperation implements AsyncQueryOperation {
   }
 
   // as in FileProvider
-  private Cursor makeResult(@NonNull File content) {
+  private Cursor makeResult(File content) {
     final String[] columns = projection != null ? projection : COLUMNS;
     String[] cols = new String[columns.length];
     Object[] values = new Object[columns.length];
@@ -83,10 +95,12 @@ class FileOperation implements AsyncQueryOperation {
     for (String col : columns) {
       if (OpenableColumns.DISPLAY_NAME.equals(col)) {
         cols[i] = OpenableColumns.DISPLAY_NAME;
-        values[i++] = file.getName();
+        values[i] = file != null ? file.getName() : content.getName();
+        ++i;
       } else if (OpenableColumns.SIZE.equals(col)) {
         cols[i] = OpenableColumns.SIZE;
-        values[i++] = content.length();
+        values[i] = content.length();
+        ++i;
       }
     }
 

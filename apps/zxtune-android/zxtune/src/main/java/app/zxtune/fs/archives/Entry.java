@@ -8,12 +8,13 @@ package app.zxtune.fs.archives;
 
 import android.database.Cursor;
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
 
 import java.util.concurrent.TimeUnit;
 
-import app.zxtune.core.Identifier;
 import app.zxtune.TimeStamp;
+import app.zxtune.core.Identifier;
 
 //POJO presentation of entries table
 public class Entry {
@@ -24,9 +25,9 @@ public class Entry {
 
   private Entry(Identifier path, String description, @Nullable TimeStamp duration) {
     this.dirEntry = DirEntry.create(path);
-    this.track = dirEntry.filename != null && duration != null
-            ? new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration)
-            : null;
+    this.track = duration != null
+        ? new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration)
+        : null;
   }
 
   static Entry fromCursor(Cursor cursor) {
@@ -34,8 +35,8 @@ public class Entry {
     final String description = cursor.getString(Database.Tables.Entries.Fields.description.ordinal());
     final long durationValue = cursor.getInt(Database.Tables.Entries.Fields.duration.ordinal());
     final TimeStamp duration = durationValue != 0
-            ? TimeStamp.createFrom(durationValue, TimeUnit.MILLISECONDS)
-            : null;
+        ? TimeStamp.createFrom(durationValue, TimeUnit.MILLISECONDS)
+        : null;
     return new Entry(path, description, duration);
   }
 }

@@ -29,6 +29,7 @@ import java.io.InputStream;
 
 import app.zxtune.Log;
 import app.zxtune.StubProgressCallback;
+import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.MultisourceHttpProvider;
@@ -195,7 +196,7 @@ public class RemoteCatalog extends Catalog {
     root.getChild("total_results").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        final Integer result = asInt(body);
+        final Integer result = HtmlUtils.tryGetInteger(body);
         if (result != null) {
           visitor.setCountHint(result);
         }
@@ -216,11 +217,13 @@ public class RemoteCatalog extends Catalog {
   }
 
   private static class AuthorBuilder {
+    @Nullable
     private Integer id;
+    @Nullable
     private String alias;
 
     final void setId(String val) {
-      id = asInt(val);
+      id = HtmlUtils.tryGetInteger(val);
     }
 
     final void setAlias(String val) {
@@ -246,7 +249,7 @@ public class RemoteCatalog extends Catalog {
     root.getChild("results").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        final Integer result = asInt(body);
+        final Integer result = HtmlUtils.tryGetInteger(body);
         if (result != null) {
           visitor.setCountHint(result);
         }
@@ -284,12 +287,15 @@ public class RemoteCatalog extends Catalog {
   }
 
   private static class GenreBuilder {
+    @Nullable
     private Integer id;
+    @Nullable
     private String text;
+    @Nullable
     private Integer files;
 
     final void setId(String val) {
-      id = asInt(val);
+      id = HtmlUtils.tryGetInteger(val);
     }
 
     final void setText(String val) {
@@ -297,13 +303,14 @@ public class RemoteCatalog extends Catalog {
     }
 
     final void setFiles(String val) {
-      files = asInt(val);
+      files = HtmlUtils.tryGetInteger(val);
     }
 
     @Nullable
     final Genre captureResult() {
       final Genre res = isValid() ? new Genre(id, text, files) : null;
-      id = files = null;
+      id = null;
+      files = null;
       text = null;
       return res;
     }
@@ -319,7 +326,7 @@ public class RemoteCatalog extends Catalog {
     root.getChild("total_results").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        final Integer result = asInt(body);
+        final Integer result = HtmlUtils.tryGetInteger(body);
         if (result != null) {
           visitor.setCountHint(result);
         }
@@ -340,13 +347,17 @@ public class RemoteCatalog extends Catalog {
   }
 
   private static class TrackBuilder {
+    @Nullable
     private Integer id;
+    @Nullable
     private String filename;
+    @Nullable
     private String title;
+    @Nullable
     private Integer size;
 
     final void setId(String val) {
-      id = asInt(val);
+      id = HtmlUtils.tryGetInteger(val);
     }
 
     final void setFilename(String val) {
@@ -358,14 +369,16 @@ public class RemoteCatalog extends Catalog {
     }
 
     final void setSize(String val) {
-      size = asInt(val);
+      size = HtmlUtils.tryGetInteger(val);
     }
 
     @Nullable
     final Track captureResult() {
       final Track res = isValid() ? new Track(id, filename, title, size) : null;
-      id = size = null;
-      filename = title = null;
+      id = null;
+      size = null;
+      filename = null;
+      title = null;
       return res;
     }
 
@@ -381,7 +394,7 @@ public class RemoteCatalog extends Catalog {
     root.getChild("results").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        final Integer result = asInt(body);
+        final Integer result = HtmlUtils.tryGetInteger(body);
         if (result != null) {
           visitor.setCountHint(result);
         }
@@ -451,7 +464,7 @@ public class RemoteCatalog extends Catalog {
     root.getChild("totalpages").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        final Integer result = asInt(body);
+        final Integer result = HtmlUtils.tryGetInteger(body);
         if (totalPages[0] == 1 && result != null) {
           Log.d(TAG, "Loading %d pages", result);
           totalPages[0] = result;
@@ -478,17 +491,6 @@ public class RemoteCatalog extends Catalog {
       throw new IOException(e);
     } finally {
       httpStream.close();
-    }
-  }
-
-  @Nullable
-  private static Integer asInt(String str) {
-    if (str == null) {
-      return null;
-    } else try {
-      return Integer.parseInt(str);
-    } catch (NumberFormatException e) {
-      return null;
     }
   }
 

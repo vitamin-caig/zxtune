@@ -3,7 +3,6 @@ package app.zxtune.fs;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import org.jsoup.Jsoup;
@@ -15,7 +14,7 @@ import java.io.InputStream;
 
 public class HtmlUtils {
 
-  public static Document parseDoc(@NonNull InputStream input) throws IOException {
+  public static Document parseDoc(InputStream input) throws IOException {
     try {
       return Jsoup.parse(input, null, "");
     } finally {
@@ -30,8 +29,11 @@ public class HtmlUtils {
   }
 
   @Nullable
-  public static Integer tryGetInteger(String raw) {
-    final String txt = TextUtils.isEmpty(raw) ? raw : raw.trim();
+  public static Integer tryGetInteger(@Nullable String raw) {
+    if (TextUtils.isEmpty(raw)) {
+      return null;
+    }
+    final String txt = raw.trim();
     return TextUtils.isEmpty(txt) || !TextUtils.isDigitsOnly(txt) ? null : Integer.valueOf(txt);
   }
 }

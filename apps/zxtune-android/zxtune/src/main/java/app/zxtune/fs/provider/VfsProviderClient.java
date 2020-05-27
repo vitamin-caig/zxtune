@@ -5,7 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 // TODO: use provider notifications instead of polling
 public class VfsProviderClient {
@@ -17,8 +17,8 @@ public class VfsProviderClient {
   public interface ListingCallback extends StatusCallback {
     void onDir(Uri uri, String name, String description, int icon, boolean hasFeed);
 
-    void onFile(Uri uri, String name, String description, String details, Integer tracks,
-                Boolean cached);
+    void onFile(Uri uri, String name, String description, String details, @Nullable Integer tracks,
+                @Nullable Boolean cached);
   }
 
   public interface ParentsCallback extends StatusCallback {
@@ -31,7 +31,7 @@ public class VfsProviderClient {
     this.resolver = ctx.getContentResolver();
   }
 
-  public final void resolve(@NonNull Uri uri, @NonNull ListingCallback cb) throws Exception {
+  public final void resolve(Uri uri, ListingCallback cb) throws Exception {
     final Uri resolverUri = Query.resolveUriFor(uri);
     for (; ; ) {
       final Cursor cursor = resolver.query(resolverUri, null, null, null, null);
@@ -54,7 +54,7 @@ public class VfsProviderClient {
     }
   }
 
-  public final void list(@NonNull Uri uri, @NonNull ListingCallback cb) throws Exception {
+  public final void list(Uri uri, ListingCallback cb) throws Exception {
     final Uri resolverUri = Query.listingUriFor(uri);
     for (; ; ) {
       final Cursor cursor = resolver.query(resolverUri, null, null, null, null);
@@ -77,7 +77,7 @@ public class VfsProviderClient {
     }
   }
 
-  public final void parents(@NonNull Uri uri, @NonNull ParentsCallback cb) throws Exception {
+  public final void parents(Uri uri, ParentsCallback cb) throws Exception {
     final Uri resolverUri = Query.parentsUriFor(uri);
     for (; ; ) {
       final Cursor cursor = resolver.query(resolverUri, null, null, null, null);
@@ -100,7 +100,7 @@ public class VfsProviderClient {
     }
   }
 
-  public final void search(@NonNull Uri uri, @NonNull String query, @NonNull ListingCallback cb) throws Exception {
+  public final void search(Uri uri, String query, ListingCallback cb) throws Exception {
     final Uri resolverUri = Query.searchUriFor(uri, query);
     for (; ;) {
       checkForCancel(resolverUri);
@@ -127,18 +127,18 @@ public class VfsProviderClient {
     }
   }
 
-  public static Uri getFileUriFor(@NonNull Uri uri) {
+  public static Uri getFileUriFor(Uri uri) {
     return Query.fileUriFor(uri);
   }
 
-  private void checkForCancel(@NonNull Uri resolverUri) throws Exception {
+  private void checkForCancel(Uri resolverUri) throws Exception {
     if (Thread.interrupted()) {
       resolver.delete(resolverUri, null, null);
       throw new InterruptedException();
     }
   }
 
-  private void waitOrCancel(@NonNull Uri resolverUri) throws Exception {
+  private void waitOrCancel(Uri resolverUri) throws Exception {
     try {
       Thread.sleep(1000);
     } catch (InterruptedException e) {
@@ -147,7 +147,7 @@ public class VfsProviderClient {
     }
   }
 
-  private static void getStatus(@NonNull Cursor cursor, @NonNull StatusCallback cb) throws Exception {
+  private static void getStatus(Cursor cursor, StatusCallback cb) throws Exception {
     final String err = Schema.Status.getError(cursor);
     if (err != null) {
       throw new Exception(err);
@@ -156,7 +156,7 @@ public class VfsProviderClient {
     }
   }
 
-  private static void getObjects(@NonNull Cursor cursor, @NonNull ListingCallback cb) {
+  private static void getObjects(Cursor cursor, ListingCallback cb) {
     do {
       if (Schema.Listing.isLimiter(cursor)) {
         break;
@@ -174,7 +174,7 @@ public class VfsProviderClient {
     } while (cursor.moveToNext());
   }
 
-  private static void getObjects(@NonNull Cursor cursor, @NonNull ParentsCallback cb) {
+  private static void getObjects(Cursor cursor, ParentsCallback cb) {
     do {
       final Uri uri = Schema.Parents.getUri(cursor);
       final String name = Schema.Parents.getName(cursor);

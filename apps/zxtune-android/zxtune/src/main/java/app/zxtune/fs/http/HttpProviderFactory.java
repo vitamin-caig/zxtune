@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
 
 import app.zxtune.R;
@@ -13,6 +15,7 @@ public final class HttpProviderFactory {
   private static class PolicyImpl implements HttpUrlConnectionProvider.Policy {
 
     private final Context context;
+    @Nullable
     private final ConnectivityManager manager;
 
     PolicyImpl(Context ctx) {

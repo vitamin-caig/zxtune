@@ -3,6 +3,8 @@ package app.zxtune.fs.api;
 import android.content.Context;
 import android.util.Base64;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -17,6 +19,7 @@ public class Api {
   private static final String ENDPOINT = BuildConfig.API_ROOT + "/";
   private static final String REPLY = "";
 
+  @Nullable
   private static String authorization;
 
   public static void initialize(Context ctx) {

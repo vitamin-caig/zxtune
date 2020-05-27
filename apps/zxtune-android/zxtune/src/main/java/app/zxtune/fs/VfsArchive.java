@@ -9,7 +9,6 @@ package app.zxtune.fs;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
@@ -40,8 +39,7 @@ public final class VfsArchive {
     this.service = new ArchivesService(MainApplication.getGlobalContext());
   }
 
-  @NonNull
-  public static Integer[] getModulesCount(@NonNull Uri[] uris) {
+  public static Integer[] getModulesCount(Uri[] uris) {
     final Integer[] result = new Integer[uris.length];
     final HashMap<Uri, Integer> positions = new HashMap<>();
     final ArrayList<Uri> query = new ArrayList<>();
@@ -65,7 +63,7 @@ public final class VfsArchive {
     return result;
   }
 
-  private static boolean isArchived(@NonNull Uri uri) {
+  private static boolean isArchived(Uri uri) {
     final Identifier id = new Identifier(uri);
     return !id.getSubpath().isEmpty();
   }
@@ -78,7 +76,7 @@ public final class VfsArchive {
    * null - unknown status
    */
   @Nullable
-  static VfsObject browseCached(@NonNull VfsFile file) {
+  static VfsObject browseCached(VfsFile file) {
     if (file instanceof ArchiveFile) {
       return file;
     }
@@ -86,7 +84,7 @@ public final class VfsArchive {
   }
 
   @Nullable
-  private VfsObject browseCachedFile(@NonNull VfsFile file) {
+  private VfsObject browseCachedFile(VfsFile file) {
     final VfsDir asPlaylist = VfsPlaylistDir.resolveAsPlaylist(file);
     if (asPlaylist != null) {
       return asPlaylist;
@@ -96,7 +94,7 @@ public final class VfsArchive {
   }
 
   @Nullable
-  private VfsObject browseCachedFile(@NonNull VfsFile file, @Nullable Archive arc) {
+  private VfsObject browseCachedFile(VfsFile file, @Nullable Archive arc) {
     if (arc == null) {
       Log.d(TAG, "Unknown archive %s", file.getUri());
       return null;
@@ -115,12 +113,12 @@ public final class VfsArchive {
    * null - nothing to play
    */
   @Nullable
-  public static VfsObject browse(@NonNull VfsFile file) {
+  public static VfsObject browse(VfsFile file) {
     return Holder.INSTANCE.browseFile(file, StubProgressCallback.instance());
   }
 
   @Nullable
-  private VfsObject browseFile(@NonNull VfsFile file, @NonNull ProgressCallback cb) {
+  private VfsObject browseFile(VfsFile file, ProgressCallback cb) {
     final VfsDir asPlaylist = VfsPlaylistDir.resolveAsPlaylist(file);
     if (asPlaylist != null) {
       return asPlaylist;
@@ -135,18 +133,18 @@ public final class VfsArchive {
   }
 
   @Nullable
-  public static VfsObject resolve(@NonNull Uri uri) throws IOException {
+  public static VfsObject resolve(Uri uri) throws IOException {
     return Holder.INSTANCE.resolveUri(uri, null);
   }
 
   @Nullable
-  public static VfsObject resolveForced(@NonNull Uri uri, @NonNull ProgressCallback cb) throws IOException {
+  public static VfsObject resolveForced(Uri uri, ProgressCallback cb) throws IOException {
     return Holder.INSTANCE.resolveUri(uri, cb);
   }
 
   // TODO: clarify forced == cb != 0 semantic
   @Nullable
-  private VfsObject resolveUri(@NonNull Uri uri, @Nullable ProgressCallback cb) throws IOException {
+  private VfsObject resolveUri(Uri uri, @Nullable ProgressCallback cb) throws IOException {
     final Identifier id = new Identifier(uri);
     final String subpath = id.getSubpath();
     if (TextUtils.isEmpty(subpath)) {
@@ -157,7 +155,7 @@ public final class VfsArchive {
   }
 
   @Nullable
-  private VfsObject resolveFileUri(@NonNull Uri uri, @Nullable ProgressCallback cb) throws IOException {
+  private VfsObject resolveFileUri(Uri uri, @Nullable ProgressCallback cb) throws IOException {
     final VfsObject obj = Vfs.resolve(uri);
     if (obj instanceof VfsFile) {
       final VfsObject cached = browseCachedFile((VfsFile) obj);
@@ -170,7 +168,7 @@ public final class VfsArchive {
     return obj;
   }
 
-  private VfsObject resolveArchiveUri(@NonNull Uri uri, @Nullable ProgressCallback cb) throws IOException {
+  private VfsObject resolveArchiveUri(Uri uri, @Nullable ProgressCallback cb) throws IOException {
     final Entry entry = service.resolve(uri);
     if (entry != null) {
       if (entry.track != null) {
@@ -190,7 +188,7 @@ public final class VfsArchive {
     throw new IOException("No archive found");
   }
 
-  private void listArchive(@NonNull final VfsObject parent, @NonNull final Visitor visitor) {
+  private void listArchive(final VfsObject parent, final Visitor visitor) {
     service.listDir(parent.getUri(), new ArchivesService.ListingCallback() {
       @Override
       public void onItemsCount(int hint) {
@@ -232,7 +230,7 @@ public final class VfsArchive {
     }
 
     @Override
-    public void enumerate(@NonNull Visitor visitor) {
+    public void enumerate(Visitor visitor) {
       listArchive(this, visitor);
     }
   }
@@ -263,7 +261,7 @@ public final class VfsArchive {
 
   private class ArchiveDir extends ArchiveEntry implements VfsDir {
 
-    ArchiveDir(VfsObject parent, DirEntry entry) {
+    ArchiveDir(@Nullable VfsObject parent, DirEntry entry) {
       super(parent, entry);
     }
 
@@ -278,7 +276,7 @@ public final class VfsArchive {
     }
 
     @Override
-    public void enumerate(@NonNull Visitor visitor) {
+    public void enumerate(Visitor visitor) {
       listArchive(this, visitor);
     }
   }
@@ -287,7 +285,7 @@ public final class VfsArchive {
 
     private final Track track;
 
-    ArchiveFile(VfsObject parent, DirEntry entry, Track track) {
+    ArchiveFile(@Nullable VfsObject parent, DirEntry entry, Track track) {
       super(parent, entry);
       this.track = track;
     }
@@ -307,7 +305,6 @@ public final class VfsArchive {
       return track.description;
     }
 
-    @NonNull
     @Override
     public String getSize() {
       return track.duration.toString();

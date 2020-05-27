@@ -65,7 +65,6 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   }
 
   @Override
-  @Nullable
   public VfsObject getParent() {
     return parent;
   }

@@ -4,7 +4,6 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
@@ -24,8 +23,7 @@ import app.zxtune.fs.VfsUtils;
 class ListingCursorBuilder extends VfsDir.Visitor {
 
   interface TracksCountSource {
-    @NonNull
-    Integer[] getTracksCount(@NonNull Uri[] uris);
+    Integer[] getTracksCount(Uri[] uris);
   }
 
   private final TracksCountSource tracksCountSource;
@@ -98,21 +96,22 @@ class ListingCursorBuilder extends VfsDir.Visitor {
     return result;
   }
 
-  private static Object[] makeRow(@NonNull VfsDir d) {
+  private static Object[] makeRow(VfsDir d) {
     return Schema.Listing.makeDirectory(d.getUri(), d.getName(),
         d.getDescription(), VfsUtils.getObjectIcon(d), hasFeed(d));
   }
 
-  private static Object[] makeRow(@NonNull Uri uri, @NonNull VfsFile f, Integer tracks) {
+  private static Object[] makeRow(Uri uri, VfsFile f, @Nullable Integer tracks) {
     return Schema.Listing.makeFile(uri, f.getName(), f.getDescription(), f.getSize(), tracks,
         isCached(f));
   }
 
-  private static boolean hasFeed(@NonNull VfsObject obj) {
+  private static boolean hasFeed(VfsObject obj) {
     return null != obj.getExtension(VfsExtensions.FEED);
   }
 
-  private static Boolean isCached(@NonNull VfsFile obj) {
+  @Nullable
+  private static Boolean isCached(VfsFile obj) {
     final File f = Vfs.getCache(obj);
     return f != null ? f.isFile() : null;
   }
@@ -128,7 +127,7 @@ class ListingCursorBuilder extends VfsDir.Visitor {
   }
 
   //TODO: check out for separate schema
-  static Cursor createSingleEntry(@NonNull VfsObject obj) {
+  static Cursor createSingleEntry(VfsObject obj) {
     final MatrixCursor cursor = new MatrixCursor(Schema.Listing.COLUMNS, 1);
     if (obj instanceof VfsDir) {
       cursor.addRow(makeRow((VfsDir) obj));

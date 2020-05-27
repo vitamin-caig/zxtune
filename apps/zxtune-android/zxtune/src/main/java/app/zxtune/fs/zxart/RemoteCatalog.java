@@ -25,6 +25,7 @@ import java.util.Locale;
 
 import app.zxtune.Log;
 import app.zxtune.Util;
+import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public final class RemoteCatalog extends Catalog {
@@ -128,17 +129,6 @@ public final class RemoteCatalog extends Catalog {
     }
   }
 
-  @Nullable
-  private static Integer asInt(String str) {
-    if (str == null) {
-      return null;
-    } else try {
-      return Integer.parseInt(str);
-    } catch (NumberFormatException e) {
-      return null;
-    }
-  }
-
   private static RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {
     final AuthorBuilder builder = new AuthorBuilder();
     final RootElement result = createRootElement();
@@ -146,7 +136,7 @@ public final class RemoteCatalog extends Catalog {
     data.getChild("totalAmount").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        final Integer count = asInt(body);
+        final Integer count = HtmlUtils.tryGetInteger(body);
         if (count != null) {
           visitor.setCountHint(count);
         }
@@ -185,8 +175,11 @@ public final class RemoteCatalog extends Catalog {
 
   private static class AuthorBuilder {
 
+    @Nullable
     private Integer id;
+    @Nullable
     private String nickname;
+    @Nullable
     private String name;
 
     final void setId(String val) {
@@ -205,7 +198,8 @@ public final class RemoteCatalog extends Catalog {
     final Author captureResult() {
       final Author res = isValid() ? new Author(id, nickname, name) : null;
       id = null;
-      nickname = name = null;
+      nickname = null;
+      name = null;
       return res;
     }
 
@@ -221,7 +215,7 @@ public final class RemoteCatalog extends Catalog {
     data.getChild("totalAmount").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        final Integer count = asInt(body);
+        final Integer count = HtmlUtils.tryGetInteger(body);
         if (count != null) {
           visitor.setCountHint(count);
         }
@@ -260,7 +254,9 @@ public final class RemoteCatalog extends Catalog {
 
   private static class PartiesBuilder {
 
+    @Nullable
     private Integer id;
+    @Nullable
     private String name;
     private int year;
 
@@ -301,7 +297,7 @@ public final class RemoteCatalog extends Catalog {
     data.getChild("totalAmount").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        final Integer count = asInt(body);
+        final Integer count = HtmlUtils.tryGetInteger(body);
         if (count != null) {
           visitor.setCountHint(count);
         }
@@ -329,7 +325,7 @@ public final class RemoteCatalog extends Catalog {
     data.getChild("totalAmount").setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        final Integer count = asInt(body);
+        final Integer count = HtmlUtils.tryGetInteger(body);
         if (count != null) {
           visitor.setCountHint(count);
         }
@@ -422,16 +418,20 @@ public final class RemoteCatalog extends Catalog {
 
   private static class ModuleBuilder {
 
+    @Nullable
     private Integer id;
+    @Nullable
     private String filename;
-    private String title;
-    private String internalAuthor;
-    private String internalTitle;
-    private String votes;
-    private String duration;
+    private String title = "";
+    private String internalAuthor = "";
+    private String internalTitle = "";
+    private String votes = "";
+    private String duration = "";
     private int year;
+    @Nullable
     private String compo;
     private int partyplace;
+    @Nullable
     private Integer authorId;
 
     ModuleBuilder() {
@@ -522,8 +522,14 @@ public final class RemoteCatalog extends Catalog {
     private void reset() {
       id = null;
       filename = null;
-      year = partyplace = 0;
-      votes = duration = title = internalAuthor = internalTitle = compo = "";
+      year = 0;
+      partyplace = 0;
+      votes = "";
+      duration = "";
+      title = "";
+      internalAuthor = "";
+      internalTitle = "";
+      compo = null;
       authorId = null;
     }
 

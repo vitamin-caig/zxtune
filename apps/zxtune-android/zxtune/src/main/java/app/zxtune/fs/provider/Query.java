@@ -104,10 +104,12 @@ class Query {
 
   static String getQueryFrom(Uri uri) {
     if (uriTemplate.match(uri) == TYPE_SEARCH) {
-      return uri.getQueryParameter(QUERY_PARAM);
-    } else {
-      throw new IllegalArgumentException("Wrong search URI: " + uri);
+      final String query = uri.getQueryParameter(QUERY_PARAM);
+      if (query != null) {
+        return query;
+      }
     }
+    throw new IllegalArgumentException("Wrong search URI: " + uri);
   }
 
   @Type

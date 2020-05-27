@@ -19,11 +19,12 @@ class VfsRootComposite extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootComposite.class.getName();
 
+  @Nullable
   private final String scheme;
   private final Uri uri;
   private final ArrayList<VfsRoot> subRoots;
 
-  VfsRootComposite(String scheme) {
+  VfsRootComposite(@Nullable String scheme) {
     this.scheme = scheme;
     this.uri = scheme != null ? Uri.fromParts(scheme, "", "") : Uri.EMPTY;
     this.subRoots = new ArrayList<>();
@@ -58,7 +59,7 @@ class VfsRootComposite extends StubObject implements VfsRoot {
     return null;
   }
 
-  private boolean matchScheme(String scheme) {
+  private boolean matchScheme(@Nullable String scheme) {
     return ObjectsCompat.equals(this.scheme, scheme);
   }
 

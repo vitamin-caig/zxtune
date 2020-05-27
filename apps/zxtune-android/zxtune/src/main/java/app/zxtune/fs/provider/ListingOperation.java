@@ -3,7 +3,7 @@ package app.zxtune.fs.provider;
 import android.database.Cursor;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.Comparator;
 
@@ -14,26 +14,28 @@ import app.zxtune.fs.VfsObject;
 
 class ListingOperation implements AsyncQueryOperation {
 
-  final ListingCursorBuilder builder = new ListingCursorBuilder(new ListingCursorBuilder.TracksCountSource() {
-    @NonNull
+  private final ListingCursorBuilder builder =
+      new ListingCursorBuilder(new ListingCursorBuilder.TracksCountSource() {
     @Override
-    public Integer[] getTracksCount(@NonNull Uri[] uris) {
+    public Integer[] getTracksCount(Uri[] uris) {
       return VfsArchive.getModulesCount(uris);
     }
   });
   private final Uri uri;
+  @Nullable
   private VfsDir dir;
 
-  ListingOperation(@NonNull Uri uri) {
+  ListingOperation(Uri uri) {
     this.uri = uri;
   }
 
-  ListingOperation(@NonNull VfsDir dir) {
+  ListingOperation(VfsDir dir) {
     this.uri = dir.getUri();
     this.dir = dir;
   }
 
   @SuppressWarnings("unchecked")
+  @Nullable
   @Override
   public Cursor call() throws Exception {
     maybeResolve();

@@ -62,7 +62,6 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
   }
 
   @Override
-  @Nullable
   public VfsObject getParent() {
     return parent;
   }

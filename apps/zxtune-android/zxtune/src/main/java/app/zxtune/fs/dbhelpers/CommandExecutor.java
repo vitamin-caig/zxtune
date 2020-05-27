@@ -1,17 +1,16 @@
 package app.zxtune.fs.dbhelpers;
 
+import androidx.annotation.Nullable;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.TimeUnit;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import app.zxtune.analytics.Analytics;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
+import app.zxtune.analytics.Analytics;
 import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.http.HttpObject;
 import app.zxtune.io.Io;
@@ -27,7 +26,7 @@ public class CommandExecutor {
     this.id = id;
   }
 
-  public final void executeQuery(@NonNull QueryCommand cmd) throws IOException {
+  public final void executeQuery(QueryCommand cmd) throws IOException {
     if (cmd.getLifetime().isExpired()) {
       refreshAndQuery(cmd);
     } else {
@@ -72,7 +71,8 @@ public class CommandExecutor {
     return remote;
   }
 
-  public final ByteBuffer executeDownloadCommand(DownloadCommand cmd, ProgressCallback progress) throws IOException {
+  public final ByteBuffer executeDownloadCommand(DownloadCommand cmd,
+                                                 @Nullable ProgressCallback progress) throws IOException {
     final String scope = "file";
     int action = Analytics.VFS_ACTION_CACHED_FETCH;
     HttpObject remote = null;
@@ -83,7 +83,7 @@ public class CommandExecutor {
         try {
           remote = cmd.getRemote();
           if (isEmpty || needUpdate(cache, remote)) {
-            Log.d(TAG,"Download %s to %s", remote.getUri(), cache.getAbsolutePath());
+            Log.d(TAG, "Download %s to %s", remote.getUri(), cache.getAbsolutePath());
             download(remote, cache, progress);
           } else {
             Log.d(TAG, "Update timestamp of %s", cache.getAbsolutePath());
@@ -144,8 +144,7 @@ public class CommandExecutor {
     if (remoteSize != null && remoteSize != localSize) {
       Log.d(TAG, "Update changed file: %d -> %d", localSize, remoteSize);
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
@@ -194,7 +193,7 @@ public class CommandExecutor {
     private final int total;
     private long done;
 
-    static InputStream wrap(InputStream in, Long size, ProgressCallback progress) {
+    static InputStream wrap(InputStream in, @Nullable Long size, @Nullable ProgressCallback progress) {
       return size != null && progress != null
           ? new ProgressTrackingInput(in, progress, size)
           : in;
@@ -221,7 +220,7 @@ public class CommandExecutor {
     }
 
     @Override
-    public int read(@NonNull byte[] b, int off, int len) throws IOException {
+    public int read(byte[] b, int off, int len) throws IOException {
       final int res = delegate.read(b, off, len);
       if (res >= 0) {
         update(res);
@@ -232,7 +231,7 @@ public class CommandExecutor {
     private void update(int len) {
       done += len;
       if (len >= 1024) {
-        progress.onProgressUpdate((int)(done / 1024), total);
+        progress.onProgressUpdate((int) (done / 1024), total);
       }
     }
   }

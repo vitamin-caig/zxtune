@@ -10,7 +10,6 @@ import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
@@ -42,12 +41,10 @@ public final class Vfs {
     root = createRoot(appContext);
   }
 
-  @NonNull
   public static VfsDir getRoot() {
     return Holder.INSTANCE.root;
   }
 
-  @NonNull
   public static VfsObject resolve(Uri uri) throws IOException {
     final VfsObject res = Holder.INSTANCE.root.resolve(uri);
     if (res != null) {
@@ -57,13 +54,11 @@ public final class Vfs {
     }
   }
 
-  @NonNull
-  public static ByteBuffer read(@NonNull final VfsFile file) throws IOException {
+  public static ByteBuffer read(final VfsFile file) throws IOException {
     return read(file, null);
   }
 
-  @NonNull
-  public static ByteBuffer read(@NonNull final VfsFile file, @Nullable ProgressCallback progress) throws IOException {
+  public static ByteBuffer read(final VfsFile file, @Nullable ProgressCallback progress) throws IOException {
     final Uri uri = file.getUri();
     {
       final Object asFile = file.getExtension(VfsExtensions.FILE);
@@ -72,7 +67,6 @@ public final class Vfs {
       }
     }
     return new CommandExecutor(uri.getScheme()).executeDownloadCommand(new DownloadCommand() {
-      @NonNull
       @Override
       public File getCache() throws IOException {
         final File res = Vfs.getCache(file);
@@ -82,7 +76,6 @@ public final class Vfs {
         throw new IOException("Failed to get cache for " + uri);
       }
 
-      @NonNull
       @Override
       public HttpObject getRemote() throws IOException {
         final Object uris = file.getExtension(VfsExtensions.DOWNLOAD_URIS);
@@ -95,7 +88,7 @@ public final class Vfs {
   }
 
   @Nullable
-  public static File getCacheOrFile(@NonNull VfsFile obj) {
+  public static File getCacheOrFile(VfsFile obj) {
     final Object asFile = obj.getExtension(VfsExtensions.FILE);
     if (asFile instanceof File) {
       return (File) asFile;
@@ -104,7 +97,7 @@ public final class Vfs {
   }
 
   @Nullable
-  public static File getCache(@NonNull VfsFile obj) {
+  public static File getCache(VfsFile obj) {
     final String id = obj.getUri().getScheme();
     if (TextUtils.isEmpty(id)) {
       return null;
@@ -135,7 +128,7 @@ public final class Vfs {
     }
   }
 
-  private static boolean createParentDirFor(@NonNull File file) {
+  private static boolean createParentDirFor(File file) {
     final File parent = file.getParentFile();
     return parent.isDirectory() || (parent.mkdirs() && parent.isDirectory());
   }

@@ -4,7 +4,6 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ class ParentsCursorBuilder {
     return makeCursor(entries);
   }
 
-  private static Cursor makeCursor(@NonNull ArrayList<VfsObject> objects) {
+  private static Cursor makeCursor(ArrayList<VfsObject> objects) {
     final MatrixCursor result = new MatrixCursor(Schema.Parents.COLUMNS, objects.size());
     for (VfsObject o : objects) {
       result.addRow(Schema.Parents.make(o.getUri(), o.getName(), VfsUtils.getObjectIcon(o)));

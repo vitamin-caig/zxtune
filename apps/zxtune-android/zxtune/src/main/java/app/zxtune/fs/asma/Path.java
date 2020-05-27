@@ -63,12 +63,11 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
   }
 
   @Override
-  @Nullable
   public String getName() {
     final int count = elements.size();
     return count > 0
             ? elements.get(count - 1)
-            : null;
+            : "";
   }
 
   @Override

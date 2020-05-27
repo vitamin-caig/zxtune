@@ -3,7 +3,7 @@ package app.zxtune.fs.provider;
 import android.database.Cursor;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsObject;
@@ -11,13 +11,14 @@ import app.zxtune.fs.VfsObject;
 class ParentsOperation implements AsyncQueryOperation {
 
   private final Uri uri;
+  @Nullable
   private VfsObject obj;
 
-  ParentsOperation(@NonNull Uri uri) {
+  ParentsOperation(Uri uri) {
     this.uri = uri;
   }
 
-  ParentsOperation(@NonNull VfsObject obj) {
+  ParentsOperation(VfsObject obj) {
     this.uri = obj.getUri();
     this.obj = obj;
   }
@@ -34,6 +35,7 @@ class ParentsOperation implements AsyncQueryOperation {
     }
   }
 
+  @Nullable
   @Override
   public Cursor status() {
     return null;

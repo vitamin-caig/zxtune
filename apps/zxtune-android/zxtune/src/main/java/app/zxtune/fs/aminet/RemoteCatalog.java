@@ -2,8 +2,6 @@ package app.zxtune.fs.aminet;
 
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
-
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -53,7 +51,6 @@ public class RemoteCatalog extends app.zxtune.fs.httpdir.RemoteCatalog {
         .authority("aminet.net");
   }
 
-  @NonNull
   private InputStream readRoot() throws IOException {
     final Uri uri = getBase()
         .path("tree")

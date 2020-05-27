@@ -8,9 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import org.junit.Before;
 
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,7 +43,7 @@ public class RemoteCatalogTest {
                             "<directory mtime=\"2018-06-27T07:25:08Z\">x1</directory>\n" +
                             "<file mtime=\"2018-06-27T06:24:42Z\" size=\"1578655\">hoot_2018-06-26.7z</file>\n" +
                             "</list>";
-    final String entries[] = {
+    final String[] entries = {
         "!MDScene_Arcade_VGM", "@2016-09-13T22:05:29Z",
         "x1", "@2018-06-27T07:25:08Z",
         "hoot_2018-06-26.7z", "1.5M@2018-06-27T06:24:42Z"
@@ -71,7 +69,7 @@ public class RemoteCatalogTest {
                             "   <tr><th colspan=\"5\"><hr></th></tr>\n" +
                             "</table>\n" +
                             "</body></html>\n";
-    final String entries[] = {
+    final String[] entries = {
         "scene_cpc", "@2018-02-22 00:31",
         "AT.ay", "7.1K@2018-04-25 03:13",
     };
@@ -92,7 +90,7 @@ public class RemoteCatalogTest {
                             "<img src=\"/icons/folder.gif\" alt=\"[DIR]\"> <a href=\"x1/\">x1/</a>                     2018-06-27 03:25    -   \n" +
                             "<hr></pre>\n" +
                             "</body></html>\n";
-    final String entries[] = {
+    final String[] entries = {
         "!MDScene_Arcade_VGM", "@2016-09-13 18:05",
         "x1", "@2018-06-27 03:25",
         "hoot_2018-06-26.7z", "1.5M@2018-06-27 02:24"

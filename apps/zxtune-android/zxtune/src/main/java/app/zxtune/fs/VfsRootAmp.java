@@ -64,7 +64,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   }
 
   @Override
-  @Nullable
   public VfsObject getParent() {
     return parent;
   }

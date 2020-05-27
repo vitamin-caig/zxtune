@@ -6,8 +6,6 @@
 
 package app.zxtune.fs.modland;
 
-import androidx.annotation.NonNull;
-
 import java.io.IOException;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -109,7 +107,6 @@ final public class CachingCatalog extends Catalog {
     }
 
     @Override
-    @NonNull
     public Group getGroup(final int id) throws IOException {
       // It's impossible to fill all the cache, so query/update for specified group
       final String categoryElement = category.substring(0, category.length() - 1);
@@ -125,7 +122,6 @@ final public class CachingCatalog extends Catalog {
           return db.queryGroup(category, id);
         }
 
-        @NonNull
         @Override
         public Group updateCache() throws IOException {
           final Group res = remote.getGroup(id);
@@ -175,7 +171,6 @@ final public class CachingCatalog extends Catalog {
     }
 
     @Override
-    @NonNull
     public Track getTrack(final int id, final String filename) throws IOException {
       // Just query all the category tracks and store found one
       final Track[] resultRef = {null};
@@ -190,7 +185,6 @@ final public class CachingCatalog extends Catalog {
           return db.findTrack(category, id, filename);
         }
 
-        @NonNull
         @Override
         public Track updateCache() throws IOException {
           queryTracks(id, new TracksVisitor() {

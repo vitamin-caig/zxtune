@@ -47,7 +47,7 @@ public class PathTest {
   @Test
   public void testForeign() {
     final Path path = Path.parse(Uri.parse("foreign:/uri/test"));
-    assertEquals(null, path);
+    assertNull(path);
   }
 
   @Test
@@ -67,8 +67,8 @@ public class PathTest {
 
   private static void verifyEmpty(Path path) {
     assertEquals("getUri", "joshw:", path.getUri().toString());
-    assertEquals("getName", null, path.getName());
-    assertEquals("getParent", null, path.getParent());
+    assertEquals("", path.getName());
+    assertNull("getParent", path.getParent());
     assertTrue("isEmpty", path.isEmpty());
     assertFalse("isFile", path.isFile());
     assertFalse("isCatalogue", path.isCatalogue());

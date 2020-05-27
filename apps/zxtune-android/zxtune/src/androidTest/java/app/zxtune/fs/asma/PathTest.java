@@ -39,7 +39,7 @@ public class PathTest {
   @Test
   public void testForeign() {
     final Path path = Path.parse(Uri.parse("foreign:/uri/test"));
-    assertEquals(null, path);
+    assertNull(path);
   }
 
   private static void verifyEmpty(Path path) {
@@ -49,8 +49,8 @@ public class PathTest {
     assertEquals("getRemoteUris[1]", "http://asma.atari.org/asma/", uris[1].toString());
     assertEquals("getLocalId", "", path.getLocalId());
     assertEquals("getUri", "asma:", path.getUri().toString());
-    assertEquals("getName", null, path.getName());
-    assertEquals("getParent", null, path.getParent());
+    assertNull("getName", path.getName());
+    assertNull("getParent", path.getParent());
     assertTrue("isEmpty", path.isEmpty());
     assertFalse("isFile", path.isFile());
   }
