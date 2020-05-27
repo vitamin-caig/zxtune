@@ -1,22 +1,23 @@
 package app.zxtune.models;
 
 import android.app.Application;
-import androidx.lifecycle.AndroidViewModel;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+
+import androidx.annotation.Nullable;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import app.zxtune.playback.Visualizer;
 import app.zxtune.rpc.ParcelableBinder;
 import app.zxtune.rpc.VisualizerProxy;
 
+// public for provider
 public final class MediaSessionModel extends AndroidViewModel {
 
   private final MutableLiveData<PlaybackStateCompat> playbackState;
@@ -24,7 +25,7 @@ public final class MediaSessionModel extends AndroidViewModel {
   private final MutableLiveData<MediaControllerCompat> mediaController;
   private final MutableLiveData<Visualizer> visualizer;
 
-  public MediaSessionModel(@NonNull Application app) {
+  public MediaSessionModel(Application app) {
     super(app);
     this.playbackState = new MutableLiveData<>();
     this.mediaMetadata = new MutableLiveData<>();
@@ -58,26 +59,26 @@ public final class MediaSessionModel extends AndroidViewModel {
     }
   }
 
-  private void setVisualizer(IBinder visualizer) {
-    this.visualizer.setValue(VisualizerProxy.getClient(visualizer));
+  private void setVisualizer(@Nullable IBinder visualizer) {
+    if (visualizer != null) {
+      this.visualizer.setValue(VisualizerProxy.getClient(visualizer));
+    } else {
+      this.visualizer.setValue(null);
+    }
   }
 
-  @NonNull
   public final LiveData<PlaybackStateCompat> getState() {
     return playbackState;
   }
 
-  @NonNull
   public final LiveData<MediaMetadataCompat> getMetadata() {
     return mediaMetadata;
   }
 
-  @NonNull
   public final LiveData<MediaControllerCompat> getMediaController() {
     return mediaController;
   }
 
-  @NonNull
   public final LiveData<Visualizer> getVisualizer() {
     return visualizer;
   }
