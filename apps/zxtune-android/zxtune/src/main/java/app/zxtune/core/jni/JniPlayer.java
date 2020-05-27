@@ -1,12 +1,12 @@
 package app.zxtune.core.jni;
 
-import androidx.annotation.NonNull;
+import java.lang.annotation.Native;
 
 import app.zxtune.core.Player;
 
 public final class JniPlayer implements Player {
 
-  @SuppressWarnings({"FieldCanBeLocal", "unused"})
+  @Native
   private final int handle;
 
   JniPlayer(int handle) {
@@ -22,10 +22,10 @@ public final class JniPlayer implements Player {
   static native void close(int handle);
 
   @Override
-  public native boolean render(@NonNull short[] result);
+  public native boolean render(short[] result);
 
   @Override
-  public native int analyze(@NonNull byte levels[]);
+  public native int analyze(byte[] levels);
 
   @Override
   public native int getPosition();
@@ -40,15 +40,14 @@ public final class JniPlayer implements Player {
   public native int getProgress();
 
   @Override
-  public native long getProperty(@NonNull String name, long defVal);
-
-  @NonNull
-  @Override
-  public native String getProperty(@NonNull String name, @NonNull String defVal);
+  public native long getProperty(String name, long defVal);
 
   @Override
-  public native void setProperty(@NonNull String name, long val);
+  public native String getProperty(String name, String defVal);
 
   @Override
-  public native void setProperty(@NonNull String name, @NonNull String val);
+  public native void setProperty(String name, long val);
+
+  @Override
+  public native void setProperty(String name, String val);
 }

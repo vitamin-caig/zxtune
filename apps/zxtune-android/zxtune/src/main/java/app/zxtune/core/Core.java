@@ -2,7 +2,6 @@ package app.zxtune.core;
 
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
@@ -23,13 +22,12 @@ import app.zxtune.fs.VfsObject;
 public class Core {
   private static final String TAG = Core.class.getName();
 
-  @NonNull
-  public static Module loadModule(@NonNull VfsFile file, @NonNull String subpath) throws IOException, ResolvingException {
+  static Module loadModule(VfsFile file, String subpath) throws IOException, ResolvingException {
     return loadModule(file, subpath, null);
   }
 
-  @NonNull
-  public static Module loadModule(@NonNull VfsFile file, @NonNull String subpath,
+  @SuppressWarnings("SameParameterValue")
+  private static Module loadModule(VfsFile file, String subpath,
                                   @Nullable ProgressCallback progress) throws IOException,
       ResolvingException {
     final ByteBuffer content = Vfs.read(file);
@@ -47,12 +45,12 @@ public class Core {
     }
   }
 
-  public static void detectModules(@NonNull VfsFile file, @NonNull ModuleDetectCallback callback) throws IOException {
+  static void detectModules(VfsFile file, ModuleDetectCallback callback) throws IOException {
     detectModules(file, callback, null);
   }
 
-  public static void detectModules(@NonNull VfsFile file,
-                                   @NonNull ModuleDetectCallback callback,
+  public static void detectModules(VfsFile file,
+                                   ModuleDetectCallback callback,
                                    @Nullable ProgressCallback progress) throws IOException {
     final ByteBuffer content = Vfs.read(file, progress);
     final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback,
@@ -64,8 +62,7 @@ public class Core {
     }
   }
 
-  @NonNull
-  private static ByteBuffer makeDirectBuffer(@NonNull ByteBuffer content) {
+  private static ByteBuffer makeDirectBuffer(ByteBuffer content) {
     if (content.position() != 0) {
       throw new IllegalArgumentException("Input data should have zero position");
     }
@@ -84,12 +81,14 @@ public class Core {
 
     private final VfsFile location;
     private final ModuleDetectCallback delegate;
+    @Nullable
     private final ProgressCallback progress;
+    @Nullable
     private Resolver resolver;
     private int modulesCount = 0;
 
     ModuleDetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate,
-                                ProgressCallback progress) {
+                                @Nullable ProgressCallback progress) {
       this.location = location;
       this.delegate = delegate;
       this.progress = progress;
@@ -100,7 +99,7 @@ public class Core {
     }
 
     @Override
-    public void onModule(@NonNull String subpath, @NonNull Module obj) {
+    public void onModule(String subpath, Module obj) {
       ++modulesCount;
       try {
         final String[] files = obj.getAdditionalFiles();
@@ -123,8 +122,7 @@ public class Core {
       delegate.onProgress(done);
     }
 
-    @NonNull
-    private Module resolve(@NonNull Module obj, String[] files) throws ResolvingException {
+    private Module resolve(Module obj, String[] files) throws ResolvingException {
       return getResolver().resolve(obj, files);
     }
 
@@ -140,11 +138,12 @@ public class Core {
 
     @Nullable
     private VfsDir parent;
+    @Nullable
     private final ProgressCallback progress;
     private final HashMap<String, VfsFile> files = new HashMap<>();
     private final HashMap<String, VfsDir> dirs = new HashMap<>();
 
-    Resolver(@NonNull VfsFile content, @Nullable ProgressCallback progress) {
+    Resolver(VfsFile content, @Nullable ProgressCallback progress) {
       final VfsObject parent = content.getParent();
       if (parent instanceof VfsDir) {
         this.parent = (VfsDir) parent;
@@ -152,8 +151,8 @@ public class Core {
       this.progress = progress;
     }
 
-    @NonNull
-    final Module resolve(@NonNull Module module, @Nullable String[] files) throws ResolvingException {
+    final Module resolve(Module module, @Nullable String[] unknownFiles) throws ResolvingException {
+      String[] files = unknownFiles;
       while (files != null && 0 != files.length) {
         final String[] newFiles = resolveIteration(module, files);
         if (Arrays.equals(files, newFiles)) {
@@ -165,7 +164,7 @@ public class Core {
     }
 
     @Nullable
-    private String[] resolveIteration(@NonNull Module module, @NonNull String[] files) throws ResolvingException {
+    private String[] resolveIteration(Module module, String[] files) throws ResolvingException {
       try {
         for (String name : files) {
           final ByteBuffer content = getFileContent(name);
@@ -177,7 +176,7 @@ public class Core {
       }
     }
 
-    private ByteBuffer getFileContent(@NonNull String name) throws IOException {
+    private ByteBuffer getFileContent(String name) throws IOException {
       final VfsFile file = findFile(name);
       if (file == null) {
         throw new IOException(String.format(Locale.US, "Failed to find additional file '%s'", name));
@@ -186,7 +185,7 @@ public class Core {
     }
 
     @Nullable
-    private VfsFile findFile(@NonNull String name) throws IOException {
+    private VfsFile findFile(String name) throws IOException {
       if (parent != null) {
         final Uri fileUri = parent.getUri().buildUpon().appendPath(name).build();
         Log.d(TAG, "Try to find '%s' as '%s'", name, fileUri);
@@ -201,7 +200,7 @@ public class Core {
     }
 
     @Nullable
-    private VfsFile findPreloadedFile(@NonNull String name) throws IOException {
+    private VfsFile findPreloadedFile(String name) throws IOException {
       if (!files.containsKey(name)) {
         final int lastSeparator = name.lastIndexOf('/');
         if (lastSeparator != -1) {
@@ -211,7 +210,7 @@ public class Core {
       return files.get(name);
     }
 
-    private void preloadDir(@NonNull String path) throws IOException {
+    private void preloadDir(String path) throws IOException {
       if (!dirs.containsKey(path)) {
         final int lastSeparator = path.lastIndexOf('/');
         if (lastSeparator != -1) {
@@ -225,18 +224,18 @@ public class Core {
       preloadDir(dir, path + "/");
     }
 
-    private void preloadDir(@NonNull VfsDir dir, @NonNull final String relPath) throws IOException {
+    private void preloadDir(VfsDir dir, final String relPath) throws IOException {
       Log.d(TAG, "Preload content of %s as '%s'", dir.getUri(), relPath);
       dir.enumerate(new VfsDir.Visitor() {
         @Override
-        public void onDir(@NonNull VfsDir dir) {
+        public void onDir(VfsDir dir) {
           final String name = relPath + dir.getName();
           dirs.put(name, dir);
           Log.d(TAG, "Add dir %s (%s)", name, dir.getUri());
         }
 
         @Override
-        public void onFile(@NonNull VfsFile file) {
+        public void onFile(VfsFile file) {
           final String name = relPath + file.getName();
           files.put(name, file);
           Log.d(TAG, "Add file %s (%s)", name, file.getUri());

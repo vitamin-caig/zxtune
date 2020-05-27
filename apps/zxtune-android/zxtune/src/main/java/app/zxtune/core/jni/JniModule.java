@@ -1,6 +1,7 @@
 package app.zxtune.core.jni;
 
-import androidx.annotation.NonNull;
+import java.lang.annotation.Native;
+import java.nio.ByteBuffer;
 
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleDetectCallback;
@@ -8,15 +9,13 @@ import app.zxtune.core.Player;
 import app.zxtune.core.Properties;
 import app.zxtune.core.ResolvingException;
 
-import java.nio.ByteBuffer;
-
 public final class JniModule implements Module {
 
   static {
     JniLibrary.load();
   }
 
-  @SuppressWarnings({"FieldCanBeLocal", "unused"})
+  @Native
   private final int handle;
 
   JniModule(int handle) {
@@ -24,11 +23,9 @@ public final class JniModule implements Module {
     JniGC.register(this, handle);
   }
 
-  @SuppressWarnings("RedundantThrows")
-  @NonNull
-  public static native JniModule load(@NonNull ByteBuffer data, @NonNull String subpath) throws ResolvingException;
+  public static native JniModule load(ByteBuffer data, String subpath) throws ResolvingException;
 
-  public static native void detect(@NonNull ByteBuffer data, @NonNull ModuleDetectCallback callback);
+  public static native void detect(ByteBuffer data, ModuleDetectCallback callback);
 
   @Override
   public final void release() {
@@ -46,20 +43,18 @@ public final class JniModule implements Module {
 
   private native int getDuration();
 
-  @NonNull
   @Override
   public native Player createPlayer();
 
   @Override
-  public native long getProperty(@NonNull String name, long defVal);
+  public native long getProperty(String name, long defVal);
 
-  @NonNull
   @Override
-  public native String getProperty(@NonNull String name, @NonNull String defVal);
+  public native String getProperty(String name, String defVal);
 
   @Override
   public native String[] getAdditionalFiles();
 
   @Override
-  public native void resolveAdditionalFile(@NonNull String name, @NonNull ByteBuffer data);
+  public native void resolveAdditionalFile(String name, ByteBuffer data);
 }

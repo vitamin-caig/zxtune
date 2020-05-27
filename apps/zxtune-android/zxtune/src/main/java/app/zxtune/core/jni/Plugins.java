@@ -1,7 +1,5 @@
 package app.zxtune.core.jni;
 
-import androidx.annotation.NonNull;
-
 public final class Plugins {
 
   static {
@@ -39,10 +37,10 @@ public final class Plugins {
 
   @SuppressWarnings({"unused"})
   public interface Visitor {
-    void onPlayerPlugin(int devices, @NonNull String id, @NonNull String description);
+    void onPlayerPlugin(int devices, String id, String description);
 
-    void onContainerPlugin(int type, @NonNull String id, @NonNull String description);
+    void onContainerPlugin(int type, String id, String description);
   }
 
-  public static native void enumerate(@NonNull Visitor visitor);
+  public static native void enumerate(Visitor visitor);
 }

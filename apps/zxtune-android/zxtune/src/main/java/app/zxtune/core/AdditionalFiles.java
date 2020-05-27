@@ -1,6 +1,5 @@
 package app.zxtune.core;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.nio.ByteBuffer;
@@ -20,5 +19,5 @@ public interface AdditionalFiles {
    * @param name additional file name as returned by ListAdditionalFiles
    * @param data additional file content
    */
-  void resolveAdditionalFile(@NonNull String name, @NonNull ByteBuffer data);
+  void resolveAdditionalFile(String name, ByteBuffer data);
 }

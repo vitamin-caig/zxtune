@@ -1,7 +1,5 @@
 package app.zxtune.core;
 
-import androidx.annotation.NonNull;
-
 import app.zxtune.Releaseable;
 
 /**
@@ -18,7 +16,7 @@ public interface Player extends PropertiesAccessor, PropertiesModifier, Releasea
    * @param levels Array of levels to store
    * @return Count of actually stored entries
    */
-  int analyze(@NonNull byte levels[]);
+  int analyze(byte[] levels);
 
   /**
    * Render next result.length bytes of sound data
@@ -26,7 +24,7 @@ public interface Player extends PropertiesAccessor, PropertiesModifier, Releasea
    * @param result Buffer to put data
    * @return Is there more data to render
    */
-  boolean render(@NonNull short[] result);
+  boolean render(short[] result);
 
   /**
    * @param pos Index of next rendered frame
