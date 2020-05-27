@@ -7,6 +7,8 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import androidx.annotation.Nullable;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
@@ -16,6 +18,7 @@ public class NetworkManager {
     void onNetworkChange(boolean isAvailable);
   }
 
+  @Nullable
   private static NetworkManager instance;
 
   private final CompositeCallback callbacks;
