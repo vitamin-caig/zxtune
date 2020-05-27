@@ -4,6 +4,8 @@ import android.os.IBinder;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.annotation.Nullable;
+
 // TODO: remove when minSdk >= 18, use Bundle.putBinder/getBinder
 public class ParcelableBinder implements Parcelable {
 
@@ -21,7 +23,8 @@ public class ParcelableBinder implements Parcelable {
     return new ParcelableBinder(binder);
   }
 
-  public static IBinder deserialize(Parcelable parcelable) {
+  @Nullable
+  public static IBinder deserialize(@Nullable Parcelable parcelable) {
     final ParcelableBinder result = (ParcelableBinder) parcelable;
     return result != null ? result.binder : null;
   }
