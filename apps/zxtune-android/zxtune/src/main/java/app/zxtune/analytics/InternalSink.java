@@ -186,7 +186,7 @@ final class InternalSink implements Sink {
     builder.addUri(uri);
     if ("file".equals(uri.getScheme())) {
       final String filename = uri.getLastPathSegment();
-      final int extPos = filename.lastIndexOf('.');
+      final int extPos = filename != null ? filename.lastIndexOf('.') : -1;
       final String type = extPos != -1 ? filename.substring(extPos + 1) : "none";
       builder.addParam("type", type);
     }

@@ -2,12 +2,12 @@ package app.zxtune.analytics;
 
 import android.content.Context;
 import android.net.Uri;
+
 import androidx.annotation.IntDef;
 
 import com.crashlytics.android.Crashlytics;
 
 import java.lang.annotation.Retention;
-import java.util.Locale;
 
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
@@ -16,7 +16,7 @@ import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 public class Analytics {
 
-  private static Sink[] sinks;
+  private static Sink[] sinks = {};
 
   public static void initialize(Context ctx) {
     if (FabricSink.isEnabled()) {
