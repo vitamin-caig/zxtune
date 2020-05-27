@@ -41,14 +41,14 @@ public class IoTest {
     assertFalse(file.exists());
     try {
       Io.readFrom(file);
-      assertTrue("Unreachable", false);
+      fail("Unreachable");
     } catch (IOException e) {
       assertNotNull("Thrown exception", e);
     }
     try {
       //really FileInputStream ctor throws
       Io.readFrom(new FileInputStream(file));
-      assertTrue("Unreachable", false);
+      fail("Unreachable");
     } catch (IOException e) {
       assertNotNull("Thrown exception", e);
     }
@@ -59,14 +59,14 @@ public class IoTest {
     final File file = createFile(0, 0);
     try {
       Io.readFrom(file);
-      assertTrue("Unreachable", false);
+      fail("Unreachable");
     } catch (IOException e) {
       assertNotNull("Thrown exception", e);
     }
     final InputStream stream = new FileInputStream(file);
     try {
       Io.readFrom(stream);
-      assertTrue("Unreachable", false);
+      fail("Unreachable");
     } catch (IOException e) {
       assertNotNull("Thrown exception", e);
     }
@@ -126,13 +126,13 @@ public class IoTest {
     checkBuffer(Io.readFrom(new FileInputStream(file)), 3, 2 * 1024);
     try {
       Io.readFrom(new FileInputStream(file), 1024);
-      assertTrue("Unreachable", false);
+      fail("Unreachable");
     } catch (IOException e) {
       assertNotNull("Thrown exception", e);
     }
     try {
       Io.readFrom(new FileInputStream(file), 3 * 1024);
-      assertTrue("Unreachable", false);
+      fail("Unreachable");
     } catch (IOException e) {
       assertNotNull("Thrown exception", e);
     }
