@@ -9,18 +9,19 @@ package app.zxtune;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.support.v4.media.MediaBrowserCompat;
+import android.text.TextUtils;
+
+import androidx.annotation.Nullable;
 import androidx.media.MediaBrowserServiceCompat;
 import androidx.media.session.MediaButtonReceiver;
-import android.text.TextUtils;
+
+import java.util.List;
+
 import app.zxtune.device.media.MediaSessionControl;
 import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
 import app.zxtune.playback.service.PlaybackServiceLocal;
-
-import java.util.List;
 
 public class MainService extends MediaBrowserServiceCompat {
 
@@ -29,9 +30,11 @@ public class MainService extends MediaBrowserServiceCompat {
   public static final String CUSTOM_ACTION_ADD_CURRENT = TAG + ".CUSTOM_ACTION_ADD_CURRENT";
   public static final String CUSTOM_ACTION_ADD = TAG + ".CUSTOM_ACTION_ADD";
 
+  @Nullable
   private PlaybackServiceLocal service;
-
+  @Nullable
   private MediaSessionControl mediaSessionControl;
+  @Nullable
   private Releaseable settingsChangedHandler;
 
   public static Intent createIntent(Context ctx, @Nullable String action) {
@@ -81,7 +84,7 @@ public class MainService extends MediaBrowserServiceCompat {
 
   @Nullable
   @Override
-  public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
+  public BrowserRoot onGetRoot(String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
     Log.d(TAG, "onGetRoot(%s)", clientPackageName);
     if (TextUtils.equals(clientPackageName, getPackageName())) {
       return new BrowserRoot(getString(R.string.app_name), null);
@@ -92,7 +95,7 @@ public class MainService extends MediaBrowserServiceCompat {
 
   //Not important for general audio service, required for class
   @Override
-  public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
+  public void onLoadChildren(String parentId, Result<List<MediaBrowserCompat.MediaItem>> result) {
     Log.d(TAG, "onLoadChildren(%s)", parentId);
     result.sendResult(null);
   }

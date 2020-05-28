@@ -23,7 +23,7 @@ import androidx.core.content.ContextCompat;
 
 public class Permission {
   
-  public static void request(FragmentActivity act, String id) {
+  static void request(FragmentActivity act, String id) {
     if (Build.VERSION.SDK_INT >= 23) {
       requestMarshmallow(act, id);
     }

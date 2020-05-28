@@ -10,8 +10,6 @@
 
 package app.zxtune;
 
-import androidx.annotation.NonNull;
-
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
@@ -46,7 +44,7 @@ public final class TimeStamp implements Comparable<TimeStamp> {
   }
 
   @Override
-  public int compareTo(@NonNull TimeStamp rh) {
+  public int compareTo(TimeStamp rh) {
     return value == rh.value ? 0 : (value < rh.value ? -1 : +1);
   }
 

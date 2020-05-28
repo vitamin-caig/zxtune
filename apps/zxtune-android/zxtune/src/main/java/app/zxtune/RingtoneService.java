@@ -22,9 +22,9 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.util.Locale;
@@ -36,7 +36,11 @@ import app.zxtune.core.Properties;
 import app.zxtune.device.ui.Notifications;
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlayableItem;
-import app.zxtune.sound.*;
+import app.zxtune.sound.AsyncPlayer;
+import app.zxtune.sound.PlayerEventsListener;
+import app.zxtune.sound.SamplesSource;
+import app.zxtune.sound.StubPlayerEventsListener;
+import app.zxtune.sound.WaveWriteSamplesTarget;
 
 public class RingtoneService extends IntentService {
 
@@ -81,8 +85,8 @@ public class RingtoneService extends IntentService {
   }
 
   @Override
-  protected void onHandleIntent(Intent intent) {
-    if (ACTION_MAKERINGTONE.equals(intent.getAction())) {
+  protected void onHandleIntent(@Nullable Intent intent) {
+    if (intent != null && ACTION_MAKERINGTONE.equals(intent.getAction())) {
       final Uri module = intent.getParcelableExtra(EXTRA_MODULE);
       final long seconds = intent.getLongExtra(EXTRA_DURATION_SECONDS, DEFAULT_DURATION_SECONDS);
       final TimeStamp duration = TimeStamp.createFrom(seconds, TimeUnit.SECONDS);
@@ -127,7 +131,7 @@ public class RingtoneService extends IntentService {
   //TODO: rework errors processing scheme
   private class NotifyEventsListener extends StubPlayerEventsListener {
     @Override
-    public void onError(@NonNull Exception e) {
+    public void onError(Exception e) {
       makeToast(e);
     }
 
@@ -220,7 +224,7 @@ public class RingtoneService extends IntentService {
   
   private static class TimeLimitedSamplesSource implements SamplesSource {
 
-    private Player player;
+    private final Player player;
     private final TimeStamp limit;
     private int restSamples;
     
@@ -238,7 +242,7 @@ public class RingtoneService extends IntentService {
     }
 
     @Override
-    public boolean getSamples(@NonNull short[] buf) {
+    public boolean getSamples(short[] buf) {
       if (restSamples > 0 && player.render(buf)) {
         restSamples -= buf.length / SamplesSource.Channels.COUNT;
         return true;
