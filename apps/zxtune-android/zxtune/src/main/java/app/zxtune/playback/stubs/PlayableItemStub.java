@@ -29,6 +29,6 @@ public class PlayableItemStub extends ItemStub implements PlayableItem {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final PlayableItem INSTANCE = new PlayableItemStub();
+    static final PlayableItem INSTANCE = new PlayableItemStub();
   }  
 }

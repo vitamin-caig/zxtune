@@ -12,12 +12,12 @@ import android.os.SystemClock;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.text.TextUtils;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
@@ -125,7 +125,7 @@ class StatusCallback implements Callback {
   }
 
   @Override
-  public void onError(@NonNull final String e) {
+  public void onError(final String e) {
     handler.post(new Runnable() {
       @Override
       public void run() {
@@ -134,12 +134,14 @@ class StatusCallback implements Callback {
     });
   }
 
-  private static void putString(MediaMetadataCompat.Builder builder, String key, String value) {
-    if (value != null && !value.isEmpty()) {
+  private static void putString(MediaMetadataCompat.Builder builder, String key,
+                                @Nullable String value) {
+    if (!TextUtils.isEmpty(value)) {
       builder.putString(key, value);
     }
   }
 
+  @Nullable
   private Bitmap getLocationIcon(Uri location) {
     try {
       final Resources resources = ctx.getResources();
@@ -147,7 +149,7 @@ class StatusCallback implements Callback {
       final Drawable drawable = ResourcesCompat.getDrawableForDensity(resources, id, 320/*XHDPI*/, null);
       if (drawable instanceof BitmapDrawable) {
         return ((BitmapDrawable) drawable).getBitmap();
-      } else {
+      } else if (drawable != null){
         final Bitmap result = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
         final Canvas canvas = new Canvas(result);
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());

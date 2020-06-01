@@ -4,7 +4,7 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.os.OperationCanceledException;
 
 import java.io.IOException;
@@ -24,16 +24,17 @@ class SearchOperation implements AsyncQueryOperation {
   private static final String TAG = SearchOperation.class.getName();
 
   private final Uri uri;
+  @Nullable
   private VfsDir dir;
   private final String query;
   private final AtomicReference<ListingCursorBuilder> result = new AtomicReference<>();
 
-  SearchOperation(@NonNull Uri uri, @NonNull String query) {
+  SearchOperation(Uri uri, String query) {
     this.uri = uri;
     this.query = query;
   }
 
-  SearchOperation(@NonNull VfsDir obj, @NonNull String query) {
+  SearchOperation(VfsDir obj, String query) {
     this.uri = obj.getUri();
     this.dir = obj;
     this.query = query;
@@ -76,7 +77,7 @@ class SearchOperation implements AsyncQueryOperation {
     search(visitor);
   }
 
-  private void search(@NonNull VfsExtensions.SearchEngine.Visitor visitor) throws Exception {
+  private void search(VfsExtensions.SearchEngine.Visitor visitor) throws Exception {
     final VfsExtensions.SearchEngine engine =
         (VfsExtensions.SearchEngine) dir.getExtension(VfsExtensions.SEARCH_ENGINE);
     if (engine != null) {
@@ -103,7 +104,7 @@ class SearchOperation implements AsyncQueryOperation {
     }
   }
 
-  private boolean match(@NonNull String txt) {
+  private boolean match(String txt) {
     return txt.toLowerCase().contains(query);
   }
 
@@ -118,6 +119,7 @@ class SearchOperation implements AsyncQueryOperation {
     throw new OperationCanceledException();
   }
 
+  @Nullable
   @Override
   public Cursor status() {
     synchronized(result) {
@@ -129,9 +131,8 @@ class SearchOperation implements AsyncQueryOperation {
 
   private static ListingCursorBuilder makeBuilder() {
     return new ListingCursorBuilder(new ListingCursorBuilder.TracksCountSource() {
-      @NonNull
       @Override
-      public Integer[] getTracksCount(@NonNull Uri[] uris) {
+      public Integer[] getTracksCount(Uri[] uris) {
         return VfsArchive.getModulesCount(uris);
       }
     });

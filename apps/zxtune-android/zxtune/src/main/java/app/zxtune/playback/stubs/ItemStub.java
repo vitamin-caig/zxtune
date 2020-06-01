@@ -66,6 +66,6 @@ public class ItemStub implements Item {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final Item INSTANCE = new ItemStub();
+    static final Item INSTANCE = new ItemStub();
   }  
 }

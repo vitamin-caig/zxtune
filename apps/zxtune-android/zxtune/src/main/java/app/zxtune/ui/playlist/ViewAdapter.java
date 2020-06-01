@@ -7,7 +7,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.LongSparseArray;
 import androidx.databinding.DataBindingUtil;
@@ -26,26 +25,30 @@ import app.zxtune.databinding.PlaylistEntryBinding;
 class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
 
   interface Client {
-    boolean onDrag(@NonNull RecyclerView.ViewHolder holder);
+    boolean onDrag(RecyclerView.ViewHolder holder);
   }
 
   private final Client client;
   private final LongSparseArray<Integer> positionsCache;
+  @Nullable
   private List<Entry> list;
+  @Nullable
   private Selection<Long> selection;
   private boolean isPlaying = false;
+  @Nullable
   private Long nowPlaying = null;
+  @Nullable
   private Integer nowPlayingPos = null;
 
   ViewAdapter(Client client) {
     super(new DiffUtil.ItemCallback<Entry>() {
       @Override
-      public boolean areItemsTheSame(@NonNull Entry oldItem, @NonNull Entry newItem) {
+      public boolean areItemsTheSame(Entry oldItem, Entry newItem) {
         return oldItem.id == newItem.id;
       }
 
       @Override
-      public boolean areContentsTheSame(@NonNull Entry oldItem, @NonNull Entry newItem) {
+      public boolean areContentsTheSame(Entry oldItem, Entry newItem) {
         return TextUtils.equals(oldItem.title, newItem.title)
             && TextUtils.equals(oldItem.author, newItem.author)
             && 0 == oldItem.duration.compareTo(newItem.duration);
@@ -82,6 +85,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
     }
   }
 
+  @Nullable
   private Integer getPosition(@Nullable Long id) {
     if (id == null) {
       return null;
@@ -136,7 +140,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
   }
 
   @Override
-  public void submitList(List<Entry> list) {
+  public void submitList(@Nullable List<Entry> list) {
     this.list = list;
     this.positionsCache.clear();
     super.submitList(list);
@@ -147,16 +151,15 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
     return getItem(position).id;
   }
 
-  @NonNull
   @Override
-  public EntryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+  public EntryViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
     final PlaylistEntryBinding binding = DataBindingUtil.inflate(inflater, R.layout.playlist_entry, parent, false);
     return new EntryViewHolder(binding);
   }
 
   @Override
-  public void onBindViewHolder(@NonNull final EntryViewHolder holder, int position) {
+  public void onBindViewHolder(final EntryViewHolder holder, int position) {
     final Entry entry = getItem(position);
     holder.bind(entry, isPlaying && isNowPlaying(entry.id), isSelected(entry.id));
   }
@@ -170,7 +173,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
   }
 
   @Override
-  public void onViewAttachedToWindow(@NonNull final EntryViewHolder holder) {
+  public void onViewAttachedToWindow(final EntryViewHolder holder) {
     holder.binding.playlistEntryState.setOnTouchListener(new View.OnTouchListener() {
       @Override
       public boolean onTouch(View v, MotionEvent event) {
@@ -183,7 +186,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
   }
 
   @Override
-  public void onViewDetachedFromWindow(@NonNull EntryViewHolder holder) {
+  public void onViewDetachedFromWindow(EntryViewHolder holder) {
     holder.binding.playlistEntryState.setOnTouchListener(null);
   }
 
@@ -195,7 +198,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
       this.binding = binding;
     }
 
-    final void bind(@NonNull Entry entry, boolean isPlaying, boolean isSelected) {
+    final void bind(Entry entry, boolean isPlaying, boolean isSelected) {
       binding.setEntry(entry);
       binding.setIsPlaying(isPlaying);
       binding.executePendingBindings();
@@ -240,7 +243,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
     }
 
     @Override
-    public int getPosition(@NonNull Long key) {
+    public int getPosition(Long key) {
       final Integer pos = adapter.getPosition(key);
       return pos != null ? pos : RecyclerView.NO_POSITION;
     }
@@ -256,7 +259,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
 
     @Nullable
     @Override
-    public ItemDetails getItemDetails(@NonNull MotionEvent e) {
+    public ItemDetails<Long> getItemDetails(MotionEvent e) {
       float x = e.getX();
       float y = e.getY();
       final View item = listing.findChildViewUnder(x, y);

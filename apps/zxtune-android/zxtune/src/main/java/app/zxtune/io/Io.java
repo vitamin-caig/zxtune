@@ -1,11 +1,16 @@
 package app.zxtune.io;
 
 import android.os.Build;
-import androidx.annotation.NonNull;
+
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -74,23 +79,7 @@ public class Io {
     }
   }
 
-  public static void writeTo(File file, ByteBuffer data) throws IOException {
-    final FileOutputStream stream = new FileOutputStream(file);
-    try {
-      final FileChannel chan = stream.getChannel();
-      try {
-        chan.write(data);
-      } finally {
-        data.position(0);
-        chan.close();
-      }
-    } finally {
-      stream.close();
-    }
-  }
-
-  @NonNull
-  public static ByteBuffer readFrom(@NonNull InputStream stream) throws IOException {
+  public static ByteBuffer readFrom(InputStream stream) throws IOException {
     try {
       byte[] buffer = reallocate(null);
       int size = 0;
@@ -109,8 +98,7 @@ public class Io {
     }
   }
 
-  @NonNull
-  public static ByteBuffer readFrom(@NonNull InputStream stream, long size) throws IOException {
+  public static ByteBuffer readFrom(InputStream stream, long size) throws IOException {
     try {
       final ByteBuffer result = allocateDirectBuffer(size);
       final byte[] buffer = reallocate(null);
@@ -138,7 +126,7 @@ public class Io {
     }
   }
 
-  private static int readPartialContent(@NonNull InputStream stream, @NonNull byte[] buffer, int offset) throws IOException {
+  private static int readPartialContent(InputStream stream, byte[] buffer, int offset) throws IOException {
     final int len = buffer.length;
     while (offset < len) {
       final int chunk = stream.read(buffer, offset, len - offset);
@@ -150,7 +138,6 @@ public class Io {
     return offset;
   }
 
-  @NonNull
   private static byte[] reallocate(@Nullable byte[] buf) throws IOException {
     for (int retry = 1; ; ++retry) {
       try {
@@ -172,7 +159,6 @@ public class Io {
     }
   }
 
-  @NonNull
   private static ByteBuffer allocateDirectBuffer(long size) throws IOException {
     validateSize(size);
     for (int retry = 1; ; ++retry) {
@@ -189,13 +175,7 @@ public class Io {
     }
   }
 
-  @NonNull
-  public static String readHtml(@NonNull InputStream in) throws IOException {
-    final ByteBuffer buf = readFrom(in);
-    return new String(buf.array(), 0, buf.limit(), "UTF-8");
-  }
-
-  public static long copy(@NonNull InputStream in, @NonNull OutputStream out) throws IOException {
+  public static long copy(InputStream in, OutputStream out) throws IOException {
     try {
       final byte[] buffer = reallocate(null);
       for (long total = 0; ; ) {
@@ -225,7 +205,7 @@ public class Io {
     }
   }
 
-  public static boolean rename(File oldName, File newName) {
+  static boolean rename(File oldName, File newName) {
     if (Build.VERSION.SDK_INT >= 26) {
       return renameViaFiles(oldName, newName);
     } else {

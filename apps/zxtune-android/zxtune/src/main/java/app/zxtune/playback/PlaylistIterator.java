@@ -13,6 +13,8 @@ package app.zxtune.playback;
 import android.content.Context;
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
 
 import app.zxtune.core.Identifier;
@@ -29,6 +31,7 @@ class PlaylistIterator implements Iterator {
   
   private final IteratorFactory.NavigationMode navigation;
   private DatabaseIterator delegate;
+  @Nullable
   private PlayableItem item;
 
   PlaylistIterator(Context context, Uri id) throws IOException {

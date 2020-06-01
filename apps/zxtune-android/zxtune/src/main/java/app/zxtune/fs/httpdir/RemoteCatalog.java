@@ -2,7 +2,7 @@ package app.zxtune.fs.httpdir;
 
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -29,7 +29,7 @@ public class RemoteCatalog extends Catalog {
   }
 
   // used in testing
-  void parseDir(@NonNull InputStream input, DirVisitor visitor) throws IOException {
+  void parseDir(InputStream input, DirVisitor visitor) throws IOException {
     final Document doc = HtmlUtils.parseDoc(input);
     if (parseXmlIndex(doc, visitor) || parseTableMarkup(doc, visitor) || parsePreMarkup(doc, visitor)) {
       return;
@@ -145,6 +145,7 @@ public class RemoteCatalog extends Catalog {
     return result;
   }
 
+  @Nullable
   private static String findEntryHref(Element anchor) {
     final String href = Uri.decode(anchor.attr("href"));
     final String text = anchor.text();

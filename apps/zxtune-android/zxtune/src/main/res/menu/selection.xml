@@ -1,8 +1,7 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:sabd="http://schemas.android.com/apk/res-auto" >
   <item
-    android:id="@+id/action_selection"
-    android:title="@string/selection"
+          android:title="@string/selection"
     sabd:showAsAction="ifRoom"
     >
     <menu>

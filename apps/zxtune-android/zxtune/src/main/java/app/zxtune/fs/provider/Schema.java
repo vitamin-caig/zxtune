@@ -3,7 +3,6 @@ package app.zxtune.fs.provider;
 import android.database.Cursor;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Arrays;
@@ -45,7 +44,7 @@ class Schema {
     }
 
     static Object[] makeFile(Uri uri, String name, String description, String details,
-                             Integer tracks, Boolean isCached) {
+                             @Nullable Integer tracks, @Nullable Boolean isCached) {
       return new Object[]{TYPE_FILE, uri.toString(), name, description, tracks, details,
           isCached != null ? (isCached ? 1 : 0) : null};
     }
@@ -55,43 +54,45 @@ class Schema {
     }
 
     // For searches
-    static boolean isLimiter(@NonNull Cursor cursor) {
+    static boolean isLimiter(Cursor cursor) {
       return cursor.isNull(1);
     }
 
-    static boolean isDir(@NonNull Cursor cursor) {
+    static boolean isDir(Cursor cursor) {
       return cursor.getInt(0) == TYPE_DIR;
     }
 
-    static Uri getUri(@NonNull Cursor cursor) {
+    static Uri getUri(Cursor cursor) {
       return Uri.parse(cursor.getString(1));
     }
 
-    static String getName(@NonNull Cursor cursor) {
+    static String getName(Cursor cursor) {
       return cursor.getString(2);
     }
 
-    static String getDescription(@NonNull Cursor cursor) {
+    static String getDescription(Cursor cursor) {
       return cursor.getString(3);
     }
 
-    static int getIcon(@NonNull Cursor cursor) {
+    static int getIcon(Cursor cursor) {
       return cursor.getInt(4);
     }
 
-    static String getDetails(@NonNull Cursor cursor) {
+    static String getDetails(Cursor cursor) {
       return cursor.getString(5);
     }
 
-    static boolean hasFeed(@NonNull Cursor cursor) {
+    static boolean hasFeed(Cursor cursor) {
       return !cursor.isNull(5);
     }
 
-    static Integer getTracks(@NonNull Cursor cursor) {
+    @Nullable
+    static Integer getTracks(Cursor cursor) {
       return cursor.isNull(4) ? null : cursor.getInt(4);
     }
 
-    static Boolean isCached(@NonNull Cursor cursor) {
+    @Nullable
+    static Boolean isCached(Cursor cursor) {
       return cursor.isNull(6) ? null : (cursor.getInt(6) != 0);
     }
   }
@@ -104,15 +105,15 @@ class Schema {
       return new Object[]{uri.toString(), name, icon};
     }
 
-    static Uri getUri(@NonNull Cursor cursor) {
+    static Uri getUri(Cursor cursor) {
       return Uri.parse(cursor.getString(0));
     }
 
-    static String getName(@NonNull Cursor cursor) {
+    static String getName(Cursor cursor) {
       return cursor.getString(1);
     }
 
-    static int getIcon(@NonNull Cursor cursor) {
+    static int getIcon(Cursor cursor) {
       return cursor.getInt(2);
     }
   }
@@ -120,7 +121,7 @@ class Schema {
   static class Status {
     static final String[] COLUMNS = {COLUMN_DONE, COLUMN_TOTAL, COLUMN_ERROR};
 
-    static Object[] makeError(@NonNull Exception e) {
+    static Object[] makeError(Exception e) {
       final Throwable cause = e.getCause();
       final String msg = cause != null ? cause.getMessage() : e.getMessage();
       return new Object[]{0, 0, msg};
@@ -138,20 +139,20 @@ class Schema {
       return new Object[]{done, total, null};
     }
 
-    static boolean isStatus(@NonNull Cursor cursor) {
+    static boolean isStatus(Cursor cursor) {
       return Arrays.equals(cursor.getColumnNames(), COLUMNS);
     }
 
-    static int getDone(@NonNull Cursor cursor) {
+    static int getDone(Cursor cursor) {
       return cursor.getInt(0);
     }
 
-    static int getTotal(@NonNull Cursor cursor) {
+    static int getTotal(Cursor cursor) {
       return cursor.getInt(1);
     }
 
     @Nullable
-    static String getError(@NonNull Cursor cursor) {
+    static String getError(Cursor cursor) {
       return cursor.getString(2);
     }
   }

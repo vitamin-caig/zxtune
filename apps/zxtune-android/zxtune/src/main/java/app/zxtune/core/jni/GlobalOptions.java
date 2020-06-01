@@ -1,6 +1,5 @@
 package app.zxtune.core.jni;
 
-import androidx.annotation.NonNull;
 import app.zxtune.core.PropertiesContainer;
 
 public class GlobalOptions implements PropertiesContainer {
@@ -13,21 +12,19 @@ public class GlobalOptions implements PropertiesContainer {
   }
 
   @Override
-  public native void setProperty(@NonNull String name, long value);
+  public native void setProperty(String name, long value);
 
   @Override
-  public native void setProperty(@NonNull String name, @NonNull String value);
+  public native void setProperty(String name, String value);
 
   @Override
-  public native long getProperty(@NonNull String name, long defVal);
+  public native long getProperty(String name, long defVal);
 
-  @NonNull
   @Override
-  public native String getProperty(@NonNull String name, @NonNull String defVal);
+  public native String getProperty(String name, String defVal);
 
   //TODO: return PropertiesContainer after throws cleanup
   @SuppressWarnings("SameReturnValue")
-  @NonNull
   public static GlobalOptions instance() {
     return Holder.INSTANCE;
   }

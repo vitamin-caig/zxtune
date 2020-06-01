@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.LruCache;
 
@@ -36,7 +35,7 @@ public class Provider extends ContentProvider {
   private final ConcurrentHashMap<Uri, OperationHolder> operations = new ConcurrentHashMap<>();
   private final LruCache<Uri, VfsObject> objectsCache = new LruCache<Uri, VfsObject>(CACHE_SIZE) {
     @Override
-    protected void entryRemoved(boolean evicted, @NonNull Uri key, @NonNull VfsObject oldValue,
+    protected void entryRemoved(boolean evicted, Uri key, VfsObject oldValue,
                                 @Nullable VfsObject newValue) {
       if (evicted) {
         Log.d(TAG, "Remove cache for " + key);
@@ -58,7 +57,7 @@ public class Provider extends ContentProvider {
 
   @Nullable
   @Override
-  public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+  public Cursor query(Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
     try {
       final OperationHolder existing = operations.get(uri);
       if (existing != null) {
@@ -77,7 +76,7 @@ public class Provider extends ContentProvider {
   }
 
   @Nullable
-  private AsyncQueryOperation createOperation(@NonNull Uri uri, @Nullable String[] projection) {
+  private AsyncQueryOperation createOperation(Uri uri, @Nullable String[] projection) {
     final Uri path = Query.getPathFrom(uri);
     switch (Query.getUriType(uri)) {
       case Query.TYPE_RESOLVE:
@@ -96,7 +95,7 @@ public class Provider extends ContentProvider {
   }
 
   @Nullable
-  private AsyncQueryOperation createListingOperation(@NonNull Uri uri, @Nullable VfsObject cached) {
+  private AsyncQueryOperation createListingOperation(Uri uri, @Nullable VfsObject cached) {
     if (cached instanceof VfsDir) {
       return new ListingOperation((VfsDir) cached);
     } else if (cached == null) {
@@ -106,7 +105,7 @@ public class Provider extends ContentProvider {
     }
   }
 
-  private AsyncQueryOperation createParentsOperation(@NonNull Uri uri, @Nullable VfsObject cached) {
+  private AsyncQueryOperation createParentsOperation(Uri uri, @Nullable VfsObject cached) {
     if (cached != null) {
       return new ParentsOperation(cached);
     } else {
@@ -115,8 +114,8 @@ public class Provider extends ContentProvider {
   }
 
   @Nullable
-  private AsyncQueryOperation createSearchOperation(@NonNull Uri uri, @Nullable VfsObject cached,
-                                                    @NonNull String query) {
+  private AsyncQueryOperation createSearchOperation(Uri uri, @Nullable VfsObject cached,
+                                                    String query) {
     if (cached instanceof VfsDir) {
       return new SearchOperation((VfsDir) cached, query);
     } else if (cached == null) {
@@ -126,7 +125,7 @@ public class Provider extends ContentProvider {
     }
   }
 
-  private AsyncQueryOperation createFileOperation(@NonNull Uri uri, @Nullable VfsObject cached, @Nullable String[] projection) {
+  private AsyncQueryOperation createFileOperation(Uri uri, @Nullable VfsObject cached, @Nullable String[] projection) {
     if (cached instanceof VfsFile) {
       return new FileOperation(projection, (VfsFile) cached);
     } else {
@@ -136,18 +135,18 @@ public class Provider extends ContentProvider {
 
   @Nullable
   @Override
-  public String getType(@NonNull Uri uri) {
+  public String getType(Uri uri) {
     return Query.mimeTypeOf(uri);
   }
 
   @Nullable
   @Override
-  public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+  public Uri insert(Uri uri, @Nullable ContentValues values) {
     return null;
   }
 
   @Override
-  public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
+  public int delete(Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
     final OperationHolder op = operations.remove(uri);
     if (op != null) {
       op.cancel();
@@ -158,12 +157,12 @@ public class Provider extends ContentProvider {
   }
 
   @Override
-  public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
+  public int update(Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
     return 0;
   }
 
   @Override
-  public ParcelFileDescriptor openFile(@NonNull Uri uri, @NonNull String mode)
+  public ParcelFileDescriptor openFile(Uri uri, String mode)
       throws FileNotFoundException {
     try {
       final AsyncQueryOperation op = createOperation(uri, null);
@@ -171,6 +170,7 @@ public class Provider extends ContentProvider {
         return ((FileOperation) op).openFile(mode);
       }
     } catch (Exception e) {
+      Log.w(TAG, e, "Failed to open file " + uri);
     }
     throw new FileNotFoundException(uri.toString());
   }
@@ -188,7 +188,7 @@ public class Provider extends ContentProvider {
     private final FutureTask<Cursor> task;
     private final Runnable update;
 
-    OperationHolder(Uri uri, @NonNull AsyncQueryOperation op) {
+    OperationHolder(Uri uri, AsyncQueryOperation op) {
       this.uri = uri;
       this.op = op;
       this.task = new FutureTask<>(op);
@@ -201,6 +201,7 @@ public class Provider extends ContentProvider {
       };
     }
 
+    @Nullable
     final Cursor start() throws Exception {
       executor.execute(task);
       try {
@@ -211,6 +212,7 @@ public class Provider extends ContentProvider {
       }
     }
 
+    @Nullable
     final Cursor status() throws Exception {
       if (task.isDone()) {
         unschedule();

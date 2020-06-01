@@ -10,12 +10,15 @@
 
 package app.zxtune.playlist;
 
+import androidx.annotation.Nullable;
+
 import app.zxtune.TimeStamp;
 
 public interface ReferencesIterator {
 
   class Entry {
 
+    @Nullable
     public String location;
 
     public String title = "";

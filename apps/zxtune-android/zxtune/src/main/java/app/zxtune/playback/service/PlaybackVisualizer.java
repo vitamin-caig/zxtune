@@ -12,7 +12,7 @@ class PlaybackVisualizer implements Visualizer {
   }
 
   @Override
-  public int getSpectrum(byte[] levels) throws Exception {
+  public int getSpectrum(byte[] levels) {
     return player.analyze(levels);
   }
 }

@@ -22,6 +22,7 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.text.format.Formatter;
 
 import androidx.annotation.Nullable;
@@ -40,7 +41,7 @@ import app.zxtune.fs.modland.Track;
 @Icon(R.drawable.ic_browser_vfs_modland)
 final class VfsRootModland extends StubObject implements VfsRoot {
 
-  private static final String TAG = VfsRootModland.class.getName();
+  //private static final String TAG = VfsRootModland.class.getName();
 
   private static final String SCHEME = "modland";
 
@@ -104,7 +105,6 @@ final class VfsRootModland extends StubObject implements VfsRoot {
   }
 
   @Override
-  @Nullable
   public VfsObject getParent() {
     return parent;
   }
@@ -122,11 +122,13 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     if (SCHEME.equals(uri.getScheme())) {
       return resolvePath(uri);
     } else if (Storage.checkUri(uri)) {
-      final Track track = new Track(uri.getEncodedPath(), 0);
-      return new FreeTrackFile(track);
-    } else {
-      return null;
+      final String path = uri.getEncodedPath();
+      if (!TextUtils.isEmpty(path)) {
+        final Track track = new Track(path, 0);
+        return new FreeTrackFile(track);
+      }
     }
+    return null;
   }
 
   private static Uri.Builder rootUri() {
@@ -261,10 +263,13 @@ final class VfsRootModland extends StubObject implements VfsRoot {
         if (POS_LETTER == path.size() - 1) {
           return this;
         } else {
-          final int id = Integer.parseInt(uri.getQueryParameter(PARAM_ID));
-          final Group obj = group.getGroup(id);
-          return new GroupDir(obj).resolve(path);
+          final Integer id = HtmlUtils.tryGetInteger(uri.getQueryParameter(PARAM_ID));
+          if (id != null) {
+            final Group obj = group.getGroup(id);
+            return new GroupDir(obj).resolve(path);
+          }
         }
+        return null;
       }
 
       final Uri.Builder groupLetterUri() {
@@ -371,6 +376,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
       return track.filename;
     }
 
+    @Nullable
     @Override
     public VfsObject getParent() {
       return null;

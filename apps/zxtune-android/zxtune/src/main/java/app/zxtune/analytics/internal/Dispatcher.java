@@ -22,6 +22,7 @@ class Dispatcher implements UrlsSink, NetworkManager.Callback {
   Dispatcher(Context ctx) {
     this.online = new NetworkSink(ctx);
     this.offline = new BufferSink();
+    current = online;
     NetworkManager.initialize(ctx);
     NetworkManager.getInstance().subscribe(this);
     onNetworkChange(NetworkManager.getInstance().isNetworkAvailable());

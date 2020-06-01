@@ -1,13 +1,16 @@
 package app.zxtune.analytics.internal;
 
 import android.net.Uri;
+import android.text.TextUtils;
+
+import androidx.annotation.Nullable;
 
 public class UrlsBuilder {
 
   public static final String DEFAULT_STRING_VALUE = "";
   public static final long DEFAULT_LONG_VALUE = -1;
 
-  private StringBuilder delegate;
+  private final StringBuilder delegate;
 
   public UrlsBuilder(String type) {
     this.delegate = new StringBuilder(512);
@@ -16,8 +19,8 @@ public class UrlsBuilder {
     delegate.append(System.currentTimeMillis() / 1000);
   }
 
-  public final void addParam(String key, String value) {
-    if (value != null && !value.isEmpty()) {
+  public final void addParam(String key, @Nullable String value) {
+    if (!TextUtils.isEmpty(value)) {
       addDelimiter();
       delegate.append(key);
       delegate.append('=');

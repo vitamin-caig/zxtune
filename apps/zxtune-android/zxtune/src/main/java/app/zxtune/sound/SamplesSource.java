@@ -10,7 +10,6 @@
 
 package app.zxtune.sound;
 
-import androidx.annotation.NonNull;
 import app.zxtune.TimeStamp;
 
 public interface SamplesSource {
@@ -34,7 +33,7 @@ public interface SamplesSource {
    * @param buf result buffer of 16-bit signed interleaved stereo signal
    * @return true if buffer filled, else reset position to initial
    */
-  boolean getSamples(@NonNull short[] buf);
+  boolean getSamples(short[] buf);
 
   /**
    * Synchronously changes playback position

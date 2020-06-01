@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Filter;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.util.ObjectsCompat;
 import androidx.databinding.DataBindingUtil;
@@ -31,18 +30,20 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
 
   private final SparseIntArray positionsCache;
   private final SearchFilter filter;
+  @Nullable
   private Selection<Uri> selection;
+  @Nullable
   private List<ListingEntry> lastContent;
 
   ListingViewAdapter() {
     super(new DiffUtil.ItemCallback<ListingEntry>() {
       @Override
-      public boolean areItemsTheSame(@NonNull ListingEntry oldItem, @NonNull ListingEntry newItem) {
+      public boolean areItemsTheSame(ListingEntry oldItem, ListingEntry newItem) {
         return oldItem.uri.equals(newItem.uri);
       }
 
       @Override
-      public boolean areContentsTheSame(@NonNull ListingEntry oldItem, @NonNull ListingEntry newItem) {
+      public boolean areContentsTheSame(ListingEntry oldItem, ListingEntry newItem) {
         return oldItem.type == newItem.type
             && oldItem.icon == newItem.icon
             && TextUtils.equals(oldItem.title, newItem.title)
@@ -57,9 +58,8 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
     setHasStableIds(true);
   }
 
-  @NonNull
   @Override
-  public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+  public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
     final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
     final BrowserListingEntryBinding binding = DataBindingUtil.inflate(inflater,
         R.layout.browser_listing_entry,
@@ -68,7 +68,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
   }
 
   @Override
-  public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+  public void onBindViewHolder(ViewHolder holder, int position) {
     final ListingEntry entry = getItem(position);
     holder.bind(entry, isSelected(entry.uri));
   }
@@ -82,9 +82,13 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
   }
 
   @Override
-  public void submitList(List<ListingEntry> entries, Runnable cb) {
+  public void submitList(@Nullable List<ListingEntry> entries, @Nullable Runnable cb) {
     positionsCache.clear();
-    lastContent = entries == lastContent ? new ArrayList<>(entries) : entries;
+    if (entries == null || entries != lastContent) {
+      lastContent = entries;
+    } else {
+      lastContent = new ArrayList<>(entries);
+    }
     super.submitList(lastContent, cb);
   }
 
@@ -93,7 +97,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
   }
 
   @Override
-  public void submitList(List<ListingEntry> entries) {
+  public void submitList(@Nullable List<ListingEntry> entries) {
     positionsCache.clear();
     super.submitList(entries);
   }
@@ -140,7 +144,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
       this.binding = binding;
     }
 
-    final void bind(@NonNull ListingEntry entry, boolean isSelected) {
+    final void bind(ListingEntry entry, boolean isSelected) {
       binding.setEntry(entry);
       binding.executePendingBindings();
       itemView.setSelected(isSelected);
@@ -163,7 +167,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
     }
 
     @Override
-    public int getPosition(@NonNull Uri key) {
+    public int getPosition(Uri key) {
       return adapter.getItemPosition(key);
     }
   }
@@ -199,7 +203,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
 
     @Nullable
     @Override
-    public ItemDetails<Uri> getItemDetails(@NonNull MotionEvent e) {
+    public ItemDetails<Uri> getItemDetails(MotionEvent e) {
       final View item = listing.findChildViewUnder(e.getX(), e.getY());
       if (item != null) {
         final ViewHolder holder = (ViewHolder) listing.getChildViewHolder(item);
@@ -213,10 +217,10 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
 
     @Override
     protected FilterResults performFiltering(CharSequence constraint) {
-      if (lastContent == null) {
-        return null;
-      }
       final FilterResults result = new FilterResults();
+      if (lastContent == null) {
+        return result;
+      }
       if (TextUtils.isEmpty(constraint)) {
         result.values = lastContent;
       } else {

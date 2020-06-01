@@ -10,6 +10,7 @@
 
 package app.zxtune;
 
+import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.DeadObjectException;
 import app.zxtune.analytics.Analytics;
@@ -61,6 +62,7 @@ public final class Log {
     return true;
   }
 
+  @TargetApi(24)
   private static class PrettyException extends Exception {
 
     PrettyException(String msg, Throwable cause) {

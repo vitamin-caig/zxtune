@@ -4,7 +4,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
@@ -42,7 +41,7 @@ public class ArchivesService {
   }
 
   @Nullable
-  public final Archive findArchive(@NonNull Uri uri) {
+  public final Archive findArchive(Uri uri) {
     final Cursor cursor = db.queryArchive(uri);
     try {
       if (cursor.moveToFirst()) {
@@ -55,8 +54,7 @@ public class ArchivesService {
   }
 
   // Order and size match is not guaranteed!!!!
-  @NonNull
-  public final ArrayList<Archive> findArchives(@NonNull List<Uri> uris) {
+  public final ArrayList<Archive> findArchives(List<Uri> uris) {
     final ArrayList<Archive> result = new ArrayList<>(uris.size());
     if (!uris.isEmpty()) {
       final Cursor cursor = db.queryArchives(uris);
@@ -72,7 +70,7 @@ public class ArchivesService {
   }
 
   @Nullable
-  public final Entry resolve(@NonNull Uri uri) {
+  public final Entry resolve(Uri uri) {
     final Cursor cursor = db.queryInfo(uri);
     try {
       if (cursor.moveToFirst()) {
@@ -84,7 +82,7 @@ public class ArchivesService {
     return null;
   }
 
-  public final void listDir(@NonNull Uri uri, @NonNull ListingCallback cb) {
+  public final void listDir(Uri uri, ListingCallback cb) {
     final Cursor cursor = db.queryListing(uri);
     try {
       cb.onItemsCount(cursor.getCount());
@@ -96,7 +94,7 @@ public class ArchivesService {
     }
   }
 
-  public final Archive analyzeArchive(@NonNull VfsFile file, @NonNull final ProgressCallback cb) throws IOException {
+  public final Archive analyzeArchive(VfsFile file, final ProgressCallback cb) throws IOException {
     //final Identifier fileId = new Identifier(uri);
     final Uri path = file.getUri();
     Log.d(TAG, "Add archive content of %s", path);
@@ -106,7 +104,7 @@ public class ArchivesService {
     try {
       Core.detectModules(file, new ModuleDetectCallback() {
         @Override
-        public void onModule(@NonNull String subpath, @NonNull Module module) {
+        public void onModule(String subpath, Module module) {
           final Identifier moduleId = new Identifier(path, subpath);
           final DirEntry dirEntry = DirEntry.create(moduleId);
 

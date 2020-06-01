@@ -9,7 +9,7 @@ package app.zxtune.ui;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import android.net.Uri;
-import androidx.annotation.NonNull;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import android.support.v4.media.MediaDescriptionCompat;
@@ -58,7 +58,7 @@ class InformationView {
     });
   }
 
-  private void update(@NonNull MediaMetadataCompat metadata) {
+  private void update(MediaMetadataCompat metadata) {
     final MediaDescriptionCompat description = metadata.getDescription();
     final StringBuilder builder = new StringBuilder();
     addNonEmptyField(builder, locationField, description.getMediaUri());
@@ -84,7 +84,7 @@ class InformationView {
     }
   }
 
-  private void addField(StringBuilder builder, String fieldName, @NonNull CharSequence fieldValue) {
+  private void addField(StringBuilder builder, String fieldName, CharSequence fieldValue) {
     if (0 != builder.length()) {
       builder.append(LINEBREAK);
     }
@@ -98,7 +98,7 @@ class InformationView {
     }
   }
 
-  private void addRawField(StringBuilder builder, @NonNull String fieldValue) {
+  private void addRawField(StringBuilder builder, String fieldValue) {
     if (0 != builder.length()) {
       builder.append(LINEBREAK);
     }

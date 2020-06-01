@@ -3,7 +3,7 @@ package app.zxtune.ui.playlist;
 import android.app.Application;
 import android.database.Cursor;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -26,23 +26,21 @@ public class Model extends AndroidViewModel {
 
   private final ProviderClient client;
   private final ExecutorService async;
+  @Nullable
   private MutableLiveData<List<Entry>> items;
 
   static Model of(Fragment owner) {
     return ViewModelProviders.of(owner).get(Model.class);
   }
 
-  public Model(@NonNull Application application) {
+  public Model(Application application) {
     super(application);
     this.client = new ProviderClient(application);
     this.async = Executors.newSingleThreadExecutor();
     client.registerObserver(new ProviderClient.ChangesObserver() {
       @Override
       public void onChange() {
-        if (items == null) {
-          items = new MutableLiveData<>();
-        }
-        loadAsync();
+        getItems();
       }
     });
   }
@@ -85,13 +83,14 @@ public class Model extends AndroidViewModel {
   }
 
   private static Entry createItem(Cursor cursor) {
-    final Entry item = new Entry();
-    item.id = cursor.getLong(Database.Tables.Playlist.Fields._id.ordinal());
-    item.location = Identifier.parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal()));
-    item.title = cursor.getString(Database.Tables.Playlist.Fields.title.ordinal());
-    item.author = cursor.getString(Database.Tables.Playlist.Fields.author.ordinal());
-    item.duration = TimeStamp.createFrom(cursor.getLong(Database.Tables.Playlist.Fields.duration.ordinal()),
-        TimeUnit.MILLISECONDS);
+    final Entry item = new Entry(
+        cursor.getLong(Database.Tables.Playlist.Fields._id.ordinal()),
+        Identifier.parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal())),
+        cursor.getString(Database.Tables.Playlist.Fields.title.ordinal()),
+        cursor.getString(Database.Tables.Playlist.Fields.author.ordinal()),
+        TimeStamp.createFrom(cursor.getLong(Database.Tables.Playlist.Fields.duration.ordinal()),
+            TimeUnit.MILLISECONDS)
+    );
     return item;
   }
 }

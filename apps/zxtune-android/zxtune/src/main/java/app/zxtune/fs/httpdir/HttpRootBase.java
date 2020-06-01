@@ -63,7 +63,6 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
     return new HttpDir(path, descr);
   }
 
-  @Nullable
   protected VfsFile makeFile(Path path, String descr, String size) {
     return new HttpFile(path, descr, size);
   }

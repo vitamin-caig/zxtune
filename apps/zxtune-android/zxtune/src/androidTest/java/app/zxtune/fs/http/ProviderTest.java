@@ -81,7 +81,7 @@ public class ProviderTest {
     public void testUnavailableHost() {
         try {
             final HttpObject obj = provider.getObject(Uri.parse("http://invalid.zxtune.ru/document"));
-            assertTrue("Should not create object", false);
+            fail("Should not create object");
         } catch (IOException e) {
             assertNotNull("Thrown exception", e);
         }
@@ -91,7 +91,7 @@ public class ProviderTest {
     public void testUnavailableFile() {
         try {
             final HttpObject obj = provider.getObject(Uri.parse("http://nsf.joshw.info/ne/"));
-            assertTrue("Should not create object", false);
+            fail("Should not create object");
         } catch (IOException e) {
             assertNotNull("Thrown exception", e);
             assertEquals("Not Found", e.getMessage());
@@ -104,7 +104,7 @@ public class ProviderTest {
         final HttpObject obj = provider.getObject(uri);
         assertEquals(uri, obj.getUri());
         if (Build.VERSION.SDK_INT >= 24) {
-            assertEquals(3683414322l, obj.getContentLength().longValue());
+            assertEquals(3683414322L, obj.getContentLength().longValue());
         } else {
             assertNull(obj.getContentLength());
         }

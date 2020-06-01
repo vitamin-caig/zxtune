@@ -1,7 +1,5 @@
 package app.zxtune.core;
 
-import androidx.annotation.NonNull;
-
 /**
  * Properties modifier interface
  */
@@ -13,7 +11,7 @@ public interface PropertiesModifier {
    * @param name Name of the property
    * @param value Value of the property
    */
-  void setProperty(@NonNull String name, long value);
+  void setProperty(String name, long value);
 
   /**
    * Setting string property
@@ -21,5 +19,5 @@ public interface PropertiesModifier {
    * @param name Name of the property
    * @param value Value of the property
    */
-  void setProperty(@NonNull String name, @NonNull String value);
+  void setProperty(String name, String value);
 }

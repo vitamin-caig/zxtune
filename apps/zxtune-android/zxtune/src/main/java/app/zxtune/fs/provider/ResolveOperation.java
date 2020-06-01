@@ -3,7 +3,7 @@ package app.zxtune.fs.provider;
 import android.database.Cursor;
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.collection.LruCache;
 import androidx.core.os.OperationCanceledException;
 
@@ -18,15 +18,17 @@ class ResolveOperation implements AsyncQueryOperation {
 
   private final Uri uri;
   private final LruCache<Uri, VfsObject> cache;
+  @Nullable
   private VfsObject result;
   private final int[] progress = {-1, -1};
 
-  ResolveOperation(@NonNull Uri uri, LruCache<Uri, VfsObject> cache) {
+  ResolveOperation(Uri uri, LruCache<Uri, VfsObject> cache) {
     this.uri = uri;
     this.cache = cache;
     this.result = cache.get(uri);
   }
 
+  @Nullable
   @Override
   public Cursor call() throws Exception {
     maybeResolve();

@@ -18,10 +18,11 @@ public final class Track {
   @Nullable
   public final Integer date;
 
-  public Track(int id, String filename, String title, @Nullable Integer duration, @Nullable Integer date) {
+  public Track(int id, String filename, @Nullable String title, @Nullable Integer duration,
+               @Nullable Integer date) {
     this.id = id;
     this.filename = filename;
-    this.title = title;
+    this.title = title != null ? title : "";
     this.duration = duration;
     this.date = date;
   }

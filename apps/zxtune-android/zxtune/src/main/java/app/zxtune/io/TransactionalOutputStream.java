@@ -18,7 +18,7 @@ public class TransactionalOutputStream extends OutputStream {
   public TransactionalOutputStream(File target) throws IOException {
     Log.d(TAG, "Write cached file %s", target.getAbsolutePath());
     this.target = target;
-    this.temporary = new File(target.getPath() + "~" + Integer.toString(hashCode()));
+    this.temporary = new File(target.getPath() + "~" + hashCode());
     if (target.getParentFile().mkdirs()) {
       Log.d(TAG, "Created cache dir");
     }

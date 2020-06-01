@@ -1,6 +1,5 @@
 package app.zxtune.core;
 
-import androidx.annotation.NonNull;
 import app.zxtune.Releaseable;
 
 /**
@@ -16,8 +15,7 @@ public interface Module extends PropertiesAccessor, AdditionalFiles, Releaseable
   /**
    * Creates new player object
    *
-   * @throws Exception in case of error
+   * @throws RuntimeException in case of error
    */
-  @NonNull
   Player createPlayer();
 }

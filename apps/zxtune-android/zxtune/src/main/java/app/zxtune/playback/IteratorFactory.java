@@ -55,7 +55,8 @@ public final class IteratorFactory {
     }
     
     public final SequenceMode get() {
-      return SequenceMode.valueOf(prefs.getString(KEY, SequenceMode.ORDERED.toString()));
+      final String stored = prefs.getString(KEY, null);
+      return stored != null ? SequenceMode.valueOf(stored) : SequenceMode.ORDERED;
     }
   }
   

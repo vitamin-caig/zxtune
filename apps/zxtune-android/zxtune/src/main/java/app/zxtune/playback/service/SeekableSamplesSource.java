@@ -1,6 +1,5 @@
 package app.zxtune.playback.service;
 
-import androidx.annotation.NonNull;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Player;
 import app.zxtune.core.Properties;
@@ -10,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 class SeekableSamplesSource implements SamplesSource {
 
-  private Player player;
+  private final Player player;
   private final TimeStamp frameDuration;
 
   SeekableSamplesSource(Player player) {
@@ -26,7 +25,7 @@ class SeekableSamplesSource implements SamplesSource {
   }
 
   @Override
-  public boolean getSamples(@NonNull short[] buf) {
+  public boolean getSamples(short[] buf) {
     if (player.render(buf)) {
       return true;
     } else {

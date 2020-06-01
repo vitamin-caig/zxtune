@@ -24,7 +24,6 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -55,9 +54,13 @@ public class BrowserFragment extends Fragment {
   //private static final String TAG = BrowserFragment.class.getName();
   private static final String SEARCH_QUERY_KEY = "search_query";
 
+  @Nullable
   private RecyclerView listing;
+  @Nullable
   private SearchView search;
+  @Nullable
   private State stateStorage;
+  @Nullable
   private SelectionTracker<Uri> selectionTracker;
 
   public static BrowserFragment createInstance() {
@@ -65,7 +68,7 @@ public class BrowserFragment extends Fragment {
   }
 
   @Override
-  public void onAttach(@NonNull Context ctx) {
+  public void onAttach(Context ctx) {
     super.onAttach(ctx);
 
     this.stateStorage = new State(this);
@@ -73,12 +76,13 @@ public class BrowserFragment extends Fragment {
 
   @Override
   @Nullable
-  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
     return container != null ? inflater.inflate(R.layout.browser, container, false) : null;
   }
 
   @Override
-  public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
     final Model model = Model.of(this);
@@ -92,7 +96,7 @@ public class BrowserFragment extends Fragment {
     }
   }
 
-  private void setupRootsView(@NonNull View view) {
+  private void setupRootsView(View view) {
     final View roots = view.findViewById(R.id.browser_roots);
     roots.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -102,7 +106,7 @@ public class BrowserFragment extends Fragment {
     });
   }
 
-  private void setupBreadcrumbs(@NonNull Model model, @NonNull View view) {
+  private void setupBreadcrumbs(Model model, View view) {
     final RecyclerView listing = view.findViewById(R.id.browser_breadcrumb);
     final BreadcrumbsViewAdapter adapter = new BreadcrumbsViewAdapter();
     listing.setAdapter(adapter);
@@ -123,18 +127,18 @@ public class BrowserFragment extends Fragment {
     };
     listing.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
       @Override
-      public void onChildViewAttachedToWindow(@NonNull View view) {
+      public void onChildViewAttachedToWindow(View view) {
         view.setOnClickListener(onClick);
       }
 
       @Override
-      public void onChildViewDetachedFromWindow(@NonNull View view) {
+      public void onChildViewDetachedFromWindow(View view) {
         view.setOnClickListener(null);
       }
     });
   }
 
-  private RecyclerView setupListing(@NonNull Model model, @NonNull View view) {
+  private RecyclerView setupListing(Model model, View view) {
     final RecyclerView listing = view.findViewById(R.id.browser_content);
     listing.setHasFixedSize(true);
 
@@ -235,7 +239,7 @@ public class BrowserFragment extends Fragment {
     }
   }
 
-  private SearchView setupSearchView(@NonNull final Model model, @NonNull View view) {
+  private SearchView setupSearchView(final Model model, View view) {
     final SearchView search = view.findViewById(R.id.browser_search);
 
     search.setOnSearchClickListener(new SearchView.OnClickListener() {
@@ -289,8 +293,8 @@ public class BrowserFragment extends Fragment {
 
   private class ItemActivatedListener implements OnItemActivatedListener<Uri> {
     @Override
-    public boolean onItemActivated(@NonNull ItemDetailsLookup.ItemDetails<Uri> item,
-                                   @NonNull MotionEvent e) {
+    public boolean onItemActivated(ItemDetailsLookup.ItemDetails<Uri> item,
+                                   MotionEvent e) {
       final Uri uri = item.getSelectionKey();
       if (uri != null) {
         browse(uri);
@@ -308,14 +312,12 @@ public class BrowserFragment extends Fragment {
       this.adapter = adapter;
     }
 
-    @NonNull
     @Override
     public String getTitle(int count) {
       return getResources().getQuantityString(R.plurals.items,
           count, count);
     }
 
-    @NonNull
     @Override
     public List<Uri> getAllItems() {
       final int size = adapter.getItemCount();
@@ -365,7 +367,7 @@ public class BrowserFragment extends Fragment {
 
 
   @Override
-  public void onSaveInstanceState(@NonNull Bundle state) {
+  public void onSaveInstanceState(Bundle state) {
     super.onSaveInstanceState(state);
     selectionTracker.onSaveInstanceState(state);
     if (!search.isIconified()) {
@@ -375,7 +377,7 @@ public class BrowserFragment extends Fragment {
   }
 
   @Override
-  public void onViewStateRestored(Bundle state) {
+  public void onViewStateRestored(@Nullable Bundle state) {
     super.onViewStateRestored(state);
     selectionTracker.onRestoreInstanceState(state);
     final String query = state != null ? state.getString(SEARCH_QUERY_KEY) : null;
@@ -390,7 +392,7 @@ public class BrowserFragment extends Fragment {
     }
   }
 
-  private void browse(@NonNull Uri uri) {
+  private void browse(Uri uri) {
     final Model model = Model.of(this);
     model.browse(uri);
   }

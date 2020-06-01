@@ -195,5 +195,4 @@
     <!--errors-->
   <string name="network_inaccessible">La red no es accesible</string>
   <string name="failed_resolve">No se pudo resolver %s</string>
-  <string name="file_too_big">El archivo es demasiado grande</string>
 </resources>

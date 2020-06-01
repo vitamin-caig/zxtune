@@ -22,16 +22,20 @@ import app.zxtune.playback.stubs.VisualizerStub;
 
 public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.Callback {
 
-  public static final int MAX_BANDS = 96;
-  public static final int MAX_LEVEL = 100;
+  private static final int MAX_BANDS = 96;
+  private static final int MAX_LEVEL = 100;
   private static final int MIN_BAR_WIDTH = 3;
   private static final int BAR_PADDING = 1;
   private static final int FALL_SPEED = 4;
 
+  @Nullable
   private SpectrumVisualizer visualizer;
+  @Nullable
   private Rect visibleRect;
+  @Nullable
   private Visualizer source = VisualizerStub.instance();
   private boolean isUpdating;
+  @Nullable
   private RenderThread thread;
 
   public SpectrumAnalyzerView(Context context) {
@@ -114,6 +118,7 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
 
   private class RenderThread extends Thread {
 
+    @Nullable
     private SurfaceHolder holder;
     private long scheduledFrameTime;
 
@@ -122,7 +127,7 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
       start();
     }
 
-    synchronized final void setHolder(SurfaceHolder holder) {
+    synchronized final void setHolder(@Nullable SurfaceHolder holder) {
       if (this.holder != holder) {
         this.holder = holder;
         notify();
@@ -241,7 +246,7 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
       boolean result = false;
       for (int band = 0; band < values.length; ++band) {
         if (values[band] >= FALL_SPEED) {
-          values[band] = values[band] - FALL_SPEED;
+          values[band] -= FALL_SPEED;
           result = true;
         } else {
           values[band] = 0;

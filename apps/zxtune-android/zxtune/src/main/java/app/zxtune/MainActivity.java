@@ -8,44 +8,39 @@ package app.zxtune;
 
 import android.Manifest;
 import android.app.PendingIntent;
-
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
-
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
-
 import android.os.StrictMode;
 import android.support.v4.media.session.MediaControllerCompat;
-
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.util.SparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
+import androidx.viewpager.widget.ViewPager;
+
 import app.zxtune.analytics.Analytics;
 import app.zxtune.models.MediaSessionConnection;
 import app.zxtune.models.MediaSessionModel;
 import app.zxtune.ui.AboutFragment;
-import app.zxtune.ui.browser.BrowserFragment;
 import app.zxtune.ui.NowPlayingFragment;
-import app.zxtune.ui.playlist.PlaylistFragment;
 import app.zxtune.ui.ViewPagerAdapter;
+import app.zxtune.ui.browser.BrowserFragment;
+import app.zxtune.ui.playlist.PlaylistFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -69,9 +64,12 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private static final int NO_PAGE = -1;
+  @Nullable
   private ViewPager pager;
   private int browserPageIndex;
+  @Nullable
   private BrowserFragment browser;
+  @Nullable
   private MediaSessionConnection sessionConnection;
 
   public static PendingIntent createPendingIntent(Context ctx) {
@@ -85,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     fillPages();
@@ -214,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
       }
       pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
-        private SparseArray<PagerTabListener> listeners = new SparseArray<>();
+        private final SparseArray<PagerTabListener> listeners = new SparseArray<>();
         private int prevPos = pager.getCurrentItem();
 
         @Override

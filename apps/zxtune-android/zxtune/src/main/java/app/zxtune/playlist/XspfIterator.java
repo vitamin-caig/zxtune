@@ -16,7 +16,7 @@ import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.sax.TextElementListener;
-import androidx.annotation.NonNull;
+
 import androidx.annotation.Nullable;
 import android.util.Xml;
 
@@ -138,7 +138,7 @@ public final class XspfIterator {
 
     final void setDuration(String duration) {
       try {
-        final Long ms = Long.valueOf(duration);
+        final long ms = Long.parseLong(duration);
         result.duration = TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS);
       } catch (NumberFormatException e) {
       }
@@ -183,7 +183,7 @@ public final class XspfIterator {
       }
       
       @Override
-      public int read(@NonNull byte[] bytes, int off, int len) {
+      public int read(byte[] bytes, int off, int len) {
         if (buf.hasRemaining()) {
           len = Math.min(len, buf.remaining());
           buf.get(bytes, off, len);

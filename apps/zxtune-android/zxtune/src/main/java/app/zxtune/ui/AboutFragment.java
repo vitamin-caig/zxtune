@@ -20,7 +20,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SimpleExpandableListAdapter;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.collection.ArrayMap;
 import androidx.collection.SparseArrayCompat;
 import androidx.databinding.DataBindingUtil;
@@ -42,6 +42,7 @@ import app.zxtune.databinding.AboutBinding;
 
 public class AboutFragment extends DialogFragment {
 
+  @Nullable
   private AboutBinding binding;
 
   public static DialogFragment createInstance() {
@@ -49,8 +50,8 @@ public class AboutFragment extends DialogFragment {
   }
 
   @Override
-  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                           Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
 
     binding = DataBindingUtil.inflate(inflater, R.layout.about, container, false);
 
@@ -117,16 +118,17 @@ public class AboutFragment extends DialogFragment {
     return result;
   }
 
+  // public for provider
   public static class Model extends AndroidViewModel {
 
     // resId => [description]
-    private MutableLiveData<SparseArrayCompat<ArrayList<String>>> data = new MutableLiveData<>();
+    private final MutableLiveData<SparseArrayCompat<ArrayList<String>>> data = new MutableLiveData<>();
 
     static Model of(Fragment owner) {
       return ViewModelProviders.of(owner).get(Model.class);
     }
 
-    public Model(@NonNull Application app) {
+    public Model(Application app) {
       super(app);
     }
 
@@ -142,19 +144,21 @@ public class AboutFragment extends DialogFragment {
 
     private void load() {
       final ContentResolver resolver = getApplication().getContentResolver();
-      final Cursor cursor = resolver.query(PluginsProvider.getUri(), null, null, null, null);
       final SparseArrayCompat<ArrayList<String>> result = new SparseArrayCompat<>();
-      try {
-        while (cursor != null && cursor.moveToNext()) {
-          final int type = cursor.getInt(PluginsProvider.Columns.Type.ordinal());
-          final String descr = cursor.getString(PluginsProvider.Columns.Description.ordinal());
-          if (!result.containsKey(type)) {
-            result.append(type, new ArrayList<String>());
+      final Cursor cursor = resolver.query(PluginsProvider.getUri(), null, null, null, null);
+      if (cursor != null) {
+        try {
+          while (cursor.moveToNext()) {
+            final int type = cursor.getInt(PluginsProvider.Columns.Type.ordinal());
+            final String descr = cursor.getString(PluginsProvider.Columns.Description.ordinal());
+            if (!result.containsKey(type)) {
+              result.append(type, new ArrayList<String>());
+            }
+            result.get(type, null).add(descr);
           }
-          result.get(type, null).add(descr);
+        } finally {
+          cursor.close();
         }
-      } finally {
-        cursor.close();
       }
       data.postValue(result);
     }
@@ -238,7 +242,6 @@ public class AboutFragment extends DialogFragment {
       }
     }
 
-    @SuppressWarnings("deprecation")
     private static String getOrientation(int orientation) {
       switch (orientation) {
         case Configuration.ORIENTATION_LANDSCAPE:
@@ -271,7 +274,7 @@ public class AboutFragment extends DialogFragment {
       }
     }
 
-    public final String getResult() {
+    final String getResult() {
       return strings.toString();
     }
   }

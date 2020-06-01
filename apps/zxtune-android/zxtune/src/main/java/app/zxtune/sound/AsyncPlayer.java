@@ -6,10 +6,11 @@
 
 package app.zxtune.sound;
 
+import androidx.annotation.Nullable;
+
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-import androidx.annotation.NonNull;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 
@@ -29,7 +30,8 @@ public final class AsyncPlayer implements Player {
   private final AtomicInteger state;
   private final AtomicReference<SamplesSource> source;
   private final AtomicReference<TimeStamp> seekRequest;
-  private AsyncSamplesTarget target;
+  private final AsyncSamplesTarget target;
+  @Nullable
   private Thread thread;
 
   public static AsyncPlayer create(SamplesTarget target, PlayerEventsListener events) {
@@ -49,7 +51,7 @@ public final class AsyncPlayer implements Player {
   }
 
   @Override
-  public void setSource(@NonNull SamplesSource src) {
+  public void setSource(SamplesSource src) {
     src.initialize(target.getSampleRate());
     synchronized(state) {
       source.set(src);
@@ -97,7 +99,7 @@ public final class AsyncPlayer implements Player {
   @Override
   public void stopPlayback() {
     if (stopping()) {
-      while (true) {
+      while (thread != null) {
         try {
           thread.join();
           break;
@@ -143,7 +145,6 @@ public final class AsyncPlayer implements Player {
   public void release() {
     source.set(null);
     target.release();
-    target = null;
     state.set(RELEASED);
   }
 

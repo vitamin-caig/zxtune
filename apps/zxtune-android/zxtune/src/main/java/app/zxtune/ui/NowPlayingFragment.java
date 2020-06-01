@@ -21,7 +21,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
@@ -43,7 +42,9 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
   private static final int REQUEST_SEND = 2;
   private static final String EXTRA_ITEM_LOCATION = TAG + ".EXTRA_LOCATION";
 
+  @Nullable
   private InformationView info;
+  @Nullable
   private TrackActionsMenu trackActionsMenu;
 
   public static Fragment createInstance() {
@@ -51,7 +52,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
   }
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
     setHasOptionsMenu(true);
@@ -93,12 +94,13 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
 
   @Override
   @Nullable
-  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
     return container != null ? inflater.inflate(R.layout.now_playing, container, false) : null;
   }
 
   @Override
-  public void onViewCreated(View view, Bundle savedInstanceState) {
+  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     info = new InformationView(getActivity(), view);
   }
@@ -118,7 +120,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
   }
 
   @Override
-  public void onActivityResult(int requestCode, int resultCode, Intent data) {
+  public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
     final boolean isShare = requestCode == REQUEST_SHARE;
     final boolean isSend = requestCode == REQUEST_SEND;
     if (data != null && (isShare || isSend)) {
@@ -143,6 +145,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
     private final MenuItem add;
     private final MenuItem send;
     private final MenuItem share;
+    @Nullable
     private TrackActionsData data;
 
     TrackActionsMenu(Menu menu) {
@@ -154,7 +157,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
     }
 
     final boolean selectItem(MenuItem item) {
-      if (item == null || data == null) {
+      if (data == null) {
         return false;
       }
       switch (item.getItemId()) {
@@ -189,7 +192,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
       }
     }
 
-    private void setData(TrackActionsData data) {
+    private void setData(@Nullable TrackActionsData data) {
       this.data = data;
       trackMenu.setEnabled(data != null);
       if (data != null) {
@@ -213,7 +216,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
     private final MediaMetadataCompat metadata;
     private final MediaDescriptionCompat description;
 
-    TrackActionsData(Context context, @NonNull MediaMetadataCompat metadata) {
+    TrackActionsData(Context context, MediaMetadataCompat metadata) {
       this.context = context;
       this.metadata = metadata;
       this.description = metadata.getDescription();

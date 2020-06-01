@@ -8,8 +8,6 @@ package app.zxtune.fs.modland;
 
 import android.content.Context;
 
-import androidx.annotation.NonNull;
-
 import java.io.IOException;
 
 import app.zxtune.fs.ProgressCallback;
@@ -47,7 +45,6 @@ public abstract class Catalog {
      * Query single group object
      * @param id object identifier
      */
-    @NonNull
     Group getGroup(int id) throws IOException;
 
     /**
@@ -62,7 +59,6 @@ public abstract class Catalog {
      * @param id object identifier
      * @param filename track filename
      */
-    @NonNull
     Track getTrack(int id, String filename) throws IOException;
   }
 

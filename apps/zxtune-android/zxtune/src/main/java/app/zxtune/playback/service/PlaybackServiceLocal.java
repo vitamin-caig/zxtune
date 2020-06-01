@@ -265,10 +265,10 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
   private static class Holder {
 
-    public final PlayableItem item;
+    final PlayableItem item;
     private final app.zxtune.core.Player player;
-    public final SamplesSource source;
-    public final Visualizer visualizer;
+    final SamplesSource source;
+    final Visualizer visualizer;
 
     private Holder() {
       this.item = PlayableItemStub.instance();
@@ -292,13 +292,13 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       }
     }
 
-    public static Holder instance() {
+    static Holder instance() {
       return Singleton.INSTANCE;
     }
 
     //onDemand holder idiom
     private static class Singleton {
-      public static final Holder INSTANCE = new Holder();
+      static final Holder INSTANCE = new Holder();
     }
   }
 

@@ -8,8 +8,6 @@ package app.zxtune.fs.modland;
 
 import android.net.Uri;
 
-import androidx.annotation.NonNull;
-
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
@@ -112,7 +110,6 @@ public class RemoteCatalog extends Catalog {
       });
     }
 
-    @NonNull
     @Override
     public Group getGroup(final int id) throws IOException {
       Log.d(TAG, "getGroup(type=%s, id=%d)", tag, id);
@@ -156,7 +153,6 @@ public class RemoteCatalog extends Catalog {
       });
     }
 
-    @NonNull
     @Override
     public Track getTrack(int id, final String filename) throws IOException {
       Log.d(TAG, "getGroupTrack(type=%s, id=%d, filename=%s)", tag, id, filename);

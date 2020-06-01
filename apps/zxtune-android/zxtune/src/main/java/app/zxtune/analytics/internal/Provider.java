@@ -11,16 +11,15 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.LocaleList;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.util.DisplayMetrics;
+
+import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
-import app.zxtune.analytics.Analytics;
 
 public final class Provider extends ContentProvider {
 
@@ -34,7 +33,6 @@ public final class Provider extends ContentProvider {
                              .build();
 
   private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(1024);
-  private UrlsSink delegate;
 
   @Override
   public boolean onCreate() {
@@ -43,7 +41,7 @@ public final class Provider extends ContentProvider {
       return false;
     }
     MainApplication.initialize(ctx.getApplicationContext());
-    delegate = new Dispatcher(ctx.getApplicationContext());
+    final UrlsSink delegate = new Dispatcher(ctx.getApplicationContext());
     final Thread thread = new Thread("IASender") {
       @Override
       public void run() {
@@ -105,35 +103,36 @@ public final class Provider extends ContentProvider {
 
   @Nullable
   @Override
-  public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
+  public Cursor query(Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
     return null;
   }
 
   @Nullable
   @Override
-  public String getType(@NonNull Uri uri) {
+  public String getType(Uri uri) {
     return null;
   }
 
   @Nullable
   @Override
-  public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
+  public Uri insert(Uri uri, @Nullable ContentValues values) {
     return null;
   }
 
   @Override
-  public int delete(@NonNull Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
+  public int delete(Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
     return 0;
   }
 
   @Override
-  public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
+  public int update(Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
     return 0;
   }
 
+  @Nullable
   @Override
-  public Bundle call(@NonNull String method, @NonNull String arg, @Nullable Bundle extras) {
-    if (METHOD_PUSH.equals(method)) {
+  public Bundle call(String method, @Nullable String arg, @Nullable Bundle extras) {
+    if (METHOD_PUSH.equals(method) && arg != null) {
       doPush(arg);
     }
     return null;

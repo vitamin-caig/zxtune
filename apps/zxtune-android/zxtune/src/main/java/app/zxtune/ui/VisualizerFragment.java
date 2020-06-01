@@ -3,7 +3,7 @@ package app.zxtune.ui;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
+
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.support.v4.media.session.PlaybackStateCompat;
@@ -17,10 +17,11 @@ import app.zxtune.ui.views.SpectrumAnalyzerView;
 
 public class VisualizerFragment extends Fragment {
 
+  @Nullable
   private SpectrumAnalyzerView view;
 
   @Override
-  public void onCreate(Bundle savedInstanceState) {
+  public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
     model.getVisualizer().observe(this, new Observer<Visualizer>() {
@@ -39,12 +40,13 @@ public class VisualizerFragment extends Fragment {
   }
 
   @Override
-  public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+  public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
     return inflater.inflate(R.layout.visualizer, container, false);
   }
 
   @Override
-  public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
     this.view = view.findViewById(R.id.spectrum);

@@ -15,9 +15,14 @@ import android.os.Handler;
 import android.os.Parcelable;
 import android.os.PowerManager;
 import android.os.PowerManager.WakeLock;
+import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 import androidx.core.os.CancellationSignal;
 import androidx.core.os.OperationCanceledException;
-import android.widget.Toast;
+
+import java.util.concurrent.atomic.AtomicInteger;
+
 import app.zxtune.analytics.Analytics;
 import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
@@ -25,8 +30,6 @@ import app.zxtune.core.Scanner;
 import app.zxtune.device.ui.Notifications;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.ProviderClient;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ScanService extends IntentService {
 
@@ -40,7 +43,9 @@ public class ScanService extends IntentService {
   private final NotifyTask tracking;
   private final AtomicInteger addedItems;
   private final CancellationSignal signal;
+  @Nullable
   private ProviderClient client;
+  @Nullable
   private Exception error;
 
   //TODO: remove C&P
@@ -84,8 +89,8 @@ public class ScanService extends IntentService {
   }
 
   @Override
-  public void onStart(Intent intent, int startId) {
-    if (ACTION_CANCEL.equals(intent.getAction())) {
+  public void onStart(@Nullable Intent intent, int startId) {
+    if (intent != null && ACTION_CANCEL.equals(intent.getAction())) {
       signal.cancel();
       stopSelf();
     } else {
@@ -118,8 +123,8 @@ public class ScanService extends IntentService {
   }
 
   @Override
-  protected void onHandleIntent(Intent intent) {
-    if (ACTION_START.equals(intent.getAction())) {
+  protected void onHandleIntent(@Nullable Intent intent) {
+    if (intent != null && ACTION_START.equals(intent.getAction())) {
       final Parcelable[] paths = intent.getParcelableArrayExtra(EXTRA_PATHS);
       scan(paths);
     }
@@ -168,7 +173,9 @@ public class ScanService extends IntentService {
 
     private static final int NOTIFICATION_PERIOD = 2000;
 
+    @Nullable
     private WakeLock wakeLock;
+    @Nullable
     private StatusNotification notification;
 
     final void start() {
@@ -196,7 +203,7 @@ public class ScanService extends IntentService {
     private WakeLock getWakelock() {
       if (wakeLock == null) {
         final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ScanService");
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "zxtune:ScanService");
       }
       return wakeLock;
     }
@@ -204,7 +211,7 @@ public class ScanService extends IntentService {
     private class StatusNotification {
 
       private final CharSequence titlePrefix;
-      private Notifications.Controller delegate;
+      private final Notifications.Controller delegate;
 
       StatusNotification() {
         this.titlePrefix = getText(R.string.scanning_title);

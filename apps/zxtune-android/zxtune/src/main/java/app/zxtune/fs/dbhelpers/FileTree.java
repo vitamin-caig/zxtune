@@ -12,6 +12,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteStatement;
 
+import androidx.annotation.Nullable;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
@@ -65,6 +67,7 @@ final public class FileTree {
       insertStatement.executeInsert();
     }
 
+    @Nullable
     final byte[] get(String id) {
       final String[] columns = {"entries"};
       final String[] selections = {id};
@@ -114,7 +117,7 @@ final public class FileTree {
       out.writeUTF(size);
     }
 
-    public Entry(String name, String descr, String size) {
+    public Entry(String name, String descr, @Nullable String size) {
       this.name = name;
       this.descr = descr;
       this.size = size != null ? size : "";
@@ -129,6 +132,7 @@ final public class FileTree {
     entries.add(path, serialize(obj));
   }
 
+  @Nullable
   public final List<Entry> find(String path) {
     try {
       final byte[] data = entries.get(path);

@@ -1,5 +1,6 @@
 package app.zxtune.models;
 
+import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
 import android.os.RemoteException;
@@ -30,7 +31,7 @@ public class MediaSessionConnection {
     browser.disconnect();
   }
 
-  private void setControl(MediaControllerCompat ctrl) {
+  private void setControl(@Nullable MediaControllerCompat ctrl) {
     final MediaSessionModel model = ViewModelProviders.of(activity).get(MediaSessionModel.class);
     model.setControl(ctrl);
     MediaControllerCompat.setMediaController(activity, ctrl);

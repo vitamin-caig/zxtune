@@ -1,8 +1,13 @@
 package app.zxtune.core;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.util.LruCache;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import app.zxtune.StubProgressCallback;
 import app.zxtune.fs.DefaultComparator;
@@ -15,12 +20,6 @@ import app.zxtune.fs.VfsObject;
 import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator;
 import app.zxtune.playlist.XspfIterator;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 
 public final class Scanner {
 
@@ -43,7 +42,7 @@ public final class Scanner {
     };
   }
 
-  public static void analyzeIdentifier(@NonNull Identifier id, @NonNull Callback cb) {
+  public static void analyzeIdentifier(Identifier id, Callback cb) {
     try {
       if (id.getSubpath().isEmpty()) {
         Holder.INSTANCE.analyzeRealObject(id, cb);
@@ -55,11 +54,11 @@ public final class Scanner {
     }
   }
 
-  public static void analyzeFile(@NonNull VfsFile file, @NonNull Callback cb) {
+  public static void analyzeFile(VfsFile file, Callback cb) {
     Holder.INSTANCE.analyzeFileObject(file, cb);
   }
 
-  private void analyzeRealObject(@NonNull Identifier id, Callback cb) throws Exception {
+  private void analyzeRealObject(Identifier id, Callback cb) throws Exception {
     final VfsObject obj = Vfs.resolve(id.getDataLocation());
     if (obj instanceof VfsDir) {
       analyzeDirObject((VfsDir) obj, cb);
@@ -159,7 +158,7 @@ public final class Scanner {
     Core.detectModules(file, new ModuleDetectCallback() {
 
       @Override
-      public void onModule(@NonNull String subpath, @NonNull Module obj) {
+      public void onModule(String subpath, Module obj) {
         cb.onModule(new Identifier(uri, subpath), obj);
       }
 

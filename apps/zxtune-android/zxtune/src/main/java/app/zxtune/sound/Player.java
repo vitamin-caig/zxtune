@@ -6,14 +6,12 @@
 
 package app.zxtune.sound;
 
-import androidx.annotation.NonNull;
-
 /**
  * Base interface for low-level sound player
  */
 public interface Player {
 
-  void setSource(@NonNull SamplesSource src);
+  void setSource(SamplesSource src);
 
   void startPlayback();
 

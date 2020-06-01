@@ -14,6 +14,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import java.util.Locale;
@@ -102,7 +103,7 @@ class State {
     return false;
   }
   
-  private static boolean isNestedSubpath(String lh, String rh) {
+  private static boolean isNestedSubpath(@Nullable String lh, @Nullable String rh) {
     return rh != null && (lh == null || rh.startsWith(lh));
   }
   

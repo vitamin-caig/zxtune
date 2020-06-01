@@ -12,7 +12,6 @@ package app.zxtune.playback;
 
 import app.zxtune.TimeStamp;
 
-import java.sql.Time;
 import java.util.LinkedList;
 import java.util.List;
 

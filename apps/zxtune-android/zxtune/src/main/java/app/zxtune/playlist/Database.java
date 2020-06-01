@@ -154,7 +154,7 @@ public class Database {
   }
   
   // ! @return Cursor with statistics
-  final Cursor queryStatistics(String selection) {
+  final Cursor queryStatistics(@Nullable String selection) {
     Log.d(TAG, "queryStatistics(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
     return db.query(Tables.Tracks.NAME, Tables.Statistics.COLUMNS, selection, null/*selectionArgs*/, null/*groupBy*/,
@@ -162,8 +162,8 @@ public class Database {
   }
 
   // ! @return Cursor with queried values
-  final Cursor queryPlaylistItems(String[] columns, @Nullable String selection, @Nullable String[] selectionArgs,
-      String orderBy) {
+  final Cursor queryPlaylistItems(@Nullable String[] columns, @Nullable String selection,
+                                  @Nullable String[] selectionArgs, @Nullable String orderBy) {
     Log.d(TAG, "queryPlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getReadableDatabase();
     return db.query(Tables.Playlist.NAME, columns, selection, selectionArgs, null/* groupBy */,
@@ -171,7 +171,7 @@ public class Database {
   }
   
   // ! @return new item id
-  final long insertPlaylistItem(ContentValues values) {
+  final long insertPlaylistItem(@Nullable ContentValues values) {
     final SQLiteDatabase db = dbHelper.getWritableDatabase();
     return db.insert(Tables.Playlist.NAME, null, values);
   }
@@ -184,7 +184,8 @@ public class Database {
   }
 
   // ! @return count of updated items
-  final int updatePlaylistItems(ContentValues values, String selection, @Nullable String[] selectionArgs) {
+  final int updatePlaylistItems(@Nullable ContentValues values, @Nullable String selection,
+                                @Nullable String[] selectionArgs) {
     //update tracks table directly to avoid on update trigger
     Log.d(TAG, "updatePlaylistItems(%s) called", selection);
     final SQLiteDatabase db = dbHelper.getWritableDatabase();

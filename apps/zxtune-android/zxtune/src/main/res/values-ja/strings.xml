@@ -5,7 +5,6 @@
     <string name="review">レートアプリ</string>
     <string name="quit">終了アプリ</string>
     <!-- action-related -->
-    <string name="play">再生</string>
     <string name="add">追加</string>
     <string name="delete">削除</string>
     <string name="clear">クリア</string>
@@ -35,7 +34,6 @@
     </plurals>
     <string name="no_tracks_found">なサポートされるオーディオトラック見つかり</string>
     <string name="track">音声トラック</string>
-    <string name="starting">それは始まっている…</string>
     <!-- notifications -->
     <string name="notification_channel_name_events">イベント</string>
     <string name="notification_channel_name_services">サービス</string>

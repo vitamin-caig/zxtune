@@ -8,10 +8,8 @@ package app.zxtune.fs.http;
 
 import android.net.Uri;
 import android.os.Build;
-import androidx.annotation.NonNull;
+
 import androidx.annotation.Nullable;
-import app.zxtune.TimeStamp;
-import app.zxtune.net.Http;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,9 +19,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.TimeStamp;
+import app.zxtune.net.Http;
+
 final class HttpUrlConnectionProvider implements HttpProvider {
 
-  private static final String TAG = HttpUrlConnectionProvider.class.getName();
+  //private static final String TAG = HttpUrlConnectionProvider.class.getName();
 
   interface Policy {
     boolean hasConnection();
@@ -42,7 +43,6 @@ final class HttpUrlConnectionProvider implements HttpProvider {
     return policy.hasConnection();
   }
 
-  @NonNull
   @Override
   public HttpObject getObject(Uri uri) throws IOException {
     try {
@@ -55,7 +55,9 @@ final class HttpUrlConnectionProvider implements HttpProvider {
 
   private class SimpleHttpObject implements HttpObject {
 
+    @Nullable
     private final Long contentLength;
+    @Nullable
     private final TimeStamp lastModified;
     private final Uri uri;
     private final boolean acceptRanges;
@@ -80,7 +82,6 @@ final class HttpUrlConnectionProvider implements HttpProvider {
       connection.disconnect();
     }
 
-    @NonNull
     @Override
     public Uri getUri() {
       return uri;
@@ -98,7 +99,6 @@ final class HttpUrlConnectionProvider implements HttpProvider {
       return lastModified;
     }
 
-    @NonNull
     @Override
     public InputStream getInput() throws IOException {
       if (contentLength != null) {
@@ -109,20 +109,23 @@ final class HttpUrlConnectionProvider implements HttpProvider {
     }
   }
 
+  @Nullable
   private static Long getContentLength(HttpURLConnection connection) {
     final long size = Build.VERSION.SDK_INT >= 24 ? connection.getContentLengthLong() : connection.getContentLength();
     return size >= 0 ? size : null;
   }
 
+  @Nullable
   private static TimeStamp getLastModified(HttpURLConnection connection) {
     final long stamp = connection.getLastModified();
     return stamp > 0 ? TimeStamp.createFrom(stamp, TimeUnit.MILLISECONDS) : null;
   }
 
   private static boolean hasAcceptRanges(Map<String, List<String>> fields) {
-    for (String name : fields.keySet()) {
+    for (Map.Entry<String, List<String>> nameValue : fields.entrySet()) {
+      final String name = nameValue.getKey();
       if (name != null && 0 == name.compareToIgnoreCase("accept-ranges")) {
-        for (String value : fields.get(name)) {
+        for (String value : nameValue.getValue()) {
           if (value != null && 0 == value.compareToIgnoreCase("bytes")) {
             return true;
           }
@@ -132,7 +135,6 @@ final class HttpUrlConnectionProvider implements HttpProvider {
     return false;
   }
 
-  @NonNull
   @Override
   public InputStream getInputStream(Uri uri) throws IOException {
     return createStream(uri, 0);
@@ -195,7 +197,7 @@ final class HttpUrlConnectionProvider implements HttpProvider {
     }
 
     @Override
-    public int read(@NonNull byte[] b, int off, int len) throws IOException {
+    public int read(byte[] b, int off, int len) throws IOException {
       if (done == total) {
         return -1;
       }

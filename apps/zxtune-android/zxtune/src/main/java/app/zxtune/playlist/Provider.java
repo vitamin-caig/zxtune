@@ -16,7 +16,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.SparseIntArray;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import app.zxtune.MainApplication;
@@ -26,7 +25,9 @@ public class Provider extends ContentProvider {
   private static final String METHOD_SORT = "sort";
   private static final String METHOD_MOVE = "move";
 
+  @Nullable
   private Database db;
+  @Nullable
   private ContentResolver resolver;
 
   @Override
@@ -42,8 +43,10 @@ public class Provider extends ContentProvider {
     }
   }
 
+  @Nullable
   @Override
-  public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
+  public Cursor query(Uri uri, @Nullable String[] projection, @Nullable String selection,
+                      @Nullable String[] selectionArgs, @Nullable String sortOrder) {
     if (PlaylistQuery.STATISTICS.equals(uri)) {
       return db.queryStatistics(selection);
     } else {
@@ -55,8 +58,9 @@ public class Provider extends ContentProvider {
     }
   }
 
+  @Nullable
   @Override
-  public Uri insert(@NonNull Uri uri, ContentValues values) {
+  public Uri insert(Uri uri, @Nullable ContentValues values) {
     final Long id = PlaylistQuery.idOf(uri);
     if (null != id) {
       throw new IllegalArgumentException("Wrong URI: " + uri);
@@ -67,7 +71,7 @@ public class Provider extends ContentProvider {
   }
 
   @Override
-  public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
+  public int delete(Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
     final Long id = PlaylistQuery.idOf(uri);
     return id != null
                ? db.deletePlaylistItems(PlaylistQuery.selectionFor(id), null)
@@ -75,7 +79,8 @@ public class Provider extends ContentProvider {
   }
 
   @Override
-  public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+  public int update(Uri uri, @Nullable ContentValues values, @Nullable String selection,
+                    @Nullable String[] selectionArgs) {
     final Long id = PlaylistQuery.idOf(uri);
     if (id != null) {
       return db.updatePlaylistItems(values, PlaylistQuery.selectionFor(id), null);
@@ -95,7 +100,7 @@ public class Provider extends ContentProvider {
 
   @Nullable
   @Override
-  public Bundle call(String method, String arg, Bundle extras) {
+  public Bundle call(String method, @Nullable String arg, @Nullable Bundle extras) {
     if (arg == null) {
       return null;
     }
@@ -177,8 +182,9 @@ public class Provider extends ContentProvider {
     return res;
   }
 
+  @Nullable
   @Override
-  public String getType(@NonNull Uri uri) {
+  public String getType(Uri uri) {
     try {
       return PlaylistQuery.mimeTypeOf(uri);
     } catch (IllegalArgumentException e) {

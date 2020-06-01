@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- emulation -->
-  <string name="pref_emulation_title">仿真</string>
-  
-  <!-- common -->
+
+    <!-- common -->
   <string name="pref_interpolation">插值</string>
   <string-array name="pref_interpolation_entries">
     <item>无</item>

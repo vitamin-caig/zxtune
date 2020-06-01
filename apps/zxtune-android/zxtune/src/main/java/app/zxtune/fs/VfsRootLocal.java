@@ -197,13 +197,13 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
     return new LocalFile(obj);
   }
 
-  private void feedGood(File dir, Visitor visitor) {
+  private void feedGood(@Nullable File dir, Visitor visitor) {
     if (dir != null) {
       visitor.onDir(buildDir(dir));
     }
   }
 
-  private void feedGood(File dir, String description, Visitor visitor) {
+  private void feedGood(@Nullable File dir, String description, Visitor visitor) {
     //dir.canRead sometimes returns false while dir is really readable
     if (dir != null) {
       visitor.onDir(buildDir(dir, description));

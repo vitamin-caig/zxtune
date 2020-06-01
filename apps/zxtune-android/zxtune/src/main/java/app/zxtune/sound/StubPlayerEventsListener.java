@@ -6,8 +6,6 @@
 
 package app.zxtune.sound;
 
-import androidx.annotation.NonNull;
-
 public class StubPlayerEventsListener implements PlayerEventsListener {
 
   // permit inheritance
@@ -26,7 +24,7 @@ public class StubPlayerEventsListener implements PlayerEventsListener {
   public void onStop() {}
 
   @Override
-  public void onError(@NonNull Exception e) {}
+  public void onError(Exception e) {}
 
   public static PlayerEventsListener instance() {
     return Holder.INSTANCE;
@@ -34,6 +32,6 @@ public class StubPlayerEventsListener implements PlayerEventsListener {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final PlayerEventsListener INSTANCE = new StubPlayerEventsListener();
+    static final PlayerEventsListener INSTANCE = new StubPlayerEventsListener();
   }
 }

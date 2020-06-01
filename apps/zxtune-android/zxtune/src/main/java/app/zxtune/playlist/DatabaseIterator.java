@@ -23,6 +23,7 @@ public class DatabaseIterator {
   private final static Random rand = new Random();
   
   private final ContentResolver resolver;
+  @Nullable
   private final Item item;
 
   public DatabaseIterator(Context context, Uri current) {
@@ -106,11 +107,6 @@ public class DatabaseIterator {
   @Nullable
   private Item selectLastFrom(@Nullable String selection) {
     return select(selection, PlaylistQuery.limitedOrder(-1));
-  }
-
-  @Nullable
-  private Item select(String order) {
-    return select(null, order);
   }
 
   @Nullable

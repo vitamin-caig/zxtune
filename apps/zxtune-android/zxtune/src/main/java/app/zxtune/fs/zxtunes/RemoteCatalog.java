@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.util.Locale;
 
 import app.zxtune.Log;
+import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public final class RemoteCatalog extends Catalog {
@@ -93,17 +94,6 @@ public final class RemoteCatalog extends Catalog {
     }
   }
 
-  @Nullable
-  private static Integer asInt(String str) {
-    if (str == null) {
-      return null;
-    } else try {
-      return Integer.parseInt(str);
-    } catch (NumberFormatException e) {
-      return null;
-    }
-  }
-
   private static RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {
     final AuthorBuilder builder = new AuthorBuilder();
     final RootElement result = createRootElement();
@@ -111,7 +101,7 @@ public final class RemoteCatalog extends Catalog {
     list.setStartElementListener(new StartElementListener() {
       @Override
       public void start(Attributes attributes) {
-        final Integer count = asInt(attributes.getValue("count"));
+        final Integer count = HtmlUtils.tryGetInteger(attributes.getValue("count"));
         if (count != null) {
           visitor.setCountHint(count);
         }
@@ -156,9 +146,13 @@ public final class RemoteCatalog extends Catalog {
 
   private static class AuthorBuilder {
 
+    @Nullable
     private Integer id;
+    @Nullable
     private String nickname;
+    @Nullable
     private String name;
+    @Nullable
     private Integer tracks;
 
     AuthorBuilder() {
@@ -189,7 +183,8 @@ public final class RemoteCatalog extends Catalog {
     }
 
     private void reset() {
-      id = tracks = null;
+      id = null;
+      tracks = null;
       nickname = null;
       name = "";
     }
@@ -210,7 +205,7 @@ public final class RemoteCatalog extends Catalog {
     list.setStartElementListener(new StartElementListener() {
       @Override
       public void start(Attributes attributes) {
-        final Integer count = asInt(attributes.getValue("count"));
+        final Integer count = HtmlUtils.tryGetInteger(attributes.getValue("count"));
         if (count != null) {
           visitor.setCountHint(count);
         }
@@ -261,10 +256,15 @@ public final class RemoteCatalog extends Catalog {
 
   private static class ModuleBuilder {
 
+    @Nullable
     private Integer id;
+    @Nullable
     private String filename;
+    @Nullable
     private String title;
+    @Nullable
     private Integer duration;
+    @Nullable
     private Integer date;
 
     ModuleBuilder() {
@@ -299,7 +299,9 @@ public final class RemoteCatalog extends Catalog {
     }
 
     private void reset() {
-      id = duration = date = null;
+      id = null;
+      duration = null;
+      date = null;
       filename = null;
       title = "";
     }

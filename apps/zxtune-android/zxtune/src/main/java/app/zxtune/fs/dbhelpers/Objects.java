@@ -108,11 +108,7 @@ public class Objects {
   }
 
   private void bind(int pos, String p) {
-    if (p == null) {
-      insertStatement.bindNull(pos);
-    } else {
-      insertStatement.bindString(pos, p);
-    }
+    insertStatement.bindString(pos, p);
   }
 
   private void bind(int pos, long p) {

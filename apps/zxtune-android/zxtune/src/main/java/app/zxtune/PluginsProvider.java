@@ -17,7 +17,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
-import androidx.annotation.NonNull;
+
+import androidx.annotation.Nullable;
+
 import app.zxtune.core.jni.Plugins;
 
 public final class PluginsProvider extends ContentProvider {
@@ -73,33 +75,35 @@ public final class PluginsProvider extends ContentProvider {
   }
   
   @Override
-  public int delete(@NonNull Uri arg0, String arg1, String[] arg2) {
+  public int delete(Uri arg0, @Nullable String arg1, @Nullable String[] arg2) {
     return 0;
   }
 
   @Override
-  public String getType(@NonNull Uri uri) {
+  public String getType(Uri uri) {
     return MIME;
   }
 
+  @Nullable
   @Override
-  public Uri insert(@NonNull Uri uri, ContentValues values) {
+  public Uri insert(Uri uri, @Nullable ContentValues values) {
     return null;
   }
 
   @Override
-  public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+  public int update(Uri uri, @Nullable ContentValues values, @Nullable String selection,
+                    @Nullable String[] selectionArgs) {
     return 0;
   }
-  
+
   @Override
-  public Cursor query(@NonNull Uri uri, String[] projection, String selection, String[] selectionArgs,
-      String sortOrder) {
+  public Cursor query(Uri uri, @Nullable String[] projection, @Nullable String selection,
+                      @Nullable String[] selectionArgs, @Nullable String sortOrder) {
     final String[] columns = {Columns.Type.name(), Columns.Description.name()}; 
     final MatrixCursor res = new MatrixCursor(columns);
     Plugins.enumerate(new Plugins.Visitor() {
       @Override
-      public void onPlayerPlugin(int devices, @NonNull String id, @NonNull String description) {
+      public void onPlayerPlugin(int devices, String id, String description) {
         final int type = getPlayerPluginType(devices).ordinal();
         final String descr = String.format("[%s] %s", id, description);
         final Object[] values = {type, descr};
@@ -107,7 +111,7 @@ public final class PluginsProvider extends ContentProvider {
       }
 
       @Override
-      public void onContainerPlugin(int containerType, @NonNull String id, @NonNull String description) {
+      public void onContainerPlugin(int containerType, String id, String description) {
         final int type = getContainerPluginType(containerType).ordinal();
         final Object[] values = {type, description};
         res.addRow(values);

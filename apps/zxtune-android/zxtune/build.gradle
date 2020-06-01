@@ -56,8 +56,9 @@ dependencies {
     implementation('com.crashlytics.sdk.android:crashlytics-ndk:2.1.1@aar') {
         transitive = true
     }
-    implementation "org.jsoup:jsoup:1.13.1"
-    implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"
+    implementation 'org.jsoup:jsoup:1.13.1'
+    implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
     developImplementation 'com.squareup.leakcanary:leakcanary-android:2.3'
 }

@@ -208,7 +208,10 @@ final class Database {
   }
 
   final void addGroup(String category, Group obj) {
-    groups.get(category).add(obj);
+    final Tables.Groups group = groups.get(category);
+    if (group != null) {
+      group.add(obj);
+    }
   }
 
   final boolean queryTracks(String category, int id, Catalog.TracksVisitor visitor) {
@@ -253,7 +256,10 @@ final class Database {
   }
 
   final void addGroupTrack(String category, int id, Track obj) {
-    groupTracks.get(category).add(id, obj.id);
+    final Tables.GroupTracks tracks = groupTracks.get(category);
+    if (tracks != null) {
+      tracks.add(id, obj.id);
+    }
   }
 
   private static class Helper extends SQLiteOpenHelper {

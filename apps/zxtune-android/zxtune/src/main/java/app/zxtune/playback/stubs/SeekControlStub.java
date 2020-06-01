@@ -39,6 +39,6 @@ public final class SeekControlStub implements SeekControl {
 
   //onDemand holder idiom
   private static class Holder {
-    public static final SeekControl INSTANCE = new SeekControlStub();
+    static final SeekControl INSTANCE = new SeekControlStub();
   }  
 }

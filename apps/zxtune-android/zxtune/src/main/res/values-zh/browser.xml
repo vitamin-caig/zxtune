@@ -2,7 +2,5 @@
 <resources>
   <string name="browser">浏览器</string>
   <string name="browser_empty">没有文件</string>
-  <string name="browser_loading">正在加载…</string>
-  <string name="browser_searching">正在搜索…</string>
-  <string name="browser_search_hint">搜索</string>
+    <string name="browser_search_hint">搜索</string>
 </resources>

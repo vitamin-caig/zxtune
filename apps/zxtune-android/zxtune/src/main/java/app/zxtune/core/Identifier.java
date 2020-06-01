@@ -1,9 +1,8 @@
 package app.zxtune.core;
 
 import android.net.Uri;
-import androidx.annotation.NonNull;
+
 import androidx.annotation.Nullable;
-import android.text.TextUtils;
 
 public class Identifier {
 
@@ -17,56 +16,51 @@ public class Identifier {
    */
   private final Uri fullpath;
   private final Uri location;
-  @NonNull
   private final String subpath;
 
-  public Identifier(@NonNull Uri location, @Nullable String subpath) {
+  public Identifier(Uri location, @Nullable String subpath) {
     this.fullpath = withSubpath(location, subpath);
     this.location = location;
     this.subpath = subpath != null ? subpath : "";
   }
 
-  public Identifier(@NonNull Uri fullpath) {
+  public Identifier(Uri fullpath) {
     this.fullpath = fullpath;
     this.location = withSubpath(fullpath, "");
     this.subpath = getSubpath(fullpath);
   }
 
-  @NonNull
   public static Identifier parse(@Nullable String str) {
     return str != null
             ? new Identifier(Uri.parse(str))
         : EMPTY;
   }
 
-  private static Uri withSubpath(Uri in, String subpath) {
+  private static Uri withSubpath(Uri in, @Nullable String subpath) {
     final Uri.Builder builder = in.buildUpon();
-    builder.fragment(subpath);
+    if (subpath != null) {
+      builder.fragment(subpath);
+    }
     return builder.build();
   }
 
-  @NonNull
   private static String getSubpath(Uri in) {
     final String fragment = in.getFragment();
     return fragment != null ? fragment : "";
   }
 
-  @NonNull
   public final Uri getFullLocation() {
     return fullpath;
   }
 
-  @NonNull
   public final Uri getDataLocation() {
     return location;
   }
 
-  @NonNull
   public final String getSubpath() {
     return subpath;
   }
 
-  @NonNull
   public final String getDisplayFilename() {
     final String filename = location.getLastPathSegment();
     if (subpath.length() == 0) {
@@ -75,10 +69,6 @@ public class Identifier {
       final String subname = subpath.substring(subpath.lastIndexOf(SUBPATH_DELIMITER) + 1);
       return filename + " > " + subname;
     }
-  }
-
-  public final String[] getSubpathComponents() {
-    return TextUtils.split(subpath, SUBPATH_DELIMITER);
   }
 
   @Override

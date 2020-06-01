@@ -29,8 +29,8 @@ class PlaylistQuery {
 
   private static final class Type {
 
-    public final String mime;
-    public final int id;
+    final String mime;
+    final int id;
 
     Type(String mime) {
       this.mime = mime;
@@ -104,7 +104,7 @@ class PlaylistQuery {
   }
 
   @Nullable
-  public static String selectionFor(@Nullable long ids[]) {
+  public static String selectionFor(@Nullable long[] ids) {
     if (ids == null) {
       return null;
     } else {

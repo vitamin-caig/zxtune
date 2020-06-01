@@ -19,15 +19,16 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 
+import androidx.annotation.Nullable;
+
 public class PreferencesActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
   public static final String ACTION_PREFERENCE_CHANGED = PreferencesActivity.class.getName() + ".PREFERENCE_CHANGED";
   public static final String EXTRA_PREFERENCE_NAME = "name";
   public static final String EXTRA_PREFERENCE_VALUE = "value";
     
-  @SuppressWarnings("deprecation")
   @Override
-  protected void onCreate(Bundle savedInstanceState) {
+  protected void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     //empty now
     //addPreferencesFromResource(R.xml.preferences_ui);
@@ -37,21 +38,18 @@ public class PreferencesActivity extends PreferenceActivity implements OnSharedP
     initPreferenceSummary(getPreferenceScreen());
   }
   
-  @SuppressWarnings("deprecation")
   @Override
   protected void onResume() {
     super.onResume();
     getPreferenceScreen().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
   }
   
-  @SuppressWarnings("deprecation")
   @Override
   protected void onPause() {
     super.onPause();
     getPreferenceScreen().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
   }
 
-  @SuppressWarnings("deprecation")
   @Override
   public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
     updatePreferenceSummary(findPreference(key));

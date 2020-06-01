@@ -1,17 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
   <!-- sound -->
-  <string name="pref_sound_title">Sonar</string>
-  
-  <!-- common -->
+
+    <!-- common -->
   <string name="pref_zxtune_sound_mixer_x_0_x_title">Canal A</string>
   <string name="pref_zxtune_sound_mixer_x_1_x_title">Canal B</string>
   <string name="pref_zxtune_sound_mixer_x_2_x_title">Canal C</string>
-  <string name="pref_zxtune_sound_mixer_x_3_x_title">Canal D</string>
-  <string name="pref_zxtune_sound_mixer_x_x_0_title">Izquierda</string>
+    <string name="pref_zxtune_sound_mixer_x_x_0_title">Izquierda</string>
   <string name="pref_zxtune_sound_mixer_x_x_1_title">Derecha</string>
   <string name="pref_zxtune_sound_mixer_3_x_x_title">Mezclador de 3 canales</string>
-  <string name="pref_zxtune_sound_mixer_4_x_x_title">Mezclador de 4 canales</string>
-  <!--3-channel-->
+    <!--3-channel-->
   <!--4-channel-->
 </resources>

@@ -47,6 +47,6 @@ public class PlaybackControlStub implements PlaybackControl {
   }
 
   private static class Holder {
-    public static final PlaybackControl INSTANCE = new PlaybackControlStub();
+    static final PlaybackControl INSTANCE = new PlaybackControlStub();
   }
 }

@@ -11,6 +11,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import androidx.annotation.Nullable;
+
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.DBProvider;
@@ -274,15 +276,15 @@ final class Database {
     return queryTracksInternal(selection, visitor);
   }
 
-  final boolean queryRandomTracks(Catalog.TracksVisitor visitor) {
-    return queryTracksInternal(null, "RANDOM() LIMIT 100", visitor);
+  final void queryRandomTracks(Catalog.TracksVisitor visitor) {
+    queryTracksInternal(null, "RANDOM() LIMIT 100", visitor);
   }
 
-  private boolean queryTracksInternal(String selection, Catalog.TracksVisitor visitor) {
+  private boolean queryTracksInternal(@Nullable String selection, Catalog.TracksVisitor visitor) {
     return queryTracksInternal(selection, null, visitor);
   }
 
-  private boolean queryTracksInternal(String selection, String order,
+  private boolean queryTracksInternal(@Nullable String selection, @Nullable String order,
                                       Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, order);

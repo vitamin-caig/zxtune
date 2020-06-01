@@ -17,7 +17,7 @@ import io.fabric.sdk.android.Fabric;
 
 final class FabricSink implements Sink {
 
-  private static final String TAG = FabricSink.class.getName();
+  //private static final String TAG = FabricSink.class.getName();
 
   static boolean isEnabled() {
     return BuildConfig.BUILD_TYPE.equals("release");

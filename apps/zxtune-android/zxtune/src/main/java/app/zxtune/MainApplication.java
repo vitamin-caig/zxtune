@@ -9,6 +9,8 @@ package app.zxtune;
 import android.app.Application;
 import android.content.Context;
 
+import androidx.annotation.Nullable;
+
 import app.zxtune.analytics.Analytics;
 import app.zxtune.device.ui.Notifications;
 import com.github.anrwatchdog.ANRError;
@@ -16,6 +18,7 @@ import com.github.anrwatchdog.ANRWatchDog;
 
 public class MainApplication extends Application {
 
+  @Nullable
   private static Context globalContext;
 
   @Override
