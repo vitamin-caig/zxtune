@@ -254,5 +254,4 @@
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
-    <string name="file_too_big">File is too big</string>
 </resources>

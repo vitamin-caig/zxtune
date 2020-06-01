@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- emulation -->
-  <string name="pref_emulation_title">エミュレート</string>
-  
-  <!-- common -->
+
+    <!-- common -->
   <string name="pref_interpolation">補間</string>
   <string-array name="pref_interpolation_entries">
     <item>いいえ</item>

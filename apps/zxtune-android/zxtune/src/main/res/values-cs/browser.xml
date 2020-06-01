@@ -2,7 +2,5 @@
 <resources>
   <string name="browser">Prohlížeč</string>
   <string name="browser_empty">Žádné soubory</string>
-  <string name="browser_loading">Nahrává se…</string>
-  <string name="browser_searching">Hledá se…</string>
-  <string name="browser_search_hint">Hledat</string>
+    <string name="browser_search_hint">Hledat</string>
 </resources>

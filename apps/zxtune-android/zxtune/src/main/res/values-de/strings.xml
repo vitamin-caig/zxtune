@@ -5,7 +5,6 @@
     <string name="review">Bewerten</string>
     <string name="quit">Beenden</string>
     <!-- action-related -->
-    <string name="play">Abspielen</string>
     <string name="add">Hinzufügen</string>
     <string name="delete">Löschen</string>
     <string name="clear">Zurücksetzen</string>
@@ -37,7 +36,6 @@
     </plurals>
     <string name="no_tracks_found">Unterstützte Tonspuren wurden nicht gefunden</string>
     <string name="track">Tonspur</string>
-    <string name="starting">Starten…</string>
     <!-- notifications -->
     <string name="notification_channel_name_events">Veranstaltungen</string>
     <string name="notification_channel_name_services">Dienstleistungen</string>

@@ -55,7 +55,7 @@
                 android:layout_centerVertical="true"
                 android:drawablePadding="@dimen/spacing_half"
                 android:text="@{entry.details}"
-                android:visibility="@{TextUtils.isEmpty(entry.details) ? View.GONE : View.VISIBLE}"/>
+                android:visibility="@{TextUtils.isEmpty(entry.details) ? View.GONE : View.VISIBLE}"
         />
 
     </RelativeLayout>

@@ -196,5 +196,4 @@
     <!-- errors -->
     <string name="network_inaccessible">Síť není dostupná</string>
     <string name="failed_resolve">Podařilo se zrušit %s</string>
-    <string name="file_too_big">Soubor je příliš velký</string>
 </resources>

@@ -1,9 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
   <!-- emulation -->
-  <string name="pref_emulation_title">Emulación</string>
-  
-  <!-- common -->
+
+    <!-- common -->
   <string name="pref_interpolation">Interpolación</string>
   <string-array name="pref_interpolation_entries">
     <item>Ninguna</item>

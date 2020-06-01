@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- emulation -->
-  <string name="pref_emulation_title">Emulace</string>
-  
-  <!-- common -->
+
+    <!-- common -->
   <string name="pref_interpolation">Interpolace</string>
   <string-array name="pref_interpolation_entries">
     <item>Nic</item>

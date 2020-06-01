@@ -5,7 +5,6 @@
     <string name="review">评价应用</string>
     <string name="quit">退出</string>
     <!-- action-related -->
-    <string name="play">播放</string>
     <string name="add">添加</string>
     <string name="delete">删除</string>
     <string name="clear">清除</string>
@@ -35,7 +34,6 @@
     </plurals>
     <string name="no_tracks_found">没有找到支持的音轨</string>
     <string name="track">音轨</string>
-    <string name="starting">正在开始…</string>
     <!-- notifications -->
     <string name="notification_channel_name_events">事件</string>
     <string name="notification_channel_name_services">服务</string>

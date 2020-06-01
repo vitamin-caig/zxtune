@@ -194,5 +194,4 @@
     <!-- errors -->
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
     <string name="failed_resolve">Adresse %s konnte nicht aufgelöst werden</string>
-    <string name="file_too_big">Die Datei ist zu groß</string>
 </resources>
