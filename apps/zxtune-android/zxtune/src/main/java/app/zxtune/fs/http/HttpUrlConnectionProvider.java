@@ -67,11 +67,14 @@ final class HttpUrlConnectionProvider implements HttpProvider {
       connection.setRequestProperty("Accept-Encoding", "identity");
       connection.setRequestMethod("HEAD");
       connection.setDoInput(false);
+      connection.setInstanceFollowRedirects(true);
       connection.connect();
 
       final int code = connection.getResponseCode();
       if (code != HttpURLConnection.HTTP_OK) {
-        throw new IOException(connection.getResponseMessage());
+        throw new IOException(String.format(Locale.US,
+            "Unexpected code %d (%s) for HEAD request to %s", code,
+            connection.getResponseMessage(), uri));
       }
       this.contentLength = HttpUrlConnectionProvider.getContentLength(connection);
       this.lastModified = HttpUrlConnectionProvider.getLastModified(connection);
