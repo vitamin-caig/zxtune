@@ -43,12 +43,12 @@ public class SeekBarPreference extends Preference implements OnSeekBarChangeList
   @Nullable
   private TextView statusText;
 
-  private SeekBarPreference(Context context, AttributeSet attrs) {
+  public SeekBarPreference(Context context, AttributeSet attrs) {
     super(context, attrs);
     initPreference(context, attrs);
   }
 
-  private SeekBarPreference(Context context, AttributeSet attrs, int defStyle) {
+  public SeekBarPreference(Context context, AttributeSet attrs, int defStyle) {
     super(context, attrs, defStyle);
     initPreference(context, attrs);
   }
