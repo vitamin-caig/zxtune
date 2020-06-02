@@ -79,7 +79,4 @@ final class FabricSink implements Sink {
 
   @Override
   public void sendNoTracksFoundEvent(Uri uri) {}
-
-  @Override
-  public void sendHostUnavailableEvent(String host) {}
 }

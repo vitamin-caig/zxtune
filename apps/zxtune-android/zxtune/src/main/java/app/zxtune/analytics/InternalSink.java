@@ -194,10 +194,6 @@ final class InternalSink implements Sink {
     send(builder);
   }
 
-  @Override
-  public void sendHostUnavailableEvent(String host) {
-  }
-
   private void send(UrlsBuilder builder) {
     try {
       delegate.push(builder.getResult());

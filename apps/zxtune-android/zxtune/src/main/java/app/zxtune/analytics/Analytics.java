@@ -132,10 +132,4 @@ public class Analytics {
       s.sendNoTracksFoundEvent(uri);
     }
   }
-
-  public static void sendHostUnavailableEvent(String host) {
-    for (Sink s : sinks) {
-      s.sendHostUnavailableEvent(host);
-    }
-  }
 }

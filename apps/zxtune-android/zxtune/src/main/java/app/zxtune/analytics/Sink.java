@@ -23,6 +23,4 @@ interface Sink {
   void sendVfsEvent(String id, String scope, @Analytics.VfsAction int action);
 
   void sendNoTracksFoundEvent(Uri uri);
-
-  void sendHostUnavailableEvent(String host);
 }

@@ -2,21 +2,23 @@ package app.zxtune.fs.http;
 
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 
 import app.zxtune.Log;
-import app.zxtune.analytics.Analytics;
 
 public final class MultisourceHttpProvider {
 
   private static final String TAG = MultisourceHttpProvider.class.getName();
 
-  private static final long QUARANTINE_PERIOD_MS = 60 * 60 * 1000;
+  private static final long MIN_QUARANTINE_PERIOD = 1000;
+  private static final long MAX_QUARANTINE_PERIOD = 60 * 60 * 1000;
 
   private final HttpProvider delegate;
-  private final HashMap<String, Long> hostDisabledTill = new HashMap<>();
+  private final HashMap<String, HostStatistics> hostStat = new HashMap<>();
 
   public MultisourceHttpProvider(HttpProvider delegate) {
     this.delegate = delegate;
@@ -27,23 +29,12 @@ public final class MultisourceHttpProvider {
   }
 
   public final HttpObject getObject(Uri[] uris) throws IOException {
-    final long now = System.currentTimeMillis();
-    for (int idx = 0; ; ++idx) {
-      final Uri uri = uris[idx];
-      final boolean isLast = idx == uris.length - 1;
-      if (!isLast && isDisabled(uri, now)) {
-        continue;
-      }
-      try {
+    return getSingleObject(uris, new Getter<HttpObject>() {
+      @Override
+      public HttpObject get(Uri uri) throws IOException {
         return delegate.getObject(uri);
-      } catch (IOException ex) {
-        if (isLast || !delegate.hasConnection()) {
-          throw ex;
-        } else {
-          disable(uri, now, ex);
-        }
       }
-    }
+    });
   }
 
   public final InputStream getInputStream(Uri uri) throws IOException {
@@ -51,37 +42,100 @@ public final class MultisourceHttpProvider {
   }
 
   public final InputStream getInputStream(Uri[] uris) throws IOException {
+    return getSingleObject(uris, new Getter<InputStream>() {
+      @Override
+      public InputStream get(Uri uri) throws IOException {
+        return delegate.getInputStream(uri);
+      }
+    });
+  }
+
+  private interface Getter<T> {
+    T get(Uri uri) throws IOException;
+  }
+
+  private <T> T getSingleObject(Uri[] uris, Getter<T> getter) throws IOException {
     final long now = System.currentTimeMillis();
     for (int idx = 0; ; ++idx) {
       final Uri uri = uris[idx];
+      final String host = uri.getHost();
+      final HostStatistics stat = getStat(host);
       final boolean isLast = idx == uris.length - 1;
-      if (!isLast && isDisabled(uri, now)) {
+      if (!isLast && stat.isDisabledFor(now)) {
         continue;
       }
       try {
-        return delegate.getInputStream(uri);
+        final T result = getter.get(uri);
+        stat.onSuccess(now);
+        return result;
       } catch (IOException ex) {
         if (isLast || !delegate.hasConnection()) {
           throw ex;
         } else {
-          disable(uri, now, ex);
+          stat.onError(now, new IOException(ex));
         }
       }
     }
   }
 
-  private boolean isDisabled(Uri uri, long now) {
-    final String host = uri.getHost();
-    final Long till = hostDisabledTill.get(host);
-    return till != null && till > now;
+  private synchronized HostStatistics getStat(@Nullable String host) {
+    final HostStatistics existing = hostStat.get(host);
+    if (existing != null) {
+      return existing;
+    } else {
+      final HostStatistics newOne = new HostStatistics(host);
+      hostStat.put(host, newOne);
+      return newOne;
+    }
   }
 
-  private void disable(Uri uri, long now, IOException e) {
-    final String host = uri.getHost();
-    if (host != null) {
-      Log.w(TAG, e, "Temporarily disable requests to %s", host);
-      Analytics.sendHostUnavailableEvent(host);
-      hostDisabledTill.put(host, now + QUARANTINE_PERIOD_MS);
+  private static class HostStatistics {
+    @Nullable
+    private final String host;
+    private int successes;
+    private long lastSuccess;
+    private int errors;
+    private long lastError;
+    private long disabledTill;
+
+    HostStatistics(@Nullable String host) {
+      this.host = host;
+    }
+
+    synchronized boolean isDisabledFor(long now) {
+      return disabledTill > now;
+    }
+
+    synchronized void onSuccess(long now) {
+      ++successes;
+      lastSuccess = now;
+    }
+
+    void onError(long now, IOException ex) {
+      if (disableFor(now)) {
+        Log.w(TAG, ex, "Temporarily disable requests to '%s' (%d/%d)", host, successes, errors);
+      } else {
+        Log.w(TAG, ex, "Give a change after error for host '%s' (%d/%d)", host, successes, errors);
+      }
+    }
+
+    private synchronized boolean disableFor(long now) {
+      final long quarantine = getQuarantine();
+      ++errors;
+      lastError = now;
+      disabledTill = now + quarantine;
+      return quarantine != 0;
+    }
+
+    private long getQuarantine() {
+      if (lastSuccess >= lastError) {
+        // forgive first error in chain
+        return 0;
+      } else if (successes >= errors) {
+        return MIN_QUARANTINE_PERIOD;
+      } else {
+        return Math.min(MAX_QUARANTINE_PERIOD, MIN_QUARANTINE_PERIOD * (errors - successes));
+      }
     }
   }
 }
