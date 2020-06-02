@@ -59,8 +59,9 @@ dependencies {
     implementation('com.crashlytics.sdk.android:answers:1.4.7@aar') {
         transitive = true
     }
-    implementation "org.jsoup:jsoup:1.13.1"
-    implementation "com.github.anrwatchdog:anrwatchdog:1.4.0"
+    implementation 'org.jsoup:jsoup:1.13.1'
+    implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
+    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     //manual deps
     implementation 'androidx.databinding:databinding-runtime:3.2.0'
     implementation 'androidx.databinding:databinding-compiler:3.2.0'
