@@ -26,7 +26,7 @@ import app.zxtune.R;
 import app.zxtune.RingtoneService;
 import app.zxtune.TimeStamp;
 
-class RingtoneFragment extends DialogFragment {
+public class RingtoneFragment extends DialogFragment {
 
   @Nullable
   static DialogFragment createInstance(FragmentActivity activity, Uri location) {
