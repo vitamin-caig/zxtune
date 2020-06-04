@@ -242,7 +242,7 @@ public class Model extends AndroidViewModel {
     private final State newState;
 
     SearchTask(State state, String query) {
-      newState = new State(state.uri, state.breadcrumbs, Collections.EMPTY_LIST);
+      newState = new State(state.uri, state.breadcrumbs, new ArrayList<ListingEntry>());
       newState.query = query;
     }
 
