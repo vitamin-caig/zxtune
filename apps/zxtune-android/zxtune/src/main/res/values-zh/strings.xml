@@ -32,6 +32,9 @@
     <plurals name="tracks">
       <item quantity="other">%d 音轨</item>
     </plurals>
+    <plurals name="packs">
+      <item quantity="other">%d 包</item>
+    </plurals>
     <string name="no_tracks_found">没有找到支持的音轨</string>
     <string name="track">音轨</string>
     <!-- notifications -->

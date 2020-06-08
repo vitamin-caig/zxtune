@@ -182,6 +182,11 @@
     <!-- radio -->
     <string name="vfs_radio_root_name">Radio</string>
     <string name="vfs_radio_root_description">Compilaciones y melodías aleatorias</string>
+    <!-- vgmrips -->
+    <string name="vfs_vgmrips_companies_name">Empresas</string>
+    <string name="vfs_vgmrips_composers_name">Compositores</string>
+    <string name="vfs_vgmrips_chips_name">Chips</string>
+    <string name="vfs_vgmrips_systems_name">Sistemas</string>
     <!--errors-->
   <string name="network_inaccessible">La red no es accesible</string>
   <string name="failed_resolve">No se pudo resolver %s</string>

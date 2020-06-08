@@ -23,6 +23,7 @@ class VfsRootNetwork extends VfsRootComposite {
     addSubroot(new VfsRootModarchive(this, appContext, http));
     addSubroot(new VfsRootAsma(this, appContext, http));
     addSubroot(new VfsRootAminet(this, appContext, http));
+    addSubroot(new VfsRootVgmrips(this, appContext, http));
   }
 
   @Override

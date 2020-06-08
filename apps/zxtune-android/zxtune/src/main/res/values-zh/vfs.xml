@@ -183,6 +183,11 @@
     <!-- radio -->
     <string name="vfs_radio_root_name">收音机</string>
     <string name="vfs_radio_root_description">随机曲调和汇编</string>
+    <!-- vgmrips -->
+    <string name="vfs_vgmrips_companies_name">公司</string>
+    <string name="vfs_vgmrips_composers_name">作曲家</string>
+    <string name="vfs_vgmrips_chips_name">芯片</string>
+    <string name="vfs_vgmrips_systems_name">系统</string>
     <!-- errors -->
     <string name="network_inaccessible">无法访问网络</string>
     <string name="failed_resolve">无法解析 %s</string>

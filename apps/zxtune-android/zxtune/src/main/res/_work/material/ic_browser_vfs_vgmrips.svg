@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="32"
+   width="32"
+   viewBox="0 0 384 384">
+  <path
+     style="fill:#00fc00;fill-opacity:1;stroke:none"
+     d="M 48,48 V 192 L 192,336 336,192 V 48 h -84 v 120 l -60,60 -60,-60 V 48 Z"/>
+</svg>

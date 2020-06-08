@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.ProgressCallback;
+import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public class RemoteCatalog extends Catalog {
@@ -76,6 +77,13 @@ public class RemoteCatalog extends Catalog {
       }
     }
     return result;
+  }
+
+  public static Uri[] getRemoteUris(Track track) {
+    return new Uri[] {
+        Cdn.vgmrips(track.location),
+        buildBaseUri("packs/vgm/" + track.location).build()
+    };
   }
 
   private static Uri buildUri(String path) {
