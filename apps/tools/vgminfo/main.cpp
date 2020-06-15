@@ -100,9 +100,9 @@ namespace
       ParseSN76489(stream);
       ParseDevice("YM2413", stream);
       const uint32_t gd3 = stream.ReadDword();
-      const uint32_t samples = stream.ReadDword();
+      Samples = stream.ReadDword();
       const uint32_t loopOffset = stream.ReadDword();
-      const uint32_t loopSamples = stream.ReadDword();
+      LoopSamples = stream.ReadDword();
       if (Version >= 101)
       {
         Framerate = stream.ReadDword();
@@ -191,9 +191,11 @@ namespace
       {
         std::cout << "  " << dev.first << " (" << dev.second << "hz)" << std::endl;
       }
+      std::cout << "Duration: " << Samples / 44100 << "s (" << Samples << " samples)" << std::endl;
+      std::cout << "Loop: " << LoopSamples / 44100 << "s (" << LoopSamples << " samples)" << std::endl;
       if (Framerate)
       {
-        std::cout << "Framerate: "<< Framerate << "hz" << std::endl;
+        std::cout << "Framerate: " << Framerate << "hz" << std::endl;
       }
       if (!Tags.empty())
       {
@@ -334,6 +336,8 @@ namespace
     }
   private:
     uint_t Version;
+    uint_t Samples;
+    uint_t LoopSamples;
     uint_t Framerate;
     std::map<String, String> Tags;
     std::map<String, uint_t> Devices;
