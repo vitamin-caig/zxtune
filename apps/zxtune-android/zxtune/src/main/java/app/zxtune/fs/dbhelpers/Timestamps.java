@@ -10,6 +10,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDoneException;
 import android.database.sqlite.SQLiteStatement;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.room.Dao;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+import androidx.room.Query;
+
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
@@ -101,17 +108,50 @@ public class Timestamps {
     }
   }
 
-  static class StubLifetime implements Lifetime {
+  // TODO: make the only implementation
+  @Dao
+  public static abstract class DAO {
 
-    static final StubLifetime INSTANCE = new StubLifetime();
+    @Entity(tableName = "timestamps")
+    public static class Record {
+      @PrimaryKey
+      @NonNull
+      public String id;
 
-    @Override
-    public boolean isExpired() {
-      return false;
+      public long stamp;
     }
 
-    @Override
-    public void update() {
+    @Query("SELECT strftime('%s') - stamp FROM timestamps WHERE id = :id")
+    @Nullable
+    protected abstract Long queryAge(String id);
+
+    @Query("REPLACE INTO timestamps VALUES (:id, strftime('%s'))")
+    protected abstract void touch(String id);
+
+    private class LifetimeImpl implements Lifetime {
+
+      private final String objId;
+      private final TimeStamp TTL;
+
+      LifetimeImpl(String id, TimeStamp ttl) {
+        this.objId = id;
+        this.TTL = ttl;
+      }
+
+      @Override
+      public boolean isExpired() {
+        final Long age = queryAge(objId);
+        return age == null || TimeStamp.createFrom(age, TimeUnit.SECONDS).compareTo(TTL) > 0;
+      }
+
+      @Override
+      public void update() {
+        touch(objId);
+      }
+    }
+
+    public final Lifetime getLifetime(String id, TimeStamp ttl) {
+      return new LifetimeImpl(id, ttl);
     }
   }
 }

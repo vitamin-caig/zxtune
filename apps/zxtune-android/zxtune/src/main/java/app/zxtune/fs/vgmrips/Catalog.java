@@ -30,8 +30,7 @@ public abstract class Catalog {
 
   public static Catalog create(Context context, MultisourceHttpProvider http) {
     final RemoteCatalog remote = new RemoteCatalog(http);
-    //final Database db = new Database(context);
-    //return new CachingCatalog(remote, db);
-    return remote;
+    final Database db = new Database(context);
+    return new CachingCatalog(remote, db);
   }
 }
