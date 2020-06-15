@@ -13,20 +13,15 @@
     <string name="vfs_modland_root_name">Modland - das größte Modul-Archiv</string>
     <string name="vfs_modland_root_description">Von http://www.exotica.org.uk</string>
     <string name="vfs_modland_authors_name">Autoren</string>
-    <string name="vfs_modland_authors_description">Browsen nach Autor</string>
     <string name="vfs_modland_collections_name">Sammlungen</string>
-    <string name="vfs_modland_collections_description">Navigieren nach Sammlung</string>
     <string name="vfs_modland_formats_name">Formate</string>
-    <string name="vfs_modland_formats_description">Navigieren nach Format</string>
     <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
     <string name="vfs_hvsc_root_description">Von http://www.prg.dtu.dk</string>
     <!-- zxart.ee -->
     <string name="vfs_zxart_root_name">ZX-Art - moderne ZX Spectrum Musik</string>
     <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
     <string name="vfs_zxart_authors_name">Autoren</string>
-    <string name="vfs_zxart_authors_description">Browsen nach Autor</string>
     <string name="vfs_zxart_parties_name">Parteien</string>
-    <string name="vfs_zxart_parties_description">Browsen nach Fest</string>
     <string name="vfs_zxart_toptracks_name">Top-Tonspuren</string>
     <string name="vfs_zxart_toptracks_description">100 Tonspuren mit höchster Bewertung</string>
     <string name="vfs_zxart_unknown_year_name">Unbekanntes Jahr</string>
@@ -50,11 +45,8 @@
     <string name="vfs_joshw_root_description">Verschiedene Archive</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_handles_name">Spitznamen</string>
-    <string name="vfs_amp_handles_description">Browsen nach Autor</string>
     <string name="vfs_amp_countries_name">Die Länder</string>
-    <string name="vfs_amp_countries_description">Browsen nach Ländern</string>
     <string name="vfs_amp_groups_name">Gruppen</string>
-    <string name="vfs_amp_groups_description">Browsen nach Gruppe</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
 <!--1--><item>Argentinien</item>
@@ -182,9 +174,7 @@
     </string-array>
     <!-- modarchive.org -->
     <string name="vfs_modarchive_authors_name">Künstler</string>
-    <string name="vfs_modarchive_authors_description">Browsen nach Künstler</string>
     <string name="vfs_modarchive_genres_name">Genre</string>
-    <string name="vfs_modarchive_genres_description">Browse nach Genre</string>
     <string name="vfs_modarchive_random_description">Zufällige Melodien</string>
     <!-- network -->
     <string name="vfs_network_root_name">Onlinekatalog</string>

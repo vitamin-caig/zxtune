@@ -159,11 +159,6 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     }
 
     @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_modarchive_authors_description);
-    }
-
-    @Override
     public VfsObject getParent() {
       return VfsRootModarchive.this;
     }
@@ -194,11 +189,6 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     @Override
     public String getName() {
       return context.getString(R.string.vfs_modarchive_genres_name);
-    }
-
-    @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_modarchive_genres_description);
     }
 
     @Override

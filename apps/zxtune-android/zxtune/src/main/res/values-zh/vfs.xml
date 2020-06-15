@@ -14,20 +14,15 @@
     <string name="vfs_modland_root_name">Modland - 最大的模块存档</string>
     <string name="vfs_modland_root_description">来自 http://www.exotica.org.uk</string>
     <string name="vfs_modland_authors_name">作者</string>
-    <string name="vfs_modland_authors_description">按作者浏览</string>
     <string name="vfs_modland_collections_name">收藏</string>
-    <string name="vfs_modland_collections_description">按集合浏览</string>
     <string name="vfs_modland_formats_name">格式</string>
-    <string name="vfs_modland_formats_description">按格式浏览</string>
     <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
     <string name="vfs_hvsc_root_description">来自 http://www.prg.dtu.dk</string>
     <!-- zxart.ee -->
     <string name="vfs_zxart_root_name">ZX-Art - 现代 ZX Spectrum 音乐</string>
     <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
     <string name="vfs_zxart_authors_name">作者</string>
-    <string name="vfs_zxart_authors_description">按作者浏览</string>
     <string name="vfs_zxart_parties_name">团队</string>
-    <string name="vfs_zxart_parties_description">按团队浏览</string>
     <string name="vfs_zxart_toptracks_name">顶部轨道</string>
     <string name="vfs_zxart_toptracks_description">100 最赞曲目</string>
     <string name="vfs_zxart_unknown_year_name">未知年份</string>
@@ -51,11 +46,8 @@
     <string name="vfs_joshw_root_description">各种档案</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_handles_name">昵称</string>
-    <string name="vfs_amp_handles_description">按作者的昵称浏览</string>
     <string name="vfs_amp_countries_name">国家</string>
-    <string name="vfs_amp_countries_description">按作者所在国家浏览</string>
     <string name="vfs_amp_groups_name">组</string>
-    <string name="vfs_amp_groups_description">按作者组浏览</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
 <!--1--><item>阿根廷</item>
@@ -184,9 +176,7 @@
     <!-- aygor -->
     <!-- modarchive.org -->
     <string name="vfs_modarchive_authors_name">艺术家</string>
-    <string name="vfs_modarchive_authors_description">按艺术家浏览</string>
     <string name="vfs_modarchive_genres_name">类型</string>
-    <string name="vfs_modarchive_genres_description">按流派浏览</string>
     <string name="vfs_modarchive_random_description">随机曲调</string>
     <!-- network -->
     <string name="vfs_network_root_name">在线目录</string>

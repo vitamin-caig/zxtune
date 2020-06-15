@@ -14,20 +14,15 @@
     <string name="vfs_modland_root_name">Modland - 最大のアーカイブモジュール</string>
     <string name="vfs_modland_root_description">経由 http://www.exotica.org.uk</string>
     <string name="vfs_modland_authors_name">作者</string>
-    <string name="vfs_modland_authors_description">著者による閲覧</string>
     <string name="vfs_modland_collections_name">集</string>
-    <string name="vfs_modland_collections_description">コレクション別に参照</string>
     <string name="vfs_modland_formats_name">形式</string>
-    <string name="vfs_modland_formats_description">フォーマットで参照</string>
     <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
     <string name="vfs_hvsc_root_description">経由 http://www.prg.dtu.dk</string>
     <!-- zxart.ee -->
     <string name="vfs_zxart_root_name">ZX-Art - 現代 ZX Spectrum 音楽</string>
     <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
     <string name="vfs_zxart_authors_name">作者</string>
-    <string name="vfs_zxart_authors_description">著者による閲覧</string>
     <string name="vfs_zxart_parties_name">パーティー</string>
-    <string name="vfs_zxart_parties_description">当事者によるブラウザ</string>
     <string name="vfs_zxart_toptracks_name">トップ音声トラック</string>
     <string name="vfs_zxart_toptracks_description">100 オーディオトラック</string>
     <string name="vfs_zxart_unknown_year_name">年未知</string>
@@ -51,11 +46,8 @@
     <string name="vfs_joshw_root_description">各種カタログ</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_handles_name">愛称</string>
-    <string name="vfs_amp_handles_description">ブラウザの愛称</string>
     <string name="vfs_amp_countries_name">国</string>
-    <string name="vfs_amp_countries_description">国別ブラウザ</string>
     <string name="vfs_amp_groups_name">グループ</string>
-    <string name="vfs_amp_groups_description">グループによる参照</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
 <!--1--><item>アルゼンチン</item>
@@ -184,9 +176,7 @@
     <!-- aygor -->
     <!-- modarchive.org -->
     <string name="vfs_modarchive_authors_name">作者</string>
-    <string name="vfs_modarchive_authors_description">著者による閲覧</string>
     <string name="vfs_modarchive_genres_name">ジャンル</string>
-    <string name="vfs_modarchive_genres_description">ジャンル別ブラウズ</string>
     <string name="vfs_modarchive_random_description">ランダム曲</string>
     <!-- network -->
     <string name="vfs_network_root_name">オンラインカタログ</string>

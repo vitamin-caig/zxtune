@@ -180,11 +180,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     }
 
     @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_amp_handles_description);
-    }
-
-    @Override
     public VfsObject getParent() {
       return VfsRootAmp.this;
     }
@@ -248,11 +243,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     public String getName() {
       return context.getString(R.string.vfs_amp_countries_name);
-    }
-
-    @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_amp_countries_description);
     }
 
     @Override
@@ -320,11 +310,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     public String getName() {
       return context.getString(R.string.vfs_amp_groups_name);
-    }
-
-    @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_amp_groups_description);
     }
 
     @Override

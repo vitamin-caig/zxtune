@@ -55,7 +55,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
     static Uri.Builder makeUri() {
       return new Uri.Builder().scheme(SCHEME)
-                 .authority(HOST);
+          .authority(HOST);
     }
   }
 
@@ -78,14 +78,11 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     final CachingCatalog catalog = Catalog.create(context, http);
     this.groups = new GroupsDir[]{
         new GroupsDir("Authors",
-            R.string.vfs_modland_authors_name, R.string.vfs_modland_authors_description,
-            catalog.getAuthors()),
+            R.string.vfs_modland_authors_name, catalog.getAuthors()),
         new GroupsDir("Collections",
-            R.string.vfs_modland_collections_name, R.string.vfs_modland_collections_description,
-            catalog.getCollections()),
+            R.string.vfs_modland_collections_name, catalog.getCollections()),
         new GroupsDir("Formats",
-            R.string.vfs_modland_formats_name, R.string.vfs_modland_formats_description,
-            catalog.getFormats())
+            R.string.vfs_modland_formats_name, catalog.getFormats())
     };
   }
 
@@ -159,13 +156,11 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
     private final String path;
     private final int nameRes;
-    private final int descRes;
     private final Catalog.Grouping group;
 
-    GroupsDir(String path, int nameRes, int descRes, Catalog.Grouping group) {
+    GroupsDir(String path, int nameRes, Catalog.Grouping group) {
       this.path = path;
       this.nameRes = nameRes;
-      this.descRes = descRes;
       this.group = group;
     }
 
@@ -181,11 +176,6 @@ final class VfsRootModland extends StubObject implements VfsRoot {
     @Override
     public String getName() {
       return context.getString(nameRes);
-    }
-
-    @Override
-    public String getDescription() {
-      return context.getString(descRes);
     }
 
     @Override
@@ -333,8 +323,8 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
         final Uri.Builder groupUri() {
           return groupLetterUri()
-                     .appendPath(obj.name)
-                     .appendQueryParameter(PARAM_ID, String.valueOf(obj.id));
+              .appendPath(obj.name)
+              .appendQueryParameter(PARAM_ID, String.valueOf(obj.id));
         }
 
         private class TrackFile extends FreeTrackFile {
@@ -351,7 +341,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
           @Override
           Uri.Builder trackUri() {
             return groupUri()
-                       .appendPath(track.filename);
+                .appendPath(track.filename);
           }
         }
       }

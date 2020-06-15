@@ -17,20 +17,15 @@
     <string name="vfs_modland_root_name">Modland - самый большой архив модулей</string>
     <string name="vfs_modland_root_description">Через http://www.exotica.org.uk</string>
     <string name="vfs_modland_authors_name">Авторы</string>
-    <string name="vfs_modland_authors_description">Навигация по автору</string>
     <string name="vfs_modland_collections_name">Коллекции</string>
-    <string name="vfs_modland_collections_description">Навигация по коллекции</string>
     <string name="vfs_modland_formats_name">Форматы</string>
-    <string name="vfs_modland_formats_description">Навигация по формату</string>
     <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
     <string name="vfs_hvsc_root_description">Через http://www.prg.dtu.dk</string>
     <!-- zxart.ee -->
     <string name="vfs_zxart_root_name">ZX-Art - новая музыка ZX Spectrum</string>
     <string name="vfs_zxart_root_description">http://www.zxart.ee/rus/muzyka</string>
     <string name="vfs_zxart_authors_name">Авторы</string>
-    <string name="vfs_zxart_authors_description">Навигация по автору</string>
     <string name="vfs_zxart_parties_name">Пати</string>
-    <string name="vfs_zxart_parties_description">Навигация по событиям</string>
     <string name="vfs_zxart_toptracks_name">Топ треков</string>
     <string name="vfs_zxart_toptracks_description">100 треков с наивысшей оценкой</string>
     <string name="vfs_zxart_unknown_year_name">Неизвестный год</string>
@@ -54,11 +49,8 @@
     <string name="vfs_joshw_root_description">Различные архивы</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_handles_name">Имена</string>
-    <string name="vfs_amp_handles_description">Навигация по именам</string>
     <string name="vfs_amp_countries_name">Страны</string>
-    <string name="vfs_amp_countries_description">Навигация по странам</string>
     <string name="vfs_amp_groups_name">Группы</string>
-    <string name="vfs_amp_groups_description">Навигация по группам</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
 <!--1--><item>Аргентина</item>
@@ -186,9 +178,7 @@
     </string-array>
     <!-- modarchive.org -->
     <string name="vfs_modarchive_authors_name">Исполнители</string>
-    <string name="vfs_modarchive_authors_description">Навигация по авторам</string>
     <string name="vfs_modarchive_genres_name">Жанры</string>
-    <string name="vfs_modarchive_genres_description">Навигация по жанрам</string>
     <string name="vfs_modarchive_random_description">Случайные треки</string>
     <!-- network -->
     <string name="vfs_network_root_name">Онлайн-каталоги</string>

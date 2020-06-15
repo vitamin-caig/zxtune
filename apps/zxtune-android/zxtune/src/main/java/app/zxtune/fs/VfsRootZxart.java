@@ -135,11 +135,6 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
 
     @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_zxart_authors_description);
-    }
-
-    @Override
     public VfsObject getParent() {
       return VfsRootZxart.this;
     }
@@ -325,11 +320,6 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     @Override
     public String getName() {
       return context.getString(R.string.vfs_zxart_parties_name);
-    }
-
-    @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_zxart_parties_description);
     }
 
     @Override
