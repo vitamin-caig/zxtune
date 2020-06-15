@@ -289,7 +289,7 @@ class Database {
   }
 
   final Transaction startTransaction() {
-    return new Transaction(dbHelper.getWritableDatabase());
+    return Transaction.create(dbHelper.getWritableDatabase());
   }
 
   final Cursor queryArchive(Uri path) {

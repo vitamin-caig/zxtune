@@ -6,6 +6,7 @@
 
 package app.zxtune.fs.dbhelpers;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDoneException;
 import android.database.sqlite.SQLiteStatement;
 
@@ -46,16 +47,16 @@ public class Timestamps {
   private final SQLiteStatement updateStatement;
 
   public Timestamps(DBProvider helper) {
-    this.queryStatement = helper.getReadableDatabase().compileStatement(Table.QUERY_STATEMENT);
-    this.updateStatement = helper.getWritableDatabase().compileStatement(Table.INSERT_STATEMENT);
+    this(helper.getReadableDatabase(), helper.getWritableDatabase());
+  }
+
+  private Timestamps(SQLiteDatabase readable, SQLiteDatabase writable) {
+    this.queryStatement = readable.compileStatement(Table.QUERY_STATEMENT);
+    this.updateStatement = writable.compileStatement(Table.INSERT_STATEMENT);
   }
 
   public final Lifetime getLifetime(String id, TimeStamp ttl) {
     return new DbLifetime(id, ttl);
-  }
-
-  public static Lifetime getStubLifetime() {
-    return StubLifetime.INSTANCE;
   }
 
   private long queryAge(String id) {
