@@ -36,6 +36,9 @@
       <item quantity="few">%d skladby</item>
       <item quantity="other">%d skladeb</item>
     </plurals>
+    <plurals name="packs">
+      <item quantity="other">%d balení</item>
+    </plurals>
     <string name="no_tracks_found">Nenalezeny žádné podporované skladby</string>
     <string name="track">Skladba</string>
     <!-- notifications -->

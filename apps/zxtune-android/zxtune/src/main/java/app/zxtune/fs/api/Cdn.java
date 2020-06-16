@@ -36,6 +36,10 @@ public class Cdn {
     return getRoot().path("download/aminet/mods/" + path).build();
   }
 
+  public static Uri vgmrips(String path) {
+    return getRoot().path("download/vgmrips/" + path).build();
+  }
+
   private static Uri.Builder getRoot() {
     return ROOT.buildUpon();
   }

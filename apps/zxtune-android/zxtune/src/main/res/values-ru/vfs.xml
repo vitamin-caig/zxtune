@@ -185,6 +185,11 @@
     <!-- radio -->
     <string name="vfs_radio_root_name">Радио</string>
     <string name="vfs_radio_root_description">Случайные треки и подборки</string>
+    <!-- vgmrips -->
+    <string name="vfs_vgmrips_companies_name">Компании</string>
+    <string name="vfs_vgmrips_composers_name">Композиторы</string>
+    <string name="vfs_vgmrips_chips_name">Чипы</string>
+    <string name="vfs_vgmrips_systems_name">Системы</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
     <string name="failed_resolve">Не найден путь %s</string>

@@ -8,20 +8,24 @@ package app.zxtune.fs.dbhelpers;
 
 import android.database.sqlite.SQLiteDatabase;
 
-public class Transaction {
+public abstract class Transaction {
 
-  private final SQLiteDatabase db;
-
-  public Transaction(SQLiteDatabase db) {
-    this.db = db;
+  public static Transaction create(final SQLiteDatabase db) {
     db.beginTransaction();
+    return new Transaction() {
+
+      @Override
+      public void succeed() {
+        db.setTransactionSuccessful();
+      }
+
+      @Override
+      public void finish() {
+        db.endTransaction();
+      }
+    };
   }
 
-  public final void succeed() {
-    db.setTransactionSuccessful();
-  }
-
-  public final void finish() {
-    db.endTransaction();
-  }
+  abstract public void succeed();
+  abstract public void finish();
 }

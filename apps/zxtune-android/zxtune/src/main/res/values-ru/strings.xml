@@ -40,6 +40,13 @@
       <!-- for pre-HC -->
       <item quantity="other">%d треков</item>
     </plurals>
+    <plurals name="packs">
+      <item quantity="one">%d пак</item>
+      <item quantity="few">%d пака</item>
+      <item quantity="many">%d паков</item>
+      <!-- for pre-HC -->
+      <item quantity="other">%d паков</item>
+    </plurals>
     <string name="no_tracks_found">Поддерживаемых треков не найдено</string>
     <string name="track">Трек</string>
     <!-- notifications -->

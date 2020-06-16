@@ -181,6 +181,11 @@
     <!-- radio -->
     <string name="vfs_radio_root_name">Radio</string>
     <string name="vfs_radio_root_description">Zufällige Melodien und Kompilationen</string>
+    <!-- vgmrips -->
+    <string name="vfs_vgmrips_companies_name">Unternehmen</string>
+    <string name="vfs_vgmrips_composers_name">Komponisten</string>
+    <string name="vfs_vgmrips_chips_name">Chips</string>
+    <string name="vfs_vgmrips_systems_name">Systeme</string>
     <!-- errors -->
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
     <string name="failed_resolve">Adresse %s konnte nicht aufgelöst werden</string>

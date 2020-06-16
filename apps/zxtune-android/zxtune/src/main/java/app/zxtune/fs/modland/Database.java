@@ -161,7 +161,7 @@ final class Database {
   }
 
   final Transaction startTransaction() {
-    return new Transaction(helper.getWritableDatabase());
+    return Transaction.create(helper.getWritableDatabase());
   }
 
   final Timestamps.Lifetime getGroupsLifetime(String category, String filter, TimeStamp ttl) {

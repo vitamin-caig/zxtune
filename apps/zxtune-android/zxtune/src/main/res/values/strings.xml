@@ -34,6 +34,10 @@
       <item quantity="one">%d track</item>
       <item quantity="other">%d tracks</item>
     </plurals>
+    <plurals name="packs">
+      <item quantity="one">%d pack</item>
+      <item quantity="other">%d packs</item>
+    </plurals>
     <string name="no_tracks_found">No supported tracks found</string>
     <string name="track">Track</string>
     <!-- notifications -->

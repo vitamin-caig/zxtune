@@ -93,7 +93,7 @@ final public class FileTree {
   }
 
   public final Transaction startTransaction() {
-    return new Transaction(helper.getWritableDatabase());
+    return Transaction.create(helper.getWritableDatabase());
   }
 
   public final Timestamps.Lifetime getDirLifetime(String path, TimeStamp ttl) {

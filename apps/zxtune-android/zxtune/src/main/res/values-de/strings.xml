@@ -34,6 +34,10 @@
       <item quantity="one">%d Tonspur</item>
       <item quantity="other">%d Tonspuren</item>
     </plurals>
+    <plurals name="packs">
+      <item quantity="one">%d Paket</item>
+      <item quantity="other">%d Pakete</item>
+    </plurals>
     <string name="no_tracks_found">Unterstützte Tonspuren wurden nicht gefunden</string>
     <string name="track">Tonspur</string>
     <!-- notifications -->

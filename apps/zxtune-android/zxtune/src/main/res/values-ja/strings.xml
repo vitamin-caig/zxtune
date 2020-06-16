@@ -32,6 +32,9 @@
     <plurals name="tracks">
       <item quantity="other">%d 音声トラック</item>
     </plurals>
+    <plurals name="packs">
+      <item quantity="other">%d パッケージ</item>
+    </plurals>
     <string name="no_tracks_found">なサポートされるオーディオトラック見つかり</string>
     <string name="track">音声トラック</string>
     <!-- notifications -->

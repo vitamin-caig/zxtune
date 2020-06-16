@@ -241,6 +241,13 @@
     <!-- radio -->
     <string name="vfs_radio_root_name">Radio</string>
     <string name="vfs_radio_root_description">Random tunes and compilations</string>
+    <!-- vgmrips -->
+    <string name="vfs_vgmrips_root_name" translatable="false">VGMRips</string>
+    <string name="vfs_vgmrips_root_description" translatable="false">https://vgmrips.net</string>
+    <string name="vfs_vgmrips_companies_name">Companies</string>
+    <string name="vfs_vgmrips_composers_name">Composers</string>
+    <string name="vfs_vgmrips_chips_name">Sound Chips</string>
+    <string name="vfs_vgmrips_systems_name">Systems</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
