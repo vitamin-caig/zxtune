@@ -40,7 +40,10 @@ public class Model extends AndroidViewModel {
     client.registerObserver(new ProviderClient.ChangesObserver() {
       @Override
       public void onChange() {
-        getItems();
+        if (items == null) {
+          items = new MutableLiveData<>();
+        }
+        loadAsync();
       }
     });
   }
