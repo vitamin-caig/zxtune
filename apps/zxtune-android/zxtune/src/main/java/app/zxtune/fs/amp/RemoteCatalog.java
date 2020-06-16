@@ -169,7 +169,7 @@ public class RemoteCatalog extends Catalog {
   }
 
   private static Uri.Builder getMainUriBuilder() {
-    return new Uri.Builder().scheme("http").authority("amp.dascene.net");
+    return new Uri.Builder().scheme("https").authority("amp.dascene.net");
   }
 
   private static Uri.Builder getQueryUriBuilder(String request, String search) {

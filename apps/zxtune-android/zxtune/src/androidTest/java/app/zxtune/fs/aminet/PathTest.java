@@ -51,7 +51,7 @@ public class PathTest {
     assertEquals("getRemoteUris[1]", "http://aminet.net/mods/", uris[1].toString());
     assertEquals("getLocalId", "", path.getLocalId());
     assertEquals("getUri", "aminet:", path.getUri().toString());
-    assertNull("getName", path.getName());
+    assertEquals("getName", "", path.getName());
     assertNull("getParent", path.getParent());
     assertTrue("isEmpty", path.isEmpty());
     assertFalse("isFile", path.isFile());

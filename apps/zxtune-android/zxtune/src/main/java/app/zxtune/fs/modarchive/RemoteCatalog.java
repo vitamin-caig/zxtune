@@ -66,7 +66,7 @@ public class RemoteCatalog extends Catalog {
 
     private ApiUriBuilder() {
       delegate = new Uri.Builder();
-      delegate.scheme("http");
+      delegate.scheme("https");
       delegate.authority("api.modarchive.org");
     }
 

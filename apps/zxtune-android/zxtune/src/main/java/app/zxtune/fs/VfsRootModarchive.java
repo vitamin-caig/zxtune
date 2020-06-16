@@ -440,7 +440,8 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     }
 
     private String getShareUrl() {
-      return String.format(Locale.US, "http://modarchive.org/index.php?request=view_player&query=%d",
+      return String.format(Locale.US, "https://modarchive.org/index" +
+              ".php?request=view_player&query=%d",
               track.id);
     }
   }

@@ -29,7 +29,7 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
     return new Uri[]{
         Cdn.hvsc(path),
         new Uri.Builder()
-            .scheme("http")
+            .scheme("https")
             .authority("www.prg.dtu.dk")
             .path("HVSC/C64Music/" + path)
             .build(),

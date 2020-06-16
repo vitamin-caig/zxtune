@@ -59,7 +59,7 @@ public class PathTest {
     assertEquals("getRemoteUris[0]", "http://abrimaal.pro-e.pl/ayon/", uris[0].toString());
     assertEquals("getLocalId", "", path.getLocalId());
     assertEquals("getUri", "aygor:", path.getUri().toString());
-    assertNull("getName", path.getName());
+    assertEquals("getName", "", path.getName());
     assertNull("getParent", path.getParent());
     assertTrue("isEmpty", path.isEmpty());
     assertFalse("isFile", path.isFile());

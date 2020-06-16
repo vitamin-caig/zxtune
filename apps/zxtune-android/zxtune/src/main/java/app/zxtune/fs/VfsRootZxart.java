@@ -706,7 +706,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
 
     private String getShareUrl() {
-      return String.format(Locale.US, "http://zxart.ee/zxtune/action%%3aplay/tuneId%%3a%d",
+      return String.format(Locale.US, "https://zxart.ee/zxtune/action%%3aplay/tuneId%%3a%d",
               module.id);
     }
   }

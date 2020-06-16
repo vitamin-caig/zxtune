@@ -33,7 +33,7 @@ public final class RemoteCatalog extends Catalog {
   private static final String TAG = RemoteCatalog.class.getName();
 
   //no www. prefix!!!
-  private static final String SITE = "http://zxart.ee";
+  private static final String SITE = "https://zxart.ee";
   private static final String API = SITE + "/zxtune/language:eng";
   private static final String ACTION_AUTHORS = "/action:authors";
   private static final String ACTION_PARTIES = "/action:parties";
