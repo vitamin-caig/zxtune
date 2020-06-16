@@ -21,7 +21,7 @@
     <string name="vfs_zxart_root_name">ZX-Art - moderne ZX Spectrum Musik</string>
     <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
     <string name="vfs_zxart_authors_name">Autoren</string>
-    <string name="vfs_zxart_parties_name">Parteien</string>
+    <string name="vfs_zxart_parties_name">Demoparty</string>
     <string name="vfs_zxart_toptracks_name">Top-Tonspuren</string>
     <string name="vfs_zxart_toptracks_description">100 Tonspuren mit höchster Bewertung</string>
     <string name="vfs_zxart_unknown_year_name">Unbekanntes Jahr</string>
