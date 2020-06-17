@@ -40,6 +40,10 @@ public class Cdn {
     return getRoot().path("download/vgmrips/" + path).build();
   }
 
+  public static Uri scene(String path) {
+    return getRoot().path("browse/scene/music/" + path).build();
+  }
+
   private static Uri.Builder getRoot() {
     return ROOT.buildUpon();
   }

@@ -94,23 +94,28 @@ public class RemoteCatalog extends Catalog {
   private boolean parseTableMarkup(Document doc, DirVisitor visitor) {
     boolean result = false;
     for (Element row : doc.select("table tr:not(th)")) {
-      final Element name = row.selectFirst("td a");
-      if (name == null) {
+      final Element ref = row.selectFirst("td a");
+      if (ref == null) {
         continue;
       }
       result = true;
-      final String nameVal = findEntryHref(name);
+      final String nameVal = findEntryHref(ref);
       if (nameVal == null) {
         continue;
       }
-      final Element datetime = row.selectFirst("td:has(a) ~ td:matches(^ *([0-9]{4}-[01][0-9]-[0-3][0-9] " +
-          "[0-5][0-9]:[0-5][0-9]) *$)");
+      final String name = trimTrailingSlash(nameVal);
+      if (name.equals("..") || name.equals(".")) {
+        continue;
+      }
+      final Element datetime = row.selectFirst("td:has(a) ~ td:matches(^ *([0-9]{4}-" +
+          "([01][0-9]|[JFMASOND][a-z][a-z])-[0-3][0-9] " +
+          "[0-5][0-9](:[0-5][0-9])+) *$)");
       final String description = datetime != null ? datetime.text().trim() : "";
       final Element size = row.selectFirst("td:has(a) ~ td:matches(^ *([0-9.]+[KM]?) *$)");
       if (size != null) {
-        visitor.acceptFile(nameVal, description, size.text().trim());
+        visitor.acceptFile(name, description, size.text().trim());
       } else {
-        visitor.acceptDir(trimTrailingSlash(nameVal), description);
+        visitor.acceptDir(name, description);
       }
     }
     return result;
@@ -151,7 +156,8 @@ public class RemoteCatalog extends Catalog {
     final String text = anchor.text();
     //text may be truncated/ellipsized/etc
     final int MIN_MATCHED_SYMBOLS = 16;
-    return href.regionMatches(0, text, 0, Math.min(href.length(), MIN_MATCHED_SYMBOLS))
+    return href.regionMatches(0, text, 0, Math.min(Math.min(href.length(), text.length()),
+        MIN_MATCHED_SYMBOLS))
         ? href
         : null;
   }

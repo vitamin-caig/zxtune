@@ -76,6 +76,58 @@ public class RemoteCatalogTest {
     test(data, entries, Mode.CHECK_ALL);
   }
 
+  // scene.org
+  @Test
+  public void testTableIndex2() throws IOException {
+    final String data = "<!DOCTYPE html>\n" +
+        "<html>\n" +
+        "<head>\n" +
+        "<meta charset=\"utf-8\">\n" +
+        "<title>Index of /pub/music/groups/2063music/</title>\n" +
+        "<style type=\"text/css\">\n" +
+        "a, a:active {text-decoration: none; color: blue;}\n" +
+        "a:visited {color: #48468F;}\n" +
+        "a:hover, a:focus {text-decoration: underline; color: red;}\n" +
+        "body {background-color: #F5F5F5;}\n" +
+        "h2 {margin-bottom: 12px;}\n" +
+        "table {margin-left: 12px;}\n" +
+        "th, td { font: 90% monospace; text-align: left;}\n" +
+        "th { font-weight: bold; padding-right: 14px; padding-bottom: 3px;}\n" +
+        "td {padding-right: 14px;}\n" +
+        "td.s, th.s {text-align: right;}\n" +
+        "div.list { background-color: white; border-top: 1px solid #646464; border-bottom: 1px solid #646464; padding-top: 10px; padding-bottom: 14px;}\n" +
+        "div.foot { font: 90% monospace; color: #787878; padding-top: 4px;}\n" +
+        "</style>\n" +
+        "</head>\n" +
+        "<body>\n" +
+        "<h2>Index of /pub/music/groups/2063music/</h2>\n" +
+        "<div class=\"list\">\n" +
+        "<table summary=\"Directory Listing\" cellpadding=\"0\" cellspacing=\"0\">\n" +
+        "<thead><tr><th class=\"n\">Name</th><th class=\"m\">Last Modified</th><th class=\"s\">Size</th><th class=\"t\">Type</th></tr></thead>\n" +
+        "<tbody>\n" +
+        "<tr class=\"d\"><td class=\"n\"><a href=\"../\">..</a>/</td><td class=\"m\">&nbsp;</td><td class=\"s\">- &nbsp;</td><td class=\"t\">Directory</td></tr>\n" +
+        "<tr class=\"d\"><td class=\"n\"><a href=\"020200/\">020200</a>/</td><td class=\"m\">2002-Jul-10 19:36:52</td><td class=\"s\">- &nbsp;</td><td class=\"t\">Directory</td></tr>\n" +
+        "<tr class=\"d\"><td class=\"n\"><a href=\"activities/\">activities</a>/</td><td class=\"m\">2004-Jun-10 13:03:57</td><td class=\"s\">- &nbsp;</td><td class=\"t\">Directory</td></tr>\n" +
+        "<tr><td class=\"n\"><a href=\"2063music.txt\">2063music.txt</a></td><td class=\"m\">2004-Jun-09 14:19:52</td><td class=\"s\">0.6K</td><td class=\"t\">text/plain</td></tr>\n" +
+        "<tr><td class=\"n\"><a href=\"63_001-opal2000-gatev0-5.mp3\">63_001-opal2000-gatev0-5.mp3</a></td><td class=\"m\">2000-Jun-22 03:23:54</td><td class=\"s\">5.1M</td><td class=\"t\">audio/mpeg</td></tr>\n" +
+        "<tr><td class=\"n\"><a href=\"63_002-opal2000-home_office" +
+        ".mp3\">63_002-opal2000-home_office.mp3</a></td><td class=\"m\">2000-Nov-10 " +
+        "01:38:00</td><td class=\"s\">4.8M</td><td class=\"t\">audio/mpeg</td></tr>" +
+        "</tbody>\n" +
+        "</table>\n" +
+        "</div></body>\n" +
+        "</html>"
+        ;
+    final String[] entries = {
+        "020200", "@2002-Jul-10 19:36:52",
+        "activities", "@2004-Jun-10 13:03:57",
+        "2063music.txt", "0.6K@2004-Jun-09 14:19:52",
+        "63_001-opal2000-gatev0-5.mp3", "5.1M@2000-Jun-22 03:23:54",
+        "63_002-opal2000-home_office.mp3", "4.8M@2000-Nov-10 01:38:00"
+    };
+    test(data, entries, Mode.CHECK_ALL);
+  }
+
   @Test
   public void testPreIndex() throws IOException {
     final String data = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\n" +
