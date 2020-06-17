@@ -62,6 +62,9 @@ dependencies {
     implementation 'org.jsoup:jsoup:1.13.1'
     implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation "androidx.room:room-runtime:2.2.5"
+    annotationProcessor "androidx.room:room-compiler:2.2.5"
+
     //manual deps
     implementation 'androidx.databinding:databinding-runtime:3.2.0'
     implementation 'androidx.databinding:databinding-compiler:3.2.0'
