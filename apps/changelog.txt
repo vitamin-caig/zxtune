@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4930 from 18.06.2020
+
+[+] zxtune-android: added vgmrips.net online catalogue
+[+] zxtune-android: added scene.org online catalogue
+[*] zxtune-android: fixed playlist updates
+
 --- Rev4920 from 06.05.2020
 
 [+] zxtune-android: browser displays progress for directory listing and file downloading and analyzing
