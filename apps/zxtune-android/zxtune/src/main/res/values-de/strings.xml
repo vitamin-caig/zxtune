@@ -18,7 +18,7 @@
     <string name="information_author">Autor</string>
     <string name="information_program">Programm</string>
     <string name="information_comment">Kommentar</string>
-    <string name="information_location">Standort</string>
+    <string name="information_location">Speicherort</string>
     <string name="scanning_started">Scannen begonnen</string>
     <string name="scanning_stopped">Scannen fertig</string>
     <string name="scanning_failed">Fehler beim Scannen: %s</string>
