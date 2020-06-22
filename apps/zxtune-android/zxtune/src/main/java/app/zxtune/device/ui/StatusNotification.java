@@ -10,6 +10,8 @@ import android.app.Service;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Action;
 import androidx.core.content.ContextCompat;
+
+import android.os.Build;
 import android.support.v4.media.MediaDescriptionCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import androidx.media.app.NotificationCompat.MediaStyle;
@@ -47,15 +49,13 @@ public class StatusNotification extends MediaControllerCompat.Callback {
             PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS))
         .addAction(createPauseAction())
         .addAction(R.drawable.ic_next, "", MediaButtonReceiver.buildMediaButtonPendingIntent(service,
-            PlaybackStateCompat.ACTION_SKIP_TO_NEXT))
-        .setStyle(new MediaStyle()
-                      .setShowActionsInCompactView(ACTION_PREV, ACTION_PLAY_PAUSE, ACTION_NEXT)
-                      .setMediaSession(session.getSessionToken())
-            //Takes way too much place on 4.4.2
-            //.setCancelButtonIntent(createServiceIntent(MainService.ACTION_STOP))
-            //.setShowCancelButton(true)
-        )
-    ;
+            PlaybackStateCompat.ACTION_SKIP_TO_NEXT));
+    if (!needFixForHuawei()) {
+        notification.getBuilder().setStyle(new MediaStyle()
+          .setShowActionsInCompactView(ACTION_PREV, ACTION_PLAY_PAUSE, ACTION_NEXT)
+          .setMediaSession(session.getSessionToken())
+      );
+    }
     // Hack for Android O requirement to call Service.startForeground after Context.startForegroundService.
     // Service.startForeground may be called from android.support.v4.media.session.MediaButtonReceiver, but
     // no playback may happens.
@@ -71,6 +71,10 @@ public class StatusNotification extends MediaControllerCompat.Callback {
   private Action createPlayAction() {
     return new NotificationCompat.Action(R.drawable.ic_play, "",
         MediaButtonReceiver.buildMediaButtonPendingIntent(service, PlaybackStateCompat.ACTION_PLAY));
+  }
+
+  private static boolean needFixForHuawei() {
+    return Build.MANUFACTURER.toLowerCase().contains("huawei") && Build.VERSION.SDK_INT < Build.VERSION_CODES.M;
   }
 
   private void startForeground() {
