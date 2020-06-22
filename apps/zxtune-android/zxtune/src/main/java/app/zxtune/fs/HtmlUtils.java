@@ -11,12 +11,22 @@ import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+
+import app.zxtune.io.Io;
 
 public class HtmlUtils {
 
   public static Document parseDoc(InputStream input) throws IOException {
+    // Looks like jsoup works not well enough for streamed parsing when page size is more than
+    // several kb
+    return Jsoup.parse(readHtml(input), "");
+  }
+
+  private static String readHtml(InputStream input) throws IOException {
     try {
-      return Jsoup.parse(input, null, "");
+      final ByteBuffer buf = Io.readFrom(input);
+      return new String(buf.array(), 0, buf.limit(), "UTF-8");
     } finally {
       input.close();
     }
