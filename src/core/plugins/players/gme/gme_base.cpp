@@ -10,7 +10,6 @@
 
 //local includes
 #include "core/plugins/players/gme/kss_supp.h"
-#include "core/plugins/players/gme/vgm_supp.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //common includes
@@ -560,17 +559,6 @@ namespace GME
 
   const SingletrackPluginDescription SINGLETRACK_PLUGINS[] =
   {
-    //vgm
-    {
-      {
-        "VGM",
-        ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI,
-        &Create< ::Vgm_Emu>,
-        &DefaultDataCreator,
-        &VGM::DetectPlatform
-      },
-      &Formats::Chiptune::CreateVideoGameMusicDecoder
-    },
     //gym
     {
       {
