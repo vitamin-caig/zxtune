@@ -63,6 +63,7 @@ namespace ZXTune
   void RegisterWAVPlugin(PlayerPluginsRegistrator& registrator);
   void RegisterFLACPlugin(PlayerPluginsRegistrator& registrator);
   void RegisterV2MSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterVGMPlugins(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator)
   {
@@ -115,5 +116,6 @@ namespace ZXTune
     RegisterWAVPlugin(registrator);
     RegisterFLACPlugin(registrator);
     RegisterV2MSupport(registrator);
+    RegisterVGMPlugins(registrator);
   }
 }

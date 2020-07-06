@@ -1,6 +1,6 @@
 library_name := core_plugins_players
 dirs.root := ../../../..
-source_dirs := . asap ay dac gme multi music saa sid tfm xmp xsf
+source_dirs := . asap ay dac gme multi music saa sid tfm vgm xmp xsf
 
 po_files := core_players
 

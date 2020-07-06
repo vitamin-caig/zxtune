@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "core/plugins/players/gme/vgm_supp.h"
+#include "core/plugins/players/vgm/videogamemusic.h"
 //common includes
 #include <byteorder.h>
 //library includes
@@ -21,7 +21,7 @@
 
 namespace Module
 {
-  namespace VGM
+  namespace VideoGameMusic
   {
     enum DeviceType
     {
