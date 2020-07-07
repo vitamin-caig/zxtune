@@ -162,6 +162,7 @@ namespace LibVGM
       , Delegate(Tune->CreatePlayer())
     {
       Require(0 == Delegate->LoadFile(Loader.Get()));
+      LoopTicks = Delegate->GetLoopTicks();
     }
 
     uint_t Frame() const override
@@ -170,12 +171,9 @@ namespace LibVGM
       const auto totalTicks = Delegate->GetTotalTicks();
       if (ticks >= totalTicks)
       {
-        auto loopTicks = Delegate->GetLoopTicks();
-        if (!loopTicks)
-        {
-          loopTicks = 1;
-        }
-        ticks = (totalTicks - loopTicks) + (ticks - totalTicks) % loopTicks;
+        ticks = LoopTicks != 0
+          ? (totalTicks - LoopTicks) + (ticks - totalTicks) % LoopTicks
+          : ticks % totalTicks;
       }
       const auto seconds = Delegate->Tick2Second(ticks);
       return FRAME_DURATION.PER_SECOND * seconds / FRAME_DURATION.Get();
@@ -183,12 +181,13 @@ namespace LibVGM
 
     uint_t LoopCount() const override
     {
-      return Delegate->GetCurLoop();
+      return NeedWholeLoop() ? WholeLoopCount : Delegate->GetCurLoop();
     }
 
     void Reset()
     {
       Delegate->Reset();
+      WholeLoopCount = 0;
     }
 
     void SetSoundFreq(uint_t freq)
@@ -205,15 +204,31 @@ namespace LibVGM
 
       Buffer.resize(samples);
       std::memset(Buffer.data(), 0, samples * sizeof(Buffer.front()));
-      samples = Delegate->Render(samples, Buffer.data());
-      return ConvertBuffer(samples);
+      const auto outSamples = Delegate->Render(samples, Buffer.data());
+      CheckForWholeLoop();
+      return ConvertBuffer(outSamples);
     }
 
     void Seek(uint_t samples)
     {
       Require(0 == Delegate->Seek(PLAYPOS_SAMPLE, samples));
+      WholeLoopCount = 0;
     }
   private:
+    bool NeedWholeLoop() const
+    {
+      return LoopTicks == 0;
+    }
+
+    void CheckForWholeLoop()
+    {
+      if (NeedWholeLoop() && 0 != (Delegate->GetState() & PLAYSTATE_END))
+      {
+        ++WholeLoopCount;
+        Require(0 == Delegate->Seek(PLAYPOS_TICK, 0));
+      }
+    }
+
     Sound::Chunk ConvertBuffer(uint_t samples) const
     {
       Sound::Chunk result(samples);
@@ -234,6 +249,8 @@ namespace LibVGM
     const Model::Ptr Tune;
     LoaderAdapter Loader;
     std::unique_ptr< ::PlayerBase> Delegate;
+    uint_t LoopTicks;
+    uint_t WholeLoopCount = 0;
     std::vector<WAVE_32BS> Buffer;
   };
 
