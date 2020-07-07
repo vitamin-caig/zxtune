@@ -86,6 +86,11 @@ namespace LibVGM
       ::DataLoader_Setup(&Delegate, &CALLBACKS, this);
       Require(0 == ::DataLoader_Load(Get()));
     }
+    
+    ~LoaderAdapter()
+    {
+      ::DataLoader_Reset(&Delegate);
+    }
 
     DATA_LOADER* Get()
     {
