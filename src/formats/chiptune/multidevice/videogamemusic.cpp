@@ -105,8 +105,10 @@ namespace Chiptune
 
       Formats::Chiptune::Container::Ptr Parse(Builder& target)
       {
+        const auto limit = Stream.GetRestSize();
         Require(Stream.ReadBE<uint32_t>() == SIGNATURE);
-        const auto eof = ReadOffset();
+        // Support truncated files
+        const auto eof = std::min(ReadOffset(), limit);
         const auto ver = ReadVersion(Stream.ReadLE<uint32_t>());
         Require(Math::InRange(ver, VERSION_MIN, VERSION_MAX));
         Stream.Skip(8);
@@ -117,7 +119,7 @@ namespace Chiptune
         target.SetTimings(SamplesToTime(totalSamples), SamplesToTime(loopSamples && totalSamples >= loopSamples ? totalSamples - loopSamples : 0));
         const auto dataStart = GetDataOffset(ver);
         const uint_t NO_GD3 = 0x18;
-        if (gd3Offset != NO_GD3)
+        if (gd3Offset != NO_GD3 && gd3Offset < eof)
         {
           Stream.Seek(gd3Offset);
           if (!ParseTags(target.GetMetaBuilder()))
@@ -154,7 +156,7 @@ namespace Chiptune
         return Time::Milliseconds::FromRatio(samples, FREQUENCY);
       }
 
-      uint_t ReadOffset()
+      std::size_t ReadOffset()
       {
         return Stream.GetPosition() + Stream.ReadLE<uint32_t>();
       }
