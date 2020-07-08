@@ -181,7 +181,8 @@ namespace LibVGM
 
     uint_t LoopCount() const override
     {
-      return NeedWholeLoop() ? WholeLoopCount : Delegate->GetCurLoop();
+      // Some of the tracks specifies LoopTicks == 0 with proper looping
+      return std::max(WholeLoopCount, Delegate->GetCurLoop());
     }
 
     void Reset()
@@ -215,14 +216,9 @@ namespace LibVGM
       WholeLoopCount = 0;
     }
   private:
-    bool NeedWholeLoop() const
-    {
-      return LoopTicks == 0;
-    }
-
     void CheckForWholeLoop()
     {
-      if (NeedWholeLoop() && 0 != (Delegate->GetState() & PLAYSTATE_END))
+      if (0 != (Delegate->GetState() & PLAYSTATE_END))
       {
         ++WholeLoopCount;
         Require(0 == Delegate->Seek(PLAYPOS_TICK, 0));
