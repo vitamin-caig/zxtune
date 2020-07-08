@@ -59,7 +59,7 @@ $(eval $(call device,SNDDEV_X1_010, x1_010))
 $(eval $(call device,SNDDEV_C352, c352))
 $(eval $(call device,SNDDEV_GA20, iremga20))
 
-defines += SNDDEV_SELECT $(sort $(core_defines))
+defines += NO_EXTERNAL_ROM SNDDEV_SELECT $(sort $(core_defines))
 source_files = $(addprefix emu/,SoundEmu Resampler panning dac_control) \
                $(addprefix emu/cores/,$(sort $(core_files)))
 
