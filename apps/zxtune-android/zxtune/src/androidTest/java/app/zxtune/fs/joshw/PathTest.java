@@ -17,31 +17,38 @@ public class PathTest {
   @Test
   public void testEmpty() {
     final Path path = Path.create();
-    verifyEmpty(path);
-    verifyRoot(path.getChild("root"));
+    verifyRoot(path);
+    verifyCatalog((Path) path.getChild("root"));
   }
 
   @Test
   public void testRoot() {
-    final Path path = Path.parse(Uri.parse("joshw:/root"));
+    final Path path = Path.parse(Uri.parse("joshw:"));
     verifyRoot(path);
-    verifyEmpty(path.getParent());
-    verifyDir(path.getChild("dir"));
+  }
+
+  @Test
+  public void testCatalog() {
+    // Root is dir in spite of slash absence
+    final Path path = Path.parse(Uri.parse("joshw:/root"));
+    verifyCatalog(path);
+    verifyRoot((Path) path.getParent());
+    verifyDir((Path) path.getChild("dir/"));
   }
 
   @Test
   public void testDir() {
-    final Path path = Path.parse(Uri.parse("joshw:/root/dir"));
+    final Path path = Path.parse(Uri.parse("joshw:/root/dir/"));
     verifyDir(path);
-    verifyRoot(path.getParent());
-    verifyFile(path.getChild("file.7z"));
+    verifyCatalog((Path) path.getParent());
+    verifyFile((Path) path.getChild("file.7z"));
   }
 
   @Test
   public void testFile() {
     final Path path = Path.parse(Uri.parse("joshw:/root/dir/file.7z"));
     verifyFile(path);
-    verifyDir(path.getParent());
+    verifyDir((Path) path.getParent());
   }
 
   @Test
@@ -52,7 +59,7 @@ public class PathTest {
 
   @Test
   public void testEscaping() {
-    final Path path = Path.parse(Uri.parse("joshw:/nsf/n/North & South (1990-09-21)(Kemco).7z"));
+    final Path path = Path.parse(Uri.parse("joshw:/nsf/n/North%20& South (1990-09-21)(Kemco).7z"));
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUri.length", 2, uris.length);
     assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/joshw/nsf/n/North%20%26%20South%20(1990-09-21)(Kemco).7z", uris[0].toString());
@@ -65,7 +72,7 @@ public class PathTest {
     assertFalse("isCatalogue", path.isCatalogue());
   }
 
-  private static void verifyEmpty(Path path) {
+  private static void verifyRoot(Path path) {
     assertEquals("getUri", "joshw:", path.getUri().toString());
     assertEquals("", path.getName());
     assertNull("getParent", path.getParent());
@@ -74,13 +81,13 @@ public class PathTest {
     assertFalse("isCatalogue", path.isCatalogue());
   }
 
-  private static void verifyRoot(Path path) {
+  private static void verifyCatalog(Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUri.length", 2, uris.length);
     assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/joshw/root/", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://root.joshw.info", uris[1].toString());
-    assertEquals("getLocalId", "root/", path.getLocalId());
-    assertEquals("getUri", "joshw:/root", path.getUri().toString());
+    assertEquals("getLocalId", "root", path.getLocalId());
+    assertEquals("getUri", "joshw:/root/", path.getUri().toString());
     assertEquals("getName", "root", path.getName());
     assertFalse("isEmpty", path.isEmpty());
     assertFalse("isFile", path.isFile());
@@ -93,7 +100,7 @@ public class PathTest {
     assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/browse/joshw/root/dir/", uris[0].toString());
     assertEquals("getRemoteUris[1]", "http://root.joshw.info/dir/", uris[1].toString());
     assertEquals("getLocalId", "root/dir", path.getLocalId());
-    assertEquals("getUri", "joshw:/root/dir", path.getUri().toString());
+    assertEquals("getUri", "joshw:/root/dir/", path.getUri().toString());
     assertEquals("getName", "dir", path.getName());
     assertFalse("isEmpty", path.isEmpty());
     assertFalse("isFile", path.isFile());

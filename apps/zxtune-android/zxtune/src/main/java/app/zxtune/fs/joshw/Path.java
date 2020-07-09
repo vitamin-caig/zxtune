@@ -1,33 +1,32 @@
 package app.zxtune.fs.joshw;
 
 import android.net.Uri;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
-import app.zxtune.fs.api.Cdn;
 
-import java.util.ArrayList;
+import androidx.annotation.Nullable;
+
 import java.util.Collections;
 import java.util.List;
+
+import app.zxtune.fs.api.Cdn;
 
 /*
  * joshw:/${Catalogue}/${FilePath}
  */
-public final class Path implements app.zxtune.fs.httpdir.Path {
+public final class Path extends app.zxtune.fs.httpdir.PathBase {
 
   private static final String SCHEME = "joshw";
   private static final String EMPTY_CATALOGUE = "";
 
-  private final String catalogue;
-  private final List<String> elements;
+  private static final Path EMPTY = new Path(Collections.EMPTY_LIST, true);
 
-  private Path(String catalogue, List<String> elements) {
-    this.catalogue = catalogue;
-    this.elements = elements;
+  private Path(List<String> elements, boolean isDir) {
+    super(elements, isDir);
   }
 
   @Override
   public Uri[] getRemoteUris() {
-    final String path = elements.isEmpty() ? "" : (TextUtils.join("/", elements) + (isFile() ? "" : "/"));
+    final String catalogue = getCatalogue();
+    final String path = getInnerPath();
     return new Uri[] {
         Cdn.joshw(catalogue, path),
         new Uri.Builder()
@@ -38,104 +37,44 @@ public final class Path implements app.zxtune.fs.httpdir.Path {
     };
   }
 
-  @Override
-  public String getLocalId() {
-    return catalogue + "/" + TextUtils.join("/", elements);
-  }
-
-  @Override
-  @Nullable
-  public Path getParent() {
-    final int count = elements.size();
-    switch (count) {
-      case 0:
-        return TextUtils.isEmpty(catalogue) ? null : new Path(EMPTY_CATALOGUE, Collections.EMPTY_LIST);
-      case 1:
-        return new Path(catalogue, Collections.EMPTY_LIST);
-      default:
-        return new Path(catalogue, elements.subList(0, count - 1));
-    }
+  private String getInnerPath() {
+    final String remoteId = getRemoteId();
+    return remoteId.substring(remoteId.indexOf('/') + 1);
   }
 
   @Override
   public Uri getUri() {
-    final Uri.Builder builder = new Uri.Builder().scheme(SCHEME);
-    if (!TextUtils.isEmpty(catalogue)) {
-      builder.appendPath(catalogue);
-      for (String el : elements) {
-        builder.appendPath(el);
-      }
-    }
-    return builder.build();
+    return new Uri.Builder()
+        .scheme(SCHEME)
+        .path(getRemoteId())
+        .build();
   }
 
   @Override
-  public final String getName() {
-    final int count = elements.size();
-    return count > 0
-            ? elements.get(count - 1)
-            : catalogue;
-  }
-
-  @Override
-  public Path getChild(String name) {
-    if (isEmpty()) {
-      return new Path(name, Collections.EMPTY_LIST);
-    } else {
-      final ArrayList<String> result = new ArrayList<>(elements.size() + 1);
-      result.addAll(elements);
-      result.add(name);
-      return new Path(catalogue, result);
-    }
-  }
-
-  @Override
-  public final boolean isEmpty() {
-    return TextUtils.isEmpty(catalogue);
-  }
-
-  @Override
-  public final boolean isFile() {
-    return isFileName(getName());
-  }
-
-  private static boolean isFileName(@Nullable String component) {
-    return component != null && component.toLowerCase().endsWith(".7z");
+  public Path build(List<String> elements, boolean isDir) {
+    // roots are always directories
+    return new Path(elements, isDir || elements.size() < 2);
   }
 
   public final boolean isCatalogue() {
-    return elements.isEmpty() && !TextUtils.isEmpty(catalogue);
+    return elements.size() == 1;
   }
 
   public final String getCatalogue() {
-    return catalogue;
+    return elements.isEmpty() ? EMPTY_CATALOGUE : elements.get(0);
   }
 
   @Nullable
   public static Path parse(Uri uri) {
     if (SCHEME.equals(uri.getScheme())) {
-      final List<String> elements = uri.getPathSegments();
-      final int count = elements.size();
-      switch (count) {
-        case 0:
-          return new Path(EMPTY_CATALOGUE, Collections.EMPTY_LIST);
-        case 1:
-          return new Path(elements.get(0), Collections.EMPTY_LIST);
-        default:
-          final String catalogue = elements.get(0);
-          //compatibility
-          final ArrayList<String> decoded = new ArrayList<>(count - 1);
-          for (int idx = 1; idx < count; ++idx) {
-            decoded.add(Uri.decode(elements.get(idx)));
-          }
-          return new Path(catalogue, decoded);
-      }
+      final String path = uri.getPath();
+      return path != null ? (Path) EMPTY.getChild(path) : EMPTY;
     } else {
       return null;
     }
   }
 
   public static Path create() {
-    return new Path(EMPTY_CATALOGUE, Collections.EMPTY_LIST);
+    return EMPTY;
   }
 }

@@ -10,23 +10,30 @@ import org.junit.runner.RunWith;
 
 import app.zxtune.test.BuildConfig;
 
-// dir/file.sid
+// dir/
+// dir/file.lha
 @RunWith(AndroidJUnit4.class)
 public class PathTest {
 
   @Test
   public void testEmpty() {
     final Path path = Path.create();
-    verifyEmpty(path);
-    verifyDir(path.getChild("dir"));
+    verifyRoot(path);
+    verifyDir(path.getChild("dir/"));
     verifyFile(path.getChild("dir/file.lha"));
   }
 
   @Test
+  public void testRoot() {
+    final Path path = Path.parse(Uri.parse("aminet:"));
+    verifyRoot(path);
+  }
+
+  @Test
   public void testDir() {
-    final Path path = Path.parse(Uri.parse("aminet:/dir"));
+    final Path path = Path.parse(Uri.parse("aminet:/dir/"));
     verifyDir(path);
-    verifyEmpty(path.getParent());
+    verifyRoot(path.getParent());
     verifyFile(path.getChild("file.lha"));
     verifyFile(path.getChild("/dir/file.lha"));
   }
@@ -44,7 +51,7 @@ public class PathTest {
     assertNull(path);
   }
 
-  private static void verifyEmpty(Path path) {
+  private static void verifyRoot(app.zxtune.fs.httpdir.Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUris.length", 2, uris.length);
     assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/download/aminet/mods/", uris[0].toString());
@@ -57,19 +64,20 @@ public class PathTest {
     assertFalse("isFile", path.isFile());
   }
 
-  private static void verifyDir(Path path) {
+  private static void verifyDir(app.zxtune.fs.httpdir.Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUris.length", 2, uris.length);
-    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/download/aminet/mods/dir", uris[0].toString());
-    assertEquals("getRemoteUris[1]", "http://aminet.net/mods/dir", uris[1].toString());
+    assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/download/aminet/mods/dir/",
+        uris[0].toString());
+    assertEquals("getRemoteUris[1]", "http://aminet.net/mods/dir/", uris[1].toString());
     assertEquals("getLocalId", "dir", path.getLocalId());
-    assertEquals("getUri", "aminet:/dir", path.getUri().toString());
+    assertEquals("getUri", "aminet:/dir/", path.getUri().toString());
     assertEquals("getName", "dir", path.getName());
     assertFalse("isEmpty", path.isEmpty());
     assertFalse("isFile", path.isFile());
   }
 
-  private static void verifyFile(Path path) {
+  private static void verifyFile(app.zxtune.fs.httpdir.Path path) {
     final Uri[] uris = path.getRemoteUris();
     assertEquals("getRemoteUris.length", 2, uris.length);
     assertEquals("getRemoteUris[0]", BuildConfig.CDN_ROOT + "/download/aminet/mods/dir/file.lha", uris[0].toString());

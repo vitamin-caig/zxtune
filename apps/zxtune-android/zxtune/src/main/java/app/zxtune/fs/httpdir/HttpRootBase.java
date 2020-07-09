@@ -110,7 +110,7 @@ public abstract class HttpRootBase extends StubObject implements VfsDir {
         @Override
         public void acceptDir(String name, String descr) {
           if (!name.isEmpty()) {
-            visitor.onDir(makeDir(path.getChild(name), descr));
+            visitor.onDir(makeDir(path.getChild(name + "/"), descr));
           }
         }
 
