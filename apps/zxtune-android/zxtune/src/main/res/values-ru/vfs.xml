@@ -190,6 +190,7 @@
     <string name="vfs_vgmrips_composers_name">Композиторы</string>
     <string name="vfs_vgmrips_chips_name">Чипы</string>
     <string name="vfs_vgmrips_systems_name">Системы</string>
+    <string name="vfs_vgmrips_random_name">Случайные треки</string>
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
     <string name="failed_resolve">Не найден путь %s</string>

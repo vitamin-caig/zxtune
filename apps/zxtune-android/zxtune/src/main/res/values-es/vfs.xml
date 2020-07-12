@@ -187,6 +187,7 @@
     <string name="vfs_vgmrips_composers_name">Compositores</string>
     <string name="vfs_vgmrips_chips_name">Chips</string>
     <string name="vfs_vgmrips_systems_name">Sistemas</string>
+    <string name="vfs_vgmrips_random_name">Melodías aleatorias</string>
     <!--errors-->
   <string name="network_inaccessible">La red no es accesible</string>
   <string name="failed_resolve">No se pudo resolver %s</string>

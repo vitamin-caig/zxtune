@@ -186,6 +186,7 @@
     <string name="vfs_vgmrips_composers_name">Komponisten</string>
     <string name="vfs_vgmrips_chips_name">Chips</string>
     <string name="vfs_vgmrips_systems_name">Systeme</string>
+    <string name="vfs_vgmrips_random_name">Zufällige Melodien</string>
     <!-- errors -->
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
     <string name="failed_resolve">Adresse %s konnte nicht aufgelöst werden</string>

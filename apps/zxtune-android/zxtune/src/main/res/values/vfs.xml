@@ -248,6 +248,7 @@
     <string name="vfs_vgmrips_composers_name">Composers</string>
     <string name="vfs_vgmrips_chips_name">Sound Chips</string>
     <string name="vfs_vgmrips_systems_name">Systems</string>
+    <string name="vfs_vgmrips_random_name">Random tracks</string>
     <!-- scene -->
     <string name="vfs_scene_root_name" translatable="false">Scene.org</string>
     <string name="vfs_scene_root_description" translatable="false">https://files.scene.org/</string>

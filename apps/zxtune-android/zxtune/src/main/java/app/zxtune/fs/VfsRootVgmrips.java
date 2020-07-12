@@ -2,14 +2,22 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.SparseIntArray;
 
 import androidx.annotation.Nullable;
+import androidx.core.util.Pair;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
+import app.zxtune.Log;
 import app.zxtune.R;
+import app.zxtune.TimeStamp;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.vgmrips.Catalog;
 import app.zxtune.fs.vgmrips.Group;
@@ -26,17 +34,20 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
   private final VfsObject parent;
   private final Context context;
   private final Catalog catalog;
+  private final RandomDir randomTracks;
   private final GroupingDir[] groupings;
 
   VfsRootVgmrips(VfsObject parent, Context context, MultisourceHttpProvider http) {
     this.parent = parent;
     this.context = context;
     this.catalog = Catalog.create(context, http);
+    this.randomTracks = new RandomDir();
     this.groupings = new GroupingDir[]{
         new CompaniesDir(),
         new ComposersDir(),
         new ChipsDir(),
-        new SystemsDir()
+        new SystemsDir(),
+        randomTracks
     };
   }
 
@@ -85,6 +96,9 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     if (category == null) {
       return this;
     }
+    if (Identifier.CATEGORY_RANDOM.equals(category)) {
+      return resolveRandomTrack(uri, path);
+    }
     final GroupingDir grouping = findGrouping(category);
     if (grouping == null) {
       return null;
@@ -108,6 +122,18 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
   }
 
   @Nullable
+  private VfsObject resolveRandomTrack(Uri uri, List<String> path) {
+    final Pack pack = Identifier.findRandomPack(uri, path);
+    final Track track = Identifier.findTrack(uri, path);
+    if (path != null && track != null) {
+      final PackDir packDir = new PackDir(randomTracks, pack);
+      return new TrackFile(packDir, track);
+    } else {
+      return randomTracks;
+    }
+  }
+
+  @Nullable
   private GroupingDir findGrouping(String category) {
     for (GroupingDir dir : groupings) {
       if (category.equals(dir.getCategory())) {
@@ -117,7 +143,11 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     return null;
   }
 
-  private abstract class GroupingDir extends StubObject implements VfsDir {
+  private interface ParentDir extends VfsDir {
+    Uri.Builder makeUri();
+  }
+
+  private abstract class GroupingDir extends StubObject implements ParentDir {
 
     private final String category;
     private final Catalog.Grouping grouping;
@@ -155,7 +185,8 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
       return new GroupDir(this, obj);
     }
 
-    final Uri.Builder makeUri() {
+    @Override
+    public Uri.Builder makeUri() {
       return Identifier.forCategory(category);
     }
   }
@@ -212,7 +243,107 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     }
   }
 
-  private class GroupDir extends StubObject implements VfsDir {
+  @Icon(R.drawable.ic_browser_vfs_radio)
+  private class RandomDir extends GroupingDir {
+    RandomDir() {
+      super(Identifier.CATEGORY_RANDOM, new Catalog.Grouping() {
+        @Override
+        public void query(Catalog.Visitor<Group> visitor) {}
+
+        @Override
+        public void queryPacks(String id, Catalog.Visitor<Pack> visitor, ProgressCallback progress) {}
+      });
+    }
+
+    @Override
+    public String getName() {
+      return context.getString(R.string.vfs_vgmrips_random_name);
+    }
+
+    @Override
+    public void enumerate(Visitor visitor) {}
+
+    @Nullable
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.FEED.equals(id)) {
+        return new FeedIterator();
+      } else {
+        return super.getExtension(id);
+      }
+    }
+  }
+
+  private class FeedIterator implements java.util.Iterator<VfsFile> {
+
+    private final ArrayDeque<Pair<Pack, Track>> tracks = new ArrayDeque<>();
+    // hash(id) => hit count
+    private final SparseIntArray history = new SparseIntArray();
+    private final Random random = new Random();
+
+    @Override
+    public boolean hasNext() {
+      if (tracks.isEmpty()) {
+        loadRandomTracks();
+      }
+      return !tracks.isEmpty();
+    }
+
+    @Override
+    public VfsFile next() {
+      final Pair<Pack, Track> obj = tracks.removeFirst();
+      final PackDir dir = new PackDir(randomTracks, obj.first);
+      return new TrackFile(dir, obj.second);
+    }
+
+    private void loadRandomTracks() {
+      try {
+        final Pair<Pack, Track> next = loadNextTrack();
+        if (next != null && canPlay(next.first)) {
+          tracks.addLast(next);
+        }
+      } catch (IOException e) {
+        Log.w(TAG, e, "Failed to get next track");
+      }
+    }
+
+    @Nullable
+    private Pair<Pack, Track> loadNextTrack() throws IOException {
+      final ArrayList<Track> tracks = new ArrayList<>();
+      final int[] duration = {0};
+      final Pack pack = catalog.findRandomPack(new Catalog.Visitor<Track>() {
+        @Override
+        public void accept(Track obj) {
+          tracks.add(obj);
+          duration[0] += obj.duration.convertTo(TimeUnit.SECONDS);
+        }
+      });
+      if (pack == null) {
+        return null;
+      }
+      final int hit = random.nextInt(duration[0]);
+      int bound = 0;
+      for (Track trk : tracks) {
+        bound += trk.duration.convertTo(TimeUnit.SECONDS);
+        if (hit < bound) {
+          return new Pair<>(pack, trk);
+        }
+      }
+      return null;
+    }
+
+    private boolean canPlay(Pack pack) {
+      final int key = pack.id.hashCode();
+      int donePlays = history.get(key, 0);
+      if (++donePlays > pack.songs) {
+        return false;
+      }
+      history.put(key, donePlays);
+      return true;
+    }
+  }
+
+  private class GroupDir extends StubObject implements ParentDir {
 
     private final GroupingDir parent;
     private final Group group;
@@ -253,17 +384,18 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
       }, visitor);
     }
 
-    final Uri.Builder makeUri() {
+    @Override
+    public Uri.Builder makeUri() {
       return Identifier.forGroup(parent.makeUri(), group);
     }
   }
 
   private class PackDir extends StubObject implements VfsDir {
 
-    private final GroupDir parent;
+    private final ParentDir parent;
     private final Pack pack;
 
-    PackDir(GroupDir parent, Pack pack) {
+    PackDir(ParentDir parent, Pack pack) {
       this.parent = parent;
       this.pack = pack;
     }
