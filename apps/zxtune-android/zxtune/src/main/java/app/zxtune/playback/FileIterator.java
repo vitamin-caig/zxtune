@@ -235,7 +235,7 @@ public class FileIterator implements Iterator {
     final VfsFile parentFile = parent instanceof VfsFile ? (VfsFile) parent : null;
     final VfsDir parentDir = parent instanceof VfsDir ? (VfsDir) parent : (VfsDir) parentFile.getParent();
     {
-      final Object feed = parentDir.getExtension(VfsExtensions.FEED);
+      final Object feed = findFeed(parentDir);
       if (feed != null) {
         return new FeedIterator((VfsFile) obj, (java.util.Iterator<VfsFile>) feed);
       }
@@ -273,6 +273,17 @@ public class FileIterator implements Iterator {
       }
     }
     return result.listIterator();
+  }
+
+  @Nullable
+  private static Object findFeed(VfsObject start) {
+    for (VfsObject obj = start; obj != null; obj = obj.getParent()) {
+      final Object feed = obj.getExtension(VfsExtensions.FEED);
+      if (feed != null) {
+        return feed;
+      }
+    }
+    return null;
   }
 
   // Adapter to prepend feed with already known item
