@@ -5,6 +5,11 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4950 from 14.07.2020
+
+[+] Full support of VGM format chips and versions
+[+] zxtune-android: added VGMRips random tunes stream
+
 --- Rev4930 from 18.06.2020
 
 [+] zxtune-android: added vgmrips.net online catalogue
