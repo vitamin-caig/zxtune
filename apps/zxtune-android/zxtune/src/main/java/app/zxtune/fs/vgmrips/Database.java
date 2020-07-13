@@ -126,7 +126,7 @@ class Database {
     @Nullable
     abstract Pack queryPack(String id);
 
-    @Query("SELECT * FROM packs ORDER BY RANDOM() LIMIT 1")
+    @Query("SELECT * FROM packs where (SELECT COUNT(*) FROM tracks WHERE id = pack_id) != 0 ORDER BY RANDOM() LIMIT 1")
     @Nullable
     abstract Pack queryRandomPack();
 

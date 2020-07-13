@@ -318,7 +318,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
           duration[0] += obj.duration.convertTo(TimeUnit.SECONDS);
         }
       });
-      if (pack == null) {
+      if (pack == null || 0 == duration[0]) {
         return null;
       }
       final int hit = random.nextInt(duration[0]);
