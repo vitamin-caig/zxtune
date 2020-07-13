@@ -22,7 +22,7 @@ libraries.common = analysis async \
                   parameters platform platform_application platform_version \
                   sound sound_backends strings \
                   tools
-libraries.3rdparty = asap ffmpeg FLAC gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar v2m vio2sf xmp z80ex zlib
+libraries.3rdparty = asap ffmpeg FLAC gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar v2m vio2sf vgm xmp z80ex zlib
 
 #platform
 libraries.windows = advapi32 ole32 oldnames shell32 user32

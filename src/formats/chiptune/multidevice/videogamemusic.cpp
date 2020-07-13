@@ -8,17 +8,19 @@
 *
 **/
 
+//local includes
+#include "formats/chiptune/multidevice/videogamemusic.h"
 //common includes
-#include <byteorder.h>
 #include <contract.h>
-#include <pointers.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
+#include <binary/input_stream.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
-//std includes
-#include <array>
+//boost includes
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -28,78 +30,22 @@ namespace Chiptune
 {
   namespace VideoGameMusic
   {
-    typedef std::array<uint8_t, 4> SignatureType;
+    const uint32_t SIGNATURE = 0x56676d20;
 
-    const SignatureType SIGNATURE = {{'V', 'g', 'm', ' '}};
-
+    const uint32_t GD3_SIGNATURE = 0x47643320;
     const uint_t VERSION_MIN = 100;
     const uint_t VERSION_MAX = 171;
     
-#ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
-#endif
-    PACK_PRE struct VersionType
+    class StubBuilder : public Builder
     {
-      uint8_t Minor;
-      uint8_t Major;
-      uint16_t Unused;
-      
-      bool IsValid() const
+    public:
+      MetaBuilder& GetMetaBuilder() override
       {
-        return IsValid(Minor & 15) && IsValid(Minor >> 4) &&
-               IsValid(Major & 15) && IsValid(Major >> 4) && Unused == 0;
+        return GetStubMetaBuilder();
       }
-      
-      uint_t GetValue() const
-      {
-        return (Minor & 15) + 10 * (Minor >> 4) + 100 * (Major & 15) + 1000 * (Major >> 4);
-      }
-      
-    private:
-      static bool IsValid(uint_t nibble)
-      {
-        return Math::InRange<uint_t>(nibble, 0, 9);
-      }
-    } PACK_POST;
 
-    PACK_PRE struct MinimalHeader
-    {
-      SignatureType Signature;
-      uint32_t EofOffset;
-      VersionType Version;
-      
-      bool IsValid() const
-      {
-        return Signature == SIGNATURE
-            && Version.IsValid() && Math::InRange(Version.GetValue(), VERSION_MIN, VERSION_MAX);
-      }
-      
-      std::size_t Size()
-      {
-        const uint_t vers = Version.GetValue();
-        if (vers <= 150)
-        {
-          return 0x40;
-        }
-        else if (vers <= 160)
-        {
-          return 0x80;
-        }
-        else if (vers <= 161)
-        {
-          return 0xc0;
-        }
-        else
-        {
-          return 0x100;
-        }
-      }
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
-#endif
-
-    static_assert(sizeof(MinimalHeader) == 12, "Invalid layout");
+      void SetTimings(Time::Milliseconds /*total*/, Time::Milliseconds /*loop*/) override {}
+    };
     
     const std::size_t MIN_SIZE = 256;
 
@@ -136,23 +82,191 @@ namespace Chiptune
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
-        if (!Format->Match(rawData))
+        if (Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return Parse(rawData, GetStubBuilder());
         }
-        const MinimalHeader& hdr = *safe_ptr_cast<const MinimalHeader*>(rawData.Start());
-        const std::size_t totalSize = offsetof(MinimalHeader, EofOffset) + fromLE(hdr.EofOffset);
-        if (hdr.IsValid() && totalSize <= rawData.Size())
+        else
         {
-          const Binary::Container::Ptr data = rawData.GetSubcontainer(0, totalSize);
-          return CreateCalculatingCrcContainer(data, 0, totalSize);
+          return {};
         }
-          return Formats::Chiptune::Container::Ptr();
       }
     private:
       const Binary::Format::Ptr Format;
     };
-  }
+
+    class Format
+    {
+    public:
+      explicit Format(const Binary::Container& data)
+        : Stream(data)
+      {
+      }
+
+      Formats::Chiptune::Container::Ptr Parse(Builder& target)
+      {
+        const auto limit = Stream.GetRestSize();
+        Require(Stream.ReadBE<uint32_t>() == SIGNATURE);
+        // Support truncated files
+        const auto eof = std::min(ReadOffset(), limit);
+        const auto ver = ReadVersion(Stream.ReadLE<uint32_t>());
+        Require(Math::InRange(ver, VERSION_MIN, VERSION_MAX));
+        Stream.Skip(8);
+        const auto gd3Offset = ReadOffset();
+        const auto totalSamples = Stream.ReadLE<uint32_t>();
+        Stream.Skip(4);
+        const auto loopSamples = Stream.ReadLE<uint32_t>();
+        target.SetTimings(SamplesToTime(totalSamples), SamplesToTime(loopSamples && totalSamples >= loopSamples ? totalSamples - loopSamples : 0));
+        const auto dataStart = GetDataOffset(ver);
+        const uint_t NO_GD3 = 0x18;
+        if (gd3Offset != NO_GD3 && gd3Offset < eof)
+        {
+          Stream.Seek(gd3Offset);
+          if (!ParseTags(target.GetMetaBuilder()))
+          {
+            Stream.Seek(eof);
+          }
+        }
+        else
+        {
+          Stream.Seek(eof);
+        }
+        const auto dataEnd = gd3Offset != NO_GD3 ? gd3Offset : eof;
+        auto data = Stream.GetReadContainer();
+        return CreateCalculatingCrcContainer(std::move(data), dataStart, dataEnd - dataStart);
+      }
+    private:
+      static uint_t ReadVersion(uint32_t bcd)
+      {
+        Require(0 == (bcd & 0xffff0000));
+        return Bcd(bcd & 0xff) + 100 * Bcd(bcd >> 8);
+      }
+
+      static uint_t Bcd(uint_t val)
+      {
+        const uint_t lo = val & 15;
+        const uint_t hi = val >> 4;
+        Require(lo < 10 && hi < 10);
+        return lo + 10 * hi;
+      }
+
+      static Time::Milliseconds SamplesToTime(uint64_t samples)
+      {
+        const uint_t FREQUENCY = 44100;
+        return Time::Milliseconds::FromRatio(samples, FREQUENCY);
+      }
+
+      std::size_t ReadOffset()
+      {
+        return Stream.GetPosition() + Stream.ReadLE<uint32_t>();
+      }
+
+      uint_t GetDataOffset(uint_t ver)
+      {
+        if (ver < 150)
+        {
+          return 64;
+        }
+        else
+        {
+          const uint_t BASE = 0x34;
+          Stream.Seek(BASE);
+          return ReadOffset();
+        }
+      }
+
+      bool ParseTags(MetaBuilder& target)
+      {
+        try
+        {
+          if (Stream.ReadBE<uint32_t>() == GD3_SIGNATURE)
+          {
+            Stream.Skip(4);//version
+            const auto size = Stream.ReadLE<uint32_t>();
+            ParseTags(Stream.ReadData(size), target);
+            return true;
+          }
+        }
+        catch (const std::exception&)
+        {
+        }
+        return false;
+      }
+
+      static void ParseTags(Binary::View tags, MetaBuilder& target)
+      {
+        Binary::DataInputStream input(tags);
+        const auto titleEn = ReadUTF16(input);
+        const auto titleJa = ReadUTF16(input);
+        target.SetTitle(DispatchString(titleEn, titleJa));
+        const auto gameEn = ReadUTF16(input);
+        const auto gameJa = ReadUTF16(input);
+        target.SetProgram(DispatchString(gameEn, gameJa));
+        /*const auto systemEn = */ReadUTF16(input);
+        /*const auto systemJa = */ReadUTF16(input);
+        const auto authorEn = ReadUTF16(input);
+        const auto authorJa = ReadUTF16(input);
+        /*const auto date = */ReadUTF16(input);
+        const auto ripper = ReadUTF16(input);
+        target.SetAuthor(DispatchString(authorEn, DispatchString(authorJa, ripper)));
+        const auto comment = ReadUTF16(input);
+        Strings::Array strings;
+        boost::algorithm::split(strings, comment, boost::algorithm::is_any_of("\r\n"), boost::algorithm::token_compress_on);
+        if (!strings.empty()) {
+          target.SetStrings(strings);
+        }
+      }
+
+      static String ReadUTF16(Binary::DataInputStream& input)
+      {
+        String value;
+        while (const uint16_t utf = input.ReadLE<uint16_t>())
+        {
+          if (utf <= 0x7f)
+          {
+            value += static_cast<Char>(utf);
+          }
+          else if (utf <= 0x7ff)
+          {
+            value += static_cast<Char>(0xc0 | ((utf & 0x3c0) >> 6));
+            value += static_cast<Char>(0x80 | (utf & 0x3f));
+          }
+          else
+          {
+            value += static_cast<Char>(0xe0 | ((utf & 0xf000) >> 12));
+            value += static_cast<Char>(0x80 | ((utf & 0x0fc0) >> 6));
+            value += static_cast<Char>(0x80 | ((utf & 0x003f)));
+          }
+        }
+        return value;
+      }
+
+      static const String& DispatchString(const String& lh, const String& rh)
+      {
+        return lh.empty() ? rh : lh;
+      }
+    private:
+      Binary::InputStream Stream;
+    };
+
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
+    {
+      try
+      {
+        return Format(rawData).Parse(target);
+      }
+      catch (const std::exception&)
+      {
+        return {};
+      }
+    }
+
+    Builder& GetStubBuilder()
+    {
+      static StubBuilder stub;
+      return stub;
+    }
+  } //namespace VideoGameMusic
 
   Decoder::Ptr CreateVideoGameMusicDecoder()
   {

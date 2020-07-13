@@ -15,7 +15,7 @@ libraries.common = analysis \
                    tools
 
 #3rdparty
-libraries.3rdparty = asap FLAC ffmpeg gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar v2m vio2sf xmp z80ex zlib
+libraries.3rdparty = asap FLAC ffmpeg gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar v2m vgm vio2sf xmp z80ex zlib
 
 libraries.boost += filesystem system
 

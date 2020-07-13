@@ -15,7 +15,7 @@
 
 namespace Module
 {
-  namespace VGM
+  namespace VideoGameMusic
   {
     String DetectPlatform(Binary::View blob);
   }

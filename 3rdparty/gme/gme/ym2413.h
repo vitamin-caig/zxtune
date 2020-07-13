@@ -3,10 +3,6 @@
 #ifndef __YM2413_H__
 #define __YM2413_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* select output bits size of output : 8 or 16 */
 #define SAMPLE_BITS 16
 
@@ -42,9 +38,5 @@ void ym2413_set_mask(void *chip, UINT32 mask);
 typedef void (*OPLL_UPDATEHANDLER)(void *param,int min_interval_us);
 
 void ym2413_set_update_handler(void *chip, OPLL_UPDATEHANDLER UpdateHandler, void *param);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /*__YM2413_H__*/
