@@ -3,6 +3,7 @@ package app.zxtune.fs.vgmrips;
 import androidx.annotation.Nullable;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
@@ -93,6 +94,50 @@ class CachingCatalog extends Catalog {
       }
     });
     return result[0];
+  }
+
+  @Nullable
+  @Override
+  public Pack findRandomPack(Visitor<Track> visitor) throws IOException {
+    if (remote.isAvailable()) {
+      return findRandomPackAndCache(visitor);
+    } else {
+      return findRandomPackFromCache(visitor);
+    }
+  }
+
+  @Nullable
+  private Pack findRandomPackAndCache(Visitor<Track> visitor) throws IOException {
+    final Transaction trans = db.startTransaction();
+    try {
+      final ArrayList<Track> tracks = new ArrayList<>();
+      final Pack result = remote.findRandomPack(new Visitor<Track>() {
+        @Override
+        public void accept(Track obj) {
+          tracks.add(obj);
+        }
+      });
+      if (result != null) {
+        db.addPack(result);
+        for (Track tr : tracks) {
+          db.addPackTrack(result.id, tr);
+          visitor.accept(tr);
+        }
+        trans.succeed();
+      }
+      return result;
+    } finally {
+      trans.finish();
+    }
+  }
+
+  @Nullable
+  private Pack findRandomPackFromCache(Visitor<Track> visitor) {
+    final Pack res = db.queryRandomPack();
+    if (res != null) {
+      db.queryPackTracks(res.id, visitor);
+    }
+    return res;
   }
 
   private class CachedGrouping implements Catalog.Grouping {

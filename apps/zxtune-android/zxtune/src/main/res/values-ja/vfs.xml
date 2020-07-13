@@ -188,6 +188,7 @@
     <string name="vfs_vgmrips_composers_name">作曲家</string>
     <string name="vfs_vgmrips_chips_name">チップ</string>
     <string name="vfs_vgmrips_systems_name">システム</string>
+    <string name="vfs_vgmrips_random_name">ランダム曲</string>
     <!-- errors -->
     <string name="network_inaccessible">ネットワー</string>
     <string name="failed_resolve">解決に失敗しました %s</string>

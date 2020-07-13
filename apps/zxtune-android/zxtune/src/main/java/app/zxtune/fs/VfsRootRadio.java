@@ -64,17 +64,16 @@ final class VfsRootRadio extends StubObject implements VfsRoot {
   private void defferredFill() throws IOException {
     if (children.isEmpty()) {
       children.add(new EntryModarchive());
+      children.add(new EntryVgmrips());
     }
   }
 
-  // TODO: get rid of wrappers after browser rework
-  @Icon(R.drawable.ic_browser_vfs_modarchive)
-  private class EntryModarchive extends StubObject implements VfsDir {
+  private static class BaseEntry extends StubObject implements VfsDir {
 
     private final VfsDir delegate;
 
-    EntryModarchive() throws IOException {
-      this.delegate = (VfsDir) Vfs.resolve(Uri.parse("modarchive:/Random"));
+    BaseEntry(String uri) throws IOException {
+      this.delegate = (VfsDir) Vfs.resolve(Uri.parse(uri));
     }
 
     @Override
@@ -84,12 +83,12 @@ final class VfsRootRadio extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return ctx.getString(R.string.vfs_modarchive_random_name);
+      return delegate.getName();
     }
 
     @Override
     public String getDescription() {
-      return ctx.getString(R.string.vfs_modarchive_root_name);
+      return delegate.getDescription();
     }
 
     @Override
@@ -106,6 +105,33 @@ final class VfsRootRadio extends StubObject implements VfsRoot {
     @Override
     public void enumerate(Visitor visitor) throws IOException {
       delegate.enumerate(visitor);
+    }
+  }
+
+  // TODO: get rid of wrappers after browser rework
+  @Icon(R.drawable.ic_browser_vfs_modarchive)
+  private class EntryModarchive extends BaseEntry {
+
+    EntryModarchive() throws IOException {
+      super("modarchive:/Random");
+    }
+
+    @Override
+    public String getDescription() {
+      return ctx.getString(R.string.vfs_modarchive_root_name);
+    }
+  }
+
+  @Icon(R.drawable.ic_browser_vfs_vgmrips)
+  private class EntryVgmrips extends BaseEntry {
+
+    EntryVgmrips() throws IOException {
+      super("vgmrips:/Random");
+    }
+
+    @Override
+    public String getDescription() {
+      return ctx.getString(R.string.vfs_vgmrips_root_name);
     }
   }
 }

@@ -126,6 +126,10 @@ class Database {
     @Nullable
     abstract Pack queryPack(String id);
 
+    @Query("SELECT * FROM packs ORDER BY RANDOM() LIMIT 1")
+    @Nullable
+    abstract Pack queryRandomPack();
+
     @Insert(entity = PackEntity.class, onConflict = OnConflictStrategy.REPLACE)
     abstract void insertPack(Pack pack);
 
@@ -210,6 +214,11 @@ class Database {
   @Nullable
   final Pack queryPack(String id) {
     return db.catalog().queryPack(id);
+  }
+
+  @Nullable
+  final Pack queryRandomPack() {
+    return db.catalog().queryRandomPack();
   }
 
   final boolean queryPackTracks(String id, Catalog.Visitor<Track> visitor) {

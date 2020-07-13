@@ -19,13 +19,14 @@ import app.zxtune.TimeStamp;
  * <p>
  * 1) vgmrips:/
  * 2) vgmrips:/Company
- * 3) vgmrips:/Company/${company_name}?company=${company_id}
+ * 3) vgmrips:/Company/${company_name}?group=${company_id}
  * 4) vgmrips:/Composer
- * 5) vgmrips:/Composer/${composer_name}?composer=${composer_id}
+ * 5) vgmrips:/Composer/${composer_name}?group=${composer_id}
  * 6) vgmrips:/Chip
- * 7) vgmrips:/Chip/${chip_name}?chip=${chip_id}
+ * 7) vgmrips:/Chip/${chip_name}?group=${chip_id}
  * 8) vgmrips:/System
- * 9) vgmrips:/System/${system_name}?system=${system_id}
+ * 9) vgmrips:/System/${system_name}?group=${system_id}
+ * 10) vgmrips://Random
  * <p>
  * X) ${url}&pack=${pack_id}
  */
@@ -37,6 +38,7 @@ public class Identifier {
   private static final int POS_CATEGORY = 0;
   private static final int POS_GROUP_NAME = 1;
   private static final int POS_PACK_NAME = 2;
+  private static final int POS_RANDOM_PACK_NAME = 1;
 
   private static final String PARAM_GROUP = "group";
   private static final String PARAM_PACK = "pack";
@@ -46,6 +48,7 @@ public class Identifier {
   public static final String CATEGORY_COMPOSER = "Composer";
   public static final String CATEGORY_CHIP = "Chip";
   public static final String CATEGORY_SYSTEM = "System";
+  public static final String CATEGORY_RANDOM = "Random";
 
   // Root
   public static Uri.Builder forRoot() {
@@ -94,6 +97,18 @@ public class Identifier {
       final String id = uri.getQueryParameter(PARAM_PACK);
       if (id != null) {
         final String name = path.get(POS_PACK_NAME);
+        return new Pack(id, name);
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  public static Pack findRandomPack(Uri uri, List<String> path) {
+    if (path.size() > POS_RANDOM_PACK_NAME) {
+      final String id = uri.getQueryParameter(PARAM_PACK);
+      if (id != null) {
+        final String name = path.get(POS_RANDOM_PACK_NAME);
         return new Pack(id, name);
       }
     }

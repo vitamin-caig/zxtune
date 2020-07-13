@@ -188,6 +188,7 @@
     <string name="vfs_vgmrips_composers_name">Skladatelé</string>
     <string name="vfs_vgmrips_chips_name">Čipy</string>
     <string name="vfs_vgmrips_systems_name">Systémy</string>
+    <string name="vfs_vgmrips_random_name">Náhodné melodie</string>
     <!-- errors -->
     <string name="network_inaccessible">Síť není dostupná</string>
     <string name="failed_resolve">Podařilo se zrušit %s</string>

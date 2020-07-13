@@ -56,11 +56,25 @@ public class RemoteCatalog extends Catalog {
     return systems;
   }
 
+  @Override
   @Nullable
   public Pack findPack(String id, Visitor<Track> visitor) throws IOException {
-    final Document doc = readDoc(buildUri("/packs/pack/" + id));
+    return findPackInternal("/packs/pack/" + id, visitor);
+  }
+
+  @Override
+  @Nullable
+  public Pack findRandomPack(Visitor<Track> visitor) throws IOException {
+    return findPackInternal("/packs/random", visitor);
+  }
+
+  @Nullable
+  private Pack findPackInternal(String path, Visitor<Track> visitor) throws IOException {
+    final Document doc = readDoc(buildUri(path));
+    final String id = getSuffix(doc.selectFirst("meta[property=og:url]").attr("content"),
+        "/packs/pack/");
     final Element titleEl = doc.selectFirst("div.row>section>h1");
-    final Pack result = makePack(id, titleEl != null ?titleEl.text() : null);
+    final Pack result = makePack(id, titleEl != null ? titleEl.text() : "");
     if (result == null) {
       return null;
     }
@@ -79,8 +93,12 @@ public class RemoteCatalog extends Catalog {
     return result;
   }
 
+  final boolean isAvailable() {
+    return http.hasConnection();
+  }
+
   public static Uri[] getRemoteUris(Track track) {
-    return new Uri[] {
+    return new Uri[]{
         Cdn.vgmrips(track.location),
         buildBaseUri("packs/vgm/" + track.location).build()
     };

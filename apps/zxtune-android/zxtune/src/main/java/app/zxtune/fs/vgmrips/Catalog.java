@@ -28,6 +28,9 @@ public abstract class Catalog {
   @Nullable
   public abstract Pack findPack(String id, Visitor<Track> visitor) throws IOException;
 
+  @Nullable
+  public abstract Pack findRandomPack(Visitor<Track> visitor) throws IOException;
+
   public static Catalog create(Context context, MultisourceHttpProvider http) {
     final RemoteCatalog remote = new RemoteCatalog(http);
     final Database db = new Database(context);
