@@ -193,6 +193,7 @@ namespace LibVGM
 
     void SetSoundFreq(uint_t freq)
     {
+      Delegate->Stop();
       Delegate->SetSampleRate(freq);
       Delegate->Start();
     }
