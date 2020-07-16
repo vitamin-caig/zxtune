@@ -18,6 +18,7 @@ import androidx.media.session.MediaButtonReceiver;
 
 import java.util.List;
 
+import app.zxtune.analytics.Analytics;
 import app.zxtune.device.media.MediaSessionControl;
 import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
@@ -26,6 +27,8 @@ import app.zxtune.playback.service.PlaybackServiceLocal;
 public class MainService extends MediaBrowserServiceCompat {
 
   private static final String TAG = MainService.class.getName();
+
+  private static final Analytics.Trace TRACE = Analytics.Trace.create("MainService");
 
   public static final String CUSTOM_ACTION_ADD_CURRENT = TAG + ".CUSTOM_ACTION_ADD_CURRENT";
   public static final String CUSTOM_ACTION_ADD = TAG + ".CUSTOM_ACTION_ADD";
@@ -43,22 +46,27 @@ public class MainService extends MediaBrowserServiceCompat {
 
   @Override
   public void onCreate() {
+    TRACE.beginMethod("onCreate");
     super.onCreate();
-    Log.d(TAG, "Creating");
+    TRACE.checkpoint("super");
 
     final Context ctx = getApplicationContext();
     //Should be first call in order to initialize JNI and avoid deadlocks in Runtime
     settingsChangedHandler = ChangedSettingsReceiver.subscribe(ctx);
+    TRACE.checkpoint("jni");
+
     service = new PlaybackServiceLocal(ctx);
+    TRACE.checkpoint("svc");
 
     setupCallbacks(ctx);
+    TRACE.checkpoint("cbs");
 
     service.restoreSession();
+    TRACE.endMethod();
   }
 
   @Override
   public void onDestroy() {
-    Log.d(TAG, "Destroying");
     mediaSessionControl.release();
     mediaSessionControl = null;
     service.release();

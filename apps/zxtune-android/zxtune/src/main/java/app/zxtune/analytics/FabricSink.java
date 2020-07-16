@@ -7,6 +7,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.LocaleList;
 
+import androidx.collection.SparseArrayCompat;
+
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
 
@@ -58,6 +60,9 @@ final class FabricSink implements Sink {
   public void logException(Throwable e) {
     Crashlytics.logException(e);
   }
+
+  @Override
+  public void sendTrace(String tag, SparseArrayCompat<String> points) {}
 
   @Override
   public void sendPlayEvent(PlayableItem item, Player player) {}

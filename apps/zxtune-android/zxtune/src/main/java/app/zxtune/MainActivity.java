@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private static final int NO_PAGE = -1;
+  private static final Analytics.Trace TRACE = Analytics.Trace.create("MainActivity");
   @Nullable
   private ViewPager pager;
   private int browserPageIndex;
@@ -84,13 +85,16 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
+    TRACE.beginMethod("onCreate");
     super.onCreate(savedInstanceState);
+    TRACE.checkpoint("super");
 
     fillPages();
     if (Build.VERSION.SDK_INT >= 16) {
       Permission.request(this, Manifest.permission.READ_EXTERNAL_STORAGE);
     }
     Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+    TRACE.checkpoint("perm");
 
     sessionConnection = new MediaSessionConnection(this);
 
@@ -103,6 +107,8 @@ public class MainActivity extends AppCompatActivity {
       StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().build());
       StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().build());
     }
+
+    TRACE.endMethod();
   }
 
   @Override
@@ -114,14 +120,18 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   public void onStart() {
+    TRACE.beginMethod("onStart");
     super.onStart();
     sessionConnection.connect();
+    TRACE.endMethod();
   }
 
   @Override
   public void onStop() {
+    TRACE.beginMethod("onStop");
     super.onStop();
     sessionConnection.disconnect();
+    TRACE.endMethod();
   }
 
   @Override

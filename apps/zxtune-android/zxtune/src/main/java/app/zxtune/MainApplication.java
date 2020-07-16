@@ -18,14 +18,21 @@ import com.github.anrwatchdog.ANRWatchDog;
 
 public class MainApplication extends Application {
 
+  private static final Analytics.Trace TRACE = Analytics.Trace.create("MainApplication");
+
   @Nullable
   private static Context globalContext;
 
   @Override
   public void onCreate() {
+    TRACE.beginMethod("onCreate");
+    TRACE.checkpoint("step");
+
     super.onCreate();
+    TRACE.checkpoint("super");
 
     initialize(this);
+    TRACE.endMethod();
   }
 
   public synchronized static void initialize(Context ctx) {

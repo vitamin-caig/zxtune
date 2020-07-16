@@ -1,12 +1,18 @@
 package app.zxtune.analytics;
 
 import android.net.Uri;
+
+import androidx.collection.SparseArrayCompat;
+
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
 
 interface Sink {
 
   void logException(Throwable e);
+
+  // elapsed => tag
+  void sendTrace(String id, SparseArrayCompat<String> points);
 
   void sendPlayEvent(PlayableItem item, Player player);
 

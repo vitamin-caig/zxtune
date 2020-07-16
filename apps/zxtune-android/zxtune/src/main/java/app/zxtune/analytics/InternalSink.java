@@ -3,6 +3,8 @@ package app.zxtune.analytics;
 import android.content.Context;
 import android.net.Uri;
 
+import androidx.collection.SparseArrayCompat;
+
 import app.zxtune.Log;
 import app.zxtune.analytics.internal.Factory;
 import app.zxtune.analytics.internal.UrlsBuilder;
@@ -30,7 +32,17 @@ final class InternalSink implements Sink {
 
   @Override
   public void logException(Throwable e) {
+  }
 
+  @Override
+  public void sendTrace(String id, SparseArrayCompat<String> points) {
+    final UrlsBuilder builder = new UrlsBuilder("trace/" + id);
+    for (int idx = 0, lim = points.size(); idx < lim; ++idx) {
+      final String tag = points.valueAt(idx);
+      final int offset = points.keyAt(idx);
+      builder.addParam(tag, offset);
+    }
+    send(builder);
   }
 
   @Override

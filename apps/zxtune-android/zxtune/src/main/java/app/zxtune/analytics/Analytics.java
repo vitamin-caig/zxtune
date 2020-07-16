@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 
 import androidx.annotation.IntDef;
+import androidx.collection.SparseArrayCompat;
 
 import com.crashlytics.android.Crashlytics;
 
@@ -29,6 +30,48 @@ public class Analytics {
   public static void logException(Throwable e) {
     for (Sink s : sinks) {
       s.logException(e);
+    }
+  }
+
+  // TODO: replace by annotation
+  public static class Trace {
+    private final String id;
+    private final long start = System.nanoTime();
+    private final SparseArrayCompat<String> points = new SparseArrayCompat<>();
+    private String method;
+
+    public static Trace create(String id) {
+      return new Trace(id);
+    }
+
+    private Trace(String id) {
+      this.id = id;
+    }
+
+    public final void beginMethod(String name) {
+      points.clear();
+      method = name;
+      checkpoint("in");
+    }
+
+    public final void checkpoint(String point) {
+      points.append(getElapsed(), point);
+    }
+
+    public final void endMethod() {
+      checkpoint("out");
+      sendTrace(id + "." + method, points);
+      method = "";
+    }
+
+    private int getElapsed() {
+      return (int) (System.nanoTime() - start) / 1000;
+    }
+  }
+
+  private static void sendTrace(String id, SparseArrayCompat<String> points) {
+    for (Sink s : sinks) {
+      s.sendTrace(id, points);
     }
   }
 
