@@ -36,7 +36,8 @@ final class InternalSink implements Sink {
 
   @Override
   public void sendTrace(String id, SparseArrayCompat<String> points) {
-    final UrlsBuilder builder = new UrlsBuilder("trace/" + id);
+    final UrlsBuilder builder = new UrlsBuilder("trace");
+    builder.addParam("id", id);
     for (int idx = 0, lim = points.size(); idx < lim; ++idx) {
       final String tag = points.valueAt(idx);
       final int offset = points.keyAt(idx);
