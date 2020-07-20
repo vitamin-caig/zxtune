@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
-    TRACE.beginMethod("onCreate");
+    TRACE.beginMethod(savedInstanceState == null ? "onCreate" : "onRecreate");
     super.onCreate(savedInstanceState);
     TRACE.checkpoint("super");
 
