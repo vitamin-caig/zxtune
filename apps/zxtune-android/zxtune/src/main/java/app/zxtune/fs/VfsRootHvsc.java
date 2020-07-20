@@ -20,7 +20,7 @@ import app.zxtune.fs.hvsc.Path;
 @Icon(R.drawable.ic_browser_vfs_hvsc)
 final class VfsRootHvsc extends HttpRootBase implements VfsRoot {
 
-  private static final String[] SUBDIRS = {"DEMOS", "GAMES", "MUSICIANS"};
+  private static final String[] SUBDIRS = {"DEMOS/", "GAMES/", "MUSICIANS/"};
 
   private final Context context;
 
