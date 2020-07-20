@@ -65,7 +65,7 @@ public class Analytics {
     }
 
     private int getElapsed() {
-      return (int) (System.nanoTime() - start) / 1000;
+      return (int) ((System.nanoTime() - start) / 1000);
     }
   }
 
