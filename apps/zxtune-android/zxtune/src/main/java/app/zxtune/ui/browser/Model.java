@@ -187,7 +187,7 @@ public class Model extends AndroidViewModel {
       final ArrayList<BreadcrumbsEntry> result = new ArrayList<>();
       providerClient.parents(uri, new VfsProviderClient.ParentsCallback() {
         @Override
-        public void onObject(Uri uri, String name, int icon) {
+        public void onObject(Uri uri, String name, @Nullable Integer icon) {
           final BreadcrumbsEntry entry = new BreadcrumbsEntry(uri, name, icon);
           result.add(entry);
         }
@@ -251,7 +251,8 @@ public class Model extends AndroidViewModel {
       // assume already resolved
       providerClient.search(newState.uri, newState.query, new VfsProviderClient.ListingCallback() {
         @Override
-        public void onDir(Uri uri, String name, String description, int icon, boolean hasFeed) {
+        public void onDir(Uri uri, String name, String description, @Nullable Integer icon,
+                          boolean hasFeed) {
 
         }
 
@@ -290,7 +291,8 @@ public class Model extends AndroidViewModel {
     final ObjectType[] result = new ObjectType[]{null};
     providerClient.resolve(uri, new VfsProviderClient.ListingCallback() {
       @Override
-      public void onDir(Uri uri, String name, String description, int icon, boolean hasFeed) {
+      public void onDir(Uri uri, String name, String description, @Nullable Integer icon,
+                        boolean hasFeed) {
         result[0] = hasFeed ? ObjectType.DIR_WITH_FEED : ObjectType.DIR;
       }
 
@@ -312,7 +314,8 @@ public class Model extends AndroidViewModel {
     final ArrayList<ListingEntry> result = new ArrayList<>();
     providerClient.list(uri, new VfsProviderClient.ListingCallback() {
       @Override
-      public void onDir(Uri uri, String name, String description, int icon, boolean hasFeed) {
+      public void onDir(Uri uri, String name, String description, @Nullable Integer icon,
+                        boolean hasFeed) {
         final ListingEntry entry = new ListingEntry(uri, name, description);
         entry.type = ListingEntry.FOLDER;
         entry.icon = icon;

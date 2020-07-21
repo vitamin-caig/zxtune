@@ -15,14 +15,14 @@ public class VfsProviderClient {
   }
 
   public interface ListingCallback extends StatusCallback {
-    void onDir(Uri uri, String name, String description, int icon, boolean hasFeed);
+    void onDir(Uri uri, String name, String description, @Nullable Integer icon, boolean hasFeed);
 
     void onFile(Uri uri, String name, String description, String details, @Nullable Integer tracks,
                 @Nullable Boolean cached);
   }
 
   public interface ParentsCallback extends StatusCallback {
-    void onObject(Uri uri, String name, int icon);
+    void onObject(Uri uri, String name, @Nullable Integer icon);
   }
 
   private final ContentResolver resolver;
@@ -178,7 +178,7 @@ public class VfsProviderClient {
     do {
       final Uri uri = Schema.Parents.getUri(cursor);
       final String name = Schema.Parents.getName(cursor);
-      final int icon = Schema.Parents.getIcon(cursor);
+      final Integer icon = Schema.Parents.getIcon(cursor);
       cb.onObject(uri, name, icon);
     } while (cursor.moveToNext());
   }

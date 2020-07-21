@@ -166,10 +166,14 @@ class StatusCallback implements Callback {
     try {
       final Uri rootLocation = new Uri.Builder().scheme(location.getScheme()).build();
       final VfsObject root = Vfs.resolve(rootLocation);
-      return VfsUtils.getObjectIcon(root);
+      Integer icon = VfsUtils.getObjectIcon(root);
+      if (icon != null) {
+        return icon;
+      }
     } catch (Exception e) {
-      return R.drawable.ic_launcher;
+      Log.w(TAG, e, "Failed to get location icon resource");
     }
+    return R.drawable.ic_launcher;
   }
 
   private static void fillObjectUrls(Uri location,

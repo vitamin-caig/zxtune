@@ -7,7 +7,7 @@
     </data>
     <Button
       style="@style/Button.Breadcrumbs"
-      android:text="@{entry.icon == 0 ? entry.title : null}"
-      android:drawableLeft="@{entry.icon != 0 ? context.getResources().getDrawable(entry.icon) : null}"
+      android:text="@{entry.icon == null ? entry.title : null}"
+      android:drawableLeft="@{entry.icon != null ? context.getResources().getDrawable(entry.icon) : null}"
     />
 </layout>

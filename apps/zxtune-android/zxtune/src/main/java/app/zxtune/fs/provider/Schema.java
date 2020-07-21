@@ -33,12 +33,17 @@ class Schema {
   private static final int TYPE_DIR = 0;
   private static final int TYPE_FILE = 1;
 
+  @Nullable
+  private static Integer getIntOrNull(Cursor cursor, int column) {
+    return cursor.isNull(column) ? null : cursor.getInt(column);
+  }
+
   static class Listing {
     static final String[] COLUMNS = {COLUMN_TYPE, COLUMN_URI, COLUMN_NAME, COLUMN_DESCRIPTION
         , COLUMN_ICON, COLUMN_DETAILS, COLUMN_CACHED};
 
     static Object[] makeDirectory(Uri uri, String name, String description,
-                                  int icon, boolean hasFeed) {
+                                  @Nullable Integer icon, boolean hasFeed) {
       return new Object[]{TYPE_DIR, uri.toString(), name, description, icon, hasFeed ? "" : null,
           null};
     }
@@ -74,8 +79,9 @@ class Schema {
       return cursor.getString(3);
     }
 
-    static int getIcon(Cursor cursor) {
-      return cursor.getInt(4);
+    @Nullable
+    static Integer getIcon(Cursor cursor) {
+      return getIntOrNull(cursor, 4);
     }
 
     static String getDetails(Cursor cursor) {
@@ -88,7 +94,7 @@ class Schema {
 
     @Nullable
     static Integer getTracks(Cursor cursor) {
-      return cursor.isNull(4) ? null : cursor.getInt(4);
+      return getIntOrNull(cursor, 4);
     }
 
     @Nullable
@@ -101,7 +107,7 @@ class Schema {
 
     static final String[] COLUMNS = {COLUMN_URI, COLUMN_NAME, COLUMN_ICON};
 
-    static Object[] make(Uri uri, String name, int icon) {
+    static Object[] make(Uri uri, String name, @Nullable Integer icon) {
       return new Object[]{uri.toString(), name, icon};
     }
 
@@ -113,8 +119,9 @@ class Schema {
       return cursor.getString(1);
     }
 
-    static int getIcon(Cursor cursor) {
-      return cursor.getInt(2);
+    @Nullable
+    static Integer getIcon(Cursor cursor) {
+      return getIntOrNull(cursor, 2);
     }
   }
 

@@ -25,7 +25,8 @@ public class ListingEntry {
   @Type
   public int type;
   @DrawableRes
-  public int icon;
+  @Nullable
+  public Integer icon;
   public String title;
   public String description;
   @Nullable
@@ -43,7 +44,7 @@ public class ListingEntry {
 
   @DrawableRes
   public int getDisplayIcon() {
-    if (icon != 0) {
+    if (icon != null) {
       return icon;
     } else if (type == FOLDER) {
       return R.drawable.ic_browser_folder;
