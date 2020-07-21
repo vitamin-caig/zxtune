@@ -38,7 +38,7 @@ public class Analytics {
     private final String id;
     private final long start = System.nanoTime();
     private final SparseArrayCompat<String> points = new SparseArrayCompat<>();
-    private String method;
+    private String method = "";
 
     public static Trace create(String id) {
       return new Trace(id);

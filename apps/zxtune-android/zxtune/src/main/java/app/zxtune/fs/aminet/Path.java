@@ -1,13 +1,13 @@
 package app.zxtune.fs.aminet;
 
 import android.net.Uri;
-import androidx.annotation.Nullable;
-import android.text.TextUtils;
-import app.zxtune.fs.api.Cdn;
 
-import java.util.ArrayList;
+import androidx.annotation.Nullable;
+
 import java.util.Collections;
 import java.util.List;
+
+import app.zxtune.fs.api.Cdn;
 
 // not including /mods element!!!
 

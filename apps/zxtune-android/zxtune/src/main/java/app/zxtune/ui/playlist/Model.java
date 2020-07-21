@@ -86,7 +86,7 @@ public class Model extends AndroidViewModel {
   }
 
   private static Entry createItem(Cursor cursor) {
-    final Entry item = new Entry(
+    return new Entry(
         cursor.getLong(Database.Tables.Playlist.Fields._id.ordinal()),
         Identifier.parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal())),
         cursor.getString(Database.Tables.Playlist.Fields.title.ordinal()),
@@ -94,6 +94,5 @@ public class Model extends AndroidViewModel {
         TimeStamp.createFrom(cursor.getLong(Database.Tables.Playlist.Fields.duration.ordinal()),
             TimeUnit.MILLISECONDS)
     );
-    return item;
   }
 }

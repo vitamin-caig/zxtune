@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.TimeStamp;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.vgmrips.Catalog;
 import app.zxtune.fs.vgmrips.Group;
@@ -121,7 +120,6 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     }
   }
 
-  @Nullable
   private VfsObject resolveRandomTrack(Uri uri, List<String> path) {
     final Pack pack = Identifier.findRandomPack(uri, path);
     final Track track = Identifier.findTrack(uri, path);
