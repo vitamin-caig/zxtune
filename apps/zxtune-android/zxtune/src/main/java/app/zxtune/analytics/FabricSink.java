@@ -80,7 +80,7 @@ final class FabricSink implements Sink {
   public void sendPlaylistEvent(int action, int param) {}
 
   @Override
-  public void sendVfsEvent(String id, String scope, int action) {}
+  public void sendVfsEvent(String id, String scope, int action, long duration) {}
 
   @Override
   public void sendNoTracksFoundEvent(Uri uri) {}

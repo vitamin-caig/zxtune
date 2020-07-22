@@ -26,7 +26,7 @@ interface Sink {
   //TODO: cleanup
   void sendPlaylistEvent(@Analytics.PlaylistAction int action, int param);
 
-  void sendVfsEvent(String id, String scope, @Analytics.VfsAction int action);
+  void sendVfsEvent(String id, String scope, @Analytics.VfsAction int action, long duration);
 
   void sendNoTracksFoundEvent(Uri uri);
 }

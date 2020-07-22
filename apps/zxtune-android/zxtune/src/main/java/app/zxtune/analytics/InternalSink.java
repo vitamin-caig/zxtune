@@ -170,10 +170,12 @@ final class InternalSink implements Sink {
   }
 
   @Override
-  public void sendVfsEvent(String id, String scope, @Analytics.VfsAction int action) {
+  public void sendVfsEvent(String id, String scope, @Analytics.VfsAction int action,
+                           long duration) {
     final UrlsBuilder builder = new UrlsBuilder("vfs/" + serializeVfsAction(action));
     builder.addParam("id", id);
     builder.addParam("scope", scope);
+    builder.addParam("duration", duration);
 
     send(builder);
   }

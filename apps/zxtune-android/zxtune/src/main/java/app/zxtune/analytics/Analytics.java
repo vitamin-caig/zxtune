@@ -164,9 +164,29 @@ public class Analytics {
   public static final int VFS_ACTION_CACHED_FETCH = 2;
   public static final int VFS_ACTION_CACHED_FALLBACK = 3;
 
-  public static void sendVfsEvent(String id, String scope, @VfsAction int action) {
+  public static class VfsTrace {
+    private final long start = System.currentTimeMillis();
+    private final String id;
+    private final String scope;
+
+    private VfsTrace(String id, String scope) {
+      this.id = id;
+      this.scope = scope;
+    }
+
+    public static VfsTrace create(String id, String scope) {
+      return new VfsTrace(id, scope);
+    }
+
+    public final void send(@VfsAction int action) {
+      final long duration = System.currentTimeMillis() - start;
+      sendVfsEvent(id, scope, action, duration);
+    }
+  }
+
+  private static void sendVfsEvent(String id, String scope, @VfsAction int action, long duration) {
     for (Sink s : sinks) {
-      s.sendVfsEvent(id, scope, action);
+      s.sendVfsEvent(id, scope, action, duration);
     }
   }
 
