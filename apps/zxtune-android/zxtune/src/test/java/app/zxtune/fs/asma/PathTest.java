@@ -11,6 +11,7 @@ import app.zxtune.BuildConfig;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 // dir/
@@ -29,6 +30,7 @@ public class PathTest {
   public void testRoot() {
     final Path path = Path.parse(Uri.parse("asma:"));
     verifyRoot(path);
+    assertSame(path, Path.parse(Uri.parse("asma:/")));
   }
 
   @Test
@@ -59,7 +61,7 @@ public class PathTest {
     assertEquals("getRemoteUris[1]", "http://asma.atari.org/asma/", uris[1].toString());
     assertEquals("getLocalId", "", path.getLocalId());
     assertEquals("getUri", "asma:", path.getUri().toString());
-    assertEquals("getName", "",path.getName());
+    assertEquals("getName", "", path.getName());
     assertNull("getParent", path.getParent());
     assertTrue("isEmpty", path.isEmpty());
     assertFalse("isFile", path.isFile());

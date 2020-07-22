@@ -10,6 +10,8 @@ import java.util.List;
 
 public abstract class PathBase implements Path {
 
+  private static final String DELIMITER = "/";
+
   protected final List<String> elements;
   protected final boolean isDir;
 
@@ -20,14 +22,14 @@ public abstract class PathBase implements Path {
 
   protected String getRemoteId() {
     final String local = getLocalId();
-    return isDir && !local.isEmpty() ? local + "/" : local;
+    return isDir && !local.isEmpty() ? local + DELIMITER : local;
   }
 
   protected abstract Path build(List<String> elements, boolean isDir);
 
   @Override
   public String getLocalId() {
-    return TextUtils.join("/", elements);
+    return TextUtils.join(DELIMITER, elements);
   }
 
   @Override
@@ -54,19 +56,22 @@ public abstract class PathBase implements Path {
 
   @Override
   public Path getChild(String name) {
+    if (name.isEmpty() || DELIMITER.equals(name)) {
+      return this;
+    }
     final ArrayList<String> result = new ArrayList<>(elements.size() + 1);
-    if (name.startsWith("/")) {
+    if (name.startsWith(DELIMITER)) {
       //absolute path
       name = name.substring(1);
     } else {
       result.addAll(elements);
     }
-    if (name.contains("/")) {
-      Collections.addAll(result, name.split("/"));
+    if (name.contains(DELIMITER)) {
+      Collections.addAll(result, name.split(DELIMITER));
     } else {
       result.add(name);
     }
-    return build(result, name.endsWith("/"));
+    return build(result, name.endsWith(DELIMITER));
   }
 
   @Override
