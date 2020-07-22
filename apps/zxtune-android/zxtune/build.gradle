@@ -68,16 +68,20 @@ dependencies {
 apply from: "${treeRoot}/make/android/android.gradle"
 apply from: "${treeRoot}/make/android/nativelibs.gradle"
 
+// Testing related
 android {
     defaultConfig {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+    testOptions.unitTests.includeAndroidResources = true
 }
 
 dependencies {
     androidTestImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.robolectric:robolectric:4.3'
 }
 
 android {

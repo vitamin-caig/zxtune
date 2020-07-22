@@ -1,13 +1,9 @@
 package app.zxtune.fs;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
-import static org.junit.Assert.*;
-
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-@RunWith(AndroidJUnit4.class)
+import static org.junit.Assert.assertEquals;
+
 public class DefaultComparatorTest {
 
   @Test

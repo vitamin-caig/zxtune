@@ -1,18 +1,21 @@
 package app.zxtune.fs.hvsc;
 
 import android.net.Uri;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
-import static org.junit.Assert.*;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
-import app.zxtune.test.BuildConfig;
+import app.zxtune.BuildConfig;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 // dir/
 // dir/file.sid
-@RunWith(AndroidJUnit4.class)
+@RunWith(RobolectricTestRunner.class)
 public class PathTest {
 
   @Test
