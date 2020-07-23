@@ -240,7 +240,7 @@ namespace LibVGM
 
     static Sound::Sample::Type Convert(DEV_SMPL in)
     {
-      return in >> 8;
+      return Math::Clamp<Sound::Sample::WideType>(in >> 8, Sound::Sample::MIN, Sound::Sample::MAX);
     }
   private:
     const Model::Ptr Tune;
