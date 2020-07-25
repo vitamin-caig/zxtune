@@ -1,7 +1,7 @@
+ifdef tools.lupdate
 #path/lang/domain.ts
 getlang = $(lastword $(subst /, ,$(dir $(1))))
 
-tools.lupdate ?= $(qt.bin)lupdate
 tools.lrelease ?= $(qt.bin)lrelease
 
 %.ts: $(source_files) $(addsuffix *.ui,$(sort $(dir $(ui_files))))
@@ -13,3 +13,4 @@ qm_files = $(foreach lng,$(l10n_languages),$(foreach file,$(ts_files),$(l10n_dir
 
 %.qm: %.ts
 	$(tools.lrelease) $^ -qm $@
+endif

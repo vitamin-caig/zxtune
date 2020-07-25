@@ -1,0 +1,184 @@
+// aatr.ci - another ATR file extractor
+//
+// Copyright (C) 2012-2013  Piotr Fusik
+//
+// This file is part of ASAP (Another Slight Atari Player),
+// see http://asap.sourceforge.net
+//
+// ASAP is free software; you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published
+// by the Free Software Foundation; either version 2 of the License,
+// or (at your option) any later version.
+//
+// ASAP is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ASAP; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+public delegate bool RandomAccessInputStream(int offset, byte[] buffer, int length);
+
+/// ATR disk image reader.
+public class AATR
+{
+	RandomAccessInputStream Content;
+	int BytesPerSector;
+	int Sector4Offset;
+	int FileNo;
+	byte[128] DirectorySector;
+	string(12) Filename;
+
+	/// Opens an ATR disk image.
+	/// Returns `true` on success.
+	public bool Open(RandomAccessInputStream content)
+	{
+		byte[6] header;
+		content(0, header, 6);
+		if (header[0] != 0x96 || header[1] != 2)
+			return false;
+		BytesPerSector = header[4] | header[5] << 8;
+		Sector4Offset = 0x190;
+		switch (BytesPerSector) {
+		case 0x80:
+			break;
+		case 0x100:
+			// For 256-byte sectors, boot sectors are stored as:
+			// a. 3*128 bytes (the more common format)
+			// b. 3*128 bytes followed by 3*128 zero bytes
+			// For correct disk images, (header[2] & 7) should be zero
+			// (i.e. length of the image should be multiple of 128).
+			// Then (header[2] & 8) != 0 means case a, and (header[2] & 8) == 0 means case b.
+			// However, there are some strange disk images, such as SV2K12_STUFF_AtariDOS.atr,
+			// where (header[2] & 0xf) == 0 while it is case a.
+			// So, assume case b only if (header[2] & 0xf) == 0
+			// and default to the more common case a otherwise.
+			if ((header[2] & 0xf) == 0)
+				Sector4Offset = 0x310;
+			break;
+		default:
+			return false;
+		}
+		Content = content;
+		FileNo = -1;
+		return true;
+	}
+
+	bool ReadSector(int sectorNo, byte[] buffer, int length)
+	{
+		if (sectorNo < 4)
+			return false;
+		return Content(Sector4Offset + (sectorNo - 4) * BytesPerSector, buffer, length);
+	}
+
+	int GetFilenamePart(int directoryOffset, int maxLength)
+	{
+		for (int length = 0; length < maxLength; length++) {
+			int c = DirectorySector[directoryOffset + length];
+			if (c == ' ') {
+				int result = length;
+				// make sure there are no spaces in filename
+				while (++length < maxLength) {
+					if (DirectorySector[directoryOffset + length] != ' ')
+						return -1;
+				}
+				return result;
+			}
+			if ((c >= 'A' && c <= 'Z')
+			 || (c >= '0' && c <= '9')
+			 || c == '_')
+				continue;
+			return -1;
+		}
+		return maxLength;
+	}
+
+	/// Advances to the next file on the open disk image.
+	/// Returns the filename or `null` if no more files found.
+	public string NextFile()
+	{
+		for (;;) {
+			if (FileNo >= 63)
+				return null;
+			FileNo++;
+			int directoryOffset = (FileNo & 7) << 4;
+			if (directoryOffset == 0 && !ReadSector(361 + (FileNo >> 3), DirectorySector, 128))
+				return null;
+			switch (DirectorySector[directoryOffset] & 0xd7) { // mask out readonly and unused bits
+			case 0x00:
+				return null; // end of directory
+			case 0x42: // DOS 2 file
+			case 0x46: // MyDOS file
+			case 0x03: // DOS 2.5 file
+				break;
+			default:
+				continue;
+			}
+			int filenameLength = GetFilenamePart(directoryOffset + 5, 8);
+			if (filenameLength < 0)
+				continue;
+			int extLength = GetFilenamePart(directoryOffset + 13, 3);
+			if (extLength < 0 || (filenameLength == 0 && extLength == 0))
+				continue;
+			Filename = DirectorySector.ToString(directoryOffset + 5, filenameLength);
+			if (extLength > 0) {
+				DirectorySector[directoryOffset + 12] = '.';
+				string(4) ext = DirectorySector.ToString(directoryOffset + 12, 1 + extLength);
+				Filename += ext;
+			}
+			return Filename;
+		}
+	}
+
+	/// Reads the current file.
+	/// Returns the number of bytes read or -1 on error.
+	public int ReadCurrentFile(
+		/// Destination buffer.
+		byte[] buffer,
+		/// Maximum number of bytes to read.
+		int length)
+	{
+		int result = 0;
+		int directoryOffset = (FileNo & 7) << 4;
+		int sectorNo = DirectorySector[directoryOffset + 3] | DirectorySector[directoryOffset + 4] << 8;
+		bool myDos = (DirectorySector[directoryOffset] & 4) != 0;
+		byte[256] sector;
+		while (sectorNo != 0 && length > 0) {
+			if (!ReadSector(sectorNo, sector, BytesPerSector))
+				return -1;
+			int used = sector[BytesPerSector - 1];
+			if (used > length)
+				used = length;
+			if (buffer != null)
+				sector.CopyTo(0, buffer, result, used);
+			result += used;
+			length -= used;
+			sectorNo = sector[BytesPerSector - 3];
+			if (!myDos)
+				sectorNo &= 3;
+			sectorNo = sectorNo << 8 | sector[BytesPerSector - 2];
+		}
+		return result;
+	}
+
+	/// Reads the given file from the open disk image.
+	/// Returns the number of bytes read or -1 on error.
+	public int ReadFile(
+		/// Name of file to read.
+		string filename,
+		/// Destination buffer.
+		byte[] buffer,
+		/// Maximum number of bytes to read.
+		int length)
+	{
+		for (;;) {
+			string currentFilename = NextFile();
+			if (currentFilename == null)
+				return -1;
+			if (currentFilename == filename)
+				return ReadCurrentFile(buffer, length);
+		}
+	}
+}

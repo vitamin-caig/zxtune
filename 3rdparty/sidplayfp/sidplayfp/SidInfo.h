@@ -69,7 +69,7 @@ public:
     //@}
 
 protected:
-    ~SidInfo() {}
+    virtual ~SidInfo() {}
 };
 
 #endif  /* SIDINFO_H */

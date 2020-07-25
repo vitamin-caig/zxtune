@@ -20,8 +20,6 @@ int const resampler_extra = 34;
 
 int const stereo = 2;
 
-Dual_Resampler::Dual_Resampler() { }
-
 Dual_Resampler::~Dual_Resampler() { }
 
 blargg_err_t Dual_Resampler::reset( int pairs )

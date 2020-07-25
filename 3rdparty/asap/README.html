@@ -1,0 +1,1565 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="application/xhtml+xml; charset=UTF-8"/>
+<meta name="generator" content="AsciiDoc 8.6.3"/>
+<title>ASAP - Another Slight Atari Player</title>
+<style type="text/css">
+/* Sans-serif font. */
+h1, h2, h3, h4, h5, h6,
+div.title, caption.title,
+thead, p.table.header,
+div#toctitle,
+span#author, span#revnumber, span#revdate, span#revremark,
+div#footer {
+  font-family: Arial,Helvetica,sans-serif;
+}
+
+/* Serif font. */
+div.sectionbody {
+  font-family: Georgia,"Times New Roman",Times,serif;
+}
+
+/* Monospace font. */
+tt {
+  font-size: inherit;
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+  color: navy;
+}
+
+strong {
+  font-weight: bold;
+  color: #083194;
+}
+
+tt {
+  font-size: inherit;
+  color: navy;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #c02020;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1, h2, h3 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  padding-top: 0.5em;
+}
+h3 {
+  float: left;
+}
+h3 + * {
+  clear: left;
+}
+
+div.sectionbody {
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+ul, ol, li &gt; p {
+  margin-top: 0;
+}
+ul &gt; li     { color: #aaa; }
+ul &gt; li &gt; * { color: black; }
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #c02020;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+span#email {
+}
+span#revnumber, span#revdate, span#revremark {
+}
+
+div#footer {
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble {
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-top: 1.0em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.0em;
+  margin-bottom: 2.0em;
+  margin-right: 10%;
+  color: #606060;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  color: #c02020;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock &gt; div.content {
+  background: #ffffee;
+  border: 1px solid #dddddd;
+  border-left: 4px solid #f0f0f0;
+  padding: 0.5em;
+}
+
+div.listingblock &gt; div.content {
+  border: 1px solid #dddddd;
+  border-left: 5px solid #f0f0f0;
+  background: #f8f8f8;
+  padding: 0.5em;
+}
+
+div.quoteblock, div.verseblock {
+  padding-left: 1.0em;
+  margin-left: 1.0em;
+  margin-right: 10%;
+  border-left: 5px solid #f0f0f0;
+  color: #777777;
+}
+
+div.quoteblock &gt; div.attribution {
+  padding-top: 0.5em;
+  text-align: right;
+}
+
+div.verseblock &gt; pre.content {
+  font-family: inherit;
+  font-size: inherit;
+}
+div.verseblock &gt; div.attribution {
+  padding-top: 0.75em;
+  text-align: left;
+}
+/* DEPRECATED: Pre version 8.2.7 verse style literal block. */
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #c02020;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 3px solid #dddddd;
+}
+
+div.exampleblock &gt; div.content {
+  border-left: 3px solid #dddddd;
+  padding-left: 0.5em;
+}
+
+div.imageblock div.content { padding-left: 0; }
+span.image img { border-style: none; }
+a.image:visited { color: white; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: normal;
+  color: navy;
+}
+dd &gt; *:first-child {
+  margin-top: 0.1em;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.arabic {
+  list-style-type: decimal;
+}
+ol.loweralpha {
+  list-style-type: lower-alpha;
+}
+ol.upperalpha {
+  list-style-type: upper-alpha;
+}
+ol.lowerroman {
+  list-style-type: lower-roman;
+}
+ol.upperroman {
+  list-style-type: upper-roman;
+}
+
+div.compact ul, div.compact ol,
+div.compact p, div.compact p,
+div.compact div, div.compact div {
+  margin-top: 0.1em;
+  margin-bottom: 0.1em;
+}
+
+div.tableblock &gt; table {
+  border: 3px solid #c02020;
+}
+thead, p.table.header {
+  font-weight: bold;
+  color: #c02020;
+}
+tfoot {
+  font-weight: bold;
+}
+td &gt; div.verse {
+  white-space: pre;
+}
+p.table {
+  margin-top: 0;
+}
+/* Because the table frame attribute is overriden by CSS in most browsers. */
+div.tableblock &gt; table[frame="void"] {
+  border-style: none;
+}
+div.tableblock &gt; table[frame="hsides"] {
+  border-left-style: none;
+  border-right-style: none;
+}
+div.tableblock &gt; table[frame="vsides"] {
+  border-top-style: none;
+  border-bottom-style: none;
+}
+
+
+div.hdlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+div.hdlist tr {
+  padding-bottom: 15px;
+}
+dt.hdlist1.strong, td.hdlist1.strong {
+  font-weight: bold;
+}
+td.hdlist1 {
+  vertical-align: top;
+  font-style: normal;
+  padding-right: 0.8em;
+  color: navy;
+}
+td.hdlist2 {
+  vertical-align: top;
+}
+div.hdlist.compact tr {
+  margin: 0;
+  padding-bottom: 0;
+}
+
+.comment {
+  background: yellow;
+}
+
+.footnote, .footnoteref {
+  font-size: 0.8em;
+}
+
+span.footnote, span.footnoteref {
+  vertical-align: super;
+}
+
+#footnotes {
+  margin: 20px 0 20px 0;
+  padding: 7px 0 0 0;
+}
+
+#footnotes div.footnote {
+  margin: 0 0 5px 0;
+}
+
+#footnotes hr {
+  border: none;
+  border-top: 1px solid silver;
+  height: 1px;
+  text-align: left;
+  margin-left: 0;
+  width: 20%;
+  min-width: 100px;
+}
+
+div.colist td {
+  padding-right: 0.5em;
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+div.colist td img {
+  margin-top: 0.3em;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+
+div#toc {
+  margin-bottom: 2.5em;
+}
+
+div#toctitle {
+  color: #c02020;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 1.0em;
+  margin-bottom: 0.1em;
+}
+
+div.toclevel1, div.toclevel2, div.toclevel3, div.toclevel4 {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+div.toclevel2 {
+  margin-left: 2em;
+  font-size: 0.9em;
+}
+div.toclevel3 {
+  margin-left: 4em;
+  font-size: 0.9em;
+}
+div.toclevel4 {
+  margin-left: 6em;
+  font-size: 0.9em;
+}
+
+</style>
+<script type="text/javascript">
+/*<![CDATA[*/
+window.onload = function(){asciidoc.footnotes(); asciidoc.toc(2);}
+var asciidoc = {  // Namespace.
+
+/////////////////////////////////////////////////////////////////////
+// Table Of Contents generator
+/////////////////////////////////////////////////////////////////////
+
+/* Author: Mihai Bazon, September 2002
+ * http://students.infoiasi.ro/~mishoo
+ *
+ * Table Of Content generator
+ * Version: 0.4
+ *
+ * Feel free to use this script under the terms of the GNU General Public
+ * License, as long as you do not remove or alter this notice.
+ */
+
+ /* modified by Troy D. Hanson, September 2006. License: GPL */
+ /* modified by Stuart Rackham, 2006, 2009. License: GPL */
+
+// toclevels = 1..4.
+toc: function (toclevels) {
+
+  function getText(el) {
+    var text = "";
+    for (var i = el.firstChild; i != null; i = i.nextSibling) {
+      if (i.nodeType == 3 /* Node.TEXT_NODE */) // IE doesn't speak constants.
+        text += i.data;
+      else if (i.firstChild != null)
+        text += getText(i);
+    }
+    return text;
+  }
+
+  function TocEntry(el, text, toclevel) {
+    this.element = el;
+    this.text = text;
+    this.toclevel = toclevel;
+  }
+
+  function tocEntries(el, toclevels) {
+    var result = new Array;
+    var re = new RegExp('[hH]([2-'+(toclevels+1)+'])');
+    // Function that scans the DOM tree for header elements (the DOM2
+    // nodeIterator API would be a better technique but not supported by all
+    // browsers).
+    var iterate = function (el) {
+      for (var i = el.firstChild; i != null; i = i.nextSibling) {
+        if (i.nodeType == 1 /* Node.ELEMENT_NODE */) {
+          var mo = re.exec(i.tagName);
+          if (mo && (i.getAttribute("class") || i.getAttribute("className")) != "float") {
+            result[result.length] = new TocEntry(i, getText(i), mo[1]-1);
+          }
+          iterate(i);
+        }
+      }
+    }
+    iterate(el);
+    return result;
+  }
+
+  var toc = document.getElementById("toc");
+  var entries = tocEntries(document.getElementById("content"), toclevels);
+  for (var i = 0; i < entries.length; ++i) {
+    var entry = entries[i];
+    if (entry.element.id == "")
+      entry.element.id = "_toc_" + i;
+    var a = document.createElement("a");
+    a.href = "#" + entry.element.id;
+    a.appendChild(document.createTextNode(entry.text));
+    var div = document.createElement("div");
+    div.appendChild(a);
+    div.className = "toclevel" + entry.toclevel;
+    toc.appendChild(div);
+  }
+  if (entries.length == 0)
+    toc.parentNode.removeChild(toc);
+},
+
+
+/////////////////////////////////////////////////////////////////////
+// Footnotes generator
+/////////////////////////////////////////////////////////////////////
+
+/* Based on footnote generation code from:
+ * http://www.brandspankingnew.net/archive/2005/07/format_footnote.html
+ */
+
+footnotes: function () {
+  var cont = document.getElementById("content");
+  var noteholder = document.getElementById("footnotes");
+  var spans = cont.getElementsByTagName("span");
+  var refs = {};
+  var n = 0;
+  for (i=0; i<spans.length; i++) {
+    if (spans[i].className == "footnote") {
+      n++;
+      // Use [\s\S] in place of . so multi-line matches work.
+      // Because JavaScript has no s (dotall) regex flag.
+      note = spans[i].innerHTML.match(/\s*\[([\s\S]*)]\s*/)[1];
+      noteholder.innerHTML +=
+        "<div class='footnote' id='_footnote_" + n + "'>" +
+        "<a href='#_footnoteref_" + n + "' title='Return to text'>" +
+        n + "</a>. " + note + "</div>";
+      spans[i].innerHTML =
+        "[<a id='_footnoteref_" + n + "' href='#_footnote_" + n +
+        "' title='View footnote' class='footnote'>" + n + "</a>]";
+      var id =spans[i].getAttribute("id");
+      if (id != null) refs["#"+id] = n;
+    }
+  }
+  if (n == 0)
+    noteholder.parentNode.removeChild(noteholder);
+  else {
+    // Process footnoterefs.
+    for (i=0; i<spans.length; i++) {
+      if (spans[i].className == "footnoteref") {
+        var href = spans[i].getElementsByTagName("a")[0].getAttribute("href");
+        href = href.match(/#.*/)[0];  // Because IE return full URL.
+        n = refs[href];
+        spans[i].innerHTML =
+          "[<a href='#_footnote_" + n +
+          "' title='View footnote' class='footnote'>" + n + "</a>]";
+      }
+    }
+  }
+}
+
+}
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>ASAP - Another Slight Atari Player</h1>
+<div id="toc">
+  <div id="toctitle">Table of Contents</div>
+  <noscript><p><b>JavaScript must be enabled in your browser to display the table of contents.</b></p></noscript>
+</div>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>ASAP is a player of <a href="http://en.wikipedia.org/wiki/Atari_8-bit_family">Atari 8-bit</a>
+music for modern computers and mobile devices.
+It emulates the <a href="http://en.wikipedia.org/wiki/POKEY">POKEY sound chip</a>
+and the <a href="http://en.wikipedia.org/wiki/6502">6502 processor</a>.
+The project was initially based on the routines from the
+<a href="http://atari800.sourceforge.net/">Atari800 emulator</a>,
+but the current version has original emulation core.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_input_formats">Input formats</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>ASAP supports the following file formats:</p></div>
+<div class="dlist compact"><dl>
+<dt class="hdlist1">
+SAP (Slight Atari Player)
+</dt>
+<dd>
+<p>
+Designed for playing Atari 8-bit music on PCs.
+All other formats can be converted to SAP.
+<a href="http://asma.atari.org/">Atari SAP Music Archive (ASMA)</a>
+is a single big collection of SAP files.
+</p>
+</dd>
+<dt class="hdlist1">
+CMC (Chaos Music Composer)
+</dt>
+<dd>
+<p>
+Atari music editor from early 1990s.
+</p>
+</dd>
+<dt class="hdlist1">
+CM3 (CMC "3/4")
+</dt>
+<dd>
+<p>
+CMC with modified pattern length.
+</p>
+</dd>
+<dt class="hdlist1">
+CMR (CMC "Rzog")
+</dt>
+<dd>
+<p>
+CMC with modified bass sounds.
+</p>
+</dd>
+<dt class="hdlist1">
+CMS (Stereo Double CMC)
+</dt>
+<dd>
+<p>
+Stereo CMC.
+</p>
+</dd>
+<dt class="hdlist1">
+DMC (DoublePlay CMC)
+</dt>
+<dd>
+<p>
+CMC with 6502 routine executed at double rate of the original CMC.
+</p>
+</dd>
+<dt class="hdlist1">
+DLT (Delta Music Composer)
+</dt>
+<dd>
+<p>
+Atari music editor from 1990s.
+</p>
+</dd>
+<dt class="hdlist1">
+FC (Future Composer)
+</dt>
+<dd>
+<p>
+Atari music editor from 1990s.
+</p>
+</dd>
+<dt class="hdlist1">
+MPT (Music ProTracker)
+</dt>
+<dd>
+<p>
+Atari music editor from 1990s.
+</p>
+</dd>
+<dt class="hdlist1">
+MPD (MPT DoublePlay)
+</dt>
+<dd>
+<p>
+MPT with 6502 routine executed at double rate of the original MPT.
+</p>
+</dd>
+<dt class="hdlist1">
+RMT (<a href="http://raster.infos.cz/atari/rmt/rmt.htm">Raster Music Tracker</a>)
+</dt>
+<dd>
+<p>
+Modern Atari music editor running on Windows.
+</p>
+</dd>
+<dt class="hdlist1">
+TMC, TM8 (<a href="http://jaskier.atari8.info/">Theta Music Composer</a> 1.x)
+</dt>
+<dd>
+<p>
+Atari music editor from late 1990s.
+The two file extensions are treated identically and played in stereo.
+TM8 means it&#x2019;s stereo (8-channel) music while TMC can be either mono or stereo.
+</p>
+</dd>
+<dt class="hdlist1">
+TM2 (<a href="http://jaskier.atari8.info/">Theta Music Composer</a> 2.x)
+</dt>
+<dd>
+<p>
+Modern Atari music editor.
+</p>
+</dd>
+<dt class="hdlist1">
+STIL (SAP Tune Information List)
+</dt>
+<dd>
+<p>
+This isn&#x2019;t a music format.
+It&#x2019;s a text file that contains cover information and comments for many music files.
+This format is identical to <a href="http://www.hvsc.de/download/C64Music/DOCUMENTS/STIL.faq">C64 STIL</a>.
+<tt>STIL.txt</tt> is distributed with ASMA (see above).
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>You can find some example files in <a href="http://asap.sourceforge.net/examples.zip">examples.zip</a>.</p></div>
+<div class="paragraph"><p>For viewing Atari pictures check out our sister project <a href="http://recoil.sourceforge.net">RECOIL</a>.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ports">Ports</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>ASAP runs on Windows, Linux, in web browsers and mobile devices.
+This remarkable portability is possible thanks to the <a href="http://cito.sourceforge.net">&#x106; programming language</a>.</p></div>
+<div class="paragraph"><p>ASAP includes the following programs:</p></div>
+<div class="ulist compact"><ul>
+<li>
+<p>
+plugins for Windows/Linux players: <a href="http://audacious-media-player.org/">Audacious</a>, <a href="http://www.videolan.org/vlc/">VLC</a>, <a href="http://xbmc.org/">XBMC</a>, <a href="http://gstreamer.freedesktop.org/">GStreamer</a>
+</p>
+</li>
+<li>
+<p>
+plugins for Windows players: <a href="http://www.microsoft.com/windows/windowsmedia/player/">Windows Media Player</a>, <a href="http://www.winamp.com/">Winamp</a>, <a href="http://foobar2000.org/">foobar2000</a>, <a href="http://www.un4seen.com/xmplay.html">XMPlay</a>, <a href="http://koti.welho.com/hylinen/apollo/">Apollo</a>, <a href="http://hp.vector.co.jp/authors/VA032810/">GSPlayer</a>
+</p>
+</li>
+<li>
+<p>
+plugins for Linux players: <a href="http://xmms.org/">XMMS</a>, <a href="http://moc.daper.net/">MOC</a>
+</p>
+</li>
+<li>
+<p>
+add-on for Windows library <a href="http://www.un4seen.com/bass.html">BASS</a> (for <a href="http://www.aimp.ru/">AIMP</a> and <a href="http://www.un4seen.com/bass_showcase.php">other players</a>)
+</p>
+</li>
+<li>
+<p>
+asapconv - portable command-line converter
+</p>
+</li>
+<li>
+<p>
+WASAP - tiny player for Windows (desktop and mobile)
+</p>
+</li>
+<li>
+<p>
+POKEY sound emulation DLL for <a href="http://raster.infos.cz/atari/rmt/rmt.htm">Raster Music Tracker</a>
+</p>
+</li>
+<li>
+<p>
+Windows Explorer extension - shows and edits metadata
+</p>
+</li>
+<li>
+<p>
+AIRASAP - simple desktop player in the <a href="http://www.adobe.com/products/air/">Adobe AIR</a> technology
+</p>
+</li>
+<li>
+<p>
+AndroidASAP - player for mobile devices
+</p>
+</li>
+<li>
+<p>
+Java midlet - player for mobile phones
+</p>
+</li>
+<li>
+<p>
+Flash player - for web pages 
+</p>
+</li>
+<li>
+<p>
+Java applet - for web pages 
+</p>
+</li>
+<li>
+<p>
+JavaScript player - for web pages 
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.silverlight.net/">Silverlight</a> player - for web pages 
+</p>
+</li>
+<li>
+<p>
+MetroASAP - experimental player for Windows 8
+</p>
+</li>
+<li>
+<p>
+ASAP2WAV - command-line converters to WAV files implemented in Java, C#, JavaScript, Perl and <a href="http://dlang.org/">D</a>
+</p>
+</li>
+<li>
+<p>
+simple command-line players implemented in C/SDL, C# and D
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p><a href="PORTS.xml">This table</a> summarizes differences between the above versions.</p></div>
+<div class="paragraph"><p>To play the music on an Atari 8-bit, convert the music to an Atari program (XEX) using asapconv, WASAP, Winamp, Apollo or XMPlay.</p></div>
+<div class="paragraph"><p>There are other projects which use ASAP:</p></div>
+<div class="ulist compact"><ul>
+<li>
+<p>
+<a href="http://mmsap.sourceforge.net/">mmSAP</a> - standalone player for GNU/Linux and Windows with GTK+ user interface
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.rockbox.org/">Rockbox</a> - open source firmware for MP3 players
+</p>
+</li>
+<li>
+<p>
+<a href="http://bzrplayer.blazer.nu">BZR Player</a> - player for Windows
+</p>
+</li>
+<li>
+<p>
+Game Music Gear MX - player for PlayStation Portable
+</p>
+</li>
+<li>
+<p>
+<a href="http://yoyofr.blogspot.com/p/modizer.html">Modizer</a> - player for iPhone, iPod and iPad
+</p>
+</li>
+<li>
+<p>
+<a href="http://www.chipamp.org/">Chipamp</a> - bundle of plugins for Winamp
+</p>
+</li>
+<li>
+<p>
+<a href="http://atari-sounds.fatmagnus.ppa.pl/">Atari Sounds For The Masses</a> - GUI frontend to asapconv for Mac OS X
+</p>
+</li>
+<li>
+<p>
+<a href="http://dangerousprototypes.com/forum/viewtopic.php?t=3944">Atari POKEY 8-bit Computer Sound on PIC32</a> - ASAP on a microcontroller
+</p>
+</li>
+<li>
+<p>
+<a href="http://mxplay.atari.org/">mxPlay</a> - audio player for Atari Falcon
+</p>
+</li>
+<li>
+<p>
+<a href="https://github.com/epi/enotracker">enotracker</a> - POKEY music editor for PC
+</p>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_asapconv">Using asapconv</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Run the program from the command line to see the syntax.
+The <tt>-o</tt>/<tt>--output</tt> option selects the output format and is mandatory.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_libasap">Using libasap</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The library is documented in the <tt>asap.h</tt> header file.
+Be warned there might be breaking changes in the future versions of the library.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_compilation_instructions">Compilation instructions</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_required_tools">Required tools</h3>
+<div class="paragraph"><p>For all builds you will need:</p></div>
+<div class="dlist compact"><dl>
+<dt class="hdlist1">
+GNU Make
+</dt>
+<dd>
+<p>
+On Linux this program is called <tt>make</tt>. On other systems it may be called <tt>gmake</tt>
+(if this is the case, type <tt>gmake</tt> instead of <tt>make</tt> in the following instructions).
+On Windows you may install GNU Make from <a href="http://cygwin.com/">Cygwin</a> or <a href="http://www.mingw.org/">MinGW</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+Standard Unix tools
+</dt>
+<dd>
+<p>
+I mean <tt>sh</tt>, <tt>cat</tt>, <tt>cp</tt>, <tt>rm</tt>, <tt>mkdir</tt>. On Windows you can find them in Cygwin.
+</p>
+</dd>
+<dt class="hdlist1">
+xasm and MADS
+</dt>
+<dd>
+<p>
+If you are compiling latest source code from Git, install
+<a href="http://xasm.atari.org/">xasm</a> and <a href="http://mads.atari8.info/">MADS</a>.
+</p>
+</dd>
+<dt class="hdlist1">
+&#x106; Translator
+</dt>
+<dd>
+<p>
+The core of ASAP is written in the &#x106; programming language.
+You&#x2019;ll need <a href="http://cito.sourceforge.net">cito</a>.
+For your convenience, this is not needed for most of the C and C++ ports.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>Make sure these tools are on your <tt>PATH</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getting_officially_released_source_code">Getting officially released source code</h3>
+<div class="paragraph"><p>If you want to compile an official release of ASAP, download a source distribution
+(<tt>asap-*.tar.gz</tt>) and uncompress it to a directory of your choice.</p></div>
+<div class="paragraph"><p>On Unix-like systems:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>tar zxf asap-*.tar.gz</tt></pre>
+</div></div>
+<div class="paragraph"><p>On Windows you may use <a href="http://7-zip.org/">7-Zip</a>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_getting_latest_source_code">Getting latest source code</h3>
+<div class="paragraph"><p>Alternatively you may get the latest version from the Git repository.
+To do this using a command-line Git client:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>git clone git://git.code.sf.net/p/asap/code asap-code</tt></pre>
+</div></div>
+<div class="paragraph"><p>This will fetch the latest code into a new directory called <tt>asap-code</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_asapconv_and_libasap_on_unix_like_systems">Building asapconv and libasap on Unix-like systems</h3>
+<div class="paragraph"><p>From your shell prompt navigate to the directory which contains <tt>asap.c</tt>.</p></div>
+<div class="paragraph"><p>To compile and install, run the following commands:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make
+sudo make install</tt></pre>
+</div></div>
+<div class="paragraph"><p>The latter command installs the command-line converter and the C library
+in <tt>/usr/local</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_audacious_plugin_on_unix_like_systems">Building the Audacious plugin on Unix-like systems</h3>
+<div class="paragraph"><p>Install <tt>audacious-dev</tt> or <tt>audacious-devel</tt>.
+To compile, run the following command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make asap-audacious</tt></pre>
+</div></div>
+<div class="paragraph"><p>To install:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>sudo make install-audacious</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_gstreamer_plugin_on_unix_like_systems">Building the GStreamer plugin on Unix-like systems</h3>
+<div class="paragraph"><p>To compile, run the following command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make asap-gstreamer</tt></pre>
+</div></div>
+<div class="paragraph"><p>To install in <tt>/usr/lib/gstreamer-0.10</tt>:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>sudo make install-gstreamer</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_moc_plugin_on_unix_like_systems">Building the MOC plugin on Unix-like systems</h3>
+<div class="paragraph"><p>You need source code of MOC. The plugin is compatible with MOC 2.4.x
+and MOC 2.5.0 alpha.</p></div>
+<div class="paragraph"><p>Check <tt>MOC_INCLUDE</tt> and <tt>MOC_PLUGIN_DIR</tt> in the <tt>moc/moc.mk</tt> file.
+These should be the directory with MOC sources
+and the directory with the installed MOC plugins, respectively.</p></div>
+<div class="paragraph"><p>If the defaults are correct, use the following commands:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make asap-moc
+sudo make install-moc</tt></pre>
+</div></div>
+<div class="paragraph"><p>If you need to specify different directories, use:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make asap-moc MOC_INCLUDE=path/to/moc/sources
+sudo make install-moc MOC_PLUGIN_DIR=/path/to/moc/plugins</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_vlc_plugin_on_linux">Building the VLC plugin on Linux</h3>
+<div class="paragraph"><p>Install <tt>vlc-devel</tt>. Verify paths at the top of <tt>vlc/vlc.mk</tt>.
+To compile, run the following command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make asap-vlc</tt></pre>
+</div></div>
+<div class="paragraph"><p>To install:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>sudo make install-vlc</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_vlc_plugin_on_os_x">Building the VLC plugin on OS X</h3>
+<div class="paragraph"><p>Install Xcode Command Line Tools.</p></div>
+<div class="paragraph"><p>You need <tt>vlc_plugin.h</tt> and other header files.
+Unfortunately they are not installed with the VLC on Mac.
+You can find them in VLC source code. I copied them from my Windows VLC
+(<tt>C:\Program Files (x86)\VideoLAN\VLC\sdk\include\vlc\plugins</tt>). ;)
+Make sure <tt>VLC_OSX_CFLAGS</tt> in <tt>vlc/vlc.mk</tt> points to the directory
+with these header files.</p></div>
+<div class="paragraph"><p>To compile, run the following command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make asap-vlc-osx</tt></pre>
+</div></div>
+<div class="paragraph"><p>To install:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make install-vlc-osx</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_xbmc_plugin_on_linux">Building the XBMC plugin on Linux</h3>
+<div class="paragraph"><p>Your XBMC must include support for ASAP.
+Unfortunately it&#x2019;s disabled in the official Linux build.</p></div>
+<div class="paragraph"><p>Anyway, to build the ASAP plugin, run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make asap-xbmc</tt></pre>
+</div></div>
+<div class="paragraph"><p>You should get <tt>xbmc_asap-i486-linux.so</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_xmms_plugin_on_unix_like_systems">Building the XMMS plugin on Unix-like systems</h3>
+<div class="paragraph"><p>You need <tt>xmms</tt> and <tt>xmms-devel</tt> packages.</p></div>
+<div class="paragraph"><p>To compile, run the following command:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make asap-xmms</tt></pre>
+</div></div>
+<div class="paragraph"><p>If the compilation finished successfully, you can install the plugin
+in your home directory:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make install-xmms-user</tt></pre>
+</div></div>
+<div class="paragraph"><p>or for all users:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>sudo make install-xmms</tt></pre>
+</div></div>
+<div class="paragraph"><p>If you have another XMMS plugin that supports Atari 8-bit music,
+remove it in order to avoid conflicts.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_asapconv_wasap_winamp_gsplayer_apollo_xmplay_bass_xbmc_plugins_rmt_dll_asapscan_shell_extension_and_libasap_on_windows">Building asapconv, WASAP, Winamp/GSPlayer/Apollo/XMPlay/BASS/XBMC plugins, RMT DLL, asapscan, shell extension and libasap on Windows</h3>
+<div class="paragraph"><p>Install the C and C++ compilers from <a href="http://www.mingw.org/">MinGW</a>.</p></div>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make mingw</tt></pre>
+</div></div>
+<div class="paragraph"><p>You should get <tt>asapconv.exe</tt>, <tt>wasap.exe</tt>, <tt>in_asap.dll</tt>, <tt>gspasap.dll</tt>,
+<tt>ASAP_Apollo.dll</tt>, <tt>xmp-asap.dll</tt>, <tt>bass_asap.dll</tt>, <tt>xbmc_asap.dll</tt>,
+<tt>apokeysnd.dll</tt>, <tt>asapscan.exe</tt>, <tt>ASAPShellEx.dll</tt> and <tt>libasap.a</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_windows_media_player_plugin_and_asap_lib_on_windows">Building Windows Media Player plugin and asap.lib on Windows</h3>
+<div class="paragraph"><p>You additionally need Windows SDK
+(install native C++ compiler, headers, libraries and samples).
+Set <tt>Path</tt>, <tt>INCLUDE</tt> and <tt>LIB</tt> environment variables
+to point to the right locations in the Windows SDK.
+Make sure <tt>DSHOW_BASECLASSES_DIR</tt> is set correctly in <tt>win32\win32.mk</tt>.</p></div>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make win32/asap_dsf.dll win32/asap.lib</tt></pre>
+</div></div>
+<div class="paragraph"><p>You will get <tt>asap_dsf.dll</tt> and <tt>asap.lib</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_gstreamer_plugin_on_windows">Building the GStreamer plugin on Windows</h3>
+<div class="paragraph"><p>Install <a href="http://www.gstreamer.com/">GStreamer SDK</a> 32-bit development files.</p></div>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make win32/libgstasapdec.dll</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_audacious_plugin_on_windows">Building the Audacious plugin on Windows</h3>
+<div class="paragraph"><p>Too bad Audacious doesn&#x2019;t provide an SDK for Windows.</p></div>
+<div class="paragraph"><p>Unpack <a href="http://ftp.gnome.org/pub/gnome/binaries/win32/gtk+/2.24/gtk+-bundle_2.24.10-20120208_win32.zip">GTK+ 2 bundle</a>
+and make sure <tt>GTK_DIR</tt> in <tt>win32/win32.mk</tt> points to it.</p></div>
+<div class="paragraph"><p>Install Audacious and make sure <tt>AUDACIOUS_LIB</tt> points inside it.</p></div>
+<div class="paragraph"><p>Unpack Audacious source code and make sure <tt>AUDACIOUS_INCLUDE</tt> points inside it.</p></div>
+<div class="paragraph"><p>Now comes the tricky part: configure Audacious for Windows.
+You&#x2019;ll need to install <tt>gettext</tt> and <tt>libgnurx</tt> in MinGW
+(that&#x2019;s probably not an exhaustive list, <tt>configure</tt> will complain about missing things).
+From the Audacious source directory run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>bash configure PKG_CONFIG=../gtk/bin/pkg-config</tt></pre>
+</div></div>
+<div class="paragraph"><p>After it finishes with no errors (warnings are fine), go to ASAP and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make win32/asapplug.dll</tt></pre>
+</div></div>
+<div class="paragraph"><p>Put the DLL in <tt>lib/audacious/Input</tt> of the Windows binary distribution of Audacious.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_foobar2000_plugin_on_windows">Building the foobar2000 plugin on Windows</h3>
+<div class="paragraph"><p>In addition to the common prerequisites and Windows SDK you need
+foobar2000 SDK - extract it to a new directory called
+<tt>foobar2000_SDK</tt> next to (not inside!) the ASAP directory.</p></div>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make win32/foo_asap.dll</tt></pre>
+</div></div>
+<div class="paragraph"><p>This should produce <tt>foo_asap.dll</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_the_vlc_plugin_on_windows">Building the VLC plugin on Windows</h3>
+<div class="paragraph"><p>Install VLC as usual, it includes the SDK.
+<tt>VLC_DIR</tt> in <tt>win32/win32.mk</tt> is fine for the default installation
+directory on 64-bit Windows - edit it if necessary.</p></div>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make win32/libasap_plugin.dll</tt></pre>
+</div></div>
+<div class="paragraph"><p>You will get <tt>libasap_plugin.dll</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_wasap_gsplayer_and_windows_media_player_plugins_for_windows_ce">Building WASAP, GSPlayer and Windows Media Player plugins for Windows CE</h3>
+<div class="paragraph"><p>For WASAP and GSPlayer plugins you need <a href="http://cegcc.sourceforge.net/">CeGCC</a>.
+For the Windows Media Player plugin you need Visual Studio 2008
+(2005 might work, but wasn&#x2019;t checked, 2010 won&#x2019;t work).</p></div>
+<div class="paragraph"><p>Edit the <tt>WINCE_...</tt> paths at the top of <tt>win32/win32.mk</tt> so that they point to your installed tools.
+Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make wince</tt></pre>
+</div></div>
+<div class="paragraph"><p>This should produce <tt>wasap.exe</tt>, <tt>gspasap.dll</tt> and <tt>asap_dsf.dll</tt>
+in the <tt>win32/wince</tt> directory.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_java_asap2wav_and_java_applet">Building Java ASAP2WAV and Java applet</h3>
+<div class="paragraph"><p>You need Java Development Kit (JDK).</p></div>
+<div class="paragraph"><p>If necessary, edit the paths at the top of <tt>java/java.mk</tt> so that they point to your installed tools.
+Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make java/asap2wav.jar java/asap_applet.jar</tt></pre>
+</div></div>
+<div class="paragraph"><p>This should produce <tt>asap2wav.jar</tt> and <tt>asap_applet.jar</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_java_midlet">Building Java midlet</h3>
+<div class="paragraph"><p>You need a Java ME SDK - I use Oracle Java ME SDK.</p></div>
+<div class="paragraph"><p>Edit the WTK path at the top of <tt>java/j2me/j2me.mk</tt> so that they point to your installed Java ME SDK.
+Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make java/j2me/asap_midlet.jad</tt></pre>
+</div></div>
+<div class="paragraph"><p>This should produce <tt>asap_midlet.jar</tt> and <tt>asap_midlet.jad</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_androidasap">Building AndroidASAP</h3>
+<div class="paragraph"><p>Install <a href="http://developer.android.com/sdk/">Android SDK</a>
+with an Android platform(s).</p></div>
+<div class="paragraph"><p>Edit the paths at the top of <tt>java/android/android.mk</tt> so that they point to your installed SDK.
+Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make android-debug</tt></pre>
+</div></div>
+<div class="paragraph"><p>This should produce <tt>AndroidASAP-debug.apk</tt>.
+AndroidASAP integrates with file managers.
+It reads phone state only to pause playback on incoming phone calls.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_c_asap2wav_asapplay_and_silverasap_on_windows">Building C# ASAP2WAV, asapplay and SilverASAP on Windows</h3>
+<div class="paragraph"><p>You need the .NET Framework, of course.
+For SilverASAP you need Silverlight and 7-Zip.</p></div>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make csharp</tt></pre>
+</div></div>
+<div class="paragraph"><p>This should produce <tt>asap2wav.exe</tt>, <tt>asapplay.exe</tt> and <tt>SilverASAP.xap</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_metroasap_for_windows_8">Building MetroASAP for Windows 8</h3>
+<div class="admonitionblock">
+<table><tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">Windows 8 is not yet generally available and this port is work in progress.</td>
+</tr></table>
+</div>
+<div class="paragraph"><p>Install .NET Framework 4.5 (Windows 8 already has it).
+Install Windows SDK for Windows 8 or Visual Studio 2012 (any edition should be fine).
+Verify the paths at the top of <tt>csharp/winrt/winrt.mk</tt>.</p></div>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make csharp/winrt/MetroASAP.appx</tt></pre>
+</div></div>
+<div class="paragraph"><p>If you&#x2019;re not on Windows 8, the last step (creating the appx) will fail,
+but you&#x2019;ll have the application in the <tt>csharp/winrt/obj</tt> directory.
+Copy it to Windows 8 and install from PowerShell:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>Add-AppxPackage AppxManifest.xml -Register</tt></pre>
+</div></div>
+</div>
+<div class="sect2">
+<h3 id="_building_javascript_command_line_asap2wav_and_the_web_browser_player">Building JavaScript command-line ASAP2WAV and the web browser player</h3>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make javascript</tt></pre>
+</div></div>
+<div class="paragraph"><p><tt>asap2wav.js</tt> is the command-line script.
+<tt>asapweb.js</tt> plus <tt>asap.js</tt> are the browser player (you&#x2019;ll probably need <tt>binaryHttpRequest.js</tt> as well).</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_flash_player_version_of_asap">Building Flash player version of ASAP</h3>
+<div class="paragraph"><p>You need <a href="http://opensource.adobe.com/wiki/display/flexsdk/Flex+SDK">Flex SDK</a>.
+Add its <tt>bin</tt> directory to your <tt>PATH</tt>.</p></div>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make flash/asap.swf</tt></pre>
+</div></div>
+<div class="paragraph"><p>You should get <tt>asap.swf</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_perl_command_line_asap2wav">Building Perl command-line ASAP2WAV</h3>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make perl</tt></pre>
+</div></div>
+<div class="paragraph"><p><tt>asap2wav.pl</tt> is the Perl script which uses the <tt>Asap.pm</tt> module you have just built.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_d_asap2wav_and_asapplay_on_windows_and_linux">Building D ASAP2WAV and asapplay on Windows and Linux</h3>
+<div class="paragraph"><p>You need DMD 2.054 or compatible D compiler.
+To build asapplay on Windows, you need <a href="http://www.dsource.org/projects/bindings/wiki/WindowsApi">D Windows API bindings</a>.
+On Linux, you need ALSA development libraries (e.g. libasound2-dev package in Ubuntu).
+D bindings for ALSA are currently included in ASAP sources.</p></div>
+<div class="paragraph"><p>Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make d</tt></pre>
+</div></div>
+<div class="paragraph"><p>This should produce <tt>asap2wav.exe</tt> and <tt>asapplay.exe</tt>.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_building_android_command_line_asapconv">Building Android command-line asapconv</h3>
+<div class="paragraph"><p>You need <a href="http://developer.android.com/tools/sdk/ndk/index.html">Android NDK</a>.</p></div>
+<div class="paragraph"><p>Edit the paths at the top of <tt>java/android/android.mk</tt> so that they point to your installed NDK.
+Open the command prompt in the root directory of ASAP sources and run:</p></div>
+<div class="listingblock">
+<div class="content">
+<pre><tt>make java/android/asapconv</tt></pre>
+</div></div>
+<div class="paragraph"><p>Now you need to put the binary (<tt>java/android/asapconv</tt>) on your device and make it executable.
+It&#x2019;s not possible on a FAT-formatted SD card. I was able to do that in <tt>/data/local/tmp/</tt>.
+If you use USB debugging, <tt>make android-push-asapconv</tt> will copy the file,
+but you have to do the <tt>chmod</tt> part.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_authors">Authors</h2>
+<div class="sectionbody">
+<div class="hdlist compact"><table>
+<tr>
+<td class="hdlist1">
+Piotr Fusik &lt;<a href="mailto:fox@scene.pl">fox@scene.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Creator and main developer.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Atari800 Emulator Developers (<a href="http://atari800.sourceforge.net">http://atari800.sourceforge.net</a>)
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+6502 and POKEY emulation used in 0.x.y versions of ASAP.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Zdenek Eisenhammer &lt;<a href="mailto:pg@pinknet.cz">pg@pinknet.cz</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Testing.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Maciej Grzybek &lt;<a href="mailto:grzybson@pigwa.net">grzybson@pigwa.net</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Fixed an overflow in the Silverlight port.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Jakub Husak &lt;<a href="mailto:jakub.husak@gmail.com">jakub.husak@gmail.com</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+SAP fingerprint calculation. asapscan fixes.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Henryk Karpowicz &lt;<a href="mailto:henkar@poczta.tygrys.net">henkar@poczta.tygrys.net</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+CMC routine modified for the CM3 format.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Maciek Konecki &lt;<a href="mailto:maciusk1@wp.pl">maciusk1@wp.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Porting to C#.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Marek Konopka &lt;<a href="mailto:konop11@poczta.onet.pl">konop11@poczta.onet.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+6502 routine for playing DLT.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Daniel Kozminski &lt;<a href="mailto:daniel.kozminski@gmail.com">daniel.kozminski@gmail.com</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Ideas.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Jerzy Kut &lt;<a href="mailto:mono@atari.pl">mono@atari.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+FC format.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Marcin Lewandowski &lt;<a href="mailto:jaskier@atari8.info">jaskier@atari8.info</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+6502 routines for playing CMC, MPT, TMC and TM2.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Ian Luck &lt;<a href="mailto:il@un4seen.com">il@un4seen.com</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Guided development of XMPlay and BASS plugins.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+MarOk &lt;<a href="mailto:marok7@os.pl">marok7@os.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+CMS routine fix.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Adrian Matoga &lt;<a href="mailto:epi@atari8.info">epi@atari8.info</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+COVOX information and test files. Testing. Porting to D.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Perry McFarlane &lt;<a href="mailto:perry_m@fastmail.fm">perry_m@fastmail.fm</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+POKEY reverse-engineering.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Kostas Nakos &lt;<a href="mailto:knakos@gmail.com">knakos@gmail.com</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Windows CE testing.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Mariusz Rozwadowski &lt;<a href="mailto:ramosc64@o2.pl">ramosc64@o2.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Suggested CMS, CM3, DLT and STIL format support.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Slawomir Sledz &lt;<a href="mailto:slaves@scene.pl">slaves@scene.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Windows Mobile setup. Thorough testing.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+David Spilka
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+6502 routine for playing CMS.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Radek Sterba
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+6502 routine for playing RMT.
+Testing.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Lukasz Sychowicz &lt;<a href="mailto:xray@scene.pl">xray@scene.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Windows icons.
+Testing.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Pawel Szewczyk &lt;<a href="mailto:ripek@op.pl">ripek@op.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Windows setup graphics.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Michal Szpilowski &lt;<a href="mailto:miker@atari.pl">miker@atari.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+Testing.
+</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+Grzegorz Zyla &lt;<a href="mailto:gsunr@poczta.onet.pl">gsunr@poczta.onet.pl</a>&gt;
+<br/>
+</td>
+<td class="hdlist2">
+<p style="margin-top: 0;">
+XBMC plugin testing.
+</p>
+</td>
+</tr>
+</table></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_feedback">Feedback</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If you are interested in the ASAP project, please subscribe its
+<a href="https://lists.sourceforge.net/lists/listinfo/asap-users">mailing list</a>.
+This list is for users and developers.
+Once you subscribe, you can post comments, ideas and questions about ASAP.
+They will be answered ASAP. ;-)</p></div>
+<div class="paragraph"><p>Use <a href="http://sourceforge.net/p/asap/_list/tickets">tracker</a>
+to submit bug reports, feature requests and small code patches.</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr/></div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2014-06-23 14:29:00 CEDT
+</div>
+</div>
+</body>
+</html>

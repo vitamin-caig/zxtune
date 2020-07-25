@@ -1,9 +1,11 @@
 library_name := formats_packed
-path_step := ../../..
+dirs.root := ../../..
 source_dirs := .
 
-include $(path_step)/make/default.mak
+include $(dirs.root)/make/default.mak
 
 text_files := ../text/packed
 
-include $(path_step)/makefile.mak
+jumbo.name := $(library_name)
+
+include $(dirs.root)/makefile.mak

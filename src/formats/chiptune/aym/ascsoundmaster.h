@@ -104,7 +104,7 @@ namespace Formats
       namespace Ver0
       {
         Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-        Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, const Dump& info);
+        Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info);
 
         Decoder::Ptr CreateDecoder();
       };
@@ -112,7 +112,7 @@ namespace Formats
       namespace Ver1
       {
         Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-        Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, const Dump& info);
+        Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info);
 
         Decoder::Ptr CreateDecoder();
       };

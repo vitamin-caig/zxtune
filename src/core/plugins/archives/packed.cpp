@@ -9,8 +9,9 @@
 **/
 
 //local includes
-#include "packed.h"
+#include "core/plugins/archives/packed.h"
 #include "core/src/callback.h"
+#include "core/src/detect.h"
 #include "core/plugins/plugins_types.h"
 #include <core/plugin_attrs.h>
 //common includes

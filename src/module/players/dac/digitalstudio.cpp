@@ -9,12 +9,14 @@
 **/
 
 //local includes
-#include "digitalstudio.h"
-#include "dac_simple.h"
+#include "module/players/dac/digitalstudio.h"
+#include "module/players/dac/dac_simple.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <formats/chiptune/digital/digitalstudio.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -35,7 +37,8 @@ namespace DigitalStudio
       if (const auto container = Formats::Chiptune::DigitalStudio::Parse(rawData, *dataBuilder))
       {
         props.SetSource(*container);
-        return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), properties, CHANNELS_COUNT);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), std::move(properties), CHANNELS_COUNT);
       }
       else
       {

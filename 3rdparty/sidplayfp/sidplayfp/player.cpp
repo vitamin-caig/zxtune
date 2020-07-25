@@ -23,8 +23,6 @@
 
 #include "player.h"
 
-#include <ctime>
-
 #include "SidTune.h"
 #include "sidemu.h"
 #include "psiddrv.h"
@@ -40,8 +38,7 @@ Player::Player () :
     // Set default settings for system
     m_tune(0),
     m_errorString(TXT_NA),
-    m_isPlaying(false),
-    m_rand((unsigned int)::time(0))
+    m_isPlaying(false)
 {
 #ifdef PC64_TESTSUITE
     m_c64.setTestEnv(this);
@@ -101,13 +98,7 @@ void Player::initialise()
         }
     }
 
-    uint_least16_t powerOnDelay = m_cfg.powerOnDelay;
-    // Delays above MAX result in random delays
-    if (powerOnDelay > SidConfig::MAX_POWER_ON_DELAY)
-    {   // Limit the delay to something sensible.
-        powerOnDelay = (uint_least16_t)((m_rand.next() >> 3) & SidConfig::MAX_POWER_ON_DELAY);
-    }
-
+    const uint_least16_t powerOnDelay = m_cfg.powerOnDelay < SidConfig::MAX_POWER_ON_DELAY ? m_cfg.powerOnDelay : SidConfig::MAX_POWER_ON_DELAY;
     psiddrv driver(m_tune->getInfo());
     driver.powerOnDelay(powerOnDelay);
     if (!driver.drvReloc())

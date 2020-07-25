@@ -15,6 +15,8 @@
 #include <error.h>
 #include <progress_callback.h>
 
+#include <parameters/container.h>
+
 #include <iostream>
 #include <limits>
 

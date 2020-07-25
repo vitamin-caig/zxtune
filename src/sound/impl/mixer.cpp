@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "mixer_core.h"
+#include "sound/impl/mixer_core.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
@@ -28,11 +28,11 @@ namespace Sound
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");
 
   template<unsigned Channels>
-  class Mixer : public FixedChannelsMatrixMixer<Channels>
+  class MixerImpl : public FixedChannelsMatrixMixer<Channels>
   {
     typedef FixedChannelsMatrixMixer<Channels> Base;
   public:
-    Mixer()
+    MixerImpl()
     {
       const Gain::Type INVALID_GAIN_VALUE(Gain::Type::PRECISION, 1);
       const Gain INVALID_GAIN(INVALID_GAIN_VALUE, INVALID_GAIN_VALUE);
@@ -46,8 +46,7 @@ namespace Sound
 
     void SetMatrix(const typename Base::Matrix& data) override
     {
-      const auto it = std::find_if(data.begin(), data.end(), std::not1(std::mem_fun_ref(&Gain::IsNormalized)));
-      if (it != data.end())
+      if (std::any_of(data.begin(), data.end(), [](Gain gain) {return !gain.IsNormalized();}))
       {
         throw Error(THIS_LINE, translate("Failed to set mixer matrix: gain is out of range."));
       }
@@ -68,24 +67,24 @@ namespace Sound
   template<>
   OneChannelMatrixMixer::Ptr OneChannelMatrixMixer::Create()
   {
-    return MakePtr<Mixer<1> >();
+    return MakePtr<MixerImpl<1> >();
   }
 
   template<>
   TwoChannelsMatrixMixer::Ptr TwoChannelsMatrixMixer::Create()
   {
-    return MakePtr<Mixer<2> >();
+    return MakePtr<MixerImpl<2> >();
   }
 
   template<>
   ThreeChannelsMatrixMixer::Ptr ThreeChannelsMatrixMixer::Create()
   {
-    return MakePtr<Mixer<3> >();
+    return MakePtr<MixerImpl<3> >();
   }
 
   template<>
   FourChannelsMatrixMixer::Ptr FourChannelsMatrixMixer::Create()
   {
-    return MakePtr<Mixer<4> >();
+    return MakePtr<MixerImpl<4> >();
   }
 }

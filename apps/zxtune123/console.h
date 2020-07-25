@@ -37,6 +37,8 @@ public:
   virtual uint_t GetPressedKey() const = 0;
 
   virtual void WaitForKeyRelease() const = 0;
+  
+  virtual void Write(const String& str) const = 0;
 
   static Console& Self();
 };

@@ -11,28 +11,27 @@
 #pragma once
 
 //library includes
-#include <time/stamp.h>
+#include <time/duration.h>
 //std includes
 #include <ctime>
-//boost includes
-#include <boost/mpl/if.hpp>
+#include <type_traits>
 
 namespace Time
 {
   class Timer
   {
   public:
-    //Some of the platforms (e.g. armhf) differs int and long in despite of equal size
-    typedef Stamp<boost::mpl::if_c<sizeof(std::clock_t) >= sizeof(uint64_t), uint64_t, uint_t>::type, CLOCKS_PER_SEC> NativeStamp;
-  
+    using NativeUnit = BaseUnit<std::conditional<sizeof(std::clock_t) == sizeof(uint64_t), uint64_t, uint_t>::type, CLOCKS_PER_SEC>;
+
     Timer()
       : Start(std::clock())
     {
     }
     
-    NativeStamp Elapsed() const
+    template<class Unit = NativeUnit>
+    Duration<Unit> Elapsed() const
     {
-      return NativeStamp(std::clock() - Start);
+      return Duration<NativeUnit>(std::clock() - Start).CastTo<Unit>();
     }
   private:
     //enable assignment

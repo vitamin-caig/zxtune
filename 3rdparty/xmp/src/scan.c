@@ -182,7 +182,8 @@ static int scan_module(struct context_data *ctx, int ep, int chain)
 	    pdelay = 0;
 
 	    for (chn = 0; chn < mod->chn; chn++) {
-		if (row >= mod->xxt[mod->xxp[pat]->index[chn]]->rows)
+	        const int trk = mod->xxp[pat]->index[chn];
+		if (trk >= mod->trk || row >= mod->xxt[trk]->rows)
 		    continue;
 
 		event = &EVENT(mod->xxo[ord], chn, row);

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "aym_properties_helper.h"
+#include "module/players/aym/aym_properties_helper.h"
 //core includes
 #include <core/core_parameters.h>
 //std includes

@@ -1,0 +1,17 @@
+asap (3.2.0-1) UNRELEASED; urgency=low
+
+  * New release.
+
+ -- Piotr Fusik <fox@scene.pl>  Mon, 23 Jun 2014 16:05:58 +0200
+
+asap (3.1.6-1) UNRELEASED; urgency=low
+
+  * New release.
+
+ -- Piotr Fusik <fox@scene.pl>  Wed, 15 Jan 2014 21:09:45 +0100
+
+asap (3.1.5-1) UNRELEASED; urgency=low
+
+  * First deb packaging.
+
+ -- Piotr Fusik <fox@scene.pl>  Fri, 16 Aug 2013 15:08:15 +0200

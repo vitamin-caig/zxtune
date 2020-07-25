@@ -3,4 +3,4 @@ ZXTune
 
 ZXTune is open-source crossplatform chiptunes player.
 
-Official page is http://zxtune.bitbucket.org
+Official page is https://zxtune.bitbucket.io

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "location.h"
+#include "core/src/location.h"
 //common includes
 #include <make_ptr.h>
 //std includes

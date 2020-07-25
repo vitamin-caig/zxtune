@@ -9,13 +9,15 @@
 **/
 
 //local includes
-#include "tfd.h"
+#include "formats/chiptune/fm/tfd.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
 //std includes
 #include <array>
 //text includes
@@ -41,6 +43,8 @@ namespace Chiptune
     const std::size_t MAX_STRING_SIZE = 64;
     const std::size_t MAX_COMMENT_SIZE = 384;
 
+    const std::size_t MIN_FRAMES = 150;//~3sec
+
     typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE = { {'T', 'F', 'M', 'D'} };
@@ -58,14 +62,13 @@ namespace Chiptune
       void SetRegister(uint_t /*idx*/, uint_t /*val*/) override {}
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View rawData)
     {
       if (rawData.Size() < MIN_SIZE)
       {
         return false;
       }
-      const SignatureType& sign = *static_cast<const SignatureType*>(rawData.Start());
-      return sign == SIGNATURE;
+      return 0 == std::memcmp(rawData.Start(), SIGNATURE.data(), SIGNATURE.size());
     }
 
     const std::string FORMAT(
@@ -104,6 +107,11 @@ namespace Chiptune
       const Binary::Format::Ptr Format;
     };
 
+    String DecodeString(StringView str)
+    {
+      return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+    }
+    
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
     {
       if (!FastCheck(data))
@@ -114,14 +122,15 @@ namespace Chiptune
       {
         Binary::InputStream stream(data);
         stream.ReadField<SignatureType>();
-        target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetComment(FromStdString(stream.ReadCString(MAX_COMMENT_SIZE)));
+        target.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
 
         const std::size_t fixedOffset = stream.GetPosition();
+        std::size_t totalFrames = 0;
         for (;;)
         {
-          const uint8_t val = stream.ReadField<uint8_t>();
+          const auto val = stream.ReadByte();
           if (val == FINISH)
           {
             break;
@@ -129,10 +138,15 @@ namespace Chiptune
           switch (val)
           {
           case BEGIN_FRAME:
+            ++totalFrames;
             target.BeginFrames(1);
             break;
           case SKIP_FRAMES:
-            target.BeginFrames(3 + stream.ReadField<uint8_t>());
+            {
+              const uint_t frames = 3 + stream.ReadByte();
+              totalFrames += frames;
+              target.BeginFrames(frames);
+            }
             break;
           case SELECT_SECOND_CHIP:
             target.SelectChip(1);
@@ -144,13 +158,13 @@ namespace Chiptune
             target.SetLoop();
             break;
           default:
-            target.SetRegister(val, stream.ReadField<uint8_t>());
+            target.SetRegister(val, stream.ReadByte());
             break;
           }
         }
+        Require(totalFrames >= MIN_FRAMES);
         const std::size_t usedSize = stream.GetPosition();
-        const auto subData = stream.GetReadData();
-        return CreateCalculatingCrcContainer(subData, fixedOffset, usedSize - fixedOffset);
+        return CreateCalculatingCrcContainer(stream.GetReadContainer(), fixedOffset, usedSize - fixedOffset);
       }
       catch (const std::exception&)
       {

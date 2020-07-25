@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "image_utils.h"
+#include "formats/packed/image_utils.h"
 //common includes
 #include <make_ptr.h>
 //library includes

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "digitalmusicmaker.h"
+#include "formats/chiptune/digital/digitalmusicmaker.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
@@ -18,14 +18,14 @@
 #include <make_ptr.h>
 #include <range_checker.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
+#include <map>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -37,8 +37,8 @@ namespace Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::DigitalMusicMaker");
 
-    const std::size_t MAX_POSITIONS_COUNT = 0x32;
-    const std::size_t MAX_PATTERN_SIZE = 64;
+    //const std::size_t MAX_POSITIONS_COUNT = 0x32;
+    //const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t PATTERNS_COUNT = 24;
     const std::size_t CHANNELS_COUNT = 3;
     const std::size_t SAMPLES_COUNT = 16;//15 really
@@ -67,7 +67,7 @@ namespace Chiptune
 
     PACK_PRE struct SampleInfo
     {
-      char Name[9];
+      std::array<char, 9> Name;
       uint16_t Start;
       uint8_t Bank;
       uint16_t Limit;
@@ -183,7 +183,7 @@ namespace Chiptune
         return GetStubMetaBuilder();
       }
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, std::size_t /*loop*/, const Binary::Data& /*sample*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::View /*sample*/) override {}
       std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t /*index*/, uint_t /*period*/) override
       {
         return std::unique_ptr<ChannelBuilder>(new StubChannelBuilder());
@@ -219,7 +219,7 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, std::size_t loop, const Binary::Data& data) override
+      void SetSample(uint_t index, std::size_t loop, Binary::View data) override
       {
         return Delegate.SetSample(index, loop, data);
       }
@@ -258,9 +258,9 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& rawData)
+      explicit Format(Binary::View rawData)
         : RawData(rawData)
-        , Source(*static_cast<const Header*>(RawData.Start()))
+        , Source(*RawData.As<Header>())
         , Ranges(RangeChecker::Create(RawData.Size()))
         , FixedRanges(RangeChecker::Create(RawData.Size()))
       {
@@ -273,15 +273,15 @@ namespace Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
         Strings::Array names(SAMPLES_COUNT);
-        for (uint_t samIdx = 1; samIdx != SAMPLES_COUNT; ++samIdx)
+        for (uint_t samIdx = 1; samIdx < SAMPLES_COUNT; ++samIdx)
         {
           const SampleInfo& srcSample = Source.SampleDescriptions[samIdx - 1];
           if (srcSample.Name[0] != '.')
           {
-            names[samIdx] = FromCharArray(srcSample.Name);
+            names[samIdx] = Strings::OptimizeAscii(srcSample.Name);
           }
         }
-        meta.SetStrings(names);
+        meta.SetStrings(std::move(names));
       }
 
       void ParsePositions(Builder& target) const
@@ -305,11 +305,15 @@ namespace Chiptune
 
       void ParseMixins(Builder& target) const
       {
+        //disable UB with out-of-bound array access
+        const MixedLine* const mixings = Source.Mixings;
         //big mixins amount support
-        for (uint_t mixIdx = 0; mixIdx != 64; ++mixIdx)
+        const uint_t availMixingsCount = 64;
+        const uint_t maxMixingsCount = (RawData.Size() - offsetof(Header, Mixings)) / sizeof(MixedLine);
+        for (uint_t mixIdx = 0, mixLimit = std::min(availMixingsCount, maxMixingsCount); mixIdx < mixLimit; ++mixIdx)
         {
           Dbg("Parse mixin %1%", mixIdx);
-          const MixedLine& src = Source.Mixings[mixIdx];
+          const MixedLine& src = mixings[mixIdx];
           const std::unique_ptr<ChannelBuilder> dst = target.SetSampleMixin(mixIdx, src.Period);
           ParseChannel(src.Mixin, *dst);
         }
@@ -319,8 +323,8 @@ namespace Chiptune
       {
         const bool is4bitSamples = true;//TODO: detect
         const std::size_t limit = RawData.Size();
-        Binary::Container::Ptr regions[8];
-        for (std::size_t layIdx = 0, lastData = 256 * Source.HeaderSizeSectors; layIdx != Source.EndOfBanks.size(); ++layIdx)
+        std::map<uint_t, Binary::View> regions;
+        for (std::size_t layIdx = 0, lastData = 256 * Source.HeaderSizeSectors; layIdx < Source.EndOfBanks.size(); ++layIdx)
         {
           static const uint_t BANKS[] = {0, 1, 3, 4, 6, 7};
 
@@ -338,7 +342,7 @@ namespace Chiptune
           {
             const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
             Require(lastData + realSize <= limit);
-            regions[bankNum] = RawData.GetSubcontainer(lastData, realSize);
+            regions.emplace(bankNum, RawData.SubView(lastData, realSize));
             Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
             AddRange(lastData, realSize);
             lastData += realSize;
@@ -346,14 +350,14 @@ namespace Chiptune
           else
           {
             Require(lastData + alignedBankSize <= limit);
-            regions[bankNum] = RawData.GetSubcontainer(lastData, alignedBankSize);
+            regions.emplace(bankNum, RawData.SubView(lastData, alignedBankSize));
             Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, alignedBankSize, lastData);
             AddRange(lastData, alignedBankSize);
             lastData += alignedBankSize;
           }
         }
         
-        for (uint_t samIdx = 1; samIdx != SAMPLES_COUNT; ++samIdx)
+        for (uint_t samIdx = 1; samIdx < SAMPLES_COUNT; ++samIdx)
         {
           const SampleInfo& srcSample = Source.SampleDescriptions[samIdx - 1];
           if (srcSample.Name[0] == '.')
@@ -372,18 +376,18 @@ namespace Chiptune
           }
           Require((srcSample.Bank & 0xf8) == 0x50);
           const uint_t bankIdx = srcSample.Bank & 0x07;
-          const Binary::Container::Ptr bankData = regions[bankIdx];
-          Require(bankData != nullptr);
+          const auto& bankData = regions.at(bankIdx);
+          Require(!!bankData);
           const std::size_t offsetInBank = sampleStart - SAMPLES_ADDR;
           const std::size_t limitInBank = sampleEnd - SAMPLES_ADDR;
           const std::size_t sampleSize = limitInBank - offsetInBank;
           const uint_t multiplier = is4bitSamples ? 2 : 1;
-          Require(limitInBank <= multiplier * bankData->Size());
+          Require(limitInBank <= multiplier * bankData.Size());
           const std::size_t realSampleSize = sampleSize >= 12 ? (sampleSize - 12) : sampleSize;
-          if (const auto content = bankData->GetSubcontainer(offsetInBank / multiplier, realSampleSize / multiplier))
+          if (const auto content = bankData.SubView(offsetInBank / multiplier, realSampleSize / multiplier))
           {
             const std::size_t loop = sampleLoop - sampleStart;
-            target.SetSample(samIdx, loop, *content);
+            target.SetSample(samIdx, loop, content);
           }
         }
       }
@@ -406,7 +410,7 @@ namespace Chiptune
         Require(patStart < limit);
         const uint_t availLines = (limit - patStart) / sizeof(Pattern::Line);
         PatternBuilder& patBuilder = target.StartPattern(idx);
-        const Pattern& src = *safe_ptr_cast<const Pattern*>(static_cast<const uint8_t*>(RawData.Start()) + patStart);
+        const auto& src = *RawData.SubView(patStart).As<Pattern>();
         uint_t lineNum = 0;
         for (const uint_t lines = std::min(availLines, patternSize); lineNum < lines; ++lineNum)
         {
@@ -420,7 +424,7 @@ namespace Chiptune
 
       static void ParseLine(const Pattern::Line& line, PatternBuilder& patBuilder, Builder& target)
       {
-        for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
+        for (uint_t chanNum = 0; chanNum < CHANNELS_COUNT; ++chanNum)
         {
           const Pattern::Line::Channel& srcChan = line.Channels[chanNum];
           std::unique_ptr<ChannelBuilder> dstChan = target.StartChannel(chanNum);
@@ -546,21 +550,16 @@ namespace Chiptune
         Require(Ranges->AddRange(start, size));
       }
     private:
-      const Binary::Container& RawData;
+      const Binary::View RawData;
       const Header& Source;
       const RangeChecker::Ptr Ranges;
       const RangeChecker::Ptr FixedRanges;
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View data)
     {
-      const std::size_t size(rawData.Size());
-      if (sizeof(Header) > size)
-      {
-        return false;
-      }
-      const Header& header = *static_cast<const Header*>(rawData.Start());
-      if (!(header.PatternSize == 64 || header.PatternSize == 48 || header.PatternSize == 32 || header.PatternSize == 24))
+      const auto* header = data.As<Header>();
+      if (!header || !(header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32 || header->PatternSize == 24))
       {
         return false;
       }
@@ -609,7 +608,8 @@ namespace Chiptune
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
-        if (!Format->Match(rawData))
+        const Binary::View data(rawData);
+        if (!Format->Match(data))
         {
           return Formats::Chiptune::Container::Ptr();
         }
@@ -620,8 +620,9 @@ namespace Chiptune
       const Binary::Format::Ptr Format;
     };
 
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
+      const Binary::View data(rawData);
       if (!FastCheck(data))
       {
         return Formats::Chiptune::Container::Ptr();
@@ -640,9 +641,9 @@ namespace Chiptune
         format.ParseMixins(target);
         format.ParseSamples(target);
 
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
-        const RangeChecker::Range fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
+        auto subData = rawData.GetSubcontainer(0, format.GetSize());
+        const auto fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {

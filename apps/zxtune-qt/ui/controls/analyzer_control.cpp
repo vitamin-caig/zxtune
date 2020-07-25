@@ -19,8 +19,6 @@
 #include <algorithm>
 #include <array>
 #include <limits>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QEvent>
 #include <QtCore/QTimer>
@@ -72,14 +70,6 @@ namespace
 
   typedef std::array<BandLevel, MAX_BANDS> Analyzed;
 
-  inline void StoreValue(const Module::Analyzer::ChannelState& chan, Analyzed& result)
-  {
-    if (chan.Band < MAX_BANDS)
-    {
-      result[chan.Band].Set(chan.Level);
-    }
-  }
-  
   class AnalyzerControlImpl : public AnalyzerControl
   {
   public:
@@ -113,16 +103,22 @@ namespace
     {
       if (isVisible())
       {
-        std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Fall), LEVELS_FALLBACK));
-        State = std::move(Analyzer->GetState());
-        std::for_each(State.begin(), State.end(), boost::bind(&StoreValue, _1, boost::ref(Levels)));
+        for (auto& level : Levels)
+        {
+          level.Fall(LEVELS_FALLBACK);
+        }
+        const auto& state = Analyzer->GetState();
+        for (uint_t idx = 0, lim = std::min(state.Data.size(), Levels.size()); idx < lim; ++idx)
+        {
+          Levels[idx].Set(state.Data[idx].Raw());
+        }
         repaint();
       }
     }
 
     void CloseState() override
     {
-      std::for_each(Levels.begin(), Levels.end(), std::bind2nd(std::mem_fun_ref(&BandLevel::Set), 0));
+      std::for_each(Levels.begin(), Levels.end(), [](BandLevel& level) {level.Set(0);});
       DoRepaint();
       Timer.stop();
     }
@@ -139,8 +135,8 @@ namespace
 
     void paintEvent(QPaintEvent*) override
     {
-      const QBrush& mask = Palette.toolTipText();
-      const QBrush& brush = Palette.toolTipBase();
+      const QBrush& mask = Palette.shadow();
+      const QBrush& brush = Palette.button();
       QPainter painter(this);
       const int curWidth = width();
       const int curHeight = height();
@@ -179,7 +175,6 @@ namespace
     QTimer Timer;
     const QPalette Palette;
     Module::Analyzer::Ptr Analyzer;
-    std::vector<Module::Analyzer::ChannelState> State;
     Analyzed Levels;
   };
 }

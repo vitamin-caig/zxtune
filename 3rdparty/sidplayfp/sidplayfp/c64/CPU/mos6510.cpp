@@ -88,8 +88,8 @@ void StaticFuncWrapper(MOS6510& self)
 void MOS6510::eventWithoutSteals(MOS6510& self)
 {
     const ProcessorCycle &instr = self.instrTable[self.cycleCount++];
-    (instr.func) (self);
     self.eventContext.schedule(self.m_nosteal, 1);
+    (instr.func) (self);
 }
 
 void MOS6510::eventWithoutStealsFast()
@@ -1488,6 +1488,8 @@ void MOS6510::tya_instr()
 void MOS6510::illegal_instr()
 {
     cycleCount --;
+    eventContext.cancel(m_nosteal);
+    eventContext.yield(m_nosteal);
 }
 
 

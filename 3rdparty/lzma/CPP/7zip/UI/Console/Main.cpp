@@ -2,11 +2,15 @@
 
 #include "StdAfx.h"
 
+#include "../../../Common/MyWindows.h"
+
+#ifdef _WIN32
 #include <Psapi.h>
+#endif
 
 #include "../../../../C/CpuArch.h"
 
-#if defined( _WIN32) && defined( _7ZIP_LARGE_PAGES)
+#if defined( _7ZIP_LARGE_PAGES)
 #include "../../../../C/Alloc.h"
 #endif
 
@@ -106,39 +110,57 @@ static const char *kHelpString =
     "  h : Calculate hash values for files\n"
     "  i : Show information about supported formats\n"
     "  l : List contents of archive\n"
-//    "  l[a|t][f] : List contents of archive\n"
-//    "    a - with Additional fields\n"
-//    "    t - with all fields\n"
-//    "    f - with Full pathnames\n"
     "  rn : Rename files in archive\n"
     "  t : Test integrity of archive\n"
     "  u : Update files to archive\n"
     "  x : eXtract files with full paths\n"
+    "\n"
     "<Switches>\n"
     "  -- : Stop switches parsing\n"
     "  -ai[r[-|0]]{@listfile|!wildcard} : Include archives\n"
     "  -ax[r[-|0]]{@listfile|!wildcard} : eXclude archives\n"
-    "  -bd : Disable percentage indicator\n"
+    "  -ao{a|s|t|u} : set Overwrite mode\n"
+    "  -an : disable archive_name field\n"
+    "  -bb[0-3] : set output log level\n"
+    "  -bd : disable progress indicator\n"
+    "  -bs{o|e|p}{0|1|2} : set output stream for output/error/progress line\n"
+    "  -bt : show execution time statistics\n"
     "  -i[r[-|0]]{@listfile|!wildcard} : Include filenames\n"
     "  -m{Parameters} : set compression Method\n"
+    "    -mmt[N] : set number of CPU threads\n"
     "  -o{Directory} : set Output directory\n"
     #ifndef _NO_CRYPTO
     "  -p{Password} : set Password\n"
     #endif
     "  -r[-|0] : Recurse subdirectories\n"
+    "  -sa{a|e|s} : set Archive name mode\n"
+    "  -scc{UTF-8|WIN|DOS} : set charset for for console input/output\n"
     "  -scs{UTF-8|UTF-16LE|UTF-16BE|WIN|DOS|{id}} : set charset for list files\n"
-    "  -sdel : Delete files after compression\n"
+    "  -scrc[CRC32|CRC64|SHA1|SHA256|*] : set hash function for x, e, h commands\n"
+    "  -sdel : delete files after compression\n"
+    "  -seml[.] : send archive by email\n"
     "  -sfx[{name}] : Create SFX archive\n"
     "  -si[{name}] : read data from stdin\n"
+    "  -slp : set Large Pages mode\n"
     "  -slt : show technical information for l (List) command\n"
+    "  -snh : store hard links as links\n"
+    "  -snl : store symbolic links as links\n"
+    "  -sni : store NT security information\n"
+    "  -sns[-] : store NTFS alternate streams\n"
     "  -so : write data to stdout\n"
+    "  -spd : disable wildcard matching for file names\n"
+    "  -spe : eliminate duplication of root folder for extract command\n"
+    "  -spf : use fully qualified file paths\n"
     "  -ssc[-] : set sensitive case mode\n"
     "  -ssw : compress shared files\n"
+    "  -stl : set archive timestamp from the most recently modified file\n"
+    "  -stm{HexMask} : set CPU thread affinity mask (hexadecimal number)\n"
+    "  -stx{Type} : exclude archive type\n"
     "  -t{Type} : Set type of archive\n"
     "  -u[-][p#][q#][r#][x#][y#][z#][!newArchiveName] : Update options\n"
     "  -v{Size}[b|k|m|g] : Create volumes\n"
     "  -w[{path}] : assign Work directory. Empty path means a temporary directory\n"
-    "  -x[r[-|0]]]{@listfile|!wildcard} : eXclude filenames\n"
+    "  -x[r[-|0]]{@listfile|!wildcard} : eXclude filenames\n"
     "  -y : assume Yes on all queries\n";
 
 // ---------------------------
@@ -230,42 +252,51 @@ static void PrintWarningsPaths(const CErrorPathCodes &pc, CStdOutStream &so)
 }
 
 static int WarningsCheck(HRESULT result, const CCallbackConsoleBase &callback,
-    const CUpdateErrorInfo &errorInfo, CStdOutStream &so, bool showHeaders)
+    const CUpdateErrorInfo &errorInfo,
+    CStdOutStream *so,
+    CStdOutStream *se,
+    bool showHeaders)
 {
   int exitCode = NExitCode::kSuccess;
   
   if (callback.ScanErrors.Paths.Size() != 0)
   {
-    so << endl;
-    so << "Scan WARNINGS for files and folders:" << endl << endl;
-    PrintWarningsPaths(callback.ScanErrors, so);
-    so << "Scan WARNINGS: " << callback.ScanErrors.Paths.Size();
-    so << endl;
+    if (se)
+    {
+      *se << endl;
+      *se << "Scan WARNINGS for files and folders:" << endl << endl;
+      PrintWarningsPaths(callback.ScanErrors, *se);
+      *se << "Scan WARNINGS: " << callback.ScanErrors.Paths.Size();
+      *se << endl;
+    }
     exitCode = NExitCode::kWarning;
   }
   
   if (result != S_OK || errorInfo.ThereIsError())
   {
-    UString message;
-    if (!errorInfo.Message.IsEmpty())
+    if (se)
     {
-      message.AddAscii(errorInfo.Message);
-      message.Add_LF();
-    }
-    {
-      FOR_VECTOR(i, errorInfo.FileNames)
+      UString message;
+      if (!errorInfo.Message.IsEmpty())
       {
-        message += fs2us(errorInfo.FileNames[i]);
+        message.AddAscii(errorInfo.Message);
         message.Add_LF();
       }
+      {
+        FOR_VECTOR(i, errorInfo.FileNames)
+        {
+          message += fs2us(errorInfo.FileNames[i]);
+          message.Add_LF();
+        }
+      }
+      if (errorInfo.SystemError != 0)
+      {
+        message += NError::MyFormatMessage(errorInfo.SystemError);
+        message.Add_LF();
+      }
+      if (!message.IsEmpty())
+        *se << L"\nError:\n" << message;
     }
-    if (errorInfo.SystemError != 0)
-    {
-      message += NError::MyFormatMessage(errorInfo.SystemError);
-      message.Add_LF();
-    }
-    if (!message.IsEmpty())
-      so << L"\nError:\n" << message;
 
     // we will work with (result) later
     // throw CSystemException(result);
@@ -277,17 +308,25 @@ static int WarningsCheck(HRESULT result, const CCallbackConsoleBase &callback,
   {
     if (showHeaders)
       if (callback.ScanErrors.Paths.Size() == 0)
-        so << kEverythingIsOk << endl;
+        if (so)
+        {
+          if (se)
+            se->Flush();
+          *so << kEverythingIsOk << endl;
+        }
   }
   else
   {
-    so << endl;
-    so << "WARNINGS for files:" << endl << endl;
-    PrintWarningsPaths(callback.FailedFiles, so);
-    so << "WARNING: Cannot open " << numErrors << " file";
-    if (numErrors > 1)
-      so << 's';
-    so << endl;
+    if (se)
+    {
+      *se << endl;
+      *se << "WARNINGS for files:" << endl << endl;
+      PrintWarningsPaths(callback.FailedFiles, *se);
+      *se << "WARNING: Cannot open " << numErrors << " file";
+      if (numErrors > 1)
+        *se << 's';
+      *se << endl;
+    }
     exitCode = NExitCode::kWarning;
   }
   
@@ -433,7 +472,7 @@ static void PrintHexId(CStdOutStream &so, UInt64 id)
 
 int Main2(
   #ifndef _WIN32
-  int numArgs, const char *args[]
+  int numArgs, char *args[]
   #endif
 )
 {
@@ -473,10 +512,7 @@ int Main2(
   CStdOutStream *percentsStream = NULL;
   if (options.Number_for_Percents != k_OutStream_disabled)
     percentsStream = (options.Number_for_Percents == k_OutStream_stderr) ? &g_StdErr : &g_StdOut;;
-
-  CStdOutStream &so = (g_StdStream ? *g_StdStream : g_StdOut);
   
-
   if (options.HelpMode)
   {
     ShowCopyrightAndHelp(g_StdStream, true);
@@ -589,6 +625,7 @@ int Main2(
 
   if (options.Command.CommandType == NCommandType::kInfo)
   {
+    CStdOutStream &so = (g_StdStream ? *g_StdStream : g_StdOut);
     unsigned i;
 
     #ifdef EXTERNAL_CODECS
@@ -754,6 +791,7 @@ int Main2(
   }
   else if (options.Command.CommandType == NCommandType::kBenchmark)
   {
+    CStdOutStream &so = (g_StdStream ? *g_StdStream : g_StdOut);
     hresultMain = BenchCon(EXTERNAL_CODECS_VARS_L
         options.Properties, options.NumIterations, (FILE *)so);
     if (hresultMain == S_FALSE)
@@ -829,7 +867,7 @@ int Main2(
       #endif
 
       ecs->Init(g_StdStream, g_ErrStream, percentsStream);
-      ecs->MutiArcMode = (ArchivePathsSorted.Size() > 1);
+      ecs->MultiArcMode = (ArchivePathsSorted.Size() > 1);
 
       ecs->LogLevel = options.LogLevel;
       ecs->PercentsNameLevel = percentsNameLevel;
@@ -890,73 +928,91 @@ int Main2(
           hresultMain = E_FAIL;
       }
 
-      so << endl;
+      CStdOutStream *so = g_StdStream;
 
-      if (ecs->NumTryArcs > 1)
-      {
-        so << "Archives: " << ecs->NumTryArcs << endl;
-        so << "OK archives: " << ecs->NumOkArcs << endl;
-      }
       bool isError = false;
+
+      if (so)
+      {
+        *so << endl;
+        
+        if (ecs->NumTryArcs > 1)
+        {
+          *so << "Archives: " << ecs->NumTryArcs << endl;
+          *so << "OK archives: " << ecs->NumOkArcs << endl;
+        }
+      }
+
       if (ecs->NumCantOpenArcs != 0)
       {
         isError = true;
-        so << "Can't open as archive: " << ecs->NumCantOpenArcs << endl;
+        if (so)
+          *so << "Can't open as archive: " << ecs->NumCantOpenArcs << endl;
       }
+      
       if (ecs->NumArcsWithError != 0)
       {
         isError = true;
-        so << "Archives with Errors: " << ecs->NumArcsWithError << endl;
+        if (so)
+          *so << "Archives with Errors: " << ecs->NumArcsWithError << endl;
       }
-      if (ecs->NumArcsWithWarnings != 0)
-        so << "Archives with Warnings: " << ecs->NumArcsWithWarnings << endl;
       
-      if (ecs->NumOpenArcWarnings != 0)
+      if (so)
       {
-        so << endl;
+        if (ecs->NumArcsWithWarnings != 0)
+          *so << "Archives with Warnings: " << ecs->NumArcsWithWarnings << endl;
+        
         if (ecs->NumOpenArcWarnings != 0)
-          so << "Warnings: " << ecs->NumOpenArcWarnings << endl;
+        {
+          *so << endl;
+          if (ecs->NumOpenArcWarnings != 0)
+            *so << "Warnings: " << ecs->NumOpenArcWarnings << endl;
+        }
       }
       
       if (ecs->NumOpenArcErrors != 0)
       {
         isError = true;
-        so << endl;
-        if (ecs->NumOpenArcErrors != 0)
-          so << "Open Errors: " << ecs->NumOpenArcErrors << endl;
+        if (so)
+        {
+          *so << endl;
+          if (ecs->NumOpenArcErrors != 0)
+            *so << "Open Errors: " << ecs->NumOpenArcErrors << endl;
+        }
       }
 
       if (isError)
         retCode = NExitCode::kFatalError;
       
+      if (so)
       if (ecs->NumArcsWithError != 0 || ecs->NumFileErrors != 0)
       {
         // if (ecs->NumArchives > 1)
         {
-          so << endl;
+          *so << endl;
           if (ecs->NumFileErrors != 0)
-            so << "Sub items Errors: " << ecs->NumFileErrors << endl;
+            *so << "Sub items Errors: " << ecs->NumFileErrors << endl;
         }
       }
       else if (hresultMain == S_OK)
       {
         if (stat.NumFolders != 0)
-          so << "Folders: " << stat.NumFolders << endl;
+          *so << "Folders: " << stat.NumFolders << endl;
         if (stat.NumFiles != 1 || stat.NumFolders != 0 || stat.NumAltStreams != 0)
-          so << "Files: " << stat.NumFiles << endl;
+          *so << "Files: " << stat.NumFiles << endl;
         if (stat.NumAltStreams != 0)
         {
-          so << "Alternate Streams: " << stat.NumAltStreams << endl;
-          so << "Alternate Streams Size: " << stat.AltStreams_UnpackSize << endl;
+          *so << "Alternate Streams: " << stat.NumAltStreams << endl;
+          *so << "Alternate Streams Size: " << stat.AltStreams_UnpackSize << endl;
         }
         
-        so
+        *so
           << "Size:       " << stat.UnpackSize << endl
           << "Compressed: " << stat.PackSize << endl;
         if (hashCalc)
         {
-          so << endl;
-          PrintHashStat(so, hb);
+          *so << endl;
+          PrintHashStat(*so, hb);
         }
       }
     }
@@ -1047,9 +1103,14 @@ int Main2(
 
     callback.ClosePercents2();
 
-    retCode = WarningsCheck(hresultMain, callback, errorInfo, so,
-        // options.EnableHeaders
-        true);
+    CStdOutStream *se = g_StdStream;
+    if (!se)
+      se = g_ErrStream;
+
+    retCode = WarningsCheck(hresultMain, callback, errorInfo,
+        g_StdStream, se,
+        true // options.EnableHeaders
+        );
   }
   else if (options.Command.CommandType == NCommandType::kHash)
   {
@@ -1068,7 +1129,10 @@ int Main2(
         errorInfoString, &callback);
     CUpdateErrorInfo errorInfo;
     errorInfo.Message = errorInfoString;
-    retCode = WarningsCheck(hresultMain, callback, errorInfo, so, options.EnableHeaders);
+    CStdOutStream *se = g_StdStream;
+    if (!se)
+      se = g_ErrStream;
+    retCode = WarningsCheck(hresultMain, callback, errorInfo, g_StdStream, se, options.EnableHeaders);
   }
   else
     ShowMessageAndThrowException(kUserErrorMessage, NExitCode::kUserError);

@@ -10,10 +10,13 @@
 
 #pragma once
 
+//local includes
+#include "exception.h"
 //common includes
 #include <pointers.h>
 //std includes
 #include <map>
+#include <mutex>
 
 template<class PtrType>
 class ObjectsStorage
@@ -28,29 +31,33 @@ public:
 
   HandleType Add(PtrType obj)
   {
-    if (obj)
-    {
-      const HandleType handle = GetNextHandle();
-      Storage.insert(typename StorageType::value_type(handle, std::move(obj)));
-      return handle;
-    }
-    else
-    {
-      return HandleType();
-    }
+    Jni::CheckArgument(!!obj, "Invalid object");
+    const std::lock_guard<std::mutex> guard(Lock);
+    const HandleType handle = GetNextHandle();
+    Storage.insert(typename StorageType::value_type(handle, std::move(obj)));
+    return handle;
   }
 
-  const PtrType& Get(HandleType handle) const
+  PtrType Get(HandleType handle) const
   {
-    static const PtrType NullPtr;
+    const std::lock_guard<std::mutex> guard(Lock);
+    const auto it = Storage.find(handle);
+    Jni::CheckArgument(it != Storage.end(), "Invalid handle");
+    return it->second;
+  }
+
+  PtrType Find(HandleType handle) const
+  {
+    const std::lock_guard<std::mutex> guard(Lock);
     const auto it = Storage.find(handle);
     return it != Storage.end()
-      ? it->second
-      : NullPtr;
+        ? it->second
+        : PtrType();
   }
 
   PtrType Fetch(HandleType handle)
   {
+    const std::lock_guard<std::mutex> guard(Lock);
     const auto it = Storage.find(handle);
     if (it != Storage.end())
     {
@@ -75,4 +82,5 @@ private:
   typedef std::map<HandleType, PtrType> StorageType;
   StorageType Storage;
   HandleType NextHandle;
+  mutable std::mutex Lock;
 };

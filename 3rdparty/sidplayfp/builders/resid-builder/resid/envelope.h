@@ -80,10 +80,10 @@ protected:
 
   // Lookup table to convert from attack, decay, or release value to rate
   // counter period.
-  static reg16 rate_counter_period[];
+  static const reg16 rate_counter_period[];
 
   // The 16 selectable sustain levels.
-  static reg8 sustain_level[];
+  static const reg8 sustain_level[];
 
   // DAC lookup tables.
   static unsigned short model_dac[2][1 << 8];

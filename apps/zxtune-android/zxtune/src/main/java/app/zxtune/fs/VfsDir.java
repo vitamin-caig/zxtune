@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Vfs directory object interface
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs;
@@ -17,27 +13,31 @@ public interface VfsDir extends VfsObject {
   /**
    * Directory content enumerating callback
    */
-  public interface Visitor {
-    
-    /**
-     * Called when items count is known (at any moment, maybe approximate)
-     */
-    public void onItemsCount(int count);
-    
+  abstract class Visitor implements ProgressCallback {
+
     /**
      * Called on visited directory
      */
-    public void onDir(VfsDir dir);
+    public abstract void onDir(VfsDir dir);
 
     /**
      * Called on visited file
      */
-    public void onFile(VfsFile file);
+    public abstract void onFile(VfsFile file);
+
+    /**
+     * Called when items count is known (at any moment, maybe approximate)
+     */
+    public void onItemsCount(int count) {}
+
+    @Override
+    public void onProgressUpdate(int done, int total) {}
   }
-  
+
   /**
    * Enumerate directory content
+   *
    * @param visitor Callback
    */
-  public void enumerate(Visitor visitor) throws IOException;
+  void enumerate(Visitor visitor) throws IOException;
 }

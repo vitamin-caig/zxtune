@@ -134,16 +134,6 @@ void gme_mute_voice( gme_t*, int index, gme_bool mute );
 /* Sets muting state of ALL voices at once using a bit mask, where -1 mutes all
 voices, 0 unmutes them all, 0x01 mutes just the first voice, etc. */
 void gme_mute_voices( gme_t*, int muting_mask );
-typedef struct voice_status_t voice_status_t;
-int gme_voices_status( gme_t const*, voice_status_t*, int);
-
-struct voice_status_t
-{
-  int frequency;
-  int divider;
-  int level;    //0..100
-};
-enum { voice_max_level = 100 };
 
 /* Frequency equalizer parameters (see gme.txt) */
 typedef struct gme_equalizer_t

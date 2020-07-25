@@ -1,0 +1,108 @@
+scrptr	equ	$8a	; 2 bytes
+printptr	equ	$8c	; 2 bytes
+
+	org	$3000
+main
+	lda	<title
+	ldx	>title
+	jsr	print
+
+	mva	#0	^4e
+	lda	#100
+	cmp:rne	^4b
+	mwa	#nmi	$fffa
+
+	ldy	#$40
+	lda	#123
+	cmp:req	^4b
+	cmp:rne	^4b
+	sta	^4a
+	lda	20
+	sta	^4a
+:2	cmp	(0,x)
+	cmp	0
+	sty	^4e
+:2	sta	^4a
+	cmp	20
+	jne	error
+
+	mva	#0	^4e
+	lda	#123
+	cmp:rne	^4b
+	sta	^4a
+	lda	20
+	sta	^4a
+:2	cmp	(0,x)
+	nop
+	sty	^4e
+:2	sta	^4a
+	cmp	20
+	beq	error
+
+	ldy	#0
+	lda	#123
+	cmp:rne	^4b
+	sta	^4a
+	lda	20
+	sta	^4a
+	cmp	(0,x)
+	cmp	0,x
+	cmp	0,x
+	sty	^4e
+:2	sta	^4a
+	cmp	20
+	beq	error
+
+	mva	#$40	^4e
+	lda	#123
+	cmp:rne	^4b
+	sta	^4a
+	lda	20
+	sta	^4a
+	cmp	(0,x)
+	cmp	0,x
+	cmp	0
+	sty	^4e
+:2	sta	^4a
+	cmp	20
+	bne	error
+
+	lda	<pass
+	ldx	>pass
+	jsr	print
+	mwa	#$af30	$d200
+	jmp	*
+
+error
+	lda	<fail
+	ldx	>fail
+	jsr	print
+	mwa	#$cfa0	$d200
+	jmp	*
+
+put_char
+	mvx	#11	$342
+	mwx	#0	$348
+	jmp	$e456
+
+print
+	sta	printptr
+	stx	printptr+1
+	jmp	print_2
+print_1
+	jsr	put_char
+	inw	printptr
+print_2
+	lda	(printptr),0
+	bne	print_1
+	rts
+
+nmi
+	inc	20
+	rti
+
+title	dta	c'ANTIC: NMIEN...',0
+pass	dta	c'Pass',$9b,0
+fail	dta	c'FAIL.',$9b,0
+
+	run	main

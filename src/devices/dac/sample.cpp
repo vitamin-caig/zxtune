@@ -62,7 +62,7 @@ namespace Devices
     class BaseSample : public Sample
     {
     public:
-      BaseSample(const Binary::Data& content, std::size_t loop)
+      BaseSample(Binary::View content, std::size_t loop)
         : Content(new uint8_t[content.Size()])
         , StartValue(Content.get())
         , SizeValue(content.Size())
@@ -107,7 +107,7 @@ namespace Devices
     class U8Sample : public BaseSample
     {
     public:
-      U8Sample(const Binary::Data& content, std::size_t loop)
+      U8Sample(Binary::View content, std::size_t loop)
         : BaseSample(content, loop)
       {
       }
@@ -123,7 +123,7 @@ namespace Devices
     class U4Sample : public BaseSample
     {
     public:
-      U4Sample(const Binary::Data& content, std::size_t loop)
+      U4Sample(Binary::View content, std::size_t loop)
         : BaseSample(content, loop)
       {
       }
@@ -139,7 +139,7 @@ namespace Devices
     class U4PackedSample : public BaseSample
     {
     public:
-      U4PackedSample(const Binary::Data& content, std::size_t loop)
+      U4PackedSample(Binary::View content, std::size_t loop)
         : BaseSample(content, loop)
       {
       }
@@ -165,17 +165,17 @@ namespace Devices
       }
     };
 
-    Sample::Ptr CreateU8Sample(const Binary::Data& content, std::size_t loop)
+    Sample::Ptr CreateU8Sample(Binary::View content, std::size_t loop)
     {
       return MakePtr<U8Sample>(content, loop);
     }
 
-    Sample::Ptr CreateU4Sample(const Binary::Data& content, std::size_t loop)
+    Sample::Ptr CreateU4Sample(Binary::View content, std::size_t loop)
     {
       return MakePtr<U4Sample>(content, loop);
     }
 
-    Sample::Ptr CreateU4PackedSample(const Binary::Data& content, std::size_t loop)
+    Sample::Ptr CreateU4PackedSample(Binary::View content, std::size_t loop)
     {
       return MakePtr<U4PackedSample>(content, loop);
     }

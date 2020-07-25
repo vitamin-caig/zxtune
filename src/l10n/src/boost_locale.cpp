@@ -77,7 +77,7 @@ namespace
   struct LocaleAttributes
   {
     LocaleAttributes()
-      : Name(boost::locale::util::get_system_locale())
+      : Name(boost::locale::util::get_system_locale(true/*use_utf8_on_windows*/))
     {
       const std::string::size_type encPos = Name.find_first_of('.');
       if (encPos != Name.npos)

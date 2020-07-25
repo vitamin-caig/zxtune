@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "aym_base_track.h"
+#include "module/players/aym/aym_base_track.h"
 //library includes
 #include <devices/turbosound.h>
 #include <module/holder.h>
@@ -31,12 +31,6 @@ namespace Module
       virtual Devices::TurboSound::Registers GetData() const = 0;
     };
 
-    typedef std::array<AYM::TrackParameters::Ptr, Devices::TurboSound::CHIPS> TrackParametersArray;
-    typedef std::array<AYM::DataRenderer::Ptr, Devices::TurboSound::CHIPS> DataRenderersArray;
-
-    DataIterator::Ptr CreateDataIterator(const TrackParametersArray& trackParams, TrackStateIterator::Ptr iterator, 
-      const DataRenderersArray& renderers);
-
     class Chiptune
     {
     public:
@@ -45,15 +39,12 @@ namespace Module
 
       virtual Information::Ptr GetInformation() const = 0;
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator(const TrackParametersArray& trackParams) const = 0;
+      virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const = 0;
     };
 
     Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device);
 
     Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second);
-
-    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device);
-    Renderer::Ptr CreateRenderer(const Chiptune& chiptune, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }

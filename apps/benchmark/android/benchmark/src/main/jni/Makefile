@@ -1,5 +1,5 @@
 dynamic_name := benchmark
-path_step := ../../../../../../..
+dirs.root := ../../../../../../..
 source_dirs := .
 
 libraries = benchmark 
@@ -8,9 +8,9 @@ libraries.3rdparty = z80ex
 
 depends := apps/benchmark/core
 
-android_libraries := log
+libraries.android += log
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak
 
 install_$(platform):
 	$(call copyfile_cmd,$(target),$(DESTDIR))

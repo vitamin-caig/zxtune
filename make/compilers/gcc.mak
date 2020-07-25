@@ -1,6 +1,6 @@
 #basic definitions for tools
-tools.cxx = $($(platform).$(arch).execprefix)g++
-tools.cc = $($(platform).$(arch).execprefix)gcc
+tools.cxx = $(tools.cxxwrapper) $($(platform).$(arch).execprefix)g++
+tools.cc = $(tools.ccwrapper) $($(platform).$(arch).execprefix)gcc
 tools.ld ?= $($(platform).$(arch).execprefix)g++
 tools.ar ?= $($(platform).$(arch).execprefix)ar
 tools.objcopy ?= $($(platform).$(arch).execprefix)objcopy
@@ -44,17 +44,18 @@ CXX_MODE_FLAGS += --coverage
 LD_MODE_FLAGS += --coverage
 endif
 
-DEFINITIONS = $(defines) $($(platform)_definitions)
-INCLUDES = $(sort $(include_dirs) $($(platform)_include_dirs))
+DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch))
+INCLUDES_DIRS = $(sort $(includes.dirs) $(includes.dirs.$(platform)) $(includes.dirs.$(notdir $1)))
+INCLUDES_FILES = $(includes.files) $(includes.files.$(platform))
 
 #setup flags
 CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
-	$(addprefix -D,$(DEFINITIONS) $($(platform).definitions) $($(platform).$(arch).definitions)) \
-	-funsigned-char -fno-strict-aliasing \
+	$(addprefix -D,$(DEFINES)) \
+	-funsigned-char -fno-strict-aliasing -fvisibility=hidden \
 	-W -Wall -Wextra -pipe \
-	$(addprefix -I,$(INCLUDES))
+	$(addprefix -I,$(INCLUDES_DIRS)) $(addprefix -include ,$(INCLUDES_FILES))
 
-CXXFLAGS = $(CCFLAGS) -std=c++11 -fvisibility=hidden -fvisibility-inlines-hidden
+CXXFLAGS = $(CCFLAGS) -std=c++11 -fvisibility-inlines-hidden
 
 ARFLAGS := crus
 LDFLAGS = $(LD_MODE_FLAGS) $($(platform).ld.flags) $($(platform).$(arch).ld.flags) $(ld_flags)
@@ -62,14 +63,13 @@ LDFLAGS = $(LD_MODE_FLAGS) $($(platform).ld.flags) $($(platform).$(arch).ld.flag
 #specify endpoint commands
 build_obj_cmd_nodeps = $(tools.cxx) $(CXXFLAGS) -c $1 -o $2
 build_obj_cmd = $(build_obj_cmd_nodeps) -MMD
-build_obj_cmd_cc = $(tools.cc) $(CCFLAGS) -c $1 -o $2
+build_obj_cmd_cc = $(tools.cc) $(CCFLAGS) -std=c99 -c $1 -o $2 -MMD
 build_lib_cmd = $(tools.ar) $(ARFLAGS) $2 $1
 link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
-	$(if $(libraries),-L$(libs_dir)\
-          $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP),)\
-        $(addprefix -L,$($(platform)_libraries_dirs))\
-        $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $($(platform)_libraries))) $(LINKER_END_GROUP)\
-	$(if $(dynamic_libs),-L$(output_dir) $(addprefix -l,$(dynamic_libs)),)
+        -L$(libraries.dir) $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP) \
+        $(addprefix -L,$(libraries.dirs.$(platform)))\
+        $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $(libraries.$(platform)))) $(LINKER_END_GROUP)\
+	$(if $(libraries.dynamic),-L$(output_dir) $(addprefix -l,$(libraries.dynamic)),)
 
 #specify postlink command- generate pdb file
 postlink_cmd = $(tools.objcopy) --only-keep-debug $@ $@.pdb && $(sleep_cmd) && \
@@ -85,7 +85,7 @@ analyze:
 	@echo "Analyzing $(target)" > coverage.log
 	@for i in $(SOURCES);do gcov -lp -o $(objects_dir) $$i >> coverage.log; done
 	@echo `pwd`
-	@perl $(path_step)/make/compilers/gcc_coverage.pl
+	@perl $(dirs.root)/make/compilers/gcc_coverage.pl
 
 analyze_deps: $(depends)
 
@@ -102,9 +102,9 @@ $(target).nm.out: $(target)
 $(target).objdump.out: $(target)
 	$(tools.objdump) -h $^.pdb > $@
 
-tools_dir = $(abspath $(path_step)/make/tools)
+tools_dir = $(abspath $(dirs.root)/make/tools)
 bloat_dir = $(tools_dir)/bloat
-call_bloat_cmd = $(tools.python) $(bloat_dir)/bloat.py --nm-output $(target).nm.out --objdump-output $(target).objdump.out --strip-prefix $(abspath $(path_step))/
+call_bloat_cmd = $(tools.python) $(bloat_dir)/bloat.py --nm-output $(target).nm.out --objdump-output $(target).objdump.out --strip-prefix $(abspath $(dirs.root))/
 
 topsymbols: $(target).nm.out $(target).objdump.out
 	$(call_bloat_cmd) dump > $(target).topsymbols

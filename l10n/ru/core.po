@@ -12,8 +12,11 @@ msgstr ""
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
 #, boost-format
-msgid "Invalid frequency table '%1%'."
-msgstr "Неправильное значение частотной таблицы '%1%'."
+msgid "None of the additional files %1% were resolved."
+msgstr "Ни один из внешних файлов из %1% не подходит."
+
+msgid "Failed to resolve additional files."
+msgstr "Ошибка загрузки дополнительных файлов."
 
 #, boost-format
 msgid "Failed to resolve subpath '%1%'."
@@ -21,20 +24,3 @@ msgstr "Ошибка получения данных по пути '%1%'."
 
 msgid "Failed to find module at specified location."
 msgstr "Модуль не найден по указанному пути."
-
-#~ msgid "%1% processing"
-#~ msgstr "Анализ %1%"
-
-#~ msgid "%1% processing at %2%"
-#~ msgstr "Анализ %1% в %2%"
-
-#~ msgid "%1% processing for %2%"
-#~ msgstr "Анализ %1% для %2%"
-
-#~ msgid "%1% processing for %2% at %3%"
-#~ msgstr "Анализ %1% для %2% в %3%"
-
-#~ msgid "Specified minimal scan size (%1%). Should be more than %2%."
-#~ msgstr ""
-#~ "Неправильный минимальный размер блока для анализа (%1%). Должен быть "
-#~ "больше %2%."

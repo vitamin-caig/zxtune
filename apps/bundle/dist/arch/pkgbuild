@@ -1,7 +1,7 @@
 # Maintainer: vitamin.caig@gmail.com
 pkgname=zxtune
 pkgdesc="Crossplatform ZX Spectrum music player and ripper"
-url="http://zxtune.bitbucket.org"
+url="https://zxtune.bitbucket.io/"
 license=('GPL3')
 conflicts=('xtractor' 'zxtune123' 'zxtune-qt')
 optdepends=(

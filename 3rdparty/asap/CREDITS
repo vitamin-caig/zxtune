@@ -1,0 +1,78 @@
+Authors
+-------
+
+[horizontal]
+
+Piotr Fusik {asapwww!<fox@scene.pl>}::
+Creator and main developer.
+
+Atari800 Emulator Developers {asapwww!(http://atari800.sourceforge.net)}::
+6502 and POKEY emulation used in 0.x.y versions of ASAP.
+
+Zdenek Eisenhammer {asapwww!<pg@pinknet.cz>}::
+Testing.
+
+Maciej Grzybek {asapwww!<grzybson@pigwa.net>}::
+Fixed an overflow in the Silverlight port.
+
+Jakub Husak {asapwww!<jakub.husak@gmail.com>}::
+SAP fingerprint calculation. asapscan fixes.
+
+Henryk Karpowicz {asapwww!<henkar@poczta.tygrys.net>}::
+CMC routine modified for the CM3 format.
+
+Maciek Konecki {asapwww!<maciusk1@wp.pl>}::
+Porting to C#.
+
+Marek Konopka {asapwww!<konop11@poczta.onet.pl>}::
+6502 routine for playing DLT.
+
+Daniel Kozminski {asapwww!<daniel.kozminski@gmail.com>}::
+Ideas.
+
+Jerzy Kut {asapwww!<mono@atari.pl>}::
+FC format.
+
+Marcin Lewandowski {asapwww!<jaskier@atari8.info>}::
+6502 routines for playing CMC, MPT, TMC and TM2.
+
+Ian Luck {asapwww!<il@un4seen.com>}::
+Guided development of XMPlay and BASS plugins.
+
+MarOk {asapwww!<marok7@os.pl>}::
+CMS routine fix.
+
+Adrian Matoga {asapwww!<epi@atari8.info>}::
+COVOX information and test files. Testing. Porting to D.
+
+Perry McFarlane {asapwww!<perry_m@fastmail.fm>}::
+POKEY reverse-engineering.
+
+Kostas Nakos {asapwww!<knakos@gmail.com>}::
+Windows CE testing.
+
+Mariusz Rozwadowski {asapwww!<ramosc64@o2.pl>}::
+Suggested CMS, CM3, DLT and STIL format support.
+
+Slawomir Sledz {asapwww!<slaves@scene.pl>}::
+Windows Mobile setup. Thorough testing.
+
+David Spilka::
+6502 routine for playing CMS.
+
+Radek Sterba::
+6502 routine for playing RMT.
+Testing.
+
+Lukasz Sychowicz {asapwww!<xray@scene.pl>}::
+Windows icons.
+Testing.
+
+Pawel Szewczyk {asapwww!<ripek@op.pl>}::
+Windows setup graphics.
+
+Michal Szpilowski {asapwww!<miker@atari.pl>}::
+Testing.
+
+Grzegorz Zyla {asapwww!<gsunr@poczta.onet.pl>}::
+XBMC plugin testing.

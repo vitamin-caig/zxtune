@@ -9,41 +9,38 @@
 **/
 
 //local includes
-#include "win32.h"
-#include "backend_impl.h"
-#include "storage.h"
-#include "volume_control.h"
-#include "gates/win32_api.h"
+#include "sound/backends/win32.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/volume_control.h"
+#include "sound/backends/gates/win32_api.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+#include <strings/encoding.h>
 //std includes
 #include <algorithm>
 #include <cstring>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 5E3F141A
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Win32");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Win32
 {
+  const Debug::Stream Dbg("Sound::Backend::Win32");
+
   const String ID = Text::WIN32_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("Win32 sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
@@ -170,7 +167,7 @@ namespace Win32
       if (MMSYSERR_NOERROR != res)
       {
         std::vector<char> buffer(1024);
-        if (MMSYSERR_NOERROR == WinApi->waveOutGetErrorTextA(res, &buffer[0], static_cast<UINT>(buffer.size())))
+        if (MMSYSERR_NOERROR == WinApi->waveOutGetErrorTextA(res, buffer.data(), static_cast<UINT>(buffer.size())))
         {
           throw MakeFormattedError(loc, translate("Error in Win32 backend: %1%."),
             String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
@@ -257,7 +254,7 @@ namespace Win32
     {
       Reset();
       Buffer.resize(samples);
-      Header.lpData = ::LPSTR(&Buffer[0]);
+      Header.lpData = ::LPSTR(Buffer.data());
       Header.dwBufferLength = ::DWORD(Buffer.size()) * sizeof(Buffer.front());
       Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
       Device->PrepareHeader(Header);
@@ -351,7 +348,7 @@ namespace Win32
     {
       std::array<uint16_t, Sample::CHANNELS> buffer;
       static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
-      Device->GetVolume(safe_ptr_cast<LPDWORD>(&buffer[0]));
+      Device->GetVolume(safe_ptr_cast<LPDWORD>(buffer.data()));
       const Gain::Type l(int_t(buffer[0]), MAX_WIN32_VOLUME);
       const Gain::Type r(int_t(buffer[1]), MAX_WIN32_VOLUME);
       return Gain(l, r);
@@ -369,7 +366,7 @@ namespace Win32
         static_cast<uint16_t>((volume.Right() * MAX_WIN32_VOLUME).Round())
       }};
       static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
-      Device->SetVolume(*safe_ptr_cast<LPDWORD>(&buffer[0]));
+      Device->SetVolume(*safe_ptr_cast<LPDWORD>(buffer.data()));
     }
   private:
     const WaveOutDevice::Ptr Device;
@@ -446,13 +443,13 @@ namespace Win32
       Objects.Device->Resume();
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    virtual void FrameStart(const Module::State& /*state*/)
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    virtual void FrameFinish(Chunk buffer)
     {
-      Objects.Target->Write(*buffer);
+      Objects.Target->Write(buffer);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -528,13 +525,15 @@ namespace Win32
 
     virtual String Name() const
     {
-      WAVEOUTCAPSA caps;
-      if (MMSYSERR_NOERROR != WinApi->waveOutGetDevCapsA(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
+      WAVEOUTCAPSW caps;
+      if (MMSYSERR_NOERROR != WinApi->waveOutGetDevCapsW(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
       {
         Dbg("Failed to get device name");
         return String();
       }
-      return FromStdString(caps.szPname);
+      const wchar_t* const name = caps.szPname;
+      static_assert(sizeof(*name) == sizeof(uint16_t), "Wide char size mismatch");
+      return Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(name));
     }
   private:
     const Api::Ptr WinApi;
@@ -627,3 +626,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

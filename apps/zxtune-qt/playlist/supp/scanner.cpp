@@ -303,7 +303,7 @@ namespace
     Log::ProgressCallback& Progress;
   };
 
-  const Time::Milliseconds UI_NOTIFICATION_PERIOD(500);
+  const auto UI_NOTIFICATION_PERIOD = Time::Milliseconds(500);
 
   class ProgressCallbackAdapter : public Log::ProgressCallback
   {
@@ -329,7 +329,7 @@ namespace
       if (ReportTimeout())
       {
         Callback.OnProgress(current);
-        Callback.OnMessage(ToQStringFromLocal(message));
+        Callback.OnMessage(ToQString(message));
         Scheduler.Yield();
       }
     }

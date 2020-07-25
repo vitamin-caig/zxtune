@@ -14,14 +14,15 @@
 #include <devices/state.h>
 #include <devices/dac/sample.h>
 #include <sound/mixer.h>
-#include <time/stamp.h>
+#include <time/instant.h>
 
 //supporting for multichannel sample-based DAC
 namespace Devices
 {
   namespace DAC
   {
-    typedef Time::Microseconds Stamp;
+    using TimeUnit = Time::Microsecond;
+    using Stamp = Time::Instant<TimeUnit>;
 
     struct ChannelData
     {

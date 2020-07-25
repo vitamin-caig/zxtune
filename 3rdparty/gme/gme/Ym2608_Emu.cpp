@@ -128,11 +128,9 @@ void Ym2608_Emu::run( int pair_count, sample_t* out )
 		for (int i = 0; i < todo; i++)
 		{
 			int output_l, output_r;
-			int output = buf [i];
-			output_l = output + bufL [i];
-			output_r = output + bufR [i];
-			output_l += out [0];
-			output_r += out [1];
+			int output = buf [i] / 2;
+			output_l = (output + bufL [i] + out[0]) / 2;
+			output_r = (output + bufR [i] + out[1]) / 2;
 			if ( (short)output_l != output_l ) output_l = 0x7FFF ^ ( output_l >> 31 );
 			if ( (short)output_r != output_r ) output_r = 0x7FFF ^ ( output_r >> 31 );
 			out [0] = output_l;

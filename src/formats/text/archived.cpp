@@ -9,8 +9,14 @@ extern const Char AY_ARCHIVE_DECODER_DESCRIPTION[] = {
 extern const Char AY_RAW_FILENAME_PREFIX[] = {
   '@',0
 };
+extern const Char FSB_DECODER_DESCRIPTION[] = {
+  'F','M','O','D',' ','S','a','m','p','l','e',' ','b','a','n','k',0
+};
 extern const Char GBS_ARCHIVE_DECODER_DESCRIPTION[] = {
   'M','u','l','t','i','-','G','B','S',0
+};
+extern const Char HES_ARCHIVE_DECODER_DESCRIPTION[] = {
+  'M','u','l','t','i','-','H','E','S',0
 };
 extern const Char HRIP_DECODER_DESCRIPTION[] = {
   'H','r','i','p',' ','(','H','r','u','s','t',' ','R','i','P',' ','a','r','c','h','i','v','e','r',')',0

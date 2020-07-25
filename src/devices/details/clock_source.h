@@ -10,8 +10,7 @@
 
 #pragma once
 
-//std includes
-#include <time/oscillator.h>
+#include <math/fixedpoint.h>
 
 namespace Devices
 {

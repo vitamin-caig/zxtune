@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "dac_plugin.h"
+#include "core/plugins/players/dac/dac_plugin.h"
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <make_ptr.h>

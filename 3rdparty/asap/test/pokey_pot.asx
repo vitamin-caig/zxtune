@@ -1,0 +1,162 @@
+	ift	SAP
+	opt	h-
+	dta	c'SAP',13,10
+	dta	c'AUTHOR "Piotr Fusik (0xF)"',13,10
+	dta	c'NAME "POKEY POT Test"',13,10
+	dta	c'DATE "14/06/2011"',13,10
+	dta	c'TYPE D',13,10
+	dta	c'INIT 3000',13,10
+	dta	c'TIME 00:10',13,10
+	opt	h+
+	eif
+
+div5	equ	$80
+mod5	equ	$81
+scrptr	equ	$8a	; 2 bytes
+printptr	equ	$8c	; 2 bytes
+
+	org	f:$3000
+main
+:SAP	mwa	#$1000	scrptr
+	lda	<title
+	ldx	>title
+	jsr	print
+
+:!SAP	sei:inc	^4e
+:!SAP	inc	^40
+
+; fast POT scan
+	ldx	#1
+	stx	div5
+	dex
+	stx	0
+	ldy	#0
+test_loop
+	stx	mod5
+	mva	cmps,x	cmpd
+
+	mva	#0	^2f
+:2	sta	^4a
+	mva	#7	^2f
+	sta	^2b
+	ldx	div5
+	dex:rne
+cmpd	cmp	#0
+	lda	^20
+	cmp	expected,y
+	jne	error
+
+	ldx	mod5
+	inx
+	cpx	#5
+	bcc	same5
+	inc	div5
+	ldx	#0
+same5	iny
+	bne	test_loop
+
+; slow POT scan (114 divisor)
+	ldy	#2
+test2_loop
+	mva	cmps,y	cmpd2
+	mva	#0	^2f
+:2	sta	^4a
+	mva	#3	^2f
+:2	sta	^4a
+	sta	^2b
+	ldx	#13+21
+	dex:rne
+cmpd2	cmp	#0
+	lda	^20
+	cmp	expected114,y
+	bne	error
+	dey
+	bpl	test2_loop
+
+; slow POT scan, max value
+	ldy	#228
+test3_loop
+	sty	^4a
+	dey
+	bne	test3_loop
+	lda	^20
+	cmp	#228
+	bne	error
+
+; slow POT scan, 114 divisor stopped
+	mva	#0	^2f
+:2	sta	^4a
+	sta	^2b
+:5	sta	^4a
+	ldx	#3
+	lda	^20
+	stx	^2f
+	bne	error
+
+	lsr:cli	^4e
+	lda	<pass
+	ldx	>pass
+	jsr	print
+	mwa	#$af30	$d200
+	jmp	*
+
+error
+	lsr:cli	^4e
+	lda	<fail
+	ldx	>fail
+	jsr	print
+	mwa	#$cfa0	$d200
+	jmp	*
+
+put_char
+	ift	SAP
+	sta	(scrptr),0
+	inw	scrptr
+	rts
+	els
+	mvx	#11	$342
+	mwx	#0	$348
+	jmp	$e456
+	eif
+
+print
+	sta	printptr
+	stx	printptr+1
+	jmp	print_2
+print_1
+	jsr	put_char
+	inw	printptr
+print_2
+	lda	(printptr),0
+	bne	print_1
+	rts
+
+title	dta	c'POKEY: POT...',0
+pass	dta	c'Pass',$9b,0
+fail	dta	c'FAIL.',$9b,0
+
+cmps	dta	{cmp #},{cmp 0},{cmp 0,x},{cmp (0),y},{cmp (0,x)}
+
+expected
+	dta	$08,$0c,$0c,$0e,$00,$10,$10,$12,$10,$14,$14,$16,$10,$18,$1a,$18
+	dta	$1c,$1e,$00,$20,$22,$20,$24,$26,$20,$28,$2a,$28,$2c,$2e,$20,$30
+	dta	$32,$30,$34,$36,$30,$38,$3a,$38,$3c,$3c,$3e,$00,$40,$40,$42,$40
+	dta	$44,$44,$46,$40,$48,$48,$4a,$48,$4c,$4c,$4e,$40,$50,$50,$52,$50
+	dta	$54,$54,$56,$50,$58,$58,$5a,$58,$5c,$5c,$5e,$40,$60,$60,$62,$60
+	dta	$64,$64,$66,$60,$68,$68,$6a,$68,$6c,$6c,$6e,$60,$70,$70,$72,$70
+	dta	$74,$74,$76,$70,$78,$78,$7a,$78,$7c,$7c,$7e,$00,$80,$80,$82,$80
+	dta	$84,$84,$86,$80,$88,$88,$88,$8c,$8c,$80,$90,$90,$90,$94,$94,$90
+	dta	$98,$98,$98,$9c,$9c,$80,$a0,$a0,$a0,$a4,$a4,$a0,$a8,$a8,$a8,$ac
+	dta	$ac,$ae,$a0,$b0,$b0,$b2,$b0,$b4,$b4,$b6,$b0,$b8,$b8,$ba,$b8,$bc
+	dta	$bc,$be,$80,$c0,$c0,$c2,$c0,$c4,$c4,$c6,$c0,$c8,$c8,$ca,$c8,$cc
+	dta	$cc,$ce,$c0,$d0,$d0,$d2,$d0,$d4,$d4,$d6,$d0,$d8,$d8,$da,$d8,$dc
+	dta	$dc,$de,$c0,$e0,$e0,$e2,$e0,$e4,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5
+	dta	$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5
+	dta	$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5
+	dta	$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5,$e5
+expected114
+	dta	1,0,2
+
+	ift	!SAP
+	run	main
+	eif

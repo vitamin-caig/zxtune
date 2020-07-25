@@ -1,0 +1,64 @@
+outerFlags	equ	$fc
+innerFlags	equ	$fd
+outPtr	equ	$fe
+
+	org	$8000
+getByte
+	lda	$aaaa
+	inw	getByte+1
+	rts
+exit
+	jmp	$aaaa
+copyTwoOrThree
+	sta	outPtr
+	txa	; lda #1
+	rol	@
+copyMany
+	tax
+	beq	exit
+copy
+	lda	(outPtr),y
+putByte
+	sta	$8080,y
+	iny
+	bne	samePage
+	tya	; lda #0
+	sec
+	adc	outPtr+1
+setPage
+	sta	outPtr+1
+	sta	putByte+2
+samePage
+	dex
+	bne	copy
+
+	asl	innerFlags
+	bne	gotInnerFlags
+	asl	outerFlags
+	bne	gotOuterFlags
+
+start
+	sec
+	jsr	getByte
+	rol	@
+	sta	outerFlags
+gotOuterFlags
+	lda	#1
+	bcc	setInnerFlags
+	jsr	getByte
+	rol	@
+setInnerFlags
+	sta	innerFlags
+gotInnerFlags
+	jsr	getByte
+	ldx	#1
+	bcc	putByte
+	lsr	@
+	bne	copyTwoOrThree
+	jsr	getByte
+	bcs	copyMany
+	tay
+	jsr	getByte
+	bcc	setPage	; jmp
+
+	end

@@ -1,0 +1,177 @@
+	ift	SAP
+	opt	h-
+	dta	c'SAP',13,10
+	dta	c'AUTHOR "Piotr Fusik (0xF)"',13,10
+	dta	c'NAME "ANTIC WSYNC Test"',13,10
+	dta	c'DATE "19/05/2011"',13,10
+	dta	c'TYPE D',13,10
+	dta	c'INIT 3000',13,10
+	dta	c'TIME 00:10',13,10
+	opt	h+
+	eif
+
+div5	equ	$80
+mod5	equ	$81
+scrptr	equ	$8a	; 2 bytes
+printptr	equ	$8c	; 2 bytes
+
+	org	f:$3000
+main
+:SAP	mwa	#$1000	scrptr
+	lda	<title
+	ldx	>title
+	jsr	print
+
+:!SAP	sei:inc	^4e
+:!SAP	inc	^40
+
+	ldx	#1
+	stx	div5
+	dex
+	stx	0
+	stx	^28
+	ldy	#0
+test_loop
+	stx	mod5
+	mva	cmps,x	cmpd
+	sta	cmpd2
+	sta	cmpd3
+	sta	cmpd4
+
+	mva	#0	^2f
+:2	sta	^4a
+	mva	#3	^2f
+	ldx	div5
+	dex:rne
+cmpd	cmp	#0
+	sta	^4a
+	lda	^2a
+	cmp	sta_wsync,y
+	jne	error
+
+	mva	#0	^2f
+:2	sta	^4a
+	mva	#3	^2f
+	ldx	div5
+	dex:rne
+cmpd2	cmp	#0
+	sta	^4a,x
+	lda	^2a
+	cmp	sta_wsync+1,y
+	bne	error
+
+	mva	#0	^2f
+:2	sta	^4a
+	mva	#3	^2f
+	ldx	div5
+	dex:rne
+cmpd3	cmp	#0
+	inc	^4a
+	lda	^2a
+	cmp	inc_wsync,y
+	bne	error
+
+	mva	#0	^2f
+:2	sta	^4a
+	mva	#3	^2f
+	ldx	div5
+	dex:rne
+cmpd4	cmp	#0
+	inc	^4a,x
+	lda	^2a
+	cmp	inc_wsync+1,y
+	bne	error
+
+	ldx	mod5
+	inx
+	cpx	#5
+	bcc	same5
+	inc	div5
+	ldx	#0
+same5	iny
+	jne	test_loop
+
+	lsr:cli	^4e
+	lda	<pass
+	ldx	>pass
+	jsr	print
+	mwa	#$af30	$d200
+	jmp	*
+
+error
+	lsr:cli	^4e
+	lda	<fail
+	ldx	>fail
+	jsr	print
+	mwa	#$cfa0	$d200
+	jmp	*
+
+put_char
+	ift	SAP
+	sta	(scrptr),0
+	inw	scrptr
+	rts
+	els
+	mvx	#11	$342
+	mwx	#0	$348
+	jmp	$e456
+	eif
+
+print
+	sta	printptr
+	stx	printptr+1
+	jmp	print_2
+print_1
+	jsr	put_char
+	inw	printptr
+print_2
+	lda	(printptr),0
+	bne	print_1
+	rts
+
+title	dta	c'ANTIC: WSYNC...',0
+pass	dta	c'Pass',$9b,0
+fail	dta	c'FAIL.',$9b,0
+
+cmps	dta	{cmp #},{cmp 0},{cmp 0,x},{cmp (0),y},{cmp (0,x)}
+
+sta_wsync
+	dta	$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21
+	dta	$10,$21,$21,$10,$21,$21,$10,$21,$21,$10,$21,$21,$10,$21,$21,$10
+	dta	$21,$21,$10,$21,$21,$10,$21,$21,$10,$21,$21,$21,$21,$21,$21,$21
+	dta	$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21
+	dta	$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21,$21
+	dta	$21,$21,$21,$21,$21,$21,$21,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6
+	dta	$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6
+	dta	$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$7B,$F6,$F6,$7B,$F6,$F6,$7B
+	dta	$F6,$F6,$7B,$F6,$F6,$7B,$F6,$F6,$7B,$F6,$F6,$7B,$F6,$F6,$7B,$F6
+	dta	$F6,$7B,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6
+	dta	$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6
+	dta	$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6,$F6
+	dta	$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9
+	dta	$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9,$D9
+	dta	$D9,$D9,$6C,$D9,$D9,$6C,$D9,$D9,$6C,$D9,$D9,$6C,$D9,$D9,$6C,$D9
+	dta	$D9,$6C,$D9,$D9,$6C,$D9,$D9,$6C,$D9,$D9,$6C,$D9,$D9,$D9,$D9,$D9
+	dta	$D9
+inc_wsync
+	dta	$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+	dta	$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+	dta	$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+	dta	$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+	dta	$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10,$10
+	dta	$10,$10,$10,$10,$10,$F6,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B
+	dta	$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B
+	dta	$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B
+	dta	$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B
+	dta	$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B
+	dta	$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B
+	dta	$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$7B,$D9,$6C
+	dta	$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C
+	dta	$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C
+	dta	$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C
+	dta	$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C,$6C
+	dta	$6C
+
+	ift	!SAP
+	run	main
+	eif

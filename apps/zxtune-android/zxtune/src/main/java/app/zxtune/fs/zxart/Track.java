@@ -1,14 +1,12 @@
 /**
- *
  * @file
- *
  * @brief Track description POJO
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.zxart;
+
+import androidx.annotation.Nullable;
 
 public final class Track {
 
@@ -18,10 +16,12 @@ public final class Track {
   public final String votes;
   public final String duration;
   public final int year;
+  @Nullable
   public final String compo;
   public final int partyplace;
-  
-  public Track(int id, String filename, String title, String votes, String duration, int year, String compo, int partyplace) {
+
+  public Track(int id, String filename, String title, String votes, String duration, int year,
+               @Nullable String compo, int partyplace) {
     this.id = id;
     this.filename = filename;
     this.title = title;

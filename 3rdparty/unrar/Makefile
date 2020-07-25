@@ -1,13 +1,13 @@
 library_name := unrar
-path_step := ../..
-include $(path_step)/make/default.mak
+dirs.root := ../..
+include $(dirs.root)/make/default.mak
 
 #SILENT - disables all output
 #RAR_NOCRYPT - disables encryption support
 #SHELL_EXT - disables encryption and some output
 #NOVOLUME - disables volues support
 #GUI - disables some console i/o
-$(platform)_definitions += SILENT RAR_NOCRYPT GUI SHELL_EXT NOVOLUME
+defines += SILENT RAR_NOCRYPT GUI SHELL_EXT NOVOLUME
 
 #core files
 source_files = getbits unpack rarvm crc smallfn
@@ -23,4 +23,4 @@ source_dirs += stubs
 
 source_files := $(addsuffix .cpp,$(source_files))
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

@@ -12,7 +12,9 @@
 
 //library includes
 #include <binary/container.h>
+#include <binary/view.h>
 //common includes
+#include <byteorder.h>
 #include <contract.h>
 #include <pointers.h>
 #include <types.h>
@@ -23,13 +25,12 @@
 namespace Binary
 {
   //! @brief Sequental stream adapter
-  class InputStream
+  class DataInputStream
   {
   public:
-    explicit InputStream(const Container& rawData)
-      : Data(rawData)
-      , Start(static_cast<const uint8_t*>(rawData.Start()))
-      , Finish(Start + Data.Size())
+    explicit DataInputStream(Binary::View data)
+      : Start(static_cast<const uint8_t*>(data.Start()))
+      , Finish(Start + data.Size())
       , Cursor(Start)
     {
     }
@@ -38,22 +39,41 @@ namespace Binary
     template<class T>
     const T& ReadField()
     {
+      static_assert(!std::is_integral<T>::value, "Use ReadByte/ReadLE/ReadBE");
       return *safe_ptr_cast<const T*>(ReadRawData(sizeof(T)));
     }
-    
-    //! @brief Read ASCIIZ string with specified maximal size
-    std::string ReadCString(std::size_t maxSize)
+
+    uint8_t ReadByte()
     {
-      const uint8_t* const limit = std::min(Cursor + maxSize, Finish);
-      const uint8_t* const strEnd = std::find(Cursor, limit, 0);
+      return *ReadRawData(1);
+    }
+
+    template<class T>
+    T ReadLE()
+    {
+      return ::ReadLE<T>(ReadRawData(sizeof(T)));
+    }
+
+    template<class T>
+    T ReadBE()
+    {
+      return ::ReadBE<T>(ReadRawData(sizeof(T)));
+    }
+
+    //! @brief Read ASCIIZ string with specified maximal size
+    StringView ReadCString(std::size_t maxSize)
+    {
+      static_assert(sizeof(StringView::value_type) == sizeof(uint8_t), "Invalid char size");
+      const auto limit = std::min(Cursor + maxSize, Finish);
+      const auto strEnd = std::find(Cursor, limit, 0);
       Require(strEnd != limit);
-      const std::string res(Cursor, strEnd);
+      StringView res(safe_ptr_cast<const Char*>(Cursor), safe_ptr_cast<const Char*>(strEnd));
       Cursor = strEnd + 1;
       return res;
     }
 
     //! @brief Read string till EOL
-    std::string ReadString()
+    StringView ReadString()
     {
       const uint8_t CR = 0x0d;
       const uint8_t LF = 0x0a;
@@ -61,8 +81,8 @@ namespace Binary
       static const uint8_t EOLCODES[3] = {CR, LF, EOT};
 
       Require(Cursor != Finish);
-      const uint8_t* const eolPos = std::find_first_of(Cursor, Finish, EOLCODES, EOLCODES + 3);
-      const uint8_t* nextLine = eolPos;
+      const auto eolPos = std::find_first_of(Cursor, Finish, EOLCODES, EOLCODES + 3);
+      auto nextLine = eolPos;
       if (nextLine != Finish && CR == *nextLine++)
       {
         if (nextLine != Finish && LF == *nextLine)
@@ -70,36 +90,27 @@ namespace Binary
           ++nextLine;
         }
       }
-      const std::string result(Cursor, eolPos);
+      StringView result(safe_ptr_cast<const Char*>(Cursor), safe_ptr_cast<const Char*>(eolPos));
       Cursor = nextLine;
       return result;
     }
 
-    //! @brief Read raw data
-    const uint8_t* ReadRawData(std::size_t size)
+    template<class T>
+    const T* PeekField() const
     {
-      Require(Cursor + size <= Finish);
-      const uint8_t* const res = Cursor;
-      Cursor += size;
-      return res;
-    }
-    
-    Container::Ptr ReadData(std::size_t size)
-    {
-      Require(Cursor + size <= Finish);
-      const std::size_t offset = GetPosition();
-      Cursor += size;
-      return Data.GetSubcontainer(offset, size);
+      return safe_ptr_cast<const T*>(PeekRawData(sizeof(T)));
     }
 
-    //! @brief Read rest data in source container
-    Container::Ptr ReadRestData()
+    const uint8_t* PeekRawData(std::size_t size) const
     {
-      Require(Cursor < Finish);
-      const std::size_t offset = GetPosition();
-      const std::size_t size = GetRestSize();
-      Cursor = Finish;
-      return Data.GetSubcontainer(offset, size);
+      if (Cursor + size <= Finish)
+      {
+        return Cursor;
+      }
+      else
+      {
+        return nullptr;
+      }
     }
 
     //! @brief Read as much data as possible
@@ -109,17 +120,28 @@ namespace Binary
       std::memcpy(buf, ReadRawData(res), res);
       return res;
     }
-    
+
+    View ReadData(std::size_t size)
+    {
+      return View(ReadRawData(size), size);
+    }
+
+    View ReadRestData()
+    {
+      Require(Cursor < Finish);
+      return ReadData(GetRestSize());
+    }
+
     void Skip(std::size_t size)
     {
       Require(Cursor + size <= Finish);
       Cursor += size;
     }
-
-    //! @brief Return data that is already read
-    Container::Ptr GetReadData() const
+    
+    void Seek(std::size_t pos)
     {
-      return Data.GetSubcontainer(0, GetPosition());
+      Require(Start + pos <= Finish);
+      Cursor = Start + pos;
     }
 
     //! @brief Return absolute read position
@@ -134,9 +156,54 @@ namespace Binary
       return Finish - Cursor;
     }
   private:
-    const Container& Data;
+    const uint8_t* ReadRawData(std::size_t size)
+    {
+      Require(Cursor + size <= Finish);
+      const uint8_t* const res = Cursor;
+      Cursor += size;
+      return res;
+    }
+    
+  protected:
     const uint8_t* const Start;
     const uint8_t* const Finish;
     const uint8_t* Cursor;
+  };
+  
+  //TODO: rename
+  class InputStream : public DataInputStream
+  {
+  public:
+    explicit InputStream(const Container& rawData)
+      : DataInputStream(rawData)
+      , Data(rawData)
+    {
+    }
+    
+    Container::Ptr ReadContainer(std::size_t size)
+    {
+      Require(Cursor + size <= Finish);
+      const std::size_t offset = GetPosition();
+      Cursor += size;
+      return Data.GetSubcontainer(offset, size);
+    }
+
+    //! @brief Read rest data in source container
+    Container::Ptr ReadRestContainer()
+    {
+      Require(Cursor < Finish);
+      const std::size_t offset = GetPosition();
+      const std::size_t size = GetRestSize();
+      Cursor = Finish;
+      return Data.GetSubcontainer(offset, size);
+    }
+
+    //! @brief Return data that is already read
+    Container::Ptr GetReadContainer() const
+    {
+      return Data.GetSubcontainer(0, GetPosition());
+    }
+  private:
+    const Container& Data;
   };
 }

@@ -14,20 +14,15 @@
   <string name="vfs_modland_root_name">Modland - mayor archivo del módulo</string>
   <string name="vfs_modland_root_description">Vía http://www.exotica.org.uk</string>
   <string name="vfs_modland_authors_name">Autores</string>
-  <string name="vfs_modland_authors_description">Búsqueda por autor</string>
   <string name="vfs_modland_collections_name">Colecciones</string>
-  <string name="vfs_modland_collections_description">Búsqueda por coleccione</string>
   <string name="vfs_modland_formats_name">Formatos</string>
-  <string name="vfs_modland_formats_description">Búsqueda por formato</string>
   <!--High Voltage Sid Collection (www.hvsc.c64.org)-->
   <string name="vfs_hvsc_root_description">Vía http://www.prg.dtu.dk</string>
   <!--zxart.ee-->
   <string name="vfs_zxart_root_name">ZX-Art - música moderna ZX Spectrum</string>
   <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
   <string name="vfs_zxart_authors_name">Autores</string>
-  <string name="vfs_zxart_authors_description">Búsqueda por autor</string>
   <string name="vfs_zxart_parties_name">Eventos</string>
-  <string name="vfs_zxart_parties_description">Búsqueda por evento</string>
   <string name="vfs_zxart_toptracks_name">Top módulos</string>
   <string name="vfs_zxart_toptracks_description">100 módulos más votadas</string>
   <string name="vfs_zxart_unknown_year_name">Año desconocido</string>
@@ -51,11 +46,8 @@
   <string name="vfs_joshw_root_description">Varios archivos</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_handles_name">Apodos</string>
-    <string name="vfs_amp_handles_description">Búsqueda por apodos</string>
     <string name="vfs_amp_countries_name">Países</string>
-    <string name="vfs_amp_countries_description">Búsqueda por países</string>
     <string name="vfs_amp_groups_name">Grupos</string>
-    <string name="vfs_amp_groups_description">Búsqueda por grupo</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
 <!--1--><item>Argentina</item>
@@ -183,11 +175,20 @@
     </string-array>
     <!-- modarchive.org -->
     <string name="vfs_modarchive_authors_name">Artistas</string>
-    <string name="vfs_modarchive_authors_description">Búsqueda por artista</string>
     <string name="vfs_modarchive_genres_name">Géneros</string>
-    <string name="vfs_modarchive_genres_description">Búsqueda por género</string>
-  <!--errors-->
+    <string name="vfs_modarchive_random_description">Melodías aleatorias</string>
+    <!-- network -->
+    <string name="vfs_network_root_name">Catálogos en línea</string>
+    <!-- radio -->
+    <string name="vfs_radio_root_name">Radio</string>
+    <string name="vfs_radio_root_description">Compilaciones y melodías aleatorias</string>
+    <!-- vgmrips -->
+    <string name="vfs_vgmrips_companies_name">Empresas</string>
+    <string name="vfs_vgmrips_composers_name">Compositores</string>
+    <string name="vfs_vgmrips_chips_name">Chips</string>
+    <string name="vfs_vgmrips_systems_name">Sistemas</string>
+    <string name="vfs_vgmrips_random_name">Melodías aleatorias</string>
+    <!--errors-->
   <string name="network_inaccessible">La red no es accesible</string>
   <string name="failed_resolve">No se pudo resolver %s</string>
-  <string name="file_too_big">El archivo es demasiado grande</string>
 </resources>

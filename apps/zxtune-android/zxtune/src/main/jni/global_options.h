@@ -15,5 +15,5 @@
 
 namespace Parameters
 {
-  Container::Ptr GlobalOptions();
+  Container& GlobalOptions();
 }

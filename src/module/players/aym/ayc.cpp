@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "ayc.h"
-#include "aym_base.h"
-#include "aym_base_stream.h"
+#include "module/players/aym/ayc.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_base_stream.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
@@ -19,6 +19,8 @@
 #include <core/core_parameters.h>
 #include <formats/chiptune/aym/ayc.h>
 #include <module/players/properties_helper.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -109,14 +111,15 @@ namespace AYC
     AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       DataBuilder dataBuilder;
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::AYC::Parse(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::AYC::Parse(rawData, dataBuilder))
       {
-        if (const AYM::StreamModel::Ptr data = dataBuilder.GetResult())
+        if (auto data = dataBuilder.GetResult())
         {
           PropertiesHelper props(*properties);
           props.SetSource(*container);
+          props.SetPlatform(Platforms::AMSTRAD_CPC);
           properties->SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, 1000000);
-          return AYM::CreateStreamedChiptune(data, properties);
+          return AYM::CreateStreamedChiptune(std::move(data), std::move(properties));
         }
       }
       return AYM::Chiptune::Ptr();

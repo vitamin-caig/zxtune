@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "dac_factory.h"
+#include "module/players/dac/dac_factory.h"
 
 namespace Module
 {

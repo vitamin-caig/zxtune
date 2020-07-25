@@ -9,7 +9,8 @@
 **/
 
 //local includes
-#include "file_backend.h"
+#include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
 //common includes
 #include <make_ptr.h>
 #include <progress_callback.h>
@@ -19,26 +20,22 @@
 #include <io/api.h>
 #include <io/providers_parameters.h>
 #include <io/template.h>
-#include <l10n/api.h>
 #include <module/attributes.h>
+#include <module/track_state.h>
 #include <parameters/convert.h>
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG B4CB6B0C
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::FileBase");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace File
 {
+  const Debug::Stream Dbg("Sound::Backend::FileBase");
+
   class StateFieldsSource : public Strings::SkipFieldsSource
   {
   public:
@@ -79,14 +76,17 @@ namespace File
     {
     }
 
-    String Instantiate(const Module::TrackState& state) const
+    String Instantiate(const Module::State& state) const
     {
-      if (CurPosition.Update(state.Position()) ||
-          CurPattern.Update(state.Pattern()) ||
-          CurLine.Update(state.Line()))
+      if (const auto track = dynamic_cast<const Module::TrackState*>(&state))
       {
-        const StateFieldsSource source(state);
-        Result = Template->Instantiate(source);
+        if (CurPosition.Update(track->Position()) ||
+            CurPattern.Update(track->Pattern()) ||
+            CurLine.Update(track->Line()))
+        {
+          const StateFieldsSource source(*track);
+          Result = Template->Instantiate(source);
+        }
       }
       return Result;
     }
@@ -206,7 +206,7 @@ namespace File
     {
     }
 
-    Receiver::Ptr GetStream(const Module::TrackState& state) const
+    Receiver::Ptr GetStream(const Module::State& state) const
     {
       const String& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
@@ -217,7 +217,7 @@ namespace File
         SetProperties(*result);
         if (const uint_t buffers = FileParams.GetBuffersCount())
         {
-          return Async::DataReceiver<Chunk::Ptr>::Create(1, buffers, result);
+          return Async::DataReceiver<Chunk>::Create(1, buffers, result);
         }
         else
         {
@@ -286,7 +286,7 @@ namespace File
     {
     }
 
-    void FrameStart(const Module::TrackState& state) override
+    void FrameStart(const Module::State& state) override
     {
       if (const Receiver::Ptr newStream = Source->GetStream(state))
       {
@@ -294,7 +294,7 @@ namespace File
       }
     }
 
-    void FrameFinish(Chunk::Ptr buffer) override
+    void FrameFinish(Chunk buffer) override
     {
       assert(Stream);
       Stream->ApplyData(std::move(buffer));
@@ -328,3 +328,4 @@ namespace Sound
   }
 }
 
+#undef FILE_TAG

@@ -2,6 +2,6 @@
 pkgname=xtractor
 pkgrel=1
 pkgdesc="CLI tool to analyze calgary data"
-url="http://zxtune.bitbucket.org/"
+url="https://zxtune.bitbucket.io/"
 license=('GPL3')
 conflicts=('zxtune')

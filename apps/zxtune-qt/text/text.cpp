@@ -7,18 +7,18 @@ extern const Char DOWNLOADS_PROJECT_NAME[] = {
   'z','x','t','u','n','e',0
 };
 extern const Char DOWNLOADS_XML_URL[] = {
-  'h','t','t','p',':','/','/','z','x','t','u','n','e','.','b','i','t','b','u','c','k','e','t','.','o','r','g',
+  'h','t','t','p','s',':','/','/','z','x','t','u','n','e','.','b','i','t','b','u','c','k','e','t','.','i','o',
   '/','d','o','w','n','l','o','a','d','s','.','x','m','l',0
 };
 extern const Char FAQ_URL[] = {
-  'h','t','t','p',':','/','/','z','x','t','u','n','e','.','b','i','t','b','u','c','k','e','t','.','o','r','g',
+  'h','t','t','p','s',':','/','/','z','x','t','u','n','e','.','b','i','t','b','u','c','k','e','t','.','i','o',
   '/','f','a','q','/',0
 };
 extern const Char FEEDBACK_EMAIL[] = {
   'z','x','t','u','n','e','@','g','m','a','i','l','.','c','o','m',0
 };
 extern const Char HELP_URL[] = {
-  'h','t','t','p',':','/','/','z','x','t','u','n','e','.','b','i','t','b','u','c','k','e','t','.','o','r','g',
+  'h','t','t','p','s',':','/','/','z','x','t','u','n','e','.','b','i','t','b','u','c','k','e','t','.','i','o',
   '/','m','a','n','u','a','l','s','/','z','x','t','u','n','e','-','q','t','/',0
 };
 extern const Char HTTP_USERAGENT[] = {
@@ -45,14 +45,14 @@ extern const Char PROGRAM_NAME[] = {
   'z','x','t','u','n','e','-','q','t',0
 };
 extern const Char PROGRAM_SITE[] = {
-  'h','t','t','p',':','/','/','z','x','t','u','n','e','.','b','i','t','b','u','c','k','e','t','.','o','r','g',0
+  'h','t','t','p','s',':','/','/','z','x','t','u','n','e','.','b','i','t','b','u','c','k','e','t','.','i','o',0
 };
 extern const Char PROJECT_NAME[] = {
   'Z','X','T','u','n','e',0
 };
 extern const Char REPORT_BUG_URL[] = {
-  'h','t','t','p',':','/','/','b','i','t','b','u','c','k','e','t','.','o','r','g','/','z','x','t','u','n','e',
-  '/','z','x','t','u','n','e','/','i','s','s','u','e','s','/','n','e','w',0
+  'h','t','t','p','s',':','/','/','b','i','t','b','u','c','k','e','t','.','o','r','g','/','z','x','t','u','n',
+  'e','/','z','x','t','u','n','e','/','i','s','s','u','e','s','/','n','e','w',0
 };
 extern const Char TITLE_FORMAT[] = {
   '%','2','%',' ','[','%','1','%',']',0

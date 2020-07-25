@@ -14,11 +14,11 @@
 #include <data_streaming.h>
 #include <types.h>
 //library includes
-#include <binary/data.h>
+#include <binary/view.h>
 
 namespace Binary
 {
-  typedef DataReceiver<const Data&> OutputStream;
+  typedef DataReceiver<View> OutputStream;
 
   class SeekableOutputStream : public OutputStream
   {

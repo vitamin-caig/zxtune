@@ -1,0 +1,40 @@
+// asap6502.ci - player routines for the 6502 CPU
+//
+// Copyright (C) 2011  Piotr Fusik
+//
+// This file is part of ASAP (Another Slight Atari Player),
+// see http://asap.sourceforge.net
+//
+// ASAP is free software; you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published
+// by the Free Software Foundation; either version 2 of the License,
+// or (at your option) any later version.
+//
+// ASAP is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ASAP; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+class ASAP6502
+{
+	static byte[] GetPlayerRoutine(ASAPInfo info)
+	{
+		switch (info.Type) {
+		case ASAPModuleType.Cmc: return BinaryResource("cmc.obx");
+		case ASAPModuleType.Cm3: return BinaryResource("cm3.obx");
+		case ASAPModuleType.Cmr: return BinaryResource("cmr.obx");
+		case ASAPModuleType.Cms: return BinaryResource("cms.obx");
+		case ASAPModuleType.Dlt: return BinaryResource("dlt.obx");
+		case ASAPModuleType.Mpt: return BinaryResource("mpt.obx");
+		case ASAPModuleType.Rmt: return info.Channels == 1 ? BinaryResource("rmt4.obx") : BinaryResource("rmt8.obx");
+		case ASAPModuleType.Tmc: return BinaryResource("tmc.obx");
+		case ASAPModuleType.Tm2: return BinaryResource("tm2.obx");
+		case ASAPModuleType.Fc:  return BinaryResource("fc.obx");
+		default: return null;
+		}
+	}
+}

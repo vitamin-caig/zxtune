@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "psg.h"
-#include "aym_base.h"
-#include "aym_base_stream.h"
+#include "module/players/aym/psg.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_base_stream.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -99,13 +99,13 @@ namespace PSG
     AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       DataBuilder dataBuilder;
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
       {
-        if (const AYM::StreamModel::Ptr data = dataBuilder.GetResult())
+        if (auto data = dataBuilder.GetResult())
         {
           PropertiesHelper props(*properties);
           props.SetSource(*container);
-          return AYM::CreateStreamedChiptune(data, properties);
+          return AYM::CreateStreamedChiptune(std::move(data), std::move(properties));
         }
       }
       return AYM::Chiptune::Ptr();

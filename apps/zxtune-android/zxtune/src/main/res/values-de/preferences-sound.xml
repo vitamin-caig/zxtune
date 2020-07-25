@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- sound -->
-  <string name="pref_sound_title">Klingen</string>
-  
-  <!-- common -->
+
+    <!-- common -->
   <string name="pref_zxtune_sound_mixer_x_0_x_title">Kanal A</string>
   <string name="pref_zxtune_sound_mixer_x_1_x_title">Kanal B</string>
   <string name="pref_zxtune_sound_mixer_x_2_x_title">Kanal C</string>
-  <string name="pref_zxtune_sound_mixer_x_3_x_title">Kanal D</string>
-  <string name="pref_zxtune_sound_mixer_x_x_0_title">Links</string>
+    <string name="pref_zxtune_sound_mixer_x_x_0_title">Links</string>
   <string name="pref_zxtune_sound_mixer_x_x_1_title">Rechts</string>
   <string name="pref_zxtune_sound_mixer_3_x_x_title">3-Kanal-Mixer</string>
-  <string name="pref_zxtune_sound_mixer_4_x_x_title">4-Kanal-Mixer</string>
 </resources>

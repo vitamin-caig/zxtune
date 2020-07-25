@@ -10,22 +10,14 @@
 
 package app.zxtune.playback;
 
-import android.net.Uri;
-
 public interface PlaybackService {
 
-  public Item getNowPlaying();
+  PlaybackControl getPlaybackControl();
   
-  public void setNowPlaying(Uri[] uris);
+  SeekControl getSeekControl();
   
-  public PlaylistControl getPlaylistControl();
+  Visualizer getVisualizer();
   
-  public PlaybackControl getPlaybackControl();
-  
-  public SeekControl getSeekControl();
-  
-  public Visualizer getVisualizer();
-  
-  public void subscribe(Callback cb);
-  public void unsubscribe(Callback cb);
+  void subscribe(Callback cb);
+  void unsubscribe(Callback cb);
 }

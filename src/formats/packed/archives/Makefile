@@ -1,8 +1,10 @@
 #stub library for archives functionality without formats_packed linking
 library_name := formats_packed_archives
-path_step := ../../../..
-source_files := ../lha_file.cpp ../rar_file.cpp ../zip_file.cpp ../gzip.cpp
+dirs.root := ../../../..
+source_files := ../lha_file.cpp ../rar_file.cpp ../zip_file.cpp ../gzip.cpp ../zxzip_file.cpp ../hrust2.cpp
 
-include $(path_step)/make/default.mak
+include $(dirs.root)/make/default.mak
 
-include $(path_step)/makefile.mak
+jumbo.name := $(library_name)
+
+include $(dirs.root)/makefile.mak

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- menu-related -->
+    <string name="prefs">設定</string>
+    <string name="review">レートアプリ</string>
+    <string name="quit">終了アプリ</string>
+    <!-- action-related -->
+    <string name="add">追加</string>
+    <string name="delete">削除</string>
+    <string name="clear">クリア</string>
+    <string name="save">を保存</string>
+    <string name="overwrite">上書き</string>
+    <string name="send">送信</string>
+    <string name="share">シェア</string>
+    <string name="sort">ソート</string>
+    <!-- information-related -->
+    <string name="information_title">タイトル</string>
+    <string name="information_author">作者</string>
+    <string name="information_program">プログラム</string>
+    <string name="information_comment">コメント</string>
+    <string name="information_location">所在地</string>
+    <string name="scanning_started">スキャンを開始</string>
+    <string name="scanning_stopped">スキャンが停止中</string>
+    <string name="scanning_failed">スキャン失敗: %s</string>
+    <string name="scanning_title">スキャン</string>
+    <string name="scanning_text">クリック解除</string>
+    <!-- other -->
+    <string name="main">ホームページ</string>
+    <plurals name="items">
+      <item quantity="other">%d アイテム</item>
+    </plurals>
+    <plurals name="tracks">
+      <item quantity="other">%d 音声トラック</item>
+    </plurals>
+    <plurals name="packs">
+      <item quantity="other">%d パッケージ</item>
+    </plurals>
+    <string name="no_tracks_found">なサポートされるオーディオトラック見つかり</string>
+    <string name="track">音声トラック</string>
+    <!-- notifications -->
+    <string name="notification_channel_name_events">イベント</string>
+    <string name="notification_channel_name_services">サービス</string>
+</resources>

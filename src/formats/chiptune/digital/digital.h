@@ -15,7 +15,7 @@
 #include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
 //library includes
-#include <binary/container.h>
+#include <binary/view.h>
 
 namespace Formats
 {
@@ -35,7 +35,7 @@ namespace Formats
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples
         virtual void SetSamplesFrequency(uint_t freq) = 0;
-        virtual void SetSample(uint_t index, std::size_t loop, const Binary::Data& sample, bool is4Bit) = 0;
+        virtual void SetSample(uint_t index, std::size_t loop, Binary::View sample, bool is4Bit) = 0;
         //patterns
         virtual void SetPositions(Positions positions) = 0;
 

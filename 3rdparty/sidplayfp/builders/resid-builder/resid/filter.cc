@@ -182,7 +182,7 @@ Filter::model_filter_t Filter::model_filter[2];
 // ----------------------------------------------------------------------------
 Filter::Filter()
 {
-  static bool class_init;
+  static bool class_init = false;
 
   std::memset(this, 0, sizeof(*this));
   if (!class_init) {

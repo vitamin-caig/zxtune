@@ -12,6 +12,8 @@
 
 //common includes
 #include <byteorder.h>
+//std includes
+#include <cstddef>
 
 namespace Formats
 {
@@ -72,14 +74,23 @@ namespace Formats
         //+1c
         uint16_t ExtraSize;
         //+1e
-        uint8_t Name[1];
+        char Name[1];
 
+        bool IsValid() const
+        {
+          return fromLE(Signature) == SIGNATURE;
+        }
 
-        bool IsValid() const;
+        std::size_t GetSize() const
+        {
+          return offsetof(LocalFileHeader, Name) + fromLE(NameSize) + fromLE(ExtraSize);
+        }
 
-        std::size_t GetSize() const;
-
-        bool IsSupported() const;
+        bool IsSupported() const
+        {
+          const uint_t flags = fromLE(Flags);
+          return 0 == (flags & FILE_CRYPTED);
+        }
       } PACK_POST;
 
       PACK_PRE struct LocalFileFooter
@@ -103,7 +114,10 @@ namespace Formats
         //+8
         uint8_t Data[1];
 
-        std::size_t GetSize() const;
+        std::size_t GetSize() const
+        {
+          return sizeof(*this) - 1 + fromLE(DataSize);
+        }
       } PACK_POST;
 
       PACK_PRE struct CentralDirectoryFileHeader
@@ -141,9 +155,12 @@ namespace Formats
         //+2a
         uint32_t LocalHeaderRelOffset;
         //+2e
-        uint8_t Name[1];
+        char Name[1];
 
-        std::size_t GetSize() const;
+        std::size_t GetSize() const
+        {
+          return offsetof(CentralDirectoryFileHeader, Name) + fromLE(NameSize) + fromLE(ExtraSize) + fromLE(CommentSize);
+        }
       } PACK_POST;
 
       PACK_PRE struct CentralDirectoryEnd
@@ -169,7 +186,10 @@ namespace Formats
         //+14
         //uint8_t Comment[0];
 
-        std::size_t GetSize() const;
+        std::size_t GetSize() const
+        {
+          return sizeof(*this) + fromLE(CommentSize);
+        }
       } PACK_POST;
 
       PACK_PRE struct DigitalSignature
@@ -183,7 +203,10 @@ namespace Formats
         //+6
         uint8_t Data[1];
 
-        std::size_t GetSize() const;
+        std::size_t GetSize() const
+        {
+          return sizeof(*this) - 1 + fromLE(DataSize);
+        }
       } PACK_POST;
 
       class CompressedFile

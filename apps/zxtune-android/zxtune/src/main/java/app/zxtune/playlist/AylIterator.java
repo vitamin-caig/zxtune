@@ -22,9 +22,9 @@ import java.util.LinkedList;
 
 public final class AylIterator {
 
-  private final static String SIGNATURE = "ZX Spectrum Sound Chip Emulator Play List File v1.";
-  private final static String PARAMETERS_BEGIN = "<";
-  private final static String PARAMETERS_END = ">";
+  private static final String SIGNATURE = "ZX Spectrum Sound Chip Emulator Play List File v1.";
+  private static final String PARAMETERS_BEGIN = "<";
+  private static final String PARAMETERS_END = ">";
   
   public static ReferencesIterator create(ByteBuffer buf) throws IOException {
     return new ReferencesArrayIterator(parse(buf));
@@ -52,7 +52,7 @@ public final class AylIterator {
     */
   }
   
-  private static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
+  public static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
     final InputStream stream = XspfIterator.newInputStream(buf);
     final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
     /*final Properties props = */new Properties(reader.readLine());
@@ -62,24 +62,32 @@ public final class AylIterator {
 
   private static ArrayList<ReferencesIterator.Entry> parse(BufferedReader reader) throws IOException {
     final LinkedList<String> strings = readStrings(reader);
-    final ArrayList<ReferencesIterator.Entry> result = new ArrayList<ReferencesIterator.Entry>(strings.size());
-    while (parseParameters(strings)) {}
+    final ArrayList<ReferencesIterator.Entry> result = new ArrayList<>(strings.size());
+    parseAllParameters(strings);
     while (!strings.isEmpty()) {
       final ReferencesIterator.Entry entry = new ReferencesIterator.Entry();
       entry.location = Uri.encode(strings.removeFirst().replace('\\', '/'), "/");
-      while (parseParameters(strings)) {}
+      parseAllParameters(strings);
       result.add(entry);
     }
     return result;
   }
   
   private static LinkedList<String> readStrings(BufferedReader reader) throws IOException {
-    final LinkedList<String> res = new LinkedList<String>();
+    final LinkedList<String> res = new LinkedList<>();
     String line;
     while ((line = reader.readLine()) != null) {
       res.add(line.trim());
     }
     return res;
+  }
+
+  private static void parseAllParameters(LinkedList<String> strings) {
+    for (;;) {
+      if (!parseParameters(strings)) {
+        break;
+      }
+    }
   }
   
   private static boolean parseParameters(LinkedList<String> strings) {

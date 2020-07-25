@@ -9,9 +9,11 @@
 **/
 
 //local includes
-#include "streaming.h"
+#include "module/players/streaming.h"
 //common includes
 #include <make_ptr.h>
+//library includes
+#include <sound/loop.h>
 //std includes
 #include <utility>
 
@@ -19,7 +21,7 @@ namespace Module
 {
   const uint_t STREAM_CHANNELS = 1;
 
-  class StreamStateCursor : public TrackState
+  class StreamStateCursor : public State
   {
   public:
     typedef std::shared_ptr<StreamStateCursor> Ptr;
@@ -27,49 +29,20 @@ namespace Module
     explicit StreamStateCursor(Information::Ptr info)
       : Info(std::move(info))
       , CurFrame()
+      , Loops()
     {
       Reset();
     }
 
     //status functions
-    uint_t Position() const override
-    {
-      return 0;
-    }
-
-    uint_t Pattern() const override
-    {
-      return 0;
-    }
-
-    uint_t PatternSize() const override
-    {
-      return 0;
-    }
-
-    uint_t Line() const override
-    {
-      return 0;
-    }
-
-    uint_t Tempo() const override
-    {
-      return 1;
-    }
-
-    uint_t Quirk() const override
-    {
-      return 0;
-    }
-
     uint_t Frame() const override
     {
       return CurFrame;
     }
 
-    uint_t Channels() const override
+    uint_t LoopCount() const override
     {
-      return STREAM_CHANNELS;
+      return Loops;
     }
 
     //navigation
@@ -81,11 +54,13 @@ namespace Module
     void Reset()
     {
       CurFrame = 0;
+      Loops = 0;
     }
 
     void ResetToLoop()
     {
       CurFrame = Info->LoopFrame();
+      ++Loops;
     }
 
     void NextFrame()
@@ -98,6 +73,7 @@ namespace Module
   private:
     const Information::Ptr Info;
     uint_t CurFrame;
+    uint_t Loops;
   };
 
   class StreamInfo : public Information
@@ -108,33 +84,20 @@ namespace Module
       , Loop(loopFrame)
     {
     }
-    uint_t PositionsCount() const override
-    {
-      return 1;
-    }
-    uint_t LoopPosition() const override
-    {
-      return 0;
-    }
-    uint_t PatternsCount() const override
-    {
-      return 0;
-    }
+
     uint_t FramesCount() const override
     {
       return TotalFrames;
     }
+
     uint_t LoopFrame() const override
     {
       return Loop;
     }
+
     uint_t ChannelsCount() const override
     {
       return STREAM_CHANNELS;
-    }
-    uint_t Tempo() const override
-    {
-      return 1;
     }
   private:
     const uint_t TotalFrames;
@@ -160,16 +123,16 @@ namespace Module
       return Cursor->IsValid();
     }
 
-    void NextFrame(bool looped) override
+    void NextFrame(const Sound::LoopParameters& looped) override
     {
       Cursor->NextFrame();
-      if (!Cursor->IsValid() && looped)
+      if (!Cursor->IsValid() && looped(Cursor->LoopCount()))
       {
         Cursor->ResetToLoop();
       }
     }
 
-    TrackState::Ptr GetStateObserver() const override
+    State::Ptr GetStateObserver() const override
     {
       return Cursor;
     }

@@ -125,7 +125,7 @@ public:
     virtual void cpuWrite(uint_least16_t addr, uint8_t data) = 0;
 
 protected:
-    ~sidmemory() {}
+    virtual ~sidmemory() {}
 };
 
 #endif

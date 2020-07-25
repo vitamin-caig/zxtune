@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- emulation -->
-  <string name="pref_emulation_title">Emulation</string>
-  
-  <!-- common -->
+
+    <!-- common -->
   <string name="pref_interpolation">Interpolierung</string>
   <string-array name="pref_interpolation_entries">
     <item>Nein</item>
@@ -26,7 +25,7 @@
   <string  name="pref_zxtune_sid_filter_title">Filter-Emulator</string>
 
   <!-- other -->
-  <string name="pref_zxtune_other_title">Sonstig</string>
+  <string name="pref_zxtune_other_title">Sonstiges</string>
   <!-- zxtune.core.plugins.default_duration -->
   <string name="pref_zxtune_default_duration_title">Standarddauer</string>
   <string-array name="pref_zxtune_default_duration_entries">
@@ -38,5 +37,25 @@
     <item>10 Minuten</item>
     <item>15 Minuten</item>
     <item>30 Minuten</item>
+  </string-array>
+  <!-- zxtune.sound.silencelimit -->
+  <string  name="pref_zxtune_silence_limit_title">Stilleerkennung</string>
+  <string-array name="pref_zxtune_silence_limit_entries">
+    <item>Nein</item>
+    <item>3 Sekunden</item>
+    <item>4 Sekunden</item>
+    <item>5 Sekunden</item>
+    <item>10 Sekunden</item>
+    <item>15 Sekunden</item>
+  </string-array>
+  <!-- zxtune.sound.looplimit -->
+  <string  name="pref_zxtune_loop_limit_title">Schleifen Grenze</string>
+  <string-array name="pref_zxtune_loop_limit_entries">
+    <item>Nein</item>
+    <item>1 Schleife</item>
+    <item>2 Schleifen</item>
+    <item>3 Schleifen</item>
+    <item>4 Schleifen</item>
+    <item>5 Schleifen</item>
   </string-array>
 </resources>

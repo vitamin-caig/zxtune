@@ -12,12 +12,14 @@
 #include <contract.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/archived.h>
 #include <formats/packed/lha_supp.h>
 #include <formats/packed/pack_utils.h>
+#include <strings/encoding.h>
 //3rdparty includes
 #include <3rdparty/lhasa/lib/public/lhasa.h>
 //std includes
@@ -92,10 +94,13 @@ namespace Archived
 
     String GetFullPath(const LHAFileHeader& header)
     {
-      const String filename(FromStdString(header.filename));
-      return header.path
-        ? FromStdString(header.path) + filename
-        : filename;
+      std::string fullPath;
+      if (header.path)
+      {
+        fullPath = header.path;
+      }
+      fullPath += header.filename;
+      return Strings::ToAutoUtf8(fullPath);
     }
 
     class File : public Archived::File
@@ -105,7 +110,7 @@ namespace Archived
         : Data(archive.GetSubcontainer(position, header.compressed_length))
         , Name(GetFullPath(header))
         , Size(header.length)
-        , Method(FromStdString(header.compress_method))
+        , Method(header.compress_method)
       {
         Dbg("Created file '%1%', size=%2%, packed size=%3%, compression=%4%", Name, Size, Data->Size(), Method);
       }
@@ -187,12 +192,12 @@ namespace Archived
       std::size_t Position;
     };
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       template<class It>
       Container(Binary::Container::Ptr data, It begin, It end)
-        : Delegate(std::move(data))
+        : BaseContainer(std::move(data))
       {
         for (It it = begin; it != end; ++it)
         {
@@ -201,23 +206,6 @@ namespace Archived
         }
       }
 
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
         for (const auto& file : Files)
@@ -239,7 +227,6 @@ namespace Archived
         return static_cast<uint_t>(Files.size());
       }
     private:
-      const Binary::Container::Ptr Delegate;
       typedef std::map<String, File::Ptr> FilesMap;
       FilesMap Files;
     };

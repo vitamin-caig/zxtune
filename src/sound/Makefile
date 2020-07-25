@@ -1,6 +1,8 @@
 library_name := sound
-path_step := ../..
+dirs.root := ../..
 source_dirs := impl
 po_files := sound
 
-include $(path_step)/makefile.mak
+jumbo.name := $(library_name)
+
+include $(dirs.root)/makefile.mak

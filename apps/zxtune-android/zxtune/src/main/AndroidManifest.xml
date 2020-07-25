@@ -1,15 +1,16 @@
 <?xml version="1.0"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="app.zxtune"
-  android:versionCode="" android:versionName="" android:installLocation="auto">
-  <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="app.zxtune" android:installLocation="auto">
   <uses-permission android:name="android.permission.INTERNET"/>
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
   <uses-permission android:name="android.permission.WAKE_LOCK"/>
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
   <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
   <supports-screens android:largeScreens="true" android:xlargeScreens="true"/>
-  <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@drawable/ic_launcher" android:allowBackup="true" android:theme="@style/Theme.Dark">
+  <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@drawable/ic_launcher"
+               android:allowBackup="true" android:theme="@style/Theme.Dark"
+          android:usesCleartextTraffic="true">
     <meta-data android:name="key.modarchive" android:value="${modarchiveKey}"/>
     <meta-data android:name="io.fabric.ApiKey" android:value="${crashlyticsKey}" />
     <activity android:name=".MainActivity" android:label="@string/app_name">
@@ -20,7 +21,6 @@
       <intent-filter>
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
-        <category android:name="android.intent.category.BROWSABLE"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.as0"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.asc"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.AS0"/>
@@ -92,6 +92,7 @@
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gdm"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gtk"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mod"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MOD"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mtn"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.imf"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ims"/>
@@ -123,6 +124,7 @@
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.cop"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.COP"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.sid"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.SID"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psid"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.rsid"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.spc"/>
@@ -133,11 +135,35 @@
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.sap"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.hes"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.kss"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.kssx"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.vgm"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gym"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.hes"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.kss"/>
         <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ahx"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.hvl"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minipsf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psf2"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minipsf2"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.usf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.miniusf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gsf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minigsf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.2sf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mini2sf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.dsf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minidsf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ssf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minissf"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mp1"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MP1"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mp2"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MP2"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mp3"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MP3"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ogg"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.OGG"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.flac"/>
+        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.FLAC"/>
       </intent-filter>
     </activity>
     <activity android:name=".PreferencesActivity" android:label="@string/prefs">
@@ -146,22 +172,32 @@
         <category android:name="android.intent.category.PREFERENCE"/>
       </intent-filter>
     </activity>
-    <service android:name=".MainService" android:process=":service"/>
+    <service android:name=".MainService" android:process=":service">
+      <intent-filter>
+        <action android:name="android.media.browse.MediaBrowserService" />
+      </intent-filter>
+    </service>
     <service android:name=".ScanService" android:process=":service"/>
     <service android:name=".RingtoneService" android:process=":service"/>
     <provider android:name="app.zxtune.playlist.Provider" android:authorities="app.zxtune.playlist" android:exported="false"/>
     <provider android:name="app.zxtune.PluginsProvider" android:authorities="app.zxtune.plugins" android:process=":service" android:exported="false"/>
-    <provider android:name="app.zxtune.fs.archives.Provider" android:authorities="app.zxtune.archive" android:process=":service" android:exported="false"/>
-    <receiver android:name=".MediaButtonsHandler">
-      <intent-filter>
-        <action android:name="android.intent.action.MEDIA_BUTTON"/>
-      </intent-filter>
-    </receiver>
-    <receiver android:name=".WidgetHandler">
+    <provider android:name="app.zxtune.analytics.internal.Provider"
+              android:authorities="app.zxtune.analytics.internal" android:process=":analytics"
+              android:exported="false"/>
+    <provider android:name="app.zxtune.fs.provider.Provider"
+            android:authorities="app.zxtune.vfs" android:process=":service"
+            android:exported="false" android:grantUriPermissions="true"/>
+    <receiver android:name=".device.ui.WidgetHandler">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
       </intent-filter>
       <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_metadata"/>
+    </receiver>
+    <!-- support library -->
+    <receiver android:name="androidx.media.session.MediaButtonReceiver">
+      <intent-filter>
+        <action android:name="android.intent.action.MEDIA_BUTTON"/>
+      </intent-filter>
     </receiver>
   </application>
 </manifest>

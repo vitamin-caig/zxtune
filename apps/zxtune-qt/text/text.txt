@@ -16,11 +16,11 @@ __cpp> "}//namespace Text\n"
 > "zxtune-qt"
 
 < PROGRAM_SITE
-> "http://" PROJECT_ID ".bitbucket.org"
+> "https://" PROJECT_ID ".bitbucket.io"
 
 = PROGRAM_REPOSITORY
 #repository author has the same name
-> "http://bitbucket.org/" PROJECT_ID "/" PROJECT_ID
+> "https://bitbucket.org/" PROJECT_ID "/" PROJECT_ID
 
 < HELP_URL
 > PROGRAM_SITE "/manuals/zxtune-qt/"

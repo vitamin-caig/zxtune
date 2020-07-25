@@ -8,7 +8,6 @@
 #include <sound/backends/storage.h>
 #include <sound/backends/backends_list.h>
 #include <sound/sound_parameters.h>
-#include <boost/bind.hpp>
 #include <iostream>
 
 namespace
@@ -287,7 +286,7 @@ int ay_stop()
 
 int ay_writereg(int idx, int val)
 {
-  return call(boost::bind(&Gate::WriteReg, _1, idx, val));
+  return call([idx, val](Gate* gate) {gate->WriteReg(idx, val);});
 }
 
 //exe part

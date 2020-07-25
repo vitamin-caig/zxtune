@@ -9,7 +9,8 @@
 **/
 
 //local includes
-#include "backend_impl.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
@@ -17,22 +18,20 @@
 //library includes
 #include <async/worker.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <sound/render_params.h>
+#include <sound/silence.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <atomic>
 
 #define FILE_TAG B3D60DB5
 
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Base");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
-
 namespace Sound
 {
+namespace BackendBase
+{
+  const Debug::Stream Dbg("Sound::Backend::Base");
+
   class BufferRenderer : public Receiver
   {
   public:
@@ -41,7 +40,7 @@ namespace Sound
     {
     }
 
-    void ApplyData(Chunk::Ptr chunk) override
+    void ApplyData(Chunk chunk) override
     {
       Worker.FrameFinish(std::move(chunk));
     }
@@ -68,7 +67,7 @@ namespace Sound
       Delegate->OnStart();
     }
 
-    void OnFrame(const Module::TrackState& state) override
+    void OnFrame(const Module::State& state) override
     {
       Worker->FrameStart(state);
       Delegate->OnFrame(state);
@@ -107,12 +106,12 @@ namespace Sound
     RendererWrapper(Module::Renderer::Ptr delegate, BackendCallback::Ptr callback)
       : Delegate(std::move(delegate))
       , Callback(std::move(callback))
-      , State(Delegate->GetTrackState())
+      , State(Delegate->GetState())
       , SeekRequest(NO_SEEK)
     {
     }
 
-    Module::TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
       return State;
     }
@@ -147,7 +146,7 @@ namespace Sound
     static const uint_t NO_SEEK = ~uint_t(0);
     const Module::Renderer::Ptr Delegate;
     const BackendCallback::Ptr Callback;
-    const Module::TrackState::Ptr State;
+    const Module::State::Ptr State;
     std::atomic<uint_t> SeekRequest;
   };
 
@@ -166,7 +165,6 @@ namespace Sound
       try
       {
         Dbg("Initializing");
-        Render->Reset();
         Callback->OnStart();
       }
       catch (const Error& e)
@@ -262,7 +260,7 @@ namespace Sound
     {
     }
 
-    void OnFrame(const Module::TrackState& /*state*/) override
+    void OnFrame(const Module::State& /*state*/) override
     {
     }
 
@@ -354,9 +352,9 @@ namespace Sound
     {
     }
 
-    Module::TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
-      return Renderer->GetTrackState();
+      return Renderer->GetState();
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
@@ -379,17 +377,21 @@ namespace Sound
     const PlaybackControl::Ptr Control;
   };
 }
+}
 
 namespace Sound
 {
   Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder, BackendCallback::Ptr origCallback, BackendWorker::Ptr worker)
   {
-    const Receiver::Ptr target = MakePtr<BufferRenderer>(*worker);
-    const Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params, target);
-    const BackendCallback::Ptr callback = CreateCallback(origCallback, worker);
-    const Module::Renderer::Ptr renderer = MakePtr<RendererWrapper>(origRenderer, callback);
-    const Async::Worker::Ptr asyncWorker = MakePtr<AsyncWrapper>(callback, renderer);
+    const Receiver::Ptr target = MakePtr<BackendBase::BufferRenderer>(*worker);
+    const auto pipeline = CreateSilenceDetector(params, target);
+    const Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params, pipeline);
+    const BackendCallback::Ptr callback = BackendBase::CreateCallback(origCallback, worker);
+    const Module::Renderer::Ptr renderer = MakePtr<BackendBase::RendererWrapper>(origRenderer, callback);
+    const Async::Worker::Ptr asyncWorker = MakePtr<BackendBase::AsyncWrapper>(callback, renderer);
     const Async::Job::Ptr job = Async::CreateJob(asyncWorker);
-    return MakePtr<BackendInternal>(worker, renderer, job);
+    return MakePtr<BackendBase::BackendInternal>(worker, renderer, job);
   }
 }
+
+#undef FILE_TAG

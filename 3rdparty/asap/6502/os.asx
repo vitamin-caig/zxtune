@@ -1,0 +1,55 @@
+	org	$c000
+nmi
+	bit	$d40f
+	bpl	nmi_vbl
+	jmp	($200)
+nmi_vbl
+	cld
+	pha
+	txa:pha
+	tya:pha
+	sta	$d40f
+	jmp	($222)
+
+vbl
+	inc	20
+	bne	vbl_1
+	inc	19
+	bne	vbl_1
+	inc	18
+vbl_1
+	jmp	($224)
+
+vbld
+	pla:tay
+	pla:tax
+	pla:rti
+
+irq
+	cld
+	jmp	($216)
+
+setvbv
+	asl	@
+	sta	$22d
+	txa
+	ldx	#5
+	sta	$d40a
+	dex:rne
+	ldx	$22d
+	sta	$217,x
+	tya:sta	$216,x
+	rts
+
+reset
+	mwa	#vbl	$222
+	mwa	#vbld	$224
+	rts
+
+	org	$e45c
+	jmp	setvbv
+	jmp	vbl
+	jmp	vbld
+
+	org	$fffa
+	dta	a(nmi,reset,irq)

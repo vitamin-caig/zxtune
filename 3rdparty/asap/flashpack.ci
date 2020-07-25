@@ -1,0 +1,389 @@
+// flashpack.ci - Atari 8-bit executable compression
+//
+// Copyright (C) 2011-2013  Piotr Fusik
+//
+// This file is part of ASAP (Another Slight Atari Player),
+// see http://asap.sourceforge.net
+//
+// ASAP is free software; you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published
+// by the Free Software Foundation; either version 2 of the License,
+// or (at your option) any later version.
+//
+// ASAP is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ASAP; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+enum FlashPackLoadState
+{
+	StartLowByte,
+	StartHighByte,
+	EndLowByte,
+	EndHighByte,
+	Content
+}
+
+enum FlashPackItemType
+{
+	Literal,
+	CopyTwoBytes,
+	CopyThreeBytes,
+	CopyManyBytes,
+	SetAddress,
+	EndOfStream
+}
+
+class FlashPackItem
+{
+	FlashPackItemType Type;
+	int Value;
+
+	int WriteValueTo(byte[] buffer, int index)
+	{
+		switch (Type) {
+		case FlashPackItemType.Literal:
+			buffer[index] = Value;
+			return 1;
+		case FlashPackItemType.CopyTwoBytes:
+			buffer[index] = (0x80 - Value) << 1;
+			return 1;
+		case FlashPackItemType.CopyThreeBytes:
+			buffer[index] = ((0x80 - Value) << 1) + 1;
+			return 1;
+		case FlashPackItemType.CopyManyBytes:
+			buffer[index] = 1;
+			buffer[index + 1] = Value;
+			return 2;
+		case FlashPackItemType.SetAddress:
+			int value = Value - 0x80;
+			buffer[index] = 0;
+			buffer[index + 1] = value.LowByte;
+			buffer[index + 2] = value >> 8;
+			return 3;
+		default: // case FlashPackItemType.EndOfStream:
+			buffer[index] = 1;
+			buffer[index + 1] = 0;
+			return 2;
+		}
+	}
+}
+
+class FlashPack
+{
+	int[65536] Memory; // TODO: short
+	int LoadAddress;
+	int LoadEndAddress;
+	FlashPackLoadState LoadState;
+
+	FlashPack()
+	{
+		for (int i = 0; i < 65536; i++)
+			Memory[i] = -1;
+		LoadState = FlashPackLoadState.StartLowByte;
+	}
+
+	internal void LoadByte(int data)
+	{
+		switch (LoadState) {
+		case FlashPackLoadState.StartLowByte:
+			LoadAddress = data;
+			LoadState = FlashPackLoadState.StartHighByte;
+			break;
+		case FlashPackLoadState.StartHighByte:
+			LoadAddress += data << 8;
+			LoadState = LoadAddress == 0xffff ? FlashPackLoadState.StartLowByte : FlashPackLoadState.EndLowByte;
+			break;
+		case FlashPackLoadState.EndLowByte:
+			LoadEndAddress = data;
+			LoadState = FlashPackLoadState.EndHighByte;
+			break;
+		case FlashPackLoadState.EndHighByte:
+			LoadEndAddress += data << 8;
+			LoadState = FlashPackLoadState.Content;
+			break;
+		case FlashPackLoadState.Content:
+			Memory[LoadAddress] = data;
+			if (LoadAddress == LoadEndAddress)
+				LoadState = FlashPackLoadState.StartLowByte;
+			else
+				LoadAddress = (LoadAddress + 1) & 0xffff;
+			break;
+		}
+	}
+
+	const int MinLoadAddress = 0x2000; // safe for most of Atari DOSes
+
+	int FindHole()
+	{
+		const int holeSize = 0x400; // FIXME: just a guess
+		int end = 0xbc1f; // below the Display List for standard text mode
+		for (;;) {
+			while (Memory[end] >= 0)
+				if (--end < MinLoadAddress + holeSize)
+					throw "Too much data to compress";
+			int start = end;
+			while (Memory[--start] < 0)
+				if (end - start >= holeSize - 1)
+					return end;
+			end = start;
+		}
+	}
+
+	byte[65536] Compressed;
+	int CompressedLength;
+
+	FlashPackItem()[64] Items;
+	int ItemsCount;
+
+	int GetInnerFlags(int index)
+	{
+		int flags = 1;
+		do {
+			flags <<= 1;
+			if (index < ItemsCount && Items[index++].Type != FlashPackItemType.Literal)
+				flags++;
+		} while (flags < 0x100);
+		return flags & 0xff;
+	}
+
+	void PutItems()
+	{
+		int outerFlags = 0;
+		for (int i = 0; i < ItemsCount; i += 8) {
+			if (GetInnerFlags(i) != 0)
+				outerFlags |= 0x80 >> (i >> 3);
+		}
+		Compressed[CompressedLength++] = outerFlags;
+		for (int i = 0; i < ItemsCount; i++) {
+			if ((i & 7) == 0) {
+				int flags = GetInnerFlags(i);
+				if (flags != 0)
+					Compressed[CompressedLength++] = flags;
+			}
+			CompressedLength += Items[i].WriteValueTo(Compressed, CompressedLength);
+		}
+	}
+
+	void PutItem(FlashPackItemType type, int value)
+	{
+		if (ItemsCount >= 64) {
+			PutItems();
+			ItemsCount = 0;
+		}
+		Items[ItemsCount].Type = type;
+		Items[ItemsCount].Value = value;
+		ItemsCount++;
+	}
+
+	bool IsLiteralPreferred()
+	{
+		return (ItemsCount & 7) == 7 && GetInnerFlags(ItemsCount - 7) == 0;
+	}
+
+	void CompressMemoryArea(int startAddress, int endAddress)
+	{
+		int lastDistance = -1;
+
+		for (int address = startAddress; address <= endAddress; ) {
+			while (Memory[address] < 0)
+				if (++address > endAddress)
+					return;
+			PutItem(FlashPackItemType.SetAddress, address);
+
+			while (address <= endAddress && Memory[address] >= 0) {
+				int bestMatch = 0;
+				int bestDistance = -1;
+				// brute force matching, think about hashtables
+				for (int backAddress = address - 1; backAddress >= startAddress && address - backAddress < 0x80; backAddress--) {
+					int match;
+					for (match = 0; address + match <= endAddress; match++) {
+						int data = Memory[address + match];
+						if (data < 0 || data != Memory[backAddress + match])
+							break;
+					}
+					if (bestMatch < match) {
+						bestMatch = match;
+						bestDistance = address - backAddress;
+					}
+					else if (bestMatch == match && address - backAddress == lastDistance)
+						bestDistance = lastDistance;
+				}
+
+				switch (bestMatch) {
+				case 0:
+				case 1:
+					PutItem(FlashPackItemType.Literal, Memory[address++]);
+					continue;
+				case 2:
+					PutItem(FlashPackItemType.CopyTwoBytes, bestDistance);
+					break;
+				case 3:
+					PutItem(FlashPackItemType.CopyThreeBytes, bestDistance);
+					break;
+				case 4:
+					if (bestDistance == lastDistance)
+						PutItem(FlashPackItemType.CopyManyBytes, 4);
+					else if (IsLiteralPreferred()) {
+						PutItem(FlashPackItemType.Literal, Memory[address]);
+						PutItem(FlashPackItemType.CopyThreeBytes, bestDistance);
+					}
+					else {
+						PutItem(FlashPackItemType.CopyThreeBytes, bestDistance);
+						PutItem(FlashPackItemType.Literal, Memory[address + 3]);
+					}
+					break;
+				case 5:
+					if (bestDistance == lastDistance)
+						PutItem(FlashPackItemType.CopyManyBytes, 5);
+					else {
+						PutItem(FlashPackItemType.CopyThreeBytes, bestDistance);
+						PutItem(FlashPackItemType.CopyTwoBytes, bestDistance);
+					}
+					break;
+				case 6:
+					if (bestDistance == lastDistance)
+						PutItem(FlashPackItemType.CopyManyBytes, 6);
+					else {
+						PutItem(FlashPackItemType.CopyThreeBytes, bestDistance);
+						PutItem(FlashPackItemType.CopyThreeBytes, bestDistance);
+					}
+					break;
+				default:
+					int length = bestMatch;
+					if (bestDistance != lastDistance) {
+						if (IsLiteralPreferred() && length % 255 == 4) {
+							PutItem(FlashPackItemType.Literal, Memory[address]);
+							length--;
+						}
+						PutItem(FlashPackItemType.CopyThreeBytes, bestDistance);
+						length -= 3;
+					}
+					else if (IsLiteralPreferred() && length % 255 == 1) {
+						PutItem(FlashPackItemType.Literal, Memory[address]);
+						length--;
+					}
+					for (; length > 255; length -= 255)
+						PutItem(FlashPackItemType.CopyManyBytes, 255);
+					switch (length) {
+					case 0:
+						break;
+					case 1:
+						PutItem(FlashPackItemType.Literal, Memory[address + bestMatch - 1]);
+						break;
+					case 2:
+						PutItem(FlashPackItemType.CopyTwoBytes, bestDistance);
+						break;
+					case 3:
+						PutItem(FlashPackItemType.CopyThreeBytes, bestDistance);
+						break;
+					default:
+						PutItem(FlashPackItemType.CopyManyBytes, length);
+						break;
+					}
+					break;
+				}
+				address += bestMatch;
+				lastDistance = bestDistance;
+			}
+		}
+	}
+
+	void PutPoke(int address, int value)
+	{
+		PutItem(FlashPackItemType.SetAddress, address);
+		PutItem(FlashPackItemType.Literal, value);
+	}
+
+	void Compress(ByteWriter w)
+	{
+		//assert LoadState == FlashPackLoadState.StartLowByte, "Invalid data to compress";
+		//assert Memory[0x2e0] >= 0 && Memory[0x2e1] >= 0, "Missing run address";
+		if (Memory[0xfc] >= 0 || Memory[0xfd] >= 0 || Memory[0xfe] >= 0 || Memory[0xff] >= 0)
+			throw "Conflict with decompressor variables";
+		int runAddress = Memory[0x2e0] + (Memory[0x2e1] << 8);
+		Memory[0x2e0] = Memory[0x2e1] = -1;
+
+		int depackerEndAddress = FindHole();
+		CompressedLength = 0;
+		ItemsCount = 0;
+		PutPoke(0xd40e, 0); // disable NMI
+		PutPoke(0xd20e, 0); // disable IRQ
+		PutPoke(0xd400, 0); // disable screen
+		PutPoke(0xd301, 0xfe); // disable ROM
+		PutPoke(0x244, 0xff); // cold start after Reset
+		CompressMemoryArea(depackerEndAddress, 0xffff);
+		CompressMemoryArea(0, depackerEndAddress);
+		PutItem(FlashPackItemType.EndOfStream, 0);
+		PutItems();
+
+		int depackerStartAddress = depackerEndAddress - (0x58 - 1);
+		int compressedStartAddress = depackerStartAddress - CompressedLength;
+		if (compressedStartAddress < MinLoadAddress)
+			throw "Too much compressed data";
+		w(0xff);
+		w(0xff);
+		// turn off the built-in BASIC
+		ASAPWriter.WriteWord(w, 0xd301);
+		ASAPWriter.WriteWord(w, 0xd301);
+		w(0xff);
+
+		ASAPWriter.WriteWord(w, compressedStartAddress);
+		ASAPWriter.WriteWord(w, depackerEndAddress);
+		ASAPWriter.WriteBytes(w, Compressed, 0, CompressedLength);
+
+		w(0xad); ASAPWriter.WriteWord(w, compressedStartAddress); // LDA compressed
+		w(0xee); ASAPWriter.WriteWord(w, depackerStartAddress + 1); // INC getByte+1
+		w(0xd0); w(0x03); // SNE
+		w(0xee); ASAPWriter.WriteWord(w, depackerStartAddress + 2); // INC getByte+2
+		w(0x60); // RTS
+		w(0x4c); ASAPWriter.WriteWord(w, runAddress); // JMP run
+		w(0x85); w(0xfe); // STA outPtr
+		w(0x8a); // TXA
+		w(0x2a); // ROL @
+		w(0xaa); // TAX
+		w(0xf0); w(0xf6); // BEQ exit
+		w(0xb1); w(0xfe); // LDA (outPtr),Y
+		w(0x99); w(0x80); w(0x80); // STA $8080,Y
+		w(0xc8); // INY
+		w(0xd0); w(0x09); // BNE samePage
+		w(0x98); // TYA
+		w(0x38); // SEC
+		w(0x65); w(0xff); // ADC outPtr+1
+		w(0x85); w(0xff); // STA outPtr+1
+		w(0x8d); ASAPWriter.WriteWord(w, depackerStartAddress + 0x1a); // STA putByte+2
+		w(0xca); // DEX
+		w(0xd0); w(0xec); // BNE copy
+		w(0x06); w(0xfd); // ASL innerFlags
+		w(0xd0); w(0x15); // BNE gotInnerFlags
+		w(0x06); w(0xfc); // ASL outerFlags
+		w(0xd0); w(0x07); // BNE gotOuterFlags
+		w(0x38); // SEC
+		w(0x20); ASAPWriter.WriteWord(w, depackerStartAddress); // JSR getByte
+		w(0x2a); // ROL @
+		w(0x85); w(0xfc); // STA outerFlags
+		w(0xa9); w(0x01); // LDA #1
+		w(0x90); w(0x04); // BCC setInnerFlags
+		w(0x20); ASAPWriter.WriteWord(w, depackerStartAddress); // JSR getByte
+		w(0x2a); // ROL @
+		w(0x85); w(0xfd); // STA innerFlags
+		w(0x20); ASAPWriter.WriteWord(w, depackerStartAddress); // JSR getByte
+		w(0xa2); w(0x01); // LDX #1
+		w(0x90); w(0xce); // BCC putByte
+		w(0x4a); // LSR @
+		w(0xd0); w(0xc2); // BNE copyTwoOrThree
+		w(0x20); ASAPWriter.WriteWord(w, depackerStartAddress); // JSR getByte
+		w(0xb0); w(0xc1); // BCS copyMany
+		w(0xa8); // TAY
+		w(0x20); ASAPWriter.WriteWord(w, depackerStartAddress); // JSR getByte
+		w(0x90); w(0xca); // BCC setPage
+
+		ASAPWriter.WriteWord(w, 0x2e0);
+		ASAPWriter.WriteWord(w, 0x2e1);
+		ASAPWriter.WriteWord(w, depackerStartAddress + 0x32);
+	}
+}

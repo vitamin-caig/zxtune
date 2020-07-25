@@ -32,13 +32,13 @@ namespace Formats
       LinesObject(const LinesObject&) = delete;
       LinesObject& operator = (const LinesObject&) = delete;
       
-      LinesObject(LinesObject&& rh)// = default
+      LinesObject(LinesObject&& rh) noexcept// = default
         : Lines(std::move(rh.Lines))
         , Loop(rh.Loop)
       {
       }
       
-      LinesObject& operator = (LinesObject&& rh)// = default
+      LinesObject& operator = (LinesObject&& rh) noexcept// = default
       {
         Lines = std::move(rh.Lines);
         Loop = rh.Loop;
@@ -80,13 +80,13 @@ namespace Formats
       {
       }
        
-      LinesObjectWithLoopLimit(LinesObjectWithLoopLimit&& rh)// = default
+      LinesObjectWithLoopLimit(LinesObjectWithLoopLimit&& rh) noexcept// = default
         : LinesObject<LineType>(std::move(rh))
         , LoopLimit(rh.LoopLimit)
       {
       }
       
-      LinesObjectWithLoopLimit& operator = (LinesObjectWithLoopLimit&& rh)// = default
+      LinesObjectWithLoopLimit& operator = (LinesObjectWithLoopLimit&& rh) noexcept// = default
       {
         LinesObject<LineType>::operator = (std::move(rh));
         LoopLimit = rh.LoopLimit;

@@ -20,8 +20,6 @@
 //std includes
 #include <algorithm>
 #include <list>
-//boost includes
-#include <boost/bind.hpp>
 //qt includes
 #include <QtCore/QDir>
 #include <QtCore/QStringList>
@@ -36,7 +34,7 @@ namespace
   QStringList Substract(const QStringList& lh, const QStringList& rh)
   {
     QStringList result(lh);
-    std::for_each(rh.begin(), rh.end(), boost::bind(&QStringList::removeAll, &result, _1));
+    std::for_each(rh.begin(), rh.end(), [&result](const QString& s) {result.removeAll(s);});
     return result;
   }
 
@@ -123,7 +121,10 @@ namespace
 
     void RemoveFiles(const QStringList& files)
     {
-      std::for_each(files.begin(), files.end(), boost::bind(&QDir::remove, &Directory, _1));
+      for (const auto& name : files)
+      {
+        Directory.remove(name);
+      }
     }
   private:
     QDir Directory;

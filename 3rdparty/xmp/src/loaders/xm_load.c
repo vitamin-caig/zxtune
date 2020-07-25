@@ -445,6 +445,9 @@ static int xm_load(struct module_data *m, HIO_HANDLE *f, const int start)
     xfh.tempo = hio_read16l(f);		/* Default tempo */
     xfh.bpm = hio_read16l(f);		/* Default BPM */
 
+    if (xfh.headersz <= 0x14 || xfh.headersz > 0x114) {
+	return -1;
+    }
     /* Honor header size -- needed by BoobieSqueezer XMs */
     hio_read(&xfh.order, xfh.headersz - 0x14, 1, f); /* Pattern order table */
 

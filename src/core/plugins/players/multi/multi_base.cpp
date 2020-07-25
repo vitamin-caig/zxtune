@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "multi_base.h"
+#include "core/plugins/players/multi/multi_base.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
@@ -21,14 +21,10 @@
 #include <sound/sound_parameters.h>
 //std includes
 #include <algorithm>
-#include <functional>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Module
 {
   typedef std::vector<Analyzer::Ptr> AnalyzersArray;
-  typedef std::vector<TrackState::Ptr> TrackStatesArray;
   typedef std::vector<Renderer::Ptr> RenderersArray;
   
   class MultiAnalyzer : public Module::Analyzer
@@ -36,20 +32,17 @@ namespace Module
   public:
     explicit MultiAnalyzer(AnalyzersArray delegates)
       : Delegates(std::move(delegates))
-      , MaxBands(4 * Delegates.size())//approx
     {
     }
 
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
-      std::vector<ChannelState> result;
-      result.reserve(MaxBands);
+      SpectrumState result;
       for (const auto& delegate : Delegates)
       {
         const auto& portion = delegate->GetState();
-        std::copy(portion.begin(), portion.end(), std::back_inserter(result));
+        std::transform(portion.Data.begin(), portion.Data.end(), result.Data.begin(), result.Data.begin(), &SpectrumState::AccumulateLevel);
       }
-      MaxBands = std::max(MaxBands, result.size());
       return result;
     }
     
@@ -58,12 +51,12 @@ namespace Module
       const auto count = renderers.size();
       Require(count > 1);
       AnalyzersArray delegates(count);
-      std::transform(renderers.begin(), renderers.end(), delegates.begin(), std::mem_fn(&Renderer::GetAnalyzer));
+      std::transform(renderers.begin(), renderers.end(), delegates.begin(),
+          [](const Renderer::Ptr& renderer) {return renderer->GetAnalyzer();});
       return MakePtr<MultiAnalyzer>(std::move(delegates));
     }
   private:
     const AnalyzersArray Delegates;
-    mutable std::size_t MaxBands;
   };
  
   class MultiInformation : public Information
@@ -75,33 +68,19 @@ namespace Module
     {
     }
     
-    uint_t PositionsCount() const override
-    {
-      return Delegate->PositionsCount();
-    }
-    uint_t LoopPosition() const override
-    {
-      return Delegate->LoopPosition();
-    }
-    uint_t PatternsCount() const override
-    {
-      return Delegate->PatternsCount();
-    }
     uint_t FramesCount() const override
     {
       return Delegate->FramesCount();
     }
+
     uint_t LoopFrame() const override
     {
       return Delegate->LoopFrame();
     }
+
     uint_t ChannelsCount() const override
     {
       return TotalChannelsCount;
-    }
-    uint_t Tempo() const override
-    {
-      return Delegate->Tempo();
     }
     
     static Ptr Create(const Multi::HoldersArray& holders)
@@ -131,15 +110,15 @@ namespace Module
     {
     }
     
-    void ApplyData(Sound::Chunk::Ptr data) override
+    void ApplyData(Sound::Chunk data) override
     {
       if (DoneStreams++)
       {
-        Buffer.Mix(*data);
+        Buffer.Mix(data);
       }
       else
       {
-        Buffer.Fill(*data);
+        Buffer.Fill(data);
       }
     }
     
@@ -219,12 +198,12 @@ namespace Module
         }
       }
       
-      Sound::Chunk::Ptr Convert(uint_t sources) const
+      Sound::Chunk Convert(uint_t sources) const
       {
-        auto result = MakePtr<Sound::Chunk>(Buffer.size());
-        std::transform(Buffer.begin(), Buffer.end(), result->begin(), std::bind2nd(std::mem_fun_ref(&WideSample::Convert), sources));
-        //required by compiler
-        return std::move(result);
+        Sound::Chunk result(Buffer.size());
+        std::transform(Buffer.begin(), Buffer.end(), result.begin(),
+           [sources](WideSample in) {return in.Convert(sources);});
+        return result;
       }
     private:
       std::size_t GetDataSize(const Sound::Chunk& data) const
@@ -263,6 +242,11 @@ namespace Module
         val = 1;
         return true;
       }
+      if (name == Parameters::ZXTune::Sound::LOOP_LIMIT)
+      {
+        val = 0;
+        return true;
+      }
       else
       {
         return false;
@@ -282,65 +266,8 @@ namespace Module
     void Process(class Parameters::Visitor& visitor) const override
     {
       visitor.SetValue(Parameters::ZXTune::Sound::LOOPED, 1);
+      visitor.SetValue(Parameters::ZXTune::Sound::LOOP_LIMIT, 0);
     }
-  };
-  
-  class MultiTrackState : public TrackState
-  {
-  public:
-    explicit MultiTrackState(TrackStatesArray delegates)
-      : Delegates(std::move(delegates))
-    {
-    }
-    
-    uint_t Position() const override
-    {
-      return Delegates.front()->Position();
-    }
-    uint_t Pattern() const override
-    {
-      return Delegates.front()->Pattern();
-    }
-    uint_t PatternSize() const override
-    {
-      return Delegates.front()->PatternSize();
-    }
-    uint_t Line() const override
-    {
-      return Delegates.front()->Line();
-    }
-    uint_t Tempo() const override
-    {
-      return Delegates.front()->Tempo();
-    }
-    uint_t Quirk() const override
-    {
-      return Delegates.front()->Quirk();
-    }
-    uint_t Frame() const override
-    {
-      return Delegates.front()->Frame();
-    }
-    uint_t Channels() const override
-    {
-      uint_t res = 0;
-      for (const auto& delegate : Delegates)
-      {
-        res += delegate->Channels();
-      }
-      return res;
-    }
-    
-    static Ptr Create(const RenderersArray& renderers)
-    {
-      const auto count = renderers.size();
-      Require(count > 1);
-      TrackStatesArray delegates(count);
-      std::transform(renderers.begin(), renderers.end(), delegates.begin(), std::mem_fn(&Renderer::GetTrackState));
-      return MakePtr<MultiTrackState>(std::move(delegates));
-    }
-  private:
-    const TrackStatesArray Delegates;
   };
   
   class MultiRenderer : public Renderer
@@ -350,15 +277,14 @@ namespace Module
       : Delegates(std::move(delegates))
       , SoundParams(std::move(renderParams))
       , Target(std::move(target))
-      , State(MultiTrackState::Create(Delegates))
       , Analysis(MultiAnalyzer::Create(Delegates))
     {
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
-      return State;
+      return Delegates.front()->GetState();
     }
 
     Analyzer::Ptr GetAnalyzer() const override
@@ -384,12 +310,18 @@ namespace Module
     void Reset() override
     {
       SoundParams.Reset();
-      std::for_each(Delegates.begin(), Delegates.end(), std::mem_fn(&Renderer::Reset));
+      for (const auto& renderer : Delegates)
+      {
+        renderer->Reset();
+      }
     }
 
     void SetPosition(uint_t frame) override
     {
-      std::for_each(Delegates.begin(), Delegates.end(), boost::bind(&Renderer::SetPosition, _1, frame));
+      for (const auto& renderer : Delegates)
+      {
+        renderer->SetPosition(frame);
+      }
     }
     
     static Ptr Create(Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders, Sound::Receiver::Ptr target)
@@ -423,7 +355,6 @@ namespace Module
     const RenderersArray Delegates;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const CompositeReceiver::Ptr Target;
-    const TrackState::Ptr State;
     const Analyzer::Ptr Analysis;
   };
   

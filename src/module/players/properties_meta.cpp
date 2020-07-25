@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "properties_meta.h"
+#include "module/players/properties_meta.h"
 
 namespace Module
 {

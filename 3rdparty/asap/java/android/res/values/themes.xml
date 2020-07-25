@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<style name="Theme">
+		<item name="android:windowBackground">@android:drawable/screen_background_dark_transparent</item>
+		<item name="android:colorBackgroundCacheHint">@null</item>
+		<item name="android:windowShowWallpaper">true</item>
+		<item name="android:textColor">@android:color/white</item>
+	</style>
+</resources>

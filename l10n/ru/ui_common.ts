@@ -37,6 +37,17 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://github.com/kode54/Game_Music_Emu&quot;&gt;Game_Music_Emu&lt;/a&gt; library by &lt;b&gt;Shay Green&lt;/b&gt; and &lt;b&gt;Chris Moeller&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://www.7-zip.org/&quot;&gt;7-Zip&lt;/a&gt; library by &lt;b&gt;Igor Pavlov&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;http://www.petergordon.org.uk/&quot;&gt;HVL2WAV&lt;/a&gt; sources by &lt;b&gt;Peter Gordon&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/kode54/Highly_Experimental/&quot;&gt;Highly Experimental&lt;/a&gt; library by &lt;b&gt;Neill Corlett&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://bitbucket.org/kode54/lazyusf2/&quot;&gt;lazyusf2&lt;/a&gt; library by &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://mgba.io/&quot;&gt;mGBA&lt;/a&gt; sources by &lt;b&gt;Jeffrey Pfau&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://gitlab.kode54.net/kode54/vio2sf&quot;&gt;vio2sf&lt;/a&gt; library by &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://gitlab.kode54.net/kode54/Highly_Theoretical&quot;&gt;Highly Threoretical&lt;/a&gt; library by &lt;b&gt;Neill Corlett&lt;/b&gt; and &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;http://sourceforge.net/projects/asap&quot;&gt;ASAP&lt;/a&gt; library by &lt;b&gt;Piotr Fusik&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/lieff/minimp3&quot;&gt;minimp3&lt;/a&gt; library by &lt;b&gt;lieff&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/nothings/stb&quot;&gt;stb-vorbis&lt;/a&gt; library by &lt;b&gt;Sean Barrett&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/jgilje/v2m-player&quot;&gt;v2m-player&lt;/a&gt; library by &lt;b&gt;Farbrausch&lt;/b&gt; and &lt;b&gt;Joakim L. Gilje&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://ffmpeg.org/&quot;&gt;FFmpeg&lt;/a&gt; library&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/ValleyBell/libvgm&quot;&gt;libvgm&lt;/a&gt; library by &lt;b&gt;Valley Bell&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
@@ -68,6 +79,17 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/kode54/Game_Music_Emu&quot;&gt;Game_Music_Emu&lt;/a&gt; от &lt;b&gt;Shay Green&lt;/b&gt; и &lt;b&gt;Chris Moeller&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;http://www.7-zip.org/&quot;&gt;7-Zip&lt;/a&gt; от &lt;b&gt;Igor Pavlov&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://www.petergordon.org.uk/&quot;&gt;HVL2WAV&lt;/a&gt; от &lt;b&gt;Peter Gordon&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/kode54/Highly_Experimental/&quot;&gt;Highly Experimental&lt;/a&gt; от &lt;b&gt;Neill Corlett&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://bitbucket.org/kode54/lazyusf2/&quot;&gt;lazyusf2&lt;/a&gt; от &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://mgba.io/&quot;&gt;mGBA&lt;/a&gt; от &lt;b&gt;Jeffrey Pfau&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://gitlab.kode54.net/kode54/vio2sf&quot;&gt;vio2sf&lt;/a&gt; от &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://gitlab.kode54.net/kode54/Highly_Theoretical&quot;&gt;Highly Threoretical&lt;/a&gt; от &lt;b&gt;Neill Corlett&lt;/b&gt; и &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;http://sourceforge.net/projects/asap&quot;&gt;ASAP&lt;/a&gt; от &lt;b&gt;Piotr Fusik&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/lieff/minimp3&quot;&gt;minimp3&lt;/a&gt; от &lt;b&gt;lieff&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/nothings/stb&quot;&gt;stb-vorbis&lt;/a&gt; от &lt;b&gt;Sean Barrett&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/jgilje/v2m-player&quot;&gt;v2m-player&lt;/a&gt; от &lt;b&gt;Farbrausch&lt;/b&gt; и &lt;b&gt;Joakim L. Gilje&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://ffmpeg.org/&quot;&gt;FFmpeg&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/ValleyBell/libvgm&quot;&gt;libvgm&lt;/a&gt; от &lt;b&gt;Valley Bell&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Посвящается &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
@@ -82,7 +104,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 <context>
     <name>AnalyzerControl</name>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/controls/analyzer_control.cpp" line="167"/>
+        <location filename="../../apps/zxtune-qt/ui/controls/analyzer_control.cpp" line="163"/>
         <source>Analyzer</source>
         <translation>Анализатор</translation>
     </message>
@@ -140,37 +162,37 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Поддерживаемые конверсии</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="152"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="157"/>
         <source>Streamed .out format</source>
         <translation>Конверсия в .out</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="153"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="158"/>
         <source>Streamed .psg format</source>
         <translation>Конверсия в .psg</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="154"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="159"/>
         <source>Streamed .ym format</source>
         <translation>Конверсия в .ym</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="155"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="160"/>
         <source>Streamed .zx50 format</source>
         <translation>Конверсия в .zx50</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="156"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="161"/>
         <source>Vortex .txt format</source>
         <translation>Конверсия в Vortex .txt</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="157"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="162"/>
         <source>Raw aydump format</source>
         <translation>Сырой дамп регистров</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="158"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="163"/>
         <source>Compressed .fym format</source>
         <translation>Конверсия в сжатый .fym</translation>
     </message>
@@ -180,12 +202,12 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Анализатор данных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="189"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="200"/>
         <source>Plain data structure format</source>
         <translation>Простая структура данных</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="188"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="199"/>
         <source>Directories support</source>
         <translation>Поддержка директорий</translation>
     </message>
@@ -210,57 +232,62 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
         <translation>Декомпиляторы</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="143"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="148"/>
         <source>Track structure</source>
         <translation>Трековая структура</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="144"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="149"/>
         <source>Stream structure</source>
         <translation>Потоковая структура</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="145"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="150"/>
         <source>Memory dump structure</source>
         <translation>Дамп памяти</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="146"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="151"/>
         <source>Multistructure</source>
         <translation>Смешанная структура</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="190"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="169"/>
+        <source>Multiple files layout</source>
+        <translation>Расположен в нескольких файлах</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="201"/>
         <source>Not recursive</source>
         <translation>Не рекурсивный</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="240"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="251"/>
         <source>Playback backends</source>
         <translation>Воспроизведение</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="241"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="252"/>
         <source>File backends</source>
         <translation>Файловые</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="242"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="253"/>
         <source>Hardware backends</source>
         <translation>Аппаратные</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="243"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="254"/>
         <source>Other backends</source>
         <translation>Прочее</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="277"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="288"/>
         <source>Features</source>
         <translation>Свойства</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="284"/>
+        <location filename="../../apps/zxtune-qt/ui/informational/componentsdialog.cpp" line="295"/>
         <source>Hardware volume control</source>
         <translation>Аппаратный контроль громкости</translation>
     </message>

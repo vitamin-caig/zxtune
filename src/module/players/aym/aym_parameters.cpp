@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "aym_parameters.h"
+#include "module/players/aym/aym_parameters.h"
 #include "core/plugins/players/ay/freq_tables_internal.h"
 //common includes
 #include <contract.h>
@@ -33,7 +33,7 @@ namespace Module
 {
 namespace AYM
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module_players");
 
   //duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const Char letter)
@@ -102,7 +102,7 @@ namespace AYM
   public:
     explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
       : Params(params)
-      , SoundParams(Sound::RenderParameters::Create(params))
+      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
     {
     }
 
@@ -226,7 +226,7 @@ namespace AYM
             throw MakeFormattedError(THIS_LINE,
               translate("Invalid frequency table size (%1%)."), newData.size());
           }
-          std::memcpy(&table.front(), &newData.front(), newData.size());
+          std::memcpy(table.data(), newData.data(), newData.size());
         }
       }
     }
@@ -285,17 +285,19 @@ namespace AYM
 
   Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
   {
-    return MakePtr<ChipParametersImpl>(params);
+    return MakePtr<ChipParametersImpl>(std::move(params));
   }
 
   TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)
   {
-    return MakePtr<AYTrackParameters>(params);
+    return MakePtr<AYTrackParameters>(std::move(params));
   }
 
   TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params, uint_t idx)
   {
-    return MakePtr<TSTrackParameters>(params, idx);
+    return MakePtr<TSTrackParameters>(std::move(params), idx);
   }
 }
 }
+
+#undef FILE_TAG

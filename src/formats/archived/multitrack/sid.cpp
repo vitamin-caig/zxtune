@@ -11,11 +11,12 @@
 //common includes
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
 #include <formats/chiptune/emulation/sid.h>
+#include <strings/prefixed_index.h>
 //std includes
-#include <sstream>
 #include <utility>
 //text includes
 #include <formats/text/archived.h>
@@ -54,81 +55,20 @@ namespace Archived
       const Binary::Container::Ptr Data;
     };
 
-    class Filename
-    {
-    public:
-      Filename(const String& prefix, const String& value)
-        : Str(value)
-        , Valid(false)
-        , Index()
-      {
-        if (0 == value.compare(0, prefix.size(), prefix))
-        {
-          std::basic_istringstream<Char> str(value.substr(prefix.size()));
-          Valid = !!(str >> Index);
-        }
-      }
-
-      Filename(const String& prefix, uint_t index)
-        : Valid(true)
-        , Index(index)
-      {
-        std::basic_ostringstream<Char> str;
-        str << prefix << index;
-        Str = str.str();
-      }
-
-      bool IsValid() const
-      {
-        return Valid;
-      }
-
-      uint_t GetIndex() const
-      {
-        return Index;
-      }
-
-      String ToString() const
-      {
-        return Str;
-      }
-    private:
-      String Str;
-      bool Valid;
-      uint_t Index;
-    };
-
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       explicit Container(Binary::Container::Ptr data)
-        : Delegate(std::move(data))
+        : BaseContainer(std::move(data))
       {
       }
 
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      //Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
         for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
         {
           const uint_t song = idx + 1;
-          const String subPath = Filename(Text::MULTITRACK_FILENAME_PREFIX, song).ToString();
+          const String subPath = Strings::PrefixedIndex(Text::MULTITRACK_FILENAME_PREFIX, song).ToString();
           const Binary::Container::Ptr subData = Formats::Chiptune::SID::FixStartSong(*Delegate, song);
           const File file(subPath, subData);
           walker.OnFile(file);
@@ -137,7 +77,7 @@ namespace Archived
 
       File::Ptr FindFile(const String& name) const override
       {
-        const Filename filename(Text::MULTITRACK_FILENAME_PREFIX, name);
+        const Strings::PrefixedIndex filename(Text::MULTITRACK_FILENAME_PREFIX, name);
         if (!filename.IsValid())
         {
           return File::Ptr();
@@ -155,8 +95,6 @@ namespace Archived
       {
         return Formats::Chiptune::SID::GetModulesCount(*Delegate);
       }
-    private:
-      const Binary::Container::Ptr Delegate;
     };
 
     const std::string FORMAT =

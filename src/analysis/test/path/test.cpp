@@ -62,6 +62,7 @@ int main()
     {
       const Analysis::Path::Ptr empty = Analysis::ParsePath(EMPTY_PATH, '/');
       TestPath("empty path", *empty, EMPTY_PATH);
+      Test(!empty->GetParent(), "Empty path parent");
       const Analysis::Path::Ptr emptyPlusNotEmpty = empty->Append(FIRST_ELEMENT);
       TestPath("empty path plus not empty", *emptyPlusNotEmpty, SINGLE_PATH, FIRST_ELEMENT);
       const Analysis::Path::Ptr emptyPlusEmpty = empty->Append(EMPTY_PATH);
@@ -74,6 +75,7 @@ int main()
     {
       const Analysis::Path::Ptr single = Analysis::ParsePath(SINGLE_PATH, '/');
       TestPath("single element path", *single, SINGLE_PATH, FIRST_ELEMENT);
+      TestPath("single element path parent", *single->GetParent(), EMPTY_PATH);
       const Analysis::Path::Ptr singlePlusNotEmpty = single->Append(SECOND_ELEMENT);
       TestPath("single path plus not empty", *singlePlusNotEmpty, DOUBLE_PATH, FIRST_ELEMENT, SECOND_ELEMENT);
       const Analysis::Path::Ptr singlePlusEmpty = single->Append(EMPTY_PATH);
@@ -88,6 +90,7 @@ int main()
     {
       const Analysis::Path::Ptr dbl = Analysis::ParsePath(DOUBLE_PATH, '/');
       TestPath("double element path", *dbl, DOUBLE_PATH, FIRST_ELEMENT, SECOND_ELEMENT);
+      TestPath("double element path parent", *dbl->GetParent(), SINGLE_PATH, FIRST_ELEMENT);
       const Analysis::Path::Ptr dblPlusNotEmpty = dbl->Append(THIRD_ELEMENT);
       TestPath("double path plus not empty", *dblPlusNotEmpty, TREBLE_PATH, FIRST_ELEMENT, SECOND_ELEMENT, THIRD_ELEMENT);
       const Analysis::Path::Ptr dblPlusEmpty = dbl->Append(EMPTY_PATH);

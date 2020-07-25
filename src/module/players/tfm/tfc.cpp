@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "tfc.h"
-#include "tfm_base_stream.h"
+#include "module/players/tfm/tfc.h"
+#include "module/players/tfm/tfm_base_stream.h"
 //common includes
 #include <iterator.h>
 #include <make_ptr.h>
@@ -18,10 +18,9 @@
 #include <formats/chiptune/fm/tfc.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
-//boost includes
-#include <boost/range/algorithm/max_element.hpp>
 //text includes
 #include <core/text/plugins.h>
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -84,9 +83,8 @@ namespace TFC
     
     uint_t Size() const override
     {
-      const std::size_t sizes[6] = {Data[0].GetSize(), Data[1].GetSize(), Data[2].GetSize(),
-        Data[3].GetSize(), Data[4].GetSize(), Data[5].GetSize()};
-      return static_cast<uint_t>(*boost::max_element(sizes));
+      return static_cast<uint_t>(std::max({Data[0].GetSize(), Data[1].GetSize(), Data[2].GetSize(),
+        Data[3].GetSize(), Data[4].GetSize(), Data[5].GetSize()}));
     }
 
     uint_t Loop() const override
@@ -227,13 +225,14 @@ namespace TFC
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFC::Parse(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::TFC::Parse(rawData, dataBuilder))
       {
-        const TFM::StreamModel::Ptr data = dataBuilder.GetResult();
+        auto data = dataBuilder.GetResult();
         if (data->Size())
         {
           props.SetSource(*container);
-          return TFM::CreateStreamedChiptune(data, properties);
+          props.SetPlatform(Platforms::ZX_SPECTRUM);
+          return TFM::CreateStreamedChiptune(std::move(data), std::move(properties));
         }
       }
       return TFM::Chiptune::Ptr();

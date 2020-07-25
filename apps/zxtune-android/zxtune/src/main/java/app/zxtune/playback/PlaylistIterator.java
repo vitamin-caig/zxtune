@@ -13,28 +13,28 @@ package app.zxtune.playback;
 import android.content.Context;
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
 
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.Scanner;
+import app.zxtune.core.Scanner;
 import app.zxtune.TimeStamp;
-import app.zxtune.ZXTune;
-import app.zxtune.ZXTune.Module;
+import app.zxtune.core.Module;
 import app.zxtune.playlist.DatabaseIterator;
 
 class PlaylistIterator implements Iterator {
   
   private static final String TAG = PlaylistIterator.class.getName();
   
-  private final Scanner scanner;
   private final IteratorFactory.NavigationMode navigation;
   private DatabaseIterator delegate;
+  @Nullable
   private PlayableItem item;
 
-  public PlaylistIterator(Context context, Uri id) throws IOException {
-    this.scanner = new Scanner();
+  PlaylistIterator(Context context, Uri id) throws IOException {
     this.navigation = new IteratorFactory.NavigationMode(context);
     this.delegate = new DatabaseIterator(context, id);
     if (!updateItem(delegate) && !next()) {
@@ -56,11 +56,6 @@ class PlaylistIterator implements Iterator {
       }
     }
     return false;
-  }
-  
-  @Override
-  public void release() {
-    item.release();
   }
   
   private DatabaseIterator getNext(DatabaseIterator it) {
@@ -106,17 +101,20 @@ class PlaylistIterator implements Iterator {
   
   private void loadItem(DatabaseIterator iter) {
     final app.zxtune.playlist.Item meta = iter.getItem();
-    scanner.analyzeIdentifier(meta.getLocation(), new Scanner.Callback() {
+    if (meta == null) {
+      return;
+    }
+    Scanner.analyzeIdentifier(meta.getLocation(), new Scanner.Callback() {
       
       @Override
       public void onModule(Identifier id, Module module) {
-        final PlayableItem fileItem = new FileIterator.FileItem(id, module);
+        final PlayableItem fileItem = new AsyncScanner.FileItem(id, module);
         item = new PlaylistItem(meta, fileItem);
       }
       
       @Override
-      public void onIOError(IOException e) {
-        Log.w(TAG, e, "Ignore I/O error");
+      public void onError(Identifier id, Exception e) {
+        Log.w(TAG, e, "Ignore error for " + id);
       }
     });
   }
@@ -126,7 +124,7 @@ class PlaylistIterator implements Iterator {
     private final app.zxtune.playlist.Item meta;
     private final PlayableItem content;
     
-    public PlaylistItem(app.zxtune.playlist.Item meta, PlayableItem content) {
+    PlaylistItem(app.zxtune.playlist.Item meta, PlayableItem content) {
       this.meta = meta;
       this.content = content;
     }
@@ -172,13 +170,8 @@ class PlaylistIterator implements Iterator {
     }
     
     @Override
-    public ZXTune.Module getModule() {
+    public Module getModule() {
       return content.getModule();
-    }
-    
-    @Override
-    public void release() {
-      content.release();
     }
   }
 }

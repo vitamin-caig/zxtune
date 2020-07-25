@@ -9,16 +9,15 @@
 **/
 
 //local includes
-#include "file_backend.h"
-#include "storage.h"
+#include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/render_params.h>
@@ -26,14 +25,9 @@
 #include <algorithm>
 #include <cstring>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG EF5CB4C6
-
-namespace
-{
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
@@ -145,13 +139,13 @@ namespace Wav
       if (empty())
       {
         resize(sizeof(ListHeader));
-        ListHeader* const hdr = safe_ptr_cast<ListHeader*>(&front());
+        ListHeader* const hdr = safe_ptr_cast<ListHeader*>(data());
         std::memcpy(hdr->Id, LIST, sizeof(LIST));
         std::memcpy(hdr->Type, INFO, sizeof(INFO));
         hdr->Size = 0;
         return hdr;
       }
-      return safe_ptr_cast<ListHeader*>(&front());
+      return safe_ptr_cast<ListHeader*>(data());
     }
 
     InfoElement* AddElement(std::size_t contentSize)
@@ -211,33 +205,33 @@ namespace Wav
     {
     }
 
-    void ApplyData(Chunk::Ptr data) override
+    void ApplyData(Chunk data) override
     {
       if (Sample::BITS == 16)
       {
-        data->ToS16();
+        data.ToS16();
       }
       else
       {
-        data->ToU8();
+        data.ToU8();
       }
-      const std::size_t sizeInBytes = data->size() * sizeof(data->front());
-      Stream->ApplyData(Binary::DataAdapter(&data->front(), sizeInBytes));
-      DoneBytes += static_cast<uint32_t>(sizeInBytes);
+      const Binary::View chunk(data);
+      Stream->ApplyData(chunk);
+      DoneBytes += static_cast<uint32_t>(chunk.Size());
     }
 
     void Flush() override
     {
       if (!Meta.empty())
       {
-        Stream->ApplyData(Binary::DataAdapter(&Meta.front(), Meta.size()));
+        Stream->ApplyData(Meta);
       }
       Stream->Flush();
       // write header
       Stream->Seek(0);
       Format.Size = fromLE<uint32_t>(sizeof(Format) - offsetof(WaveFormat, Type) + DoneBytes + Meta.size());
       Format.DataSize = fromLE<uint32_t>(DoneBytes);
-      Stream->ApplyData(Binary::DataAdapter(&Format, sizeof(Format)));
+      Stream->ApplyData(Format);
       Stream->Seek(DoneBytes + sizeof(Format));
     }
   private:
@@ -292,3 +286,5 @@ namespace Sound
     storage.Register(Wav::ID, Wav::DESCRIPTION, CAP_TYPE_FILE, factory);
   }
 }
+
+#undef FILE_TAG

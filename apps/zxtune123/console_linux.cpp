@@ -138,6 +138,11 @@ namespace
         }
       }
     }
+
+    void Write(const String& str) const override
+    {
+      StdOut << str;
+    }
   private:
     struct termios OldProps;
     const bool IsConsoleIn;

@@ -1,0 +1,23 @@
+ASAP - Another Slight Atari Player
+==================================
+
+link:/[Home]
+image:http://sflogo.sourceforge.net/sflogo.php?group_id=154391&amp;type=13["Get ASAP - Another Slight Atari Player at SourceForge.net. Fast, secure and Free Open Source software downloads",width=120,height=30,link="http://sourceforge.net/projects/asap/"]
+
+Silverlight demo
+----------------
+
+This page contains a Silverlight player of Atari music.
+
+++++
+<object id="asap" width="0" height="0" type="application/x-silverlight-2" data="data:application/x-silverlight-2,">
+	<param name="source" value="SilverASAP.xap" />
+	<param name="initParams" value="file=X_Ray_2.sap" />
+	<a href="http://go.microsoft.com/fwlink/?LinkID=124807" style="text-decoration: none;">
+		<img src="http://go.microsoft.com/fwlink/?LinkId=108181" alt="Get Microsoft Silverlight" style="border-style: none" />
+	</a>
+</object>
+<input type="button" value="Play" onclick="document.getElementById('asap').Content.ASAP.Play('X_Ray_2.sap')" />
+<input type="button" value="Pause" onclick="document.getElementById('asap').Content.ASAP.Pause()" />
+<input type="button" value="Stop" onclick="document.getElementById('asap').Content.ASAP.Stop()" />
+++++

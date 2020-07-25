@@ -13,9 +13,11 @@
 #include "console.h"
 #include "source.h"
 //common includes
+#include <contract.h>
 #include <error_tools.h>
 #include <progress_callback.h>
 //library includes
+#include <core/additional_files_resolve.h>
 #include <core/core_parameters.h>
 #include <core/module_detect.h>
 #include <core/module_open.h>
@@ -106,6 +108,33 @@ namespace
     const Console& Cons;
     Time::Elapsed ReportTimeout;
   };
+  
+  class RealFilesSource : public Module::AdditionalFilesSource
+  {
+  public:
+    RealFilesSource(const Parameters::Accessor& params, const IO::Identifier& id)
+      : Params(params)
+      , Dir(ExtractDir(id))
+    {
+    }
+    
+    Binary::Container::Ptr Get(const String& name) const override
+    {
+      return IO::OpenData(Dir + name, Params, Log::ProgressCallback::Stub());
+    }
+  private:
+    static String ExtractDir(const IO::Identifier& id)
+    {
+      const auto& full = id.Full();
+      const auto& filename = id.Filename();
+      Require(!filename.empty());
+      Require(id.Subpath().empty());
+      return full.substr(0, full.size() - filename.size());
+    }
+  private:
+    const Parameters::Accessor& Params;
+    const String Dir;
+  };
 
   class DetectCallback : public Module::DetectCallback
   {
@@ -120,7 +149,16 @@ namespace
 
     void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const override
     {
-      const IO::Identifier::Ptr subId = Id->WithSubpath(location->GetPath()->AsString());
+      const auto& subpath = location->GetPath()->AsString();
+      if (subpath.empty())
+      {
+        if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
+        {
+          const RealFilesSource source(*Params, *Id);
+          Module::ResolveAdditionalFiles(source, *files);
+        }
+      }
+      const IO::Identifier::Ptr subId = Id->WithSubpath(subpath);
       const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(Module::CreatePathProperties(subId), Params);
       const Module::Holder::Ptr result = Module::CreateMixedPropertiesHolder(holder, moduleParams);
       Callback.ProcessItem(location->GetData(), result);
@@ -215,18 +253,16 @@ namespace
         const String subpath = id->Subpath();
         if (subpath.empty())
         {
-          const ZXTune::DataLocation::Ptr location = ZXTune::CreateLocation(data);
-          Module::Detect(*Params, location, detectCallback);
+          Module::Detect(*Params, data, detectCallback);
         }
         else
         {
-          const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*Params, data, subpath);
-          Module::Open(*Params, location, detectCallback);
+          Module::Open(*Params, data, subpath, detectCallback);
         }
       }
       catch (const Error& e)
       {
-        StdOut << e.ToString();
+        Console::Self().Write(e.ToString());
       }
     }
   private:

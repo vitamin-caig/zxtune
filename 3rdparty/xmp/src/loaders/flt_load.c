@@ -282,10 +282,10 @@ static int flt_load(struct module_data *m, HIO_HANDLE *f, const int start)
     FILE *nt;
     int am_synth;
 
-    LOAD_INIT();
-
     /* See if we have the synth parameters file */
+    nt = 0;
     am_synth = 0;
+#ifndef NO_EXTERNALFILES    
     snprintf(filename, 1024, "%s%s.NT", m->dirname, m->basename);
     if ((nt = fopen(filename, "rb")) == NULL) {
 	snprintf(filename, 1024, "%s%s.nt", m->dirname, m->basename);
@@ -297,6 +297,9 @@ static int flt_load(struct module_data *m, HIO_HANDLE *f, const int start)
 	    }
 	}
     }
+#endif    
+
+    LOAD_INIT();
 
     tracker = "Startrekker";
 

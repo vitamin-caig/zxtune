@@ -11,11 +11,13 @@
 //common includes
 #include <make_ptr.h>
 //library includes
-#include <binary/typed_container.h>
+#include <binary/container_base.h>
+#include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/archived.h>
 #include <formats/packed/decoders.h>
 #include <formats/packed/zip_supp.h>
+#include <strings/encoding.h>
 //std includes
 #include <map>
 #include <numeric>
@@ -64,10 +66,8 @@ namespace Archived
     class BlocksIterator
     {
     public:
-      explicit BlocksIterator(const Binary::Container& data)
-        : Container(data)
-        , Limit(data.Size())
-        , Offset(0)
+      explicit BlocksIterator(Binary::View data)
+        : Stream(data)
       {
       }
 
@@ -77,73 +77,66 @@ namespace Archived
         {
           return true;
         }
-        if (const std::size_t size = GetBlockSize())
-        {
-          return Offset + size > Limit;
-        }
-        return true;
+        const auto curBlockSize = GetBlockSize();
+        return !curBlockSize || curBlockSize > Stream.GetRestSize();
       }
 
       template<class T>
       const T* GetBlock() const
       {
-        if (const T* rawBlock = Container.GetField<T>(Offset))
-        {
-          return fromLE(rawBlock->Signature) == T::SIGNATURE
-            ? rawBlock
-            : nullptr;
-        }
-        return nullptr;
+        const T* rawBlock = Stream.PeekField<T>();
+        return rawBlock && fromLE(rawBlock->Signature) == T::SIGNATURE
+          ? rawBlock
+          : nullptr;
       }
 
       std::unique_ptr<const Packed::Zip::CompressedFile> GetFile() const
       {
         using namespace Packed::Zip;
-        if (const LocalFileHeader* header = GetBlock<LocalFileHeader>())
+        if (const auto* header = GetBlock<LocalFileHeader>())
         {
-          return CompressedFile::Create(*header, Limit - Offset);
+          return CompressedFile::Create(*header, Stream.GetRestSize());
         }
-        return std::unique_ptr<const CompressedFile>();
+        return {};
       }
 
       std::size_t GetOffset() const
       {
-        return Offset;
+        return Stream.GetPosition();
       }
 
       void Next()
       {
-        const std::size_t size = GetBlockSize();
-        Offset += size;
+        Stream.Skip(GetBlockSize());
       }
     private:
       std::size_t GetBlockSize() const
       {
         using namespace Packed::Zip;
-        if (const LocalFileHeader* header = GetBlock<LocalFileHeader>())
+        if (const auto* header = GetBlock<LocalFileHeader>())
         {
-          const std::unique_ptr<const CompressedFile> file = CompressedFile::Create(*header, Limit - Offset);
+          const auto file = CompressedFile::Create(*header, Stream.GetRestSize());
           return file.get()
             ? file->GetPackedSize()
             : 0;
         }
-        else if (const LocalFileFooter* footer = GetBlock<LocalFileFooter>())
+        else if (const auto* footer = GetBlock<LocalFileFooter>())
         {
           return sizeof(*footer);
         }
-        else if (const ExtraDataRecord* extra = GetBlock<ExtraDataRecord>())
+        else if (const auto* extra = GetBlock<ExtraDataRecord>())
         {
           return extra->GetSize();
         }
-        else if (const CentralDirectoryFileHeader* centralHeader = GetBlock<CentralDirectoryFileHeader>())
+        else if (const auto* centralHeader = GetBlock<CentralDirectoryFileHeader>())
         {
           return centralHeader->GetSize();
         }
-        else if (const CentralDirectoryEnd* centralFooter = GetBlock<CentralDirectoryEnd>())
+        else if (const auto* centralFooter = GetBlock<CentralDirectoryEnd>())
         {
           return centralFooter->GetSize();
         }
-        else if (const DigitalSignature* signature = GetBlock<DigitalSignature>())
+        else if (const auto* signature = GetBlock<DigitalSignature>())
         {
           return signature->GetSize();
         }
@@ -154,16 +147,8 @@ namespace Archived
         }
       }
     private:
-      const Binary::TypedContainer Container;
-      const std::size_t Limit;
-      std::size_t Offset;
+      Binary::DataInputStream Stream;
     };
-
-    String DecodeUtf8String(const std::string& str)
-    {
-      //TODO:
-      return String(str.begin(), str.end());
-    }
 
     //TODO: make BlocksIterator
     class FileIterator
@@ -197,11 +182,11 @@ namespace Archived
         assert(!IsEof());
         if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
         {
-          const std::string rawName = std::string(header->Name, header->Name + fromLE(header->NameSize));
+          const StringView rawName(header->Name, fromLE(header->NameSize));
           const bool isUtf8 = 0 != (fromLE(header->Flags) & Packed::Zip::FILE_UTF8);
           return isUtf8
-            ? DecodeUtf8String(rawName)
-            : String(rawName.begin(), rawName.end());
+            ? rawName.to_string()
+            : Strings::ToAutoUtf8(rawName);
         }
         assert(!"Failed to get name");
         return String();
@@ -245,34 +230,17 @@ namespace Archived
       BlocksIterator Blocks;
     };
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       Container(Packed::Decoder::Ptr decoder, Binary::Container::Ptr data, uint_t filesCount)
-        : Decoder(std::move(decoder))
-        , Delegate(std::move(data))
+        : BaseContainer(std::move(data))
+        , Decoder(std::move(decoder))
         , FilesCount(filesCount)
       {
         Dbg("Found %1% files. Size is %2%", filesCount, Delegate->Size());
       }
 
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
         FillCache();
@@ -347,7 +315,6 @@ namespace Archived
       }
     private:
       const Formats::Packed::Decoder::Ptr Decoder;
-      const Binary::Container::Ptr Delegate;
       const uint_t FilesCount;
       mutable std::unique_ptr<FileIterator> Iter;
       typedef std::map<String, File::Ptr> FilesMap;

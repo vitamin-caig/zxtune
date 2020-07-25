@@ -1,9 +1,11 @@
 binary_name := formats_test_st
-path_step := ../../../../..
+dirs.root := ../../../../..
 source_dirs := .
 
-libraries.common = binary binary_format debug formats_chiptune tools
+libraries.common = binary binary_compression binary_format debug formats_archived formats_chiptune formats_packed strings tools
 
-windows_libraries := advapi32
+libraries.3rdparty = lhasa lzma unrar zlib
 
-include $(path_step)/makefile.mak
+libraries.windows := advapi32
+
+include $(dirs.root)/makefile.mak

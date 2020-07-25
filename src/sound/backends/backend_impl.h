@@ -11,7 +11,7 @@
 #pragma once
 
 //library includes
-#include <module/track_state.h>
+#include <module/state.h>
 #include <module/holder.h>
 #include <sound/backend.h>
 #include <sound/chunk.h>
@@ -28,8 +28,8 @@ namespace Sound
     virtual void Shutdown() = 0;
     virtual void Pause() = 0;
     virtual void Resume() = 0;
-    virtual void FrameStart(const Module::TrackState& state) = 0;
-    virtual void FrameFinish(Chunk::Ptr buffer) = 0;
+    virtual void FrameStart(const Module::State& state) = 0;
+    virtual void FrameFinish(Chunk buffer) = 0;
     virtual VolumeControl::Ptr GetVolumeControl() const = 0;
   };
 

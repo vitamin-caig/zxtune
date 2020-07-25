@@ -17,13 +17,14 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+#include <limits>
 #include <type_traits>
 
 namespace Binary
 {
   inline const void* GetPointer(const Dump* val, std::size_t offset)
   {
-    return &val->front() + offset;
+    return val->data() + offset;
   }
 
   inline const void* GetPointer(const Binary::Data* val, std::size_t offset)
@@ -42,7 +43,6 @@ namespace Binary
   public:
     SharedContainer(Value arr, std::size_t offset, std::size_t size)
       : Buffer(std::move(arr))
-      , Address(GetPointer(Buffer.get(), offset))
       , Offset(offset)
       , Length(size)
     {
@@ -51,7 +51,7 @@ namespace Binary
     
     const void* Start() const override
     {
-      return Address;
+      return GetPointer(Buffer.get(), Offset);
     }
 
     std::size_t Size() const override
@@ -73,53 +73,7 @@ namespace Binary
     }
   private:
     const Value Buffer;
-    const void* const Address;
     const std::size_t Offset;
-    const std::size_t Length;
-  };
-
-  typedef std::shared_ptr<const void> VoidPtr;
-  
-  class NonCopyContainer : public Binary::Container
-  {
-  public:
-    NonCopyContainer(VoidPtr buf, std::size_t size)
-      : Buffer(std::move(buf))
-      , Length(size)
-    {
-    }
-    
-    ~NonCopyContainer() override
-    {
-      Require(1 == Buffer.use_count());
-    }
-
-    const void* Start() const override
-    {
-      return Buffer.get();
-    }
-
-    std::size_t Size() const override
-    {
-      return Length;
-    }
-
-    Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-    {
-      assert(offset + size <= Length);
-      if (size && offset < Length)
-      {
-        size = std::min(size, Length - offset);
-        return MakePtr<SharedContainer<VoidPtr>>(Buffer, offset, size);
-      }
-      else
-      {
-        return Ptr();
-      }
-    }
-    
-  private:
-    const VoidPtr Buffer;
     const std::size_t Length;
   };
 }
@@ -128,24 +82,13 @@ namespace Binary
 {
   static_assert(sizeof(Dump::value_type) == 1, "Invalid size for Dump::value_type");
 
-  Container::Ptr CreateContainer(const void* data, std::size_t size)
+  Container::Ptr CreateContainer(View data)
   {
-    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : nullptr)
+    const auto size = data.Size();
+    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data.Start()) : nullptr)
     {
       std::shared_ptr<const Dump> buffer(new Dump(byteData, byteData + size));
       return CreateContainer(std::move(buffer), 0, size);
-    }
-    else
-    {
-      return Container::Ptr();
-    }
-  }
-
-  Container::Ptr CreateNonCopyContainer(const void* data, std::size_t size)
-  {
-    if (const uint8_t* byteData = size ? static_cast<const uint8_t*>(data) : nullptr)
-    {
-      return MakePtr<NonCopyContainer>(VoidPtr(byteData, [] (const void*){}), size);
     }
     else
     {
@@ -162,12 +105,12 @@ namespace Binary
 
   Container::Ptr CreateContainer(Data::Ptr data)
   {
-    //cover downcasting
-    if (Container::Ptr asContainer = std::dynamic_pointer_cast<const Container>(data))
+    //cover downcasting and special cases
+    if (auto asContainer = std::dynamic_pointer_cast<const Container>(data))
     {
       return asContainer;
     }
-    else if (const auto size = data ? data->Size() : 0)
+    else if (const auto size = data->Size())
     {
       return MakePtr<SharedContainer<Data::Ptr> >(std::move(data), 0, size);
     }
@@ -179,8 +122,9 @@ namespace Binary
 
   Container::Ptr CreateContainer(std::shared_ptr<const Dump> data, std::size_t offset, std::size_t size)
   {
-    if (size && data && data->size() >= offset + size)
+    if (size && data && offset < data->size())
     {
+      size = std::min(size, data->size() - offset);
       return MakePtr<SharedContainer<std::shared_ptr<const Dump> > >(std::move(data), offset, size);
     }
     else

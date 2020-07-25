@@ -283,32 +283,57 @@
         <translation>Приложение</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="146"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="127"/>
         <source>Check updates</source>
         <translation>Проверять обновления</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="153"/>
+        <source>Target for items passed via commandline</source>
+        <translation>Место размещения треков, добавленных через командную строку</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="156"/>
+        <source>Command line destination</source>
+        <translation>Адресат командной строки</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="182"/>
         <source>Changes applied after application restart</source>
         <translation>Изменения применяются после перезапуска приложения</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="156"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="185"/>
         <source>Single instance</source>
         <translation>Единственный экземпляр</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="128"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="164"/>
+        <source>New playlist</source>
+        <translation>Новый список</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="169"/>
+        <source>Active playlist</source>
+        <translation>Активный список</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="174"/>
+        <source>Visible playlist</source>
+        <translation>Видимый список</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="135"/>
         <source>Never</source>
         <translation>Никогда</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="133"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="140"/>
         <source>Once a day</source>
         <translation>Раз в день</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="138"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/interface.ui" line="145"/>
         <source>Once a week</source>
         <translation>Раз в неделю</translation>
     </message>
@@ -385,22 +410,32 @@
         <translation>Частота звука, Гц</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="68"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="65"/>
+        <source>Silence detection, S</source>
+        <translation>Детектор тишины, с</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="79"/>
+        <source>Loops count limit</source>
+        <translation>Лимит зацикливания</translation>
+    </message>
+    <message>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="96"/>
         <source>Backends settings</source>
         <translation>Настройки подсистем</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="91"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="119"/>
         <source>Move up</source>
         <translation>Вверх</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="135"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="163"/>
         <source>Move down</source>
         <translation>Вниз</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="150"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="178"/>
         <source>Select backend to setup</source>
         <translation>Выберите подсистему для настройки</translation>
     </message>

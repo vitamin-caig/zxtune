@@ -1,8 +1,7 @@
 library_name := sidplayfp
-path_step := ../..
-include defines.mak
+dirs.root := ../..
 
-include_dirs += $(path_step)/3rdparty/sidplayfp/sidplayfp
+includes.dirs += $(dirs.root)/3rdparty/sidplayfp/sidplayfp $(dirs.root)/3rdparty/sidplayfp
 
 source_dirs = sidplayfp \
               sidplayfp/c64 \
@@ -16,9 +15,12 @@ source_dirs += utils/MD5
 source_dirs += builders/resid-builder \
                builders/resid-builder/resid
 
-defines += FAST_AND_ROUGH
+#disable for digital tunes playback (e.g. hvsc/MUSICIANS/L/LMan/Vortex.sid)
+#defines += FAST_AND_ROUGH
 
-include $(path_step)/makefile.mak
+includes.files += defines.h
+
+include $(dirs.root)/makefile.mak
 
 #-fdata-sections makes static class members be located in .data sections, not in .bss
 mingw.cxx.flags += -fno-data-sections

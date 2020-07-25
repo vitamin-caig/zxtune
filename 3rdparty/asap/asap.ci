@@ -1,0 +1,680 @@
+// asap.ci - emulation engine
+//
+// Copyright (C) 2010-2014  Piotr Fusik
+//
+// This file is part of ASAP (Another Slight Atari Player),
+// see http://asap.sourceforge.net
+//
+// ASAP is free software; you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published
+// by the Free Software Foundation; either version 2 of the License,
+// or (at your option) any later version.
+//
+// ASAP is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ASAP; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+enum NmiStatus
+{
+	Reset,
+	OnVBlank,
+	WasVBlank
+}
+
+/// Atari 8-bit chip music emulator.
+/// This class performs no I/O operations - all music data must be passed in byte arrays.
+public class ASAP
+{
+	/// Output sample rate.
+	public const int SampleRate = Pokey.SampleRate;
+
+	int Cycle;
+	int NextEventCycle;
+
+	byte[65536] Memory;
+
+	Cpu6502() Cpu;
+
+	// ANTIC:
+	int NextScanlineCycle;
+	NmiStatus Nmist;
+
+	// GTIA:
+	int Consol;
+
+	// COVOX:
+	byte[4] Covox;
+
+	// POKEYs:
+	PokeyPair() Pokeys;
+
+	ASAPInfo() ModuleInfo;
+	int NextPlayerCycle;
+	int TmcPerFrameCounter;
+	int CurrentSong;
+	int CurrentDuration;
+	int BlocksPlayed;
+	int SilenceCycles;
+	int SilenceCyclesCounter;
+	bool GtiaOrCovoxPlayedThisFrame;
+
+	public ASAP()
+	{
+		SilenceCycles = 0;
+	}
+
+	/// Enables silence detection.
+	/// Causes playback to stop after the specified period of silence.
+	public void DetectSilence(
+		/// Length of silence which ends playback. Zero disables silence detection.
+		int seconds)
+	{
+		// for simplicity ignore PAL/NTSC difference - this doesn't need to be precise
+		SilenceCyclesCounter = SilenceCycles = seconds * 1773447;
+	}
+
+	int PeekHardware(int addr)
+	{
+		switch (addr & 0xff1f) {
+		case 0xd014:
+			return ModuleInfo.Ntsc ? 0xf : 1;
+		case 0xd01f:
+			return ~Consol & 0xf;
+		case 0xd20a:
+		case 0xd21a:
+			return Pokeys.GetRandom(addr, Cycle);
+		case 0xd20e:
+			return Pokeys.Irqst;
+		case 0xd21e:
+			if (Pokeys.ExtraPokeyMask != 0) {
+				// interrupts in the extra POKEY not emulated at the moment
+				return 0xff;
+			}
+			return Pokeys.Irqst;
+		case 0xd20c:
+		case 0xd21c:
+		case 0xd20f: // just because some SAP files rely on this
+		case 0xd21f:
+			return 0xff;
+		case 0xd40b:
+		case 0xd41b:
+			if (Cycle > (ModuleInfo.Ntsc ? 262 * 114 : 312 * 114))
+				return 0;
+			return Cycle / 228;
+		case 0xd40f:
+		case 0xd41f:
+			switch (Nmist) {
+			case NmiStatus.Reset:
+				return 0x1f;
+			case NmiStatus.WasVBlank:
+				return 0x5f;
+			default: // case NmiStatus.OnVBlank:
+				return Cycle < 28291 ? 0x1f : 0x5f;
+			}
+		default:
+			return Memory[addr];
+		}
+	}
+
+	void PokeHardware(int addr, int data)
+	{
+		if (addr >> 8 == 0xd2) {
+			if ((addr & (Pokeys.ExtraPokeyMask + 0xf)) == 0xe) {
+				Pokeys.Irqst |= data ^ 0xff;
+				macro SET_TIMER_IRQ(ch) {
+					if ((data & Pokeys.Irqst & ch) != 0) {
+						if (Pokeys.Timer##ch##Cycle == Pokey.NeverCycle) {
+							int t = Pokeys.BasePokey.TickCycle##ch;
+							while (t < Cycle)
+								t += Pokeys.BasePokey.PeriodCycles##ch;
+							Pokeys.Timer##ch##Cycle = t;
+							if (NextEventCycle > t)
+								NextEventCycle = t;
+						}
+					}
+					else
+						Pokeys.Timer##ch##Cycle = Pokey.NeverCycle;
+				}
+				SET_TIMER_IRQ(1);
+				SET_TIMER_IRQ(2);
+				SET_TIMER_IRQ(4);
+			}
+			else
+				Pokeys.Poke(addr, data, Cycle);
+		}
+		else if ((addr & 0xff0f) == 0xd40a) {
+			int x = Cycle % 114;
+			Cycle += (x <= 106 ? 106 : 106 + 114) - x;
+		}
+		else if ((addr & 0xff0f) == 0xd40f) {
+			Nmist = Cycle < 28292 ? NmiStatus.OnVBlank : NmiStatus.Reset;
+		}
+		else if ((addr & 0xff00) == ModuleInfo.CovoxAddr) {
+			Pokey pokey;
+			addr &= 3;
+			if (addr == 0 || addr == 3)
+				pokey = Pokeys.BasePokey;
+			else
+				pokey = Pokeys.ExtraPokey;
+			int delta = data - Covox[addr];
+			if (delta != 0) {
+				const int DeltaShiftCOVOX = 17;
+				pokey.AddDelta(Pokeys, Cycle, delta << DeltaShiftCOVOX);
+				Covox[addr] = data;
+				GtiaOrCovoxPlayedThisFrame = true;
+			}
+		}
+		else if ((addr & 0xff1f) == 0xd01f) {
+			const int DeltaShiftGTIA = 20;
+			// NOT data - Consol; reverse to the POKEY sound
+			int delta = ((Consol & 8) - (data & 8)) << DeltaShiftGTIA;
+			if (delta != 0) {
+				Pokeys.BasePokey.AddDelta(Pokeys, Cycle, delta);
+				Pokeys.ExtraPokey.AddDelta(Pokeys, Cycle, delta);
+				GtiaOrCovoxPlayedThisFrame = true;
+			}
+			Consol = data;
+		}
+		else
+			Memory[addr] = data;
+	}
+
+	void Call6502(int addr)
+	{
+		const int codeAddr = 0xd200;
+		Memory[codeAddr] = 0x20; // JSR
+		Memory[codeAddr + 1] = addr.LowByte;
+		Memory[codeAddr + 2] = addr >> 8;
+		Memory[codeAddr + 3] = 0xd2; // escape
+		Cpu.Pc = codeAddr;
+	}
+
+	void Call6502Player()
+	{
+		int player = ModuleInfo.Player;
+		switch (ModuleInfo.Type) {
+		case ASAPModuleType.SapB:
+			Call6502(player);
+			break;
+		case ASAPModuleType.SapC:
+#if !ASAP_ONLY_SAP
+		case ASAPModuleType.Cmc:
+		case ASAPModuleType.Cm3:
+		case ASAPModuleType.Cmr:
+		case ASAPModuleType.Cms:
+#endif
+			Call6502(player + 6);
+			break;
+		case ASAPModuleType.SapD:
+			if (player >= 0) {
+				int s = Cpu.S;
+				Memory[0x100 + s] = Cpu.Pc >> 8;
+				s = s - 1 & 0xff;
+				Memory[0x100 + s] = Cpu.Pc.LowByte;
+				Cpu.S = s - 1 & 0xff;
+				const int codeAddr = 0xd200;
+				Memory[codeAddr] = 0x08; // PHP
+				Memory[codeAddr + 1] = 0x48; // PHA
+				Memory[codeAddr + 2] = 0x8a; // TXA
+				Memory[codeAddr + 3] = 0x48; // PHA
+				Memory[codeAddr + 4] = 0x98; // TYA
+				Memory[codeAddr + 5] = 0x48; // PHA
+				Memory[codeAddr + 6] = 0x20; // JSR
+				Memory[codeAddr + 7] = player.LowByte;
+				Memory[codeAddr + 8] = player >> 8;
+				Memory[codeAddr + 9] = 0x68; // PLA
+				Memory[codeAddr + 10] = 0xa8; // TAY
+				Memory[codeAddr + 11] = 0x68; // PLA
+				Memory[codeAddr + 12] = 0xaa; // TAX
+				Memory[codeAddr + 13] = 0x68; // PLA
+				Memory[codeAddr + 14] = 0x40; // RTI
+				Cpu.Pc = codeAddr;
+			}
+			break;
+		case ASAPModuleType.SapS:
+			int i = Memory[0x45] - 1;
+			Memory[0x45] = i.LowByte;
+			if (i == 0)
+				Memory[0xb07b] = (Memory[0xb07b] + 1).LowByte;
+			break;
+#if !ASAP_ONLY_SAP
+		case ASAPModuleType.Dlt:
+			Call6502(player + 0x103);
+			break;
+		case ASAPModuleType.Mpt:
+		case ASAPModuleType.Rmt:
+		case ASAPModuleType.Tm2:
+		case ASAPModuleType.Fc:
+			Call6502(player + 3);
+			break;
+		case ASAPModuleType.Tmc:
+			if (--TmcPerFrameCounter <= 0) {
+				TmcPerFrameCounter = Memory[ModuleInfo.Music + 0x1f];
+				Call6502(player + 3);
+			}
+			else
+				Call6502(player + 6);
+			break;
+#if EXPERIMENTAL_XEX
+		case ASAPModuleType.Xex:
+			break;
+#endif
+#endif
+		}
+	}
+
+	void HandleEvent()
+	{
+		int cycle = Cycle;
+		if (cycle >= NextScanlineCycle) {
+			if (cycle - NextScanlineCycle < 50) // not WSYNC
+				Cycle = cycle += 9;
+			NextScanlineCycle += 114;
+			if (cycle >= NextPlayerCycle) {
+				Call6502Player();
+				NextPlayerCycle += 114 * ModuleInfo.Fastplay;
+			}
+		}
+		int nextEventCycle = NextScanlineCycle;
+		macro CHECK_TIMER_IRQ(ch) {
+			if (cycle >= Pokeys.Timer##ch##Cycle) {
+				Pokeys.Irqst &= ~ch;
+				Pokeys.Timer##ch##Cycle = Pokey.NeverCycle;
+			}
+			else if (nextEventCycle > Pokeys.Timer##ch##Cycle)
+				nextEventCycle = Pokeys.Timer##ch##Cycle;
+		}
+		CHECK_TIMER_IRQ(1);
+		CHECK_TIMER_IRQ(2);
+		CHECK_TIMER_IRQ(4);
+		NextEventCycle = nextEventCycle;
+	}
+
+	int Do6502Frame()
+	{
+		NextEventCycle = 0;
+		NextScanlineCycle = 0;
+		Nmist = Nmist == NmiStatus.Reset ? NmiStatus.OnVBlank : NmiStatus.WasVBlank;
+		int cycles = ModuleInfo.Ntsc ? 262 * 114 : 312 * 114;
+		Cpu.DoFrame(this, cycles);
+		Cycle -= cycles;
+		if (NextPlayerCycle != Pokey.NeverCycle)
+			NextPlayerCycle -= cycles;
+		if (Pokeys.Timer1Cycle != Pokey.NeverCycle)
+			Pokeys.Timer1Cycle -= cycles;
+		if (Pokeys.Timer2Cycle != Pokey.NeverCycle)
+			Pokeys.Timer2Cycle -= cycles;
+		if (Pokeys.Timer4Cycle != Pokey.NeverCycle)
+			Pokeys.Timer4Cycle -= cycles;
+		return cycles;
+	}
+
+	int DoFrame()
+	{
+		GtiaOrCovoxPlayedThisFrame = false;
+		Pokeys.StartFrame();
+		int cycles = Do6502Frame();
+		Pokeys.EndFrame(cycles);
+		return cycles;
+	}
+
+	/// Loads music data ("module").
+	public void Load(
+		/// Filename, used to determine the format.
+		string filename,
+		/// Contents of the file.
+		byte[] module,
+		/// Length of the file.
+		int moduleLen)
+	{
+		ModuleInfo.Load(filename, module, moduleLen);
+#if !ASAP_ONLY_SAP
+		byte[] playerRoutine = ASAP6502.GetPlayerRoutine(ModuleInfo);
+		if (playerRoutine != null) {
+			int player = ASAPInfo.GetWord(playerRoutine, 2);
+			int playerLastByte = ASAPInfo.GetWord(playerRoutine, 4);
+			if (ModuleInfo.Music <= playerLastByte)
+				throw "Module address conflicts with the player routine";
+			Memory[0x4c00] = 0; // for 11270-byte DLT
+			if (ModuleInfo.Type == ASAPModuleType.Fc)
+				module.CopyTo(0, Memory, ModuleInfo.Music, moduleLen);
+			else
+				module.CopyTo(6, Memory, ModuleInfo.Music, moduleLen - 6);
+			playerRoutine.CopyTo(6, Memory, player, playerLastByte + 1 - player);
+			if (ModuleInfo.Player < 0)
+				ModuleInfo.Player = player;
+			return;
+		}
+#endif
+		Memory.Clear();
+		int moduleIndex = ModuleInfo.HeaderLen + 2;
+		while (moduleIndex + 5 <= moduleLen) {
+			int startAddr = ASAPInfo.GetWord(module, moduleIndex);
+			int blockLen = ASAPInfo.GetWord(module, moduleIndex + 2) + 1 - startAddr;
+			if (blockLen <= 0 || moduleIndex + blockLen > moduleLen)
+				throw "Invalid binary block";
+			moduleIndex += 4;
+			module.CopyTo(moduleIndex, Memory, startAddr, blockLen);
+			moduleIndex += blockLen;
+			if (moduleIndex == moduleLen)
+				return;
+			if (moduleIndex + 7 <= moduleLen && module[moduleIndex] == 0xff && module[moduleIndex + 1] == 0xff)
+				moduleIndex += 2;
+		}
+		throw "Invalid binary block";
+	}
+
+	/// Returns information about the loaded module.
+	public ASAPInfo GetInfo()
+	{
+		return ModuleInfo;
+	}
+
+	void Do6502Init(int pc, int a, int x, int y)
+	{
+		Cpu.Pc = pc;
+		Cpu.A = a & 0xff;
+		Cpu.X = x & 0xff;
+		Cpu.Y = y & 0xff;
+		const int escapeAddr = 0xd200;
+		Memory[escapeAddr] = 0xd2; // escape code
+		Memory[0x1fe] = (escapeAddr - 1).LowByte; // return address points to the escape code
+		Memory[0x1ff] = (escapeAddr - 1) >> 8;
+		Cpu.S = 0xfd;
+		for (int frame = 0; frame < 50; frame++) {
+			Do6502Frame();
+			if (Cpu.Pc == escapeAddr)
+				return;
+		}
+		throw "INIT routine didn't return";
+	}
+
+	/// Mutes the selected POKEY channels.
+	public void MutePokeyChannels(
+		/// An 8-bit mask which selects POKEY channels to be muted.
+		int mask)
+	{
+		Pokeys.BasePokey.Mute(mask);
+		Pokeys.ExtraPokey.Mute(mask >> 4);
+	}
+
+	/// Prepares playback of the specified song of the loaded module.
+	public void PlaySong(
+		/// Zero-based song index.
+		int song,
+		/// Playback time in milliseconds, -1 means infinity.
+		int duration)
+	{
+		if (song < 0 || song >= ModuleInfo.Songs)
+			throw "Song number out of range";
+		CurrentSong = song;
+		CurrentDuration = duration;
+		NextPlayerCycle = Pokey.NeverCycle;
+		BlocksPlayed = 0;
+		SilenceCyclesCounter = SilenceCycles;
+
+		Cycle = 0;
+		Cpu.Nz = 0;
+		Cpu.C = 0;
+		Cpu.Vdi = 0;
+		Nmist = NmiStatus.OnVBlank;
+		Consol = 8;
+		Covox[0] = 0x80;
+		Covox[1] = 0x80;
+		Covox[2] = 0x80;
+		Covox[3] = 0x80;
+		Pokeys.Initialize(ModuleInfo.Ntsc, ModuleInfo.Channels > 1);
+		MutePokeyChannels(0xff);
+		switch (ModuleInfo.Type) {
+		case ASAPModuleType.SapB:
+			Do6502Init(ModuleInfo.Init, song, 0, 0);
+			break;
+		case ASAPModuleType.SapC:
+#if !ASAP_ONLY_SAP
+		case ASAPModuleType.Cmc:
+		case ASAPModuleType.Cm3:
+		case ASAPModuleType.Cmr:
+		case ASAPModuleType.Cms:
+#endif
+			Do6502Init(ModuleInfo.Player + 3, 0x70, ModuleInfo.Music, ModuleInfo.Music >> 8);
+			Do6502Init(ModuleInfo.Player + 3, 0x00, song, 0);
+			break;
+		case ASAPModuleType.SapD:
+		case ASAPModuleType.SapS:
+			Cpu.Pc = ModuleInfo.Init;
+			Cpu.A = song;
+			Cpu.X = 0x00;
+			Cpu.Y = 0x00;
+			Cpu.S = 0xff;
+			break;
+#if !ASAP_ONLY_SAP
+		case ASAPModuleType.Dlt:
+			Do6502Init(ModuleInfo.Player + 0x100, 0x00, 0x00, ModuleInfo.SongPos[song]);
+			break;
+		case ASAPModuleType.Mpt:
+			Do6502Init(ModuleInfo.Player, 0x00, ModuleInfo.Music >> 8, ModuleInfo.Music);
+			Do6502Init(ModuleInfo.Player, 0x02, ModuleInfo.SongPos[song], 0);
+			break;
+		case ASAPModuleType.Rmt:
+			Do6502Init(ModuleInfo.Player, ModuleInfo.SongPos[song], ModuleInfo.Music, ModuleInfo.Music >> 8);
+			break;
+		case ASAPModuleType.Tmc:
+		case ASAPModuleType.Tm2:
+			Do6502Init(ModuleInfo.Player, 0x70, ModuleInfo.Music >> 8, ModuleInfo.Music);
+			Do6502Init(ModuleInfo.Player, 0x00, song, 0);
+			TmcPerFrameCounter = 1;
+			break;
+		case ASAPModuleType.Fc:
+			Do6502Init(ModuleInfo.Player, song, 0, 0);
+			break;
+#if EXPERIMENTAL_XEX
+		case ASAPModuleType.Xex:
+			Cpu.Pc = ASAPInfo.GetWord(Memory, 0x2e0);
+			Cpu.A = song;
+			Cpu.X = 0x00;
+			Cpu.Y = 0x00;
+			Cpu.S = 0xff;
+			break;
+#endif
+#endif
+		}
+		MutePokeyChannels(0);
+		NextPlayerCycle = 0;
+	}
+
+	/// Returns current playback position in blocks.
+	/// A block is one sample or a pair of samples for stereo.
+	public int GetBlocksPlayed()
+	{
+		return BlocksPlayed;
+	}
+
+	/// Returns current playback position in milliseconds.
+	public int GetPosition()
+	{
+		return BlocksPlayed * 10 / (SampleRate / 100);
+	}
+
+	static int MillisecondsToBlocks(int milliseconds)
+	{
+		return milliseconds * (SampleRate / 100) / 10;
+	}
+
+	/// Changes the playback position.
+	public void SeekSample(
+		/// The requested absolute position in samples (always 44100 per second, even in stereo).
+		int block)
+	{
+		if (block < BlocksPlayed)
+			PlaySong(CurrentSong, CurrentDuration);
+		while (BlocksPlayed + Pokeys.ReadySamplesEnd < block) {
+			BlocksPlayed += Pokeys.ReadySamplesEnd;
+			DoFrame();
+		}
+		Pokeys.ReadySamplesStart = block - BlocksPlayed;
+		BlocksPlayed = block;
+	}
+
+	/// Changes the playback position.
+	public void Seek(
+		/// The requested absolute position in milliseconds.
+		int position)
+	{
+		SeekSample(MillisecondsToBlocks(position));
+	}
+
+	static void PutLittleEndian(byte[] buffer, int offset, int value)
+	{
+		buffer[offset] = value.LowByte;
+		buffer[offset + 1] = (value >> 8).LowByte;
+		buffer[offset + 2] = (value >> 16).LowByte;
+		buffer[offset + 3] = (value >> 24).LowByte;
+	}
+
+	macro FOUR_CC(s) ( s[0] + (s[1] << 8) + (s[2] << 16) + (s[3] << 24) )
+
+	static void PutLittleEndians(byte[] buffer, int offset, int value1, int value2)
+	{
+		PutLittleEndian(buffer, offset, value1);
+		PutLittleEndian(buffer, offset + 4, value2);
+	}
+
+	static int PutWavMetadata(byte[] buffer, int offset, int fourCC, string value)
+	{
+		int len = value.Length;
+		if (len > 0) {
+			// include terminator and round up to the nearest word
+			PutLittleEndians(buffer, offset, fourCC, (len | 1) + 1);
+			offset += 8;
+			for (int i = 0; i < len; i++)
+				buffer[offset++] = value[i];
+			buffer[offset++] = 0;
+			if ((len & 1) == 0)
+				buffer[offset++] = 0;
+		}
+		return offset;
+	}
+
+	/// Fills leading bytes of the specified buffer with WAV file header.
+	/// Returns the number of changed bytes.
+	public int GetWavHeader(
+		/// The destination buffer.
+		byte[] buffer,
+		/// Format of samples.
+		ASAPSampleFormat format,
+		/// Include metadata (title, author, date).
+		bool metadata)
+	{
+		int use16bit = format != ASAPSampleFormat.U8 ? 1 : 0;
+		int blockSize = ModuleInfo.Channels << use16bit;
+		int bytesPerSecond = SampleRate * blockSize;
+		int totalBlocks = MillisecondsToBlocks(CurrentDuration);
+		int nBytes = (totalBlocks - BlocksPlayed) * blockSize;
+		PutLittleEndian(buffer, 8, FOUR_CC("WAVE"));
+		PutLittleEndians(buffer, 12, FOUR_CC("fmt "), 16);
+		buffer[20] = 1;
+		buffer[21] = 0;
+		buffer[22] = ModuleInfo.Channels;
+		buffer[23] = 0;
+		PutLittleEndians(buffer, 24, SampleRate, bytesPerSecond);
+		buffer[32] = blockSize;
+		buffer[33] = 0;
+		buffer[34] = 8 << use16bit;
+		buffer[35] = 0;
+		int i = 36;
+		if (metadata) {
+			int year = ModuleInfo.GetYear();
+			if (ModuleInfo.Title.Length > 0 || ModuleInfo.Author.Length > 0 || year > 0) {
+				PutLittleEndian(buffer, 44, FOUR_CC("INFO"));
+				i = PutWavMetadata(buffer, 48, FOUR_CC("INAM"), ModuleInfo.Title);
+				i = PutWavMetadata(buffer, i, FOUR_CC("IART"), ModuleInfo.Author);
+				if (year > 0) {
+					PutLittleEndians(buffer, i, FOUR_CC("ICRD"), 6);
+					for (int j = 3; j >= 0; j--) {
+						buffer[i + 8 + j] = '0' + year % 10;
+						year /= 10;
+					}
+					buffer[i + 12] =  0;
+					buffer[i + 13] =  0;
+					i += 14;
+				}
+				PutLittleEndians(buffer, 36, FOUR_CC("LIST"), i - 44);
+			}
+		}
+		PutLittleEndians(buffer, 0, FOUR_CC("RIFF"), i + nBytes);
+		PutLittleEndians(buffer, i, FOUR_CC("data"), nBytes);
+		return i + 8;
+	}
+
+	int GenerateAt(byte[] buffer, int bufferOffset, int bufferLen, ASAPSampleFormat format)
+	{
+		if (SilenceCycles > 0 && SilenceCyclesCounter <= 0)
+			return 0;
+		int blockShift =
+#if FLASH
+			0;
+#else
+			(ModuleInfo.Channels - 1) + (format != ASAPSampleFormat.U8 ? 1 : 0);
+#endif
+		int bufferBlocks = bufferLen >> blockShift;
+		if (CurrentDuration > 0) {
+			int totalBlocks = MillisecondsToBlocks(CurrentDuration);
+			if (bufferBlocks > totalBlocks - BlocksPlayed)
+				bufferBlocks = totalBlocks - BlocksPlayed;
+		}
+		int block = 0;
+		for (;;) {
+			int blocks = Pokeys.Generate(buffer, bufferOffset + (block << blockShift), bufferBlocks - block, format);
+			BlocksPlayed += blocks;
+			block += blocks;
+			if (block >= bufferBlocks)
+				break;
+			int cycles = DoFrame();
+			if (SilenceCycles > 0) {
+				if (Pokeys.IsSilent() && !GtiaOrCovoxPlayedThisFrame) {
+					SilenceCyclesCounter -= cycles;
+					if (SilenceCyclesCounter <= 0)
+						break;
+				}
+				else
+					SilenceCyclesCounter = SilenceCycles;
+			}
+		}
+		return block << blockShift;
+	}
+
+	/// Fills the specified buffer with generated samples.
+	public int Generate(
+		/// The destination buffer.
+		byte[] buffer,
+		/// Number of bytes to fill.
+		int bufferLen,
+		/// Format of samples.
+		ASAPSampleFormat format)
+	{
+		return GenerateAt(buffer, 0, bufferLen, format);
+	}
+
+	/// Returns POKEY channel volume - an integer between 0 and 15.
+	public int GetPokeyChannelVolume(
+		/// POKEY channel number (from 0 to 7).
+		int channel)
+	{
+		switch (channel) {
+		case 0: return Pokeys.BasePokey.Audc1 & 0xf;
+		case 1: return Pokeys.BasePokey.Audc2 & 0xf;
+		case 2: return Pokeys.BasePokey.Audc3 & 0xf;
+		case 3: return Pokeys.BasePokey.Audc4 & 0xf;
+		case 4: return Pokeys.ExtraPokey.Audc1 & 0xf;
+		case 5: return Pokeys.ExtraPokey.Audc2 & 0xf;
+		case 6: return Pokeys.ExtraPokey.Audc3 & 0xf;
+		case 7: return Pokeys.ExtraPokey.Audc4 & 0xf;
+		default: return 0;
+		}
+	}
+}

@@ -1,0 +1,62 @@
+HIDE_AUTHOR	equ	0
+	ift	HIDE_AUTHOR
+countdown	equ	$fca7
+	els
+countdown	equ	$fc98
+	eif
+
+	org	$124
+main
+	sei
+	mvy	#0	^4e
+	lda:rne	^4b
+	sta	^40
+	ldx	#29
+	sta:rpl	^00,x-
+	ert	*!=$13a
+	sta	^2e
+	ldx	#8
+init_pokey_1
+	sta	$d210,x
+	sta	$d200,x
+	dex:bpl	init_pokey_1
+	lda	#3
+	sta	$d21f
+	sta	$d200
+
+; TODO: support 400/800/600XL
+	mva	#$fe	^31
+	lda	player
+	cmp	#{rts}
+	beq	no_player
+	mwa	#nmi	$fffa
+	mva	#$40	^4e
+no_player
+	lda	song
+	cli
+	jmp	init
+
+nmi
+	plp:php	; unblock IRQ if NMI blocked it
+	pha
+	txa:pha
+	tya:pha
+	jsr	player
+	ldx	$135
+	beq	no_info
+	ldx	$d014
+	dex
+	seq:ldx	#1
+	jsr	countdown
+no_info
+	pla:tay
+	pla:tax
+	pla:rti
+
+init	dta	{jmp 0}
+	opt	o-
+	dta	a(0)
+player	jmp	0
+song	dta	0
+
+	end

@@ -16,8 +16,6 @@
 #include <make_ptr.h>
 //std includes
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace
 {
@@ -333,9 +331,10 @@ namespace
         VisitAsSelectedItems(propertyModel, *SelectedItems, cb, dups);
       }
       //select all rips but delete only nonselected
-      const Playlist::Model::IndexSet::RWPtr toRemove = dups.GetResult();
-      std::for_each(SelectedItems->begin(), SelectedItems->end(), boost::bind<Playlist::Model::IndexSet::size_type>(&Playlist::Model::IndexSet::erase, toRemove.get(), _1));
-      emit ResultAcquired(toRemove);
+      auto toRemove = dups.GetResult();
+      std::for_each(SelectedItems->begin(), SelectedItems->end(),
+        [&toRemove](Playlist::Model::IndexSet::size_type idx) {toRemove->erase(idx);});
+      emit ResultAcquired(std::move(toRemove));
     }
   private:
     const Playlist::Model::IndexSet::Ptr SelectedItems;

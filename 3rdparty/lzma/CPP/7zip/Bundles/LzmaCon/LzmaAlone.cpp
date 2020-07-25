@@ -12,7 +12,7 @@
 #define MY_SET_BINARY_MODE(file)
 #endif
 
-// #include "../../../Common/MyWindows.h"
+#include "../../../Common/MyWindows.h"
 #include "../../../Common/MyInitGuid.h"
 
 #include "../../../../C/7zVersion.h"
@@ -513,10 +513,11 @@ static int main2(int numArgs, const char *args[])
     if (parser[NKey::kEOS].ThereIs || stdInMode)
       throw "Can not use stdin in this mode";
 
-    if (fileSize > 0xF0000000)
-      throw "File is too big";
-    
     size_t inSize = (size_t)fileSize;
+
+    if (inSize != fileSize)
+      throw "File is too big";
+
     Byte *inBuffer = NULL;
     
     if (inSize != 0)
@@ -535,7 +536,13 @@ static int main2(int numArgs, const char *args[])
     if (encodeMode)
     {
       // we allocate 105% of original size for output buffer
-      outSize = (size_t)fileSize / 20 * 21 + (1 << 16);
+      UInt64 outSize64 = fileSize / 20 * 21 + (1 << 16);
+
+      outSize = (size_t)outSize64;
+      
+      if (outSize != outSize64)
+        throw "File is too big";
+
       if (outSize != 0)
       {
         outBuffer = (Byte *)MyAlloc((size_t)outSize);
@@ -561,7 +568,7 @@ static int main2(int numArgs, const char *args[])
       
       outSize = (size_t)outSize64;
       if (outSize != outSize64)
-        throw "too big";
+        throw "Unpack size is too big";
       if (outSize != 0)
       {
         outBuffer = (Byte *)MyAlloc(outSize);
@@ -742,11 +749,10 @@ static int main2(int numArgs, const char *args[])
   }
   }
 
-  if (!stdOutMode)
-    Print_Size("Output size: ", outStreamSpec->ProcessedSize);
-
   if (outStreamSpec)
   {
+    if (!stdOutMode)
+      Print_Size("Output size: ", outStreamSpec->ProcessedSize);
     if (outStreamSpec->Close() != S_OK)
       throw "File closing error";
   }

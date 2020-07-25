@@ -1,10 +1,10 @@
 dynamic_name := zxtune
-path_step := ../../../../../..
+dirs.root := ../../../../../..
 
 source_dirs := .
 
 libraries.common = analysis \
-                   binary binary_format \
+                   binary binary_compression binary_format \
                    core core_plugins_archives_lite core_plugins_players \
                    devices_aym devices_beeper devices_dac devices_fm devices_saa devices_z80 \
                    formats_chiptune formats_packed_archives formats_packed_decompilers formats_archived formats_archived_multitrack formats_multitrack \
@@ -13,12 +13,23 @@ libraries.common = analysis \
                    sound strings \
                    tools
 
-libraries.3rdparty = gme hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
+libraries.3rdparty = asap ffmpeg FLAC gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar v2m vgm vio2sf xmp z80ex zlib
 
-include $(path_step)/makefile.mak
+ld_flags += -Wl,--version-script=libzxtune.version
 
-zxtune.h: ../src/app/zxtune/ZXTune.java
-	javah -classpath ../src -o $@ app.zxtune.ZXTune
+include $(dirs.root)/makefile.mak
+
+jni_plugin.h: ../java/app/zxtune/core/jni/Plugins.java
+	javah -classpath ../java -o $@ app.zxtune.core.jni.Plugins
+
+jni_global_options.h: ../java/app/zxtune/core/jni/GlobalOptions.java
+	javah -classpath ../java -o $@ app.zxtune.core.jni.GlobalOptions
+
+jni_module.h: ../java/app/zxtune/core/jni/JniModule.java
+	javah -classpath ../java -o $@ app.zxtune.core.jni.JniModule
+
+jni_player.h: ../java/app/zxtune/core/jni/JniPlayer.java
+	javah -classpath ../java -o $@ app.zxtune.core.jni.JniPlayer
 
 install_$(platform):
 	$(call copyfile_cmd,$(target),$(DESTDIR))

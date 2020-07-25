@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "dac_chiptune.h"
+#include "module/players/dac/dac_chiptune.h"
 //library includes
 #include <binary/container.h>
 #include <parameters/container.h>

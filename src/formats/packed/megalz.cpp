@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "container.h"
-#include "pack_utils.h"
+#include "formats/packed/container.h"
+#include "formats/packed/pack_utils.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -62,8 +62,8 @@ namespace Packed
     class Bitstream : private ByteStream
     {
     public:
-      Bitstream(const uint8_t* data, std::size_t size)
-        : ByteStream(data, size)
+      explicit Bitstream(Binary::View data)
+        : ByteStream(data.As<uint8_t>(), data.Size())
         , Bits(), Mask(0)
       {
       }
@@ -126,15 +126,15 @@ namespace Packed
     class DataDecoder
     {
     public:
-      explicit DataDecoder(const uint8_t* data, std::size_t size)
-        : IsValid(size >= MIN_SIZE)
-        , Stream(data + DEPACKER_SIZE, size - DEPACKER_SIZE)
+      explicit DataDecoder(Binary::View data)
+        : IsValid(data.Size() >= MIN_SIZE)
+        , Stream(data.SubView(DEPACKER_SIZE))
         , Result(new Dump())
         , Decoded(*Result)
       {
         if (IsValid)
         {
-          Decoded.reserve(size * 2);
+          Decoded.reserve(data.Size() * 2);
           IsValid = DecodeData();
         }
       }
@@ -229,12 +229,12 @@ namespace Packed
 
     Container::Ptr Decode(const Binary::Container& rawData) const override
     {
-      if (!Depacker->Match(rawData))
+      const Binary::View data(rawData);
+      if (!Depacker->Match(data))
       {
         return Container::Ptr();
       }
-      const std::size_t size = std::min(MegaLZ::MAX_DECODED_SIZE, rawData.Size());
-      MegaLZ::DataDecoder decoder(static_cast<const uint8_t*>(rawData.Start()), size);
+      MegaLZ::DataDecoder decoder(data.SubView(0, MegaLZ::MAX_DECODED_SIZE));
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
   private:

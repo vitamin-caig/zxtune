@@ -9,15 +9,17 @@
 **/
 
 //local includes
-#include "sqdigitaltracker.h"
-#include "dac_properties_helper.h"
-#include "dac_simple.h"
+#include "module/players/dac/sqdigitaltracker.h"
+#include "module/players/dac/dac_properties_helper.h"
+#include "module/players/dac/dac_simple.h"
 //library includes
 #include <devices/dac/sample_factories.h>
 #include <formats/chiptune/digital/sqdigitaltracker.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <module/players/tracking.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -65,7 +67,7 @@ namespace SQDigitalTracker
       Data->InitialTempo = tempo;
     }
 
-    void SetSample(uint_t index, std::size_t loop, const Binary::Data& sample) override
+    void SetSample(uint_t index, std::size_t loop, Binary::View sample) override
     {
       Data->Samples.Add(index, Devices::DAC::CreateU8Sample(sample, loop));
     }
@@ -282,9 +284,9 @@ namespace SQDigitalTracker
 
     DAC::DataIterator::Ptr CreateDataIterator() const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const DAC::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return DAC::CreateDataIterator(iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
 
     void GetSamples(Devices::DAC::Chip::Ptr chip) const override
@@ -310,7 +312,8 @@ namespace SQDigitalTracker
       if (const auto container = Formats::Chiptune::SQDigitalTracker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else
       {

@@ -109,9 +109,9 @@ namespace SAA
       return Device.GetLevels();
     }
 
-    void GetState(MultiChannelState& state) const
+    void GetState(const Details::AnalysisMap& analysis, DeviceState& state) const
     {
-      Device.GetState(state);
+      Device.GetState(analysis, state);
     }
   private:
     SAADevice Device;
@@ -268,14 +268,10 @@ namespace SAA
       Renderers.Reset();
     }
 
-    MultiChannelState GetState() const override
+    DeviceState GetState() const override
     {
-      MultiChannelState res;
-      PSG.GetState(res);
-      for (auto& state : res)
-      {
-        state.Band = Analyser.GetBandByPeriod(state.Band);
-      }
+      DeviceState res;
+      PSG.GetState(Analyser, res);
       return res;
     }
   private:

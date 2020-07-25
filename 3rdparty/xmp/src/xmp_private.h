@@ -57,11 +57,13 @@ extern const struct format_loader mtp_loader;
 extern const struct format_loader ims_loader;
 extern const struct format_loader ssn_loader;
 extern const struct format_loader fnk_loader;
-extern const struct format_loader mfp_loader;
-/* extern const struct format_loader alm_loader; */
 extern const struct format_loader polly_loader;
 extern const struct format_loader pw_loader;
 extern const struct format_loader hmn_loader;
+#ifndef NO_EXTERNALFILES
+extern const struct format_loader mfp_loader;
+/* extern const struct format_loader alm_loader; */
+#endif
 
 int xmp_load_typed_module_from_memory(xmp_context opaque, void *mem, long size, const struct format_loader* loader);
 const char* xmp_get_loader_name(const struct format_loader* loader);

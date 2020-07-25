@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "dac_parameters.h"
+#include "module/players/dac/dac_parameters.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -25,7 +25,7 @@ namespace Module
     public:
       explicit ChipParameters(Parameters::Accessor::Ptr params)
         : Params(params)
-        , SoundParams(Sound::RenderParameters::Create(params))
+        , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       {
       }
 
@@ -59,7 +59,7 @@ namespace Module
 
     Devices::DAC::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
     {
-      return MakePtr<ChipParameters>(params);
+      return MakePtr<ChipParameters>(std::move(params));
     }
   }
 }

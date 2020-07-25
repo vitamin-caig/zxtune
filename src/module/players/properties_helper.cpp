@@ -9,25 +9,22 @@
 **/
 
 //local includes
-#include "properties_helper.h"
+#include "module/players/properties_helper.h"
 //library includes
 #include <module/attributes.h>
-#include <sound/sound_parameters.h>
-#include <strings/optimize.h>
-#include <time/stamp.h>
+#include <sound/render_params.h>
+#include <time/duration.h>
 //boost includes
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
-#include <boost/range/adaptor/transformed.hpp>
 
 namespace Module
 {
   void PropertiesHelper::SetNonEmptyProperty(const String& name, const String& value)
   {
-    const String& optimizedValue = Strings::Optimize(value);
-    if (!optimizedValue.empty())
+    if (!value.empty())
     {
-      Delegate.SetValue(name, optimizedValue);
+      Delegate.SetValue(name, value);
     }
   }
 
@@ -75,12 +72,9 @@ namespace Module
   
   void PropertiesHelper::SetStrings(const Strings::Array& strings)
   {
-    String joined = boost::algorithm::join(boost::adaptors::transform(strings, Strings::Optimize), "\n");
+    String joined = boost::algorithm::join(strings, "\n");
     boost::algorithm::trim_all_if(joined, boost::algorithm::is_any_of("\n"));
-    if (!joined.empty())
-    {
-      Delegate.SetValue(ATTR_STRINGS, joined);
-    }
+    SetNonEmptyProperty(ATTR_STRINGS, joined);
   }
   
   void PropertiesHelper::SetVersion(uint_t major, uint_t minor)
@@ -99,9 +93,19 @@ namespace Module
   {
     Delegate.SetValue(ATTR_DATE, date);
   }
+
+  void PropertiesHelper::SetPlatform(const String& platform)
+  {
+    Delegate.SetValue(ATTR_PLATFORM, platform);
+  }
   
   void PropertiesHelper::SetFramesFrequency(uint_t freq)
   {
-    Delegate.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, Time::GetPeriodForFrequency<Time::Microseconds>(freq).Get());
+    Sound::SetFrameDuration(Delegate, Time::Microseconds::FromFrequency(freq));
+  }
+
+  void PropertiesHelper::SetFramesParameters(uint_t samplesCount, uint_t sampleRate)
+  {
+    Sound::SetFrameDuration(Delegate, Time::Microseconds::FromRatio(samplesCount, sampleRate));
   }
 }

@@ -9,10 +9,10 @@ authors.tracks: authors.ids
 	for id in $$(cat $^); do $(MAKE) author.$${id}.err ; done
 
 authors.xml:
-	$(call download,"http://www.zxtunes.com/xml.php?scope=authors&fields=nickname%2Cname%2Ctracks",$@)
+	$(call download,"http://zxtunes.com/xml.php?scope=authors&fields=nickname%2Cname%2Ctracks",$@)
 
 author.%.xml:
-	$(call download,"http://www.zxtunes.com/xml.php?scope=tracks&fields=filename%2Ctitle%2Cduration%2Cdate&author_id=$*",$@)
+	$(call download,"http://zxtunes.com/xml.php?scope=tracks&fields=filename%2Ctitle%2Cduration%2Cdate&author_id=$*",$@)
 
 %.err: %.xml
 	xmllint --schema zxtunes.xsd $^ > $@ 2>&1 && rm $@

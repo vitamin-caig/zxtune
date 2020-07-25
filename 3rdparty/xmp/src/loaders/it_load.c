@@ -25,7 +25,7 @@ const struct format_loader it_loader = {
 };
 
 #ifdef WIN32
-struct tm *localtime_r(const time_t *timep, struct tm *result)
+static struct tm *localtime_r(const time_t *timep, struct tm *result)
 {
     /* Note: Win32 localtime() is thread-safe */
     memcpy(result, localtime(timep), sizeof(struct tm));

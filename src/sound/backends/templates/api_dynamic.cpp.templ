@@ -1,4 +1,3 @@
-    const Debug::Stream Dbg("<TMPL_VAR NAME=DEBUGMODULE>");
 
     class DynamicApi : public Api
     {
@@ -6,12 +5,12 @@
       explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
         : Lib(lib)
       {
-        Dbg("Library loaded");
+        Debug::Log("<TMPL_VAR NAME=DEBUGMODULE>", "Library loaded");
       }
 
       ~DynamicApi() override
       {
-        Dbg("Library unloaded");
+        Debug::Log("<TMPL_VAR NAME=DEBUGMODULE>", "Library unloaded");
       }
 
       <TMPL_LOOP NAME=FUNCTIONS>

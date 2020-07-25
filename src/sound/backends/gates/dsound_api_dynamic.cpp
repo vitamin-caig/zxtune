@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "dsound_api.h"
+#include "sound/backends/gates/dsound_api.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -20,7 +20,6 @@ namespace Sound
 {
   namespace DirectSound
   {
-    const Debug::Stream Dbg("Sound::Backend::DirectSound");
 
     class DynamicApi : public Api
     {
@@ -28,19 +27,19 @@ namespace Sound
       explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
         : Lib(lib)
       {
-        Dbg("Library loaded");
+        Debug::Log("Sound::Backend::DirectSound", "Library loaded");
       }
 
       ~DynamicApi() override
       {
-        Dbg("Library unloaded");
+        Debug::Log("Sound::Backend::DirectSound", "Library unloaded");
       }
 
       
-      HRESULT DirectSoundEnumerateA(LPDSENUMCALLBACKA cb, LPVOID param) override
+      HRESULT DirectSoundEnumerateW(LPDSENUMCALLBACKW cb, LPVOID param) override
       {
-        static const char NAME[] = "DirectSoundEnumerateA";
-        typedef HRESULT (WINAPI *FunctionType)(LPDSENUMCALLBACKA, LPVOID);
+        static const char NAME[] = "DirectSoundEnumerateW";
+        typedef HRESULT (WINAPI *FunctionType)(LPDSENUMCALLBACKW, LPVOID);
         const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
         return func(cb, param);
       }

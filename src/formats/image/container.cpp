@@ -9,10 +9,11 @@
 **/
 
 //local includes
-#include "container.h"
+#include "formats/image/container.h"
 //common includes
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
 //std includes
 #include <cassert>
@@ -21,29 +22,13 @@ namespace Formats
 {
   namespace Image
   {
-    class ImageContainer : public Container
+    class ImageContainer : public Binary::BaseContainer<Container>
     {
     public:
       ImageContainer(Binary::Container::Ptr delegate, std::size_t origSize)
-        : Delegate(delegate)
+        : BaseContainer(std::move(delegate))
         , OrigSize(origSize)
       {
-        assert(origSize && delegate && delegate->Size());
-      }
-
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
       }
 
       std::size_t OriginalSize() const override
@@ -51,7 +36,6 @@ namespace Formats
         return OrigSize;
       }
     private:
-      const Binary::Container::Ptr Delegate;
       const std::size_t OrigSize;
     };
 

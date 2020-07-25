@@ -9,22 +9,17 @@
 **/
 
 //local includes
-#include "backend_impl.h"
-#include "storage.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
 //common includes
 #include <make_ptr.h>
 //library includes
-#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 9A6FD87F
-
-namespace
-{
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
@@ -52,11 +47,11 @@ namespace Null
     {
     }
 
-    void FrameStart(const Module::TrackState& /*state*/) override
+    void FrameStart(const Module::State& /*state*/) override
     {
     }
 
-    void FrameFinish(Chunk::Ptr /*buffer*/) override
+    void FrameFinish(Chunk /*buffer*/) override
     {
     }
 
@@ -85,3 +80,5 @@ namespace Sound
     storage.Register(Null::ID, Null::DESCRIPTION, CAP_TYPE_STUB, factory);
   }
 }
+
+#undef FILE_TAG

@@ -9,10 +9,11 @@
 **/
 
 //local includes
-#include "container.h"
+#include "formats/packed/container.h"
 //common includes
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
 //std includes
 #include <cassert>
@@ -21,29 +22,13 @@ namespace Formats
 {
   namespace Packed
   {
-    class PackedContainer : public Container
+    class PackedContainer : public Binary::BaseContainer<Container>
     {
     public:
       PackedContainer(Binary::Container::Ptr delegate, std::size_t origSize)
-        : Delegate(delegate)
+        : BaseContainer(std::move(delegate))
         , OriginalSize(origSize)
       {
-        assert(origSize && delegate && delegate->Size());
-      }
-
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
       }
 
       std::size_t PackedSize() const override
@@ -51,7 +36,6 @@ namespace Formats
         return OriginalSize;
       }
     private:
-      const Binary::Container::Ptr Delegate;
       const std::size_t OriginalSize;
     };
     

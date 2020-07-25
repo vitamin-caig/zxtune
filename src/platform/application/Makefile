@@ -1,6 +1,6 @@
 library_name := platform_application
-path_step := ../../..
+dirs.root := ../../..
 
 source_dirs := .
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

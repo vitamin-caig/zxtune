@@ -21,7 +21,6 @@
 //std includes
 #include <array>
 #include <cmath>
-#include <functional>
 
 namespace Devices
 {
@@ -56,6 +55,7 @@ namespace DAC
       , Size(1)
       , Loop(1)
     {
+      Data[0] = Data[1] = 0;
     }
 
     uint_t GetIndex() const
@@ -356,12 +356,11 @@ namespace DAC
       }
     }
 
-    Devices::ChannelState Analyze(uint_t maxRms) const
+    void Analyze(uint_t maxRms, DeviceState& out) const
     {
       assert(Enabled);
       const uint_t rms = Source->GetRms();
-      const LevelType level = Level * rms / maxRms;
-      return Devices::ChannelState(Note + NoteSlide, level);
+      out.Set(Note + NoteSlide, Level * rms / maxRms);
     }
   private:
     Sound::Sample::Type Amplify(Sound::Sample::Type val) const
@@ -447,7 +446,7 @@ namespace DAC
 
       const uint_t* Get() const
       {
-        return &Table[0];
+        return Table.data();
       }
     private:
       std::array<uint_t, FastSample::Position::PRECISION> Table;
@@ -493,9 +492,12 @@ namespace DAC
 
     void DropData(uint_t samples)
     {
-      for (uint_t count = samples; count != 0; --count)
+      for (auto state = State, lim = State + Channels; state != lim; ++state)
       {
-        std::for_each(State, State + Channels, std::mem_fun_ref(&ChannelState::Next));
+        for (uint_t count = 0; count != samples; ++count)
+        {
+          state->Next();
+        }
       }
     }
   private:
@@ -514,7 +516,7 @@ namespace DAC
       , Mixer(std::move(mixer))
       , Target(std::move(target))
       , Clock()
-      , Renderers(*Mixer, &State[0])
+      , Renderers(*Mixer, State.data())
     {
       FixedChannelsChip::Reset();
     }
@@ -545,15 +547,14 @@ namespace DAC
       UpdateChannelState(src);
     }
 
-    MultiChannelState GetState() const override
+    DeviceState GetState() const override
     {
-      MultiChannelState res;
-      res.reserve(State.size());
+      DeviceState res;
       for (const auto& chan : State)
       {
         if (chan.Enabled)
         {
-          res.push_back(chan.Analyze(Samples.GetMaxRms()));
+          chan.Analyze(Samples.GetMaxRms(), res);
         }
       }
       return res;

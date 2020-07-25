@@ -205,7 +205,7 @@ static int mfp_load(struct module_data *m, HIO_HANDLE *f, const int start)
 	m->basename[0] = 's';
 	m->basename[1] = 'm';
 	m->basename[2] = 'p';
-	snprintf(smp_filename, PATH_MAX, "%s%s", m->dirname, m->basename);
+	snprintf(smp_filename, sizeof(smp_filename), "%s%s", m->dirname, m->basename);
 	if (stat(smp_filename, &st) < 0) {
 		/* handle .set filenames like in Kid Chaos*/
 		char *x;

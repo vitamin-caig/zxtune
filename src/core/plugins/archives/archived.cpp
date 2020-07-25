@@ -9,8 +9,10 @@
 **/
 
 //local includes
-#include "archived.h"
+#include "core/plugins/archives/archived.h"
 #include "core/src/callback.h"
+#include "core/src/detect.h"
+#include "core/plugins/archives/l10n.h"
 #include "core/plugins/plugins_types.h"
 #include "core/plugins/utils.h"
 //common includes
@@ -18,15 +20,13 @@
 //library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <strings/format.h>
 //text includes
 #include <core/text/core.h>
 
 namespace ZXTune
 {
-  const Debug::Stream Dbg("Core::ArchivesSupp");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+  const Debug::Stream ArchivedDbg("Core::ArchivesSupp");
 
   class LoggerHelper
   {
@@ -99,7 +99,7 @@ namespace ZXTune
       }
       else
       {
-        Dbg("'%1%' is too big (%1%). Skipping.", name, size);
+        ArchivedDbg("'%1%' is too big (%1%). Skipping.", name, size);
       }
     }
   private:
@@ -182,10 +182,10 @@ namespace ZXTune
       {
         resolved = resolved->Append(components->Get());
         const String filename = resolved->AsString();
-        Dbg("Trying '%1%'", filename);
+        ArchivedDbg("Trying '%1%'", filename);
         if (Formats::Archived::File::Ptr file = container.FindFile(filename))
         {
-          Dbg("Found");
+          ArchivedDbg("Found");
           return file;
         }
         if (!SupportDirectories)

@@ -52,6 +52,18 @@ namespace ZXTune
   void RegisterMTCSupport(PlayerPluginsRegistrator& registrator);
   void RegisterGMEPlugins(PlayerPluginsRegistrator& registrator);
   void RegisterAHXSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterPSFSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterUSFSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterGSFSupport(PlayerPluginsRegistrator& registrator);
+  void Register2SFSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterSDSFSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterASAPPlugins(PlayerPluginsRegistrator& registrator);
+  void RegisterMP3Plugin(PlayerPluginsRegistrator& registrator);
+  void RegisterOGGPlugin(PlayerPluginsRegistrator& registrator);
+  void RegisterWAVPlugin(PlayerPluginsRegistrator& registrator);
+  void RegisterFLACPlugin(PlayerPluginsRegistrator& registrator);
+  void RegisterV2MSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterVGMPlugins(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator)
   {
@@ -93,5 +105,17 @@ namespace ZXTune
     RegisterMTCSupport(registrator);
     RegisterGMEPlugins(registrator);
     RegisterAHXSupport(registrator);
+    RegisterPSFSupport(registrator);
+    RegisterUSFSupport(registrator);
+    RegisterGSFSupport(registrator);
+    Register2SFSupport(registrator);
+    RegisterSDSFSupport(registrator);
+    RegisterASAPPlugins(registrator);
+    RegisterMP3Plugin(registrator);
+    RegisterOGGPlugin(registrator);
+    RegisterWAVPlugin(registrator);
+    RegisterFLACPlugin(registrator);
+    RegisterV2MSupport(registrator);
+    RegisterVGMPlugins(registrator);
   }
 }

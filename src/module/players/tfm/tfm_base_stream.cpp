@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "tfm_base_stream.h"
+#include "module/players/tfm/tfm_base_stream.h"
 //common includes
 #include <make_ptr.h>
 #include <module/players/streaming.h>
@@ -40,12 +40,12 @@ namespace Module
         return Delegate->IsValid();
       }
 
-      void NextFrame(bool looped) override
+      void NextFrame(const Sound::LoopParameters& looped) override
       {
         Delegate->NextFrame(looped);
       }
 
-      TrackState::Ptr GetStateObserver() const override
+      Module::State::Ptr GetStateObserver() const override
       {
         return State;
       }
@@ -63,7 +63,7 @@ namespace Module
       }
     private:
       const StateIterator::Ptr Delegate;
-      const TrackState::Ptr State;
+      const Module::State::Ptr State;
       const StreamModel::Ptr Data;
     };
 
@@ -89,8 +89,8 @@ namespace Module
 
       TFM::DataIterator::Ptr CreateDataIterator() const override
       {
-        const StateIterator::Ptr iter = CreateStreamStateIterator(Info);
-        return MakePtr<StreamDataIterator>(iter, Data);
+        auto iter = CreateStreamStateIterator(Info);
+        return MakePtr<StreamDataIterator>(std::move(iter), Data);
       }
     private:
       const StreamModel::Ptr Data;
@@ -100,7 +100,7 @@ namespace Module
 
     Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model, Parameters::Accessor::Ptr properties)
     {
-      return MakePtr<StreamedChiptune>(model, properties);
+      return MakePtr<StreamedChiptune>(std::move(model), std::move(properties));
     }
   }
 }

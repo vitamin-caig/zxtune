@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Group description POJO
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.modland;

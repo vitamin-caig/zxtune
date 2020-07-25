@@ -38,7 +38,7 @@ namespace
     //                                  <truncsubsub>
     
     std::cout << "Test for CreateContainer" << std::endl;
-    const auto data = Binary::CreateContainer(DATA, sizeof(DATA));
+    const auto data = Binary::CreateContainer(DATA);
     Test("copying", data->Start() != DATA);
     TestContainer(*data, sizeof(DATA), DATA);
     std::cout << "Test for GetSubcontainer" << std::endl;
@@ -56,41 +56,71 @@ namespace
     std::cout << "Test for truncated nested GetSubcontainer" << std::endl;
     const auto truncSubSubdata = subData->GetSubcontainer(3, 6);
     TestContainer(*truncSubSubdata, 5, DATA + 4);
+    const auto copy = Binary::CreateContainer(data);
+    Test("opticopy", data->Start() == copy->Start());
   }
-  
-  void TestNonCopyContainer()
-  {
-    std::cout << "Test for CreateNonCopyContainer" << std::endl;
-    {
-      const uint8_t DATA[] = {0, 1, 2, 3, 4};
-      const auto data = Binary::CreateNonCopyContainer(DATA, sizeof(DATA));
-      Test("non-copying", data->Start() == DATA);
-      TestContainer(*data, sizeof(DATA), DATA);
-      std::cout << "Test for GetSubcontainer" << std::endl;
-      const auto holder = data->GetSubcontainer(1, 2);
-      TestContainer(*holder, 2, DATA + 1);
-    }
-    Test("destruction", true);
 
-    std::cout << "Test for CreateNonCopyContainer invalid case" << std::endl;
-    #ifndef __MINGW32__
-    try
+  void TestView()
+  {
+    std::cout << "Test for View" << std::endl;
     {
-      Binary::Container::Ptr holder;
+      const uint8_t data[] = {};
+      const auto view = Binary::View(data);
+      Test("empty data", !view && view.Size() == 0 && view.Start() == nullptr);
+    }
+    {
+      const auto view = Binary::View(nullptr, 10);
+      Test("null data", !view && view.Size() == 0 && view.Start() == nullptr);
+    }
+    {
+      const uint8_t data[] = {0, 1, 2};
+      const auto view = Binary::View(data);
+      Test("uint8_t[]", view && view.Size() == 3 && view.Start() == data);
+    }
+    {
+      // Should has no non-standard ctors
+      struct Mixed
       {
-        const uint8_t DATA[] = {0, 1, 2, 3, 4};
-        const auto subdata = Binary::CreateNonCopyContainer(DATA, sizeof(DATA));
-        holder = subdata->GetSubcontainer(1, 2);
-      }
-      Test("destruction", false);
+        uint8_t byte;
+        uint16_t word;
+        uint32_t dword;
+        uint64_t qword;
+        uint8_t byte2;
+      };
+      const Mixed data = {0, 1, 2, 3, 4};
+      const auto view = Binary::View(data);
+      Test("struct", view && view.Size() == 24 && view.Start() == &data);
     }
-    catch (const std::exception&)
     {
-      Test("destruction", true);
+      const std::array<uint32_t, 10> data = {};
+      const auto view = Binary::View(data);
+      Test("std::array", view && view.Size() == 40 && view.Start() == &data);
     }
-    #else
-    std::cout << " disabled" << std::endl;
-    #endif
+    std::cout << "Test for View::SubView" << std::endl;
+    {
+      const uint8_t data[] = {0, 1, 2, 3, 4, 5, 6, 7};
+      const auto view = Binary::View(data);
+      {
+        const auto sub = view.SubView(0, 4);
+        Test("begin", sub && sub.Start() == data && sub.Size() == 4);
+      }
+      {
+        const auto sub = view.SubView(0, 100);
+        Test("begin truncated", sub && sub.Start() == data && sub.Size() == 8);
+      }
+      {
+        const auto sub = view.SubView(3, 4);
+        Test("middle", sub && sub.Start() == data + 3 && sub.Size() == 4);
+      }
+      {
+        const auto sub = view.SubView(3, 100);
+        Test("middle truncated", sub && sub.Start() == data + 3 && sub.Size() == 5);
+      }
+      {
+        const auto sub = view.SubView(8);
+        Test("end", !sub && sub.Start() == nullptr && sub.Size() == 0);
+      }
+    }
   }
 }
 
@@ -99,7 +129,7 @@ int main()
   try
   {
     TestContainer();
-    TestNonCopyContainer();
+    TestView();
   }
   catch (...)
   {

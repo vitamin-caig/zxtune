@@ -14,7 +14,7 @@
 #include <types.h>
 //library includes
 #include <sound/receiver.h>
-#include <time/stamp.h>
+#include <time/instant.h>
 //std includes
 #include <memory>
 
@@ -22,7 +22,8 @@ namespace Devices
 {
   namespace Beeper
   {
-    typedef Time::Microseconds Stamp;
+    using TimeUnit = Time::Microsecond;
+    using Stamp = Time::Instant<TimeUnit>;
 
     struct DataChunk
     {

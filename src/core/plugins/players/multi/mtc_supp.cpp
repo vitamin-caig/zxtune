@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "multi_base.h"
+#include "core/plugins/players/multi/multi_base.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //common includes
@@ -288,8 +288,9 @@ namespace MTC
         Dbg("Merge %1% tracks together", tracksCount);
         Require(tracksCount > 0);
         Module::Multi::HoldersArray holders(tracksCount);
-        std::transform(Tracks.begin(), Tracks.end(), holders.begin(), std::mem_fun_ref(&TrackEntity::GetHolder));
-        const Module::Multi::HoldersArray::iterator longest = std::max_element(holders.begin(), holders.end(), &CompareByDuration);
+        std::transform(Tracks.begin(), Tracks.end(), holders.begin(),
+            [](const TrackEntity& entity) {return entity.GetHolder();});
+        const auto longest = std::max_element(holders.begin(), holders.end(), &CompareByDuration);
         MergeAbsentMetadata(*(*longest)->GetModuleProperties());
         if (longest != holders.begin())
         {

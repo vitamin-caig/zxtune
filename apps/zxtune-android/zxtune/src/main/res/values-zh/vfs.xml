@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Local -->
+    <string name="vfs_local_root_name">本地文件系统</string>
+    <string name="vfs_local_root_description">内部和外部存储的内容</string>
+    <!-- zxtunes.com -->
+    <string name="vfs_zxtunes_root_name">ZXTUNES 音乐收藏</string>
+    <string name="vfs_zxtunes_authors_name">作者</string>
+    <string name="vfs_zxtunes_authors_description">ZX Spectrum 艺术家目录</string>
+    <!-- Playlists -->
+    <string name="vfs_playlists_root_name">播放列表</string>
+    <string name="vfs_playlists_root_description">保存的播放列表存储</string>
+    <!-- ftp.modland.com -->
+    <string name="vfs_modland_root_name">Modland - 最大的模块存档</string>
+    <string name="vfs_modland_root_description">来自 http://www.exotica.org.uk</string>
+    <string name="vfs_modland_authors_name">作者</string>
+    <string name="vfs_modland_collections_name">收藏</string>
+    <string name="vfs_modland_formats_name">格式</string>
+    <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
+    <string name="vfs_hvsc_root_description">来自 http://www.prg.dtu.dk</string>
+    <!-- zxart.ee -->
+    <string name="vfs_zxart_root_name">ZX-Art - 现代 ZX Spectrum 音乐</string>
+    <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
+    <string name="vfs_zxart_authors_name">作者</string>
+    <string name="vfs_zxart_parties_name">团队</string>
+    <string name="vfs_zxart_toptracks_name">顶部轨道</string>
+    <string name="vfs_zxart_toptracks_description">100 最赞曲目</string>
+    <string name="vfs_zxart_unknown_year_name">未知年份</string>
+    <string name="vfs_zxart_compo_unknown">未知的竞赛</string>
+    <string name="vfs_zxart_compo_standard">共同音乐比赛</string>
+    <string name="vfs_zxart_compo_ay">AY音乐比赛</string>
+    <string name="vfs_zxart_compo_beeper">Beeper音乐竞赛</string>
+    <string name="vfs_zxart_compo_copyay">复制AY竞赛</string>
+    <string name="vfs_zxart_compo_nocopyay">非复制AY竞赛</string>
+    <string name="vfs_zxart_compo_realtime">实时竞赛</string>
+    <string name="vfs_zxart_compo_realtimeay">实时AY比赛</string>
+    <string name="vfs_zxart_compo_realtimebeeper">实时蜂鸣器比赛</string>
+    <string name="vfs_zxart_compo_out">在竞争中脱颖而出</string>
+    <string name="vfs_zxart_compo_wild">一切竞争</string>
+    <string name="vfs_zxart_compo_experimental">实验音乐比赛</string>
+    <string name="vfs_zxart_compo_oldschool">老牌音乐比赛</string>
+    <string name="vfs_zxart_compo_mainstream">主流音乐比赛</string>
+    <string name="vfs_zxart_compo_progressive">渐进音乐比赛</string>
+    <string name="vfs_zxart_compo_related">音乐从本次活动的作品</string>
+    <!-- joshw.info -->
+    <string name="vfs_joshw_root_description">各种档案</string>
+    <!-- amp.dascene.net -->
+    <string name="vfs_amp_handles_name">昵称</string>
+    <string name="vfs_amp_countries_name">国家</string>
+    <string name="vfs_amp_groups_name">组</string>
+    <string-array name="vfs_amp_countries_list">
+<!--0--><item></item>
+<!--1--><item>阿根廷</item>
+<!--2--><item>澳大利亚</item>
+<!--3--><item>奥地利</item>
+<!--4--><item>俄罗斯</item>
+<!--5--><item>比利时</item>
+<!--6--><item>巴西</item>
+<!--7--><item>保加利亚</item>
+<!--8--><item>加拿大</item>
+<!--9--><item>智利</item>
+<!--10--><item>哥斯达黎加</item>
+<!--11--><item>克罗地亚</item>
+<!--12--><item>塞浦路斯</item>
+<!--13--><item>捷克共和国</item>
+<!--14--><item>丹麦</item>
+<!--15--><item>多米尼加共和国</item>
+<!--16--><item>爱沙尼亚</item>
+<!--17--><item>芬兰</item>
+<!--18--><item>法国</item>
+<!--19--><item>德国</item>
+<!--20--><item>希腊</item>
+<!--21--><item>匈牙利</item>
+<!--22--><item>冰岛</item>
+<!--23--><item>爱尔兰</item>
+<!--24--><item>马恩岛</item>
+<!--25--><item>怀特岛</item>
+<!--26--><item>以色列</item>
+<!--27--><item>意大利</item>
+<!--28--><item>日本</item>
+<!--29--><item>约旦</item>
+<!--30--><item>里奇特斯坦</item>
+<!--31--><item>卢森堡</item>
+<!--32--><item>马其顿</item>
+<!--33--><item>马耳他</item>
+<!--34--><item>马提尼克岛</item>
+<!--35--><item>墨西哥</item>
+<!--36--><item>新喀里多尼亚</item>
+<!--37--><item>新西兰</item>
+<!--38--><item>北爱尔兰</item>
+<!--39--><item>挪威</item>
+<!--40--><item>波兰</item>
+<!--41--><item>葡萄牙</item>
+<!--42--><item>魁北克</item>
+<!--43--><item>罗马尼亚</item>
+<!--44--><item>俄罗斯</item>
+<!--45--><item>苏格兰</item>
+<!--46--><item>塞尔维亚</item>
+<!--47--><item>新加坡</item>
+<!--48--><item>斯洛伐克</item>
+<!--49--><item>斯洛文尼亚</item>
+<!--50--><item>南非</item>
+<!--51--><item>西班牙</item>
+<!--52--><item>瑞典</item>
+<!--53--><item>瑞士</item>
+<!--54--><item>台湾</item>
+<!--55--><item>荷兰</item>
+<!--56--><item>土耳其</item>
+<!--57--><item>美国</item>
+<!--58--><item>乌克兰</item>
+<!--59--><item>英国</item>
+<!--60--><item>未知</item>
+<!--61--><item>乌拉圭</item>
+<!--62--><item>委内瑞拉</item>
+<!--63--><item>威尔士</item>
+<!--64--><item>南斯拉夫(前南斯拉夫)</item>
+<!--65--><item></item>
+<!--66--><item></item>
+<!--67--><item></item>
+<!--68--><item></item>
+<!--69--><item></item>
+<!--70--><item></item>
+<!--71--><item></item>
+<!--72--><item></item>
+<!--73--><item></item>
+<!--74--><item>科西嘉</item>
+<!--75--><item></item>
+<!--76--><item></item>
+<!--77--><item></item>
+<!--78--><item></item>
+<!--79--><item>R.I.P</item>
+<!--80--><item></item>
+<!--81--><item></item>
+<!--82--><item></item>
+<!--83--><item></item>
+<!--84--><item></item>
+<!--85--><item></item>
+<!--86--><item>拉脱维亚</item>
+<!--87--><item>秘鲁</item>
+<!--88--><item></item>
+<!--89--><item></item>
+<!--90--><item></item>
+<!--91--><item></item>
+<!--92--><item>泰国</item>
+<!--93--><item></item>
+<!--94--><item></item>
+<!--95--><item></item>
+<!--96--><item></item>
+<!--97--><item></item>
+<!--98--><item></item>
+<!--99--><item>伊朗</item>
+<!--100--><item></item>
+<!--101--><item>伊拉克</item>
+<!--102--><item></item>
+<!--103--><item></item>
+<!--104--><item></item>
+<!--105--><item></item>
+<!--106--><item></item>
+<!--107--><item></item>
+<!--108--><item></item>
+<!--109--><item></item>
+<!--110--><item></item>
+<!--111--><item></item>
+<!--112--><item></item>
+<!--113--><item></item>
+<!--114--><item>巴拉圭</item>
+<!--115--><item></item>
+<!--116--><item></item>
+<!--117--><item></item>
+<!--118--><item></item>
+<!--119--><item></item>
+<!--120--><item>马来西亚</item>
+<!--121--><item></item>
+<!--122--><item>危地马拉</item>
+    </string-array>
+    <!-- aygor -->
+    <!-- modarchive.org -->
+    <string name="vfs_modarchive_authors_name">艺术家</string>
+    <string name="vfs_modarchive_genres_name">类型</string>
+    <string name="vfs_modarchive_random_description">随机曲调</string>
+    <!-- network -->
+    <string name="vfs_network_root_name">在线目录</string>
+    <!-- radio -->
+    <string name="vfs_radio_root_name">收音机</string>
+    <string name="vfs_radio_root_description">随机曲调和汇编</string>
+    <!-- vgmrips -->
+    <string name="vfs_vgmrips_companies_name">公司</string>
+    <string name="vfs_vgmrips_composers_name">作曲家</string>
+    <string name="vfs_vgmrips_chips_name">芯片</string>
+    <string name="vfs_vgmrips_systems_name">系统</string>
+    <string name="vfs_vgmrips_random_name">随机曲调</string>
+    <!-- errors -->
+    <string name="network_inaccessible">无法访问网络</string>
+    <string name="failed_resolve">无法解析 %s</string>
+</resources>

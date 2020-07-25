@@ -17,8 +17,6 @@
 //std includes
 #include <algorithm>
 #include <cassert>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Strings
 {
@@ -40,7 +38,8 @@ namespace Strings
     String Instantiate(const FieldsSource& src) const override
     {
       Array resultFields(Fields.size());
-      std::transform(Fields.begin(), Fields.end(), resultFields.begin(), boost::bind(&FieldsSource::GetFieldValue, &src, _1));
+      std::transform(Fields.begin(), Fields.end(), resultFields.begin(),
+        [&src](const String& name) {return src.GetFieldValue(name);});
       return SubstFields(resultFields);
     }
   private:

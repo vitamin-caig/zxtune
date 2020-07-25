@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Local -->
+    <string name="vfs_local_root_name">ファイルシステム</string>
+    <string name="vfs_local_root_description">内容の内部および外部ストレージ</string>
+    <!-- zxtunes.com -->
+    <string name="vfs_zxtunes_root_name">ZXTUNES音楽コレクション</string>
+    <string name="vfs_zxtunes_authors_name">作者</string>
+    <string name="vfs_zxtunes_authors_description">ZX Spectrum トディレクトリ</string>
+    <!-- Playlists -->
+    <string name="vfs_playlists_root_name">再生リスト</string>
+    <string name="vfs_playlists_root_description">保存したプレイリストの保存</string>
+    <!-- ftp.modland.com -->
+    <string name="vfs_modland_root_name">Modland - 最大のアーカイブモジュール</string>
+    <string name="vfs_modland_root_description">経由 http://www.exotica.org.uk</string>
+    <string name="vfs_modland_authors_name">作者</string>
+    <string name="vfs_modland_collections_name">集</string>
+    <string name="vfs_modland_formats_name">形式</string>
+    <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
+    <string name="vfs_hvsc_root_description">経由 http://www.prg.dtu.dk</string>
+    <!-- zxart.ee -->
+    <string name="vfs_zxart_root_name">ZX-Art - 現代 ZX Spectrum 音楽</string>
+    <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
+    <string name="vfs_zxart_authors_name">作者</string>
+    <string name="vfs_zxart_parties_name">パーティー</string>
+    <string name="vfs_zxart_toptracks_name">トップ音声トラック</string>
+    <string name="vfs_zxart_toptracks_description">100 オーディオトラック</string>
+    <string name="vfs_zxart_unknown_year_name">年未知</string>
+    <string name="vfs_zxart_compo_unknown">未知の競争</string>
+    <string name="vfs_zxart_compo_standard">共通の音楽コンクール</string>
+    <string name="vfs_zxart_compo_ay">AY音楽コンクール</string>
+    <string name="vfs_zxart_compo_beeper">Beeper音楽コンクール</string>
+    <string name="vfs_zxart_compo_copyay">コピー AYコンテスト</string>
+    <string name="vfs_zxart_compo_nocopyay">非コピー AYコンテスト</string>
+    <string name="vfs_zxart_compo_realtime">リアルタイム競争</string>
+    <string name="vfs_zxart_compo_realtimeay">リアルタイムAY音楽コンクール</string>
+    <string name="vfs_zxart_compo_realtimebeeper">リアルタイムBeeper音楽コンクール</string>
+    <string name="vfs_zxart_compo_out">競争から</string>
+    <string name="vfs_zxart_compo_wild">競争するすべて</string>
+    <string name="vfs_zxart_compo_experimental">実験音楽コンクール</string>
+    <string name="vfs_zxart_compo_oldschool">ﾂつｨﾂ姪"ﾂつ"ﾂ債ﾂづ</string>
+    <string name="vfs_zxart_compo_mainstream">主流音楽競争</string>
+    <string name="vfs_zxart_compo_progressive">順送音楽コンクール</string>
+    <string name="vfs_zxart_compo_related">このイベントの作品からの音楽</string>
+    <!-- joshw.info -->
+    <string name="vfs_joshw_root_description">各種カタログ</string>
+    <!-- amp.dascene.net -->
+    <string name="vfs_amp_handles_name">愛称</string>
+    <string name="vfs_amp_countries_name">国</string>
+    <string name="vfs_amp_groups_name">グループ</string>
+    <string-array name="vfs_amp_countries_list">
+<!--0--><item></item>
+<!--1--><item>アルゼンチン</item>
+<!--2--><item>オーストラリア</item>
+<!--3--><item>オーストリア</item>
+<!--4--><item>ベラルーシ</item>
+<!--5--><item>ベルギー</item>
+<!--6--><item>ブラジル</item>
+<!--7--><item>ブルガリア</item>
+<!--8--><item>カナダ</item>
+<!--9--><item>チリ</item>
+<!--10--><item>コスタ</item>
+<!--11--><item>クロアチア</item>
+<!--12--><item>キプロス</item>
+<!--13--><item>チェコ共和国</item>
+<!--14--><item>デンマーク</item>
+<!--15--><item>ドミニカ共和国</item>
+<!--16--><item>エストニア</item>
+<!--17--><item>フィンランド</item>
+<!--18--><item>フランス</item>
+<!--19--><item>ドイツ</item>
+<!--20--><item>ギリシャ</item>
+<!--21--><item>ハンガリー</item>
+<!--22--><item>アイスランド</item>
+<!--23--><item>アイルランド</item>
+<!--24--><item>マン島</item>
+<!--25--><item>ワイト島</item>
+<!--26--><item>イスラエル</item>
+<!--27--><item>イタリア</item>
+<!--28--><item>日本</item>
+<!--29--><item>ヨルダン</item>
+<!--30--><item>リキテンシュタイン</item>
+<!--31--><item>ルクセンブルク</item>
+<!--32--><item>マケドニア</item>
+<!--33--><item>マルタ</item>
+<!--34--><item>マルティニーク島</item>
+<!--35--><item>メキシコ</item>
+<!--36--><item>ニューカレドニア</item>
+<!--37--><item>ニュージーランド</item>
+<!--38--><item>北アイルランド</item>
+<!--39--><item>ノルウェー</item>
+<!--40--><item>ポーランド</item>
+<!--41--><item>ポルトガル</item>
+<!--42--><item>ケベック</item>
+<!--43--><item>ルーマニア</item>
+<!--44--><item>ロシア</item>
+<!--45--><item>スコットランド</item>
+<!--46--><item>セルビア</item>
+<!--47--><item>シンガポール</item>
+<!--48--><item>スロバキア</item>
+<!--49--><item>スロベニア</item>
+<!--50--><item>南アフリカ</item>
+<!--51--><item>スペイン</item>
+<!--52--><item>スウェーデン</item>
+<!--53--><item>スイス</item>
+<!--54--><item>台湾</item>
+<!--55--><item>オランダ</item>
+<!--56--><item>トルコ</item>
+<!--57--><item>米国</item>
+<!--58--><item>ウクライナ</item>
+<!--59--><item>イギリス</item>
+<!--60--><item>不明</item>
+<!--61--><item>ウルグアイ</item>
+<!--62--><item>ベネズエラ</item>
+<!--63--><item>ウェールズ</item>
+<!--64--><item>ユーゴスラビア(ex)</item>
+<!--65--><item></item>
+<!--66--><item></item>
+<!--67--><item></item>
+<!--68--><item></item>
+<!--69--><item></item>
+<!--70--><item></item>
+<!--71--><item></item>
+<!--72--><item></item>
+<!--73--><item></item>
+<!--74--><item>コルシカ島</item>
+<!--75--><item></item>
+<!--76--><item></item>
+<!--77--><item></item>
+<!--78--><item></item>
+<!--79--><item>R.I.P</item>
+<!--80--><item></item>
+<!--81--><item></item>
+<!--82--><item></item>
+<!--83--><item></item>
+<!--84--><item></item>
+<!--85--><item></item>
+<!--86--><item>ラトビア</item>
+<!--87--><item>ペルー</item>
+<!--88--><item></item>
+<!--89--><item></item>
+<!--90--><item></item>
+<!--91--><item></item>
+<!--92--><item>タイ</item>
+<!--93--><item></item>
+<!--94--><item></item>
+<!--95--><item></item>
+<!--96--><item></item>
+<!--97--><item></item>
+<!--98--><item></item>
+<!--99--><item>イラン</item>
+<!--100--><item></item>
+<!--101--><item>イラク</item>
+<!--102--><item></item>
+<!--103--><item></item>
+<!--104--><item></item>
+<!--105--><item></item>
+<!--106--><item></item>
+<!--107--><item></item>
+<!--108--><item></item>
+<!--109--><item></item>
+<!--110--><item></item>
+<!--111--><item></item>
+<!--112--><item></item>
+<!--113--><item></item>
+<!--114--><item>パラグアイ</item>
+<!--115--><item></item>
+<!--116--><item></item>
+<!--117--><item></item>
+<!--118--><item></item>
+<!--119--><item></item>
+<!--120--><item>マレーシア</item>
+<!--121--><item></item>
+<!--122--><item>グアテマラ</item>
+    </string-array>
+    <!-- aygor -->
+    <!-- modarchive.org -->
+    <string name="vfs_modarchive_authors_name">作者</string>
+    <string name="vfs_modarchive_genres_name">ジャンル</string>
+    <string name="vfs_modarchive_random_description">ランダム曲</string>
+    <!-- network -->
+    <string name="vfs_network_root_name">オンラインカタログ</string>
+    <!-- radio -->
+    <string name="vfs_radio_root_name">ラジオ</string>
+    <string name="vfs_radio_root_description">ランダム曲とコンパイル</string>
+    <!-- vgmrips -->
+    <string name="vfs_vgmrips_companies_name">企業</string>
+    <string name="vfs_vgmrips_composers_name">作曲家</string>
+    <string name="vfs_vgmrips_chips_name">チップ</string>
+    <string name="vfs_vgmrips_systems_name">システム</string>
+    <string name="vfs_vgmrips_random_name">ランダム曲</string>
+    <!-- errors -->
+    <string name="network_inaccessible">ネットワー</string>
+    <string name="failed_resolve">解決に失敗しました %s</string>
+</resources>

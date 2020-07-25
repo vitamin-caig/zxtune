@@ -1,15 +1,12 @@
 /**
- *
  * @file
- *
  * @brief Remote implementation of catalog
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.zxtunes;
 
+import android.net.Uri;
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
@@ -17,19 +14,21 @@ import android.sax.RootElement;
 import android.sax.StartElementListener;
 import android.util.Xml;
 
+import androidx.annotation.Nullable;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.nio.ByteBuffer;
 import java.util.Locale;
 
-import app.zxtune.fs.HttpProvider;
+import app.zxtune.Log;
+import app.zxtune.fs.HtmlUtils;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
-final class RemoteCatalog extends Catalog {
+public final class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
@@ -38,72 +37,60 @@ final class RemoteCatalog extends Catalog {
   private static final String ALL_AUTHORS_QUERY = API + "scope=authors&fields=nickname,name,tracks";
   //return nothing really, but required for more logical model
   private static final String ALL_TRACKS_QUERY = API
-      + "scope=tracks&fields=filename,title,duration,date";
+          + "scope=tracks&fields=filename,title,duration,date";
   private static final String AUTHOR_TRACKS_QUERY = ALL_TRACKS_QUERY + "&author_id=%d";
   private static final String DOWNLOAD_QUERY = SITE + "downloads.php?id=%d";
 
-  private final HttpProvider http;
+  private final MultisourceHttpProvider http;
 
-  public RemoteCatalog(HttpProvider http) {
+  RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
   }
 
   @Override
   public void queryAuthors(AuthorsVisitor visitor) throws IOException {
-    final HttpURLConnection connection = http.connect(ALL_AUTHORS_QUERY);
+    Log.d(TAG, "queryAuthors()");
+    final InputStream stream = http.getInputStream(Uri.parse(ALL_AUTHORS_QUERY));
     final RootElement root = createAuthorsParserRoot(visitor);
-    performQuery(connection, root);
+    performQuery(stream, root);
   }
 
   @Override
   public void queryAuthorTracks(Author author, TracksVisitor visitor) throws IOException {
+    Log.d(TAG, "queryAuthorTracks(author=%d)", author.id);
     queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
   }
 
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {
-    final HttpURLConnection connection = http.connect(query);
+    final InputStream stream = http.getInputStream(Uri.parse(query));
     final RootElement root = createModulesParserRoot(visitor);
-    performQuery(connection, root);
+    performQuery(stream, root);
   }
 
   @Override
   public boolean searchSupported() {
     return http.hasConnection();
   }
-  
+
   @Override
   public void findTracks(String query, FoundTracksVisitor visitor) throws IOException {
     throw new IOException("Search is not supported on remote side");
   }
-  
-  @Override
-  public ByteBuffer getTrackContent(int id) throws IOException {
+
+  public static Uri[] getTrackUris(int id) {
     final String query = String.format(Locale.US, DOWNLOAD_QUERY, id);
-    return http.getContent(query);
+    return new Uri[]{Uri.parse(query)};
   }
 
-  private void performQuery(HttpURLConnection connection, RootElement root)
-      throws IOException {
+  private void performQuery(InputStream httpStream, RootElement root)
+          throws IOException {
     try {
-      final InputStream stream = new BufferedInputStream(connection.getInputStream());
+      final InputStream stream = new BufferedInputStream(httpStream);
       Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
     } catch (SAXException e) {
       throw new IOException(e);
-    } catch (IOException e) {
-      http.checkConnectionError();
-      throw e;
     } finally {
-      connection.disconnect();
-    }
-  }
-  
-  private static Integer asInt(String str) {
-    if (str == null) {
-      return null;
-    } else try {
-      return Integer.parseInt(str);
-    } catch (NumberFormatException e) {
-      return null;
+      httpStream.close();
     }
   }
 
@@ -114,7 +101,7 @@ final class RemoteCatalog extends Catalog {
     list.setStartElementListener(new StartElementListener() {
       @Override
       public void start(Attributes attributes) {
-        final Integer count = asInt(attributes.getValue("count"));
+        final Integer count = HtmlUtils.tryGetInteger(attributes.getValue("count"));
         if (count != null) {
           visitor.setCountHint(count);
         }
@@ -159,11 +146,19 @@ final class RemoteCatalog extends Catalog {
 
   private static class AuthorBuilder {
 
+    @Nullable
     private Integer id;
+    @Nullable
     private String nickname;
+    @Nullable
     private String name;
+    @Nullable
     private Integer tracks;
-    
+
+    AuthorBuilder() {
+      reset();
+    }
+
     final void setId(String val) {
       id = Integer.valueOf(val);
     }
@@ -180,17 +175,24 @@ final class RemoteCatalog extends Catalog {
       tracks = Integer.valueOf(val);
     }
 
+    @Nullable
     final Author captureResult() {
       final Author res = isValid() && hasTracks() ? new Author(id, nickname, name) : null;
-      id = tracks = null;
-      nickname = name = null;
+      reset();
       return res;
     }
-    
+
+    private void reset() {
+      id = null;
+      tracks = null;
+      nickname = null;
+      name = "";
+    }
+
     private boolean isValid() {
       return id != null && nickname != null;
     }
-    
+
     private boolean hasTracks() {
       return tracks != null && tracks != 0;
     }
@@ -203,7 +205,7 @@ final class RemoteCatalog extends Catalog {
     list.setStartElementListener(new StartElementListener() {
       @Override
       public void start(Attributes attributes) {
-        final Integer count = asInt(attributes.getValue("count"));
+        final Integer count = HtmlUtils.tryGetInteger(attributes.getValue("count"));
         if (count != null) {
           visitor.setCountHint(count);
         }
@@ -254,12 +256,21 @@ final class RemoteCatalog extends Catalog {
 
   private static class ModuleBuilder {
 
+    @Nullable
     private Integer id;
+    @Nullable
     private String filename;
+    @Nullable
     private String title;
+    @Nullable
     private Integer duration;
+    @Nullable
     private Integer date;
-    
+
+    ModuleBuilder() {
+      reset();
+    }
+
     final void setId(String val) {
       id = Integer.valueOf(val);
     }
@@ -280,13 +291,21 @@ final class RemoteCatalog extends Catalog {
       date = Integer.valueOf(val);
     }
 
+    @Nullable
     final Track captureResult() {
       final Track res = isValid() ? new Track(id, filename, title, duration, date) : null;
-      id = duration = date = null;
-      filename = title = null;
+      reset();
       return res;
     }
-    
+
+    private void reset() {
+      id = null;
+      duration = null;
+      date = null;
+      filename = null;
+      title = "";
+    }
+
     private boolean isValid() {
       return id != null && filename != null;
     }

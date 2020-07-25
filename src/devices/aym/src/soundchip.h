@@ -83,15 +83,10 @@ namespace AYM
       Renderers.Reset();
     }
 
-    MultiChannelState GetState() const override
+    DeviceState GetState() const override
     {
-      MultiChannelState res;
-      res.reserve(Traits::VOICES);
-      PSG.GetState(res);
-      for (auto& re : res)
-      {
-        re.Band = Analyser.GetBandByPeriod(re.Band);
-      }
+      DeviceState res;
+      PSG.GetState(Analyser, res);
       return res;
     }
   private:

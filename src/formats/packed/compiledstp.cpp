@@ -9,14 +9,13 @@
 **/
 
 //local includes
-#include "container.h"
+#include "formats/packed/container.h"
 #include "formats/chiptune/aym/soundtrackerpro.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 //std includes
 #include <array>
@@ -103,7 +102,7 @@ namespace Packed
         {
           Dump result(53);
           const uint8_t* const src = Information;
-          uint8_t* const dst = &result[0];
+          uint8_t* const dst = result.data();
           std::memcpy(dst, src, 24);
           std::memcpy(dst + 24, src + 26, 4);
           std::memcpy(dst + 27, src + 31, 25);
@@ -164,13 +163,15 @@ namespace Packed
       "32??"     //ld (xxxx),a
     ;
 
-    bool IsInfoEmpty(const Dump& info)
+    bool IsInfoEmpty(Binary::View info)
     {
-      assert(info.size() == 53);
+      assert(info.Size() == 53);
       //28 is fixed
       //25 is title
-      const Dump::const_iterator titleStart = info.begin() + 28;
-      return info.end() == std::find_if(titleStart, info.end(), std::bind2nd(std::greater<Char>(), Char(' ')));
+      const auto start = info.As<Char>();
+      const auto end = start + info.Size();
+      const auto titleStart = start + 28;
+      return end == std::find_if(titleStart, end, std::bind2nd(std::greater<Char>(), Char(' ')));
     }
   }//CompiledSTP
 
@@ -196,38 +197,37 @@ namespace Packed
     Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       using namespace CompiledSTP;
-      if (!Player->Match(rawData))
+      const Binary::View data(rawData);
+      if (!Player->Match(data))
       {
         return Container::Ptr();
       }
-      const Binary::TypedContainer typedData(rawData);
-      const std::size_t availSize = rawData.Size();
-      const typename Version::RawPlayer& rawPlayer = *typedData.GetField<typename Version::RawPlayer>(0);
-      const std::size_t playerSize = rawPlayer.GetSize();
-      if (playerSize >= std::min(availSize, CompiledSTP::MAX_PLAYER_SIZE))
+      const auto& rawPlayer = *data.As<typename Version::RawPlayer>();
+      const auto playerSize = rawPlayer.GetSize();
+      if (playerSize >= std::min(data.Size(), CompiledSTP::MAX_PLAYER_SIZE))
       {
         Dbg("Invalid player");
         return Container::Ptr();
       }
       Dbg("Detected player in first %1% bytes", playerSize);
-      const std::size_t modDataSize = std::min(CompiledSTP::MAX_MODULE_SIZE, availSize - playerSize);
-      const Binary::Container::Ptr modData = rawData.GetSubcontainer(playerSize, modDataSize);
-      const Dump metainfo = rawPlayer.GetInfo();
+      const auto modData = rawData.GetSubcontainer(playerSize, CompiledSTP::MAX_MODULE_SIZE);
+      const auto metainfo = rawPlayer.GetInfo();
+      auto& stub = Formats::Chiptune::SoundTrackerPro::GetStubBuilder();
       if (CompiledSTP::IsInfoEmpty(metainfo))
       {
         Dbg("Player has empty metainfo");
-        if (const Binary::Container::Ptr originalModule = Formats::Chiptune::SoundTrackerPro::ParseCompiled(*modData, Formats::Chiptune::SoundTrackerPro::GetStubBuilder()))
+        if (auto originalModule = Formats::Chiptune::SoundTrackerPro::ParseCompiled(*modData, stub))
         {
           const std::size_t originalSize = originalModule->Size();
-          return CreateContainer(originalModule, playerSize + originalSize);
+          return CreateContainer(std::move(originalModule), playerSize + originalSize);
         }
       }
-      else if (const Binary::Container::Ptr fixedModule = Formats::Chiptune::SoundTrackerPro::InsertMetaInformation(*modData, metainfo))
+      else if (auto fixedModule = Formats::Chiptune::SoundTrackerPro::InsertMetaInformation(*modData, metainfo))
       {
-        if (Formats::Chiptune::SoundTrackerPro::ParseCompiled(*fixedModule, Formats::Chiptune::SoundTrackerPro::GetStubBuilder()))
+        if (Formats::Chiptune::SoundTrackerPro::ParseCompiled(*fixedModule, stub))
         {
           const std::size_t originalSize = fixedModule->Size() - metainfo.size();
-          return CreateContainer(fixedModule, playerSize + originalSize);
+          return CreateContainer(std::move(fixedModule), playerSize + originalSize);
         }
         Dbg("Failed to parse fixed module");
       }

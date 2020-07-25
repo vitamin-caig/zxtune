@@ -10,31 +10,42 @@
 
 package app.zxtune.sound;
 
+import app.zxtune.TimeStamp;
+
 public interface SamplesSource {
 
-  public static final class Channels {
-    public final static int COUNT = 2;
+  final class Channels {
+    public static final int COUNT = 2;
   }
 
-  public static final class Sample {
-    public final static int BYTES = 2;
+  final class Sample {
+    public static final int BYTES = 2;
   }
   
   /**
    * Initialize stream for input
    * @param sampleRate required sample rate in Hz (e.g. 44100)
    */
-  public void initialize(int sampleRate);
+  void initialize(int sampleRate);
   
   /**
    * Acquire next sound chunk
    * @param buf result buffer of 16-bit signed interleaved stereo signal
-   * @return true if buffer filled
+   * @return true if buffer filled, else reset position to initial
    */
-  public boolean getSamples(short[] buf);
-  
+  boolean getSamples(short[] buf);
+
   /**
-   * Release all internal resources
+   * Synchronously changes playback position
+   * @param pos
+   * @throws Exception
    */
-  public void release();
+  void setPosition(TimeStamp pos);
+
+  /**
+   * Get current playback position
+   * @return pos
+   * @throws Exception
+   */
+  TimeStamp getPosition();
 }

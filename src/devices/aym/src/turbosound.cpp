@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "psg.h"
-#include "soundchip.h"
+#include "devices/aym/src/psg.h"
+#include "devices/aym/src/soundchip.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -63,10 +63,10 @@ namespace TurboSound
       return Sound::Sample::FastAdd(s0, s1);
     }
 
-    void GetState(MultiChannelState& state) const
+    void GetState(const Details::AnalysisMap& analyzer, DeviceState& state) const
     {
-      Chip0.GetState(state);
-      Chip1.GetState(state);
+      Chip0.GetState(analyzer, state);
+      Chip1.GetState(analyzer, state);
     }
   private:
     AYM::PSG Chip0;

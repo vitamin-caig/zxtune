@@ -9,16 +9,18 @@
 **/
 
 //local includes
-#include "protracker2.h"
-#include "aym_base.h"
-#include "aym_base_track.h"
-#include "aym_properties_helper.h"
+#include "module/players/aym/protracker2.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_properties_helper.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <formats/chiptune/aym/protracker2.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -433,9 +435,9 @@ namespace ProTracker2
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
@@ -453,7 +455,8 @@ namespace ProTracker2
       if (const auto container = Formats::Chiptune::ProTracker2::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else
       {

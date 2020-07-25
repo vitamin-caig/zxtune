@@ -89,6 +89,16 @@ namespace
       {
       }
     }
+
+    void Write(const String& str) const override
+    {
+      std::vector<wchar_t> wide(str.size());
+      const auto wideSize = ::MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), wide.data(), wide.size());
+      std::vector<char> narrow(str.size());
+      const auto narrowSize = ::WideCharToMultiByte(CP_OEMCP, 0, wide.data(), wideSize, narrow.data(), narrow.size(), 0, 0);
+      DWORD realSize = 0;
+      ::WriteFile(Handle, narrow.data(), narrowSize, &realSize, NULL);
+    }
   private:
     const HANDLE Handle;
   };

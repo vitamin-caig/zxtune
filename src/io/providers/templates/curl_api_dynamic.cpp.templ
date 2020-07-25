@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "curl_api.h"
+#include "io/providers/gates/curl_api.h"
 //common includes
 #include <make_ptr.h>
 //library includes

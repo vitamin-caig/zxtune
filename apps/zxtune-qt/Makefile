@@ -1,13 +1,9 @@
 binary_name := zxtune-qt
-path_step := ../..
-include $(path_step)/make/default.mak
-
-ifeq ($(platform),dingux)
-embedded := 1
-endif
+dirs.root := ../..
+include $(dirs.root)/make/default.mak
 
 source_dirs = . supp
-include_dirs = .
+includes.dirs += .
 
 source_files.windows = res/zxtune-qt.rc
 source_files.mingw = $(source_files.windows)
@@ -23,7 +19,8 @@ moc_files += supp/playback_supp singlemode
 text_files := text/text
 
 #base
-libraries.common = analysis async binary binary_format \
+libraries.common = analysis async \
+                  binary binary_compression binary_format \
                   core core_plugins_players core_plugins_archives \
                   devices_aym devices_aym_dumper devices_beeper devices_dac devices_fm devices_saa devices_z80 \
                   formats_archived formats_archived_multitrack formats_chiptune formats_packed formats_multitrack \
@@ -33,7 +30,7 @@ libraries.common = analysis async binary binary_format \
                   resource \
                   sound sound_backends strings \
                   tools
-libraries.3rdparty = gme hvl lhasa lzma sidplayfp snesspc unrar xmp z80ex zlib
+libraries.3rdparty = asap ffmpeg FLAC gme he ht hvl lazyusf2 lhasa lzma mgba sidplayfp snesspc unrar v2m vgm vio2sf xmp z80ex zlib
 
 #ui
 libraries += playlist_ui playlist_supp playlist_io ui_common
@@ -43,28 +40,23 @@ libraries.boost = filesystem system
 
 libraries.qt = Gui Core Network
 
-ifdef embedded
-libraries += ui_embedded playlist_ui_embedded
-depends += apps/zxtune-qt/ui/embedded apps/zxtune-qt/playlist/ui/embedded
-else
 libraries.common += l10n debug
 libraries += ui_desktop playlist_ui_desktop ui_conversion ui_preferences check_update
 depends += $(addprefix apps/zxtune-qt/,ui/desktop playlist/ui/desktop ui/conversion ui/preferences update)
 libraries.boost += locale
-mingw_libraries += iconv
-darwin_libraries += iconv
+libraries.mingw += iconv
+libraries.darwin += iconv
 embedded_files = $(qm_translation_data) $(mo_translation_data)
-endif
 
 theme_resources = res/theme_$(gui_theme)
 
 #qt-based resources
 qrc_files := $(theme_resources)/theme
 
-$(platform)_definitions += GUI_THEME=$(gui_theme)
+defines += GUI_THEME=$(gui_theme)
 
-include $(path_step)/makefile.mak
-include $(path_step)/make/package.mak
+include $(dirs.root)/makefile.mak
+include $(dirs.root)/make/package.mak
 
 install_linux: install_linux_binary
 	install -m644 -D ../changelog.txt $(DESTDIR)/usr/share/zxtune/changelog.txt
@@ -80,52 +72,13 @@ install_mingw: install_samples install_samples_playlist install_3rdparty
 	$(call copyfile_cmd,$(target),$(DESTDIR))
 	$(call copyfile_cmd,../changelog.txt,$(DESTDIR))
 
-dingux_dir = local/apps/$(binary_name)
-
-install_dingux: dist/$(manual_file) install_samples install_samples_playlist $(pkg_root)/wrapper.sh $(pkg_root)/dmenu.cfg $(pkg_root)/gmenu.cfg
-	install -D $(target) $(DESTDIR)/$(dingux_dir)/$(notdir $(target))
-	install -m755 -D $(pkg_root)/wrapper.sh $(DESTDIR)/$(dingux_dir)/$(binary_name).sh
-	install -m644 -D $(pkg_root)/dmenu.cfg $(DESTDIR)/$(dingux_dir)/dmenu.cfg
-	install -m644 -D $(pkg_root)/gmenu.cfg $(DESTDIR)/local/gmenu2x/sections/applications/$(binary_name)
-	install -m644 -D dist/dingux/fonts/fixed_70_50.qpf $(DESTDIR)/local/share/fonts/fixed_70_50.qpf
-	install -m644 -D ../changelog.txt $(DESTDIR)/changelog.txt
-	install -m644 -D $(theme_resources)/zxtune32.png $(DESTDIR)/$(dingux_dir)/zxtune32.png
-	install -m644 -D dist/dingux/readme.txt $(DESTDIR)/readme.txt
-	$(call rmfiles_cmd,$(pkg_root)/wrapper.sh $(pkg_root)/dmenu.cfg $(pkg_root)/gmenu.cfg)
-
-$(pkg_root)/wrapper.sh:
-	@echo -e "\
-	#!/bin/sh\n\
-	QT_QWS_FONTDIR=/usr/local/share/fonts QWS_KEYBOARD=USB:/dev/event0 ./$(notdir $(target)) -qws -nomouse\n\
-	" > $@
-
-$(pkg_root)/dmenu.cfg:
-	@echo -e "\
-	MenuItem ZXTuneQT\n\
-	{\n\
-	  Icon = \"/usr/$(dingux_dir)/zxtune32.png\"\n\
-	  Name = \"ZXTuneQT\"\n\
-	  Executable = \"./$(binary_name).sh\"\n\
-	  WorkDir = \"/usr/$(dingux_dir)/\"\n\
-	}\n\
-	" > $@
-
-$(pkg_root)/gmenu.cfg:
-	@echo -e "\
-	title=ZXTuneQT\n\
-	icon=/usr/$(dingux_dir)/zxtune32.png\n\
-	exec=/usr/$(dingux_dir)/$(binary_name).sh\n\
-	clock=430\n\
-	backlight=100\n\
-	" > $@
-
 macos_bundle = $(bins_dir)/$(binary_name).app
 
 make_bundle:
 	mkdir -p $(macos_bundle)/Contents/MacOS
-	install -s $(target) $(macos_bundle)/Contents/MacOS/$(binary_name)
+	install $(target) $(macos_bundle)/Contents/MacOS/$(binary_name)
 	sed 's/@VERSION@/$(root.version.index).0.0/' dist/macos/Info.plist > $(macos_bundle)/Contents/Info.plist
-	$(path_step)/make/tools/mkicns.sh $(theme_resources)/zxtune1024.png $(macos_bundle)/Contents/Resources/zxtune
+	$(dirs.root)/make/tools/mkicns.sh $(theme_resources)/zxtune1024.png $(macos_bundle)/Contents/Resources/zxtune
 
-include $(path_step)/samples/samples.mak
-include $(path_step)/3rdparty/install.mak
+include $(dirs.root)/samples/samples.mak
+include $(dirs.root)/3rdparty/install.mak

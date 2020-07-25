@@ -21,6 +21,8 @@
 //library includes
 #include <async/data_receiver.h>
 #include <async/src/event.h>
+#include <binary/container_factories.h>
+#include <binary/crc.h>
 #include <core/core_parameters.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
@@ -148,10 +150,39 @@ namespace
     return param;
   }
   
+  class TruncateDataEndpoint : public HolderAndData::Receiver
+  {
+  public:
+    explicit TruncateDataEndpoint(Ptr saver)
+      : Saver(std::move(saver))
+    {
+    }
+
+    void ApplyData(HolderAndData data) override
+    {
+      const Parameters::IntType availSize = data.Data->Size();
+      Parameters::IntType usedSize = 0;
+      data.Holder->GetModuleProperties()->FindValue(Module::ATTR_SIZE, usedSize);
+      if (availSize != usedSize)
+      {
+        Require(availSize > usedSize);
+        data.Data = Binary::CreateContainer(std::move(data.Data))->GetSubcontainer(0, usedSize);
+      }
+      Saver->ApplyData(std::move(data));
+    }
+
+    void Flush() override
+    {
+      Saver->Flush();
+    }
+  private:
+    const Ptr Saver;
+  };
+  
   class ConvertEndpoint : public HolderAndData::Receiver
   {
   public:
-    ConvertEndpoint(DisplayComponent& display, const String& mode, const Parameters::Accessor& modeParams, HolderAndData::Receiver::Ptr saver)
+    ConvertEndpoint(DisplayComponent& display, const String& mode, const Parameters::Accessor& modeParams, Ptr saver)
       : Display(display)
       , ConversionParameter(CreateConversionParameters(mode, modeParams))
       , Saver(std::move(saver))
@@ -164,10 +195,7 @@ namespace
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
       if (const Binary::Data::Ptr result = Module::Convert(*holder, *ConversionParameter, props))
       {
-        HolderAndData converted;
-        converted.Holder = holder;
-        converted.Data = result;
-        Saver->ApplyData(std::move(converted));
+        Saver->ApplyData({holder, result});
       }
       else
       {
@@ -185,7 +213,7 @@ namespace
   private:
     DisplayComponent& Display;
     const std::unique_ptr<Module::Conversion::Parameter> ConversionParameter;
-    const HolderAndData::Receiver::Ptr Saver;
+    const Ptr Saver;
   };
 
   class Convertor : public OnItemCallback
@@ -201,8 +229,8 @@ namespace
       }
       const HolderAndData::Receiver::Ptr saver(new SaveEndpoint(display, params));
       const HolderAndData::Receiver::Ptr target = mode == Text::CONVERSION_MODE_RAW
-        ? saver
-        : HolderAndData::Receiver::Ptr(new ConvertEndpoint(display, mode, params, saver));
+        ? MakePtr<TruncateDataEndpoint>(saver)
+        : MakePtr<ConvertEndpoint>(display, mode, params, saver);
       Pipe = Async::DataReceiver<HolderAndData>::Create(1, 1000, target);
     }
 
@@ -213,50 +241,10 @@ namespace
 
     void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder) override
     {
-      HolderAndData pair;
-      pair.Holder = holder;
-      pair.Data = data;
-      Pipe->ApplyData(std::move(pair));
+      Pipe->ApplyData({std::move(holder), std::move(data)});
     }
   private:
     HolderAndData::Receiver::Ptr Pipe;
-  };
-
-  class FinishPlaybackCallback : public Sound::BackendCallback
-  {
-  public:
-    void OnStart() override
-    {
-      Event.Reset();
-    }
-
-    void OnFrame(const Module::TrackState& /*state*/) override
-    {
-    }
-
-    void OnStop() override
-    {
-    }
-
-    void OnPause() override
-    {
-    }
-
-    void OnResume() override
-    {
-    }
-
-    void OnFinish() override
-    {
-      Event.Set(1);
-    }
-
-    void Wait()
-    {
-      Event.Wait(1);
-    }
-  private:
-    Async::Event<uint_t> Event;
   };
 
   class Benchmark : public OnItemCallback
@@ -277,22 +265,78 @@ namespace
       props->FindValue(Module::ATTR_FULLPATH, path);
       props->FindValue(Module::ATTR_TYPE, type);
 
-      Time::Microseconds total(Sounder.GetFrameDuration().Get() * info->FramesCount() * Iterations);
-
-      FinishPlaybackCallback cb;
-      const Sound::Backend::Ptr backend = Sounder.CreateBackend(holder, "null", Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
-      const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
-      const Time::Timer timer;
-      for (unsigned i = 0; i != Iterations; ++i)
+      try
       {
-        control->SetPosition(0);
-        control->Play();
-        cb.Wait();
+        const auto total = Sounder.GetFrameDuration() * info->FramesCount() * Iterations;
+        BenchmarkSoundReceiver receiver;
+        const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), MakeSingletonPointer(receiver));
+        const Time::Timer timer;
+        for (unsigned i = 0; i != Iterations; ++i)
+        {
+          renderer->SetPosition(0);
+          while (renderer->RenderFrame()) {}
+        }
+        const auto real = timer.Elapsed<>();
+        const auto relSpeed = total.Divide<double>(real);
+        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed,
+          receiver.GetHash(), receiver.GetMinSample(), receiver.GetMaxSample()));
       }
-      const Time::Microseconds real = timer.Elapsed();
-      const double relSpeed = double(total.Get()) / real.Get();
-      Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed));
+      catch (const std::exception& e)
+      {
+        Display.Message(Strings::Format(Text::BENCHMARK_FAIL, path, type, e.what()));
+      }
+      catch (const Error& e)
+      {
+        Display.Message(Strings::Format(Text::BENCHMARK_FAIL, path, type, e.ToString()));
+      }
+      catch (...)
+      {
+        Display.Message(Strings::Format(Text::BENCHMARK_FAIL, path, type, "Unknown error"));
+      }
     }
+  private:
+    class BenchmarkSoundReceiver : public Sound::Receiver
+    {
+    public:
+      void ApplyData(Sound::Chunk data) override
+      {
+        Crc32 = Binary::Crc32(data, Crc32);
+        for (const auto smp : data)
+        {
+          MinMax(smp.Left());
+          MinMax(smp.Right());
+        }
+      }
+
+      void Flush() override
+      {
+      }
+
+      uint32_t GetHash() const
+      {
+        return Crc32;
+      }
+
+      Sound::Sample::Type GetMinSample() const
+      {
+        return MinSample;
+      }
+
+      Sound::Sample::Type GetMaxSample() const
+      {
+        return MaxSample;
+      }
+    private:
+      void MinMax(Sound::Sample::Type val)
+      {
+        MinSample = std::min(MinSample, val);
+        MaxSample = std::max(MaxSample, val);
+      }
+    private:
+      uint32_t Crc32 = 0;
+      Sound::Sample::Type MinSample = Sound::Sample::MAX;
+      Sound::Sample::Type MaxSample = Sound::Sample::MIN;
+    };
   private:
     const unsigned Iterations;
     SoundComponent& Sounder;
@@ -314,11 +358,11 @@ namespace
     {
     }
 
-    int Run(int argc, const char* argv[]) override
+    int Run(Strings::Array args) override
     {
       try
       {
-        if (ProcessOptions(argc, argv) ||
+        if (ProcessOptions(std::move(args)) ||
             Informer->Process(*Sounder))
         {
           return 0;
@@ -351,14 +395,14 @@ namespace
       return 0;
     }
   private:
-    bool ProcessOptions(int argc, const char* argv[])
+    bool ProcessOptions(Strings::Array args)
     {
       try
       {
         using namespace boost::program_options;
 
         String configFile;
-        options_description options(Strings::Format(Text::USAGE_SECTION, *argv));
+        options_description options(Strings::Format(Text::USAGE_SECTION, args[0]));
         options.add_options()
           (Text::HELP_KEY, Text::HELP_DESC)
           (Text::VERSION_KEY, Text::VERSION_DESC)
@@ -384,7 +428,9 @@ namespace
         options.add(cliOptions);
 
         variables_map vars;
-        store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
+        //args should not contain program name
+        args.erase(args.begin());
+        store(command_line_parser(args).options(options).positional(inputPositional).run(), vars);
         notify(vars);
         if (vars.count(Text::HELP_KEY))
         {

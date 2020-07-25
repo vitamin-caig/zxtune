@@ -9,17 +9,16 @@
 **/
 
 //local includes
-#include "trdos_catalogue.h"
+#include "formats/archived/trdos_catalogue.h"
 //common includes
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <strings/format.h>
 //std includes
 #include <cstring>
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace TRDos
 {
@@ -142,34 +141,16 @@ namespace TRDos
     unsigned Idx;
   };
 
-  class CommonCatalogue : public Formats::Archived::Container
+  class CommonCatalogue : public Binary::BaseContainer<Formats::Archived::Container>
   {
   public:
     template<class T>
     CommonCatalogue(Binary::Container::Ptr data, T from, T to)
-      : Delegate(std::move(data))
+      : BaseContainer(std::move(data))
       , Files(from, to)
     {
-      assert(Delegate);
     }
 
-    //Binary::Container
-    const void* Start() const override
-    {
-      return Delegate->Start();
-    }
-
-    std::size_t Size() const override
-    {
-      return Delegate->Size();
-    }
-
-    Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-    {
-      return Delegate->GetSubcontainer(offset, size);
-    }
-
-    //Archive::Container
     void ExploreFiles(const Formats::Archived::Container::Walker& walker) const override
     {
       for (const auto& file : Files)
@@ -180,12 +161,14 @@ namespace TRDos
 
     Formats::Archived::File::Ptr FindFile(const String& name) const override
     {
-      const FilesList::const_iterator it = std::find_if(Files.begin(), Files.end(), boost::bind(&File::GetName, _1) == name);
-      if (it == Files.end())
+      for (const auto& file : Files)
       {
-        return Formats::Archived::File::Ptr();
+        if (file->GetName() == name)
+        {
+          return file;
+        }
       }
-      return *it;
+      return {};
     }
 
     uint_t CountFiles() const override
@@ -193,7 +176,6 @@ namespace TRDos
       return static_cast<uint_t>(Files.size());
     }
   private:
-    const Binary::Container::Ptr Delegate;
     const FilesList Files;
   };
 
@@ -204,8 +186,11 @@ namespace TRDos
   public:
     void SetRawData(Binary::Container::Ptr data) override
     {
-      Data = data;
-      std::for_each(Files.begin(), Files.end(), boost::bind(&MultiFile::SetContainer, _1, Data));
+      for (auto& file : Files)
+      {
+        file->SetContainer(data);
+      }
+      Data = std::move(data);
     }
 
     void AddFile(File::Ptr newOne) override
@@ -263,8 +248,14 @@ namespace TRDos
 
     bool HasFile(const String& name) const
     {
-      const MultiFilesList::const_iterator it = std::find_if(Files.begin(), Files.end(), boost::bind(&File::GetName, _1) == name);
-      return it != Files.end();
+      for (const auto& file : Files)
+      {
+        if (file->GetName() == name)
+        {
+          return true;
+        }
+      }
+      return false;
     }
   private:
     Binary::Container::Ptr Data;
@@ -327,7 +318,7 @@ namespace TRDos
       return 1 == Subfiles.size()
         ? Subfiles.front()->GetSize()
         : std::accumulate(Subfiles.begin(), Subfiles.end(), std::size_t(0), 
-          boost::bind(std::plus<std::size_t>(), _1, boost::bind(&File::GetSize, _2)));
+          [](std::size_t sum, const File::Ptr& file) {return sum + file->GetSize();});
     }
 
     Binary::Container::Ptr GetData() const override
@@ -337,7 +328,7 @@ namespace TRDos
         return Subfiles.front()->GetData();
       }
       std::unique_ptr<Dump> res(new Dump(GetSize()));
-      uint8_t* dst = &res->front();
+      auto* dst = res->data();
       for (const auto& file : Subfiles)
       {
         const Binary::Container::Ptr data = file->GetData();

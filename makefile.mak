@@ -1,4 +1,4 @@
-include $(path_step)/make/default.mak
+include $(dirs.root)/make/default.mak
 
 .SUFFIXES:
 
@@ -45,26 +45,26 @@ mode_pathname = $(mode)$(if $(profile),_profile,)
 submode_pathname = $(if $(pic),_pic,)$(if $(static_runtime),_static,)
 
 #set directories
-include_dirs += $(path_step)/include $(path_step)/src $(path_step)
-objs_dir = $(path_step)/obj/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
-libs_dir = $(path_step)/lib/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
-bins_dir = $(path_step)/bin/$(platform_pathname)/$(mode_pathname)
+includes.dirs += $(dirs.root)/include $(dirs.root)/src $(dirs.root)
+objs_dir = $(dirs.root)/obj/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
+libraries.dir = $(dirs.root)/lib/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
+bins_dir = $(dirs.root)/bin/$(platform_pathname)/$(mode_pathname)
 
 #set environment
-include $(path_step)/make/environment.mak
+include $(dirs.root)/make/environment.mak
 
 #set platform-specific parameters
-include $(path_step)/make/platforms/$(platform).mak
+include $(dirs.root)/make/platforms/$(platform).mak
 
 #set host-specific parameters
-include $(path_step)/make/hosts/$(host).mak
+include $(dirs.root)/make/hosts/$(host).mak
 
 #set features
-include $(path_step)/make/features.mak
+include $(dirs.root)/make/features.mak
 
 #tune output according to type
 ifdef library_name
-output_dir = $(libs_dir)
+output_dir = $(libraries.dir)
 objects_dir = $(objs_dir)/$(library_name)
 target = $(output_dir)/$(call makelib_name,$(library_name))
 else ifdef binary_name
@@ -84,7 +84,7 @@ endif
 all: $(target)
 
 #set compiler-specific parameters
-include $(path_step)/make/compilers/$(compiler).mak
+include $(dirs.root)/make/compilers/$(compiler).mak
 
 #calculate input source files
 source_files += $(source_files.$(platform))
@@ -95,19 +95,23 @@ endif
 
 #process texts if required
 ifdef text_files
-include $(path_step)/make/textator.mak
+include $(dirs.root)/make/textator.mak
 endif
 
 #process qt if required
 ifdef use_qt
-include $(path_step)/make/qt.mak
+include $(dirs.root)/make/qt.mak
 endif
 
 #process boost
-include $(path_step)/make/boost.mak
+include $(dirs.root)/make/boost.mak
 
 #process l10n files
-include $(path_step)/make/l10n.mak
+include $(dirs.root)/make/l10n.mak
+
+ifdef jumbo.name
+include $(dirs.root)/make/jumbo.mak
+endif
 
 #calculate object files from sources
 OBJECTS = $(foreach src,$(notdir $(source_files) $(generated_sources)), $(objects_dir)/$(call makeobj_name,$(src)))
@@ -135,10 +139,10 @@ $(target): $(OBJECTS) | $(output_dir) $(TRANSLATIONS)
 .PHONY: deps
 else
 #libraries helpers
-include $(path_step)/libraries.mak
+include $(dirs.root)/libraries.mak
 
 #binary and dynamic libraries with dependencies
-LIBS = $(foreach lib,$(libraries),$(libs_dir)/$(call makelib_name,$(lib)))
+LIBS = $(foreach lib,$(libraries),$(libraries.dir)/$(call makelib_name,$(lib)))
 
 $(target): $(OBJECTS) $(LIBS) $(embedded_files) | $(output_dir) $(TRANSLATIONS)
 	$(link_cmd)
@@ -150,7 +154,7 @@ $(LIBS): deps
 deps: $(depends) $($(platform)_depends)
 
 $(depends) $($(platform)_depends):
-	$(MAKE) pic=$(pic) static_runtime=$(static_runtime) -C $(addprefix $(path_step)/,$@) $(MAKECMDGOALS)
+	$(MAKE) pic=$(pic) static_runtime=$(static_runtime) -C $(addprefix $(dirs.root)/,$@) $(MAKECMDGOALS)
 endif
 
 $(OBJECTS): $(generated_headers) $(generated_sources) | $(objects_dir)
@@ -178,7 +182,7 @@ clean_deps: $(depends)
 
 install: install_$(platform)
 
-include $(path_step)/make/codeblocks.mak
+include $(dirs.root)/make/codeblocks.mak
 
 test: $(target)
 ifdef binary_name

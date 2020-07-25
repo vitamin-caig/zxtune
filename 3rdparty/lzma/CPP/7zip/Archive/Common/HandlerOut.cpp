@@ -81,7 +81,7 @@ HRESULT CMultiMethodProps::SetProperty(const wchar_t *nameSpec, const PROPVARIAN
   }
   
   UInt32 number;
-  int index = ParseStringToUInt32(name, number);
+  unsigned index = ParseStringToUInt32(name, number);
   UString realName = name.Ptr(index);
   if (index == 0)
   {
@@ -147,7 +147,9 @@ HRESULT CSingleMethodProps::SetProperties(const wchar_t * const *names, const PR
       #endif
     }
     else
-      return ParseMethodFromPROPVARIANT(names[i], value);
+    {
+      RINOK(ParseMethodFromPROPVARIANT(names[i], value));
+    }
   }
   return S_OK;
 }

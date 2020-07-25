@@ -37,12 +37,13 @@ namespace
   class StubModeDispatcher : public SingleModeDispatcher
   {
   public:
-    StubModeDispatcher(int argc, const char* argv[])
+    template<class It>
+    StubModeDispatcher(It cmdBegin, It cmdEnd)
     {
       QDir curDir;
-      for (int i = 0; i < argc; ++i)
+      for (auto it = cmdBegin; it != cmdEnd; ++it)
       {
-        const QString arg(argv[i]);
+        const auto arg = ToQString(*it);
         if (arg.startsWith("--"))
         {
           Cmdline << arg;
@@ -73,8 +74,9 @@ namespace
   class SocketBasedSingleModeDispatcher : public StubModeDispatcher
   {
   public:
-    SocketBasedSingleModeDispatcher(int argc, const char* argv[])
-      : StubModeDispatcher(argc, argv)
+    template<class It>
+    SocketBasedSingleModeDispatcher(It cmdBegin, It cmdEnd)
+      : StubModeDispatcher(cmdBegin, cmdEnd)
     {
     }
 
@@ -218,18 +220,21 @@ namespace
   };
 }
 
-SingleModeDispatcher::Ptr SingleModeDispatcher::Create(Parameters::Accessor::Ptr params, int argc, const char *argv[])
+SingleModeDispatcher::Ptr SingleModeDispatcher::Create(Parameters::Accessor::Ptr params, Strings::Array argv)
 {
   Parameters::IntType val = Parameters::ZXTuneQT::SINGLE_INSTANCE_DEFAULT;
   params->FindValue(Parameters::ZXTuneQT::SINGLE_INSTANCE, val);
+  auto cmdBegin = argv.begin();
+  ++cmdBegin;
+  const auto cmdEnd = argv.end();
   if (val != 0)
   {
     Dbg("Working in single instance mode");
-    return new SocketBasedSingleModeDispatcher(argc, argv);
+    return new SocketBasedSingleModeDispatcher(cmdBegin, cmdEnd);
   }
   else
   {
     Dbg("Working in multiple instances mode");
-    return new StubModeDispatcher(argc, argv);
+    return new StubModeDispatcher(cmdBegin, cmdEnd);
   }
 }

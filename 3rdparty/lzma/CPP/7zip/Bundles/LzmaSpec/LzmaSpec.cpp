@@ -1,4 +1,4 @@
-/* LzmaSpec.c -- LZMA Reference Decoder
+/* LzmaSpec.cpp -- LZMA Reference Decoder
 2015-06-14 : Igor Pavlov : Public domain */
 
 // This code implements LZMA file decoding according to LZMA specification.

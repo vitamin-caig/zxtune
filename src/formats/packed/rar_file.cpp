@@ -9,15 +9,15 @@
 **/
 
 //local includes
-#include "container.h"
-#include "rar_supp.h"
-#include "pack_utils.h"
+#include "formats/packed/container.h"
+#include "formats/packed/rar_supp.h"
+#include "formats/packed/pack_utils.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
+#include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
@@ -48,12 +48,11 @@ namespace Packed
       "?%1xxxxxxx"  // uint16_t Flags;
     ;
 
-    class Container : public Binary::TypedContainer
+    class Container
     {
     public:
       explicit Container(const Binary::Container& data)
-        : Binary::TypedContainer(data)
-        , Data(data)
+        : Data(data)
       {
       }
 
@@ -68,17 +67,17 @@ namespace Packed
 
       std::size_t GetUsedSize() const
       {
-        if (const Formats::Packed::Rar::FileBlockHeader* header = GetField<Formats::Packed::Rar::FileBlockHeader>(0))
+        if (const auto* header = GetHeader<FileBlockHeader>())
         {
           if (!header->IsValid() || !header->IsSupported())
           {
             return 0;
           }
-          uint64_t res = fromLE(header->Size);
-          res += fromLE(header->AdditionalSize);
+          uint64_t res = fromLE(header->Extended.Block.Size);
+          res += fromLE(header->Extended.AdditionalSize);
           if (header->IsBigFile())
           {
-            if (const Formats::Packed::Rar::BigFileBlockHeader* bigHeader = GetField<Formats::Packed::Rar::BigFileBlockHeader>(0))
+            if (const auto* bigHeader = GetHeader<BigFileBlockHeader>())
             {
               res += uint64_t(fromLE(bigHeader->PackedSizeHi)) << (8 * sizeof(uint32_t));
             }
@@ -97,12 +96,21 @@ namespace Packed
 
       const Formats::Packed::Rar::FileBlockHeader& GetHeader() const
       {
-        return *GetField<Formats::Packed::Rar::FileBlockHeader>(0);
+        return *GetHeader<FileBlockHeader>();
       }
 
-      const Binary::Container& GetData() const
+      Binary::Container::Ptr GetData() const
       {
-        return Data;
+        const auto& header = GetHeader();
+        const std::size_t offset = fromLE(header.Extended.Block.Size);
+        const std::size_t size = fromLE(header.Extended.AdditionalSize);
+        return Data.GetSubcontainer(offset, size);
+      }
+    private:
+      template<class T>
+      const T* GetHeader() const
+      {
+        return Binary::View(Data).As<T>();
       }
     private:
       const Binary::Container& Data;
@@ -122,12 +130,11 @@ namespace Packed
     public:
       Binary::Container::Ptr Decompress(const Container& container) const override
       {
-        const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
-        const std::size_t offset = fromLE(header.Size);
-        const std::size_t size = fromLE(header.AdditionalSize);
-        const std::size_t outSize = fromLE(header.UnpackedSize);
+        const auto& header = container.GetHeader();
         assert(0x30 == header.Method);
-        if (size != outSize)
+        const std::size_t outSize = fromLE(header.UnpackedSize);
+        auto data = container.GetData();
+        if (data->Size() != outSize)
         {
           Dbg("Stored file sizes mismatch");
           return Binary::Container::Ptr();
@@ -135,7 +142,7 @@ namespace Packed
         else
         {
           Dbg("Restore");
-          return container.GetData().GetSubcontainer(offset, size);
+          return data;
         }
       }
     };
@@ -152,16 +159,16 @@ namespace Packed
 
       Binary::Container::Ptr Decompress(const Container& container) const override
       {
-        const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
+        const auto& header = container.GetHeader();
         assert(0x30 != header.Method);
-        const std::size_t offset = fromLE(header.Size);
-        const std::size_t size = fromLE(header.AdditionalSize);
         const std::size_t outSize = fromLE(header.UnpackedSize);
         const bool isSolid = header.IsSolid();
+        const auto data = container.GetData();
+        const auto size = data->Size();
         Dbg("Depack %1% -> %2% (solid %3%)", size, outSize, isSolid);
         //Old format starts from 52 45 7e 5e
         const bool oldFormat = false;
-        Stream.SetUnpackFromMemory(container.GetField<uint8_t>(offset), size, oldFormat);
+        Stream.SetUnpackFromMemory(static_cast<const uint8_t*>(data->Start()), size, oldFormat);
         Stream.SetPackedSizeToRead(size);
         const int method = std::max<int>(header.DepackerVersion, 15);
         return Decompress(method, outSize, isSolid, fromLE(header.UnpackedCRC));
@@ -172,7 +179,7 @@ namespace Packed
         try
         {
           std::unique_ptr<Dump> result(new Dump(outSize));
-          Stream.SetUnpackToMemory(&result->front(), outSize);
+          Stream.SetUnpackToMemory(result->data(), outSize);
           Decoder.SetDestSize(outSize);
           Decoder.DoUnpack(method, isSolid);
           if (crc != Stream.GetUnpackedCrc())
@@ -196,26 +203,26 @@ namespace Packed
     {
     public:
       DispatchedCompressedFile()
-        : Packed(new PackedFile())
-        , Stored(new StoredFile())
+        : Packed()
+        , Stored()
       {
       }
 
       Binary::Container::Ptr Decompress(const Container& container) const override
       {
-        const Formats::Packed::Rar::FileBlockHeader& header = container.GetHeader();
+        const auto& header = container.GetHeader();
         if (header.IsStored())
         {
-          return Stored->Decompress(container);
+          return Stored.Decompress(container);
         }
         else
         {
-          return Packed->Decompress(container);
+          return Packed.Decompress(container);
         }
       }
     private:
-      const std::unique_ptr<CompressedFile> Packed;
-      const std::unique_ptr<CompressedFile> Stored;
+      const PackedFile Packed;
+      const StoredFile Stored;
     };
 
     String FileBlockHeader::GetName() const
@@ -227,12 +234,12 @@ namespace Packed
 
     bool FileBlockHeader::IsValid() const
     {
-      return IsExtended() && Type == TYPE;
+      return Extended.Block.IsExtended() && Extended.Block.Type == TYPE;
     }
 
     bool FileBlockHeader::IsSupported() const
     {
-      const uint_t flags = fromLE(Flags);
+      const uint_t flags = fromLE(Extended.Block.Flags);
       //multivolume files are not suported
       if (0 != (flags & (FileBlockHeader::FLAG_SPLIT_BEFORE | FileBlockHeader::FLAG_SPLIT_AFTER)))
       {

@@ -49,6 +49,15 @@ namespace Parameters
       const NameType TRACK = PREFIX + "Track";
       //@}
 
+    
+      const NameType CMDLINE_TARGET = PREFIX + "CmdlineTarget";
+
+      const IntType CMDLINE_TARGET_NEW = 0;
+      const IntType CMDLINE_TARGET_ACTIVE = 1;
+      const IntType CMDLINE_TARGET_VISIBLE = 2;
+
+      const IntType CMDLINE_TARGET_DEFAULT = CMDLINE_TARGET_NEW;
+      
       namespace Cache
       {
         const std::string NAMESPACE_NAME("Cache");

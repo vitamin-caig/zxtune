@@ -40,7 +40,6 @@
 #include <numeric>
 #include <set>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/join.hpp>
@@ -182,6 +181,7 @@ namespace Formats
       scanner.AddDecoder(CreateZXStateDecoder());
       scanner.AddDecoder(CreateUMXDecoder());
       scanner.AddDecoder(Create7zipDecoder());
+      scanner.AddDecoder(CreateFSBDecoder());
     }
   }
 
@@ -285,6 +285,12 @@ namespace Formats
       scanner.AddDecoder(CreateMultiTrackContainerDecoder());
       scanner.AddDecoder(CreateAYEMULDecoder());
       scanner.AddDecoder(CreateAbyssHighestExperienceDecoder());
+      scanner.AddDecoder(CreateKSSDecoder());
+      scanner.AddDecoder(CreateHivelyTrackerDecoder());
+      scanner.AddDecoder(CreateRasterMusicTrackerDecoder());
+      scanner.AddDecoder(CreateMP3Decoder());
+      scanner.AddDecoder(CreateOGGDecoder());
+      scanner.AddDecoder(CreateWAVDecoder());
     }
   }
 }
@@ -532,7 +538,7 @@ namespace
     {
       const String name = decoder.GetDescription();
       Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
-      auto archNode = Analysis::CreateSubnode(Root, std::move(data), name, offset);
+      auto archNode = Analysis::CreateSubnode(Root, data, name, offset);
       const ScanFiles walker(ToScan, std::move(archNode));
       data->ExploreFiles(walker);
     }
@@ -1086,10 +1092,10 @@ public:
   {
   }
   
-  int Run(int argc, const char* argv[]) override
+  int Run(Strings::Array args) override
   {
     Strings::Array paths;
-    if (!ParseCmdline(argc, argv, paths))
+    if (!ParseCmdline(std::move(args), paths))
     {
       return 1;
     }
@@ -1110,15 +1116,18 @@ public:
     input->SetTarget(analyse);
     analyse->SetTarget(result);
 
-    std::for_each(paths.begin(), paths.end(), boost::bind(&StringsReceiver::ApplyData, input.get(), _1));
+    for (const auto& p : paths)
+    {
+      input->ApplyData(p);
+    }
     input->Flush();
     return 0;
   }
 private:
-  bool ParseCmdline(int argc, const char* argv[], Strings::Array& paths) const
+  bool ParseCmdline(Strings::Array args, Strings::Array& paths) const
   {
     using namespace boost::program_options;
-    options_description options(Strings::Format(Text::USAGE_SECTION, *argv));
+    options_description options(Strings::Format(Text::USAGE_SECTION, args[0]));
     options.add_options()
       (Text::HELP_KEY, Text::HELP_DESC)
       (Text::VERSION_KEY, Text::VERSION_DESC)
@@ -1131,7 +1140,9 @@ private:
     inputPositional.add(Text::INPUT_KEY, -1);
 
     variables_map vars;
-    store(command_line_parser(argc, argv).options(options).positional(inputPositional).run(), vars);
+    //args should not contain program name
+    args.erase(args.begin());
+    store(command_line_parser(args).options(options).positional(inputPositional).run(), vars);
     notify(vars);
 
     if (vars.count(Text::VERSION_KEY))

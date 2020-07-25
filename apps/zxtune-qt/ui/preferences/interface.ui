@@ -121,6 +121,13 @@
       <property name="bottomMargin">
        <number>4</number>
       </property>
+      <item row="0" column="0">
+       <widget class="QLabel" name="updateCheckLabel">
+        <property name="text">
+         <string>Check updates</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="1">
        <widget class="QComboBox" name="updateCheckPeriod">
         <item>
@@ -140,14 +147,36 @@
         </item>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="updateCheckLabel">
+      <item row="1" column="0">
+       <widget class="QLabel" name="cmdlineTargetLabel">
+        <property name="toolTip">
+         <string>Target for items passed via commandline</string>
+        </property>
         <property name="text">
-         <string>Check updates</string>
+         <string>Command line destination</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="0" colspan="2">
+      <item row="1" column="1">
+       <widget class="QComboBox" name="cmdlineTarget">
+        <item>
+         <property name="text">
+          <string>New playlist</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Active playlist</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Visible playlist</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item row="2" column="0" colspan="2">
        <widget class="QCheckBox" name="appSingleInstance">
         <property name="toolTip">
          <string>Changes applied after application restart</string>

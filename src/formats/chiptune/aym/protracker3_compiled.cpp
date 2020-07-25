@@ -9,26 +9,24 @@
 **/
 
 //local includes
-#include "protracker3_detail.h"
+#include "formats/chiptune/aym/protracker3_detail.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
+#include <pointers.h>
 #include <range_checker.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cctype>
 //boost includes
-#include <boost/bind.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/trim.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -48,9 +46,9 @@ namespace Chiptune
 #endif
     PACK_PRE struct RawId
     {
-      char TrackName[32];
-      char Optional2[4]; //' by '
-      char TrackAuthor[32];
+      std::array<char, 32> TrackName;
+      std::array<char, 4> Optional2; //' by '
+      std::array<char, 32> TrackAuthor;
 
       bool HasAuthor() const
       {
@@ -59,17 +57,16 @@ namespace Chiptune
           'B', 'Y', 0
         };
 
-        const String id(FromCharArray(Optional2));
-        const String trimId(boost::algorithm::trim_copy_if(id, boost::algorithm::is_from_range(' ', ' ')));
+        const auto trimId = Strings::TrimSpaces(Optional2);
         return boost::algorithm::iequals(trimId, BY_DELIMITER);
       }
     } PACK_POST;
 
     PACK_PRE struct RawHeader
     {
-      uint8_t Id[13];        //'ProTracker 3.'
+      std::array<char, 13> Id;        //'ProTracker 3.'
       uint8_t Subversion;
-      uint8_t Optional1[16]; //' compilation of '
+      std::array<char, 16> Optional1; //' compilation of '
       RawId Metainfo;
       uint8_t Mode;
       uint8_t FreqTableNum;
@@ -292,13 +289,13 @@ namespace Chiptune
       const RangeChecker::Ptr FixedRanges;
     };
 
-    std::size_t GetHeaderSize(const Binary::TypedContainer& data)
+    std::size_t GetHeaderSize(Binary::View data)
     {
-      if (const RawHeader* hdr = data.GetField<RawHeader>(0))
+      if (const auto* hdr = data.As<RawHeader>())
       {
-        const uint8_t* const dataBegin = hdr->Id;
-        const uint8_t* const dataEnd = dataBegin + std::min(data.GetSize(), MAX_POSITIONS_COUNT + offsetof(RawHeader, Positions) + 1);
-        const uint8_t* const lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
+        const auto dataBegin = safe_ptr_cast<const uint8_t*>(hdr->Id.data());
+        const auto dataEnd = dataBegin + std::min(data.Size(), MAX_POSITIONS_COUNT + offsetof(RawHeader, Positions) + 1);
+        const auto lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
         if (lastPosition != dataEnd && 
             lastPosition == std::find_if(hdr->Positions, lastPosition, std::bind2nd(std::modulus<std::size_t>(), 3)))
         {
@@ -312,31 +309,31 @@ namespace Chiptune
     {
       Require(tempo >= 1);
     }
-
+    
     class Format
     {
     public:
-      Format(const Binary::TypedContainer& data)
-        : Delegate(data)
-        , Ranges(data.GetSize())
-        , Source(*Delegate.GetField<RawHeader>(0))
+      explicit Format(Binary::View data)
+        : Data(data)
+        , Ranges(Data.Size())
+        , Source(*Data.As<RawHeader>())
       {
-        Ranges.AddService(0, GetHeaderSize(Delegate));
+        Ranges.AddService(0, GetHeaderSize(Data));
       }
 
       void ParseCommonProperties(Builder& builder) const
       {
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(String(Source.Id, Source.Optional1));
+        meta.SetProgram(Strings::OptimizeAscii(StringView(Source.Id.data(), &Source.Optional1.back() + 1)));
         const RawId& id = Source.Metainfo;
         if (id.HasAuthor())
         {
-          meta.SetTitle(FromCharArray(id.TrackName));
-          meta.SetAuthor(FromCharArray(id.TrackAuthor));
+          meta.SetTitle(DecodeString(id.TrackName));
+          meta.SetAuthor(DecodeString(id.TrackAuthor));
         }
         else
         {
-          meta.SetTitle(String(id.TrackName, std::end(id.TrackAuthor)));
+          meta.SetTitle(DecodeString(StringView(id.TrackName.data(), &id.TrackAuthor.back() + 1)));
         }
         const uint_t version = std::isdigit(Source.Subversion) ? Source.Subversion - '0' : 6;
         builder.SetVersion(version);
@@ -397,8 +394,8 @@ namespace Chiptune
           Sample result;
           if (const std::size_t samOffset = fromLE(Source.SamplesOffsets[samIdx]))
           {
-            const std::size_t availSize = Delegate.GetSize() - samOffset;
-            if (const RawSample* src = Delegate.GetField<RawSample>(samOffset))
+            const std::size_t availSize = Data.Size() - samOffset;
+            if (const auto* src = PeekObject<RawSample>(samOffset))
             {
               const std::size_t usedSize = src->GetUsedSize();
               if (usedSize <= availSize)
@@ -437,8 +434,8 @@ namespace Chiptune
           Ornament result;
           if (const std::size_t ornOffset = fromLE(Source.OrnamentsOffsets[ornIdx]))
           {
-            const std::size_t availSize = Delegate.GetSize() - ornOffset;
-            if (const RawOrnament* src = Delegate.GetField<RawOrnament>(ornOffset))
+            const std::size_t availSize = Data.Size() - ornOffset;
+            if (const auto* src = PeekObject<RawOrnament>(ornOffset))
             {
               const std::size_t usedSize = src->GetUsedSize();
               if (usedSize <= availSize)
@@ -474,23 +471,29 @@ namespace Chiptune
         return Ranges.GetFixedArea();
       }
     private:
+      template<class T>
+      const T* PeekObject(std::size_t offset) const
+      {
+        return Data.SubView(offset).As<T>();
+      }
+
       const RawPattern& GetPattern(uint_t patIdx) const
       {
         const std::size_t patOffset = fromLE(Source.PatternsOffset) + patIdx * sizeof(RawPattern);
         Ranges.AddService(patOffset, sizeof(RawPattern));
-        return *Delegate.GetField<RawPattern>(patOffset);
+        return *PeekObject<RawPattern>(patOffset);
       }
 
       uint8_t PeekByte(std::size_t offset) const
       {
-        const uint8_t* const data = Delegate.GetField<uint8_t>(offset);
+        const auto* data = PeekObject<uint8_t>(offset);
         Require(data != nullptr);
         return *data;
       }
 
       uint16_t PeekLEWord(std::size_t offset) const
       {
-        const uint16_t* const data = Delegate.GetField<uint16_t>(offset);
+        const auto* data = PeekObject<uint16_t>(offset);
         Require(data != nullptr);
         return fromLE(*data);
       }
@@ -548,7 +551,10 @@ namespace Chiptune
 
         void SkipLines(uint_t toSkip)
         {
-          std::for_each(Channels.begin(), Channels.end(), std::bind2nd(std::mem_fun_ref(&ChannelState::Skip), toSkip));
+          for (auto& chan : Channels)
+          {
+            chan.Skip(toSkip);
+          }
         }
       };
 
@@ -556,7 +562,8 @@ namespace Chiptune
       {
         const RawPattern& pat = GetPattern(patIndex);
         const DataCursors rangesStarts(pat);
-        Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(), !boost::bind(&Math::InRange<std::size_t>, _1, minOffset, Delegate.GetSize() - 1)));
+        Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(),
+          Math::NotInRange(minOffset, Data.Size() - 1)));
 
         ParserState state(rangesStarts);
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
@@ -580,13 +587,13 @@ namespace Chiptune
         for (uint_t chanNum = 0; chanNum != rangesStarts.size(); ++chanNum)
         {
           const std::size_t start = rangesStarts[chanNum];
-          if (start >= Delegate.GetSize())
+          if (start >= Data.Size())
           {
             Dbg("Invalid offset (%1%)", start);
           }
           else
           {
-            const std::size_t stop = std::min(Delegate.GetSize(), state.Channels[chanNum].Offset + 1);
+            const std::size_t stop = std::min(Data.Size(), state.Channels[chanNum].Offset + 1);
             Ranges.AddFixed(start, stop - start);
           }
         }
@@ -602,7 +609,7 @@ namespace Chiptune
           {
             continue;
           }
-          if (state.Offset >= Delegate.GetSize())
+          if (state.Offset >= Data.Size())
           {
             return false;
           }
@@ -620,8 +627,9 @@ namespace Chiptune
         for (uint_t chan = 0; chan < 3; ++chan)
         {
           ParserState::ChannelState& state = src.Channels[chan];
-          if (state.Counter--)
+          if (state.Counter)
           {
+            --state.Counter;
             continue;
           }
           builder.StartChannel(chan);
@@ -634,7 +642,7 @@ namespace Chiptune
       {
         std::vector<uint_t> commands;
         int_t note = -1;
-        while (state.Offset < Delegate.GetSize())
+        while (state.Offset < Data.Size())
         {
           const uint_t cmd = PeekByte(state.Offset++);
           if (cmd < 0x10)
@@ -814,7 +822,7 @@ namespace Chiptune
         dst.Loop = std::min<uint_t>(src.Loop, dst.Lines.size());
       }
     private:
-      const Binary::TypedContainer& Delegate;
+      const Binary::View Data;
       RangesMap Ranges;
       const RawHeader& Source;
     };
@@ -863,20 +871,20 @@ namespace Chiptune
       }
     };
 
-    Binary::TypedContainer CreateContainer(const Binary::Container& rawData)
+    Binary::View MakeContainer(Binary::View rawData)
     {
-      return Binary::TypedContainer(rawData, std::min(rawData.Size(), MAX_SIZE));
+      return rawData.SubView(0, MAX_SIZE);
     }
 
-    bool FastCheck(const Binary::TypedContainer& data)
+    bool FastCheck(Binary::View data)
     {
       const std::size_t hdrSize = GetHeaderSize(data);
       if (!Math::InRange<std::size_t>(hdrSize, sizeof(RawHeader) + 1, sizeof(RawHeader) + MAX_POSITIONS_COUNT))
       {
         return false;
       }
-      const RawHeader& hdr = *data.GetField<RawHeader>(0);
-      const Areas areas(hdr, data.GetSize());
+      const auto& hdr = *data.As<RawHeader>();
+      const Areas areas(hdr, data.Size());
       if (!areas.CheckHeader(hdrSize))
       {
         return false;
@@ -886,12 +894,6 @@ namespace Chiptune
         return false;
       }
       return true;
-    }
-
-    bool FastCheck(const Binary::Container& rawData)
-    {
-      const Binary::TypedContainer data = CreateContainer(rawData);
-      return FastCheck(data);
     }
 
     const std::string FORMAT(
@@ -934,14 +936,15 @@ namespace Chiptune
 
       bool Check(const Binary::Container& rawData) const override
       {
-        return Format->Match(rawData) && FastCheck(rawData);
+        const auto data = MakeContainer(rawData);
+        return Format->Match(data) && FastCheck(data);
       }
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return Formats::Chiptune::ProTracker3::Parse(rawData, stub);
@@ -957,11 +960,11 @@ namespace Chiptune
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
-      const Binary::TypedContainer data = CreateContainer(rawData);
+      const auto data = MakeContainer(rawData);
 
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
 
       try
@@ -985,14 +988,14 @@ namespace Chiptune
         format.ParseOrnaments(usedOrnaments, target);
 
         Require(format.GetSize() >= MIN_SIZE);
-        const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, format.GetSize());
-        const RangeChecker::Range fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
+        auto subData = rawData.GetSubcontainer(0, format.GetSize());
+        const auto fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 

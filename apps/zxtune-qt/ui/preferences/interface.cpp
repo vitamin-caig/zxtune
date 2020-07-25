@@ -41,7 +41,7 @@ namespace
     //once a week
     86400 * 7,
   };
-
+  
   class UpdateCheckPeriodComboboxValue : public Parameters::Integer
   {
   public:
@@ -97,6 +97,7 @@ namespace
       BooleanValue::Bind(*playlistStoreAllProperties, *Options, ZXTuneQT::Playlist::Store::PROPERTIES, ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT);
       UpdateCheckPeriod = IntegerValue::Bind(*updateCheckPeriod, MakePtr<UpdateCheckPeriodComboboxValue>(Options));
       BooleanValue::Bind(*appSingleInstance, *Options, ZXTuneQT::SINGLE_INSTANCE, ZXTuneQT::SINGLE_INSTANCE_DEFAULT);
+      CmdlineTarget = IntegerValue::Bind(*cmdlineTarget, *Options, ZXTuneQT::Playlist::CMDLINE_TARGET, ZXTuneQT::Playlist::CMDLINE_TARGET_DEFAULT);
     }
 
     void OnLanguageChanged(int idx) override
@@ -111,7 +112,8 @@ namespace
     {
       if (event && QEvent::LanguageChange == event->type())
       {
-        const Parameters::ValueSnapshot blockInterpolation(*UpdateCheckPeriod);
+        const Parameters::ValueSnapshot blockUpdateCheck(*UpdateCheckPeriod);
+        const Parameters::ValueSnapshot blockCmdlineTarget(*CmdlineTarget);
         retranslateUi(this);
       }
       UI::InterfaceSettingsWidget::changeEvent(event);
@@ -139,6 +141,7 @@ namespace
     const Parameters::Container::Ptr Options;
     const UI::Language::Ptr Language;
     Parameters::Value* UpdateCheckPeriod;
+    Parameters::Value* CmdlineTarget;
   };
 }
 

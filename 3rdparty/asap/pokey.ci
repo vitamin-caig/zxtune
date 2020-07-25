@@ -1,0 +1,716 @@
+// pokey.ci - POKEY chip emulator
+//
+// Copyright (C) 2010-2014  Piotr Fusik
+//
+// This file is part of ASAP (Another Slight Atari Player),
+// see http://asap.sourceforge.net
+//
+// ASAP is free software; you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published
+// by the Free Software Foundation; either version 2 of the License,
+// or (at your option) any later version.
+//
+// ASAP is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with ASAP; if not, write to the Free Software Foundation, Inc.,
+// 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+/// Format of output samples.
+public enum ASAPSampleFormat
+{
+	/// Unsigned 8-bit.
+	U8,
+	/// Signed 16-bit little-endian.
+	S16LE,
+	/// Signed 16-bit big-endian.
+	S16BE
+}
+
+class Pokey
+{
+	// Registers:
+	int Audf1;
+	int Audf2;
+	int Audf3;
+	int Audf4;
+	int Audc1;
+	int Audc2;
+	int Audc3;
+	int Audc4;
+	int Audctl;
+	int Skctl;
+
+	// Computed from the registers:
+	bool Init;
+	int DivCycles;
+	int PeriodCycles1;
+	int PeriodCycles2;
+	int PeriodCycles3;
+	int PeriodCycles4;
+	int ReloadCycles1;
+	int ReloadCycles3;
+
+	// Internal counters:
+	int PolyIndex;
+	const int NeverCycle = 0x800000;
+	int TickCycle1;
+	int TickCycle2;
+	int TickCycle3;
+	int TickCycle4;
+
+	// Is channel muted?
+	const int MuteFrequency = 1;
+	const int MuteInit = 2;
+	const int MuteUser = 4;
+	const int MuteSerialInput = 8;
+	int Mute1;
+	int Mute2;
+	int Mute3;
+	int Mute4;
+
+	// Audio output:
+	int Out1;
+	int Out2;
+	int Out3;
+	int Out4;
+	int Delta1;
+	int Delta2;
+	int Delta3;
+	int Delta4;
+	// Sample rates from 32000 to 50000 should be fine,
+	// but weren't tested - please report your experience.
+	// For lower rates, you'll need to add a low-pass filter.
+	// The DC filter in PokeyPair.Generate should also be adjusted
+	// whenever the sample rate considerably differs from 44100.
+	const int SampleRate = 44100;
+	// Enough for one PAL frame == 312 * 114 cycles + some margin,
+	// as we emulate whole 6502 instructions and interpolate samples.
+	int[SampleRate * 312 * 114 / 1773447 + 4] DeltaBuffer;
+
+	void Initialize()
+	{
+		Audf1 = 0;
+		Audf2 = 0;
+		Audf3 = 0;
+		Audf4 = 0;
+		Audc1 = 0;
+		Audc2 = 0;
+		Audc3 = 0;
+		Audc4 = 0;
+		Audctl = 0;
+		Skctl = 3;
+		Init = false;
+		DivCycles = 28;
+		PeriodCycles1 = 28;
+		PeriodCycles2 = 28;
+		PeriodCycles3 = 28;
+		PeriodCycles4 = 28;
+		ReloadCycles1 = 28;
+		ReloadCycles3 = 28;
+		PolyIndex = 15 * 31 * 131071;
+		TickCycle1 = NeverCycle;
+		TickCycle2 = NeverCycle;
+		TickCycle3 = NeverCycle;
+		TickCycle4 = NeverCycle;
+		Mute1 = MuteFrequency;
+		Mute2 = MuteFrequency;
+		Mute3 = MuteFrequency;
+		Mute4 = MuteFrequency;
+		Out1 = 0;
+		Out2 = 0;
+		Out3 = 0;
+		Out4 = 0;
+		Delta1 = 0;
+		Delta2 = 0;
+		Delta3 = 0;
+		Delta4 = 0;
+		DeltaBuffer.Clear();
+	}
+
+	void AddDelta(PokeyPair pokeys, int cycle, int delta)
+	{
+		int i = cycle * pokeys.SampleFactor + pokeys.SampleOffset;
+		// too large value reduces the resolution of delta (if bigger than DeltaShiftCOVOX, DeltaShiftPOKEY)
+		// too small value reduces the resolution of interpolation
+		const int interpolationShift = 16;
+		int delta2 = (delta >> interpolationShift) * (i >> (PokeyPair.SampleFactorShift - interpolationShift) & ((1 << interpolationShift) - 1));
+		i >>= PokeyPair.SampleFactorShift;
+		DeltaBuffer[i] += delta - delta2;
+		DeltaBuffer[i + 1] += delta2;
+	}
+
+	/// Fills `DeltaBuffer` up to `cycleLimit` basing on current Audf/Audc/AudcTL values.
+	void GenerateUntilCycle(PokeyPair pokeys, int cycleLimit)
+	{
+		for (;;) {
+			int cycle = cycleLimit;
+			if (cycle > TickCycle1)
+				cycle = TickCycle1;
+			if (cycle > TickCycle2)
+				cycle = TickCycle2;
+			if (cycle > TickCycle3)
+				cycle = TickCycle3;
+			if (cycle > TickCycle4)
+				cycle = TickCycle4;
+			if (cycle == cycleLimit)
+				break;
+
+			const byte[15] poly4Lookup = { 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1 };
+			const byte[31] poly5Lookup = {
+				0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1,
+				0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1 };
+			macro DO_TICK(ch) {
+				if (Init) {
+					switch (Audc##ch >> 4) {
+					case 10:
+					case 14:
+						Out##ch ^= 1;
+						Delta##ch = -Delta##ch;
+						AddDelta(pokeys, cycle, Delta##ch);
+						break;
+					default:
+						break;
+					}
+				}
+				else {
+					int poly = cycle + PolyIndex - (ch - 1);
+					int newOut = Out##ch;
+					switch (Audc##ch >> 4) {
+					case 0:
+						if (poly5Lookup[poly % 31] != 0) {
+							if ((Audctl & 0x80) != 0)
+								newOut = pokeys.Poly9Lookup[poly % 511] & 1;
+							else {
+								poly %= 131071;
+								newOut = (pokeys.Poly17Lookup[poly >> 3] >> (poly & 7)) & 1;
+							}
+						}
+						break;
+					case 2:
+					case 6:
+						newOut ^= poly5Lookup[poly % 31];
+						break;
+					case 4:
+						if (poly5Lookup[poly % 31] != 0)
+							newOut = poly4Lookup[poly % 15];
+						break;
+					case 8:
+						if ((Audctl & 0x80) != 0)
+							newOut = pokeys.Poly9Lookup[poly % 511] & 1;
+						else {
+							poly %= 131071;
+							newOut = (pokeys.Poly17Lookup[poly >> 3] >> (poly & 7)) & 1;
+						}
+						break;
+					case 10:
+					case 14:
+						newOut ^= 1;
+						break;
+					case 12:
+						newOut = poly4Lookup[poly % 15];
+						break;
+					default:
+						break;
+					}
+					if (newOut != Out##ch) {
+						Out##ch = newOut;
+						Delta##ch = -Delta##ch;
+						AddDelta(pokeys, cycle, Delta##ch);
+					}
+				}
+			}
+
+			if (cycle == TickCycle3) {
+				TickCycle3 += PeriodCycles3;
+				if ((Audctl & 4) != 0 && Delta1 > 0 && Mute1 == 0) {
+					Delta1 = -Delta1;
+					AddDelta(pokeys, cycle, Delta1);
+				}
+				DO_TICK(3);
+			}
+			if (cycle == TickCycle4) {
+				TickCycle4 += PeriodCycles4;
+				if ((Audctl & 8) != 0)
+					TickCycle3 = cycle + ReloadCycles3;
+				if ((Audctl & 2) != 0 && Delta2 > 0 && Mute2 == 0) {
+					Delta2 = -Delta2;
+					AddDelta(pokeys, cycle, Delta2);
+				}
+				DO_TICK(4);
+			}
+			if (cycle == TickCycle1) {
+				TickCycle1 += PeriodCycles1;
+				if ((Skctl & 0x88) == 8) // two-tone, sending 1 (i.e. timer1)
+					TickCycle2 = cycle + PeriodCycles2;
+				DO_TICK(1);
+			}
+			if (cycle == TickCycle2) {
+				TickCycle2 += PeriodCycles2;
+				if ((Audctl & 0x10) != 0)
+					TickCycle1 = cycle + ReloadCycles1;
+				else if ((Skctl & 8) != 0) // two-tone
+					TickCycle1 = cycle + PeriodCycles1;
+				DO_TICK(2);
+			}
+		}
+	}
+
+	void EndFrame(PokeyPair pokeys, int cycle)
+	{
+		GenerateUntilCycle(pokeys, cycle);
+		PolyIndex += cycle;
+		int m = (Audctl & 0x80) != 0 ? 15 * 31 * 511 : 15 * 31 * 131071;
+		if (PolyIndex >= 2 * m)
+			PolyIndex -= m;
+		if (TickCycle1 != NeverCycle)
+			TickCycle1 -= cycle;
+		if (TickCycle2 != NeverCycle)
+			TickCycle2 -= cycle;
+		if (TickCycle3 != NeverCycle)
+			TickCycle3 -= cycle;
+		if (TickCycle4 != NeverCycle)
+			TickCycle4 -= cycle;
+	}
+
+	bool IsSilent()
+	{
+		return ((Audc1 | Audc2 | Audc3 | Audc4) & 0xf) == 0;
+	}
+
+	macro MUTE_CHANNEL(pokey, ch, cond, mask, cycle) {
+		if (cond) {
+			pokey.Mute##ch |= mask;
+			pokey.TickCycle##ch = NeverCycle;
+		}
+		else {
+			pokey.Mute##ch &= ~mask;
+			if (pokey.TickCycle##ch == NeverCycle && pokey.Mute##ch == 0)
+				pokey.TickCycle##ch = cycle;
+		}
+	}
+
+	void Mute(int mask)
+	{
+		MUTE_CHANNEL(this, 1, (mask & 1) != 0, MuteUser, 0);
+		MUTE_CHANNEL(this, 2, (mask & 2) != 0, MuteUser, 0);
+		MUTE_CHANNEL(this, 3, (mask & 4) != 0, MuteUser, 0);
+		MUTE_CHANNEL(this, 4, (mask & 8) != 0, MuteUser, 0);
+	}
+}
+
+#if APOKEYSND
+public
+#endif
+class PokeyPair
+{
+	byte[511] Poly9Lookup;
+	byte[16385] Poly17Lookup;
+	int ExtraPokeyMask;
+	int Timer1Cycle;
+	int Timer2Cycle;
+	int Timer4Cycle;
+	int Irqst;
+	Pokey() BasePokey;
+	Pokey() ExtraPokey;
+
+	// DeltaBuffer.Length << SampleFactorShift shouldn't overflow int.
+	// SampleFactorShift could be 21, but that wouldn't improve
+	// accuracy because SampleFactor would be even.
+	const int SampleFactorShift = 20;
+	int SampleFactor;
+	int SampleOffset;
+
+	int ReadySamplesStart;
+	int ReadySamplesEnd;
+
+	int IirAccLeft;
+	int IirAccRight;
+
+#if APOKEYSND
+	public
+#endif
+	PokeyPair()
+	{
+		int reg = 0x1ff;
+		for (int i = 0; i < 511; i++) {
+			reg = (((reg >> 5 ^ reg) & 1) << 8) + (reg >> 1);
+			Poly9Lookup[i] = reg.LowByte;
+		}
+		reg = 0x1ffff;
+		for (int i = 0; i < 16385; i++) {
+			reg = (((reg >> 5 ^ reg) & 0xff) << 9) + (reg >> 8);
+			Poly17Lookup[i] = (reg >> 1).LowByte;
+		}
+	}
+
+#if APOKEYSND
+	public
+#endif
+	void Initialize(bool ntsc, bool stereo)
+	{
+		ExtraPokeyMask = stereo ? 0x10 : 0;
+		Timer1Cycle = Pokey.NeverCycle;
+		Timer2Cycle = Pokey.NeverCycle;
+		Timer4Cycle = Pokey.NeverCycle;
+		Irqst = 0xff;
+		BasePokey.Initialize();
+		ExtraPokey.Initialize();
+
+		// What we really need here is:
+		// macro SAMPLE_FACTOR(clock) (((Pokey.SampleRate << SampleFactorShift) + (clock >> 1)) / clock)
+		// unfortunately cito provides only 32-bit arithmetic for the moment,
+		// so I shift by 5 to avoid overflow.
+		macro SAMPLE_FACTOR(clock) (((Pokey.SampleRate << SampleFactorShift - 5) + (clock >> 6)) / (clock >> 5))
+		SampleFactor = ntsc ? SAMPLE_FACTOR(1789772) : SAMPLE_FACTOR(1773447);
+
+		SampleOffset = 0;
+		ReadySamplesStart = 0;
+		ReadySamplesEnd = 0;
+		IirAccLeft = 0;
+		IirAccRight = 0;
+	}
+
+#if APOKEYSND
+	public
+#endif
+	void Poke(int addr, int data, int cycle)
+	{
+		Pokey pokey = (addr & ExtraPokeyMask) != 0 ? ExtraPokey : BasePokey;
+
+		macro DO_STORE(reg) {
+			if (data == pokey.reg)
+				break;
+			pokey.GenerateUntilCycle(this, cycle);
+			pokey.reg = data;
+		}
+		macro MUTE_CHANNEL(ch, cond, mask) {
+			if (cond) {
+				pokey.Mute##ch |= mask;
+				pokey.TickCycle##ch = Pokey.NeverCycle;
+			}
+			else {
+				pokey.Mute##ch &= ~mask;
+				if (pokey.TickCycle##ch == Pokey.NeverCycle && pokey.Mute##ch == 0)
+					pokey.TickCycle##ch = cycle;
+			}
+		}
+
+		const int DeltaShiftPOKEY = 20;
+		switch (addr & 0xf) {
+		case 0x00:
+			DO_STORE(Audf1);
+			const int UltrasoundCycles = 112;
+			macro DO_ULTRASOUND(ch) {
+				MUTE_CHANNEL(ch, pokey.PeriodCycles##ch <= UltrasoundCycles
+					&& (pokey.Audc##ch >> 4 == 10 || pokey.Audc##ch >> 4 == 14), Pokey.MuteFrequency);
+			}
+			switch (pokey.Audctl & 0x50) {
+			case 0x00:
+				pokey.PeriodCycles1 = pokey.DivCycles * (data + 1);
+				break;
+			case 0x10:
+				pokey.PeriodCycles2 = pokey.DivCycles * (data + (pokey.Audf2 << 8) + 1);
+				pokey.ReloadCycles1 = pokey.DivCycles * (data + 1);
+				DO_ULTRASOUND(2);
+				break;
+			case 0x40:
+				pokey.PeriodCycles1 = data + 4;
+				break;
+			case 0x50:
+				pokey.PeriodCycles2 = data + (pokey.Audf2 << 8) + 7;
+				pokey.ReloadCycles1 = data + 4;
+				DO_ULTRASOUND(2);
+				break;
+			}
+			DO_ULTRASOUND(1);
+			break;
+		case 0x01:
+			macro DO_AUDC(ch) {
+				DO_STORE(Audc##ch);
+				if ((data & 0x10) != 0) {
+					data = (data & 0xf) << DeltaShiftPOKEY;
+					if ((pokey.Mute##ch & Pokey.MuteUser) == 0)
+						pokey.AddDelta(this, cycle, pokey.Delta##ch > 0 ? data - pokey.Delta##ch : data);
+					pokey.Delta##ch = data;
+				}
+				else {
+					data = (data & 0xf) << DeltaShiftPOKEY;
+					DO_ULTRASOUND(ch);
+					if (pokey.Delta##ch > 0) {
+						if ((pokey.Mute##ch & Pokey.MuteUser) == 0)
+							pokey.AddDelta(this, cycle, data - pokey.Delta##ch);
+						pokey.Delta##ch = data;
+					}
+					else
+						pokey.Delta##ch = -data;
+				}
+				break;
+			}
+			DO_AUDC(1);
+		case 0x02:
+			DO_STORE(Audf2);
+			switch (pokey.Audctl & 0x50) {
+			case 0x00:
+			case 0x40:
+				pokey.PeriodCycles2 = pokey.DivCycles * (data + 1);
+				break;
+			case 0x10:
+				pokey.PeriodCycles2 = pokey.DivCycles * (pokey.Audf1 + (data << 8) + 1);
+				break;
+			case 0x50:
+				pokey.PeriodCycles2 = pokey.Audf1 + (data << 8) + 7;
+				break;
+			}
+			DO_ULTRASOUND(2);
+			break;
+		case 0x03:
+			DO_AUDC(2);
+		case 0x04:
+			DO_STORE(Audf3);
+			switch (pokey.Audctl & 0x28) {
+			case 0x00:
+				pokey.PeriodCycles3 = pokey.DivCycles * (data + 1);
+				break;
+			case 0x08:
+				pokey.PeriodCycles4 = pokey.DivCycles * (data + (pokey.Audf4 << 8) + 1);
+				pokey.ReloadCycles3 = pokey.DivCycles * (data + 1);
+				DO_ULTRASOUND(4);
+				break;
+			case 0x20:
+				pokey.PeriodCycles3 = data + 4;
+				break;
+			case 0x28:
+				pokey.PeriodCycles4 = data + (pokey.Audf4 << 8) + 7;
+				pokey.ReloadCycles3 = data + 4;
+				DO_ULTRASOUND(4);
+				break;
+			}
+			DO_ULTRASOUND(3);
+			break;
+		case 0x05:
+			DO_AUDC(3);
+		case 0x06:
+			DO_STORE(Audf4);
+			switch (pokey.Audctl & 0x28) {
+			case 0x00:
+			case 0x20:
+				pokey.PeriodCycles4 = pokey.DivCycles * (data + 1);
+				break;
+			case 0x08:
+				pokey.PeriodCycles4 = pokey.DivCycles * (pokey.Audf3 + (data << 8) + 1);
+				break;
+			case 0x28:
+				pokey.PeriodCycles4 = pokey.Audf3 + (data << 8) + 7;
+				break;
+			}
+			DO_ULTRASOUND(4);
+			break;
+		case 0x07:
+			DO_AUDC(4);
+		case 0x08:
+			DO_STORE(Audctl);
+			pokey.DivCycles = (data & 1) != 0 ? 114 : 28;
+			// TODO: TickCycles
+			switch (data & 0x50) {
+			case 0x00:
+				pokey.PeriodCycles1 = pokey.DivCycles * (pokey.Audf1 + 1);
+				pokey.PeriodCycles2 = pokey.DivCycles * (pokey.Audf2 + 1);
+				break;
+			case 0x10:
+				pokey.PeriodCycles1 = pokey.DivCycles << 8;
+				pokey.PeriodCycles2 = pokey.DivCycles * (pokey.Audf1 + (pokey.Audf2 << 8) + 1);
+				pokey.ReloadCycles1 = pokey.DivCycles * (pokey.Audf1 + 1);
+				break;
+			case 0x40:
+				pokey.PeriodCycles1 = pokey.Audf1 + 4;
+				pokey.PeriodCycles2 = pokey.DivCycles * (pokey.Audf2 + 1);
+				break;
+			case 0x50:
+				pokey.PeriodCycles1 = 256;
+				pokey.PeriodCycles2 = pokey.Audf1 + (pokey.Audf2 << 8) + 7;
+				pokey.ReloadCycles1 = pokey.Audf1 + 4;
+				break;
+			}
+			DO_ULTRASOUND(1);
+			DO_ULTRASOUND(2);
+			switch (data & 0x28) {
+			case 0x00:
+				pokey.PeriodCycles3 = pokey.DivCycles * (pokey.Audf3 + 1);
+				pokey.PeriodCycles4 = pokey.DivCycles * (pokey.Audf4 + 1);
+				break;
+			case 0x08:
+				pokey.PeriodCycles3 = pokey.DivCycles << 8;
+				pokey.PeriodCycles4 = pokey.DivCycles * (pokey.Audf3 + (pokey.Audf4 << 8) + 1);
+				pokey.ReloadCycles3 = pokey.DivCycles * (pokey.Audf3 + 1);
+				break;
+			case 0x20:
+				pokey.PeriodCycles3 = pokey.Audf3 + 4;
+				pokey.PeriodCycles4 = pokey.DivCycles * (pokey.Audf4 + 1);
+				break;
+			case 0x28:
+				pokey.PeriodCycles3 = 256;
+				pokey.PeriodCycles4 = pokey.Audf3 + (pokey.Audf4 << 8) + 7;
+				pokey.ReloadCycles3 = pokey.Audf3 + 4;
+				break;
+			}
+			DO_ULTRASOUND(3);
+			DO_ULTRASOUND(4);
+			macro DO_INIT(ch, cond) { MUTE_CHANNEL(ch, pokey.Init && cond, Pokey.MuteInit); }
+			DO_INIT(1, (data & 0x40) == 0);
+			DO_INIT(2, (data & 0x50) != 0x50);
+			DO_INIT(3, (data & 0x20) == 0);
+			DO_INIT(4, (data & 0x28) != 0x28);
+			break;
+		case 0x09:
+			// TODO: ReloadCycles, out
+			macro DO_STIMER(ch) {
+				if (pokey.TickCycle##ch != Pokey.NeverCycle)
+					pokey.TickCycle##ch = cycle + pokey.PeriodCycles##ch;
+			}
+			DO_STIMER(1);
+			DO_STIMER(2);
+			DO_STIMER(3);
+			DO_STIMER(4);
+			break;
+		case 0x0f:
+			DO_STORE(Skctl);
+			bool init = (data & 3) == 0;
+			if (pokey.Init && !init)
+				pokey.PolyIndex = ((pokey.Audctl & 0x80) != 0 ? 15 * 31 * 511 - 1 : 15 * 31 * 131071 - 1) - cycle;
+			pokey.Init = init;
+			DO_INIT(1, (pokey.Audctl & 0x40) == 0);
+			DO_INIT(2, (pokey.Audctl & 0x50) != 0x50);
+			DO_INIT(3, (pokey.Audctl & 0x20) == 0);
+			DO_INIT(4, (pokey.Audctl & 0x28) != 0x28);
+			MUTE_CHANNEL(3, (data & 0x10) != 0, Pokey.MuteSerialInput);
+			MUTE_CHANNEL(4, (data & 0x10) != 0, Pokey.MuteSerialInput);
+			break;
+		default:
+			break;
+		}
+	}
+
+#if APOKEYSND
+	public
+#endif
+	int GetRandom(int addr, int cycle)
+	{
+		Pokey pokey = (addr & ExtraPokeyMask) != 0 ? ExtraPokey : BasePokey;
+		if (pokey.Init)
+			return 0xff;
+		int i = cycle + pokey.PolyIndex;
+		if ((pokey.Audctl & 0x80) != 0)
+			return Poly9Lookup[i % 511];
+		i %= 131071;
+		int j = i >> 3;
+		i &= 7;
+		return ((Poly17Lookup[j] >> i) + (Poly17Lookup[j + 1] << (8 - i))) & 0xff;
+	}
+
+#if APOKEYSND
+	public
+#endif
+	void StartFrame()
+	{
+		BasePokey.DeltaBuffer.Clear();
+		if (ExtraPokeyMask != 0)
+			ExtraPokey.DeltaBuffer.Clear();
+	}
+
+#if APOKEYSND
+	public
+#endif
+	int EndFrame(int cycle)
+	{
+		BasePokey.EndFrame(this, cycle);
+		if (ExtraPokeyMask != 0)
+			ExtraPokey.EndFrame(this, cycle);
+		SampleOffset += cycle * SampleFactor;
+		ReadySamplesStart = 0;
+		ReadySamplesEnd = SampleOffset >> SampleFactorShift;
+		SampleOffset &= (1 << SampleFactorShift) - 1;
+		return ReadySamplesEnd;
+	}
+
+	/// Fills buffer with samples from `DeltaBuffer`.
+#if APOKEYSND
+	public
+#endif
+	int Generate(byte[] buffer, int bufferOffset, int blocks, ASAPSampleFormat format)
+	{
+		int i = ReadySamplesStart;
+		int samplesEnd = ReadySamplesEnd;
+		if (blocks < samplesEnd - i)
+			samplesEnd = i + blocks;
+		else
+			blocks = samplesEnd - i;
+		int accLeft = IirAccLeft;
+		int accRight = IirAccRight;
+		for (; i < samplesEnd; i++) {
+			accLeft += BasePokey.DeltaBuffer[i] - (accLeft * 3 >> 10);
+#if FLASH
+			native {
+				var sample
+//#if ACTIONSCRIPT
+//					: Number
+//#endif
+					= accLeft / 67106816;
+				buffer.writeFloat(sample);
+				if (this.extraPokeyMask != 0) {
+					accRight += this.extraPokey.deltaBuffer[i] - (accRight * 3 >> 10);
+					sample = accRight / 67106816;
+				}
+				buffer.writeFloat(sample);
+			}
+#else
+			int sample = accLeft >> 11;
+			macro STORE_SAMPLE() {
+				if (sample < -32767)
+					sample = -32767;
+				else if (sample > 32767)
+					sample = 32767;
+				switch (format) {
+				case ASAPSampleFormat.U8:
+					buffer[bufferOffset++] = (sample >> 8) + 128;
+					break;
+				case ASAPSampleFormat.S16LE:
+					buffer[bufferOffset++] = sample.LowByte;
+					buffer[bufferOffset++] = (sample >> 8).LowByte;
+					break;
+				case ASAPSampleFormat.S16BE:
+					buffer[bufferOffset++] = (sample >> 8).LowByte;
+					buffer[bufferOffset++] = sample.LowByte;
+					break;
+				}
+			}
+			STORE_SAMPLE();
+			if (ExtraPokeyMask != 0) {
+				accRight += ExtraPokey.DeltaBuffer[i] - (accRight * 3 >> 10);
+				sample = accRight >> 11;
+				STORE_SAMPLE();
+			}
+#endif // FLASH
+		}
+		if (i == ReadySamplesEnd) {
+			accLeft += BasePokey.DeltaBuffer[i] + BasePokey.DeltaBuffer[i + 1];
+			accRight += ExtraPokey.DeltaBuffer[i] + ExtraPokey.DeltaBuffer[i + 1];
+		}
+		ReadySamplesStart = i;
+		IirAccLeft = accLeft;
+		IirAccRight = accRight;
+#if APOKEYSND
+		return bufferOffset;
+#else
+		return blocks;
+#endif
+	}
+
+	bool IsSilent()
+	{
+		return BasePokey.IsSilent() && ExtraPokey.IsSilent();
+	}
+}

@@ -9,40 +9,37 @@
 **/
 
 //local includes
-#include "backend_impl.h"
-#include "dsound.h"
-#include "storage.h"
-#include "volume_control.h"
-#include "gates/dsound_api.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/dsound.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/volume_control.h"
+#include "sound/backends/gates/dsound_api.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
+#include <strings/encoding.h>
 //std includes
 #include <thread>
 //boost includes
 #include <boost/range/size.hpp>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG BCBCECCC
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::DirectSound");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace DirectSound
 {
+  const Debug::Stream Dbg("Sound::Backend::DirectSound");
+
   const String ID = Text::DSOUND_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("DirectSound support backend.");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
@@ -101,7 +98,7 @@ namespace DirectSound
     std::vector<OLECHAR> strGuid(str.begin(), str.end());
     strGuid.push_back(0);
     std::unique_ptr<GUID> res(new GUID);
-    CheckWin32Error(::CLSIDFromString(&strGuid[0], res.get()), THIS_LINE);
+    CheckWin32Error(::CLSIDFromString(strGuid.data(), res.get()), THIS_LINE);
     return res;
   }
 
@@ -187,7 +184,7 @@ namespace DirectSound
     void Add(const Chunk& buffer)
     {
       std::size_t inputSize = buffer.size() * sizeof(buffer.front());
-      const uint8_t* inputStart = safe_ptr_cast<const uint8_t*>(&buffer[0]);
+      const uint8_t* inputStart = safe_ptr_cast<const uint8_t*>(buffer.data());
 
       while (inputSize)
       {
@@ -438,11 +435,11 @@ namespace DirectSound
     {
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    virtual void FrameStart(const Module::State& /*state*/)
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    virtual void FrameFinish(Chunk buffer)
     {
       /*
 
@@ -453,13 +450,13 @@ namespace DirectSound
       */
       if (Sample::BITS == 16)
       {
-        buffer->ToS16();
+        buffer.ToS16();
       }
       else
       {
-        buffer->ToU8();
+        buffer.ToU8();
       }
-      Objects.Stream->Add(*buffer);
+      Objects.Stream->Add(buffer);
     }
 
     VolumeControl::Ptr GetVolumeControl() const
@@ -497,7 +494,7 @@ namespace DirectSound
       res.Device = OpenDevice(*DsApi, device);
       const uint_t latency = params.GetLatency();
       const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
-      const Time::Milliseconds frameDuration = RenderingParameters->FrameDuration();
+      const auto frameDuration = RenderingParameters->FrameDuration().CastTo<Time::Millisecond>();
       res.Stream = MakePtr<StreamBuffer>(buffer, std::chrono::milliseconds(frameDuration.Get()));
       const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
       res.Volume = MakePtr<VolumeControl>(res.Device, primary);
@@ -555,7 +552,7 @@ namespace DirectSound
     explicit DevicesIterator(Api::Ptr api)
       : Current(Devices.begin())
     {
-      if (DS_OK != api->DirectSoundEnumerateA(&EnumerateDevicesCallback, &Devices))
+      if (DS_OK != api->DirectSoundEnumerateW(&EnumerateDevicesCallback, &Devices))
       {
         Dbg("Failed to enumerate devices. Skip backend.");
         Current = Devices.end();
@@ -587,11 +584,13 @@ namespace DirectSound
       }
     }
   private:
-    static BOOL CALLBACK EnumerateDevicesCallback(LPGUID guid, LPCSTR descr, LPCSTR module, LPVOID param)
+    static BOOL CALLBACK EnumerateDevicesCallback(LPGUID guid, LPCWSTR descr, LPCWSTR module, LPVOID param)
     {
-      const String& id = Guid2String(guid);
-      const String& name = FromStdString(descr);
-      Dbg("Detected device '%1%' (uuid=%2% module='%3%')", name, id, module);
+      static_assert(sizeof(*descr) == sizeof(uint16_t), "Char size mismatch");
+      const auto& id = Guid2String(guid);
+      const auto& name = Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(descr));
+      const auto& mod = Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(module));
+      Dbg("Detected device '%1%' (uuid=%2% module='%3%')", name, id, mod);
       DevicesArray& devices = *static_cast<DevicesArray*>(param);
       devices.push_back(IdAndName(id, name));
       return TRUE;
@@ -645,3 +644,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

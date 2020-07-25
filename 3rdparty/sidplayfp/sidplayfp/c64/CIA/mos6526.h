@@ -159,7 +159,6 @@ protected:
      * @param context the event context
      */
     MOS6526(EventContext *context);
-    ~MOS6526() {}
 
     /**
      * This event exists solely to break the ambiguity of what scheduling on

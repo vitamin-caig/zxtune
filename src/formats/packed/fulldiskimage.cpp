@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "container.h"
+#include "formats/packed/container.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>
@@ -19,6 +19,7 @@
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
+#include <cassert>
 #include <cstring>
 #include <numeric>
 //text includes

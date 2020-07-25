@@ -1,11 +1,11 @@
 binary_name := io_test_file
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
-libraries.common = binary io l10n_stub platform tools
+libraries.common = binary debug io l10n_stub parameters platform strings tools
 
-windows_libraries := advapi32
+libraries.windows := advapi32
 
-libraries.boost := filesystem
+libraries.boost := filesystem system
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

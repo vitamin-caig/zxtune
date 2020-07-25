@@ -22,7 +22,7 @@ namespace
 
     const Formats::Packed::Decoder::Ptr packed = Formats::Packed::CreateHrust23Decoder();
     std::map<std::string, Dump> tests;
-    const uint8_t* const data = &rar[0];
+    const uint8_t* const data = rar.data();
     tests["test16k"] = Dump(data + 8, data + 0x21c0);
     Test::TestPacked(*packed, etalon, tests);
   }
@@ -37,7 +37,7 @@ namespace
 
     const Formats::Packed::Decoder::Ptr packed = Formats::Packed::CreateHrust23Decoder();
     std::map<std::string, Dump> tests;
-    const uint8_t* const data = &rar[0];
+    const uint8_t* const data = rar.data();
     tests["test48k"] = Dump(data + 0x21c0, data + 0x4821);
     Test::TestPacked(*packed, etalon, tests);
   }

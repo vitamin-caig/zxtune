@@ -166,7 +166,8 @@ static inline void read_row(struct context_data *ctx, int pat, int row)
 	struct xmp_event *event;
 
 	for (chn = 0; chn < mod->chn; chn++) {
-		if (row < mod->xxt[TRACK_NUM(pat, chn)]->rows) {
+	        const int trk = TRACK_NUM(pat, chn);
+		if (trk < mod->trk && row < mod->xxt[trk]->rows) {
 			event = &EVENT(pat, chn, row);
 		} else {
 			event = (struct xmp_event *)&empty_event;
@@ -1225,9 +1226,8 @@ void xmp_get_frame_info(xmp_context opaque, struct xmp_frame_info *info)
 	
 			if (info->pattern < mod->pat && info->row < info->num_rows) {
 				trk = mod->xxp[info->pattern]->index[i];
-				track = mod->xxt[trk];
-				if (info->row < track->rows) {
-					event = &track->event[info->row];
+				if (trk < mod->trk && info->row < mod->xxt[trk]->rows) {
+					event = &mod->xxt[trk]->event[info->row];
 					memcpy(&ci->event, event, sizeof(*event));
 				}
 			}

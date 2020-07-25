@@ -10,26 +10,32 @@
 
 package app.zxtune.playback;
 
+import app.zxtune.TimeStamp;
+
 import java.util.LinkedList;
 import java.util.List;
 
 public final class CompositeCallback implements Callback {
   
   private final List<Callback> delegates;
-  private boolean lastStatus;
-  private Item lastItem;
-  private boolean lastIOStatus;
-  
+  private PlaybackControl.State lastState;
+
   public CompositeCallback() {
-    this.delegates = new LinkedList<Callback>();
+    this.delegates = new LinkedList<>();
+    this.lastState = PlaybackControl.State.STOPPED;
   }
-  
+
   @Override
-  public void onStatusChanged(boolean isPlaying) {
+  public void onInitialState(PlaybackControl.State state) {
+    lastState = state;
+  }
+
+  @Override
+  public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
     synchronized (delegates) {
-      lastStatus = isPlaying;
+      lastState = state;
       for (Callback cb : delegates) {
-        cb.onStatusChanged(isPlaying);
+        cb.onStateChanged(state, pos);
       }
     }
   }
@@ -37,23 +43,12 @@ public final class CompositeCallback implements Callback {
   @Override
   public void onItemChanged(Item item) {
     synchronized (delegates) {
-      lastItem = item;
       for (Callback cb : delegates) {
         cb.onItemChanged(item);
       }
     }
   }
 
-  @Override
-  public void onIOStatusChanged(boolean isActive) {
-    synchronized (delegates) {
-      lastIOStatus = isActive;
-      for (Callback cb : delegates) {
-        cb.onIOStatusChanged(isActive);
-      }
-    }
-  }
-  
   @Override
   public void onError(String e) {
     synchronized (delegates) {
@@ -62,23 +57,23 @@ public final class CompositeCallback implements Callback {
       }
     }
   }
-  
-  public int add(Callback callback) {
-    synchronized (delegates) {
-      delegates.add(callback);
-      if (lastItem != null) {
-        callback.onItemChanged(lastItem);
-      }
-      callback.onStatusChanged(lastStatus);
-      callback.onIOStatusChanged(lastIOStatus);
-      return delegates.size();
+
+  public boolean isEmpty() {
+    synchronized(delegates) {
+      return delegates.isEmpty();
     }
   }
 
-  public int remove(Callback callback) {
+  public void add(Callback callback) {
+    synchronized (delegates) {
+      delegates.add(callback);
+      callback.onInitialState(lastState);
+    }
+  }
+
+  public void remove(Callback callback) {
     synchronized (delegates) {
       delegates.remove(callback);
-      return delegates.size();
     }
   }
 }

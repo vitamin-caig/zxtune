@@ -9,20 +9,23 @@
 **/
 
 //local includes
-#include "tfmmusicmaker.h"
+#include "formats/chiptune/fm/tfmmusicmaker.h"
 #include "formats/chiptune/container.h"
 //common includes
-#include <crc.h>
 #include <indices.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/encoding.h>
 //std includes
 #include <array>
 #include <cassert>
+//boost includes
+#include <boost/algorithm/string/trim.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -65,7 +68,7 @@ namespace Chiptune
       }
     } PACK_POST;
 
-    typedef char InstrumentName[16];
+    using InstrumentName = std::array<char, 16>;
 
     PACK_PRE struct RawInstrument
     {
@@ -298,9 +301,9 @@ namespace Chiptune
         PackedDate CreationDate;
         PackedDate SaveDate;
         uint16_t SavesCount;
-        char Author[64];
-        char Title[64];
-        char Comment[384];
+        std::array<char, 64> Author;
+        std::array<char, 64> Title;
+        std::array<char, 384> Comment;
         std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
         std::array<InstrumentName, MAX_INSTRUMENTS_COUNT> InstrumentNames;
         std::array<RawInstrument, MAX_INSTRUMENTS_COUNT> Instruments;
@@ -689,21 +692,14 @@ namespace Chiptune
     class ByteStream
     {
     public:
-      ByteStream(const uint8_t* data, std::size_t size)
-        : Data(data), End(Data + size)
-        , Size(size)
+      explicit ByteStream(Binary::View data)
+        : Stream(data)
       {
-      }
-
-      bool Eof() const
-      {
-        return Data >= End;
       }
 
       uint8_t GetByte()
       {
-        Require(!Eof());
-        return *Data++;
+        return Stream.ReadByte();
       }
 
       uint_t GetCounter()
@@ -723,34 +719,30 @@ namespace Chiptune
 
       std::size_t GetProcessedBytes() const
       {
-        return Size - (End - Data);
+        return Stream.GetPosition();
       }
     private:
-      const uint8_t* Data;
-      const uint8_t* const End;
-      const std::size_t Size;
+      Binary::DataInputStream Stream;
     };
 
     class Decompressor
     {
     public:
-      Decompressor(const Binary::Container& data, std::size_t offset, std::size_t targetSize)
-        : Stream(static_cast<const uint8_t*>(data.Start()), data.Size())
-        , Result(new Dump())
-        , Decoded(*Result)
+      Decompressor(Binary::View data, std::size_t offset, std::size_t targetSize)
+        : Stream(data)
+        , Decoded()
       {
         Decoded.reserve(targetSize);
-        while (offset--)
+        for (; offset; --offset)
         {
           Decoded.push_back(Stream.GetByte());
         }
         DecodeData(targetSize);
       }
 
-      template<class T>
-      const T* GetResult() const
+      Binary::View GetResult() const
       {
-        return safe_ptr_cast<const T*>(&Decoded[0]);
+        return Decoded;
       }
 
       std::size_t GetUsedSize() const
@@ -793,10 +785,20 @@ namespace Chiptune
       }
     private:
       ByteStream Stream;
-      std::unique_ptr<Dump> Result;
-      Dump& Decoded;
+      Dump Decoded;
     };
+    
+    StringView Trim(StringView str)
+    {
+      //empty samples' names are filled with FF
+      return boost::algorithm::trim_copy_if(str, boost::is_from_range('\x00', '\x20') || boost::is_any_of("\xff"));
+    }
 
+    String DecodeString(StringView str)
+    {
+      return Strings::ToAutoUtf8(Trim(str));
+    }
+    
     template<class Version>
     class VersionedFormat
     {
@@ -812,12 +814,16 @@ namespace Chiptune
         builder.SetDate(ConvertDate(Source.CreationDate), ConvertDate(Source.SaveDate));
         MetaBuilder& meta = builder.GetMetaBuilder();
         meta.SetProgram(Version::DESCRIPTION);
-        meta.SetTitle(FromCharArray(Source.Title));
-        meta.SetAuthor(FromCharArray(Source.Author));
-        builder.SetComment(FromCharArray(Source.Comment));
-        Strings::Array names(Source.InstrumentNames.size());
-        std::transform(Source.InstrumentNames.begin(), Source.InstrumentNames.end(), names.begin(), &FromCharArray<16>);
-        meta.SetStrings(names);
+        meta.SetTitle(DecodeString(Source.Title));
+        meta.SetAuthor(DecodeString(Source.Author));
+        builder.SetComment(DecodeString(Source.Comment));
+        Strings::Array names;
+        names.reserve(Source.InstrumentNames.size());
+        for (const auto& name : Source.InstrumentNames)
+        {
+          names.push_back(DecodeString(name));
+        }
+        meta.SetStrings(std::move(names));
       }
 
       void ParsePositions(Builder& builder) const
@@ -1093,8 +1099,9 @@ namespace Chiptune
         try
         {
           const Decompressor decompressor(data, Version::SIGNATURE_SIZE, sizeof(typename Version::RawHeader));
+          const auto decoded = decompressor.GetResult();
 
-          const VersionedFormat<Version> format(*decompressor.GetResult<typename Version::RawHeader>());
+          const VersionedFormat<Version> format(*decoded.As<typename Version::RawHeader>());
           format.ParseCommonProperties(target);
 
           StatisticCollectingBuilder statistic(target);
@@ -1104,11 +1111,11 @@ namespace Chiptune
           const Indices& usedInstruments = statistic.GetUsedInstruments();
           format.ParseInstruments(usedInstruments, target);
 
-          const Binary::Container::Ptr subData = data.GetSubcontainer(0, decompressor.GetUsedSize());
+          auto subData = data.GetSubcontainer(0, decompressor.GetUsedSize());
           const std::size_t fixStart = offsetof(typename Version::RawHeader, Patterns) + sizeof(typename Version::RawPattern) * usedPatterns.Minimum();
           const std::size_t fixEnd = offsetof(typename Version::RawHeader, Patterns) + sizeof(typename Version::RawPattern) * (1 + usedPatterns.Maximum());
-          const uint_t crc = Crc32(decompressor.GetResult<uint8_t>() + fixStart, fixEnd - fixStart);
-          return CreateKnownCrcContainer(subData, crc);
+          const uint_t crc = Binary::Crc32(decoded.SubView(fixStart, fixEnd - fixStart));
+          return CreateKnownCrcContainer(std::move(subData), crc);
         }
         catch (const std::exception&)
         {

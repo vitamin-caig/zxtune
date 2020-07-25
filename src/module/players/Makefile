@@ -1,8 +1,13 @@
 library_name := module_players
-path_step := ../../..
-source_dirs := . aym dac saa tfm
+dirs.root := ../../..
+source_dirs := . aym dac saa tfm xsf
 
 po_files := module_players
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/3rdparty/mgba/defines.mak
+
+jumbo.name := $(library_name)
+jumbo.excludes := dac/abysshighestexperience.cpp xsf/2sf.cpp
+
+include $(dirs.root)/makefile.mak
 

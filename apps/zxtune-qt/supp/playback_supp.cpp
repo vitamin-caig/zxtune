@@ -165,7 +165,7 @@ namespace
       emit OnStartModule(Backend, Item);
     }
 
-    void OnFrame(const Module::TrackState& /*state*/) override
+    void OnFrame(const Module::State& /*state*/) override
     {
     }
 

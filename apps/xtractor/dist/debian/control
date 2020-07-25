@@ -3,7 +3,7 @@ Priority: optional
 Section: utils
 Maintainer: Vitamin <vitamin.caig@gmail.com>
 Build-Depends: debhelper
-Homepage: http://zxtune.bitbucket.org/
+Homepage: https://zxtune.bitbucket.io/
 Vcs-Git: https://bitbucket.org/zxtune/zxtune.git
 Vcs-Browser: https://bitbucket.org/zxtune/zxtune/src
 

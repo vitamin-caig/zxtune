@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "container.h"
-#include "lha_supp.h"
-#include "pack_utils.h"
+#include "formats/packed/container.h"
+#include "formats/packed/lha_supp.h"
+#include "formats/packed/pack_utils.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -51,7 +51,7 @@ namespace Lha
       Binary::InputStream input(rawData);
       const std::shared_ptr<LHADecoder> decoder(::lha_decoder_new(Type, &ReadData, &input, outputSize), &::lha_decoder_free);
       std::unique_ptr<Dump> result(new Dump(outputSize));
-      if (const std::size_t decoded = ::lha_decoder_read(decoder.get(), &result->front(), outputSize))
+      if (const std::size_t decoded = ::lha_decoder_read(decoder.get(), result->data(), outputSize))
       {
         const std::size_t originalSize = input.GetPosition();
         Dbg("Decoded %1% -> %2% bytes", originalSize, outputSize);

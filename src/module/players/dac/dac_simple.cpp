@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "dac_simple.h"
+#include "module/players/dac/dac_simple.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -50,7 +50,7 @@ namespace Module
         Properties.SetSamplesFrequency(freq);
       }
 
-      void SetSample(uint_t index, std::size_t loop, const Binary::Data& content, bool is4Bit) override
+      void SetSample(uint_t index, std::size_t loop, Binary::View content, bool is4Bit) override
       {
         Data->Samples.Add(index, is4Bit
           ? Devices::DAC::CreateU4Sample(content, loop)
@@ -191,9 +191,9 @@ namespace Module
 
       DAC::DataIterator::Ptr CreateDataIterator() const override
       {
-        const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-        const DAC::DataRenderer::Ptr renderer = MakePtr<SimpleDataRenderer>(Data, Channels);
-        return DAC::CreateDataIterator(iterator, renderer);
+        auto iterator = CreateTrackStateIterator(Data);
+        auto renderer = MakePtr<SimpleDataRenderer>(Data, Channels);
+        return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
       }
 
       void GetSamples(Devices::DAC::Chip::Ptr chip) const override
@@ -212,7 +212,7 @@ namespace Module
 
     DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels)
     {
-      return MakePtr<SimpleChiptune>(data, properties, channels);
+      return MakePtr<SimpleChiptune>(std::move(data), std::move(properties), channels);
     }
   }
 }

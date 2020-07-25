@@ -5,6 +5,255 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4950 from 14.07.2020
+
+[+] Full support of VGM format chips and versions
+[+] zxtune-android: added VGMRips random tunes stream
+
+--- Rev4930 from 18.06.2020
+
+[+] zxtune-android: added vgmrips.net online catalogue
+[+] zxtune-android: added scene.org online catalogue
+[*] zxtune-android: fixed playlist updates
+
+--- Rev4920 from 06.05.2020
+
+[+] zxtune-android: browser displays progress for directory listing and file downloading and analyzing
+[+] zxtune-android: files' analyze and cache status icon
+[+] zxtune-android: quick search in browser
+[+] zxtune-android: returned Track->Send menu item
+
+--- Rev4890 from 02.03.2020
+
+[+] zxtune-android: added ModArchive 'Random Pick!' tunes stream
+[*] zxtune-android: simplified browser
+[*] zxtune-android: increased playlist scrollbar width
+[*] zxtune-android: fixed audio focus processing
+[*] zxtune-android: fixed found and reported crashes and hangups
+
+--- Rev4880 from 31.01.2020
+
+[+] Supported ATRAC3 and ATRAC3+ streams in WAV
+[+] zxtune-android: added PlayStation Portable and PlayStation 3 archives to joshw.info catalogues
+[*] zxtune-android: fixed playlist problems with selection and drag'n'drop
+[*] zxtune-android: fixed integration with scrobblers
+[*] zxtune-android: fixed notification lockscreen visibility
+[*] zxtune-android: fixed found and reported crashes and hangups
+
+--- Rev4850 from 16.12.2019
+
+[+] Supported ATRAC9 streams in WAV and FSB containers.
+[+] zxtune-android: added PlayStation Vita and PlayStation 4 archives to joshw.info catalogues
+
+--- Rev4830 from 09.12.2019
+
+[*] Optimized memory usage
+[+] zxtune-android: pause playback on headset disconnection
+[*] zxtune-android: reworked playlist
+[*] zxtune-android: fixed found and reported crashes and hangups
+
+--- Rev4770 from 25.11.2019
+
+[+] Supported vorbis streams in Fmod Sound Bank containers
+[+] zxtune-android: added Nintendo Switch archive to joshw.info catalogue
+[+] zxtune-android: initial japanese translation
+
+--- Rev4760 from 14.11.2019
+
+[+] Added support of Farbrausch V2 Synthesizer System (V2M)
+[*] Fixed crash on some broken MP3 files
+
+--- Rev4720 from 26.10.2019
+
+[+] Added support of Free Lossless Audio Codec format (FLAC)
+[*] Fixed YM2608 overload distortion in VGM format playback
+[*] zxtune-qt: fixed crash on SID playback
+[*] zxtune-android: optimized memory usage
+[*] zxtune-android: fixed hangup after many played tracks
+
+--- Rev4660 from 17.06.2019
+
+[+] zxtune-android: added aminet.net online catalogue
+[*] zxtune-android: updated Chinese translation
+[*] zxtune-android: reduced binaries and packages size
+[*] zxtune-android: fixed found and reported crashes and hangups
+
+--- Rev4560 from 06.05.2019
+
+[*] zxtune-qt: fixed MacOS X build
+[+] zxtune-android: initial Chinese translation
+[*] zxtune-android: increase update frequency and decrease CPU consuming for visualizer
+[*] zxtune-android: improved errors processing in case of big folders scanning
+[*] zxtune-android: fixed session restoring in case of archived tracks playback
+[*] zxtune-android: fixed found and reported crashes and hangups
+
+--- Rev4500 from 15.04.2019
+
+[*] Fixed AHX/HVL playback without looping
+[+] zxtune-android: playlist files are shown as folders on click
+[*] zxtune-android: fixed Track menu
+[*] zxtune-android: reworked widget
+[*] zxtune-android: fixed found and reported crashes and hangups
+
+--- Rev4440 from 02.04.2019
+
+[*] Fixed ProSoundMaker (PSM) playback and detection
+[*] Fixed crashes in OGG and MP3 playback
+[*] zxtune-android: fixed local storages enumeration
+[*] zxtune-android: improved session storing/restoring
+[-] zxtune-android: temporarily removed tracks' sending functionality
+[*] zxtune-android: fixed ringtone creating
+[*] zxtune-android: fixed found and reported crashes and hangups
+
+--- Rev4380 from 25.02.2019
+
+[*] Fixed OGG looping
+[*] zxtune-android: reduced pauses between tracks
+[*] zxtune-android: fixed some reported and found crashes and hangs
+
+--- Rev4350 from 22.01.2019
+
+[*] Fixed some formats playback
+[*] zxtune-android: postpone cache update after first fail
+
+--- Rev4340 from 20.01.2019
+
+[+] Supported loops count limitation
+[*] zxtune-android: fixed errors on some joshw catalogues navigation and scanning
+[*] zxtune-android: fixed cache update on some devices
+[*] zxtune-android: show fallback root directory if there're no mountpoints for Local Storage catalogue
+
+--- Rev4310 from 18.12.2018
+
+[+] Added 4-bit MS-ADPCM and IMA-ADPCM codecs support for WAV
+[*] Fixed OGG parsing
+[*] Fixed parsing of TurboSound containers with big submodules (BB#114)
+[+] zxtune-android: added fallback mirror for modarchive catalogue
+[*] zxtune-android: fixed 'General contract violation' error in browser
+[*] zxtune-android: trying to continue files downloading in case of network issues
+[*] zxtune-android: do not analyze next files in browser if chosen has no supported modules
+
+--- Rev4280 from 03.12.2018
+
+[+] Added support of MPEG Audio Layer format (MP1/MP2/MP3)
+[+] Added support of Ogg Vorbis audio (OGG)
+[+] Added support of Waveform Audio (WAV, only PCM-encoded formats)
+[+] Added support of FMOD sound banks (FSB)
+[*] zxtune-qt: fixed pause before scanning of long files with explicit format
+[*] zxtune-android: optimized memory usage
+[+] zxtune-android: added FM Towns, Mobile plaforms, NeoGeo CD and PC archives to joshw.info catalogue
+[*] zxtune-android: cached files will be updated if changed on remote side
+[*] zxtune-android: fixed and improved external storages enumeration on modern devices
+[*] zxtune-android: fixed some reported and found crashes
+
+--- Rev4220 from 18.10.2018
+
+[*] zxtune-android: fixed crash at startup on some devices
+[*] zxtune-android: fixed screen widget coloring
+[*] zxtune-android: fixed track sending functionality on Android 9+
+
+--- Rev4210 from 18.10.2018
+
+[*] Fixed crash in some .gsf tracks playback
+[+] zxtune-android: added fallback mirrors for asma, amp and modland catalogues
+[*] zxtune-android: fixed some reported and found crashes
+
+--- Rev4190 from 10.09.2018
+
+[*] Fixed ET1 tracks playback
+[*] Fixed digital SID tunes playback
+[+] zxtune-android: added ASMA online catalogue
+[*] zxtune-android: fixed some reported and found crashes and hangs
+
+--- Rev4160 from 14.05.2018
+
+[+] Added support of Raster Music Tracker (.RMT)
+[+] Supported additional FastTracker frequency tables (BB#102)
+[*] Fixed AYLPT backend
+[*] Fixes in .SAP parsing
+[*] Fixes in .SPC playback
+[*] Fixed .VGM v1.71 support
+[*] Fixed playback of .AY files with simultanous AY and beeper (BB#106)
+[*] Fixed reported and found crashes
+[*] zxtune-android: fixed network access for some Android 8+ devices
+[*] zxtune-android: reduced memory usage while network operations
+[*] zxtune-android: fixed HVSC access, simplified catalogue structure
+[*] zxtune-android: fixed some hangs
+
+--- Rev4110 from 20.02.2018
+
+[*] zxtune-android: fixed playback problems on some devices
+[*] zxtune-android: fixed reported and found crashes.
+
+--- Rev4100 from 14.02.2018
+
+[+] Added support of Sega Dreamcast format (DSF)
+[+] Added support of Sega Saturn format (SSF)
+[+] Support silence detection while playback (BB#87)
+[*] Fixed Vortex Tracker .txt parsing
+[*] Fixed SoundTracker playback (BB#101)
+[*] Increased SPC playback volume
+[*] Use ASAP library for .sap playback
+[*] Use FFT spectrum analyzer as a default for some formats
+[*] Fixed reported and found crashes
+[+] zxtune-android: add dsf and ssf subcatalogues at joshw.info catalogue
+[*] zxtune-android: improved shuffled playlist playback
+[*] zxtune-android: improved playback performance
+
+--- Rev4040 from 19.10.2017
+
+[*] Speedup 2SF tracks rendering and seeking
+[*] Do not fadeout in looped mode
+[*] Fixed reported and found crashes
+[*] zxtune-android: optimized version for intel-based devices with ARM emulation
+
+--- Rev3980 from 18.07.2017
+
+[+] zxtune-android: support playback pause from notification area
+[*] zxtune-android: fixed permissions issues for Android 6.0+
+[*] zxtune-android: always show buttons in notification area
+[*] zxtune-android: always enabled remote headset and lockscreen control
+[*] zxtune-android: fixed some file types associations
+[*] zxtune-android: cleanup settings
+[-] zxtune-android: phone state access permission is not required
+
+--- Rev3960 from 05.07.2017
+
+[*] zxtune-android: fixed silent playback of some formats on some devices.
+[*] zxtune-android: fixed some crashes
+
+--- Rev3950 from 04.07.2017
+
+[+] Added support of Nintendo DS Sound Format (2SF)
+[+] Added support of Startrekker format (MOD)
+[*] Speedup archived multifile tracks browsing
+[*] Fixed GSF patches parsing
+[*] Updated SID songs lengths database to HVSC v66
+[+] zxtune-qt: items opened via cmdline also can be added to active or currently visible playlist
+[+] zxtune-android: added http://2sf.joshw.info subcatalogue
+[*] zxtune-android: vector in-app icons
+[-] zxtune-android: minimal supported Android version limited to 4.0.0 (API v14)
+[*] zxtune-android: fixed some reported crashes
+
+--- Rev3890 from 18.04.2017
+
+[+] Added support of PlayStation 1&2 Sound Format (PSF,PSF2)
+[+] Added support of Nintendo Ultra64 Sound Format (USF)
+[+] Added support of GameBoy Advance Sound Format (GSF)
+[+] Supported packed GYM files (BB#74)
+[*] Treat HES files as multitrack (32 tracks total)
+[*] Full support of UTF-8
+[*] Fix Vortex Tracker text format parsing
+[*] Fixed PT3 note gliss effect (BB#71)
+[*] xtractor: fixed crash
+[*] zxtune123: fixed raw data export
+[+] zxtune-android: add psf, gsf and usf subcatalogues at joshw.info catalogue
+[*] zxtune-android: improve errors processing
+[*] zxtune-android: fix Modland archive entry point
+[*] zxtune-android: fix HVSC navigation issue (BB#69)
+[*] zxtune-android: increase maximum downloaded file size up to 100Mb
+[*] zxtune-android: fixed some crashes
+
 --- Rev3750 from 06.12.2016
 
 [*] Samples for DAC-based modules are copied from input data instead of sharing

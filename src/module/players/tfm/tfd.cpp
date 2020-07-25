@@ -9,14 +9,16 @@
 **/
 
 //local includes
-#include "tfd.h"
-#include "tfm_base_stream.h"
+#include "module/players/tfm/tfd.h"
+#include "module/players/tfm/tfm_base_stream.h"
 //common includes
 #include <make_ptr.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 //library includes
 #include <formats/chiptune/fm/tfd.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -138,13 +140,14 @@ namespace TFD
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::TFD::Parse(rawData, dataBuilder))
+      if (const auto container = Formats::Chiptune::TFD::Parse(rawData, dataBuilder))
       {
-        const TFM::StreamModel::Ptr data = dataBuilder.GetResult();
+        auto data = dataBuilder.GetResult();
         if (data->Size())
         {
           props.SetSource(*container);
-          return TFM::CreateStreamedChiptune(data, properties);
+          props.SetPlatform(Platforms::ZX_SPECTRUM);
+          return TFM::CreateStreamedChiptune(std::move(data), std::move(properties));
         }
       }
       return TFM::Chiptune::Ptr();

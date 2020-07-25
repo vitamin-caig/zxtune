@@ -9,37 +9,36 @@ generated_dir = $(objects_dir)/.qt
 generated_headers += $(addprefix $(generated_dir)/,$(notdir $(ui_files:=$(suffix.ui.h))))
 generated_sources += $(addprefix $(generated_dir)/,$(notdir $(ui_files:=$(suffix.moc.cpp)) $(moc_files:=$(suffix.moc.cpp)) $(qrc_files:=$(suffix.qrc.cpp))))
 
-include_dirs += $(generated_dir)
+includes.dirs += $(generated_dir)
 
 ifdef release
 defines += QT_NO_DEBUG
 endif
 
-ifndef distro
-qt.version = $($(platform).$(arch).qt.version)
-endif
+qt.version.merged = $(firstword $($(platform).$(arch).qt.version) $($(platform).qt.version) $(qt.version))
 
-ifeq ($(qt.version),)
-include_dirs += $(qt.includes)
+ifeq ($(qt.version.merged),)
+includes.dirs += $(qt.includes)
 else
-qt.dir = $(prebuilt.dir)/qt-$(qt.version)-$(platform)-$(arch)
-include_dirs += $(qt.dir)/include
-$(platform)_libraries_dirs += $(qt.dir)/lib
+qt.dir = $(prebuilt.dir)/qt-$(qt.version.merged)-$(platform)-$(arch)
+includes.dirs += $(qt.dir)/include
+libraries.dirs.$(platform) += $(qt.dir)/lib
 qt.bin = $(qt.dir)/bin/
 endif
 
+libraries += $(foreach lib,$(libraries.qt),Qt$(lib))
+
 ifneq (,$(findstring Core,$(libraries.qt)))
-windows_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames
-mingw_libraries += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32
+libraries.windows += Qtmain kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames
+libraries.mingw += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32
 darwin.ld.flags += -framework AppKit -framework Security
 endif
 ifneq (,$(findstring Gui,$(libraries.qt)))
-windows_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
-mingw_libraries += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
+libraries.windows += Qtmain gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
+libraries.mingw += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
 darwin.ld.flags += -framework Carbon -framework SystemConfiguration
-ifneq ($($(platform).$(arch).qt.version),)
-linux_libraries += freetype Xext Xrender Xrandr Xfixes X11 fontconfig
-dingux_libraries += png
+ifneq ($(qt.version.merged),)
+libraries.linux += freetype Xext Xrender Xrandr Xfixes X11 fontconfig
 endif
 endif
 
@@ -58,10 +57,10 @@ $(generated_dir)/%$(suffix.ui.h): %$(suffix.ui) | $(generated_dir)
 	$(tools.uic) $< -o $@
 
 $(generated_dir)/%$(suffix.moc.cpp): %.h | $(generated_dir)
-	$(tools.moc) -nw $(addprefix -D,$(DEFINITIONS)) $< -o $@
+	$(tools.moc) -nw $(addprefix -D,$(DEFINES)) $< -o $@
 
 $(generated_dir)/%$(suffix.moc.cpp): %$(suffix.ui.h) | $(generated_dir)
-	$(tools.moc) -nw $(addprefix -D,$(DEFINITIONS)) $< -o $@
+	$(tools.moc) -nw $(addprefix -D,$(DEFINES)) $< -o $@
 
 $(generated_dir)/%$(suffix.qrc.cpp): %$(suffix.qrc) | $(generated_dir)
 	$(tools.rcc) -name $(basename $(notdir $<)) -o $@ $<

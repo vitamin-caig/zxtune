@@ -1,7 +1,6 @@
 #include <pointers.h>
 #include <types.h>
 #include <binary/format_factories.h>
-#include <binary/data_adapter.h>
 #include <debug/log.h>
 #include <strings/format.h>
 #include <iostream>
@@ -187,14 +186,12 @@ namespace
     std::string ToString() const
     {
       Dbg("Result has %1% entries", Ranges.size());
-      const std::size_t ranges = std::count_if(Ranges.begin(), Ranges.end(), std::mem_fun_ref(&Range::IsThis));
-      if (ranges == Ranges.size())
+      if (std::all_of(Ranges.begin(), Ranges.end(), [](const Range& rng) {return rng.IsThis();}))
       {
         Dbg("Using ranges format");
         return HomogeniousToString(Ranges);
       }
-      const std::size_t binaries = std::count_if(Binaries.begin(), Binaries.end(), std::mem_fun_ref(&BinaryMask::IsThis));
-      if (binaries == Binaries.size())
+      if (std::all_of(Binaries.begin(), Binaries.end(), [](const BinaryMask& msk) {return msk.IsThis();}))
       {
         Dbg("", "Using binary format");
         return HomogeniousToString(Binaries);
@@ -315,7 +312,7 @@ namespace
     const std::size_t size = stream.tellg();
     stream.seekg(0);
     Dump tmp(size);
-    stream.read(safe_ptr_cast<char*>(&tmp[0]), tmp.size());
+    stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
     return tmp;
   }
 }
@@ -360,8 +357,7 @@ int main(int argc, char* argv[])
       {
         const std::string filename = argv[idx];
         const Dump& data = Read(filename);
-        const Binary::DataAdapter adapter(&data[0], data.size());
-        if (!check->Match(adapter))
+        if (!check->Match(data))
         {
           throw std::runtime_error(Strings::Format("Not matched for %1%", filename));
         }

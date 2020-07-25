@@ -1,8 +1,8 @@
 library_name := xmp
-path_step := ../..
-include $(path_step)/make/default.mak
+dirs.root := ../..
+include $(dirs.root)/make/default.mak
 
-include_dirs := include src
+includes.dirs += include src
 
 source_files += $(addprefix src/,\
  virtual format misc period player read_event \
@@ -30,7 +30,7 @@ source_files += $(addprefix src/loaders/,\
  rtm_load dmf_load tcb_load dt_load gtk_load no_load \
  arch_load sym_load dtt_load mgt_load med2_load med3_load \
  med4_load ssmt_load dbm_load umx_load gdm_load \
- coco_load gal5_load gal4_load mfp_load \
+ coco_load gal5_load gal4_load \
  polly_load asylum_load hmn_load)
 
 # pw_load
@@ -51,12 +51,12 @@ ifneq ($(findstring $(platform),windows mingw),)
 source_files += $(addprefix src/win32/,\
  ptpopen debug usleep)
 
-include_dirs += src/win32
+includes.dirs += src/win32
 endif
 
 source_files := $(addsuffix .c,$(source_files))
 
-defines += BUILDING_STATIC NO_VERSIONED_SYMBOLS DECRUNCH_MAX=0 NO_PROWIZARD
-windows_definitions += inline=__inline _USE_MATH_DEFINES WIN32 _WINDOWS PATH_MAX=1024
+defines += BUILDING_STATIC NO_VERSIONED_SYMBOLS DECRUNCH_MAX=0 NO_PROWIZARD NO_EXTERNALFILES PATH_MAX=1024
+defines.windows += inline=__inline _USE_MATH_DEFINES WIN32 _WINDOWS
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

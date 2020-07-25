@@ -1,7 +1,9 @@
 library_name := formats_archived
-path_step := ../../..
+dirs.root := ../../..
 source_dirs := .
 
 text_files := ../text/archived
 
-include $(path_step)/makefile.mak
+jumbo.name := $(library_name)
+
+include $(dirs.root)/makefile.mak

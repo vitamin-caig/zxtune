@@ -9,14 +9,13 @@
 **/
 
 //local includes
-#include "turbosound.h"
+#include "formats/chiptune/aym/turbosound.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <math/numeric.h>
 //text includes
 #include <formats/text/chiptune.h>
@@ -28,7 +27,7 @@ namespace Chiptune
   namespace TurboSound
   {
     const std::size_t MIN_SIZE = 256;
-    const std::size_t MAX_MODULE_SIZE = 16384;
+    const std::size_t MAX_MODULE_SIZE = 32767;
     const std::size_t MAX_SIZE = MAX_MODULE_SIZE * 2;
 
 #ifdef USE_PRAGMA_PACK
@@ -50,9 +49,9 @@ namespace Chiptune
 
     const std::string FOOTER_FORMAT(
       "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
-      "?%00xxxxxx"                     // uint16_t Size1;
+      "?%0xxxxxxx"                     // uint16_t Size1;
       "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
-      "?%00xxxxxx"                     // uint16_t Size2;
+      "?%0xxxxxxx"                     // uint16_t Size2;
       "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
     );
 
@@ -66,9 +65,9 @@ namespace Chiptune
     class ModuleTraits
     {
     public:
-      ModuleTraits(const Binary::Data& data, std::size_t footerOffset)
+      ModuleTraits(Binary::View data, std::size_t footerOffset)
         : FooterOffset(footerOffset)
-        , Foot(footerOffset != data.Size() ? safe_ptr_cast<const Footer*>(static_cast<const uint8_t*>(data.Start()) + footerOffset) : nullptr)
+        , Foot(data.SubView(footerOffset).As<Footer>())
         , FirstSize(Foot ? fromLE(Foot->Size1) : 0)
         , SecondSize(Foot ? fromLE(Foot->Size2) : 0)
       {
@@ -127,19 +126,19 @@ namespace Chiptune
       {
       }
 
-      bool Match(const Binary::Data& data) const override
+      bool Match(Binary::View data) const override
       {
         const ModuleTraits traits = GetTraits(data);
         return traits.Matched();
       }
 
-      std::size_t NextMatchOffset(const Binary::Data& data) const override
+      std::size_t NextMatchOffset(Binary::View data) const override
       {
         const ModuleTraits traits = GetTraits(data);
         return traits.NextOffset();
       }
 
-      ModuleTraits GetTraits(const Binary::Data& data) const
+      ModuleTraits GetTraits(Binary::View data) const
       {
         return ModuleTraits(data, Delegate->NextMatchOffset(data));
       }
@@ -182,16 +181,16 @@ namespace Chiptune
 
         if (!traits.Matched())
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
 
         target.SetFirstSubmoduleLocation(0, traits.GetFirstModuleSize());
         target.SetSecondSubmoduleLocation(traits.GetFirstModuleSize(), traits.GetSecondModuleSize());
 
         const std::size_t usedSize = traits.GetTotalSize();
-        const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, usedSize);
+        auto subData = rawData.GetSubcontainer(0, usedSize);
         //use whole container as a fixed data
-        return CreateCalculatingCrcContainer(subData, 0, usedSize);
+        return CreateCalculatingCrcContainer(std::move(subData), 0, usedSize);
       }
     private:
       const FooterFormat::Ptr Format;

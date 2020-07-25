@@ -15,7 +15,7 @@
 #include <iterator.h>
 //library includes
 #include <module/analyzer.h>
-#include <module/track_state.h>
+#include <module/state.h>
 #include <sound/gain.h>
 
 namespace Sound
@@ -115,8 +115,8 @@ namespace Sound
 
     virtual ~Backend() = default;
 
-    //! @brief Current tracking status
-    virtual Module::TrackState::Ptr GetTrackState() const = 0;
+    //! @brief Current playback status
+    virtual Module::State::Ptr GetState() const = 0;
 
     //! @brief Getting analyzer interface
     virtual Module::Analyzer::Ptr GetAnalyzer() const = 0;
@@ -136,7 +136,7 @@ namespace Sound
     virtual ~BackendCallback() = default;
 
     virtual void OnStart() = 0;
-    virtual void OnFrame(const Module::TrackState& state) = 0;
+    virtual void OnFrame(const Module::State& state) = 0;
     virtual void OnStop() = 0;
     virtual void OnPause() = 0;
     virtual void OnResume() = 0;

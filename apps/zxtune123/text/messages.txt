@@ -114,7 +114,7 @@
 < INFO_CONT_SCANER
 > INFO_CONT_PREFIX "scaner"
 
-#container traits
+#container/module traits
 = INFO_CAP_PREFIX
 > "cap_"
 
@@ -126,6 +126,9 @@
 
 < INFO_CAP_ONCEAPPLIED
 > INFO_CAP_PREFIX "onceapplied"
+
+< INFO_CAP_MULTIFILE
+> INFO_CAP_PREFIX "multifile"
 
 < INFO_PLUGIN_INFO
 > "Plugin:       %1%\n"
@@ -404,11 +407,10 @@
 > "Playing: [Fullpath]\n"
 > "Type:    [Type]\t"  "Container: [Container]\t" "Program: [Program]\n"
 > "Title:   [Title]\n"
-> "Author:  [Author]\n"
+> "Author:  [Author]"
 
 < ITEM_INFO_ADDON
-> "Time:    %1%\t"     "Channels:  %2%\n"
-> "\n"
+> "\nTime:    %1%\t"     "Channels:  %2%\n"
 
 < INPUT_ERROR_NO_FILES
 > "No files to process."
@@ -444,4 +446,7 @@
 > " [%1%%%]"
 
 < BENCHMARK_RESULT
-> "x%|3$.2f| (%2%) %1%"
+> "x%|3$.2f|\t(%2%)\t%1%\t[0x%4$08x]\t{%5%..%6%}"
+
+< BENCHMARK_FAIL
+> "Fail\t(%2%)\t%1%\t[%3%]"

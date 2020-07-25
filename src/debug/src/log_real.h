@@ -26,6 +26,14 @@ namespace Debug
   //! @brief Checks if debug logs are enabled for module
   bool IsEnabledFor(const std::string& module);
 
+  inline void Log(const std::string& module, const std::string& msg)
+  {
+    if (IsEnabledFor(module))
+    {
+      Message(module, msg);
+    }
+  }
+
   /*
      @brief Per-module debug stream
      @code

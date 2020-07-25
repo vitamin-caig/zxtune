@@ -101,7 +101,7 @@ namespace Formats
       Decoder::Ptr CreateCompiledModulesDecoder();
 
       Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
-      Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, const Dump& info);
+      Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info);
     }
 
     Decoder::Ptr CreateSoundTrackerProCompiledDecoder();

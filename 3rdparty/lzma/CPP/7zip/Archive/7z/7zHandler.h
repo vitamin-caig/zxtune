@@ -21,11 +21,11 @@ namespace N7z {
 #ifndef __7Z_SET_PROPERTIES
 
 #ifdef EXTRACT_ONLY
-#if !defined(_7ZIP_ST) && !defined(_SFX)
-#define __7Z_SET_PROPERTIES
-#endif
+  #if !defined(_7ZIP_ST) && !defined(_SFX)
+    #define __7Z_SET_PROPERTIES
+  #endif
 #else
-#define __7Z_SET_PROPERTIES
+  #define __7Z_SET_PROPERTIES
 #endif
 
 #endif
@@ -44,6 +44,7 @@ public:
   UInt64 _numSolidBytes;
   bool _numSolidBytesDefined;
   bool _solidExtension;
+  bool _useTypeSorting;
 
   bool _compressHeaders;
   bool _encryptHeadersSpecified;

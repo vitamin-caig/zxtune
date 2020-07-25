@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="about">ZXTune について</string>
+  <string name="about_credits">クレジット</string>
+  <string name="about_plugins">プラグイン</string>
+  <!-- about-related -->
+  <string name="about_author">
+    考え、プログラミング: <b>Vitamin/CAIG</b>\n
+    デザイン: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
+    使用されるソースコード:\n
+    \tAYEmulによる<b>S.Bulba</b>\n
+    \tAYFlyによる<b>Ander</b>\n
+    \tPusherによる<b>Himik/ZxZ</b>\n
+    使用的库:\n
+    \tboost\n
+    \tzlibによる<b>Jean-Loup Gailly</b>と<b>Mark Adler</b>\n
+    \tz80exによる<b>Boo-boo</b>\n
+    \tlhasaによる<b>Simon Howard</b>\n
+    \tDragSortListViewによる<b>Carl A.Bauer</b>\n
+    \tunrarによる<b>Alexander Roshal</b>\n
+    \tlibxmpによる<b>Claudio Matsuoka</b>\n
+    \tlibsidplayfp+resid\n
+    \tsnes_spcによる<b>Shay Green</b>\n
+    \tGame_Music_Emuによる<b>Shay Green</b>と<b>Chris Moeller</b>\n
+    \t7-Zipによる<b>Igor Pavlov</b>\n
+    \tHVL2WAVによる<b>Peter Gordon</b>\n
+    \tCrashlyticsによる<b>Twitter</b>\n
+    \tHighly Experimentalによる<b>Neill Corlett</b>\n
+    \tlazyusf2による<b>Christopher Snowhill</b>\n
+    \tmGBAによる<b>Jeffrey Pfau</b>\n
+    \tvio2sfによる<b>Christopher Snowhill</b>\n
+    \tHighly Threoreticalによる<b>Neill Corlett</b>と<b>Christopher Snowhill</b>\n
+    \tASAPによる<b>Piotr Fusik</b>\n
+    \tjsoupによる<b>Jonathan Hedley</b>\n
+    \tminimp3による<b>lieff</b>\n
+    \tstb-vorbisによる<b>Sean Barrett</b>\n
+    \tlibFLAC\n
+    \tv2m-playerによる<b>Farbrausch</b>と<b>Joakim L.Gilje</b>\n
+    \tFFmpeg\n
+    \tlibvgmによる<b>Valley Bell</b>\n
+    \n
+    専用<b>Lizzi</b>
+  </string>
+  <!-- players -->
+  <string name="plugin_player_dac">サンプルベースの形式</string>
+  <string name="plugin_player_multidevice">複数のデバイス</string>
+  <!-- containers -->
+  <string name="plugin_multitrack">マルチトラックコンテナ</string>
+  <string name="plugin_archive">アーカイバを解除</string>
+  <string name="plugin_decompiler">逆コンパイラ</string>
+</resources>

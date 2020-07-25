@@ -1,30 +1,27 @@
 /**
- * 
  * @file
- * 
  * @brief
- * 
  * @author vitamin.caig@gmail.com
- * 
  */
 package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
 
 import app.zxtune.R;
 import app.zxtune.playlist.XspfStorage;
 
 final class VfsRootPlaylists extends StubObject implements VfsRoot {
 
-  private final static String SCHEME = "playlists";
+  private static final String SCHEME = "playlists";
 
   private final Context context;
 
-  public VfsRootPlaylists(Context context) {
+  VfsRootPlaylists(Context context) {
     this.context = context;
   }
 
@@ -44,6 +41,7 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject getParent() {
     return null;
   }
@@ -57,6 +55,7 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject resolve(Uri uri) {
     return SCHEME.equals(uri.getScheme()) && uri.getPathSegments().isEmpty() ? this : null;
   }
@@ -80,7 +79,7 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
     public String getName() {
       return name;
     }
-    
+
     @Override
     public VfsObject getParent() {
       return VfsRootPlaylists.this;
@@ -89,11 +88,6 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
     @Override
     public String getSize() {
       return getDescription();
-    }
-
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      return null;
     }
   }
 }

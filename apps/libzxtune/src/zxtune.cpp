@@ -28,8 +28,6 @@
 #include <sound/sound_parameters.h>
 //std includes
 #include <map>
-//boost includes
-#include <boost/bind.hpp>
 
 namespace Text
 {
@@ -99,9 +97,9 @@ namespace
     {
     }
 
-    void ApplyData(const Sound::Chunk::Ptr& data) override
+    void ApplyData(Sound::Chunk data) override
     {
-      Buffer.Put(data->begin(), data->size());
+      Buffer.Put(data.begin(), data.size());
     }
 
     void Flush() override
@@ -237,13 +235,15 @@ namespace
       Name2Val(Parameters::ZXTune::Core::AYM::CLOCKRATE, Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
       Name2Val(Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT),
     };
-    const Name2Val* const defVal = std::find_if(DEFAULTS, std::end(DEFAULTS), boost::bind(&Name2Val::first, _1) == name);
-    if (std::end(DEFAULTS) == defVal)
+    for (const auto& def : DEFAULTS)
     {
-      return false;
+      if (def.first == name)
+      {
+        value = def.second;
+        return true;
+      }
     }
-    value = defVal->second;
-    return true;
+    return false;
   }
 }
 
@@ -304,7 +304,6 @@ bool ZXTune_GetModuleInfo(ZXTuneHandle module, ZXTuneModuleInfo* info)
     const Module::Information::Ptr modinfo = holder->GetModuleInformation();
     info->Positions = modinfo->PositionsCount();
     info->LoopPosition = modinfo->LoopPosition();
-    info->Patterns = modinfo->PatternsCount();
     info->Frames = modinfo->FramesCount();
     info->LoopFrame = modinfo->LoopFrame();
     info->Channels = modinfo->ChannelsCount();

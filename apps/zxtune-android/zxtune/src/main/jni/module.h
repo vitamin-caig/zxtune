@@ -14,8 +14,13 @@
 #include "storage.h"
 //library includes
 #include <module/holder.h>
+//platform includes
+#include <jni.h>
 
 namespace Module
 {
   typedef ObjectsStorage<Module::Holder::Ptr> Storage;
+
+  void InitJni(JNIEnv*);
+  void CleanupJni(JNIEnv*);
 }

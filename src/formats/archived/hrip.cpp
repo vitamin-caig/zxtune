@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "trdos_catalogue.h"
-#include "trdos_utils.h"
+#include "formats/archived/trdos_catalogue.h"
+#include "formats/archived/trdos_utils.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>
@@ -19,6 +19,8 @@
 #include <formats/packed/decoders.h>
 //std includes
 #include <algorithm>
+#include <cassert>
+#include <cstddef>
 #include <cstring>
 //text include
 #include <formats/text/archived.h>

@@ -11,16 +11,16 @@
 #define DECLSPEC
 
 //local includes
-#include "backend_impl.h"
-#include "storage.h"
-#include "gates/sdl_api.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/gates/sdl_api.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -29,20 +29,16 @@
 //std includes
 #include <condition_variable>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 608CF986
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Sdl");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Sdl
 {
+  const Debug::Stream Dbg("Sound::Backend::Sdl");
+
   const String ID = Text::SDL_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("SDL support backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
@@ -78,7 +74,7 @@ namespace Sdl
   public:
     explicit BuffersQueue(uint_t size)
       : Buffers(size)
-      , FillIter(&Buffers.front(), &Buffers.back() + 1)
+      , FillIter(Buffers.data(), Buffers.data() + Buffers.size())
       , PlayIter(FillIter)
     {
     }
@@ -108,7 +104,7 @@ namespace Sdl
         }
         const uint_t inBuffer = PlayIter->Data.size() * sizeof(PlayIter->Data.front());
         const uint_t toCopy = std::min<uint_t>(len, PlayIter->BytesToPlay);
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(&PlayIter->Data.front());
+        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(PlayIter->Data.data());
         std::memcpy(stream, src + (inBuffer - PlayIter->BytesToPlay), toCopy);
         PlayIter->BytesToPlay -= toCopy;
         stream += toCopy;
@@ -126,7 +122,7 @@ namespace Sdl
     {
       Dbg("Change buffers count %1% -> %2%", Buffers.size(), size);
       Buffers.resize(size);
-      FillIter = CycledIterator<Buffer*>(&Buffers.front(), &Buffers.back() + 1);
+      FillIter = CycledIterator<Buffer*>(Buffers.data(), Buffers.data() + Buffers.size());
       PlayIter = FillIter;
     }
 
@@ -243,13 +239,13 @@ namespace Sdl
       SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    virtual void FrameStart(const Module::State& /*state*/)
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    virtual void FrameFinish(Chunk buffer)
     {
-      Queue.AddData(*buffer);
+      Queue.AddData(buffer);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -308,7 +304,7 @@ namespace Sound
     {
       const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
       const SDL_version* const vers = api->SDL_Linked_Version();
-      Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
+      Sdl::Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
       const BackendWorkerFactory::Ptr factory = MakePtr<Sdl::BackendWorkerFactory>(api);
       storage.Register(Sdl::ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, factory);
     }
@@ -318,3 +314,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

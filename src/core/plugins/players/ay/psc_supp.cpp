@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "aym_plugin.h"
+#include "core/plugins/players/ay/aym_plugin.h"
 #include "core/plugins/player_plugins_registrator.h"
 //library includes
 #include <formats/chiptune/aym/prosoundcreator.h>

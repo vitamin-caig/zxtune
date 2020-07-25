@@ -12,7 +12,7 @@
 
 //library includes
 #include <module/analyzer.h>
-#include <module/track_state.h>
+#include <module/state.h>
 
 namespace Module
 {
@@ -26,7 +26,7 @@ namespace Module
     virtual ~Renderer() = default;
 
     //! @brief Current tracking status
-    virtual TrackState::Ptr GetTrackState() const = 0;
+    virtual State::Ptr GetState() const = 0;
 
     //! @brief Getting analyzer interface
     virtual Analyzer::Ptr GetAnalyzer() const = 0;

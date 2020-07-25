@@ -35,7 +35,6 @@
 //boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/bind.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 //text includes
@@ -78,8 +77,13 @@ namespace
     void SetSoundParameters(const Strings::Map& options)
     {
       Strings::Map optimized;
-      std::remove_copy_if(options.begin(), options.end(), std::inserter(optimized, optimized.end()),
-        boost::bind(&String::empty, boost::bind(&Strings::Map::value_type::second, _1)));
+      for (const auto& opt : options)
+      {
+        if (!opt.second.empty())
+        {
+          optimized.insert(opt);
+        }
+      }
       if (!optimized.empty())
       {
         Parameters::Convert(optimized, *Params);
@@ -101,9 +105,7 @@ namespace
 
     Time::Microseconds GetFrameDuration() const
     {
-      Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-      Params->FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
-      return Time::Microseconds(static_cast<Time::Microseconds::ValueType>(frameDuration));
+      return Sound::GetFrameDuration(*Params);
     }
   private:
     const Parameters::Container::Ptr Params;

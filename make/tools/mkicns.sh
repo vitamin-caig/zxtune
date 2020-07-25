@@ -1,15 +1,29 @@
+#!/bin/bash
+
+set -ue
+
+resize-darwin() {
+  sips -z ${1} ${1} ${2} --out ${3}
+}
+
+build-darwin() {
+  iconutil -c icns ${1}
+}
+
+resize-linux-gnu() {
+  convert ${2} -resize ${1}x${1} ${3}
+}
+
+build-linux-gnu() {
+  png2icns ${2} ${1}/*
+}
+
 input=${1}
 output=${2}.iconset
 mkdir -p ${output}
-sips -z 16 16     ${input} --out ${output}/icon_16x16.png
-sips -z 32 32     ${input} --out ${output}/icon_16x16@2x.png
-sips -z 32 32     ${input} --out ${output}/icon_32x32.png
-sips -z 64 64     ${input} --out ${output}/icon_32x32@2x.png
-sips -z 128 128   ${input} --out ${output}/icon_128x128.png
-sips -z 256 256   ${input} --out ${output}/icon_128x128@2x.png
-sips -z 256 256   ${input} --out ${output}/icon_256x256.png
-sips -z 512 512   ${input} --out ${output}/icon_256x256@2x.png
-sips -z 512 512   ${input} --out ${output}/icon_512x512.png
-sips -z 1024 1024   ${input} --out ${output}/icon_512x512@2x.png
-iconutil -c icns ${output}
+for size in 16 32 128 256 512
+do
+  resize-${OSTYPE} ${size} ${input} ${output}/icon_${size}x${size}.png
+done
+build-${OSTYPE} ${output} ${2}.icns
 rm -R ${output}

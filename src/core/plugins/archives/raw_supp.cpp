@@ -9,8 +9,9 @@
 **/
 
 //local includes
-#include "archived.h"
+#include "core/plugins/archives/archived.h"
 #include <core/src/callback.h>
+#include <core/plugins/archives/l10n.h>
 #include <core/plugins/archive_plugins_enumerator.h>
 #include <core/plugins/archive_plugins_registrator.h>
 #include <core/plugins/player_plugins_enumerator.h>
@@ -25,15 +26,15 @@
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
-#include <l10n/api.h>
+#include <strings/prefixed_index.h>
 #include <time/duration.h>
+#include <time/serialize.h>
 #include <time/timer.h>
 //std includes
 #include <array>
 #include <list>
 #include <map>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 //text includes
 #include <core/text/plugins.h>
@@ -42,8 +43,6 @@
 
 namespace ZXTune
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
-
   template<std::size_t Fields>
   class StatisticBuilder
   {
@@ -107,7 +106,7 @@ namespace ZXTune
 
   class Statistic
   {
-    typedef Time::Timer::NativeStamp Stamp;
+    using TimeUnit = Time::Timer::NativeUnit;
   public:
     Statistic()
       : TotalData(0)
@@ -119,13 +118,13 @@ namespace ZXTune
     ~Statistic()
     {
       const Debug::Stream Dbg("Core::RawScaner::Statistic");
-      const Stamp spent = Timer.Elapsed();
+      const auto spent = Timer.Elapsed();
       Dbg("Total processed: %1%", TotalData);
-      Dbg("Time spent: %1%", Time::Duration<Stamp::ValueType, Stamp>(1, spent).ToString());
+      Dbg("Time spent: %1%", Time::ToString(spent));
       const uint64_t useful = ArchivedData + ModulesData;
       Dbg("Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
       Dbg("Coverage: %1%%%", useful * 100 / TotalData);
-      Dbg("Speed: %1% b/s", spent.Get() ? (TotalData * Stamp::PER_SECOND / spent.Get()) : TotalData);
+      Dbg("Speed: %1% b/s", spent.Get() ? (TotalData * spent.PER_SECOND / spent.Get()) : TotalData);
       StatisticBuilder<7> builder;
       builder.Add(MakeStatLine(), 0);
       StatItem total;
@@ -160,7 +159,7 @@ namespace ZXTune
       StatItem& item = GetStat(plug);
       ++item.Aimed;
       item.AimedTime += scanTimer.Elapsed() + item.ScanTime;
-      item.ScanTime = Stamp(0);
+      item.ScanTime = {};
     }
 
     template<class PluginType>
@@ -169,7 +168,7 @@ namespace ZXTune
       StatItem& item = GetStat(plug);
       ++item.Missed;
       item.MissedTime += scanTimer.Elapsed() + item.ScanTime;
-      item.ScanTime = Stamp(0);
+      item.ScanTime = {};
     }
 
     template<class PluginType>
@@ -191,9 +190,9 @@ namespace ZXTune
       std::size_t Index;
       std::size_t Aimed;
       std::size_t Missed;
-      Stamp AimedTime;
-      Stamp MissedTime;
-      Stamp ScanTime;
+      Time::Duration<TimeUnit> AimedTime;
+      Time::Duration<TimeUnit> MissedTime;
+      Time::Duration<TimeUnit> ScanTime;
 
       StatItem()
         : Index()
@@ -235,8 +234,8 @@ namespace ZXTune
       res[1] = boost::lexical_cast<std::string>(item.Missed);
       res[2] = boost::lexical_cast<std::string>(item.Aimed + item.Missed);
       res[3] = boost::lexical_cast<std::string>(Percent(item.Aimed, item.Missed));
-      res[4] = boost::lexical_cast<std::string>(Time::Milliseconds(item.MissedTime).Get());
-      res[5] = boost::lexical_cast<std::string>(Time::Milliseconds(item.MissedTime + item.AimedTime).Get());
+      res[4] = boost::lexical_cast<std::string>(item.MissedTime.CastTo<Time::Millisecond>().Get());
+      res[5] = boost::lexical_cast<std::string>((item.MissedTime + item.AimedTime).CastTo<Time::Millisecond>().Get());
       res[6] = boost::lexical_cast<std::string>(Percent(item.AimedTime.Get(), item.MissedTime.Get()));
       return res;
     }
@@ -277,6 +276,8 @@ namespace ZXTune
 
 namespace ZXTune
 {
+namespace Raw
+{
   const Debug::Stream Dbg("Core::RawScaner");
 
   const Char ID[] = {'R', 'A', 'W', 0};
@@ -286,12 +287,10 @@ namespace ZXTune
   const std::size_t SCAN_STEP = 1;
   const std::size_t MIN_MINIMAL_RAW_SIZE = 128;
 
-  const IndexPathComponent RawPath(Text::RAW_PLUGIN_PREFIX);
-
-  class RawPluginParameters
+  class PluginParameters
   {
   public:
-    explicit RawPluginParameters(const Parameters::Accessor& accessor)
+    explicit PluginParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
@@ -318,10 +317,10 @@ namespace ZXTune
     const Parameters::Accessor& Accessor;
   };
 
-  class RawProgressCallback : public Log::ProgressCallback
+  class ProgressCallback : public Log::ProgressCallback
   {
   public:
-    RawProgressCallback(const Module::DetectCallback& callback, uint_t limit, const String& path)
+    ProgressCallback(const Module::DetectCallback& callback, uint_t limit, const String& path)
       : Delegate(CreateProgressCallback(callback, limit))
       , Text(ProgressMessage(ID, path))
     {
@@ -400,8 +399,8 @@ namespace ZXTune
 
     ScanDataLocation(DataLocation::Ptr parent, String subPlugin, std::size_t offset)
       : Parent(std::move(parent))
-      , Subdata(MakePtr<ScanDataContainer>(Parent->GetData(), offset))
       , Subplugin(std::move(subPlugin))
+      , Subdata(MakePtr<ScanDataContainer>(Parent->GetData(), offset))
     {
     }
 
@@ -415,7 +414,7 @@ namespace ZXTune
       const Analysis::Path::Ptr parentPath = Parent->GetPath();
       if (std::size_t offset = Subdata->GetOffset())
       {
-        const String subPath = RawPath.Build(offset);
+        const auto subPath = Strings::PrefixedIndex(Text::RAW_PLUGIN_PREFIX, offset).ToString();
         return parentPath->Append(subPath);
       }
       return parentPath;
@@ -443,12 +442,20 @@ namespace ZXTune
 
     void Move(std::size_t step)
     {
-      return Subdata->Move(step);
+      if (!Subdata.unique())
+      {
+        Dbg("Subdata is captured. Duplicate.");
+        Subdata = MakePtr<ScanDataContainer>(Parent->GetData(), Subdata->GetOffset() + step);
+      }
+      else
+      {
+        Subdata->Move(step);
+      }
     }
   private:
     const DataLocation::Ptr Parent;
-    const ScanDataContainer::Ptr Subdata;
     const String Subplugin;
+    ScanDataContainer::Ptr Subdata;
   };
 
   template<class P>
@@ -531,8 +538,8 @@ namespace ZXTune
 
     std::size_t GetMinimalPluginLookahead() const
     {
-      const typename PluginsList::const_iterator it = std::min_element(Plugins.begin(), Plugins.end(), 
-        boost::bind(&PluginEntry::Offset, _1) < boost::bind(&PluginEntry::Offset, _2));
+      const auto it = std::min_element(Plugins.begin(), Plugins.end(), 
+        [](const PluginEntry& lh, const PluginEntry& rh) {return lh.Offset < rh.Offset;});
       return it->Offset >= Offset ? it->Offset - Offset : 0;
     }
     
@@ -543,8 +550,8 @@ namespace ZXTune
 
     void SetPluginLookahead(const P& plug, const String& id, std::size_t lookahead)
     {
-      const typename PluginsList::iterator it = std::find_if(Plugins.begin(), Plugins.end(),
-        boost::bind(&P::Ptr::get, boost::bind(&PluginEntry::Plugin, _1)) == &plug);
+      const auto it = std::find_if(Plugins.begin(), Plugins.end(),
+        [&plug](const PluginEntry& entry) {return entry.Plugin.get() == &plug;});
       if (it != Plugins.end())
       {
         Dbg("Disabling check of %1% for neareast %2% bytes starting from %3%", id, lookahead, Offset);
@@ -673,36 +680,38 @@ namespace ZXTune
     template<class T>
     Analysis::Result::Ptr DetectIn(LookaheadPluginsStorage<T>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
     {
-      const bool firstScan = 0 == Offset;
+      const bool initialScan = 0 == Offset;
       const std::size_t maxSize = input->GetData()->Size();
       for (typename T::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
       {
-        Time::Timer timer;
+        const Time::Timer detectTimer;
         const typename T::Ptr plugin = iter->Get();
         const Analysis::Result::Ptr result = plugin->Detect(Params, input, callback);
         const String id = plugin->GetDescription()->Id();
         if (const std::size_t usedSize = result->GetMatchedDataSize())
         {
-          Statistic::Self().AddAimed(*plugin, timer);
+          Statistic::Self().AddAimed(*plugin, detectTimer);
           Dbg("Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
           return result;
         }
+        else if (initialScan)
+        {
+          const std::size_t initialLookahead = 1;
+          container.SetPluginLookahead(*plugin, id, initialLookahead);
+        }
         else
         {
-          if (!firstScan)
-          {
-            Statistic::Self().AddMissed(*plugin, timer);
-            timer = Time::Timer();
-          }
+          Statistic::Self().AddMissed(*plugin, detectTimer);
+          const Time::Timer scanTimer;
           const std::size_t lookahead = result->GetLookaheadOffset();
           container.SetPluginLookahead(*plugin, id, lookahead);
           if (lookahead == maxSize)
           {
-            Statistic::Self().AddAimed(*plugin, timer);
+            Statistic::Self().AddAimed(*plugin, scanTimer);
           }
           else
           {
-            Statistic::Self().AddScanned(*plugin, timer);
+            Statistic::Self().AddScanned(*plugin, scanTimer);
           }
         }
       }
@@ -715,14 +724,11 @@ namespace ZXTune
     LookaheadPluginsStorage<ArchivePlugin> Archives;
     std::size_t Offset;
   };
-}
 
-namespace ZXTune
-{
-  class RawScaner : public ArchivePlugin
+  class Scaner : public ArchivePlugin
   {
   public:
-    RawScaner()
+    Scaner()
       : Description(CreatePluginDescription(ID, INFO, CAPS))
     {
     }
@@ -748,12 +754,12 @@ namespace ZXTune
         return Analysis::CreateUnmatchedResult(size);
       }
 
-      const RawPluginParameters scanParams(params);
+      const PluginParameters scanParams(params);
       const std::size_t minRawSize = scanParams.GetMinimalSize();
 
       const String currentPath = input->GetPath()->AsString();
       Dbg("Detecting modules in raw data at '%1%'", currentPath);
-      const Log::ProgressCallback::Ptr progress = MakePtr<RawProgressCallback>(callback, static_cast<uint_t>(size), currentPath);
+      const Log::ProgressCallback::Ptr progress = MakePtr<ProgressCallback>(callback, static_cast<uint_t>(size), currentPath);
       const Module::DetectCallback& noProgressCallback = Module::CustomProgressDetectCallbackAdapter(callback);
 
       const ArchivePlugin::Iterator::Ptr availableArchives = ArchivePluginsEnumerator::Create()->Enumerate();
@@ -784,9 +790,10 @@ namespace ZXTune
     DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
-      std::size_t offset = 0;
-      if (RawPath.GetIndex(pathComp, offset))
+      const Strings::PrefixedIndex pathIndex(Text::RAW_PLUGIN_PREFIX, pathComp);
+      if (pathIndex.IsValid())
       {
+        const auto offset = pathIndex.GetIndex();
         const Binary::Container::Ptr inData = location->GetData();
         const Binary::Container::Ptr subData = inData->GetSubcontainer(offset, inData->Size() - offset);
         return CreateNestedLocation(location, subData, Description->Id(), pathComp); 
@@ -797,12 +804,13 @@ namespace ZXTune
     const Plugin::Ptr Description;
   };
 }
+}
 
 namespace ZXTune
 {
   void RegisterRawContainer(ArchivePluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin = MakePtr<RawScaner>();
+    const ArchivePlugin::Ptr plugin = MakePtr<Raw::Scaner>();
     registrator.RegisterPlugin(plugin);
   }
 }

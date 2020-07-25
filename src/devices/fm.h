@@ -16,7 +16,7 @@
 //library includes
 #include <devices/state.h>
 #include <sound/receiver.h>
-#include <time/stamp.h>
+#include <time/instant.h>
 //std includes
 #include <array>
 
@@ -26,7 +26,8 @@ namespace Devices
   {
     const uint_t VOICES = 3;
 
-    typedef Time::Microseconds Stamp;
+    using TimeUnit = Time::Microsecond;
+    using Stamp = Time::Instant<TimeUnit>;
 
     class Register
     {

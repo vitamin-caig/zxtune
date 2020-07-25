@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Database (metadata) item
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.playlist;
@@ -14,19 +10,20 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
-import java.util.concurrent.TimeUnit;
-
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 import app.zxtune.TimeStamp;
-import app.zxtune.ZXTune;
+import app.zxtune.core.Module;
+import app.zxtune.core.ModuleAttributes;
+
+import java.util.concurrent.TimeUnit;
 
 public class Item {
 
-  final private long id;
-  final private Identifier location;
-  final private String title;
-  final private String author;
-  final private TimeStamp duration;
+  private final long id;
+  private final Identifier location;
+  private final String title;
+  private final String author;
+  private final TimeStamp duration;
 
   public Item(Cursor cursor) {
     this.id = cursor.getLong(Database.Tables.Playlist.Fields._id.ordinal());
@@ -36,32 +33,47 @@ public class Item {
     this.duration = TimeStamp.createFrom(cursor.getInt(Database.Tables.Playlist.Fields.duration.ordinal()), TimeUnit.MILLISECONDS);
   }
 
-  public Item(Identifier location, ZXTune.Module module) {
+  public Item(Identifier location, Module module) {
     this.id = -1;
     this.location = location;
-    this.title = module.getProperty(ZXTune.Module.Attributes.TITLE, "");
-    this.author = module.getProperty(ZXTune.Module.Attributes.AUTHOR, "");
-    //TODO
-    this.duration = TimeStamp.createFrom(module.getDuration() * 20, TimeUnit.MILLISECONDS);
+    this.title = module.getProperty(ModuleAttributes.TITLE, "");
+    this.author = module.getProperty(ModuleAttributes.AUTHOR, "");
+    this.duration = TimeStamp.createFrom(module.getDurationInMs(), TimeUnit.MILLISECONDS);
   }
-  
-  final public Uri getUri() {
+
+  public Item(app.zxtune.playback.Item item) {
+    this.id = -1;
+    this.location = item.getDataId();
+    this.title = item.getTitle();
+    this.author = item.getAuthor();
+    this.duration = item.getDuration();
+  }
+
+  public Item() {
+    this.id = -1;
+    this.location = Identifier.EMPTY;
+    this.title = "";
+    this.author = "";
+    this.duration = TimeStamp.EMPTY;
+  }
+
+  public final Uri getUri() {
     return PlaylistQuery.uriFor(id);
   }
-  
-  final public Identifier getLocation() {
+
+  public final Identifier getLocation() {
     return location;
   }
 
-  final public String getAuthor() {
+  public final String getAuthor() {
     return author;
   }
 
-  final public String getTitle() {
+  public final String getTitle() {
     return title;
   }
 
-  final public TimeStamp getDuration() {
+  public final TimeStamp getDuration() {
     return duration;
   }
 

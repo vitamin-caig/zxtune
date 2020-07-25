@@ -109,9 +109,22 @@ namespace ZXTune
           AYDUMP     = 0x02000000,
           FYM        = 0x04000000,
 
-          MASK       = 0x0ff00000
+          MASK       = 0x07f00000
         };
       }
+      
+      namespace Traits
+      {
+        enum
+        {
+          //! Plugin may produce multifile tracks
+          MULTIFILE  = 0x08000000,
+
+          MASK       = 0x08000000
+        };
+      }
+      
+      static_assert(0 == (Category::MASK & Type::MASK & Device::MASK & Conversion::MASK & Traits::MASK), "Masks conflict");
     }
     
     namespace Container
@@ -146,6 +159,8 @@ namespace ZXTune
           MASK        = 0x000000f0
         };
       }
+
+      static_assert(0 == (Category::MASK & Type::MASK & Traits::MASK), "Masks conflict");
     }
   }
 }

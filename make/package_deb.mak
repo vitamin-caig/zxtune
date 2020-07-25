@@ -17,7 +17,7 @@ pkg_file = $(pkg_dir)/$(pkg_name)_$(pkg_version)_$(arch_deb)$(distro).deb
 package_deb:
 	$(info Creating $(pkg_file))
 	-$(call rmfiles_cmd,$(pkg_file))
-	$(MAKE) $(pkg_file) > $(pkg_log) 2>&1
+	$(MAKE) $(pkg_file)
 
 $(pkg_file): $(pkg_debian)/changelog $(pkg_debian)/compat $(pkg_debian)/control $(pkg_debian)/docs $(pkg_debian)/rules $(pkg_debian)/copyright
 	@$(call showtime_cmd)
@@ -27,8 +27,8 @@ $(pkg_file): $(pkg_debian)/changelog $(pkg_debian)/compat $(pkg_debian)/control 
 $(pkg_debian):
 	$(call makedir_cmd,$@)
 
-$(pkg_debian)/changelog: $(path_step)/apps/changelog.txt | $(pkg_debian)
-	$(path_step)/make/build/debian/convlog.pl <$^ $(pkg_name) $(root.version.index) > $@
+$(pkg_debian)/changelog: $(dirs.root)/apps/changelog.txt | $(pkg_debian)
+	$(dirs.root)/make/build/debian/convlog.pl <$^ $(pkg_name) $(root.version.index) > $@
 
 $(pkg_debian)/compat: | $(pkg_debian)
 	echo 7 > $@
@@ -38,10 +38,10 @@ $(pkg_debian)/control: dist/debian/control | $(pkg_debian)
 
 escaped_curdir = $(shell echo $(CURDIR) | sed -r 's/\//\\\//g')
 
-$(pkg_debian)/rules: $(path_step)/make/build/debian/rules | $(pkg_debian)
+$(pkg_debian)/rules: $(dirs.root)/make/build/debian/rules | $(pkg_debian)
 	sed -r 's/\$$\(target\)/platform=$(platform) arch=$(arch) distro=$(distro) -C $(escaped_curdir)/g' $^ > $@
 
-$(pkg_debian)/copyright: $(path_step)/apps/copyright | $(pkg_debian)
+$(pkg_debian)/copyright: $(dirs.root)/apps/copyright | $(pkg_debian)
 	$(call copyfile_cmd,$^,$@)
 
 $(pkg_debian)/docs: | $(pkg_debian)

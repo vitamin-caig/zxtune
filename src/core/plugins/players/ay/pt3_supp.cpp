@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "aym_conversion.h"
+#include "core/plugins/players/ay/aym_conversion.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //library includes

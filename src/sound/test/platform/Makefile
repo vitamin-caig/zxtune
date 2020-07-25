@@ -1,12 +1,12 @@
 binary_name := sound_test_platform
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
 libraries.common = async binary debug io l10n_stub platform strings sound sound_backends tools
 
-libraries.boost = filesystem
+libraries.boost = filesystem system
 
-windows_libraries = ole32
-mingw_libraries = ole32
+libraries.windows = ole32
+libraries.mingw = ole32
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

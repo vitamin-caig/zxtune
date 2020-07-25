@@ -11,18 +11,17 @@
 #pragma once
 
 //local includes
-#include "iterator.h"
-#include "track_model.h"
+#include "module/players/iterator.h"
+#include "module/players/track_model.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <formats/chiptune/builder_pattern.h>
-#include <module/information.h>
+#include <module/track_information.h>
 #include <module/track_state.h>
 //std includes
 #include <algorithm>
 #include <array>
-#include <functional>
 
 namespace Module
 {
@@ -115,7 +114,8 @@ namespace Module
 
     uint_t CountActiveChannels() const override
     {
-      return static_cast<uint_t>(std::count_if(Channels.begin(), Channels.end(), std::mem_fn(&Cell::HasData)));
+      return static_cast<uint_t>(std::count_if(Channels.begin(), Channels.end(),
+          [](const MutableCell& cell) {return cell.HasData();}));
     }
 
     uint_t GetTempo() const override
@@ -235,7 +235,7 @@ namespace Module
     SparsedObjectsStorage<MutablePattern::Ptr> Storage;
   };
 
-  Information::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels);
+  TrackInformation::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels);
 
   class TrackStateIterator : public Iterator
   {
@@ -261,7 +261,7 @@ namespace Module
     PatternsBuilder(const PatternsBuilder&) = delete;
     PatternsBuilder& operator = (const PatternsBuilder&) = delete;
     
-    PatternsBuilder(PatternsBuilder&& rh)// = default
+    PatternsBuilder(PatternsBuilder&& rh) noexcept// = default
       : Patterns(std::move(rh.Patterns))
       , CurPattern(rh.CurPattern)
       , CurLine(rh.CurLine)

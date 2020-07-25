@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "details.h"
-#include "static_expression.h"
+#include "binary/format/details.h"
+#include "binary/format/static_expression.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
@@ -40,7 +40,7 @@ namespace Binary
     {
     }
 
-    bool Match(const Data& data) const override
+    bool Match(View data) const override
     {
       if (data.Size() < MinSize)
       {
@@ -51,7 +51,7 @@ namespace Binary
       return 0 == SearchBackward(typedDataLast);
     }
 
-    std::size_t NextMatchOffset(const Data& data) const override
+    std::size_t NextMatchOffset(View data) const override
     {
       const std::size_t size = data.Size();
       if (size < MinSize)
@@ -171,7 +171,7 @@ namespace Binary
     {
     }
 
-    bool Match(const Data& data) const override
+    bool Match(View data) const override
     {
       if (data.Size() < MinSize)
       {
@@ -183,7 +183,7 @@ namespace Binary
       return std::equal(patternStart, patternEnd, typedDataStart);
     }
 
-    std::size_t NextMatchOffset(const Data& data) const override
+    std::size_t NextMatchOffset(View data) const override
     {
       const std::size_t size = data.Size();
       if (size < MinSize)

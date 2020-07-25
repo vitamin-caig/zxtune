@@ -9,13 +9,15 @@
 **/
 
 //local includes
-#include "soundtracker.h"
-#include "aym_properties_helper.h"
-#include "aym_base_track.h"
+#include "module/players/aym/soundtracker.h"
+#include "module/players/aym/aym_properties_helper.h"
+#include "module/players/aym/aym_base_track.h"
 //common includes
 #include <make_ptr.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -288,7 +290,7 @@ namespace SoundTracker
         if (const uint_t loop = sample.GetLoop())
         {
           Position = loop & 0x1f;
-          CountDown = sample.GetLoopLimit() - loop;
+          CountDown = sample.GetLoopLimit() - loop + 1;
         }
         else
         {
@@ -516,9 +518,9 @@ namespace SoundTracker
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      const TrackStateIterator::Ptr iter = CreateTrackStateIterator(Data);
-      const DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return AYM::CreateDataIterator(trackParams, iter, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
@@ -541,7 +543,8 @@ namespace SoundTracker
       if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else
       {
@@ -554,7 +557,7 @@ namespace SoundTracker
 
   Factory::Ptr CreateFactory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
   {
-    return MakePtr<Factory>(decoder);
+    return MakePtr<Factory>(std::move(decoder));
   }
 }
 }

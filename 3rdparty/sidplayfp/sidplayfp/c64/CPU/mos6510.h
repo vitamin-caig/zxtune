@@ -130,7 +130,6 @@ private:
 
 protected:
     MOS6510(EventContext &context, MMU &memory);
-    ~MOS6510() {}
 
     /** Represents an instruction subcycle that writes */
     FastEventCallback<MOS6510> m_nosteal;
@@ -279,6 +278,7 @@ public:
     }
 
 #ifdef PC64_TESTSUITE
+    virtual ~MOS6510() {}
     virtual void loadFile (const char *file) =0;
 #endif
 

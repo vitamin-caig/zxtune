@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "aym_factory.h"
+#include "module/players/aym/aym_factory.h"
 //library includes
 #include <formats/chiptune/aym/soundtrackerpro.h>
 

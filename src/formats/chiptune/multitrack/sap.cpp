@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "multitrack.h"
+#include "formats/chiptune/multitrack/multitrack.h"
 //text includes
 #include <formats/text/chiptune.h>
 

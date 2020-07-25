@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "tfm_base.h"
+#include "module/players/tfm/tfm_base.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -32,12 +32,12 @@ namespace Module
     {
 #ifndef NDEBUG
 //perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame(false));
+      for (; Iterator->IsValid(); Iterator->NextFrame({}));
       Iterator->Reset();
 #endif
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
       return Iterator->GetStateObserver();
     }
@@ -49,19 +49,26 @@ namespace Module
 
     bool RenderFrame() override
     {
-      if (Iterator->IsValid())
+      try
       {
-        SynchronizeParameters();
-        if (LastChunk.TimeStamp == Devices::TFM::Stamp())
+        if (Iterator->IsValid())
         {
-          //first chunk
+          SynchronizeParameters();
+          if (LastChunk.TimeStamp == Devices::TFM::Stamp())
+          {
+            //first chunk
+            TransferChunk();
+          }
+          Iterator->NextFrame(Looped);
+          LastChunk.TimeStamp += FrameDuration;
           TransferChunk();
         }
-        Iterator->NextFrame(Looped);
-        LastChunk.TimeStamp += FrameDuration;
-        TransferChunk();
+        return Iterator->IsValid();
       }
-      return Iterator->IsValid();
+      catch (const std::exception&)
+      {
+        return false;
+      }
     }
 
     void Reset() override
@@ -69,26 +76,25 @@ namespace Module
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      LastChunk.TimeStamp = Devices::TFM::Stamp();
-      FrameDuration = Devices::TFM::Stamp();
-      Looped = false;
+      LastChunk.TimeStamp = {};
+      FrameDuration = {};
+      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
     {
-      const TrackState::Ptr state = Iterator->GetStateObserver();
-      uint_t curFrame = state->Frame();
+      uint_t curFrame = GetState()->Frame();
       if (curFrame > frameNum)
       {
         Iterator->Reset();
         Device->Reset();
-        LastChunk.TimeStamp = Devices::TFM::Stamp();
+        LastChunk.TimeStamp = {};
         curFrame = 0;
       }
       while (curFrame < frameNum && Iterator->IsValid())
       {
         TransferChunk();
-        Iterator->NextFrame(true);
+        Iterator->NextFrame({});
         ++curFrame;
       }
     }
@@ -112,8 +118,8 @@ namespace Module
     const TFM::DataIterator::Ptr Iterator;
     const Devices::TFM::Device::Ptr Device;
     Devices::TFM::DataChunk LastChunk;
-    Devices::TFM::Stamp FrameDuration;
-    bool Looped;
+    Time::Duration<Devices::TFM::TimeUnit> FrameDuration;
+    Sound::LoopParameters Looped;
   };
 }
 
@@ -123,16 +129,16 @@ namespace Module
   {
     Analyzer::Ptr CreateAnalyzer(Devices::TFM::Device::Ptr device)
     {
-      if (Devices::StateSource::Ptr src = std::dynamic_pointer_cast<Devices::StateSource>(device))
+      if (auto src = std::dynamic_pointer_cast<Devices::StateSource>(device))
       {
-        return Module::CreateAnalyzer(src);
+        return Module::CreateAnalyzer(std::move(src));
       }
       return Analyzer::Ptr();
     }
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
     {
-      return MakePtr<TFMRenderer>(params, iterator, device);
+      return MakePtr<TFMRenderer>(std::move(params), std::move(iterator), std::move(device));
     }
   }
 }

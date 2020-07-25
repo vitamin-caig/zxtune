@@ -109,8 +109,8 @@ namespace
 
     void Set(const Error& err)
     {
-      setText(ToQStringFromLocal(err.GetText()));
-      setToolTip(ToQStringFromLocal(err.ToString()));
+      setText(ToQString(err.GetText()));
+      setToolTip(ToQString(err.ToString()));
     }
 
     void paintEvent(QPaintEvent*) override

@@ -1,43 +1,49 @@
 /**
- *
  * @file
- *
  * @brief Composite root helper
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs;
 
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
+import androidx.core.util.ObjectsCompat;
+
 import java.util.ArrayList;
 
 import app.zxtune.Log;
 
-final class VfsRootComposite extends StubObject implements VfsRoot {
+class VfsRootComposite extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootComposite.class.getName();
-  
+
+  @Nullable
+  private final String scheme;
+  private final Uri uri;
   private final ArrayList<VfsRoot> subRoots;
-  
-  VfsRootComposite() {
-    subRoots = new ArrayList<VfsRoot>();
+
+  VfsRootComposite(@Nullable String scheme) {
+    this.scheme = scheme;
+    this.uri = scheme != null ? Uri.fromParts(scheme, "", "") : Uri.EMPTY;
+    this.subRoots = new ArrayList<>();
   }
 
   final void addSubroot(VfsRoot root) {
     subRoots.add(root);
   }
-  
+
   @Override
+  @Nullable
   public VfsObject getParent() {
     return null;
   }
 
   @Override
+  @Nullable
   public VfsObject resolve(Uri uri) {
-    if (Uri.EMPTY.equals(uri)) {
+    if (matchScheme(uri.getScheme())) {
       return this;
     }
     for (VfsRoot root : subRoots) {
@@ -53,6 +59,10 @@ final class VfsRootComposite extends StubObject implements VfsRoot {
     return null;
   }
 
+  private boolean matchScheme(@Nullable String scheme) {
+    return ObjectsCompat.equals(this.scheme, scheme);
+  }
+
   @Override
   public void enumerate(Visitor visitor) {
     for (VfsRoot root : subRoots) {
@@ -62,7 +72,7 @@ final class VfsRootComposite extends StubObject implements VfsRoot {
 
   @Override
   public Uri getUri() {
-    return Uri.EMPTY;
+    return uri;
   }
 
   @Override

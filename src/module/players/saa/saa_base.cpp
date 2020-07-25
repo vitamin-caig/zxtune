@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "saa_base.h"
+#include "module/players/saa/saa_base.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -44,13 +44,13 @@ namespace Module
       return Delegate->IsValid();
     }
 
-    void NextFrame(bool looped) override
+    void NextFrame(const Sound::LoopParameters& looped) override
     {
       Delegate->NextFrame(looped);
       FillCurrentData();
     }
 
-    TrackState::Ptr GetStateObserver() const override
+    Module::State::Ptr GetStateObserver() const override
     {
       return State;
     }
@@ -88,12 +88,12 @@ namespace Module
     {
 #ifndef NDEBUG
 //perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame(false));
+      for (; Iterator->IsValid(); Iterator->NextFrame({}));
       Iterator->Reset();
 #endif
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
       return Iterator->GetStateObserver();
     }
@@ -105,19 +105,26 @@ namespace Module
 
     bool RenderFrame() override
     {
-      if (Iterator->IsValid())
+      try
       {
-        SynchronizeParameters();
-        if (LastChunk.TimeStamp == Devices::SAA::Stamp())
+        if (Iterator->IsValid())
         {
-          //first chunk
+          SynchronizeParameters();
+          if (LastChunk.TimeStamp == Devices::SAA::Stamp())
+          {
+            //first chunk
+            TransferChunk();
+          }
+          Iterator->NextFrame(Looped);
+          LastChunk.TimeStamp += FrameDuration;
           TransferChunk();
         }
-        Iterator->NextFrame(Looped);
-        LastChunk.TimeStamp += FrameDuration;
-        TransferChunk();
+        return Iterator->IsValid();
       }
-      return Iterator->IsValid();
+      catch (const std::exception&)
+      {
+        return false;
+      }
     }
 
     void Reset() override
@@ -125,15 +132,14 @@ namespace Module
       Params.Reset();
       Iterator->Reset();
       Device->Reset();
-      LastChunk.TimeStamp = Devices::SAA::Stamp();
-      FrameDuration = Devices::SAA::Stamp();
-      Looped = false;
+      LastChunk.TimeStamp = {};
+      FrameDuration = {};
+      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
     {
-      const TrackState::Ptr state = Iterator->GetStateObserver();
-      uint_t curFrame = state->Frame();
+      uint_t curFrame = GetState()->Frame();
       if (curFrame > frameNum)
       {
         Iterator->Reset();
@@ -144,7 +150,7 @@ namespace Module
       while (curFrame < frameNum && Iterator->IsValid())
       {
         TransferChunk();
-        Iterator->NextFrame(true);
+        Iterator->NextFrame({});
         ++curFrame;
       }
     }
@@ -168,8 +174,8 @@ namespace Module
     const SAA::DataIterator::Ptr Iterator;
     const Devices::SAA::Device::Ptr Device;
     Devices::SAA::DataChunk LastChunk;
-    Devices::SAA::Stamp FrameDuration;
-    bool Looped;
+    Time::Duration<Devices::SAA::TimeUnit> FrameDuration;
+    Sound::LoopParameters Looped;
   };
 
   class SAAHolder : public Holder
@@ -192,11 +198,11 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      const Devices::SAA::ChipParameters::Ptr chipParams = SAA::CreateChipParameters(params);
-      const Devices::SAA::Chip::Ptr chip = Devices::SAA::CreateChip(chipParams, target);
-      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-      const SAA::DataIterator::Ptr iterator = Tune->CreateDataIterator();
-      return SAA::CreateRenderer(renderParams, iterator, chip);
+      auto chipParams = SAA::CreateChipParameters(params);
+      auto chip = Devices::SAA::CreateChip(std::move(chipParams), std::move(target));
+      auto renderParams = Sound::RenderParameters::Create(std::move(params));
+      auto iterator = Tune->CreateDataIterator();
+      return SAA::CreateRenderer(std::move(renderParams), std::move(iterator), std::move(chip));
     }
   private:
     const SAA::Chiptune::Ptr Tune;
@@ -255,26 +261,26 @@ namespace Module
 
     Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device)
     {
-      if (Devices::StateSource::Ptr src = std::dynamic_pointer_cast<Devices::SAA::Chip>(device))
+      if (auto src = std::dynamic_pointer_cast<Devices::SAA::Chip>(device))
       {
-        return Module::CreateAnalyzer(src);
+        return Module::CreateAnalyzer(std::move(src));
       }
       return Analyzer::Ptr();
     }
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return MakePtr<SAADataIterator>(iterator, renderer);
+      return MakePtr<SAADataIterator>(std::move(iterator), std::move(renderer));
     }
 
     Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
     {
-      return MakePtr<SAARenderer>(params, iterator, device);
+      return MakePtr<SAARenderer>(std::move(params), std::move(iterator), std::move(device));
     }
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
     {
-      return MakePtr<SAAHolder>(chiptune);
+      return MakePtr<SAAHolder>(std::move(chiptune));
     }
   }
 }

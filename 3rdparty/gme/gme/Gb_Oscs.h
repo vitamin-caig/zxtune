@@ -15,11 +15,24 @@
 	#error "GB_APU_OVERCLOCK must be a power of 2"
 #endif
 
-struct voice_status_t;
-
 class Gb_Osc {
 protected:
-	
+	Gb_Osc()
+		: outputs()
+		, output( 0 )
+		, regs( 0 )
+		, mode( 0 )
+		, dac_off_amp( 0 )
+		, last_amp( 0 )
+		, norm_synth( 0 )
+		, fast_synth( 0 )
+		, delay( 0 )
+		, length_ctr( 0 )
+		, phase( 0 )
+		, enabled( 0 )
+	{
+	}
+
 	// 11-bit frequency in NRx3 and NRx4
 	int frequency() const { return (regs [4] & 7) * 0x100 + regs [3]; }
 	
@@ -50,6 +63,14 @@ public:
 
 class Gb_Env : public Gb_Osc {
 public:
+	Gb_Env()
+		: Gb_Osc()
+		, env_delay( 0 )
+		, volume( 0 )
+		, env_enabled( false )
+	{
+	}
+
 	int  env_delay;
 	int  volume;
 	bool env_enabled;
@@ -81,7 +102,6 @@ public:
 		Gb_Env::reset();
 		delay = 0x40000000; // TODO: something less hacky (never clocked until first trigger)
 	}
-	int status( voice_status_t* stat ) const;
 private:
 	// Frequency timer period
 	int period() const { return (2048 - frequency()) * (4 * clk_mul); }
@@ -89,6 +109,15 @@ private:
 
 class Gb_Sweep_Square : public Gb_Square {
 public:
+	Gb_Sweep_Square()
+		: Gb_Square()
+		, sweep_freq( 0 )
+		, sweep_delay( 0 )
+		, sweep_enabled( false )
+		, sweep_neg( false )
+	{
+	}
+
 	int  sweep_freq;
 	int  sweep_delay;
 	bool sweep_enabled;
@@ -115,6 +144,12 @@ private:
 
 class Gb_Noise : public Gb_Env {
 public:
+	Gb_Noise()
+		: Gb_Env()
+		, divider( 0 )
+	{
+	}
+
 	int divider; // noise has more complex frequency divider setup
 
 	void run( blip_time_t, blip_time_t );
@@ -126,7 +161,7 @@ public:
 		Gb_Env::reset();
 		delay = 4 * clk_mul; // TODO: remove?
 	}
-	int status( voice_status_t* stat ) const;
+
 private:
 	enum { period2_mask = 0x1FFFF };
 	
@@ -137,6 +172,12 @@ private:
 
 class Gb_Wave : public Gb_Osc {
 public:
+	Gb_Wave()
+		: Gb_Osc()
+		, sample_buf( 0 )
+	{
+	}
+
 	int sample_buf; // last wave RAM byte read (hardware has this as well)
 
 	void write_register( int frame_phase, int reg, int old_data, int data );
@@ -151,7 +192,7 @@ public:
 		sample_buf = 0;
 		Gb_Osc::reset();
 	}
-	int status( voice_status_t* stat ) const;
+	
 private:
 	enum { bank40_mask = 0x40 };
 	enum { bank_size   = 32 };

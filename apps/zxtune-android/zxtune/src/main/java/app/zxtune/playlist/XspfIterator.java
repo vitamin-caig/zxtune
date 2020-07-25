@@ -10,13 +10,17 @@
 
 package app.zxtune.playlist;
 
+import android.net.Uri;
 import android.sax.Element;
 import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.sax.TextElementListener;
+
+import androidx.annotation.Nullable;
 import android.util.Xml;
 
+import app.zxtune.TimeStamp;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
@@ -24,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.concurrent.TimeUnit;
 
 public final class XspfIterator {
   
@@ -31,9 +36,9 @@ public final class XspfIterator {
     return new ReferencesArrayIterator(parse(buf));
   }
 
-  private static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
+  public static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
     try {
-      final ArrayList<ReferencesIterator.Entry> result = new ArrayList<ReferencesIterator.Entry>();
+      final ArrayList<ReferencesIterator.Entry> result = new ArrayList<>();
       final RootElement root = createPlaylistParseRoot(result);
       Xml.parse(newInputStream(buf), Xml.Encoding.UTF_8, root.getContentHandler());
       return result;
@@ -89,6 +94,24 @@ public final class XspfIterator {
         builder.setLocation(body);
       }
     });
+    track.getChild(Xspf.XMLNS, Xspf.Tags.TITLE).setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setTitle(body);
+      }
+    });
+    track.getChild(Xspf.XMLNS, Xspf.Tags.CREATOR).setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setCreator(body);
+      }
+    });
+    track.getChild(Xspf.XMLNS, Xspf.Tags.DURATION).setEndTextElementListener(new EndTextElementListener() {
+      @Override
+      public void end(String body) {
+        builder.setDuration(body);
+      }
+    });
     //TODO: parse rest properties
     return result;
   }
@@ -104,11 +127,28 @@ public final class XspfIterator {
     final void setLocation(String location) {
       result.location = location;
     }
-    
+
+    final void setTitle(String title) {
+      result.title = Uri.decode(title);
+    }
+
+    final void setCreator(String author) {
+      result.author = Uri.decode(author);
+    }
+
+    final void setDuration(String duration) {
+      try {
+        final long ms = Long.parseLong(duration);
+        result.duration = TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS);
+      } catch (NumberFormatException e) {
+      }
+    }
+
+    @Nullable
     final ReferencesIterator.Entry captureResult() {
       final ReferencesIterator.Entry res = result;
       result = new ReferencesIterator.Entry();
-      return res;
+      return res.location != null ? res : null;
     }
   }
   
@@ -116,7 +156,7 @@ public final class XspfIterator {
     return new InputStream() {
       
       @Override
-      public int available() throws IOException {
+      public int available()  {
         return buf.remaining();
       }
       
@@ -136,7 +176,7 @@ public final class XspfIterator {
       }
       
       @Override
-      public int read() throws IOException {
+      public int read() {
         return buf.hasRemaining()
           ? buf.get()
           : -1;

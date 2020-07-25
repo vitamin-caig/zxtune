@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "builder_meta.h"
+#include "formats/chiptune/builder_meta.h"
 
 namespace Formats
 {

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "aym_base_track.h"
+#include "module/players/aym/aym_base_track.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -45,12 +45,12 @@ namespace Module
         return Delegate->IsValid();
       }
 
-      void NextFrame(bool looped) override
+      void NextFrame(const Sound::LoopParameters& looped) override
       {
         Delegate->NextFrame(looped);
       }
 
-      TrackState::Ptr GetStateObserver() const override
+      Module::State::Ptr GetStateObserver() const override
       {
         return State;
       }
@@ -156,7 +156,7 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return MakePtr<TrackDataIterator>(trackParams, iterator, renderer);
+      return MakePtr<TrackDataIterator>(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
   }
 }

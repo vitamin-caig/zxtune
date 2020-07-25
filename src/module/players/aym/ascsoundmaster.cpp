@@ -9,10 +9,10 @@
 **/
 
 //local includes
-#include "ascsoundmaster.h"
-#include "aym_base.h"
-#include "aym_base_track.h"
-#include "aym_properties_helper.h"
+#include "module/players/aym/ascsoundmaster.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_properties_helper.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -20,6 +20,8 @@
 #include <math/numeric.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -331,7 +333,10 @@ namespace ASCSoundMaster
     {
       if (0 == state.Line())
       {
-        std::for_each(PlayerState.begin(), PlayerState.end(), std::mem_fun_ref(&ChannelState::ResetBaseNoise));
+        for (auto& state : PlayerState)
+        {
+          state.ResetBaseNoise();
+        }
       }
       if (const auto line = state.LineObject())
       {
@@ -599,9 +604,9 @@ namespace ASCSoundMaster
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
@@ -624,7 +629,8 @@ namespace ASCSoundMaster
       if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else
       {
@@ -637,7 +643,7 @@ namespace ASCSoundMaster
   
   AYM::Factory::Ptr CreateFactory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder)
   {
-    return MakePtr<Factory>(decoder);
+    return MakePtr<Factory>(std::move(decoder));
   }
 }
 }

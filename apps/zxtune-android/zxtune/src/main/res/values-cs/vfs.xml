@@ -14,20 +14,15 @@
     <string name="vfs_modland_root_name">Modland - největší archiv modulů</string>
     <string name="vfs_modland_root_description">Přes http://www.exotica.org.uk</string>
     <string name="vfs_modland_authors_name">Autoři</string>
-    <string name="vfs_modland_authors_description">Procházet podle autora</string>
     <string name="vfs_modland_collections_name">Sbírky</string>
-    <string name="vfs_modland_collections_description">Procházet podle sbírky</string>
     <string name="vfs_modland_formats_name">Formáty</string>
-    <string name="vfs_modland_formats_description">Procházet podle formátu</string>
     <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
     <string name="vfs_hvsc_root_description">Přes http://www.prg.dtu.dk</string>
     <!-- zxart.ee -->
     <string name="vfs_zxart_root_name">ZX-Art - současná hudba ZX Spectrum</string>
     <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
     <string name="vfs_zxart_authors_name">Autoři</string>
-    <string name="vfs_zxart_authors_description">Procházet podle autora</string>
     <string name="vfs_zxart_parties_name">Oslavy</string>
-    <string name="vfs_zxart_parties_description">Procházet podle oslav</string>
     <string name="vfs_zxart_toptracks_name">Nejlepší zvukové stopy</string>
     <string name="vfs_zxart_toptracks_description">100 zvukových stop s nejvíce hlasy</string>
     <string name="vfs_zxart_unknown_year_name">Neznámý rok</string>
@@ -51,11 +46,8 @@
     <string name="vfs_joshw_root_description">Různé archivy</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_handles_name">Přezdívky</string>
-    <string name="vfs_amp_handles_description">Procházet podle přezdívky autora</string>
     <string name="vfs_amp_countries_name">Země</string>
-    <string name="vfs_amp_countries_description">Procházet podle země autora</string>
     <string name="vfs_amp_groups_name">Skupiny</string>
-    <string name="vfs_amp_groups_description">Procházet podle skupiny autora</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
 <!--1--><item>Argentina</item>
@@ -184,11 +176,20 @@
     <!-- aygor -->
     <!-- modarchive.org -->
     <string name="vfs_modarchive_authors_name">Umělci</string>
-    <string name="vfs_modarchive_authors_description">Procházet podle umělců</string>
     <string name="vfs_modarchive_genres_name">Žánry</string>
-    <string name="vfs_modarchive_genres_description">Procházet podle žánrů</string>
+    <string name="vfs_modarchive_random_description">Náhodné melodie</string>
+    <!-- network -->
+    <string name="vfs_network_root_name">Katalog</string>
+    <!-- radio -->
+    <string name="vfs_radio_root_name">Rádio</string>
+    <string name="vfs_radio_root_description">Náhodné melodie a kompilace</string>
+    <!-- vgmrips -->
+    <string name="vfs_vgmrips_companies_name">Společnosti</string>
+    <string name="vfs_vgmrips_composers_name">Skladatelé</string>
+    <string name="vfs_vgmrips_chips_name">Čipy</string>
+    <string name="vfs_vgmrips_systems_name">Systémy</string>
+    <string name="vfs_vgmrips_random_name">Náhodné melodie</string>
     <!-- errors -->
     <string name="network_inaccessible">Síť není dostupná</string>
     <string name="failed_resolve">Podařilo se zrušit %s</string>
-    <string name="file_too_big">Soubor je příliš velký</string>
 </resources>

@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "sqdigitaltracker.h"
+#include "formats/chiptune/digital/sqdigitaltracker.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
@@ -18,12 +18,11 @@
 #include <make_ptr.h>
 #include <range_checker.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -38,7 +37,7 @@ namespace Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SQDigitalTracker");
 
-    const std::size_t MAX_MODULE_SIZE = 0x4400 + 8 * 0x4000;
+    //const std::size_t MAX_MODULE_SIZE = 0x4400 + 8 * 0x4000;
     const std::size_t MAX_POSITIONS_COUNT = 100;
     const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t PATTERNS_COUNT = 32;
@@ -179,7 +178,7 @@ namespace Chiptune
       //+0x213
       uint8_t Padding3[0xed];
       //+0x300
-      std::array<char[8], SAMPLES_COUNT> SampleNames;
+      std::array<std::array<char, 8>, SAMPLES_COUNT> SampleNames;
       //+0x380
       uint8_t Padding4[0x80];
       //+0x400
@@ -203,7 +202,7 @@ namespace Chiptune
       }
 
       void SetInitialTempo(uint_t /*tempo*/) override {}
-      void SetSample(uint_t /*index*/, std::size_t /*loop*/, const Binary::Data& /*content*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::View /*content*/) override {}
       void SetPositions(Positions /*positions*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
@@ -240,7 +239,7 @@ namespace Chiptune
         return Delegate.SetInitialTempo(tempo);
       }
 
-      void SetSample(uint_t index, std::size_t loop, const Binary::Data& data) override
+      void SetSample(uint_t index, std::size_t loop, Binary::View data) override
       {
         return Delegate.SetSample(index, loop, data);
       }
@@ -312,9 +311,9 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& rawData)
+      explicit Format(Binary::View rawData)
         : RawData(rawData)
-        , Source(*static_cast<const Header*>(RawData.Start()))
+        , Source(*RawData.As<Header>())
         , Ranges(RangeChecker::Create(RawData.Size()))
       {
         //info
@@ -325,14 +324,18 @@ namespace Chiptune
       {
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
-        const String title = *Source.Title.begin() == '|' && *Source.Title.rbegin() == '|'
-          ? String(Source.Title.begin() + 1, Source.Title.end() - 1)
-          : String(Source.Title.begin(), Source.Title.end());
-        meta.SetTitle(title);
+        const auto title = *Source.Title.begin() == '|' && *Source.Title.rbegin() == '|'
+          ? StringView(Source.Title.data() + 1, &Source.Title.back())
+          : StringView(Source.Title);
+        meta.SetTitle(Strings::OptimizeAscii(title));
         meta.SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
-        Strings::Array names(SAMPLES_COUNT);
-        std::transform(Source.SampleNames.begin(), Source.SampleNames.end(), names.begin(), &FromCharArray<8>);
-        meta.SetStrings(names);
+        Strings::Array names;
+        names.reserve(SAMPLES_COUNT);
+        for (const auto& name : Source.SampleNames)
+        {
+          names.push_back(Strings::OptimizeAscii(name));
+        }
+        meta.SetStrings(std::move(names));
       }
 
       void ParsePositions(Builder& target) const
@@ -395,9 +398,9 @@ namespace Chiptune
           if (const auto sample = GetSample(offset, size))
           {
             Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", 
-              samIdx, rawAddr, rawLoop, sample->Size(), uint_t(info.Bank));
-            const std::size_t loop = info.IsLooped ? rawLoop - sampleBase : sample->Size();
-            target.SetSample(samIdx, loop, *sample);
+              samIdx, rawAddr, rawLoop, sample.Size(), uint_t(info.Bank));
+            const std::size_t loop = info.IsLooped ? rawLoop - sampleBase : sample.Size();
+            target.SetSample(samIdx, loop, sample);
           }
           else
           {
@@ -475,14 +478,14 @@ namespace Chiptune
         Require(Ranges->AddRange(start, size));
       }
 
-      Binary::Data::Ptr GetSample(std::size_t offset, std::size_t size) const
+      Binary::View GetSample(std::size_t offset, std::size_t size) const
       {
-        const uint8_t* const start = static_cast<const uint8_t*>(RawData.Start()) + offset;
+        const uint8_t* const start = RawData.As<uint8_t>() + offset;
         const uint8_t* const end = std::find(start, start + size, 0);
-        return RawData.GetSubcontainer(offset, end - start);
+        return RawData.SubView(offset, end - start);
       }
     private:
-      const Binary::Container& RawData;
+      const Binary::View RawData;
       const Header& Source;
       const RangeChecker::Ptr Ranges;
     };
@@ -543,10 +546,11 @@ namespace Chiptune
       const Binary::Format::Ptr Format;
     };
 
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
       try
       {
+        const Binary::View data(rawData);
         const Format format(data);
 
         format.ParseCommonProperties(target);
@@ -559,9 +563,9 @@ namespace Chiptune
         format.ParseSamples(usedSamples, target);
 
         Require(format.GetSize() >= MIN_SIZE);
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
-        const RangeChecker::Range fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
+        auto subData = rawData.GetSubcontainer(0, format.GetSize());
+        const auto fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {

@@ -9,38 +9,34 @@
 **/
 
 //local includes
-#include "backend_impl.h"
-#include "storage.h"
-#include "gates/paudio_api.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/gates/paudio_api.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <module/attributes.h>
 #include <platform/version/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
-//boost includes
-#include <boost/bind.hpp>
+//std includes
+#include <functional>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 181AC911
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::PulseAudio");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace PulseAudio
 {
+  const Debug::Stream Dbg("Sound::Backend::PulseAudio");
+
   const String ID = Text::PAUDIO_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("PulseAudio support backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
@@ -84,14 +80,14 @@ namespace PulseAudio
       Dbg("Resume");
     }
 
-    void FrameStart(const Module::TrackState& /*state*/) override
+    void FrameStart(const Module::State& /*state*/) override
     {
     }
 
-    void FrameFinish(Chunk::Ptr buffer) override
+    void FrameFinish(Chunk buffer) override
     {
       int error = 0;
-      if (PaApi->pa_simple_write(Device.get(), &buffer->front(), buffer->size() * sizeof(buffer->front()), &error) < 0)
+      if (PaApi->pa_simple_write(Device.get(), buffer.data(), buffer.size() * sizeof(buffer.front()), &error) < 0)
       {
         throw MakeError(error, THIS_LINE);
       }
@@ -108,7 +104,7 @@ namespace PulseAudio
       int error = 0;
       if (pa_simple* result = PaApi->pa_simple_new(nullptr, Client.c_str(), PA_STREAM_PLAYBACK, nullptr, Stream.c_str(), &format, nullptr, nullptr, &error))
       {
-        return std::shared_ptr<pa_simple>(result, boost::bind(&Api::pa_simple_free, PaApi, _1));
+        return std::shared_ptr<pa_simple>(result, std::bind(&Api::pa_simple_free, PaApi, std::placeholders::_1));
       }
       throw MakeError(error, THIS_LINE);
     }
@@ -186,7 +182,7 @@ namespace Sound
     {
       const PulseAudio::Api::Ptr api = PulseAudio::LoadDynamicApi();
       const char* const version = api->pa_get_library_version();
-      Dbg("Detected PulseAudio v%1%", version);
+      PulseAudio::Dbg("Detected PulseAudio v%1%", version);
       const BackendWorkerFactory::Ptr factory = MakePtr<PulseAudio::BackendWorkerFactory>(api);
       storage.Register(PulseAudio::ID, PulseAudio::DESCRIPTION, PulseAudio::CAPABILITIES, factory);
     }
@@ -196,3 +192,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

@@ -125,7 +125,7 @@ namespace Binary
       StaticPattern(const StaticPattern&) = delete;
       StaticPattern& operator = (const StaticPattern&) = delete;
       
-      StaticPattern(StaticPattern&& rh)// = default;
+      StaticPattern(StaticPattern&& rh) noexcept// = default;
         : Data(std::move(rh.Data))
       {
       }
@@ -147,12 +147,12 @@ namespace Binary
     private:
       const StaticPredicate* Begin() const
       {
-        return &Data.front();
+        return Data.data();
       }
 
       const StaticPredicate* End() const
       {
-        return &Data.back() + 1;
+        return Begin() + Data.size();
       }
 
       std::size_t FindMaxSuffixMatchSize(std::size_t offset) const;

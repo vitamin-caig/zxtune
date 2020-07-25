@@ -1,5 +1,7 @@
 library_name := devices_aym_dumper
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
-include $(path_step)/makefile.mak
+jumbo.name := $(library_name)
+
+include $(dirs.root)/makefile.mak

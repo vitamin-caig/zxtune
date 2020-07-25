@@ -14,15 +14,16 @@
 //common includes
 #include <error.h>
 //library includes
+#include <module/track_state.h>
 #include <parameters/template.h>
 #include <platform/application.h>
 #include <strings/format.h>
 #include <strings/template.h>
 #include <time/duration.h>
+#include <time/serialize.h>
 //std includes
 #include <thread>
 //boost includes
-#include <boost/bind.hpp>
 #include <boost/program_options.hpp>
 //text includes
 #include "text/text.h"
@@ -58,11 +59,6 @@ namespace
     }
   }
 
-  inline char SymIfGreater(int_t val, int_t limit)
-  {
-    return val > limit ? '#' : ' ';
-  }
-
   class DisplayComponentImpl : public DisplayComponent
   {
   public:
@@ -95,7 +91,8 @@ namespace
     {
       if (!Silent)
       {
-        StdOut << msg << std::endl;
+        Console::Self().Write(msg);
+        StdOut << std::endl;
       }
     }
 
@@ -105,7 +102,8 @@ namespace
       const Parameters::Accessor::Ptr props = module->GetModuleProperties();
       TotalFrames = info->FramesCount();
       FrameDuration = frameDuration;
-      TrackState = player->GetTrackState();
+      State = player->GetState();
+      TrackState = dynamic_cast<const Module::TrackState*>(State.get());
       if (!Silent && ShowAnalyze)
       {
         Analyzer = player->GetAnalyzer();
@@ -119,16 +117,13 @@ namespace
       {
         return;
       }
-      StdOut
-        << std::endl
-        << InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props))
-        << Strings::Format(Text::ITEM_INFO_ADDON,
-          Time::MicrosecondsDuration(info->FramesCount(), FrameDuration).ToString(), info->ChannelsCount());
+      Message(InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
+      Message(Strings::Format(Text::ITEM_INFO_ADDON, Time::ToString(FrameDuration * info->FramesCount()), info->ChannelsCount()));
     }
 
     uint_t BeginFrame(Sound::PlaybackControl::State state) override
     {
-      const uint_t curFrame = TrackState->Frame();
+      const uint_t curFrame = State->Frame();
       if (Silent || Quiet)
       {
         return curFrame;
@@ -139,18 +134,22 @@ namespace
         Silent = true;
         return curFrame;
       }
-      const int_t spectrumHeight = ScrSize.second - INFORMATION_HEIGHT - TRACKING_HEIGHT - PLAYING_HEIGHT - 1;
+      const int_t trackingHeight = TrackState ? TRACKING_HEIGHT : 0;
+      const int_t spectrumHeight = ScrSize.second - INFORMATION_HEIGHT - trackingHeight - PLAYING_HEIGHT - 1;
       if (spectrumHeight < 4)//minimal spectrum height
       {
         Analyzer.reset();
       }
-      else if (ScrSize.second < int_t(TRACKING_HEIGHT + PLAYING_HEIGHT))
+      else if (ScrSize.second < int_t(trackingHeight + PLAYING_HEIGHT))
       {
         Quiet = true;
       }
       else
       {
-        ShowTrackingStatus(*TrackState);
+        if (TrackState)
+        {
+          ShowTrackingStatus(*TrackState);
+        }
         ShowPlaybackStatus(curFrame, state);
         if (Analyzer)
         {
@@ -169,14 +168,15 @@ namespace
       std::this_thread::sleep_for(std::chrono::milliseconds(waitPeriod));
       if (!Silent && !Quiet)
       {
-        Console::Self().MoveCursorUp(Analyzer ? ScrSize.second - INFORMATION_HEIGHT - 1 : TRACKING_HEIGHT + PLAYING_HEIGHT);
+        const int_t trackingHeight = TrackState ? TRACKING_HEIGHT : 0;
+        Console::Self().MoveCursorUp(Analyzer ? ScrSize.second - INFORMATION_HEIGHT - 1 : trackingHeight + PLAYING_HEIGHT);
       }
     }
   private:
     void ShowPlaybackStatus(uint_t frame, Sound::PlaybackControl::State state) const
     {
       const Char MARKER = '\x1';
-      String data = Strings::Format(Text::PLAYBACK_STATUS, Time::MicrosecondsDuration(frame, FrameDuration).ToString(), MARKER);
+      String data = Strings::Format(Text::PLAYBACK_STATUS, Time::ToString(FrameDuration * frame), MARKER);
       const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
       const String::size_type markerPos = data.find(MARKER);
 
@@ -195,24 +195,19 @@ namespace
       for (int_t y = high; y; --y)
       {
         const int_t limit = (y - 1) * 100 / high;
-        std::transform(AnalyzerData.begin(), AnalyzerData.end(), buffer.begin(), boost::bind(&SymIfGreater, _1, limit));
+        std::transform(AnalyzerData.begin(), AnalyzerData.end(), buffer.begin(),
+          [limit](const int_t val) {return val > limit ? '#' : ' ';});
         StdOut << buffer << '\n';
       }
       StdOut << std::flush;
     }
 
-    void UpdateAnalyzer(const std::vector<Module::Analyzer::ChannelState>& inState, int_t fallspeed)
+    void UpdateAnalyzer(const Module::Analyzer::SpectrumState& inState, int_t fallspeed)
     {
-      std::transform(AnalyzerData.begin(), AnalyzerData.end(), AnalyzerData.begin(),
-        std::bind2nd(std::minus<int_t>(), fallspeed));
-      for (const auto& state : inState)
+      for (uint_t band = 0, lim = std::min(AnalyzerData.size(), inState.Data.size()); band < lim; ++band)
       {
-        if (state.Band < AnalyzerData.size())
-        {
-          AnalyzerData[state.Band] = state.Level;
-        }
+        AnalyzerData[band] = std::max(AnalyzerData[band] - fallspeed, int_t(inState.Data[band].Raw()));
       }
-      std::replace_if(AnalyzerData.begin(), AnalyzerData.end(), std::bind2nd(std::less<int_t>(), 0), 0);
     }
 
   private:
@@ -226,7 +221,8 @@ namespace
     Console::SizeType ScrSize;
     uint_t TotalFrames;
     Time::Microseconds FrameDuration;
-    Module::TrackState::Ptr TrackState;
+    Module::State::Ptr State;
+    const Module::TrackState* TrackState;
     Module::Analyzer::Ptr Analyzer;
     std::vector<int_t> AnalyzerData;
   };

@@ -1,0 +1,21 @@
+<html>
+<head>
+	<title>AIRASAP</title>
+	<script type="text/javascript" src="asap.js"></script>
+	<script type="text/javascript" src="airasap.js"></script>
+</head>
+<body style="text-align: center;">
+	<div id="name" style="font-size: large;"></div>
+	<div id="author"></div>
+	<div id="date" style="font-size: small;"></div>
+	<div id="song_panel" style="font-size: small; display: none;">
+		<input type="button" onclick="prevSong()" value="&lt;" />
+		Song <span id="song"></span> of <span id="songs"></span>
+		<input type="button" onclick="nextSong()" value="&gt;" />
+	</div>
+	<div>
+		<input type="button" onclick="selectFile()" value="Open" />
+		<input type="button" onclick="stop()" value="Stop" />
+	</div>
+</body>
+</html>

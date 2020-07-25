@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Implementation of VfsRoot over http://amp.dascene.net catalogue
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs;
@@ -14,34 +10,41 @@ import android.content.Context;
 import android.net.Uri;
 import android.text.format.Formatter;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.List;
 
 import app.zxtune.R;
 import app.zxtune.fs.amp.Author;
+import app.zxtune.fs.amp.CachingCatalog;
 import app.zxtune.fs.amp.Catalog;
 import app.zxtune.fs.amp.Catalog.GroupsVisitor;
 import app.zxtune.fs.amp.Country;
 import app.zxtune.fs.amp.Group;
 import app.zxtune.fs.amp.Identifier;
+import app.zxtune.fs.amp.RemoteCatalog;
 import app.zxtune.fs.amp.Track;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
+@Icon(R.drawable.ic_browser_vfs_amp)
 final class VfsRootAmp extends StubObject implements VfsRoot {
 
-  private final static String TAG = VfsRootAmp.class.getName();
+  private static final String TAG = VfsRootAmp.class.getName();
 
+  private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
-  private final GroupingDir groupings[];
+  private final CachingCatalog catalog;
+  private final GroupingDir[] groupings;
 
-  VfsRootAmp(Context context, HttpProvider http, VfsCache cache) throws IOException {
+  VfsRootAmp(VfsObject parent, Context context, MultisourceHttpProvider http) {
+    this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
-    this.groupings = new GroupingDir[] {
-        new HandlesDir(),
-        new CountriesDir(),
-        new GroupsDir()
+    this.catalog = Catalog.create(context, http);
+    this.groupings = new GroupingDir[]{
+            new HandlesDir(),
+            new CountriesDir(),
+            new GroupsDir()
     };
   }
 
@@ -62,14 +65,12 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
   @Override
   public VfsObject getParent() {
-    return null;
+    return parent;
   }
-  
+
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_amp;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
     } else {
@@ -85,6 +86,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject resolve(Uri uri) {
     if (Identifier.isFromRoot(uri)) {
       final List<String> path = uri.getPathSegments();
@@ -94,6 +96,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     }
   }
 
+  @Nullable
   private VfsObject resolve(Uri uri, List<String> path) {
     // due to identical structure of groupings, may resolve here
     // use plain algo with most frequent cases check first
@@ -121,6 +124,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     return null;
   }
 
+  @Nullable
   private VfsObject resolveGroupingDir(Uri uri, List<String> path) {
     final Group group = Identifier.findGroup(uri, path);
     if (group != null) {
@@ -140,22 +144,24 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   private abstract class GroupingDir extends StubObject implements VfsDir {
 
     @Override
+
     public Uri getUri() {
       return Identifier.forCategory(getPath()).build();
     }
 
     @Override
+    @Nullable
     public Object getExtension(String id) {
-      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
         //assume all the groups will search by authors
         return new AuthorsSearchEngine();
       } else {
         return super.getExtension(id);
       }
     }
-    
+
     abstract String getPath();
-  };
+  }
 
   private abstract class HandleByGroupingDir extends StubObject implements VfsDir {
 
@@ -168,13 +174,9 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
   private final class HandlesDir extends GroupingDir {
 
     @Override
+
     public String getName() {
       return context.getString(R.string.vfs_amp_handles_name);
-    }
-
-    @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_amp_handles_description);
     }
 
     @Override
@@ -223,11 +225,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(letter, new Catalog.AuthorsVisitor() {
         @Override
-        public void setCountHint(int count) {
-          visitor.onItemsCount(count);
-        }
-
-        @Override
         public void accept(Author obj) {
           visitor.onDir(makeSubdir(obj));
         }
@@ -246,11 +243,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     public String getName() {
       return context.getString(R.string.vfs_amp_countries_name);
-    }
-
-    @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_amp_countries_description);
     }
 
     @Override
@@ -321,11 +313,6 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     }
 
     @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_amp_groups_description);
-    }
-
-    @Override
     public VfsObject getParent() {
       return VfsRootAmp.this;
     }
@@ -347,6 +334,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     }
 
     @Override
+
     public String getPath() {
       return Identifier.CATEGORY_GROUP;
     }
@@ -439,6 +427,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     }
   }
 
+  @Nullable
   private VfsObject resolveAuthorDir(Uri uri, List<String> path) {
     final Author author = Identifier.findAuthor(uri, path);
     if (author == null) {
@@ -450,7 +439,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     }
     // cut uri here
     return new AuthorDir(Identifier.forAuthor(grouping.getUri().buildUpon(), author).build(),
-        author);
+            author);
   }
 
   private class TrackFile extends StubObject implements VfsFile {
@@ -485,22 +474,28 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     }
 
     @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(track.id);
+    public Object getExtension(String id) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return Integer.toString(track.id);
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(track.id);
+      } else {
+        return super.getExtension(id);
+      }
     }
   }
 
   private class AuthorsSearchEngine implements VfsExtensions.SearchEngine {
-    
+
     @Override
     public void find(String query, final Visitor visitor) throws IOException {
       catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
-        
+
         @Override
         public void accept(Author author, Track track) {
           final String letter = author.handle.substring(0, 1);
           final Uri.Builder categoryUri = Identifier.forHandleLetter(Identifier.isHandleLetter(letter)
-              ? letter : Catalog.NON_LETTER_FILTER);
+                  ? letter : Catalog.NON_LETTER_FILTER);
           final Uri.Builder authorsUri = Identifier.forAuthor(categoryUri, author);
           final Uri.Builder trackUri = Identifier.forTrack(authorsUri, track);
           visitor.onFile(new TrackFile(trackUri.build(), track));

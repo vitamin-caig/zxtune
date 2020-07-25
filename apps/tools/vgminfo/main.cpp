@@ -16,14 +16,15 @@ namespace
     explicit Stream(const std::string& filename)
       : Delegate(filename.c_str(), std::ios::binary)
     {
-      Require(!!Delegate);
+      Check();
     }
     
     template<class T>
     T ReadData()
     {
       T res = 0;
-      Require(!!Delegate.read(safe_ptr_cast<char*>(&res), sizeof(res)));
+      Delegate.read(safe_ptr_cast<char*>(&res), sizeof(res));
+      Check();
       return res;
     }
     
@@ -44,24 +45,35 @@ namespace
     
     void Skip(std::ptrdiff_t size)
     {
-      Require(!!Delegate.seekg(size, std::ios_base::cur));
+      Delegate.seekg(size, std::ios_base::cur);
+      Check();
     }
     
     void Seek(std::size_t pos)
     {
-      Require(!!Delegate.seekg(pos));
+      Delegate.seekg(pos);
+      Check();
     }
     
     uint_t ReadVersion()
     {
       uint8_t vers[4] = {0};
-      Require(!!Delegate.read(safe_ptr_cast<char*>(vers), sizeof(vers)));
+      Delegate.read(safe_ptr_cast<char*>(vers), sizeof(vers));
+      Check();
       return (vers[0] & 15) + 10 *(vers[0] >> 4) + 100 * (vers[1] & 15) + 1000 * (vers[1] >> 4);
     }
     
     std::size_t GetPos()
     {
       return Delegate.tellg();
+    }
+  private:
+    void Check()
+    {
+      if (!Delegate)
+      {
+        throw std::runtime_error("Read error");
+      }
     }
   private:
     std::ifstream Delegate;
@@ -88,19 +100,25 @@ namespace
       ParseSN76489(stream);
       ParseDevice("YM2413", stream);
       const uint32_t gd3 = stream.ReadDword();
-      const uint32_t samples = stream.ReadDword();
+      Samples = stream.ReadDword();
       const uint32_t loopOffset = stream.ReadDword();
-      const uint32_t loopSamples = stream.ReadDword();
-      Require(Version >= 101);
-      Framerate = stream.ReadDword();
-      Require(Version >= 110);
-      stream.ReadDword();//flags for sn76489
-      ParseDevice("YM2612", stream);
-      ParseDevice("YM2151", stream);
-      Require(Version >= 150);
-      stream.ReadDword();//vgm offset
-      ParseSimpleDevice("SegaPCM", stream);
-      stream.ReadDword();//segapcm flags
+      LoopSamples = stream.ReadDword();
+      if (Version >= 101)
+      {
+        Framerate = stream.ReadDword();
+      }
+      if (Version >= 110)
+      {
+        stream.ReadDword();//flags for sn76489
+        ParseDevice("YM2612", stream);
+        ParseDevice("YM2151", stream);
+      }
+      if (Version >= 150)
+      {
+        stream.ReadDword();//vgm offset
+        ParseSimpleDevice("SegaPCM", stream);
+        stream.ReadDword();//segapcm flags
+      }
       if (Version >= 151)
       {
         Require(0x40 == stream.GetPos());
@@ -140,9 +158,9 @@ namespace
       }
       if (Version >= 170)
       {
-        Require(0xbc == stream.GetPos());
-        stream.ReadDword();//extra header offset
+        Require(0xb8 == stream.GetPos());
         ParseDevice("SCSP", stream);
+        stream.ReadDword();//extra header offset
       }
       if (Version >= 171)
       {
@@ -173,9 +191,11 @@ namespace
       {
         std::cout << "  " << dev.first << " (" << dev.second << "hz)" << std::endl;
       }
+      std::cout << "Duration: " << Samples / 44100 << "s (" << Samples << " samples)" << std::endl;
+      std::cout << "Loop: " << LoopSamples / 44100 << "s (" << LoopSamples << " samples)" << std::endl;
       if (Framerate)
       {
-        std::cout << "Framerate: "<< Framerate << "hz" << std::endl;
+        std::cout << "Framerate: " << Framerate << "hz" << std::endl;
       }
       if (!Tags.empty())
       {
@@ -316,6 +336,8 @@ namespace
     }
   private:
     uint_t Version;
+    uint_t Samples;
+    uint_t LoopSamples;
     uint_t Framerate;
     std::map<String, String> Tags;
     std::map<String, uint_t> Devices;
@@ -334,20 +356,19 @@ namespace
   public:
     bool ParseCommand(Stream& stream)
     {
+      const auto offset = stream.GetPos();
       const uint8_t code = stream.ReadByte();
       if (code == 0x66)
       {
         return false;
       }
-      if (ParseFixedCommand(code, stream)
+      return ParseFixedCommand(code, stream)
           || ParseDataBlock(code, stream)
           || ParseRamWrite(code, stream)
           || ParseDacControl(code, stream)
-          || ParseBuggyCommand(code, stream))
-      {
-        return true;
-      }
-      throw std::runtime_error(Strings::Format("Unknown command %1% at %2%", uint_t(code), stream.GetPos() - 1));
+          || ParseBuggyCommand(code, stream)
+          || ParseUnknownCommand(code, stream)
+      ;
     }
     
     void Dump() const
@@ -369,10 +390,18 @@ namespace
 
     bool ParseFixedCommand(uint8_t code, Stream& stream)
     {
-      static const FixedCmd COMMANDS[] =
+      if (code == 0x4f)
       {
-        {0x30, 0x3f, 1, "dual8"},
-        {0x4f, 0x4f, 1, "gg"},
+        const uint_t mode = stream.ReadByte();
+        Add(Strings::Format("gg mixer 0x%02x", mode));
+        return true;
+      }
+
+      static const FixedCmd FIXED_COMMANDS[] =
+      {
+        {0x30, 0x30, 1, "dual sn76489"},
+        {0x31, 0x3e, 1, "dual8"},
+        {0x3f, 0x3f, 1, "dual T6Ww28"},
         {0x50, 0x50, 1, "sn76489"},
         {0x51, 0x51, 2, "ym2413"},
         {0x52, 0x53, 2, "ym2612"},
@@ -429,16 +458,15 @@ namespace
         {0xe0, 0xe0, 4, "pcm/offset"},
         {0xe1, 0xe1, 4, "c352"},
         {0xe2, 0xff, 4, "reserved32"},
-        {0, 0, 0, nullptr}
       };
 
-      for (const FixedCmd* cmd = COMMANDS; cmd->Name; ++cmd)
+      for (const auto& cmd : FIXED_COMMANDS)
       {
-        Require(cmd->CodeMin <= cmd->CodeMax);
-        if (code >= cmd->CodeMin && code <= cmd->CodeMax)
+        Require(cmd.CodeMin <= cmd.CodeMax);
+        if (code >= cmd.CodeMin && code <= cmd.CodeMax)
         {
-          Add(cmd->Name);
-          stream.Skip(cmd->SequentSize);
+          Add(cmd.Name);
+          stream.Skip(cmd.SequentSize);
           return true;
         }
       }
@@ -454,18 +482,20 @@ namespace
       const uint_t compat = stream.ReadByte();
       if (0x66 != compat)
       {
-        throw std::runtime_error(Strings::Format("Invalid data block code %1% at %2%", compat, stream.GetPos() - 1));
+        stream.Skip(-1);
+        return false;
       }
       const uint8_t type = stream.ReadByte();
       uint32_t size = stream.ReadDword();
       size &= 0x7fffffff;
+      
       if (type <= 0x3f)
       {
-        Add("uncompressed data");
+        Add("uncompressed " + GetDataBlockType(type));
       }
       else if (type <= 0x7e)
       {
-        Add("compressed data");
+        Add("compressed " + GetDataBlockType(type - 0x40));
       }
       else if (type == 0x7f)
       {
@@ -473,14 +503,107 @@ namespace
       }
       else if (type <= 0xbf)
       {
-        Add("image dump");
+        Add(GetRomDataType(type) + " ROM data");
       }
       else
       {
-        Add("ram write data");
+        Add(GetRamWriteType(type) + " RAM write data");
       }
       stream.Skip(size);
       return true;
+    }
+    
+    static String GetDataBlockType(uint_t code)
+    {
+      switch (code)
+      {
+      case 0x00:
+        return "YM2612 PCM";
+      case 0x01:
+        return "RF5C68 PCM";
+      case 0x02:
+        return "RF5C164 PCM";
+      case 0x03:
+        return "PWM PCM";
+      case 0x04:
+        return "OKIM6258 ADPCM";
+      case 0x05:
+        return "HuC6280 PCM";
+      case 0x06:
+        return "SCSP PCM";
+      case 0x07:
+        return "NES APU DPCM";
+      default:
+        return Strings::Format("data type=0x%02x", code);
+      }
+    }
+    
+    static String GetRomDataType(uint8_t code)
+    {
+      switch (code)
+      {
+      case 0x80:
+        return "Sega PCM";
+      case 0x81:
+        return "YM2608 DELTA-T";
+      case 0x82:
+        return "YM2610 ADPCM";
+      case 0x83:
+        return "YM2610 DELTA-T";
+      case 0x84:
+        return "YMF278B";
+      case 0x85:
+        return "YMF271";
+      case 0x86:
+        return "YMZ280B";
+      case 0x87:
+        return "YMF278B";
+      case 0x88:
+        return "Y8950 DELTA-T";
+      case 0x89:
+        return "MultiPCM";
+      case 0x8a:
+        return "uPD7759";
+      case 0x8b:
+        return "OKIM6295";
+      case 0x8c:
+        return "K054539";
+      case 0x8d:
+        return "C140";
+      case 0x8e:
+        return "K053260";
+      case 0x8f:
+        return "Q-Sound";
+      case 0x90:
+        return "ES5505/ES5506";
+      case 0x91:
+        return "X1-010";
+      case 0x92:
+        return "C352";
+      case 0x93:
+        return "GA20";
+      default:
+        return Strings::Format("type=0x%02x", code);
+      }
+    }
+    
+    static String GetRamWriteType(uint8_t code)
+    {
+      switch (code)
+      {
+      case 0xc0:
+        return "RF5C68";
+      case 0xc1:
+        return "RF5C164";
+      case 0xc2:
+        return "NES APU";
+      case 0xe0:
+        return "SCSP";
+      case 0xe1:
+        return "ES5503";
+      default:
+        return Strings::Format("type=0x%02x", code);
+      }
     }
     
     bool ParseRamWrite(uint8_t code, Stream& stream)
@@ -495,7 +618,7 @@ namespace
         throw std::runtime_error(Strings::Format("Invalid ram write code %1% at %2%", compat, stream.GetPos() - 1));
       }
       const uint8_t type = stream.ReadByte();
-      Add("ram write");
+      Add(GetDataBlockType(type) + "RAM write");
       stream.Skip(6);
       const uint32_t size = (stream.ReadDword() - 1) & 0xffffff;
       stream.Skip(size);
@@ -553,6 +676,20 @@ namespace
       }
       return false;
     }
+
+    bool ParseUnknownCommand(uint8_t code, Stream& stream)
+    {
+      static const std::size_t SIZES[] =
+      {
+      //0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+        1, 1, 1, 2, 2, 3, 1, 1, 1, 1, 3, 3, 4, 4, 5, 5
+      };
+      const auto size = SIZES[code >> 4];
+      const std::size_t curPos = stream.GetPos();
+      Add(Strings::Format("unknown 0x%02x (%u bytes) @ 0x%x", uint_t(code), size, curPos - 1));
+      stream.Skip(size - 1);
+      return true;
+    }
     
     void Add(const String& cmd)
     {
@@ -569,8 +706,15 @@ namespace
     const uint32_t vgmOffset = stream.ReadDword();
     stream.Seek(vgmOffset ? vgmOffset + offsetPos : 0x40);
     CommandsSet cmds;
-    while (cmds.ParseCommand(stream))
+    try
     {
+      while (cmds.ParseCommand(stream))
+      {
+      }
+    }
+    catch (const std::exception& e)
+    {
+      std::cerr << e.what() << std::endl;
     }
     cmds.Dump();
   }

@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Player events listener interface
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.sound;
@@ -16,23 +12,28 @@ package app.zxtune.sound;
 public interface PlayerEventsListener {
 
   /**
-   * Called when playback is started
+   * Called when playback is started or resumed
    */
-  public void onStart();
+  void onStart();
+
+  /**
+   * Called when seek is started
+   */
+  void onSeeking();
 
   /**
    * Called when played stream come to an end
    */
-  public void onFinish();
+  void onFinish();
 
   /**
    * Called when playback stopped (also called after onFinish)
    */
-  public void onStop();
-  
+  void onStop();
+
   /**
    * Called on unexpected error occurred
-   * @param e
+   * @param e Exception happened
    */
-  public void onError(Exception e);
+  void onError(Exception e);
 }

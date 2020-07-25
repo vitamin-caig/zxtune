@@ -28,35 +28,35 @@ public final class IteratorFactory {
   /**
    * 
    * @param context Operational context
-   * @param uris List of objects identifiers. In case of multiple, used as files/folders identifiers 
+   * @param uri Start point of playback
    * @return new iterator
    * @throws IOException
    */
-  public static Iterator createIterator(Context context, Uri[] uris) throws IOException {
-    final Uri first = uris[0];
-    if (isPlaylistUri(first)) {
-      return new PlaylistIterator(context, first);
+  public static Iterator createIterator(Context context, Uri uri) throws Exception {
+    if (isPlaylistUri(uri)) {
+      return new PlaylistIterator(context, uri);
     } else {
-      return new FileIterator(context, uris);
+      return FileIterator.create(context, uri);
     }
   }
   
   //TODO: implement abstract iterator-typed visitor and preferences notification 
-  static class NavigationMode {
+  public static class NavigationMode {
     
-    private final static String KEY = "playlist.navigation_mode";
+    private static final String KEY = "playlist.navigation_mode";
     private final SharedPreferences prefs;
     
-    NavigationMode(Context context) {
+    public NavigationMode(Context context) {
       this.prefs = Preferences.getDefaultSharedPreferences(context);
     }
     
-    final void set(SequenceMode mode) {
+    public final void set(SequenceMode mode) {
       prefs.edit().putString(KEY, mode.toString()).apply();
     }
     
-    final SequenceMode get() {
-      return SequenceMode.valueOf(prefs.getString(KEY, SequenceMode.ORDERED.toString()));
+    public final SequenceMode get() {
+      final String stored = prefs.getString(KEY, null);
+      return stored != null ? SequenceMode.valueOf(stored) : SequenceMode.ORDERED;
     }
   }
   

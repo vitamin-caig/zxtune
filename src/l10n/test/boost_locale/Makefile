@@ -1,12 +1,16 @@
 binary_name := l10n_test_boost_locale
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
-include $(path_step)/make/default.mak
+include $(dirs.root)/make/default.mak
 
-libraries.common = debug l10n tools
+libraries.common = binary binary_compression binary_format debug formats_archived formats_chiptune formats_packed \
+                   l10n platform resource strings tools
 
-libraries.boost := locale
-mingw_libraries := iconv
+libraries.3rdparty = lhasa lzma unrar zlib
 
-include $(path_step)/makefile.mak
+libraries.boost += locale
+libraries.mingw += iconv
+libraries.darwin += iconv
+
+include $(dirs.root)/makefile.mak

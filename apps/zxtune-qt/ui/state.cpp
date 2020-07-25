@@ -488,12 +488,18 @@ namespace
 
     void Load() const override
     {
-      std::for_each(Substates.begin(), Substates.end(), std::mem_fn(&WidgetState::Load));
+      for (const auto& state : Substates)
+      {
+        state->Load();
+      }
     }
 
     void Save() const override
     {
-      std::for_each(Substates.begin(), Substates.end(), std::mem_fn(&WidgetState::Save));
+      for (const auto& state : Substates)
+      {
+        state->Save();
+      }
     }
   private:
     const Parameters::Container::Ptr Options;

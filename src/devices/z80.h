@@ -23,8 +23,9 @@ namespace Devices
   namespace Z80
   {
     // Use optimized stamp and oscillator types- 7% accuracy
-    typedef Time::Stamp<uint64_t, 1 << 30> Stamp;
-    typedef Time::Oscillator<Stamp> Oscillator;
+    using TimeUnit = Time::BaseUnit<uint64_t, 1 << 30>;
+    using Stamp = Time::Instant<TimeUnit>;
+    using Oscillator = Time::Oscillator<TimeUnit>;
 
     class ChipIO
     {

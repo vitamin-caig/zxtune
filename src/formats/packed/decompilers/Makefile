@@ -1,10 +1,12 @@
 #stub library for lha functionality without formats_packed linking
 library_name := formats_packed_decompilers
-path_step := ../../../..
+dirs.root := ../../../..
 source_files := $(wildcard ../compiled*) ../container.cpp
 
-include $(path_step)/make/default.mak
+include $(dirs.root)/make/default.mak
 
 text_files := ../../text/packed
 
-include $(path_step)/makefile.mak
+jumbo.name := $(library_name)
+
+include $(dirs.root)/makefile.mak

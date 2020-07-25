@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "tfc.h"
+#include "formats/chiptune/fm/tfc.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
@@ -17,11 +17,10 @@
 //library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <binary/typed_container.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
 //std includes
 #include <array>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -73,15 +72,17 @@ namespace Chiptune
       void SetKeyOn() override {}
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View rawData)
     {
       const std::size_t size = rawData.Size();
       if (size < MIN_SIZE)
       {
         return false;
       }
-      const RawHeader& hdr = *static_cast<const RawHeader*>(rawData.Start());
-      return hdr.Sign == SIGNATURE && hdr.Offsets.end() == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(), boost::bind(&fromLE<uint16_t>, _1) >= size);
+      const auto& hdr = *rawData.As<RawHeader>();
+      return hdr.Sign == SIGNATURE
+        && hdr.Offsets.end() == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(),
+             [size](uint16_t o) {return fromLE(o) >= size;});
     }
 
     const std::string FORMAT(
@@ -137,9 +138,9 @@ namespace Chiptune
     class Container
     {
     public:
-      explicit Container(const Binary::Container& data)
-        : Delegate(data)
-        , Min(Delegate.GetSize())
+      explicit Container(Binary::View data)
+        : Data(data)
+        , Min(Data.Size())
         , Max(0)
       {
       }
@@ -170,7 +171,7 @@ namespace Chiptune
             context.RepeatFrames = Get<uint8_t>(cursor++);
             const int_t offset = fromBE(Get<int16_t>(cursor));
             context.RetAddr = cursor += 2;
-            return cursor + offset;
+            return AdvanceCursor(cursor, offset);
           }
           else
           {
@@ -186,12 +187,12 @@ namespace Chiptune
         {
           const int_t offset = fromBE(Get<int16_t>(cursor));
           cursor += 2;
-          ParseFrameData(cursor + offset, target);
+          ParseFrameData(AdvanceCursor(cursor, offset), target);
         }
         else if (0xff == cmd)//%11111111
         {
           const int_t offset = -256 + Get<uint8_t>(cursor++);
-          ParseFrameData(cursor + offset, target);
+          ParseFrameData(AdvanceCursor(cursor, offset), target);
         }
         else if (cmd >= 0xe0)//%111ttttt
         {
@@ -218,6 +219,21 @@ namespace Chiptune
         return Max;
       }
     private:
+      static std::size_t AdvanceCursor(std::size_t cursor, std::ptrdiff_t offset)
+      {
+        //disable UB
+        if (offset >= 0)
+        {
+          return cursor + offset;
+        }
+        else
+        {
+          const auto back = static_cast<std::size_t>(-offset);
+          Require(cursor >= back);
+          return cursor - back;
+        }
+      }
+      
       std::size_t ParseFrameData(std::size_t cursor, Builder& target) const
       {
         const uint_t data = Get<uint8_t>(cursor++);
@@ -250,33 +266,39 @@ namespace Chiptune
       template<class T>
       const T& Get(std::size_t offset) const
       {
-        const T* const ptr = Delegate.GetField<T>(offset);
+        const T* const ptr = Data.SubView(offset).As<T>();
         Require(ptr != nullptr);
         Min = std::min(Min, offset);
         Max = std::max(Max, offset + sizeof(T));
         return *ptr;
       }
     private:
-      const Binary::TypedContainer Delegate;
+      const Binary::View Data;
       mutable std::size_t Min;
       mutable std::size_t Max;
     };
-
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    
+    String DecodeString(StringView str)
     {
+      return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+    }
+
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
+    {
+      const Binary::View data(rawData);
       if (!FastCheck(data))
       {
         return Formats::Chiptune::Container::Ptr();
       }
       try
       {
-        Binary::InputStream stream(data);
+        Binary::DataInputStream stream(data);
         const RawHeader& header = stream.ReadField<RawHeader>();
         target.SetVersion(FromCharArray(header.Version));
         target.SetIntFreq(header.IntFreq);
-        target.SetTitle(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetAuthor(FromStdString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetComment(FromStdString(stream.ReadCString(MAX_COMMENT_SIZE)));
+        target.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        target.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
 
         const Container container(data);
         for (uint_t chan = 0; chan != 6; ++chan)
@@ -292,11 +314,12 @@ namespace Chiptune
             }
           }
         }
+        Require(container.GetMin() < container.GetMax());//anything parsed
 
         const std::size_t usedSize = std::max(container.GetMax(), stream.GetPosition());
         const std::size_t fixedOffset = container.GetMin();
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, usedSize);
-        return CreateCalculatingCrcContainer(subData, fixedOffset, usedSize - fixedOffset);
+        auto subData = rawData.GetSubcontainer(0, usedSize);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedOffset, usedSize - fixedOffset);
       }
       catch (const std::exception&)
       {

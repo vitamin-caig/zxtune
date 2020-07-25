@@ -1,0 +1,145 @@
+	ift	SAP
+	opt	h-
+	dta	c'SAP',13,10
+	dta	c'AUTHOR "Piotr Fusik (0xF)"',13,10
+	dta	c'NAME "POKEY POTST Test"',13,10
+	dta	c'DATE "14/06/2011"',13,10
+	dta	c'TYPE D',13,10
+	dta	c'INIT 3000',13,10
+	dta	c'TIME 00:10',13,10
+	opt	h+
+	eif
+
+div5	equ	$80
+mod5	equ	$81
+scrptr	equ	$8a	; 2 bytes
+printptr	equ	$8c	; 2 bytes
+
+	org	f:$3000
+main
+:SAP	mwa	#$1000	scrptr
+	lda	<title
+	ldx	>title
+	jsr	print
+
+:!SAP	sei:inc	^4e
+:!SAP	inc	^40
+
+; fast POT scan
+	ldx	#1
+	stx	div5
+	dex
+	stx	0
+	ldy	#0
+test_loop
+	stx	mod5
+	mva	cmps,x	cmpd
+
+	mva	#0	^2f
+:2	sta	^4a
+	mva	#7	^2f
+	sta	^2b
+	ldx	div5
+	dex:rne
+cmpd	cmp	#0
+	lda	^28
+	eor	#$ff
+	cpy	#200
+	adc	#0
+	jne	error
+
+	ldx	mod5
+	inx
+	cpx	#5
+	bcc	same5
+	inc	div5
+	ldx	#0
+same5	iny
+	bne	test_loop
+
+; slow POT scan (114 divisor)
+	mva	#0	^2f
+:2	sta	^4a
+	mva	#3	^2f
+:2	sta	^4a
+	sta	^2b
+	ldx	#227
+delay_loop	stx	^4a
+	dex:bne	delay_loop
+	ldx	#13
+	dex:rne
+	cmp	0,x
+	lda	^28
+	cmp	#$ff
+	bne	error
+
+	mva	#0	^2f
+:2	sta	^4a
+	mva	#3	^2f
+:2	sta	^4a
+	sta	^2b
+	ldx	#227
+delay2_loop	stx	^4a
+	dex:bne	delay2_loop
+	ldx	#14
+	dex:rne
+	lda	^28
+	bne	error
+
+; slow POT scan, 114 divisor stopped
+	mva	#0	^2f
+:2	sta	^4a
+	sta	^2b
+:5	sta	^4a
+	ldx	#3
+	lda	^28
+	stx	^2f
+	beq	error
+
+	lsr:cli	^4e
+	lda	<pass
+	ldx	>pass
+	jsr	print
+	mwa	#$af30	$d200
+	jmp	*
+
+error
+	lsr:cli	^4e
+	lda	<fail
+	ldx	>fail
+	jsr	print
+	mwa	#$cfa0	$d200
+	jmp	*
+
+put_char
+	ift	SAP
+	sta	(scrptr),0
+	inw	scrptr
+	rts
+	els
+	mvx	#11	$342
+	mwx	#0	$348
+	jmp	$e456
+	eif
+
+print
+	sta	printptr
+	stx	printptr+1
+	jmp	print_2
+print_1
+	jsr	put_char
+	inw	printptr
+print_2
+	lda	(printptr),0
+	bne	print_1
+	rts
+
+title	dta	c'POKEY: POTST...',0
+pass	dta	c'Pass',$9b,0
+fail	dta	c'FAIL.',$9b,0
+
+cmps	dta	{cmp #},{cmp 0},{cmp 0,x},{cmp (0),y},{cmp (0,x)}
+
+	ift	!SAP
+	run	main
+	eif

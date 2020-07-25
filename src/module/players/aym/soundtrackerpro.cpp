@@ -9,14 +9,16 @@
 **/
 
 //local includes
-#include "soundtrackerpro.h"
-#include "aym_base_track.h"
-#include "aym_properties_helper.h"
+#include "module/players/aym/soundtrackerpro.h"
+#include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_properties_helper.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -377,9 +379,9 @@ namespace SoundTrackerPro
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
@@ -402,7 +404,8 @@ namespace SoundTrackerPro
       if (const auto container = Decoder->Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else
       {
@@ -415,7 +418,7 @@ namespace SoundTrackerPro
 
   Factory::Ptr CreateFactory(Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder)
   {
-    return MakePtr<Factory>(decoder);
+    return MakePtr<Factory>(std::move(decoder));
   }
 }
 }

@@ -9,22 +9,19 @@
 **/
 
 //local includes
-#include "spc.h"
+#include "formats/chiptune/emulation/spc.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
-#include <binary/container_factories.h>
-#include <binary/data_adapter.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <formats/chiptune.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 //boost includes
@@ -93,10 +90,10 @@ namespace Chiptune
         return ~uint_t(0);
       }
     }
-       
-    typedef Time::Stamp<uint_t, 64000> Ticks;
     
-    const Time::Seconds MAX_DURATION(3600);
+    using Tick = Time::BaseUnit<uint_t, 64000>;
+    
+    const auto MAX_DURATION = Time::Seconds(3600);
     
     template<class T>
     inline bool IsValidTime(T t)
@@ -289,9 +286,9 @@ namespace Chiptune
         }
       }
       
-      Ticks GetTicks() const
+      Time::Milliseconds GetTicks() const
       {
-        return Ticks(GetInteger());
+        return Time::Duration<Tick>(GetInteger()).CastTo<Time::Millisecond>();
       }
       
       String GetString() const
@@ -300,7 +297,8 @@ namespace Chiptune
         {
           const char* const start = safe_ptr_cast<const char*>(this + 1);
           const char* const end = start + fromLE(DataSize);
-          return end[-1] ? String(start, end) : String(start);
+          const StringView val = end[-1] ? StringView(start, end) : StringView(start);
+          return Strings::OptimizeAscii(val);
         }
         else
         {
@@ -325,19 +323,19 @@ namespace Chiptune
     {
     public:
       void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/, uint8_t /*sp*/) override {}
-      void SetTitle(const String& /*title*/) override {}
-      void SetGame(const String& /*game*/) override {}
-      void SetDumper(const String& /*dumper*/) override {}
-      void SetComment(const String& /*comment*/) override {}
-      void SetDumpDate(const String& /*date*/) override {}
+      void SetTitle(String /*title*/) override {}
+      void SetGame(String /*game*/) override {}
+      void SetDumper(String /*dumper*/) override {}
+      void SetComment(String /*comment*/) override {}
+      void SetDumpDate(String /*date*/) override {}
       void SetIntro(Time::Milliseconds /*duration*/) override {}
       void SetLoop(Time::Milliseconds /*duration*/) override {}
       void SetFade(Time::Milliseconds /*duration*/) override {}
-      void SetArtist(const String& /*artist*/) override {}
+      void SetArtist(String /*artist*/) override {}
       
-      void SetRAM(const void* /*data*/, std::size_t /*size*/) override {}
-      void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) override {}
-      void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) override {}
+      void SetRAM(Binary::View /*data*/) override {}
+      void SetDSPRegisters(Binary::View /*data*/) override {}
+      void SetExtraRAM(Binary::View /*data*/) override {}
     };
     
     //used nes_spc library doesn't support another versions
@@ -427,7 +425,7 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& data)
+      explicit Format(Binary::View data)
         : Stream(data)
       {
       }
@@ -438,12 +436,12 @@ namespace Chiptune
         Require(hdr.Signature == SIGNATURE);
         ParseID666(hdr.ID666, target);
         target.SetRegisters(fromLE(hdr.Regs.PC), hdr.Regs.A, hdr.Regs.X, hdr.Regs.Y, hdr.Regs.PSW, hdr.Regs.SP);
-        target.SetRAM(hdr.RAM, sizeof(hdr.RAM));
-        target.SetDSPRegisters(hdr.DSPRegisters, sizeof(hdr.DSPRegisters));
+        target.SetRAM(hdr.RAM);
+        target.SetDSPRegisters(hdr.DSPRegisters);
         if (Stream.GetRestSize() >= sizeof(ExtraRAM))
         {
           const ExtraRAM& extra = Stream.ReadField<ExtraRAM>();
-          target.SetExtraRAM(extra.Data, sizeof(extra.Data));
+          target.SetExtraRAM(extra.Data);
         }
       }
       
@@ -457,7 +455,7 @@ namespace Chiptune
           if (hdr.ID == XID6 && Stream.GetRestSize() >= size)
           {
             const auto chunks = Stream.ReadData(size);
-            ParseSubchunks(*chunks, target);
+            ParseSubchunks(chunks, target);
           }
           else
           {
@@ -468,15 +466,15 @@ namespace Chiptune
         }
       }
       
-      Binary::Container::Ptr GetUsedData() const
+      std::size_t GetUsedData() const
       {
-        return Stream.GetReadData();
+        return Stream.GetPosition();
       }
     private:
       static void ParseID666(const RawHeader::ID666Tag& tag, Builder& target)
       {
-        const Tag text(tag.TextTag);
-        const Tag bin(tag.BinTag);
+        Tag text(tag.TextTag);
+        Tag bin(tag.BinTag);
         if (text.GetScore() >= bin.GetScore())
         {
           Dbg("Parse text ID666");
@@ -489,37 +487,35 @@ namespace Chiptune
         }
       }
       
-      static void ParseID666(const Tag& tag, Builder& target)
+      static void ParseID666(Tag& tag, Builder& target)
       {
-        target.SetTitle(tag.Song);
-        target.SetGame(tag.Game);
-        target.SetDumper(tag.Dumper);
-        target.SetComment(tag.Comments);
-        target.SetDumpDate(tag.DumpDate);
+        target.SetTitle(std::move(tag.Song));
+        target.SetGame(std::move(tag.Game));
+        target.SetDumper(std::move(tag.Dumper));
+        target.SetComment(std::move(tag.Comments));
+        target.SetDumpDate(std::move(tag.DumpDate));
         target.SetIntro(tag.FadeTime);
         target.SetFade(tag.FadeDuration);
-        target.SetArtist(tag.Artist);
+        target.SetArtist(std::move(tag.Artist));
       }
       
-      static void ParseSubchunks(const Binary::Data& data, Builder& target)
+      static void ParseSubchunks(Binary::View data, Builder& target)
       {
         try
         {
-          Binary::TypedContainer typed(data);
-          for (std::size_t pos = 0; pos < typed.GetSize(); )
+          for (Binary::DataInputStream stream(data); stream.GetRestSize(); )
           {
-            const SubChunkHeader* const hdr = typed.GetField<SubChunkHeader>(pos);
+            const auto* hdr = stream.PeekField<SubChunkHeader>();
             Require(hdr != nullptr);
-            if (hdr->ID == 0 && 0 != (pos % 4))
+            if (hdr->ID == 0 && 0 != (stream.GetPosition() % 4))
             {
-              //in despite of official format description, subchunks can be not aligned by 4 byte boundary
-              ++pos;
+              // Despite official format description, subchunks can be not aligned by 4 byte boundary
+              stream.Skip(1);
             }
             else
             {
               Dbg("ParseSubchunk id=%u, type=%u, size=%u", uint_t(hdr->ID), uint_t(hdr->Type), fromLE(hdr->DataSize));
-              pos += sizeof(*hdr) + hdr->GetDataSize();
-              Require(pos <= typed.GetSize());
+              stream.Skip(sizeof(*hdr) + hdr->GetDataSize());
               ParseSubchunk(*hdr, target);
             }
           }
@@ -566,28 +562,29 @@ namespace Chiptune
           }
       }
     private:
-      Binary::InputStream Stream;
+      Binary::DataInputStream Stream;
     };
     
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
+      const Binary::View data(rawData);
       if (data.Size() < sizeof(RawHeader))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
       try
       {
         Format format(data);
         format.ParseMainPart(target);
         format.ParseExtendedPart(target);
-        const Binary::Container::Ptr subData = format.GetUsedData();
+        auto subData = rawData.GetSubcontainer(0, format.GetUsedData());
         const std::size_t fixedStart = offsetof(RawHeader, RAM);
         const std::size_t fixedEnd = sizeof(RawHeader);
-        return CreateCalculatingCrcContainer(subData, fixedStart, fixedEnd - fixedStart);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedStart, fixedEnd - fixedStart);
       }
       catch (const std::exception&)
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
     

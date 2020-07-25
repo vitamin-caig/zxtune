@@ -9,27 +9,32 @@
 **/
 
 //local includes
-#include "callback.h"
+#include "core/additional_files_resolve.h"
+#include "core/plugin_attrs.h"
 #include "core/plugins/archive_plugins_enumerator.h"
 #include "core/plugins/player_plugins_enumerator.h"
+#include "core/src/callback.h"
+#include "core/src/l10n.h"
 //common includes
+#include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <module/players/aym/aym_base.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/container.h>
+//std includes
+#include <map>
 //text includes
+#include <src/core/text/core.h>
 #include <src/core/text/plugins.h>
 
 #define FILE_TAG 006E56AA
 
 namespace Module
 {
-  const Debug::Stream Dbg("Core::Detection");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+  const Debug::Stream DetectDbg("Core::Detection");
 
   const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
 
@@ -73,12 +78,118 @@ namespace Module
       const Analysis::Result::Ptr result = plugin->Detect(params, location, callback);
       if (std::size_t usedSize = result->GetMatchedDataSize())
       {
-        Dbg("Detected %1% in %2% bytes at %3%.", plugin->GetDescription()->Id(), usedSize, location->GetPath()->AsString());
+        DetectDbg("Detected %1% in %2% bytes at %3%.", plugin->GetDescription()->Id(), usedSize, location->GetPath()->AsString());
         return usedSize;
       }
     }
     return 0;
   }
+  
+  class ResolveAdditionalFilesAdapter : public DetectCallback
+  {
+  public:
+    ResolveAdditionalFilesAdapter(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& delegate)
+      : Source(std::unique_ptr<AdditionalFilesSource>(new FullpathFilesSource(params, std::move(data))))
+      , Delegate(delegate)
+    {
+    }
+
+    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const override
+    {
+      if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
+      {
+        const auto path = location->GetPath();
+        if (const auto dir = path->GetParent())
+        {
+          DetectDbg("Archived multifile %1% at '%2%'", decoder->Id(), path->AsString());
+          try
+          {
+            const ArchivedFilesSource source(dir, Source);
+            ResolveAdditionalFiles(source, *files);
+          }
+          catch (const Error& e)
+          {
+            DetectDbg(e.ToString().c_str());
+            return;
+          }
+        }
+      }
+      Delegate.ProcessModule(std::move(location), std::move(decoder), std::move(holder));
+    }
+
+    Log::ProgressCallback* GetProgress() const override
+    {
+      return Delegate.GetProgress();
+    }
+  private:
+    class ArchivedFilesSource : public AdditionalFilesSource
+    {
+    public:
+      ArchivedFilesSource(Analysis::Path::Ptr dir, const AdditionalFilesSource& delegate)
+        : Dir(std::move(dir))
+        , Delegate(delegate)
+      {
+      }
+      
+      Binary::Container::Ptr Get(const String& name) const override
+      {
+        const auto subpath = Dir->Append(name)->AsString();
+        DetectDbg("Resolve '%1%' as '%2%'", name, subpath);
+        return Delegate.Get(subpath);
+      }
+    private:
+      const Analysis::Path::Ptr Dir;
+      const AdditionalFilesSource& Delegate;
+    };
+    
+    class CachedFilesSource : public AdditionalFilesSource
+    {
+    public:
+      CachedFilesSource(std::unique_ptr<const AdditionalFilesSource> delegate)
+        : Delegate(std::move(delegate))
+      {
+      }
+      
+      Binary::Container::Ptr Get(const String& name) const override
+      {
+        auto& cached = Cache[name];
+        if (!cached)
+        {
+          cached = Delegate->Get(name);
+        }
+        else
+        {
+          DetectDbg("Use cached");
+        }
+        return cached;
+      }
+    private:
+      const std::unique_ptr<const AdditionalFilesSource> Delegate;
+      mutable std::map<String, Binary::Container::Ptr> Cache;
+    };
+    
+    class FullpathFilesSource : public AdditionalFilesSource
+    {
+    public:
+      FullpathFilesSource(const Parameters::Accessor& params, Binary::Container::Ptr data)
+        : Params(params)
+        , Data(std::move(data))
+      {
+      }
+      
+      Binary::Container::Ptr Get(const String& name) const override
+      {
+        const auto location = ZXTune::OpenLocation(Params, Data, name);
+        return location->GetData();
+      }
+    private:
+      const Parameters::Accessor& Params;
+      const Binary::Container::Ptr Data;
+    };
+  private:
+    const CachedFilesSource Source;
+    const DetectCallback& Delegate;
+  };
 
   //TODO: remove
   class MixedPropertiesHolder : public Holder
@@ -147,20 +258,27 @@ namespace Module
     const Parameters::Accessor::Ptr Properties;
   };
 
-  void Open(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
+  std::size_t OpenInternal(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
   {
     using namespace ZXTune;
     const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
-    if (!DetectByPlugins<PlayerPlugin>(params, usedPlayerPlugins->Enumerate(), location, callback))
+    return DetectByPlugins<PlayerPlugin>(params, usedPlayerPlugins->Enumerate(), location, callback);
+  }
+
+  void Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath, const DetectCallback& callback)
+  {
+    const ResolveAdditionalFilesAdapter adapter(params, data, callback);
+    const auto location = ZXTune::OpenLocation(params, data, subpath);
+    if (!OpenInternal(params, location, adapter))
     {
       throw Error(THIS_LINE, translate("Failed to find module at specified location."));
     }
   }
-
-  Holder::Ptr Open(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location)
+  
+  Holder::Ptr Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath)
   {
     const OpenModuleCallback callback;
-    Open(params, location, callback);
+    Open(params, data, subpath, callback);
     return callback.GetResult();
   }
 
@@ -186,10 +304,15 @@ namespace Module
     {
       return usedSize;
     }
-    const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
-    return DetectByPlugins<PlayerPlugin>(params, usedPlayerPlugins->Enumerate(), location, callback);
+    return OpenInternal(params, location, callback);
   }
 
+  void Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& callback)
+  {
+    const ResolveAdditionalFilesAdapter adapter(params, data, callback);
+    Detect(params, ZXTune::CreateLocation(data), adapter);
+  }
+  
   Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
   {
     if (const AYM::Holder::Ptr aym = std::dynamic_pointer_cast<const AYM::Holder>(delegate))
@@ -199,3 +322,5 @@ namespace Module
     return MakePtr<MixedPropertiesHolder>(delegate, props);
   }
 }
+
+#undef FILE_TAG

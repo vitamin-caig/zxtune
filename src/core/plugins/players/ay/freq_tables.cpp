@@ -9,13 +9,11 @@
 **/
 
 //local includes
-#include "freq_tables_internal.h"
+#include "core/plugins/players/ay/freq_tables_internal.h"
 //common includes
 #include <error_tools.h>
 //library includes
 #include <l10n/api.h>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <core/text/core.h>
 
@@ -23,7 +21,7 @@
 
 namespace Module
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core");
+  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core_players");
 
   // prefix for reverted frequency tables
   const Char REVERT_TABLE_MARK = '~';
@@ -244,17 +242,31 @@ namespace Module
         0x07e, 0x077, 0x070, 0x06a, 0x064, 0x05e, 0x059, 0x054, 0x04f, 0x04b, 0x047, 0x043, 0x03f, 0x03b, 0x038,
         0x035, 0x032, 0x02f, 0x02d, 0x02a, 0x028, 0x025, 0x023, 0x021
       } }
+    },
+    //FastTracker
+    {
+      TABLE_FASTTRACKER,
+      { {
+        0xD10, 0xC58, 0xBA0, 0xB00, 0xA60, 0x9C8, 0x940, 0x8B8, 0x840, 0x7C0, 0x750, 0x6F0,
+        0x688, 0x62C, 0x5D0, 0x580, 0x530, 0x4E4, 0x4A0, 0x45C, 0x420, 0x3E0, 0x3A8, 0x378,
+        0x344, 0x316, 0x2E8, 0x2C0, 0x298, 0x272, 0x250, 0x22E, 0x210, 0x1F0, 0x1D4, 0x1BC,
+        0x1A2, 0x18B, 0x174, 0x160, 0x14C, 0x139, 0x128, 0x117, 0x108, 0xF8,  0xEA,  0xDE,
+        0xD1,  0xC5,  0xBA,  0xB0,  0xA6,  0x9C,  0x94,  0x8B,  0x84,  0x7C,  0x75,  0x6F,
+        0x68,  0x62,  0x5D,  0x58,  0x53,  0x4E,  0x4A,  0x45,  0x42,  0x3E,  0x3A,  0x37,
+        0x34,  0x31,  0x2E,  0x2C,  0x29,  0x27,  0x25,  0x22,  0x21,  0x1F,  0x1D,  0x1B,
+        0x1A,  0x18,  0x17,  0x16,  0x14,  0x13,  0x12,  0x11,  0x10,  0xF,   0xE,   0xD
+      } }
     }
   };
-
+  
   void GetFreqTable(const String& id, FrequencyTable& result)
   {
     //check if required to revert table
     const bool doRevert = !id.empty() && *id.begin() == REVERT_TABLE_MARK;
     const String idNormal = doRevert ? id.substr(1) : id;
     //find if table is supported
-    const FreqTableEntry* const entry = std::find_if(TABLES, std::end(TABLES),
-      boost::bind(&FreqTableEntry::Name, _1) == idNormal);
+    const auto* entry = std::find_if(TABLES, std::end(TABLES),
+      [&idNormal](const FreqTableEntry& entry) {return entry.Name == idNormal;});
     if (entry == std::end(TABLES))
     {
       throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table '%1%'."), id);
@@ -270,3 +282,5 @@ namespace Module
     }
   }
 }
+
+#undef FILE_TAG

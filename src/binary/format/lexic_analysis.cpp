@@ -9,13 +9,12 @@
 **/
 
 //local includes
-#include "lexic_analysis.h"
+#include "binary/format/lexic_analysis.h"
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
 //std includes
 #include <algorithm>
-#include <functional>
 #include <list>
 #include <vector>
 
@@ -93,7 +92,8 @@ namespace LexicalAnalysis
     {
       TokensSet::Ptr result;
       std::vector<const Tokenizer*> candidates(Sources.size());
-      std::transform(Sources.begin(), Sources.end(), candidates.begin(), std::mem_fun_ref(&Tokenizer::Ptr::get));
+      std::transform(Sources.begin(), Sources.end(), candidates.begin(),
+          [](const Tokenizer::Ptr& obj) {return obj.get();});
       for (std::string::const_iterator lexemeEnd = lexemeStart + 1; !candidates.empty(); ++lexemeEnd)
       {
         const std::string lexeme(lexemeStart, lexemeEnd);

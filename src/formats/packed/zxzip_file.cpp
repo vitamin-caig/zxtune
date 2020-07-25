@@ -11,15 +11,15 @@
 **/
 
 //local includes
-#include "container.h"
-#include "pack_utils.h"
+#include "formats/packed/container.h"
+#include "formats/packed/pack_utils.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
@@ -36,7 +36,7 @@ namespace Packed
   namespace ZXZip
   {
     const std::size_t MIN_SIZE = 0x16 + 32;
-    const std::size_t MAX_DECODED_SIZE = 0xff00;
+    //const std::size_t MAX_DECODED_SIZE = 0xff00;
     //checkers
     const std::string HEADER_PATTERN =
       //Filename
@@ -173,7 +173,7 @@ namespace Packed
         const uint_t packedSize = fromLE(Header.PackedSize);
         const uint8_t* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
         std::unique_ptr<Dump> res(new Dump(packedSize));
-        std::memcpy(&(*res)[0], sourceData, packedSize);
+        std::memcpy(res->data(), sourceData, packedSize);
         return res;
       }
     private:
@@ -625,7 +625,7 @@ namespace Packed
           {
             break;
           }
-          const uint32_t realCRC = Crc32(&result->front(), result->size());
+          const uint32_t realCRC = Binary::Crc32(*result);
           //ZXZip CRC32 calculation does not invert result
           if (realCRC != ~fromLE(Header.SourceCRC))
           {

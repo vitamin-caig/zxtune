@@ -15,6 +15,8 @@
 #include "ui/utils.h"
 //common includes
 #include <contract.h>
+//library includes
+#include <module/track_state.h>
 //std includes
 #include <utility>
 //qt includes
@@ -43,13 +45,13 @@ namespace
 
     void InitState(Sound::Backend::Ptr player) override
     {
-      TrackState = player->GetTrackState();
+      TrackState = std::dynamic_pointer_cast<const Module::TrackState>(player->GetState());
       CloseState();
     }
 
     void UpdateState() override
     {
-      if (isVisible())
+      if (isVisible() && TrackState)
       {
         textPosition->setText(QString::number(TrackState->Position()));
         textPattern->setText(QString::number(TrackState->Pattern()));

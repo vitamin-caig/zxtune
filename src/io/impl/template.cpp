@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "boost_filesystem_path.h"
+#include "io/impl/boost_filesystem_path.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -42,7 +42,7 @@ namespace IO
     {
       static const Char DELIMITER[] = {'_', 0};
 
-      const boost::filesystem::path path(val);
+      const boost::filesystem::path path = Details::FromString(val);
       const boost::filesystem::path root(path.root_directory());
       const boost::filesystem::path thisDir(".");
       const boost::filesystem::path parentDir("..");

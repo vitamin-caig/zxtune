@@ -1,7 +1,7 @@
 binary_name := analysis_test_path
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
-libraries.common = analysis
+libraries.common = analysis debug
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

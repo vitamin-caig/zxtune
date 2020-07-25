@@ -1,18 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- ui -->
-  <string name="pref_ui_title">Benutzeroberfläche</string>
 
-  <!-- headset -->
-  <string name="pref_control_headset_title">Headset-Steuerung</string>
-  <string name="pref_control_headset_summary">Nicht für alle Geräte</string>
-  <!-- control.headset.mediabuttons -->
-  <string name="pref_control_headset_mediabuttons_title">Verwenden Sie Media-Tasten</string>
-  <!-- control.headset.unplugging -->
-  <string name="pref_control_headset_unplugging_title">Pausieren beim Trennen</string>
-
-  <!-- notification -->
-  <string name="pref_control_notification_title">Benachrichtigungen</string>
-  <!-- control.notification.buttons -->
-  <string name="pref_control_notification_buttons_title">Schaltflächen im Benachrichtigungsbereich</string>
 </resources>

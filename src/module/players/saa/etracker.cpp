@@ -9,14 +9,16 @@
 **/
 
 //local includes
-#include "etracker.h"
-#include "saa_base.h"
+#include "module/players/saa/etracker.h"
+#include "module/players/saa/saa_base.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <formats/chiptune/saa/etracker.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -467,9 +469,9 @@ namespace ETracker
 
     SAA::DataIterator::Ptr CreateDataIterator() const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const SAA::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return SAA::CreateDataIterator(iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return SAA::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
@@ -487,8 +489,9 @@ namespace ETracker
       if (const auto container = Formats::Chiptune::ETracker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        const SAA::Chiptune::Ptr chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
-        return SAA::CreateHolder(chiptune);
+        props.SetPlatform(Platforms::SAM_COUPE);
+        auto chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
+        return SAA::CreateHolder(std::move(chiptune));
       }
       return Holder::Ptr();
     }

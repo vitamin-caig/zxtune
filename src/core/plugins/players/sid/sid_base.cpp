@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "roms.h"
-#include "songlengths.h"
+#include "core/plugins/players/sid/roms.h"
+#include "core/plugins/players/sid/songlengths.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 //common includes
@@ -32,6 +32,8 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
 //3rdparty includes
 #include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
@@ -40,6 +42,8 @@
 #include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
 //boost includes
 #include <boost/algorithm/string/predicate.hpp>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -48,48 +52,16 @@ namespace Sid
   const Debug::Stream Dbg("Core::SIDSupp");
 
   typedef std::shared_ptr<SidTune> TunePtr;
-  typedef std::shared_ptr<sidplayfp> EnginePtr;
 
   void CheckSidplayError(bool ok)
   {
     Require(ok);//TODO
   }
 
-  class Analyzer : public Module::Analyzer
+  inline const uint8_t* GetData(const Parameters::DataType& dump, const uint8_t* defVal)
   {
-  public:
-    typedef std::shared_ptr<Analyzer> Ptr;
-
-    explicit Analyzer(EnginePtr engine)
-      : Engine(std::move(engine))
-    {
-    }
-
-    void SetClockRate(uint_t rate)
-    {
-      //Fout = (Fn * Fclk/16777216) Hz
-      //http://www.waitingforfriday.com/index.php/Commodore_SID_6581_Datasheet
-      Analysis.SetClockAndDivisor(rate, 16777216);
-    }
-
-    std::vector<ChannelState> GetState() const override
-    {
-      unsigned freqs[6], levels[6];
-      const unsigned count = Engine->getState(freqs, levels);
-      std::vector<ChannelState> result(count);
-      for (uint_t chan = 0; chan != count; ++chan)
-      {
-        ChannelState& res = result[chan];
-        res.Band = Analysis.GetBandByScaledFrequency(freqs[chan]);
-        res.Level = levels[chan] * 100 / 15;
-      }
-      //required for compiler...
-      return std::move(result);
-    }
-  private:
-    const EnginePtr Engine;
-    Devices::Details::AnalysisMap Analysis;
-  };
+    return dump.empty() ? defVal : dump.data();
+  }
 
   /*
    * Interpolation modes
@@ -134,40 +106,125 @@ namespace Sid
     const Parameters::Accessor::Ptr Params;
   };
 
+  class SidEngine : public Module::Analyzer
+  {
+  public:
+    using Ptr = std::shared_ptr<SidEngine>;
+
+    SidEngine()
+      : Builder("resid")
+      , Config(Player.config())
+      , UseFilter()
+    {
+    }
+
+    void Init(const Parameters::Accessor& params)
+    {
+      Parameters::DataType kernal, basic, chargen;
+      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::KERNAL, kernal);
+      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::BASIC, basic);
+      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::CHARGEN, chargen);
+      Player.setRoms(GetData(kernal, GetKernalROM()), GetData(basic, GetBasicROM()), GetData(chargen, GetChargenROM()));
+      const uint_t chipsCount = Player.info().maxsids();
+      Builder.create(chipsCount);
+      Config.frequency = 0;
+    }
+
+    void Load(SidTune& tune)
+    {
+      CheckSidplayError(Player.load(&tune));
+    }
+
+    void ApplyParameters(const Sound::RenderParameters& soundParams, const SidParameters& sidParams)
+    {
+      const auto newFreq = soundParams.SoundFreq();
+      const auto newFastSampling = sidParams.GetFastSampling();
+      const auto newSamplingMethod = sidParams.GetSamplingMethod();
+      const auto newFilter = sidParams.GetUseFilter();
+      if (Config.frequency != newFreq
+          || Config.fastSampling != newFastSampling
+          || Config.samplingMethod != newSamplingMethod
+          || UseFilter != newFilter)
+      {
+        Config.frequency = newFreq;
+        Config.playback = Sound::Sample::CHANNELS == 1 ? SidConfig::MONO : SidConfig::STEREO;
+
+        Config.fastSampling = newFastSampling;
+        Config.samplingMethod = newSamplingMethod;
+        Builder.filter(UseFilter = newFilter);
+
+        Config.sidEmulation = &Builder;
+        CheckSidplayError(Player.config(Config));
+        SetClockRate(Player.getCPUFreq());
+      }
+    }
+
+    void Stop()
+    {
+      Player.stop();
+    }
+
+    void Render(short* target, uint_t samples)
+    {
+      Player.play(target, samples);
+    }
+
+    SpectrumState GetState() const override
+    {
+      unsigned freqs[6], levels[6];
+      const auto count = Player.getState(freqs, levels);
+      SpectrumState result;
+      for (uint_t chan = 0; chan != count; ++chan)
+      {
+        const auto band = Analysis.GetBandByScaledFrequency(freqs[chan]);
+        result.Set(band, LevelType(levels[chan], 15));
+      }
+      return result;
+    }
+  private:
+    void SetClockRate(uint_t rate)
+    {
+      //Fout = (Fn * Fclk/16777216) Hz
+      //http://www.waitingforfriday.com/index.php/Commodore_SID_6581_Datasheet
+      Analysis.SetClockAndDivisor(rate, 16777216);
+    }
+
+  private:
+    sidplayfp Player;
+    ReSIDBuilder Builder;
+    SidConfig Config;
+    
+    //cache filter flag
+    bool UseFilter;
+    Devices::Details::AnalysisMap Analysis;
+  };
+
   class Renderer : public Module::Renderer
   {
   public:
     Renderer(TunePtr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
-      , Engine(std::make_shared<sidplayfp>())
-      , Builder("resid")
+      , Engine(MakePtr<SidEngine>())
       , Iterator(std::move(iterator))
-      , State(Iterator->GetStateObserver())
-      , Analysis(MakePtr<Analyzer>(Engine))
       , Target(std::move(target))
       , Params(params)
       , SoundParams(Sound::RenderParameters::Create(params))
-      , Config(Engine->config())
-      , UseFilter()
       , Looped()
       , SamplesPerFrame()
     {
-      LoadRoms(*params);
-      const uint_t chipsCount = Engine->info().maxsids();
-      Builder.create(chipsCount);
-      Config.frequency = 0;
+      Engine->Init(*params);
       ApplyParameters();
-      CheckSidplayError(Engine->load(Tune.get()));
+      Engine->Load(*Tune);
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
-      return State;
+      return Iterator->GetStateObserver();
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
     {
-      return Analysis;
+      return Engine;
     }
 
     bool RenderFrame() override
@@ -180,7 +237,7 @@ namespace Sid
 
         Sound::ChunkBuilder builder;
         builder.Reserve(SamplesPerFrame);
-        Engine->play(safe_ptr_cast<short*>(builder.Allocate(SamplesPerFrame)), SamplesPerFrame * Sound::Sample::CHANNELS);
+        Engine->Render(safe_ptr_cast<short*>(builder.Allocate(SamplesPerFrame)), SamplesPerFrame * Sound::Sample::CHANNELS);
         Target->ApplyData(builder.CaptureResult());
         Iterator->NextFrame(Looped);
         return Iterator->IsValid();
@@ -194,8 +251,9 @@ namespace Sid
     void Reset() override
     {
       SoundParams.Reset();
-      Engine->stop();
+      Engine->Stop();
       Iterator->Reset();
+      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -204,44 +262,12 @@ namespace Sid
       Module::SeekIterator(*Iterator, frame);
     }
   private:
-    void LoadRoms(const Parameters::Accessor& params)
-    {
-      Parameters::DataType kernal, basic, chargen;
-      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::KERNAL, kernal);
-      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::BASIC, basic);
-      params.FindValue(Parameters::ZXTune::Core::Plugins::SID::CHARGEN, chargen);
-      Engine->setRoms(GetData(kernal, GetKernalROM()), GetData(basic, GetBasicROM()), GetData(chargen, GetChargenROM()));
-    }
-
-    static const uint8_t* GetData(const Parameters::DataType& dump, const uint8_t* defVal)
-    {
-      return dump.empty() ? defVal : &dump.front();
-    }
 
     void ApplyParameters()
     {
       if (SoundParams.IsChanged())
       {
-        const uint_t newFreq = SoundParams->SoundFreq();
-        const bool newFastSampling = Params.GetFastSampling();
-        const SidConfig::sampling_method_t newSamplingMethod = Params.GetSamplingMethod();
-        const bool newFilter = Params.GetUseFilter();
-        if (Config.frequency != newFreq
-            || Config.fastSampling != newFastSampling
-            || Config.samplingMethod != newSamplingMethod
-            || UseFilter != newFilter)
-        {
-          Config.frequency = newFreq;
-          Config.playback = Sound::Sample::CHANNELS == 1 ? SidConfig::MONO : SidConfig::STEREO;
-
-          Config.fastSampling = newFastSampling;
-          Config.samplingMethod = newSamplingMethod;
-          Builder.filter(UseFilter = newFilter);
-
-          Config.sidEmulation = &Builder;
-          CheckSidplayError(Engine->config(Config));
-          Analysis->SetClockRate(Engine->getCPUFreq());
-        }
+        Engine->ApplyParameters(*SoundParams, Params);
         Looped = SoundParams->Looped();
         SamplesPerFrame = SoundParams->SamplesPerFrame();
       }
@@ -249,36 +275,25 @@ namespace Sid
 
     void SeekEngine(uint_t frame)
     {
-      uint_t current = State->Frame();
+      uint_t current = GetState()->Frame();
       if (frame < current)
       {
-        Engine->stop();
+        Engine->Stop();
         current = 0;
       }
       if (const uint_t delta = frame - current)
       {
-        AdvanceEngine(delta);
+        Engine->Render(nullptr, delta * SamplesPerFrame * Sound::Sample::CHANNELS);
       }
-    }
-
-    void AdvanceEngine(uint_t framesToPlay)
-    {
-      Engine->play(nullptr, framesToPlay * SamplesPerFrame * Sound::Sample::CHANNELS);
     }
   private:
     const TunePtr Tune;
-    const EnginePtr Engine;
-    ReSIDBuilder Builder;
+    const SidEngine::Ptr Engine;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
-    const Analyzer::Ptr Analysis;
     const Sound::Receiver::Ptr Target;
     const SidParameters Params;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
-    SidConfig Config;
-    //cache filter flag
-    bool UseFilter;
-    bool Looped;
+    Sound::LoopParameters Looped;
     std::size_t SamplesPerFrame;
   };
 
@@ -292,21 +307,6 @@ namespace Sid
       , SongIdx(songIdx)
       , Frames()
     {
-    }
-
-    uint_t PositionsCount() const override
-    {
-      return 1;
-    }
-
-    uint_t LoopPosition() const override
-    {
-      return 0;
-    }
-
-    uint_t PatternsCount() const override
-    {
-      return 0;
     }
 
     uint_t FramesCount() const override
@@ -324,11 +324,6 @@ namespace Sid
     }
 
     uint_t ChannelsCount() const override
-    {
-      return 1;
-    }
-
-    uint_t Tempo() const override
     {
       return 1;
     }
@@ -385,6 +380,11 @@ namespace Sid
     Require(params.FindValue(Module::ATTR_CONTAINER, container));
     return container == "SID" || boost::algorithm::ends_with(container, ">SID");
   }
+  
+  String DecodeString(StringView str)
+  {
+    return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+  }
 
   class Factory : public Module::Factory
   {
@@ -410,11 +410,11 @@ namespace Sid
         default:
         case 3:
           //copyright/publisher really
-          props.SetComment(FromStdString(tuneInfo.infoString(2)));
+          props.SetComment(DecodeString(tuneInfo.infoString(2)));
         case 2:
-          props.SetAuthor(FromStdString(tuneInfo.infoString(1)));
+          props.SetAuthor(DecodeString(tuneInfo.infoString(1)));
         case 1:
-          props.SetTitle(FromStdString(tuneInfo.infoString(0)));
+          props.SetTitle(DecodeString(tuneInfo.infoString(0)));
         case 0:
           break;
         }
@@ -424,6 +424,8 @@ namespace Sid
 
         const uint_t fps = tuneInfo.songSpeed() == SidTuneInfo::SPEED_CIA_1A || tuneInfo.clockSpeed() == SidTuneInfo::CLOCK_NTSC ? 60 : 50;
         props.SetFramesFrequency(fps);
+        
+        props.SetPlatform(Platforms::COMMODORE_64);
 
         const Information::Ptr info = MakePtr<Information>(GetDuration(params), tune, fps, songIdx);
         return MakePtr<Holder>(tune, info, properties);

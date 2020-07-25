@@ -286,7 +286,6 @@ private:
 
 protected:
     MOS656X(EventContext *context);
-    ~MOS656X() {}
 
     // Environment Interface
     virtual void interrupt (bool state) = 0;

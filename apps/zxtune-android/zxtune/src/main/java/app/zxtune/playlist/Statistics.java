@@ -18,9 +18,9 @@ import app.zxtune.TimeStamp;
 
 public class Statistics {
 
-  final private int items;
-  final private int locations;
-  final private TimeStamp duration;
+  private final int items;
+  private final int locations;
+  private final TimeStamp duration;
 
   public Statistics(Cursor cursor) {
     items = cursor.getInt(Database.Tables.Statistics.Fields.count.ordinal());
@@ -28,15 +28,15 @@ public class Statistics {
     duration = TimeStamp.createFrom(cursor.getInt(Database.Tables.Statistics.Fields.duration.ordinal()), TimeUnit.MILLISECONDS);
   }
   
-  final public int getTotal() {
+  public final int getTotal() {
     return items;
   }
   
-  final public int getLocations() {
+  public final int getLocations() {
     return locations;
   }
 
-  final public TimeStamp getDuration() {
+  public final TimeStamp getDuration() {
     return duration;
   }
 }

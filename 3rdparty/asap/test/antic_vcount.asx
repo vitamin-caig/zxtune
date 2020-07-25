@@ -1,0 +1,95 @@
+	ift	SAP
+	opt	h-
+	dta	c'SAP',13,10
+	dta	c'AUTHOR "Piotr Fusik (0xF)"',13,10
+	dta	c'NAME "ANTIC VCOUNT Test"',13,10
+	dta	c'DATE "10/12/2010"',13,10
+	dta	c'TYPE D',13,10
+	dta	c'INIT 3000',13,10
+:NTSC	dta	c'NTSC',13,10
+	dta	c'TIME 00:10',13,10
+	opt	h+
+	eif
+
+scrptr	equ	$8a	; 2 bytes
+printptr	equ	$8c	; 2 bytes
+
+	org	f:$3000
+main
+:SAP	mwa	#$1000	scrptr
+	lda	<title
+	ldx	>title
+	jsr	print
+
+	lda:rne ^4b
+	ldy	#155
+	lda	^14
+	lsr	@
+	seq:ldy	#130
+	cpy:rne	^4b
+	sta:sta	^4a
+	cmp	0
+	cpy	^4b
+	bne	error
+	cpy:rne	^4b
+	sta:sta	^4a
+	nop
+	iny
+	cpy	^4b
+	bne	error
+	dey
+	cpy:rne	^4b
+	sta:sta	^4a
+	nop
+	cmp	0
+	lda	^4b
+	bne	error
+
+	lda	<pass
+	ldx	>pass
+	jsr	print
+	mwa	#$af30	$d200
+	jmp	*
+
+error
+	lda	<fail
+	ldx	>fail
+	jsr	print
+	mwa	#$cfa0	$d200
+	jmp	*
+
+put_char
+	ift	SAP
+	sta	(scrptr),0
+	inw	scrptr
+	rts
+	els
+	mvx	#11	$342
+	mwx	#0	$348
+	jmp	$e456
+	eif
+
+print
+	sta	printptr
+	stx	printptr+1
+	jmp	print_2
+print_1
+	jsr	put_char
+	inw	printptr
+print_2
+	lda	(printptr),0
+	bne	print_1
+	rts
+
+title	dta	c'ANTIC: VCOUNT'
+	ift	SAP
+:NTSC	dta	c' NTSC'
+:!NTSC	dta	c' PAL'
+	eif
+	dta	c'...',0
+pass	dta	c'Pass',$9b,0
+fail	dta	c'FAIL.',$9b,0
+
+	ift	!SAP
+	run	main
+	eif

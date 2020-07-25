@@ -1,14 +1,8 @@
-ifndef distro
-boost.version = $($(platform).$(arch).boost.version)
-else
-$(platform).$(arch).boost.libs.model =
+boost.version.merged = $(firstword $($(platform).$(arch).boost.version) $($(platform).boost.version) $(boost.version))
+
+ifneq ($(boost.version.merged),)
+includes.dirs += $(prebuilt.dir)/boost-$(boost.version.merged)/include
+libraries.dirs.$(platform) += $(prebuilt.dir)/boost-$(boost.version.merged)-$(platform)-$(arch)/lib
 endif
 
-ifneq ($(boost.version),)
-boost.includes = $(prebuilt.dir)/boost-$(boost.version)/include
-boost.libs = $(prebuilt.dir)/boost-$(boost.version)-$(platform)-$(arch)/lib
-endif
-include_dirs += $(boost.includes)
-$(platform)_libraries_dirs += $(boost.libs)
-
-defines += HAVE_BOOST
+libraries += $(foreach lib,$(libraries.boost),boost_$(lib))

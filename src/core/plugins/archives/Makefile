@@ -1,5 +1,9 @@
 library_name := core_plugins_archives
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := . full
 
-include $(path_step)/makefile.mak
+po_files := core_archives
+
+jumbo.name := $(library_name)
+
+include $(dirs.root)/makefile.mak

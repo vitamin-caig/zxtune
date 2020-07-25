@@ -10,6 +10,8 @@
 #include "../../Common/Defs.h"
 #include "../../Common/IntToString.h"
 
+#include "../../Windows/PropVariant.h"
+
 #include "../ICoder.h"
 
 #include "../Common/CWrappers.h"
@@ -21,7 +23,9 @@
 
 #include "IArchive.h"
 
+#ifndef EXTRACT_ONLY
 #include "Common/HandlerOut.h"
+#endif
 
 #include "XzHandler.h"
 
@@ -83,14 +87,19 @@ class CHandler:
   CMyComPtr<IInStream> _stream;
   CMyComPtr<ISequentialInStream> _seqStream;
 
-  UInt32 _filterId;
   AString _methodsString;
+
+  #ifndef EXTRACT_ONLY
+
+  UInt32 _filterId;
 
   void Init()
   {
     _filterId = 0;
     CMultiMethodProps::Init();
   }
+  
+  #endif
 
   HRESULT Open2(IInStream *inStream, /* UInt32 flags, */ IArchiveOpenCallback *callback);
 
@@ -126,8 +135,11 @@ public:
 
 CHandler::CHandler()
 {
+  #ifndef EXTRACT_ONLY
   Init();
+  #endif
 }
+
 
 static const Byte kProps[] =
 {
@@ -351,7 +363,8 @@ struct COpenCallbackWrap
 static SRes OpenCallbackProgress(void *pp, UInt64 inSize, UInt64 /* outSize */)
 {
   COpenCallbackWrap *p = (COpenCallbackWrap *)pp;
-  p->Res = p->OpenCallback->SetCompleted(NULL, &inSize);
+  if (p->OpenCallback)
+    p->Res = p->OpenCallback->SetCompleted(NULL, &inSize);
   return (SRes)p->Res;
 }
 
@@ -414,7 +427,10 @@ HRESULT CHandler::Open2(IInStream *inStream, /* UInt32 flags, */ IArchiveOpenCal
   }
 
   RINOK(inStream->Seek(0, STREAM_SEEK_END, &_stat.PhySize));
-  RINOK(callback->SetTotal(NULL, &_stat.PhySize));
+  if (callback)
+  {
+    RINOK(callback->SetTotal(NULL, &_stat.PhySize));
+  }
 
   CSeekInStreamWrap inStreamImp(inStream);
 
@@ -466,7 +482,7 @@ STDMETHODIMP CHandler::Open(IInStream *inStream, const UInt64 *, IArchiveOpenCal
   COM_TRY_BEGIN
   {
     Close();
-    return Open2(inStream, /* 0, */ callback);
+    return Open2(inStream, callback);
   }
   COM_TRY_END
 }

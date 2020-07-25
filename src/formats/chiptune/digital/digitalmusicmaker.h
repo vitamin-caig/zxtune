@@ -62,7 +62,7 @@ namespace Formats
         //common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples
-        virtual void SetSample(uint_t index, std::size_t loop, const Binary::Data& sample) = 0;
+        virtual void SetSample(uint_t index, std::size_t loop, Binary::View sample) = 0;
         virtual std::unique_ptr<ChannelBuilder> SetSampleMixin(uint_t index, uint_t period) = 0;
         //patterns
         virtual void SetPositions(Positions positions) = 0;

@@ -10,36 +10,28 @@
 
 #pragma once
 
-//common includes
-#include <types.h>
-//std includes
-#include <memory>
+//library includes
+#include <module/state.h>
 
 namespace Module
 {
   //! @brief Runtime module track status
-  class TrackState
+  class TrackState : public State
   {
   public:
     //! Pointer type
     typedef std::shared_ptr<const TrackState> Ptr;
 
-    virtual ~TrackState() = default;
-
-    //! Current position (up to Information::PositionsCount)
+    //! Current position (up to TrackInformation::PositionsCount)
     virtual uint_t Position() const = 0;
-    //! Current pattern (up to Information::PatternsCount)
+    //! Current pattern
     virtual uint_t Pattern() const = 0;
-    //! Current pattern size
-    virtual uint_t PatternSize() const = 0;
-    //! Current line in pattern (up to Status::PatternSize)
+    //! Current line in pattern
     virtual uint_t Line() const = 0;
     //! Current tempo
     virtual uint_t Tempo() const = 0;
-    //! Current quirk in line (up to Status::Tempo)
+    //! Current quirk in line
     virtual uint_t Quirk() const = 0;
-    //! Current frame in track (up to Information::FramesCount)
-    virtual uint_t Frame() const = 0;
     //! Current active channels count (up to Information::Channels)
     virtual uint_t Channels() const = 0;
   };

@@ -9,22 +9,23 @@
 **/
 
 //local includes
-#include "core/plugins/utils.h"
 #include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/plugins_types.h"
 #include "core/src/location.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <error.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/base64.h>
-#include <binary/compress.h>
+#include <binary/crc.h>
+#include <binary/compression/zlib.h>
+#include <binary/compression/zlib_stream.h>
 #include <binary/data_builder.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
+#include <strings/prefixed_index.h>
 //std includes
 #include <algorithm>
 //text includes
@@ -152,8 +153,6 @@ namespace Zdata
   static_assert(sizeof(RawMarker) == 6, "Invalid layout of RawMarker");
   static_assert(sizeof(RawHeader) == 12, "Invalid layout of RawHeader");
 
-  const IndexPathComponent PATH(Text::ZDATA_PLUGIN_PREFIX);
-
   struct Layout
   {
     Layout(const uint8_t* start, const uint8_t* end)
@@ -182,7 +181,7 @@ namespace Zdata
     const uint8_t* const End;
   };
   
-  Layout FindLayout(const Binary::Data& raw, const Marker& marker)
+  Layout FindLayout(Binary::View raw, const Marker& marker)
   {
     const uint8_t* const rawStart = static_cast<const uint8_t*>(raw.Start());
     const uint8_t* const rawEnd = rawStart + raw.Size();
@@ -191,7 +190,7 @@ namespace Zdata
     return Layout(res, rawEnd);
   }
 
-  Binary::Container::Ptr Decode(const Binary::Data& raw, const Marker& marker)
+  Binary::Container::Ptr Decode(Binary::View raw, const Marker& marker)
   {
     try
     {
@@ -199,11 +198,12 @@ namespace Zdata
       const Header hdr = Header::Decode(layout.GetHeader());
       Dbg("Found container id=%1%", hdr.Crc);
       Dump decoded(hdr.Packed);
-      Binary::Base64::Decode(layout.GetBody(), layout.GetBodyEnd(), &decoded[0], &decoded[0] + hdr.Packed);
+      Binary::Base64::Decode(layout.GetBody(), layout.GetBodyEnd(), decoded.data(), decoded.data() + hdr.Packed);
       std::unique_ptr<Dump> unpacked(new Dump(hdr.Original));
       Dbg("Unpack %1% => %2%", hdr.Packed, hdr.Original);
-      Binary::Compression::Zlib::Decompress(decoded, *unpacked);
-      Require(hdr.Crc == Crc32(&unpacked->front(), unpacked->size()));
+      //TODO: use another function
+      Require(hdr.Original == Binary::Compression::Zlib::Decompress(decoded, unpacked->data(), unpacked->size()));
+      Require(hdr.Crc == Binary::Crc32(*unpacked));
       return Binary::CreateContainer(std::move(unpacked));
     }
     catch (const std::exception&)
@@ -218,17 +218,16 @@ namespace Zdata
     }
   }
 
-  Header Compress(const Binary::Data& input, Binary::DataBuilder& output)
+  Header Compress(Binary::View input, Binary::DataBuilder& output)
   {
-    const std::size_t outSizeIn = output.Size();
-    const std::size_t inSize = input.Size();
-    const std::size_t inPackedSizeMax = Binary::Compression::Zlib::CalculateCompressedSizeUpperBound(inSize);
-    const uint8_t* const in = static_cast<const uint8_t*>(input.Start());
-    uint8_t* const outBegin = static_cast<uint8_t*>(output.Allocate(inPackedSizeMax));
-    uint8_t* const outEnd = Binary::Compression::Zlib::Compress(in, in + inSize, outBegin, outBegin + inPackedSizeMax);
-    const std::size_t packedSize = (outEnd - outBegin);
-    output.Resize(outSizeIn + packedSize);
-    return Header(Crc32(in, inSize), inSize, packedSize);
+    const auto inSize = input.Size();
+    const std::size_t prevOutputSize = output.Size();
+    {
+      Binary::DataInputStream inputStream(input);
+      Binary::Compression::Zlib::Compress(inputStream, output);
+    }
+    const auto packedSize = output.Size() - prevOutputSize;
+    return Header(Binary::Crc32(input), inSize, packedSize);
   }
 
   Binary::Container::Ptr Convert(const void* input, std::size_t inputSize)
@@ -236,7 +235,7 @@ namespace Zdata
     const std::size_t outSize = Binary::Base64::CalculateConvertedSize(inputSize);
     std::unique_ptr<Dump> result(new Dump(outSize));
     const uint8_t* const in = static_cast<const uint8_t*>(input);
-    char* const out = safe_ptr_cast<char*>(&result->front());
+    char* const out = safe_ptr_cast<char*>(result->data());
     Binary::Base64::Encode(in, in + inputSize, out, out + outSize);
     return Binary::CreateContainer(std::move(result));
   }
@@ -245,35 +244,40 @@ namespace Zdata
 
 namespace ZXTune
 {
+namespace Zdata
+{
   const Char ID[] = {'Z', 'D', 'A', 'T', 'A', 0};
   const Char* const INFO = Text::ZDATA_PLUGIN_INFO;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::ARCHIVE;
 }
+}
 
 namespace ZXTune
 {
-  DataLocation::Ptr BuildZdataContainer(const Binary::Data& input)
+  DataLocation::Ptr BuildZdataContainer(Binary::View input)
   {
     Binary::DataBuilder builder(input.Size());
     builder.Add<Zdata::RawHeader>();
     const Zdata::Header hdr = Zdata::Compress(input, builder);
     hdr.ToRaw(builder.Get<Zdata::RawHeader>(0));
     const Binary::Container::Ptr data = Zdata::Convert(builder.Get(0), builder.Size());
-    return CreateLocation(data, ID, Zdata::PATH.Build(hdr.Crc));
+    return CreateLocation(data, Zdata::ID, Strings::PrefixedIndex(Text::ZDATA_PLUGIN_PREFIX, hdr.Crc).ToString());
   }
 }
 
 namespace ZXTune
 {
-  class ZdataPlugin : public ArchivePlugin
+namespace Zdata
+{
+  class Plugin : public ArchivePlugin
   {
   public:
-    ZdataPlugin()
+    Plugin()
       : Description(CreatePluginDescription(ID, INFO, CAPS))
     {
     }
 
-    Plugin::Ptr GetDescription() const override
+    ZXTune::Plugin::Ptr GetDescription() const override
     {
       return Description;
     }
@@ -291,11 +295,11 @@ namespace ZXTune
     DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
-      Parameters::IntType marker;
-      if (Zdata::PATH.GetIndex(pathComp, marker))
+      const Strings::PrefixedIndex pathIndex(Text::ZDATA_PLUGIN_PREFIX, pathComp);
+      if (pathIndex.IsValid())
       {
         const Binary::Data::Ptr rawData = location->GetData();
-        if (const Binary::Container::Ptr decoded = Zdata::Decode(*rawData, Zdata::Marker(static_cast<uint32_t>(marker))))
+        if (const Binary::Container::Ptr decoded = Zdata::Decode(*rawData, Zdata::Marker(static_cast<uint32_t>(pathIndex.GetIndex()))))
         {
           return CreateNestedLocation(location, decoded, ID, pathComp);
         }
@@ -303,12 +307,13 @@ namespace ZXTune
       return DataLocation::Ptr();
     }
   private:
-    const Plugin::Ptr Description;
+    const ZXTune::Plugin::Ptr Description;
   };
+}
 
   void RegisterZdataContainer(ArchivePluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin = MakePtr<ZdataPlugin>();
+    const ArchivePlugin::Ptr plugin = MakePtr<Zdata::Plugin>();
     registrator.RegisterPlugin(plugin);
   }
 }

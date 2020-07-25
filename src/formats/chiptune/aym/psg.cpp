@@ -9,14 +9,14 @@
 **/
 
 //local includes
-#include "psg.h"
+#include "formats/chiptune/aym/psg.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 //std includes
+#include <cstddef>
 #include <cstring>
 //text includes
 #include <formats/text/chiptune.h>
@@ -64,13 +64,13 @@ namespace Chiptune
       void SetRegister(uint_t /*reg*/, uint_t /*val*/) override {}
     };
 
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View data)
     {
-      if (rawData.Size() <= sizeof(Header))
+      if (data.Size() <= sizeof(Header))
       {
         return false;
       }
-      const Header* const header = static_cast<const Header*>(rawData.Start());
+      const auto* header = data.As<Header>();
       return 0 == std::memcmp(header->Sign, SIGNATURE, sizeof(SIGNATURE)) &&
          MARKER == header->Marker;
     }
@@ -114,17 +114,17 @@ namespace Chiptune
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
-      if (!FastCheck(rawData))
+      const Binary::View data(rawData);
+      if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
 
-      const Binary::TypedContainer& data(rawData);
-      const Header& header = *data.GetField<Header>(0);
+      const auto& header = *data.As<Header>();
       //workaround for some emulators
       const std::size_t offset = (header.Version == INT_BEGIN) ? offsetof(Header, Version) : sizeof(header);
-      std::size_t restSize = rawData.Size() - offset;
-      const uint8_t* bdata = data.GetField<uint8_t>(offset);
+      std::size_t restSize = data.Size() - offset;
+      const uint8_t* bdata = data.As<uint8_t>() + offset;
       //detect as much chunks as possible, in despite of real format issues
       while (restSize)
       {
@@ -167,9 +167,9 @@ namespace Chiptune
           break;
         }
       }
-      const std::size_t usedSize = rawData.Size() - restSize;
-      const Binary::Container::Ptr subData = rawData.GetSubcontainer(0, usedSize);
-      return CreateCalculatingCrcContainer(subData, offset, usedSize - offset);
+      const std::size_t usedSize = data.Size() - restSize;
+      auto subData = rawData.GetSubcontainer(0, usedSize);
+      return CreateCalculatingCrcContainer(std::move(subData), offset, usedSize - offset);
     }
 
     Builder& GetStubBuilder()

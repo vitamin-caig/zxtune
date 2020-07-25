@@ -9,18 +9,18 @@
 **/
 
 //local includes
-#include "openal.h"
-#include "backend_impl.h"
-#include "storage.h"
-#include "volume_control.h"
-#include "gates/openal_api.h"
+#include "sound/backends/openal.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/volume_control.h"
+#include "sound/backends/gates/openal_api.h"
 //common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -29,20 +29,16 @@
 #include <functional>
 #include <thread>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 07CDA82B
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::OpenAL");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace OpenAl
 {
+  const Debug::Stream Dbg("Sound::Backend::OpenAL");
+
   const String ID = Text::OPENAL_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("OpenAL backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
@@ -146,7 +142,7 @@ namespace OpenAl
     
     void Fill(ALuint id, const Chunk& data, uint_t freq)
     {
-      OalApi.alBufferData(id, Format, &data[0], data.size() * sizeof(data.front()), freq);
+      OalApi.alBufferData(id, Format, data.data(), data.size() * sizeof(data.front()), freq);
       CheckError(THIS_LINE);
     }
   private:
@@ -177,10 +173,10 @@ namespace OpenAl
   class Source : private ApiRef
   {
   public:
-    explicit Source(Api& api, uint_t freq, uint_t buffersCount, Time::Milliseconds sleepPeriod)
+    explicit Source(Api& api, uint_t freq, uint_t buffersCount, Time::Microseconds sleepPeriod)
       : ApiRef(api)
       , Freq(freq)
-      , SleepPeriod(std::chrono::milliseconds(sleepPeriod.Get()))
+      , SleepPeriod(std::chrono::milliseconds(sleepPeriod.CastTo<Time::Millisecond>().Get()))
     {
       Dbg("Create source");
       OalApi.alGetError();
@@ -411,13 +407,13 @@ namespace OpenAl
       Stat->Src->Play();
     }
 
-    virtual void FrameStart(const Module::TrackState& /*state*/)
+    virtual void FrameStart(const Module::State& /*state*/)
     {
     }
 
-    virtual void FrameFinish(Chunk::Ptr buffer)
+    virtual void FrameFinish(Chunk buffer)
     {
-      Stat->Src->Write(*buffer);
+      Stat->Src->Write(buffer);
     }
 
     virtual VolumeControl::Ptr GetVolumeControl() const
@@ -458,7 +454,7 @@ namespace Sound
       const char* const version = api->alGetString(AL_VERSION);
       const char* const vendor = api->alGetString(AL_VENDOR);
       const char* const renderer = api->alGetString(AL_RENDERER);
-      Dbg("Detected OpenAL v%1% by '%2%' (renderer '%3%')", version, vendor, renderer);//usually empty strings...
+      OpenAl::Dbg("Detected OpenAL v%1% by '%2%' (renderer '%3%')", version, vendor, renderer);//usually empty strings...
       const BackendWorkerFactory::Ptr factory = MakePtr<OpenAl::BackendWorkerFactory>(api);
       storage.Register(OpenAl::ID, OpenAl::DESCRIPTION, OpenAl::CAPABILITIES, factory);
     }
@@ -493,3 +489,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

@@ -13,46 +13,61 @@
 #include <binary/container_factories.h>
 #include <core/module_open.h>
 #include <io/api.h>
+#include <module/track_information.h>
 #include <iostream>
 #include <parameters/container.h>
 #include <parameters/template.h>
 
 namespace
 {
-  using namespace ZXTune;
-
   Module::Holder::Ptr OpenModuleByPath(const String& fullPath)
   {
     const Parameters::Container::Ptr emptyParams = Parameters::Container::Create();
     const String filename = fullPath;//TODO: split if required
     const Binary::Container::Ptr data = IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub());
-    const DataLocation::Ptr dataLocation = CreateLocation(data);
-    return Module::Open(*emptyParams, dataLocation);
+    return Module::Open(*emptyParams, *data);
   }
 
   void ShowModuleInfo(const Module::Information& info)
   {
-    std::cout <<
-      "Positions: " << info.PositionsCount() << " (" << info.LoopPosition() << ')' << std::endl <<
-      "Patterns: " << info.PatternsCount() << std::endl <<
-      "Frames: " << info.FramesCount() << " (" << info.LoopFrame() << ')' << std::endl <<
-      "Channels: " << info.ChannelsCount() << std::endl <<
-      "Initial tempo: " << info.Tempo() << std::endl;
+    if (const auto trackInfo = dynamic_cast<const Module::TrackInformation*>(&info))
+    {
+      std::cout <<
+        "Positions: " << trackInfo->PositionsCount() << " (" << trackInfo->LoopPosition() << ')' << std::endl <<
+        "Initial tempo: " << trackInfo->Tempo() << std::endl;
+    }
+    std::cout << "Frames: " << info.FramesCount() << " (" << info.LoopFrame() << ')' << std::endl <<
+      "Channels: " << info.ChannelsCount() << std::endl;
   }
+  
+  class PrintValuesVisitor : public Parameters::Visitor
+  {
+  public:
+    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
+    {
+      Write(name, Parameters::ConvertToString(val));
+    }
+
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    {
+      Write(name, Parameters::ConvertToString(val));
+    }
+    
+    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+    {
+      Write(name, Parameters::ConvertToString(val));
+    }
+  private:
+    static void Write(const Parameters::NameType& name, const String& value)
+    {
+      std::cout << name.Name() << ": " << value << std::endl;
+    }
+  };
 
   void ShowProperties(const Parameters::Accessor& props)
   {
-    static const char TEMPLATE[] =
-      "Title: [Title]\n"
-      "Author: [Author]\n"
-      "Program: [Program]\n"
-      "Type: [Type]\n"
-      "Size: [Size]\n"
-      "[Comment]\n"
-    ;
-   
-    const Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> fields(props);
-    std::cout << Strings::Template::Instantiate(TEMPLATE, fields) << std::endl;
+    static PrintValuesVisitor PRINTER;
+    props.Process(PRINTER);
   }
 
   void ShowModuleProperties(const Module::Holder& module)
@@ -70,8 +85,6 @@ int main(int argc, char* argv[])
   }
   try
   {
-    using namespace ZXTune;
-
     const Module::Holder::Ptr module = OpenModuleByPath(argv[1]);
     ShowModuleProperties(*module);
     return 0;

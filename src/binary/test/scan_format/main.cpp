@@ -30,7 +30,7 @@ namespace
     void Report(std::size_t pos) const
     {
       const std::clock_t elapsed = std::clock() - Start;
-      const std::size_t speed = pos * CLOCKS_PER_SEC / elapsed;
+      const std::size_t speed = pos * CLOCKS_PER_SEC / (elapsed ? elapsed : 1);
       std::cout << (pos != Total ? "Matched at " : "Finished scanning ") << pos << ". Speed " << double(speed) / 1048576 << "Mb/s" << std::endl;
     }
   private:

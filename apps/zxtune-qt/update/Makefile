@@ -1,10 +1,10 @@
 library_name := check_update
-path_step := ../../..
+dirs.root := ../../..
 source_dirs := .
 moc_files := check
 
 ts_files := update_check
 
-include_dirs = ..
+includes.dirs += ..
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

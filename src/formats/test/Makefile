@@ -2,6 +2,7 @@ all test:
 	$(MAKE) -C cc3 $(MAKECMDGOALS)
 	$(MAKE) -C dsq $(MAKECMDGOALS)
 	$(MAKE) -C esv $(MAKECMDGOALS)
+	$(MAKE) -C gzip $(MAKECMDGOALS)
 	$(MAKE) -C hrip $(MAKECMDGOALS)
 	$(MAKE) -C hrum $(MAKECMDGOALS)
 	$(MAKE) -C lha $(MAKECMDGOALS)

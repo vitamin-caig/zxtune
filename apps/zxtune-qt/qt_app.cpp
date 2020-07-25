@@ -34,14 +34,19 @@ namespace
     {
     }
 
-    int Run(int argc, const char* argv[]) override
+    int Run(Strings::Array argv) override
     {
-      QApplication qapp(argc, const_cast<char**>(argv));
-      qapp.setOrganizationName(QLatin1String(Text::PROJECT_NAME));
-      qapp.setOrganizationDomain(QLatin1String(Text::PROGRAM_SITE));
+      int fakeArgc = 1;
+      char* fakeArgv[] = {""};
+      QApplication qapp(fakeArgc, fakeArgv);
+      //storageLocation(DataLocation) is ${profile}/[${organizationName}/][${applicationName}/]
+      //applicationName cannot be empty since qt4.8.7 (binary name is used instead)
+      //So, do not set  organization name and override application name
+      qapp.setApplicationName(QLatin1String(Text::PROJECT_NAME));
       qapp.setApplicationVersion(ToQString(Platform::Version::GetProgramVersionString()));
+      qapp.setOrganizationDomain(QLatin1String(Text::PROGRAM_SITE));
       const Parameters::Container::Ptr params = GlobalOptions::Instance().Get();
-      const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(params, argc - 1, argv + 1);
+      const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(params, std::move(argv));
       if (mode->StartMaster()) {
         const MainWindow::Ptr win = WidgetsFactory::Instance().CreateMainWindow(params);
         Require(win->connect(mode, SIGNAL(OnSlaveStarted(const QStringList&)), SLOT(SetCmdline(const QStringList&))));

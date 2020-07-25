@@ -9,14 +9,15 @@
 **/
 
 //local includes
-#include "iterator.h"
+#include "module/players/iterator.h"
+//library includes
+#include <sound/loop.h>
 
 namespace Module
 {
   void SeekIterator(StateIterator& iter, uint_t frameNum)
   {
-    const TrackState::Ptr state = iter.GetStateObserver();
-    uint_t curFrame = state->Frame();
+    uint_t curFrame = iter.GetStateObserver()->Frame();
     if (curFrame > frameNum)
     {
       iter.Reset();
@@ -24,7 +25,7 @@ namespace Module
     }
     while (curFrame < frameNum && iter.IsValid())
     {
-      iter.NextFrame(true);
+      iter.NextFrame({});
       ++curFrame;
     }
   }

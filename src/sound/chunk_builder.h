@@ -28,13 +28,13 @@ namespace Sound
 
     void Reserve(std::size_t maxSize)
     {
-      Content = MakePtr<Chunk>(maxSize);
-      Pos = &Content->front();
+      Content.resize(maxSize);
+      Pos = Content.data();
     }
 
     void Add(Sample smp)
     {
-      assert(Pos <= &Content->back());
+      assert(Pos <= &Content.back());
       *Pos++ = smp;
     }
 
@@ -42,17 +42,17 @@ namespace Sound
     {
       Sample* res = Pos;
       Pos += size;
-      assert(Pos <= &Content->back() + 1);
+      assert(Pos <= &Content.back() + 1);
       return res;
     }
 
-    Chunk::Ptr CaptureResult()
+    Chunk CaptureResult()
     {
-      Content->resize(Pos - &Content->front());
+      Content.resize(Pos - Content.data());
       return std::move(Content);
     }
   private:
-    Chunk::Ptr Content;
+    Chunk Content;
     Sample* Pos;
   };
 }

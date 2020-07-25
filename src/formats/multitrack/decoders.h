@@ -22,5 +22,6 @@ namespace Formats
     Decoder::Ptr CreateGBSDecoder();
     Decoder::Ptr CreateSAPDecoder();
     Decoder::Ptr CreateKSSXDecoder();
+    Decoder::Ptr CreateHESDecoder();
   }
 }

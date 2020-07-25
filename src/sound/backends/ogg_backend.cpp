@@ -9,18 +9,17 @@
 **/
 
 //local includes
-#include "file_backend.h"
-#include "storage.h"
-#include "gates/ogg_api.h"
-#include "gates/vorbis_api.h"
-#include "gates/vorbisenc_api.h"
+#include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/gates/ogg_api.h"
+#include "sound/backends/gates/vorbis_api.h"
+#include "sound/backends/gates/vorbisenc_api.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
@@ -28,20 +27,16 @@
 //std includes
 #include <algorithm>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG B01A305D
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Ogg");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Ogg
 {
+  const Debug::Stream Dbg("Sound::Backend::Ogg");
+
   const String ID = Text::OGG_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("OGG support backend");
 
@@ -103,8 +98,8 @@ namespace Ogg
   private:
     void WritePage(const ogg_page& page)
     {
-      File->ApplyData(Binary::DataAdapter(page.header, page.header_len));
-      File->ApplyData(Binary::DataAdapter(page.body, page.body_len));
+      File->ApplyData(Binary::View(page.header, page.header_len));
+      File->ApplyData(Binary::View(page.body, page.body_len));
     }
   private:
     const Api::Ptr OggApi;
@@ -285,9 +280,9 @@ namespace Ogg
       Stream->Flush();
     }
 
-    void ApplyData(Chunk::Ptr data) override
+    void ApplyData(Chunk data) override
     {
-      State->Encode(*data);
+      State->Encode(data);
       State->Save(*Stream);
     }
 
@@ -442,7 +437,7 @@ namespace Sound
       const Ogg::Api::Ptr oggApi = Ogg::LoadDynamicApi();
       const Vorbis::Api::Ptr vorbisApi = Vorbis::LoadDynamicApi();
       const VorbisEnc::Api::Ptr vorbisEncApi = VorbisEnc::LoadDynamicApi();
-      Dbg("Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
+      Ogg::Dbg("Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
       const BackendWorkerFactory::Ptr factory = MakePtr<Ogg::BackendWorkerFactory>(oggApi, vorbisApi, vorbisEncApi);
       storage.Register(Ogg::ID, Ogg::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
@@ -453,3 +448,4 @@ namespace Sound
   }
 }
 
+#undef FILE_TAG

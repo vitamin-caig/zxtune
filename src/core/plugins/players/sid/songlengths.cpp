@@ -9,11 +9,12 @@
 **/
 
 //local includes
-#include "songlengths.h"
+#include "core/plugins/players/sid/songlengths.h"
 //common includes
 #include <contract.h>
-#include <crc.h>
 #include <pointers.h>
+//library includes
+#include <binary/crc.h>
 //std includes
 #include <algorithm>
 
@@ -24,7 +25,7 @@ namespace Sid
   struct SongEntry
   {
     const uint32_t HashCrc32;
-    const unsigned Seconds;
+    const uint32_t Seconds;
     
     bool operator < (uint32_t hashCrc32) const
     {
@@ -34,12 +35,12 @@ namespace Sid
   
   const SongEntry SONGS[] =
   {
-#include "songlengths_db.inc"
+#include "core/plugins/players/sid/songlengths_db.inc"
   };
 
   TimeType GetSongLength(const char* md5digest, uint_t idx)
   {
-    const uint32_t hashCrc32 = Crc32(safe_ptr_cast<const uint8_t*>(md5digest), 32);
+    const uint32_t hashCrc32 = Binary::Crc32(Binary::View(md5digest, 32));
     const SongEntry* const end = std::end(SONGS);
     const SongEntry* const lower = std::lower_bound(SONGS, end, hashCrc32);
     if (lower + idx < end && lower->HashCrc32 == hashCrc32)

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- emulation -->
-  <string name="pref_emulation_title">Эмуляция</string>
-  
-  <!-- common -->
+
+    <!-- common -->
   <string name="pref_interpolation">Интерполяция</string>
   <string-array name="pref_interpolation_entries">
     <item>Нет</item>
@@ -55,4 +54,25 @@
     <item>15 минут</item>
     <item>30 минут</item>
   </string-array>
+  <!-- zxtune.sound.silencelimit -->
+  <string  name="pref_zxtune_silence_limit_title">Обнаружение тишины</string>
+  <string-array name="pref_zxtune_silence_limit_entries">
+    <item>Нет</item>
+    <item>3 секунды</item>
+    <item>4 секунды</item>
+    <item>5 секунд</item>
+    <item>10 секунд</item>
+    <item>15 секунд</item>
+  </string-array>
+  <!-- zxtune.sound.looplimit -->
+  <string  name="pref_zxtune_loop_limit_title">Лимит зацикливания</string>
+  <string-array name="pref_zxtune_loop_limit_entries">
+    <item>Нет</item>
+    <item>1 петля</item>
+    <item>2 петли</item>
+    <item>3 петли</item>
+    <item>4 петли</item>
+    <item>5 петель</item>
+  </string-array>
+
 </resources>

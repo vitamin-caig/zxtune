@@ -9,14 +9,17 @@
 **/
 
 //local includes
-#include "zxstate_supp.h"
+#include "formats/archived/zxstate_supp.h"
 //common includes
 #include <contract.h>
+#include <error.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
+#include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <formats/archived.h>
 #include <strings/format.h>
@@ -28,8 +31,6 @@
 #include <sstream>
 //boost includes
 #include <boost/range/size.hpp>
-//3rd-party includes
-#include <3rdparty/zlib/zlib.h>
 //text include
 #include <formats/text/archived.h>
 
@@ -432,47 +433,18 @@ namespace Archived
     Binary::Container::Ptr DecompressData(const DataBlockDescription& blk)
     {
       Require(blk.Content && blk.IsCompressed);
-      const std::size_t targetSize = blk.UncompressedSize == UNKNOWN ? MAX_DECOMPRESS_SIZE : blk.UncompressedSize;
-      std::unique_ptr<Dump> result(new Dump(targetSize));
-
-      z_stream stream = z_stream();
-      int res = ::inflateInit(&stream);
-      if (Z_OK != res)
+      const std::size_t targetSize = blk.UncompressedSize == UNKNOWN ? 0 : blk.UncompressedSize;
+      try
       {
-        return Binary::Container::Ptr();
+        return Binary::Compression::Zlib::Decompress(Binary::View(blk.Content, blk.Size), targetSize);
       }
-      stream.next_in = const_cast<uint8_t*>(static_cast<const uint8_t*>(blk.Content));
-      stream.avail_in = static_cast<uInt>(blk.Size);
-      stream.next_out = &result->front();
-      stream.avail_out = static_cast<uInt>(targetSize);
-      res = ::inflate(&stream, Z_FINISH);
-      ::inflateEnd(&stream);
-      switch (res)
+      catch (const Error& e)
       {
-      case Z_STREAM_END:
-      case Z_OK:
-        {
-          const std::size_t doneSize = stream.next_out - &result->front();
-          Dbg("Decompressed %1% -> %2% (required %3%)", blk.Size, doneSize, blk.UncompressedSize);
-          if (blk.UncompressedSize == UNKNOWN || blk.UncompressedSize == doneSize)
-          {
-            result->resize(doneSize);
-            return Binary::CreateContainer(std::move(result));
-          }
-          Dbg("Uncompressed size mismatch");
-        }
-        break;
-      case Z_MEM_ERROR:
-        Dbg("No memory to deflate");
-        break;
-      case Z_BUF_ERROR:
-        Dbg("No memory in target buffer to deflate");
-        break;
-      case Z_DATA_ERROR:
-        Dbg("Data is corrupted");
-        break;
-      default:
-        Dbg("Unknown error (%1%)", res);
+        Dbg("Failed to decompress: %1%", e.ToString());
+      }
+      catch (const std::exception&)
+      {
+        Dbg("Failed to decompress");
       }
       return Binary::Container::Ptr();
     }
@@ -488,7 +460,7 @@ namespace Archived
         else
         {
           Require(blk.Size == blk.UncompressedSize);
-          return Binary::CreateContainer(src, blk.Size);
+          return Binary::CreateContainer(Binary::View(src, blk.Size));
         }
       }
       else
@@ -566,12 +538,12 @@ namespace Archived
           Require(unpacked != 0);
           Dbg("Decompressing '%1%' (%2% blocks, %3% butes result)", Name, Blocks.size(), unpacked);
           std::unique_ptr<Dump> result(new Dump(unpacked));
-          std::size_t target = 0;
+          auto* target = result->data();
           for (const auto& block : Blocks)
           {
             const Binary::Container::Ptr data = ExtractData(block);
             Require(data && data->Size() == block.UncompressedSize);
-            std::memcpy(&result->at(target), data->Start(), block.UncompressedSize);
+            std::memcpy(target, data->Start(), block.UncompressedSize);
             target += block.UncompressedSize;
           }
           return Binary::CreateContainer(std::move(result));
@@ -686,32 +658,15 @@ namespace Archived
       };
     };
 
-    class Container : public Archived::Container
+    class Container : public Binary::BaseContainer<Archived::Container>
     {
     public:
       Container(Binary::Container::Ptr archive, NamedBlocksMap blocks)
-        : Delegate(std::move(archive))
+        : BaseContainer(std::move(archive))
         , Blocks(std::move(blocks))
       {
       }
 
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-
-      //Archive::Container
       void ExploreFiles(const Container::Walker& walker) const override
       {
         for (const auto& block : Blocks)
@@ -746,7 +701,6 @@ namespace Archived
         }
       }
     private:
-      const Binary::Container::Ptr Delegate;
       const NamedBlocksMap Blocks;
     };
   }//namespace ZXState

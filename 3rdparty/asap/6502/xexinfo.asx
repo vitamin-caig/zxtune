@@ -1,0 +1,165 @@
+HIDE_AUTHOR	equ	0
+
+font	equ	$fc00
+
+	ift	TEST
+
+	org	$8000
+scr
+	dta	c'404 Error                       '
+:8	dta	$55
+	ift	HIDE_AUTHOR
+hidden
+	dta	c'(press space to show author)    '
+	dta	c'                                '
+author
+	eif
+	dta	c'by Grzegorz Kwiatek (Greg)      '
+	dta	c' & Lukasz Sychowicz (X-Ray)     '
+date
+	dta	c'01/03/2003          STEREO 02:26'
+
+dl
+:22	dta	$70
+	dta	$30,$62,a(scr),8,0
+	ift	HIDE_AUTHOR
+	dta	$42
+dl_author
+	dta	a(hidden),2,$10,$42,a(date)
+	dta	$41,a(dl)
+show_author
+	mwa	#author	dl_author
+	els
+	dta	2,2,$10,2
+	dta	$41,a(dl)
+	eif
+
+	els
+
+	org	$fc50
+	ift	HIDE_AUTHOR
+dl	org	*+39
+
+show_author
+	org	*+10
+	rts
+
+	els
+dl	org	*+32
+	dta	$41,a(dl)
+	eif
+
+	eif
+
+show_info
+	lda:rne	^4b
+	sta	^45
+	mvx	#$26	^16
+	mvx	#$0a	^17
+	mvx	#$21	^40
+	mwx	#dl	^42
+:>font!=>dl	ldx	>font
+	stx	^49
+
+	ift	TEST
+
+	mwa	#vbl	$fffa
+	mva	#$40	^4e
+	jmp	*
+	
+vbl
+	pha
+	txa:pha
+	ldx	$d014
+	dex
+	seq:ldx	#1
+	jsr	countdown
+	pla:tax
+	pla:rti
+
+	els
+
+	rts
+
+	eif
+
+countdown
+	ift	HIDE_AUTHOR
+	lda	#4
+	bit	$d20f
+	bne	no_author
+	lda	$d209
+	cmp	#$21
+	bne	no_author
+	jsr	show_author
+no_author
+	eif
+
+	cld
+	lda	countdown_framerate_lo,x
+	add	#0
+	sta	*-1
+	lda	countdown_framerate_hi,x
+	adc	#0
+	sta	*-1
+	bcc	countdown_skip
+	lda	dl-5
+	ora	dl-4
+	ora	dl-2
+	ora	dl-1
+	cmp	#'1'
+	ldx	#4
+	bcs	countdown_start
+countdown_skip
+	rts
+
+countdown_wrap
+	lda	#'9'
+	cpx	#3
+	sne:lda	#'5'
+	sta	dl-5,x
+countdown_next
+	dex
+countdown_start
+	lda	dl-5,x
+	cmp	#'1'
+	bcc	countdown_wrap
+	cmp	#':'
+	beq	countdown_next
+
+	dec	dl-5,x
+	rts
+
+countdown_framerate_lo	dta	l(312*114/2*65536/[1773447/2],262*114*65536/1789772)
+countdown_framerate_hi	dta	h(312*114/2*65536/[1773447/2],262*114*65536/1789772)
+
+	org	$100
+main
+	sei
+	mvy	#0	^4e
+	lda:rne	^4b
+	sta	^40
+	ldx	#29
+	sta:rpl	^00,x-
+; copy font from ROM, reordering from ANTIC codes to ASCII, semigraphics not needed
+copy_font_1
+	stx	^31	; #$ff
+	lda:pha	$e000,y	; punctuation
+	lda:pha	$e100,y	; uppercase
+	lda	$e300,y	; lowercase
+	dex:stx	^31
+	inx
+	sta	font+$300,y	; lowercase
+	pla:sta	font+$200,y	; uppercase
+	pla:sta	font+$100,y	; punctuation
+	iny
+	bne	copy_font_1
+	jsr	show_info
+	ert	*!=$13a
+
+	ift	TEST
+	jmp	*
+	run	main
+	eif
+
+	end

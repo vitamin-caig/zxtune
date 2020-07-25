@@ -18,12 +18,16 @@
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/container.h>
+#include <module/track_information.h>
+#include <module/track_state.h>
 #include <module/players/properties_helper.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-#include <time/stamp.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
+#include <time/duration.h>
 //std includes
 #include <utility>
 //3rdparty includes
@@ -110,16 +114,16 @@ namespace Xmp
     }
   };
 
-  typedef Time::Milliseconds TimeType;
+  using DurationType = Time::Milliseconds;
 
-  class Information : public Module::Information
+  class Information : public Module::TrackInformation
   {
   public:
     typedef std::shared_ptr<const Information> Ptr;
 
-    Information(xmp_module module, TimeType duration)
+    Information(xmp_module module, DurationType duration)
       : Info(std::move(module))
-      , Frames(duration.Get() / GetFrameDuration().Get())
+      , Frames(duration.Divide<uint_t>(GetFrameDuration()))
     {
     }
 
@@ -131,11 +135,6 @@ namespace Xmp
     uint_t LoopPosition() const override
     {
       return Info.rst;
-    }
-
-    uint_t PatternsCount() const override
-    {
-      return Info.pat;
     }
 
     uint_t FramesCount() const override
@@ -158,20 +157,10 @@ namespace Xmp
       return Info.spd;
     }
 
-    std::vector<uint_t> GetPatternSizes() const
-    {
-      std::vector<uint_t> res(Info.pat);
-      for (uint_t i = 0; i != Info.pat; ++i)
-      {
-        res[i] = Info.xxp[i]->rows;
-      }
-      return res;
-    }
-
-    TimeType GetFrameDuration() const
+    DurationType GetFrameDuration() const
     {
       //fps = 50 * bpm / 125
-      return TimeType(TimeType::PER_SECOND * 125 / (50 * Info.bpm));
+      return DurationType(DurationType::PER_SECOND * 125 / (50 * Info.bpm));
     }
   private:
     const xmp_module Info;
@@ -184,10 +173,19 @@ namespace Xmp
   {
   public:
     TrackState(Information::Ptr info, StatePtr state)
-      : PatternSizes(info->GetPatternSizes())
-      , FrameDuration(info->GetFrameDuration())
+      : FrameDuration(info->GetFrameDuration())
       , State(std::move(state))
     {
+    }
+
+    uint_t Frame() const override
+    {
+      return DurationType(State->time).Divide<uint_t>(FrameDuration);
+    }
+
+    uint_t LoopCount() const override
+    {
+      return State->loop_count;
     }
 
     uint_t Position() const override
@@ -198,11 +196,6 @@ namespace Xmp
     uint_t Pattern() const override
     {
       return State->pattern;
-    }
-
-    uint_t PatternSize() const override
-    {
-      return PatternSizes[State->pattern];
     }
 
     uint_t Line() const override
@@ -220,18 +213,12 @@ namespace Xmp
       return State->frame;//???
     }
 
-    uint_t Frame() const override
-    {
-      return TimeType(State->time).Get() / FrameDuration.Get();
-    }
-
     uint_t Channels() const override
     {
       return State->virt_used;//????
     }
   private:
-    const std::vector<uint_t> PatternSizes;
-    const TimeType FrameDuration;
+    const DurationType FrameDuration;
     const StatePtr State;
   };
 
@@ -244,23 +231,20 @@ namespace Xmp
     {
     }
 
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
       //difference between libxmp and regular spectrum formats is 2 octaves
       const int C2OFFSET = 24;
-      std::vector<ChannelState> result;
-      result.reserve(Channels);
-      ChannelState chan;
+      SpectrumState result;
       for (uint_t idx = 0; idx != Channels; ++idx)
       {
         const xmp_frame_info::xmp_channel_info& info = State->channel_info[idx];
         if (info.note != uint8_t(-1) && info.volume != 0)
         {
           //TODO: use period as precise playback speed
-          chan.Band = std::max<int>(0, info.note - C2OFFSET);
+          const auto band = std::max<int>(0, info.note - C2OFFSET);
           //TODO: also take into account sample's RMS
-          chan.Level = info.volume;
-          result.push_back(chan);
+          result.Set(band, LevelType(info.volume, 100));
         }
       }
       return result;
@@ -293,7 +277,7 @@ namespace Xmp
       Ctx->Call(&::xmp_end_player);
     }
 
-    TrackState::Ptr GetTrackState() const override
+    Module::State::Ptr GetState() const override
     {
       return Track;
     }
@@ -323,7 +307,7 @@ namespace Xmp
           std::memcpy(builder.Allocate(samples), State->buffer, bytes);
           Target->ApplyData(builder.CaptureResult());
         }
-        return Looped || State->loop_count == 0;
+        return State->loop_count == 0 || Looped(State->loop_count);
       }
       catch (const std::exception&)
       {
@@ -367,15 +351,15 @@ namespace Xmp
     const Sound::RenderParameters::Ptr SoundParams;
     const TrackState::Ptr Track;
     const Analyzer::Ptr Analysis;
-    const TimeType FrameDuration;
+    const DurationType FrameDuration;
     uint_t SoundFreq;
-    bool Looped;
+    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder
   {
   public:
-    explicit Holder(Context::Ptr ctx, const xmp_module_info& modInfo, TimeType duration, Parameters::Accessor::Ptr props)
+    explicit Holder(Context::Ptr ctx, const xmp_module_info& modInfo, DurationType duration, Parameters::Accessor::Ptr props)
       : Ctx(std::move(ctx))
       , Info(MakePtr<Information>(*modInfo.mod, duration))
       , Properties(std::move(props))
@@ -402,21 +386,6 @@ namespace Xmp
     const Parameters::Accessor::Ptr Properties;
   };
 
-
-  class Format : public Binary::Format
-  {
-  public:
-    bool Match(const Binary::Data& /*data*/) const override
-    {
-      return true;
-    }
-
-    std::size_t NextMatchOffset(const Binary::Data& data) const override
-    {
-      return data.Size();
-    }
-  };
-
   struct PluginDescription
   {
     const char* const Id;
@@ -429,7 +398,7 @@ namespace Xmp
   public:
     explicit Decoder(const PluginDescription& desc)
       : Desc(desc)
-      , Fmt(Desc.Format ? Binary::CreateMatchOnlyFormat(Desc.Format) : MakePtr<Format>())
+      , Fmt(Binary::CreateMatchOnlyFormat(Desc.Format))
     {
     }
 
@@ -458,16 +427,21 @@ namespace Xmp
     const Binary::Format::Ptr Fmt;
   };
   
+  String DecodeString(StringView str)
+  {
+    return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
+  }
+  
   void ParseStrings(const xmp_module& mod, PropertiesHelper& props)
   {
     Strings::Array strings;
-    for (uint_t idx = 0; idx < mod.smp; ++idx)
+    for (int idx = 0; idx < mod.smp; ++idx)
     {
-      strings.push_back(FromStdString(mod.xxs[idx].name));
+      strings.push_back(DecodeString(mod.xxs[idx].name));
     }
-    for (uint_t idx = 0; idx < mod.ins; ++idx)
+    for (int idx = 0; idx < mod.ins; ++idx)
     {
-      strings.push_back(FromStdString(mod.xxi[idx].name));
+      strings.push_back(DecodeString(mod.xxi[idx].name));
     }
     props.SetStrings(strings);
   }
@@ -491,19 +465,19 @@ namespace Xmp
         ctx->Call(&::xmp_get_frame_info, &frmInfo);
 
         PropertiesHelper props(*properties);
-        props.SetTitle(FromStdString(modInfo.mod->name));
-        props.SetAuthor(FromStdString(modInfo.mod->author));
-        props.SetProgram(FromStdString(modInfo.mod->type));
+        props.SetTitle(DecodeString(modInfo.mod->name));
+        props.SetAuthor(DecodeString(modInfo.mod->author));
+        props.SetProgram(DecodeString(modInfo.mod->type));
         if (const char* comment = modInfo.comment)
         {
-          props.SetComment(FromStdString(comment));
+          props.SetComment(DecodeString(comment));
         }
         ParseStrings(*modInfo.mod, props);
         const Binary::Container::Ptr data = rawData.GetSubcontainer(0, modInfo.size);
         const Formats::Chiptune::Container::Ptr source = Formats::Chiptune::CreateCalculatingCrcContainer(data, 0, modInfo.size);
         props.SetSource(*source);
 
-        return MakePtr<Holder>(ctx, modInfo, TimeType(frmInfo.total_time), properties);
+        return MakePtr<Holder>(ctx, modInfo, DurationType(frmInfo.total_time), properties);
       }
       catch (const std::exception&)
       {
@@ -611,18 +585,18 @@ namespace Xmp
       ,
       &far_loader
     },
-    /*
-    //Startrekker   may require additional files
+    //Startrekker
     {
       "MOD"
       ,
       "?{1080}"
-      "('F|'E)('L|'X)('T|'O)"
+      "('F   |'E)"
+      "('L   |'X)"
+      "('T   |'O)"
       "('4|'8|'M)"
       ,
       &flt_loader
     },
-    */
     //Funktracker
     {
       "FNK"

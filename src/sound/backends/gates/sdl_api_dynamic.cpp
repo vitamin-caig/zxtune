@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "sdl_api.h"
+#include "sound/backends/gates/sdl_api.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -47,7 +47,6 @@ namespace Sound
       }
     };
 
-    const Debug::Stream Dbg("Sound::Backend::Sdl");
 
     class DynamicApi : public Api
     {
@@ -55,12 +54,12 @@ namespace Sound
       explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
         : Lib(lib)
       {
-        Dbg("Library loaded");
+        Debug::Log("Sound::Backend::Sdl", "Library loaded");
       }
 
       ~DynamicApi() override
       {
-        Dbg("Library unloaded");
+        Debug::Log("Sound::Backend::Sdl", "Library unloaded");
       }
 
       

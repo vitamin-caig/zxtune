@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "event.h"
+#include "async/src/event.h"
 //common includes
 #include <pointers.h>
 #include <make_ptr.h>
@@ -21,7 +21,7 @@
 
 namespace Async
 {
-  enum ActivityState
+  enum class ActivityState
   {
     STOPPED,
     INITIALIZED,
@@ -36,7 +36,7 @@ namespace Async
 
     explicit ThreadActivity(Operation::Ptr op)
       : Oper(std::move(op))
-      , State(STOPPED)
+      , State(ActivityState::STOPPED)
     {
     }
 
@@ -48,18 +48,18 @@ namespace Async
     void Start()
     {
       Thread = std::thread(std::mem_fun(&ThreadActivity::WorkProc), this);
-      if (FAILED == State.WaitForAny(INITIALIZED, FAILED))
+      if (ActivityState::FAILED == State.WaitForAny(ActivityState::INITIALIZED, ActivityState::FAILED))
       {
         Thread.join();
-        State.Set(STOPPED);
+        State.Set(ActivityState::STOPPED);
         throw LastError;
       }
-      State.Set(STARTED);
+      State.Set(ActivityState::STARTED);
     }
 
     bool IsExecuted() const override
     {
-      return State.Check(STARTED);
+      return State.Check(ActivityState::STARTED);
     }
 
     void Wait() override
@@ -77,15 +77,15 @@ namespace Async
       try
       {
         Oper->Prepare();
-        State.Set(INITIALIZED);
-        State.Wait(STARTED);
+        State.Set(ActivityState::INITIALIZED);
+        State.Wait(ActivityState::STARTED);
         Oper->Execute();
-        State.Set(STOPPED);
+        State.Set(ActivityState::STOPPED);
       }
       catch (const Error& err)
       {
         LastError = err;
-        State.Set(FAILED);
+        State.Set(ActivityState::FAILED);
       }
     }
   private:

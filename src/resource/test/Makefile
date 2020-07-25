@@ -1,12 +1,12 @@
 binary_name := resource_test
-path_step := ../../..
+dirs.root := ../../..
 source_dirs := .
 embedded_files := resource.zip test.cpp
 
-libraries.common = binary binary_format debug formats_archived formats_packed l10n_stub platform resource tools
-libraries.3rdparty = zlib
+libraries.common = binary binary_compression binary_format debug formats_archived formats_chiptune formats_packed l10n_stub platform resource strings tools
+libraries.3rdparty = lhasa lzma unrar zlib
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak
 
 ifdef tools.root
 resource.zip: file nested/dir/file

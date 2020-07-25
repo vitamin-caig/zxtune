@@ -10,6 +10,8 @@
 
 //library includes
 #include <platform/tools.h>
+//std includes
+#include <array>
 //platform includes
 #include <windows.h>
 
@@ -31,9 +33,9 @@ namespace Platform
   std::string GetCurrentImageFilename()
   {
     const HMODULE mod = GetCurrentModule();
-    char buff[MAX_PATH + 1];
-    const uint_t size = ::GetModuleFileName(mod, &buff[0], static_cast<DWORD>(MAX_PATH));
+    std::array<char, MAX_PATH + 1> buff;
+    const uint_t size = ::GetModuleFileName(mod, buff.data(), static_cast<DWORD>(MAX_PATH));
     buff[size] = 0;
-    return std::string(buff);
+    return std::string(buff.data());
   }
 }

@@ -42,7 +42,7 @@ namespace Playlist
       virtual String GetFilePath() const = 0;
       virtual String GetType() const = 0;
       virtual String GetDisplayName() const = 0;
-      virtual Time::MillisecondsDuration GetDuration() const = 0;
+      virtual Time::Milliseconds GetDuration() const = 0;
       virtual String GetAuthor() const = 0;
       virtual String GetTitle() const = 0;
       virtual String GetComment() const = 0;

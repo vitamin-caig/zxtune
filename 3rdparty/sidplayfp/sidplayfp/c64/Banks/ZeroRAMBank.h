@@ -153,6 +153,8 @@ public:
     {
         dataFalloffBit6 = false;
         dataFalloffBit7 = false;
+        dataSetBit6 = 0;
+        dataSetBit7 = 0;
         dir = 0;
         data = 0x3f;
         dataRead = 0x3f;

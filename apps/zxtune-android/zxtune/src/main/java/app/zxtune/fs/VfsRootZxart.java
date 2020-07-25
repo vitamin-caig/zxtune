@@ -1,11 +1,7 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs;
@@ -15,35 +11,42 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.util.SparseIntArray;
 
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
 import app.zxtune.R;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.zxart.Author;
+import app.zxtune.fs.zxart.CachingCatalog;
 import app.zxtune.fs.zxart.Catalog;
 import app.zxtune.fs.zxart.Identifier;
 import app.zxtune.fs.zxart.Party;
+import app.zxtune.fs.zxart.RemoteCatalog;
 import app.zxtune.fs.zxart.Track;
 
+@Icon(R.drawable.ic_browser_vfs_zxart)
 public class VfsRootZxart extends StubObject implements VfsRoot {
 
-  private final static String TAG = VfsRootZxart.class.getName();
+  private static final String TAG = VfsRootZxart.class.getName();
 
+  private final VfsObject parent;
   private final Context context;
-  private final Catalog catalog;
-  private final GroupingDir groups[];
+  private final CachingCatalog catalog;
+  private final GroupingDir[] groups;
 
-  public VfsRootZxart(Context context, HttpProvider http, VfsCache cache) throws IOException {
+  public VfsRootZxart(VfsObject parent, Context context, MultisourceHttpProvider http) {
+    this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http, cache);
-    this.groups = new GroupingDir[] {
-        new AuthorsDir(),
-        new PartiesDir(),
-        new TopTracksDir()
+    this.catalog = Catalog.create(context, http);
+    this.groups = new GroupingDir[]{
+            new AuthorsDir(),
+            new PartiesDir(),
+            new TopTracksDir()
     };
   }
 
@@ -63,15 +66,14 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject getParent() {
-    return null;
+    return parent;
   }
 
   @Override
   public Object getExtension(String id) {
-    if (VfsExtensions.ICON_RESOURCE.equals(id)) {
-      return R.drawable.ic_browser_vfs_zxart;
-    } else if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+    if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
       //assume search by authors from root
       return new AuthorsSearchEngine();
     } else {
@@ -87,6 +89,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   }
 
   @Override
+  @Nullable
   public VfsObject resolve(Uri uri) {
     if (Identifier.isFromRoot(uri)) {
       final List<String> path = uri.getPathSegments();
@@ -96,6 +99,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
   }
 
+  @Nullable
   private VfsObject resolve(Uri uri, List<String> path) {
     final String category = Identifier.findCategory(path);
     if (category == null) {
@@ -119,6 +123,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     abstract String getPath();
 
+    @Nullable
     abstract VfsObject resolve(Uri uri, List<String> path);
   }
 
@@ -130,24 +135,19 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
 
     @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_zxart_authors_description);
-    }
-
-    @Override
     public VfsObject getParent() {
       return VfsRootZxart.this;
     }
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
+      if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
         return new AuthorsSearchEngine();
       } else {
         return super.getExtension(id);
       }
     }
-    
+
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(new Catalog.AuthorsVisitor() {
@@ -178,11 +178,12 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
       }
       final VfsObject dir = resolveAuthorDir(uri, path);
       return dir != null
-          ? dir
-          : this;
+              ? dir
+              : this;
     }
   }
 
+  @Nullable
   private VfsObject resolveAuthorDir(Uri uri, List<String> path) {
     final Author author = Identifier.findAuthor(uri, path);
     if (author == null) {
@@ -190,8 +191,8 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
     final Integer year = Identifier.findAuthorYear(uri, path);
     return year != null
-        ? new AuthorYearDir(author, year)
-        : new AuthorDir(author);
+            ? new AuthorYearDir(author, year)
+            : new AuthorDir(author);
   }
 
   private class AuthorDir extends StubObject implements VfsDir {
@@ -258,8 +259,8 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     @Override
     public String getName() {
       return year != 0
-          ? Integer.toString(year)
-          : context.getString(R.string.vfs_zxart_unknown_year_name);
+              ? Integer.toString(year)
+              : context.getString(R.string.vfs_zxart_unknown_year_name);
     }
 
     @Override
@@ -288,7 +289,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private class AuthorTrackFile extends BaseTrackFile {
 
-    public AuthorTrackFile(Uri uri, Track track) {
+    AuthorTrackFile(Uri uri, Track track) {
       super(uri, track);
     }
 
@@ -300,11 +301,11 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
   }
 
   private class AuthorsSearchEngine implements VfsExtensions.SearchEngine {
-    
+
     @Override
     public void find(String query, final Visitor visitor) throws IOException {
       catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
-        
+
         @Override
         public void accept(Author author, Track track) {
           final Uri uri = Identifier.forTrack(Identifier.forAuthor(author, track.year), track).build();
@@ -313,17 +314,12 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
       });
     }
   }
-  
+
   private class PartiesDir extends GroupingDir {
 
     @Override
     public String getName() {
       return context.getString(R.string.vfs_zxart_parties_name);
-    }
-
-    @Override
-    public String getDescription() {
-      return context.getString(R.string.vfs_zxart_parties_description);
     }
 
     @Override
@@ -362,18 +358,19 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
   }
 
+  @Nullable
   private VfsObject resolvePartyDir(Uri uri, List<String> path) {
     final Party party = Identifier.findParty(uri, path);
     if (party == null) {
       final Integer year = Identifier.findPartiesYear(uri, path);
       return year != null
-          ? new PartyYearDir(year)
-          : null;
+              ? new PartyYearDir(year)
+              : null;
     }
     final String compo = Identifier.findPartyCompo(uri, path);
     return compo != null
-        ? new PartyCompoDir(party, compo)
-        : new PartyDir(party);
+            ? new PartyCompoDir(party, compo)
+            : new PartyDir(party);
   }
 
   private class PartyYearDir extends StubObject implements VfsDir {
@@ -437,7 +434,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      final HashSet<String> compos = new HashSet<String>();
+      final HashSet<String> compos = new HashSet<>();
       catalog.queryPartyTracks(party, new Catalog.TracksVisitor() {
         @Override
         public void accept(Track obj) {
@@ -477,8 +474,28 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
   }
 
+  private static class PartyCompoTracksComparator implements Comparator<VfsObject> {
+    @Override
+    public int compare(VfsObject lh, VfsObject rh) {
+      final int lhPlace = ((BaseTrackFile) lh).module.partyplace;
+      final int rhPlace = ((BaseTrackFile) rh).module.partyplace;
+      return lhPlace == rhPlace
+          ? 0
+          : (lhPlace < rhPlace ? -1 : +1);
+    }
+
+    static Comparator<VfsObject> instance() {
+      return Holder.INSTANCE;
+    }
+
+    //onDemand holder idiom
+    private static class Holder {
+      static final PartyCompoTracksComparator INSTANCE = new PartyCompoTracksComparator();
+    }
+  }
+
   // custom ordering by party place
-  private class PartyCompoDir extends StubObject implements VfsDir, Comparator<VfsObject> {
+  private class PartyCompoDir extends StubObject implements VfsDir {
 
     private final Party party;
     private final CompoName compo;
@@ -503,6 +520,16 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
       return new PartyDir(party);
     }
 
+    @Nullable
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.COMPARATOR.equals(id)) {
+        return PartyCompoTracksComparator.instance();
+      } else {
+        return super.getExtension(id);
+      }
+    }
+
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryPartyTracks(party, new Catalog.TracksVisitor() {
@@ -515,20 +542,11 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
         public void accept(Track obj) {
           if (compo.getId().equals(obj.compo)) {
             final Uri uri = Identifier.forTrack(Identifier.forPartyCompo(party, compo.getId()), obj)
-                .build();
+                    .build();
             visitor.onFile(new PartyTrackFile(uri, obj));
           }
         }
       });
-    }
-
-    @Override
-    public int compare(VfsObject lh, VfsObject rh) {
-      final int lhPlace = ((BaseTrackFile) lh).module.partyplace;
-      final int rhPlace = ((BaseTrackFile) rh).module.partyplace;
-      return lhPlace == rhPlace
-          ? 0
-          : (lhPlace < rhPlace ? -1 : +1);
     }
   }
 
@@ -550,8 +568,26 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     }
   }
 
+  private static class TopTracksComparator implements Comparator<VfsObject> {
+    @Override
+    public int compare(VfsObject lh, VfsObject rh) {
+      // assume that votes can be compared in lexicographical order
+      return -String.CASE_INSENSITIVE_ORDER.compare(((VfsFile) lh).getSize(),
+          ((VfsFile) rh).getSize());
+    }
+
+    static Comparator<VfsObject> instance() {
+      return Holder.INSTANCE;
+    }
+
+    //onDemand holder idiom
+    private static class Holder {
+      static final TopTracksComparator INSTANCE = new TopTracksComparator();
+    }
+  }
+
   // custom ordering by votes desc
-  private class TopTracksDir extends GroupingDir implements Comparator<VfsObject> {
+  private class TopTracksDir extends GroupingDir {
 
     @Override
     public String getName() {
@@ -568,6 +604,16 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
       return VfsRootZxart.this;
     }
 
+    @Nullable
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.COMPARATOR.equals(id)) {
+        return TopTracksComparator.instance();
+      } else {
+        return super.getExtension(id);
+      }
+    }
+
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryTopTracks(100, new Catalog.TracksVisitor() {
@@ -579,7 +625,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
         @Override
         public void accept(Track obj) {
           final Uri uri = Identifier.forTrack(Identifier.forCategory(Identifier.CATEGORY_TOP), obj)
-              .build();
+                  .build();
           visitor.onFile(new TopTrackFile(uri, obj));
         }
       });
@@ -594,15 +640,8 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
     public VfsObject resolve(Uri uri, List<String> path) {
       final Track track = Identifier.findTopTrack(uri, path);
       return track != null
-          ? new TopTrackFile(uri, track)
-          : this;
-    }
-
-    @Override
-    public int compare(VfsObject lh, VfsObject rh) {
-      // assume that votes can be compared in lexicographical order
-      return -String.CASE_INSENSITIVE_ORDER.compare(((VfsFile) lh).getSize(),
-          ((VfsFile) rh).getSize());
+              ? new TopTrackFile(uri, track)
+              : this;
     }
 
     private class TopTrackFile extends BaseTrackFile {
@@ -625,8 +664,8 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
   private abstract class BaseTrackFile extends StubObject implements VfsFile {
 
-    protected final Uri uri;
-    protected final Track module;
+    final Uri uri;
+    final Track module;
 
     BaseTrackFile(Uri uri, Track module) {
       this.uri = uri;
@@ -650,7 +689,11 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     @Override
     public Object getExtension(String id) {
-      if (VfsExtensions.SHARE_URL.equals(id)) {
+      if (VfsExtensions.CACHE_PATH.equals(id)) {
+        return Integer.toString(module.id);
+      } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
+        return RemoteCatalog.getTrackUris(module.id);
+      } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {
         return super.getExtension(id);
@@ -662,14 +705,9 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
       return module.duration;
     }
 
-    @Override
-    public ByteBuffer getContent() throws IOException {
-      return catalog.getTrackContent(module.id);
-    }
-
     private String getShareUrl() {
-      return String.format(Locale.US, "http://zxart.ee/zxtune/action%%3aplay/tuneId%%3a%d",
-          module.id);
+      return String.format(Locale.US, "https://zxart.ee/zxtune/action%%3aplay/tuneId%%3a%d",
+              module.id);
     }
   }
 }

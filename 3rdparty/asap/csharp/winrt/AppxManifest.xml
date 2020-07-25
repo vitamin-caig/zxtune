@@ -1,0 +1,54 @@
+<Package xmlns="http://schemas.microsoft.com/appx/2010/manifest">
+	<Identity Name="ASAP" Publisher="CN=foxoft.com.pl" Version="3.2.0.0" />
+	<Properties>
+		<DisplayName>ASAP</DisplayName>
+		<PublisherDisplayName>foxoft.com.pl</PublisherDisplayName>
+		<Logo>Logo.png</Logo>
+		<Description>ASAP plays Atari 8-bit chiptunes</Description>
+	</Properties>
+	<Prerequisites>
+		<OSMinVersion>6.2</OSMinVersion>
+		<OSMaxVersionTested>6.2</OSMaxVersionTested>
+	</Prerequisites>
+	<Resources>
+		<Resource Language="en-us" />
+	</Resources>
+	<Applications>
+		<Application Id="MetroASAP" Executable="MetroASAP.exe" EntryPoint="MetroASAP">
+			<VisualElements DisplayName="ASAP" Description="ASAP plays Atari 8-bit chiptunes"
+				Logo="Logo.png" SmallLogo="SmallLogo.png" BackgroundColor="#c02020" ForegroundText="light">
+				<DefaultTile ShowName="allLogos" />
+				<SplashScreen Image="SplashScreen.png" />
+			</VisualElements>
+			<Extensions>
+				<Extension Category="windows.backgroundTasks" EntryPoint="MetroASAP">
+					<BackgroundTasks>
+						<Task Type="audio" />
+						<!-- <Task Type="controlChannel" /> XXX -->
+					</BackgroundTasks>
+				</Extension>
+				<Extension Category="windows.fileTypeAssociation">
+					<FileTypeAssociation Name="asap">
+						<Logo>FileLogo.png</Logo>
+						<SupportedFileTypes>
+							<FileType>.sap</FileType>
+							<FileType>.cmc</FileType>
+							<FileType>.cm3</FileType>
+							<FileType>.cmr</FileType>
+							<FileType>.cms</FileType>
+							<FileType>.dmc</FileType>
+							<FileType>.dlt</FileType>
+							<FileType>.mpt</FileType>
+							<FileType>.mpd</FileType>
+							<FileType>.rmt</FileType>
+							<FileType>.tmc</FileType>
+							<FileType>.tm8</FileType>
+							<FileType>.tm2</FileType>
+							<FileType>.fc</FileType>
+						</SupportedFileTypes>
+					</FileTypeAssociation>
+				</Extension>
+			</Extensions>
+		</Application>
+	</Applications>
+</Package>

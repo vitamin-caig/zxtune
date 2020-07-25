@@ -9,9 +9,9 @@
 **/
 
 //local includes
-#include "digitalmusicmaker.h"
-#include "dac_properties_helper.h"
-#include "dac_simple.h"
+#include "module/players/dac/digitalmusicmaker.h"
+#include "module/players/dac/dac_properties_helper.h"
+#include "module/players/dac/dac_simple.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -20,6 +20,8 @@
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <module/players/tracking.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -219,7 +221,7 @@ namespace DigitalMusicMaker
       Data->InitialTempo = tempo;
     }
 
-    void SetSample(uint_t index, std::size_t loop, const Binary::Data& sample) override
+    void SetSample(uint_t index, std::size_t loop, Binary::View sample) override
     {
       Data->Samples.Add(index, Devices::DAC::CreateU4PackedSample(sample, loop));
     }
@@ -670,9 +672,9 @@ namespace DigitalMusicMaker
 
     DAC::DataIterator::Ptr CreateDataIterator() const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const DAC::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return DAC::CreateDataIterator(iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
 
     void GetSamples(Devices::DAC::Chip::Ptr chip) const override
@@ -698,7 +700,8 @@ namespace DigitalMusicMaker
       if (const auto container = Formats::Chiptune::DigitalMusicMaker::Parse(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else
       {

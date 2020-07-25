@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "archived.h"
-#include "plugins.h"
+#include "core/plugins/archives/archived.h"
+#include "core/plugins/archives/plugins.h"
 //library includes
 #include <core/plugin_attrs.h>
 #include <formats/archived/decoders.h>
@@ -18,12 +18,12 @@
 
 namespace ZXTune
 {
-  typedef Formats::Archived::Decoder::Ptr (*CreateDecoderFunc)();
+  typedef Formats::Archived::Decoder::Ptr (*CreateArchivedDecoderFunc)();
 
   struct ContainerPluginDescription
   {
     const char* const Id;
-    const CreateDecoderFunc Create;
+    const CreateArchivedDecoderFunc Create;
     const uint_t Caps;
   };
 
@@ -36,6 +36,7 @@ namespace ZXTune
     {"LHA",     &CreateLhaDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
     {"UMX",     &CreateUMXDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::PLAIN},
     {"7ZIP",    &Create7zipDecoder,    Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"FSB",     &CreateFSBDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::PLAIN},
   };
 
   const ContainerPluginDescription ZXUNARCHIVES[] =
@@ -56,6 +57,7 @@ namespace ZXTune
     {"GBS",     &CreateGBSDecoder,     Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
     {"SAP",     &CreateSAPDecoder,     Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
     {"KSSX",    &CreateKSSXDecoder,    Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
+    {"HES",     &CreateHESDecoder,     Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
   };
 
   void RegisterPlugin(const ContainerPluginDescription& desc, ArchivePluginsRegistrator& registrator)

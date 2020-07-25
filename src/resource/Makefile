@@ -1,7 +1,7 @@
 library_name := resource
-path_step := ../..
+dirs.root := ../..
 source_dirs := src
 
 po_files := resource
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

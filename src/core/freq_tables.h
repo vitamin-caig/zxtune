@@ -50,4 +50,6 @@ namespace Module
   const Char TABLE_SQTRACKER[] = {'S','Q','T','r','a','c','k','e','r','\0'};
   //! Fuxoft frequency table
   const Char TABLE_FUXOFT[] = {'F','u','x','o','f','t','\0'};
+  //! FastTracker frequency table
+  const Char TABLE_FASTTRACKER[] = {'F','a','s','t','T','r','a','c','k','e','r','\0'};
 }

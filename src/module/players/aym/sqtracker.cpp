@@ -9,10 +9,10 @@
 **/
 
 //local includes
-#include "sqtracker.h"
-#include "aym_base.h"
-#include "aym_base_track.h"
-#include "aym_properties_helper.h"
+#include "module/players/aym/sqtracker.h"
+#include "module/players/aym/aym_base.h"
+#include "module/players/aym/aym_base_track.h"
+#include "module/players/aym/aym_properties_helper.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -25,6 +25,8 @@
 #include <unordered_map>
 //boost includes
 #include <boost/functional/hash.hpp>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -382,7 +384,7 @@ namespace SQTracker
     {
     }
   public:
-    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh)// = default
+    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh) noexcept// = default
       : PatternsBuilder(std::move(rh))
     {
     }
@@ -767,9 +769,9 @@ namespace SQTracker
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = MakePtr<DataRenderer>(Data);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = MakePtr<DataRenderer>(Data);
+      return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
@@ -787,7 +789,8 @@ namespace SQTracker
       if (const auto container = Formats::Chiptune::SQTracker::ParseCompiled(rawData, dataBuilder))
       {
         props.SetSource(*container);
-        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), properties);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
       else
       {

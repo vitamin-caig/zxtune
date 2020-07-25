@@ -11,124 +11,78 @@
 #pragma once
 
 //library includes
-#include <strings/format.h>
-#include <time/stamp.h>
-//boost includes
-#include <boost/math/common_factor_rt.hpp>
+#include <time/base.h>
 
 namespace Time
 {
-  template<class T, class TimeStamp>
-  class Duration
+  template<class Unit>
+  class Duration : public Base<Unit, DurationTag>
   {
+    using Parent = Base<Unit, DurationTag>;
+    using Parent::Value;
   public:
-    Duration()
-      : Count()
+    using Parent::Parent;
+    using Parent::Get;
+    using Parent::PER_SECOND;
+    using typename Parent::ValueType;
+
+    Duration() = default;
+
+    Duration(Parent rh)
+      : Parent(std::move(rh))
     {
     }
 
-    Duration(T count, const TimeStamp& period)
-      : Count(count)
-      , Period(period)
+    template<class OtherUnit, class OtherTag>
+    const Duration& operator += (Base<OtherUnit, OtherTag> rh)
     {
-    }
-
-    template<class T1>
-    Duration(const Duration<T1, TimeStamp>& rh)
-      : Count(rh.Count)
-      , Period(rh.Period)
-    {
-    }
-
-    void SetCount(T count)
-    {
-      Count = count;
-    }
-
-    void SetPeriod(const TimeStamp& period)
-    {
-      Period = period;
-    }
-
-    T GetCount() const
-    {
-      return Count;
-    }
-
-    template<class OtherTimestamp>
-    void SetPeriod(const OtherTimestamp& period)
-    {
-      SetPeriod(TimeStamp(period));
-    }
-
-    template<class T1>
-    bool operator < (const Duration<T1, TimeStamp>& rh) const
-    {
-      return Total() < rh.Total();
-    }
-
-    template<class T1>
-    Duration operator + (const Duration<T1, TimeStamp>& rh) const
-    {
-      Duration lh(*this);
-      return lh += rh;
-    }
-
-    template<class T1>
-    Duration& operator += (const Duration<T1, TimeStamp>& rh)
-    {
-      if (Period == rh.Period)
-      {
-        Count += rh.Count;
-      }
-      else
-      {
-        const typename TimeStamp::ValueType newPeriod = boost::math::gcd(Period.Get(), rh.Period.Get());
-        const T thisMult = Period.Get() / newPeriod;
-        const T rhMult = rh.Period.Get() / newPeriod;
-        Count = Count * thisMult + rh.Count * rhMult;
-        Period = TimeStamp(newPeriod);
-      }
+      Value += Duration(rh).Get();
       return *this;
     }
 
-    String ToString() const
+    template<class T>
+    Duration operator * (T mult) const
     {
-      return IsValid()
-        ? Serialize()
-        : String();
-    }
-  private:
-    bool IsValid() const
-    {
-      return Period.Get() != 0;
+      return Duration(static_cast<ValueType>(Value * mult));
     }
 
-    String Serialize() const
+    // Do not use operator / to allow to specify return type
+    template<class T, class OtherUnit,
+      class Common = typename std::conditional<Unit::PER_SECOND >= OtherUnit::PER_SECOND, Unit, OtherUnit>::type>
+    T Divide(Duration<OtherUnit> rh) const
     {
-      const typename TimeStamp::ValueType allUnits = Total();
-      const typename TimeStamp::ValueType allSeconds = allUnits / Period.PER_SECOND;
-      const uint_t allMinutes = allSeconds / SECONDS_PER_MINUTE;
-      const uint_t units = allUnits % Period.PER_SECOND;
-      const uint_t frames = units / Period.Get();
-      const uint_t seconds = allSeconds % SECONDS_PER_MINUTE;
-      const uint_t minutes = allMinutes % MINUTES_PER_HOUR;
-      const uint_t hours = allMinutes / MINUTES_PER_HOUR;
-      return Strings::FormatTime(hours, minutes, seconds, frames);
+      return T(Duration<Common>(*this).Get()) / Duration<Common>(rh).Get();
     }
 
-    typename TimeStamp::ValueType Total() const
+    template<class T = ValueType>
+    T ToFrequency() const
     {
-      return Period.Get() * Count;
+      return Get() ? (T(PER_SECOND) / Get()) : T();
     }
 
-    template<typename, typename> friend class Duration;
-  private:
-    T Count;
-    TimeStamp Period;
+    template<class T>
+    static Duration FromFrequency(T frequency)
+    {
+      return Duration(T(PER_SECOND) / frequency);
+    }
+
+    static Duration FromRatio(ValueType count, ValueType rate)
+    {
+      return rate
+        ? Duration(Math::Scale(count, rate, PER_SECOND))
+        : Duration();
+    }
   };
 
-  typedef Duration<uint_t, Milliseconds> MillisecondsDuration;
-  typedef Duration<uint_t, Microseconds> MicrosecondsDuration;
-  typedef Duration<uint_t, Nanoseconds> NanosecondsDuration;
+  template<class Unit1, class Unit2, class Tag2,
+    class Return = typename std::conditional<Unit1::PER_SECOND >= Unit2::PER_SECOND, Unit1, Unit2>::type>
+  inline Duration<Return> operator + (Duration<Unit1> lh, Base<Unit2, Tag2> rh)
+  {
+    return Duration<Return>(lh) += rh;
+  }
+
+  using Seconds = Duration<Second>;
+  using Milliseconds = Duration<Millisecond>;
+  using Microseconds = Duration<Microsecond>;
+  using Nanoseconds = Duration<Nanosecond>;
 }

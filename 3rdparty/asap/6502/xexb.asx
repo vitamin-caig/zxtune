@@ -1,0 +1,103 @@
+HIDE_AUTHOR	equ	0
+	ift	HIDE_AUTHOR
+countdown	equ	$fca7
+	els
+countdown	equ	$fc98
+	eif
+
+	org	$124
+main
+	sei
+	mvy	#0	^4e
+	lda:rne	^4b
+	sta	^40
+	ldx	#29
+	sta:rpl	^00,x-
+	ert	*!=$13a
+	ldx	#8
+init_pokey_1
+	sta	$d210,x
+	sta	$d200,x
+	dex:bpl	init_pokey_1
+	lda	#3
+	sta	$d21f
+	sta	$d200
+
+; check PAL vs NTSC ANTIC
+; possible NTSC GTIA with PAL ANTIC
+	lda	#130
+	cmp:rne	^4b
+:3	sta	^4a
+	lda	^4b
+	sne:inc	ntsc
+
+	lda	song
+	jsr	init
+
+; TODO: support 400/800/600XL
+	mva	#$fe	^31
+	lda	<nmi
+	ldx	$135
+	seq:lda	<nmi_info
+	sta	$fffa
+	mva	>nmi	$fffb
+	mva	#$40	^4e
+
+	lda	#125
+
+player_loop
+	cmp:rne	^4b
+	jsr	player
+	ldx	#0
+ntsc	equ	*-1
+	lda	fastplay_low_bit
+	lsr	@
+	bcc	fastplay_is_even
+	lda	#0
+calls	equ	*-1
+	inc	calls
+	lsr	@
+fastplay_is_even
+	lda	vcount_period,x
+	adc	#125
+expected_vcount	equ	*-1
+	bcs	next_frame
+	cmp	vcount_wrap,x
+	bcc	same_frame
+next_frame
+	sbc	vcount_wrap,x
+	sec
+same_frame
+	sta	expected_vcount
+	lda	frame_period,x
+	adc	#0
+expected_frame	equ	*-1
+	sta	expected_frame
+	cmp	#0
+frame	equ	*-1
+	rne
+	lda	expected_vcount
+	bcs	player_loop	!
+
+nmi_info
+	pha
+	txa:pha
+	ldx	ntsc
+	jsr	countdown
+	pla:tax
+	pla
+nmi
+	inc	frame
+	rti
+
+vcount_wrap	dta	156,131
+init	dta	{jmp 0}
+	opt	o-
+	dta	a(0)
+player	jmp	0
+song	dta	0
+fastplay_low_bit	dta	0
+vcount_period	dta	0,0
+frame_period	dta	0,0
+
+	end

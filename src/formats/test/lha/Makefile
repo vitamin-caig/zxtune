@@ -1,10 +1,13 @@
 binary_name := formats_test_lha
-path_step := ../../../..
+dirs.root := ../../../..
 source_dirs := .
 
-libraries.common = binary binary_format debug formats_archived formats_packed tools
-libraries.3rdparty = lhasa
+libraries.common = binary binary_compression binary_format debug \
+                   formats_archived formats_chiptune formats_packed_archives formats_packed_decompilers \
+                   strings tools
 
-windows_libraries = oldnames
+libraries.3rdparty = lhasa lzma unrar zlib
 
-include $(path_step)/makefile.mak
+libraries.windows = oldnames
+
+include $(dirs.root)/makefile.mak

@@ -1,0 +1,102 @@
+<application xmlns="http://ns.adobe.com/air/application/1.5">
+	<id>net.sf.asap.AIRASAP</id>
+	<version>3.2.0</version>
+	<filename>AIRASAP</filename>
+	<initialWindow>
+		<content>airasap.html</content>
+		<visible>true</visible>
+		<maximizable>false</maximizable>
+		<width>300</width>
+		<height>180</height>
+	</initialWindow>
+	<icon>
+		<image16x16>asap16x16.png</image16x16>
+		<image32x32>asap32x32.png</image32x32>
+	</icon>
+	<fileTypes>
+		<fileType>
+			<name>sap.file</name>
+			<extension>sap</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-sap</contentType>
+		</fileType>
+		<fileType>
+			<name>cmc.file</name>
+			<extension>cmc</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-cmc</contentType>
+		</fileType>
+		<fileType>
+			<name>cm3.file</name>
+			<extension>cm3</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-cm3</contentType>
+		</fileType>
+		<fileType>
+			<name>cmr.file</name>
+			<extension>cmr</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-cmr</contentType>
+		</fileType>
+		<fileType>
+			<name>cms.file</name>
+			<extension>cms</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-cms</contentType>
+		</fileType>
+		<fileType>
+			<name>dmc.file</name>
+			<extension>dmc</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-dmc</contentType>
+		</fileType>
+		<fileType>
+			<name>dlt.file</name>
+			<extension>dlt</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-dlt</contentType>
+		</fileType>
+		<fileType>
+			<name>mpt.file</name>
+			<extension>mpt</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-mpt</contentType>
+		</fileType>
+		<fileType>
+			<name>mpd.file</name>
+			<extension>mpd</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-mpd</contentType>
+		</fileType>
+		<fileType>
+			<name>rmt.file</name>
+			<extension>rmt</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-rmt</contentType>
+		</fileType>
+		<fileType>
+			<name>tmc.file</name>
+			<extension>tmc</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-tmc</contentType>
+		</fileType>
+		<fileType>
+			<name>tm8.file</name>
+			<extension>tm8</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-tm8</contentType>
+		</fileType>
+		<fileType>
+			<name>tm2.file</name>
+			<extension>tm2</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-tm2</contentType>
+		</fileType>
+		<fileType>
+			<name>fc.file</name>
+			<extension>fc</extension>
+			<description>Atari 8-bit music</description>
+			<contentType>audio/x-fc</contentType>
+		</fileType>
+	</fileTypes>
+</application>

@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:sabd="http://schemas.android.com/apk/res-auto" 
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" 
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
     <LinearLayout
-      android:id="@+id/browser_sources"
-      android:orientation="horizontal"
+            android:orientation="horizontal"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       >
-      <android.support.v7.widget.SearchView
+      <SearchView
         android:id="@+id/browser_search"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:imeOptions="actionSearch|flagNoExtractUi|flagForceAscii"
-        sabd:iconifiedByDefault="true"
-        sabd:queryHint="@string/browser_search_hint"
+        android:iconifiedByDefault="true"
+        android:queryHint="@string/browser_search_hint"
       />
       <Button
         android:id="@+id/browser_roots"
@@ -24,27 +23,33 @@
         android:drawableLeft="@drawable/ic_browser_folder"
         style="@style/Button.Breadcrumbs"
       />
-      <app.zxtune.ui.browser.BreadCrumbsView
-        android:id="@+id/browser_breadcrumb"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        />
+      <androidx.recyclerview.widget.RecyclerView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/browser_breadcrumb"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+      />
     </LinearLayout>
     <ProgressBar
         android:id="@+id/browser_loading"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="invisible"
+        android:max="100"
         style="?android:attr/progressBarStyleHorizontal"
     />
-    <app.zxtune.ui.browser.BrowserView
-        android:id="@+id/browser_content"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingLeft="@dimen/spacing_full"
-        android:paddingRight="@dimen/spacing_full"
-        android:fastScrollEnabled="true"
+    <androidx.recyclerview.widget.RecyclerView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/browser_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:fastScrollEnabled="true"
+            app:fastScrollHorizontalThumbDrawable="@drawable/scroll_thumb"
+            app:fastScrollHorizontalTrackDrawable="@drawable/scroll_track"
+            app:fastScrollVerticalThumbDrawable="@drawable/scroll_thumb"
+            app:fastScrollVerticalTrackDrawable="@drawable/scroll_track"
     />
     <TextView
         android:id="@+id/browser_stub"

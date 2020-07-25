@@ -11,24 +11,22 @@
 **/
 
 //local includes
-#include "container.h"
-#include "hrust1_bitstream.h"
-#include "pack_utils.h"
+#include "formats/packed/container.h"
+#include "formats/packed/hrust1_bitstream.h"
+#include "formats/packed/pack_utils.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
+#include <binary/input_stream.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
 #include <cstring>
 #include <functional>
 #include <numeric>
-//boost includes
-#include <boost/bind.hpp>
 //text includes
 #include <formats/text/packed.h>
 
@@ -412,7 +410,7 @@ namespace Packed
           {
             //just copy
             Result->resize(size);
-            std::memcpy(&(*Result)[0], &Header.Stream, size);
+            std::memcpy(Result->data(), &Header.Stream, size);
             return true;
           }
           RawDataDecoder decoder(Header.Stream, fromLE(Header.PackedSize));
@@ -482,14 +480,13 @@ namespace Packed
             return Blocks.front();
           }
           const std::size_t totalSize = std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0), 
-            boost::bind(std::plus<std::size_t>(), _1,
-              boost::bind(&Binary::Container::Size, _2)));
+            [](std::size_t size, const Binary::Container::Ptr& data) {return size + data->Size();});
           std::unique_ptr<Dump> result(new Dump(totalSize));
-          std::size_t offset = 0;
+          auto* target = result->data();
           for (const auto& block : Blocks)
           {
-            std::memcpy(&result->at(offset), block->Start(), block->Size());
-            offset += block->Size();
+            std::memcpy(target, block->Start(), block->Size());
+            target += block->Size();
           }
           return Binary::CreateContainer(std::move(result));
         }
@@ -536,38 +533,37 @@ namespace Packed
       private:
         void DecodeData()
         {
-          const Binary::TypedContainer source(Data);
+          Binary::InputStream source(Data);
           BlocksAccumulator target;
-          std::size_t offset = 0;
           for (;;)
           {
-            if (const FormatHeader* hdr = source.GetField<FormatHeader>(offset))
+            if (const auto* hdr = source.PeekField<FormatHeader>())
             {
               if (!hdr->Check())
               {
                 break;
               }
-              const std::size_t blockEnd = offset + hdr->GetTotalSize();
-              const std::size_t packedOffset = offset + hdr->GetSize();
-              const std::size_t packedSize = blockEnd - packedOffset;
-              if (blockEnd > Data.Size() || 0 == packedSize)
+              const auto packedOffset = hdr->GetSize();
+              const auto totalSize = hdr->GetTotalSize();
+              const auto packedSize = totalSize - packedOffset;
+              if (0 == packedSize || totalSize > source.GetRestSize())
               {
                 break;
               }
-              const Binary::Container::Ptr packedData = Data.GetSubcontainer(packedOffset, packedSize);
+              source.Skip(packedOffset);
+              auto packedData = source.ReadContainer(packedSize);
               if (0 != (hdr->Flag & FormatHeader::STORED_BLOCK))
               {
-                target.AddBlock(packedData);
+                target.AddBlock(std::move(packedData));
               }
-              else if (const Binary::Container::Ptr unpackedData = DecodeBlock(*packedData))
+              else if (auto unpackedData = DecodeBlock(*packedData))
               {
-                target.AddBlock(unpackedData);
+                target.AddBlock(std::move(unpackedData));
               }
               else
               {
                 break;
               }
-              offset = blockEnd;
               if (0 != (hdr->Flag & FormatHeader::LAST_BLOCK))
               {
                 break;
@@ -581,7 +577,7 @@ namespace Packed
           Result = target.GetResult();
           if (Result)
           {
-            UsedSize = offset;
+            UsedSize = source.GetPosition();
           }
         }
       private:

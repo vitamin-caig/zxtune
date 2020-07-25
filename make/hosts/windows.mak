@@ -8,4 +8,5 @@ copyfile_cmd = copy /y $(subst /,\,$(1) $(2))
 makepkg_cmd = (cd $(subst /,\,$(1)) && $(tools.root)zip -9rD $(CURDIR)\$(subst /,\,$(2)) .)
 pkg_suffix := zip
 embed_file_cmd = copy /B $(subst /,\,$@ $(addprefix +,$(embedded_files)) $@)
-sleep_cmd = timeout 1 >NUL
+#TIMEOUT doesn't work in non-interactive scripts
+sleep_cmd = ping -n 2 127.0.0.1 >NUL

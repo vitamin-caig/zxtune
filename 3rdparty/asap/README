@@ -1,0 +1,236 @@
+﻿ASAP - Another Slight Atari Player
+==================================
+
+// This file is in AsciiDoc format. It is converted to README.html.
+:Compact-Option:
+
+ifdef::asapwww[]
+link:NEWS.html[News] |
+http://sourceforge.net/p/asap/code[Browse source code (Git)] |
+http://sourceforge.net/projects/asap/[SourceForge project page]
+image:http://sflogo.sourceforge.net/sflogo.php?group_id=154391&amp;type=13["Get ASAP - Another Slight Atari Player at SourceForge.net. Fast, secure and Free Open Source software downloads",width=120,height=30,link="http://sourceforge.net/projects/asap/"]
+endif::asapwww[]
+
+ASAP is a player of http://en.wikipedia.org/wiki/Atari_8-bit_family[Atari 8-bit]
+music for modern computers and mobile devices.
+It emulates the http://en.wikipedia.org/wiki/POKEY[POKEY sound chip]
+and the http://en.wikipedia.org/wiki/6502[6502 processor].
+The project was initially based on the routines from the
+http://atari800.sourceforge.net/[Atari800 emulator],
+but the current version has original emulation core.
+
+ifdef::asapwww[]
+
+Download
+--------
+
+[horizontal]
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-win32.msi/download[asap-3.2.0-win32.msi]::
+Installer for all versions of desktop Windows (32-bit and 64-bit).
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/foo_asap-3.2.0.fb2k-component/download[foo_asap-3.2.0.fb2k-component]::
+If you only want the http://foobar2000.org/[foobar2000] plugin.
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-android.apk/download[asap-3.2.0-android.apk]::
+Android application.
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-wince-arm.cab/download[asap-3.2.0-wince-arm.cab]::
+WASAP, Windows Media Player and GSPlayer plugins for Windows Mobile.
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-web.zip/download[asap-3.2.0-web.zip]::
+Embed ASAP on your web page.
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-java.zip/download[asap-3.2.0-java.zip]::
+Java midlet for mobile phones.
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-air.air/download[asap-3.2.0-air.air]::
+Desktop player in JavaScript (requires http://www.adobe.com/products/air/[Adobe AIR]).
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-win64.msi/download[asap-3.2.0-win64.msi]::
+View and edit SAP file tags in your 64-bit Windows Explorer. Listen in 64-bit Windows Media Player.
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-win32.zip/download[asap-3.2.0-win32.zip]::
+For Windows people allergic to installers.
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-wince-arm.zip/download[asap-3.2.0-wince-arm.zip]::
+For Windows Mobile people allergic to installers.
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-vlc-3.2.0-osx.dmg/download[asap-vlc-3.2.0-osx.dmg]::
+VLC plugin for OS X (Intel 32-bit and 64-bit). Drag `libasap_plugin.dylib` to `plugins`.
+
+asap_3.2.0-1_\{http://sourceforge.net/projects/asap/files/asap/3.2.0/asap_3.2.0-1_i386.deb/download[i386],http://sourceforge.net/projects/asap/files/asap/3.2.0/asap_3.2.0-1_amd64.deb/download[amd64]\}.deb::
+Linux binary of asapconv.
+
+asap-3.2.0-1.\{http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-1.i686.rpm/download[i686],http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0-1.x86_64.rpm/download[x86_64]\}.rpm::
+Linux binary of asapconv.
+
+asap-gstreamer0.10_3.2.0-1_\{http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-gstreamer0.10_3.2.0-1_i686.rpm/download[i686],http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-gstreamer0.10_3.2.0-1_amd64.deb/download[amd64]\}.deb::
+Linux binary of the GStreamer 0.10 plugin.
+
+asap-gstreamer0.10-3.2.0-1.\{http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-gstreamer0.10-3.2.0-1.i686.rpm/download[i686],http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-gstreamer0.10-3.2.0-1.x86_64.rpm/download[x86_64]\}.rpm::
+Linux binary of the GStreamer 0.10 plugin.
+
+asap-vlc_3.2.0-1_\{http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-vlc_3.2.0-1_i386.deb/download[i386],http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-vlc_3.2.0-1_amd64.deb/download[amd64]\}.deb::
+Linux binary of the VLC plugin.
+
+asap-vlc-3.2.0-1.\{http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-vlc-3.2.0-1.i686.rpm/download[i686],http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-vlc-3.2.0-1.x86_64.rpm/download[x86_64]\}.rpm::
+Linux binary of the VLC plugin.
+
+asap-dev_3.2.0-1_\{http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-dev_3.2.0-1_i386.deb/download[i386],http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-dev_3.2.0-1_amd64.deb/download[amd64]\}.deb::
+Linux library for embedding ASAP in other applications.
+
+asap-devel-3.2.0-1.\{http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-devel-3.2.0-1.i686.rpm/download[i686],http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-devel-3.2.0-1.x86_64.rpm/download[x86_64]\}.rpm::
+Linux library for embedding ASAP in other applications.
+
+asap-xmms-3.2.0-1.\{http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-xmms-3.2.0-1.i686.rpm/download[i686],http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-xmms-3.2.0-1.x86_64.rpm/download[x86_64]\}.rpm::
+Linux binary of the XMMS plugin.
+
+http://sourceforge.net/projects/asap/files/asap/3.2.0/asap-3.2.0.tar.gz/download[asap-3.2.0.tar.gz]::
+Full source code (use for the Audacious plugin on Linux).
+
+All released files are available http://sourceforge.net/projects/asap/files/asap/[here].
+
+endif::asapwww[]
+
+Input formats
+-------------
+
+ASAP supports the following file formats:
+
+SAP (Slight Atari Player)::
+Designed for playing Atari 8-bit music on PCs.
+All other formats can be converted to SAP.
+http://asma.atari.org/[Atari SAP Music Archive (ASMA)]
+is a single big collection of SAP files.
+
+CMC (Chaos Music Composer)::
+Atari music editor from early 1990s.
+
+CM3 (CMC "3/4")::
+CMC with modified pattern length.
+
+CMR (CMC "Rzog")::
+CMC with modified bass sounds.
+
+CMS (Stereo Double CMC)::
+Stereo CMC.
+
+DMC (DoublePlay CMC)::
+CMC with 6502 routine executed at double rate of the original CMC.
+
+DLT (Delta Music Composer)::
+Atari music editor from 1990s.
+
+FC (Future Composer)::
+Atari music editor from 1990s.
+
+MPT (Music ProTracker)::
+Atari music editor from 1990s.
+
+MPD (MPT DoublePlay)::
+MPT with 6502 routine executed at double rate of the original MPT.
+
+RMT (http://raster.infos.cz/atari/rmt/rmt.htm[Raster Music Tracker])::
+Modern Atari music editor running on Windows.
+
+TMC, TM8 (http://jaskier.atari8.info/[Theta Music Composer] 1.x)::
+Atari music editor from late 1990s.
+The two file extensions are treated identically and played in stereo.
+TM8 means it's stereo (8-channel) music while TMC can be either mono or stereo.
+
+TM2 (http://jaskier.atari8.info/[Theta Music Composer] 2.x)::
+Modern Atari music editor.
+
+STIL (SAP Tune Information List)::
+This isn't a music format.
+It's a text file that contains cover information and comments for many music files.
+This format is identical to http://www.hvsc.de/download/C64Music/DOCUMENTS/STIL.faq[C64 STIL].
+`STIL.txt` is distributed with ASMA (see above).
+
+You can find some example files in http://asap.sourceforge.net/examples.zip[examples.zip].
+
+For viewing Atari pictures check out our sister project http://recoil.sourceforge.net[RECOIL].
+
+Ports
+-----
+
+ASAP runs on Windows, Linux, in web browsers and mobile devices.
+This remarkable portability is possible thanks to the http://cito.sourceforge.net[Ć programming language].
+
+ASAP includes the following programs:
+
+- plugins for Windows/Linux players: http://audacious-media-player.org/[Audacious], http://www.videolan.org/vlc/[VLC], http://xbmc.org/[XBMC], http://gstreamer.freedesktop.org/[GStreamer]
+- plugins for Windows players: http://www.microsoft.com/windows/windowsmedia/player/[Windows Media Player], http://www.winamp.com/[Winamp], http://foobar2000.org/[foobar2000], http://www.un4seen.com/xmplay.html[XMPlay], http://koti.welho.com/hylinen/apollo/[Apollo], http://hp.vector.co.jp/authors/VA032810/[GSPlayer]
+- plugins for Linux players: http://xmms.org/[XMMS], http://moc.daper.net/[MOC]
+- add-on for Windows library http://www.un4seen.com/bass.html[BASS] (for http://www.aimp.ru/[AIMP] and http://www.un4seen.com/bass_showcase.php[other players])
+- asapconv - portable command-line converter
+- WASAP - tiny player for Windows (desktop and mobile)
+- POKEY sound emulation DLL for http://raster.infos.cz/atari/rmt/rmt.htm[Raster Music Tracker]
+- Windows Explorer extension - shows and edits metadata
+- AIRASAP - simple desktop player in the http://www.adobe.com/products/air/[Adobe AIR] technology
+- AndroidASAP - player for mobile devices
+- Java midlet - player for mobile phones
+- Flash player - for web pages {asapwww?(see link:flash.html[online demo])}
+- Java applet - for web pages {asapwww?(see link:applet.html[online demo])}
+- JavaScript player - for web pages {asapwww?(see link:javascript.html[online demo])}
+- http://www.silverlight.net/[Silverlight] player - for web pages {asapwww?(see link:silverlight.html[online demo])}
+- MetroASAP - experimental player for Windows 8
+- ASAP2WAV - command-line converters to WAV files implemented in Java, C#, JavaScript, Perl and http://dlang.org/[D]
+- simple command-line players implemented in C/SDL, C# and D
+
+{asapports}link:PORTS.xml[This table] summarizes differences between the above versions.
+
+To play the music on an Atari 8-bit, convert the music to an Atari program (XEX) using asapconv, WASAP, Winamp, Apollo or XMPlay.
+
+There are other projects which use ASAP:
+
+- http://mmsap.sourceforge.net/[mmSAP] - standalone player for GNU/Linux and Windows with GTK+ user interface
+- http://www.rockbox.org/[Rockbox] - open source firmware for MP3 players
+- http://bzrplayer.blazer.nu[BZR Player] - player for Windows
+- Game Music Gear MX - player for PlayStation Portable
+- http://yoyofr.blogspot.com/p/modizer.html[Modizer] - player for iPhone, iPod and iPad
+- http://www.chipamp.org/[Chipamp] - bundle of plugins for Winamp
+- http://atari-sounds.fatmagnus.ppa.pl/[Atari Sounds For The Masses] - GUI frontend to asapconv for Mac OS X
+- http://dangerousprototypes.com/forum/viewtopic.php?t=3944[Atari POKEY 8-bit Computer Sound on PIC32] - ASAP on a microcontroller
+- http://mxplay.atari.org/[mxPlay] - audio player for Atari Falcon
+- https://github.com/epi/enotracker[enotracker] - POKEY music editor for PC
+
+ifdef::asapsrc[]
+include::INSTALL[]
+endif::asapsrc[]
+
+ifdef::asapjava[]
+include::java/USAGE[]
+endif::asapjava[]
+
+ifdef::asapjavascript[]
+include::javascript/USAGE[]
+endif::asapjavascript[]
+
+ifdef::asapweb[]
+include::USAGE-WEB[]
+endif::asapweb[]
+
+ifdef::asapwin[]
+include::win32/USAGE[]
+endif::asapwin[]
+
+ifdef::asapwince[]
+include::win32/wince/USAGE[]
+endif::asapwince[]
+
+include::CREDITS[]
+
+
+Feedback
+--------
+
+If you are interested in the ASAP project, please subscribe its
+https://lists.sourceforge.net/lists/listinfo/asap-users[mailing list].
+This list is for users and developers.
+Once you subscribe, you can post comments, ideas and questions about ASAP.
+They will be answered ASAP. ;-)
+
+Use http://sourceforge.net/p/asap/_list/tickets[tracker]
+to submit bug reports, feature requests and small code patches.

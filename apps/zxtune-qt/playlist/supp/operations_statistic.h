@@ -25,7 +25,7 @@ namespace Playlist
       virtual void AddInvalid() = 0;
       virtual void AddValid() = 0;
       virtual void AddType(const String& type) = 0;
-      virtual void AddDuration(const Time::MillisecondsDuration& duration) = 0;
+      virtual void AddDuration(const Time::Milliseconds& duration) = 0;
       virtual void AddSize(std::size_t size) = 0;
       virtual void AddPath(const String& path) = 0;
     };

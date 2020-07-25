@@ -11,7 +11,7 @@
 package app.zxtune;
 
 import android.app.IntentService;
-import android.app.NotificationManager;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -22,31 +22,34 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
-import android.support.v4.app.NotificationCompat.Builder;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+
 import java.io.File;
-import java.io.IOException;
-import java.io.InvalidObjectException;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.analytics.Analytics;
+import app.zxtune.core.Player;
+import app.zxtune.core.Properties;
+import app.zxtune.device.ui.Notifications;
 import app.zxtune.playback.FileIterator;
 import app.zxtune.playback.PlayableItem;
+import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.PlayerEventsListener;
 import app.zxtune.sound.SamplesSource;
 import app.zxtune.sound.StubPlayerEventsListener;
-import app.zxtune.sound.SyncPlayer;
 import app.zxtune.sound.WaveWriteSamplesTarget;
 
 public class RingtoneService extends IntentService {
 
   private static final String TAG = RingtoneService.class.getName();
   
-  public static final String ACTION_MAKERINGTONE = TAG + ".makeringtone";
-  public static final String EXTRA_MODULE = "module";
-  public static final String EXTRA_DURATION_SECONDS = "duration";
-  public static final long DEFAULT_DURATION_SECONDS = 30;
+  private static final String ACTION_MAKERINGTONE = TAG + ".makeringtone";
+  private static final String EXTRA_MODULE = "module";
+  private static final String EXTRA_DURATION_SECONDS = "duration";
+  private static final long DEFAULT_DURATION_SECONDS = 30;
   
   private final Handler handler;
   
@@ -80,20 +83,10 @@ public class RingtoneService extends IntentService {
       }
     });
   }
-  
-  private void showNotification(String moduleTitle) {
-    final Builder builder = new Builder(this);
-    builder.setOngoing(false);
-    builder.setSmallIcon(R.drawable.ic_stat_notify_ringtone);
-    builder.setContentTitle(getString(R.string.ringtone_changed));
-    builder.setContentText(moduleTitle);
-    final NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    manager.notify(RingtoneService.class.hashCode(), builder.build());
-  }
-  
+
   @Override
-  protected void onHandleIntent(Intent intent) {
-    if (ACTION_MAKERINGTONE.equals(intent.getAction())) {
+  protected void onHandleIntent(@Nullable Intent intent) {
+    if (intent != null && ACTION_MAKERINGTONE.equals(intent.getAction())) {
       final Uri module = intent.getParcelableExtra(EXTRA_MODULE);
       final long seconds = intent.getLongExtra(EXTRA_DURATION_SECONDS, DEFAULT_DURATION_SECONDS);
       final TimeStamp duration = TimeStamp.createFrom(seconds, TimeUnit.SECONDS);
@@ -104,32 +97,28 @@ public class RingtoneService extends IntentService {
   private void createRingtone(Uri source, TimeStamp howMuch) {
     try {
       final PlayableItem item = load(source);
-      try {
-        final File target = getTargetLocation(item, howMuch); 
-        convert(item, howMuch, target);
-        final String title = setAsRingtone(item, howMuch, target);
-        showNotification(title);
-        Analytics.sendSocialEvent("Ringtone", "app.zxtune", item);
-      } finally {
-        item.release();
-      }
+      final File target = getTargetLocation(item, howMuch);
+      convert(item, howMuch, target);
+      final String title = setAsRingtone(item, howMuch, target);
+      Notifications.sendEvent(this, R.drawable.ic_stat_notify_ringtone, R.string.ringtone_changed, title);
+      Analytics.sendSocialEvent(source,"app.zxtune", Analytics.SOCIAL_ACTION_RINGTONE);
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to create ringtone");
       makeToast(e);
     }
   }
 
-  private PlayableItem load(Uri uri) throws IOException {
-    final FileIterator iter = new FileIterator(this, new Uri[] {uri});
+  private PlayableItem load(Uri uri) throws Exception {
+    final FileIterator iter = FileIterator.create(this, uri);
     return iter.getItem();
   }
     
   private File getTargetLocation(PlayableItem item, TimeStamp duration) {
     final File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RINGTONES);
-    if (!dir.exists()) {
-      dir.mkdirs();
+    if (dir.mkdirs()) {
+      Log.d(TAG, "Created ringtones directory");
     }
-    final long moduleId = getModuleId(item); 
+    final long moduleId = getModuleId(item);
     final String filename = String.format(Locale.US, "%d_%d.wav", moduleId, duration.convertTo(TimeUnit.SECONDS)); 
     Log.d(TAG, "Dir: %s filename: %s", dir, filename);
     return new File(dir, filename);
@@ -145,16 +134,28 @@ public class RingtoneService extends IntentService {
     public void onError(Exception e) {
       makeToast(e);
     }
-  }; 
+
+    @Override
+    public void onFinish() {
+      synchronized (this) {
+        notifyAll();
+      }
+    }
+  }
   
-  private void convert(PlayableItem item, TimeStamp limit, File location) throws InvalidObjectException {
+  private void convert(PlayableItem item, TimeStamp limit, File location)  throws Exception {
     makeToast(getString(R.string.ringtone_create_started), Toast.LENGTH_SHORT);
     final TimeLimitedSamplesSource source = new TimeLimitedSamplesSource(item.getModule().createPlayer(), limit);
     final WaveWriteSamplesTarget target = new WaveWriteSamplesTarget(location.getAbsolutePath());
-    final PlayerEventsListener events = new NotifyEventsListener(); 
-    final SyncPlayer player = new SyncPlayer(source, target, events);
+    final PlayerEventsListener events = new NotifyEventsListener();
+    final app.zxtune.sound.Player player = AsyncPlayer.create(target, events);
     try {
-      player.startPlayback();
+      player.setSource(source);
+      synchronized (events) {
+        player.startPlayback();
+        events.wait();
+        player.stopPlayback();
+      }
     } finally {
       player.release();
     }
@@ -187,20 +188,22 @@ public class RingtoneService extends IntentService {
     values.put(MediaStore.Audio.Media.IS_MUSIC, false);
     return values;
   }
-  
+
+  @Nullable
   private Uri createOrUpdateRingtone(ContentValues values) {
+    final ContentResolver resolver = getContentResolver();
     final String path = values.getAsString(MediaStore.MediaColumns.DATA);
     final Uri tableUri = MediaStore.Audio.Media.getContentUriForPath(path);
-    final Cursor query = getContentResolver().query(tableUri,
+    final Cursor query = resolver.query(tableUri,
         new String[] {MediaStore.MediaColumns._ID},
         MediaStore.MediaColumns.DATA + " = '" + path + "'", null,
         null);
     Uri ringtoneUri;
     try {
-      if (query.moveToFirst()) {
+      if (query != null && query.moveToFirst()) {
         final long id = query.getLong(0);
         ringtoneUri = ContentUris.withAppendedId(tableUri, id);
-        if (0 != getContentResolver().update(ringtoneUri, values,
+        if (0 != resolver.update(ringtoneUri, values,
             MediaStore.Audio.Media.IS_RINGTONE + " = 1",
             null)) {
           Log.d(TAG, "Updated ringtone at %s", ringtoneUri);
@@ -208,31 +211,33 @@ public class RingtoneService extends IntentService {
           Log.d(TAG, "Failed to update ringtone %s", ringtoneUri);
         }
       } else {
-        ringtoneUri = getContentResolver().insert(tableUri, values);
+        ringtoneUri = resolver.insert(tableUri, values);
         Log.d(TAG, "Registered new ringtone at %s", ringtoneUri);
       }
     } finally {
-      query.close();
+      if (query != null) {
+        query.close();
+      }
     }
     return ringtoneUri;
   }
   
   private static class TimeLimitedSamplesSource implements SamplesSource {
 
-    private ZXTune.Player player;
+    private final Player player;
     private final TimeStamp limit;
     private int restSamples;
     
-    public TimeLimitedSamplesSource(ZXTune.Player player, TimeStamp limit) {
+    TimeLimitedSamplesSource(Player player, TimeStamp limit) {
       this.player = player;
       this.limit = limit;
       player.setPosition(0);
-      player.setProperty(ZXTune.Properties.Sound.LOOPED, 1);
+      player.setProperty(Properties.Sound.LOOPED, 1);
     }
     
     @Override
     public void initialize(int sampleRate) {
-      player.setProperty(ZXTune.Properties.Sound.FREQUENCY, sampleRate);
+      player.setProperty(Properties.Sound.FREQUENCY, sampleRate);
       restSamples = (int) (limit.convertTo(TimeUnit.SECONDS) * sampleRate);
     }
 
@@ -242,14 +247,17 @@ public class RingtoneService extends IntentService {
         restSamples -= buf.length / SamplesSource.Channels.COUNT;
         return true;
       } else {
+        player.setPosition(0);
         return false;
       }
     }
 
     @Override
-    public void release() {
-      player.release();
-      player = null;
+    public void setPosition(TimeStamp pos) {}
+
+    @Override
+    public TimeStamp getPosition() {
+      return TimeStamp.EMPTY;
     }
   }
 }

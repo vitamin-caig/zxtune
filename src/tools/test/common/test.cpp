@@ -22,29 +22,6 @@ namespace
     const T var = 0;
     std::cout << "sizeof(" << name << " is " << typeid(var).name() << ")=" << sizeof(var) << std::endl;
   }
-
-  template<class T>
-  void TestOrder(T orig, T test)
-  {
-    const T result = swapBytes(orig);
-    if (result == test)
-    {
-      std::cout << "Passed test for " << typeid(orig).name() << std::endl;
-    }
-    else
-    {
-      std::cout << "Failed test for " << typeid(orig).name() <<
-        " has=0x" << std::hex << result << " expected=0x" << std::hex << test << std::endl;
-      throw 1;
-    }
-  }
-  
-  void Test(const String& msg, bool val)
-  {
-    std::cout << (val ? "Passed" : "Failed") << " test for " << msg << std::endl;
-    if (!val)
-      throw 1;
-  }
   
   template<class T>
   void Test(const String& msg, T result, T reference)
@@ -58,6 +35,33 @@ namespace
       std::cout << "Failed test for " << msg << " (got: " << result << " expected: " << reference << ")" << std::endl;
       throw 1;
     }
+  }
+
+  template<class T>
+  void TestOrder(T orig, T test)
+  {
+    const std::string type = typeid(orig).name();
+    const T result = swapBytes(orig);
+    Test(type + " swap", result, test);
+    uint8_t buf[sizeof(T)];
+    std::memcpy(buf, &orig, sizeof(orig));
+    if (isLE())
+    {
+      Test(type + " LE", ReadLE<T>(buf), orig);
+      Test(type + " BE", ReadBE<T>(buf), result);
+    }
+    else
+    {
+      Test(type + " LE", ReadLE<T>(buf), result);
+      Test(type + " BE", ReadBE<T>(buf), orig);
+    }
+  }
+  
+  void Test(const String& msg, bool val)
+  {
+    std::cout << (val ? "Passed" : "Failed") << " test for " << msg << std::endl;
+    if (!val)
+      throw 1;
   }
   
   enum AreaTypes

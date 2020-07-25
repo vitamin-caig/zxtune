@@ -9,38 +9,32 @@
 **/
 
 //local includes
-#include "file_backend.h"
-#include "storage.h"
-#include "gates/flac_api.h"
+#include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/gates/flac_api.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
-//boost includes
-#include <boost/bind.hpp>
+#include <functional>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 6575CD3F
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Flac");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Flac
 {
+  const Debug::Stream Dbg("Sound::Backend::Flac");
+
   const String ID = Text::FLAC_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
 
@@ -75,7 +69,8 @@ namespace Flac
   public:
     explicit MetaData(Api::Ptr api)
       : FlacApi(std::move(api))
-      , Tags(FlacApi->FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT), boost::bind(&Api::FLAC__metadata_object_delete, FlacApi, _1))
+      , Tags(FlacApi->FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT),
+        std::bind(&Api::FLAC__metadata_object_delete, FlacApi, std::placeholders::_1))
     {
     }
 
@@ -144,12 +139,12 @@ namespace Flac
       Dbg("Stream initialized");
     }
 
-    void ApplyData(Chunk::Ptr data) override
+    void ApplyData(Chunk data) override
     {
-      if (const std::size_t samples = data->size())
+      if (const std::size_t samples = data.size())
       {
         Buffer.resize(samples);
-        std::transform(data->begin(), data->end(), &Buffer.front(), &ConvertSample);
+        std::transform(data.begin(), data.end(), Buffer.data(), &ConvertSample);
         CheckFlacCall(FlacApi->FLAC__stream_encoder_process_interleaved(Encoder.get(), &Buffer[0].first, samples), THIS_LINE);
       }
     }
@@ -164,7 +159,7 @@ namespace Flac
       size_t bytes, unsigned /*samples*/, unsigned /*current_frame*/, void* client_data)
     {
       Binary::OutputStream* const stream = static_cast<Binary::OutputStream*>(client_data);
-      stream->ApplyData(Binary::DataAdapter(buffer, bytes));
+      stream->ApplyData(Binary::View(buffer, bytes));
       return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     }
 
@@ -247,7 +242,8 @@ namespace Flac
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
-      const EncoderPtr encoder(FlacApi->FLAC__stream_encoder_new(), boost::bind(&Api::FLAC__stream_encoder_delete, FlacApi, _1));
+      const EncoderPtr encoder(FlacApi->FLAC__stream_encoder_new(),
+        std::bind(&Api::FLAC__stream_encoder_delete, FlacApi, std::placeholders::_1));
       SetupEncoder(*encoder);
       return MakePtr<FileStream>(FlacApi, encoder, stream);
     }
@@ -304,7 +300,7 @@ namespace Sound
     try
     {
       const Flac::Api::Ptr api = Flac::LoadDynamicApi();
-      Dbg("Detected Flac library");
+      Flac::Dbg("Detected Flac library");
       const BackendWorkerFactory::Ptr factory = MakePtr<Flac::BackendWorkerFactory>(api);
       storage.Register(Flac::ID, Flac::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
@@ -314,3 +310,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

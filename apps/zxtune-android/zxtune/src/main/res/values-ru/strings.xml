@@ -5,7 +5,6 @@
     <string name="review">Оценить</string>
     <string name="quit">Выход</string>
     <!-- action-related -->
-    <string name="play">Слушать</string>
     <string name="add">Добавить</string>
     <string name="delete">Удалить</string>
     <string name="clear">Очистить</string>
@@ -41,7 +40,16 @@
       <!-- for pre-HC -->
       <item quantity="other">%d треков</item>
     </plurals>
+    <plurals name="packs">
+      <item quantity="one">%d пак</item>
+      <item quantity="few">%d пака</item>
+      <item quantity="many">%d паков</item>
+      <!-- for pre-HC -->
+      <item quantity="other">%d паков</item>
+    </plurals>
     <string name="no_tracks_found">Поддерживаемых треков не найдено</string>
     <string name="track">Трек</string>
-    <string name="starting">Запуск...</string>
+    <!-- notifications -->
+    <string name="notification_channel_name_events">События</string>
+    <string name="notification_channel_name_services">Сервисы</string>
 </resources>

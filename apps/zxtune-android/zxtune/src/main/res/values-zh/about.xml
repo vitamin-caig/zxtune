@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="about">关于我们</string>
+  <string name="about_credits">致谢</string>
+  <string name="about_plugins">插件</string>
+  <!-- about-related -->
+  <string name="about_author">
+    想法，代码: <b>Vitamin/CAIG</b>\n
+    设计: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
+    使用的代码:\n
+    \tAYEmul由<b>S.Bulba</b>\n
+    \tAYFly由<b>Ander</b>\n
+    \tPusher由<b>Himik/ZxZ</b>\n
+    使用的库:\n
+    \tboost\n
+    \tzlib由<b>Jean-Loup Gailly</b>和<b>Mark Adler</b>\n
+    \tz80ex由<b>Boo-boo</b>\n
+    \tlhasa由<b>Simon Howard</b>\n
+    \tunrar由<b>Alexander Roshal</b>\n
+    \tlibxmp由<b>Claudio Matsuoka</b>\n
+    \tlibsidplayfp+resid\n
+    \tsnes_spc由<b>Shay Green</b>\n
+    \tGame_Music_Emu由<b>Shay Green</b>和<b>Chris Moeller</b>\n
+    \t7-Zip由<b>Igor Pavlov</b>\n
+    \tHVL2WAV由<b>Peter Gordon</b>\n
+    \tCrashlytics由<b>Twitter</b>\n
+    \tHighly Experimental由<b>Neill Corlett</b>\n
+    \tlazyusf2由<b>Christopher Snowhill</b>\n
+    \tmGBA由<b>Jeffrey Pfau</b>\n
+    \tvio2sf由<b>Christopher Snowhill</b>\n
+    \tHighly Threoretical由<b>Neill Corlett</b>和<b>Christopher Snowhill</b>\n
+    \tASAP由<b>Piotr Fusik</b>\n
+    \tjsoup由<b>Jonathan Hedley</b>\n
+    \tminimp3由<b>lieff</b>\n
+    \tstb-vorbis由<b>Sean Barrett</b>\n
+    \tlibFLAC\n
+    \tv2m-player由<b>Farbrausch</b>和<b>Joakim L.Gilje</b>\n
+    \tFFmpeg\n
+    \tlibvgm由<b>Valley Bell</b>\n
+    \n
+    献给<b>Lizzi</b>
+  </string>
+  <!-- players -->
+  <string name="plugin_player_dac">基于采样的格式</string>
+  <string name="plugin_player_multidevice">多设备</string>
+  <!-- containers -->
+  <string name="plugin_multitrack">多轨容器</string>
+  <string name="plugin_archive">解压工具</string>
+  <string name="plugin_decompiler">反编译器</string>
+</resources>

@@ -9,12 +9,14 @@
 **/
 
 //local includes
-#include "sampletracker.h"
-#include "dac_simple.h"
+#include "module/players/dac/sampletracker.h"
+#include "module/players/dac/dac_simple.h"
 //common includes
 #include <make_ptr.h>
 //library includes
 #include <formats/chiptune/digital/sampletracker.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -41,10 +43,11 @@ namespace SampleTracker
     {
       DAC::PropertiesHelper props(*properties);
       DataBuilder::Ptr dataBuilder = DAC::CreateSimpleDataBuilder<CHANNELS_COUNT>(props);
-      if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
+      if (const auto container = Formats::Chiptune::SampleTracker::Parse(rawData, *dataBuilder))
       {
         props.SetSource(*container);
-        return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), properties, CHANNELS_COUNT);
+        props.SetPlatform(Platforms::ZX_SPECTRUM);
+        return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), std::move(properties), CHANNELS_COUNT);
       }
       else
       {

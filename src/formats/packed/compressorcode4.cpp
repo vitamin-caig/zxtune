@@ -11,8 +11,8 @@
 **/
 
 //local includes
-#include "container.h"
-#include "pack_utils.h"
+#include "formats/packed/container.h"
+#include "formats/packed/pack_utils.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -501,7 +501,7 @@ namespace Packed
       {
         if (container.FastCheck() && DecodeHuffman(container.GetAvailableData() - DataOffset))
         {
-          Delegate.reset(new RawDataDecoder(&UnhuffmanData[0], UnhuffmanData.size(), fromLE(Header.ChunksCount)));
+          Delegate.reset(new RawDataDecoder(UnhuffmanData.data(), UnhuffmanData.size(), fromLE(Header.ChunksCount)));
         }
       }
 

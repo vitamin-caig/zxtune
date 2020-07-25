@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "roms.h"
+#include "core/plugins/players/sid/roms.h"
 
 namespace Module
 {
@@ -17,17 +17,17 @@ namespace Sid
 {
   const uint8_t KERNAL[] =
   {
-#include "kernal.inc"
+#include "core/plugins/players/sid/kernal.inc"
   };
 
   const uint8_t BASIC[] =
   {
-#include "basic.inc"
+#include "core/plugins/players/sid/basic.inc"
   };
 
   const uint8_t CHARGEN[] =
   {
-#include "chargen.inc"
+#include "core/plugins/players/sid/chargen.inc"
   };
 }
 }

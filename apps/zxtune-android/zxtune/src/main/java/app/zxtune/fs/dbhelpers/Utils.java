@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Different db-related utils
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.dbhelpers;
@@ -21,7 +17,7 @@ import app.zxtune.Log;
 public final class Utils {
 
   public static void cleanupDb(SQLiteDatabase db) {
-    final String TYPES[] = {"table", "view", "index", "trigger"};
+    final String[] TYPES = {"table", "view", "index", "trigger"};
     for (String type : TYPES) {
       for (String name : getObjects(db, type)) {
         Log.d("CleanupDb", "Drop %s '%s'", type, name);
@@ -29,13 +25,13 @@ public final class Utils {
       }
     }
   }
-  
+
   private static ArrayList<String> getObjects(SQLiteDatabase db, String type) {
     final String[] columns = {"name"};
     final String selection = "type = ?";
     final String[] selectionArgs = {type};
     final Cursor cursor = db.query("sqlite_master", columns, selection, selectionArgs, null, null, null);
-    final ArrayList<String> result = new ArrayList<String>(cursor.getCount());
+    final ArrayList<String> result = new ArrayList<>(cursor.getCount());
     try {
       while (cursor.moveToNext()) {
         final String name = cursor.getString(0);

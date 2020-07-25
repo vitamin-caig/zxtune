@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "flac_api.h"
+#include "sound/backends/gates/flac_api.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -48,7 +48,6 @@ namespace Sound
       }
     };
 
-    const Debug::Stream Dbg("Sound::Backend::Flac");
 
     class DynamicApi : public Api
     {
@@ -56,16 +55,16 @@ namespace Sound
       explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
         : Lib(lib)
       {
-        Dbg("Library loaded");
+        Debug::Log("Sound::Backend::Flac", "Library loaded");
       }
 
       ~DynamicApi() override
       {
-        Dbg("Library unloaded");
+        Debug::Log("Sound::Backend::Flac", "Library unloaded");
       }
 
       
-      FLAC__StreamEncoder* FLAC__stream_encoder_new() override
+      FLAC__StreamEncoder* FLAC__stream_encoder_new(void) override
       {
         static const char NAME[] = "FLAC__stream_encoder_new";
         typedef FLAC__StreamEncoder* ( *FunctionType)();

@@ -9,8 +9,8 @@
 **/
 
 //local includes
-#include "trdos_catalogue.h"
-#include "trdos_utils.h"
+#include "formats/archived/trdos_catalogue.h"
+#include "formats/archived/trdos_utils.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>
@@ -143,14 +143,14 @@ namespace Archived
       virtual void OnFile(const String& name, std::size_t offset, std::size_t size) = 0;
     };
 
-    std::size_t Parse(const Binary::Container& data, Visitor& visitor)
+    std::size_t Parse(Binary::View data, Visitor& visitor)
     {
       const std::size_t dataSize = data.Size();
       if (dataSize < sizeof(Catalog) + BYTES_PER_SECTOR)//first track + 1 sector for file at least
       {
         return 0;
       }
-      const Catalog* const catalog = static_cast<const Catalog*>(data.Start());
+      const auto* catalog = data.As<Catalog>();
       if (!(catalog->Empty.IsEmpty() && 
             catalog->Empty1[0].IsEmpty() &&
             catalog->Empty1[1].IsEmpty() &&
@@ -166,13 +166,13 @@ namespace Archived
       std::vector<bool> usedSectors(totalSectors);
       std::fill_n(usedSectors.begin(), SECTORS_IN_TRACK, true);
       uint_t files = 0;
-      for (const CatEntry* catEntry = catalog->Entries; catEntry != std::end(catalog->Entries) && NOENTRY != catEntry->Name[0]; ++catEntry)
+      for (const auto* catEntry = catalog->Entries; catEntry != std::end(catalog->Entries) && NOENTRY != catEntry->Name[0]; ++catEntry)
       {
         if (!catEntry->SizeInSectors)
         {
           continue;
         }
-        String entryName = TRDos::GetEntryName(catEntry->Name, catEntry->Type);
+        auto entryName = TRDos::GetEntryName(catEntry->Name, catEntry->Type);
         if (DELETED == catEntry->Name[0])
         {
           entryName.insert(0, 1, '~');
@@ -184,8 +184,8 @@ namespace Archived
           Dbg("File '%1%' is out of bounds", entryName);
           return 0;//out of bounds
         }
-        const std::vector<bool>::iterator begin = usedSectors.begin() + offset;
-        const std::vector<bool>::iterator end = begin + size;
+        const auto begin = usedSectors.begin() + offset;
+        const auto end = begin + size;
         if (end != std::find(begin, end, true))
         {
           Dbg("File '%1%' is overlapped with some other", entryName);
@@ -207,8 +207,8 @@ namespace Archived
         return 0;
       }
 
-      const std::vector<bool>::iterator begin = usedSectors.begin();
-      const std::vector<bool>::iterator firstFree = std::find(usedSectors.rbegin(), usedSectors.rend(), true).base();
+      const auto begin = usedSectors.begin();
+      const auto firstFree = std::find(usedSectors.rbegin(), usedSectors.rend(), true).base();
       const auto limit = validSize ? usedSectors.end() : firstFree;
       if (validSize && firstFree != limit)
       {
@@ -256,17 +256,18 @@ namespace Archived
       return Format;
     }
 
-    Container::Ptr Decode(const Binary::Container& data) const override
+    Container::Ptr Decode(const Binary::Container& rawData) const override
     {
+      const Binary::View data(rawData);
       if (!Format->Match(data))
       {
         return Container::Ptr();
       }
-      const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateFlat();
+      const auto builder = TRDos::CatalogueBuilder::CreateFlat();
       TRD::BuildVisitorAdapter visitor(*builder);
       if (const std::size_t size = TRD::Parse(data, visitor))
       {
-        builder->SetRawData(data.GetSubcontainer(0, size));
+        builder->SetRawData(rawData.GetSubcontainer(0, size));
         return builder->GetResult();
       }
       return Container::Ptr();

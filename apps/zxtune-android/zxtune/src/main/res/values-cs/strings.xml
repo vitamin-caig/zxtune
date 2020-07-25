@@ -5,7 +5,6 @@
     <string name="review">Hodnotit</string>
     <string name="quit">Ukončit</string>
     <!-- action-related -->
-    <string name="play">Přehrát</string>
     <string name="add">Přidat</string>
     <string name="delete">Smazat</string>
     <string name="clear">Vyprázdnit</string>
@@ -37,7 +36,12 @@
       <item quantity="few">%d skladby</item>
       <item quantity="other">%d skladeb</item>
     </plurals>
+    <plurals name="packs">
+      <item quantity="other">%d balení</item>
+    </plurals>
     <string name="no_tracks_found">Nenalezeny žádné podporované skladby</string>
     <string name="track">Skladba</string>
-    <string name="starting">Spouští se...</string>
+    <!-- notifications -->
+    <string name="notification_channel_name_events">Události</string>
+    <string name="notification_channel_name_services">Služby</string>
 </resources>

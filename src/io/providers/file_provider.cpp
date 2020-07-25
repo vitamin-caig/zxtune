@@ -9,9 +9,10 @@
 **/
 
 //local includes
-#include "enumerator.h"
-#include "file_provider.h"
-#include <io/impl/boost_filesystem_path.h>
+#include "io/impl/boost_filesystem_path.h"
+#include "io/impl/l10n.h"
+#include "io/providers/enumerator.h"
+#include "io/providers/file_provider.h"
 //common includes
 #include <contract.h>
 #include <error_tools.h>
@@ -20,8 +21,9 @@
 #include <binary/container_factories.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
-#include <l10n/api.h>
 #include <parameters/accessor.h>
+#include <strings/encoding.h>
+#include <strings/format.h>
 //std includes
 #include <cctype>
 //boost includes
@@ -42,28 +44,35 @@ namespace
 {
 //TODO
 #ifdef _WIN32
-  String ApplyOSFilenamesRestrictions(const String& in)
+  std::string ApplyOSFilenamesRestrictions(const std::string& in)
   {
     static const std::string DEPRECATED_NAMES[] =
     {
       "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
       "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
     };
-    const String::size_type dotPos = in.find('.');
-    const String filename = in.substr(0, dotPos);
-    if (std::end(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, std::end(DEPRECATED_NAMES), ToStdString(filename)))
+    const auto dotPos = in.find('.');
+    const auto filename = in.substr(0, dotPos);
+    if (std::end(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, std::end(DEPRECATED_NAMES), filename))
     {
-      const String restPart = dotPos != String::npos ? in.substr(dotPos) : String();
+      const auto restPart = dotPos != String::npos ? in.substr(dotPos) : String();
       return filename + '~' + restPart;
     }
     return in;
   }
+  
 #else
   String ApplyOSFilenamesRestrictions(const String& in)
   {
     return in;
   }
 #endif
+
+  String GetErrorMessage(const boost::system::system_error& err)
+  {
+    //TODO: remove when BOOST_NO_ANSI_APIS will be applied
+    return Strings::ToAutoUtf8(err.code().message());
+  }
 
   inline bool IsNotFSSymbol(Char sym)
   {
@@ -74,18 +83,16 @@ namespace
   }
 }
 
-namespace
-{
-  const Debug::Stream Dbg("IO::Provider::File");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("io");
-}
-
 namespace IO
 {
-  class FileProviderParameters : public FileCreatingParameters
+namespace File
+{
+  const Debug::Stream Dbg("IO::Provider::File");
+
+  class ProviderParameters : public FileCreatingParameters
   {
   public:
-    explicit FileProviderParameters(const Parameters::Accessor& accessor)
+    explicit ProviderParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
     {
     }
@@ -149,17 +156,17 @@ namespace IO
 
     String Path() const override
     {
-      return IO::Details::ToString(PathValue.string());
+      return Details::ToString(PathValue);
     }
 
     String Filename() const override
     {
-      return IO::Details::ToString(PathValue.filename());
+      return Details::ToString(PathValue.filename());
     }
 
     String Extension() const override
     {
-      const String result = IO::Details::ToString(PathValue.extension());
+      const String result = Details::ToString(PathValue.extension());
       return result.empty()
         ? result
         : result.substr(1);//skip initial dot
@@ -178,7 +185,7 @@ namespace IO
     String Serialize() const
     {
       //do not place scheme
-      String res = PathValue.string();
+      auto res = Details::ToString(PathValue);
       if (!SubpathValue.empty())
       {
         res += SUBPATH_DELIMITER;
@@ -228,7 +235,7 @@ namespace IO
   Binary::Data::Ptr ReadFileToMemory(std::ifstream& stream, std::size_t size)
   {
     std::unique_ptr<Dump> res(new Dump(size));
-    const std::streampos read = stream.read(safe_ptr_cast<char*>(&res->front()), size).tellg();
+    const std::streampos read = stream.read(safe_ptr_cast<char*>(res->data()), size).tellg();
     if (static_cast<std::size_t>(read) != size)
     {
       throw MakeFormattedError(THIS_LINE, translate("Failed to read %1% bytes. Actually got %2% bytes."), size, read);
@@ -246,7 +253,7 @@ namespace IO
     }
     catch (const boost::system::system_error& err)
     {
-      throw Error(loc, ToStdString(err.code().message()));
+      throw Error(loc, GetErrorMessage(err));
     }
   }
   
@@ -283,13 +290,13 @@ namespace IO
     }
     catch (const boost::system::system_error& err)
     {
-      throw Error(loc, ToStdString(err.code().message()));
+      throw Error(loc, GetErrorMessage(err));
     }
   }
 
-  Binary::Data::Ptr OpenFileData(const String& path, std::size_t mmapThreshold)
+  Binary::Data::Ptr OpenData(const String& path, std::size_t mmapThreshold)
   {
-    const boost::filesystem::path fileName(path);
+    const boost::filesystem::path fileName = Details::FromString(path);
     const boost::uintmax_t size = FileSize(fileName, THIS_LINE);
     if (size == 0)
     {
@@ -298,6 +305,7 @@ namespace IO
     else if (size >= mmapThreshold)
     {
       Dbg("Using memory-mapped i/o for '%1%'.", path);
+      //use local encoding here
       return OpenMemoryMappedFile(fileName.string());
     }
     else
@@ -312,7 +320,7 @@ namespace IO
   {
   public:
     explicit OutputFileStream(const boost::filesystem::path& name)
-      : Name(name.string())
+      : Name(Details::ToString(name))
       , Stream(name, std::ios::binary | std::ios_base::out)
     {
       if (!Stream)
@@ -321,7 +329,7 @@ namespace IO
       }
     }
 
-    void ApplyData(const Binary::Data& data) override
+    void ApplyData(Binary::View data) override
     {
       if (!Stream.write(static_cast<const char*>(data.Start()), data.Size()))
       {
@@ -378,7 +386,7 @@ namespace IO
 
   boost::filesystem::path CreateSanitizedPath(const String& fileName)
   {
-    const boost::filesystem::path initial(fileName);
+    const boost::filesystem::path initial = Details::FromString(fileName);
     boost::filesystem::path::const_iterator it = initial.begin(), lim = initial.end();
     boost::filesystem::path result;
     for (const boost::filesystem::path root(initial.root_path()); result != root && it != lim; ++it)
@@ -387,55 +395,64 @@ namespace IO
     }
     for (; it != lim; ++it)
     {
-      const boost::filesystem::path sanitized(SanitizePathComponent(IO::Details::ToString(*it)));
+      const boost::filesystem::path sanitized = Details::FromString(SanitizePathComponent(Details::ToString(*it)));
       result /= sanitized;
     }
     if (initial != result)
     {
-      Dbg("Sanitized path '%1%' to '%2%'", fileName, result.string());
+      Dbg("Sanitized path '%1%' to '%2%'", fileName, Details::ToString(result));
     }
     return result;
   }
 
-  Binary::SeekableOutputStream::Ptr CreateFileStream(const String& fileName, const FileCreatingParameters& params)
+  Binary::SeekableOutputStream::Ptr CreateStream(const String& fileName, const FileCreatingParameters& params)
   {
-    boost::filesystem::path path = params.SanitizeNames()
-      ? CreateSanitizedPath(fileName)
-      : boost::filesystem::path(fileName);
-    Dbg("CreateStream: input='%1%' path='%2%'", fileName, IO::Details::ToString(path));
-    if (params.CreateDirectories() && path.has_parent_path())
+    try
     {
-      CreateDirectoryRecursive(path.parent_path());
-    }
-    switch (params.Overwrite())
-    {
-    case STOP_IF_EXISTS:
-      if (IsExists(path))
+      boost::filesystem::path path = params.SanitizeNames()
+        ? CreateSanitizedPath(fileName)
+        : Details::FromString(fileName);
+      Dbg("CreateStream: input='%1%' path='%2%'", fileName, Details::ToString(path));
+      if (params.CreateDirectories() && path.has_parent_path())
       {
-        throw Error(THIS_LINE, translate("File already exists."));
+        CreateDirectoryRecursive(path.parent_path());
       }
-      break;
-    case RENAME_NEW:
+      switch (params.Overwrite())
       {
-        const std::string oldStem = IO::Details::ToString(path.stem());
-        const std::string extension = IO::Details::ToString(path.extension());
-        for (uint_t idx = 1; IsExists(path); ++idx)
+      case STOP_IF_EXISTS:
+        if (IsExists(path))
         {
-          const std::string newFilename = (boost::format("%1% (%2%)%3%") % oldStem % idx % extension).str();
-          path.remove_filename();
-          path /= newFilename;
+          throw Error(THIS_LINE, translate("File already exists."));
         }
+        break;
+      case RENAME_NEW:
+        {
+          const auto oldStem = path.stem();
+          const auto extension = path.extension();
+          for (uint_t idx = 1; IsExists(path); ++idx)
+          {
+            auto newFilename = oldStem;
+            newFilename += Strings::Format(" (%1%)", idx);
+            newFilename += extension;
+            path.remove_filename();
+            path /= newFilename;
+          }
+        }
+      case OVERWRITE_EXISTING:
+        break;
+      default:
+        Require(false);
       }
-    case OVERWRITE_EXISTING:
-      break;
-    default:
-      Require(false);
+      return MakePtr<OutputFileStream>(path);
     }
-    return MakePtr<OutputFileStream>(path);
+    catch (const boost::system::system_error& err)
+    {
+      throw Error(THIS_LINE, GetErrorMessage(err));
+    }
   }
 
   ///////////////////////////////////////
-  class FileDataProvider : public DataProvider
+  class DataProvider : public IO::DataProvider
   {
   public:
     String Id() const override
@@ -473,22 +490,23 @@ namespace IO
       const String path = String::npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
       const String subpath = String::npos == subPos ? String() : uri.substr(subPos + 1);
       return !path.empty() && scheme == SCHEME_FILE
-        ? MakePtr<FileIdentifier>(path, subpath)
+        ? MakePtr<FileIdentifier>(Details::FromString(path), subpath)
         : Identifier::Ptr();
     }
 
     Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/) const override
     {
-      const FileProviderParameters parameters(params);
+      const ProviderParameters parameters(params);
       return Binary::CreateContainer(OpenLocalFile(path, parameters.MemoryMappingThreshold()));
     }
 
     Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params, Log::ProgressCallback&) const override
     {
-      const FileProviderParameters parameters(params);
+      const ProviderParameters parameters(params);
       return CreateLocalFile(path, parameters);
     }
   };
+}
 }
 
 namespace IO
@@ -497,7 +515,7 @@ namespace IO
   {
     try
     {
-      return OpenFileData(path, mmapThreshold);
+      return File::OpenData(path, mmapThreshold);
     }
     catch (const Error& e)
     {
@@ -509,7 +527,7 @@ namespace IO
   {
     try
     {
-      return CreateFileStream(path, params);
+      return File::CreateStream(path, params);
     }
     catch (const Error& e)
     {
@@ -519,7 +537,7 @@ namespace IO
 
   DataProvider::Ptr CreateFileDataProvider()
   {
-    return MakePtr<FileDataProvider>();
+    return MakePtr<File::DataProvider>();
   }
 
   void RegisterFileProvider(ProvidersEnumerator& enumerator)
@@ -527,3 +545,5 @@ namespace IO
     enumerator.RegisterProvider(CreateFileDataProvider());
   }
 }
+
+#undef FILE_TAG

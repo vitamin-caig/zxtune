@@ -10,8 +10,12 @@
 
 package app.zxtune;
 
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.DeadObjectException;
+import app.zxtune.analytics.Analytics;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 public final class Log {
@@ -20,19 +24,27 @@ public final class Log {
   
   // public interface
   public static void d(String tag, String msg) {
-    android.util.Log.d(tag, msg);
+    if (BuildConfig.DEBUG) {
+      android.util.Log.d(tag, msg);
+    }
   }
 
   public static void d(String tag, String msg, Object... params) {
-    d(tag, String.format(Locale.US, msg, params));
+    if (BuildConfig.DEBUG) {
+      android.util.Log.d(tag, String.format(Locale.US, msg, params));
+    }
   }
 
   public static void w(String tag, Throwable e, String msg) {
-    android.util.Log.w(tag, msg, e);
-    if (e instanceof DeadObjectException) {
-      logDeadObjectException(e);
-    } else {
-      Analytics.logException(e);
+    if (BuildConfig.DEBUG) {
+      android.util.Log.w(tag, msg, e);
+    }
+    if (needLogException(e)) {
+      if (Build.VERSION.SDK_INT >= 24) {
+        Analytics.logException(new PrettyException(msg, e));
+      } else {
+        Analytics.logException(new Exception(msg, e));
+      }
     }
   }
 
@@ -40,10 +52,29 @@ public final class Log {
     w(tag, e, String.format(Locale.US, msg, params));
   }
 
-  private static void logDeadObjectException(Throwable e) {
-    if (!deadObjectExceptionLogged) {
+  private static boolean needLogException(Throwable e) {
+    if (e instanceof DeadObjectException) {
+      if (deadObjectExceptionLogged) {
+        return false;
+      }
       deadObjectExceptionLogged = true;
-      Analytics.logException(e);
+    }
+    return true;
+  }
+
+  @TargetApi(24)
+  private static class PrettyException extends Exception {
+
+    PrettyException(String msg, Throwable cause) {
+      super(msg, cause, true, true);
+      final StackTraceElement[] stack = getStackTrace();
+      final String self = Log.class.getName();
+      for (int idx = 0, lim = stack.length; idx < lim; ++idx) {
+        if (!stack[idx].getClassName().equals(self)) {
+          setStackTrace(Arrays.copyOfRange(stack, idx, lim));
+          break;
+        }
+      }
     }
   }
 }

@@ -1,6 +1,6 @@
 library_name := lzma
-path_step := ../..
-include $(path_step)/make/default.mak
+dirs.root := ../..
+include $(dirs.root)/make/default.mak
 
 source_files := $(addprefix C/,\
   7zArcIn.c \
@@ -17,4 +17,4 @@ source_files := $(addprefix C/,\
 
 defines += _7ZIP_PPMD_SUPPPORT  
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

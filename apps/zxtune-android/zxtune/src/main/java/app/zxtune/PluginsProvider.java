@@ -13,9 +13,14 @@ package app.zxtune;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
+
+import androidx.annotation.Nullable;
+
+import app.zxtune.core.jni.Plugins;
 
 public final class PluginsProvider extends ContentProvider {
   
@@ -46,7 +51,7 @@ public final class PluginsProvider extends ContentProvider {
     
     private final int nameId;
     
-    private Types(int id) {
+    Types(int id) {
       this.nameId = id;
     }
     
@@ -55,16 +60,22 @@ public final class PluginsProvider extends ContentProvider {
     }
   }
   
-  private final static String AUTHORITY = "app.zxtune.plugins";
-  private final static String MIME = "vnd.android.cursor.dir/vnd." + AUTHORITY;
+  private static final String AUTHORITY = "app.zxtune.plugins";
+  private static final String MIME = "vnd.android.cursor.dir/vnd." + AUTHORITY;
   
   @Override
   public boolean onCreate() {
-    return true;
+    final Context ctx = getContext();
+    if (ctx != null) {
+      MainApplication.initialize(ctx.getApplicationContext());
+      return true;
+    } else {
+      return false;
+    }
   }
   
   @Override
-  public int delete(Uri arg0, String arg1, String[] arg2) {
+  public int delete(Uri arg0, @Nullable String arg1, @Nullable String[] arg2) {
     return 0;
   }
 
@@ -73,22 +84,24 @@ public final class PluginsProvider extends ContentProvider {
     return MIME;
   }
 
+  @Nullable
   @Override
-  public Uri insert(Uri uri, ContentValues values) {
+  public Uri insert(Uri uri, @Nullable ContentValues values) {
     return null;
   }
 
   @Override
-  public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+  public int update(Uri uri, @Nullable ContentValues values, @Nullable String selection,
+                    @Nullable String[] selectionArgs) {
     return 0;
   }
-  
+
   @Override
-  public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
-      String sortOrder) {
+  public Cursor query(Uri uri, @Nullable String[] projection, @Nullable String selection,
+                      @Nullable String[] selectionArgs, @Nullable String sortOrder) {
     final String[] columns = {Columns.Type.name(), Columns.Description.name()}; 
     final MatrixCursor res = new MatrixCursor(columns);
-    ZXTune.Plugins.enumerate(new ZXTune.Plugins.Visitor() {
+    Plugins.enumerate(new Plugins.Visitor() {
       @Override
       public void onPlayerPlugin(int devices, String id, String description) {
         final int type = getPlayerPluginType(devices).ordinal();
@@ -109,27 +122,27 @@ public final class PluginsProvider extends ContentProvider {
 
   private static Types getPlayerPluginType(int devices) {
     //TODO: extract separate strings
-    if (0 != (devices & (ZXTune.Plugins.DeviceType.AY38910 | ZXTune.Plugins.DeviceType.TURBOSOUND))) {
+    if (0 != (devices & (Plugins.DeviceType.AY38910 | Plugins.DeviceType.TURBOSOUND))) {
       return Types.PlayerAymTs;
-    } else if (0 != (devices & ZXTune.Plugins.DeviceType.DAC)) {
+    } else if (0 != (devices & Plugins.DeviceType.DAC)) {
       return Types.PlayerDac;
-    } else if (0 != (devices & (ZXTune.Plugins.DeviceType.YM2203 | ZXTune.Plugins.DeviceType.TURBOFM))) {
+    } else if (0 != (devices & (Plugins.DeviceType.YM2203 | Plugins.DeviceType.TURBOFM))) {
       return Types.PlayerFmTfm;
-    } else if (0 != (devices & ZXTune.Plugins.DeviceType.SAA1099)) {
+    } else if (0 != (devices & Plugins.DeviceType.SAA1099)) {
       return Types.PlayerSaa;
-    } else if (0 != (devices & ZXTune.Plugins.DeviceType.MOS6581)) {
+    } else if (0 != (devices & Plugins.DeviceType.MOS6581)) {
       return Types.PlayerSid;
-    } else if (0 != (devices & ZXTune.Plugins.DeviceType.SPC700)) {
+    } else if (0 != (devices & Plugins.DeviceType.SPC700)) {
       return Types.PlayerSpc;
-    } else if (0 != (devices & ZXTune.Plugins.DeviceType.MULTIDEVICE)) {
+    } else if (0 != (devices & Plugins.DeviceType.MULTIDEVICE)) {
       return Types.PlayerMultidevice;
-    } else if (0 != (devices & ZXTune.Plugins.DeviceType.RP2A0X)) {
+    } else if (0 != (devices & Plugins.DeviceType.RP2A0X)) {
       return Types.PlayerRp2a0x;
-    } else if (0 != (devices & ZXTune.Plugins.DeviceType.LR35902)) {
+    } else if (0 != (devices & Plugins.DeviceType.LR35902)) {
       return Types.PlayerLr35902;
-    } else if (0 != (devices & ZXTune.Plugins.DeviceType.CO12294)) {
+    } else if (0 != (devices & Plugins.DeviceType.CO12294)) {
       return Types.PlayerCo12294;
-    } else if (0 != (devices & ZXTune.Plugins.DeviceType.HUC6270)) {
+    } else if (0 != (devices & Plugins.DeviceType.HUC6270)) {
       return Types.PlayerHuc6270;
     } else {
       return Types.Unknown;
@@ -138,11 +151,11 @@ public final class PluginsProvider extends ContentProvider {
   
   private static Types getContainerPluginType(int type) {
     switch (type) {
-      case ZXTune.Plugins.ContainerType.ARCHIVE:
+      case Plugins.ContainerType.ARCHIVE:
         return Types.ContainerArchive;
-      case ZXTune.Plugins.ContainerType.DECOMPILER:
+      case Plugins.ContainerType.DECOMPILER:
         return Types.ContainerDecompiler;
-      case ZXTune.Plugins.ContainerType.MULTITRACK:
+      case Plugins.ContainerType.MULTITRACK:
         return Types.ContainerMultitrack;
       default:
         return Types.Unknown;

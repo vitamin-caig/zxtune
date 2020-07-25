@@ -9,18 +9,15 @@
 **/
 
 //local includes
-#include "volume_control.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/volume_control.h"
 //common includes
 #include <make_ptr.h>
-//library includes
-#include <l10n/api.h>
 
 #define FILE_TAG B368C82C
 
 namespace Sound
 {
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-
   class VolumeControlDelegate : public VolumeControl
   {
   public:
@@ -58,3 +55,5 @@ namespace Sound
     return MakePtr<VolumeControlDelegate>(delegate);
   }
 }
+
+#undef FILE_TAG

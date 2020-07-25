@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "tfm_plugin.h"
+#include "core/plugins/players/tfm/tfm_plugin.h"
 #include "core/plugins/player_plugins_registrator.h"
 //library includes
 #include <module/players/tfm/tfmmusicmaker.h>

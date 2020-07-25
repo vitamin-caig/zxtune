@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- emulation -->
-  <string name="pref_emulation_title">Emulace</string>
-  
-  <!-- common -->
+
+    <!-- common -->
   <string name="pref_interpolation">Interpolace</string>
   <string-array name="pref_interpolation_entries">
     <item>Nic</item>
@@ -54,5 +53,25 @@
     <item>10 minut</item>
     <item>15 minut</item>
     <item>30 minut</item>
+  </string-array>
+  <!-- zxtune.sound.silencelimit -->
+  <string  name="pref_zxtune_silence_limit_title">Detekce ticha</string>
+  <string-array name="pref_zxtune_silence_limit_entries">
+    <item>Nic</item>
+    <item>3 sekundy</item>
+    <item>4 sekundy</item>
+    <item>5 sekund</item>
+    <item>10 sekund</item>
+    <item>15 sekund</item>
+  </string-array>
+  <!-- zxtune.sound.looplimit -->
+  <string  name="pref_zxtune_loop_limit_title">Smyčky limit</string>
+  <string-array name="pref_zxtune_loop_limit_entries">
+    <item>Nic</item>
+    <item>1 smyčka</item>
+    <item>2 smyčky</item>
+    <item>3 smyčky</item>
+    <item>4 smyčky</item>
+    <item>5 smyček</item>
   </string-array>
 </resources>

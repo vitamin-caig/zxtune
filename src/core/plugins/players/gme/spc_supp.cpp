@@ -33,6 +33,8 @@
 //3rdparty
 #include <3rdparty/snesspc/snes_spc/SNES_SPC.h>
 #include <3rdparty/snesspc/snes_spc/SPC_Filter.h>
+//text includes
+#include <module/text/platforms.h>
 
 namespace Module
 {
@@ -47,7 +49,7 @@ namespace SPC
   public:
     typedef std::shared_ptr<SPC> Ptr;
     
-    explicit SPC(const Binary::Data& data)
+    explicit SPC(Binary::View data)
       : Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
     {
       CheckError(Spc.init());
@@ -68,9 +70,11 @@ namespace SPC
     void Reset()
     {
       Spc.reset();
-      CheckError(Spc.load_spc(&Data.front(), Data.size()));
+      CheckError(Spc.load_spc(Data.data(), Data.size()));
       Spc.clear_echo();
+      Spc.disable_surround(true);
       Filter.clear();
+      Filter.set_gain(::SPC_Filter::gain_unit * 1.4);//as in GME
     }
     
     void Render(uint_t samples, Sound::ChunkBuilder& target)
@@ -88,12 +92,12 @@ namespace SPC
     }
     
     //http://wiki.superfamicom.org/snes/show/SPC700+Reference
-    std::vector<ChannelState> GetState() const override
+    SpectrumState GetState() const override
     {
       const DspProperties dsp(Spc);
       const uint_t noise = dsp.GetNoiseChannels();
       const uint_t active = dsp.GetToneChannels() | noise;
-      std::vector<ChannelState> result;
+      SpectrumState result;
       const uint_t noisePitch = noise != 0
         ? dsp.GetNoisePitch()
         : 0;
@@ -109,10 +113,8 @@ namespace SPC
         const uint_t pitch = isNoise
           ? noisePitch 
           : dsp.GetPitch(chan);
-        ChannelState state;
-        state.Level = levelInt * 100 / 127;
-        state.Band = Analysis.GetBandByScaledFrequency(pitch);
-        result.push_back(state);
+        const auto band = Analysis.GetBandByScaledFrequency(pitch);
+        result.Set(band, LevelType(levelInt, 127));
       }
       return result;
     }
@@ -183,7 +185,6 @@ namespace SPC
     Renderer(SPC::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
       , Iterator(std::move(iterator))
-      , State(Iterator->GetStateObserver())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
       , Looped()
@@ -192,9 +193,9 @@ namespace SPC
       ApplyParameters();
     }
 
-    TrackState::Ptr GetTrackState() const override
+    State::Ptr GetState() const override
     {
-      return State;
+      return Iterator->GetStateObserver();
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
@@ -226,6 +227,7 @@ namespace SPC
       SoundParams.Reset();
       Tune->Reset();
       Iterator->Reset();
+      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -239,7 +241,7 @@ namespace SPC
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
-        const Time::Microseconds frameDuration = SoundParams->FrameDuration();
+        const auto frameDuration = SoundParams->FrameDuration();
         SamplesPerFrame = static_cast<uint_t>(frameDuration.Get() * ::SNES_SPC::sample_rate / frameDuration.PER_SECOND);
         Resampler = Sound::CreateResampler(::SNES_SPC::sample_rate, SoundParams->SoundFreq(), Target);
       }
@@ -247,7 +249,7 @@ namespace SPC
 
     void SeekTune(uint_t frame)
     {
-      uint_t current = State->Frame();
+      uint_t current = GetState()->Frame();
       if (frame < current)
       {
         Tune->Reset();
@@ -261,11 +263,10 @@ namespace SPC
   private:
     const SPC::Ptr Tune;
     const StateIterator::Ptr Iterator;
-    const TrackState::Ptr State;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    bool Looped;
+    Sound::LoopParameters Looped;
     std::size_t SamplesPerFrame;
   };
   
@@ -311,41 +312,41 @@ namespace SPC
     {
     }
 
-    void SetTitle(const String& title) override
+    void SetTitle(String title) override
     {
       if (Title.empty())
       {
-        Properties.SetTitle(Title = title);
+        Properties.SetTitle(Title = std::move(title));
       }
     }
     
-    void SetGame(const String& game) override
+    void SetGame(String game) override
     {
       if (Program.empty())
       {
-        Properties.SetProgram(Program = game);
+        Properties.SetProgram(Program = std::move(game));
       }
     }
     
-    void SetDumper(const String& dumper) override
+    void SetDumper(String dumper) override
     {
       if (Author.empty())
       {
-        Properties.SetAuthor(Author = dumper);
+        Properties.SetAuthor(Author = std::move(dumper));
       }
     }
     
-    void SetComment(const String& comment) override
+    void SetComment(String comment) override
     {
       if (Comment.empty())
       {
-        Properties.SetComment(Comment = comment);
+        Properties.SetComment(Comment = std::move(comment));
       }
     }
     
-    void SetDumpDate(const String& date) override
+    void SetDumpDate(String date) override
     {
-      Properties.SetDate(date);
+      Properties.SetDate(std::move(date));
     }
     
     void SetIntro(Time::Milliseconds duration) override
@@ -363,26 +364,26 @@ namespace SPC
       Fade = duration;
     }
     
-    void SetArtist(const String& artist) override
+    void SetArtist(String artist) override
     {
-      Properties.SetAuthor(Author = artist);
+      Properties.SetAuthor(Author = std::move(artist));
     }
     
-    void SetRAM(const void* /*data*/, std::size_t /*size*/) override
-    {
-    }
-    
-    void SetDSPRegisters(const void* /*data*/, std::size_t /*size*/) override
+    void SetRAM(Binary::View /*data*/) override
     {
     }
     
-    void SetExtraRAM(const void* /*data*/, std::size_t /*size*/) override
+    void SetDSPRegisters(Binary::View /*data*/) override
+    {
+    }
+    
+    void SetExtraRAM(Binary::View /*data*/) override
     {
     }
     
     Time::Milliseconds GetDuration(const Parameters::Accessor& params) const
     {
-      Time::Milliseconds total = Intro;
+      auto total = Intro;
       total += Loop;
       total += Fade;
       return total.Get() ? total : Time::Milliseconds(Module::GetDuration(params));
@@ -410,11 +411,12 @@ namespace SPC
         if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SPC::Parse(rawData, dataBuilder))
         {
           const SPC::Ptr tune = MakePtr<SPC>(rawData);
+          const auto period = Time::Milliseconds(20);
           props.SetSource(*container);
-          props.SetFramesFrequency(50);
-          const Time::Milliseconds duration = dataBuilder.GetDuration(params);
-          const Time::Milliseconds period = Time::Milliseconds(20);
-          const uint_t frames = duration.Get() / period.Get();
+          props.SetFramesFrequency(period.ToFrequency<uint_t>());
+          props.SetPlatform(Platforms::SUPER_NINTENDO_ENTERTAINMENT_SYSTEM);
+          const auto duration = Time::Milliseconds(dataBuilder.GetDuration(params));
+          const auto frames = duration.Divide<uint_t>(period);
           const Information::Ptr info = CreateStreamInfo(frames);
           return MakePtr<Holder>(tune, info, properties);
         }

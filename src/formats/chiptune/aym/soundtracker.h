@@ -102,7 +102,7 @@ namespace Formats
         Decoder::Ptr CreateDecoder();
 
         Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-        Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, const Dump& info);
+        Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, Binary::View info);
       }
     }
 

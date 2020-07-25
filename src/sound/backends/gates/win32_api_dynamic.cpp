@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "win32_api.h"
+#include "sound/backends/gates/win32_api.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -20,7 +20,6 @@ namespace Sound
 {
   namespace Win32
   {
-    const Debug::Stream Dbg("Sound::Backend::Win32");
 
     class DynamicApi : public Api
     {
@@ -28,12 +27,12 @@ namespace Sound
       explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
         : Lib(lib)
       {
-        Dbg("Library loaded");
+        Debug::Log("Sound::Backend::Win32", "Library loaded");
       }
 
       ~DynamicApi() override
       {
-        Dbg("Library unloaded");
+        Debug::Log("Sound::Backend::Win32", "Library unloaded");
       }
 
       
@@ -45,10 +44,10 @@ namespace Sound
         return func();
       }
       
-      MMRESULT waveOutGetDevCapsA(UINT_PTR uDeviceID, LPWAVEOUTCAPSA pwoc, UINT cbwoc) override
+      MMRESULT waveOutGetDevCapsW(UINT_PTR uDeviceID, LPWAVEOUTCAPSW pwoc, UINT cbwoc) override
       {
-        static const char NAME[] = "waveOutGetDevCapsA";
-        typedef MMRESULT (WINAPI *FunctionType)(UINT_PTR, LPWAVEOUTCAPSA, UINT);
+        static const char NAME[] = "waveOutGetDevCapsW";
+        typedef MMRESULT (WINAPI *FunctionType)(UINT_PTR, LPWAVEOUTCAPSW, UINT);
         const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
         return func(uDeviceID, pwoc, cbwoc);
       }

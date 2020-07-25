@@ -43,16 +43,18 @@ namespace Formats
         }
       } PACK_POST;
 
-      PACK_PRE struct ExtendedBlockHeader : BlockHeader
+      PACK_PRE struct ExtendedBlockHeader
       {
+        BlockHeader Block;
         uint32_t AdditionalSize;
       } PACK_POST;
 
       // ArchiveBlockHeader is always BlockHeader
-      PACK_PRE struct ArchiveBlockHeader : BlockHeader
+      PACK_PRE struct ArchiveBlockHeader
       {
         static const uint8_t TYPE = 0x73;
 
+        BlockHeader Block;
         //CRC from Type till Reserved2
         uint16_t Reserved1;
         uint32_t Reserved2;
@@ -68,10 +70,11 @@ namespace Formats
       } PACK_POST;
 
       // File header is always ExtendedBlockHeader
-      PACK_PRE struct FileBlockHeader : ExtendedBlockHeader
+      PACK_PRE struct FileBlockHeader
       {
         static const uint8_t TYPE = 0x74;
 
+        ExtendedBlockHeader Extended;
         //CRC from Type to Attributes+
         uint32_t UnpackedSize;
         uint8_t HostOS;
@@ -98,12 +101,12 @@ namespace Formats
 
         bool IsBigFile() const
         {
-          return 0 != (fromLE(Flags) & FLAG_BIG_FILE);
+          return 0 != (fromLE(Extended.Block.Flags) & FLAG_BIG_FILE);
         }
 
         bool IsSolid() const
         {
-          return 0 != (fromLE(Flags) & FLAG_SOLID);
+          return 0 != (fromLE(Extended.Block.Flags) & FLAG_SOLID);
         }
 
         bool IsStored() const
@@ -118,8 +121,9 @@ namespace Formats
         String GetName() const;
       } PACK_POST;
 
-      PACK_PRE struct BigFileBlockHeader : FileBlockHeader
+      PACK_PRE struct BigFileBlockHeader
       {
+        FileBlockHeader File;
         uint32_t PackedSizeHi;
         uint32_t UnpackedSizeHi;
       } PACK_POST; 

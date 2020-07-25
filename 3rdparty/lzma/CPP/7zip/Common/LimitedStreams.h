@@ -30,6 +30,7 @@ public:
 
   STDMETHOD(Read)(void *data, UInt32 size, UInt32 *processedSize);
   UInt64 GetSize() const { return _pos; }
+  UInt64 GetRem() const { return _size - _pos; }
   bool WasFinished() const { return _wasFinished; }
 };
 
@@ -73,11 +74,11 @@ class CClusterInStream:
   UInt64 _physPos;
   UInt32 _curRem;
 public:
-  CMyComPtr<IInStream> Stream;
-  UInt64 StartOffset;
-  UInt64 Size;
   unsigned BlockSizeLog;
+  UInt64 Size;
+  CMyComPtr<IInStream> Stream;
   CRecordVector<UInt32> Vector;
+  UInt64 StartOffset;
 
   HRESULT SeekToPhys() { return Stream->Seek(_physPos, STREAM_SEEK_SET, NULL); }
 

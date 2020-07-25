@@ -15,11 +15,8 @@
     <string name="vfs_modland_root_name">Modland - largest module archive</string>
     <string name="vfs_modland_root_description">Via http://www.exotica.org.uk</string>
     <string name="vfs_modland_authors_name">Authors</string>
-    <string name="vfs_modland_authors_description">Browse by author</string>
     <string name="vfs_modland_collections_name">Collections</string>
-    <string name="vfs_modland_collections_description">Browse by collection</string>
     <string name="vfs_modland_formats_name">Formats</string>
-    <string name="vfs_modland_formats_description">Browse by format</string>
     <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
     <string name="vfs_hvsc_root_name" translatable="false">High Voltage SID Collection</string>
     <string name="vfs_hvsc_root_description">Via http://www.prg.dtu.dk</string>
@@ -27,9 +24,7 @@
     <string name="vfs_zxart_root_name">ZX-Art - modern ZX Spectrum music</string>
     <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
     <string name="vfs_zxart_authors_name">Authors</string>
-    <string name="vfs_zxart_authors_description">Browse by author</string>
     <string name="vfs_zxart_parties_name">Parties</string>
-    <string name="vfs_zxart_parties_description">Browse by party</string>
     <string name="vfs_zxart_toptracks_name">Top tracks</string>
     <string name="vfs_zxart_toptracks_description">100 most voted tracks</string>
     <string name="vfs_zxart_unknown_year_name">Unknown year</string>
@@ -64,15 +59,42 @@
     <string name="vfs_joshw_spc_description" translatable="false">http://spc.joshw.info</string>
     <string name="vfs_joshw_kss_name" translatable="false">MSX/Game Gear</string>
     <string name="vfs_joshw_kss_description" translatable="false">http://kss.joshw.info</string>
+    <string name="vfs_joshw_psf_name" translatable="false">Sony Playstation 1</string>
+    <string name="vfs_joshw_psf_description" translatable="false">http://psf.joshw.info</string>
+    <string name="vfs_joshw_usf_name" translatable="false">Nintendo Ultra64</string>
+    <string name="vfs_joshw_usf_description" translatable="false">http://usf.joshw.info</string>
+    <string name="vfs_joshw_gsf_name" translatable="false">GameBoy Advance</string>
+    <string name="vfs_joshw_gsf_description" translatable="false">http://gsf.joshw.info</string>
+    <string name="vfs_joshw_2sf_name" translatable="false">Nintendo DS</string>
+    <string name="vfs_joshw_2sf_description" translatable="false">http://2sf.joshw.info</string>
+    <string name="vfs_joshw_ssf_name" translatable="false">Sega Saturn</string>
+    <string name="vfs_joshw_ssf_description" translatable="false">http://ssf.joshw.info</string>
+    <string name="vfs_joshw_dsf_name" translatable="false">Dreamcast</string>
+    <string name="vfs_joshw_dsf_description" translatable="false">http://dsf.joshw.info</string>
+    <string name="vfs_joshw_fmtowns_name" translatable="false">FM Towns</string>
+    <string name="vfs_joshw_fmtowns_description" translatable="false">http://fmtowns.joshw.info</string>
+    <string name="vfs_joshw_ncd_name" translatable="false">NeoGeo CD</string>
+    <string name="vfs_joshw_ncd_description" translatable="false">http://ncd.joshw.info</string>
+    <string name="vfs_joshw_pc_name" translatable="false">PC</string>
+    <string name="vfs_joshw_pc_description" translatable="false">http://pc.joshw.info</string>
+    <string name="vfs_joshw_mobile_name" translatable="false">Mobile platforms</string>
+    <string name="vfs_joshw_mobile_description" translatable="false">http://mobile.joshw.info</string>
+    <string name="vfs_joshw_switch_name" translatable="false">Nintendo Switch</string>
+    <string name="vfs_joshw_switch_description" translatable="false">http://switch.joshw.info</string>
+    <string name="vfs_joshw_vita_name" translatable="false">Sony Playstation Vita</string>
+    <string name="vfs_joshw_vita_description" translatable="false">http://vita.joshw.info</string>
+    <string name="vfs_joshw_psf4_name" translatable="false">Sony Playstation 4</string>
+    <string name="vfs_joshw_psf4_description" translatable="false">http://psf4.joshw.info</string>
+    <string name="vfs_joshw_psf3_name" translatable="false">Sony Playstation 3</string>
+    <string name="vfs_joshw_psf3_description" translatable="false">http://psf3.joshw.info</string>
+    <string name="vfs_joshw_psp_name" translatable="false">Sony Playstation Portable</string>
+    <string name="vfs_joshw_psp_description" translatable="false">http://psp.joshw.info</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_root_name" translatable="false">Amiga Music Preservation</string>
     <string name="vfs_amp_root_description" translatable="false">http://amp.dascene.net</string>
     <string name="vfs_amp_handles_name">Handles</string>
-    <string name="vfs_amp_handles_description">Browse by authors\' handle</string>
     <string name="vfs_amp_countries_name">Countries</string>
-    <string name="vfs_amp_countries_description">Browse by authors\' country</string>
     <string name="vfs_amp_groups_name">Groups</string>
-    <string name="vfs_amp_groups_description">Browse by authors\' group</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
 <!--1--><item>Argentina</item>
@@ -205,11 +227,32 @@
     <string name="vfs_modarchive_root_name" translatable="false">The Mod Archive</string>
     <string name="vfs_modarchive_root_description" translatable="false">http://modarchive.org</string>
     <string name="vfs_modarchive_authors_name">Artists</string>
-    <string name="vfs_modarchive_authors_description">Browse by artists</string>
     <string name="vfs_modarchive_genres_name">Genres</string>
-    <string name="vfs_modarchive_genres_description">Browse by genres</string>
+    <string name="vfs_modarchive_random_name" translatable="false">Random Pick!</string>
+    <string name="vfs_modarchive_random_description">Play random tunes</string>
+    <!-- asma -->
+    <string name="vfs_asma_root_name" translatable="false">Atari SAP Music Archive</string>
+    <string name="vfs_asma_root_description" translatable="false">http://asma.atari.org</string>
+    <!-- aminet -->
+    <string name="vfs_aminet_root_name" translatable="false">Aminet music modules</string>
+    <string name="vfs_aminet_root_description" translatable="false">http://aminet.net</string>
+    <!-- network -->
+    <string name="vfs_network_root_name">Online catalogues</string>
+    <!-- radio -->
+    <string name="vfs_radio_root_name">Radio</string>
+    <string name="vfs_radio_root_description">Random tunes and compilations</string>
+    <!-- vgmrips -->
+    <string name="vfs_vgmrips_root_name" translatable="false">VGMRips</string>
+    <string name="vfs_vgmrips_root_description" translatable="false">https://vgmrips.net</string>
+    <string name="vfs_vgmrips_companies_name">Companies</string>
+    <string name="vfs_vgmrips_composers_name">Composers</string>
+    <string name="vfs_vgmrips_chips_name">Sound Chips</string>
+    <string name="vfs_vgmrips_systems_name">Systems</string>
+    <string name="vfs_vgmrips_random_name">Random tracks</string>
+    <!-- scene -->
+    <string name="vfs_scene_root_name" translatable="false">Scene.org</string>
+    <string name="vfs_scene_root_description" translatable="false">https://files.scene.org/</string>
     <!-- errors -->
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
-    <string name="file_too_big">File is too big</string>
 </resources>

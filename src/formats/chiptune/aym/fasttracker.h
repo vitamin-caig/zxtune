@@ -74,6 +74,13 @@ namespace Formats
       };
 
       typedef LinesObject<PositionEntry> Positions;
+
+      enum class NoteTable
+      {
+        PROTRACKER2,
+        SOUNDTRACKER,
+        FASTTRACKER
+      };
       
       class Builder
       {
@@ -82,6 +89,7 @@ namespace Formats
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         //common properties
+        virtual void SetNoteTable(NoteTable table) = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
         //samples+ornaments
         virtual void SetSample(uint_t index, Sample sample) = 0;

@@ -3,7 +3,7 @@
 # 1 - 'percenting' all the text fields
 
 library_name := playlist_io
-path_step := ../../../..
+dirs.root := ../../../..
 
 use_qt := 1
 
@@ -11,6 +11,6 @@ source_dirs := .
 
 text_files := tags/xspf tags/ayl
 
-include_dirs = ../..
+includes.dirs += ../..
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

@@ -1,38 +1,32 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs.archives;
 
 import android.text.TextUtils;
 
-import java.util.Arrays;
-
-import app.zxtune.Identifier;
+import app.zxtune.core.Identifier;
 
 public class DirEntry {
 
   public final Identifier path;
   public final Identifier parent;
   public final String filename;
-  
-  DirEntry(Identifier path, Identifier parent, String filename) {
+
+  private DirEntry(Identifier path, Identifier parent, String filename) {
     this.path = path;
     this.parent = parent;
     this.filename = filename;
   }
-  
+
   public final boolean isRoot() {
-    return parent == null;
+    return filename.isEmpty();
   }
-  
-  public static DirEntry create(Identifier id) {
+
+  static DirEntry create(Identifier id) {
     final String subpath = id.getSubpath();
     if (TextUtils.isEmpty(subpath)) {
       /*
@@ -41,15 +35,18 @@ public class DirEntry {
        * file.ext - module at the beginning
        * file.exe?+100 - module at the offset
        */
-      return new DirEntry(id, null, null);
+      return new DirEntry(id, id, "");
     } else {
-      final String[] subpathElements = TextUtils.split(subpath, "/");
-      final int subpathParts = subpathElements.length;
-      final String[] parentSubpathElements = Arrays.copyOf(subpathElements, subpathParts - 1);
-      final String parentSubpath = TextUtils.join("/", parentSubpathElements);
-      final Identifier parent = new Identifier(id.getDataLocation(), parentSubpath);
-      final String filename = subpathElements[subpathParts - 1];
-      return new DirEntry(id, parent, filename);
+      final int lastSeparatorPos = subpath.lastIndexOf('/');
+      if (lastSeparatorPos != -1) {
+        final String parentSubpath = subpath.substring(0, lastSeparatorPos);
+        final Identifier parent = new Identifier(id.getDataLocation(), parentSubpath);
+        final String filename = subpath.substring(lastSeparatorPos + 1);
+        return new DirEntry(id, parent, filename);
+      } else {
+        final Identifier parent = new Identifier(id.getDataLocation(), "");
+        return new DirEntry(id, parent, subpath);
+      }
     }
   }
 }

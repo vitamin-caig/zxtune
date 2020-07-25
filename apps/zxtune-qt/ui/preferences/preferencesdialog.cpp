@@ -22,8 +22,6 @@
 #include "ui/state.h"
 //std includes
 #include <algorithm>
-//boost includes
-#include <boost/bind.hpp>
 //std includes
 #include <utility>
 //qt includes
@@ -57,9 +55,10 @@ namespace
         UI::PluginsSettingsWidget::Create(*Categories),
         UI::InterfaceSettingsWidget::Create(*Categories)
       };
-      std::for_each(pages, std::end(pages),
-        boost::bind(&QTabWidget::addTab, Categories, _1, boost::bind(&QWidget::windowTitle, _1)));
-
+      for (auto* p : pages)
+      {
+        Categories->addTab(p, p->windowTitle());
+      }
       Categories->setTabEnabled(std::find(pages, std::end(pages), soundSettingsPage) - pages, !playing);
       State->AddWidget(*Categories);
       State->Load();

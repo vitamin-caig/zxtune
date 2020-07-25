@@ -1,0 +1,34 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"PO-Revision-Date: 2017-03-01 16:05+0300\n"
+"Last-Translator: <EMAIL@ADDRESS>\n"
+"Language-Team: Russian\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+#, boost-format
+msgid "%1% processing"
+msgstr "Анализ %1%"
+
+#, boost-format
+msgid "%1% processing at %2%"
+msgstr "Анализ %1% в %2%"
+
+#, boost-format
+msgid "%1% processing for %2%"
+msgstr "Анализ %1% для %2%"
+
+#, boost-format
+msgid "%1% processing for %2% at %3%"
+msgstr "Анализ %1% для %2% в %3%"
+
+#, boost-format
+msgid "Specified minimal scan size (%1%). Should be more than %2%."
+msgstr ""
+"Неправильный минимальный размер блока для анализа (%1%). Должен быть "
+"больше %2%."

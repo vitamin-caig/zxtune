@@ -1,0 +1,150 @@
+	ift	SAP
+	opt	h-
+	dta	c'SAP',13,10
+	dta	c'AUTHOR "Piotr Fusik (0xF)"',13,10
+	dta	c'NAME "POKEY RANDOM Test"',13,10
+	dta	c'DATE "19/05/2011"',13,10
+	dta	c'TYPE D',13,10
+	dta	c'INIT 3000',13,10
+	dta	c'TIME 00:10',13,10
+	opt	h+
+	eif
+
+div5	equ	$80
+mod5	equ	$81
+scrptr	equ	$8a	; 2 bytes
+printptr	equ	$8c	; 2 bytes
+
+	org	f:$3000
+main
+:SAP	mwa	#$1000	scrptr
+	lda	<title
+	ldx	>title
+	jsr	print
+
+:!SAP	sei:inc	^4e
+:!SAP	inc	^40
+
+	ldx	#1
+	stx	div5
+	dex
+	stx	0
+	ldy	#0
+test_loop
+	stx	mod5
+	mva	cmps,x	cmpd
+	sta	cmpd2
+
+	mva	#0	^28
+	sta	^2f
+:2	sta	^4a
+	mva	#3	^2f
+	ldx	div5
+	dex:rne
+cmpd	cmp	#0
+	lda	^2a
+	cmp	poly17,y
+	bne	error
+
+	mva	#$80	^28
+	sta	^2f
+:2	sta	^4a
+	mva	#3	^2f
+	ldx	div5
+	dex:rne
+cmpd2	cmp	#0
+	lda	^2a
+	cmp	poly9,y
+	bne	error
+
+	ldx	mod5
+	inx
+	cpx	#5
+	bcc	same5
+	inc	div5
+	ldx	#0
+same5	iny
+	bne	test_loop
+
+	lsr:cli	^4e
+	lda	<pass
+	ldx	>pass
+	jsr	print
+	mwa	#$af30	$d200
+	jmp	*
+
+error
+	lsr:cli	^4e
+	lda	<fail
+	ldx	>fail
+	jsr	print
+	mwa	#$cfa0	$d200
+	jmp	*
+
+put_char
+	ift	SAP
+	sta	(scrptr),0
+	inw	scrptr
+	rts
+	els
+	mvx	#11	$342
+	mwx	#0	$348
+	jmp	$e456
+	eif
+
+print
+	sta	printptr
+	stx	printptr+1
+	jmp	print_2
+print_1
+	jsr	put_char
+	inw	printptr
+print_2
+	lda	(printptr),0
+	bne	print_1
+	rts
+
+title	dta	c'POKEY: RANDOM...',0
+pass	dta	c'Pass',$9b,0
+fail	dta	c'FAIL.',$9b,0
+
+cmps	dta	{cmp #},{cmp 0},{cmp 0,x},{cmp (0),y},{cmp (0,x)}
+
+poly17
+	dta	$00,$80,$C0,$E0,$F0,$F8,$7C,$3E,$1F,$0F,$07,$03,$01,$80,$C0,$E0
+	dta	$F0,$FC,$FE,$FF,$FF,$7F,$3F,$CF,$E7,$F3,$7C,$3E,$1F,$07,$83,$C1
+	dta	$30,$18,$8C,$E3,$F1,$F8,$FE,$FF,$FF,$3F,$1F,$0F,$07,$83,$C1,$E0
+	dta	$70,$38,$1C,$0E,$87,$C3,$E1,$F0,$F8,$FC,$FE,$FF,$7F,$3F,$9F,$CF
+	dta	$67,$B3,$D9,$EC,$F6,$7B,$3D,$1E,$8F,$C7,$63,$31,$98,$CC,$E6,$73
+	dta	$39,$1C,$8E,$C7,$63,$31,$18,$0C,$86,$43,$21,$10,$08,$84,$42,$21
+	dta	$10,$08,$04,$82,$41,$20,$10,$08,$04,$02,$01,$00,$00,$00,$80,$C0
+	dta	$60,$30,$18,$0C,$86,$43,$21,$10,$08,$04,$C1,$60,$30,$8C,$46,$23
+	dta	$08,$04,$82,$E0,$70,$38,$0E,$87,$43,$10,$88,$C4,$F1,$78,$3C,$CF
+	dta	$67,$33,$0C,$86,$43,$A1,$D0,$68,$B4,$5A,$2D,$96,$4B,$25,$92,$49
+	dta	$24,$92,$C9,$64,$32,$19,$8C,$46,$23,$91,$C8,$64,$B2,$D9,$EC,$F6
+	dta	$7B,$3D,$1E,$8F,$47,$A3,$D1,$E8,$F4,$FA,$7D,$3E,$1F,$8F,$C7,$63
+	dta	$B1,$D8,$EC,$F6,$7B,$BD,$DE,$EF,$F7,$7B,$3D,$1E,$8F,$C7,$63,$31
+	dta	$18,$0C,$06,$03,$01,$00,$80,$C0,$60,$30,$18,$0C,$06,$83,$C1,$60
+	dta	$30,$18,$8C,$63,$31,$18,$C6,$E3,$F1,$3C,$1E,$0F,$03,$01,$00,$00
+	dta	$80,$C0,$B0,$D8,$EC,$7B,$3D,$1E,$07,$83,$C1,$B0,$D8,$6C,$36,$1B
+poly9
+	dta	$EF,$77,$3B,$1D,$0E,$87,$43,$A1,$D0,$68,$34,$9A,$CD,$66,$B3,$D9
+	dta	$6C,$DB,$ED,$F6,$BD,$5E,$2F,$0B,$85,$C2,$70,$38,$9C,$67,$33,$19
+	dta	$86,$43,$21,$48,$24,$12,$44,$A2,$51,$D4,$EA,$75,$BA,$5D,$AE,$D7
+	dta	$EB,$F5,$7A,$3D,$9E,$4F,$27,$93,$49,$A4,$D2,$E9,$74,$3A,$9D,$CE
+	dta	$E7,$73,$39,$1C,$0E,$07,$03,$81,$C0,$E0,$70,$B8,$DC,$EE,$77,$BB
+	dta	$5D,$2E,$97,$CB,$E5,$F2,$79,$BC,$5E,$AF,$57,$2B,$95,$4A,$A5,$52
+	dta	$29,$14,$0A,$05,$02,$81,$40,$A0,$50,$A8,$54,$AA,$55,$AA,$D5,$EA
+	dta	$F5,$FA,$7D,$BE,$5F,$AF,$D7,$6B,$B5,$5A,$16,$0B,$05,$C1,$60,$B0
+	dta	$EC,$76,$BB,$6E,$B7,$DB,$B6,$5B,$AD,$6B,$35,$1A,$06,$83,$41,$D0
+	dta	$E8,$74,$DD,$EE,$F7,$FB,$7D,$3E,$1F,$8F,$C7,$E3,$F1,$78,$3C,$9E
+	dta	$CF,$67,$B3,$59,$2C,$96,$CB,$65,$B2,$59,$AC,$D6,$EB,$75,$3A,$1D
+	dta	$8E,$C7,$63,$B1,$58,$2C,$16,$8B,$45,$A2,$D1,$E8,$F4,$FA,$FD,$FE
+	dta	$7F,$BF,$5F,$2F,$97,$4B,$A5,$D2,$69,$34,$1A,$8D,$46,$A3,$51,$28
+	dta	$94,$CA,$65,$32,$19,$8C,$C6,$63,$31,$18,$0C,$06,$03,$01,$80,$C0
+	dta	$60,$30,$98,$66,$33,$99,$A6,$53,$A9,$6A,$35,$9A,$26,$93,$C9,$F2
+	dta	$F9,$FC,$BF,$DF,$6F,$5B,$2D,$96,$25,$92,$49,$92,$C9,$64,$B2,$D9
+
+	ift	!SAP
+	run	main
+	eif

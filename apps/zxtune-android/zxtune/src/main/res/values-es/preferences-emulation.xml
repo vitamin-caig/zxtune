@@ -1,9 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <resources>
   <!-- emulation -->
-  <string name="pref_emulation_title">Emulación</string>
-  
-  <!-- common -->
+
+    <!-- common -->
   <string name="pref_interpolation">Interpolación</string>
   <string-array name="pref_interpolation_entries">
     <item>Ninguna</item>
@@ -42,5 +41,25 @@
     <item>10 minutos</item>
     <item>15 minutos</item>
     <item>30 minutos</item>
+  </string-array>
+  <!-- zxtune.sound.silencelimit -->
+  <string  name="pref_zxtune_silence_limit_title">Detección de silencio</string>
+  <string-array name="pref_zxtune_silence_limit_entries">
+    <item>Ninguna</item>
+    <item>3 segundos</item>
+    <item>4 segundos</item>
+    <item>5 segundos</item>
+    <item>10 segundos</item>
+    <item>15 segundos</item>
+  </string-array>
+  <!-- zxtune.sound.looplimit -->
+  <string  name="pref_zxtune_loop_limit_title">Límite de bucle</string>
+  <string-array name="pref_zxtune_loop_limit_entries">
+    <item>Ninguna</item>
+    <item>1 bucle</item>
+    <item>2 bucles</item>
+    <item>3 bucles</item>
+    <item>4 bucles</item>
+    <item>5 bucles</item>
   </string-array>
 </resources>

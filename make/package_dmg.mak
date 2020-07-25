@@ -7,4 +7,4 @@ package_dmg:
 
 $(pkg_file): make_bundle
 	@$(call showtime_cmd)
-	$(path_step)/make/tools/make_dmg.sh -i $(wildcard $(macos_bundle)/Contents/Resources/*.icns) -n $@ $(macos_bundle)
+	$(dirs.root)/make/tools/make_dmg.sh -i $(wildcard $(macos_bundle)/Contents/Resources/*.icns) -n $@ $(macos_bundle)

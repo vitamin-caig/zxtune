@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "tfm_base_track.h"
+#include "module/players/tfm/tfm_base_track.h"
 //common includes
 #include <make_ptr.h>
 //std includes
@@ -57,13 +57,13 @@ namespace Module
         return Delegate->IsValid();
       }
 
-      void NextFrame(bool looped) override
+      void NextFrame(const Sound::LoopParameters& looped) override
       {
         Delegate->NextFrame(looped);
         FillCurrentData();
       }
 
-      TrackState::Ptr GetStateObserver() const override
+      Module::State::Ptr GetStateObserver() const override
       {
         return State;
       }
@@ -216,13 +216,12 @@ namespace Module
 
     void ChannelBuilder::WriteChipRegister(uint_t idx, uint_t val)
     {
-      const Devices::TFM::Register reg(Chip, idx, val);
-      Registers.push_back(reg);
+      Registers.push_back(Devices::TFM::Register(Chip, idx, val));
     }
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
     {
-      return MakePtr<TrackDataIterator>(iterator, renderer);
+      return MakePtr<TrackDataIterator>(std::move(iterator), std::move(renderer));
     }
   }
 }

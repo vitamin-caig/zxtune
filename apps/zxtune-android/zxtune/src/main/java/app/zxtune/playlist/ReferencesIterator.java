@@ -10,43 +10,49 @@
 
 package app.zxtune.playlist;
 
+import androidx.annotation.Nullable;
+
+import app.zxtune.TimeStamp;
+
 public interface ReferencesIterator {
 
-  public static class Entry {
+  class Entry {
 
+    @Nullable
     public String location;
-    
-    //TODO
-    //HashMap<String, Object> properties;
+
+    public String title = "";
+    public String author = "";
+    public TimeStamp duration = TimeStamp.EMPTY;
   }
 
   /**
    * @return Current position entry
    */
-  public Entry getItem();
+  Entry getItem();
   
   /**
    * @return true if moved to next position
    */
-  public boolean next();
+  boolean next();
   
   /**
    * @return true if moved to previous position
    */
-  public boolean prev();
+  boolean prev();
   
   /**
    * @return false if underlying list is empty
    */
-  public boolean first();
+  boolean first();
   
   /**
    * @return false if underlying list is empty
    */
-  public boolean last();
+  boolean last();
   
   /**
    * @return false if underlying list is empty
    */
-  public boolean random();
+  boolean random();
 }

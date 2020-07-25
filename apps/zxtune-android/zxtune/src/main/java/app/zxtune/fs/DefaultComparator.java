@@ -1,21 +1,13 @@
 /**
- * 
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.fs;
 
 import java.util.Comparator;
 
-/*
- * In case of equal prefixes before digits sequence, use number-ordered comparing.
- * Else use case-insensitive comparing
- */
 public class DefaultComparator implements Comparator<VfsObject> {
 
   @Override
@@ -23,14 +15,77 @@ public class DefaultComparator implements Comparator<VfsObject> {
     return compare(lh.getName(), rh.getName());
   }
 
-  private static int compare(String lh, String rh) {
-    final int lhSize = lh.length();
-    final int rhSize = rh.length();
+  //allow access for test
+  static int compare(String lh, String rh) {
+    return compareAlphaNumeric(lh, lh.length(), rh, rh.length());
+  }
+
+  private static int compareAlphaNumeric(String lh, int lhSize, String rh, int rhSize) {
+    int compareResult = 0;
+    int caseSensitiveCompareResult = 0;
+    for (int pos = 0; ; ++pos) {
+      final boolean lhEnd = pos >= lhSize;
+      final boolean rhEnd = pos >= rhSize;
+      if (lhEnd || rhEnd) {
+        if (compareResult != 0) {
+          return compareResult;
+        } else if (lhEnd && rhEnd) {
+          return caseSensitiveCompareResult;
+        } else if (lhEnd) {
+          return -1;
+        } else {
+          return 1;
+        }
+      }
+      final char lhSym = lh.charAt(pos);
+      final char rhSym = rh.charAt(pos);
+
+      if (isDigit(lhSym) && isDigit(rhSym)) {
+        if (compareResult != 0) {
+          return compareResult;
+        } else if (caseSensitiveCompareResult != 0) {
+          return caseSensitiveCompareResult;
+        } else {
+          return compareNumericPrefix(lh.substring(pos), lhSize - pos, rh.substring(pos), rhSize - pos);
+        }
+      } else if (lhSym != rhSym && compareResult == 0) {
+        compareResult = compare(Character.toUpperCase(lhSym), Character.toUpperCase(rhSym));
+        if (compareResult == 0 && caseSensitiveCompareResult == 0) {
+          caseSensitiveCompareResult = compare(lhSym, rhSym);
+        }
+      }
+    }
+  }
+
+  private static int compareNumericPrefix(String lh, int lhSize, String rh, int rhSize) {
+    final int lhZeroes = countZeroes(lh, lhSize);
+    final int rhZeroes = countZeroes(rh, rhSize);
+    if (lhZeroes == 0 && rhZeroes == 0) {
+      return compareNumericNoZeroPrefix(lh, lhSize, rh, rhSize);
+    } else {
+      final int suffixCompareResult = compareNumericNoZeroPrefix(lh.substring(lhZeroes), lhSize - lhZeroes, rh.substring(rhZeroes), rhSize - rhZeroes);
+      return suffixCompareResult != 0
+              ? suffixCompareResult
+              : -compare(lhZeroes, rhZeroes);
+    }
+  }
+
+  private static int countZeroes(String str, int size) {
+    for (int res = 0; res < size; ++res) {
+      if (str.charAt(res) != '0') {
+        return res;
+      }
+    }
+    return size;
+  }
+
+  private static int compareNumericNoZeroPrefix(String lh, int lhSize, String rh, int rhSize) {
+    int compareResult = 0;
     for (int pos = 0; ; ++pos) {
       final boolean lhEnd = pos >= lhSize;
       final boolean rhEnd = pos >= rhSize;
       if (lhEnd && rhEnd) {
-        return 0;
+        return compareResult;
       } else if (lhEnd) {
         return -1;
       } else if (rhEnd) {
@@ -38,34 +93,26 @@ public class DefaultComparator implements Comparator<VfsObject> {
       }
       final char lhSym = lh.charAt(pos);
       final char rhSym = rh.charAt(pos);
-      if (isDigit(lhSym) && isDigit(rhSym)) {
-        return compareNumeric(lh.substring(pos), rh.substring(pos));
-      } else if (lhSym != rhSym) {
-        break;
+      final boolean lhDigit = isDigit(lhSym);
+      final boolean rhDigit = isDigit(rhSym);
+      if (lhDigit && rhDigit) {
+        if (compareResult == 0) {
+          compareResult = compare(lhSym, rhSym);
+        }
+      } else if (rhDigit) {
+        return -1;
+      } else if (lhDigit) {
+        return 1;
+      } else if (compareResult != 0) {
+        return compareResult;
+      } else {
+        return compareAlphaNumeric(lh.substring(pos), lhSize - pos, rh.substring(pos), rhSize - pos);
       }
     }
-    return compareDefault(lh, rh);
   }
 
   private static boolean isDigit(char c) {
     return c >= '0' && c <= '9';
-  }
-
-  private static int compareDefault(String lh, String rh) {
-    return String.CASE_INSENSITIVE_ORDER.compare(lh, rh);
-  }
-
-  private static int compareNumeric(String lh, String rh) {
-    final Integer lhNumber = parseNumber(lh);
-    if (lhNumber != null) {
-      final Integer rhNumber = parseNumber(rh);
-      if (rhNumber != null) {
-        if (!lhNumber.equals(rhNumber)) {
-          return compare(lhNumber, rhNumber);
-        }
-      }
-    }
-    return compareDefault(lh, rh);
   }
 
   private static int compare(int lh, int rh) {
@@ -78,21 +125,10 @@ public class DefaultComparator implements Comparator<VfsObject> {
     }
   }
 
-  private static Integer parseNumber(String str) {
-    final int size = str.length();
-    for (int pos = 0; pos < size; ++pos) {
-      if (!isDigit(str.charAt(pos))) {
-        return null;
-      }
-    }
-    //Integer.decode supports octadecimal values not need here
-    return Integer.parseInt(str);
-  }
-
   public static Comparator<VfsObject> instance() {
     return Holder.INSTANCE;
   }
-  
+
   //onDemand holder idiom
   private static class Holder {
     public static final DefaultComparator INSTANCE = new DefaultComparator();

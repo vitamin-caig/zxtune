@@ -11,11 +11,12 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
 #include <math/numeric.h>
@@ -78,7 +79,7 @@ namespace Multitrack
      
     const std::size_t MIN_SIZE = 256;
 
-    const RawHeader* GetHeader(const Binary::Data& rawData)
+    const RawHeader* GetHeader(Binary::View rawData)
     {
       if (rawData.Size() < MIN_SIZE)
       {
@@ -100,38 +101,21 @@ namespace Multitrack
       return hdr;
     }
     
-    class Container : public Formats::Multitrack::Container
+    class Container : public Binary::BaseContainer<Multitrack::Container>
     {
     public:
       Container(const RawHeader* hdr, Binary::Container::Ptr data)
-        : Hdr(hdr)
-        , Delegate(std::move(data))
+        : BaseContainer(std::move(data))
+        , Hdr(hdr)
       {
       }
       
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-      
-      //Formats::Multitrack::Container
       uint_t FixedChecksum() const override
       {
         //just skip text fields
-        const uint8_t* const data = static_cast<const uint8_t*>(Delegate->Start());
-        const uint32_t part1 = Crc32(data, offsetof(RawHeader, Title));
-        const uint32_t part2 = Crc32(data + offsetof(RawHeader, NTSCSpeedUs), Delegate->Size() - offsetof(RawHeader, NTSCSpeedUs), part1);
+        const Binary::View data(*Delegate);
+        const uint32_t part1 = Binary::Crc32(data.SubView(0, offsetof(RawHeader, Title)));
+        const uint32_t part2 = Binary::Crc32(data.SubView(offsetof(RawHeader, NTSCSpeedUs)), part1);
         return part2;
       }
 
@@ -148,15 +132,14 @@ namespace Multitrack
       Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
         std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
-        std::memcpy(&content->front(), Delegate->Start(), content->size());
-        RawHeader* const hdr = safe_ptr_cast<RawHeader*>(&content->front());
+        std::memcpy(content->data(), Delegate->Start(), content->size());
+        RawHeader* const hdr = safe_ptr_cast<RawHeader*>(content->data());
         Require(idx < hdr->SongsCount);
         hdr->StartSong = idx + 1;
         return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));
       }
     private:
       const RawHeader* const Hdr;
-      const Binary::Container::Ptr Delegate;
     };
 
     class Decoder : public Formats::Multitrack::Decoder

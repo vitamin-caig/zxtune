@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "static_expression.h"
+#include "binary/format/static_expression.h"
 //common includes
 #include <make_ptr.h>
 //library includes
@@ -20,7 +20,7 @@ namespace Binary
   class MatchOnlyFormatBase : public Format
   {
   public:
-    std::size_t NextMatchOffset(const Data& data) const override
+    std::size_t NextMatchOffset(View data) const override
     {
       return data.Size();
     }
@@ -36,7 +36,7 @@ namespace Binary
     {
     }
 
-    bool Match(const Data& data) const override
+    bool Match(View data) const override
     {
       if (data.Size() < MinSize)
       {
@@ -75,13 +75,13 @@ namespace Binary
     {
     }
 
-    bool Match(const Data& data) const override
+    bool Match(View data) const override
     {
       if (data.Size() < MinSize)
       {
         return false;
       }
-      const uint8_t* const patternStart = &Pattern.front();
+      const uint8_t* const patternStart = Pattern.data();
       const uint8_t* const patternEnd = patternStart + Pattern.size();
       const uint8_t* const typedDataStart = static_cast<const uint8_t*>(data.Start()) + Offset;
       return std::equal(patternStart, patternEnd, typedDataStart);

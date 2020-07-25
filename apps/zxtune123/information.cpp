@@ -52,7 +52,12 @@ namespace
       {
         result += Char(' ');
         result += cap->second;
+        caps ^= cap->first;
       }
+    }
+    if (caps)
+    {
+      result += Strings::Format(" 0x%08x", caps);
     }
     return result;
   }
@@ -111,6 +116,8 @@ namespace
       CapsPair(Capabilities::Module::Conversion::TXT, Text::INFO_CONV_TXT),
       CapsPair(Capabilities::Module::Conversion::AYDUMP, Text::INFO_CONV_AYDUMP),
       CapsPair(Capabilities::Module::Conversion::FYM, Text::INFO_CONV_FYM),
+      //traits caps
+      CapsPair(Capabilities::Module::Traits::MULTIFILE, Text::INFO_CAP_MULTIFILE),
       //limiter
       CapsPair()
     };
@@ -141,11 +148,11 @@ namespace
     {
     case Capabilities::Category::MODULE:
       result += SerializeEnum(caps & Capabilities::Module::Type::MASK, MODULE_TYPES);
-      result += SerializeBitmask(caps, MODULE_CAPS);
+      result += SerializeBitmask(caps & ~(Capabilities::Category::MASK | Capabilities::Module::Type::MASK), MODULE_CAPS);
       break;
     case Capabilities::Category::CONTAINER:
       result += SerializeEnum(caps & Capabilities::Container::Type::MASK, CONTAINER_TYPES);
-      result += SerializeBitmask(caps, CONTAINER_CAPS);
+      result += SerializeBitmask(caps & ~(Capabilities::Category::MASK | Capabilities::Container::Type::MASK), CONTAINER_CAPS);
       break;
     }
     return result.substr(1);

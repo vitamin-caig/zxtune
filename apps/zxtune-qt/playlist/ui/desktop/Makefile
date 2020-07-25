@@ -1,5 +1,5 @@
 library_name := playlist_ui_desktop
-path_step := ../../../../..
+dirs.root := ../../../../..
 
 source_dirs := .
 
@@ -8,6 +8,6 @@ moc_files := playlist_contextmenu
 
 ts_files := playlist_ui_desktop
 
-include_dirs = ../../..
+includes.dirs += ../../..
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

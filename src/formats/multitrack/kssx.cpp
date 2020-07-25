@@ -11,11 +11,12 @@
 //common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <crc.h>
 #include <pointers.h>
 #include <make_ptr.h>
 //library includes
+#include <binary/container_base.h>
 #include <binary/container_factories.h>
+#include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
 //std includes
@@ -84,38 +85,21 @@ namespace Multitrack
     
     const uint_t MAX_TRACKS_COUNT = 256;
 
-    class Container : public Formats::Multitrack::Container
+    class Container : public Binary::BaseContainer<Multitrack::Container>
     {
     public:
       Container(const ExtraHeader* hdr, Binary::Container::Ptr data)
-        : Hdr(hdr)
-        , Delegate(std::move(data))
+        : BaseContainer(std::move(data))
+        , Hdr(hdr)
       {
       }
       
-      //Binary::Container
-      const void* Start() const override
-      {
-        return Delegate->Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate->Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate->GetSubcontainer(offset, size);
-      }
-      
-      //Formats::Multitrack::Container
       uint_t FixedChecksum() const override
       {
-        const void* const data = Delegate->Start();
-        const RawHeader* const header = static_cast<const RawHeader*>(data);
+        const Binary::View data(*Delegate);
+        const auto* header = data.As<RawHeader>();
         const std::size_t headersSize = sizeof(*header) + header->ExtraHeaderSize;
-        return Crc32(static_cast<const uint8_t*>(data) + headersSize, Delegate->Size() - headersSize);
+        return Binary::Crc32(data.SubView(headersSize));
       }
 
       uint_t TracksCount() const override
@@ -132,15 +116,14 @@ namespace Multitrack
       {
         Require(Hdr != &STUB_EXTRA_HEADER);
         std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
-        std::memcpy(&content->front(), Delegate->Start(), content->size());
-        ExtraHeader* const hdr = safe_ptr_cast<ExtraHeader*>(&content->front() + sizeof(RawHeader));
+        std::memcpy(content->data(), Delegate->Start(), content->size());
+        ExtraHeader* const hdr = safe_ptr_cast<ExtraHeader*>(content->data() + sizeof(RawHeader));
         Require(idx <= hdr->LastTrack);
         hdr->FirstTrack = idx;
         return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));
       }
     private:
       const ExtraHeader* const Hdr;
-      const Binary::Container::Ptr Delegate;
     };
      
     class Decoder : public Formats::Multitrack::Decoder

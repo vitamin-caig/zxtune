@@ -1,6 +1,6 @@
 library_name := lhasa
-path_step := ../..
-include $(path_step)/make/default.mak
+dirs.root := ../..
+include $(dirs.root)/make/default.mak
 
 source_files := $(addprefix lib/,\
 	crc16 \
@@ -25,8 +25,8 @@ source_files := $(addprefix lib/,\
 
 #this files are included directly:	bit_stream_reader lh_new_decoder tree_decode
 
-windows_definitions += vsnprintf=_vsnprintf
+defines.windows += vsnprintf=_vsnprintf
 
 source_files := $(addsuffix .c,$(source_files))
 
-include $(path_step)/makefile.mak
+include $(dirs.root)/makefile.mak

@@ -13,37 +13,11 @@
    height="384"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.5 r10040"
+   inkscape:version="0.92.1 r"
    sodipodi:docname="add.svg"
    enable-background="new">
   <defs
-     id="defs4">
-    <inkscape:path-effect
-       effect="spiro"
-       id="path-effect3263"
-       is_visible="true" />
-    <inkscape:path-effect
-       effect="spiro"
-       id="path-effect3263-3"
-       is_visible="true" />
-    <inkscape:path-effect
-       effect="spiro"
-       id="path-effect3263-3-8"
-       is_visible="true" />
-    <inkscape:path-effect
-       effect="spiro"
-       id="path-effect3263-3-8-9"
-       is_visible="true" />
-    <filter
-       inkscape:collect="always"
-       id="filter4751">
-      <feBlend
-         inkscape:collect="always"
-         mode="lighten"
-         in2="BackgroundImage"
-         id="feBlend4753" />
-    </filter>
-  </defs>
+     id="defs4" />
   <sodipodi:namedview
      id="base"
      pagecolor="#a0a0a0"
@@ -52,16 +26,17 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="0.7"
-     inkscape:cx="177.43175"
+     inkscape:cx="132.90622"
      inkscape:cy="45.197915"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="svg2"
      showgrid="true"
      inkscape:window-width="1280"
-     inkscape:window-height="720"
-     inkscape:window-x="-4"
-     inkscape:window-y="-3"
-     inkscape:window-maximized="1">
+     inkscape:window-height="695"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     showguides="false">
     <inkscape:grid
        type="xygrid"
        id="grid-mdpi"
@@ -69,8 +44,10 @@
        visible="true"
        enabled="true"
        snapvisiblegridlinesonly="true"
-       spacingx="12px"
-       spacingy="12px" />
+       spacingx="12"
+       spacingy="12"
+       originx="0"
+       originy="0" />
     <inkscape:grid
        type="xygrid"
        id="grid-hdpi"
@@ -78,8 +55,10 @@
        visible="false"
        enabled="true"
        snapvisiblegridlinesonly="true"
-       spacingx="8px"
-       spacingy="8px" />
+       spacingx="8"
+       spacingy="8"
+       originx="0"
+       originy="0" />
     <inkscape:grid
        type="xygrid"
        id="grid-xhdpi"
@@ -87,8 +66,10 @@
        visible="false"
        enabled="true"
        snapvisiblegridlinesonly="true"
-       spacingx="6px"
-       spacingy="6px" />
+       spacingx="6"
+       spacingy="6"
+       originx="0"
+       originy="0" />
     <inkscape:grid
        type="xygrid"
        id="grid-xxhdpi"
@@ -96,8 +77,10 @@
        visible="false"
        enabled="true"
        snapvisiblegridlinesonly="true"
-       spacingx="4px"
-       spacingy="4px" />
+       spacingx="4"
+       spacingy="4"
+       originx="0"
+       originy="0" />
     <inkscape:grid
        type="xygrid"
        id="grid-xxxhdpi"
@@ -105,8 +88,10 @@
        visible="false"
        enabled="true"
        snapvisiblegridlinesonly="true"
-       spacingx="3px"
-       spacingy="3px" />
+       spacingx="3"
+       spacingy="3"
+       originx="0"
+       originy="0" />
   </sodipodi:namedview>
   <metadata
      id="metadata7">
@@ -120,16 +105,9 @@
       </cc:Work>
     </rdf:RDF>
   </metadata>
-  <g
-     inkscape:groupmode="layer"
-     id="layer1"
-     inkscape:label="Object"
-     style="filter:url(#filter4751)">
-    <path
-       style="opacity:0.8;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       d="m 192,48 c -79.529,0 -144,64.471 -144,144 0,79.529 64.471,144 144,144 79.529,0 144,-64.471 144,-144 C 336,112.471 271.529,48 192,48 z m 0,24 c 72.90159,0 120,47.09841 120,120 0,72.90159 -47.09841,120 -120,120 C 119.09841,312 72,264.90159 72,192 72,119.09841 119.09841,72 192,72 z m -12,12 0,96 -96,0 0,24 96,0 0,96 24,0 0,-96 96,0 0,-24 -96,0 0,-96 z"
-       id="path4731"
-       inkscape:connector-curvature="0"
-       sodipodi:nodetypes="ssssssssssccccccccccccc" />
-  </g>
+  <path
+     style="opacity:1;fill-opacity:1;fill-rule:nonzero"
+     d="m 192,48 c -80,0 -144,64 -144,144 0,80 64,144 144,144 80,0 144,-64 144,-144 C 336,112 272,48 192,48 Z m 0,24 c 73,0 120,47 120,120 0,73 -47,120 -120,120 C 119,312 72,265 72,192 72,119 119,72 192,72 Z m -12,12 v 96 H 84 v 24 h 96 v 96 h 24 v -96 h 96 V 180 H 204 V 84 Z"
+     inkscape:connector-curvature="0"
+     id="path18" />
 </svg>

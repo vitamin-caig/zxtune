@@ -46,7 +46,7 @@ namespace TFM
     {
       for (const auto& reg : regs)
       {
-        ::YM2203WriteRegs(Chips[reg.Chip()].get(), reg.Index(), reg.Value());
+        ::YM2203WriteRegs(Chips.at(reg.Chip()).get(), reg.Index(), reg.Value());
       }
     }
 
@@ -60,15 +60,14 @@ namespace TFM
       Helper.ConvertSamples(outRaw, outRaw + count, out);
     }
 
-    MultiChannelState GetState() const
+    DeviceState GetState() const
     {
-      MultiChannelState res;
-      res.reserve(VOICES);
+      DeviceState res;
       std::array<uint_t, FM::VOICES> attenuations;
       std::array<uint_t, FM::VOICES> periods;
-      ::YM2203GetState(Chips[0].get(), &attenuations[0], &periods[0]);
+      ::YM2203GetState(Chips[0].get(), attenuations.data(), periods.data());
       Helper.ConvertState(attenuations.data(), periods.data(), res);
-      ::YM2203GetState(Chips[1].get(), &attenuations[0], &periods[0]);
+      ::YM2203GetState(Chips[1].get(), attenuations.data(), periods.data());
       Helper.ConvertState(attenuations.data(), periods.data(), res);
       return res;
     }

@@ -9,39 +9,33 @@
 **/
 
 //local includes
-#include "file_backend.h"
-#include "storage.h"
-#include "gates/mp3_api.h"
+#include "sound/backends/file_backend.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/gates/mp3_api.h"
 //common includes
 #include <error_tools.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/data_adapter.h>
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 //std includes
 #include <algorithm>
-//boost includes
-#include <boost/bind.hpp>
+#include <functional>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 3B251603
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Mp3");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Mp3
 {
+  const Debug::Stream Dbg("Sound::Backend::Mp3");
+
   const String ID = Text::MP3_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("MP3 support backend");
 
@@ -96,18 +90,18 @@ namespace Mp3
     {
     }
 
-    void ApplyData(Chunk::Ptr data) override
+    void ApplyData(Chunk data) override
     {
       //work with 16-bit
       static_assert(Sample::BITS == 16, "Incompatible sound sample bits count");
       static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
-      data->ToS16();
+      data.ToS16();
       while (const int res = LameApi->lame_encode_buffer_interleaved(Context.get(),
-        safe_ptr_cast<short int*>(&data->front()), data->size(), &Encoded[0], Encoded.size()))
+        safe_ptr_cast<short int*>(data.data()), data.size(), Encoded.data(), Encoded.size()))
       {
         if (res > 0) //encoded
         {
-          Stream->ApplyData(Binary::DataAdapter(&Encoded[0], res));
+          Stream->ApplyData(Binary::View(Encoded.data(), res));
           break;
         }
         else if (-1 == res)//buffer too small
@@ -123,11 +117,11 @@ namespace Mp3
 
     void Flush() override
     {
-      while (const int res = LameApi->lame_encode_flush(Context.get(), &Encoded[0], Encoded.size()))
+      while (const int res = LameApi->lame_encode_flush(Context.get(), Encoded.data(), Encoded.size()))
       {
         if (res > 0)
         {
-          Stream->ApplyData(Binary::DataAdapter(&Encoded[0], res));
+          Stream->ApplyData(Binary::View(Encoded.data(), res));
           break;
         }
         else if (-1 == res)//buffer too small
@@ -270,7 +264,7 @@ namespace Mp3
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
-      const LameContextPtr context = LameContextPtr(LameApi->lame_init(), boost::bind(&Api::lame_close, LameApi, _1));
+      const LameContextPtr context = LameContextPtr(LameApi->lame_init(), std::bind(&Api::lame_close, LameApi, std::placeholders::_1));
       SetupContext(*context);
       return MakePtr<FileStream>(LameApi, context, stream);
     }
@@ -369,7 +363,7 @@ namespace Sound
     try
     {
       const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
-      Dbg("Detected LAME library %1%", api->get_lame_version());
+      Mp3::Dbg("Detected LAME library %1%", api->get_lame_version());
       const BackendWorkerFactory::Ptr factory = MakePtr<Mp3::BackendWorkerFactory>(api);
       storage.Register(Mp3::ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
@@ -379,3 +373,5 @@ namespace Sound
     }
   }
 }
+
+#undef FILE_TAG

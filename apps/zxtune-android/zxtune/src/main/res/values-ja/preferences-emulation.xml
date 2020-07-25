@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- emulation -->
+
+    <!-- common -->
+  <string name="pref_interpolation">補間</string>
+  <string-array name="pref_interpolation_entries">
+    <item>いいえ</item>
+    <item>高性能</item>
+    <item>*高品質<b>(高いCPU使用率)</b></item>
+  </string-array>
+  <!-- ay/ym -->
+  <!-- zxtune.core.aym.clockrate -->
+  <string name="pref_zxtune_aym_clockrate_title">クロックレート</string>
+  <string-array name="pref_zxtune_aym_clockrate_entries">
+    <item>ZX Spectrum (1.7734 MHz)</item>
+    <item>Pentagon (1.75 MHz)</item>
+    <item>Taganrog (3.5 MHz)</item>
+    <item>Atari ST (2 MHz)</item>
+    <item>Amstrad CPC (1 MHz)</item>
+  </string-array>
+  <!-- zxtune.core.aym.type -->
+  <string name="pref_zxtune_aym_type_title">タイプ</string>
+  <!-- zxtun.core.aym.layout -->
+  <string name="pref_zxtune_aym_layout_title">チャネル構成</string>
+  <string-array name="pref_zxtune_aym_layout_entries">
+    <item>ABC</item>
+    <item>ACB</item>
+    <item>BAC</item>
+    <item>BCA</item>
+    <item>CBA</item>
+    <item>CAB</item>
+    <item>モノラル</item>
+  </string-array>
+
+  <!-- dac -->
+  <string name="pref_zxtune_dac_title">デジタル試料</string>
+
+  <!-- sid -->
+  <!-- zxtune.core.sid.filter -->
+  <string  name="pref_zxtune_sid_filter_title">フィル</string>
+
+  <!-- other -->
+  <string name="pref_zxtune_other_title">その他</string>
+  <!-- zxtune.core.plugins.default_duration -->
+  <string  name="pref_zxtune_default_duration_title">デフォルト期間</string>
+  <string-array name="pref_zxtune_default_duration_entries">
+    <item>30秒</item>
+    <item>1分</item>
+    <item>2分</item>
+    <item>3分</item>
+    <item>5分</item>
+    <item>10分</item>
+    <item>15分</item>
+    <item>30分</item>
+  </string-array>
+  <!-- zxtune.sound.silencelimit -->
+  <string name="pref_zxtune_silence_limit_title">ミュート検出</string>
+  <string-array name="pref_zxtune_silence_limit_entries">
+    <item>なし</item>
+    <item>3秒</item>
+    <item>4秒</item>
+    <item>5秒</item>
+    <item>10秒</item>
+    <item>15秒</item>
+  </string-array>
+  <!-- zxtune.sound.looplimit -->
+  <string name="pref_zxtune_loop_limit_title">サイクル制限</string>
+  <string-array name="pref_zxtune_loop_limit_entries">
+    <item>なし</item>
+    <item>1回</item>
+    <item>2回</item>
+    <item>3回</item>
+    <item>4回</item>
+    <item>5回</item>
+  </string-array>
+</resources>

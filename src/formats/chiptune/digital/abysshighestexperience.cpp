@@ -9,15 +9,16 @@
 **/
 
 //local includes
-#include "abysshighestexperience.h"
+#include "formats/chiptune/digital/abysshighestexperience.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
+#include <strings/encoding.h>
+#include <strings/trim.h>
 //std includes
 #include <array>
 //text includes
@@ -133,14 +134,14 @@ namespace Chiptune
       
       explicit Header(Binary::InputStream& stream)
         : Id(stream.ReadField<IdentifierType>())
-        , Version(stream.ReadField<uint8_t>())
-        , NamesOffset(fromBE(stream.ReadField<uint16_t>()))
-        , PositionsCount(fromBE(stream.ReadField<uint16_t>()) & 0xfff)
-        , ChannelsCount(4 + (fromBE(stream.ReadField<uint16_t>()) >> 10))
-        , TrackSize(stream.ReadField<uint8_t>())
-        , TracksCount(stream.ReadField<uint8_t>())
-        , SamplesCount(stream.ReadField<uint8_t>())
-        , SubsongsCount(stream.ReadField<uint8_t>())
+        , Version(stream.ReadByte())
+        , NamesOffset(stream.ReadBE<uint16_t>())
+        , PositionsCount(stream.ReadBE<uint16_t>() & 0xfff)
+        , ChannelsCount(4 + (stream.ReadBE<uint16_t>() >> 10))
+        , TrackSize(stream.ReadByte())
+        , TracksCount(stream.ReadByte())
+        , SamplesCount(stream.ReadByte())
+        , SubsongsCount(stream.ReadByte())
       {
       }
       
@@ -157,8 +158,8 @@ namespace Chiptune
       std::size_t GetTracksOffset() const
       {
         const std::size_t HEADER_SIZE = IsAHX() ? 14 : 16;
-        const constexpr std::size_t SUBSONG_SIZE = 2;
-        const constexpr std::size_t POSITION_CHANNEL_SIZE = 2;
+        const std::size_t SUBSONG_SIZE = 2;
+        const std::size_t POSITION_CHANNEL_SIZE = 2;
         return HEADER_SIZE + SubsongsCount * SUBSONG_SIZE + PositionsCount * ChannelsCount * POSITION_CHANNEL_SIZE;
       }
     };
@@ -195,17 +196,16 @@ namespace Chiptune
         Require(Stream.GetPosition() <= Source.NamesOffset);
         Stream.Skip(Source.NamesOffset - Stream.GetPosition());
         MetaBuilder& meta = target.GetMetaBuilder();
-        const std::string& title = Stream.ReadCString(Stream.GetRestSize());
-        meta.SetTitle(FromStdString(title));
+        const auto title = Strings::TrimSpaces(Stream.ReadCString(Stream.GetRestSize()));
+        meta.SetTitle(Strings::ToAutoUtf8(title));
         ParseSampleNames(meta);
         ParseProgram(meta);
       }
       
       Formats::Chiptune::Container::Ptr GetContainer() const
       {
-        const Binary::Container::Ptr rawData = Stream.GetReadData();
         const auto tracksOffset = Source.GetTracksOffset();
-        return CreateCalculatingCrcContainer(rawData, tracksOffset, Source.NamesOffset - tracksOffset);
+        return CreateCalculatingCrcContainer(Stream.GetReadContainer(), tracksOffset, Source.NamesOffset - tracksOffset);
       }
     private:
       void ParseSampleNames(MetaBuilder& meta)
@@ -214,10 +214,10 @@ namespace Chiptune
         Strings::Array names(count);
         for (uint_t smp = 0; smp < count; ++smp)
         {
-          const std::string& name = Stream.ReadCString(Stream.GetRestSize());
-          names[smp] = FromStdString(name);
+          const auto name = Strings::TrimSpaces(Stream.ReadCString(Stream.GetRestSize()));
+          names[smp] = Strings::ToAutoUtf8(name);
         }
-        meta.SetStrings(names);
+        meta.SetStrings(std::move(names));
       }
       
       void ParseProgram(MetaBuilder& meta)

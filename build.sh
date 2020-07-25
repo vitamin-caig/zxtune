@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 find_make() {
   for mktool in gmake make

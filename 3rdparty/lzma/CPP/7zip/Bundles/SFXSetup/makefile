@@ -67,14 +67,12 @@ FM_OBJS = \
 
 AR_COMMON_OBJS = \
   $O\CoderMixer2.obj \
-  $O\CrossThreadProgress.obj \
   $O\ItemNameUtils.obj \
   $O\OutStreamWithCRC.obj \
 
 7Z_OBJS = \
   $O\7zDecode.obj \
   $O\7zExtract.obj \
-  $O\7zFolderOutStream.obj \
   $O\7zHandler.obj \
   $O\7zIn.obj \
   $O\7zRegister.obj \
@@ -102,6 +100,7 @@ C_OBJS = \
   $O\BraIA64.obj \
   $O\CpuArch.obj \
   $O\Delta.obj \
+  $O\DllSecur.obj \
   $O\Lzma2Dec.obj \
   $O\LzmaDec.obj \
   $O\Threads.obj \

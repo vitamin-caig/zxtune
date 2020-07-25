@@ -9,11 +9,12 @@
 **/
 
 //local includes
-#include "alsa.h"
-#include "backend_impl.h"
-#include "storage.h"
-#include "volume_control.h"
-#include "gates/alsa_api.h"
+#include "sound/backends/alsa.h"
+#include "sound/backends/backend_impl.h"
+#include "sound/backends/l10n.h"
+#include "sound/backends/storage.h"
+#include "sound/backends/volume_control.h"
+#include "sound/backends/gates/alsa_api.h"
 //common includes
 #include <byteorder.h>
 #include <contract.h>
@@ -21,31 +22,27 @@
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+//std includes
+#include <functional>
 //boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/bind.hpp>
 //text includes
-#include "text/backends.h"
+#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 8B5627E4
-
-namespace
-{
-  const Debug::Stream Dbg("Sound::Backend::Alsa");
-  const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound_backends");
-}
 
 namespace Sound
 {
 namespace Alsa
 {
+  const Debug::Stream Dbg("Sound::Backend::Alsa");
+
   const String ID = Text::ALSA_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("ALSA sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
@@ -265,7 +262,7 @@ namespace Alsa
 
     void Write(const Chunk& buffer)
     {
-      const Sample* data = &buffer[0];
+      const Sample* data = buffer.data();
       std::size_t size = buffer.size();
       while (size)
       {
@@ -291,7 +288,7 @@ namespace Alsa
     T* res = nullptr;
     CheckResult(*api, ((*api).*allocFunc)(&res), THIS_LINE);
     return res
-      ? std::shared_ptr<T>(res, boost::bind(freeFunc, api, _1))
+      ? std::shared_ptr<T>(res, std::bind(freeFunc, api, std::placeholders::_1))
       : std::shared_ptr<T>();
   }
 
@@ -741,13 +738,13 @@ namespace Alsa
       Objects.Dev->Resume();
     }
 
-    void FrameStart(const Module::TrackState& /*state*/) override
+    void FrameStart(const Module::State& /*state*/) override
     {
     }
 
-    void FrameFinish(Chunk::Ptr buffer) override
+    void FrameFinish(Chunk buffer) override
     {
-      Objects.Dev->Write(*buffer);
+      Objects.Dev->Write(buffer);
     }
 
     VolumeControl::Ptr GetVolumeControl() const override
@@ -801,7 +798,7 @@ namespace Alsa
   {
     snd_ctl_t* ctl = nullptr;
     return api->snd_ctl_open(&ctl, deviceName.c_str(), 0) >= 0
-      ? std::shared_ptr<snd_ctl_t>(ctl, boost::bind(&Api::snd_ctl_close, api, _1))
+      ? std::shared_ptr<snd_ctl_t>(ctl, std::bind(&Api::snd_ctl_close, api, std::placeholders::_1))
       : std::shared_ptr<snd_ctl_t>();
   }
 
@@ -1050,7 +1047,7 @@ namespace Sound
     try
     {
       const Alsa::Api::Ptr api = Alsa::LoadDynamicApi();
-      Dbg("Detected Alsa %1%", api->snd_asoundlib_version());
+      Alsa::Dbg("Detected Alsa %1%", api->snd_asoundlib_version());
       if (Alsa::DeviceInfoIterator(api).IsValid())
       {
         const BackendWorkerFactory::Ptr factory = MakePtr<Alsa::BackendWorkerFactory>(api);
@@ -1084,9 +1081,11 @@ namespace Sound
       }
       catch (const Error& e)
       {
-        Dbg("%1%", e.ToString());
+        Alsa::Dbg("%1%", e.ToString());
         return Device::Iterator::CreateStub();
       }
     }
   }
 }
+
+#undef FILE_TAG

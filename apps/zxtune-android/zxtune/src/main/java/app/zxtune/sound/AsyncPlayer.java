@@ -1,163 +1,224 @@
 /**
- *
  * @file
- *
  * @brief Asynchronous implementation of Player
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.sound;
 
-import android.os.Process;
+import androidx.annotation.Nullable;
+
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import app.zxtune.Log;
+import app.zxtune.TimeStamp;
 
-/**
- * Asynchronous player state machine
- * Synchronized methods protect this from parallel modifications.
- * State's monitor used to synchronize state transitions
- */
-final public class AsyncPlayer implements Player {
+public final class AsyncPlayer implements Player {
 
   private static final String TAG = AsyncPlayer.class.getName();
 
-  private Player sync;
-  private final PlayerEventsListener events;
-  private final Object stateGuard;
-  private Player state;
-  private Thread playThread;
+  private static final int UNINITIALIZED = -1;
+  private static final int STOPPED = 0;
+  private static final int STARTING = 1;
+  private static final int STARTED = 2;
+  private static final int STOPPING = 3;
+  private static final int FINISHING = 4;
+  private static final int RELEASED = 5;
 
-  private AsyncPlayer(SamplesSource source, SamplesTarget target, PlayerEventsListener events) {
-    this.sync = new SyncPlayer(source, target, new EventsSynchronized());
-    this.events = events;
-    this.stateGuard = new Object();
-    this.state = new StoppedPlayer();
+  private final PlayerEventsListener events;
+  private final AtomicInteger state;
+  private final AtomicReference<SamplesSource> source;
+  private final AtomicReference<TimeStamp> seekRequest;
+  private final AsyncSamplesTarget target;
+  @Nullable
+  private Thread thread;
+
+  public static AsyncPlayer create(SamplesTarget target, PlayerEventsListener events) {
+    return new AsyncPlayer(target, events);
   }
 
-  public static Player create(SamplesSource source, SamplesTarget target, PlayerEventsListener events) {
-    return new AsyncPlayer(source, target, events);
+  private AsyncPlayer(SamplesTarget target, PlayerEventsListener events) {
+    this.events = events;
+    this.state = new AtomicInteger(UNINITIALIZED);
+    this.source = new AtomicReference<>(StubSamplesSource.instance());
+    this.seekRequest = new AtomicReference<>(null);
+    this.target = new AsyncSamplesTarget(target);
+  }
+
+  public final int getSampleRate() {
+    return target.getSampleRate();
+  }
+
+  @Override
+  public void setSource(SamplesSource src) {
+    src.initialize(target.getSampleRate());
+    synchronized(state) {
+      source.set(src);
+      seekRequest.set(null);
+      state.compareAndSet(UNINITIALIZED, STOPPED);
+      state.notify();
+    }
   }
 
   @Override
   public void startPlayback() {
-    Log.d(TAG, "Play");
-    synchronized (stateGuard) {
-      state.startPlayback();
+    if (state.compareAndSet(STOPPED, STARTING)) {
+      thread = new Thread("PlayerThread") {
+        @Override
+        public void run() {
+          syncPlay();
+        }
+      };
+      thread.start();
+    } else if (state.compareAndSet(FINISHING, STARTED)) {
+      //replay
+      synchronized(state) {
+        state.notify();
+      }
+    }
+  }
+
+  private void syncPlay() {
+    try {
+      target.start();
+      try {
+        Log.d(TAG, "Start transfer cycle");
+        transferCycle();
+      } finally {
+        Log.d(TAG, "Stop transfer cycle");
+        target.stop();
+      }
+    } catch (Exception e) {
+      Log.w(TAG, e, "Playback initialization failed");
+      events.onError(e);
+      state.set(STOPPED);
     }
   }
 
   @Override
   public void stopPlayback() {
-    Log.d(TAG, "Stop");
-    synchronized (stateGuard) {
-      state.stopPlayback();
-    }
-  }
-  
-  @Override
-  public boolean isStarted() {
-    synchronized (stateGuard) {
-      return state.isStarted();
-    }
-  }
-  
-  @Override
-  public synchronized void release() {
-    sync.release();
-    sync = null;
-    state = null;
-  }
-  
-  private void setState(Player newState) {
-    synchronized (stateGuard) {
-      state = newState;
-      stateGuard.notify();
-    }
-  }
-  
-  private void waitForStateChange() {
-    synchronized (stateGuard) {
-      while (true) {
+    if (stopping()) {
+      while (thread != null) {
         try {
-          stateGuard.wait();
+          thread.join();
           break;
         } catch (InterruptedException e) {
-          Log.w(TAG, e, "Interrupted while waiting for state change");
+          Log.w(TAG, e, "Interrupted while stopping");
+        }
+        thread.interrupt();
+      }
+      thread = null;
+    }
+  }
+
+  private boolean stopping() {
+    if (state.compareAndSet(FINISHING, STOPPING)) {
+      //finish
+      synchronized(state) {
+        state.notify();
+      }
+      return true;
+    } else {
+      return state.compareAndSet(STARTED, STOPPING);
+    }
+  }
+
+  @Override
+  public boolean isStarted() {
+    return state.compareAndSet(STARTED, STARTED);
+  }
+
+  public void setPosition(TimeStamp pos) {
+    seekRequest.set(pos);
+  }
+
+  public TimeStamp getPosition() {
+    TimeStamp res = seekRequest.get();
+    if (res == null) {
+      res = source.get().getPosition();
+    }
+    return res;
+  }
+
+  @Override
+  public void release() {
+    source.set(null);
+    target.release();
+    state.set(RELEASED);
+  }
+
+  private void transferCycle() {
+    state.set(STARTED);
+    events.onStart();
+    try {
+      while (isStarted()) {
+        final SamplesSource src = source.get();
+        maybeSeek(src);
+        final short[] buf = target.getBuffer();
+        if (src.getSamples(buf)) {
+          if (!commitSamples()) {
+            break;
+          }
+        } else {
+          events.onFinish();
+          if (!waitForNextSource()) {
+            Log.d(TAG, "No next source, exiting");
+            break;
+          }
         }
       }
-    }
-  }
-
-  private final class EventsSynchronized implements PlayerEventsListener {
-
-    @Override
-    public void onStart() {
-      setState(new StartedPlayer());
-      events.onStart();
-    }
-
-    @Override
-    public void onFinish() {
-      events.onFinish();
-    }
-
-    @Override
-    public void onStop() {
-      setState(new StoppedPlayer());
+    } catch (InterruptedException e) {
+      if (isStarted()) {
+        Log.w(TAG, e,"Interrupted transfer cycle");
+      }
+    } catch (Exception e) {
+      events.onError(e);
+    } finally {
+      state.set(STOPPED);
       events.onStop();
     }
-
-    @Override
-    public void onError(Exception e) {
-      events.onError(e);
-    }
   }
-  
-  private final class StoppedPlayer extends StubPlayer {
-    
-    StoppedPlayer() {
-      Log.d(TAG, "Stopped");
-    }
 
-    @Override
-    public void startPlayback() {
-      playThread = new PlayThread();
-      playThread.start();
-      waitForStateChange();
+  private void maybeSeek(SamplesSource src) {
+    TimeStamp req = seekRequest.getAndSet(null);
+    if (req != null) {
+      events.onSeeking();
+      while (req != null && isStarted()) {
+        src.setPosition(req);
+        req = seekRequest.getAndSet(null);
+      }
+      events.onStart();
     }
   }
 
-  private final class StartedPlayer extends StubPlayer {
-    
-    StartedPlayer() {
-      Log.d(TAG, "Started");
-    }
-    
-    @Override
-    public void stopPlayback() {
-      try {
-        sync.stopPlayback();
-        waitForStateChange();
-        playThread.join();
-        playThread = null;
-      } catch (InterruptedException e) {
-        Log.w(TAG, e, "Interrupted while stop");
+  private boolean commitSamples() throws Exception {
+    while (!target.commitBuffer()) {//interruption point
+      if (!isStarted()) {
+        return false;
       }
     }
-
-    @Override
-    public boolean isStarted() {
-      return true;
-    }
+    return true;
   }
 
-  private class PlayThread extends Thread {
-    @Override
-    public void run() {
-      Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
-      sync.startPlayback();
+  private boolean waitForNextSource() throws InterruptedException {
+    state.set(FINISHING);
+    events.onStop();
+    final int NEXT_SOURCE_WAIT_SECONDS = 5;
+    synchronized(state) {
+      final SamplesSource prevSource = source.get();
+      state.wait(NEXT_SOURCE_WAIT_SECONDS * 1000);
+      if (isStarted()) {
+        //replay
+        events.onStart();
+        return true;
+      } else if (source.compareAndSet(prevSource, prevSource)) {
+        return false;//same finished source
+      } else {
+        state.set(STARTED);
+        events.onStart();
+        return true;
+      }
     }
   }
 }

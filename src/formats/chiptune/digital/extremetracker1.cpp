@@ -9,7 +9,7 @@
 **/
 
 //local includes
-#include "extremetracker1.h"
+#include "formats/chiptune/digital/extremetracker1.h"
 #include "formats/chiptune/container.h"
 //common includes
 #include <byteorder.h>
@@ -18,12 +18,11 @@
 #include <make_ptr.h>
 #include <range_checker.h>
 //library includes
-#include <binary/container_factories.h>
 #include <binary/format_factories.h>
-#include <binary/typed_container.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
+#include <strings/optimize.h>
 //std includes
 #include <array>
 #include <cstring>
@@ -85,7 +84,7 @@ namespace Chiptune
       uint8_t IndexInPage;
       uint8_t Blocks;
       uint8_t Padding;
-      char Name[8];
+      std::array<char, 8> Name;
     } PACK_POST;
     
     PACK_PRE struct MemoryDescr
@@ -180,7 +179,7 @@ namespace Chiptune
       uint8_t Tempo;
       uint8_t Length;
       //+0x03
-      char Title[30];
+      std::array<char, 30> Title;
       //+0x21
       uint8_t Unknown1;
       //+0x22
@@ -219,7 +218,7 @@ namespace Chiptune
 
       void SetInitialTempo(uint_t /*tempo*/) override {}
       void SetSamplesFrequency(uint_t /*freq*/) override {}
-      void SetSample(uint_t /*index*/, std::size_t /*loop*/, const Binary::Data& /*content*/) override {}
+      void SetSample(uint_t /*index*/, std::size_t /*loop*/, Binary::View /*content*/) override {}
       void SetPositions(Positions /*positions*/) override {}
 
       PatternBuilder& StartPattern(uint_t /*index*/) override
@@ -260,7 +259,7 @@ namespace Chiptune
         return Delegate.SetSamplesFrequency(freq);
       }
       
-      void SetSample(uint_t index, std::size_t loop, const Binary::Data& data) override
+      void SetSample(uint_t index, std::size_t loop, Binary::View data) override
       {
         return Delegate.SetSample(index, loop, data);
       }
@@ -414,9 +413,9 @@ namespace Chiptune
     class Format
     {
     public:
-      explicit Format(const Binary::Container& rawData)
+      explicit Format(Binary::View rawData)
         : RawData(rawData)
-        , Source(*static_cast<const Header*>(RawData.Start()))
+        , Source(*RawData.As<Header>())
         , Version(Source)
         , Ranges(RangeChecker::Create(RawData.Size()))
       {
@@ -428,12 +427,12 @@ namespace Chiptune
       {
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
-        meta.SetTitle(FromCharArray(Source.Title));
+        meta.SetTitle(Strings::OptimizeAscii(Source.Title));
         meta.SetProgram(Version.GetEditorString());
         Strings::Array names(Source.Samples.size());
         for (uint_t idx = 0; idx != Source.Samples.size(); ++idx)
         {
-          names[idx] = FromCharArray(Source.Samples[idx].Name);
+          names[idx] = Strings::OptimizeAscii(Source.Samples[idx].Name);
         }
         meta.SetStrings(names);
       }
@@ -442,7 +441,7 @@ namespace Chiptune
       {
         Positions result;
         result.Loop = Source.LoopPosition;
-        result.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + Source.Length);
+        result.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + std::max<uint_t>(Source.Length, 1));
         Dbg("Positions: %1%, loop to %2%", result.GetSize(), result.GetLoop());
         target.SetPositions(std::move(result));
       }
@@ -501,9 +500,9 @@ namespace Chiptune
           if (const auto sample = GetSample(offset, size))
           {
             Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", 
-              samIdx, rawAddr, rawLoop, sample->Size(), uint_t(info.Page));
+              samIdx, rawAddr, rawLoop, sample.Size(), uint_t(info.Page));
             const std::size_t loop = rawLoop - bank.Addr;
-            target.SetSample(samIdx, loop, *sample);
+            target.SetSample(samIdx, loop, sample);
           }
           else
           {
@@ -586,14 +585,14 @@ namespace Chiptune
         Require(Ranges->AddRange(start, size));
       }
 
-      Binary::Data::Ptr GetSample(std::size_t offset, std::size_t size) const
+      Binary::View GetSample(std::size_t offset, std::size_t size) const
       {
-        const uint8_t* const start = static_cast<const uint8_t*>(RawData.Start()) + offset;
+        const uint8_t* const start = RawData.As<uint8_t>() + offset;
         const uint8_t* const end = std::find(start, start + size, 0);
-        return RawData.GetSubcontainer(offset, end - start);
+        return RawData.SubView(offset, end - start);
       }
     private:
-      const Binary::Container& RawData;
+      const Binary::View RawData;
       const Header& Source;
       const VersionTraits Version;
       const RangeChecker::Ptr Ranges;
@@ -605,7 +604,7 @@ namespace Chiptune
       //tempo
       "03-0f"
       //length
-      "01-64"
+      "00-64"
       //title
       "20-7f{30}"
       //unknown
@@ -680,9 +679,9 @@ namespace Chiptune
         const Indices& usedSamples = statistic.GetUsedSamples();
         format.ParseSamples(usedSamples, target);
 
-        const Binary::Container::Ptr subData = data.GetSubcontainer(0, format.GetSize());
-        const RangeChecker::Range fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(subData, fixedRange.first, fixedRange.second - fixedRange.first);
+        auto subData = data.GetSubcontainer(0, format.GetSize());
+        const auto fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {

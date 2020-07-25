@@ -1,61 +1,51 @@
 /**
- *
  * @file
- *
  * @brief Remote implementation of catalog
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.fs.modland;
 
 import android.net.Uri;
-import android.text.Html;
+
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import java.io.InputStream;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.zxtune.Log;
-import app.zxtune.fs.HttpProvider;
+import app.zxtune.StubProgressCallback;
+import app.zxtune.fs.HtmlUtils;
+import app.zxtune.fs.ProgressCallback;
+import app.zxtune.fs.api.Cdn;
+import app.zxtune.fs.http.MultisourceHttpProvider;
 
 /**
- * Use pure http response parsing via regex in despite that page structure seems to be xml well formed.
- *
  * There's additional api gate for xbmc plugin at
  * http://www.exotica.org.uk/mediawiki/extensions/ExoticASearch/Modland_xbmc.php
  * but it seems to be not working and has no such wide catalogue as http gate does.
  */
-class RemoteCatalog extends Catalog {
+public class RemoteCatalog extends Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
-  private final static String SITE = "http://www.exotica.org.uk/";
-  private final static String API = SITE + "mediawiki/index.php?title=Special:Modland";
-  private final static String GROUPS_QUERY = API + "&md=b_%s&st=%s";
-  private final static String GROUP_TRACKS_QUERY = API + "&md=%s&id=%d";
+  private static final Pattern PAGINATOR =
+          Pattern.compile("Browsing (.+?) - (\\d+) results? - showing page (\\d+) of (\\d+).");
 
-  private final static String STORAGE_MIRROR = "http://ftp.amigascne.org/mirrors/ftp.modland.com";
-
-  private final static Pattern PAGINATOR =
-    Pattern.compile("<caption>Browsing (.+?) - (\\d+) results? - showing page (\\d+) of (\\d+).</caption>");
-  private final static Pattern TRACKS =
-    Pattern.compile("file=(pub/modules/.+?).>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
-
-  private final HttpProvider http;
+  private final MultisourceHttpProvider http;
   private final Grouping authors;
   private final Grouping collections;
   private final Grouping formats;
 
-  RemoteCatalog(HttpProvider http) {
+  RemoteCatalog(MultisourceHttpProvider http) {
     this.http = http;
-    this.authors = new Authors();
-    this.collections = new Collections();
-    this.formats = new Formats();
+    this.authors = new BaseGrouping("aut", "Modules from author ");
+    this.collections = new BaseGrouping("col", "Modules from collection ");
+    this.formats = new BaseGrouping("for", "Modules in format ");
   }
 
   @Override
@@ -67,199 +57,196 @@ class RemoteCatalog extends Catalog {
   public Grouping getCollections() {
     return collections;
   }
-  
+
   @Override
   public Grouping getFormats() {
     return formats;
   }
 
-  private static String decodeHtml(String txt) {
-    return Html.fromHtml(txt).toString();
-  }
-  
-  private static String makeGroupsQuery(String type, String filter) {
-    return String.format(Locale.US, GROUPS_QUERY, type, Uri.encode(filter));
+  private static Uri.Builder getMainUriBuilder() {
+    return new Uri.Builder().scheme("https").authority("www.exotica.org.uk").path("mediawiki" +
+        "/index.php").appendQueryParameter("title", "Special:Modland");
   }
 
-  private static String makeGroupTracksQuery(String type, int authorId) {
-    return String.format(Locale.US, GROUP_TRACKS_QUERY, type, authorId);
+  private static Uri.Builder getGroupsUriBuilder(String type, String filter) {
+    return getMainUriBuilder().appendQueryParameter("md", "b_" + type).appendQueryParameter("st",
+        filter);
   }
-  
-  private abstract class BaseGrouping implements Grouping {
-    
-    private final Pattern entries;
-    
-    BaseGrouping() {
-      this.entries = Pattern.compile(
-          "<td><a href=.+?md=" + getCategoryTag() + "&amp;id=(\\d+).>(.+?)</a>.+?<td class=.right.>(\\d+)</td>", Pattern.DOTALL);
+
+  private static Uri.Builder getTracksUriBuilder(String type, int id) {
+    return getMainUriBuilder().appendQueryParameter("md", type).appendQueryParameter("id",
+        Integer.toString(id));
+  }
+
+  private class BaseGrouping implements Grouping {
+
+    private final String tag;
+    private final String headerPrefix;
+
+    BaseGrouping(String tag, String headerPrefix) {
+      this.tag = tag;
+      this.headerPrefix = headerPrefix;
     }
-    
+
     @Override
-    public void query(String filter, final GroupsVisitor visitor) throws IOException {
-      loadPages(makeGroupsQuery(getCategoryTag(), filter), new PagesVisitor() {
-        
-        private boolean countReported;
-        
+    public void queryGroups(String filter, final GroupsVisitor visitor,
+                            final ProgressCallback progress) throws IOException {
+      Log.d(TAG, "queryGroups(type=%s, filter=%s)", tag, filter);
+      loadPages(getGroupsUriBuilder(tag, filter), new PagesVisitor() {
+
+        private int total = 0;
+        private int done = 0;
+
         @Override
-        public boolean onPage(String header, int results, CharSequence content) {
-          if (!countReported) {
-            visitor.setCountHint(results);
-            countReported = true;
+        public boolean onPage(String header, int results, Document doc) {
+          if (total == 0) {
+            total = results;
+            visitor.setCountHint(total);
           }
-          parseAuthors(content, visitor);
+          done += parseGroups(doc, visitor);
+          progress.onProgressUpdate(done, total);
           return true;
         }
       });
     }
-    
-    private void parseAuthors(CharSequence content, GroupsVisitor visitor) {
-      final Matcher matcher = entries.matcher(content);
-      while (matcher.find()) {
-        final String id = matcher.group(1);
-        final String name = decodeHtml(matcher.group(2));
-        final String tracks = matcher.group(3);
-        visitor.accept(new Group(Integer.valueOf(id), name, Integer.valueOf(tracks)));
-      }
-    }
 
     @Override
-    public Group query(final int id) throws IOException {
-      final Group[] result = new Group[1];
-      loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
+    public Group getGroup(final int id) throws IOException {
+      Log.d(TAG, "getGroup(type=%s, id=%d)", tag, id);
+      final Group[] resultRef = new Group[1];
+      loadPages(getTracksUriBuilder(tag, id), new PagesVisitor() {
         @Override
-        public boolean onPage(String header, int results, CharSequence content) {
-          final String tracksHeader = getTracksHeader();
-          if (header.startsWith(tracksHeader)) {
-            final String name = header.substring(tracksHeader.length());
-            result[0] = new Group(id, decodeHtml(name), results);
+        public boolean onPage(String header, int results, Document doc) {
+          if (header.startsWith(headerPrefix)) {
+            final String name = header.substring(headerPrefix.length());
+            resultRef[0] = new Group(id, name, results);
           }
           return false;
         }
       });
-      return result[0];
+      final Group result = resultRef[0];
+      if (result != null) {
+        return result;
+      }
+      throw new IOException(String.format(Locale.US,"Failed to find group with id=%d", id));
     }
 
     @Override
-    public void queryTracks(int id, final TracksVisitor visitor) throws IOException {
-      loadPages(makeGroupTracksQuery(getCategoryTag(), id), new PagesVisitor() {
+    public void queryTracks(int id, final TracksVisitor visitor, final ProgressCallback progress) throws IOException {
+      Log.d(TAG, "queryGroupTracks(type=%s, id=%d)", tag, id);
+      loadPages(getTracksUriBuilder(tag, id), new PagesVisitor() {
 
-        private boolean countReported;
+        private int total = 0;
+        private int done = 0;
 
         @Override
-        public boolean onPage(String header, int results, CharSequence content) {
-          if (!countReported) {
-            visitor.setCountHint(results);
-            countReported = true;
+        public boolean onPage(String header, int results, Document doc) {
+          if (total == 0) {
+            total = results;
+            visitor.setCountHint(total);
           }
-          return parseTracks(content, visitor);
+          final int tracks = parseTracks(doc, visitor);
+          done += tracks;
+          progress.onProgressUpdate(done, total);
+          return tracks != 0;
         }
       });
     }
-    
-    @Override
-    public Track findTrack(int id, final String filename) throws IOException {
-      final AtomicReference<Track> result = new AtomicReference<Track>();
-      queryTracks(id, new TracksVisitor() {
-        @Override
-        public void setCountHint(int size) {}
 
+    @Override
+    public Track getTrack(int id, final String filename) throws IOException {
+      Log.d(TAG, "getGroupTrack(type=%s, id=%d, filename=%s)", tag, id, filename);
+      final Track[] resultRef = {null};
+      queryTracks(id, new TracksVisitor() {
         @Override
         public boolean accept(Track obj) {
           if (obj.filename.equals(filename)) {
-            result.set(obj);
+            resultRef[0] = obj;
             return false;
           } else {
             return true;
           }
         }
-      });
-      return result.get();
-    }
-    
-    abstract String getTracksHeader();
-    abstract String getCategoryTag();
-  }
-  
-  private class Authors extends BaseGrouping {
-
-    @Override
-    String getTracksHeader() {
-      return "Modules from author ";
-    }
-    
-    @Override
-    String getCategoryTag() {
-      return "aut";
+      }, StubProgressCallback.instance());
+      final Track result = resultRef[0];
+      if (result != null) {
+        return result;
+      }
+      throw new IOException(String.format(Locale.US, "Failed to get track '%s' with id=%d", filename, id));
     }
   }
 
-  private class Collections extends BaseGrouping {
-
-    @Override
-    String getTracksHeader() {
-      return "Modules from collection ";
-    }
-    
-    @Override
-    String getCategoryTag() {
-      return "col";
-    }
-  }
-  
-  private class Formats extends BaseGrouping {
-
-    @Override
-    String getTracksHeader() {
-      return "Modules in format ";
-    }
-    
-    @Override
-    String getCategoryTag() {
-      return "for";
-    }
-  }
-  
-  private static boolean parseTracks(CharSequence content, TracksVisitor visitor) {
-    final Matcher matcher = TRACKS.matcher(content);
-    while (matcher.find()) {
-      final String path = "/" + matcher.group(1);
-      final String size = matcher.group(2);
-      if (!visitor.accept(new Track(path, Integer.valueOf(size)))) {
-        return false;
+  private static int parseGroups(Document doc, GroupsVisitor visitor) {
+    int result = 0;
+    for (Element el : doc.select("table:has(>caption)>tbody>tr:has(>td>a[href*=md=])")) {
+      final Element nameEl = el.child(0).child(0);
+      final Element countEl = el.child(1);
+      final Integer id = HtmlUtils.getQueryInt(nameEl, "id");
+      final String name = nameEl.text();
+      final Integer tracks = HtmlUtils.tryGetInteger(countEl.text());
+      if (id != null && name != null && tracks != null) {
+        visitor.accept(new Group(id, name, tracks));
+        ++result;
       }
     }
-    return true;
+    return result;
   }
 
-  @Override
-  public ByteBuffer getTrackContent(String id) throws IOException {
-    return http.getContent(STORAGE_MIRROR + id);
+  private static int parseTracks(Document doc, TracksVisitor visitor) {
+    int result = 0;
+    for (Element el : doc.select("table:has(>caption)>tbody>tr:has(>td>a[href*=file=pub/])")) {
+      final Element pathEl = el.child(0).child(0);
+      final Element sizeEl = el.child(4);
+      final String href = pathEl.attr("href");
+      final int pathPos = href.indexOf("pub/modules/");
+      final String path = "/" + href.substring(pathPos);
+      final Integer size = HtmlUtils.tryGetInteger(sizeEl.text());
+      if (size != null) {
+        if (!visitor.accept(new Track(path, size))) {
+          return 0;
+        }
+        ++result;
+      }
+    }
+    return result;
+  }
+
+  public static Uri[] getTrackUris(String id) {
+    return new Uri[]{
+        Cdn.modland(id),
+        Uri.parse("http://ftp.amigascne.org/mirrors/ftp.modland.com" + id)
+    };
   }
 
   interface PagesVisitor {
-    boolean onPage(String title, int results, CharSequence content);
+    boolean onPage(String title, int results, Document doc);
   }
 
-  private void loadPages(String query, PagesVisitor visitor) throws IOException {
+  private void loadPages(Uri.Builder query, PagesVisitor visitor) throws IOException {
     for (int pg = 1; ; ++pg) {
-      final String uri = query + String.format(Locale.US, "&pg=%d", pg);
-      final String chars = http.getHtml(uri); 
-      final Matcher matcher = PAGINATOR.matcher(chars);
-      if (matcher.find()) {
-        Log.d(TAG, "Load page: %s", matcher.group());
+      final Document doc = HtmlUtils.parseDoc(readPage(query, pg));
+      final Element hdr = doc.selectFirst("table>caption");
+      final Matcher matcher = hdr != null ? PAGINATOR.matcher(hdr.text()) : null;
+      if (matcher != null && matcher.find()) {
+        Log.d(TAG, "Load page: " + hdr.text());
         final String header = matcher.group(1);
         final String results = matcher.group(2);
         final String page = matcher.group(3);
         final String pagesTotal = matcher.group(4);
-        if (pg != Integer.valueOf(page)) {
-          throw new UnsupportedOperationException("Invalid paginator structure");
+        if (pg != Integer.parseInt(page)) {
+          throw new IOException("Invalid paginator structure");
         }
-        if (visitor.onPage(header, Integer.valueOf(results), chars)
-            && pg < Integer.valueOf(pagesTotal)) {
+        if (visitor.onPage(header, Integer.parseInt(results), doc)
+                && pg < Integer.parseInt(pagesTotal)) {
           continue;
         }
       }
       break;
     }
+  }
+
+  private InputStream readPage(Uri.Builder base, int start) throws IOException {
+    final Uri uri = base.appendQueryParameter("pg", Integer.toString(start)).build();
+    return http.getInputStream(uri);
   }
 }

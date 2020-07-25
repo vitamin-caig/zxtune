@@ -4,13 +4,13 @@ dynamic_name := vorbisenc
 path_step := ../..
 include $(path_step)/make/default.mak 
 
-$(platform)_definitions += LIBVORBIS_EXPORTS
+defines.$(platform) += LIBVORBIS_EXPORTS
 
-include_dirs = include $(path_step)/3rdparty
+includes.dirs += include $(path_step)/3rdparty
 source_files_cc := lib/analysis lib/bitrate lib/block lib/codebook lib/envelope lib/floor0 lib/floor1 lib/info lib/lookup lib/lpc lib/lsp lib/mapping0 \
  lib/mdct lib/psy lib/registry lib/res0 lib/sharedbook lib/smallft lib/synthesis lib/vorbisenc lib/window
-libraries := delayimp
-dynamic_libs := ogg
+libraries.windows += delayimp
+libraries.dynamic += ogg
 
 LD_PLATFORM_FLAGS = /DEF:win32\vorbisenc.def
 

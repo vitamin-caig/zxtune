@@ -15,24 +15,34 @@
 //library includes
 #include <module/holder.h>
 #include <parameters/container.h>
+//platform includes
+#include <jni.h>
 
 namespace Player
 {
   class Control
   {
   public:
-    typedef std::unique_ptr<Control> Ptr;
+    typedef std::shared_ptr<Control> Ptr;
     virtual ~Control() = default;
 
+    virtual const Parameters::Accessor& GetProperties() const = 0;
+    virtual Parameters::Modifier& GetParameters() const = 0;
+
     virtual uint_t GetPosition() const = 0;
-    virtual uint_t Analyze(uint_t maxEntries, uint32_t* bands, uint32_t* levels) const = 0;
-    virtual Parameters::Container::Ptr GetParameters() const = 0;
+    virtual uint_t Analyze(uint_t maxEntries, uint8_t* levels) const = 0;
     
     virtual bool Render(uint_t samples, int16_t* buffer) = 0;
     virtual void Seek(uint_t frame) = 0;
+    
+    virtual uint_t GetPlaybackPerformance() const = 0;
+    virtual uint_t GetPlaybackProgress() const = 0;
   };
 
   typedef ObjectsStorage<Control::Ptr> Storage;
 
-  Storage::HandleType Create(Module::Holder::Ptr module);
+  jobject Create(JNIEnv* env, Module::Holder::Ptr module);
+
+  void InitJni(JNIEnv*);
+  void CleanupJni(JNIEnv*);
 }

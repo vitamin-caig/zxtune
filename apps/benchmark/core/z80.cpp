@@ -60,16 +60,16 @@ namespace Benchmark
     {
       using namespace Devices::Z80;
       const Time::Timer timer;
-      const Stamp period = frameDuration;
-      const uint_t frames = Stamp(duration).Get() / period.Get();
+      const auto period = frameDuration.CastTo<TimeUnit>();
+      const auto frames = duration.Divide<uint_t>(frameDuration);
       Stamp stamp;
       for (uint_t frame = 0; frame != frames; ++frame)
       {
         dev.Interrupt();
         dev.Execute(stamp += period);
       }
-      const Stamp elapsed = timer.Elapsed();
-      return double(stamp.Get()) / elapsed.Get();
+      const auto elapsed = timer.Elapsed();
+      return (frameDuration * frames).Divide<double>(elapsed);
     }
   }
 }

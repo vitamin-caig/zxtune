@@ -13,8 +13,9 @@
 //common includes
 #include <types.h>
 //library includes
+#include <binary/view.h>
 #include <formats/chiptune.h>
-#include <time/stamp.h>
+#include <time/duration.h>
 
 namespace Formats
 {
@@ -29,19 +30,19 @@ namespace Formats
 
         virtual void SetRegisters(uint16_t pc, uint8_t a, uint8_t x, uint8_t y, uint8_t psw, uint8_t sp) = 0;
 
-        virtual void SetTitle(const String& title) = 0;
-        virtual void SetGame(const String& game) = 0;
-        virtual void SetDumper(const String& dumper) = 0;
-        virtual void SetComment(const String& comment) = 0;
-        virtual void SetDumpDate(const String& date) = 0;
+        virtual void SetTitle(String title) = 0;
+        virtual void SetGame(String game) = 0;
+        virtual void SetDumper(String dumper) = 0;
+        virtual void SetComment(String comment) = 0;
+        virtual void SetDumpDate(String date) = 0;
         virtual void SetIntro(Time::Milliseconds duration) = 0;
         virtual void SetLoop(Time::Milliseconds duration) = 0;
         virtual void SetFade(Time::Milliseconds duration) = 0;
-        virtual void SetArtist(const String& artist) = 0;
+        virtual void SetArtist(String artist) = 0;
         
-        virtual void SetRAM(const void* data, std::size_t size) = 0;
-        virtual void SetDSPRegisters(const void* data, std::size_t size) = 0;
-        virtual void SetExtraRAM(const void* data, std::size_t size) = 0;
+        virtual void SetRAM(Binary::View data) = 0;
+        virtual void SetDSPRegisters(Binary::View data) = 0;
+        virtual void SetExtraRAM(Binary::View data) = 0;
       };
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);

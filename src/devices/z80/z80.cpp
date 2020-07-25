@@ -100,7 +100,7 @@ namespace Z80
     SimpleIOBus(const Oscillator& clock, Dump memory, ChipIO::Ptr ports)
       : Clock(clock)
       , Memory(std::move(memory))
-      , RawMemory(&Memory.front())
+      , RawMemory(Memory.data())
       , Ports(std::move(ports))
     {
     }

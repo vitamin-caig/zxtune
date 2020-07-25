@@ -11,7 +11,7 @@
 #pragma once
 
 //local includes
-#include "digital.h"
+#include "formats/chiptune/digital/digital.h"
 //common includes
 #include <indices.h>
 
@@ -46,7 +46,7 @@ namespace Formats
           return Delegate.SetSamplesFrequency(freq);
         }
 
-        void SetSample(uint_t index, std::size_t loop, const Binary::Data& data, bool is4Bit) override
+        void SetSample(uint_t index, std::size_t loop, Binary::View data, bool is4Bit) override
         {
           return Delegate.SetSample(index, loop, data, is4Bit);
         }

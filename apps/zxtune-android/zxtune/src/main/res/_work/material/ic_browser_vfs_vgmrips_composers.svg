@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   height="32"
+   width="32"
+   viewBox="0 0 384 384">
+  <path
+     style="fill:#385a7f;"
+     d="M 336,264 V 36 L 132,96 v 156 c -72,-12 -84,12 -84,36 0,48 96,60 108,12 V 144 l 156,-36 v 108 c -72,-12 -84,12 -84,36 0,48 96,60 108,12 z"/>
+</svg>

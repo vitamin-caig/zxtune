@@ -12,6 +12,10 @@
 
 //library includes
 #include <binary/container_factories.h>
+#include <binary/view.h>
+//std includes
+#include <cstring>
+#include <type_traits>
 
 namespace Binary
 {
@@ -29,16 +33,21 @@ namespace Binary
       Content->reserve(reserve);
     }
 
-    template<class T>
+    template<class T, typename std::enable_if<!std::is_pointer<T>::value, int>::type = 0>
     T& Add()
     {
       return *static_cast<T*>(Allocate(sizeof(T)));
     }
 
-    template<class T>
-    void Add(const T& val)
+    template<class T, typename std::enable_if<std::is_trivial<T>::value && !std::is_pointer<T>::value, int>::type = 0>
+    void Add(T val)
     {
       *static_cast<T*>(Allocate(sizeof(T))) = val;
+    }
+    
+    void Add(View data)
+    {
+      std::memcpy(Allocate(data.Size()), data.Start(), data.Size());
     }
 
     void* Allocate(std::size_t size)
@@ -48,7 +57,7 @@ namespace Binary
       return Get(curSize);
     }
 
-    void AddCString(const std::string& str)
+    void AddCString(const StringView str)
     {
       const std::size_t size = str.size();
       char* const dst = static_cast<char*>(Allocate(size + 1));
@@ -63,7 +72,7 @@ namespace Binary
 
     void* Get(std::size_t offset) const
     {
-      return &Content->front() + offset;
+      return Content->data() + offset;
     }
 
     template<class T>
