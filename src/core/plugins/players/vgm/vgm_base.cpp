@@ -193,9 +193,11 @@ namespace LibVGM
 
     void SetSoundFreq(uint_t freq)
     {
-      Delegate->Stop();
-      Delegate->SetSampleRate(freq);
-      Delegate->Start();
+      if (Delegate->GetSampleRate() != freq) {
+        Delegate->Stop();
+        Require(0 == Delegate->SetSampleRate(freq));
+        Delegate->Start();
+      }
     }
 
     Sound::Chunk Render(uint_t samples)
