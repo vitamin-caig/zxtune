@@ -1,203 +1,818 @@
 <?xml version="1.0"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="app.zxtune" android:installLocation="auto">
-  <uses-permission android:name="android.permission.INTERNET"/>
-  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-  <uses-permission android:name="android.permission.WAKE_LOCK"/>
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-  <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
-  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-  <supports-screens android:largeScreens="true" android:xlargeScreens="true"/>
-  <application android:name=".MainApplication" android:label="@string/app_name" android:icon="@drawable/ic_launcher"
-               android:allowBackup="true" android:theme="@style/Theme.Dark"
-          android:usesCleartextTraffic="true">
-    <meta-data android:name="key.modarchive" android:value="${modarchiveKey}"/>
-    <meta-data android:name="io.fabric.ApiKey" android:value="${crashlyticsKey}" />
-    <activity android:name=".MainActivity" android:label="@string/app_name">
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN"/>
-        <category android:name="android.intent.category.LAUNCHER"/>
-      </intent-filter>
-      <intent-filter>
-        <action android:name="android.intent.action.VIEW"/>
-        <category android:name="android.intent.category.DEFAULT"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.as0"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.asc"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.AS0"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ASC"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.st1"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.st3"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.stc"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.stp"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ST1"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ST3"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.STC"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.STP"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.pt1"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.pt2"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.pt3"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.PT1"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.PT2"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.PT3"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ay"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psg"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.vtx"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ym"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.AY"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.PSG"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.VTX"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.YM"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ftc"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gtr"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psc"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.sqt"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.FTC"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.GTR"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.PSC"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.PSM"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.SQT"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.$c"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.$m"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.$C"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.$M"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.m"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.M"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mtc"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MTC"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.S"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ts"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.TS"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.chi"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.dmm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.dst"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.pdt"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.sqd"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.str"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.CHI"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.DMM"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.DST"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.PDT"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.SQD"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.STR"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.669"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.amf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.dbm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.dmf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.dtm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.dtt"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.emod"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.far"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.fnk"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gdm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gtk"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mod"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MOD"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mtn"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.imf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ims"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.it"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.liq"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mdl"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.med"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mtm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.okt"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.pt36"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ptm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.rtm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.s3m"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.sfx"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.stim"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.stm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.stx"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.tcb"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ult"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.xm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.tfc"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.tfd"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.tf0"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.tfe"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.TFC"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.TFD"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.TF0"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.TFE"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.cop"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.COP"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.sid"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.SID"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psid"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.rsid"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.spc"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.rsn"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.nsf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.nsfe"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gbs"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.sap"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.hes"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.kss"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.kssx"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.vgm"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gym"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ahx"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.hvl"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minipsf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.psf2"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minipsf2"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.usf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.miniusf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.gsf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minigsf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.2sf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mini2sf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.dsf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minidsf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ssf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.minissf"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mp1"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MP1"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mp2"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MP2"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.mp3"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.MP3"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.ogg"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.OGG"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.flac"/>
-        <data android:mimeType="*/*" android:scheme="file" android:host="*" android:pathPattern=".*\\.FLAC"/>
-      </intent-filter>
-    </activity>
-    <activity android:name=".PreferencesActivity" android:label="@string/prefs">
-      <intent-filter>
-        <action android:name="app.zxtune.PreferencesActivity"/>
-        <category android:name="android.intent.category.PREFERENCE"/>
-      </intent-filter>
-    </activity>
-    <service android:name=".MainService" android:process=":service">
-      <intent-filter>
-        <action android:name="android.media.browse.MediaBrowserService" />
-      </intent-filter>
-    </service>
-    <service android:name=".ScanService" android:process=":service"/>
-    <service android:name=".RingtoneService" android:process=":service"/>
-    <provider android:name="app.zxtune.playlist.Provider" android:authorities="app.zxtune.playlist" android:exported="false"/>
-    <provider android:name="app.zxtune.PluginsProvider" android:authorities="app.zxtune.plugins" android:process=":service" android:exported="false"/>
-    <provider android:name="app.zxtune.analytics.internal.Provider"
-              android:authorities="app.zxtune.analytics.internal" android:process=":analytics"
-              android:exported="false"/>
-    <provider android:name="app.zxtune.fs.provider.Provider"
-            android:authorities="app.zxtune.vfs" android:process=":service"
-            android:exported="false" android:grantUriPermissions="true"/>
-    <receiver android:name=".device.ui.WidgetHandler">
-      <intent-filter>
-        <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
-      </intent-filter>
-      <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_metadata"/>
-    </receiver>
-    <!-- support library -->
-    <receiver android:name="androidx.media.session.MediaButtonReceiver">
-      <intent-filter>
-        <action android:name="android.intent.action.MEDIA_BUTTON"/>
-      </intent-filter>
-    </receiver>
-  </application>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="app.zxtune"
+        android:installLocation="auto">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <supports-screens
+            android:largeScreens="true"
+            android:xlargeScreens="true" />
+    <application
+            android:name=".MainApplication"
+            android:allowBackup="true"
+            android:icon="@drawable/ic_launcher"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.Dark"
+            android:usesCleartextTraffic="true">
+        <meta-data
+                android:name="key.modarchive"
+                android:value="${modarchiveKey}" />
+        <meta-data
+                android:name="io.fabric.ApiKey"
+                android:value="${crashlyticsKey}" />
+
+        <activity
+                android:name=".MainActivity"
+                android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.as0"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.asc"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.AS0"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ASC"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.st1"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.st3"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.stc"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.stp"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ST1"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ST3"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.STC"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.STP"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.pt1"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.pt2"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.pt3"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.PT1"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.PT2"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.PT3"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ay"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.psg"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.vtx"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ym"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.AY"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.PSG"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.VTX"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.YM"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ftc"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.gtr"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.psc"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.psm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.sqt"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.FTC"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.GTR"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.PSC"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.PSM"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.SQT"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.$c"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.$m"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.$C"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.$M"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.m"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.M"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.mtc"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.MTC"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.S"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ts"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.TS"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.chi"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.dmm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.dst"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.pdt"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.sqd"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.str"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.CHI"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.DMM"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.DST"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.PDT"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.SQD"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.STR"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.669"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.amf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.dbm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.dmf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.dtm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.dtt"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.emod"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.far"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.fnk"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.gdm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.gtk"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.mod"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.MOD"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.mtn"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.imf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ims"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.it"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.liq"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.mdl"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.med"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.mtm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.okt"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.pt36"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ptm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.rtm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.s3m"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.sfx"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.stim"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.stm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.stx"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.tcb"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ult"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.xm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.tfc"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.tfd"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.tf0"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.tfe"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.TFC"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.TFD"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.TF0"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.TFE"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.cop"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.COP"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.sid"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.SID"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.psid"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.rsid"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.spc"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.rsn"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.nsf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.nsfe"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.gbs"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.sap"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.hes"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.kss"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.kssx"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.vgm"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.gym"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ahx"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.hvl"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.psf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.minipsf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.psf2"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.minipsf2"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.usf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.miniusf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.gsf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.minigsf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.2sf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.mini2sf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.dsf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.minidsf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ssf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.minissf"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.mp1"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.MP1"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.mp2"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.MP2"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.mp3"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.MP3"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.ogg"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.OGG"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.flac"
+                        android:scheme="file" />
+                <data
+                        android:host="*"
+                        android:mimeType="*/*"
+                        android:pathPattern=".*\\.FLAC"
+                        android:scheme="file" />
+            </intent-filter>
+        </activity>
+        <activity
+                android:name=".PreferencesActivity"
+                android:label="@string/prefs">
+            <intent-filter>
+                <action android:name="app.zxtune.PreferencesActivity" />
+                <category android:name="android.intent.category.PREFERENCE" />
+            </intent-filter>
+        </activity>
+
+        <service
+                android:name=".MainService"
+                android:process=":service">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+        <service
+                android:name=".ScanService"
+                android:process=":service" />
+        <service
+                android:name=".RingtoneService"
+                android:process=":service" />
+
+        <provider
+                android:name="app.zxtune.playlist.Provider"
+                android:authorities="app.zxtune.playlist"
+                android:exported="false"
+                android:process=":service" />
+        <provider
+                android:name="app.zxtune.PluginsProvider"
+                android:authorities="app.zxtune.plugins"
+                android:exported="false"
+                android:process=":service" />
+        <provider
+                android:name="app.zxtune.analytics.internal.Provider"
+                android:authorities="app.zxtune.analytics.internal"
+                android:exported="false"
+                android:process=":analytics" />
+        <provider
+                android:name="app.zxtune.fs.provider.Provider"
+                android:authorities="app.zxtune.vfs"
+                android:exported="false"
+                android:grantUriPermissions="true"
+                android:process=":service" />
+
+        <receiver android:name=".device.ui.WidgetHandler">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/widget_metadata" />
+        </receiver>
+        <!-- support library -->
+        <receiver android:name="androidx.media.session.MediaButtonReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>
