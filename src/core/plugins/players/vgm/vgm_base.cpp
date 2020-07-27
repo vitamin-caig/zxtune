@@ -448,7 +448,7 @@ namespace ZXTune
   void RegisterVGMPlugins(PlayerPluginsRegistrator& registrator)
   {
     {
-      const Char ID[] = {'V', 'G', 'M'};
+      const Char ID[] = {'V', 'G', 'M', 0};
       const uint_t CAPS = ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI;
       auto decoder = Formats::Chiptune::CreateVideoGameMusicDecoder();
       auto factory = MakePtr<Module::VideoGameMusic::Factory>();
