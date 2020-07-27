@@ -193,9 +193,11 @@ namespace LibVGM
 
     void SetSoundFreq(uint_t freq)
     {
-      Delegate->Stop();
-      Delegate->SetSampleRate(freq);
-      Delegate->Start();
+      if (Delegate->GetSampleRate() != freq) {
+        Delegate->Stop();
+        Require(0 == Delegate->SetSampleRate(freq));
+        Delegate->Start();
+      }
     }
 
     Sound::Chunk Render(uint_t samples)
@@ -446,7 +448,7 @@ namespace ZXTune
   void RegisterVGMPlugins(PlayerPluginsRegistrator& registrator)
   {
     {
-      const Char ID[] = {'V', 'G', 'M'};
+      const Char ID[] = {'V', 'G', 'M', 0};
       const uint_t CAPS = ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI;
       auto decoder = Formats::Chiptune::CreateVideoGameMusicDecoder();
       auto factory = MakePtr<Module::VideoGameMusic::Factory>();
