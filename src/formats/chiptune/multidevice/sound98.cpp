@@ -180,13 +180,23 @@ namespace Chiptune
         }
         else if (ReadTagSignature())
         {
-          const auto value = Strings::ToAutoUtf8(Stream.ReadCString(areas.GetAreaSize(TAG)));
+          const auto value = Strings::ToAutoUtf8(ReadMaybeTruncatedString(areas.GetAreaSize(TAG)));
           return ParsePSFTags(value, target);
         }
         else
         {
           return false;
         }
+      }
+
+      // Do not use ReadString - may be CR/LF inside
+      StringView ReadMaybeTruncatedString(std::size_t maxSize)
+      {
+        const auto* start = Stream.PeekRawData(0);
+        const auto* end = start + std::min(maxSize, Stream.GetRestSize());
+        const auto* limit = std::find(start, end, 0);
+        Stream.Skip(limit - start + (limit != end));
+        return StringView(safe_ptr_cast<const Char*>(start), limit - start);
       }
 
       bool ReadTagSignature()
