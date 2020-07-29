@@ -67,6 +67,6 @@ source_files += $(addprefix utils/,DataLoader StrUtils-CPConv_Stub)
 
 source_files := $(addsuffix .c,$(source_files))
 
-source_files += $(addprefix player/,playerbase.cpp vgmplayer.cpp vgmplayer_cmdhandler.cpp helper.c dblk_compr.c)
+source_files += $(addprefix player/,playerbase.cpp s98player.cpp vgmplayer.cpp vgmplayer_cmdhandler.cpp helper.c dblk_compr.c)
 
 include $(dirs.root)/makefile.mak
