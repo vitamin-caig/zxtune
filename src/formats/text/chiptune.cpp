@@ -183,6 +183,9 @@ extern const Char SEGASATURNSOUNDFORMAT_DECODER_DESCRIPTION[] = {
 extern const Char SID_DECODER_DESCRIPTION[] = {
   'C','o','m','m','o','d','o','r','e','6','4',' ','R','S','I','D','/','P','S','I','D',0
 };
+extern const Char SOUND98_DECODER_DESCRIPTION[] = {
+  'S','o','u','n','d',' ','9','8',0
+};
 extern const Char SOUNDTRACKER3_DECODER_DESCRIPTION[] = {
   'S','o','u','n','d',' ','T','r','a','c','k','e','r',' ','v','3','.','x',' ','C','o','m','p','i','l','e','d',0
 };

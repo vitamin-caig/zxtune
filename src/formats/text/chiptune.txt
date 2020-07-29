@@ -338,3 +338,7 @@ __cpp> "}//namespace Text\n"
 #V2M
 < V2M_DECODER_DESCRIPTION
 > "Farbrausch V2 Synthesizer System"
+
+#S98
+< SOUND98_DECODER_DESCRIPTION
+> "Sound 98"
