@@ -19,6 +19,7 @@
 //library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
+#include <formats/chiptune/multidevice/sound98.h>
 #include <formats/chiptune/multidevice/videogamemusic.h>
 #include <math/numeric.h>
 #include <module/attributes.h>
@@ -31,6 +32,7 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //3rdparty includes
+#include <3rdparty/vgm/player/s98player.hpp>
 #include <3rdparty/vgm/player/vgmplayer.hpp>
 #include <3rdparty/vgm/utils/DataLoader.h>
 //std includes
@@ -374,6 +376,11 @@ namespace LibVGM
     const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
+
+  Dump CreateData(Binary::View data)
+  {
+    return Dump(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size());
+  }
 } //namespace LibVGM
 
 namespace VideoGameMusic
@@ -407,11 +414,6 @@ namespace VideoGameMusic
     Information::Ptr Info;
   };
   
-  Dump CreateData(Binary::View data)
-  {
-    return Dump(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size());
-  }
-
   class Factory : public Module::Factory
   {
   public:
@@ -423,7 +425,7 @@ namespace VideoGameMusic
         DataBuilder dataBuilder(props);
         if (const auto container = Formats::Chiptune::VideoGameMusic::Parse(rawData, dataBuilder))
         {
-          auto data = CreateData(*container);
+          auto data = LibVGM::CreateData(*container);
           //TODO: move to builder
           props.SetPlatform(DetectPlatform(data));
           auto tune = MakePtr<LibVGM::Model>(&LibVGM::Create< ::VGMPlayer>, std::move(data));
@@ -435,13 +437,72 @@ namespace VideoGameMusic
       }
       catch (const std::exception& e)
       {
-        LibVGM::Dbg("Failed to create VGM: %2%", e.what());
+        LibVGM::Dbg("Failed to create VGM: %1%", e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   };
-}
-}
+} // namespace VideoGameMusic
+
+namespace Sound98
+{
+  class DataBuilder : public Formats::Chiptune::Sound98::Builder
+  {
+  public:
+    explicit DataBuilder(PropertiesHelper& props)
+      : Properties(props)
+      , Meta(props)
+    {
+    }
+
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
+    {
+      return Meta;
+    }
+
+    void SetTimings(Time::Milliseconds total, Time::Milliseconds loop) override
+    {
+      Info = CreateStreamInfo(total.Get() / LibVGM::FRAME_DURATION.Get(), loop.Get() / LibVGM::FRAME_DURATION.Get());
+    }
+
+    Information::Ptr GetInfo() const
+    {
+      return Info;
+    }
+  private:
+    PropertiesHelper& Properties;
+    MetaProperties Meta;
+    Information::Ptr Info;
+  };
+
+  class Factory : public Module::Factory
+  {
+  public:
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    {
+      try
+      {
+        PropertiesHelper props(*properties);
+        DataBuilder dataBuilder(props);
+        if (const auto container = Formats::Chiptune::Sound98::Parse(rawData, dataBuilder))
+        {
+          auto data = LibVGM::CreateData(*container);
+          auto tune = MakePtr<LibVGM::Model>(&LibVGM::Create< ::S98Player>, std::move(data));
+
+          props.SetSource(*container);
+
+          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.GetInfo(), std::move(properties));
+        }
+      }
+      catch (const std::exception& e)
+      {
+        LibVGM::Dbg("Failed to create S98: %1%", e.what());
+      }
+      return {};
+    }
+  };
+} // namespace Sound98
+} // namespace Module
 
 namespace ZXTune
 {
@@ -452,6 +513,14 @@ namespace ZXTune
       const uint_t CAPS = ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI;
       auto decoder = Formats::Chiptune::CreateVideoGameMusicDecoder();
       auto factory = MakePtr<Module::VideoGameMusic::Factory>();
+      auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+      registrator.RegisterPlugin(plugin);
+    }
+    {
+      const Char ID[] = {'S', '9', '8', 0};
+      const uint_t CAPS = ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI;
+      auto decoder = Formats::Chiptune::CreateSound98Decoder();
+      auto factory = MakePtr<Module::Sound98::Factory>();
       auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
       registrator.RegisterPlugin(plugin);
     }

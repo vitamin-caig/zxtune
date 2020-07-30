@@ -71,5 +71,6 @@ namespace Formats
     Decoder::Ptr CreateWAVDecoder();
     Decoder::Ptr CreateFLACDecoder();
     Decoder::Ptr CreateV2MDecoder();
+    Decoder::Ptr CreateSound98Decoder();
   }
 }

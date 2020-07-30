@@ -291,6 +291,9 @@ namespace Formats
       scanner.AddDecoder(CreateMP3Decoder());
       scanner.AddDecoder(CreateOGGDecoder());
       scanner.AddDecoder(CreateWAVDecoder());
+      scanner.AddDecoder(CreateFLACDecoder());
+      scanner.AddDecoder(CreateV2MDecoder());
+      scanner.AddDecoder(CreateSound98Decoder());
     }
   }
 }
