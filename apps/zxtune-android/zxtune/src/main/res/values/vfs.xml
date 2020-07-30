@@ -89,6 +89,8 @@
     <string name="vfs_joshw_psf3_description" translatable="false">http://psf3.joshw.info</string>
     <string name="vfs_joshw_psp_name" translatable="false">Sony Playstation Portable</string>
     <string name="vfs_joshw_psp_description" translatable="false">http://psp.joshw.info</string>
+    <string name="vfs_joshw_s98_name" translatable="false">NEC/Sharp PC</string>
+    <string name="vfs_joshw_s98_description" translatable="false">http://s98.joshw.info</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_root_name" translatable="false">Amiga Music Preservation</string>
     <string name="vfs_amp_root_description" translatable="false">http://amp.dascene.net</string>
