@@ -168,7 +168,7 @@ namespace Chiptune
       bool ParseTags(const AreaController& areas, uint_t sign, MetaBuilder& target)
       {
         const auto offset = areas.GetAreaAddress(TAG);
-        if (offset == AreaController::Undefined)
+        if (offset == AreaController::Undefined || offset >= areas.GetAreaAddress(END))
         {
           return false;
         }
