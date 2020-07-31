@@ -156,41 +156,37 @@ namespace Wav
   public:
     PcmModel(Pcm::ConvertFunction func, const Properties& props)
       : Convert(func)
-      , Data(props.Data)
-      , Frequency(props.Frequency)
-      , TotalSamples(Data->Size() / props.BlockSize)
-      , TotalDuration(Time::Microseconds::FromRatio(TotalSamples, Frequency))
-      , TotalFrames(std::max<uint_t>(1, TotalDuration.Divide<uint_t>(props.FrameDuration)))
+      , Props(props)
+      , TotalSamples(Props.Data->Size() / Props.BlockSize)
+      , TotalDuration(Time::Microseconds::FromRatio(TotalSamples, Props.Frequency))
+      , TotalFrames(std::max<uint_t>(1, TotalDuration.Divide<uint_t>(Props.FrameDuration)))
       , SamplesPerFrame(TotalSamples / TotalFrames)
-      , BytesPerFrame(props.BlockSize * SamplesPerFrame)
+      , BytesPerFrame(Props.BlockSize * SamplesPerFrame)
     {
     }
 
     uint_t GetFrequency() const override
     {
-      return Frequency;
+      return Props.Frequency;
     }
     
-    uint_t GetFramesCount() const override
+    FramedStream CreateStream() const override
     {
-      return TotalFrames;
-    }
-    
-    uint_t GetSamplesPerFrame() const override
-    {
-      return SamplesPerFrame;
+      FramedStream result;
+      result.FrameDuration = Props.FrameDuration;
+      result.TotalFrames = TotalFrames;
+      return result;
     }
     
     Sound::Chunk RenderFrame(uint_t idx) const override
     {
-      const auto start = static_cast<const uint8_t*>(Data->Start()) + BytesPerFrame * idx;
+      const auto start = static_cast<const uint8_t*>(Props.Data->Start()) + BytesPerFrame * idx;
       return Convert(start, SamplesPerFrame);
     }
     
   private:
     const Pcm::ConvertFunction Convert;
-    const Binary::Data::Ptr Data;
-    const uint_t Frequency;
+    const Properties Props;
     const std::size_t TotalSamples;
     const Time::Microseconds TotalDuration;
     const uint_t TotalFrames;

@@ -33,14 +33,12 @@ namespace Wav
       return Props.Frequency;
     }
     
-    uint_t GetFramesCount() const override
+    FramedStream CreateStream() const override
     {
-      return (Props.SamplesCountHint + Props.BlockSizeSamples - 1) / Props.BlockSizeSamples;
-    }
-    
-    uint_t GetSamplesPerFrame() const override
-    {
-      return Props.BlockSizeSamples;
+      FramedStream result;
+      result.TotalFrames = (Props.SamplesCountHint + Props.BlockSizeSamples - 1) / Props.BlockSizeSamples;
+      result.FrameDuration = Time::Microseconds::FromRatio(Props.BlockSizeSamples, Props.Frequency);
+      return result;
     }
     
     Sound::Chunk RenderFrame(uint_t idx) const override

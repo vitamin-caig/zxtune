@@ -218,6 +218,7 @@ namespace AHX
     void Reset()
     {
       hvl_InitSubsong(Hvl.get(), 0);
+      //TODO: clarify
       SamplesPerFrame = Hvl->ht_Frequency / 50;
     }
     

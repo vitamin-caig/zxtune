@@ -246,7 +246,6 @@ namespace Wav
       , Frequency(props.Frequency)
       , BlockSize(props.BlockSize)
       , SamplesPerBlock(samplesPerBlock)
-      , TotalBlocks(Data->Size() / BlockSize)
     {
     }
 
@@ -254,15 +253,13 @@ namespace Wav
     {
       return Frequency;
     }
-    
-    uint_t GetFramesCount() const override
+
+    FramedStream CreateStream() const override
     {
-      return TotalBlocks;
-    }
-    
-    uint_t GetSamplesPerFrame() const override
-    {
-      return SamplesPerBlock;
+      FramedStream result;
+      result.TotalFrames = Data->Size() / BlockSize;
+      result.FrameDuration = Time::Microseconds::FromRatio(SamplesPerBlock, Frequency);
+      return result;
     }
     
     Sound::Chunk RenderFrame(uint_t idx) const override
@@ -280,7 +277,6 @@ namespace Wav
     const uint_t Frequency;
     const std::size_t BlockSize;
     const uint_t SamplesPerBlock;
-    const uint_t TotalBlocks;
   };
   
   Model::Ptr CreateAdpcmModel(const Properties& props)

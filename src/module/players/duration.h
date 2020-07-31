@@ -20,7 +20,5 @@ namespace Parameters
 
 namespace Module
 {
-  uint_t GetDurationInFrames(const Parameters::Accessor& params);
-  
-  Time::Seconds GetDuration(const Parameters::Accessor& params);
+  Time::Seconds GetDefaultDuration(const Parameters::Accessor& params);
 }

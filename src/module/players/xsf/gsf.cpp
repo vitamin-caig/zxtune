@@ -54,6 +54,20 @@ namespace GSF
     
     GbaRom::Ptr Rom;
     XSF::MetaInformation::Ptr Meta;
+
+    uint_t GetRefreshRate() const
+    {
+      return Meta->RefreshRate ? Meta->RefreshRate : 50;
+    }
+
+    //TODO: use TimedStream
+    FramedStream CreateStream() const
+    {
+      FramedStream result;
+      result.FrameDuration = Time::Microseconds::FromFrequency(GetRefreshRate());
+      result.TotalFrames = Meta->Duration.Divide<uint_t>(result.FrameDuration);
+      return result;
+    }
   };
   
   class AVStream : public mAVStream
@@ -224,17 +238,15 @@ namespace GSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const ModuleData& data, Information::Ptr info, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(const ModuleData& data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Engine(MakePtr<GbaEngine>(data))
-      , Iterator(Module::CreateStreamStateIterator(info))
+      , Stream(data.CreateStream())
+      , Iterator(Module::CreateStreamStateIterator(Stream))
       , State(Iterator->GetStateObserver())
       , Analyzer(CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(Module::CreateFadingReceiver(std::move(params), std::move(info), State, std::move(target)))
-      , SamplesPerFrame()
-      , Looped()
+      , Target(Module::CreateFadingReceiver(std::move(params), Stream, State, std::move(target)))
     {
-      ApplyParameters();
     }
 
     Module::State::Ptr GetState() const override
@@ -282,7 +294,8 @@ namespace GSF
     {
       if (SoundParams.IsChanged())
       {
-        SamplesPerFrame = SoundParams->SamplesPerFrame();
+        //TODO: rework
+        SamplesPerFrame = Stream.FrameDuration.Get() * SoundParams->SoundFreq() / Stream.FrameDuration.PER_SECOND;
         Looped = SoundParams->Looped();
         Engine->SetParameters(*SoundParams);
       }
@@ -303,28 +316,28 @@ namespace GSF
     }
   private:
     const GbaEngine::Ptr Engine;
+    const FramedStream Stream;
     const StateIterator::Ptr Iterator;
     const Module::State::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
-    uint_t SamplesPerFrame;
+    uint_t SamplesPerFrame = 0;
     Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder
   {
   public:
-    Holder(ModuleData::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(ModuleData::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
-      , Info(std::move(info))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateStreamInfo(Tune->CreateStream());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -334,25 +347,20 @@ namespace GSF
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(*Tune, Info, std::move(target), std::move(params));
+      return MakePtr<Renderer>(*Tune, std::move(target), std::move(params));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
-      const auto period = Sound::GetFrameDuration(*properties);
-      const auto duration = tune->Meta->Duration;
-      const auto frames = duration.Divide<uint_t>(period);
-      Information::Ptr info = CreateStreamInfo(frames);
       if (tune->Meta)
       {
         tune->Meta->Dump(*properties);
       }
       properties->SetValue(ATTR_PLATFORM, Platforms::GAME_BOY_ADVANCE);
-      return MakePtr<Holder>(std::move(tune), std::move(info), std::move(properties));
+      return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
   private:
     const ModuleData::Ptr Tune;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
 

@@ -82,6 +82,15 @@ namespace Mp3
     std::vector<Formats::Chiptune::Mp3::Frame::DataLocation> Frames;
     Time::Microseconds Duration;
     Binary::Data::Ptr Content;
+
+    //TODO: use TimedStream
+    FramedStream CreateStream() const
+    {
+      FramedStream stream;
+      stream.TotalFrames = Frames.size();
+      stream.FrameDuration = decltype(Duration)(Duration.Get() / stream.TotalFrames);
+      return stream;
+    }
   };
   
   struct FrameSound
@@ -242,16 +251,15 @@ namespace Mp3
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Tune(std::move(data))
-      , Iterator(std::move(iterator))
+    Renderer(Model::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+      : Tune(data)
+      , Iterator(CreateStreamStateIterator(data->CreateStream()))
       , State(Iterator->GetStateObserver())
       , Analyzer(Module::CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
       , Looped()
     {
-      ApplyParameters();
     }
 
     Module::State::Ptr GetState() const override
@@ -319,14 +327,13 @@ namespace Mp3
   public:
     Holder(Model::Ptr data, Parameters::Accessor::Ptr props)
       : Data(std::move(data))
-      , Info(CreateStreamInfo(static_cast<uint_t>(Data->Frames.size())))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateStreamInfo(Data->CreateStream());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -336,11 +343,10 @@ namespace Mp3
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Data, Module::CreateStreamStateIterator(Info), target, params);
+      return MakePtr<Renderer>(Data, std::move(target), std::move(params));
     }
   private:
     const Model::Ptr Data;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
   
@@ -378,7 +384,7 @@ namespace Mp3
     {
       if (Data->Duration < MIN_DURATION)
       {
-        return Model::Ptr();
+        return {};
       }
       else
       {
@@ -428,11 +434,11 @@ namespace Mp3
         DataBuilder dataBuilder(props);
         if (const auto container = Formats::Chiptune::Mp3::Parse(rawData, dataBuilder))
         {
-          if (const auto data = dataBuilder.GetResult())
+          if (auto data = dataBuilder.GetResult())
           {
             props.SetSource(*container);
             dataBuilder.SetContent(container);
-            return MakePtr<Holder>(data, properties);
+            return MakePtr<Holder>(std::move(data), std::move(properties));
           }
         }
       }
@@ -440,7 +446,7 @@ namespace Mp3
       {
         Dbg("Failed to create MP3: %s", e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   };
 }

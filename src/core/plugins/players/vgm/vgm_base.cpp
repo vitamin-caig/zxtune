@@ -62,9 +62,9 @@ namespace LibVGM
   {
     using Ptr = std::shared_ptr<Model>;
 
-    Model(PlayerCreator create, Dump data)
+    Model(PlayerCreator create, Binary::View data)
       : CreatePlayer(create)
-      , Data(std::move(data))
+      , Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
     {
     }
 
@@ -202,12 +202,13 @@ namespace LibVGM
       }
     }
 
-    Sound::Chunk Render(uint_t samples)
+    Sound::Chunk Render()
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
 
+      const auto samples = FRAME_DURATION.Get() * Delegate->GetSampleRate() / FRAME_DURATION.PER_SECOND;
       Buffer.resize(samples);
       std::memset(Buffer.data(), 0, samples * sizeof(Buffer.front()));
       const auto outSamples = Delegate->Render(samples, Buffer.data());
@@ -215,8 +216,9 @@ namespace LibVGM
       return ConvertBuffer(outSamples);
     }
 
-    void Seek(uint_t samples)
+    void Seek(uint_t frames)
     {
+      const auto samples = FRAME_DURATION.Get() * frames * Delegate->GetSampleRate() / FRAME_DURATION.PER_SECOND;
       Require(0 == Delegate->Seek(PLAYPOS_SAMPLE, samples));
       WholeLoopCount = 0;
     }
@@ -263,9 +265,7 @@ namespace LibVGM
       , Analyzer(CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
-      , Looped()
     {
-      ApplyParameters();
     }
 
     State::Ptr GetState() const override
@@ -284,7 +284,7 @@ namespace LibVGM
       {
         ApplyParameters();
 
-        auto data = Engine->Render(SoundParams->SamplesPerFrame());
+        auto data = Engine->Render();
         Analyzer->AddSoundData(data);
         Target->ApplyData(std::move(data));
 
@@ -315,7 +315,7 @@ namespace LibVGM
     {
       try
       {
-        Engine->Seek(frame * SoundParams->SamplesPerFrame());
+        Engine->Seek(frame);
       }
       catch (const std::exception& e)
       {
@@ -343,16 +343,16 @@ namespace LibVGM
   class Holder : public Module::Holder
   {
   public:
-    Holder(Model::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(Model::Ptr tune, FramedStream stream, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
-      , Info(std::move(info))
+      , Stream(std::move(stream))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateStreamInfo(Stream);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -364,7 +364,7 @@ namespace LibVGM
     {
       try
       {
-        return MakePtr<Renderer>(Tune, target, params);
+        return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
       }
       catch (const std::exception& e)
       {
@@ -373,14 +373,9 @@ namespace LibVGM
     }
   private:
     const Model::Ptr Tune;
-    const Information::Ptr Info;
+    const FramedStream Stream;
     const Parameters::Accessor::Ptr Properties;
   };
-
-  Dump CreateData(Binary::View data)
-  {
-    return Dump(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size());
-  }
 } //namespace LibVGM
 
 namespace VideoGameMusic
@@ -401,17 +396,19 @@ namespace VideoGameMusic
 
     void SetTimings(Time::Milliseconds total, Time::Milliseconds loop) override
     {
-      Info = CreateStreamInfo(total.Get() / LibVGM::FRAME_DURATION.Get(), loop.Get() / LibVGM::FRAME_DURATION.Get());
+      Stream.FrameDuration = LibVGM::FRAME_DURATION;
+      Stream.TotalFrames = total.Divide<uint_t>(Stream.FrameDuration);
+      Stream.LoopFrame = loop.Divide<uint_t>(Stream.FrameDuration);
     }
 
-    Information::Ptr GetInfo() const
+    FramedStream GetStream() const
     {
-      return Info;
+      return Stream;
     }
   private:
     PropertiesHelper& Properties;
     MetaProperties Meta;
-    Information::Ptr Info;
+    FramedStream Stream;
   };
   
   class Factory : public Module::Factory
@@ -425,14 +422,13 @@ namespace VideoGameMusic
         DataBuilder dataBuilder(props);
         if (const auto container = Formats::Chiptune::VideoGameMusic::Parse(rawData, dataBuilder))
         {
-          auto data = LibVGM::CreateData(*container);
+          auto tune = MakePtr<LibVGM::Model>(&LibVGM::Create< ::VGMPlayer>, *container);
           //TODO: move to builder
-          props.SetPlatform(DetectPlatform(data));
-          auto tune = MakePtr<LibVGM::Model>(&LibVGM::Create< ::VGMPlayer>, std::move(data));
+          props.SetPlatform(DetectPlatform(tune->Data));
         
           props.SetSource(*container);
         
-          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.GetInfo(), std::move(properties));
+          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.GetStream(), std::move(properties));
         }
       }
       catch (const std::exception& e)
@@ -462,17 +458,19 @@ namespace Sound98
 
     void SetTimings(Time::Milliseconds total, Time::Milliseconds loop) override
     {
-      Info = CreateStreamInfo(total.Get() / LibVGM::FRAME_DURATION.Get(), loop.Get() / LibVGM::FRAME_DURATION.Get());
+      Stream.FrameDuration = LibVGM::FRAME_DURATION;
+      Stream.TotalFrames = total.Divide<uint_t>(Stream.FrameDuration);
+      Stream.LoopFrame = loop.Divide<uint_t>(Stream.FrameDuration);
     }
 
-    Information::Ptr GetInfo() const
+    FramedStream GetStream() const
     {
-      return Info;
+      return Stream;
     }
   private:
     PropertiesHelper& Properties;
     MetaProperties Meta;
-    Information::Ptr Info;
+    FramedStream Stream;
   };
 
   class Factory : public Module::Factory
@@ -486,12 +484,11 @@ namespace Sound98
         DataBuilder dataBuilder(props);
         if (const auto container = Formats::Chiptune::Sound98::Parse(rawData, dataBuilder))
         {
-          auto data = LibVGM::CreateData(*container);
-          auto tune = MakePtr<LibVGM::Model>(&LibVGM::Create< ::S98Player>, std::move(data));
-
+          auto tune = MakePtr<LibVGM::Model>(&LibVGM::Create< ::VGMPlayer>, *container);
+        
           props.SetSource(*container);
-
-          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.GetInfo(), std::move(properties));
+        
+          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.GetStream(), std::move(properties));
         }
       }
       catch (const std::exception& e)

@@ -19,15 +19,13 @@
 
 namespace Module
 {
-  const uint_t STREAM_CHANNELS = 1;
-
-  class StreamStateCursor : public State
+  class FramedStreamStateCursor : public State
   {
   public:
-    typedef std::shared_ptr<StreamStateCursor> Ptr;
+    typedef std::shared_ptr<FramedStreamStateCursor> Ptr;
 
-    explicit StreamStateCursor(Information::Ptr info)
-      : Info(std::move(info))
+    explicit FramedStreamStateCursor(FramedStream stream)
+      : Stream(std::move(stream))
       , CurFrame()
       , Loops()
     {
@@ -48,7 +46,7 @@ namespace Module
     //navigation
     bool IsValid() const
     {
-      return CurFrame < Info->FramesCount();
+      return CurFrame < Stream.TotalFrames;
     }
 
     void Reset()
@@ -59,7 +57,7 @@ namespace Module
 
     void ResetToLoop()
     {
-      CurFrame = Info->LoopFrame();
+      CurFrame = Stream.LoopFrame;
       ++Loops;
     }
 
@@ -71,44 +69,42 @@ namespace Module
       }
     }
   private:
-    const Information::Ptr Info;
+    const FramedStream Stream;
     uint_t CurFrame;
     uint_t Loops;
   };
 
-  class StreamInfo : public Information
+  class FramedStreamInfo : public Information
   {
   public:
-    StreamInfo(uint_t frames, uint_t loopFrame)
-      : TotalFrames(frames)
-      , Loop(loopFrame)
+    FramedStreamInfo(FramedStream stream)
+      : Stream(std::move(stream))
     {
     }
 
     uint_t FramesCount() const override
     {
-      return TotalFrames;
+      return Stream.TotalFrames;
     }
 
     uint_t LoopFrame() const override
     {
-      return Loop;
+      return Stream.LoopFrame;
     }
 
     uint_t ChannelsCount() const override
     {
-      return STREAM_CHANNELS;
+      return Stream.Channels;
     }
   private:
-    const uint_t TotalFrames;
-    const uint_t Loop;
+    const FramedStream Stream;
   };
 
-  class StreamStateIterator : public StateIterator
+  class FramedStreamStateIterator : public StateIterator
   {
   public:
-    explicit StreamStateIterator(Information::Ptr info)
-      : Cursor(MakePtr<StreamStateCursor>(info))
+    explicit FramedStreamStateIterator(FramedStream stream)
+      : Cursor(MakePtr<FramedStreamStateCursor>(std::move(stream)))
     {
     }
 
@@ -137,16 +133,16 @@ namespace Module
       return Cursor;
     }
   private:
-    const StreamStateCursor::Ptr Cursor;
+    const FramedStreamStateCursor::Ptr Cursor;
   };
 
-  Information::Ptr CreateStreamInfo(uint_t frames, uint_t loopFrame)
+  Information::Ptr CreateStreamInfo(FramedStream stream)
   {
-    return MakePtr<StreamInfo>(frames, loopFrame);
+    return MakePtr<FramedStreamInfo>(std::move(stream));
   }
 
-  StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info)
+  StateIterator::Ptr CreateStreamStateIterator(FramedStream stream)
   {
-    return MakePtr<StreamStateIterator>(info);
+    return MakePtr<FramedStreamStateIterator>(std::move(stream));
   }
 }

@@ -55,10 +55,10 @@ namespace Module
     const uint_t FadeOut;
     const uint_t Duration;
     
-    FadeInfo(uint_t fadeIn, uint_t fadeOut, uint_t duration)
-      : FadeIn(fadeIn)
-      , FadeOut(fadeOut)
-      , Duration(duration)
+    FadeInfo(Time::Milliseconds fadeIn, Time::Milliseconds fadeOut, FramedStream stream)
+      : FadeIn(fadeIn.Divide<uint_t>(stream.FrameDuration))
+      , FadeOut(fadeOut.Divide<uint_t>(stream.FrameDuration))
+      , Duration(stream.TotalFrames)
     {
     }
     
@@ -140,23 +140,23 @@ namespace Module
     mutable Parameters::IntType Looped;
   };
 
-  Sound::GainSource::Ptr CreateGainSource(Parameters::Accessor::Ptr params, Information::Ptr info, State::Ptr status)
+  Time::Milliseconds Get(const Parameters::Accessor& params, const Parameters::NameType& name, Parameters::IntType def, Parameters::IntType precision)
+  {
+    auto value = def;
+    params.FindValue(name, value);
+    return Time::Milliseconds::FromRatio(value, precision);
+  }
+
+  Sound::GainSource::Ptr CreateGainSource(Parameters::Accessor::Ptr params, FramedStream stream, State::Ptr status)
   {
     using namespace Parameters::ZXTune::Sound;
-    auto fadeIn = FADEIN_DEFAULT;
-    auto fadeOut = FADEOUT_DEFAULT;
-    params->FindValue(FADEIN, fadeIn);
-    params->FindValue(FADEOUT, fadeOut);
-    if (fadeIn == 0 && fadeOut == 0)
+    const auto fadeIn = Get(*params, FADEIN, FADEIN_DEFAULT, FADEIN_PRECISION);
+    const auto fadeOut = Get(*params, FADEOUT, FADEOUT_DEFAULT, FADEOUT_PRECISION);
+    if (fadeIn.Get() == 0 && fadeOut.Get() == 0)
     {
       return MakePtr<SimpleGainSource>(std::move(params));
     }
-    auto frameDuration = FRAMEDURATION_DEFAULT;
-    params->FindValue(FRAMEDURATION, frameDuration);
-    Require(frameDuration != 0);
-    static_assert(FRAMEDURATION_PRECISION == FADEIN_PRECISION, "Different precision");
-    static_assert(FRAMEDURATION_PRECISION == FADEOUT_PRECISION, "Different precision");
-    const FadeInfo fading(fadeIn / frameDuration, fadeOut / frameDuration, info->FramesCount());
+    const FadeInfo fading(fadeIn, fadeOut, stream);
     return MakePtr<FadingGainSource>(std::move(params), fading, std::move(status));
   }
 }

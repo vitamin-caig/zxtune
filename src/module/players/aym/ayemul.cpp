@@ -809,16 +809,16 @@ namespace AYEMUL
   class Holder : public AYM::Holder
   {
   public:
-    Holder(ModuleData::Ptr data, Information::Ptr info, Parameters::Accessor::Ptr properties)
+    Holder(ModuleData::Ptr data, FramedStream stream, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
-      , Info(std::move(info))
+      , Stream(std::move(stream))
       , Properties(std::move(properties))
     {
     }
 
     Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateStreamInfo(Stream);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -846,17 +846,19 @@ namespace AYEMUL
   private:
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep) const
     {
-      auto iterator = CreateStreamStateIterator(Info);
       auto cpuParams = MakePtr<CPUParameters>(params);
       auto channel = MakePtr<DataChannel>(std::move(ay), std::move(beep));
       auto cpuPorts = PortsPlexer::Create(channel);
       auto comp = MakePtr<Computer>(Data, std::move(cpuParams), std::move(cpuPorts));
       auto renderParams = Sound::RenderParameters::Create(std::move(params));
+      auto newStream = Stream;
+      newStream.FrameDuration = renderParams->FrameDuration();
+      auto iterator = CreateStreamStateIterator(newStream);
       return MakePtr<Renderer>(std::move(renderParams), std::move(iterator), std::move(comp), std::move(channel));
     }
   private:
     const ModuleData::Ptr Data;
-    const Information::Ptr Info;
+    const FramedStream Stream;
     const Parameters::Accessor::Ptr Properties;
   };
   
@@ -873,8 +875,17 @@ namespace AYEMUL
       {
         props.SetSource(*container);
         auto data = builder.GetResult();
-        const uint_t frames = data->Frames ? data->Frames : GetDurationInFrames(params);
-        return MakePtr<Holder>(std::move(data), CreateStreamInfo(frames), properties);
+        FramedStream stream;
+        stream.FrameDuration = Sound::GetFrameDuration(params);
+        if (data->Frames)
+        {
+          stream.TotalFrames = data->Frames;
+        }
+        else
+        {
+          stream.TotalFrames = GetDefaultDuration(params).Divide<uint_t>(stream.FrameDuration);
+        }
+        return MakePtr<Holder>(std::move(data), std::move(stream), std::move(properties));
       }
       return Holder::Ptr();
     }

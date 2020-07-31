@@ -57,6 +57,20 @@ namespace TwoSF
     std::list<Binary::Container::Ptr> ReservedSections;
 
     XSF::MetaInformation::Ptr Meta;
+
+    uint_t GetRefreshRate() const
+    {
+      return Meta->RefreshRate ? Meta->RefreshRate : 50;
+    }
+
+    //TODO: use TimedStream and bigger frames
+    FramedStream CreateStream() const
+    {
+      FramedStream result;
+      result.FrameDuration = Time::Microseconds::FromFrequency(GetRefreshRate());
+      result.TotalFrames = Meta->Duration.Divide<uint_t>(result.FrameDuration);
+      return result;
+    }
   };
   
   class AnalysisMap
@@ -246,18 +260,16 @@ namespace TwoSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, Information::Ptr info, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Data(std::move(data))
-      , Iterator(Module::CreateStreamStateIterator(info))
+      , Stream(Data->CreateStream())
+      , Iterator(Module::CreateStreamStateIterator(Stream))
       , State(Iterator->GetStateObserver())
       , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(Module::CreateFadingReceiver(std::move(params), std::move(info), State, std::move(target)))
+      , Target(Module::CreateFadingReceiver(std::move(params), Stream, State, std::move(target)))
       , Engine(MakePtr<DSEngine>(*Data))
-      , Looped()
+      , SamplesPerFrame(Stream.FrameDuration.Get() * DSEngine::SAMPLERATE / Stream.FrameDuration.PER_SECOND)
     {
-      const auto frameDuration = SoundParams->FrameDuration();
-      SamplesPerFrame = frameDuration.Get() * DSEngine::SAMPLERATE / frameDuration.PER_SECOND;
-      ApplyParameters();
     }
 
     Module::State::Ptr GetState() const override
@@ -324,29 +336,29 @@ namespace TwoSF
     }
   private:
     const ModuleData::Ptr Data;
+    const FramedStream Stream;
     const StateIterator::Ptr Iterator;
     const Module::State::Ptr State;
-    uint_t SamplesPerFrame;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     DSEngine::Ptr Engine;
     Sound::Receiver::Ptr Resampler;
+    const uint_t SamplesPerFrame;
     Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder
   {
   public:
-    Holder(ModuleData::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(ModuleData::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
-      , Info(std::move(info))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateStreamInfo(Tune->CreateStream());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -356,25 +368,20 @@ namespace TwoSF
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Tune, Info, std::move(target), std::move(params));
+      return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
-      const auto period = Sound::GetFrameDuration(*properties);
-      const auto duration = tune->Meta->Duration;
-      const auto frames = duration.Divide<uint_t>(period);
-      Information::Ptr info = CreateStreamInfo(frames);
       if (tune->Meta)
       {
         tune->Meta->Dump(*properties);
       }
       properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_DS);
-      return MakePtr<Holder>(std::move(tune), std::move(info), std::move(properties));
+      return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
   private:
     const ModuleData::Ptr Tune;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
 

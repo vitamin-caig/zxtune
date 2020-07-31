@@ -13,6 +13,7 @@
 //common includes
 #include <make_ptr.h>
 #include <module/players/streaming.h>
+#include <sound/render_params.h>
 //std includes
 #include <utility>
 
@@ -73,13 +74,12 @@ namespace Module
       StreamedChiptune(StreamModel::Ptr model, Parameters::Accessor::Ptr properties)
         : Data(std::move(model))
         , Properties(std::move(properties))
-        , Info(CreateStreamInfo(Data->Size(), Data->Loop()))
       {
       }
 
       Information::Ptr GetInformation() const override
       {
-        return Info;
+        return CreateStreamInfo(MakeFramedStream());
       }
 
       Parameters::Accessor::Ptr GetProperties() const override
@@ -89,13 +89,21 @@ namespace Module
 
       TFM::DataIterator::Ptr CreateDataIterator() const override
       {
-        auto iter = CreateStreamStateIterator(Info);
+        auto iter = CreateStreamStateIterator(MakeFramedStream());
         return MakePtr<StreamDataIterator>(std::move(iter), Data);
+      }
+    private:
+      FramedStream MakeFramedStream() const
+      {
+        FramedStream result;
+        result.TotalFrames = Data->Size();
+        result.LoopFrame = Data->Loop();
+        result.FrameDuration = Sound::GetFrameDuration(*Properties);
+        return result;
       }
     private:
       const StreamModel::Ptr Data;
       const Parameters::Accessor::Ptr Properties;
-      const Information::Ptr Info;
     };
 
     Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model, Parameters::Accessor::Ptr properties)

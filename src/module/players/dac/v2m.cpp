@@ -225,16 +225,16 @@ namespace V2M
   class Holder : public Module::Holder
   {
   public:
-    Holder(DataPtr data, Module::Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(DataPtr data, FramedStream stream, Parameters::Accessor::Ptr props)
       : Data(std::move(data))
-      , Info(std::move(info))
+      , Stream(std::move(stream))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateStreamInfo(Stream);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -244,11 +244,11 @@ namespace V2M
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Data, Module::CreateStreamStateIterator(Info), std::move(target), std::move(params));
+      return MakePtr<Renderer>(Data, Module::CreateStreamStateIterator(Stream), std::move(target), std::move(params));
     }
   private:
     const DataPtr Data;
-    const Information::Ptr Info;
+    const FramedStream Stream;
     const Parameters::Accessor::Ptr Properties;
   };
   
@@ -267,16 +267,18 @@ namespace V2M
 
     void SetTotalDuration(Time::Milliseconds duration) override
     {
-      FramesCount = duration.Divide<uint_t>(FRAME_DURATION);
+      Stream.TotalFrames = duration.Divide<uint_t>(FRAME_DURATION);
+      Stream.FrameDuration = FRAME_DURATION;
     }
 
-    uint_t GetFramesCount() const
+    //TODO: TimedStream
+    FramedStream GetStream() const
     {
-      return FramesCount;
+      return Stream;
     }
   private:
     MetaProperties Meta;
-    uint_t FramesCount = 0;
+    FramedStream Stream;
   };
   
   class Factory : public Module::Factory
@@ -292,8 +294,7 @@ namespace V2M
         {
           props.SetSource(*container);
           auto data = V2mEngine::Convert(*container);
-          auto info = Module::CreateStreamInfo(dataBuilder.GetFramesCount());
-          return MakePtr<Holder>(std::move(data), std::move(info), std::move(properties));
+          return MakePtr<Holder>(std::move(data), dataBuilder.GetStream(), std::move(properties));
         }
       }
       catch (const std::exception& e)

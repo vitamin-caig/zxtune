@@ -54,6 +54,15 @@ namespace Ogg
     uint_t FramesCount = 0;
     uint_t SamplesPerFrame = 0;
     Binary::Data::Ptr Content;
+
+    //TODO: use TimedStream
+    FramedStream CreateStream() const
+    {
+      FramedStream result;
+      result.TotalFrames = FramesCount;
+      result.FrameDuration = Time::Microseconds::FromRatio(SamplesPerFrame, Frequency);
+      return result;
+    }
   };
   
   class OggTune
@@ -108,16 +117,14 @@ namespace Ogg
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Tune(std::move(data))
-      , Iterator(std::move(iterator))
+    Renderer(Model::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+      : Tune(data)
+      , Iterator(CreateStreamStateIterator(data->CreateStream()))
       , State(Iterator->GetStateObserver())
       , Analyzer(Module::CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
-      , Looped()
     {
-      ApplyParameters();
     }
 
     Module::State::Ptr GetState() const override
@@ -190,14 +197,13 @@ namespace Ogg
   public:
     Holder(Model::Ptr data, Parameters::Accessor::Ptr props)
       : Data(std::move(data))
-      , Info(CreateStreamInfo(Data->FramesCount))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateStreamInfo(Data->CreateStream());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -207,11 +213,10 @@ namespace Ogg
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Data, Module::CreateStreamStateIterator(Info), target, params);
+      return MakePtr<Renderer>(Data, std::move(target), std::move(params));
     }
   private:
     const Model::Ptr Data;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
   
@@ -281,12 +286,12 @@ namespace Ogg
         DataBuilder dataBuilder(props);
         if (const auto container = Formats::Chiptune::OggVorbis::Parse(rawData, dataBuilder))
         {
-          if (const auto data = dataBuilder.GetResult())
+          if (auto data = dataBuilder.GetResult())
           {
             props.SetSource(*container);
             dataBuilder.SetContent(container);
             dataBuilder.SetFrameDuration(Sound::GetFrameDuration(params));
-            return MakePtr<Holder>(data, properties);
+            return MakePtr<Holder>(std::move(data), std::move(properties));
           }
         }
       }
@@ -294,7 +299,7 @@ namespace Ogg
       {
         Dbg("Failed to create OGG: %s", e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   };
 }

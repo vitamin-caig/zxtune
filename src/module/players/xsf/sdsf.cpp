@@ -64,6 +64,15 @@ namespace SDSF
         return 60;//NTSC by default
       }
     }
+
+    //TODO: use TimedStream
+    FramedStream CreateStream() const
+    {
+      FramedStream result;
+      result.FrameDuration = Time::Microseconds::FromFrequency(GetRefreshRate());
+      result.TotalFrames = Meta->Duration.Divide<uint_t>(result.FrameDuration);
+      return result;
+    }
   };
   
   class HTLibrary
@@ -110,6 +119,11 @@ namespace SDSF
   class SegaEngine
   {
   public:
+    enum
+    {
+      SAMPLERATE = 44100
+    };
+     
     void Initialize(const ModuleData& data)
     {
       Vers = static_cast<HTLibrary::Version>(data.Version - 0x10);
@@ -123,11 +137,6 @@ namespace SDSF
       SetupSections(data.Sections);
     }
 
-    uint_t GetSoundFrequency() const
-    {
-      return 44100;
-    }
-    
     Sound::Chunk Render(uint_t samples)
     {
       Sound::Chunk result(samples);
@@ -184,18 +193,18 @@ namespace SDSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, Information::Ptr info, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Data(std::move(data))
-      , Iterator(Module::CreateStreamStateIterator(info))
+      , Stream(Data->CreateStream())
+      , Iterator(Module::CreateStreamStateIterator(Stream))
       , State(Iterator->GetStateObserver())
       , Analyzer(CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(Module::CreateFadingReceiver(std::move(params), std::move(info), State, std::move(target)))
+      , Target(Module::CreateFadingReceiver(std::move(params), Stream, State, std::move(target)))
+      , SamplesPerFrame(Stream.FrameDuration.Get() * SegaEngine::SAMPLERATE / Stream.FrameDuration.PER_SECOND)
       , Looped()
     {
       Engine.Initialize(*Data);
-      SamplesPerFrame = Engine.GetSoundFrequency() / Data->GetRefreshRate();
-      ApplyParameters();
     }
 
     Module::State::Ptr GetState() const override
@@ -245,7 +254,7 @@ namespace SDSF
       if (SoundParams.IsChanged())
       {
         Looped = SoundParams->Looped();
-        Resampler = Sound::CreateResampler(Engine.GetSoundFrequency(), SoundParams->SoundFreq(), Target);
+        Resampler = Sound::CreateResampler(SegaEngine::SAMPLERATE, SoundParams->SoundFreq(), Target);
       }
     }
 
@@ -264,30 +273,30 @@ namespace SDSF
     }
   private:
     const ModuleData::Ptr Data;
+    const FramedStream Stream;
     const StateIterator::Ptr Iterator;
     const Module::State::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
     SegaEngine Engine;
-    uint_t SamplesPerFrame;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
+    const uint_t SamplesPerFrame;
     Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder
   {
   public:
-    Holder(ModuleData::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(ModuleData::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
-      , Info(std::move(info))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateStreamInfo(Tune->CreateStream());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -297,22 +306,17 @@ namespace SDSF
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Tune, Info, std::move(target), std::move(params));
+      return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
-      const auto period = Time::Milliseconds::FromFrequency(tune->GetRefreshRate());
-      const auto duration = tune->Meta->Duration;
-      const auto frames = duration.Divide<uint_t>(period);
-      Information::Ptr info = CreateStreamInfo(frames);
       if (tune->Meta)
       {
         tune->Meta->Dump(*properties);
       }
       properties->SetValue(ATTR_PLATFORM, tune->Version == 0x11 ? Platforms::SEGA_SATURN : Platforms::DREAMCAST);
-      Sound::SetFrameDuration(*properties, period);
-      return MakePtr<Holder>(std::move(tune), std::move(info), std::move(properties));
+      return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
   private:
     const ModuleData::Ptr Tune;

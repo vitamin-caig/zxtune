@@ -40,16 +40,15 @@ namespace Wav
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(Model::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(data))
-      , Iterator(std::move(iterator))
+      , Iterator(CreateStreamStateIterator(Tune->CreateStream()))
       , State(Iterator->GetStateObserver())
       , Analyzer(Module::CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
       , Looped()
     {
-      ApplyParameters();
     }
 
     Module::State::Ptr GetState() const override
@@ -116,14 +115,13 @@ namespace Wav
   public:
     Holder(Model::Ptr data, Parameters::Accessor::Ptr props)
       : Data(std::move(data))
-      , Info(CreateStreamInfo(Data->GetFramesCount()))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateStreamInfo(Data->CreateStream());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -133,11 +131,10 @@ namespace Wav
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Data, Module::CreateStreamStateIterator(Info), target, params);
+      return MakePtr<Renderer>(Data, std::move(target), std::move(params));
     }
   private:
     const Model::Ptr Data;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
   
@@ -257,11 +254,10 @@ namespace Wav
         if (const auto container = Formats::Chiptune::Wav::Parse(rawData, dataBuilder))
         {
           dataBuilder.SetFrameDuration(Sound::GetFrameDuration(params));
-          if (const auto data = dataBuilder.GetResult())
+          if (auto data = dataBuilder.GetResult())
           {
             props.SetSource(*container);
-            props.SetFramesParameters(data->GetSamplesPerFrame(), data->GetFrequency());
-            return MakePtr<Holder>(data, properties);
+            return MakePtr<Holder>(std::move(data), std::move(properties));
           }
         }
       }
@@ -269,7 +265,7 @@ namespace Wav
       {
         Dbg("Failed to create WAV: %s", e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   };
 }

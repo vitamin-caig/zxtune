@@ -51,6 +51,15 @@ namespace Flac
     uint_t MaxFrameSize = 0;
     uint_t SamplesPerFrame = 0;
     Binary::Data::Ptr Content;
+
+    //TODO: use TimedStream
+    FramedStream CreateStream() const
+    {
+      FramedStream result;
+      result.TotalFrames = FramesCount;
+      result.FrameDuration = Time::Microseconds::FromRatio(SamplesPerFrame, SamplesPerFrame);
+      return result;
+    }
   };
 
   template<uint_t width>
@@ -320,16 +329,15 @@ namespace Flac
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Tune(std::move(data))
-      , Iterator(std::move(iterator))
+    Renderer(Model::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+      : Tune(data)
+      , Iterator(CreateStreamStateIterator(data->CreateStream()))
       , State(Iterator->GetStateObserver())
       , Analyzer(Module::CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
       , Looped()
     {
-      ApplyParameters();
     }
 
     Module::State::Ptr GetState() const override
@@ -402,14 +410,13 @@ namespace Flac
   public:
     Holder(Model::Ptr data, Parameters::Accessor::Ptr props)
       : Data(std::move(data))
-      , Info(CreateStreamInfo(Data->FramesCount))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateStreamInfo(Data->CreateStream());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -419,11 +426,10 @@ namespace Flac
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Data, Module::CreateStreamStateIterator(Info), target, params);
+      return MakePtr<Renderer>(Data, std::move(target), std::move(params));
     }
   private:
     const Model::Ptr Data;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
   
@@ -479,7 +485,7 @@ namespace Flac
       }
       else
       {
-        return Model::Ptr();
+        return {};
       }
     }
   private:
@@ -499,11 +505,11 @@ namespace Flac
         DataBuilder dataBuilder(props);
         if (const auto container = Formats::Chiptune::Flac::Parse(rawData, dataBuilder))
         {
-          if (const auto data = dataBuilder.GetResult())
+          if (auto data = dataBuilder.GetResult())
           {
             props.SetSource(*container);
             dataBuilder.SetContent(container);
-            return MakePtr<Holder>(data, properties);
+            return MakePtr<Holder>(std::move(data), std::move(properties));
           }
         }
       }
@@ -511,7 +517,7 @@ namespace Flac
       {
         Dbg("Failed to create FLAC: %s", e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   };
 }

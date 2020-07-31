@@ -10,6 +10,8 @@
 
 #pragma once
 
+//local includes
+#include "module/players/streaming.h"
 //library includes
 #include <binary/data.h>
 #include <binary/view.h>
@@ -39,8 +41,8 @@ namespace Wav
     virtual ~Model() = default;
     
     virtual uint_t GetFrequency() const = 0;
-    virtual uint_t GetFramesCount() const = 0;
-    virtual uint_t GetSamplesPerFrame() const = 0;
+    //TODO: use TimedStream
+    virtual FramedStream CreateStream() const = 0;
     virtual Sound::Chunk RenderFrame(uint_t idx) const = 0;
   };
   

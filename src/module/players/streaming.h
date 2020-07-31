@@ -14,10 +14,19 @@
 #include "module/players/iterator.h"
 //library includes
 #include <module/information.h>
+#include <time/duration.h>
 
 namespace Module
 {
-  Information::Ptr CreateStreamInfo(uint_t frames, uint_t loopFrame = 0);
+  struct FramedStream
+  {
+    uint_t TotalFrames = 0;
+    uint_t LoopFrame = 0;
+    uint_t Channels = 1;
+    Time::Microseconds FrameDuration;
+  };
 
-  StateIterator::Ptr CreateStreamStateIterator(Information::Ptr info);
+  Information::Ptr CreateStreamInfo(FramedStream stream);
+
+  StateIterator::Ptr CreateStreamStateIterator(FramedStream stream);
 }

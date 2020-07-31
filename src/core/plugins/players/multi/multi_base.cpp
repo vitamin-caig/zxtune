@@ -279,7 +279,6 @@ namespace Module
       , Target(std::move(target))
       , Analysis(MultiAnalyzer::Create(Delegates))
     {
-      ApplyParameters();
     }
 
     State::Ptr GetState() const override
