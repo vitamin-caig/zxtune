@@ -410,7 +410,7 @@
 > "Author:  [Author]"
 
 < ITEM_INFO_ADDON
-> "\nTime:    %1%\t"     "Channels:  %2%\n"
+> "\nTime:    %1%\t"     "Loop to:  %2%\n"
 
 < INPUT_ERROR_NO_FILES
 > "No files to process."

@@ -59,46 +59,6 @@ namespace Module
     const AnalyzersArray Delegates;
   };
  
-  class MultiInformation : public Information
-  {
-  public:
-    MultiInformation(Information::Ptr delegate, uint_t totalChannelsCount)
-      : Delegate(std::move(delegate))
-      , TotalChannelsCount(totalChannelsCount)
-    {
-    }
-    
-    uint_t FramesCount() const override
-    {
-      return Delegate->FramesCount();
-    }
-
-    uint_t LoopFrame() const override
-    {
-      return Delegate->LoopFrame();
-    }
-
-    uint_t ChannelsCount() const override
-    {
-      return TotalChannelsCount;
-    }
-    
-    static Ptr Create(const Multi::HoldersArray& holders)
-    {
-      const auto count = holders.size();
-      Require(count > 1);
-      uint_t totalChannelsCount = 0;
-      for (const auto& holder : holders)
-      {
-        totalChannelsCount += holder->GetModuleInformation()->ChannelsCount();
-      }
-      return MakePtr<MultiInformation>(holders.front()->GetModuleInformation(), totalChannelsCount);
-    }
-  private:
-    const Information::Ptr Delegate;
-    const uint_t TotalChannelsCount;
-  };
-
   class CompositeReceiver : public Sound::Receiver
   {
   public:
@@ -363,13 +323,12 @@ namespace Module
     MultiHolder(Parameters::Accessor::Ptr props, Multi::HoldersArray delegates)
       : Properties(std::move(props))
       , Delegates(std::move(delegates))
-      , Info(MultiInformation::Create(Delegates))
     {
     }
 
     Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return Delegates.front()->GetModuleInformation();
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override

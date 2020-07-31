@@ -91,11 +91,6 @@ namespace Module
     {
       return Stream.LoopFrame;
     }
-
-    uint_t ChannelsCount() const override
-    {
-      return Stream.Channels;
-    }
   private:
     const FramedStream Stream;
   };

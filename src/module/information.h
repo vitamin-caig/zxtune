@@ -30,7 +30,5 @@ namespace Module
     virtual uint_t FramesCount() const = 0;
     //! Loop position frame
     virtual uint_t LoopFrame() const = 0;
-    //! Channels count
-    virtual uint_t ChannelsCount() const = 0;
   };
 }

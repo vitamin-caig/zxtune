@@ -149,7 +149,6 @@ namespace TurboSound
     MergedInformationBase(const Information& lh, const Information& rh)
       : Frames(lh.FramesCount())
       , Loop(lh.LoopFrame())
-      , Channels(lh.ChannelsCount() + rh.ChannelsCount())
     {
     }
 
@@ -162,15 +161,9 @@ namespace TurboSound
     {
       return Loop;
     }
-
-    uint_t ChannelsCount() const override
-    {
-      return Channels;
-    }
   private:
     const uint_t Frames;
     const uint_t Loop;
-    const uint_t Channels;
   };
 
   using MergedInformation = MergedInformationBase<Information>;
@@ -180,10 +173,16 @@ namespace TurboSound
   public:
     MergedTrackInformation(const TrackInformation& lh, const TrackInformation& rh)
       : MergedInformationBase(lh, rh)
+      , Channels(lh.ChannelsCount() + rh.ChannelsCount())
       , Positions(lh.PositionsCount())
       , LoopPos(lh.LoopPosition())
       , TempoValue(std::min(lh.Tempo(), rh.Tempo()))
     {
+    }
+
+    uint_t ChannelsCount() const override
+    {
+      return Channels;
     }
 
     uint_t PositionsCount() const override
@@ -201,6 +200,7 @@ namespace TurboSound
       return TempoValue;
     }
   private:
+    const uint_t Channels;
     const uint_t Positions;
     const uint_t LoopPos;
     const uint_t TempoValue;

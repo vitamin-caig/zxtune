@@ -262,7 +262,7 @@ namespace ExtremeTracker1
     {
     }
 
-    Information::Ptr GetInformation() const override
+    TrackInformation::Ptr GetInformation() const override
     {
       return Info;
     }
@@ -289,7 +289,7 @@ namespace ExtremeTracker1
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
-    const Information::Ptr Info;
+    const TrackInformation::Ptr Info;
   };
 
   class Factory : public DAC::Factory

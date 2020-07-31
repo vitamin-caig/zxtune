@@ -179,7 +179,7 @@ namespace Module
       {
       }
 
-      Information::Ptr GetInformation() const override
+      TrackInformation::Ptr GetInformation() const override
       {
         return Info;
       }
@@ -206,7 +206,7 @@ namespace Module
     private:
       const SimpleModuleData::Ptr Data;
       const Parameters::Accessor::Ptr Properties;
-      const Information::Ptr Info;
+      const TrackInformation::Ptr Info;
       const uint_t Channels;
     };
 

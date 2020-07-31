@@ -118,7 +118,8 @@ namespace
         return;
       }
       Message(InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
-      Message(Strings::Format(Text::ITEM_INFO_ADDON, Time::ToString(FrameDuration * info->FramesCount()), info->ChannelsCount()));
+      Message(Strings::Format(Text::ITEM_INFO_ADDON, Time::ToString(FrameDuration * info->FramesCount()), Time::ToString(FrameDuration * info->LoopFrame())));
+      //TODO: also dump track information
     }
 
     uint_t BeginFrame(Sound::PlaybackControl::State state) override

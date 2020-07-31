@@ -738,8 +738,7 @@ extern const Char ITEM_INFO[] = {
 };
 extern const Char ITEM_INFO_ADDON[] = {
   '\n',
-  'T','i','m','e',':',' ',' ',' ',' ','%','1','%','\t','C','h','a','n','n','e','l','s',':',' ',' ','%','2','%',
-  '\n',
+  'T','i','m','e',':',' ',' ',' ',' ','%','1','%','\t','L','o','o','p',' ','t','o',':',' ',' ','%','2','%','\n',
   0
 };
 extern const Char LOOP_DESC[] = {

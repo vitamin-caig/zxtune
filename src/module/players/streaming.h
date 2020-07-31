@@ -22,7 +22,6 @@ namespace Module
   {
     uint_t TotalFrames = 0;
     uint_t LoopFrame = 0;
-    uint_t Channels = 1;
     Time::Microseconds FrameDuration;
   };
 
