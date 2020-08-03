@@ -5,10 +5,13 @@ RUN apt-get update && \
       g++ gcc python3-minimal \
       libpulse-dev libclalsadrv-dev zlib1g-dev \
       libxfixes-dev libxrandr-dev libfontconfig-dev && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    useradd -m -s /bin/bash -U -G users -d /build build
+
+USER build
+WORKDIR /build
 
 ENV prebuilt=/build/prebuilt
-WORKDIR /build
 
 ENV boost=1.70.0
 RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
@@ -32,11 +35,13 @@ RUN bash -c "wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/qt-everywhe
     make -j${cores} install && \
     cd .. && rm -Rf qt-everywhere*
 
-WORKDIR /build/zxtune
-RUN git init && \
+RUN mkdir -p /build/zxtune && cd /build/zxtune && \
+    git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo "platform=linux\narch=x86_64\npackaging=any\ntools.python=python3\nsystem.zlib=1\n"\
          "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n" > variables.mak
+
+WORKDIR /build/zxtune
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["package", "-C", "apps/bundle"]

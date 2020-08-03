@@ -1,20 +1,23 @@
 FROM archlinux/base:latest
 ARG cores=12
+# use gcc8 to avoid qt4's foreach problem
 RUN yes | pacman -Syu sudo awk fakeroot file make git zip python \
-      binutils gcc diffutils patch wget cmake pkg-config which && \
+      binutils gcc8 diffutils patch wget cmake pkg-config which && \
+    ln -s gcc-8 /usr/sbin/gcc && ln -s g++-8 /usr/sbin/g++ && \
     pacman-key --init && pacman-key --populate archlinux && \
     useradd -m -s /bin/bash -U -G wheel -d /build build && \
     echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers && \
     echo -e 'MAKEFLAGS="-j${cores}"\nSRCDEST=/build/sources\n' >> /etc/makepkg.conf && \
     rm -Rf /var/cache/pacman
+
 USER build
 WORKDIR /build
-COPY mingw-w64 .
-RUN gpg --recv 93BDB53CD4EBC740 13FCEF89DD9E3C4F A328C3A2C3C45C06 && \
+COPY --chown=build mingw-w64 .
+RUN gpg --keyserver keys.gnupg.net --recv 93BDB53CD4EBC740 13FCEF89DD9E3C4F A328C3A2C3C45C06 && \
     mkdir sources && sudo chmod o+w * && \
     for pkg in headers binutils headers-bootstrap gcc-base crt winpthreads gcc pkg-config cmake win-iconv ;\
     do \
-      (cd ${pkg} && makepkg && yes | sudo pacman -U *.pkg.tar.xz) && \
+      (cd ${pkg} && makepkg && yes | sudo pacman -U *.pkg.tar.*) && \
       rm -Rf ${pkg} ;\
     done && \
     rm -Rf sources

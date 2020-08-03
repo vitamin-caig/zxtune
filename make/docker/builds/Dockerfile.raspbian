@@ -6,15 +6,18 @@ RUN apt-get update && \
     (wget https://archive.raspbian.org/raspbian.public.key -O - | apt-key add - ) && \
     echo "deb [arch=amd64] http://deb.debian.org/debian stretch main\ndeb [arch=armhf] http://mirrordirector.raspbian.org/raspbian/ stretch main rpi" > /etc/apt/sources.list && \
     apt-get update && \
-    apt-get install -y --no-install-recommends xz-utils bzip2 git make zip g++ python3-minimal
+    apt-get install -y --no-install-recommends xz-utils bzip2 git make zip g++ python3-minimal && \
+    useradd -m -s /bin/bash -U -G users -d /build build
+
+USER build
+WORKDIR /build
 
 ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
-WORKDIR /build
 
 # Toolchain from https://github.com/abhiTronix/raspberry-pi-cross-compilers
 ENV gcc=8.3.0
 RUN mkdir -p ${toolchains} && cd ${toolchains} && \
-    (wget -q https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/GCC%20${gcc}/Raspberry%20Pi%201%2C%20Zero/cross-gcc-${gcc}-pi_0-1.tar.gz -O - | tar -xz) && \
+    (wget -q https://sourceforge.net/projects/raspberry-pi-cross-compilers/files/Raspberry%20Pi%20GCC%20Cross-Compiler%20Toolchains/Stretch/GCC%20${gcc}/Raspberry%20Pi%201%2C%20Zero/cross-gcc-${gcc}-pi_0-1.tar.gz -O - | tar -xz) && \
     (find cross-pi-gcc* -name '*6.3.0*' -print0 | xargs -0 rm -Rf) && \
     mv cross-pi-gcc* armhf-linux
 
@@ -65,12 +68,15 @@ RUN bash -c "wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/qt-everywhe
     make -j${cores} install && \
     cd .. && rm -Rf qt-everywhere*
 
-WORKDIR /build/zxtune
-RUN git init && \
+#Sources
+RUN mkdir -p /build/zxtune && cd /build/zxtune && \
+    git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
     echo "platform=linux\narch=armhf\npackaging?=any\ntools.python=python3\n"\
          "prebuilt.dir=${prebuilt}\ntoolchains.root=${toolchains}\nboost.version=${boost}\nqt.version=${qt}\n"\
          "system.zlib=1\nlibraries.dirs.linux+=\$(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf\nlibraries.linux+=expat\n" > variables.mak
+
+WORKDIR /build/zxtune
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
 CMD ["package", "-C", "apps/bundle"]
