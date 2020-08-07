@@ -103,7 +103,7 @@ namespace Binary
 
     const uint8_t* PeekRawData(std::size_t size) const
     {
-      if (Cursor + size <= Finish)
+      if (size <= GetRestSize())
       {
         return Cursor;
       }
@@ -134,13 +134,13 @@ namespace Binary
 
     void Skip(std::size_t size)
     {
-      Require(Cursor + size <= Finish);
+      Require(size <= GetRestSize());
       Cursor += size;
     }
     
     void Seek(std::size_t pos)
     {
-      Require(Start + pos <= Finish);
+      Require(pos <= (Finish - Start));
       Cursor = Start + pos;
     }
 
@@ -158,7 +158,7 @@ namespace Binary
   private:
     const uint8_t* ReadRawData(std::size_t size)
     {
-      Require(Cursor + size <= Finish);
+      Require(size <= GetRestSize());
       const uint8_t* const res = Cursor;
       Cursor += size;
       return res;
@@ -182,7 +182,7 @@ namespace Binary
     
     Container::Ptr ReadContainer(std::size_t size)
     {
-      Require(Cursor + size <= Finish);
+      Require(size <= GetRestSize());
       const std::size_t offset = GetPosition();
       Cursor += size;
       return Data.GetSubcontainer(offset, size);
