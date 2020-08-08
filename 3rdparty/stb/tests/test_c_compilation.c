@@ -11,6 +11,8 @@
 #define STB_RECT_PACK_IMPLEMENTATION
 #define STB_VOXEL_RENDER_IMPLEMENTATION
 #define STB_EASY_FONT_IMPLEMENTATION
+#define STB_DXT_IMPLEMENTATION
+#define STB_INCLUDE_IMPLEMENTATION
 
 #include "stb_herringbone_wang_tile.h"
 #include "stb_image.h"
@@ -20,18 +22,24 @@
 #include "stb_divide.h"
 #include "stb_image_resize.h"
 #include "stb_rect_pack.h"
-
-#define STB_DXT_IMPLEMENTATION
 #include "stb_dxt.h"
+#include "stb_include.h"
+
+#include "stb_ds.h"
 
 #define STBVOX_CONFIG_MODE 1
 #include "stb_voxel_render.h"
 
-#define STBTE_DRAW_RECT(x0,y0,x1,y1,color)      0
-#define STBTE_DRAW_TILE(x,y,id,highlight,data)  0
-#define STB_TILEMAP_EDITOR_IMPLEMENTATION
-#include "stb_tilemap_editor.h"
+void STBTE_DRAW_RECT(int x0, int y0, int x1, int y1, unsigned int color)
+{
+}
 
+void STBTE_DRAW_TILE(int x0, int y0, unsigned short id, int highlight, float *data)
+{
+}
+
+#define STB_TILEMAP_EDITOR_IMPLEMENTATION
+//#include "stb_tilemap_editor.h"   // @TODO: it's broken
 
 int quicktest(void)
 {
