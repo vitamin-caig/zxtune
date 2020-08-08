@@ -159,7 +159,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
             break;
           }
         } catch (Exception e) {
-          if (batch.compareAndSet(uri, null)) {
+          if (batch.compareAndSet(uri, null) || batch.compareAndSet(null, null)) {
             throw e;
           }
         }
