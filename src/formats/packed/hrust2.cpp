@@ -24,6 +24,7 @@
 #include <formats/packed.h>
 #include <math/numeric.h>
 //std includes
+#include <iterator>
 #include <cstring>
 #include <functional>
 #include <numeric>
