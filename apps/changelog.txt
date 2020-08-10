@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4960 from 10.08.2020
+
+[+] Added support of S98 format
+[+] zxtune-android: added s98 tracks archive to joshw.info catalogues
+[*] zxtune-android: fixed found and reported problems
+
 --- Rev4950 from 14.07.2020
 
 [+] Full support of VGM format chips and versions
