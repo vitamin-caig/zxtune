@@ -340,7 +340,7 @@ public class BrowserFragment extends Fragment {
           addToPlaylist(selection);
           break;
         default:
-          break;
+          return false;
       }
       return true;
     }
