@@ -25,14 +25,15 @@ final class VfsPlaylistDir implements VfsDir {
 
   @Nullable
   static VfsDir resolveAsPlaylist(VfsFile file) {
-    final String filename = file.getUri().getLastPathSegment();
+    final Uri uri = file.getUri();
+    final String filename = uri.getLastPathSegment();
     if (filename == null) {
       return null;
     }
     try {
       if (filename.endsWith(TYPE_AYL)) {
         return new VfsPlaylistDir(file, AylIterator.parse(Vfs.read(file)));
-      } else if (filename.endsWith(TYPE_XSPF)) {
+      } else if (filename.endsWith(TYPE_XSPF) || VfsRootPlaylists.SCHEME.equals(uri.getScheme())) {
         return new VfsPlaylistDir(file, XspfIterator.parse(Vfs.read(file)));
       }
     } catch (Exception e) {
@@ -46,7 +47,7 @@ final class VfsPlaylistDir implements VfsDir {
     if (filename == null) {
       return false;
     } else {
-      return filename.endsWith(TYPE_AYL) || filename.endsWith(TYPE_XSPF);
+      return filename.endsWith(TYPE_AYL) || filename.endsWith(TYPE_XSPF) || VfsRootPlaylists.SCHEME.equals(uri.getScheme());
     }
   }
 

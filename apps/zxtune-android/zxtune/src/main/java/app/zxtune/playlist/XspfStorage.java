@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief
- *
  * @author vitamin.caig@gmail.com
- *
  */
 package app.zxtune.playlist;
 
@@ -15,12 +11,13 @@ import android.net.Uri;
 import android.os.Environment;
 import android.util.Xml;
 
+import androidx.annotation.Nullable;
+
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InvalidObjectException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -32,52 +29,51 @@ public class XspfStorage {
   private static final String TAG = XspfStorage.class.getName();
   private static final String EXTENSION = ".xspf";
   private final File root;
-  private final ArrayList<String> names;
+  @Nullable
+  private ArrayList<String> cache;
 
   public XspfStorage(Context context) {
     final String path = context.getString(R.string.playlists_storage_path);
-    this.root = new File(Environment.getExternalStorageDirectory() + File.separator + path);
+    this.root = new File(Environment.getExternalStorageDirectory(), path);
     if (root.mkdirs()) {
       Log.d(TAG, "Created playlists storage dir");
-    }
-    this.names = new ArrayList<>();
-
-    fillNames();
-  }
-  
-  private void fillNames() {
-    String[] files = root.list();
-    if (files == null) {
-      files = new String[0];
-    }
-    for (int i = 0; i != files.length; ++i) {
-      final String filename = files[i];
-      final int extPos = filename.lastIndexOf(EXTENSION);
-      if (-1 != extPos) {
-        names.add(filename.substring(0, extPos));
-      }
     }
   }
 
   public final boolean isPlaylistExists(String name) {
-    return -1 != names.indexOf(name);
+    return -1 != getCachedPlaylists().indexOf(name);
   }
-  
+
   public final ArrayList<String> enumeratePlaylists() {
-    return names;
-  }
-  
-  public final Uri getPlaylistUri(String name) throws InvalidObjectException {
-    if (!isPlaylistExists(name)) {
-      throw new InvalidObjectException(name);
+    String[] files = root.list();
+    if (files == null) {
+      files = new String[0];
     }
-    return Uri.fromFile(getFileFor(name));
+    final ArrayList<String> result = new ArrayList<>(files.length);
+    for (String filename : files) {
+      final int extPos = filename.lastIndexOf(EXTENSION);
+      if (-1 != extPos) {
+        result.add(filename.substring(0, extPos));
+      }
+    }
+    cache = result;
+    return result;
   }
-  
+
+  private ArrayList<String> getCachedPlaylists() {
+    return cache != null ? cache : enumeratePlaylists();
+  }
+
+  @Nullable
+  public final File findPlaylistFile(String name) {
+    final File res = getFileFor(name);
+    return res.isFile() ? res : null;
+  }
+
   private File getFileFor(String name) {
-    return new File(root + File.separator + name + EXTENSION);
+    return new File(root, name + EXTENSION);
   }
-  
+
   public final void createPlaylist(String name, Cursor cursor) throws IOException {
     final File file = getFileFor(name);
     final FileOutputStream stream = new FileOutputStream(file);
@@ -87,7 +83,7 @@ public class XspfStorage {
     builder.writePlaylistProperties(cursor.getCount());
     builder.writeTracks(cursor);
     builder.flush();
-    names.add(name);
+    getCachedPlaylists().add(name);
   }
 
   private static class Builder {
@@ -99,8 +95,8 @@ public class XspfStorage {
       xml.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
       xml.startDocument(Xspf.ENCODING, true);
       xml.startTag(null, Xspf.Tags.PLAYLIST)
-       .attribute(null, Xspf.Attributes.VERSION, Xspf.VERSION)
-       .attribute(null, Xspf.Attributes.XMLNS, Xspf.XMLNS);
+          .attribute(null, Xspf.Attributes.VERSION, Xspf.VERSION)
+          .attribute(null, Xspf.Attributes.XMLNS, Xspf.XMLNS);
     }
 
     final void flush() throws IOException {
@@ -111,7 +107,7 @@ public class XspfStorage {
 
     final void writePlaylistProperties(int items) throws IOException {
       xml.startTag(null, Xspf.Tags.EXTENSION)
-        .attribute(null, Xspf.Attributes.APPLICATION, Xspf.APPLICATION);
+          .attribute(null, Xspf.Attributes.APPLICATION, Xspf.APPLICATION);
       writeProperty(Xspf.Properties.PLAYLIST_VERSION, Xspf.VERSION);
       writeProperty(Xspf.Properties.PLAYLIST_ITEMS, Integer.toString(items));
       xml.endTag(null, Xspf.Tags.EXTENSION);
@@ -137,11 +133,11 @@ public class XspfStorage {
 
     private void writeProperty(String name, String value) throws IOException {
       xml.startTag(null, Xspf.Tags.PROPERTY)
-        .attribute(null, Xspf.Attributes.NAME, name)
-        .text(Uri.encode(value))
-        .endTag(null, Xspf.Tags.PROPERTY);
+          .attribute(null, Xspf.Attributes.NAME, name)
+          .text(Uri.encode(value))
+          .endTag(null, Xspf.Tags.PROPERTY);
     }
-    
+
     private void writeTextTag(String name, String value) throws IOException {
       writeTag(name, Uri.encode(value));
     }
