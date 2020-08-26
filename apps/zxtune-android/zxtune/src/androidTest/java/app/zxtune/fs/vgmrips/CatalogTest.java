@@ -42,12 +42,11 @@ public class CatalogTest {
 
     final SparseArrayCompat<Group> checkpoints = new SparseArrayCompat<>();
     //first
-    checkpoints.append(0, new Group("konami", "Konami", 191));
-    checkpoints.append(100, new Group("naxat-soft", "Naxat Soft", 4));
-    checkpoints.append(300, new Group("c-s-ware", "C's Ware", 1));
-    checkpoints.append(400, new Group("crea-tech", "Crea-Tech", 1));
-    checkpoints.append(506, new Group("teamtnt", "TeamTNT", 1));
-    checker.check(507, checkpoints);
+    checkpoints.append(0, new Group("konami", "Konami", 202));
+    checkpoints.append(101, new Group("naxat-soft", "Naxat Soft", 4));
+    checkpoints.append(303, new Group("c-s-ware", "C's Ware", 1));
+    checkpoints.append(405, new Group("crea-tech", "Crea-Tech", 1));
+    checker.check(514, checkpoints);
   }
 
   @Test
@@ -70,11 +69,11 @@ public class CatalogTest {
 
     final SparseArrayCompat<Group> checkpoints = new SparseArrayCompat<>();
     //first
-    checkpoints.append(0, new Group("mieko-ishikawa", "Mieko Ishikawa", 44));
-    checkpoints.append(500, new Group("mariko-egawa", "Mariko Egawa", 2));
+    checkpoints.append(0, new Group("konami-kukeiha-club", "Konami Kukeiha Club", 47));
+    checkpoints.append(502, new Group("mariko-egawa", "Mariko Egawa", 2));
     //last
-    checkpoints.append(1440, new Group("zuntata-sound-team", "Zuntata Sound Team", 1));
-    checker.check(1441, checkpoints);
+    checkpoints.append(1457, new Group("zuntata-sound-team", "Zuntata Sound Team", 1));
+    checker.check(1458, checkpoints);
   }
 
   @Test
@@ -98,7 +97,7 @@ public class CatalogTest {
 
     final SparseArrayCompat<Group> checkpoints = new SparseArrayCompat<>();
     //first
-    checkpoints.append(0, new Group("nes-apu", "NES APU", 423));
+    checkpoints.append(0, new Group("nes-apu", "NES APU", 427));
     //last
     checkpoints.append(47, new Group("vrc7", "VRC7", 1));
     checker.check(48, checkpoints);
@@ -127,8 +126,8 @@ public class CatalogTest {
     final SparseArrayCompat<Group> checkpoins = new SparseArrayCompat<>();
     //first
     checkpoins.append(0, new Group("nintendo/family-computer", "Family Computer",
-        324));
-    checkpoins.append(10, new Group("ascii/msx", "MSX", 68));
+        327));
+    checkpoins.append(10, new Group("ascii/msx", "MSX", 76));
     //last
     //checkpoins.append(182, new System("snk/neo-geo-pocket", "Neo Geo Pocket", 1));
     checker.check(183, checkpoins);
@@ -144,10 +143,10 @@ public class CatalogTest {
     checkpoints.append(0, makePack("the-ninja-warriors-zx-spectrum-128", "The Ninja Warriors",
         1, 45, 8));
     //last
-    checkpoints.append(28, makePack("combat-school-zx-spectrum-128", "Combat School",
-        10, 25, 8));
-    checker.check(29, checkpoints);
-    checker.checkProgress(29, 29);
+    checkpoints.append(31, makePack("altered-beast-zx-spectrum-128", "Altered Beast",
+        5, 15, 4));
+    checker.check(32, checkpoints);
+    checker.checkProgress(32, 32);
   }
 
   @Test
@@ -261,7 +260,7 @@ public class CatalogTest {
         final Track real = result.get(pos);
         assertEquals(ref.number, real.number);
         assertEquals(ref.title, real.title);
-        assertEquals(0, ref.duration.compareTo(real.duration));
+        assertEquals(ref.duration, real.duration);
         assertEquals(ref.location, real.location);
       }
     }

@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Time stamp value type
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune;
@@ -41,6 +37,16 @@ public final class TimeStamp implements Comparable<TimeStamp> {
     final int sec = totalSec % 60;
     return totalHour != 0 ? String.format(Locale.US, "%d:%02d:%02d", totalHour, min, sec) : String
         .format(Locale.US, "%d:%02d", min, sec);
+  }
+
+  @Override
+  public int hashCode() {
+    return (int) (value ^ (value >>> 32));
+  }
+
+  @Override
+  public boolean equals(Object rh) {
+    return this == rh || (rh != null && rh.getClass() == getClass() && value == ((TimeStamp) rh).value);
   }
 
   @Override

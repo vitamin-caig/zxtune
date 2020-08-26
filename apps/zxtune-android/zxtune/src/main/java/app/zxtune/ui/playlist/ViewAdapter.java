@@ -51,7 +51,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
       public boolean areContentsTheSame(Entry oldItem, Entry newItem) {
         return TextUtils.equals(oldItem.title, newItem.title)
             && TextUtils.equals(oldItem.author, newItem.author)
-            && 0 == oldItem.duration.compareTo(newItem.duration);
+            && oldItem.duration.equals(newItem.duration);
       }
     });
     this.client = client;
