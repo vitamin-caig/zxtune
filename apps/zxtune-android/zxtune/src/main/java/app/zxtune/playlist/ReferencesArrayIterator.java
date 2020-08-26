@@ -13,7 +13,7 @@ package app.zxtune.playlist;
 import java.util.ArrayList;
 import java.util.Random;
 
-class ReferencesArrayIterator implements ReferencesIterator {
+public class ReferencesArrayIterator implements ReferencesIterator {
   
   private final ArrayList<Entry> entries;
   private int current;

@@ -19,7 +19,7 @@ import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator;
-import app.zxtune.playlist.XspfIterator;
+import app.zxtune.playlist.xspf.XspfIterator;
 
 public final class Scanner {
 

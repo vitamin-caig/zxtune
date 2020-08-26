@@ -11,7 +11,7 @@ import app.zxtune.Log;
 import app.zxtune.core.Identifier;
 import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator.Entry;
-import app.zxtune.playlist.XspfIterator;
+import app.zxtune.playlist.xspf.XspfIterator;
 
 final class VfsPlaylistDir implements VfsDir {
 

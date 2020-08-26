@@ -32,7 +32,7 @@ import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.playlist.ProviderClient;
-import app.zxtune.playlist.XspfStorage;
+import app.zxtune.playlist.xspf.XspfStorage;
 
 public class PlaylistSaveFragment extends DialogFragment {
 

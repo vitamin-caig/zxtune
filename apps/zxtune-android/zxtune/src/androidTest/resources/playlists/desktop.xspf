@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<playlist version="1" xmlns="http://xspf.org/ns/0/">
+  <extension application="http://zxtune.googlecode.com">
+    <property name="zxtune.app.playlist.creator">zxtune-qt%20r4960-3-g0e8b58cebM%20Aug%2026%202020%20linux-x86_64%20</property>
+    <property name="zxtune.app.playlist.name">%D0%91%D0%B5%D0%B7%D1%8B%D0%BC%D1%8F%D0%BD%D0%BD%D1%8B%D0%B9</property>
+    <property name="zxtune.app.playlist.version">1</property>
+    <property name="zxtune.app.playlist.items">2</property>
+  </extension>
+  <trackList>
+    <track>
+      <location>chiptunes/RP2A0X/nsfe/SuperContra.nsfe?#2</location>
+      <creator>H.Maezawa</creator>
+      <annotation>%28C%29%201990%20Konami</annotation>
+      <title>Stage%201%20-%20Lightning%20and%20Grenades</title>
+      <duration>111300</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="CRC">2509111801</property>
+        <property name="FixedCRC">1728919421</property>
+        <property name="Size">41991</property>
+        <property name="Computer">Nintendo%20NES</property>
+        <property name="Container">NSFE</property>
+        <property name="Platform">Nintendo%20Entertainment%20System</property>
+        <property name="Program">Super%20Contra</property>
+        <property name="Type">NSFE</property>
+      </extension>
+    </track>
+    <track>
+      <location>../chiptunes/DAC/ZX/dst/Untitled.dst</location>
+      <title>Untitled2%28c%29%26%28p%29Cj.Le0%2799aug</title>
+      <duration>186560</duration>
+      <extension application="http://zxtune.googlecode.com">
+        <property name="CRC">405103935</property>
+        <property name="FixedCRC">3883371728</property>
+        <property name="Size">111104</property>
+        <property name="Platform">ZX%20Spectrum</property>
+        <property name="Program">Digital%20Studio%20%28Covox%2FSD%29</property>
+        <property name="Type">DST</property>
+      </extension>
+    </track>
+  </trackList>
+</playlist>

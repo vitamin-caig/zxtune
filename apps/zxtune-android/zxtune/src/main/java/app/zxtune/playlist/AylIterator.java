@@ -20,6 +20,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import app.zxtune.io.Io;
+import app.zxtune.playlist.xspf.XspfIterator;
+
 public final class AylIterator {
 
   private static final String SIGNATURE = "ZX Spectrum Sound Chip Emulator Play List File v1.";
@@ -53,7 +56,7 @@ public final class AylIterator {
   }
   
   public static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
-    final InputStream stream = XspfIterator.newInputStream(buf);
+    final InputStream stream = Io.createByteBufferInputStream(buf);
     final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
     /*final Properties props = */new Properties(reader.readLine());
     //TODO: apply encoding

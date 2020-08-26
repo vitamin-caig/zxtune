@@ -8,7 +8,7 @@
  *
  */
 
-package app.zxtune.playlist;
+package app.zxtune.playlist.xspf;
 
 import android.net.Uri;
 import android.sax.Element;
@@ -16,12 +16,10 @@ import android.sax.EndElementListener;
 import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.sax.TextElementListener;
-
-import androidx.annotation.Nullable;
 import android.util.Xml;
 
-import app.zxtune.TimeStamp;
-import org.xml.sax.Attributes;
+import androidx.annotation.Nullable;
+
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
@@ -30,6 +28,11 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
+import app.zxtune.TimeStamp;
+import app.zxtune.io.Io;
+import app.zxtune.playlist.ReferencesArrayIterator;
+import app.zxtune.playlist.ReferencesIterator;
+
 public final class XspfIterator {
   
   public static ReferencesIterator create(ByteBuffer buf) throws IOException {
@@ -37,10 +40,14 @@ public final class XspfIterator {
   }
 
   public static ArrayList<ReferencesIterator.Entry> parse(ByteBuffer buf) throws IOException {
+    return parse(Io.createByteBufferInputStream(buf));
+  }
+
+  public static ArrayList<ReferencesIterator.Entry> parse(InputStream stream) throws IOException {
     try {
       final ArrayList<ReferencesIterator.Entry> result = new ArrayList<>();
       final RootElement root = createPlaylistParseRoot(result);
-      Xml.parse(newInputStream(buf), Xml.Encoding.UTF_8, root.getContentHandler());
+      Xml.parse(stream, Xml.Encoding.UTF_8, root.getContentHandler());
       return result;
     } catch (SAXException e) {
       throw new IOException(e);
@@ -50,17 +57,17 @@ public final class XspfIterator {
   private static RootElement createPlaylistParseRoot(final ArrayList<ReferencesIterator.Entry> entries) {
     final boolean[] pathCompatMode = {false};
     final EntriesBuilder builder = new EntriesBuilder();
-    final RootElement result = new RootElement(Xspf.XMLNS, Xspf.Tags.PLAYLIST);
+    final RootElement result = new RootElement(Meta.XMLNS, Tags.PLAYLIST);
     //TODO: check extension
-    final Element extension = result.getChild(Xspf.XMLNS, Xspf.Tags.EXTENSION);
-    extension.getChild(Xspf.XMLNS, Xspf.Tags.PROPERTY).setTextElementListener(new TextElementListener() {
+    final Element extension = result.getChild(Meta.XMLNS, Tags.EXTENSION);
+    extension.getChild(Meta.XMLNS, Tags.PROPERTY).setTextElementListener(new TextElementListener() {
       
       private boolean isCreatorProperty;
 
       @Override
-      public void start(Attributes attributes) {
-        final String propName = attributes.getValue(Xspf.Attributes.NAME);
-        isCreatorProperty = Xspf.Properties.PLAYLIST_CREATOR.equals(propName);
+      public void start(org.xml.sax.Attributes attributes) {
+        final String propName = attributes.getValue(Attributes.NAME);
+        isCreatorProperty = Properties.PLAYLIST_CREATOR.equals(propName);
       }
 
       @Override
@@ -70,8 +77,8 @@ public final class XspfIterator {
         }
       }
     });
-    final Element tracks = result.getChild(Xspf.XMLNS, Xspf.Tags.TRACKLIST);
-    final Element track = tracks.getChild(Xspf.XMLNS, Xspf.Tags.TRACK);
+    final Element tracks = result.getChild(Meta.XMLNS, Tags.TRACKLIST);
+    final Element track = tracks.getChild(Meta.XMLNS, Tags.TRACK);
     track.setEndElementListener(new EndElementListener() {
       @Override
       public void end() {
@@ -81,7 +88,7 @@ public final class XspfIterator {
         }
       }
     });
-    track.getChild(Xspf.XMLNS, Xspf.Tags.LOCATION).setEndTextElementListener(new EndTextElementListener() {
+    track.getChild(Meta.XMLNS, Tags.LOCATION).setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
         if (pathCompatMode[0]) {
@@ -94,19 +101,19 @@ public final class XspfIterator {
         builder.setLocation(body);
       }
     });
-    track.getChild(Xspf.XMLNS, Xspf.Tags.TITLE).setEndTextElementListener(new EndTextElementListener() {
+    track.getChild(Meta.XMLNS, Tags.TITLE).setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
         builder.setTitle(body);
       }
     });
-    track.getChild(Xspf.XMLNS, Xspf.Tags.CREATOR).setEndTextElementListener(new EndTextElementListener() {
+    track.getChild(Meta.XMLNS, Tags.CREATOR).setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
         builder.setCreator(body);
       }
     });
-    track.getChild(Xspf.XMLNS, Xspf.Tags.DURATION).setEndTextElementListener(new EndTextElementListener() {
+    track.getChild(Meta.XMLNS, Tags.DURATION).setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
         builder.setDuration(body);
@@ -151,47 +158,5 @@ public final class XspfIterator {
       return res.location != null ? res : null;
     }
   }
-  
-  static InputStream newInputStream(final ByteBuffer buf) {
-    return new InputStream() {
-      
-      @Override
-      public int available()  {
-        return buf.remaining();
-      }
-      
-      @Override
-      public void mark(int readLimit) {
-        buf.mark();
-      }
-      
-      @Override
-      public void reset() {
-        buf.reset();
-      }
-      
-      @Override
-      public boolean markSupported() {
-        return true;
-      }
-      
-      @Override
-      public int read() {
-        return buf.hasRemaining()
-          ? buf.get()
-          : -1;
-      }
-      
-      @Override
-      public int read(byte[] bytes, int off, int len) {
-        if (buf.hasRemaining()) {
-          len = Math.min(len, buf.remaining());
-          buf.get(bytes, off, len);
-          return len;
-        } else {
-          return -1;
-        }
-      }
-    };
-  }
+
 }

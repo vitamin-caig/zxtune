@@ -13,7 +13,7 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import app.zxtune.R;
-import app.zxtune.playlist.XspfStorage;
+import app.zxtune.playlist.xspf.XspfStorage;
 
 final class VfsRootPlaylists extends StubObject implements VfsRoot {
 

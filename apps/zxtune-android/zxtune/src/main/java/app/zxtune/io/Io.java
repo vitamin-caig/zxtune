@@ -224,4 +224,47 @@ public class Io {
     }
     return false;
   }
+
+  public static InputStream createByteBufferInputStream(final ByteBuffer buf) {
+    return new InputStream() {
+
+      @Override
+      public int available()  {
+        return buf.remaining();
+      }
+
+      @Override
+      public void mark(int readLimit) {
+        buf.mark();
+      }
+
+      @Override
+      public void reset() {
+        buf.reset();
+      }
+
+      @Override
+      public boolean markSupported() {
+        return true;
+      }
+
+      @Override
+      public int read() {
+        return buf.hasRemaining()
+          ? buf.get()
+          : -1;
+      }
+
+      @Override
+      public int read(byte[] bytes, int off, int len) {
+        if (buf.hasRemaining()) {
+          len = Math.min(len, buf.remaining());
+          buf.get(bytes, off, len);
+          return len;
+        } else {
+          return -1;
+        }
+      }
+    };
+  }
 }

@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<playlist version="1" xmlns="http://xspf.org/ns/0/">
+  <extension application="http://zxtune.googlecode.com">
+    <property name="zxtune.app.playlist.version">1</property>
+    <property name="zxtune.app.playlist.items">3</property>
+  </extension>
+  <trackList>
+    <track>
+      <duration>12</duration>
+    </track>
+    <track>
+      <location>file:/folder/only%20duration</location>
+      <duration>123456</duration>
+    </track>
+    <track>
+      <location>joshw:/some/with%20title</location>
+      <duration>234567</duration>
+      <title>Title%201</title>
+    </track>
+    <track>
+      <location>hvsc:/GAMES/full</location>
+      <duration>345678</duration>
+      <title>Title%232</title>
+      <creator>Creator</creator>
+    </track>
+  </trackList>
+</playlist>
