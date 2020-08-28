@@ -1,11 +1,14 @@
 package app.zxtune.playlist.xspf;
 
-import android.database.Cursor;
 import android.net.Uri;
+import android.util.Xml;
+
+import androidx.annotation.Nullable;
 
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.playlist.Item;
@@ -13,9 +16,11 @@ import app.zxtune.playlist.Item;
 class Builder {
 
   private final XmlSerializer xml;
+  private boolean hasTracklist = false;
 
-  Builder(XmlSerializer xml) throws IOException {
-    this.xml = xml;
+  Builder(OutputStream output) throws IOException {
+    xml = Xml.newSerializer();
+    xml.setOutput(output, Meta.ENCODING);
     xml.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
     xml.startDocument(Meta.ENCODING, true);
     xml.startTag(null, Tags.PLAYLIST)
@@ -23,30 +28,31 @@ class Builder {
         .attribute(null, Attributes.XMLNS, Meta.XMLNS);
   }
 
-  final void flush() throws IOException {
+  final void finish() throws IOException {
+    if (hasTracklist) {
+      xml.endTag(null, Tags.TRACKLIST);
+    }
     xml.endTag(null, Tags.PLAYLIST);
     xml.endDocument();
     xml.flush();
   }
 
-  final void writePlaylistProperties(String name, int items) throws IOException {
+  final void writePlaylistProperties(String name, @Nullable Integer items) throws IOException {
     xml.startTag(null, Tags.EXTENSION)
         .attribute(null, Attributes.APPLICATION, Meta.APPLICATION);
     writeProperty(Properties.PLAYLIST_VERSION, Meta.VERSION);
     writeProperty(Properties.PLAYLIST_NAME, name);
-    writeProperty(Properties.PLAYLIST_ITEMS, Integer.toString(items));
+    if (items != null) {
+      writeProperty(Properties.PLAYLIST_ITEMS, items.toString());
+    }
     xml.endTag(null, Tags.EXTENSION);
   }
 
-  final void writeTracks(Cursor cursor) throws IOException {
-    xml.startTag(null, Tags.TRACKLIST);
-    while (cursor.moveToNext()) {
-      writeTrack(new Item(cursor));
+  final void writeTrack(Item item) throws IOException {
+    if (!hasTracklist) {
+      xml.startTag(null, Tags.TRACKLIST);
+      hasTracklist = true;
     }
-    xml.endTag(null, Tags.TRACKLIST);
-  }
-
-  private void writeTrack(Item item) throws IOException {
     xml.startTag(null, Tags.TRACK);
     writeTag(Tags.LOCATION, item.getLocation().toString());
     writeTextTag(Tags.CREATOR, item.getAuthor());

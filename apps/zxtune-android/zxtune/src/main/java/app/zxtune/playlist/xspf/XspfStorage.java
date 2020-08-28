@@ -8,11 +8,8 @@ package app.zxtune.playlist.xspf;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Environment;
-import android.util.Xml;
 
 import androidx.annotation.Nullable;
-
-import org.xmlpull.v1.XmlSerializer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,6 +18,7 @@ import java.util.ArrayList;
 
 import app.zxtune.Log;
 import app.zxtune.R;
+import app.zxtune.playlist.Item;
 
 public class XspfStorage {
 
@@ -75,13 +73,12 @@ public class XspfStorage {
   public final void createPlaylist(String name, Cursor cursor) throws IOException {
     final File file = getFileFor(name);
     final FileOutputStream stream = new FileOutputStream(file);
-    final XmlSerializer xml = Xml.newSerializer();
-    xml.setOutput(stream, Meta.ENCODING);
-    final Builder builder = new Builder(xml);
+    final Builder builder = new Builder(stream);
     builder.writePlaylistProperties(name, cursor.getCount());
-    builder.writeTracks(cursor);
-    builder.flush();
+    while (cursor.moveToNext()) {
+      builder.writeTrack(new Item(cursor));
+    }
+    builder.finish();
     getCachedPlaylists().add(name);
   }
-
 }

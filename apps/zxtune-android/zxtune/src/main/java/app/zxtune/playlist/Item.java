@@ -41,6 +41,14 @@ public class Item {
     this.duration = TimeStamp.createFrom(module.getDurationInMs(), TimeUnit.MILLISECONDS);
   }
 
+  public Item(Identifier location, String title, String author, TimeStamp duration) {
+    this.id = -1;
+    this.location = location;
+    this.title = title;
+    this.author = author;
+    this.duration = duration;
+  }
+
   public Item(app.zxtune.playback.Item item) {
     this.id = -1;
     this.location = item.getDataId();
