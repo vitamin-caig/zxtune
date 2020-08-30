@@ -26,7 +26,6 @@ import static org.junit.Assert.fail;
 /**
  * TODO:
  * - item's properties
- * - do not encode strings (only locations)
  */
 
 @RunWith(AndroidJUnit4.class)
@@ -59,6 +58,34 @@ public class XspfPlaylistTest {
   public void parseMobileV1() throws IOException {
     final ArrayList<ReferencesIterator.Entry> list = XspfIterator.parse(getPlaylistResource(
         "mobile_v1"));
+    assertEquals(3, list.size());
+    {
+      final ReferencesIterator.Entry entry = list.get(0);
+      assertEquals("file:/folder/only%20duration", entry.location);
+      assertEquals(TimeStamp.createFrom(123456, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals("", entry.title);
+      assertEquals("", entry.author);
+    }
+    {
+      final ReferencesIterator.Entry entry = list.get(1);
+      assertEquals("joshw:/some/%D1%84%D0%B0%D0%B9%D0%BB.7z#%D0%BF%D0%BE%D0%B4%D0%BF%D0%B0%D0%BF%D0%BA%D0%B0%2Fsubfile.mp3", entry.location);
+      assertEquals(TimeStamp.createFrom(2345, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals("Название", entry.title);
+      assertEquals("Author Unknown", entry.author);
+    }
+    {
+      final ReferencesIterator.Entry entry = list.get(2);
+      assertEquals("hvsc:/GAMES/file.sid#%233", entry.location);
+      assertEquals(TimeStamp.createFrom(6789, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals("Escaped%21", entry.title);
+      assertEquals("Me%)", entry.author);
+    }
+  }
+
+  @Test
+  public void parseMobileV2() throws IOException {
+    final ArrayList<ReferencesIterator.Entry> list = XspfIterator.parse(getPlaylistResource(
+        "mobile_v2"));
     assertEquals(3, list.size());
     {
       final ReferencesIterator.Entry entry = list.get(0);
@@ -129,7 +156,7 @@ public class XspfPlaylistTest {
           "Escaped%21", "Me%)", TimeStamp.createFrom(6789, TimeUnit.MILLISECONDS)));
       builder.finish();
     }
-    assertEquals(getPlaylistReference("mobile_v1"), out.toString());
+    assertEquals(getPlaylistReference("mobile_v2"), out.toString());
   }
 
   private static Identifier createIdentifier(String decoded) {

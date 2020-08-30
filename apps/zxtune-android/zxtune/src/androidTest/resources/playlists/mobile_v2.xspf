@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<playlist version="1" xmlns="http://xspf.org/ns/0/">
+  <extension application="http://zxtune.googlecode.com">
+    <property name="zxtune.app.playlist.version">2</property>
+    <property name="zxtune.app.playlist.name">Полный</property>
+    <property name="zxtune.app.playlist.items">3</property>
+  </extension>
+  <trackList>
+    <track>
+      <location>file:/folder/only%20duration</location>
+      <duration>123456</duration>
+    </track>
+    <track>
+      <location>joshw:/some/%D1%84%D0%B0%D0%B9%D0%BB.7z#%D0%BF%D0%BE%D0%B4%D0%BF%D0%B0%D0%BF%D0%BA%D0%B0%2Fsubfile.mp3</location>
+      <creator>Author Unknown</creator>
+      <title>Название</title>
+      <duration>2345</duration>
+    </track>
+    <track>
+      <location>hvsc:/GAMES/file.sid#%233</location>
+      <creator>Me%)</creator>
+      <title>Escaped%21</title>
+      <duration>6789</duration>
+    </track>
+  </trackList>
+</playlist>

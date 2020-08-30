@@ -55,25 +55,25 @@ public final class XspfIterator {
   }
   
   private static RootElement createPlaylistParseRoot(final ArrayList<ReferencesIterator.Entry> entries) {
-    final boolean[] pathCompatMode = {false};
     final EntriesBuilder builder = new EntriesBuilder();
     final RootElement result = new RootElement(Meta.XMLNS, Tags.PLAYLIST);
     //TODO: check extension
     final Element extension = result.getChild(Meta.XMLNS, Tags.EXTENSION);
     extension.getChild(Meta.XMLNS, Tags.PROPERTY).setTextElementListener(new TextElementListener() {
       
-      private boolean isCreatorProperty;
+      private String propName;
 
       @Override
       public void start(org.xml.sax.Attributes attributes) {
-        final String propName = attributes.getValue(Attributes.NAME);
-        isCreatorProperty = Properties.PLAYLIST_CREATOR.equals(propName);
+        propName = attributes.getValue(Attributes.NAME);
       }
 
       @Override
       public void end(String body) {
-        if (isCreatorProperty) {
-          pathCompatMode[0] = body.startsWith("zxtune-qt");
+        if (Properties.PLAYLIST_CREATOR.equals(propName)) {
+          builder.desktopPaths = body.startsWith("zxtune-qt");
+        } else if (Properties.PLAYLIST_VERSION.equals(propName)) {
+          builder.escapedTexts = Integer.parseInt(body) < 2;
         }
       }
     });
@@ -91,13 +91,6 @@ public final class XspfIterator {
     track.getChild(Meta.XMLNS, Tags.LOCATION).setEndTextElementListener(new EndTextElementListener() {
       @Override
       public void end(String body) {
-        if (pathCompatMode[0]) {
-          body = body
-              //subpath for ay/sid containers
-              .replace("?#", "#%23")
-              //rest paths with subpath
-              .replace('?', '#');
-        }
         builder.setLocation(body);
       }
     });
@@ -126,6 +119,8 @@ public final class XspfIterator {
   private static class EntriesBuilder {
     
     private ReferencesIterator.Entry result;
+    private boolean desktopPaths = false;
+    private boolean escapedTexts = true;
     
     EntriesBuilder() {
       this.result = new ReferencesIterator.Entry();
@@ -133,14 +128,23 @@ public final class XspfIterator {
     
     final void setLocation(String location) {
       result.location = location;
+      if (desktopPaths) {
+        result.location = location
+            //subpath for ay/sid containers
+            .replace("?#", "#%23")
+            //rest paths with subpath
+            .replace('?', '#');
+      } else {
+        result.location = location;
+      }
     }
 
     final void setTitle(String title) {
-      result.title = Uri.decode(title);
+      result.title = decode(title);
     }
 
     final void setCreator(String author) {
-      result.author = Uri.decode(author);
+      result.author = decode(author);
     }
 
     final void setDuration(String duration) {
@@ -149,6 +153,10 @@ public final class XspfIterator {
         result.duration = TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS);
       } catch (NumberFormatException e) {
       }
+    }
+
+    private String decode(String str) {
+      return escapedTexts ? Uri.decode(str) : str;
     }
 
     @Nullable

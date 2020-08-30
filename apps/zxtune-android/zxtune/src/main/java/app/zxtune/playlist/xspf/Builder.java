@@ -1,6 +1,5 @@
 package app.zxtune.playlist.xspf;
 
-import android.net.Uri;
 import android.util.Xml;
 
 import androidx.annotation.Nullable;
@@ -24,7 +23,7 @@ class Builder {
     xml.setFeature("http://xmlpull.org/v1/doc/features.html#indent-output", true);
     xml.startDocument(Meta.ENCODING, true);
     xml.startTag(null, Tags.PLAYLIST)
-        .attribute(null, Attributes.VERSION, Meta.VERSION)
+        .attribute(null, Attributes.VERSION, Meta.XSPF_VERSION)
         .attribute(null, Attributes.XMLNS, Meta.XMLNS);
   }
 
@@ -40,7 +39,7 @@ class Builder {
   final void writePlaylistProperties(String name, @Nullable Integer items) throws IOException {
     xml.startTag(null, Tags.EXTENSION)
         .attribute(null, Attributes.APPLICATION, Meta.APPLICATION);
-    writeProperty(Properties.PLAYLIST_VERSION, Meta.VERSION);
+    writeProperty(Properties.PLAYLIST_VERSION, Integer.toString(Meta.VERSION));
     writeProperty(Properties.PLAYLIST_NAME, name);
     if (items != null) {
       writeProperty(Properties.PLAYLIST_ITEMS, items.toString());
@@ -55,9 +54,9 @@ class Builder {
     }
     xml.startTag(null, Tags.TRACK);
     writeTag(Tags.LOCATION, item.getLocation().toString());
-    writeTextTag(Tags.CREATOR, item.getAuthor());
-    writeTextTag(Tags.TITLE, item.getTitle());
-    writeTextTag(Tags.DURATION, Long.toString(item.getDuration().convertTo(TimeUnit.MILLISECONDS)));
+    writeTag(Tags.CREATOR, item.getAuthor());
+    writeTag(Tags.TITLE, item.getTitle());
+    writeTag(Tags.DURATION, Long.toString(item.getDuration().convertTo(TimeUnit.MILLISECONDS)));
     //TODO: save extended properties
     xml.endTag(null, Tags.TRACK);
   }
@@ -65,12 +64,8 @@ class Builder {
   private void writeProperty(String name, String value) throws IOException {
     xml.startTag(null, Tags.PROPERTY)
         .attribute(null, Attributes.NAME, name)
-        .text(Uri.encode(value))
+        .text(value)
         .endTag(null, Tags.PROPERTY);
-  }
-
-  private void writeTextTag(String name, String value) throws IOException {
-    writeTag(name, Uri.encode(value));
   }
 
   private void writeTag(String name, String value) throws IOException {
