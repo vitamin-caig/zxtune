@@ -96,8 +96,8 @@ namespace Module
       FramedStream MakeFramedStream() const
       {
         FramedStream result;
-        result.TotalFrames = Data->Size();
-        result.LoopFrame = Data->Loop();
+        result.TotalFrames = Data->GetTotalFrames();
+        result.LoopFrame = Data->GetLoopFrame();
         result.FrameDuration = Sound::GetFrameDuration(*Properties);
         return result;
       }
