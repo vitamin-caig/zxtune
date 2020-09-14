@@ -8,6 +8,10 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
+import java.util.HashMap;
+
+import javax.annotation.CheckForNull;
+
 import app.zxtune.analytics.Analytics;
 
 public final class ProviderClient {
@@ -44,7 +48,7 @@ public final class ProviderClient {
   public static Long findId(Uri uri) {
     return ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())
         ? PlaylistQuery.idOf(uri)
-               : null;
+        : null;
   }
 
   public final void addItem(Item item) {
@@ -129,5 +133,21 @@ public final class ProviderClient {
       cursor.close();
     }
     return null;
+  }
+
+  // id => path
+  public final HashMap<String, String> getSavedPlaylists(@CheckForNull String id) {
+    final HashMap<String, String> result = new HashMap<>();
+    final Cursor cursor = resolver.query(PlaylistQuery.SAVED, null, id, null, null);
+    if (cursor != null) {
+      try {
+        while (cursor.moveToNext()) {
+          result.put(cursor.getString(0), cursor.getString(1));
+        }
+      } finally {
+        cursor.close();
+      }
+    }
+    return result;
   }
 }

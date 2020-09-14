@@ -10,21 +10,22 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
+import java.io.File;
 import java.util.List;
 
 import app.zxtune.R;
-import app.zxtune.playlist.xspf.XspfStorage;
+import app.zxtune.playlist.ProviderClient;
 
 final class VfsRootPlaylists extends StubObject implements VfsRoot {
 
   static final String SCHEME = "playlists";
 
   private final Context context;
-  private final XspfStorage storage;
+  private final ProviderClient client;
 
   VfsRootPlaylists(Context context) {
     this.context = context;
-    this.storage = new XspfStorage(context);
+    this.client = new ProviderClient(context);
   }
 
   @Override
@@ -50,7 +51,7 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
 
   @Override
   public void enumerate(Visitor visitor) {
-    for (String name : storage.enumeratePlaylists()) {
+    for (String name : client.getSavedPlaylists(null).keySet()) {
       visitor.onFile(new PlaylistFile(name));
     }
   }
@@ -106,7 +107,8 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
     @Nullable
     public Object getExtension(String id) {
       if (VfsExtensions.FILE.equals(id)) {
-        return storage.findPlaylistFile(name);
+        final String path = client.getSavedPlaylists(name).get(name);
+        return path != null ? new File(path) : null;
       } else {
         return super.getExtension(id);
       }

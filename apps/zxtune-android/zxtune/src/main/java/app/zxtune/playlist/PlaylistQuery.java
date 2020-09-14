@@ -1,11 +1,7 @@
 /**
- * 
  * @file
- * 
  * @brief Playlist query helper
- * 
  * @author vitamin.caig@gmail.com
- * 
  */
 
 package app.zxtune.playlist;
@@ -14,6 +10,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.UriMatcher;
 import android.net.Uri;
+
 import androidx.annotation.Nullable;
 
 import java.util.Arrays;
@@ -32,35 +29,55 @@ class PlaylistQuery {
     final String mime;
     final int id;
 
-    Type(String mime) {
-      this.mime = mime;
+    private Type(String base, String path) {
+      this.mime = base + "/vnd." + AUTHORITY + "." + path;
       this.id = Math.abs(mime.hashCode());
+    }
+
+    static Type dir(String path) {
+      return new Type(ContentResolver.CURSOR_DIR_BASE_TYPE, path);
+    }
+
+    static Type item(String path) {
+      return new Type(ContentResolver.CURSOR_ITEM_BASE_TYPE, path);
     }
   }
 
   private static final String AUTHORITY = "app.zxtune.playlist";
   private static final String ITEMS_PATH = "items";
   private static final String STATISTICS_PATH = "statistics";
+  private static final String SAVED_PATH = "saved";
 
   private static final Type TYPE_ALL_ITEMS;
   private static final Type TYPE_ONE_ITEM;
   private static final Type TYPE_STATISTICS;
+  private static final Type TYPE_SAVED;
 
   private static final UriMatcher uriTemplate;
 
   public static final Uri ALL;
   public static final Uri STATISTICS;
+  public static final Uri SAVED;
 
   static {
-    TYPE_ALL_ITEMS = new Type("vnd.android.cursor.dir/vnd." + AUTHORITY + "." + ITEMS_PATH);
-    TYPE_ONE_ITEM = new Type("vnd.android.cursor.item/vnd." + AUTHORITY + "." + ITEMS_PATH);
-    TYPE_STATISTICS = new Type("vnd.android.cursor.item/vnd." + AUTHORITY + "." + STATISTICS_PATH);
+    TYPE_ALL_ITEMS = Type.dir(ITEMS_PATH);
+    TYPE_ONE_ITEM = Type.item(ITEMS_PATH);
+    TYPE_STATISTICS = Type.item(STATISTICS_PATH);
+    TYPE_SAVED = Type.dir(SAVED_PATH);
     uriTemplate = new UriMatcher(UriMatcher.NO_MATCH);
     uriTemplate.addURI(AUTHORITY, ITEMS_PATH, TYPE_ALL_ITEMS.id);
     uriTemplate.addURI(AUTHORITY, ITEMS_PATH + "/#", TYPE_ONE_ITEM.id);
     uriTemplate.addURI(AUTHORITY, STATISTICS_PATH, TYPE_STATISTICS.id);
+    uriTemplate.addURI(AUTHORITY, SAVED_PATH, TYPE_SAVED.id);
+
     ALL = uriFor(null);
-    STATISTICS = new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY).path(STATISTICS_PATH).build();
+    STATISTICS = uriForPath(STATISTICS_PATH).build();
+    SAVED = uriForPath(SAVED_PATH).build();
+  }
+
+  private static Uri.Builder uriForPath(String path) {
+    return new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
+        .path(path);
   }
 
   //! @return Mime type of uri (used in content provider)
@@ -72,6 +89,8 @@ class PlaylistQuery {
       return TYPE_ONE_ITEM.mime;
     } else if (uriType == TYPE_STATISTICS.id) {
       return TYPE_STATISTICS.mime;
+    } else if (uriType == TYPE_SAVED.id) {
+      return TYPE_SAVED.mime;
     } else {
       throw new IllegalArgumentException("Wrong URI: " + uri);
     }
@@ -90,15 +109,13 @@ class PlaylistQuery {
   }
 
   public static Uri uriFor(@Nullable Long id) {
-    final Uri.Builder builder =
-        new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
-            .path(ITEMS_PATH);
+    final Uri.Builder builder = uriForPath(ITEMS_PATH);
     if (id != null) {
       builder.appendPath(id.toString());
     }
     return builder.build();
   }
-  
+
   public static String selectionFor(long id) {
     return Database.Tables.Playlist.Fields._id + " = " + id;
   }

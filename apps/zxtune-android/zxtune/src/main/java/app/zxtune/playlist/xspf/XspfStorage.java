@@ -61,9 +61,9 @@ public class XspfStorage {
   }
 
   @Nullable
-  public final File findPlaylistFile(String name) {
+  public final String findPlaylistPath(String name) {
     final File res = getFileFor(name);
-    return res.isFile() ? res : null;
+    return res.isFile() ? res.getAbsolutePath() : null;
   }
 
   private File getFileFor(String name) {

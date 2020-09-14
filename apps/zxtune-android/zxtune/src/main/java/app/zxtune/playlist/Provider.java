@@ -11,6 +11,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -19,6 +20,7 @@ import android.util.SparseIntArray;
 import androidx.annotation.Nullable;
 
 import app.zxtune.MainApplication;
+import app.zxtune.playlist.xspf.XspfStorage;
 
 public class Provider extends ContentProvider {
 
@@ -49,6 +51,8 @@ public class Provider extends ContentProvider {
                       @Nullable String[] selectionArgs, @Nullable String sortOrder) {
     if (PlaylistQuery.STATISTICS.equals(uri)) {
       return db.queryStatistics(selection);
+    } else if (PlaylistQuery.SAVED.equals(uri)) {
+      return querySavedPlaylists(selection);
     } else {
       final Long id = PlaylistQuery.idOf(uri);
       final String select = id != null ? PlaylistQuery.selectionFor(id) : selection;
@@ -56,6 +60,26 @@ public class Provider extends ContentProvider {
       dbCursor.setNotificationUri(resolver, PlaylistQuery.ALL);
       return dbCursor;
     }
+  }
+
+  private Cursor querySavedPlaylists(@Nullable String selection) {
+    final String[] columns = {"name", "path"};
+    final MatrixCursor cursor = new MatrixCursor(columns);
+    final XspfStorage storage = new XspfStorage(getContext());
+    if (selection == null) {
+      for (String id : storage.enumeratePlaylists()) {
+        final String path = storage.findPlaylistPath(id);
+        if (path != null) {
+          cursor.addRow(new String[]{id, path});
+        }
+      }
+    } else {
+      final String path = storage.findPlaylistPath(selection);
+      if (path != null) {
+        cursor.addRow(new String[]{selection, path});
+      }
+    }
+    return cursor;
   }
 
   @Nullable
