@@ -37,7 +37,10 @@ namespace Module
       typedef std::shared_ptr<const Chiptune> Ptr;
       virtual ~Chiptune() = default;
 
-      virtual Information::Ptr GetInformation() const = 0;
+      // One of
+      virtual TrackModel::Ptr FindTrackModel() const = 0;
+      virtual Module::StreamModel::Ptr FindStreamModel() const = 0;
+
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
       virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const = 0;
     };

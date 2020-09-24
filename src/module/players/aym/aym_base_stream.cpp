@@ -73,9 +73,14 @@ namespace Module
       {
       }
 
-      Information::Ptr GetInformation() const override
+      TrackModel::Ptr FindTrackModel() const override
       {
-        return CreateStreamInfo(MakeFramedStream());
+        return {};
+      }
+
+      Module::StreamModel::Ptr FindStreamModel() const override
+      {
+        return Data;
       }
 
       Parameters::Accessor::Ptr GetProperties() const override
@@ -91,6 +96,7 @@ namespace Module
     private:
       FramedStream MakeFramedStream() const
       {
+        //TODO: remove
         FramedStream result;
         result.TotalFrames = Data->GetTotalFrames();
         result.LoopFrame = Data->GetLoopFrame();

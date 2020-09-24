@@ -9,6 +9,8 @@
 **/
 
 //local includes
+#include "module/players/streaming.h"
+#include "module/players/tracking.h"
 #include "module/players/aym/aym_base.h"
 //common includes
 #include <make_ptr.h>
@@ -33,7 +35,19 @@ namespace Module
 
     Information::Ptr GetModuleInformation() const override
     {
-      return Tune->GetInformation();
+      if (auto track = Tune->FindTrackModel())
+      {
+        return CreateTrackInfo(std::move(track), 3/*TODO*/);
+      }
+      else
+      {
+        const auto stream = Tune->FindStreamModel();
+        FramedStream result;
+        result.TotalFrames = stream->GetTotalFrames();
+        result.LoopFrame = stream->GetLoopFrame();
+        result.FrameDuration = Sound::GetFrameDuration(*GetModuleProperties());
+        return CreateStreamInfo(std::move(result));
+      }
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override

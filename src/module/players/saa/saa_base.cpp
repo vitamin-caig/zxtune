@@ -188,7 +188,7 @@ namespace Module
 
     Information::Ptr GetModuleInformation() const override
     {
-      return Tune->GetInformation();
+      return CreateTrackInfo(Tune->GetTrackModel(), SAA::TRACK_CHANNELS);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override

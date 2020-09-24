@@ -333,13 +333,17 @@ namespace GlobalTracker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
 
-    Information::Ptr GetInformation() const override
+    TrackModel::Ptr FindTrackModel() const override
     {
-      return Info;
+      return Data;
+    }
+    
+    Module::StreamModel::Ptr FindStreamModel() const override
+    {
+      return {};
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -356,7 +360,6 @@ namespace GlobalTracker
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
-    const Information::Ptr Info;
   };
 
   class Factory : public AYM::Factory

@@ -453,13 +453,12 @@ namespace ETracker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-      , Info(CreateTrackInfo(Data, SAA::TRACK_CHANNELS))
     {
     }
 
-    Information::Ptr GetInformation() const override
+    TrackModel::Ptr GetTrackModel() const override
     {
-      return Info;
+      return Data;
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -476,7 +475,6 @@ namespace ETracker
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
-    const Information::Ptr Info;
   };
 
   class Factory : public Module::Factory

@@ -99,7 +99,7 @@ namespace Module
       typedef std::shared_ptr<const Chiptune> Ptr;
       virtual ~Chiptune() = default;
 
-      virtual Information::Ptr GetInformation() const = 0;
+      virtual TrackModel::Ptr GetTrackModel() const = 0;
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
       virtual DataIterator::Ptr CreateDataIterator() const = 0;
     };

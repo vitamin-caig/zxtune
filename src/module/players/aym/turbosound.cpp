@@ -9,6 +9,7 @@
 **/
 
 //local includes
+#include "module/players/streaming.h"
 #include "module/players/aym/turbosound.h"
 //common includes
 #include <error.h>
@@ -141,84 +142,6 @@ namespace TurboSound
     const Parameters::Accessor::Ptr First;
     const Parameters::Accessor::Ptr Second;
   };
-
-  template<class Base>
-  class MergedInformationBase : public Base
-  {
-  public:
-    MergedInformationBase(const Information& lh, const Information& rh)
-      : Frames(lh.FramesCount())
-      , Loop(lh.LoopFrame())
-    {
-    }
-
-    uint_t FramesCount() const override
-    {
-      return Frames;
-    }
-
-    uint_t LoopFrame() const override
-    {
-      return Loop;
-    }
-  private:
-    const uint_t Frames;
-    const uint_t Loop;
-  };
-
-  using MergedInformation = MergedInformationBase<Information>;
-
-  class MergedTrackInformation : public MergedInformationBase<TrackInformation>
-  {
-  public:
-    MergedTrackInformation(const TrackInformation& lh, const TrackInformation& rh)
-      : MergedInformationBase(lh, rh)
-      , Channels(lh.ChannelsCount() + rh.ChannelsCount())
-      , Positions(lh.PositionsCount())
-      , LoopPos(lh.LoopPosition())
-      , TempoValue(std::min(lh.Tempo(), rh.Tempo()))
-    {
-    }
-
-    uint_t ChannelsCount() const override
-    {
-      return Channels;
-    }
-
-    uint_t PositionsCount() const override
-    {
-      return Positions;
-    }
-
-    uint_t LoopPosition() const override
-    {
-      return LoopPos;
-    }
-
-    uint_t Tempo() const override
-    {
-      return TempoValue;
-    }
-  private:
-    const uint_t Channels;
-    const uint_t Positions;
-    const uint_t LoopPos;
-    const uint_t TempoValue;
-  };
-
-  Information::Ptr CreateInformation(Information::Ptr lh, Information::Ptr rh)
-  {
-    const auto lhTrack = std::dynamic_pointer_cast<const TrackInformation>(lh);
-    const auto rhTrack = std::dynamic_pointer_cast<const TrackInformation>(rh);
-    if (lhTrack && rhTrack)
-    {
-      return MakePtr<MergedTrackInformation>(*lhTrack, *rhTrack);
-    }
-    else
-    {
-      return MakePtr<MergedInformation>(*lh, *rh);
-    }
-  }
 
   template<class Base>
   class MergedStateBase : public Base
@@ -454,9 +377,14 @@ namespace TurboSound
     {
     }
 
-    Information::Ptr GetInformation() const override
+    TrackModel::Ptr FindTrackModel() const override
     {
-      return CreateInformation(First->GetInformation(), Second->GetInformation());
+      return First->FindTrackModel();
+    }
+    
+    Module::StreamModel::Ptr FindStreamModel() const override
+    {
+      return First->FindStreamModel();
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -497,7 +425,19 @@ namespace TurboSound
 
     Information::Ptr GetModuleInformation() const override
     {
-      return Tune->GetInformation();
+      if (auto track = Tune->FindTrackModel())
+      {
+        return CreateTrackInfo(std::move(track), TRACK_CHANNELS);
+      }
+      else
+      {
+        const auto stream = Tune->FindStreamModel();
+        FramedStream result;
+        result.TotalFrames = stream->GetTotalFrames();
+        result.LoopFrame = stream->GetLoopFrame();
+        result.FrameDuration = Sound::GetFrameDuration(*GetModuleProperties());
+        return CreateStreamInfo(std::move(result));
+      }
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -527,10 +467,12 @@ namespace TurboSound
 
   Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
   {
+    /* TODO: think about it
     if (first->GetInformation()->FramesCount() < second->GetInformation()->FramesCount())
     {
       std::swap(first, second);
     }
+    */
     return MakePtr<MergedChiptune>(std::move(params), std::move(first), std::move(second));
   }
 
