@@ -33,8 +33,7 @@ namespace
     if (const auto trackInfo = dynamic_cast<const Module::TrackInformation*>(&info))
     {
       std::cout <<
-        "Positions: " << trackInfo->PositionsCount() << " (" << trackInfo->LoopPosition() << ')' << std::endl <<
-        "Initial tempo: " << trackInfo->Tempo() << std::endl;
+        "Positions: " << trackInfo->PositionsCount() << " (" << trackInfo->LoopPosition() << ')' << std::endl;
     }
     std::cout << "Frames: " << info.FramesCount() << " (" << info.LoopFrame() << ')' << std::endl <<
       "Channels: " << info.ChannelsCount() << std::endl;

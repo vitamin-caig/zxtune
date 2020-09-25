@@ -152,11 +152,6 @@ namespace Xmp
       return Info.chn;
     }
 
-    uint_t Tempo() const override
-    {
-      return Info.spd;
-    }
-
     DurationType GetFrameDuration() const
     {
       //fps = 50 * bpm / 125

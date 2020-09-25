@@ -98,11 +98,6 @@ namespace AHX
     {
       return Hvl->ht_Channels;
     }
-
-    uint_t Tempo() const override
-    {
-      return Hvl->ht_Tempo;
-    }
   private:
     void FillCache() const
     {

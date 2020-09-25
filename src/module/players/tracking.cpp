@@ -342,11 +342,6 @@ namespace Module
     {
       return Channels;
     }
-
-    uint_t Tempo() const override
-    {
-      return Model->GetInitialTempo();
-    }
   private:
     void Initialize() const
     {

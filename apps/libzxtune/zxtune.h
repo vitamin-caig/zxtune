@@ -52,7 +52,6 @@ typedef struct
   int Frames;
   int LoopFrame;
   int Channels;
-  int InitialTempo;
 } ZXTuneModuleInfo;
 
 ZXTUNE_API bool ZXTune_GetModuleInfo(ZXTuneHandle module, ZXTuneModuleInfo* info);

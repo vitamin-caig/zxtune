@@ -1492,11 +1492,6 @@ namespace TFMMusicMaker
     {
       return TFM::TRACK_CHANNELS;
     }
-
-    uint_t Tempo() const override
-    {
-      return Data->EvenInitialTempo;
-    }
   private:
     void Initialize() const
     {
