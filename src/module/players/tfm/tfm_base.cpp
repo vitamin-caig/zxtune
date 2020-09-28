@@ -14,7 +14,7 @@
 #include <make_ptr.h>
 //library includes
 #include <module/players/analyzer.h>
-#include <parameters/tracking_helper.h>
+#include <sound/render_params.h>
 //std includes
 #include <utility>
 
@@ -23,11 +23,10 @@ namespace Module
   class TFMRenderer : public Renderer
   {
   public:
-    TFMRenderer(Sound::RenderParameters::Ptr params, TFM::DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
-      : Params(std::move(params))
-      , Iterator(std::move(iterator))
+    TFMRenderer(const Parameters::Accessor& params, TFM::DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
+      : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration()
+      , FrameDuration(Sound::GetFrameDuration(params))
     {
 #ifndef NDEBUG
 //perform self-test
@@ -52,7 +51,6 @@ namespace Module
       {
         if (Iterator->IsValid())
         {
-          SynchronizeParameters();
           if (LastChunk.TimeStamp == Devices::TFM::Stamp())
           {
             //first chunk
@@ -72,11 +70,9 @@ namespace Module
 
     void Reset() override
     {
-      Params.Reset();
       Iterator->Reset();
       Device->Reset();
       LastChunk.TimeStamp = {};
-      FrameDuration = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -97,25 +93,16 @@ namespace Module
       }
     }
   private:
-    void SynchronizeParameters()
-    {
-      if (Params.IsChanged())
-      {
-        FrameDuration = Params->FrameDuration();
-      }
-    }
-
     void TransferChunk()
     {
       Iterator->GetData(LastChunk.Data);
       Device->RenderData(LastChunk);
     }
   private:
-    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const TFM::DataIterator::Ptr Iterator;
     const Devices::TFM::Device::Ptr Device;
+    const Time::Duration<Devices::TFM::TimeUnit> FrameDuration;
     Devices::TFM::DataChunk LastChunk;
-    Time::Duration<Devices::TFM::TimeUnit> FrameDuration;
   };
 }
 
@@ -132,9 +119,9 @@ namespace Module
       return Analyzer::Ptr();
     }
 
-    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
+    Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
     {
-      return MakePtr<TFMRenderer>(std::move(params), std::move(iterator), std::move(device));
+      return MakePtr<TFMRenderer>(params, std::move(iterator), std::move(device));
     }
   }
 }

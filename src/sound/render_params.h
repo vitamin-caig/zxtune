@@ -42,6 +42,7 @@ namespace Sound
   
   Time::Microseconds GetFrameDuration(const Parameters::Accessor& params);
   LoopParameters GetLoopParameters(const Parameters::Accessor& params);
+  uint_t GetSoundFrequency(const Parameters::Accessor& params);
 
   void SetFrameDuration(Parameters::Modifier& params, Time::Microseconds duration);
 }

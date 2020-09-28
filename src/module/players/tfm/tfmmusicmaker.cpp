@@ -19,6 +19,7 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+#include <sound/loop.h>
 
 namespace Module
 {

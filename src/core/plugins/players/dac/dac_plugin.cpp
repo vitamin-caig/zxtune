@@ -66,11 +66,10 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      const Sound::RenderParameters::Ptr renderParams = Sound::RenderParameters::Create(params);
-      const DAC::DataIterator::Ptr iterator = Tune->CreateDataIterator();
-      const Devices::DAC::Chip::Ptr chip = CreateChip(Tune->GetInformation()->ChannelsCount(), params, target);
+      auto iterator = Tune->CreateDataIterator();
+      auto chip = CreateChip(Tune->GetInformation()->ChannelsCount(), params, std::move(target));
       Tune->GetSamples(chip);
-      return DAC::CreateRenderer(renderParams, iterator, chip);
+      return DAC::CreateRenderer(*params, std::move(iterator), std::move(chip));
     }
   private:
     const DAC::Chiptune::Ptr Tune;

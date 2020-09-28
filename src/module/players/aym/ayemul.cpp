@@ -23,7 +23,7 @@
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
+#include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <algorithm>
@@ -550,12 +550,11 @@ namespace AYEMUL
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Sound::RenderParameters::Ptr params, StateIterator::Ptr iterator, Computer::Ptr comp, DataChannel::Ptr device)
-      : Params(std::move(params))
-      , Iterator(std::move(iterator))
+    Renderer(Time::Microseconds frameDuration, StateIterator::Ptr iterator, Computer::Ptr comp, DataChannel::Ptr device)
+      : Iterator(std::move(iterator))
       , Comp(std::move(comp))
       , Device(std::move(device))
-      , FrameDuration()
+      , FrameDuration(frameDuration)
     {
     }
 
@@ -575,7 +574,6 @@ namespace AYEMUL
       {
         if (Iterator->IsValid())
         {
-          SynchronizeParameters();
           LastTime += FrameDuration;
           Comp->NextFrame(LastTime);
           Device->RenderFrame(LastTime);
@@ -591,11 +589,9 @@ namespace AYEMUL
 
     void Reset() override
     {
-      Params.Reset();
       Iterator->Reset();
       Comp->Reset();
       Device->Reset();
-      FrameDuration = {};
       LastTime = {};
     }
 
@@ -611,7 +607,6 @@ namespace AYEMUL
         LastTime = {};
         curFrame = 0;
       }
-      SynchronizeParameters();
       uint_t toSkip = 0;
       while (curFrame < frameNum && Iterator->IsValid())
       {
@@ -622,20 +617,11 @@ namespace AYEMUL
       Comp->SkipFrames(toSkip, FrameDuration);
     }
   private:
-    void SynchronizeParameters()
-    {
-      if (Params.IsChanged())
-      {
-        FrameDuration = Params->FrameDuration();
-      }
-    }
-  private:
-    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const StateIterator::Ptr Iterator;
     const Computer::Ptr Comp;
     const DataChannel::Ptr Device;
+    const Time::Duration<Devices::Z80::TimeUnit> FrameDuration;
     Devices::Z80::Stamp LastTime;
-    Time::Duration<Devices::Z80::TimeUnit> FrameDuration;
   };
 
   class DataBuilder : public Formats::Chiptune::AY::Builder
@@ -846,11 +832,11 @@ namespace AYEMUL
       auto channel = MakePtr<DataChannel>(std::move(ay), std::move(beep));
       auto cpuPorts = PortsPlexer::Create(channel);
       auto comp = MakePtr<Computer>(Data, std::move(cpuParams), std::move(cpuPorts));
-      auto renderParams = Sound::RenderParameters::Create(std::move(params));
       auto newStream = Stream;
-      newStream.FrameDuration = renderParams->FrameDuration();
+      //TODO: cleanup
+      newStream.FrameDuration = Sound::GetFrameDuration(*params);
       auto iterator = CreateStreamStateIterator(newStream);
-      return MakePtr<Renderer>(std::move(renderParams), std::move(iterator), std::move(comp), std::move(channel));
+      return MakePtr<Renderer>(newStream.FrameDuration, std::move(iterator), std::move(comp), std::move(channel));
     }
   private:
     const ModuleData::Ptr Data;

@@ -42,11 +42,10 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      const Devices::TFM::ChipParameters::Ptr chipParams = TFM::CreateChipParameters(params);
-      const Devices::TFM::Chip::Ptr chip = Devices::TFM::CreateChip(chipParams, target);
-      const Sound::RenderParameters::Ptr soundParams = Sound::RenderParameters::Create(params);
-      const TFM::DataIterator::Ptr iterator = Tune->CreateDataIterator();
-      return TFM::CreateRenderer(soundParams, iterator, chip);
+      auto chipParams = TFM::CreateChipParameters(params);
+      auto chip = Devices::TFM::CreateChip(std::move(chipParams), std::move(target));
+      auto iterator = Tune->CreateDataIterator();
+      return TFM::CreateRenderer(*params, std::move(iterator), std::move(chip));
     }
   private:
     const TFM::Chiptune::Ptr Tune;

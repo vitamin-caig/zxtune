@@ -93,6 +93,12 @@ namespace Sound
     return {0 != GetProperty(params, LOOPED), static_cast<uint_t>(GetProperty(params, LOOP_LIMIT))};
   }
 
+  uint_t GetSoundFrequency(const Parameters::Accessor& params)
+  {
+    using namespace Parameters::ZXTune::Sound;
+    return static_cast<uint_t>(GetProperty(params, FREQUENCY, FREQUENCY_DEFAULT));
+  }
+
   void SetFrameDuration(Parameters::Modifier& params, Time::Microseconds duration)
   {
     params.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, duration.Get());

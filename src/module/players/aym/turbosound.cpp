@@ -19,7 +19,6 @@
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
 #include <parameters/merged_accessor.h>
-#include <parameters/tracking_helper.h>
 #include <parameters/visitor.h>
 #include <sound/mixer_factory.h>
 //std includes
@@ -268,11 +267,10 @@ namespace TurboSound
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
-      : Params(params)
-      , Iterator(std::move(iterator))
+    Renderer(const Parameters::Accessor& params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
+      : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration()
+      , FrameDuration(Sound::GetFrameDuration(params))
     {
 #ifndef NDEBUG
 //perform self-test
@@ -297,7 +295,6 @@ namespace TurboSound
       {
         if (Iterator->IsValid())
         {
-          SynchronizeParameters();
           if (LastChunk.TimeStamp == Devices::TurboSound::Stamp())
           {
             //first chunk
@@ -317,11 +314,9 @@ namespace TurboSound
 
     void Reset() override
     {
-      Params.Reset();
       Iterator->Reset();
       Device->Reset();
       LastChunk.TimeStamp = {};
-      FrameDuration = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -342,25 +337,16 @@ namespace TurboSound
       }
     }
   private:
-    void SynchronizeParameters()
-    {
-      if (Params.IsChanged())
-      {
-        FrameDuration = Params->FrameDuration();
-      }
-    }
-
     void TransferChunk()
     {
       LastChunk.Data = Iterator->GetData();
       Device->RenderData(LastChunk);
     }
   private:
-    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const TurboSound::DataIterator::Ptr Iterator;
     const Devices::TurboSound::Device::Ptr Device;
+    const Time::Duration<Devices::TurboSound::TimeUnit> FrameDuration;
     Devices::TurboSound::DataChunk LastChunk;
-    Time::Duration<Devices::TurboSound::TimeUnit> FrameDuration;
   };
 
   class MergedChiptune : public Chiptune
@@ -443,10 +429,9 @@ namespace TurboSound
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      auto sndParams = Sound::RenderParameters::Create(params);
       auto iterator = Tune->CreateDataIterator(AYM::TrackParameters::Create(params, 0), AYM::TrackParameters::Create(params, 1));
-      auto chip = CreateChip(std::move(params), std::move(target));
-      return MakePtr<Renderer>(std::move(sndParams), std::move(iterator), std::move(chip));
+      auto chip = CreateChip(params, std::move(target));
+      return MakePtr<Renderer>(*params, std::move(iterator), std::move(chip));
     }
   private:
     const Chiptune::Ptr Tune;

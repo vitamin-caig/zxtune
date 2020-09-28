@@ -15,7 +15,6 @@
 //library includes
 #include <module/holder.h>
 #include <module/players/tracking.h>
-#include <sound/render_params.h>
 
 namespace Module
 {
@@ -108,7 +107,7 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
+    Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }

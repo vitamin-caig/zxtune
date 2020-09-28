@@ -14,8 +14,8 @@
 #include <make_ptr.h>
 //library includes
 #include <module/players/analyzer.h>
-#include <parameters/tracking_helper.h>
 #include <sound/multichannel_sample.h>
+#include <sound/render_params.h>
 
 namespace Module
 {
@@ -81,11 +81,10 @@ namespace Module
   class DACRenderer : public Renderer
   {
   public:
-    DACRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
-      : Params(std::move(params))
-      , Iterator(std::move(iterator))
+    DACRenderer(const Parameters::Accessor& params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+      : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration()
+      , FrameDuration(Sound::GetFrameDuration(params))
     {
 #ifndef NDEBUG
 //perform self-test
@@ -110,7 +109,6 @@ namespace Module
       {
         if (Iterator->IsValid())
         {
-          SynchronizeParameters();
           if (LastChunk.TimeStamp == Devices::DAC::Stamp())
           {
             //first chunk
@@ -130,11 +128,9 @@ namespace Module
 
     void Reset() override
     {
-      Params.Reset();
       Iterator->Reset();
       Device->Reset();
       LastChunk.TimeStamp = {};
-      FrameDuration = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -162,25 +158,16 @@ namespace Module
       }
     }
   private:
-    void SynchronizeParameters()
-    {
-      if (Params.IsChanged())
-      {
-        FrameDuration = Params->FrameDuration();
-      }
-    }
-
     void TransferChunk()
     {
       Iterator->GetData(LastChunk.Data);
       Device->RenderData(LastChunk);
     }
   private:
-    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const DAC::DataIterator::Ptr Iterator;
     const Devices::DAC::Chip::Ptr Device;
+    const Time::Duration<Devices::DAC::TimeUnit> FrameDuration;
     Devices::DAC::DataChunk LastChunk;
-    Time::Duration<Devices::DAC::TimeUnit> FrameDuration;
   };
 }
 
@@ -214,9 +201,9 @@ namespace Module
       return MakePtr<DACDataIterator>(std::move(iterator), std::move(renderer));
     }
 
-    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+    Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
     {
-      return MakePtr<DACRenderer>(std::move(params), std::move(iterator), std::move(device));
+      return MakePtr<DACRenderer>(params, std::move(iterator), std::move(device));
     }
   }
 }
