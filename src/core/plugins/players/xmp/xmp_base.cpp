@@ -262,7 +262,6 @@ namespace Xmp
       , Analysis(MakePtr<Analyzer>(info->ChannelsCount(), State))
       , FrameDuration(info->GetFrameDuration())
       , SoundFreq(SoundParams->SoundFreq())
-      , Looped(SoundParams->Looped())
     {
       Ctx->Call(&::xmp_start_player, static_cast<int>(SoundFreq), 0);
     }
@@ -282,7 +281,7 @@ namespace Xmp
       return Analysis;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
@@ -302,7 +301,7 @@ namespace Xmp
           std::memcpy(builder.Allocate(samples), State->buffer, bytes);
           Target->ApplyData(builder.CaptureResult());
         }
-        return State->loop_count == 0 || Looped(State->loop_count);
+        return State->loop_count == 0 || looped(State->loop_count);
       }
       catch (const std::exception&)
       {
@@ -331,7 +330,6 @@ namespace Xmp
           Ctx->Call(&::xmp_end_player);
           Ctx->Call(&::xmp_start_player, static_cast<int>(SoundFreq), 0);
         }
-        Looped = SoundParams->Looped();
         Parameters::IntType val = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
         Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val);
         const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
@@ -348,7 +346,6 @@ namespace Xmp
     const Analyzer::Ptr Analysis;
     const DurationType FrameDuration;
     uint_t SoundFreq;
-    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder

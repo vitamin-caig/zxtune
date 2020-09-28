@@ -556,7 +556,6 @@ namespace AYEMUL
       , Comp(std::move(comp))
       , Device(std::move(device))
       , FrameDuration()
-      , Looped()
     {
     }
 
@@ -570,7 +569,7 @@ namespace AYEMUL
       return Device->GetAnalyzer();
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -580,7 +579,7 @@ namespace AYEMUL
           LastTime += FrameDuration;
           Comp->NextFrame(LastTime);
           Device->RenderFrame(LastTime);
-          Iterator->NextFrame(Looped);
+          Iterator->NextFrame(looped);
         }
         return Iterator->IsValid();
       }
@@ -598,7 +597,6 @@ namespace AYEMUL
       Device->Reset();
       FrameDuration = {};
       LastTime = {};
-      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -629,7 +627,6 @@ namespace AYEMUL
       if (Params.IsChanged())
       {
         FrameDuration = Params->FrameDuration();
-        Looped = Params->Looped();
       }
     }
   private:
@@ -639,7 +636,6 @@ namespace AYEMUL
     const DataChannel::Ptr Device;
     Devices::Z80::Stamp LastTime;
     Time::Duration<Devices::Z80::TimeUnit> FrameDuration;
-    Sound::LoopParameters Looped;
   };
 
   class DataBuilder : public Formats::Chiptune::AY::Builder

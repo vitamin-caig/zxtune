@@ -187,49 +187,6 @@ namespace Module
     uint_t DoneStreams;
   };
   
-  class ForcedLoopParam : public Parameters::Accessor
-  {
-  public:
-    uint_t Version() const override
-    {
-      return 1;
-    }
-
-    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
-    {
-      if (name == Parameters::ZXTune::Sound::LOOPED)
-      {
-        val = 1;
-        return true;
-      }
-      if (name == Parameters::ZXTune::Sound::LOOP_LIMIT)
-      {
-        val = 0;
-        return true;
-      }
-      else
-      {
-        return false;
-      }
-    }
-
-    bool FindValue(const Parameters::NameType& /*name*/, Parameters::StringType& /*val*/) const override
-    {
-      return false;
-    }
-
-    bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const override
-    {
-      return false;
-    }
-
-    void Process(class Parameters::Visitor& visitor) const override
-    {
-      visitor.SetValue(Parameters::ZXTune::Sound::LOOPED, 1);
-      visitor.SetValue(Parameters::ZXTune::Sound::LOOP_LIMIT, 0);
-    }
-  };
-  
   class MultiRenderer : public Renderer
   {
   public:
@@ -251,13 +208,14 @@ namespace Module
       return Analysis;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
+      static const Sound::LoopParameters INFINITE_LOOP{true, 0};
       ApplyParameters();
       bool result = true;
       for (std::size_t idx = 0, lim = Delegates.size(); idx != lim; ++idx)
       {
-        result &= Delegates[idx]->RenderFrame();
+        result &= Delegates[idx]->RenderFrame(idx == 0 ? looped : INFINITE_LOOP);
       }
       if (result)
       {
@@ -288,15 +246,11 @@ namespace Module
       const auto count = holders.size();
       Require(count > 1);
       const CompositeReceiver::Ptr receiver = MakePtr<CompositeReceiver>(target);
-      const Parameters::Accessor::Ptr forcedLoop = MakePtr<ForcedLoopParam>();
       RenderersArray delegates(count);
       for (std::size_t idx = 0; idx != count; ++idx)
       {
         const auto& holder = holders[idx];
-        auto delegateParams = idx == 0
-          ? params
-          : Parameters::CreateMergedAccessor(forcedLoop, params);
-        delegates[idx] = holder->CreateRenderer(std::move(delegateParams), receiver);
+        delegates[idx] = holder->CreateRenderer(params, receiver);
       }
       auto renderParams = Sound::RenderParameters::Create(std::move(params));
       return MakePtr<MultiRenderer>(std::move(delegates), std::move(renderParams), receiver);

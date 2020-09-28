@@ -84,7 +84,6 @@ namespace Module
       , Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration()
-      , Looped()
     {
 #ifndef NDEBUG
 //perform self-test
@@ -103,7 +102,7 @@ namespace Module
       return SAA::CreateAnalyzer(Device);
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -115,7 +114,7 @@ namespace Module
             //first chunk
             TransferChunk();
           }
-          Iterator->NextFrame(Looped);
+          Iterator->NextFrame(looped);
           LastChunk.TimeStamp += FrameDuration;
           TransferChunk();
         }
@@ -134,7 +133,6 @@ namespace Module
       Device->Reset();
       LastChunk.TimeStamp = {};
       FrameDuration = {};
-      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -160,7 +158,6 @@ namespace Module
       if (Params.IsChanged())
       {
         FrameDuration = Params->FrameDuration();
-        Looped = Params->Looped();
       }
     }
 
@@ -175,7 +172,6 @@ namespace Module
     const Devices::SAA::Device::Ptr Device;
     Devices::SAA::DataChunk LastChunk;
     Time::Duration<Devices::SAA::TimeUnit> FrameDuration;
-    Sound::LoopParameters Looped;
   };
 
   class SAAHolder : public Holder

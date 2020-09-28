@@ -28,7 +28,6 @@ namespace Module
       , Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration()
-      , Looped()
     {
 #ifndef NDEBUG
 //perform self-test
@@ -47,7 +46,7 @@ namespace Module
       return TFM::CreateAnalyzer(Device);
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -59,7 +58,7 @@ namespace Module
             //first chunk
             TransferChunk();
           }
-          Iterator->NextFrame(Looped);
+          Iterator->NextFrame(looped);
           LastChunk.TimeStamp += FrameDuration;
           TransferChunk();
         }
@@ -78,7 +77,6 @@ namespace Module
       Device->Reset();
       LastChunk.TimeStamp = {};
       FrameDuration = {};
-      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -104,7 +102,6 @@ namespace Module
       if (Params.IsChanged())
       {
         FrameDuration = Params->FrameDuration();
-        Looped = Params->Looped();
       }
     }
 
@@ -119,7 +116,6 @@ namespace Module
     const Devices::TFM::Device::Ptr Device;
     Devices::TFM::DataChunk LastChunk;
     Time::Duration<Devices::TFM::TimeUnit> FrameDuration;
-    Sound::LoopParameters Looped;
   };
 }
 

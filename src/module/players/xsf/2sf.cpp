@@ -282,14 +282,14 @@ namespace TwoSF
       return Engine;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
         ApplyParameters();
 
         Resampler->ApplyData(Engine->Render(SamplesPerFrame));
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         return Iterator->IsValid();
       }
       catch (const std::exception&)
@@ -303,7 +303,6 @@ namespace TwoSF
       SoundParams.Reset();
       Iterator->Reset();
       Engine = MakePtr<DSEngine>(*Data);
-      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -316,7 +315,6 @@ namespace TwoSF
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Resampler = Sound::CreateResampler(DSEngine::SAMPLERATE, SoundParams->SoundFreq(), Target);
       }
     }
@@ -344,7 +342,6 @@ namespace TwoSF
     DSEngine::Ptr Engine;
     Sound::Receiver::Ptr Resampler;
     const uint_t SamplesPerFrame;
-    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder

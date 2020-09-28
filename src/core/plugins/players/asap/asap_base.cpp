@@ -188,7 +188,7 @@ namespace ASAP
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -200,7 +200,7 @@ namespace ASAP
         auto buf = builder.CaptureResult();
         Analyzer->AddSoundData(buf);
         Resampler->ApplyData(std::move(buf));
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         return Iterator->IsValid();
       }
       catch (const std::exception&)
@@ -216,7 +216,6 @@ namespace ASAP
         SoundParams.Reset();
         Iterator->Reset();
         Tune->Reset();
-        Looped = {};
       }
       catch (const std::exception& e)
       {
@@ -241,7 +240,6 @@ namespace ASAP
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         SamplesPerFrame = static_cast<uint_t>(Stream.FrameDuration.Get() * ASAP_SAMPLE_RATE / Stream.FrameDuration.PER_SECOND);
         Resampler = Sound::CreateResampler(ASAP_SAMPLE_RATE, SoundParams->SoundFreq(), Target);
       }
@@ -254,7 +252,6 @@ namespace ASAP
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    Sound::LoopParameters Looped;
     uint_t SamplesPerFrame = 0;
   };
   

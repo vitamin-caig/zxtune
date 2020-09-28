@@ -332,14 +332,14 @@ namespace PSF
       return Engine;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
         ApplyParameters();
 
         Resampler->ApplyData(Engine->Render(SamplesPerFrame));
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         return Iterator->IsValid();
       }
       catch (const std::exception&)
@@ -353,7 +353,6 @@ namespace PSF
       SoundParams.Reset();
       Iterator->Reset();
       Engine->Initialize(*Data);
-      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -366,7 +365,6 @@ namespace PSF
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Resampler = Sound::CreateResampler(Engine->GetSoundFrequency(), SoundParams->SoundFreq(), Target);
       }
     }
@@ -394,7 +392,6 @@ namespace PSF
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder

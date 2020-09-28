@@ -257,7 +257,7 @@ namespace Sid
       return Engine;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
 
@@ -269,7 +269,7 @@ namespace Sid
         builder.Reserve(SamplesPerFrame);
         Engine->Render(safe_ptr_cast<short*>(builder.Allocate(SamplesPerFrame)), SamplesPerFrame * Sound::Sample::CHANNELS);
         Target->ApplyData(builder.CaptureResult());
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         return Iterator->IsValid();
       }
       catch (const std::exception&)
@@ -283,7 +283,6 @@ namespace Sid
       SoundParams.Reset();
       Engine->Stop();
       Iterator->Reset();
-      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -298,7 +297,6 @@ namespace Sid
       if (SoundParams.IsChanged())
       {
         Engine->ApplyParameters(*SoundParams, Params);
-        Looped = SoundParams->Looped();
         //TODO: simplify
         SamplesPerFrame = Stream.FrameDuration.Get() * SoundParams->SoundFreq() / Stream.FrameDuration.PER_SECOND;
       }
@@ -325,7 +323,6 @@ namespace Sid
     const Sound::Receiver::Ptr Target;
     const SidParameters Params;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
-    Sound::LoopParameters Looped;
     std::size_t SamplesPerFrame = 0;
   };
 

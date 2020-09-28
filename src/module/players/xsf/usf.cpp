@@ -206,7 +206,6 @@ namespace USF
       , SoundParams(Sound::RenderParameters::Create(params))
       , Target(Module::CreateFadingReceiver(std::move(params), Stream, State, std::move(target)))
       , SamplesPerFrame(Stream.FrameDuration.Get() * Engine.GetSoundFrequency() / Stream.FrameDuration.PER_SECOND)
-      , Looped()
     {
     }
 
@@ -220,7 +219,7 @@ namespace USF
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -229,7 +228,7 @@ namespace USF
         auto data = Engine.Render(SamplesPerFrame);
         Analyzer->AddSoundData(data);
         Resampler->ApplyData(std::move(data));
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         return Iterator->IsValid();
       }
       catch (const std::exception&)
@@ -243,7 +242,6 @@ namespace USF
       SoundParams.Reset();
       Iterator->Reset();
       Engine.Reset();
-      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -256,7 +254,6 @@ namespace USF
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Resampler = Sound::CreateResampler(Engine.GetSoundFrequency(), SoundParams->SoundFreq(), Target);
       }
     }
@@ -284,7 +281,6 @@ namespace USF
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
     const uint_t SamplesPerFrame;
-    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder

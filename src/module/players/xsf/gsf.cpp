@@ -259,7 +259,7 @@ namespace GSF
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -267,7 +267,7 @@ namespace GSF
         auto data = Engine->Render(SamplesPerFrame);
         Analyzer->AddSoundData(data);
         Target->ApplyData(std::move(data));
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         return Iterator->IsValid();
       }
       catch (const std::exception&)
@@ -281,7 +281,6 @@ namespace GSF
       SoundParams.Reset();
       Iterator->Reset();
       Engine->Reset();
-      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -296,7 +295,6 @@ namespace GSF
       {
         //TODO: rework
         SamplesPerFrame = Stream.FrameDuration.Get() * SoundParams->SoundFreq() / Stream.FrameDuration.PER_SECOND;
-        Looped = SoundParams->Looped();
         Engine->SetParameters(*SoundParams);
       }
     }
@@ -323,7 +321,6 @@ namespace GSF
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     uint_t SamplesPerFrame = 0;
-    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder

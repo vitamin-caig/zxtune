@@ -277,7 +277,6 @@ namespace AHX
       : Tune(std::move(tune))
       , Target(std::move(target))
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
-      , Looped()
     {
       ApplyParameters();
     }
@@ -292,7 +291,7 @@ namespace AHX
       return Tune->MakeAnalyzer();
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -302,7 +301,7 @@ namespace AHX
         Tune->RenderFrame(builder);
         Target->ApplyData(builder.CaptureResult());
         const auto loops = Tune->LoopCount();
-        return loops == 0 || Looped(loops);
+        return loops == 0 || looped(loops);
       }
       catch (const std::exception&)
       {
@@ -325,7 +324,6 @@ namespace AHX
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Tune->SetFrequency(SoundParams->SoundFreq());
       }
     }
@@ -333,7 +331,6 @@ namespace AHX
     const HVL::Ptr Tune;
     const Sound::Receiver::Ptr Target;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
-    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

@@ -14,6 +14,11 @@
 #include <module/analyzer.h>
 #include <module/state.h>
 
+namespace Sound
+{
+  struct LoopParameters;
+}
+
 namespace Module
 {
   //! @brief %Module player interface
@@ -33,7 +38,7 @@ namespace Module
 
     //! @brief Rendering single frame and modifying internal state
     //! @return true if next frame can be rendered
-    virtual bool RenderFrame() = 0;
+    virtual bool RenderFrame(const Sound::LoopParameters& looped) = 0;
 
     //! @brief Performing reset to initial state
     virtual void Reset() = 0;

@@ -47,7 +47,6 @@ namespace Wav
       , Analyzer(Module::CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
-      , Looped()
     {
     }
 
@@ -61,7 +60,7 @@ namespace Wav
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -70,7 +69,7 @@ namespace Wav
         auto frame = Tune->RenderFrame(State->Frame());
         Analyzer->AddSoundData(frame);
         Resampler->ApplyData(std::move(frame));
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         return Iterator->IsValid();
       }
       catch (const std::exception&)
@@ -83,7 +82,6 @@ namespace Wav
     {
       SoundParams.Reset();
       Iterator->Reset();
-      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -95,7 +93,6 @@ namespace Wav
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Resampler = Sound::CreateResampler(Tune->GetFrequency(), SoundParams->SoundFreq(), Target);
       }
     }
@@ -107,7 +104,6 @@ namespace Wav
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

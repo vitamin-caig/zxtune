@@ -35,6 +35,7 @@
 #include <parameters/template.h>
 #include <platform/application.h>
 #include <platform/version/api.h>
+#include <sound/loop.h>
 #include <sound/sound_parameters.h>
 #include <time/duration.h>
 #include <time/timer.h>
@@ -274,7 +275,7 @@ namespace
         for (unsigned i = 0; i != Iterations; ++i)
         {
           renderer->SetPosition(0);
-          while (renderer->RenderFrame()) {}
+          while (renderer->RenderFrame({})) {}
         }
         const auto real = timer.Elapsed<>();
         const auto relSpeed = total.Divide<double>(real);

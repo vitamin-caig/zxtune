@@ -218,7 +218,7 @@ namespace GME
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -228,7 +228,7 @@ namespace GME
         Analyzer->AddSoundData(data);
         Target->ApplyData(std::move(data));
 
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         return Iterator->IsValid();
       }
       catch (const std::exception&)
@@ -244,7 +244,6 @@ namespace GME
         SoundParams.Reset();
         Iterator->Reset();
         Engine.Reset();
-        Looped = {};
       }
       catch (const std::exception& e)
       {
@@ -269,7 +268,6 @@ namespace GME
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         const auto freq = SoundParams->SoundFreq();
         Engine.SetSoundFreq(freq);
         SamplesPerFrame = Stream.FrameDuration.Get() * freq / Stream.FrameDuration.PER_SECOND;
@@ -296,7 +294,6 @@ namespace GME
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     GME Engine;
     const Sound::Receiver::Ptr Target;
-    Sound::LoopParameters Looped;
     uint_t SamplesPerFrame = 0;
   };
   

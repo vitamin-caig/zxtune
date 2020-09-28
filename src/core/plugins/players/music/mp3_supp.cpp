@@ -258,7 +258,6 @@ namespace Mp3
       , Analyzer(Module::CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
       , Target(std::move(target))
-      , Looped()
     {
     }
 
@@ -272,7 +271,7 @@ namespace Mp3
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -281,7 +280,7 @@ namespace Mp3
         auto frame = Tune.RenderFrame(State->Frame());
         Analyzer->AddSoundData(frame.Data);
         Target.Put(std::move(frame));
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         return Iterator->IsValid();
       }
       catch (const std::exception&)
@@ -295,7 +294,6 @@ namespace Mp3
       Tune.Reset();
       SoundParams.Reset();
       Iterator->Reset();
-      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -308,7 +306,6 @@ namespace Mp3
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Target.SetTargetFreq(SoundParams->SoundFreq());
       }
     }
@@ -319,7 +316,6 @@ namespace Mp3
     const Module::SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     MultiFreqTargetsDispatcher Target;
-    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

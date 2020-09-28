@@ -278,7 +278,7 @@ namespace LibVGM
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -289,7 +289,7 @@ namespace LibVGM
         Target->ApplyData(std::move(data));
 
         const auto loops = Engine->LoopCount();
-        return loops == 0 || Looped(loops);
+        return loops == 0 || looped(loops);
       }
       catch (const std::exception&)
       {
@@ -303,7 +303,6 @@ namespace LibVGM
       {
         SoundParams.Reset();
         Engine->Reset();
-        Looped = {};
       }
       catch (const std::exception& e)
       {
@@ -327,7 +326,6 @@ namespace LibVGM
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Engine->SetSoundFreq(SoundParams->SoundFreq());
       }
     }
@@ -337,7 +335,6 @@ namespace LibVGM
     const SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
-    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

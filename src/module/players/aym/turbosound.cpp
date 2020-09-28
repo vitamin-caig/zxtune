@@ -273,7 +273,6 @@ namespace TurboSound
       , Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration()
-      , Looped()
     {
 #ifndef NDEBUG
 //perform self-test
@@ -292,7 +291,7 @@ namespace TurboSound
       return TurboSound::CreateAnalyzer(Device);
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -304,7 +303,7 @@ namespace TurboSound
             //first chunk
             TransferChunk();
           }
-          Iterator->NextFrame(Looped);
+          Iterator->NextFrame(looped);
           LastChunk.TimeStamp += FrameDuration;
           TransferChunk();
         }
@@ -323,7 +322,6 @@ namespace TurboSound
       Device->Reset();
       LastChunk.TimeStamp = {};
       FrameDuration = {};
-      Looped = {};
     }
 
     void SetPosition(uint_t frameNum) override
@@ -349,7 +347,6 @@ namespace TurboSound
       if (Params.IsChanged())
       {
         FrameDuration = Params->FrameDuration();
-        Looped = Params->Looped();
       }
     }
 
@@ -364,7 +361,6 @@ namespace TurboSound
     const Devices::TurboSound::Device::Ptr Device;
     Devices::TurboSound::DataChunk LastChunk;
     Time::Duration<Devices::TurboSound::TimeUnit> FrameDuration;
-    Sound::LoopParameters Looped;
   };
 
   class MergedChiptune : public Chiptune

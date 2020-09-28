@@ -137,7 +137,7 @@ namespace Ogg
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -146,7 +146,7 @@ namespace Ogg
         auto frame = Tune.RenderFrame();
         Analyzer->AddSoundData(frame);
         Resampler->ApplyData(std::move(frame));
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         if (0 == State->Frame())
         {
           Tune.Seek(0);
@@ -164,7 +164,6 @@ namespace Ogg
       Tune.Reset();
       SoundParams.Reset();
       Iterator->Reset();
-      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -177,7 +176,6 @@ namespace Ogg
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Resampler = Sound::CreateResampler(Tune.GetFrequency(), SoundParams->SoundFreq(), Target);
       }
     }
@@ -189,7 +187,6 @@ namespace Ogg
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

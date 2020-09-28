@@ -142,7 +142,6 @@ namespace V2M
       , Target(std::move(target))
       , Analyzer(Module::CreateSoundAnalyzer())
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
-      , Looped()
     {
       ApplyParameters();
     }
@@ -157,7 +156,7 @@ namespace V2M
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -166,7 +165,7 @@ namespace V2M
         auto frame = Engine.RenderFrame(FRAME_DURATION);
         Analyzer->AddSoundData(frame);
         Resampler->ApplyData(std::move(frame));
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         if (0 == State->Frame())
         {
           Engine.Reset();
@@ -207,7 +206,6 @@ namespace V2M
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Resampler = Sound::CreateResampler(Engine.SAMPLERATE, SoundParams->SoundFreq(), Target);
       }
     }
@@ -219,7 +217,6 @@ namespace V2M
     const Module::SoundAnalyzer::Ptr Analyzer;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     Sound::Receiver::Ptr Resampler;
-    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

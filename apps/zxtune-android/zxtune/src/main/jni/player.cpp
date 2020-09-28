@@ -22,7 +22,9 @@
 #include <pointers.h>
 //library includes
 #include <parameters/merged_accessor.h>
+#include <parameters/tracking_helper.h>
 #include <sound/mixer_factory.h>
+#include <sound/render_params.h>
 #include <sound/silence.h>
 #include <sound/sound_parameters.h>
 //std includes
@@ -252,6 +254,7 @@ namespace
 
     bool Render(uint_t samples, int16_t* buffer) override
     {
+      ApplyParameters();
       bool hasMoreFrames = true;
       while (hasMoreFrames)
       {
@@ -265,7 +268,7 @@ namespace
           }
         }
         RenderingPerformance.StartAccounting();
-        hasMoreFrames = Renderer->RenderFrame();
+        hasMoreFrames = Renderer->RenderFrame(Looped);
         RenderingPerformance.StopAccounting();
         Analyser.FrameDone();
       }
@@ -290,13 +293,22 @@ namespace
       return static_cast<uint_t>(100ull * RenderingPerformance.GetFramesDone() / TotalFrames);
     }
   private:
+    void ApplyParameters()
+    {
+      if (Props.IsChanged())
+      {
+        Looped = Sound::GetLoopParameters(*Props);
+      }
+    }
+  private:
     const uint_t TotalFrames;
-    const Parameters::Accessor::Ptr Props;
+    Parameters::TrackingHelper<Parameters::Accessor> Props;
     const Parameters::Modifier::Ptr Params;
     const Module::Renderer::Ptr Renderer;
     const BufferTarget::Ptr Buffer;
     const Module::State::Ptr State;
     mutable AnalyzerWithHistory Analyser;
+    Sound::LoopParameters Looped;
     RenderingPerformanceAccountant RenderingPerformance;
   };
 

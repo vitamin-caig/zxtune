@@ -226,7 +226,7 @@ namespace SPC
       return Engine;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -236,7 +236,7 @@ namespace SPC
         builder.Reserve(SamplesPerFrame);
         Engine->Render(SamplesPerFrame, builder);
         Resampler->ApplyData(builder.CaptureResult());
-        Iterator->NextFrame(Looped);
+        Iterator->NextFrame(looped);
         return Iterator->IsValid();
       }
       catch (const std::exception&)
@@ -250,7 +250,6 @@ namespace SPC
       SoundParams.Reset();
       Engine->Reset();
       Iterator->Reset();
-      Looped = {};
     }
 
     void SetPosition(uint_t frame) override
@@ -263,7 +262,6 @@ namespace SPC
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Resampler = Sound::CreateResampler(::SNES_SPC::sample_rate, SoundParams->SoundFreq(), Target);
       }
     }
@@ -289,7 +287,6 @@ namespace SPC
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    Sound::LoopParameters Looped;
     const uint_t SamplesPerFrame;
   };
   

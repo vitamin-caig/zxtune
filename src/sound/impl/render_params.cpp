@@ -65,6 +65,13 @@ namespace Sound
   private:
     const Parameters::Accessor::Ptr Params;
   };
+
+  Parameters::IntType GetProperty(const Parameters::Accessor& params, const Parameters::NameType& name, Parameters::IntType defVal = 0)
+  {
+    Parameters::IntType ret = defVal;
+    params.FindValue(name, ret);
+    return ret;
+  }
 }
 
 namespace Sound
@@ -76,9 +83,14 @@ namespace Sound
 
   Time::Microseconds GetFrameDuration(const Parameters::Accessor& params)
   {
-    Parameters::IntType value = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-    params.FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, value);
-    return Time::Microseconds(value);
+    using namespace Parameters::ZXTune::Sound;
+    return Time::Microseconds(GetProperty(params, FRAMEDURATION, FRAMEDURATION_DEFAULT));
+  }
+
+  LoopParameters GetLoopParameters(const Parameters::Accessor& params)
+  {
+    using namespace Parameters::ZXTune::Sound;
+    return {0 != GetProperty(params, LOOPED), static_cast<uint_t>(GetProperty(params, LOOP_LIMIT))};
   }
 
   void SetFrameDuration(Parameters::Modifier& params, Time::Microseconds duration)
