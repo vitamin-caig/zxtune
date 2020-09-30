@@ -15,7 +15,6 @@
 //library includes
 #include <devices/turbosound.h>
 #include <module/holder.h>
-#include <sound/render_params.h>
 
 namespace Module
 {

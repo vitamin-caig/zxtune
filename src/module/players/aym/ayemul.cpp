@@ -823,7 +823,7 @@ namespace AYEMUL
 
     AYM::Chiptune::Ptr GetChiptune() const override
     {
-      return AYM::Chiptune::Ptr();
+      return {};
     }
   private:
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep) const
@@ -869,7 +869,7 @@ namespace AYEMUL
         }
         return MakePtr<Holder>(std::move(data), std::move(stream), std::move(properties));
       }
-      return Holder::Ptr();
+      return {};
     }
   };
   

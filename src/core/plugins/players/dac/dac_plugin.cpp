@@ -56,7 +56,7 @@ namespace Module
 
     Information::Ptr GetModuleInformation() const override
     {
-      return Tune->GetInformation();
+      return CreateTrackInfo(Tune->GetTrackModel());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -67,7 +67,7 @@ namespace Module
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       auto iterator = Tune->CreateDataIterator();
-      auto chip = CreateChip(Tune->GetInformation()->ChannelsCount(), params, std::move(target));
+      auto chip = CreateChip(Tune->GetTrackModel()->GetChannelsCount(), params, std::move(target));
       Tune->GetSamples(chip);
       return DAC::CreateRenderer(*params, std::move(iterator), std::move(chip));
     }
@@ -85,13 +85,13 @@ namespace Module
 
     Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
-      if (const DAC::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
+      if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {
-        return MakePtr<DACHolder>(chiptune);
+        return MakePtr<DACHolder>(std::move(chiptune));
       }
       else
       {
-        return Holder::Ptr();
+        return {};
       }
     }
   private:

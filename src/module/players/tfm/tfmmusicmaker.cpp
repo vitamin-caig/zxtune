@@ -1518,13 +1518,12 @@ namespace TFMMusicMaker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-      , Info(MakePtr<TrackInformation>(Data))
     {
     }
 
     Information::Ptr GetInformation() const override
     {
-      return Info;
+      return MakePtr<TrackInformation>(Data);
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -1541,7 +1540,6 @@ namespace TFMMusicMaker
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
-    const Information::Ptr Info;
   };
 
   class Factory : public TFM::Factory

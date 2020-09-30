@@ -73,6 +73,11 @@ namespace DigitalMusicMaker
     typedef std::shared_ptr<const ModuleData> Ptr;
     typedef std::shared_ptr<ModuleData> RWPtr;
 
+    ModuleData()
+      : DAC::SimpleModuleData(CHANNELS_COUNT)
+    {
+    }
+
     struct MixedChannel
     {
       MutableCell Mixin;
@@ -656,13 +661,12 @@ namespace DigitalMusicMaker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-      , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
     {
     }
 
-    TrackInformation::Ptr GetInformation() const override
+    TrackModel::Ptr GetTrackModel() const override
     {
-      return Info;
+      return Data;
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -687,7 +691,6 @@ namespace DigitalMusicMaker
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
-    const TrackInformation::Ptr Info;
   };
 
   class Factory : public DAC::Factory

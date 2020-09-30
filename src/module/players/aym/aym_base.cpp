@@ -37,7 +37,7 @@ namespace Module
     {
       if (auto track = Tune->FindTrackModel())
       {
-        return CreateTrackInfo(std::move(track), 3/*TODO*/);
+        return CreateTrackInfo(std::move(track));
       }
       else
       {

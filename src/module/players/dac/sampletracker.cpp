@@ -47,7 +47,7 @@ namespace SampleTracker
       {
         props.SetSource(*container);
         props.SetPlatform(Platforms::ZX_SPECTRUM);
-        return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), std::move(properties), CHANNELS_COUNT);
+        return DAC::CreateSimpleChiptune(dataBuilder->CaptureResult(), std::move(properties));
       }
       else
       {

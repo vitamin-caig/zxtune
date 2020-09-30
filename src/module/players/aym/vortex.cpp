@@ -298,7 +298,7 @@ namespace Vortex
       {
         AYM::ChannelBuilder chanSynt = track.GetChannel(chan);
         ChannelState& dst = PlayerState.ChanState[chan];
-        SynthesizeChannel(dst, chanSynt, track, envelopeAddon);
+        SynthesizeChannel(dst, chanSynt, envelopeAddon);
         //update vibrato
         if (dst.VibrateCounter > 0 && !--dst.VibrateCounter)
         {
@@ -313,7 +313,7 @@ namespace Vortex
       PlayerState.CommState.EnvSlider.Update();
     }
 
-    void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track, int_t& envelopeAddon)
+    void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, int_t& envelopeAddon)
     {
       if (!dst.Enabled)
       {

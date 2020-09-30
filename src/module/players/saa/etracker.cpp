@@ -53,6 +53,11 @@ namespace ETracker
     {
     }
 
+    uint_t GetChannelsCount() const override
+    {
+      return SAA::TRACK_CHANNELS;
+    }
+
     uint_t GetInitialTempo() const override
     {
       return InitialTempo;

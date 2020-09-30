@@ -362,7 +362,7 @@ namespace Module
     mutable uint_t LoopFrameNum;
   };
 
-  TrackInformation::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels)
+  TrackInformation::Ptr CreateTrackInfoFixedChannels(TrackModel::Ptr model, uint_t channels)
   {
     return MakePtr<TrackInformationImpl>(std::move(model), channels);
   }

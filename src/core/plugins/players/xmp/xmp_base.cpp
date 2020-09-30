@@ -351,9 +351,9 @@ namespace Xmp
   class Holder : public Module::Holder
   {
   public:
-    explicit Holder(Context::Ptr ctx, const xmp_module_info& modInfo, DurationType duration, Parameters::Accessor::Ptr props)
+    Holder(Context::Ptr ctx, Information::Ptr info, Parameters::Accessor::Ptr props)
       : Ctx(std::move(ctx))
-      , Info(MakePtr<Information>(*modInfo.mod, duration))
+      , Info(std::move(info))
       , Properties(std::move(props))
     {
     }
@@ -370,7 +370,7 @@ namespace Xmp
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Ctx, target, params, Info);
+      return MakePtr<Renderer>(Ctx, std::move(target), std::move(params), Info);
     }
   private:
     const Context::Ptr Ctx;
@@ -450,7 +450,7 @@ namespace Xmp
     {
       try
       {
-        const Context::Ptr ctx = MakePtr<Context>(rawData, Desc.Loader);
+        auto ctx = MakePtr<Context>(rawData, Desc.Loader);
         xmp_module_info modInfo;
         ctx->Call(&::xmp_get_module_info, &modInfo);
         xmp_frame_info frmInfo;
@@ -465,16 +465,19 @@ namespace Xmp
           props.SetComment(DecodeString(comment));
         }
         ParseStrings(*modInfo.mod, props);
-        const Binary::Container::Ptr data = rawData.GetSubcontainer(0, modInfo.size);
-        const Formats::Chiptune::Container::Ptr source = Formats::Chiptune::CreateCalculatingCrcContainer(data, 0, modInfo.size);
-        props.SetSource(*source);
+        if (auto data = rawData.GetSubcontainer(0, modInfo.size))
+        {
+          const auto source = Formats::Chiptune::CreateCalculatingCrcContainer(std::move(data), 0, modInfo.size);
+          props.SetSource(*source);
 
-        return MakePtr<Holder>(ctx, modInfo, DurationType(frmInfo.total_time), properties);
+          auto info = MakePtr<Information>(*modInfo.mod, DurationType(frmInfo.total_time));
+          return MakePtr<Holder>(std::move(ctx), std::move(info), std::move(properties));
+        }
       }
       catch (const std::exception&)
       {
-        return Holder::Ptr();
       }
+      return {};
     }
   private:
     const PluginDescription& Desc;

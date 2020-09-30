@@ -56,7 +56,7 @@ namespace ExtremeTracker1
       : Properties(props)
       , Meta(props)
       , Patterns(PatternsBuilder::Create<CHANNELS_COUNT>())
-      , Data(MakeRWPtr<ModuleData>())
+      , Data(MakeRWPtr<ModuleData>(CHANNELS_COUNT))
     {
     }
 
@@ -258,13 +258,12 @@ namespace ExtremeTracker1
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-      , Info(CreateTrackInfo(Data, CHANNELS_COUNT))
     {
     }
 
-    TrackInformation::Ptr GetInformation() const override
+    TrackModel::Ptr GetTrackModel() const override
     {
-      return Info;
+      return Data;
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -289,7 +288,6 @@ namespace ExtremeTracker1
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
-    const TrackInformation::Ptr Info;
   };
 
   class Factory : public DAC::Factory

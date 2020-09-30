@@ -33,13 +33,13 @@ namespace Module
 
     Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
-      if (const AYM::Chiptune::Ptr chiptune = Delegate->CreateChiptune(data, properties))
+      if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {
         return AYM::CreateHolder(chiptune);
       }
       else
       {
-        return Holder::Ptr();
+        return {};
       }
     }
   private:

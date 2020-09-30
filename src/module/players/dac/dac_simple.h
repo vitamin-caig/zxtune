@@ -26,9 +26,15 @@ namespace Module
       typedef std::shared_ptr<const SimpleModuleData> Ptr;
       typedef std::shared_ptr<SimpleModuleData> RWPtr;
 
-      SimpleModuleData()
-        : InitialTempo()
+      explicit SimpleModuleData(uint_t channels)
+        : ChannelsCount(channels)
+        , InitialTempo()
       {
+      }
+
+      uint_t GetChannelsCount() const override
+      {
+        return ChannelsCount;
       }
 
       uint_t GetInitialTempo() const override
@@ -46,6 +52,7 @@ namespace Module
         return *Patterns;
       }
 
+      const uint_t ChannelsCount;
       uint_t InitialTempo;
       OrderList::Ptr Order;
       PatternsSet::Ptr Patterns;
@@ -59,15 +66,15 @@ namespace Module
       
       virtual SimpleModuleData::Ptr CaptureResult() = 0;
       
-      static Ptr Create(DAC::PropertiesHelper& props, PatternsBuilder builder);//TODO: rework external dependency from builder
+      static Ptr Create(DAC::PropertiesHelper& props, PatternsBuilder builder, uint_t channels);//TODO: rework external dependency from builder
     };
 
     template<uint_t Channels>
     static SimpleDataBuilder::Ptr CreateSimpleDataBuilder(DAC::PropertiesHelper& props)
     {
-      return SimpleDataBuilder::Create(props, PatternsBuilder::Create<Channels>());
+      return SimpleDataBuilder::Create(props, PatternsBuilder::Create<Channels>(), Channels);
     }
     
-    DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels);
+    DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties);
   }
 }

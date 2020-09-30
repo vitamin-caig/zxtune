@@ -171,7 +171,7 @@ namespace Module
 
     Information::Ptr GetModuleInformation() const override
     {
-      return CreateTrackInfo(Tune->GetTrackModel(), SAA::TRACK_CHANNELS);
+      return CreateTrackInfo(Tune->GetTrackModel());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override

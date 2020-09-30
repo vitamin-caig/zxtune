@@ -105,13 +105,13 @@ namespace TS
       try
       {
         DataBuilder dataBuilder(params, data);
-        if (const Formats::Chiptune::Container::Ptr container = Decoder->Parse(data, dataBuilder))
+        if (const auto container = Decoder->Parse(data, dataBuilder))
         {
           if (dataBuilder.HasResult())
           {
             PropertiesHelper props(*properties);
             props.SetSource(*container);
-            const TurboSound::Chiptune::Ptr chiptune = TurboSound::CreateChiptune(properties,
+            auto chiptune = TurboSound::CreateChiptune(std::move(properties),
               dataBuilder.GetFirst(), dataBuilder.GetSecond());
             return TurboSound::CreateHolder(chiptune);
           }
@@ -120,7 +120,7 @@ namespace TS
       catch (const Error&)
       {
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   private:
     const Formats::Chiptune::TurboSound::Decoder::Ptr Decoder;

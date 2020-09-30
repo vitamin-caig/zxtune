@@ -14,7 +14,6 @@
 #include "module/players/aym/aym_base_track.h"
 //library includes
 #include <formats/chiptune/aym/protracker3.h>
-#include <sound/render_params.h>
 
 namespace Module
 {
@@ -61,38 +60,18 @@ namespace Module
       NOISEBASE,
     };
 
-    class ModuleData : public TrackModel
+    class ModuleData : public AYM::ModuleData<OrderList, Sample, Ornament>
     {
     public:
       typedef std::shared_ptr<ModuleData> RWPtr;
       typedef std::shared_ptr<const ModuleData> Ptr;
 
       ModuleData()
-        : InitialTempo()
+        : AYM::ModuleData<OrderList, Sample, Ornament>()
         , Version(6)
       {
       }
 
-      uint_t GetInitialTempo() const override
-      {
-        return InitialTempo;
-      }
-
-      const OrderList& GetOrder() const override
-      {
-        return *Order;
-      }
-
-      const PatternsSet& GetPatterns() const override
-      {
-        return *Patterns;
-      }
-
-      uint_t InitialTempo;
-      OrderList::Ptr Order;
-      PatternsSet::Ptr Patterns;
-      SparsedObjectsStorage<Sample> Samples;
-      SparsedObjectsStorage<Ornament> Ornaments;
       uint_t Version;
     };
 

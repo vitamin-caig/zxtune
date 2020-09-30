@@ -235,7 +235,13 @@ namespace Module
     SparsedObjectsStorage<MutablePattern::Ptr> Storage;
   };
 
-  TrackInformation::Ptr CreateTrackInfo(TrackModel::Ptr model, uint_t channels);
+  TrackInformation::Ptr CreateTrackInfoFixedChannels(TrackModel::Ptr model, uint_t channels);
+
+  inline TrackInformation::Ptr CreateTrackInfo(TrackModel::Ptr model)
+  {
+    const auto channels = model->GetChannelsCount();
+    return CreateTrackInfoFixedChannels(std::move(model), channels);
+  }
 
   class TrackStateIterator : public Iterator
   {

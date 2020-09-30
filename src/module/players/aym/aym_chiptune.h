@@ -16,8 +16,9 @@
 #include "module/players/aym/aym_parameters.h"
 //library includes
 #include <devices/aym.h>
-#include <module/information.h>
 #include <module/players/iterator.h>
+#include <module/players/streaming.h>
+#include <module/players/tracking.h>
 
 namespace Module
 {

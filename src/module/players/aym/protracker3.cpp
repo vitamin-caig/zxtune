@@ -247,9 +247,9 @@ namespace ProTracker3
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = CreateDataRenderer(Data, 0);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+      auto iterator = CreateTrackStateIterator(Data);
+      auto renderer = CreateDataRenderer(Data, 0);
+      return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
@@ -472,7 +472,6 @@ namespace ProTracker3
     private:
       const ModuleData::Ptr Data;
       const Parameters::Accessor::Ptr Properties;
-      const Information::Ptr Info;
     };
   }
 
@@ -508,7 +507,7 @@ namespace ProTracker3
           return AYM::CreateHolder(std::move(chiptune));
         }
       }
-      return Holder::Ptr();
+      return {};
     }
   private:
     const Formats::Chiptune::ProTracker3::Decoder::Ptr Decoder;

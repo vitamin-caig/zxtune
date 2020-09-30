@@ -20,7 +20,9 @@
 #include <module/players/analyzer.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/visitor.h>
+#include <sound/loop.h>
 #include <sound/mixer_factory.h>
+#include <sound/render_params.h>
 //std includes
 #include <map>
 #include <set>
@@ -409,7 +411,7 @@ namespace TurboSound
     {
       if (auto track = Tune->FindTrackModel())
       {
-        return CreateTrackInfo(std::move(track), TRACK_CHANNELS);
+        return CreateTrackInfoFixedChannels(std::move(track), TRACK_CHANNELS);
       }
       else
       {
@@ -443,7 +445,7 @@ namespace TurboSound
     {
       return Module::CreateAnalyzer(std::move(src));
     }
-    return Analyzer::Ptr();
+    return {};
   }
 
   Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)

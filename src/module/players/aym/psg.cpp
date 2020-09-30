@@ -71,7 +71,7 @@ namespace PSG
           return AYM::CreateStreamedChiptune(std::move(data), std::move(properties));
         }
       }
-      return AYM::Chiptune::Ptr();
+      return {};
     }
   };
 
