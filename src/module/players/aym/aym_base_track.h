@@ -151,9 +151,9 @@ namespace Module
         return Properties;
       }
 
-      AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
+      AYM::DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration, AYM::TrackParameters::Ptr trackParams) const override
       {
-        auto iterator = CreateTrackStateIterator(Data);
+        auto iterator = CreateTrackStateIterator(frameDuration, Data);
         auto renderer = MakePtr<DataRenderer>(Data);
         return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
       }

@@ -47,7 +47,6 @@ namespace Module
     
     //Sound
     void SetFramesFrequency(uint_t hz);
-    void SetFramesParameters(uint_t samplesCount, uint_t sampleRate);
   protected:
     Parameters::Modifier& Delegate;
   };

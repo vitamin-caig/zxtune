@@ -103,9 +103,4 @@ namespace Module
   {
     Sound::SetFrameDuration(Delegate, Time::Microseconds::FromFrequency(freq));
   }
-
-  void PropertiesHelper::SetFramesParameters(uint_t samplesCount, uint_t sampleRate)
-  {
-    Sound::SetFrameDuration(Delegate, Time::Microseconds::FromRatio(samplesCount, sampleRate));
-  }
 }

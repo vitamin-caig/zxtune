@@ -209,7 +209,7 @@ namespace
       //save common properties
       Dbg(" Save basic properties");
       props.Process(*this);
-      SaveDuration(info, props);
+      SaveDuration(info);
       Dbg(" Save extended properties");
       SaveExtendedProperties(props);
     }
@@ -271,11 +271,9 @@ namespace
     {
     }
   private:
-    void SaveDuration(const Module::Information& info, const Parameters::Accessor& props)
+    void SaveDuration(const Module::Information& info)
     {
-      Parameters::IntType frameDuration = Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-      props.FindValue(Parameters::ZXTune::Sound::FRAMEDURATION, frameDuration);
-      const uint64_t msecDuration = info.FramesCount() * frameDuration / 1000;
+      const uint64_t msecDuration = info.Duration().CastTo<Time::Millisecond>().Get();
       Dbg("  saving item attribute Duration=%1%", msecDuration);
       Element.Text(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
     }

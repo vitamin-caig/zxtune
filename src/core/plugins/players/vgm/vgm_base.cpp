@@ -30,7 +30,6 @@
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
 #include <sound/render_params.h>
-#include <sound/sound_parameters.h>
 //3rdparty includes
 #include <3rdparty/vgm/player/s98player.hpp>
 #include <3rdparty/vgm/player/vgmplayer.hpp>
@@ -167,7 +166,7 @@ namespace LibVGM
       LoopTicks = Delegate->GetLoopTicks();
     }
 
-    uint_t Frame() const override
+    Time::AtMillisecond At() const override
     {
       auto ticks = Delegate->GetCurPos(PLAYPOS_TICK);
       const auto totalTicks = Delegate->GetTotalTicks();
@@ -177,8 +176,13 @@ namespace LibVGM
           ? (totalTicks - LoopTicks) + (ticks - totalTicks) % LoopTicks
           : ticks % totalTicks;
       }
-      const auto seconds = Delegate->Tick2Second(ticks);
-      return FRAME_DURATION.PER_SECOND * seconds / FRAME_DURATION.Get();
+      return Time::AtMillisecond() + Time::Seconds(Delegate->Tick2Second(ticks));
+    }
+
+    Time::Milliseconds Total() const override
+    {
+      const auto ticks = Delegate->GetCurPos(PLAYPOS_TICK);
+      return Time::Seconds(Delegate->Tick2Second(ticks));
     }
 
     uint_t LoopCount() const override
@@ -216,9 +220,9 @@ namespace LibVGM
       return ConvertBuffer(outSamples);
     }
 
-    void Seek(uint_t frames)
+    void Seek(Time::AtMillisecond request)
     {
-      const auto samples = FRAME_DURATION.Get() * frames * Delegate->GetSampleRate() / FRAME_DURATION.PER_SECOND;
+      const auto samples = uint64_t(Delegate->GetSampleRate()) * request.Get() / request.PER_SECOND;
       Require(0 == Delegate->Seek(PLAYPOS_SAMPLE, samples));
       WholeLoopCount = 0;
     }
@@ -263,7 +267,7 @@ namespace LibVGM
     Renderer(Model::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Engine(MakeRWPtr<VGMEngine>(std::move(tune)))
       , Analyzer(CreateSoundAnalyzer())
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+      , Params(std::move(params))
       , Target(std::move(target))
     {
     }
@@ -301,7 +305,7 @@ namespace LibVGM
     {
       try
       {
-        SoundParams.Reset();
+        Params.Reset();
         Engine->Reset();
       }
       catch (const std::exception& e)
@@ -310,11 +314,11 @@ namespace LibVGM
       }
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
       try
       {
-        Engine->Seek(frame);
+        Engine->Seek(request);
       }
       catch (const std::exception& e)
       {
@@ -324,32 +328,32 @@ namespace LibVGM
   private:
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Engine->SetSoundFreq(SoundParams->SoundFreq());
+        Engine->SetSoundFreq(Sound::GetSoundFrequency(*Params));
       }
     }
 
   private:
     const VGMEngine::RWPtr Engine;
     const SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
   };
   
   class Holder : public Module::Holder
   {
   public:
-    Holder(Model::Ptr tune, FramedStream stream, Parameters::Accessor::Ptr props)
+    Holder(Model::Ptr tune, Module::Information::Ptr info, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
-      , Stream(std::move(stream))
+      , Info(std::move(info))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return CreateStreamInfo(Stream);
+      return Info;
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -370,7 +374,7 @@ namespace LibVGM
     }
   private:
     const Model::Ptr Tune;
-    const FramedStream Stream;
+    const Module::Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
 } //namespace LibVGM
@@ -393,25 +397,23 @@ namespace VideoGameMusic
 
     void SetTimings(Time::Milliseconds total, Time::Milliseconds loop) override
     {
-      Stream.FrameDuration = LibVGM::FRAME_DURATION;
-      Stream.TotalFrames = total.Divide<uint_t>(Stream.FrameDuration);
-      Stream.LoopFrame = loop.Divide<uint_t>(Stream.FrameDuration);
+      Info = CreateTimedInfo(total, loop);
     }
 
-    FramedStream GetStream() const
+    Module::Information::Ptr CaptureResult() const
     {
-      return Stream;
+      return std::move(Info);
     }
   private:
     PropertiesHelper& Properties;
     MetaProperties Meta;
-    FramedStream Stream;
+    Module::Information::Ptr Info;
   };
   
   class Factory : public Module::Factory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -425,7 +427,7 @@ namespace VideoGameMusic
         
           props.SetSource(*container);
         
-          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.GetStream(), std::move(properties));
+          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.CaptureResult(), std::move(properties));
         }
       }
       catch (const std::exception& e)
@@ -455,25 +457,23 @@ namespace Sound98
 
     void SetTimings(Time::Milliseconds total, Time::Milliseconds loop) override
     {
-      Stream.FrameDuration = LibVGM::FRAME_DURATION;
-      Stream.TotalFrames = total.Divide<uint_t>(Stream.FrameDuration);
-      Stream.LoopFrame = loop.Divide<uint_t>(Stream.FrameDuration);
+      Info = CreateTimedInfo(total, loop);
     }
 
-    FramedStream GetStream() const
+    Module::Information::Ptr CaptureResult() const
     {
-      return Stream;
+      return std::move(Info);
     }
   private:
     PropertiesHelper& Properties;
     MetaProperties Meta;
-    FramedStream Stream;
+    Module::Information::Ptr Info;
   };
 
   class Factory : public Module::Factory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -485,7 +485,7 @@ namespace Sound98
         
           props.SetSource(*container);
         
-          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.GetStream(), std::move(properties));
+          return MakePtr<LibVGM::Holder>(std::move(tune), dataBuilder.CaptureResult(), std::move(properties));
         }
       }
       catch (const std::exception& e)

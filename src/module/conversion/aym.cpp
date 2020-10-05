@@ -144,7 +144,7 @@ namespace Module
     //convert to fym
     else if (const FYMConvertParam* fym = parameter_cast<FYMConvertParam>(&spec))
     {
-      const Devices::AYM::FYMDumperParameters::Ptr dumpParams = MakePtr<FYMDumperParameters>(params, holder.GetModuleInformation()->LoopFrame(), fym->Optimization);
+      const Devices::AYM::FYMDumperParameters::Ptr dumpParams = MakePtr<FYMDumperParameters>(params, 0/*LoopFrame - TODO*/, fym->Optimization);
       dumper = Devices::AYM::CreateFYMDumper(dumpParams);
       errMessage = translate("Failed to convert to FYM format.");;
     }

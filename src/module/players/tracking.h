@@ -235,12 +235,12 @@ namespace Module
     SparsedObjectsStorage<MutablePattern::Ptr> Storage;
   };
 
-  TrackInformation::Ptr CreateTrackInfoFixedChannels(TrackModel::Ptr model, uint_t channels);
+  TrackInformation::Ptr CreateTrackInfoFixedChannels(Time::Microseconds frameDuration, TrackModel::Ptr model, uint_t channels);
 
-  inline TrackInformation::Ptr CreateTrackInfo(TrackModel::Ptr model)
+  inline TrackInformation::Ptr CreateTrackInfo(Time::Microseconds frameDuration, TrackModel::Ptr model)
   {
     const auto channels = model->GetChannelsCount();
-    return CreateTrackInfoFixedChannels(std::move(model), channels);
+    return CreateTrackInfoFixedChannels(frameDuration, std::move(model), channels);
   }
 
   class TrackStateIterator : public Iterator
@@ -251,7 +251,7 @@ namespace Module
     virtual TrackModelState::Ptr GetStateObserver() const = 0;
   };
 
-  TrackStateIterator::Ptr CreateTrackStateIterator(TrackModel::Ptr model);
+  TrackStateIterator::Ptr CreateTrackStateIterator(Time::Microseconds frameDuration, TrackModel::Ptr model);
 
   class PatternsBuilder : public Formats::Chiptune::PatternBuilder
   {

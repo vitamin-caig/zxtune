@@ -22,10 +22,12 @@ namespace Module
   {
     const uint_t TRACK_CHANNELS = AYM::TRACK_CHANNELS * Devices::TurboSound::CHIPS;
 
-    class DataIterator : public StateIterator
+    class DataIterator : public Iterator
     {
     public:
       typedef std::shared_ptr<DataIterator> Ptr;
+
+      virtual State::Ptr GetStateObserver() const = 0;
 
       virtual Devices::TurboSound::Registers GetData() const = 0;
     };
@@ -41,13 +43,13 @@ namespace Module
       virtual Module::StreamModel::Ptr FindStreamModel() const = 0;
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const = 0;
+      virtual DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration, AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const = 0;
     };
 
     Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device);
 
     Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second);
 
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
+    Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune);
   }
 }

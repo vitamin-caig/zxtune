@@ -20,6 +20,8 @@
 
 namespace Player
 {
+  using TimeBase = Time::Millisecond;
+
   class Control
   {
   public:

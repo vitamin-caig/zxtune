@@ -233,11 +233,11 @@ namespace Module
       }
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
       for (const auto& renderer : Delegates)
       {
-        renderer->SetPosition(frame);
+        renderer->SetPosition(request);
       }
     }
     

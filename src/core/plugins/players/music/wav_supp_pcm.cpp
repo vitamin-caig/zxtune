@@ -151,61 +151,43 @@ namespace Wav
     }
   }
 
-  class PcmModel : public Model
+  class PcmModel : public BlockingModel
   {
   public:
-    PcmModel(Pcm::ConvertFunction func, const Properties& props)
-      : Convert(func)
-      , Props(props)
-      , TotalSamples(Props.Data->Size() / Props.BlockSize)
-      , TotalDuration(Time::Microseconds::FromRatio(TotalSamples, Props.Frequency))
-      , TotalFrames(std::max<uint_t>(1, TotalDuration.Divide<uint_t>(Props.FrameDuration)))
-      , SamplesPerFrame(TotalSamples / TotalFrames)
-      , BytesPerFrame(Props.BlockSize * SamplesPerFrame)
+    PcmModel(Properties props, Pcm::ConvertFunction func)
+      : BlockingModel(std::move(props))
+      , Convert(func)
     {
     }
 
-    uint_t GetFrequency() const override
+    Sound::Chunk RenderNextFrame() override
     {
-      return Props.Frequency;
+      if (const auto samples = std::min<uint_t>(Stream.GetRestSize() / Props.BlockSize, Props.Frequency / 5))
+      {
+        const auto range = Stream.ReadData(samples * Props.BlockSize);
+        return Convert(range.Start(), samples);
+      }
+      else
+      {
+        return {};
+      }
     }
-    
-    FramedStream CreateStream() const override
-    {
-      FramedStream result;
-      result.FrameDuration = Props.FrameDuration;
-      result.TotalFrames = TotalFrames;
-      return result;
-    }
-    
-    Sound::Chunk RenderFrame(uint_t idx) const override
-    {
-      const auto start = static_cast<const uint8_t*>(Props.Data->Start()) + BytesPerFrame * idx;
-      return Convert(start, SamplesPerFrame);
-    }
-    
   private:
     const Pcm::ConvertFunction Convert;
-    const Properties Props;
-    const std::size_t TotalSamples;
-    const Time::Microseconds TotalDuration;
-    const uint_t TotalFrames;
-    const std::size_t SamplesPerFrame;
-    const std::size_t BytesPerFrame;
   };
   
-  Model::Ptr CreatePcmModel(const Properties& props)
+  Model::Ptr CreatePcmModel(Properties props)
   {
     const auto func = Pcm::FindConvertFunction(props.Channels, props.Bits, props.BlockSize);
     Require(func);
-    return MakePtr<PcmModel>(func, props);
+    return MakePtr<PcmModel>(std::move(props), func);
   }
   
-  Model::Ptr CreateFloatPcmModel(const Properties& props)
+  Model::Ptr CreateFloatPcmModel(Properties props)
   {
     const auto func = props.Channels == 1 ? &Pcm::ConvertChunk<float, 1> : &Pcm::ConvertChunk<float, 2>;
     Require(func);
-    return MakePtr<PcmModel>(func, props);
+    return MakePtr<PcmModel>(std::move(props), func);
   }
 }
 }

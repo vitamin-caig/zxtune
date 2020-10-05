@@ -13,7 +13,6 @@
 //common includes
 #include <make_ptr.h>
 #include <module/players/streaming.h>
-#include <sound/render_params.h>
 //std includes
 #include <utility>
 
@@ -55,7 +54,7 @@ namespace Module
       {
         if (Delegate->IsValid())
         {
-          Data->Get(State->Frame(), res);
+          Data->Get(Delegate->CurrentFrame(), res);
         }
         else
         {
@@ -77,9 +76,9 @@ namespace Module
       {
       }
 
-      Information::Ptr GetInformation() const override
+      Information::Ptr GetInformation(Time::Microseconds frameDuration) const override
       {
-        return CreateStreamInfo(MakeFramedStream());
+        return CreateStreamInfo(frameDuration, Data);
       }
 
       Parameters::Accessor::Ptr GetProperties() const override
@@ -87,19 +86,10 @@ namespace Module
         return Properties;
       }
 
-      TFM::DataIterator::Ptr CreateDataIterator() const override
+      TFM::DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration) const override
       {
-        auto iter = CreateStreamStateIterator(MakeFramedStream());
+        auto iter = CreateStreamStateIterator(frameDuration, Data);
         return MakePtr<StreamDataIterator>(std::move(iter), Data);
-      }
-    private:
-      FramedStream MakeFramedStream() const
-      {
-        FramedStream result;
-        result.TotalFrames = Data->GetTotalFrames();
-        result.LoopFrame = Data->GetLoopFrame();
-        result.FrameDuration = Sound::GetFrameDuration(*Properties);
-        return result;
       }
     private:
       const StreamModel::Ptr Data;

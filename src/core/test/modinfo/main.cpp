@@ -17,6 +17,7 @@
 #include <iostream>
 #include <parameters/container.h>
 #include <parameters/template.h>
+#include <time/serialize.h>
 
 namespace
 {
@@ -35,8 +36,7 @@ namespace
       std::cout <<
         "Positions: " << trackInfo->PositionsCount() << " (" << trackInfo->LoopPosition() << ')' << std::endl;
     }
-    std::cout << "Frames: " << info.FramesCount() << " (" << info.LoopFrame() << ')' << std::endl <<
-      "Channels: " << info.ChannelsCount() << std::endl;
+    std::cout << "Duration: " << Time::ToString(info.Duration()) << " (loop " << Time::ToString(info.LoopDuration()) << ')' << std::endl;
   }
   
   class PrintValuesVisitor : public Parameters::Visitor

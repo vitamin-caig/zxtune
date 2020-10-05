@@ -24,10 +24,12 @@ namespace Module
 {
   namespace AYM
   {
-    class DataIterator : public StateIterator
+    class DataIterator : public Iterator
     {
     public:
       typedef std::shared_ptr<DataIterator> Ptr;
+
+      virtual State::Ptr GetStateObserver() const = 0;
 
       virtual Devices::AYM::Registers GetData() const = 0;
     };
@@ -43,7 +45,7 @@ namespace Module
       virtual Module::StreamModel::Ptr FindStreamModel() const = 0;
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
+      virtual DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration, TrackParameters::Ptr trackParams) const = 0;
     };
   }
 }

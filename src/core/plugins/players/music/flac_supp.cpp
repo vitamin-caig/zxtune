@@ -47,19 +47,8 @@ namespace Flac
     
     uint_t Frequency = 0;
     uint_t TotalSamples = 0;
-    uint_t FramesCount = 0;
     uint_t MaxFrameSize = 0;
-    uint_t SamplesPerFrame = 0;
     Binary::Data::Ptr Content;
-
-    //TODO: use TimedStream
-    FramedStream CreateStream() const
-    {
-      FramedStream result;
-      result.TotalFrames = FramesCount;
-      result.FrameDuration = Time::Microseconds::FromRatio(SamplesPerFrame, SamplesPerFrame);
-      return result;
-    }
   };
 
   template<uint_t width>
@@ -175,9 +164,8 @@ namespace Flac
       Chunk.clear();
     }
     
-    void Seek(uint_t frame)
+    void Seek(uint64_t sample)
     {
-      const auto sample = uint64_t(Data->SamplesPerFrame) * frame;
       if (! ::FLAC__stream_decoder_seek_absolute(Decoder.get(), sample))
       {
         throw Error(THIS_LINE, "Failed to seek");
@@ -325,16 +313,15 @@ namespace Flac
     Binary::DataInputStream Stream;
     Sound::Chunk Chunk;
   };
-  
+
   class Renderer : public Module::Renderer
   {
   public:
     Renderer(Model::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(data)
-      , Iterator(CreateStreamStateIterator(data->CreateStream()))
-      , State(Iterator->GetStateObserver())
+      , State(MakePtr<SampledState>(data->TotalSamples, data->Frequency))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+      , Params(std::move(params))
       , Target(std::move(target))
     {
     }
@@ -355,15 +342,16 @@ namespace Flac
       {
         ApplyParameters();
 
+        const auto loops = State->LoopCount();
         auto frame = Tune.RenderFrame();
+        State->Consume(frame.size(), looped);
         Analyzer->AddSoundData(frame);
         Resampler->ApplyData(std::move(frame));
-        Iterator->NextFrame(looped);
-        if (0 == State->Frame())
+        if (State->LoopCount() != loops)
         {
           Tune.Seek(0);
         }
-        return Iterator->IsValid();
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -374,29 +362,28 @@ namespace Flac
     void Reset() override
     {
       Tune.Reset();
-      SoundParams.Reset();
-      Iterator->Reset();
+      Params.Reset();
+      State->Reset();
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      Tune.Seek(frame);
-      Module::SeekIterator(*Iterator, frame);
+      State->Seek(request);
+      Tune.Seek(State->AtSample());
     }
   private:
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Resampler = Sound::CreateResampler(Tune.GetFrequency(), SoundParams->SoundFreq(), Target);
+        Resampler = Sound::CreateResampler(Tune.GetFrequency(), Sound::GetSoundFrequency(*Params), Target);
       }
     }
   private:
     FlacTune Tune;
-    const StateIterator::Ptr Iterator;
-    const Module::State::Ptr State;
+    const SampledState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
   };
@@ -412,7 +399,7 @@ namespace Flac
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return CreateStreamInfo(Data->CreateStream());
+      return CreateSampledInfo(Data->Frequency, Data->TotalSamples);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -466,17 +453,12 @@ namespace Flac
       Data->Content = std::move(data);
     }
 
-    void AddFrame(std::size_t /*offset*/) override
-    {
-      ++Data->FramesCount;
-    }
+    void AddFrame(std::size_t /*offset*/) override {}
     
     Model::Ptr GetResult()
     {
-      if (Data->TotalSamples && Data->FramesCount)
+      if (Data->TotalSamples)
       {
-        Data->SamplesPerFrame = Data->TotalSamples / Data->FramesCount;
-        Properties.SetFramesParameters(Data->SamplesPerFrame, Data->Frequency); 
         return Data;
       }
       else
@@ -493,7 +475,7 @@ namespace Flac
   class Factory : public Module::Factory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {

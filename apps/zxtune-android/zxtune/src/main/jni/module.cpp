@@ -222,7 +222,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniModule_getDuration
   return Jni::Call(env, [=] ()
   {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
-    return Module::Storage::Instance().Get(moduleHandle)->GetModuleInformation()->FramesCount();
+    return Module::Storage::Instance().Get(moduleHandle)->GetModuleInformation()->Duration().CastTo<Player::TimeBase>().Get();
   });
 }
 

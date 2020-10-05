@@ -237,64 +237,49 @@ namespace Wav
     }
   }
   
-  class AdpcmModel : public Model
+  class AdpcmModel : public BlockingModel
   {
   public:
-    AdpcmModel(ConvertFunc convert, uint_t samplesPerBlock, const Properties& props)
-      : Convert(convert)
-      , Data(props.Data)
-      , Frequency(props.Frequency)
-      , BlockSize(props.BlockSize)
-      , SamplesPerBlock(samplesPerBlock)
+    AdpcmModel(Properties props, ConvertFunc convert)
+      : BlockingModel(std::move(props))
+      , Convert(convert)
     {
     }
 
-    uint_t GetFrequency() const override
+    Sound::Chunk RenderNextFrame() override
     {
-      return Frequency;
-    }
-
-    FramedStream CreateStream() const override
-    {
-      FramedStream result;
-      result.TotalFrames = Data->Size() / BlockSize;
-      result.FrameDuration = Time::Microseconds::FromRatio(SamplesPerBlock, Frequency);
-      return result;
-    }
-    
-    Sound::Chunk RenderFrame(uint_t idx) const override
-    {
-      const auto start = static_cast<const uint8_t*>(Data->Start()) + BlockSize * idx;
       Sound::ChunkBuilder builder;
-      builder.Reserve(SamplesPerBlock);
-      Convert(start, BlockSize, builder);
+      if (const auto* start = Stream.PeekRawData(Props.BlockSize))
+      {
+        builder.Reserve(Props.BlockSizeSamples);
+        Convert(start, Props.BlockSize, builder);
+        Stream.Skip(Props.BlockSize);
+      }
       return builder.CaptureResult();
     }
     
   private:
     const ConvertFunc Convert;
-    const Binary::Data::Ptr Data;
-    const uint_t Frequency;
-    const std::size_t BlockSize;
-    const uint_t SamplesPerBlock;
   };
   
-  Model::Ptr CreateAdpcmModel(const Properties& props)
+  Model::Ptr CreateAdpcmModel(Properties props)
   {
     Require(props.Bits == 4);
     Require(props.BlockSize > 32);//TODO
     const auto func = Adpcm::GetConvertFunc(props.Channels);
     Require(func);
-    return MakePtr<AdpcmModel>(func, Adpcm::GetSamplesPerBlock(props.Channels, props.BlockSize), props);
+    props.BlockSizeSamples = Adpcm::GetSamplesPerBlock(props.Channels, props.BlockSize);
+    return MakePtr<AdpcmModel>(std::move(props), func);
   }
 
-  Model::Ptr CreateImaAdpcmModel(const Properties& props)
+  Model::Ptr CreateImaAdpcmModel(Properties props)
   {
     Require(props.Bits == 4);
     Require(props.BlockSize > 32);//TODO
     const auto func = ImaAdpcm::GetConvertFunc(props.Channels);
     Require(func);
-    return MakePtr<AdpcmModel>(func, ImaAdpcm::GetSamplesPerBlock(props.Channels, props.BlockSize), props);
+    props.BlockSizeSamples = ImaAdpcm::GetSamplesPerBlock(props.Channels, props.BlockSize);
+    return MakePtr<AdpcmModel>(std::move(props), func);
   }
 }
 }

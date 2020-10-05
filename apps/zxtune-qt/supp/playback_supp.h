@@ -32,7 +32,7 @@ public slots:
   virtual void Play() = 0;
   virtual void Stop() = 0;
   virtual void Pause() = 0;
-  virtual void Seek(int frame) = 0;
+  virtual void Seek(Time::AtMillisecond request) = 0;
 signals:
   void OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr);
   void OnUpdateState();

@@ -131,21 +131,19 @@ namespace Module
       LastChunk.TimeStamp = {};
     }
 
-    void SetPosition(uint_t frameNum) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      uint_t curFrame = GetState()->Frame();
-      if (curFrame > frameNum)
+      const auto state = GetState();
+      if (request < state->At())
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = Devices::SAA::Stamp();
-        curFrame = 0;
       }
-      while (curFrame < frameNum && Iterator->IsValid())
+      while (state->At() < request && Iterator->IsValid())
       {
         TransferChunk();
         Iterator->NextFrame({});
-        ++curFrame;
       }
     }
   private:
@@ -164,14 +162,15 @@ namespace Module
   class SAAHolder : public Holder
   {
   public:
-    explicit SAAHolder(SAA::Chiptune::Ptr chiptune)
-      : Tune(std::move(chiptune))
+    SAAHolder(Time::Microseconds frameDuration, SAA::Chiptune::Ptr chiptune)
+      : FrameDuration(frameDuration)
+      , Tune(std::move(chiptune))
     {
     }
 
     Information::Ptr GetModuleInformation() const override
     {
-      return CreateTrackInfo(Tune->GetTrackModel());
+      return CreateTrackInfo(FrameDuration, Tune->GetTrackModel());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -183,10 +182,11 @@ namespace Module
     {
       auto chipParams = SAA::CreateChipParameters(params);
       auto chip = Devices::SAA::CreateChip(std::move(chipParams), std::move(target));
-      auto iterator = Tune->CreateDataIterator();
+      auto iterator = Tune->CreateDataIterator(FrameDuration);
       return SAA::CreateRenderer(*params, std::move(iterator), std::move(chip));
     }
   private:
+    const Time::Microseconds FrameDuration;
     const SAA::Chiptune::Ptr Tune;
   };
 }
@@ -260,9 +260,9 @@ namespace Module
       return MakePtr<SAARenderer>(params, std::move(iterator), std::move(device));
     }
 
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+    Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune)
     {
-      return MakePtr<SAAHolder>(std::move(chiptune));
+      return MakePtr<SAAHolder>(frameDuration, std::move(chiptune));
     }
   }
 }

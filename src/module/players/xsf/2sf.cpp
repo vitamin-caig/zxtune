@@ -28,9 +28,8 @@
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
-#include <sound/render_params.h>
 #include <sound/resampler.h>
-#include <sound/sound_parameters.h>
+#include <sound/render_params.h>
 //std includes
 #include <list>
 //3rdparty includes
@@ -61,15 +60,6 @@ namespace TwoSF
     uint_t GetRefreshRate() const
     {
       return Meta->RefreshRate ? Meta->RefreshRate : 50;
-    }
-
-    //TODO: use TimedStream and bigger frames
-    FramedStream CreateStream() const
-    {
-      FramedStream result;
-      result.FrameDuration = Time::Microseconds::FromFrequency(GetRefreshRate());
-      result.TotalFrames = Meta->Duration.Divide<uint_t>(result.FrameDuration);
-      return result;
     }
   };
   
@@ -256,19 +246,23 @@ namespace TwoSF
     NDS_state State;
     MemoryRegion Rom;
   };
+
+  const auto FRAME_DURATION = Time::Milliseconds(100);
+
+  uint_t GetSamples(Time::Microseconds period)
+  {
+    return period.Get() * DSEngine::SAMPLERATE / period.PER_SECOND;
+  }
   
   class Renderer : public Module::Renderer
   {
   public:
     Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Data(std::move(data))
-      , Stream(Data->CreateStream())
-      , Iterator(Module::CreateStreamStateIterator(Stream))
-      , State(Iterator->GetStateObserver())
-      , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(Module::CreateFadingReceiver(std::move(params), Stream, State, std::move(target)))
+      , State(MakePtr<TimedState>(Data->Meta->Duration))
+      , Params(params)
+      , Target(Module::CreateFadingReceiver(std::move(params), Data->Meta->Duration, State, std::move(target)))
       , Engine(MakePtr<DSEngine>(*Data))
-      , SamplesPerFrame(Stream.FrameDuration.Get() * DSEngine::SAMPLERATE / Stream.FrameDuration.PER_SECOND)
     {
     }
 
@@ -288,9 +282,9 @@ namespace TwoSF
       {
         ApplyParameters();
 
-        Resampler->ApplyData(Engine->Render(SamplesPerFrame));
-        Iterator->NextFrame(looped);
-        return Iterator->IsValid();
+        const auto avail = State->Consume(FRAME_DURATION, looped);
+        Resampler->ApplyData(Engine->Render(GetSamples(avail)));
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -300,48 +294,38 @@ namespace TwoSF
 
     void Reset() override
     {
-      SoundParams.Reset();
-      Iterator->Reset();
+      Params.Reset();
+      State->Reset();
       Engine = MakePtr<DSEngine>(*Data);
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      SeekTune(frame);
-      Module::SeekIterator(*Iterator, frame);
+      if (request < State->At())
+      {
+        Engine = MakePtr<DSEngine>(*Data);
+      }
+      const auto toSkip = State->Seek(request);
+      if (toSkip.Get())
+      {
+        Engine->Skip(GetSamples(toSkip));
+      }
     }
   private:
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Resampler = Sound::CreateResampler(DSEngine::SAMPLERATE, SoundParams->SoundFreq(), Target);
-      }
-    }
-
-    void SeekTune(uint_t frame)
-    {
-      uint_t current = State->Frame();
-      if (frame < current)
-      {
-        Engine = MakePtr<DSEngine>(*Data);
-        current = 0;
-      }
-      if (const uint_t delta = frame - current)
-      {
-        Engine->Skip(delta * SamplesPerFrame);
+        Resampler = Sound::CreateResampler(DSEngine::SAMPLERATE, Sound::GetSoundFrequency(*Params), Target);
       }
     }
   private:
     const ModuleData::Ptr Data;
-    const FramedStream Stream;
-    const StateIterator::Ptr Iterator;
-    const Module::State::Ptr State;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    const TimedState::Ptr State;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     DSEngine::Ptr Engine;
     Sound::Receiver::Ptr Resampler;
-    const uint_t SamplesPerFrame;
   };
 
   class Holder : public Module::Holder
@@ -355,7 +339,7 @@ namespace TwoSF
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return CreateStreamInfo(Tune->CreateStream());
+      return CreateTimedInfo(Tune->Meta->Duration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override

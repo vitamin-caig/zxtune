@@ -124,10 +124,10 @@ namespace BackendBase
 
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      const uint_t request = SeekRequest.exchange(NO_SEEK);
+      const auto request = SeekRequest.exchange(NO_SEEK);
       if (request != NO_SEEK)
       {
-        Delegate->SetPosition(request);
+        Delegate->SetPosition(Time::AtMillisecond(request));
       }
       Callback->OnFrame(*State);
       return Delegate->RenderFrame(looped);
@@ -139,9 +139,9 @@ namespace BackendBase
       Delegate->Reset();
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      SeekRequest = frame;
+      SeekRequest = request.Get();
     }
   private:
     static const uint_t NO_SEEK = ~uint_t(0);
@@ -343,11 +343,11 @@ namespace BackendBase
       }
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
       try
       {
-        Renderer->SetPosition(frame);
+        Renderer->SetPosition(request);
       }
       catch (const Error& e)
       {

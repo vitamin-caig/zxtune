@@ -24,7 +24,6 @@
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <sound/render_params.h>
-#include <sound/sound_parameters.h>
 //std includes
 #include <algorithm>
 
@@ -229,7 +228,7 @@ namespace AYEMUL
       Beeper.SetLevel(timeStamp.CastTo<Devices::Beeper::TimeUnit>(), val);
     }
 
-    void RenderFrame(const Devices::Z80::Stamp& till)
+    void RenderFrameTill(Time::AtMicrosecond till)
     {
       Ay.RenderFrame(till.CastTo<Devices::AYM::TimeUnit>());
       Beeper.RenderFrame(till.CastTo<Devices::Beeper::TimeUnit>());
@@ -497,6 +496,7 @@ namespace AYEMUL
     }
 
     uint_t Frames;
+    Time::Microseconds FrameDuration;
     uint16_t Registers;
     uint16_t StackPointer;
     Binary::Data::Ptr Memory;
@@ -521,21 +521,21 @@ namespace AYEMUL
       CPUPorts->Reset();
     }
 
-    void NextFrame(const Devices::Z80::Stamp& til)
+    void ExecuteFrameTill(Time::AtMicrosecond till)
     {
       CPU->Interrupt();
-      CPU->Execute(til);
+      CPU->Execute(till.CastTo<Devices::Z80::TimeUnit>());
     }
 
-    void SkipFrames(uint_t count, Time::Duration<Devices::Z80::TimeUnit> frameStep)
+    void SkipFrames(Time::AtMicrosecond from, uint_t count, Time::Microseconds frameStep)
     {
       const auto curTime = CPU->GetTime();
       CPUPorts->SetBlocked(true);
-      auto pos = curTime;
+      auto pos = from;
       for (uint_t frame = 0; frame < count; ++frame)
       {
         pos += frameStep;
-        NextFrame(pos);
+        ExecuteFrameTill(pos);
       }
       CPUPorts->SetBlocked(false);
       CPU->SetTime(curTime);
@@ -550,17 +550,17 @@ namespace AYEMUL
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Time::Microseconds frameDuration, StateIterator::Ptr iterator, Computer::Ptr comp, DataChannel::Ptr device)
-      : Iterator(std::move(iterator))
+    Renderer(const ModuleData& data, Computer::Ptr comp, DataChannel::Ptr device)
+      : State(MakePtr<TimedState>((data.FrameDuration * data.Frames).CastTo<Time::Millisecond>()))
       , Comp(std::move(comp))
       , Device(std::move(device))
-      , FrameDuration(frameDuration)
+      , FrameDuration(data.FrameDuration)
     {
     }
 
     Module::State::Ptr GetState() const override
     {
-      return Iterator->GetStateObserver();
+      return State;
     }
 
     Analyzer::Ptr GetAnalyzer() const override
@@ -572,14 +572,11 @@ namespace AYEMUL
     {
       try
       {
-        if (Iterator->IsValid())
-        {
-          LastTime += FrameDuration;
-          Comp->NextFrame(LastTime);
-          Device->RenderFrame(LastTime);
-          Iterator->NextFrame(looped);
-        }
-        return Iterator->IsValid();
+        State->Consume(FrameDuration.CastTo<Time::Millisecond>(), looped);
+        DeviceTime += FrameDuration;
+        Comp->ExecuteFrameTill(DeviceTime);
+        Device->RenderFrameTill(DeviceTime);
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -589,39 +586,36 @@ namespace AYEMUL
 
     void Reset() override
     {
-      Iterator->Reset();
+      State->Reset();
       Comp->Reset();
       Device->Reset();
-      LastTime = {};
+      DeviceTime = {};
     }
 
-    void SetPosition(uint_t frameNum) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      uint_t curFrame = GetState()->Frame();
-      if (frameNum < curFrame)
+      const auto current = State->At();
+      if (request < current)
       {
-        //rewind
-        Iterator->Reset();
         Comp->Reset();
         Device->Reset();
-        LastTime = {};
-        curFrame = 0;
+        DeviceTime = {};
       }
-      uint_t toSkip = 0;
-      while (curFrame < frameNum && Iterator->IsValid())
+      const auto delta = State->Seek(request);
+      if (const auto frames = delta.Divide<uint_t>(FrameDuration))
       {
-        Iterator->NextFrame({});
-        ++curFrame;
-        ++toSkip;
+        // correct logical position
+        State->Seek(current + (FrameDuration * frames).CastTo<Time::Millisecond>());
+        Comp->SkipFrames(DeviceTime, frames, FrameDuration);
       }
-      Comp->SkipFrames(toSkip, FrameDuration);
     }
   private:
-    const StateIterator::Ptr Iterator;
+    const TimedState::Ptr State;
     const Computer::Ptr Comp;
     const DataChannel::Ptr Device;
-    const Time::Duration<Devices::Z80::TimeUnit> FrameDuration;
-    Devices::Z80::Stamp LastTime;
+    const Time::Microseconds FrameDuration;
+    // Monotonic time, does not change on fast-forward
+    Time::AtMicrosecond DeviceTime;
   };
 
   class DataBuilder : public Formats::Chiptune::AY::Builder
@@ -676,6 +670,15 @@ namespace AYEMUL
     void AddBlock(uint16_t addr, Binary::View block) override
     {
       Delegate->AddBlock(addr, block);
+    }
+
+    void FillTimingInfo(const Parameters::Accessor& params)
+    {
+      Data->FrameDuration = Sound::GetFrameDuration(params);
+      if (!Data->Frames)
+      {
+        Data->Frames = GetDefaultDuration(params).Divide<uint_t>(Data->FrameDuration);
+      }
     }
 
     ModuleData::Ptr GetResult() const
@@ -791,16 +794,15 @@ namespace AYEMUL
   class Holder : public AYM::Holder
   {
   public:
-    Holder(ModuleData::Ptr data, FramedStream stream, Parameters::Accessor::Ptr properties)
+    Holder(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
-      , Stream(std::move(stream))
       , Properties(std::move(properties))
     {
     }
 
     Information::Ptr GetModuleInformation() const override
     {
-      return CreateStreamInfo(Stream);
+      return CreateTimedInfo((Data->FrameDuration * Data->Frames).CastTo<Time::Millisecond>());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -832,15 +834,10 @@ namespace AYEMUL
       auto channel = MakePtr<DataChannel>(std::move(ay), std::move(beep));
       auto cpuPorts = PortsPlexer::Create(channel);
       auto comp = MakePtr<Computer>(Data, std::move(cpuParams), std::move(cpuPorts));
-      auto newStream = Stream;
-      //TODO: cleanup
-      newStream.FrameDuration = Sound::GetFrameDuration(*params);
-      auto iterator = CreateStreamStateIterator(newStream);
-      return MakePtr<Renderer>(newStream.FrameDuration, std::move(iterator), std::move(comp), std::move(channel));
+      return MakePtr<Renderer>(*Data, std::move(comp), std::move(channel));
     }
   private:
     const ModuleData::Ptr Data;
-    const FramedStream Stream;
     const Parameters::Accessor::Ptr Properties;
   };
   
@@ -856,18 +853,9 @@ namespace AYEMUL
       if (const auto container = Formats::Chiptune::AY::Parse(rawData, 0, builder))
       {
         props.SetSource(*container);
+        builder.FillTimingInfo(params);
         auto data = builder.GetResult();
-        FramedStream stream;
-        stream.FrameDuration = Sound::GetFrameDuration(params);
-        if (data->Frames)
-        {
-          stream.TotalFrames = data->Frames;
-        }
-        else
-        {
-          stream.TotalFrames = GetDefaultDuration(params).Divide<uint_t>(stream.FrameDuration);
-        }
-        return MakePtr<Holder>(std::move(data), std::move(stream), std::move(properties));
+        return MakePtr<Holder>(std::move(data), std::move(properties));
       }
       return {};
     }

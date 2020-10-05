@@ -29,7 +29,6 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/resampler.h>
-#include <sound/sound_parameters.h>
 //3rdparty includes
 #include <3rdparty/he/Core/bios.h>
 #include <3rdparty/he/Core/iop.h>
@@ -139,15 +138,6 @@ namespace PSF
       {
         return 60;//NTSC by default
       }
-    }
-
-    //TODO: use TimedStream and bigger frames
-    FramedStream CreateStream() const
-    {
-      FramedStream result;
-      result.FrameDuration = Time::Microseconds::FromFrequency(GetRefreshRate());
-      result.TotalFrames = Meta->Duration.Divide<uint_t>(result.FrameDuration);
-      return result;
     }
   };
   
@@ -305,21 +295,20 @@ namespace PSF
     std::unique_ptr<uint8_t[]> Emu;
     VfsIO Io;
   };
+
+  const auto FRAME_DURATION = Time::Milliseconds(100);
   
   class Renderer : public Module::Renderer
   {
   public:
     Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Data(std::move(data))
-      , Stream(Data->CreateStream())
-      , Iterator(Module::CreateStreamStateIterator(Stream))
-      , State(Iterator->GetStateObserver())
+      , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Engine(MakePtr<PSXEngine>())
-      , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(Module::CreateFadingReceiver(std::move(params), Stream, State, std::move(target)))
+      , Params(params)
+      , Target(Module::CreateFadingReceiver(std::move(params), Data->Meta->Duration, State, std::move(target)))
     {
       Engine->Initialize(*Data);
-      SamplesPerFrame = Stream.FrameDuration.Get() * Engine->GetSoundFrequency() / Stream.FrameDuration.PER_SECOND;
     }
 
     Module::State::Ptr GetState() const override
@@ -338,10 +327,10 @@ namespace PSF
       {
         ApplyParameters();
 
-        Resampler->ApplyData(Engine->Render(SamplesPerFrame));
-        Iterator->NextFrame(looped);
-        return Iterator->IsValid();
-      }
+        const auto avail = State->Consume(FRAME_DURATION, looped);
+        Resampler->ApplyData(Engine->Render(GetSamples(avail)));
+        return State->IsValid();
+      }            
       catch (const std::exception&)
       {
         return false;
@@ -350,46 +339,41 @@ namespace PSF
 
     void Reset() override
     {
-      SoundParams.Reset();
-      Iterator->Reset();
+      Params.Reset();
+      State->Reset();
       Engine->Initialize(*Data);
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      SeekTune(frame);
-      Module::SeekIterator(*Iterator, frame);
-    }
-  private:
-    void ApplyParameters()
-    {
-      if (SoundParams.IsChanged())
-      {
-        Resampler = Sound::CreateResampler(Engine->GetSoundFrequency(), SoundParams->SoundFreq(), Target);
-      }
-    }
-
-    void SeekTune(uint_t frame)
-    {
-      uint_t current = State->Frame();
-      if (frame < current)
+      if (request < State->At())
       {
         Engine->Initialize(*Data);
-        current = 0;
       }
-      if (const uint_t delta = frame - current)
+      const auto toSkip = State->Seek(request);
+      if (toSkip.Get())
       {
-        Engine->Skip(delta * SamplesPerFrame);
+        Engine->Skip(GetSamples(toSkip));
+      }
+    }
+  private:
+    uint_t GetSamples(Time::Microseconds period) const
+    {
+      return period.Get() * Engine->GetSoundFrequency() / period.PER_SECOND;
+    }
+
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        Resampler = Sound::CreateResampler(Engine->GetSoundFrequency(), Sound::GetSoundFrequency(*Params), Target);
       }
     }
   private:
     const ModuleData::Ptr Data;
-    const FramedStream Stream;
-    const StateIterator::Ptr Iterator;
-    const Module::State::Ptr State;
+    const TimedState::Ptr State;
     const PSXEngine::Ptr Engine;
-    uint_t SamplesPerFrame = 0;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
   };
@@ -405,7 +389,7 @@ namespace PSF
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return CreateStreamInfo(Tune->CreateStream());
+      return CreateTimedInfo(Tune->Meta->Duration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override

@@ -37,10 +37,10 @@ public:
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
 
   virtual void Message(const String& msg) = 0;
-  virtual void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player, Time::Microseconds frameDuration) = 0;
+  virtual void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player) = 0;
 
-  // begin frame, returns current frame number
-  virtual uint_t BeginFrame(Sound::PlaybackControl::State state) = 0;
+  // begin frame, returns current position
+  virtual Time::AtMillisecond BeginFrame(Sound::PlaybackControl::State state) = 0;
   virtual void EndFrame() = 0;
 
   static Ptr Create();

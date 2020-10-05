@@ -48,17 +48,19 @@ namespace Module
     mutable Parameters::TrackingHelper<Parameters::Accessor> Params;
     mutable Sound::Gain::Type Value;
   };
-  
+
+  using TimeUnit = Time::Millisecond;
+
   struct FadeInfo
   {
-    const uint_t FadeIn;
-    const uint_t FadeOut;
-    const uint_t Duration;
+    const Time::Duration<TimeUnit> FadeIn;
+    const Time::Duration<TimeUnit> FadeOut;
+    const Time::Duration<TimeUnit> Duration;
     
-    FadeInfo(Time::Milliseconds fadeIn, Time::Milliseconds fadeOut, FramedStream stream)
-      : FadeIn(fadeIn.Divide<uint_t>(stream.FrameDuration))
-      , FadeOut(fadeOut.Divide<uint_t>(stream.FrameDuration))
-      , Duration(stream.TotalFrames)
+    FadeInfo(Time::Duration<TimeUnit> fadeIn, Time::Duration<TimeUnit> fadeOut, Time::Duration<TimeUnit> duration)
+      : FadeIn(fadeIn)
+      , FadeOut(fadeOut)
+      , Duration(duration)
     {
     }
     
@@ -67,24 +69,24 @@ namespace Module
       return FadeIn + FadeOut < Duration;
     }
     
-    bool IsFadein(uint_t pos) const
+    bool IsFadein(Time::Instant<TimeUnit> pos) const
     {
-      return pos < FadeIn;
+      return pos.Get() < FadeIn.Get();
     }
     
-    bool IsFadeout(uint_t pos) const
+    bool IsFadeout(Time::Instant<TimeUnit> pos) const
     {
-      return pos > Duration - FadeOut;
+      return Duration.Get() < FadeOut.Get() + pos.Get();
     }
     
-    Sound::Gain::Type GetFadein(Sound::Gain::Type vol, uint_t pos) const
+    Sound::Gain::Type GetFadein(Sound::Gain::Type vol, Time::Instant<TimeUnit> pos) const
     {
-      return vol * pos / FadeIn;
+      return vol * pos.Get() / FadeIn.Get();
     }
 
-    Sound::Gain::Type GetFadeout(Sound::Gain::Type vol, uint_t pos) const
+    Sound::Gain::Type GetFadeout(Sound::Gain::Type vol, Time::Instant<TimeUnit> pos) const
     {
-      return vol * (Duration - pos) / FadeOut;
+      return vol * (Duration.Get() - pos.Get()) / FadeOut.Get();
     }
   };
   
@@ -117,7 +119,7 @@ namespace Module
         Params->FindValue(LOOPED, val);
         Looped = val;
       }
-      const auto pos = Status->Frame();
+      const auto pos = Status->At();
       if (Fading.IsFadein(pos))
       {
         Current = Fading.GetFadein(Maximum, pos);
@@ -140,14 +142,14 @@ namespace Module
     mutable Parameters::IntType Looped;
   };
 
-  Time::Milliseconds Get(const Parameters::Accessor& params, const Parameters::NameType& name, Parameters::IntType def, Parameters::IntType precision)
+  Time::Duration<TimeUnit> Get(const Parameters::Accessor& params, const Parameters::NameType& name, Parameters::IntType def, Parameters::IntType precision)
   {
     auto value = def;
     params.FindValue(name, value);
-    return Time::Milliseconds::FromRatio(value, precision);
+    return Time::Duration<TimeUnit>::FromRatio(value, precision);
   }
 
-  Sound::GainSource::Ptr CreateGainSource(Parameters::Accessor::Ptr params, FramedStream stream, State::Ptr status)
+  Sound::GainSource::Ptr CreateGainSource(Parameters::Accessor::Ptr params, Time::Milliseconds duration, State::Ptr status)
   {
     using namespace Parameters::ZXTune::Sound;
     const auto fadeIn = Get(*params, FADEIN, FADEIN_DEFAULT, FADEIN_PRECISION);
@@ -156,7 +158,7 @@ namespace Module
     {
       return MakePtr<SimpleGainSource>(std::move(params));
     }
-    const FadeInfo fading(fadeIn, fadeOut, stream);
+    const FadeInfo fading(fadeIn, fadeOut, duration);
     return MakePtr<FadingGainSource>(std::move(params), fading, std::move(status));
   }
 }

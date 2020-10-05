@@ -19,10 +19,10 @@
 
 namespace Module
 {
-  Sound::GainSource::Ptr CreateGainSource(Parameters::Accessor::Ptr params, FramedStream stream, State::Ptr status);
+  Sound::GainSource::Ptr CreateGainSource(Parameters::Accessor::Ptr params, Time::Milliseconds duration, State::Ptr status);
   
-  inline Sound::Receiver::Ptr CreateFadingReceiver(Parameters::Accessor::Ptr params, FramedStream stream, State::Ptr status, Sound::Receiver::Ptr target)
+  inline Sound::Receiver::Ptr CreateFadingReceiver(Parameters::Accessor::Ptr params, Time::Milliseconds duration, State::Ptr status, Sound::Receiver::Ptr target)
   {
-    return Sound::CreateGainer(CreateGainSource(std::move(params), std::move(stream), std::move(status)), std::move(target));
+    return Sound::CreateGainer(CreateGainSource(std::move(params), duration, std::move(status)), std::move(target));
   }
 }

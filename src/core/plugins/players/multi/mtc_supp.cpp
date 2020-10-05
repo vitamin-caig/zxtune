@@ -311,7 +311,7 @@ namespace MTC
     private:
       static bool CompareByDuration(Module::Holder::Ptr lh, Module::Holder::Ptr rh)
       {
-        return lh->GetModuleInformation()->FramesCount() < rh->GetModuleInformation()->FramesCount();
+        return lh->GetModuleInformation()->Duration() < rh->GetModuleInformation()->Duration();
       }
       
       void MergeAbsentMetadata(const Parameters::Accessor& toMerge) const

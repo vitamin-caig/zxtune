@@ -451,17 +451,17 @@ namespace
     DataImpl(DynamicAttributesProvider::Ptr attributes,
         ModuleSource source,
         Parameters::Container::Ptr adjustedParams,
-        uint_t frames, const Parameters::Accessor& moduleProps,
+        Time::Milliseconds duration, const Parameters::Accessor& moduleProps,
         uint_t caps)
       : Caps(caps)
       , Attributes(std::move(attributes))
       , Source(std::move(source))
       , AdjustedParams(std::move(adjustedParams))
       , Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
-      , Frames(frames)
       , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_CRC)))
       , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_FIXEDCRC)))
       , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, Module::ATTR_SIZE)))
+      , Duration(duration)
     {
       LoadProperties(moduleProps);
     }
@@ -524,7 +524,7 @@ namespace
 
     Time::Milliseconds GetDuration() const override
     {
-      return (FrameDuration * Frames).CastTo<Time::Millisecond>();
+      return Duration;
     }
 
     String GetAuthor() const override
@@ -557,15 +557,6 @@ namespace
       return Size;
     }
   private:
-    Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      if (const Module::Holder::Ptr holder = GetModule())
-      {
-        return holder->GetModuleProperties();
-      }
-      return Parameters::Accessor::Ptr();
-    }
-  private:
     void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/) override
     {
       OnPropertyChanged();
@@ -588,9 +579,10 @@ namespace
 
     void OnPropertyChanged()
     {
-      if (const Parameters::Accessor::Ptr properties = GetModuleProperties())
+      if (const auto holder = GetModule())
       {
-        LoadProperties(*properties);
+        LoadProperties(*holder->GetModuleProperties());
+        Duration = holder->GetModuleInformation()->Duration();
       }
       else
       {
@@ -598,7 +590,7 @@ namespace
         Author.clear();
         Title.clear();
         Comment.clear();
-        FrameDuration = {};
+        Duration = {};
       }
     }
 
@@ -608,7 +600,6 @@ namespace
       Author = GetStringProperty(props, Module::ATTR_AUTHOR);
       Title = GetStringProperty(props, Module::ATTR_TITLE);
       Comment = GetStringProperty(props, Module::ATTR_COMMENT);
-      FrameDuration = Time::Microseconds(GetIntProperty(props, Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT));
     }
   private:
     const Playlist::Item::Capabilities Caps;
@@ -616,7 +607,6 @@ namespace
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
     const String Type;
-    const uint_t Frames;
     const uint32_t Checksum;
     const uint32_t CoreChecksum;
     const std::size_t Size;
@@ -624,7 +614,7 @@ namespace
     String Author;
     String Title;
     String Comment;
-    Time::Microseconds FrameDuration;
+    Time::Milliseconds Duration;
     mutable Error State;
   };
   
@@ -660,7 +650,7 @@ namespace
       const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
       const ModuleSource itemSource(CoreParams, Source, moduleId);
       const Playlist::Item::Data::Ptr playitem = MakePtr<DataImpl>(Attributes, itemSource, adjustedParams,
-        info->FramesCount(), *lookupModuleProps, decoder->Capabilities());
+        info->Duration(), *lookupModuleProps, decoder->Capabilities());
       Delegate.ProcessItem(playitem);
     }
 

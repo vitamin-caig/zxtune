@@ -26,7 +26,6 @@
 #include <parameters/tracking_helper.h>
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
-#include <sound/sound_parameters.h>
 //3rdparty includes
 #include <3rdparty/mgba/defines.h>
 #include <mgba/core/core.h>
@@ -58,15 +57,6 @@ namespace GSF
     uint_t GetRefreshRate() const
     {
       return Meta->RefreshRate ? Meta->RefreshRate : 50;
-    }
-
-    //TODO: use TimedStream
-    FramedStream CreateStream() const
-    {
-      FramedStream result;
-      result.FrameDuration = Time::Microseconds::FromFrequency(GetRefreshRate());
-      result.TotalFrames = Meta->Duration.Divide<uint_t>(result.FrameDuration);
-      return result;
     }
   };
   
@@ -202,9 +192,9 @@ namespace GSF
     {
     }
     
-    void SetParameters(const Sound::RenderParameters& params)
+    void SetFrequency(uint_t freq)
     {
-      Core.InitSound(params.SoundFreq(), Stream);
+      Core.InitSound(freq, Stream);
     }
     
     void Reset()
@@ -234,18 +224,18 @@ namespace GSF
     GbaCore Core;
     AVStream Stream;
   };
+
+  const auto FRAME_DURATION = Time::Milliseconds(100);
   
   class Renderer : public Module::Renderer
   {
   public:
     Renderer(const ModuleData& data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Engine(MakePtr<GbaEngine>(data))
-      , Stream(data.CreateStream())
-      , Iterator(Module::CreateStreamStateIterator(Stream))
-      , State(Iterator->GetStateObserver())
+      , State(MakePtr<TimedState>(data.Meta->Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(Module::CreateFadingReceiver(std::move(params), Stream, State, std::move(target)))
+      , Params(params)
+      , Target(Module::CreateFadingReceiver(std::move(params), data.Meta->Duration, State, std::move(target)))
     {
     }
 
@@ -264,11 +254,12 @@ namespace GSF
       try
       {
         ApplyParameters();
-        auto data = Engine->Render(SamplesPerFrame);
+
+        const auto avail = State->Consume(FRAME_DURATION, looped);
+        auto data = Engine->Render(GetSamples(avail));
         Analyzer->AddSoundData(data);
         Target->ApplyData(std::move(data));
-        Iterator->NextFrame(looped);
-        return Iterator->IsValid();
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -278,49 +269,44 @@ namespace GSF
 
     void Reset() override
     {
-      SoundParams.Reset();
-      Iterator->Reset();
+      Params.Reset();
+      State->Reset();
       Engine->Reset();
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      SeekTune(frame);
-      Module::SeekIterator(*Iterator, frame);
-    }
-  private:
-    void ApplyParameters()
-    {
-      if (SoundParams.IsChanged())
-      {
-        //TODO: rework
-        SamplesPerFrame = Stream.FrameDuration.Get() * SoundParams->SoundFreq() / Stream.FrameDuration.PER_SECOND;
-        Engine->SetParameters(*SoundParams);
-      }
-    }
-
-    void SeekTune(uint_t frame)
-    {
-      uint_t current = State->Frame();
-      if (frame < current)
+      if (request < State->At())
       {
         Engine->Reset();
-        current = 0;
       }
-      if (const uint_t delta = frame - current)
+      const auto toSkip = State->Seek(request);
+      if (toSkip.Get())
       {
-        Engine->Skip(delta * SamplesPerFrame);
+        Engine->Skip(GetSamples(toSkip));
+      }
+    }
+  private:
+    uint_t GetSamples(Time::Microseconds period) const
+    {
+      return period.Get() * SoundFrequency / period.PER_SECOND;
+    }
+
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        SoundFrequency = Sound::GetSoundFrequency(*Params);
+        Engine->SetFrequency(SoundFrequency);
       }
     }
   private:
     const GbaEngine::Ptr Engine;
-    const FramedStream Stream;
-    const StateIterator::Ptr Iterator;
-    const Module::State::Ptr State;
+    const TimedState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
-    uint_t SamplesPerFrame = 0;
+    uint_t SoundFrequency = 0;
   };
 
   class Holder : public Module::Holder
@@ -334,7 +320,7 @@ namespace GSF
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return CreateStreamInfo(Tune->CreateStream());
+      return CreateTimedInfo(Tune->Meta->Duration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override

@@ -18,6 +18,7 @@
 #include <core/plugin_attrs.h>
 #include <module/players/aym/aym_base.h>
 #include <module/players/aym/aym_parameters.h>
+#include <sound/render_params.h>
 //std includes
 #include <utility>
 
@@ -31,11 +32,11 @@ namespace Module
     {
     }
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {
-        return AYM::CreateHolder(chiptune);
+        return AYM::CreateHolder(Sound::GetFrameDuration(params), std::move(chiptune));
       }
       else
       {

@@ -21,6 +21,7 @@
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <parameters/tracking_helper.h>
+#include <sound/render_params.h>
 //text includes
 #include <core/text/plugins.h>
 #include <module/text/platforms.h>
@@ -245,9 +246,9 @@ namespace ProTracker3
       return Properties;
     }
 
-    AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
+    AYM::DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration, AYM::TrackParameters::Ptr trackParams) const override
     {
-      auto iterator = CreateTrackStateIterator(Data);
+      auto iterator = CreateTrackStateIterator(frameDuration, Data);
       auto renderer = CreateDataRenderer(Data, 0);
       return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
@@ -463,9 +464,9 @@ namespace ProTracker3
         return Properties;
       }
 
-      TurboSound::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr /*second*/) const override
+      TurboSound::DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration, AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr /*second*/) const override
       {
-        auto iterator = CreateTrackStateIterator(Data);
+        auto iterator = CreateTrackStateIterator(frameDuration, Data);
         return MakePtr<DataIterator>(std::move(first), std::move(iterator), 
           Vortex::CreateDataRenderer(Data, 0), Vortex::CreateDataRenderer(Data, AYM::TRACK_CHANNELS));
       }
@@ -483,7 +484,7 @@ namespace ProTracker3
     {
     }
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -493,18 +494,19 @@ namespace ProTracker3
         props.SetPlatform(Platforms::ZX_SPECTRUM);
         const uint_t patOffset = dataBuilder.GetPatOffset();
         auto modData = dataBuilder.CaptureResult();
+        const auto frameDuration = Sound::GetFrameDuration(params);
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
           //TurboSound modules
           props.SetComment(Text::PT3_TURBOSOUND_MODULE);
           modData->Patterns = TS::CreatePatterns(patOffset, std::move(modData->Patterns));
           auto chiptune = MakePtr<TS::Chiptune>(std::move(modData), std::move(properties));
-          return TurboSound::CreateHolder(std::move(chiptune));
+          return TurboSound::CreateHolder(frameDuration, std::move(chiptune));
         }
         else
         {
           auto chiptune = MakePtr<Chiptune>(std::move(modData), std::move(properties));
-          return AYM::CreateHolder(std::move(chiptune));
+          return AYM::CreateHolder(frameDuration, std::move(chiptune));
         }
       }
       return {};

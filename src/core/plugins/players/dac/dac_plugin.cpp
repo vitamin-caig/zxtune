@@ -18,6 +18,7 @@
 #include <module/players/dac/dac_base.h>
 #include <module/players/dac/dac_parameters.h>
 #include <sound/mixer_factory.h>
+#include <sound/render_params.h>
 //std includes
 #include <utility>
 
@@ -49,14 +50,15 @@ namespace Module
   class DACHolder : public Holder
   {
   public:
-    explicit DACHolder(DAC::Chiptune::Ptr chiptune)
-      : Tune(std::move(chiptune))
+    DACHolder(Time::Microseconds frameDuration, DAC::Chiptune::Ptr chiptune)
+      : FrameDuration(frameDuration)
+      , Tune(std::move(chiptune))
     {
     }
 
     Information::Ptr GetModuleInformation() const override
     {
-      return CreateTrackInfo(Tune->GetTrackModel());
+      return CreateTrackInfo(FrameDuration, Tune->GetTrackModel());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -66,12 +68,13 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      auto iterator = Tune->CreateDataIterator();
+      auto iterator = Tune->CreateDataIterator(FrameDuration);
       auto chip = CreateChip(Tune->GetTrackModel()->GetChannelsCount(), params, std::move(target));
       Tune->GetSamples(chip);
       return DAC::CreateRenderer(*params, std::move(iterator), std::move(chip));
     }
   private:
+    const Time::Microseconds FrameDuration;
     const DAC::Chiptune::Ptr Tune;
   };
 
@@ -83,11 +86,11 @@ namespace Module
     {
     }
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {
-        return MakePtr<DACHolder>(std::move(chiptune));
+        return MakePtr<DACHolder>(Sound::GetFrameDuration(params), std::move(chiptune));
       }
       else
       {

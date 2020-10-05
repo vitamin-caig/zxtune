@@ -27,7 +27,6 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/resampler.h>
-#include <sound/sound_parameters.h>
 //std includes
 #include <list>
 //3rdparty includes
@@ -63,15 +62,6 @@ namespace SDSF
       {
         return 60;//NTSC by default
       }
-    }
-
-    //TODO: use TimedStream
-    FramedStream CreateStream() const
-    {
-      FramedStream result;
-      result.FrameDuration = Time::Microseconds::FromFrequency(GetRefreshRate());
-      result.TotalFrames = Meta->Duration.Divide<uint_t>(result.FrameDuration);
-      return result;
     }
   };
   
@@ -190,18 +180,22 @@ namespace SDSF
     std::unique_ptr<uint8_t[]> Emu;
   };
   
+  const auto FRAME_DURATION = Time::Milliseconds(100);
+
+  uint_t GetSamples(Time::Microseconds period)
+  {
+    return period.Get() * SegaEngine::SAMPLERATE / period.PER_SECOND;
+  }
+
   class Renderer : public Module::Renderer
   {
   public:
     Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Data(std::move(data))
-      , Stream(Data->CreateStream())
-      , Iterator(Module::CreateStreamStateIterator(Stream))
-      , State(Iterator->GetStateObserver())
+      , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(Module::CreateFadingReceiver(std::move(params), Stream, State, std::move(target)))
-      , SamplesPerFrame(Stream.FrameDuration.Get() * SegaEngine::SAMPLERATE / Stream.FrameDuration.PER_SECOND)
+      , Params(params)
+      , Target(Module::CreateFadingReceiver(std::move(params), Data->Meta->Duration, State, std::move(target)))
     {
       Engine.Initialize(*Data);
     }
@@ -222,11 +216,12 @@ namespace SDSF
       {
         ApplyParameters();
 
-        auto data = Engine.Render(SamplesPerFrame);
+        const auto avail = State->Consume(FRAME_DURATION, looped);
+
+        auto data = Engine.Render(GetSamples(avail));
         Analyzer->AddSoundData(data);
         Resampler->ApplyData(std::move(data));
-        Iterator->NextFrame(looped);
-        return Iterator->IsValid();
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -236,49 +231,40 @@ namespace SDSF
 
     void Reset() override
     {
-      SoundParams.Reset();
-      Iterator->Reset();
+      Params.Reset();
+      State->Reset();
       Engine.Initialize(*Data);
     }
 
-    void SetPosition(uint_t frame) override
+
+    void SetPosition(Time::AtMillisecond request) override
     {
-      SeekTune(frame);
-      Module::SeekIterator(*Iterator, frame);
+      if (request < State->At())
+      {
+        Engine.Initialize(*Data);
+      }
+      const auto toSkip = State->Seek(request);
+      if (toSkip.Get())
+      {
+        Engine.Skip(GetSamples(toSkip));
+      }
     }
   private:
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Resampler = Sound::CreateResampler(SegaEngine::SAMPLERATE, SoundParams->SoundFreq(), Target);
-      }
-    }
-
-    void SeekTune(uint_t frame)
-    {
-      uint_t current = State->Frame();
-      if (frame < current)
-      {
-        Engine.Initialize(*Data);
-        current = 0;
-      }
-      if (const uint_t delta = frame - current)
-      {
-        Engine.Skip(delta * SamplesPerFrame);
+        Resampler = Sound::CreateResampler(SegaEngine::SAMPLERATE, Sound::GetSoundFrequency(*Params), Target);
       }
     }
   private:
     const ModuleData::Ptr Data;
-    const FramedStream Stream;
-    const StateIterator::Ptr Iterator;
-    const Module::State::Ptr State;
+    const TimedState::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
     SegaEngine Engine;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    const uint_t SamplesPerFrame;
   };
 
   class Holder : public Module::Holder
@@ -292,7 +278,7 @@ namespace SDSF
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return CreateStreamInfo(Tune->CreateStream());
+      return CreateTimedInfo(Tune->Meta->Duration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override

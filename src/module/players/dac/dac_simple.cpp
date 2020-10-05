@@ -185,9 +185,9 @@ namespace Module
         return Properties;
       }
 
-      DAC::DataIterator::Ptr CreateDataIterator() const override
+      DAC::DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration) const override
       {
-        auto iterator = CreateTrackStateIterator(Data);
+        auto iterator = CreateTrackStateIterator(frameDuration, Data);
         auto renderer = MakePtr<SimpleDataRenderer>(Data);
         return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
       }

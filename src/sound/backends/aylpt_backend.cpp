@@ -128,7 +128,8 @@ namespace AyLpt
     virtual void FrameStart(const Module::State& state)
     {
       WaitForNextFrame();
-      const uint8_t* regs = static_cast<const uint8_t*>(Data->Start()) + state.Frame() * Devices::AYM::Registers::TOTAL;
+      const auto frame = state.At().CastTo<Time::Microsecond>().Get() / FrameDuration.count();
+      const uint8_t* regs = static_cast<const uint8_t*>(Data->Start()) + frame * Devices::AYM::Registers::TOTAL;
       WriteRegisters(regs);
     }
 

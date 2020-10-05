@@ -20,10 +20,12 @@ namespace Module
 {
   namespace DAC
   {
-    class DataIterator : public StateIterator
+    class DataIterator : public Iterator
     {
     public:
       typedef std::shared_ptr<DataIterator> Ptr;
+
+      virtual State::Ptr GetStateObserver() const = 0;
 
       virtual void GetData(Devices::DAC::Channels& data) const = 0;
     };
@@ -36,7 +38,7 @@ namespace Module
 
       virtual TrackModel::Ptr GetTrackModel() const = 0;
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator() const = 0;
+      virtual DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration) const = 0;
       virtual void GetSamples(Devices::DAC::Chip::Ptr chip) const = 0;
     };
   }

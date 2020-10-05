@@ -28,8 +28,9 @@ namespace Module
   class AYMHolder : public AYM::Holder
   {
   public:
-    explicit AYMHolder(AYM::Chiptune::Ptr chiptune)
-      : Tune(std::move(chiptune))
+    AYMHolder(Time::Microseconds frameDuration, AYM::Chiptune::Ptr chiptune)
+      : FrameDuration(frameDuration)
+      , Tune(std::move(chiptune))
     {
     }
 
@@ -37,16 +38,11 @@ namespace Module
     {
       if (auto track = Tune->FindTrackModel())
       {
-        return CreateTrackInfo(std::move(track));
+        return CreateTrackInfo(FrameDuration, std::move(track));
       }
       else
       {
-        const auto stream = Tune->FindStreamModel();
-        FramedStream result;
-        result.TotalFrames = stream->GetTotalFrames();
-        result.LoopFrame = stream->GetLoopFrame();
-        result.FrameDuration = Sound::GetFrameDuration(*GetModuleProperties());
-        return CreateStreamInfo(std::move(result));
+        return CreateStreamInfo(FrameDuration, Tune->FindStreamModel());
       }
     }
 
@@ -63,7 +59,7 @@ namespace Module
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
     {
       auto trackParams = AYM::TrackParameters::Create(params);
-      auto iterator = Tune->CreateDataIterator(std::move(trackParams));
+      auto iterator = Tune->CreateDataIterator(FrameDuration, std::move(trackParams));
       return AYM::CreateRenderer(*params, std::move(iterator), std::move(chip));
     }
 
@@ -72,6 +68,7 @@ namespace Module
       return Tune;
     }
   private:
+    const Time::Microseconds FrameDuration;
     const AYM::Chiptune::Ptr Tune;
   };
 
@@ -130,21 +127,19 @@ namespace Module
       LastChunk.TimeStamp = {};
     }
 
-    void SetPosition(uint_t frameNum) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      uint_t curFrame = GetState()->Frame();
-      if (curFrame > frameNum)
+      const auto state = GetState();
+      if (request < state->At())
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = Devices::AYM::Stamp();
-        curFrame = 0;
       }
-      while (curFrame < frameNum && Iterator->IsValid())
+      while (state->At() < request && Iterator->IsValid())
       {
         TransferChunk();
         Iterator->NextFrame({});
-        ++curFrame;
       }
     }
   private:
@@ -165,9 +160,9 @@ namespace Module
 {
   namespace AYM
   {
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+    Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune)
     {
-      return MakePtr<AYMHolder>(std::move(chiptune));
+      return MakePtr<AYMHolder>(frameDuration, std::move(chiptune));
     }
 
     Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device)

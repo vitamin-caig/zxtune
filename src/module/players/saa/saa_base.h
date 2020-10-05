@@ -84,10 +84,12 @@ namespace Module
       virtual void Reset() = 0;
     };
 
-    class DataIterator : public StateIterator
+    class DataIterator : public Iterator
     {
     public:
       typedef std::shared_ptr<DataIterator> Ptr;
+
+      virtual State::Ptr GetStateObserver() const = 0;
 
       virtual Devices::SAA::Registers GetData() const = 0;
     };
@@ -100,7 +102,7 @@ namespace Module
 
       virtual TrackModel::Ptr GetTrackModel() const = 0;
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator() const = 0;
+      virtual DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration) const = 0;
     };
 
     Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device);
@@ -109,6 +111,6 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
 
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
+    Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune);
   }
 }

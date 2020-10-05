@@ -39,7 +39,7 @@ namespace
     {
     }
 
-    void SetPosition(uint_t /*frame*/) override
+    void SetPosition(Time::AtMillisecond /*request*/) override
     {
     }
     
@@ -147,11 +147,11 @@ namespace
       }
     }
 
-    void Seek(int frame) override
+    void Seek(Time::AtMillisecond request) override
     {
       try
       {
-        Control->SetPosition(frame);
+        Control->SetPosition(request);
       }
       catch (const Error& e)
       {

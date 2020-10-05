@@ -17,6 +17,7 @@
 #include <core/plugin_attrs.h>
 #include <module/players/tfm/tfm_base.h>
 #include <module/players/tfm/tfm_parameters.h>
+#include <sound/render_params.h>
 //std includes
 #include <utility>
 
@@ -25,14 +26,15 @@ namespace Module
   class TFMHolder : public Holder
   {
   public:
-    explicit TFMHolder(TFM::Chiptune::Ptr chiptune)
-      : Tune(std::move(chiptune))
+    TFMHolder(Time::Microseconds frameDuration, TFM::Chiptune::Ptr chiptune)
+      : FrameDuration(frameDuration)
+      , Tune(std::move(chiptune))
     {
     }
 
     Information::Ptr GetModuleInformation() const override
     {
-      return Tune->GetInformation();
+      return Tune->GetInformation(FrameDuration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -44,10 +46,11 @@ namespace Module
     {
       auto chipParams = TFM::CreateChipParameters(params);
       auto chip = Devices::TFM::CreateChip(std::move(chipParams), std::move(target));
-      auto iterator = Tune->CreateDataIterator();
+      auto iterator = Tune->CreateDataIterator(FrameDuration);
       return TFM::CreateRenderer(*params, std::move(iterator), std::move(chip));
     }
   private:
+    const Time::Microseconds FrameDuration;
     const TFM::Chiptune::Ptr Tune;
   };
 
@@ -59,11 +62,11 @@ namespace Module
     {
     }
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {
-        return MakePtr<TFMHolder>(chiptune);
+        return MakePtr<TFMHolder>(Sound::GetFrameDuration(params), std::move(chiptune));
       }
       else
       {

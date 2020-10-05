@@ -26,10 +26,8 @@
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/resampler.h>
-#include <sound/sound_parameters.h>
 //3rdparty
 #include <3rdparty/snesspc/snes_spc/SNES_SPC.h>
 #include <3rdparty/snesspc/snes_spc/SPC_Filter.h>
@@ -53,15 +51,6 @@ namespace SPC
       : Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
       , Duration(duration)
     {
-    }
-
-    //TODO: use TimedStream
-    FramedStream CreateStream(const Parameters::Accessor& params) const
-    {
-      FramedStream stream;
-      stream.FrameDuration = Time::Milliseconds(20);
-      stream.TotalFrames = (Duration.Get() ? Duration : GetDefaultDuration(params)).Divide<uint_t>(stream.FrameDuration);
-      return stream;
     }
   };
 
@@ -100,13 +89,15 @@ namespace SPC
       Filter.set_gain(::SPC_Filter::gain_unit * 1.4);//as in GME
     }
     
-    void Render(uint_t samples, Sound::ChunkBuilder& target)
+    Sound::Chunk Render(uint_t samples)
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
-      ::SNES_SPC::sample_t* const buffer = safe_ptr_cast< ::SNES_SPC::sample_t*>(target.Allocate(samples));
+      Sound::Chunk result(samples);
+      ::SNES_SPC::sample_t* const buffer = safe_ptr_cast< ::SNES_SPC::sample_t*>(result.data());
       CheckError(Spc.play(samples * Sound::Sample::CHANNELS, buffer));
       Filter.run(buffer, samples * Sound::Sample::CHANNELS);
+      return result;
     }
     
     void Skip(uint_t samples)
@@ -202,23 +193,28 @@ namespace SPC
     Devices::Details::AnalysisMap Analysis;
   };
 
+  const auto FRAME_DURATION = Time::Milliseconds(100);
+
+  uint_t GetSamples(Time::Microseconds period)
+  {
+    return period.Get() * ::SNES_SPC::sample_rate / period.PER_SECOND;
+  }
+
   class Renderer : public Module::Renderer
   {
   public:
     Renderer(Model::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
       , Engine(MakePtr<SPC>(Tune->Data))
-      , Stream(Tune->CreateStream(*params))
-      , Iterator(CreateStreamStateIterator(Stream))
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+      , State(MakePtr<TimedState>(Tune->Duration))
+      , Params(std::move(params))
       , Target(std::move(target))
-      , SamplesPerFrame(Stream.FrameDuration.Get() * ::SNES_SPC::sample_rate / Stream.FrameDuration.PER_SECOND)
     {
     }
 
-    State::Ptr GetState() const override
+    Module::State::Ptr GetState() const override
     {
-      return Iterator->GetStateObserver();
+      return State;
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
@@ -232,12 +228,9 @@ namespace SPC
       {
         ApplyParameters();
 
-        Sound::ChunkBuilder builder;
-        builder.Reserve(SamplesPerFrame);
-        Engine->Render(SamplesPerFrame, builder);
-        Resampler->ApplyData(builder.CaptureResult());
-        Iterator->NextFrame(looped);
-        return Iterator->IsValid();
+        const auto avail = State->Consume(FRAME_DURATION, looped);
+        Resampler->ApplyData(Engine->Render(GetSamples(avail)));
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -247,62 +240,52 @@ namespace SPC
 
     void Reset() override
     {
-      SoundParams.Reset();
+      Params.Reset();
       Engine->Reset();
-      Iterator->Reset();
+      State->Reset();
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      SeekTune(frame);
-      Module::SeekIterator(*Iterator, frame);
+      if (request < State->At())
+      {
+        Engine->Reset();
+      }
+      const auto toSkip = State->Seek(request);
+      if (toSkip.Get())
+      {
+        Engine->Skip(GetSamples(toSkip));
+      }
     }
   private:
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Resampler = Sound::CreateResampler(::SNES_SPC::sample_rate, SoundParams->SoundFreq(), Target);
-      }
-    }
-
-    void SeekTune(uint_t frame)
-    {
-      uint_t current = GetState()->Frame();
-      if (frame < current)
-      {
-        Engine->Reset();
-        current = 0;
-      }
-      if (const uint_t delta = frame - current)
-      {
-        Engine->Skip(delta * SamplesPerFrame);
+        Resampler = Sound::CreateResampler(::SNES_SPC::sample_rate, Sound::GetSoundFrequency(*Params), Target);
       }
     }
   private:
     const Model::Ptr Tune;
     const SPC::Ptr Engine;
-    const FramedStream Stream;
-    const StateIterator::Ptr Iterator;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    const TimedState::Ptr State;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    const uint_t SamplesPerFrame;
   };
   
   class Holder : public Module::Holder
   {
   public:
-    Holder(Model::Ptr tune, FramedStream stream, Parameters::Accessor::Ptr props)
+    Holder(Model::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
-      , Stream(std::move(stream))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return CreateStreamInfo(Stream);
+      return CreateTimedInfo(Tune->Duration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -316,7 +299,6 @@ namespace SPC
     }
   private:
     const Model::Ptr Tune;
-    const FramedStream Stream;
     const Parameters::Accessor::Ptr Properties;
   };
 
@@ -430,10 +412,14 @@ namespace SPC
           props.SetSource(*container);
           props.SetPlatform(Platforms::SUPER_NINTENDO_ENTERTAINMENT_SYSTEM);
 
-          auto tune = MakePtr<Model>(*container, dataBuilder.GetDuration());
+          auto duration = dataBuilder.GetDuration();
+          if (!duration.Get())
+          {
+            duration = GetDefaultDuration(params);
+          }
+          auto tune = MakePtr<Model>(*container, duration);
 
-          auto stream = tune->CreateStream(params);
-          return MakePtr<Holder>(std::move(tune), std::move(stream), std::move(properties));
+          return MakePtr<Holder>(std::move(tune), std::move(properties));
         }
       }
       catch (const std::exception& e)

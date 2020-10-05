@@ -51,18 +51,7 @@ namespace Ogg
     
     uint_t Frequency = 0;
     uint_t TotalSamples = 0;
-    uint_t FramesCount = 0;
-    uint_t SamplesPerFrame = 0;
     Binary::Data::Ptr Content;
-
-    //TODO: use TimedStream
-    FramedStream CreateStream() const
-    {
-      FramedStream result;
-      result.TotalFrames = FramesCount;
-      result.FrameDuration = Time::Microseconds::FromRatio(SamplesPerFrame, Frequency);
-      return result;
-    }
   };
   
   class OggTune
@@ -83,9 +72,9 @@ namespace Ogg
     
     Sound::Chunk RenderFrame()
     {
-      Sound::Chunk chunk(Data->SamplesPerFrame);
-      const auto samples = ::stb_vorbis_get_samples_short_interleaved(Decoder.get(), Sound::Sample::CHANNELS, safe_ptr_cast<short*>(chunk.data()), int(Sound::Sample::CHANNELS * chunk.size()));
-      chunk.resize(samples);
+      Sound::Chunk chunk(Data->Frequency / 10);
+      const auto done = ::stb_vorbis_get_samples_short_interleaved(Decoder.get(), Sound::Sample::CHANNELS, safe_ptr_cast<short*>(chunk.data()), int(Sound::Sample::CHANNELS * chunk.size()));
+      chunk.resize(done);
       return chunk;
     }
     
@@ -100,9 +89,8 @@ namespace Ogg
       Decoder = decoder;
     }
     
-    void Seek(uint_t frame)
+    void Seek(uint64_t sample)
     {
-      const auto sample = int(Data->SamplesPerFrame) * frame;
       if (!::stb_vorbis_seek(Decoder.get(), sample))
       {
         throw Error(THIS_LINE, "Failed to seek");
@@ -119,10 +107,9 @@ namespace Ogg
   public:
     Renderer(Model::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(data)
-      , Iterator(CreateStreamStateIterator(data->CreateStream()))
-      , State(Iterator->GetStateObserver())
+      , State(MakePtr<SampledState>(data->TotalSamples, data->Frequency))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+      , Params(std::move(params))
       , Target(std::move(target))
     {
     }
@@ -143,15 +130,16 @@ namespace Ogg
       {
         ApplyParameters();
 
+        const auto loops = State->LoopCount();
         auto frame = Tune.RenderFrame();
+        State->Consume(frame.size(), looped);
         Analyzer->AddSoundData(frame);
         Resampler->ApplyData(std::move(frame));
-        Iterator->NextFrame(looped);
-        if (0 == State->Frame())
+        if (State->LoopCount() != loops)
         {
           Tune.Seek(0);
         }
-        return Iterator->IsValid();
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -162,29 +150,28 @@ namespace Ogg
     void Reset() override
     {
       Tune.Reset();
-      SoundParams.Reset();
-      Iterator->Reset();
+      Params.Reset();
+      State->Reset();
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      Tune.Seek(frame);
-      Module::SeekIterator(*Iterator, frame);
+      State->Seek(request);
+      Tune.Seek(State->AtSample());
     }
   private:
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Resampler = Sound::CreateResampler(Tune.GetFrequency(), SoundParams->SoundFreq(), Target);
+        Resampler = Sound::CreateResampler(Tune.GetFrequency(), Sound::GetSoundFrequency(*Params), Target);
       }
     }
   private:
     OggTune Tune;
-    const StateIterator::Ptr Iterator;
-    const Module::State::Ptr State;
+    const SampledState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
   };
@@ -200,7 +187,7 @@ namespace Ogg
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return CreateStreamInfo(Data->CreateStream());
+      return CreateSampledInfo(Data->Frequency, Data->TotalSamples);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -231,7 +218,7 @@ namespace Ogg
       return Meta;
     }
 
-    void SetStreamId(uint32_t id) override {};
+    void SetStreamId(uint32_t /*id*/) override {};
     void SetProperties(uint_t /*channels*/, uint_t frequency, uint_t /*blockSizeLo*/, uint_t /*blockSizeHi*/) override
     {
       Data->Frequency = frequency;
@@ -242,13 +229,6 @@ namespace Ogg
     void AddFrame(std::size_t /*offset*/, uint_t samples, Binary::View /*data*/) override
     {
       Data->TotalSamples += samples;
-    }
-    
-    void SetFrameDuration(Time::Microseconds frameDuration)
-    {
-      const auto totalDuration = Time::Microseconds::FromRatio(Data->TotalSamples, Data->Frequency);
-      Data->FramesCount = std::max<uint_t>(1, totalDuration.Divide<uint_t>(frameDuration));
-      Data->SamplesPerFrame = Data->TotalSamples / Data->FramesCount;
     }
     
     void SetContent(Binary::Data::Ptr data)
@@ -275,7 +255,7 @@ namespace Ogg
   class Factory : public Module::Factory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -287,7 +267,6 @@ namespace Ogg
           {
             props.SetSource(*container);
             dataBuilder.SetContent(container);
-            dataBuilder.SetFrameDuration(Sound::GetFrameDuration(params));
             return MakePtr<Holder>(std::move(data), std::move(properties));
           }
         }

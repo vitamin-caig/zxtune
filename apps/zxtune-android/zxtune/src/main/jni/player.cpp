@@ -166,11 +166,6 @@ namespace
       }
       return 0;
     }
-
-    uint_t GetFramesDone() const
-    {
-      return Frames;
-    }
   private:
     std::clock_t LastStart = 0;
     std::clock_t Clocks = 0;
@@ -221,8 +216,8 @@ namespace
   class PlayerControl : public Player::Control
   {
   public:
-    PlayerControl(uint_t totalFrames, Parameters::Accessor::Ptr props, Parameters::Modifier::Ptr params, Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
-      : TotalFrames(totalFrames)
+    PlayerControl(Time::Milliseconds duration, Parameters::Accessor::Ptr props, Parameters::Modifier::Ptr params, Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
+      : Duration(duration)
       , Props(std::move(props))
       , Params(std::move(params))
       , Renderer(std::move(render))
@@ -244,7 +239,7 @@ namespace
     
     uint_t GetPosition() const override
     {
-      return State->Frame();
+      return State->At().CastTo<Player::TimeBase>().Get();
     }
 
     uint_t Analyze(uint_t maxEntries, uint8_t* levels) const override
@@ -276,9 +271,9 @@ namespace
       return samples == 0;
     }
 
-    void Seek(uint_t frame) override
+    void Seek(uint_t pos) override
     {
-      Renderer->SetPosition(frame);
+      Renderer->SetPosition(Time::Instant<Player::TimeBase>(pos));
     }
 
     uint_t GetPlaybackPerformance() const override
@@ -288,9 +283,13 @@ namespace
       return RenderingPerformance.Measure(Buffer->GetTotalSamplesDone(), sampleRate);
     }
 
+    //TODO: move to State
     uint_t GetPlaybackProgress() const override
     {
-      return static_cast<uint_t>(100ull * RenderingPerformance.GetFramesDone() / TotalFrames);
+      Parameters::IntType sampleRate = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      Props->FindValue(Parameters::ZXTune::Sound::FREQUENCY, sampleRate);
+      const auto played = Time::Microseconds::FromRatio(Buffer->GetTotalSamplesDone(), sampleRate);
+      return (played * 100).Divide<uint_t>(Duration);
     }
   private:
     void ApplyParameters()
@@ -301,7 +300,7 @@ namespace
       }
     }
   private:
-    const uint_t TotalFrames;
+    const Time::Milliseconds Duration;
     Parameters::TrackingHelper<Parameters::Accessor> Props;
     const Parameters::Modifier::Ptr Params;
     const Module::Renderer::Ptr Renderer;
@@ -314,8 +313,8 @@ namespace
 
   Player::Control::Ptr CreateControl(Module::Holder::Ptr module)
   {
-    const auto frames = module->GetModuleInformation()->FramesCount();
-    Require(frames != 0);
+    const auto duration = module->GetModuleInformation()->Duration();
+    Require(duration.Get() != 0);
     auto globalParameters = MakeSingletonPointer(Parameters::GlobalOptions());
     auto localParameters = Parameters::Container::Create();
     auto internalProperties = module->GetModuleProperties();
@@ -323,7 +322,7 @@ namespace
     auto buffer = MakePtr<BufferTarget>();
     auto pipeline = Sound::CreateSilenceDetector(properties, buffer);
     auto renderer = module->CreateRenderer(properties, std::move(pipeline));
-    return MakePtr<PlayerControl>(frames, std::move(properties), std::move(localParameters), std::move(renderer), std::move(buffer));
+    return MakePtr<PlayerControl>(duration, std::move(properties), std::move(localParameters), std::move(renderer), std::move(buffer));
   }
 
   template<class StorageType, class ResultType>

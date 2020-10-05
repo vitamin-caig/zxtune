@@ -39,36 +39,24 @@ namespace Module
 namespace Mp3
 {
   const Debug::Stream Dbg("Core::Mp3Supp");
-  
-  struct Accumulator
-  {
-    uint64_t Total = 0;
-    uint_t Count = 0;
-    uint_t Min = 0;
-    uint_t Max = 0;
 
-    void Add(uint_t val)
+  const auto SEEK_PRECISION = Time::Milliseconds(2000);
+
+  struct SeekPoint
+  {
+    Time::AtMillisecond Start;
+    uint_t Offset;
+    uint_t Frames = 1;
+
+    SeekPoint(Time::AtMillisecond start, uint_t offset)
+      : Start(start)
+      , Offset(offset)
     {
-      Total += val;
-      if (Count++)
-      {
-        Min = std::min(Min, val);
-        Max = std::max(Max, val);
-      }
-      else
-      {
-        Min = Max = val;
-      }
     }
-    
-    const uint_t* SingleValue() const
+
+    bool operator < (Time::AtMillisecond pos) const
     {
-      return Min == Max ? &Min : nullptr;
-    }
-    
-    uint_t Avg() const
-    {
-      return static_cast<uint_t>((Total + (Count / 2)) / Count);
+      return Start < pos;
     }
   };
   
@@ -77,20 +65,9 @@ namespace Mp3
     using RWPtr = std::shared_ptr<Model>;
     using Ptr = std::shared_ptr<const Model>;
     
-    Accumulator Frequency;
-    Accumulator Samples;
-    std::vector<Formats::Chiptune::Mp3::Frame::DataLocation> Frames;
+    std::vector<SeekPoint> Lookup;
     Time::Microseconds Duration;
     Binary::Data::Ptr Content;
-
-    //TODO: use TimedStream
-    FramedStream CreateStream() const
-    {
-      FramedStream stream;
-      stream.TotalFrames = Frames.size();
-      stream.FrameDuration = decltype(Duration)(Duration.Get() / stream.TotalFrames);
-      return stream;
-    }
   };
   
   struct FrameSound
@@ -144,58 +121,68 @@ namespace Mp3
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
     }
     
-    FrameSound RenderFrame(uint_t idx)
-    {
-      const uint_t RENDER_FRAMES_LOOKAHEAD = 4;
-      const auto& frame = GetMergedFrame(idx, RENDER_FRAMES_LOOKAHEAD);
-      FrameSound result;
-      mp3dec_frame_info_t info;
-      const auto resultSamples = ::mp3dec_decode_frame(&Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + frame.Offset, int(frame.Size), result.GetTarget(), &info);
-      if (!resultSamples)
-      {
-        Dbg("No samples for frame @0x%1$08x..0x%2$08x", frame.Offset, frame.Offset + frame.Size - 1);
-      }
-      result.Finalize(resultSamples, info);
-      return result;
-    }
-    
     void Reset()
     {
       ::mp3dec_init(&Decoder);
+      Offset = Data->Lookup.front().Offset;
     }
-    
-    void Seek(uint_t idx)
+
+    FrameSound RenderNextFrame()
     {
-      Reset();
-      const uint_t SEEK_FRAMES_LOOKAHEAD = 8;
-      auto frame = idx <= SEEK_FRAMES_LOOKAHEAD ? GetMergedFrame(0, idx) : GetMergedFrame(idx - SEEK_FRAMES_LOOKAHEAD, SEEK_FRAMES_LOOKAHEAD);
-      while (frame.Size)
+      const auto total = Data->Content->Size();
+      FrameSound result;
+      mp3dec_frame_info_t info;
+      while (Offset < total)
       {
-        mp3dec_frame_info_t info;
-        ::mp3dec_decode_frame(&Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + frame.Offset, int(frame.Size), nullptr, &info);
-        if (info.frame_bytes)
+        const auto resultSamples = ::mp3dec_decode_frame(&Decoder,
+          static_cast<const uint8_t*>(Data->Content->Start()) + Offset, int(total - Offset), result.GetTarget(), &info);
+        Offset += info.frame_bytes;
+        result.Finalize(resultSamples, info);
+        if (resultSamples || !info.frame_bytes)
         {
-          frame.Offset += info.frame_bytes;
-          frame.Size -= info.frame_bytes;
-        }
-        else
-        {
-          Dbg("Failed to decode frame @0x%1$08x..0x%2$08x", frame.Offset, frame.Offset + frame.Size - 1);
+          break;
         }
       }
-    }
-  private:
-    Formats::Chiptune::Mp3::Frame::DataLocation GetMergedFrame(uint_t start, uint_t size) const
-    {
-      auto result = Data->Frames.at(start);
-      const auto end = start + size;
-      const auto limit = end < Data->Frames.size() ? Data->Frames[end].Offset : Data->Content->Size();
-      result.Size = limit - result.Offset;
       return result;
+    }
+
+    // Returns real position
+    Time::AtMicrosecond Seek(Time::AtMillisecond request)
+    {
+      Reset();
+      auto lookup = std::lower_bound(Data->Lookup.begin(), Data->Lookup.end(), request);
+      for (uint_t preFrames = 0; lookup != Data->Lookup.begin() && preFrames < 10;)
+      {
+        --lookup;
+        preFrames += lookup->Frames;
+      }
+      auto offset = lookup->Offset;
+      auto size = Data->Content->Size() - offset;
+      const Time::AtMicrosecond target = request;
+      Time::AtMicrosecond pos = lookup->Start;
+      while (pos < target)
+      {
+        mp3dec_frame_info_t info;
+        if (const auto samples = ::mp3dec_decode_frame(&Decoder,
+          static_cast<const uint8_t*>(Data->Content->Start()) + offset, int(size), nullptr, &info))
+        {
+          offset += info.frame_bytes;
+          size -= info.frame_bytes;
+          pos += Time::Microseconds::FromRatio(samples, info.hz);
+        }
+        else if (!info.frame_bytes)
+        {
+          Dbg("Failed to decode frame for seek @0x%1$08x", offset);
+          break;
+        }
+      }
+      Offset = offset;
+      return pos;
     }
   private:
     const Model::Ptr Data;
     mp3dec_t Decoder;
+    std::size_t Offset = 0;
   };
   
   class MultiFreqTargetsDispatcher
@@ -247,16 +234,15 @@ namespace Mp3
     uint_t TargetFreq;
     std::vector<std::pair<uint_t, Sound::Receiver::Ptr> > Resamplers;
   };
-  
+
   class Renderer : public Module::Renderer
   {
   public:
     Renderer(Model::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(data)
-      , Iterator(CreateStreamStateIterator(data->CreateStream()))
-      , State(Iterator->GetStateObserver())
+      , State(MakePtr<TimedState>(data->Duration))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+      , Params(std::move(params))
       , Target(std::move(target))
     {
     }
@@ -277,11 +263,21 @@ namespace Mp3
       {
         ApplyParameters();
 
-        auto frame = Tune.RenderFrame(State->Frame());
+        const auto loops = State->LoopCount();
+        auto frame = Tune.RenderNextFrame();
+        if (frame.Data.empty())
+        {
+          Dbg("Premature end at %1%us", State->PreciseAt().Get());
+        }
+        const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
+        State->Consume(rendered, looped);
         Analyzer->AddSoundData(frame.Data);
         Target.Put(std::move(frame));
-        Iterator->NextFrame(looped);
-        return Iterator->IsValid();
+        if (loops != State->LoopCount())
+        {
+          Tune.Reset();
+        }
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -292,29 +288,29 @@ namespace Mp3
     void Reset() override
     {
       Tune.Reset();
-      SoundParams.Reset();
-      Iterator->Reset();
+      Params.Reset();
+      State->Reset();
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      Tune.Seek(frame);
-      Module::SeekIterator(*Iterator, frame);
+      State->Seek(request);
+      const auto realPos = Tune.Seek(State->At());
+      State->Seek(realPos);
     }
   private:
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Target.SetTargetFreq(SoundParams->SoundFreq());
+        Target.SetTargetFreq(Sound::GetSoundFrequency(*Params));
       }
     }
   private:
     Mp3Tune Tune;
-    const StateIterator::Ptr Iterator;
-    const Module::State::Ptr State;
+    const TimedState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     MultiFreqTargetsDispatcher Target;
   };
   
@@ -329,7 +325,7 @@ namespace Mp3
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return CreateStreamInfo(Data->CreateStream());
+      return CreateTimedInfo(Data->Duration.CastTo<Time::Millisecond>());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -361,14 +357,20 @@ namespace Mp3
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
-    }
+    }                                     
 
     void AddFrame(const Formats::Chiptune::Mp3::Frame& frame) override
     {
-      Data->Frames.push_back(frame.Location);
-      Data->Frequency.Add(frame.Properties.Samplerate);
-      Data->Samples.Add(frame.Properties.SamplesCount);
-      Data->Duration += Time::Microseconds::FromRatio(frame.Properties.SamplesCount, frame.Properties.Samplerate);
+      const auto pos = Time::AtMillisecond() + Data->Duration.CastTo<Time::Millisecond>();
+      if (Data->Lookup.empty() || Data->Lookup.back().Start + SEEK_PRECISION < pos)
+      {
+        Data->Lookup.emplace_back(pos, frame.Location.Offset);
+      }
+      else
+      {
+        Data->Lookup.back().Frames++;
+      }
+      Data->Duration += Time::Microseconds::FromRatio(frame.Properties.SamplesCount, frame.Properties.Samplerate);;
     }
     
     void SetContent(Binary::Data::Ptr data)
@@ -384,33 +386,9 @@ namespace Mp3
       }
       else
       {
-        const auto freq = GetFrequency();
-        if (const auto frameSamples = Data->Samples.SingleValue())
-        {
-          Properties.SetFramesParameters(*frameSamples, freq);
-        }
-        else
-        {
-          const auto avg = Data->Samples.Avg();
-          Dbg("Use average frame samples %1%", avg);
-          Properties.SetFramesParameters(avg, freq);
-        }
-        Data->Frames.shrink_to_fit();
+        Dbg("Built %1% seek points", Data->Lookup.size());
+        Data->Lookup.shrink_to_fit();
         return Data;
-      }
-    }
-  private:
-    uint_t GetFrequency() const
-    {
-      if (const auto singleFreq = Data->Frequency.SingleValue())
-      {
-        return *singleFreq;
-      }
-      else
-      {
-        const auto avg = Data->Frequency.Avg();
-        Dbg("Use average frequency %1%", avg);
-        return avg;
       }
     }
   private:
