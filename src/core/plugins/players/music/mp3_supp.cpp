@@ -75,11 +75,7 @@ namespace Mp3
     uint_t Frequency = 0;
     Sound::Chunk Data;
 
-    FrameSound()
-      : Data(MINIMP3_MAX_SAMPLES_PER_FRAME / 2)
-    {
-    }
-    
+    FrameSound() = default;
     FrameSound(const FrameSound&) = delete;
     FrameSound& operator = (const FrameSound&) = delete;
     FrameSound(FrameSound&& rh) noexcept// = default
@@ -90,7 +86,8 @@ namespace Mp3
     
     Sound::Sample::Type* GetTarget()
     {
-       return safe_ptr_cast<Sound::Sample::Type*>(Data.data());
+      Data.resize(MINIMP3_MAX_SAMPLES_PER_FRAME);
+      return safe_ptr_cast<Sound::Sample::Type*>(Data.data());
     }
     
     void Finalize(uint_t resultSamples, const mp3dec_frame_info_t& info)
