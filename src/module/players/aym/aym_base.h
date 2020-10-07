@@ -34,7 +34,7 @@ namespace Module
     Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
     Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device);
 
-    Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device);
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device);
     Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
   }
 }

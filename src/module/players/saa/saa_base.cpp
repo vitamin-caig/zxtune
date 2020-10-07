@@ -15,7 +15,7 @@
 //library includes
 #include <math/numeric.h>
 #include <module/players/analyzer.h>
-#include <sound/render_params.h>
+#include <sound/loop.h>
 //std includes
 #include <utility>
 
@@ -79,16 +79,11 @@ namespace Module
   class SAARenderer : public Renderer
   {
   public:
-    SAARenderer(const Parameters::Accessor& params, SAA::DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
+    SAARenderer(Time::Microseconds frameDuration, SAA::DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration(Sound::GetFrameDuration(params))
+      , FrameDuration(frameDuration)
     {
-#ifndef NDEBUG
-//perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame({}));
-      Iterator->Reset();
-#endif
     }
 
     State::Ptr GetState() const override
@@ -180,10 +175,10 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      auto chipParams = SAA::CreateChipParameters(params);
+      auto chipParams = SAA::CreateChipParameters(std::move(params));
       auto chip = Devices::SAA::CreateChip(std::move(chipParams), std::move(target));
       auto iterator = Tune->CreateDataIterator(FrameDuration);
-      return SAA::CreateRenderer(*params, std::move(iterator), std::move(chip));
+      return SAA::CreateRenderer(FrameDuration, std::move(iterator), std::move(chip));
     }
   private:
     const Time::Microseconds FrameDuration;
@@ -255,9 +250,9 @@ namespace Module
       return MakePtr<SAADataIterator>(std::move(iterator), std::move(renderer));
     }
 
-    Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device)
     {
-      return MakePtr<SAARenderer>(params, std::move(iterator), std::move(device));
+      return MakePtr<SAARenderer>(frameDuration, std::move(iterator), std::move(device));
     }
 
     Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune)

@@ -14,7 +14,7 @@
 #include <make_ptr.h>
 //library includes
 #include <module/players/analyzer.h>
-#include <sound/render_params.h>
+#include <sound/loop.h>
 //std includes
 #include <utility>
 
@@ -23,16 +23,11 @@ namespace Module
   class TFMRenderer : public Renderer
   {
   public:
-    TFMRenderer(const Parameters::Accessor& params, TFM::DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
+    TFMRenderer(Time::Microseconds frameDuration, TFM::DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration(Sound::GetFrameDuration(params))
+      , FrameDuration(frameDuration)
     {
-#ifndef NDEBUG
-//perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame({}));
-      Iterator->Reset();
-#endif
     }
 
     State::Ptr GetState() const override
@@ -117,9 +112,9 @@ namespace Module
       return Analyzer::Ptr();
     }
 
-    Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
     {
-      return MakePtr<TFMRenderer>(params, std::move(iterator), std::move(device));
+      return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device));
     }
   }
 }

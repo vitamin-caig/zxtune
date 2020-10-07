@@ -22,7 +22,6 @@
 #include <parameters/visitor.h>
 #include <sound/loop.h>
 #include <sound/mixer_factory.h>
-#include <sound/render_params.h>
 //std includes
 #include <map>
 #include <set>
@@ -274,16 +273,11 @@ namespace TurboSound
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const Parameters::Accessor& params, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
+    Renderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration(Sound::GetFrameDuration(params))
+      , FrameDuration(frameDuration)
     {
-#ifndef NDEBUG
-//perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame({}));
-      Iterator->Reset();
-#endif
     }
 
     State::Ptr GetState() const override
@@ -432,7 +426,7 @@ namespace TurboSound
     {
       auto iterator = Tune->CreateDataIterator(FrameDuration, AYM::TrackParameters::Create(params, 0), AYM::TrackParameters::Create(params, 1));
       auto chip = CreateChip(params, std::move(target));
-      return MakePtr<Renderer>(*params, std::move(iterator), std::move(chip));
+      return MakePtr<Renderer>(FrameDuration, std::move(iterator), std::move(chip));
     }
   private:
     const Time::Microseconds FrameDuration;

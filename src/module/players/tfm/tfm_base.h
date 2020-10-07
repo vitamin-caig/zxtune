@@ -21,6 +21,6 @@ namespace Module
   {
     Analyzer::Ptr CreateAnalyzer(Devices::TFM::Device::Ptr device);
 
-    Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device);
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device);
   }
 }

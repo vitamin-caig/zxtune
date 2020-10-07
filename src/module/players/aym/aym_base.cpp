@@ -18,8 +18,8 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <module/players/analyzer.h>
+#include <sound/loop.h>
 #include <sound/mixer_factory.h>
-#include <sound/render_params.h>
 
 namespace Module
 {
@@ -60,7 +60,7 @@ namespace Module
     {
       auto trackParams = AYM::TrackParameters::Create(params);
       auto iterator = Tune->CreateDataIterator(FrameDuration, std::move(trackParams));
-      return AYM::CreateRenderer(*params, std::move(iterator), std::move(chip));
+      return AYM::CreateRenderer(FrameDuration, std::move(iterator), std::move(chip));
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override
@@ -75,16 +75,11 @@ namespace Module
   class AYMRenderer : public Renderer
   {
   public:
-    AYMRenderer(const Parameters::Accessor& params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
+    AYMRenderer(Time::Microseconds frameDuration, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration(Sound::GetFrameDuration(params))
+      , FrameDuration(frameDuration)
     {
-#ifndef NDEBUG
-//perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame({}));
-      Iterator->Reset();
-#endif
     }
 
     State::Ptr GetState() const override
@@ -177,9 +172,9 @@ namespace Module
       }
     }
 
-    Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
     {
-      return MakePtr<AYMRenderer>(params, std::move(iterator), std::move(device));
+      return MakePtr<AYMRenderer>(frameDuration, std::move(iterator), std::move(device));
     }
     
     Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)

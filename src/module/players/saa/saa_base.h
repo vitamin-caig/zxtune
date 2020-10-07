@@ -109,7 +109,7 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-    Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
 
     Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune);
   }

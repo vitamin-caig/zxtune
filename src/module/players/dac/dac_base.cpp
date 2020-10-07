@@ -14,8 +14,8 @@
 #include <make_ptr.h>
 //library includes
 #include <module/players/analyzer.h>
+#include <sound/loop.h>
 #include <sound/multichannel_sample.h>
-#include <sound/render_params.h>
 
 namespace Module
 {
@@ -81,16 +81,11 @@ namespace Module
   class DACRenderer : public Renderer
   {
   public:
-    DACRenderer(const Parameters::Accessor& params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+    DACRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration(Sound::GetFrameDuration(params))
+      , FrameDuration(frameDuration)
     {
-#ifndef NDEBUG
-//perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame({}));
-      Iterator->Reset();
-#endif
     }
 
     State::Ptr GetState() const override
@@ -199,9 +194,9 @@ namespace Module
       return MakePtr<DACDataIterator>(std::move(iterator), std::move(renderer));
     }
 
-    Renderer::Ptr CreateRenderer(const Parameters::Accessor& params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
     {
-      return MakePtr<DACRenderer>(params, std::move(iterator), std::move(device));
+      return MakePtr<DACRenderer>(frameDuration, std::move(iterator), std::move(device));
     }
   }
 }
