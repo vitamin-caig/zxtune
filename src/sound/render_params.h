@@ -30,17 +30,12 @@ namespace Sound
 
     //! Rendering sound frequency
     virtual uint_t SoundFreq() const = 0;
-    //! Frame duration in us
-    virtual Time::Microseconds FrameDuration() const = 0;
     //! Loop mode
     virtual LoopParameters Looped() const = 0;
 
     static Ptr Create(Parameters::Accessor::Ptr soundParameters);
   };
   
-  Time::Microseconds GetFrameDuration(const Parameters::Accessor& params);
   LoopParameters GetLoopParameters(const Parameters::Accessor& params);
   uint_t GetSoundFrequency(const Parameters::Accessor& params);
-
-  void SetFrameDuration(Parameters::Modifier& params, Time::Microseconds duration);
 }

@@ -166,9 +166,9 @@ namespace DirectSound
   public:
     typedef std::shared_ptr<StreamBuffer> Ptr;
 
-    StreamBuffer(DirectSoundBufferPtr buff, std::chrono::milliseconds sleepPeriod)
+    explicit StreamBuffer(DirectSoundBufferPtr buff)
       : Buff(buff)
-      , SleepPeriod(sleepPeriod)
+      , SleepPeriod(1)
       , BuffSize(0)
       , Cursor(0)
     {
@@ -494,8 +494,7 @@ namespace DirectSound
       res.Device = OpenDevice(*DsApi, device);
       const uint_t latency = params.GetLatency();
       const DirectSoundBufferPtr buffer = CreateSecondaryBuffer(res.Device, RenderingParameters->SoundFreq(), latency);
-      const auto frameDuration = RenderingParameters->FrameDuration().CastTo<Time::Millisecond>();
-      res.Stream = MakePtr<StreamBuffer>(buffer, std::chrono::milliseconds(frameDuration.Get()));
+      res.Stream = MakePtr<StreamBuffer>(buffer);
       const DirectSoundBufferPtr primary = CreatePrimaryBuffer(res.Device);
       res.Volume = MakePtr<VolumeControl>(res.Device, primary);
       return res;

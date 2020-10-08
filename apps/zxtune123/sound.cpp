@@ -21,7 +21,6 @@
 #include <parameters/serialize.h>
 #include <platform/application.h>
 #include <sound/backends_parameters.h>
-#include <sound/render_params.h>
 #include <sound/service.h>
 #include <sound/sound_parameters.h>
 #include <strings/array.h>
@@ -101,11 +100,6 @@ namespace
     Parameters::Accessor::Ptr GetDefaultParameters() const
     {
       return Params;
-    }
-
-    Time::Microseconds GetFrameDuration() const
-    {
-      return Sound::GetFrameDuration(*Params);
     }
   private:
     const Parameters::Container::Ptr Params;
@@ -220,11 +214,6 @@ namespace
         }
       }
       throw Error(THIS_LINE, Text::SOUND_ERROR_NO_BACKEND);
-    }
-
-    Time::Microseconds GetFrameDuration() const override
-    {
-      return Params->GetFrameDuration();
     }
 
     Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const override

@@ -21,7 +21,7 @@
 #include <devices/aym/dumper.h>
 #include <l10n/api.h>
 #include <module/conversion/types.h>
-#include <sound/render_params.h>
+#include <sound/loop.h>
 //boost includes
 #include <boost/algorithm/string.hpp>
 
@@ -34,15 +34,14 @@ namespace Module
   class BaseDumperParameters : public Devices::AYM::DumperParameters
   {
   public:
-    BaseDumperParameters(Parameters::Accessor::Ptr params, uint_t opt)
-      : SndParams(Sound::RenderParameters::Create(params))
-      , Optimization(static_cast<Devices::AYM::DumperParameters::Optimization>(opt))
+    explicit BaseDumperParameters(uint_t opt)
+      : Optimization(static_cast<Devices::AYM::DumperParameters::Optimization>(opt))
     {
     }
 
     Time::Microseconds FrameDuration() const override
     {
-      return SndParams->FrameDuration();
+      return AYM::BASE_FRAME_DURATION;
     }
 
     Devices::AYM::DumperParameters::Optimization OptimizationLevel() const override
@@ -50,7 +49,6 @@ namespace Module
       return Optimization;
     }
   private:
-    const Sound::RenderParameters::Ptr SndParams;
     const Devices::AYM::DumperParameters::Optimization Optimization;
   };
 
@@ -58,7 +56,7 @@ namespace Module
   {
   public:
     FYMDumperParameters(Parameters::Accessor::Ptr params, uint_t loopFrame, uint_t opt)
-      : Base(params, opt)
+      : Base(opt)
       , Params(params)
       , Loop(loopFrame)
     {
@@ -116,28 +114,28 @@ namespace Module
     //convert to PSG
     if (const PSGConvertParam* psg = parameter_cast<PSGConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(params, psg->Optimization);
+      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(psg->Optimization);
       dumper = Devices::AYM::CreatePSGDumper(dumpParams);
       errMessage = translate("Failed to convert to PSG format.");
     }
     //convert to ZX50
     else if (const ZX50ConvertParam* zx50 = parameter_cast<ZX50ConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(params, zx50->Optimization);
+      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(zx50->Optimization);
       dumper = Devices::AYM::CreateZX50Dumper(dumpParams);
       errMessage = translate("Failed to convert to ZX50 format.");
     }
     //convert to debugay
     else if (const DebugAYConvertParam* dbg = parameter_cast<DebugAYConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(params, dbg->Optimization);
+      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(dbg->Optimization);
       dumper = Devices::AYM::CreateDebugDumper(dumpParams);
       errMessage = translate("Failed to convert to debug ay format.");
     }
     //convert to aydump
     else if (const AYDumpConvertParam* aydump = parameter_cast<AYDumpConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(params, aydump->Optimization);
+      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(aydump->Optimization);
       dumper = Devices::AYM::CreateRawStreamDumper(dumpParams);
       errMessage = translate("Failed to convert to raw ay dump.");;
     }

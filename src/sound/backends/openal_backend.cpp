@@ -173,10 +173,10 @@ namespace OpenAl
   class Source : private ApiRef
   {
   public:
-    explicit Source(Api& api, uint_t freq, uint_t buffersCount, Time::Microseconds sleepPeriod)
+    explicit Source(Api& api, uint_t freq, uint_t buffersCount)
       : ApiRef(api)
       , Freq(freq)
-      , SleepPeriod(std::chrono::milliseconds(sleepPeriod.CastTo<Time::Millisecond>().Get()))
+      , SleepPeriod(1)
     {
       Dbg("Create source");
       OalApi.alGetError();
@@ -314,11 +314,6 @@ namespace OpenAl
       return RenderingParameters->SoundFreq();
     }
     
-    Time::Microseconds GetFrameDuration() const
-    {
-      return RenderingParameters->FrameDuration();
-    }
-    
     uint_t GetBuffersCount() const
     {
       Parameters::IntType val = Parameters::ZXTune::Sound::Backends::OpenAl::BUFFERS_DEFAULT;
@@ -362,7 +357,7 @@ namespace OpenAl
   {
     State(Api& api, const BackendParameters& params)
       : Dev(new Device(api, params.GetDeviceName()))
-      , Src(new Source(api, params.GetSoundFreq(), params.GetBuffersCount(), params.GetFrameDuration()))
+      , Src(new Source(api, params.GetSoundFreq(), params.GetBuffersCount()))
       , Vol(new VolumeController(*Src))
     {
     }

@@ -37,12 +37,6 @@ namespace Sound
       return static_cast<uint_t>(FoundProperty(FREQUENCY, FREQUENCY_DEFAULT));
     }
 
-    Time::Microseconds FrameDuration() const override
-    {
-      using namespace Parameters::ZXTune::Sound;
-      return Time::Microseconds(FoundProperty(FRAMEDURATION, FRAMEDURATION_DEFAULT));
-    }
-
     LoopParameters Looped() const override
     {
       using namespace Parameters::ZXTune::Sound;
@@ -74,12 +68,6 @@ namespace Sound
     return MakePtr<RenderParametersImpl>(soundParameters);
   }
 
-  Time::Microseconds GetFrameDuration(const Parameters::Accessor& params)
-  {
-    using namespace Parameters::ZXTune::Sound;
-    return Time::Microseconds(GetProperty(params, FRAMEDURATION, FRAMEDURATION_DEFAULT));
-  }
-
   LoopParameters GetLoopParameters(const Parameters::Accessor& params)
   {
     using namespace Parameters::ZXTune::Sound;
@@ -90,10 +78,5 @@ namespace Sound
   {
     using namespace Parameters::ZXTune::Sound;
     return static_cast<uint_t>(GetProperty(params, FREQUENCY, FREQUENCY_DEFAULT));
-  }
-
-  void SetFrameDuration(Parameters::Modifier& params, Time::Microseconds duration)
-  {
-    params.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION, duration.Get());
   }
 }
