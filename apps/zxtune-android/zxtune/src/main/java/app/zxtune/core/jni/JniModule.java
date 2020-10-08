@@ -2,11 +2,12 @@ package app.zxtune.core.jni;
 
 import java.lang.annotation.Native;
 import java.nio.ByteBuffer;
+import java.util.concurrent.TimeUnit;
 
+import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleDetectCallback;
 import app.zxtune.core.Player;
-import app.zxtune.core.Properties;
 import app.zxtune.core.ResolvingException;
 
 public final class JniModule implements Module {
@@ -35,13 +36,11 @@ public final class JniModule implements Module {
   static native void close(int handle);
 
   @Override
-  public long getDurationInMs() {
-    final long frameDuration = getProperty(Properties.Sound.FRAMEDURATION,
-        Properties.Sound.FRAMEDURATION_DEFAULT) / 1000;
-    return frameDuration * getDuration();
+  public TimeStamp getDuration() {
+    return TimeStamp.createFrom(getDurationMs(), TimeUnit.MILLISECONDS);
   }
 
-  private native int getDuration();
+  private native int getDurationMs();
 
   @Override
   public native Player createPlayer();

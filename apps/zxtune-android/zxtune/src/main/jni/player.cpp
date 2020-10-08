@@ -438,7 +438,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPosition
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPositionMs
   (JNIEnv* env, jobject self)
 {
   return Jni::Call(env, [=] ()
@@ -455,7 +455,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPosition
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPosition
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPositionMs
   (JNIEnv* env, jobject self, jint position)
 {
   return Jni::Call(env, [=] ()

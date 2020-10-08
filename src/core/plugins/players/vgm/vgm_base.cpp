@@ -270,6 +270,8 @@ namespace LibVGM
       , Params(std::move(params))
       , Target(std::move(target))
     {
+      //Required in order to perform initial seeking!!!
+      ApplyParameters();
     }
 
     State::Ptr GetState() const override

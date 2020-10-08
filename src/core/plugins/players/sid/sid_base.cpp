@@ -396,7 +396,8 @@ namespace Sid
           break;
         }
         auto data = rawData.GetSubcontainer(0, tuneInfo.dataFileLen());
-        props.SetSource(*Formats::Chiptune::CreateCalculatingCrcContainer(std::move(data), 0, data->Size()));
+        const auto size = data->Size();
+        props.SetSource(*Formats::Chiptune::CreateCalculatingCrcContainer(std::move(data), 0, size));
 
         props.SetPlatform(Platforms::COMMODORE_64);
 

@@ -269,7 +269,10 @@ namespace Xmp
       , Params(std::move(params))
       , Track(MakePtr<TrackState>(State))
       , Analysis(MakePtr<Analyzer>(info->ChannelsCount(), State))
+      , SoundFreq(Sound::GetSoundFrequency(*Params))
     {
+      //Required in order to perform initial seeking
+      Ctx->Call(&::xmp_start_player, static_cast<int>(SoundFreq), 0);
     }
 
     ~Renderer() override
@@ -353,7 +356,7 @@ namespace Xmp
     Parameters::TrackingHelper<Parameters::Accessor> Params;
     const TrackState::Ptr Track;
     const Analyzer::Ptr Analysis;
-    uint_t SoundFreq = 0;
+    uint_t SoundFreq;
   };
 
   class Holder : public Module::Holder

@@ -216,7 +216,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_close
   }
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniModule_getDuration
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniModule_getDurationMs
   (JNIEnv* env, jobject self)
 {
   return Jni::Call(env, [=] ()

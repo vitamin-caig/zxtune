@@ -23,12 +23,6 @@ public final class Properties {
     public static final String FREQUENCY = PREFIX + "frequency";
 
     /**
-     * Frame duration in microseconds
-     */
-    public static final String FRAMEDURATION = PREFIX + "frameduration";
-    public static final long FRAMEDURATION_DEFAULT = 20000;
-
-    /**
      * Loop mode
      */
     public static final String LOOPED = PREFIX + "looped";
