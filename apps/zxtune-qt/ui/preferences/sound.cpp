@@ -68,7 +68,6 @@ namespace
       FillBackends();
 
       using namespace Parameters;
-      IntegerValue::Bind(*frameDurationValue, *Options, ZXTune::Sound::FRAMEDURATION, ZXTune::Sound::FRAMEDURATION_DEFAULT);
       IntType freq = ZXTune::Sound::FREQUENCY_DEFAULT;
       Options->FindValue(Parameters::ZXTune::Sound::FREQUENCY, freq);
       SetFrequency(freq);

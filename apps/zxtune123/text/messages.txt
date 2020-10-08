@@ -202,9 +202,6 @@
 < INFO_OPTIONS_SOUND_FREQUENCY
 > "sound frequency in Hz"
 
-< INFO_OPTIONS_SOUND_FRAMEDURATION
-> "frame duration in microseconds"
-
 < INFO_OPTIONS_SOUND_LOOPED
 > "loop playback"
 

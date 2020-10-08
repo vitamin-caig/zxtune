@@ -46,9 +46,6 @@
 = CMD_CLOCKRATE_KEY
 > "clockrate"
 
-= CMD_FRAMEDURATION_KEY
-> "frameduration"
-
 = CMD_FREQTABLE_KEY
 > "freqtable"
 
