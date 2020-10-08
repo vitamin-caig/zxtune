@@ -15,10 +15,8 @@
 #include <make_ptr.h>
 //library includes
 #include <parameters/merged_accessor.h>
-#include <parameters/tracking_helper.h>
 #include <parameters/visitor.h>
-#include <sound/render_params.h>
-#include <sound/sound_parameters.h>
+#include <sound/loop.h>
 //std includes
 #include <algorithm>
 
@@ -64,38 +62,30 @@ namespace Module
   public:
     typedef std::shared_ptr<CompositeReceiver> Ptr;
     
-    explicit CompositeReceiver(Sound::Receiver::Ptr delegate)
+    CompositeReceiver(Sound::Receiver::Ptr delegate, uint_t streams)
       : Delegate(std::move(delegate))
-      , DoneStreams()
+      , Buffer(streams)
     {
     }
     
     void ApplyData(Sound::Chunk data) override
     {
-      if (DoneStreams++)
-      {
-        Buffer.Mix(data);
-      }
-      else
-      {
-        Buffer.Fill(data);
-      }
+      Buffer.Mix(data);
     }
     
     void Flush() override
     {
     }
 
-    void SetBufferSize(uint_t size)
+    bool NeedStream(uint_t idx) const
     {
-      Buffer.Resize(size);
+      return Buffer.NeedStream(idx);
     }
-    
+
     void FinishFrame()
     {
-      Delegate->ApplyData(Buffer.Convert(DoneStreams));
+      Delegate->ApplyData(Buffer.Convert());
       Delegate->Flush();
-      DoneStreams = 0;
     }
   private:
     class WideSample
@@ -132,67 +122,81 @@ namespace Module
     class CumulativeChunk
     {
     public:
-      void Resize(uint_t size)
+      explicit CumulativeChunk(uint_t streams)
       {
-        Buffer.resize(size);
+        Buffer.reserve(65536);
+        Portions.resize(streams);
       }
-      
-      void Fill(const Sound::Chunk& data)
+
+      bool NeedStream(uint_t idx) const
       {
-        std::size_t idx = 0;
-        for (const std::size_t size = GetDataSize(data); idx != size; ++idx)
-        {
-          Buffer[idx] = WideSample(data[idx]);
-        }
-        for (const std::size_t limit = Buffer.size(); idx != limit; ++idx)
-        {
-          Buffer[idx] = WideSample();
-        }
+        return !Portions[idx];
       }
-      
+
       void Mix(const Sound::Chunk& data)
       {
-        for (std::size_t idx = 0, size = GetDataSize(data); idx != size; ++idx)
+        auto offset = Portions[DoneStreams];
+        if (data.empty())
         {
-          Buffer[idx].Add(data[idx]);
+          // Empty data means preliminary stream end
+          offset = Buffer.size();
         }
+        else
+        {
+          Buffer.resize(std::max(Buffer.size(), offset + data.size()));
+          for (const auto& smp : data)
+          {
+            Buffer[offset++].Add(smp);
+          }
+        }
+        Portions[DoneStreams] = offset;
+        ++DoneStreams;
       }
       
-      Sound::Chunk Convert(uint_t sources) const
+      Sound::Chunk Convert()
       {
-        Sound::Chunk result(Buffer.size());
-        std::transform(Buffer.begin(), Buffer.end(), result.begin(),
-           [sources](WideSample in) {return in.Convert(sources);});
+        const auto avail = *std::min_element(Portions.begin(), Portions.begin());
+        Require(avail);
+        const auto divisor = DoneStreams;
+        Sound::Chunk result(avail);
+        std::transform(Buffer.begin(), Buffer.begin() + avail, result.begin(),
+           [divisor](WideSample in) {return in.Convert(divisor);});
+        Consume(avail);
+        DoneStreams = 0;
         return result;
       }
     private:
-      std::size_t GetDataSize(const Sound::Chunk& data) const
+      void Consume(std::size_t size)
       {
-        const std::size_t bufSize = Buffer.size();
-        const std::size_t dataSize = data.size();
-        /*
-        if (bufSize != dataSize)
+        for (auto& done : Portions)
         {
-          Dbg("Sound data size mismatch buffer=%u data=%u", bufSize, dataSize);
+          done -= size;
         }
-        */
-        return std::min(bufSize, dataSize);
+        if (size == Buffer.size())
+        {
+          Buffer.clear();
+        }
+        else
+        {
+          std::copy(Buffer.begin() + size, Buffer.end(), Buffer.begin());
+          Buffer.resize(Buffer.size() - size);
+        }
       }
     private:
       std::vector<WideSample> Buffer;
+      std::vector<uint_t> Portions;
+      uint_t DoneStreams = 0;
     };
   private:
     const Sound::Receiver::Ptr Delegate;
     CumulativeChunk Buffer;
-    uint_t DoneStreams;
   };
   
   class MultiRenderer : public Renderer
   {
   public:
-    MultiRenderer(RenderersArray delegates, Sound::RenderParameters::Ptr renderParams, CompositeReceiver::Ptr target)
+    MultiRenderer(RenderersArray delegates, CompositeReceiver::Ptr target)
       : Delegates(std::move(delegates))
-      , SoundParams(std::move(renderParams))
       , Target(std::move(target))
       , Analysis(MultiAnalyzer::Create(Delegates))
     {
@@ -211,11 +215,13 @@ namespace Module
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       static const Sound::LoopParameters INFINITE_LOOP{true, 0};
-      ApplyParameters();
       bool result = true;
       for (std::size_t idx = 0, lim = Delegates.size(); idx != lim; ++idx)
       {
-        result &= Delegates[idx]->RenderFrame(idx == 0 ? looped : INFINITE_LOOP);
+        if (Target->NeedStream(idx))
+        {
+          result &= Delegates[idx]->RenderFrame(idx == 0 ? looped : INFINITE_LOOP);
+        }
       }
       if (result)
       {
@@ -226,7 +232,6 @@ namespace Module
 
     void Reset() override
     {
-      SoundParams.Reset();
       for (const auto& renderer : Delegates)
       {
         renderer->Reset();
@@ -245,28 +250,17 @@ namespace Module
     {
       const auto count = holders.size();
       Require(count > 1);
-      const CompositeReceiver::Ptr receiver = MakePtr<CompositeReceiver>(target);
+      const CompositeReceiver::Ptr receiver = MakePtr<CompositeReceiver>(target, count);
       RenderersArray delegates(count);
       for (std::size_t idx = 0; idx != count; ++idx)
       {
         const auto& holder = holders[idx];
         delegates[idx] = holder->CreateRenderer(params, receiver);
       }
-      auto renderParams = Sound::RenderParameters::Create(std::move(params));
-      return MakePtr<MultiRenderer>(std::move(delegates), std::move(renderParams), receiver);
-    }
-  private:
-    void ApplyParameters()
-    {
-      if (SoundParams.IsChanged())
-      {
-        const uint_t bufSize = SoundParams->SamplesPerFrame();
-        Target->SetBufferSize(bufSize);
-      }
+      return MakePtr<MultiRenderer>(std::move(delegates), std::move(receiver));
     }
   private:
     const RenderersArray Delegates;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
     const CompositeReceiver::Ptr Target;
     const Analyzer::Ptr Analysis;
   };

@@ -203,7 +203,7 @@ namespace Sdl
       const BackendParameters backend(*Params);
       format.freq = sound->SoundFreq();
       format.channels = static_cast< ::Uint8>(Sample::CHANNELS);
-      format.samples = sound->SamplesPerFrame();
+      format.samples = format.freq / 2;// keep 0.5 seconds of data
       //fix if size is not power of 2
       if (0 != (format.samples & (format.samples - 1)))
       {

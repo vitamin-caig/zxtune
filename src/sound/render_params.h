@@ -34,8 +34,6 @@ namespace Sound
     virtual Time::Microseconds FrameDuration() const = 0;
     //! Loop mode
     virtual LoopParameters Looped() const = 0;
-    //! Sound samples count per one frame
-    virtual uint_t SamplesPerFrame() const = 0;
 
     static Ptr Create(Parameters::Accessor::Ptr soundParameters);
   };

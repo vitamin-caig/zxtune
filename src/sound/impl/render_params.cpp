@@ -48,13 +48,6 @@ namespace Sound
       using namespace Parameters::ZXTune::Sound;
       return {0 != FoundProperty(LOOPED, 0), static_cast<uint_t>(FoundProperty(LOOP_LIMIT, 0))};
     }
-
-    uint_t SamplesPerFrame() const override
-    {
-      const uint_t freq = SoundFreq();
-      const auto frameDuration = FrameDuration();
-      return static_cast<uint_t>(frameDuration.Get() * freq / frameDuration.PER_SECOND);
-    }
   private:
     Parameters::IntType FoundProperty(const Parameters::NameType& name, Parameters::IntType defVal) const
     {
