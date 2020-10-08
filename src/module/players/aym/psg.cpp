@@ -68,7 +68,7 @@ namespace PSG
         {
           PropertiesHelper props(*properties);
           props.SetSource(*container);
-          return AYM::CreateStreamedChiptune(std::move(data), std::move(properties));
+          return AYM::CreateStreamedChiptune(AYM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
         }
       }
       return {};

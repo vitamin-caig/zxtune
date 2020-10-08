@@ -17,7 +17,6 @@
 #include <formats/chiptune/saa/etracker.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-#include <sound/render_params.h>
 //text includes
 #include <module/text/platforms.h>
 
@@ -461,6 +460,11 @@ namespace ETracker
       , Properties(std::move(properties))
     {
     }
+    
+    Time::Microseconds GetFrameDuration() const override
+    {
+      return SAA::BASE_FRAME_DURATION;
+    }
 
     TrackModel::Ptr GetTrackModel() const override
     {
@@ -472,9 +476,9 @@ namespace ETracker
       return Properties;
     }
 
-    SAA::DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration) const override
+    SAA::DataIterator::Ptr CreateDataIterator() const override
     {
-      auto iterator = CreateTrackStateIterator(frameDuration, Data);
+      auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
       auto renderer = MakePtr<DataRenderer>(Data);
       return SAA::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
@@ -494,9 +498,8 @@ namespace ETracker
       {
         props.SetSource(*container);
         props.SetPlatform(Platforms::SAM_COUPE);
-        const auto frameDuration = Sound::GetFrameDuration(params);
         auto chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
-        return SAA::CreateHolder(frameDuration, std::move(chiptune));
+        return SAA::CreateHolder(std::move(chiptune));
       }
       return Holder::Ptr();
     }

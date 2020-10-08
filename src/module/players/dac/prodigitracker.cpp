@@ -253,18 +253,18 @@ namespace ProDigiTracker
       return Properties;
     }
 
-    DAC::DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration) const override
+    DAC::DataIterator::Ptr CreateDataIterator() const override
     {
-      auto iterator = CreateTrackStateIterator(frameDuration, Data);
+      auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
       auto renderer = MakePtr<DataRenderer>(Data);
       return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
 
-    void GetSamples(Devices::DAC::Chip::Ptr chip) const override
+    void GetSamples(Devices::DAC::Chip& chip) const override
     {
       for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
       {
-        chip->SetSample(idx, Data->Samples.Get(idx));
+        chip.SetSample(idx, Data->Samples.Get(idx));
       }
     }
   private:

@@ -147,10 +147,10 @@ namespace TFD
         {
           props.SetSource(*container);
           props.SetPlatform(Platforms::ZX_SPECTRUM);
-          return TFM::CreateStreamedChiptune(std::move(data), std::move(properties));
+          return TFM::CreateStreamedChiptune(TFM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
         }
       }
-      return TFM::Chiptune::Ptr();
+      return {};
     }
   };
   

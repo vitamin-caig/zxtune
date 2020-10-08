@@ -28,9 +28,8 @@ namespace Module
   class AYMHolder : public AYM::Holder
   {
   public:
-    AYMHolder(Time::Microseconds frameDuration, AYM::Chiptune::Ptr chiptune)
-      : FrameDuration(frameDuration)
-      , Tune(std::move(chiptune))
+    AYMHolder(AYM::Chiptune::Ptr chiptune)
+      : Tune(std::move(chiptune))
     {
     }
 
@@ -38,11 +37,11 @@ namespace Module
     {
       if (auto track = Tune->FindTrackModel())
       {
-        return CreateTrackInfo(FrameDuration, std::move(track));
+        return CreateTrackInfo(Tune->GetFrameDuration(), std::move(track));
       }
       else
       {
-        return CreateStreamInfo(FrameDuration, Tune->FindStreamModel());
+        return CreateStreamInfo(Tune->GetFrameDuration(), Tune->FindStreamModel());
       }
     }
 
@@ -59,8 +58,8 @@ namespace Module
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
     {
       auto trackParams = AYM::TrackParameters::Create(params);
-      auto iterator = Tune->CreateDataIterator(FrameDuration, std::move(trackParams));
-      return AYM::CreateRenderer(FrameDuration, std::move(iterator), std::move(chip));
+      auto iterator = Tune->CreateDataIterator(std::move(trackParams));
+      return AYM::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip));
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override
@@ -155,9 +154,9 @@ namespace Module
 {
   namespace AYM
   {
-    Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune)
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
     {
-      return MakePtr<AYMHolder>(frameDuration, std::move(chiptune));
+      return MakePtr<AYMHolder>(std::move(chiptune));
     }
 
     Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device)

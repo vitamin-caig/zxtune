@@ -38,18 +38,20 @@ namespace Module
       typedef std::shared_ptr<const Chiptune> Ptr;
       virtual ~Chiptune() = default;
 
+      virtual Time::Microseconds GetFrameDuration() const = 0;
+
       // One of
       virtual TrackModel::Ptr FindTrackModel() const = 0;
       virtual Module::StreamModel::Ptr FindStreamModel() const = 0;
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration, AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const = 0;
+      virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const = 0;
     };
 
     Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device);
 
     Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second);
 
-    Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune);
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }
 }

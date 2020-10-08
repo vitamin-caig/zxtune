@@ -29,7 +29,7 @@ namespace Module
       virtual AYM::Chiptune::Ptr GetChiptune() const = 0;
     };
 
-    Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune);
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
 
     Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
     Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device);

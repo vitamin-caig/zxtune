@@ -20,6 +20,8 @@ namespace Module
 {
   namespace TFM
   {
+    const auto BASE_FRAME_DURATION = Time::Microseconds::FromFrequency(50);
+
     class DataIterator : public Iterator
     {
     public:
@@ -36,9 +38,11 @@ namespace Module
       typedef std::shared_ptr<const Chiptune> Ptr;
       virtual ~Chiptune() = default;
 
-      virtual Information::Ptr GetInformation(Time::Microseconds frameDuration) const = 0;
+      virtual Time::Microseconds GetFrameDuration() const = 0;
+
+      virtual Information::Ptr GetInformation() const = 0;
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration) const = 0;
+      virtual DataIterator::Ptr CreateDataIterator() const = 0;
     };
   }
 }

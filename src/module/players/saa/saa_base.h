@@ -21,6 +21,7 @@ namespace Module
   namespace SAA
   {
     const uint_t TRACK_CHANNELS = 6;
+    const auto BASE_FRAME_DURATION = Time::Microseconds::FromFrequency(50);
 
     class ChannelBuilder
     {
@@ -100,9 +101,11 @@ namespace Module
       typedef std::shared_ptr<const Chiptune> Ptr;
       virtual ~Chiptune() = default;
 
+      virtual Time::Microseconds GetFrameDuration() const = 0;
+
       virtual TrackModel::Ptr GetTrackModel() const = 0;
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration) const = 0;
+      virtual DataIterator::Ptr CreateDataIterator() const = 0;
     };
 
     Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device);
@@ -111,6 +114,6 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
 
-    Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune);
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }
 }

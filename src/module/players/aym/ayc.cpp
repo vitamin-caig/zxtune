@@ -90,7 +90,7 @@ namespace AYC
           props.SetSource(*container);
           props.SetPlatform(Platforms::AMSTRAD_CPC);
           properties->SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, 1000000);
-          return AYM::CreateStreamedChiptune(std::move(data), std::move(properties));
+          return AYM::CreateStreamedChiptune(AYM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
         }
       }
       return {};

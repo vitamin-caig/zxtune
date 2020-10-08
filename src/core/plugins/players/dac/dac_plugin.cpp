@@ -18,7 +18,6 @@
 #include <module/players/dac/dac_base.h>
 #include <module/players/dac/dac_parameters.h>
 #include <sound/mixer_factory.h>
-#include <sound/render_params.h>
 //std includes
 #include <utility>
 
@@ -50,15 +49,14 @@ namespace Module
   class DACHolder : public Holder
   {
   public:
-    DACHolder(Time::Microseconds frameDuration, DAC::Chiptune::Ptr chiptune)
-      : FrameDuration(frameDuration)
-      , Tune(std::move(chiptune))
+    DACHolder(DAC::Chiptune::Ptr chiptune)
+      : Tune(std::move(chiptune))
     {
     }
 
     Information::Ptr GetModuleInformation() const override
     {
-      return CreateTrackInfo(FrameDuration, Tune->GetTrackModel());
+      return CreateTrackInfo(Tune->GetFrameDuration(), Tune->GetTrackModel());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -68,13 +66,12 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      auto iterator = Tune->CreateDataIterator(FrameDuration);
+      auto iterator = Tune->CreateDataIterator();
       auto chip = CreateChip(Tune->GetTrackModel()->GetChannelsCount(), std::move(params), std::move(target));
-      Tune->GetSamples(chip);
-      return DAC::CreateRenderer(FrameDuration, std::move(iterator), std::move(chip));
+      Tune->GetSamples(*chip);
+      return DAC::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip));
     }
   private:
-    const Time::Microseconds FrameDuration;
     const DAC::Chiptune::Ptr Tune;
   };
 
@@ -90,7 +87,7 @@ namespace Module
     {
       if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {
-        return MakePtr<DACHolder>(Sound::GetFrameDuration(params), std::move(chiptune));
+        return MakePtr<DACHolder>(std::move(chiptune));
       }
       else
       {

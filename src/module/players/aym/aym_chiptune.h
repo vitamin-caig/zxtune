@@ -24,6 +24,8 @@ namespace Module
 {
   namespace AYM
   {
+    const auto BASE_FRAME_DURATION = Time::Microseconds::FromFrequency(50);
+
     class DataIterator : public Iterator
     {
     public:
@@ -40,12 +42,14 @@ namespace Module
       typedef std::shared_ptr<const Chiptune> Ptr;
       virtual ~Chiptune() = default;
 
+      virtual Time::Microseconds GetFrameDuration() const = 0;
+
       // One of
       virtual TrackModel::Ptr FindTrackModel() const = 0;
       virtual Module::StreamModel::Ptr FindStreamModel() const = 0;
 
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
-      virtual DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration, TrackParameters::Ptr trackParams) const = 0;
+      virtual DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
     };
   }
 }

@@ -674,7 +674,7 @@ namespace AYEMUL
 
     void FillTimingInfo(const Parameters::Accessor& params)
     {
-      Data->FrameDuration = Sound::GetFrameDuration(params);
+      Data->FrameDuration = AYM::BASE_FRAME_DURATION;
       if (!Data->Frames)
       {
         Data->Frames = GetDefaultDuration(params).Divide<uint_t>(Data->FrameDuration);

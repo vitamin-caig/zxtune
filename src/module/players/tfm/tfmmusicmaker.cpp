@@ -1540,9 +1540,14 @@ namespace TFMMusicMaker
     {
     }
 
-    Information::Ptr GetInformation(Time::Microseconds frameDuration) const override
+    Time::Microseconds GetFrameDuration() const override
     {
-      return MakePtr<TrackInformation>(frameDuration, Data);
+      return TFM::BASE_FRAME_DURATION;
+    }
+
+    Information::Ptr GetInformation() const override
+    {
+      return MakePtr<TrackInformation>(GetFrameDuration(), Data);
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -1550,9 +1555,9 @@ namespace TFMMusicMaker
       return Properties;
     }
 
-    TFM::DataIterator::Ptr CreateDataIterator(Time::Microseconds frameDuration) const override
+    TFM::DataIterator::Ptr CreateDataIterator() const override
     {
-      auto iterator = MakePtr<TrackStateIteratorImpl>(frameDuration, Data);
+      auto iterator = MakePtr<TrackStateIteratorImpl>(GetFrameDuration(), Data);
       auto renderer = MakePtr<DataRenderer>(Data);
       return TFM::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
@@ -1580,7 +1585,7 @@ namespace TFMMusicMaker
       }
       else
       {
-        return TFM::Chiptune::Ptr();
+        return {};
       }
     }
   private:

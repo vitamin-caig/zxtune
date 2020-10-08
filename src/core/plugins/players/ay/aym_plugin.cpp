@@ -18,7 +18,6 @@
 #include <core/plugin_attrs.h>
 #include <module/players/aym/aym_base.h>
 #include <module/players/aym/aym_parameters.h>
-#include <sound/render_params.h>
 //std includes
 #include <utility>
 
@@ -36,7 +35,7 @@ namespace Module
     {
       if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {
-        return AYM::CreateHolder(Sound::GetFrameDuration(params), std::move(chiptune));
+        return AYM::CreateHolder(std::move(chiptune));
       }
       else
       {

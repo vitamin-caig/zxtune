@@ -25,7 +25,6 @@
 #include <module/players/tracking.h>
 #include <module/players/aym/aym_base.h>
 #include <module/players/aym/turbosound.h>
-#include <sound/render_params.h>
 
 namespace Module
 {
@@ -114,7 +113,7 @@ namespace TS
             props.SetSource(*container);
             auto chiptune = TurboSound::CreateChiptune(std::move(properties),
               dataBuilder.GetFirst(), dataBuilder.GetSecond());
-            return TurboSound::CreateHolder(Sound::GetFrameDuration(params), std::move(chiptune));
+            return TurboSound::CreateHolder(std::move(chiptune));
           }
         }
       }

@@ -92,7 +92,10 @@ namespace YMVTX
 
     void SetIntFreq(uint_t freq) override
     {
-      Properties.SetFramesFrequency(freq);
+      if (freq)
+      {
+        FrameDuration = Time::Microseconds::FromFrequency(freq);
+      }
     }
 
     void SetTitle(const String& title) override
@@ -148,9 +151,15 @@ namespace YMVTX
         ? AYM::StreamModel::Ptr()
         : AYM::StreamModel::Ptr(std::move(Data));
     }
+
+    Time::Microseconds GetFrameDuration() const
+    {
+      return FrameDuration;
+    }
   private:
     AYM::PropertiesHelper& Properties;
     AYM::MutableStreamModel::Ptr Data;
+    Time::Microseconds FrameDuration = AYM::BASE_FRAME_DURATION;
   };
 
   class Factory : public AYM::Factory
@@ -170,7 +179,7 @@ namespace YMVTX
         if (auto data = dataBuilder.CaptureResult())
         {
           props.SetSource(*container);
-          return AYM::CreateStreamedChiptune(std::move(data), std::move(properties));
+          return AYM::CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data), std::move(properties));
         }
       }
       return {};

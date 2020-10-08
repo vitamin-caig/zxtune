@@ -44,9 +44,6 @@ namespace Module
     void SetVersion(const String& version);
     void SetDate(const String& date);
     void SetPlatform(const String& platform);
-    
-    //Sound
-    void SetFramesFrequency(uint_t hz);
   protected:
     Parameters::Modifier& Delegate;
   };

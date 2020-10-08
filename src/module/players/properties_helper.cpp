@@ -12,8 +12,6 @@
 #include "module/players/properties_helper.h"
 //library includes
 #include <module/attributes.h>
-#include <sound/render_params.h>
-#include <time/duration.h>
 //boost includes
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
@@ -97,10 +95,5 @@ namespace Module
   void PropertiesHelper::SetPlatform(const String& platform)
   {
     Delegate.SetValue(ATTR_PLATFORM, platform);
-  }
-  
-  void PropertiesHelper::SetFramesFrequency(uint_t freq)
-  {
-    Sound::SetFrameDuration(Delegate, Time::Microseconds::FromFrequency(freq));
   }
 }

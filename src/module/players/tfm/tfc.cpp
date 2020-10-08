@@ -132,7 +132,10 @@ namespace TFC
 
     void SetIntFreq(uint_t freq) override
     {
-      Properties.SetFramesFrequency(freq);
+      if (freq)
+      {
+        FrameDuration = Time::Microseconds::FromFrequency(freq);
+      }
     }
 
     void SetTitle(const String& title) override
@@ -206,6 +209,11 @@ namespace TFC
     {
       return std::move(Data);
     }
+
+    Time::Microseconds GetFrameDuration() const
+    {
+      return FrameDuration;
+    }
   private:
     ChannelData& GetChannel()
     {
@@ -216,6 +224,7 @@ namespace TFC
     const ModuleData::RWPtr Data;
     uint_t Channel;
     std::array<uint_t, 6> Frequency;
+    Time::Microseconds FrameDuration = TFM::BASE_FRAME_DURATION;
   };
 
   class Factory : public TFM::Factory
@@ -232,10 +241,10 @@ namespace TFC
         {
           props.SetSource(*container);
           props.SetPlatform(Platforms::ZX_SPECTRUM);
-          return TFM::CreateStreamedChiptune(std::move(data), std::move(properties));
+          return TFM::CreateStreamedChiptune(dataBuilder.GetFrameDuration(), std::move(data), std::move(properties));
         }
       }
-      return TFM::Chiptune::Ptr();
+      return {};
     }
   };
 

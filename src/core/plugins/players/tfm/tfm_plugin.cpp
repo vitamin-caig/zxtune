@@ -17,7 +17,6 @@
 #include <core/plugin_attrs.h>
 #include <module/players/tfm/tfm_base.h>
 #include <module/players/tfm/tfm_parameters.h>
-#include <sound/render_params.h>
 //std includes
 #include <utility>
 
@@ -26,15 +25,14 @@ namespace Module
   class TFMHolder : public Holder
   {
   public:
-    TFMHolder(Time::Microseconds frameDuration, TFM::Chiptune::Ptr chiptune)
-      : FrameDuration(frameDuration)
-      , Tune(std::move(chiptune))
+    explicit TFMHolder(TFM::Chiptune::Ptr chiptune)
+      : Tune(std::move(chiptune))
     {
     }
 
     Information::Ptr GetModuleInformation() const override
     {
-      return Tune->GetInformation(FrameDuration);
+      return Tune->GetInformation();
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -46,11 +44,10 @@ namespace Module
     {
       auto chipParams = TFM::CreateChipParameters(std::move(params));
       auto chip = Devices::TFM::CreateChip(std::move(chipParams), std::move(target));
-      auto iterator = Tune->CreateDataIterator(FrameDuration);
-      return TFM::CreateRenderer(FrameDuration, std::move(iterator), std::move(chip));
+      auto iterator = Tune->CreateDataIterator();
+      return TFM::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip));
     }
   private:
-    const Time::Microseconds FrameDuration;
     const TFM::Chiptune::Ptr Tune;
   };
 
@@ -66,7 +63,7 @@ namespace Module
     {
       if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {
-        return MakePtr<TFMHolder>(Sound::GetFrameDuration(params), std::move(chiptune));
+        return MakePtr<TFMHolder>(std::move(chiptune));
       }
       else
       {

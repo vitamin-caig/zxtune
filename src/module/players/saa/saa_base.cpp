@@ -157,15 +157,14 @@ namespace Module
   class SAAHolder : public Holder
   {
   public:
-    SAAHolder(Time::Microseconds frameDuration, SAA::Chiptune::Ptr chiptune)
-      : FrameDuration(frameDuration)
-      , Tune(std::move(chiptune))
+    SAAHolder(SAA::Chiptune::Ptr chiptune)
+      : Tune(std::move(chiptune))
     {
     }
 
     Information::Ptr GetModuleInformation() const override
     {
-      return CreateTrackInfo(FrameDuration, Tune->GetTrackModel());
+      return CreateTrackInfo(Tune->GetFrameDuration(), Tune->GetTrackModel());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -177,11 +176,10 @@ namespace Module
     {
       auto chipParams = SAA::CreateChipParameters(std::move(params));
       auto chip = Devices::SAA::CreateChip(std::move(chipParams), std::move(target));
-      auto iterator = Tune->CreateDataIterator(FrameDuration);
-      return SAA::CreateRenderer(FrameDuration, std::move(iterator), std::move(chip));
+      auto iterator = Tune->CreateDataIterator();
+      return SAA::CreateRenderer(Tune->GetFrameDuration()/*TODO: playback speed*/, std::move(iterator), std::move(chip));
     }
   private:
-    const Time::Microseconds FrameDuration;
     const SAA::Chiptune::Ptr Tune;
   };
 }
@@ -255,9 +253,9 @@ namespace Module
       return MakePtr<SAARenderer>(frameDuration, std::move(iterator), std::move(device));
     }
 
-    Holder::Ptr CreateHolder(Time::Microseconds frameDuration, Chiptune::Ptr chiptune)
+    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
     {
-      return MakePtr<SAAHolder>(frameDuration, std::move(chiptune));
+      return MakePtr<SAAHolder>(std::move(chiptune));
     }
   }
 }
