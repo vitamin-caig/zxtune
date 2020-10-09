@@ -13,6 +13,7 @@
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <core/core_parameters.h>
@@ -22,7 +23,6 @@
 #include <module/track_state.h>
 #include <module/players/properties_helper.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <strings/encoding.h>
@@ -302,14 +302,13 @@ namespace Xmp
         ApplyParameters();
         Ctx->Call(&::xmp_play_frame);
         Ctx->Call(&::xmp_get_frame_info, State.get());
-        Sound::ChunkBuilder builder;
         if (const std::size_t bytes = State->buffer_size)
         {
           const std::size_t samples = bytes / sizeof(Sound::Sample);
-          builder.Reserve(samples);
-          std::memcpy(builder.Allocate(samples), State->buffer, bytes);
+          Sound::Chunk chunk(samples);
+          std::memcpy(chunk.data(), State->buffer, bytes);
           Track->Add(Time::Microseconds::FromRatio(samples, SoundFreq));
-          Target->ApplyData(builder.CaptureResult());
+          Target->ApplyData(std::move(chunk));
         }
         return State->loop_count == 0 || looped(State->loop_count);
       }

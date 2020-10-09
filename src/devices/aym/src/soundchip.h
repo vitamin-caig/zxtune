@@ -57,14 +57,14 @@ namespace AYM
       {
         SynchronizeParameters();
         const uint_t samples = Clock.SamplesTill(end);
-        Sound::ChunkBuilder builder;
-        builder.Reserve(samples);
+        Sound::Chunk result;
+        result.reserve(samples);
         for (const auto& chunk : src)
         {
-          Renderers.Render(chunk.TimeStamp, builder);
+          Renderers.Render(chunk.TimeStamp, &result);
           PSG.SetNewData(chunk.Data);
         }
-        Target->ApplyData(builder.CaptureResult());
+        Target->ApplyData(std::move(result));
         Target->Flush();
       }
       else
@@ -109,10 +109,7 @@ namespace AYM
     void RenderTill(Stamp stamp)
     {
       const uint_t samples = Clock.SamplesTill(stamp);
-      Sound::ChunkBuilder builder;
-      builder.Reserve(samples);
-      Renderers.Render(stamp, samples, builder);
-      Target->ApplyData(builder.CaptureResult());
+      Target->ApplyData(Renderers.Render(stamp, samples));
       Target->Flush();
     }
   private:

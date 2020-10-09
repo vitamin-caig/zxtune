@@ -17,7 +17,6 @@
 #include <devices/details/analysis_map.h>
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 #include <time/duration.h>
 
 namespace Devices
@@ -167,10 +166,7 @@ namespace FM
 
       void Render(uint_t samples)
       {
-        Sound::ChunkBuilder builder;
-        builder.Reserve(samples);
-        Adapter.RenderSamples(samples, builder);
-        Target->ApplyData(builder.CaptureResult());
+        Target->ApplyData(Adapter.RenderSamples(samples));
         Target->Flush();
       }
     private:

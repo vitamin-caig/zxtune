@@ -17,7 +17,6 @@
 //library includes
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 //std includes
 #include <array>
 #include <cmath>
@@ -374,7 +373,7 @@ namespace DAC
   public:
     virtual ~Renderer() = default;
 
-    virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target) = 0;
+    virtual Sound::Chunk RenderData(uint_t samples) = 0;
   };
 
   template<unsigned Channels>
@@ -387,8 +386,10 @@ namespace DAC
     {
     }
 
-    void RenderData(uint_t samples, Sound::ChunkBuilder& target) override
+    Sound::Chunk RenderData(uint_t samples) override
     {
+      Sound::Chunk chunk;
+      chunk.reserve(samples);
       typename Sound::MultichannelSample<Channels>::Type result;
       for (uint_t counter = samples; counter != 0; --counter)
       {
@@ -398,8 +399,9 @@ namespace DAC
           result[chan] = state.GetNearest();
           state.Next();
         }
-        target.Add(Mixer.ApplyData(result));
+        chunk.push_back(Mixer.ApplyData(result));
       }
+      return chunk;
     }
   private:
     const Sound::FixedChannelsMixer<Channels>& Mixer;
@@ -416,9 +418,11 @@ namespace DAC
     {
     }
 
-    void RenderData(uint_t samples, Sound::ChunkBuilder& target) override
+    Sound::Chunk RenderData(uint_t samples) override
     {
       static const CosineTable COSTABLE;
+      Sound::Chunk chunk;
+      chunk.reserve(samples);
       typename Sound::MultichannelSample<Channels>::Type result;
       for (uint_t counter = samples; counter != 0; --counter)
       {
@@ -428,8 +432,9 @@ namespace DAC
           result[chan] = state.GetInterpolated(COSTABLE.Get());
           state.Next();
         }
-        target.Add(Mixer.ApplyData(result));
+        chunk.push_back(Mixer.ApplyData(result));
       }
+      return chunk;
     }
   private:
     class CosineTable
@@ -485,9 +490,9 @@ namespace DAC
       }
     }
 
-    void RenderData(uint_t samples, Sound::ChunkBuilder& target)
+    Sound::Chunk RenderData(uint_t samples)
     {
-      Current->RenderData(samples, target);
+      return Current->RenderData(samples);
     }
 
     void DropData(uint_t samples)
@@ -582,10 +587,7 @@ namespace DAC
     void RenderChunksTill(Stamp stamp)
     {
       const uint_t samples = Clock.Advance(stamp);
-      Sound::ChunkBuilder builder;
-      builder.Reserve(samples);
-      Renderers.RenderData(samples, builder);
-      Target->ApplyData(builder.CaptureResult());
+      Target->ApplyData(Renderers.RenderData(samples));
       Target->Flush();
     }
 

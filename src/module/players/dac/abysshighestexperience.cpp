@@ -21,7 +21,6 @@
 #include <module/players/analyzer.h>
 #include <module/players/properties_meta.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 //3rdparty
@@ -239,14 +238,15 @@ namespace AHX
       }
     }
     
-    void RenderFrame(Sound::ChunkBuilder& target)
+    Sound::Chunk RenderFrame()
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
-      target.Reserve(SamplesPerFrame);
-      void* const buf = target.Allocate(SamplesPerFrame);
-      hvl_DecodeFrame(Hvl.get(), static_cast<int8*>(buf), static_cast<int8*>(buf) + sizeof(Sound::Sample) / 2, sizeof(Sound::Sample));
+      Sound::Chunk result(SamplesPerFrame);
+      auto* const buf = safe_ptr_cast<int8*>(result.data());
+      hvl_DecodeFrame(Hvl.get(), buf, buf + sizeof(Sound::Sample) / 2, sizeof(Sound::Sample));
+      return result;
     }
     
     void Seek(Time::AtMillisecond request)
@@ -310,9 +310,7 @@ namespace AHX
       {
         ApplyParameters();
 
-        Sound::ChunkBuilder builder;
-        Tune->RenderFrame(builder);
-        Target->ApplyData(builder.CaptureResult());
+        Target->ApplyData(Tune->RenderFrame());
         const auto loops = Tune->LoopCount();
         return loops == 0 || looped(loops);
       }

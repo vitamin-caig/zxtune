@@ -12,7 +12,6 @@
 
 //library includes
 #include <devices/details/clock_source.h>
-#include <sound/chunk_builder.h>
 #include <sound/lpfilter.h>
 
 namespace Devices
@@ -25,8 +24,8 @@ namespace Details
   public:
     virtual ~Renderer() = default;
 
-    virtual void Render(StampType tillTime, uint_t samples, Sound::ChunkBuilder& target) = 0;
-    virtual void Render(StampType tillTime, Sound::ChunkBuilder& target) = 0;
+    virtual Sound::Chunk Render(StampType tillTime, uint_t samples) = 0;
+    virtual void Render(StampType tillTime, Sound::Chunk* result) = 0;
   };
 
   /*
@@ -57,53 +56,56 @@ namespace Details
     {
     }
 
-    void Render(StampType tillTime, uint_t samples, Sound::ChunkBuilder& target) override
+    Sound::Chunk Render(StampType tillTime, uint_t samples) override
     {
-      FinishPreviousSample(target);
-      RenderMultipleSamples(samples - 1, target);
+      Sound::Chunk result;
+      result.reserve(samples);
+      FinishPreviousSample(&result);
+      RenderMultipleSamples(samples - 1, &result);
       StartNextSample(FastStamp(tillTime.Get()));
+      return result;
     }
 
-    void Render(StampType tillTime, Sound::ChunkBuilder& target) override
+    void Render(StampType tillTime, Sound::Chunk* result) override
     {
       const FastStamp end(tillTime.Get());
       if (Clock.HasSamplesBefore(end))
       {
-        FinishPreviousSample(target);
+        FinishPreviousSample(result);
         while (Clock.HasSamplesBefore(end))
         {
-          RenderSingleSample(target);
+          RenderSingleSample(result);
         }
       }
       StartNextSample(end);
     }
   private:
-    void FinishPreviousSample(Sound::ChunkBuilder& target)
+    void FinishPreviousSample(Sound::Chunk* target)
     {
       if (const uint_t ticksPassed = Clock.AdvanceTimeToNextSample())
       {
         PSG.Tick(ticksPassed);
       }
-      target.Add(PSG.GetLevels());
+      target->push_back(PSG.GetLevels());
       Clock.UpdateNextSampleTime();
     }
 
-    void RenderMultipleSamples(uint_t samples, Sound::ChunkBuilder& target)
+    void RenderMultipleSamples(uint_t samples, Sound::Chunk* target)
     {
       for (uint_t count = samples; count != 0; --count)
       {
         const uint_t ticksPassed = Clock.AllocateSample();
         PSG.Tick(ticksPassed);
-        target.Add(PSG.GetLevels());
+        target->push_back(PSG.GetLevels());
       }
       Clock.CommitSamples(samples);
     }
 
-    void RenderSingleSample(Sound::ChunkBuilder& target)
+    void RenderSingleSample(Sound::Chunk* target)
     {
       const uint_t ticksPassed = Clock.AdvanceSample();
       PSG.Tick(ticksPassed);
-      target.Add(PSG.GetLevels());
+      target->push_back(PSG.GetLevels());
     }
 
     void StartNextSample(FastStamp till)

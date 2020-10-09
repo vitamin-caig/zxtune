@@ -13,7 +13,6 @@
 #include <make_ptr.h>
 //library includes
 #include <math/fixedpoint.h>
-#include <sound/chunk_builder.h>
 #include <sound/resampler.h>
 
 #include <utility>
@@ -56,9 +55,9 @@ namespace Sound
       {
         return;
       }
-      ChunkBuilder builder;
-      builder.Reserve(1 + (FixedStep(data.size()) / Step).Round());
-      Chunk::const_iterator it = data.begin(), lim = data.end();
+      Chunk result;
+      result.reserve(1 + (FixedStep(data.size()) / Step).Round());
+      auto it = data.begin(), lim = data.end();
       if (0 == Position.Raw())
       {
         Prev = *it;
@@ -80,9 +79,9 @@ namespace Sound
           }
           next = *it;
         }
-        builder.Add(Interpolate(Prev, Position, next));
+        result.push_back(Interpolate(Prev, Position, next));
       }
-      Delegate->ApplyData(builder.CaptureResult());
+      Delegate->ApplyData(std::move(result));
     }
     
     void Flush() override
@@ -112,9 +111,9 @@ namespace Sound
       {
         return;
       }
-      ChunkBuilder builder;
-      builder.Reserve(1 + (Step * data.size()).Round());
-      Chunk::const_iterator it = data.begin(), lim = data.end();
+      Chunk chunk;
+      chunk.reserve(1 + (Step * data.size()).Round());
+      auto it = data.begin(), lim = data.end();
       if (0 == Position.Raw())
       {
         Prev = *it;
@@ -126,11 +125,11 @@ namespace Sound
         if (Position.Raw() >= Position.PRECISION)
         {
           Position -= 1;
-          builder.Add(Interpolate(Prev, Position, next));
+          chunk.push_back(Interpolate(Prev, Position, next));
         }
         Prev = next;
       }
-      Delegate->ApplyData(builder.CaptureResult());
+      Delegate->ApplyData(std::move(chunk));
     }
 
     void Flush() override

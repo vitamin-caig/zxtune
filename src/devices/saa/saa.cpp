@@ -12,11 +12,12 @@
 
 //local includes
 #include "device.h"
+//common includes
+#include <make_ptr.h>
 //library includes
 #include <devices/details/analysis_map.h>
 #include <devices/details/renderers.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 #include <sound/lpfilter.h>
 //std includes
 #include <cassert>
@@ -225,9 +226,9 @@ namespace SAA
       }
     }
 
-    void Render(Stamp tillTime, uint_t samples, Sound::ChunkBuilder& target)
+    Sound::Chunk Render(Stamp tillTime, uint_t samples)
     {
-      Current->Render(tillTime, samples, target);
+      return Current->Render(tillTime, samples);
     }
   private:
     uint64_t ClockFreq;
@@ -290,10 +291,7 @@ namespace SAA
     void RenderTill(Stamp stamp)
     {
       const uint_t samples = Clock.SamplesTill(stamp);
-      Sound::ChunkBuilder builder;
-      builder.Reserve(samples);
-      Renderers.Render(stamp, samples, builder);
-      Target->ApplyData(builder.CaptureResult());
+      Target->ApplyData(Renderers.Render(stamp, samples));
       Target->Flush();
     }
   private:

@@ -69,14 +69,14 @@ namespace Beeper
       {
         SynchronizeParameters();
         const uint_t samples = Clock.SamplesTill(end);
-        Sound::ChunkBuilder builder;
-        builder.Reserve(samples);
+        Sound::Chunk result;
+        result.reserve(samples);
         for (const auto& chunk : src)
         {
-          Renderer.Render(chunk.TimeStamp, builder);
+          Renderer.Render(chunk.TimeStamp, &result);
           PSG.SetNewData(chunk.Level);
         }
-        Target->ApplyData(builder.CaptureResult());
+        Target->ApplyData(std::move(result));
         Target->Flush();
       }
       else

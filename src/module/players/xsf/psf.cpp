@@ -26,7 +26,6 @@
 #include <module/players/fading.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/resampler.h>
 //3rdparty includes

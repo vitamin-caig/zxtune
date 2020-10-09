@@ -11,7 +11,6 @@
 #include <error_tools.h>
 #include <math/numeric.h>
 #include <sound/gainer.h>
-#include <sound/chunk_builder.h>
 #include <boost/range/size.hpp>
 #include <iostream>
 #include <iomanip>
@@ -187,10 +186,10 @@ int main()
       {
         std::cout << "Checking for " << INPUT_NAMES[input] << " input: ";
         tgt->SetData(*result);
-        ChunkBuilder builder;
-        builder.Reserve(1);
-        builder.Add(Sample(INPUTS[input], INPUTS[input]));
-        gainer->ApplyData(builder.CaptureResult());
+        Chunk chunk;
+        chunk.reserve(1);
+        chunk.push_back(Sample(INPUTS[input], INPUTS[input]));
+        gainer->ApplyData(std::move(chunk));
       }
     }
     std::cout << " Succeed!" << std::endl;

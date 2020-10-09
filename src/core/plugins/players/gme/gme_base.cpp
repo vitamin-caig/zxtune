@@ -33,7 +33,6 @@
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <strings/optimize.h>
