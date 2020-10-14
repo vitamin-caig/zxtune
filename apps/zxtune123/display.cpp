@@ -217,7 +217,7 @@ namespace
     const Strings::Template::Ptr InformationTemplate;
     //context
     Console::SizeType ScrSize;
-    Time::Microseconds TotalDuration;
+    Time::Milliseconds TotalDuration;
     Module::State::Ptr State;
     const Module::TrackState* TrackState;
     Module::Analyzer::Ptr Analyzer;
