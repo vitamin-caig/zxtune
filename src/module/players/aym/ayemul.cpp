@@ -36,7 +36,7 @@ namespace AYEMUL
   class AyDataChannel
   {
   public:
-    explicit AyDataChannel(Devices::AYM::Device::Ptr chip)
+    explicit AyDataChannel(Devices::AYM::Chip::Ptr chip)
       : Chip(std::move(chip))
       , Register()
       , Blocked()
@@ -90,16 +90,17 @@ namespace AYEMUL
       }
     }
 
-    void RenderFrame(const Devices::AYM::Stamp& till)
+    Sound::Chunk RenderFrame(const Devices::AYM::Stamp& till)
     {
       AllocateChunk(till);
       Chip->RenderData(Chunks);
       Chunks.clear();
+      return Chip->RenderTill(till);
     }
 
     Analyzer::Ptr GetAnalyzer() const
     {
-      return AYM::CreateAnalyzer(Chip);
+      return Module::CreateAnalyzer(Chip);
     }
   private:
     bool IsRegisterSelected() const
@@ -122,7 +123,7 @@ namespace AYEMUL
       return res;
     }
   private:
-    const Devices::AYM::Device::Ptr Chip;
+    const Devices::AYM::Chip::Ptr Chip;
     uint_t Register;
     std::vector<Devices::AYM::DataChunk> Chunks;
     Devices::AYM::DataChunk State;
@@ -132,7 +133,7 @@ namespace AYEMUL
   class BeeperDataChannel
   {
   public:
-    explicit BeeperDataChannel(Devices::Beeper::Device::Ptr chip)
+    explicit BeeperDataChannel(Devices::Beeper::Chip::Ptr chip)
       : Chip(std::move(chip))
       , State(false)
       , Blocked(false)
@@ -164,22 +165,24 @@ namespace AYEMUL
       }
     }
     
-    void RenderFrame(const Devices::Beeper::Stamp& till)
+    Sound::Chunk RenderFrame(const Devices::AYM::Stamp& till)
     {
-      AllocateChunk(till);
+      if (Chunks.empty())
+      {
+        Chip->RenderTill(till);
+        return {};
+      }
       Chip->RenderData(Chunks);
       Chunks.clear();
+      return Chip->RenderTill(till);
     }
   private:
-    void AllocateChunk(const Devices::Beeper::Stamp& timeStamp)
+    void AllocateChunk(Devices::Beeper::Stamp timeStamp)
     {
-      Chunks.resize(Chunks.size() + 1);
-      Devices::Beeper::DataChunk& chunk = Chunks.back();
-      chunk.TimeStamp = timeStamp;
-      chunk.Level = State;
+      Chunks.emplace_back(timeStamp, State);
     }
   private:
-    const Devices::Beeper::Device::Ptr Chip;
+    const Devices::Beeper::Chip::Ptr Chip;
     std::vector<Devices::Beeper::DataChunk> Chunks;
     bool State;
     bool Blocked;
@@ -190,7 +193,7 @@ namespace AYEMUL
   public:
     typedef std::shared_ptr<DataChannel> Ptr;
     
-    DataChannel(Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep)
+    DataChannel(Devices::AYM::Chip::Ptr ay, Devices::Beeper::Chip::Ptr beep)
       : Ay(std::move(ay))
       , Beeper(std::move(beep))
     {
@@ -228,15 +231,30 @@ namespace AYEMUL
       Beeper.SetLevel(timeStamp.CastTo<Devices::Beeper::TimeUnit>(), val);
     }
 
-    void RenderFrameTill(Time::AtMicrosecond till)
+    Sound::Chunk RenderFrameTill(Time::AtMicrosecond till)
     {
-      Ay.RenderFrame(till.CastTo<Devices::AYM::TimeUnit>());
-      Beeper.RenderFrame(till.CastTo<Devices::Beeper::TimeUnit>());
+      auto aySound = Ay.RenderFrame(till.CastTo<Devices::AYM::TimeUnit>());
+      auto beepSound = Beeper.RenderFrame(till.CastTo<Devices::Beeper::TimeUnit>());
+      if (!beepSound.empty())
+      {
+        if (beepSound.size() > aySound.size())
+        {
+          beepSound.swap(aySound);
+        }
+        // ay is longer
+        std::transform(beepSound.begin(), beepSound.end(), aySound.begin(), aySound.begin(), &MixSamples);
+      }
+      return aySound;
     }
 
     Analyzer::Ptr GetAnalyzer() const
     {
       return Ay.GetAnalyzer();
+    }
+  private:
+    static Sound::Sample MixSamples(Sound::Sample lh, Sound::Sample rh)
+    {
+      return Sound::Sample((lh.Left() + rh.Left()) / 2, (lh.Right() + rh.Right()) / 2);
     }
   private:
     AyDataChannel Ay;
@@ -550,10 +568,11 @@ namespace AYEMUL
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const ModuleData& data, Computer::Ptr comp, DataChannel::Ptr device)
+    Renderer(const ModuleData& data, Computer::Ptr comp, DataChannel::Ptr device, Sound::Receiver::Ptr target)
       : State(MakePtr<TimedState>((data.FrameDuration * data.Frames).CastTo<Time::Millisecond>()))
       , Comp(std::move(comp))
       , Device(std::move(device))
+      , Target(std::move(target))
       , FrameDuration(data.FrameDuration)
     {
     }
@@ -570,18 +589,12 @@ namespace AYEMUL
 
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      try
-      {
-        State->Consume(FrameDuration.CastTo<Time::Millisecond>(), looped);
-        DeviceTime += FrameDuration;
-        Comp->ExecuteFrameTill(DeviceTime);
-        Device->RenderFrameTill(DeviceTime);
-        return State->IsValid();
-      }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      State->Consume(FrameDuration.CastTo<Time::Millisecond>(), looped);
+      DeviceTime += FrameDuration;
+      Comp->ExecuteFrameTill(DeviceTime);
+      Target->ApplyData(Device->RenderFrameTill(DeviceTime));
+      Target->Flush();
+      return State->IsValid();
     }
 
     void Reset() override
@@ -613,6 +626,7 @@ namespace AYEMUL
     const TimedState::Ptr State;
     const Computer::Ptr Comp;
     const DataChannel::Ptr Device;
+    const Sound::Receiver::Ptr Target;
     const Time::Microseconds FrameDuration;
     // Monotonic time, does not change on fast-forward
     Time::AtMicrosecond DeviceTime;
@@ -692,7 +706,7 @@ namespace AYEMUL
     const Formats::Chiptune::AY::BlobBuilder::Ptr Delegate;
   };
   
-  class StubBeeper : public Devices::Beeper::Device
+  class StubBeeper : public Devices::Beeper::Chip
   {
   public:
     void RenderData(const std::vector<Devices::Beeper::DataChunk>& /*src*/) override
@@ -701,6 +715,11 @@ namespace AYEMUL
 
     void Reset() override
     {
+    }
+
+    Sound::Chunk RenderTill(Devices::Beeper::Stamp /*till*/) override
+    {
+      return {};
     }
   };
   
@@ -736,61 +755,12 @@ namespace AYEMUL
     const Sound::RenderParameters::Ptr SoundParams;
   };
 
-  Devices::Beeper::Device::Ptr CreateBeeper(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+  Devices::Beeper::Chip::Ptr CreateBeeper(Parameters::Accessor::Ptr params)
   {
     auto beeperParams = MakePtr<BeeperParams>(std::move(params));
-    return Devices::Beeper::CreateChip(std::move(beeperParams), std::move(target));
+    return Devices::Beeper::CreateChip(std::move(beeperParams));
   }
   
-  class MergedSoundReceiver : public Sound::Receiver
-  {
-  public:
-    explicit MergedSoundReceiver(Sound::Receiver::Ptr delegate)
-      : Delegate(std::move(delegate))
-    {
-    }
-    
-    void ApplyData(Sound::Chunk chunk) override
-    {
-      if (!Storage.empty())
-      {
-        if (chunk.size() <= Storage.size())
-        {
-          std::transform(chunk.begin(), chunk.end(), Storage.begin(), Storage.begin(), &AvgSample);
-          Delegate->ApplyData(std::move(Storage));
-        }
-        else
-        {
-          std::transform(Storage.begin(), Storage.end(), chunk.begin(), chunk.begin(), &AvgSample);
-          Delegate->ApplyData(std::move(chunk));
-        }
-        Delegate->Flush();
-        Storage.clear();
-      }
-      else
-      {
-        Storage = std::move(chunk);
-      }
-    }
-    
-    void Flush() override
-    {
-    }
-  private:
-    static inline Sound::Sample::Type Avg(Sound::Sample::Type lh, Sound::Sample::Type rh)
-    {
-      return (Sound::Sample::WideType(lh) + rh) / 2;
-    }
-  
-    static inline Sound::Sample AvgSample(Sound::Sample lh, Sound::Sample rh)
-    {
-      return Sound::Sample(Avg(lh.Left(), rh.Left()), Avg(lh.Right(), rh.Right()));
-    }
-  private:
-    const Sound::Receiver::Ptr Delegate;
-    Sound::Chunk Storage;
-  };
-
   class Holder : public AYM::Holder
   {
   public:
@@ -812,29 +782,28 @@ namespace AYEMUL
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      auto mixer = MakePtr<MergedSoundReceiver>(std::move(target));
-      auto aym = AYM::CreateChip(params, mixer);
-      auto beeper = CreateBeeper(params, std::move(mixer));
-      return CreateRenderer(std::move(params), std::move(aym), std::move(beeper));
-    }
-
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
-    {
-      return CreateRenderer(std::move(params), std::move(chip), MakePtr<StubBeeper>());
+      auto aym = AYM::CreateChip(params);
+      auto beeper = CreateBeeper(params);
+      return CreateRenderer(std::move(params), std::move(aym), std::move(beeper), std::move(target));
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override
     {
       return {};
     }
+
+    void Dump(Devices::AYM::Device&) const
+    {
+      Require(!"Not implemented");
+    }
   private:
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr ay, Devices::Beeper::Device::Ptr beep) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Chip::Ptr ay, Devices::Beeper::Chip::Ptr beep, Sound::Receiver::Ptr target) const
     {
       auto cpuParams = MakePtr<CPUParameters>(params);
       auto channel = MakePtr<DataChannel>(std::move(ay), std::move(beep));
       auto cpuPorts = PortsPlexer::Create(channel);
       auto comp = MakePtr<Computer>(Data, std::move(cpuParams), std::move(cpuPorts));
-      return MakePtr<Renderer>(*Data, std::move(comp), std::move(channel));
+      return MakePtr<Renderer>(*Data, std::move(comp), std::move(channel), std::move(target));
     }
   private:
     const ModuleData::Ptr Data;

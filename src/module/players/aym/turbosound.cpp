@@ -273,9 +273,10 @@ namespace TurboSound
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TurboSound::Device::Ptr device)
+    Renderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TurboSound::Chip::Ptr device, Sound::Receiver::Ptr target)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
+      , Target(std::move(target))
       , FrameDuration(frameDuration)
     {
     }
@@ -287,30 +288,20 @@ namespace TurboSound
 
     Analyzer::Ptr GetAnalyzer() const override
     {
-      return TurboSound::CreateAnalyzer(Device);
+      return Module::CreateAnalyzer(Device);
     }
 
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      try
+      if (Iterator->IsValid())
       {
-        if (Iterator->IsValid())
-        {
-          if (LastChunk.TimeStamp == Devices::TurboSound::Stamp())
-          {
-            //first chunk
-            TransferChunk();
-          }
-          Iterator->NextFrame(looped);
-          LastChunk.TimeStamp += FrameDuration;
-          TransferChunk();
-        }
-        return Iterator->IsValid();
+        TransferChunk();
+        Iterator->NextFrame(looped);
+        LastChunk.TimeStamp += FrameDuration;
+        Target->ApplyData(Device->RenderTill(LastChunk.TimeStamp));
+        Target->Flush();
       }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      return Iterator->IsValid();
     }
 
     void Reset() override
@@ -343,7 +334,8 @@ namespace TurboSound
     }
   private:
     const TurboSound::DataIterator::Ptr Iterator;
-    const Devices::TurboSound::Device::Ptr Device;
+    const Devices::TurboSound::Chip::Ptr Device;
+    const Sound::Receiver::Ptr Target;
     const Time::Duration<Devices::TurboSound::TimeUnit> FrameDuration;
     Devices::TurboSound::DataChunk LastChunk;
   };
@@ -392,13 +384,13 @@ namespace TurboSound
     const AYM::Chiptune::Ptr Second;
   };
 
-  Devices::TurboSound::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+  Devices::TurboSound::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params)
   {
     typedef Sound::ThreeChannelsMatrixMixer MixerType;
     auto mixer = MixerType::Create();
     auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
     auto chipParams = AYM::CreateChipParameters(std::move(pollParams));
-    return Devices::TurboSound::CreateChip(std::move(chipParams), std::move(mixer), std::move(target));
+    return Devices::TurboSound::CreateChip(std::move(chipParams), std::move(mixer));
   }
 
   class Holder : public Module::Holder
@@ -429,21 +421,13 @@ namespace TurboSound
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       auto iterator = Tune->CreateDataIterator(AYM::TrackParameters::Create(params, 0), AYM::TrackParameters::Create(params, 1));
-      auto chip = CreateChip(params, std::move(target));
-      return MakePtr<Renderer>(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip));
+      auto chip = CreateChip(std::move(params));
+      return MakePtr<Renderer>(Tune->GetFrameDuration()/*TODO: speed variation*/,
+        std::move(iterator), std::move(chip), std::move(target));
     }
   private:
     const Chiptune::Ptr Tune;
   };
-
-  Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device)
-  {
-    if (auto src = std::dynamic_pointer_cast<Devices::StateSource>(device))
-    {
-      return Module::CreateAnalyzer(std::move(src));
-    }
-    return {};
-  }
 
   Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second)
   {

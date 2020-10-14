@@ -25,16 +25,14 @@ namespace Module
       typedef std::shared_ptr<const Holder> Ptr;
 
       using Module::Holder::CreateRenderer;
-      virtual Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const = 0;
       virtual AYM::Chiptune::Ptr GetChiptune() const = 0;
+
+      //TODO: move to another place
+      virtual void Dump(Devices::AYM::Device& dev) const = 0;
     };
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
 
-    Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
-    Analyzer::Ptr CreateAnalyzer(Devices::AYM::Device::Ptr device);
-
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device);
-    Renderer::Ptr CreateRenderer(const Holder& holder, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target);
+    Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params);
   }
 }

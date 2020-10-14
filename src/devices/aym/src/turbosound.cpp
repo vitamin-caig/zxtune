@@ -100,10 +100,10 @@ namespace TurboSound
     const MixerType& DelegateRef;
   };
 
-  Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target)
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer)
   {
-    const MixerType::Ptr halfMixer = MakePtr<HalfLevelMixer>(mixer);
-    return MakePtr<AYM::SoundChip<Traits> >(params, halfMixer, target);
+    auto halfMixer = MakePtr<HalfLevelMixer>(mixer);
+    return MakePtr<AYM::SoundChip<Traits> >(std::move(params), std::move(halfMixer));
   }
 }
 }

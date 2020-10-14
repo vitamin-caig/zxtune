@@ -48,8 +48,6 @@ namespace Module
       virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const = 0;
     };
 
-    Analyzer::Ptr CreateAnalyzer(Devices::TurboSound::Device::Ptr device);
-
     Chiptune::Ptr CreateChiptune(Parameters::Accessor::Ptr params, AYM::Chiptune::Ptr first, AYM::Chiptune::Ptr second);
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);

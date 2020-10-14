@@ -244,14 +244,14 @@ namespace Module
       return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
-    {
-      return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), chip);
-    }
-
     AYM::Chiptune::Ptr GetChiptune() const override
     {
       return Delegate->GetChiptune();
+    }
+    
+    void Dump(Devices::AYM::Device& dev) const
+    {
+      return Delegate->Dump(dev);
     }
   private:
     const AYM::Holder::Ptr Delegate;

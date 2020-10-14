@@ -51,12 +51,14 @@ namespace Devices
     class Chip : public Device, public StateSource
     {
     public:
-      typedef std::shared_ptr<Chip> Ptr;
+      using Ptr = std::shared_ptr<Chip>;
+
+      virtual Sound::Chunk RenderTill(Stamp till) = 0;
     };
 
     using AYM::ChipParameters;
     using AYM::MixerType;
 
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer);
   }
 }

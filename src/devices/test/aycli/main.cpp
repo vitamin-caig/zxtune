@@ -80,13 +80,14 @@ namespace
   public:
     StubRenderer(std::shared_ptr<Devices::AYM::DataChunk> chunk, Sound::Receiver::Ptr target)
       : Chunk(chunk)
-      , Chip(Devices::AYM::CreateChip(StubChipParameters::Create(), CreateMixer(), target))
+      , Target(std::move(target))
+      , Chip(Devices::AYM::CreateChip(StubChipParameters::Create(), CreateMixer()))
     {
     }
 
-    virtual Module::TrackState::Ptr GetTrackState() const
+    virtual Module::State::Ptr GetState() const
     {
-      return Module::TrackState::Ptr();
+      return Module::State::Ptr();
     }
 
     virtual Module::Analyzer::Ptr GetAnalyzer() const
@@ -94,11 +95,13 @@ namespace
        return Module::Analyzer::Ptr();
     }
 
-    virtual bool RenderFrame()
+    virtual bool RenderFrame(const Sound::LoopParameters&)
     {
-      static const Devices::AYM::Stamp PERIOD(Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT);
-      Chunk->TimeStamp += PERIOD;
+      static const auto PERIOD = Time::Duration<Devices::AYM::TimeUnit>::FromFrequency(50);
       Chip->RenderData(*Chunk);
+      Chunk->TimeStamp += PERIOD;
+      Target->ApplyData(Chip->RenderTill(Chunk->TimeStamp));
+      Target->Flush();
       Chunk->Data = Devices::AYM::Registers();
       return true;
     }
@@ -108,12 +111,13 @@ namespace
       *Chunk = Devices::AYM::DataChunk();
     }
 
-    virtual void SetPosition(uint_t /*frame*/)
+    virtual void SetPosition(Time::AtMillisecond /*request*/)
     {
     }
   private:
     const std::shared_ptr<Devices::AYM::DataChunk> Chunk;
     const Devices::AYM::Chip::Ptr Chip;
+    const Sound::Receiver::Ptr Target;
   };
 
   class StubHolder : public Module::Holder

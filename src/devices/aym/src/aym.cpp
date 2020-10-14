@@ -31,9 +31,9 @@ namespace AYM
     static const uint_t VOICES = AYM::VOICES;
   };
 
-  Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target)
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer)
   {
-    return MakePtr<SoundChip<Traits> >(params, mixer, target);
+    return MakePtr<SoundChip<Traits> >(std::move(params), std::move(mixer));
   }
 }
 }
