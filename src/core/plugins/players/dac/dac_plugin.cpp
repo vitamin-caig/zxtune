@@ -24,25 +24,25 @@
 namespace Module
 {
   template<unsigned Channels>
-  Devices::DAC::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+  Devices::DAC::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params)
   {
     typedef Sound::FixedChannelsMatrixMixer<Channels> MixerType;
-    const typename MixerType::Ptr mixer = MixerType::Create();
-    const Parameters::Accessor::Ptr pollParams = Sound::CreateMixerNotificationParameters(params, mixer);
-    const Devices::DAC::ChipParameters::Ptr chipParams = Module::DAC::CreateChipParameters(pollParams);
-    return Devices::DAC::CreateChip(chipParams, mixer, target);
+    auto mixer = MixerType::Create();
+    auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
+    auto chipParams = Module::DAC::CreateChipParameters(std::move(pollParams));
+    return Devices::DAC::CreateChip(std::move(chipParams), std::move(mixer));
   }
 
-  Devices::DAC::Chip::Ptr CreateChip(unsigned channels, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+  Devices::DAC::Chip::Ptr CreateChip(unsigned channels, Parameters::Accessor::Ptr params)
   {
     switch (channels)
     {
     case 3:
-      return CreateChip<3>(params, target);
+      return CreateChip<3>(std::move(params));
     case 4:
-      return CreateChip<4>(params, target);
+      return CreateChip<4>(std::move(params));
     default:
-      return Devices::DAC::Chip::Ptr();
+      return {};
     };
   }
 
@@ -67,9 +67,9 @@ namespace Module
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
       auto iterator = Tune->CreateDataIterator();
-      auto chip = CreateChip(Tune->GetTrackModel()->GetChannelsCount(), std::move(params), std::move(target));
+      auto chip = CreateChip(Tune->GetTrackModel()->GetChannelsCount(), std::move(params));
       Tune->GetSamples(*chip);
-      return DAC::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip));
+      return DAC::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip), std::move(target));
     }
   private:
     const DAC::Chiptune::Ptr Tune;

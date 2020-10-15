@@ -12,6 +12,7 @@
 #include <devices/dac.h>
 #include <devices/details/freq_table.h>
 //common includes
+#include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
@@ -516,10 +517,9 @@ namespace DAC
   class FixedChannelsChip : public Chip
   {
   public:
-    FixedChannelsChip(ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer, Sound::Receiver::Ptr target)
+    FixedChannelsChip(ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer)
       : Params(std::move(params))
       , Mixer(std::move(mixer))
-      , Target(std::move(target))
       , Clock()
       , Renderers(*Mixer, State.data())
     {
@@ -534,22 +534,27 @@ namespace DAC
 
     void RenderData(const DataChunk& src) override
     {
-      SynchronizeParameters();
-      if (Clock.GetCurrentTime() < src.TimeStamp)
-      {
-        RenderChunksTill(src.TimeStamp);
-      }
+      // to simplify
+      Require(!(Clock.GetCurrentTime() < src.TimeStamp));
       UpdateChannelState(src);
     }
 
     void UpdateState(const DataChunk& src) override
     {
-      SynchronizeParameters();
       if (Clock.GetCurrentTime() < src.TimeStamp)
       {
         DropChunksTill(src.TimeStamp);
       }
       UpdateChannelState(src);
+    }
+
+    Sound::Chunk RenderTill(Stamp stamp)
+    {
+      const uint_t samples = Clock.Advance(stamp);
+      Require(samples);
+      auto result = Renderers.RenderData(samples);
+      SynchronizeParameters();
+      return result;
     }
 
     DeviceState GetState() const override
@@ -572,6 +577,7 @@ namespace DAC
       Clock.Reset();
       Renderers.Reset();
       std::fill(State.begin(), State.end(), ChannelState(Samples.Get(0)));
+      SynchronizeParameters();
     }
 
   private:
@@ -582,13 +588,6 @@ namespace DAC
         Clock.SetFreq(Params->BaseSampleFreq(), Params->SoundFreq());
         Renderers.SetInterpolation(Params->Interpolate());
       }
-    }
-
-    void RenderChunksTill(Stamp stamp)
-    {
-      const uint_t samples = Clock.Advance(stamp);
-      Target->ApplyData(Renderers.RenderData(samples));
-      Target->Flush();
     }
 
     void DropChunksTill(Stamp stamp)
@@ -608,21 +607,20 @@ namespace DAC
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
     const typename Sound::FixedChannelsMixer<Channels>::Ptr Mixer;
-    const Sound::Receiver::Ptr Target;
     SamplesStorage Samples;
     ClockSource Clock;
     std::array<ChannelState, Channels> State;
     RenderersSet<Channels> Renderers;
   };
 
-  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer)
   {
-    return MakePtr<FixedChannelsChip<3> >(params, mixer, target);
+    return MakePtr<FixedChannelsChip<3> >(std::move(params), std::move(mixer));
   }
 
-  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer)
   {
-    return MakePtr<FixedChannelsChip<4> >(params, mixer, target);
+    return MakePtr<FixedChannelsChip<4> >(std::move(params), std::move(mixer));
   }
 }
 }

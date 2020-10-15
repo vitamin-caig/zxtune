@@ -81,9 +81,10 @@ namespace Module
   class DACRenderer : public Renderer
   {
   public:
-    DACRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+    DACRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device, Sound::Receiver::Ptr target)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
+      , Target(std::move(target))
       , FrameDuration(frameDuration)
     {
     }
@@ -100,25 +101,15 @@ namespace Module
 
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      try
+      if (Iterator->IsValid())
       {
-        if (Iterator->IsValid())
-        {
-          if (LastChunk.TimeStamp == Devices::DAC::Stamp())
-          {
-            //first chunk
-            TransferChunk();
-          }
-          Iterator->NextFrame(looped);
-          LastChunk.TimeStamp += FrameDuration;
-          TransferChunk();
-        }
-        return Iterator->IsValid();
+        TransferChunk();
+        Iterator->NextFrame(looped);
+        LastChunk.TimeStamp += FrameDuration;
+        Target->ApplyData(Device->RenderTill(LastChunk.TimeStamp));
+        Target->Flush();
       }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      return Iterator->IsValid();
     }
 
     void Reset() override
@@ -159,6 +150,7 @@ namespace Module
   private:
     const DAC::DataIterator::Ptr Iterator;
     const Devices::DAC::Chip::Ptr Device;
+    const Sound::Receiver::Ptr Target;
     const Time::Duration<Devices::DAC::TimeUnit> FrameDuration;
     Devices::DAC::DataChunk LastChunk;
   };
@@ -194,9 +186,9 @@ namespace Module
       return MakePtr<DACDataIterator>(std::move(iterator), std::move(renderer));
     }
 
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device, Sound::Receiver::Ptr target)
     {
-      return MakePtr<DACRenderer>(frameDuration, std::move(iterator), std::move(device));
+      return MakePtr<DACRenderer>(frameDuration, std::move(iterator), std::move(device), std::move(target));
     }
   }
 }

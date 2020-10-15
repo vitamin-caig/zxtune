@@ -106,6 +106,6 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip, Sound::Receiver::Ptr target);
   }
 }
