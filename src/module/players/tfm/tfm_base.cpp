@@ -23,9 +23,10 @@ namespace Module
   class TFMRenderer : public Renderer
   {
   public:
-    TFMRenderer(Time::Microseconds frameDuration, TFM::DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
+    TFMRenderer(Time::Microseconds frameDuration, TFM::DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device, Sound::Receiver::Ptr target)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
+      , Target(std::move(target))
       , FrameDuration(frameDuration)
     {
     }
@@ -37,30 +38,20 @@ namespace Module
 
     Analyzer::Ptr GetAnalyzer() const override
     {
-      return TFM::CreateAnalyzer(Device);
+      return Module::CreateAnalyzer(Device);
     }
 
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      try
+      if (Iterator->IsValid())
       {
-        if (Iterator->IsValid())
-        {
-          if (LastChunk.TimeStamp == Devices::TFM::Stamp())
-          {
-            //first chunk
-            TransferChunk();
-          }
-          Iterator->NextFrame(looped);
-          LastChunk.TimeStamp += FrameDuration;
-          TransferChunk();
-        }
-        return Iterator->IsValid();
+        TransferChunk();
+        Iterator->NextFrame(looped);
+        LastChunk.TimeStamp += FrameDuration;
+        Target->ApplyData(Device->RenderTill(LastChunk.TimeStamp));
+        Target->Flush();
       }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      return Iterator->IsValid();
     }
 
     void Reset() override
@@ -93,7 +84,8 @@ namespace Module
     }
   private:
     const TFM::DataIterator::Ptr Iterator;
-    const Devices::TFM::Device::Ptr Device;
+    const Devices::TFM::Chip::Ptr Device;
+    const Sound::Receiver::Ptr Target;
     const Time::Duration<Devices::TFM::TimeUnit> FrameDuration;
     Devices::TFM::DataChunk LastChunk;
   };
@@ -103,18 +95,9 @@ namespace Module
 {
   namespace TFM
   {
-    Analyzer::Ptr CreateAnalyzer(Devices::TFM::Device::Ptr device)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device, Sound::Receiver::Ptr target)
     {
-      if (auto src = std::dynamic_pointer_cast<Devices::StateSource>(device))
-      {
-        return Module::CreateAnalyzer(std::move(src));
-      }
-      return Analyzer::Ptr();
-    }
-
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TFM::Device::Ptr device)
-    {
-      return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device));
+      return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device), std::move(target));
     }
   }
 }

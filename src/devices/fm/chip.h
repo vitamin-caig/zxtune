@@ -12,6 +12,8 @@
 
 //local includes
 #include "Ym2203_Emu.h"
+//common includes
+#include <contract.h>
 //library includes
 #include <devices/fm.h>
 #include <devices/details/analysis_map.h>
@@ -123,20 +125,15 @@ namespace FM
     class BaseChip : public ChipTraits::BaseClass
     {
     public:
-      BaseChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
+      explicit BaseChip(ChipParameters::Ptr params)
         : Params(std::move(params))
-        , Target(std::move(target))
       {
         BaseChip::Reset();
       }
 
       void RenderData(const typename ChipTraits::DataChunkType& src) override
       {
-        if (const uint_t samples = Clock.AdvanceTo(src.TimeStamp))
-        {
-          SynchronizeParameters();
-          Render(samples);
-        }
+        Require(!Clock.AdvanceTo(src.TimeStamp));
         Adapter.WriteRegisters(src.Data);
       }
 
@@ -152,6 +149,15 @@ namespace FM
       {
         return Adapter.GetState();
       }
+
+      Sound::Chunk RenderTill(typename ChipTraits::StampType stamp)
+      {
+        const auto samples = Clock.AdvanceTo(stamp);
+        Require(samples);
+        auto result = Adapter.RenderSamples(samples);
+        SynchronizeParameters();
+        return result;
+      }
     private:
       void SynchronizeParameters()
       {
@@ -163,15 +169,8 @@ namespace FM
           Clock.SetFrequency(sndFreq);
         }
       }
-
-      void Render(uint_t samples)
-      {
-        Target->ApplyData(Adapter.RenderSamples(samples));
-        Target->Flush();
-      }
     private:
       Parameters::TrackingHelper<ChipParameters> Params;
-      const Sound::Receiver::Ptr Target;
       typename ChipTraits::AdapterType Adapter;
       ClockSource Clock;
     };

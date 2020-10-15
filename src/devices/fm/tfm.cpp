@@ -87,9 +87,9 @@ namespace TFM
 
   typedef FM::Details::BaseChip<Traits> TFMChip;
 
-  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
+  Chip::Ptr CreateChip(ChipParameters::Ptr params)
   {
-    return MakePtr<TFMChip>(params, target);
+    return MakePtr<TFMChip>(std::move(params));
   }
 }
 }
