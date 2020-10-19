@@ -483,7 +483,7 @@ namespace Sound98
         DataBuilder dataBuilder(props);
         if (const auto container = Formats::Chiptune::Sound98::Parse(rawData, dataBuilder))
         {
-          auto tune = MakePtr<LibVGM::Model>(&LibVGM::Create< ::VGMPlayer>, *container);
+          auto tune = MakePtr<LibVGM::Model>(&LibVGM::Create< ::S98Player>, *container);
         
           props.SetSource(*container);
         
