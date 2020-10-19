@@ -31,7 +31,7 @@ namespace Module
     {
     }
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {

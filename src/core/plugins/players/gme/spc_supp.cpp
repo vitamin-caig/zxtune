@@ -201,7 +201,7 @@ namespace SPC
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr tune, Sound::Receiver::Ptr target)
+    Renderer(Model::Ptr tune, Sound::Converter::Ptr target)
       : Tune(std::move(tune))
       , Engine(MakePtr<SPC>(Tune->Data))
       , State(MakePtr<TimedState>(Tune->Duration))
@@ -219,11 +219,14 @@ namespace SPC
       return Engine;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto avail = State->Consume(FRAME_DURATION, looped);
-      Target->ApplyData(Engine->Render(GetSamples(avail)));
-      return State->IsValid();
+      return Target->Apply(Engine->Render(GetSamples(avail)));
     }
 
     void Reset() override
@@ -248,7 +251,7 @@ namespace SPC
     const Model::Ptr Tune;
     const SPC::Ptr Engine;
     const TimedState::Ptr State;
-    const Sound::Receiver::Ptr Target;
+    const Sound::Converter::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -270,9 +273,9 @@ namespace SPC
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Tune, Sound::CreateResampler(::SNES_SPC::sample_rate, samplerate, std::move(target)));
+      return MakePtr<Renderer>(Tune, Sound::CreateResampler(::SNES_SPC::sample_rate, samplerate));
     }
   private:
     const Model::Ptr Tune;

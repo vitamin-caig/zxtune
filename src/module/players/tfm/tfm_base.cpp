@@ -23,10 +23,9 @@ namespace Module
   class TFMRenderer : public Renderer
   {
   public:
-    TFMRenderer(Time::Microseconds frameDuration, TFM::DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device, Sound::Receiver::Ptr target)
+    TFMRenderer(Time::Microseconds frameDuration, TFM::DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , Target(std::move(target))
       , FrameDuration(frameDuration)
     {
     }
@@ -41,17 +40,16 @@ namespace Module
       return Module::CreateAnalyzer(Device);
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      if (Iterator->IsValid())
+      if (!Iterator->IsValid())
       {
-        TransferChunk();
-        Iterator->NextFrame(looped);
-        LastChunk.TimeStamp += FrameDuration;
-        Target->ApplyData(Device->RenderTill(LastChunk.TimeStamp));
-        Target->Flush();
+        return {};
       }
-      return Iterator->IsValid();
+      TransferChunk();
+      Iterator->NextFrame(looped);
+      LastChunk.TimeStamp += FrameDuration;
+      return Device->RenderTill(LastChunk.TimeStamp);
     }
 
     void Reset() override
@@ -85,7 +83,6 @@ namespace Module
   private:
     const TFM::DataIterator::Ptr Iterator;
     const Devices::TFM::Chip::Ptr Device;
-    const Sound::Receiver::Ptr Target;
     const Time::Duration<Devices::TFM::TimeUnit> FrameDuration;
     Devices::TFM::DataChunk LastChunk;
   };
@@ -95,9 +92,9 @@ namespace Module
 {
   namespace TFM
   {
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device, Sound::Receiver::Ptr target)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device)
     {
-      return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device), std::move(target));
+      return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device));
     }
   }
 }

@@ -13,6 +13,7 @@
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_properties_helper.h"
 //common includes
+#include <contract.h>
 #include <make_ptr.h>
 //library includes
 #include <core/core_parameters.h>
@@ -20,6 +21,7 @@
 #include <devices/beeper.h>
 #include <devices/z80.h>
 #include <formats/chiptune/emulation/ay.h>
+#include <module/players/analyzer.h>
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
@@ -567,11 +569,10 @@ namespace AYEMUL
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const ModuleData& data, Computer::Ptr comp, DataChannel::Ptr device, Sound::Receiver::Ptr target)
+    Renderer(const ModuleData& data, Computer::Ptr comp, DataChannel::Ptr device)
       : State(MakePtr<TimedState>((data.FrameDuration * data.Frames).CastTo<Time::Millisecond>()))
       , Comp(std::move(comp))
       , Device(std::move(device))
-      , Target(std::move(target))
       , FrameDuration(data.FrameDuration)
     {
     }
@@ -586,14 +587,16 @@ namespace AYEMUL
       return Device->GetAnalyzer();
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       State->Consume(FrameDuration.CastTo<Time::Millisecond>(), looped);
       DeviceTime += FrameDuration;
       Comp->ExecuteFrameTill(DeviceTime);
-      Target->ApplyData(Device->RenderFrameTill(DeviceTime));
-      Target->Flush();
-      return State->IsValid();
+      return Device->RenderFrameTill(DeviceTime);
     }
 
     void Reset() override
@@ -625,7 +628,6 @@ namespace AYEMUL
     const TimedState::Ptr State;
     const Computer::Ptr Comp;
     const DataChannel::Ptr Device;
-    const Sound::Receiver::Ptr Target;
     const Time::Microseconds FrameDuration;
     // Monotonic time, does not change on fast-forward
     Time::AtMicrosecond DeviceTime;
@@ -779,11 +781,11 @@ namespace AYEMUL
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
       auto aym = AYM::CreateChip(samplerate, params);
       auto beeper = CreateBeeper(samplerate, params);
-      return CreateRenderer(std::move(params), std::move(aym), std::move(beeper), std::move(target));
+      return CreateRenderer(std::move(params), std::move(aym), std::move(beeper));
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override
@@ -796,13 +798,13 @@ namespace AYEMUL
       Require(!"Not implemented");
     }
   private:
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Chip::Ptr ay, Devices::Beeper::Chip::Ptr beep, Sound::Receiver::Ptr target) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Chip::Ptr ay, Devices::Beeper::Chip::Ptr beep) const
     {
       auto cpuParams = MakePtr<CPUParameters>(params);
       auto channel = MakePtr<DataChannel>(std::move(ay), std::move(beep));
       auto cpuPorts = PortsPlexer::Create(channel);
       auto comp = MakePtr<Computer>(Data, std::move(cpuParams), std::move(cpuPorts));
-      return MakePtr<Renderer>(*Data, std::move(comp), std::move(channel), std::move(target));
+      return MakePtr<Renderer>(*Data, std::move(comp), std::move(channel));
     }
   private:
     const ModuleData::Ptr Data;

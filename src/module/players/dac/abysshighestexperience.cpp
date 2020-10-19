@@ -13,6 +13,7 @@
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
+#include <pointers.h>
 //library includes
 #include <debug/log.h>
 #include <formats/chiptune/digital/abysshighestexperience.h>
@@ -272,9 +273,8 @@ namespace AHX
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(HVL::Ptr tune, Sound::Receiver::Ptr target)
+    explicit Renderer(HVL::Ptr tune)
       : Tune(std::move(tune))
-      , Target(std::move(target))
     {
     }
 
@@ -288,11 +288,17 @@ namespace AHX
       return Tune->MakeAnalyzer();
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      Target->ApplyData(Tune->RenderFrame());
       const auto loops = Tune->LoopCount();
-      return loops == 0 || looped(loops);
+      if (loops == 0 || looped(loops))
+      {
+        return Tune->RenderFrame();
+      }
+      else
+      {
+        return {};
+      }
     }
 
     void Reset() override
@@ -306,7 +312,6 @@ namespace AHX
     }
   private:
     const HVL::Ptr Tune;
-    const Sound::Receiver::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -332,9 +337,9 @@ namespace AHX
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(MakePtr<HVL>(Tune, samplerate), std::move(target));
+      return MakePtr<Renderer>(MakePtr<HVL>(Tune, samplerate));
     }
   private:
     const Dump Tune;

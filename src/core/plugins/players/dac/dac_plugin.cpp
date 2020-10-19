@@ -64,12 +64,12 @@ namespace Module
       return Tune->GetProperties();
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
       auto iterator = Tune->CreateDataIterator();
       auto chip = CreateChip(Tune->GetTrackModel()->GetChannelsCount(), samplerate, std::move(params));
       Tune->GetSamples(*chip);
-      return DAC::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip), std::move(target));
+      return DAC::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip));
     }
   private:
     const DAC::Chiptune::Ptr Tune;
@@ -83,7 +83,7 @@ namespace Module
     {
     }
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {

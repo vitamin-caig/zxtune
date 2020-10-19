@@ -13,6 +13,7 @@
 //library includes
 #include <module/analyzer.h>
 #include <module/state.h>
+#include <sound/chunk.h>
 
 namespace Sound
 {
@@ -37,8 +38,8 @@ namespace Module
     virtual Analyzer::Ptr GetAnalyzer() const = 0;
 
     //! @brief Rendering single frame and modifying internal state
-    //! @return true if next frame can be rendered
-    virtual bool RenderFrame(const Sound::LoopParameters& looped) = 0;
+    //! @return empty chunk if there's no more data to render
+    virtual Sound::Chunk Render(const Sound::LoopParameters& looped) = 0;
 
     //! @brief Performing reset to initial state
     virtual void Reset() = 0;

@@ -79,10 +79,9 @@ namespace Module
   class SAARenderer : public Renderer
   {
   public:
-    SAARenderer(Time::Microseconds frameDuration, SAA::DataIterator::Ptr iterator, Devices::SAA::Chip::Ptr device, Sound::Receiver::Ptr target)
+    SAARenderer(Time::Microseconds frameDuration, SAA::DataIterator::Ptr iterator, Devices::SAA::Chip::Ptr device)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , Target(std::move(target))
       , FrameDuration(frameDuration)
     {
     }
@@ -97,17 +96,16 @@ namespace Module
       return Module::CreateAnalyzer(Device);
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      if (Iterator->IsValid())
+      if (!Iterator->IsValid())
       {
-        TransferChunk();
-        Iterator->NextFrame(looped);
-        LastChunk.TimeStamp += FrameDuration;
-        Target->ApplyData(Device->RenderTill(LastChunk.TimeStamp));
-        Target->Flush();
+        return {};
       }
-      return Iterator->IsValid();
+      TransferChunk();
+      Iterator->NextFrame(looped);
+      LastChunk.TimeStamp += FrameDuration;
+      return Device->RenderTill(LastChunk.TimeStamp);
     }
 
     void Reset() override
@@ -141,7 +139,6 @@ namespace Module
   private:
     const SAA::DataIterator::Ptr Iterator;
     const Devices::SAA::Chip::Ptr Device;
-    const Sound::Receiver::Ptr Target;
     const Time::Duration<Devices::SAA::TimeUnit> FrameDuration;
     Devices::SAA::DataChunk LastChunk;
   };
@@ -164,13 +161,13 @@ namespace Module
       return Tune->GetProperties();
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
       auto chipParams = SAA::CreateChipParameters(samplerate, std::move(params));
       auto chip = Devices::SAA::CreateChip(std::move(chipParams));
       auto iterator = Tune->CreateDataIterator();
       return MakePtr<SAARenderer>(Tune->GetFrameDuration()/*TODO: playback speed*/,
-        std::move(iterator), std::move(chip), std::move(target));
+        std::move(iterator), std::move(chip));
     }
   private:
     const SAA::Chiptune::Ptr Tune;

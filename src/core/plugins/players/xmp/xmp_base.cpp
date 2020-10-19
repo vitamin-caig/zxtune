@@ -261,10 +261,9 @@ namespace Xmp
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(uint_t channels, Context::Ptr ctx, uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+    Renderer(uint_t channels, Context::Ptr ctx, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Ctx(std::move(ctx))
       , State(new xmp_frame_info())
-      , Target(std::move(target))
       , Params(std::move(params))
       , Track(MakePtr<TrackState>(State))
       , Analysis(MakePtr<Analyzer>(channels, State))
@@ -289,25 +288,31 @@ namespace Xmp
       return Analysis;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
       static_assert(sizeof(Sound::Sample) == 4, "Incompatible sound sample size");
 
-      ApplyParameters();
-      Ctx->Call(&::xmp_play_frame);
-      Ctx->Call(&::xmp_get_frame_info, State.get());
-      if (const std::size_t bytes = State->buffer_size)
+      if (State->loop_count == 0 || looped(State->loop_count))
       {
-        const std::size_t samples = bytes / sizeof(Sound::Sample);
-        Sound::Chunk chunk(samples);
-        std::memcpy(chunk.data(), State->buffer, bytes);
-        Track->Add(Time::Microseconds::FromRatio(samples, SoundFreq));
-        Target->ApplyData(std::move(chunk));
+        ApplyParameters();
+        Ctx->Call(&::xmp_play_frame);
+        Ctx->Call(&::xmp_get_frame_info, State.get());
+        if (const std::size_t bytes = State->buffer_size)
+        {
+          const std::size_t samples = bytes / sizeof(Sound::Sample);
+          Track->Add(Time::Microseconds::FromRatio(samples, SoundFreq));
+          Sound::Chunk chunk(samples);
+          std::memcpy(chunk.data(), State->buffer, samples * sizeof(Sound::Sample));
+          return chunk;
+        }
       }
-      return State->loop_count == 0 || looped(State->loop_count);
+      else
+      {
+        return {};
+      }
     }
 
     void Reset() override
@@ -336,7 +341,6 @@ namespace Xmp
   private:
     const Context::Ptr Ctx;
     const StatePtr State;
-    const Sound::Receiver::Ptr Target;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
     const TrackState::Ptr Track;
     const Analyzer::Ptr Analysis;
@@ -363,9 +367,9 @@ namespace Xmp
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(Info->ChannelsCount(), Ctx, samplerate, std::move(params), std::move(target));
+      return MakePtr<Renderer>(Info->ChannelsCount(), Ctx, samplerate, std::move(params));
     }
   private:
     const Context::Ptr Ctx;

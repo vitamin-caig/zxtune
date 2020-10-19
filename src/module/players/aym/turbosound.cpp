@@ -273,10 +273,9 @@ namespace TurboSound
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TurboSound::Chip::Ptr device, Sound::Receiver::Ptr target)
+    Renderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TurboSound::Chip::Ptr device)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , Target(std::move(target))
       , FrameDuration(frameDuration)
     {
     }
@@ -291,17 +290,16 @@ namespace TurboSound
       return Module::CreateAnalyzer(Device);
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      if (Iterator->IsValid())
+      if (!Iterator->IsValid())
       {
-        TransferChunk();
-        Iterator->NextFrame(looped);
-        LastChunk.TimeStamp += FrameDuration;
-        Target->ApplyData(Device->RenderTill(LastChunk.TimeStamp));
-        Target->Flush();
+        return {};
       }
-      return Iterator->IsValid();
+      TransferChunk();
+      Iterator->NextFrame(looped);
+      LastChunk.TimeStamp += FrameDuration;
+      return Device->RenderTill(LastChunk.TimeStamp);
     }
 
     void Reset() override
@@ -335,7 +333,6 @@ namespace TurboSound
   private:
     const TurboSound::DataIterator::Ptr Iterator;
     const Devices::TurboSound::Chip::Ptr Device;
-    const Sound::Receiver::Ptr Target;
     const Time::Duration<Devices::TurboSound::TimeUnit> FrameDuration;
     Devices::TurboSound::DataChunk LastChunk;
   };
@@ -418,12 +415,12 @@ namespace TurboSound
       return Tune->GetProperties();
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
       auto iterator = Tune->CreateDataIterator(AYM::TrackParameters::Create(params, 0), AYM::TrackParameters::Create(params, 1));
       auto chip = CreateChip(samplerate, std::move(params));
       return MakePtr<Renderer>(Tune->GetFrameDuration()/*TODO: speed variation*/,
-        std::move(iterator), std::move(chip), std::move(target));
+        std::move(iterator), std::move(chip));
     }
   private:
     const Chiptune::Ptr Tune;

@@ -28,10 +28,9 @@ namespace Module
   class AYMRenderer : public Renderer
   {
   public:
-    AYMRenderer(Time::Microseconds frameDuration, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device, Sound::Receiver::Ptr target)
+    AYMRenderer(Time::Microseconds frameDuration, AYM::DataIterator::Ptr iterator, Devices::AYM::Chip::Ptr device)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , Target(std::move(target))
       , FrameDuration(frameDuration)
     {
     }
@@ -46,17 +45,16 @@ namespace Module
       return Module::CreateAnalyzer(Device);
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      if (Iterator->IsValid())
+      if (!Iterator->IsValid())
       {
-        TransferChunk();
-        Iterator->NextFrame(looped);
-        LastChunk.TimeStamp += FrameDuration;
-        Target->ApplyData(Device->RenderTill(LastChunk.TimeStamp));
-        Target->Flush();
+        return {};
       }
-      return Iterator->IsValid();
+      TransferChunk();
+      Iterator->NextFrame(looped);
+      LastChunk.TimeStamp += FrameDuration;
+      return Device->RenderTill(LastChunk.TimeStamp);
     }
 
     void Reset() override
@@ -90,7 +88,6 @@ namespace Module
   private:
     const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Chip::Ptr Device;
-    const Sound::Receiver::Ptr Target;
     const Time::Duration<Devices::AYM::TimeUnit> FrameDuration;
     Devices::AYM::DataChunk LastChunk;
   };
@@ -120,12 +117,13 @@ namespace Module
       return Tune->GetProperties();
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
       auto chip = AYM::CreateChip(samplerate, params);
       auto trackParams = AYM::TrackParameters::Create(std::move(params));
       auto iterator = Tune->CreateDataIterator(std::move(trackParams));
-      return MakePtr<AYMRenderer>(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip), std::move(target));
+      return MakePtr<AYMRenderer>(Tune->GetFrameDuration()/*TODO: speed variation*/,
+        std::move(iterator), std::move(chip));
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override

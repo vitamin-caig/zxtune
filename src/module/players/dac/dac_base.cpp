@@ -81,10 +81,9 @@ namespace Module
   class DACRenderer : public Renderer
   {
   public:
-    DACRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device, Sound::Receiver::Ptr target)
+    DACRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
       : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , Target(std::move(target))
       , FrameDuration(frameDuration)
     {
     }
@@ -99,17 +98,16 @@ namespace Module
       return CreateAnalyzer(Device);
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      if (Iterator->IsValid())
+      if (!Iterator->IsValid())
       {
-        TransferChunk();
-        Iterator->NextFrame(looped);
-        LastChunk.TimeStamp += FrameDuration;
-        Target->ApplyData(Device->RenderTill(LastChunk.TimeStamp));
-        Target->Flush();
+        return {};
       }
-      return Iterator->IsValid();
+      TransferChunk();
+      Iterator->NextFrame(looped);
+      LastChunk.TimeStamp += FrameDuration;
+      return Device->RenderTill(LastChunk.TimeStamp);
     }
 
     void Reset() override
@@ -150,7 +148,6 @@ namespace Module
   private:
     const DAC::DataIterator::Ptr Iterator;
     const Devices::DAC::Chip::Ptr Device;
-    const Sound::Receiver::Ptr Target;
     const Time::Duration<Devices::DAC::TimeUnit> FrameDuration;
     Devices::DAC::DataChunk LastChunk;
   };
@@ -186,9 +183,9 @@ namespace Module
       return MakePtr<DACDataIterator>(std::move(iterator), std::move(renderer));
     }
 
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device, Sound::Receiver::Ptr target)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
     {
-      return MakePtr<DACRenderer>(frameDuration, std::move(iterator), std::move(device), std::move(target));
+      return MakePtr<DACRenderer>(frameDuration, std::move(iterator), std::move(device));
     }
   }
 }

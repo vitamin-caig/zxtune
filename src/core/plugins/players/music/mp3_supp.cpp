@@ -180,30 +180,33 @@ namespace Mp3
     std::size_t Offset = 0;
   };
   
-  class MultiFreqTargetsDispatcher
+  class MultiFreqResampler
   {
   public:
-    MultiFreqTargetsDispatcher(uint_t samplerate, Sound::Receiver::Ptr target)
-      : Target(target)
-      , TargetFreq(samplerate)
+    explicit MultiFreqResampler(uint_t samplerate)
+      : TargetFreq(samplerate)
     {
     }
     
-    void Put(FrameSound frame)
+    Sound::Chunk Apply(FrameSound frame)
     {
-      if (!frame.Data.empty())
+      if (frame.Data.empty())
       {
-        GetTarget(frame.Frequency).ApplyData(std::move(frame.Data));
+        return {};
+      }
+      else if (frame.Frequency == TargetFreq)
+      {
+        return std::move(frame.Data);
+      }
+      else
+      {
+        return GetTarget(frame.Frequency).Apply(std::move(frame.Data));
       }
     }
     
   private:
-    Sound::Receiver& GetTarget(uint_t freq)
+    Sound::Converter& GetTarget(uint_t freq)
     {
-      if (freq == TargetFreq)
-      {
-        return *Target;
-      }
       for (const auto& resampled : Resamplers)
       {
         if (freq == resampled.first)
@@ -211,24 +214,23 @@ namespace Mp3
           return *resampled.second;
         }
       }
-      const auto res = Sound::CreateResampler(freq, TargetFreq, Target);
+      const auto res = Sound::CreateResampler(freq, TargetFreq);
       Resamplers.emplace_back(freq, res);
       return *res;
     }
   private:
-    const Sound::Receiver::Ptr Target;
     uint_t TargetFreq;
-    std::vector<std::pair<uint_t, Sound::Receiver::Ptr> > Resamplers;
+    std::vector<std::pair<uint_t, Sound::Converter::Ptr> > Resamplers;
   };
 
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, uint_t samplerate, Sound::Receiver::Ptr target)
+    Renderer(Model::Ptr data, uint_t samplerate)
       : Tune(data)
       , State(MakePtr<TimedState>(data->Duration))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , Target(samplerate, std::move(target))
+      , Target(samplerate)
     {
     }
 
@@ -242,8 +244,12 @@ namespace Mp3
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto loops = State->LoopCount();
       auto frame = Tune.RenderNextFrame();
       if (frame.Data.empty())
@@ -252,13 +258,13 @@ namespace Mp3
       }
       const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
       State->Consume(rendered, looped);
-      Analyzer->AddSoundData(frame.Data);
-      Target.Put(std::move(frame));
       if (loops != State->LoopCount())
       {
         Tune.Reset();
       }
-      return State->IsValid();
+      auto result = Target.Apply(std::move(frame));
+      Analyzer->AddSoundData(result);
+      return result;
     }
 
     void Reset() override
@@ -277,7 +283,7 @@ namespace Mp3
     Mp3Tune Tune;
     const TimedState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    MultiFreqTargetsDispatcher Target;
+    MultiFreqResampler Target;
   };
   
   class Holder : public Module::Holder
@@ -299,9 +305,9 @@ namespace Mp3
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Data, samplerate, std::move(target));
+      return MakePtr<Renderer>(Data, samplerate);
     }
   private:
     const Model::Ptr Data;

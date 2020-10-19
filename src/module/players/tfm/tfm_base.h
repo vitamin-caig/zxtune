@@ -19,6 +19,6 @@ namespace Module
 {
   namespace TFM
   {
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device, Sound::Receiver::Ptr target);
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device);
   }
 }

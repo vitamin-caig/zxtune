@@ -185,11 +185,11 @@ namespace USF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const ModuleData& data, uint_t samplerate, Sound::Receiver::Ptr target)
+    Renderer(const ModuleData& data, uint_t samplerate)
       : Engine(data)
       , State(MakePtr<TimedState>(data.Meta->Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , Target(Sound::CreateResampler(Engine.GetSoundFrequency(), samplerate, std::move(target)))
+      , Target(Sound::CreateResampler(Engine.GetSoundFrequency(), samplerate))
     {
     }
 
@@ -203,13 +203,16 @@ namespace USF
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto avail = State->Consume(FRAME_DURATION, looped);
-      auto data = Engine.Render(GetSamples(avail));
+      auto data = Target->Apply(Engine.Render(GetSamples(avail)));
       Analyzer->AddSoundData(data);
-      Target->ApplyData(std::move(data));
-      return State->IsValid();
+      return data;
     }
 
     void Reset() override
@@ -239,7 +242,7 @@ namespace USF
     USFEngine Engine;
     const TimedState::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
-    const Sound::Receiver::Ptr Target;
+    const Sound::Converter::Ptr Target;
   };
 
   class Holder : public Module::Holder
@@ -261,9 +264,9 @@ namespace USF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(*Tune, samplerate, std::move(target));
+      return MakePtr<Renderer>(*Tune, samplerate);
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)

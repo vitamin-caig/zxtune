@@ -253,7 +253,7 @@ namespace TwoSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target)
+    Renderer(ModuleData::Ptr data, Sound::Converter::Ptr target)
       : Data(std::move(data))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Target(std::move(target))
@@ -271,11 +271,14 @@ namespace TwoSF
       return Engine;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto avail = State->Consume(FRAME_DURATION, looped);
-      Target->ApplyData(Engine->Render(GetSamples(avail)));
-      return State->IsValid();
+      return Target->Apply(Engine->Render(GetSamples(avail)));
     }
 
     void Reset() override
@@ -299,7 +302,7 @@ namespace TwoSF
   private:
     const ModuleData::Ptr Data;
     const TimedState::Ptr State;
-    const Sound::Receiver::Ptr Target;
+    const Sound::Converter::Ptr Target;
     DSEngine::Ptr Engine;
   };
 
@@ -322,9 +325,9 @@ namespace TwoSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Tune, Sound::CreateResampler(DSEngine::SAMPLERATE, samplerate, std::move(target)));
+      return MakePtr<Renderer>(Tune, Sound::CreateResampler(DSEngine::SAMPLERATE, samplerate));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)

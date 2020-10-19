@@ -103,7 +103,7 @@ namespace Ogg
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, Sound::Receiver::Ptr target)
+    Renderer(Model::Ptr data, Sound::Converter::Ptr target)
       : Tune(data)
       , State(MakePtr<SampledState>(data->TotalSamples, data->Frequency))
       , Analyzer(Module::CreateSoundAnalyzer())
@@ -121,18 +121,22 @@ namespace Ogg
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto loops = State->LoopCount();
       auto frame = Tune.RenderFrame();
       State->Consume(frame.size(), looped);
-      Analyzer->AddSoundData(frame);
-      Target->ApplyData(std::move(frame));
       if (State->LoopCount() != loops)
       {
         Tune.Seek(0);
       }
-      return State->IsValid();
+      frame = Target->Apply(std::move(frame));
+      Analyzer->AddSoundData(frame);
+      return frame;
     }
 
     void Reset() override
@@ -150,7 +154,7 @@ namespace Ogg
     OggTune Tune;
     const SampledState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    const Sound::Receiver::Ptr Target;
+    const Sound::Converter::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -172,9 +176,9 @@ namespace Ogg
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Data, Sound::CreateResampler(Data->Frequency, samplerate, std::move(target)));
+      return MakePtr<Renderer>(Data, Sound::CreateResampler(Data->Frequency, samplerate));
     }
   private:
     const Model::Ptr Data;

@@ -187,7 +187,7 @@ namespace SDSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target)
+    Renderer(ModuleData::Ptr data, Sound::Converter::Ptr target)
       : Data(std::move(data))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Analyzer(CreateSoundAnalyzer())
@@ -206,14 +206,17 @@ namespace SDSF
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto avail = State->Consume(FRAME_DURATION, looped);
 
-      auto data = Engine.Render(GetSamples(avail));
+      auto data = Target->Apply(Engine.Render(GetSamples(avail)));
       Analyzer->AddSoundData(data);
-      Target->ApplyData(std::move(data));
-      return State->IsValid();
+      return data;
     }
 
     void Reset() override
@@ -239,7 +242,7 @@ namespace SDSF
     const TimedState::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
     SegaEngine Engine;
-    const Sound::Receiver::Ptr Target;
+    const Sound::Converter::Ptr Target;
   };
 
   class Holder : public Module::Holder
@@ -261,9 +264,9 @@ namespace SDSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Tune, Sound::CreateResampler(SegaEngine::SAMPLERATE, samplerate, std::move(target)));
+      return MakePtr<Renderer>(Tune, Sound::CreateResampler(SegaEngine::SAMPLERATE, samplerate));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)

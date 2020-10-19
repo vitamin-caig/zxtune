@@ -256,10 +256,9 @@ namespace LibVGM
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr tune, uint_t samplerate, Sound::Receiver::Ptr target)
+    Renderer(Model::Ptr tune, uint_t samplerate)
       : Engine(MakeRWPtr<VGMEngine>(std::move(tune), samplerate))
       , Analyzer(CreateSoundAnalyzer())
-      , Target(std::move(target))
     {
     }
 
@@ -273,14 +272,19 @@ namespace LibVGM
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      auto data = Engine->Render();
-      Analyzer->AddSoundData(data);
-      Target->ApplyData(std::move(data));
-
       const auto loops = Engine->LoopCount();
-      return loops == 0 || looped(loops);
+      if (loops == 0 || looped(loops))
+      {
+        auto data = Engine->Render();
+        Analyzer->AddSoundData(data);
+        return data;
+      }
+      else
+      {
+        return {};
+      }
     }
 
     void Reset() override
@@ -309,7 +313,6 @@ namespace LibVGM
   private:
     const VGMEngine::RWPtr Engine;
     const SoundAnalyzer::Ptr Analyzer;
-    const Sound::Receiver::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -332,11 +335,11 @@ namespace LibVGM
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
       try
       {
-        return MakePtr<Renderer>(Tune, samplerate, std::move(target));
+        return MakePtr<Renderer>(Tune, samplerate);
       }
       catch (const std::exception& e)
       {

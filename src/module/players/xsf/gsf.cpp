@@ -227,11 +227,10 @@ namespace GSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const ModuleData& data, uint_t samplerate, Sound::Receiver::Ptr target)
+    Renderer(const ModuleData& data, uint_t samplerate)
       : Engine(MakePtr<GbaEngine>(data))
       , State(MakePtr<TimedState>(data.Meta->Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , Target(std::move(target))
       , SoundFrequency(samplerate)
     {
       Engine->SetFrequency(samplerate);
@@ -247,13 +246,16 @@ namespace GSF
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto avail = State->Consume(FRAME_DURATION, looped);
       auto data = Engine->Render(GetSamples(avail));
       Analyzer->AddSoundData(data);
-      Target->ApplyData(std::move(data));
-      return State->IsValid();
+      return data;
     }
 
     void Reset() override
@@ -283,7 +285,6 @@ namespace GSF
     const GbaEngine::Ptr Engine;
     const TimedState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    const Sound::Receiver::Ptr Target;
     uint_t SoundFrequency = 0;
   };
 
@@ -306,9 +307,9 @@ namespace GSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(*Tune, samplerate, std::move(target));
+      return MakePtr<Renderer>(*Tune, samplerate);
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)

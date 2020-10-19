@@ -13,6 +13,7 @@
 //local includes
 #include "parameters.h"
 //library includes
+#include <binary/data.h>
 #include <module/holder.h>
 
 namespace Module

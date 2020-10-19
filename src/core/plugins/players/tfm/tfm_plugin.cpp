@@ -40,13 +40,13 @@ namespace Module
       return Tune->GetProperties();
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
       auto chipParams = TFM::CreateChipParameters(samplerate, std::move(params));
       auto chip = Devices::TFM::CreateChip(std::move(chipParams));
       auto iterator = Tune->CreateDataIterator();
       return TFM::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/,
-        std::move(iterator), std::move(chip), std::move(target));
+        std::move(iterator), std::move(chip));
     }
   private:
     const TFM::Chiptune::Ptr Tune;
@@ -60,7 +60,7 @@ namespace Module
     {
     }
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {

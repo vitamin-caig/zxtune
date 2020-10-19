@@ -302,11 +302,11 @@ namespace PSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, uint_t samplerate, Sound::Receiver::Ptr target)
+    Renderer(ModuleData::Ptr data, uint_t samplerate)
       : Data(std::move(data))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Engine(MakePtr<PSXEngine>(*Data))
-      , Target(Sound::CreateResampler(Engine->GetSoundFrequency(), samplerate, std::move(target)))
+      , Target(Sound::CreateResampler(Engine->GetSoundFrequency(), samplerate))
     {
     }
 
@@ -320,11 +320,14 @@ namespace PSF
       return Engine;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto avail = State->Consume(FRAME_DURATION, looped);
-      Target->ApplyData(Engine->Render(GetSamples(avail)));
-      return State->IsValid();
+      return Target->Apply(Engine->Render(GetSamples(avail)));
     }
 
     void Reset() override
@@ -354,7 +357,7 @@ namespace PSF
     const ModuleData::Ptr Data;
     const TimedState::Ptr State;
     const PSXEngine::Ptr Engine;
-    const Sound::Receiver::Ptr Target;
+    const Sound::Converter::Ptr Target;
   };
 
   class Holder : public Module::Holder
@@ -376,9 +379,9 @@ namespace PSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Tune, samplerate, std::move(target));
+      return MakePtr<Renderer>(Tune, samplerate);
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)

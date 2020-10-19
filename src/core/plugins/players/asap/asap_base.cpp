@@ -173,11 +173,11 @@ namespace ASAP
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(AsapTune::Ptr tune, uint_t samplerate, Sound::Receiver::Ptr target)
+    Renderer(AsapTune::Ptr tune, Sound::Converter::Ptr target)
       : Tune(std::move(tune))
       , State(MakePtr<TimedState>(Tune->GetDuration()))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , Target(Sound::CreateResampler(ASAP_SAMPLE_RATE, samplerate, std::move(target)))
+      , Target(std::move(target))
     {
     }
 
@@ -191,14 +191,17 @@ namespace ASAP
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto avail = State->Consume(FRAME_DURATION, looped);
 
-      auto buf = Tune->Render(GetSamples(avail));
+      auto buf = Target->Apply(Tune->Render(GetSamples(avail)));
       Analyzer->AddSoundData(buf);
-      Target->ApplyData(std::move(buf));
-      return State->IsValid();
+      return buf;
     }
 
     void Reset() override
@@ -230,7 +233,7 @@ namespace ASAP
     const AsapTune::Ptr Tune;
     const TimedState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    const Sound::Receiver::Ptr Target;
+    const Sound::Converter::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -252,11 +255,11 @@ namespace ASAP
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
       try
       {
-        return MakePtr<Renderer>(Tune, samplerate, std::move(target));
+        return MakePtr<Renderer>(Tune, Sound::CreateResampler(ASAP_SAMPLE_RATE, samplerate));
       }
       catch (const std::exception& e)
       {

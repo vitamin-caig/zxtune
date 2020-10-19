@@ -169,11 +169,10 @@ namespace GME
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const GMETune& tune, uint_t samplerate, Sound::Receiver::Ptr target)
+    Renderer(const GMETune& tune, uint_t samplerate)
       : State(MakePtr<TimedState>(tune.Duration))
       , Analyzer(CreateSoundAnalyzer())
       , Engine(tune, samplerate)
-      , Target(std::move(target))
     {
     }
 
@@ -187,13 +186,16 @@ namespace GME
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto avail = State->Consume(FRAME_DURATION, looped);
       auto data = Engine.Render(GetSamples(avail));
       Analyzer->AddSoundData(data);
-      Target->ApplyData(std::move(data));
-      return State->IsValid();
+      return data;
     }
 
     void Reset() override
@@ -242,7 +244,6 @@ namespace GME
     const TimedState::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
     GME Engine;
-    const Sound::Receiver::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -264,11 +265,11 @@ namespace GME
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
       try
       {
-        return MakePtr<Renderer>(*Tune, samplerate, std::move(target));
+        return MakePtr<Renderer>(*Tune, samplerate);
       }
       catch (const std::exception& e)
       {

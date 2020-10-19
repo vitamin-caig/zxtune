@@ -57,148 +57,119 @@ namespace Module
     const AnalyzersArray Delegates;
   };
  
-  class CompositeReceiver : public Sound::Receiver
+  class WideSample
   {
   public:
-    typedef std::shared_ptr<CompositeReceiver> Ptr;
-    
-    CompositeReceiver(Sound::Receiver::Ptr delegate, uint_t streams)
-      : Delegate(std::move(delegate))
-      , Buffer(streams)
+    WideSample()
+      : Left()
+      , Right()
     {
     }
     
-    void ApplyData(Sound::Chunk data) override
+    explicit WideSample(const Sound::Sample& rh)
+      : Left(rh.Left())
+      , Right(rh.Right())
     {
-      Buffer.Mix(data);
     }
     
-    void Flush() override
+    void Add(const Sound::Sample& rh)
     {
+      Left += rh.Left();
+      Right += rh.Right();
+    }
+    
+    Sound::Sample Convert(int_t divisor) const
+    {
+      static_assert(Sound::Sample::MID == 0, "Sound samples should be signed");
+      return Sound::Sample(Left / divisor, Right / divisor);
+    }
+  private:
+    Sound::Sample::WideType Left;
+    Sound::Sample::WideType Right;
+  };
+  
+  class CumulativeChunk
+  {
+  public:
+    explicit CumulativeChunk(uint_t streams)
+    {
+      Buffer.reserve(65536);
+      Portions.resize(streams);
     }
 
     bool NeedStream(uint_t idx) const
     {
-      return Buffer.NeedStream(idx);
+      return !Portions[idx];
     }
 
-    void FinishFrame()
+    void Reset()
     {
-      Delegate->ApplyData(Buffer.Convert());
-      Delegate->Flush();
+      std::fill(Portions.begin(), Portions.end(), 0);
+      DoneStreams = 0;
     }
-  private:
-    class WideSample
+
+    void Mix(const Sound::Chunk& data)
     {
-    public:
-      WideSample()
-        : Left()
-        , Right()
+      auto offset = Portions[DoneStreams];
+      if (data.empty())
       {
+        // Empty data means preliminary stream end
+        offset = Buffer.size();
       }
-      
-      explicit WideSample(const Sound::Sample& rh)
-        : Left(rh.Left())
-        , Right(rh.Right())
+      else
       {
+        Buffer.resize(std::max(Buffer.size(), offset + data.size()));
+        for (const auto& smp : data)
+        {
+          Buffer[offset++].Add(smp);
+        }
       }
-      
-      void Add(const Sound::Sample& rh)
-      {
-        Left += rh.Left();
-        Right += rh.Right();
-      }
-      
-      Sound::Sample Convert(int_t divisor) const
-      {
-        static_assert(Sound::Sample::MID == 0, "Sound samples should be signed");
-        return Sound::Sample(Left / divisor, Right / divisor);
-      }
-    private:
-      Sound::Sample::WideType Left;
-      Sound::Sample::WideType Right;
-    };
+      Portions[DoneStreams] = offset;
+      ++DoneStreams;
+    }
     
-    class CumulativeChunk
+    Sound::Chunk Convert()
     {
-    public:
-      explicit CumulativeChunk(uint_t streams)
-      {
-        Buffer.reserve(65536);
-        Portions.resize(streams);
-      }
-
-      bool NeedStream(uint_t idx) const
-      {
-        return !Portions[idx];
-      }
-
-      void Mix(const Sound::Chunk& data)
-      {
-        auto offset = Portions[DoneStreams];
-        if (data.empty())
-        {
-          // Empty data means preliminary stream end
-          offset = Buffer.size();
-        }
-        else
-        {
-          Buffer.resize(std::max(Buffer.size(), offset + data.size()));
-          for (const auto& smp : data)
-          {
-            Buffer[offset++].Add(smp);
-          }
-        }
-        Portions[DoneStreams] = offset;
-        ++DoneStreams;
-      }
-      
-      Sound::Chunk Convert()
-      {
-        const auto avail = *std::min_element(Portions.begin(), Portions.begin());
-        Require(avail);
-        const auto divisor = DoneStreams;
-        Sound::Chunk result(avail);
-        std::transform(Buffer.begin(), Buffer.begin() + avail, result.begin(),
-           [divisor](WideSample in) {return in.Convert(divisor);});
-        Consume(avail);
-        DoneStreams = 0;
-        return result;
-      }
-    private:
-      void Consume(std::size_t size)
-      {
-        for (auto& done : Portions)
-        {
-          done -= size;
-        }
-        if (size == Buffer.size())
-        {
-          Buffer.clear();
-        }
-        else
-        {
-          std::copy(Buffer.begin() + size, Buffer.end(), Buffer.begin());
-          Buffer.resize(Buffer.size() - size);
-        }
-      }
-    private:
-      std::vector<WideSample> Buffer;
-      std::vector<uint_t> Portions;
-      uint_t DoneStreams = 0;
-    };
+      const auto avail = *std::min_element(Portions.begin(), Portions.begin());
+      Require(avail);
+      const auto divisor = DoneStreams;
+      Sound::Chunk result(avail);
+      std::transform(Buffer.begin(), Buffer.begin() + avail, result.begin(),
+         [divisor](WideSample in) {return in.Convert(divisor);});
+      Consume(avail);
+      DoneStreams = 0;
+      return result;
+    }
   private:
-    const Sound::Receiver::Ptr Delegate;
-    CumulativeChunk Buffer;
+    void Consume(std::size_t size)
+    {
+      for (auto& done : Portions)
+      {
+        done -= size;
+      }
+      if (size == Buffer.size())
+      {
+        Buffer.clear();
+      }
+      else
+      {
+        std::copy(Buffer.begin() + size, Buffer.end(), Buffer.begin());
+        Buffer.resize(Buffer.size() - size);
+      }
+    }
+  private:
+    std::vector<WideSample> Buffer;
+    std::vector<uint_t> Portions;
+    uint_t DoneStreams = 0;
   };
   
   class MultiRenderer : public Renderer
   {
   public:
-    MultiRenderer(RenderersArray delegates, CompositeReceiver::Ptr target)
+    explicit MultiRenderer(RenderersArray delegates)
       : Delegates(std::move(delegates))
-      , Target(std::move(target))
       , Analysis(MultiAnalyzer::Create(Delegates))
+      , Target(Delegates.size())
     {
     }
 
@@ -212,22 +183,18 @@ namespace Module
       return Analysis;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
       static const Sound::LoopParameters INFINITE_LOOP{true, 0};
-      bool result = true;
       for (std::size_t idx = 0, lim = Delegates.size(); idx != lim; ++idx)
       {
-        if (Target->NeedStream(idx))
+        if (Target.NeedStream(idx))
         {
-          result &= Delegates[idx]->RenderFrame(idx == 0 ? looped : INFINITE_LOOP);
+          auto data = Delegates[idx]->Render(idx == 0 ? looped : INFINITE_LOOP);
+          Target.Mix(data);
         }
       }
-      if (result)
-      {
-        Target->FinishFrame();
-      }
-      return result;
+      return Target.Convert();
     }
 
     void Reset() override
@@ -236,6 +203,7 @@ namespace Module
       {
         renderer->Reset();
       }
+      Target.Reset();
     }
 
     void SetPosition(Time::AtMillisecond request) override
@@ -246,23 +214,22 @@ namespace Module
       }
     }
     
-    static Ptr Create(uint_t samplerate, Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders, Sound::Receiver::Ptr target)
+    static Ptr Create(uint_t samplerate, Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders)
     {
       const auto count = holders.size();
       Require(count > 1);
-      const CompositeReceiver::Ptr receiver = MakePtr<CompositeReceiver>(target, count);
       RenderersArray delegates(count);
       for (std::size_t idx = 0; idx != count; ++idx)
       {
         const auto& holder = holders[idx];
-        delegates[idx] = holder->CreateRenderer(samplerate, params, receiver);
+        delegates[idx] = holder->CreateRenderer(samplerate, params);
       }
-      return MakePtr<MultiRenderer>(std::move(delegates), std::move(receiver));
+      return MakePtr<MultiRenderer>(std::move(delegates));
     }
   private:
     const RenderersArray Delegates;
-    const CompositeReceiver::Ptr Target;
     const Analyzer::Ptr Analysis;
+    CumulativeChunk Target;
   };
   
   class MultiHolder : public Holder
@@ -284,9 +251,9 @@ namespace Module
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MultiRenderer::Create(samplerate, std::move(params), Delegates, std::move(target));
+      return MultiRenderer::Create(samplerate, std::move(params), Delegates);
     }
   private:
     const Parameters::Accessor::Ptr Properties;

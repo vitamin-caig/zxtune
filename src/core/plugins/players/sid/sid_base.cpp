@@ -202,6 +202,7 @@ namespace Sid
 
     Sound::Chunk Render(uint_t samples)
     {
+      static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       Sound::Chunk result(samples);
       Player.play(safe_ptr_cast<short*>(result.data()), samples * Sound::Sample::CHANNELS);
       return result;
@@ -247,11 +248,10 @@ namespace Sid
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr tune, uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
+    Renderer(Model::Ptr tune, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
       , State(MakePtr<TimedState>(Tune->GetDuration()))
       , Engine(MakePtr<SidEngine>())
-      , Target(std::move(target))
       , SidParams(MakePtr<SidParameters>(params))
     {
       Engine->Init(samplerate, *params);
@@ -269,13 +269,14 @@ namespace Sid
       return Engine;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
-
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto avail = State->Consume(FRAME_DURATION, looped);
-      Target->ApplyData(Engine->Render(GetSamples(avail)));
-      return State->IsValid();
+      return Engine->Render(GetSamples(avail));
     }
 
     void Reset() override
@@ -315,7 +316,6 @@ namespace Sid
     const TimedState::Ptr State;
     const SidEngine::Ptr Engine;
     const StateIterator::Ptr Iterator;
-    const Sound::Receiver::Ptr Target;
     Parameters::TrackingHelper<SidParameters> SidParams;
   };
 
@@ -338,9 +338,9 @@ namespace Sid
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(Tune, samplerate, std::move(params), std::move(target));
+      return MakePtr<Renderer>(Tune, samplerate, std::move(params));
     }
   private:
     const Model::Ptr Tune;

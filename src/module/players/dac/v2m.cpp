@@ -135,7 +135,7 @@ namespace V2M
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(DataPtr tune, Time::Milliseconds duration, Sound::Receiver::Ptr target)
+    Renderer(DataPtr tune, Time::Milliseconds duration, Sound::Converter::Ptr target)
       : Engine(std::move(tune))
       , State(MakePtr<TimedState>(duration))
       , Target(std::move(target))
@@ -153,18 +153,21 @@ namespace V2M
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
+      if (!State->IsValid())
+      {
+        return {};
+      }
       const auto avail = State->Consume(FRAME_DURATION, looped);
 
-      auto frame = Engine.RenderFrame(GetSamples(avail));
+      auto frame = Target->Apply(Engine.RenderFrame(GetSamples(avail)));
       Analyzer->AddSoundData(frame);
-      Target->ApplyData(std::move(frame));
       if (State->At() < Time::AtMillisecond() + FRAME_DURATION)
       {
         Engine.Reset();
       }
-      return State->IsValid();
+      return frame;
     }
 
     void Reset() override
@@ -190,7 +193,7 @@ namespace V2M
   private:
     V2mEngine Engine;
     const TimedState::Ptr State;
-    const Sound::Receiver::Ptr Target;
+    const Sound::Converter::Ptr Target;
     const Module::SoundAnalyzer::Ptr Analyzer;
   };
   
@@ -214,9 +217,9 @@ namespace V2M
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Data, Duration, Sound::CreateResampler(V2mEngine::SAMPLERATE, samplerate, std::move(target)));
+      return MakePtr<Renderer>(Data, Duration, Sound::CreateResampler(V2mEngine::SAMPLERATE, samplerate));
     }
   private:
     const DataPtr Data;
