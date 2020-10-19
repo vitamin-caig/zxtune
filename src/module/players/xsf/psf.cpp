@@ -23,10 +23,7 @@
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
-#include <module/players/fading.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/render_params.h>
 #include <sound/resampler.h>
 //3rdparty includes
 #include <3rdparty/he/Core/bios.h>
@@ -179,7 +176,12 @@ namespace PSF
   {
   public:
     using Ptr = std::shared_ptr<PSXEngine>;
-  
+
+    explicit PSXEngine(const ModuleData& data)
+    {
+      Initialize(data);
+    }
+    
     void Initialize(const ModuleData& data)
     {
       if (data.Exe)
@@ -300,14 +302,12 @@ namespace PSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(ModuleData::Ptr data, uint_t samplerate, Sound::Receiver::Ptr target)
       : Data(std::move(data))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
-      , Engine(MakePtr<PSXEngine>())
-      , Params(params)
-      , Target(Module::CreateFadingReceiver(std::move(params), Data->Meta->Duration, State, std::move(target)))
+      , Engine(MakePtr<PSXEngine>(*Data))
+      , Target(Sound::CreateResampler(Engine->GetSoundFrequency(), samplerate, std::move(target)))
     {
-      Engine->Initialize(*Data);
     }
 
     Module::State::Ptr GetState() const override
@@ -322,23 +322,13 @@ namespace PSF
 
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      try
-      {
-        ApplyParameters();
-
-        const auto avail = State->Consume(FRAME_DURATION, looped);
-        Resampler->ApplyData(Engine->Render(GetSamples(avail)));
-        return State->IsValid();
-      }            
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      const auto avail = State->Consume(FRAME_DURATION, looped);
+      Target->ApplyData(Engine->Render(GetSamples(avail)));
+      return State->IsValid();
     }
 
     void Reset() override
     {
-      Params.Reset();
       State->Reset();
       Engine->Initialize(*Data);
     }
@@ -360,21 +350,11 @@ namespace PSF
     {
       return period.Get() * Engine->GetSoundFrequency() / period.PER_SECOND;
     }
-
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Resampler = Sound::CreateResampler(Engine->GetSoundFrequency(), Sound::GetSoundFrequency(*Params), Target);
-      }
-    }
   private:
     const ModuleData::Ptr Data;
     const TimedState::Ptr State;
     const PSXEngine::Ptr Engine;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
-    Sound::Receiver::Ptr Resampler;
   };
 
   class Holder : public Module::Holder
@@ -396,9 +376,9 @@ namespace PSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
+      return MakePtr<Renderer>(Tune, samplerate, std::move(target));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)

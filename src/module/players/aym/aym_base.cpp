@@ -120,9 +120,9 @@ namespace Module
       return Tune->GetProperties();
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      auto chip = AYM::CreateChip(params);
+      auto chip = AYM::CreateChip(samplerate, params);
       auto trackParams = AYM::TrackParameters::Create(std::move(params));
       auto iterator = Tune->CreateDataIterator(std::move(trackParams));
       return MakePtr<AYMRenderer>(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip), std::move(target));
@@ -161,12 +161,12 @@ namespace Module
       return MakePtr<AYMHolder>(std::move(chiptune));
     }
 
-    Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params)
+    Devices::AYM::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params)
     {
       typedef Sound::ThreeChannelsMatrixMixer MixerType;
       auto mixer = MixerType::Create();
       auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
-      auto chipParams = AYM::CreateChipParameters(std::move(pollParams));
+      auto chipParams = AYM::CreateChipParameters(samplerate, std::move(pollParams));
       return Devices::AYM::CreateChip(std::move(chipParams), std::move(mixer));
     }
   }

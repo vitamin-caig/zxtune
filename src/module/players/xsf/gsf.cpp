@@ -23,8 +23,6 @@
 #include <module/players/analyzer.h>
 #include <module/players/fading.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/render_params.h>
 //3rdparty includes
 #include <3rdparty/mgba/defines.h>
 #include <mgba/core/core.h>
@@ -229,13 +227,14 @@ namespace GSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const ModuleData& data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(const ModuleData& data, uint_t samplerate, Sound::Receiver::Ptr target)
       : Engine(MakePtr<GbaEngine>(data))
       , State(MakePtr<TimedState>(data.Meta->Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , Params(params)
-      , Target(Module::CreateFadingReceiver(std::move(params), data.Meta->Duration, State, std::move(target)))
+      , Target(std::move(target))
+      , SoundFrequency(samplerate)
     {
+      Engine->SetFrequency(samplerate);
     }
 
     Module::State::Ptr GetState() const override
@@ -250,25 +249,15 @@ namespace GSF
 
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      try
-      {
-        ApplyParameters();
-
-        const auto avail = State->Consume(FRAME_DURATION, looped);
-        auto data = Engine->Render(GetSamples(avail));
-        Analyzer->AddSoundData(data);
-        Target->ApplyData(std::move(data));
-        return State->IsValid();
-      }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      const auto avail = State->Consume(FRAME_DURATION, looped);
+      auto data = Engine->Render(GetSamples(avail));
+      Analyzer->AddSoundData(data);
+      Target->ApplyData(std::move(data));
+      return State->IsValid();
     }
 
     void Reset() override
     {
-      Params.Reset();
       State->Reset();
       Engine->Reset();
     }
@@ -290,20 +279,10 @@ namespace GSF
     {
       return period.Get() * SoundFrequency / period.PER_SECOND;
     }
-
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        SoundFrequency = Sound::GetSoundFrequency(*Params);
-        Engine->SetFrequency(SoundFrequency);
-      }
-    }
   private:
     const GbaEngine::Ptr Engine;
     const TimedState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     uint_t SoundFrequency = 0;
   };
@@ -327,9 +306,9 @@ namespace GSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(*Tune, std::move(target), std::move(params));
+      return MakePtr<Renderer>(*Tune, samplerate, std::move(target));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)

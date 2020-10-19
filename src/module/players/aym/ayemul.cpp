@@ -23,7 +23,6 @@
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
-#include <sound/render_params.h>
 //std includes
 #include <algorithm>
 
@@ -726,9 +725,9 @@ namespace AYEMUL
   class BeeperParams : public Devices::Beeper::ChipParameters
   {
   public:
-    explicit BeeperParams(Parameters::Accessor::Ptr params)
-      : Params(params)
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+    BeeperParams(uint_t samplerate, Parameters::Accessor::Ptr params)
+      : Samplerate(samplerate)
+      , Params(std::move(params))
     {
     }
 
@@ -748,16 +747,16 @@ namespace AYEMUL
 
     uint_t SoundFreq() const override
     {
-      return SoundParams->SoundFreq();
+      return Samplerate;
     }
   private:
+    const uint_t Samplerate;
     const Parameters::Accessor::Ptr Params;
-    const Sound::RenderParameters::Ptr SoundParams;
   };
 
-  Devices::Beeper::Chip::Ptr CreateBeeper(Parameters::Accessor::Ptr params)
+  Devices::Beeper::Chip::Ptr CreateBeeper(uint_t samplerate, Parameters::Accessor::Ptr params)
   {
-    auto beeperParams = MakePtr<BeeperParams>(std::move(params));
+    auto beeperParams = MakePtr<BeeperParams>(samplerate, std::move(params));
     return Devices::Beeper::CreateChip(std::move(beeperParams));
   }
   
@@ -780,10 +779,10 @@ namespace AYEMUL
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      auto aym = AYM::CreateChip(params);
-      auto beeper = CreateBeeper(params);
+      auto aym = AYM::CreateChip(samplerate, params);
+      auto beeper = CreateBeeper(samplerate, params);
       return CreateRenderer(std::move(params), std::move(aym), std::move(beeper), std::move(target));
     }
 

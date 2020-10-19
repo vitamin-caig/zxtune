@@ -270,7 +270,7 @@ namespace
       {
         const auto total = info->Duration() * Iterations;
         BenchmarkSoundReceiver receiver;
-        const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), MakeSingletonPointer(receiver));
+        const auto renderer = holder->CreateRenderer(Sounder.GetSamplerate(), props, MakeSingletonPointer(receiver));
         const Time::Timer timer;
         for (unsigned i = 0; i != Iterations; ++i)
         {

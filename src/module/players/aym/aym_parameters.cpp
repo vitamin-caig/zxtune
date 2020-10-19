@@ -20,7 +20,6 @@
 #include <devices/aym/chip.h>
 #include <l10n/api.h>
 #include <math/numeric.h>
-#include <sound/render_params.h>
 //std includes
 #include <cstring>
 #include <numeric>
@@ -100,9 +99,9 @@ namespace AYM
   class ChipParametersImpl : public Devices::AYM::ChipParameters
   {
   public:
-    explicit ChipParametersImpl(Parameters::Accessor::Ptr params)
-      : Params(params)
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+    ChipParametersImpl(uint_t samplerate, Parameters::Accessor::Ptr params)
+      : Samplerate(samplerate)
+      , Params(params)
     {
     }
 
@@ -125,7 +124,7 @@ namespace AYM
 
     uint_t SoundFreq() const override
     {
-      return SoundParams->SoundFreq();
+      return Samplerate;
     }
 
     Devices::AYM::ChipType Type() const override
@@ -191,8 +190,8 @@ namespace AYM
       return Devices::AYM::LAYOUT_ABC;
     }
   private:
+    const uint_t Samplerate;
     const Parameters::Accessor::Ptr Params;
-    const Sound::RenderParameters::Ptr SoundParams;
   };
 
   class AYTrackParameters : public TrackParameters
@@ -283,9 +282,9 @@ namespace AYM
     const uint_t Index;
   };
 
-  Devices::AYM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params)
+  Devices::AYM::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
   {
-    return MakePtr<ChipParametersImpl>(std::move(params));
+    return MakePtr<ChipParametersImpl>(samplerate, std::move(params));
   }
 
   TrackParameters::Ptr TrackParameters::Create(Parameters::Accessor::Ptr params)

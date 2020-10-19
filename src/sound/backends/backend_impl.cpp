@@ -409,7 +409,8 @@ namespace Sound
   {
     auto target = MakePtr<BackendBase::BufferRenderer>(*worker);
     auto pipeline = CreateSilenceDetector(params, std::move(target));
-    auto origRenderer = holder->CreateRenderer(params, std::move(pipeline));
+    const auto samplerate = GetSoundFrequency(*params);
+    auto origRenderer = holder->CreateRenderer(samplerate, params, std::move(pipeline));
     auto callback = BackendBase::CreateCallback(std::move(origCallback), worker);
     auto renderer = MakePtr<BackendBase::RendererWrapper>(std::move(origRenderer), callback);
     auto asyncWorker = MakePtr<BackendBase::AsyncWrapper>(std::move(params), std::move(callback), renderer);

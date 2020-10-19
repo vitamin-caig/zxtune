@@ -40,5 +40,7 @@ public:
 
   virtual Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const = 0;
 
+  virtual uint_t GetSamplerate() const = 0;
+
   static std::unique_ptr<SoundComponent> Create(Parameters::Container::Ptr configParams);
 };

@@ -33,6 +33,6 @@ namespace Module
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
 
-    Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params);
+    Devices::AYM::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params);
   }
 }

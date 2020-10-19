@@ -30,8 +30,6 @@
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/render_params.h>
 #include <sound/resampler.h>
 #include <strings/optimize.h>
 //boost includes
@@ -175,12 +173,11 @@ namespace ASAP
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(AsapTune::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(AsapTune::Ptr tune, uint_t samplerate, Sound::Receiver::Ptr target)
       : Tune(std::move(tune))
       , State(MakePtr<TimedState>(Tune->GetDuration()))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , Params(std::move(params))
-      , Target(std::move(target))
+      , Target(Sound::CreateResampler(ASAP_SAMPLE_RATE, samplerate, std::move(target)))
     {
     }
 
@@ -196,28 +193,18 @@ namespace ASAP
 
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      try
-      {
-        ApplyParameters();
+      const auto avail = State->Consume(FRAME_DURATION, looped);
 
-        const auto avail = State->Consume(FRAME_DURATION, looped);
-
-        auto buf = Tune->Render(GetSamples(avail));
-        Analyzer->AddSoundData(buf);
-        Resampler->ApplyData(std::move(buf));
-        return State->IsValid();
-      }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      auto buf = Tune->Render(GetSamples(avail));
+      Analyzer->AddSoundData(buf);
+      Target->ApplyData(std::move(buf));
+      return State->IsValid();
     }
 
     void Reset() override
     {
       try
       {
-        Params.Reset();
         State->Reset();
         Tune->Reset();
       }
@@ -240,20 +227,10 @@ namespace ASAP
       }
     }
   private:
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Resampler = Sound::CreateResampler(ASAP_SAMPLE_RATE, Sound::GetSoundFrequency(*Params), Target);
-      }
-    }
-  private:
     const AsapTune::Ptr Tune;
     const TimedState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
-    Sound::Receiver::Ptr Resampler;
   };
   
   class Holder : public Module::Holder
@@ -275,11 +252,11 @@ namespace ASAP
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
     {
       try
       {
-        return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
+        return MakePtr<Renderer>(Tune, samplerate, std::move(target));
       }
       catch (const std::exception& e)
       {

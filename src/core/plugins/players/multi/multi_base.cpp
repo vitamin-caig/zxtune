@@ -246,7 +246,7 @@ namespace Module
       }
     }
     
-    static Ptr Create(Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders, Sound::Receiver::Ptr target)
+    static Ptr Create(uint_t samplerate, Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders, Sound::Receiver::Ptr target)
     {
       const auto count = holders.size();
       Require(count > 1);
@@ -255,7 +255,7 @@ namespace Module
       for (std::size_t idx = 0; idx != count; ++idx)
       {
         const auto& holder = holders[idx];
-        delegates[idx] = holder->CreateRenderer(params, receiver);
+        delegates[idx] = holder->CreateRenderer(samplerate, params, receiver);
       }
       return MakePtr<MultiRenderer>(std::move(delegates), std::move(receiver));
     }
@@ -284,9 +284,9 @@ namespace Module
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MultiRenderer::Create(params, Delegates, target);
+      return MultiRenderer::Create(samplerate, std::move(params), Delegates, std::move(target));
     }
   private:
     const Parameters::Accessor::Ptr Properties;

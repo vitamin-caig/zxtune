@@ -24,8 +24,6 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/render_params.h>
 #include <sound/resampler.h>
 //3rdparty
 #define MINIMP3_IMPLEMENTATION
@@ -185,19 +183,10 @@ namespace Mp3
   class MultiFreqTargetsDispatcher
   {
   public:
-    explicit MultiFreqTargetsDispatcher(Sound::Receiver::Ptr target)
+    MultiFreqTargetsDispatcher(uint_t samplerate, Sound::Receiver::Ptr target)
       : Target(target)
-      , TargetFreq()
+      , TargetFreq(samplerate)
     {
-    }
-    
-    void SetTargetFreq(uint_t freq)
-    {
-      if (TargetFreq != freq)
-      {
-        Resamplers.clear();
-      }
-      TargetFreq = freq;
     }
     
     void Put(FrameSound frame)
@@ -235,12 +224,11 @@ namespace Mp3
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(Model::Ptr data, uint_t samplerate, Sound::Receiver::Ptr target)
       : Tune(data)
       , State(MakePtr<TimedState>(data->Duration))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , Params(std::move(params))
-      , Target(std::move(target))
+      , Target(samplerate, std::move(target))
     {
     }
 
@@ -256,36 +244,26 @@ namespace Mp3
 
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      try
+      const auto loops = State->LoopCount();
+      auto frame = Tune.RenderNextFrame();
+      if (frame.Data.empty())
       {
-        ApplyParameters();
-
-        const auto loops = State->LoopCount();
-        auto frame = Tune.RenderNextFrame();
-        if (frame.Data.empty())
-        {
-          Dbg("Premature end at %1%us", State->PreciseAt().Get());
-        }
-        const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
-        State->Consume(rendered, looped);
-        Analyzer->AddSoundData(frame.Data);
-        Target.Put(std::move(frame));
-        if (loops != State->LoopCount())
-        {
-          Tune.Reset();
-        }
-        return State->IsValid();
+        Dbg("Premature end at %1%us", State->PreciseAt().Get());
       }
-      catch (const std::exception&)
+      const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
+      State->Consume(rendered, looped);
+      Analyzer->AddSoundData(frame.Data);
+      Target.Put(std::move(frame));
+      if (loops != State->LoopCount())
       {
-        return false;
+        Tune.Reset();
       }
+      return State->IsValid();
     }
 
     void Reset() override
     {
       Tune.Reset();
-      Params.Reset();
       State->Reset();
     }
 
@@ -296,18 +274,9 @@ namespace Mp3
       State->Seek(realPos);
     }
   private:
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Target.SetTargetFreq(Sound::GetSoundFrequency(*Params));
-      }
-    }
-  private:
     Mp3Tune Tune;
     const TimedState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
     MultiFreqTargetsDispatcher Target;
   };
   
@@ -330,9 +299,9 @@ namespace Mp3
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Data, std::move(target), std::move(params));
+      return MakePtr<Renderer>(Data, samplerate, std::move(target));
     }
   private:
     const Model::Ptr Data;

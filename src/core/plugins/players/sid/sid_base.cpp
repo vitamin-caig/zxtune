@@ -29,7 +29,6 @@
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
-#include <sound/render_params.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
 //3rdparty includes
@@ -101,9 +100,16 @@ namespace Sid
   class SidParameters
   {
   public:
-    explicit SidParameters(const Parameters::Accessor& params)
-      : Params(params)
+    using Ptr = std::unique_ptr<const SidParameters>;
+
+    explicit SidParameters(Parameters::Accessor::Ptr params)
+      : Params(std::move(params))
     {
+    }
+
+    uint_t Version() const
+    {
+      return Params->Version();
     }
 
     bool GetFastSampling() const
@@ -120,18 +126,18 @@ namespace Sid
     bool GetUseFilter() const
     {
       Parameters::IntType val = Parameters::ZXTune::Core::SID::FILTER_DEFAULT;
-      Params.FindValue(Parameters::ZXTune::Core::SID::FILTER, val);
+      Params->FindValue(Parameters::ZXTune::Core::SID::FILTER, val);
       return static_cast<bool>(val);
     }
   private:
     Parameters::IntType GetInterpolation() const
     {
       Parameters::IntType val = Parameters::ZXTune::Core::SID::INTERPOLATION_DEFAULT;
-      Params.FindValue(Parameters::ZXTune::Core::SID::INTERPOLATION, val);
+      Params->FindValue(Parameters::ZXTune::Core::SID::INTERPOLATION, val);
       return val;
     }
   private:
-    const Parameters::Accessor& Params;
+    const Parameters::Accessor::Ptr Params;
   };
 
   class SidEngine : public Module::Analyzer
@@ -146,7 +152,7 @@ namespace Sid
     {
     }
 
-    void Init(const Parameters::Accessor& params)
+    void Init(uint_t samplerate, const Parameters::Accessor& params)
     {
       Parameters::DataType kernal, basic, chargen;
       params.FindValue(Parameters::ZXTune::Core::Plugins::SID::KERNAL, kernal);
@@ -155,7 +161,7 @@ namespace Sid
       Player.setRoms(GetData(kernal, GetKernalROM()), GetData(basic, GetBasicROM()), GetData(chargen, GetChargenROM()));
       const uint_t chipsCount = Player.info().maxsids();
       Builder.create(chipsCount);
-      Config.frequency = 0;
+      Config.frequency = samplerate;
     }
 
     void Load(SidTune& tune)
@@ -163,17 +169,15 @@ namespace Sid
       CheckSidplayError(Player.load(&tune));
     }
 
-    void ApplyParameters(uint_t soundFreq, const SidParameters& sidParams)
+    void ApplyParameters(const SidParameters& sidParams)
     {
       const auto newFastSampling = sidParams.GetFastSampling();
       const auto newSamplingMethod = sidParams.GetSamplingMethod();
       const auto newFilter = sidParams.GetUseFilter();
-      if (Config.frequency != soundFreq
-          || Config.fastSampling != newFastSampling
+      if (Config.fastSampling != newFastSampling
           || Config.samplingMethod != newSamplingMethod
           || UseFilter != newFilter)
       {
-        Config.frequency = soundFreq;
         Config.playback = Sound::Sample::CHANNELS == 1 ? SidConfig::MONO : SidConfig::STEREO;
 
         Config.fastSampling = newFastSampling;
@@ -243,15 +247,14 @@ namespace Sid
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(Model::Ptr tune, uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)
       : Tune(std::move(tune))
       , State(MakePtr<TimedState>(Tune->GetDuration()))
       , Engine(MakePtr<SidEngine>())
       , Target(std::move(target))
-      , Params(std::move(params))
-      , SidParams(*Params)
+      , SidParams(MakePtr<SidParameters>(params))
     {
-      Engine->Init(*Params);
+      Engine->Init(samplerate, *params);
       ApplyParameters();
       Engine->Load(*Tune);
     }
@@ -270,23 +273,14 @@ namespace Sid
     {
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
 
-      try
-      {
-        ApplyParameters();
-
-        const auto avail = State->Consume(FRAME_DURATION, looped);
-        Target->ApplyData(Engine->Render(GetSamples(avail)));
-        return State->IsValid();
-      }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      const auto avail = State->Consume(FRAME_DURATION, looped);
+      Target->ApplyData(Engine->Render(GetSamples(avail)));
+      return State->IsValid();
     }
 
     void Reset() override
     {
-      Params.Reset();
+      SidParams.Reset();
       Engine->Stop();
       State->Reset();
     }
@@ -311,9 +305,9 @@ namespace Sid
 
     void ApplyParameters()
     {
-      if (Params.IsChanged())
+      if (SidParams.IsChanged())
       {
-        Engine->ApplyParameters(Sound::GetSoundFrequency(*Params), SidParams);
+        Engine->ApplyParameters(*SidParams);
       }
     }
   private:
@@ -322,8 +316,7 @@ namespace Sid
     const SidEngine::Ptr Engine;
     const StateIterator::Ptr Iterator;
     const Sound::Receiver::Ptr Target;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
-    const SidParameters SidParams;
+    Parameters::TrackingHelper<SidParameters> SidParams;
   };
 
   class Holder : public Module::Holder
@@ -345,9 +338,9 @@ namespace Sid
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
+      return MakePtr<Renderer>(Tune, samplerate, std::move(params), std::move(target));
     }
   private:
     const Model::Ptr Tune;

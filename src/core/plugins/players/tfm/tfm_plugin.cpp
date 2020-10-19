@@ -40,9 +40,9 @@ namespace Module
       return Tune->GetProperties();
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      auto chipParams = TFM::CreateChipParameters(std::move(params));
+      auto chipParams = TFM::CreateChipParameters(samplerate, std::move(params));
       auto chip = Devices::TFM::CreateChip(std::move(chipParams));
       auto iterator = Tune->CreateDataIterator();
       return TFM::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/,

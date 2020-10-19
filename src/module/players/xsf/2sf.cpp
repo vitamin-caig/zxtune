@@ -24,11 +24,8 @@
 #include <math/bitops.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
-#include <module/players/fading.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
 #include <sound/resampler.h>
-#include <sound/render_params.h>
 //std includes
 #include <list>
 //3rdparty includes
@@ -256,11 +253,10 @@ namespace TwoSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target)
       : Data(std::move(data))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
-      , Params(params)
-      , Target(Module::CreateFadingReceiver(std::move(params), Data->Meta->Duration, State, std::move(target)))
+      , Target(std::move(target))
       , Engine(MakePtr<DSEngine>(*Data))
     {
     }
@@ -277,23 +273,13 @@ namespace TwoSF
 
     bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      try
-      {
-        ApplyParameters();
-
-        const auto avail = State->Consume(FRAME_DURATION, looped);
-        Resampler->ApplyData(Engine->Render(GetSamples(avail)));
-        return State->IsValid();
-      }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      const auto avail = State->Consume(FRAME_DURATION, looped);
+      Target->ApplyData(Engine->Render(GetSamples(avail)));
+      return State->IsValid();
     }
 
     void Reset() override
     {
-      Params.Reset();
       State->Reset();
       Engine = MakePtr<DSEngine>(*Data);
     }
@@ -311,20 +297,10 @@ namespace TwoSF
       }
     }
   private:
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Resampler = Sound::CreateResampler(DSEngine::SAMPLERATE, Sound::GetSoundFrequency(*Params), Target);
-      }
-    }
-  private:
     const ModuleData::Ptr Data;
     const TimedState::Ptr State;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     DSEngine::Ptr Engine;
-    Sound::Receiver::Ptr Resampler;
   };
 
   class Holder : public Module::Holder
@@ -346,9 +322,9 @@ namespace TwoSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
+      return MakePtr<Renderer>(Tune, Sound::CreateResampler(DSEngine::SAMPLERATE, samplerate, std::move(target)));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)

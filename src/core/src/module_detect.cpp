@@ -211,9 +211,9 @@ namespace Module
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
+      return Delegate->CreateRenderer(samplerate, Parameters::CreateMergedAccessor(params, Properties), target);
     }
   private:
     const Holder::Ptr Delegate;
@@ -239,9 +239,9 @@ namespace Module
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
+      return Delegate->CreateRenderer(samplerate, Parameters::CreateMergedAccessor(params, Properties), target);
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override

@@ -106,10 +106,10 @@ namespace Sound
     {
       try
       {
-        if (const BackendWorkerFactory::Ptr factory = FindFactory(backendId))
+        if (const auto factory = FindFactory(backendId))
         {
-          const Parameters::Accessor::Ptr params = Parameters::CreateMergedAccessor(module->GetModuleProperties(), Options);
-          return Sound::CreateBackend(params, module, callback, factory->CreateWorker(params, module));
+          auto params = Parameters::CreateMergedAccessor(module->GetModuleProperties(), Options);
+          return Sound::CreateBackend(params, module, std::move(callback), factory->CreateWorker(Options, module));
         }
         throw MakeFormattedError(THIS_LINE, translate("Backend '%1%' not registered."), backendId);
       }
