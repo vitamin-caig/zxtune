@@ -334,6 +334,7 @@ namespace SPC
     void SetIntro(Time::Milliseconds duration) override
     {
       Intro = std::max(Intro, duration);
+      Properties.SetFadein(Intro);
     }
     
     void SetLoop(Time::Milliseconds duration) override
@@ -344,6 +345,7 @@ namespace SPC
     void SetFade(Time::Milliseconds duration) override
     {
       Fade = duration;
+      Properties.SetFadeout(duration);
     }
     
     void SetArtist(String artist) override

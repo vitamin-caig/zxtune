@@ -41,7 +41,12 @@ namespace Sound
     bool SetGain(Gain::Type in)
     {
       Level = std::min(in, MAX_LEVEL);
-      return Level != Gain::Type(1);
+      return !IsIdentity();
+    }
+
+    bool IsIdentity() const
+    {
+      return Level == Gain::Type(1);
     }
 
   private:
@@ -54,42 +59,31 @@ namespace Sound
     Gain::Type Level;
   };
 
-  class FixedPointGainer : public Receiver
+  class FixedPointGainer : public Gainer
   {
   public:
-    FixedPointGainer(GainSource::Ptr gain, Receiver::Ptr delegate)
-      : Gain(std::move(gain))
-      , Delegate(std::move(delegate))
-      , Core()
+    void SetGain(Gain::Type gain) override
     {
+      Core.SetGain(gain);
     }
 
-    void ApplyData(Chunk in) override
+    Chunk Apply(Chunk in) override
     {
-      const auto gain = Gain->Get();
-      if (Core.SetGain(gain))
+      if (!Core.IsIdentity())
       {
         for (auto& val : in)
         {
           val = Core.Apply(val);
         }
       }
-      return Delegate->ApplyData(std::move(in));
+      return in;
     }
-
-    void Flush() override
-    {
-      Delegate->Flush();
-    }
-
   private:
-    const GainSource::Ptr Gain;
-    const Receiver::Ptr Delegate;
     GainCore Core;
   };
 
-  Receiver::Ptr CreateGainer(GainSource::Ptr gain, Receiver::Ptr delegate)
+  Gainer::Ptr CreateGainer()
   {
-    return MakePtr<FixedPointGainer>(std::move(gain), std::move(delegate));
+    return MakePtr<FixedPointGainer>();
   }
 }

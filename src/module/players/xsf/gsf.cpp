@@ -16,12 +16,12 @@
 //common includes
 #include <contract.h>
 #include <make_ptr.h>
+#include <pointers.h>
 //library includes
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
-#include <module/players/fading.h>
 #include <module/players/streaming.h>
 //3rdparty includes
 #include <3rdparty/mgba/defines.h>

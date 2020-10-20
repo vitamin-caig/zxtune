@@ -21,7 +21,6 @@
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
-#include <module/players/fading.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 //std includes

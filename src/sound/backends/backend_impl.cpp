@@ -18,9 +18,9 @@
 //library includes
 #include <async/worker.h>
 #include <debug/log.h>
+#include <module/players/pipeline.h>
 #include <parameters/tracking_helper.h>
 #include <sound/render_params.h>
-#include <sound/silence.h>
 #include <sound/sound_parameters.h>
 //std includes
 #include <atomic>
@@ -409,14 +409,12 @@ namespace BackendBase
 
 namespace Sound
 {
-  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder, BackendCallback::Ptr origCallback, BackendWorker::Ptr worker)
+  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr globalParams, Module::Holder::Ptr holder, BackendCallback::Ptr origCallback, BackendWorker::Ptr worker)
   {
-    //auto pipeline = CreateSilenceDetector(params, std::move(target));
-    const auto samplerate = GetSoundFrequency(*params);
-    auto origRenderer = holder->CreateRenderer(samplerate, params);
+    auto origRenderer = Module::CreatePipelinedRenderer(*holder, globalParams);
     auto callback = BackendBase::CreateCallback(std::move(origCallback), worker);
     auto renderer = MakePtr<BackendBase::RendererWrapper>(std::move(origRenderer), callback);
-    auto asyncWorker = MakePtr<BackendBase::AsyncWrapper>(std::move(params), std::move(callback), renderer, worker);
+    auto asyncWorker = MakePtr<BackendBase::AsyncWrapper>(std::move(globalParams), std::move(callback), renderer, worker);
     auto job = Async::CreateJob(std::move(asyncWorker));
     return MakePtr<BackendBase::BackendInternal>(std::move(worker), std::move(renderer), std::move(job));
   }

@@ -663,11 +663,7 @@ namespace AYEMUL
       Data->Frames = duration;
       if (fadeout)
       {
-        /*TODO
-        Dbg("Using fadeout of %1% frames", fadeout);
-        static const Time::Microseconds FADING_STEP(20000);
-        Properties.GetDelegate().SetValue(Parameters::ZXTune::Sound::FADEOUT, FADING_STEP.Get() * fadeout);
-        */
+        Properties.SetFadeout((AYM::BASE_FRAME_DURATION * fadeout).CastTo<Time::Millisecond>());
       }
     }
 
