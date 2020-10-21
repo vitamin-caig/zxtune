@@ -6,7 +6,7 @@ import app.zxtune.TimeStamp;
 /**
  * Player interface
  */
-public interface Player extends PropertiesAccessor, PropertiesModifier, Releaseable {
+public interface Player extends PropertiesModifier, Releaseable {
 
   /**
    * @return Position

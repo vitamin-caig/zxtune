@@ -174,7 +174,7 @@ namespace Module
       Silence.Reset();
     }
 
-    void SetPosition(Time::AtMillisecond position)
+    void SetPosition(Time::AtMillisecond position) override
     {
       Silence.Reset();
       Delegate->SetPosition(position);
@@ -221,6 +221,11 @@ namespace Module
   Renderer::Ptr CreatePipelinedRenderer(const Holder& holder, Parameters::Accessor::Ptr globalParams)
   {
     const auto samplerate = Sound::GetSoundFrequency(*globalParams);
+    return CreatePipelinedRenderer(holder, samplerate, std::move(globalParams));
+  }
+
+  Renderer::Ptr CreatePipelinedRenderer(const Holder& holder, uint_t samplerate, Parameters::Accessor::Ptr globalParams)
+  {
     auto props = Parameters::CreateMergedAccessor(std::move(globalParams), holder.GetModuleProperties());
     return MakePtr<PipelinedRenderer>(holder, samplerate, std::move(props));
   }

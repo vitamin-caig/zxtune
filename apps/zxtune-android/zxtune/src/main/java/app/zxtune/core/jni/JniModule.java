@@ -43,7 +43,7 @@ public final class JniModule implements Module {
   private native int getDurationMs();
 
   @Override
-  public native Player createPlayer();
+  public native Player createPlayer(int samplerate);
 
   @Override
   public native long getProperty(String name, long defVal);

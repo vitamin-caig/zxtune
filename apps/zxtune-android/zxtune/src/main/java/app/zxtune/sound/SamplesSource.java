@@ -23,12 +23,6 @@ public interface SamplesSource {
   }
   
   /**
-   * Initialize stream for input
-   * @param sampleRate required sample rate in Hz (e.g. 44100)
-   */
-  void initialize(int sampleRate);
-  
-  /**
    * Acquire next sound chunk
    * @param buf result buffer of 16-bit signed interleaved stereo signal
    * @return true if buffer filled, else reset position to initial

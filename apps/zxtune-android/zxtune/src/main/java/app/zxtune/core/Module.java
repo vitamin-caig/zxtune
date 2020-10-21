@@ -18,5 +18,5 @@ public interface Module extends PropertiesAccessor, AdditionalFiles, Releaseable
    *
    * @throws RuntimeException in case of error
    */
-  Player createPlayer();
+  Player createPlayer(int samplerate);
 }

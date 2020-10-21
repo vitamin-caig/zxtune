@@ -122,8 +122,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private void restoreSession(Uri uri, TimeStamp position) throws Exception {
     final Iterator iter = IteratorFactory.createIterator(context, uri);
     final PlayableItem newItem = iter.getItem();
-    final Holder newHolder = new Holder(newItem);
-    newHolder.source.initialize(player.getSampleRate());
+    final Holder newHolder = new Holder(newItem, player.getSampleRate());
     newHolder.source.setPosition(position);
     if (iterator.compareAndSet(IteratorStub.instance(), iter)) {
       setNewHolder(newHolder);
@@ -168,7 +167,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   private void setNewItem(PlayableItem newItem) {
-    final Holder newHolder = new Holder(newItem);
+    final Holder newHolder = new Holder(newItem, player.getSampleRate());
     setNewHolder(newHolder);
   }
 
@@ -277,9 +276,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       this.visualizer = VisualizerStub.instance();
     }
 
-    Holder(PlayableItem item) {
+    Holder(PlayableItem item, int samplerate) {
       this.item = item;
-      this.player = item.getModule().createPlayer();
+      this.player = item.getModule().createPlayer(samplerate);
       this.source = new SeekableSamplesSource(player);
       this.visualizer = new PlaybackVisualizer(player);
     }

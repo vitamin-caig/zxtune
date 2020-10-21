@@ -7,9 +7,6 @@ final public class StubSamplesSource implements SamplesSource {
   private StubSamplesSource() {}
 
   @Override
-  public void initialize(int sampleRate) {}
-
-  @Override
   public boolean getSamples(short[] buf) {
     return false;
   }

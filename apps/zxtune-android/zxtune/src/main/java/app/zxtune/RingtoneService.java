@@ -31,6 +31,7 @@ import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.analytics.Analytics;
+import app.zxtune.core.Module;
 import app.zxtune.core.Player;
 import app.zxtune.core.Properties;
 import app.zxtune.device.ui.Notifications;
@@ -145,8 +146,8 @@ public class RingtoneService extends IntentService {
   
   private void convert(PlayableItem item, TimeStamp limit, File location)  throws Exception {
     makeToast(getString(R.string.ringtone_create_started), Toast.LENGTH_SHORT);
-    final TimeLimitedSamplesSource source = new TimeLimitedSamplesSource(item.getModule().createPlayer(), limit);
     final WaveWriteSamplesTarget target = new WaveWriteSamplesTarget(location.getAbsolutePath());
+    final TimeLimitedSamplesSource source = new TimeLimitedSamplesSource(item.getModule(), target.getSampleRate(), limit);
     final PlayerEventsListener events = new NotifyEventsListener();
     final app.zxtune.sound.Player player = AsyncPlayer.create(target, events);
     try {
@@ -228,19 +229,14 @@ public class RingtoneService extends IntentService {
     private final TimeStamp limit;
     private int restSamples;
     
-    TimeLimitedSamplesSource(Player player, TimeStamp limit) {
-      this.player = player;
+    TimeLimitedSamplesSource(Module module, int sampleRate, TimeStamp limit) {
+      this.player = module.createPlayer(sampleRate);
       this.limit = limit;
+      restSamples = (int) (limit.convertTo(TimeUnit.SECONDS) * sampleRate);
       player.setPosition(TimeStamp.EMPTY);
       player.setProperty(Properties.Sound.LOOPED, 1);
     }
     
-    @Override
-    public void initialize(int sampleRate) {
-      player.setProperty(Properties.Sound.FREQUENCY, sampleRate);
-      restSamples = (int) (limit.convertTo(TimeUnit.SECONDS) * sampleRate);
-    }
-
     @Override
     public boolean getSamples(short[] buf) {
       if (restSamples > 0 && player.render(buf)) {

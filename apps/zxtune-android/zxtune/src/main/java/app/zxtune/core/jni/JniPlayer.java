@@ -50,12 +50,6 @@ public final class JniPlayer implements Player {
   public native int getProgress();
 
   @Override
-  public native long getProperty(String name, long defVal);
-
-  @Override
-  public native String getProperty(String name, String defVal);
-
-  @Override
   public native void setProperty(String name, long val);
 
   @Override

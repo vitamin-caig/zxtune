@@ -27,4 +27,6 @@ namespace Module
    Other properties are taken from globalParams, holder.Parameters in specified order
   */
   Renderer::Ptr CreatePipelinedRenderer(const Holder& holder, Parameters::Accessor::Ptr globalParams);
+
+  Renderer::Ptr CreatePipelinedRenderer(const Holder& holder, uint_t samplerate, Parameters::Accessor::Ptr globalParams);
 }

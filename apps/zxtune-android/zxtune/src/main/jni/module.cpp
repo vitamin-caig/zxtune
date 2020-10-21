@@ -253,13 +253,13 @@ JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniModule_getProperty__Ljava_
 }
 
 JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_createPlayer
-  (JNIEnv* env, jobject self)
+  (JNIEnv* env, jobject self, jint samplerate)
 {
   return Jni::Call(env, [=] ()
   {
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
     const auto module = Module::Storage::Instance().Get(moduleHandle);
-    return Player::Create(env, module);
+    return Player::Create(env, *module, samplerate);
   });
 }
 
