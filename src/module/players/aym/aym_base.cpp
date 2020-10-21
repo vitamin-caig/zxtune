@@ -131,7 +131,7 @@ namespace Module
       return Tune;
     }
 
-    void Dump(Devices::AYM::Device& aym) const
+    void Dump(Devices::AYM::Device& aym) const override
     {
       auto trackParams = AYM::TrackParameters::Create(Tune->GetProperties());
       const auto iterator = Tune->CreateDataIterator(std::move(trackParams));
@@ -145,7 +145,6 @@ namespace Module
       }
     }
   private:
-    const Time::Microseconds FrameDuration;
     const AYM::Chiptune::Ptr Tune;
   };
 }

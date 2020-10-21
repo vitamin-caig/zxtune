@@ -249,7 +249,7 @@ namespace Module
       return Delegate->GetChiptune();
     }
     
-    void Dump(Devices::AYM::Device& dev) const
+    void Dump(Devices::AYM::Device& dev) const override
     {
       return Delegate->Dump(dev);
     }

@@ -548,7 +548,7 @@ namespace DAC
       UpdateChannelState(src);
     }
 
-    Sound::Chunk RenderTill(Stamp stamp)
+    Sound::Chunk RenderTill(Stamp stamp) override
     {
       const uint_t samples = Clock.Advance(stamp);
       Require(samples);

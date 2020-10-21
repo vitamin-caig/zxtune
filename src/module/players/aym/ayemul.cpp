@@ -789,7 +789,7 @@ namespace AYEMUL
       return {};
     }
 
-    void Dump(Devices::AYM::Device&) const
+    void Dump(Devices::AYM::Device&) const override
     {
       Require(!"Not implemented");
     }

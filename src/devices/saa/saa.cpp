@@ -267,7 +267,7 @@ namespace SAA
       SynchronizeParameters();
     }
 
-    Sound::Chunk RenderTill(Stamp stamp)
+    Sound::Chunk RenderTill(Stamp stamp) override
     {
       const uint_t samples = Clock.SamplesTill(stamp);
       Require(samples);

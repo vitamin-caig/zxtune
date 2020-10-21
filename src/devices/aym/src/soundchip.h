@@ -77,7 +77,7 @@ namespace AYM
       SynchronizeParameters();
     }
 
-    Sound::Chunk RenderTill(Stamp stamp)
+    Sound::Chunk RenderTill(Stamp stamp) override
     {
       Sound::Chunk result;
       if (RenderedData.empty())

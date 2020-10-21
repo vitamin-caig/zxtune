@@ -150,7 +150,7 @@ namespace FM
         return Adapter.GetState();
       }
 
-      Sound::Chunk RenderTill(typename ChipTraits::StampType stamp)
+      Sound::Chunk RenderTill(typename ChipTraits::StampType stamp) override
       {
         const auto samples = Clock.AdvanceTo(stamp);
         Require(samples);
