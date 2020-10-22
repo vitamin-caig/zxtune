@@ -2,7 +2,7 @@
 *
 * @file
 *
-* @brief  Merged accessors implementation
+* @brief  Merged adapters implementation
 *
 * @author vitamin.caig@gmail.com
 *
@@ -12,6 +12,7 @@
 #include <make_ptr.h>
 //library includes
 #include <parameters/merged_accessor.h>
+#include <parameters/merged_container.h>
 #include <parameters/visitor.h>
 //std includes
 #include <set>
@@ -57,10 +58,11 @@ namespace Parameters
     std::set<NameType> DoneDatas;
   };
 
-  class DoubleAccessor : public Accessor
+  template<class Base, class Type1 = Base, class Type2 = Type1>
+  class DoubleAdapter : public Base
   {
   public:
-    DoubleAccessor(Accessor::Ptr first, Accessor::Ptr second)
+    DoubleAdapter(typename Type1::Ptr first, typename Type2::Ptr second)
       : First(std::move(first))
       , Second(std::move(second))
     {
@@ -95,9 +97,9 @@ namespace Parameters
       First->Process(mergedVisitor);
       Second->Process(mergedVisitor);
     }
-  private:
-    const Accessor::Ptr First;
-    const Accessor::Ptr Second;
+  protected:
+    const typename Type1::Ptr First;
+    const typename Type2::Ptr Second;
   };
 
   class TripleAccessor : public Accessor
@@ -149,13 +151,47 @@ namespace Parameters
     const Accessor::Ptr Third;
   };
 
+  class ShadowingMergedContainer : public DoubleAdapter<Container, Accessor, Container>
+  {
+  public:
+    ShadowingMergedContainer(Accessor::Ptr first, Container::Ptr second)
+      : DoubleAdapter<Container, Accessor, Container>(std::move(first), std::move(second))
+    {
+    }
+
+    void SetValue(const NameType& name, IntType val) override
+    {
+      Second->SetValue(name, val);
+    }
+
+    void SetValue(const NameType& name, const StringType& val) override
+    {
+      Second->SetValue(name, val);
+    }
+
+    void SetValue(const NameType& name, const DataType& val) override
+    {
+      Second->SetValue(name, val);
+    }
+
+    void RemoveValue(const NameType& name) override
+    {
+      Second->RemoveValue(name);
+    }
+  };
+
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second)
   {
-    return MakePtr<DoubleAccessor>(std::move(first), std::move(second));
+    return MakePtr<DoubleAdapter<Accessor>>(std::move(first), std::move(second));
   }
 
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third)
   {
     return MakePtr<TripleAccessor>(std::move(first), std::move(second), std::move(third));
+  }
+
+  Container::Ptr CreateMergedContainer(Accessor::Ptr first, Container::Ptr second)
+  {
+    return MakePtr<ShadowingMergedContainer>(std::move(first), std::move(second));
   }
 }
