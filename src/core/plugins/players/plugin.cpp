@@ -43,36 +43,37 @@ namespace ZXTune
       return Decoder->GetFormat();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, Module::DetectCallback& callback) const override
     {
-      const Binary::Container::Ptr data = inputData->GetData();
+      auto data = inputData->GetData();
       if (Decoder->Check(*data))
       {
-        const Parameters::Container::Ptr properties = Parameters::Container::Create();
+        auto properties = callback.CreateInitialProperties(inputData->GetPath()->AsString());
         Module::PropertiesHelper props(*properties);
-        props.SetType(Description->Id());
         props.SetContainer(inputData->GetPluginsChain()->AsString());
-        if (const Module::Holder::Ptr holder = Factory->CreateModule(params, *data, properties))
+        if (auto holder = Factory->CreateModule(params, *data, properties))
         {
-          callback.ProcessModule(inputData, Description, holder);
+          props.SetType(Description->Id());
+          callback.ProcessModule(*inputData, *Description, std::move(holder));
           Parameters::IntType usedSize = 0;
           properties->FindValue(Module::ATTR_SIZE, usedSize);
           return Analysis::CreateMatchedResult(static_cast<std::size_t>(usedSize));
         }
       }
-      return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), data);
+      return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), std::move(data));
     }
 
-    Module::Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data) const override
+    Module::Holder::Ptr TryOpen(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const override
     {
       if (Decoder->Check(data))
       {
-        const Parameters::Container::Ptr properties = Parameters::Container::Create();
-        Module::PropertiesHelper(*properties)
-          .SetType(Description->Id());
-        return Factory->CreateModule(params, data, properties);
+        if (auto result = Factory->CreateModule(params, data, properties))
+        {
+          Module::PropertiesHelper(*properties).SetType(Description->Id());
+          return result;
+        }
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   private:
     const Plugin::Ptr Description;
@@ -83,7 +84,7 @@ namespace ZXTune
   PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps,
     Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::MODULE);
-    return MakePtr<CommonPlayerPlugin>(description, decoder, factory);
+    auto description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::MODULE);
+    return MakePtr<CommonPlayerPlugin>(std::move(description), std::move(decoder), std::move(factory));
   }
 }

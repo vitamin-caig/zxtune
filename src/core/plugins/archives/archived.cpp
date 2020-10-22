@@ -31,7 +31,7 @@ namespace ZXTune
   class LoggerHelper
   {
   public:
-    LoggerHelper(uint_t total, const Module::DetectCallback& delegate, String plugin, String path)
+    LoggerHelper(uint_t total, Module::DetectCallback& delegate, String plugin, String path)
       : Total(total)
       , Delegate(delegate)
       , Progress(CreateProgressCallback(delegate, Total))
@@ -70,7 +70,7 @@ namespace ZXTune
     }
   private:
     const uint_t Total;
-    const Module::DetectCallback& Delegate;
+    Module::DetectCallback& Delegate;
     const Log::ProgressCallback::Ptr Progress;
     const String Id;
     const String Path;
@@ -80,7 +80,7 @@ namespace ZXTune
   class ContainerDetectCallback : public Formats::Archived::Container::Walker
   {
   public:
-    ContainerDetectCallback(const Parameters::Accessor& params, std::size_t maxSize, String plugin, DataLocation::Ptr location, uint_t count, const Module::DetectCallback& callback)
+    ContainerDetectCallback(const Parameters::Accessor& params, std::size_t maxSize, String plugin, DataLocation::Ptr location, uint_t count, Module::DetectCallback& callback)
       : Params(params)
       , MaxSize(maxSize)
       , BaseLocation(std::move(location))
@@ -143,7 +143,7 @@ namespace ZXTune
       return Decoder->GetFormat();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, Module::DetectCallback& callback) const override
     {
       const Binary::Container::Ptr rawData = input->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -220,7 +220,7 @@ namespace ZXTune
       return Delegate->GetFormat();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, Module::DetectCallback& callback) const override
     {
       if (SelfIsVisited(*inputData->GetPluginsChain()))
       {

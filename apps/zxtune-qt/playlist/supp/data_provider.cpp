@@ -30,9 +30,9 @@
 #include <module/attributes.h>
 #include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
+#include <parameters/merged_container.h>
 #include <parameters/template.h>
 #include <parameters/tracking.h>
-#include <sound/sound_parameters.h>
 #include <strings/encoding.h>
 #include <strings/format.h>
 #include <strings/template.h>
@@ -358,9 +358,12 @@ namespace
 
     Module::Holder::Ptr GetModule(Parameters::Accessor::Ptr adjustedParams) const
     {
-      const Binary::Container::Ptr data = Source->GetData();
+      auto forcedProperties = Parameters::CreateMergedAccessor(Module::CreatePathProperties(ModuleId), std::move(adjustedParams));
+      // All the parsed data is written to new container, but adjustedParam is shadowing it
+      auto initialProperties = Parameters::CreateMergedContainer(std::move(forcedProperties), Parameters::Container::Create());
+      auto data = Source->GetData();
       const auto& subpath = ModuleId->Subpath();
-      const Module::Holder::Ptr module = Module::Open(*CoreParams, data, subpath);
+      const auto module = Module::Open(*CoreParams, std::move(data), subpath, std::move(initialProperties));
       if (subpath.empty())
       {
         if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
@@ -368,10 +371,7 @@ namespace
           Module::ResolveAdditionalFiles(*Source, *files);
         }
       }
-      const Parameters::Accessor::Ptr moduleProps = module->GetModuleProperties();
-      const Parameters::Accessor::Ptr pathParams = Module::CreatePathProperties(ModuleId);
-      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(pathParams, adjustedParams, moduleProps);
-      return Module::CreateMixedPropertiesHolder(module, moduleParams);
+      return module;
     }
     
     Binary::Data::Ptr GetModuleData(std::size_t size) const
@@ -632,9 +632,16 @@ namespace
     {
     }
 
-    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const override
+    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const
     {
-      const String subPath = location->GetPath()->AsString();
+      auto moduleId = DataId->WithSubpath(subpath);
+      auto pathProps = Module::CreatePathProperties(std::move(moduleId));
+      return Parameters::CreateMergedContainer(std::move(pathProps), Parameters::Container::Create());
+    }
+
+    void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& decoder, Module::Holder::Ptr holder) override
+    {
+      const String subPath = location.GetPath()->AsString();
       if (subPath.empty())
       {
         if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
@@ -642,16 +649,13 @@ namespace
           Module::ResolveAdditionalFiles(*Source, *files);
         }
       }
-      const Parameters::Container::Ptr adjustedParams = Delegate.CreateInitialAdjustedParameters();
-      const Module::Information::Ptr info = holder->GetModuleInformation();
-      const Parameters::Accessor::Ptr moduleProps = holder->GetModuleProperties();
-      const IO::Identifier::Ptr moduleId = DataId->WithSubpath(subPath);
-      const Parameters::Accessor::Ptr pathProps = Module::CreatePathProperties(moduleId);
-      const Parameters::Accessor::Ptr lookupModuleProps = Parameters::CreateMergedAccessor(pathProps, adjustedParams, moduleProps);
-      const ModuleSource itemSource(CoreParams, Source, moduleId);
-      const Playlist::Item::Data::Ptr playitem = MakePtr<DataImpl>(Attributes, itemSource, adjustedParams,
-        info->Duration(), *lookupModuleProps, decoder->Capabilities());
-      Delegate.ProcessItem(playitem);
+      auto adjustedParams = Delegate.CreateInitialAdjustedParameters();
+      const auto info = holder->GetModuleInformation();
+      const auto lookupModuleProps = Parameters::CreateMergedAccessor(adjustedParams, holder->GetModuleProperties());
+      ModuleSource itemSource(CoreParams, Source, DataId->WithSubpath(subPath));
+      auto playitem = MakePtr<DataImpl>(Attributes, std::move(itemSource), std::move(adjustedParams),
+        info->Duration(), *lookupModuleProps, decoder.Capabilities());
+      Delegate.ProcessItem(std::move(playitem));
     }
 
     Log::ProgressCallback* GetProgress() const override
@@ -678,14 +682,14 @@ namespace
 
     void DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const override
     {
-      const IO::Identifier::Ptr id = IO::ResolveUri(path);
+      auto id = IO::ResolveUri(path);
 
       const String subPath = id->Subpath();
       if (subPath.empty())
       {
-        const Binary::Container::Ptr data = Provider->GetData(id->Path());
-        const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
-        Module::Detect(*CoreParams, data, detectCallback);
+        auto data = Provider->GetData(id->Path());
+        DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, std::move(id));
+        Module::Detect(*CoreParams, std::move(data), detectCallback);
       }
       else
       {
@@ -695,11 +699,11 @@ namespace
 
     void OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const override
     {
-      const IO::Identifier::Ptr id = IO::ResolveUri(path);
+      auto id = IO::ResolveUri(path);
 
-      const Binary::Container::Ptr data = Provider->GetData(id->Path());
-      const DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
-      Module::Open(*CoreParams, data, id->Subpath(), detectCallback);
+      auto data = Provider->GetData(id->Path());
+      DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
+      Module::Open(*CoreParams, std::move(data), id->Subpath(), detectCallback);
     }
   private:
     const CachedDataProvider::Ptr Provider;

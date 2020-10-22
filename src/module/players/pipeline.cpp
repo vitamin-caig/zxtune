@@ -226,7 +226,7 @@ namespace Module
 
   Renderer::Ptr CreatePipelinedRenderer(const Holder& holder, uint_t samplerate, Parameters::Accessor::Ptr globalParams)
   {
-    auto props = Parameters::CreateMergedAccessor(std::move(globalParams), holder.GetModuleProperties());
+    auto props = Parameters::CreateMergedAccessor(holder.GetModuleProperties(), std::move(globalParams));
     return MakePtr<PipelinedRenderer>(holder, samplerate, std::move(props));
   }
 }

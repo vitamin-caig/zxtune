@@ -79,9 +79,10 @@ namespace
     try
     {
       const auto& options = Parameters::GlobalOptions();
+      auto initialProperties = Parameters::Container::Create();
       return subpath.empty()
-        ? Module::Open(options, *data)
-        : Module::Open(options, data, subpath);
+        ? Module::Open(options, *data, std::move(initialProperties))
+        : Module::Open(options, std::move(data), subpath, std::move(initialProperties));
     }
     catch (const Error& e)
     {
@@ -109,10 +110,15 @@ namespace
     {
     }
 
-    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/,
-      Module::Holder::Ptr holder) const override
+    Parameters::Container::Ptr CreateInitialProperties(const String& /*subpath*/) const override
     {
-      const Jni::TempJString subpath(Env, location->GetPath()->AsString());
+      return Parameters::Container::Create();
+    }
+
+    void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& /*decoder*/,
+      Module::Holder::Ptr holder) override
+    {
+      const Jni::TempJString subpath(Env, location.GetPath()->AsString());
       const auto object = CreateJniObject(Env, std::move(holder));
       Env->CallVoidMethod(Delegate, GetMethodId(), subpath.Get(), object);
       Jni::ThrowIfError(Env);

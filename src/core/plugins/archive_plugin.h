@@ -34,7 +34,7 @@ namespace ZXTune
     virtual Binary::Format::Ptr GetFormat() const = 0;
 
     //! @brief Detect modules in data
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, Module::DetectCallback& callback) const = 0;
 
     virtual DataLocation::Ptr Open(const Parameters::Accessor& params,
                                    DataLocation::Ptr inputData,

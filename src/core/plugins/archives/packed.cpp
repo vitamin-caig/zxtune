@@ -42,12 +42,12 @@ namespace ZXTune
   }
 
   Analysis::Result::Ptr DetectModulesInArchive(const Parameters::Accessor& params, Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder, 
-    DataLocation::Ptr inputData, const Module::DetectCallback& callback)
+    DataLocation::Ptr inputData, Module::DetectCallback& callback)
   {
     const Binary::Container::Ptr rawData = inputData->GetData();
     if (Formats::Packed::Container::Ptr subData = decoder.Decode(*rawData))
     {
-      const Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
+      Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
       const String subPlugin = plugin->Id();
       const String subPath = EncodeArchivePluginToPath(subPlugin);
       const DataLocation::Ptr subLocation = CreateNestedLocation(inputData, subData, subPlugin, subPath);
@@ -98,7 +98,7 @@ namespace ZXTune
       return Decoder->GetFormat();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, Module::DetectCallback& callback) const override
     {
       return DetectModulesInArchive(params, Description, *Decoder, inputData, callback);
     }

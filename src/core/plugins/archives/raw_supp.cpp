@@ -581,7 +581,7 @@ namespace Raw
       return Delegate->GetFormat();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, Module::DetectCallback& callback) const override
     {
       const Analysis::Result::Ptr result = Delegate->Detect(params, inputData, callback);
       if (const std::size_t matched = result->GetMatchedDataSize())
@@ -649,7 +649,7 @@ namespace Raw
       Archives.SetPluginLookahead(denied, denied.GetDescription()->Id(), ~std::size_t(0));
     }
 
-    std::size_t Detect(DataLocation::Ptr input, const Module::DetectCallback& callback)
+    std::size_t Detect(DataLocation::Ptr input, Module::DetectCallback& callback)
     {
       const Analysis::Result::Ptr detectedModules = DetectIn(Players, input, callback);
       if (const std::size_t matched = detectedModules->GetMatchedDataSize())
@@ -678,7 +678,7 @@ namespace Raw
     }
   private:
     template<class T>
-    Analysis::Result::Ptr DetectIn(LookaheadPluginsStorage<T>& container, DataLocation::Ptr input, const Module::DetectCallback& callback) const
+    Analysis::Result::Ptr DetectIn(LookaheadPluginsStorage<T>& container, DataLocation::Ptr input, Module::DetectCallback& callback) const
     {
       const bool initialScan = 0 == Offset;
       const std::size_t maxSize = input->GetData()->Size();
@@ -743,7 +743,7 @@ namespace Raw
       return Binary::Format::Ptr();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, const Module::DetectCallback& callback) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, Module::DetectCallback& callback) const override
     {
       const Binary::Container::Ptr rawData = input->GetData();
       const std::size_t size = rawData->Size();
@@ -760,7 +760,7 @@ namespace Raw
       const String currentPath = input->GetPath()->AsString();
       Dbg("Detecting modules in raw data at '%1%'", currentPath);
       const Log::ProgressCallback::Ptr progress = MakePtr<ProgressCallback>(callback, static_cast<uint_t>(size), currentPath);
-      const Module::DetectCallback& noProgressCallback = Module::CustomProgressDetectCallbackAdapter(callback);
+      Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
 
       const ArchivePlugin::Iterator::Ptr availableArchives = ArchivePluginsEnumerator::Create()->Enumerate();
       const ArchivePlugin::Iterator::Ptr usedArchives = scanParams.GetDoubleAnalysis()
@@ -775,7 +775,7 @@ namespace Raw
         const std::size_t offset = subLocation->GetOffset();
         progress->OnProgress(static_cast<uint_t>(offset));
         usedPlugins.SetOffset(offset);
-        const Module::DetectCallback& curCallback = offset ? noProgressCallback : callback;
+        auto& curCallback = offset ? noProgressCallback : callback;
         const std::size_t bytesToSkip = usedPlugins.Detect(subLocation, curCallback);
         if (!subLocation.unique())
         {

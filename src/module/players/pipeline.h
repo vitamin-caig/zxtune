@@ -24,7 +24,7 @@ namespace Module
    - silence detection
 
    Samplerate is taken from globalParams.
-   Other properties are taken from globalParams, holder.Parameters in specified order
+   Other properties are taken from holder.Parameters, globalParams in specified order
   */
   Renderer::Ptr CreatePipelinedRenderer(const Holder& holder, Parameters::Accessor::Ptr globalParams);
 

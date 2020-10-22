@@ -216,6 +216,7 @@ namespace Module
       {
         renderer->SetPosition(request);
       }
+      Target.Reset();
     }
     
     static Ptr Create(uint_t samplerate, Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders)
@@ -226,7 +227,7 @@ namespace Module
       for (std::size_t idx = 0; idx != count; ++idx)
       {
         const auto& holder = holders[idx];
-        delegates[idx] = holder->CreateRenderer(samplerate, params);
+        delegates[idx] = holder->CreateRenderer(samplerate, Parameters::CreateMergedAccessor(holder->GetModuleProperties(), params));
       }
       return MakePtr<MultiRenderer>(std::move(delegates));
     }
@@ -270,12 +271,12 @@ namespace Module
 {
   namespace Multi
   { 
-    Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr params, const HoldersArray& holders)
+    Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr tuneProperties, HoldersArray holders)
     {
       Require(!holders.empty());
       return holders.size() == 1
-           ? CreateMixedPropertiesHolder(holders.front(), params)
-           : MakePtr<MultiHolder>(params, holders);
+           ? std::move(holders.front())
+           : MakePtr<MultiHolder>(std::move(tuneProperties), std::move(holders));
     }
   }
 }

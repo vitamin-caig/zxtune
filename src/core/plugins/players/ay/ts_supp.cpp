@@ -74,14 +74,14 @@ namespace TS
   private:
     AYM::Chiptune::Ptr LoadChiptune(std::size_t offset, std::size_t size) const
     {
-      const Binary::Container::Ptr content = Data.GetSubcontainer(offset, size);
-      if (const AYM::Holder::Ptr holder = std::dynamic_pointer_cast<const AYM::Holder>(Module::Open(Params, *content)))
+      const auto content = Data.GetSubcontainer(offset, size);
+      if (const auto holder = std::dynamic_pointer_cast<const AYM::Holder>(Module::Open(Params, *content, Parameters::Container::Create())))
       {
         return holder->GetChiptune();
       }
       else
       {
-        return AYM::Chiptune::Ptr();
+        return {};
       }
 
     }
@@ -136,9 +136,9 @@ namespace ZXTune
     const Char ID[] = {'T', 'S', 0};
     const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::TURBOSOUND;
 
-    const Formats::Chiptune::TurboSound::Decoder::Ptr decoder = Formats::Chiptune::TurboSound::CreateDecoder();
-    const Module::Factory::Ptr factory = MakePtr<Module::TS::Factory>(decoder);
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::TurboSound::CreateDecoder();
+    auto factory = MakePtr<Module::TS::Factory>(decoder);
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }
