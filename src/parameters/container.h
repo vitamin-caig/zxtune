@@ -26,6 +26,7 @@ namespace Parameters
     typedef std::shared_ptr<Container> Ptr;
 
     static Ptr Create();
+    static Ptr Clone(const Parameters::Accessor& source);
     static Ptr CreateAdapter(Accessor::Ptr accessor, Modifier::Ptr modifier);
   };
 }

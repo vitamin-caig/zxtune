@@ -35,6 +35,14 @@ namespace Parameters
     {
     }
 
+    StorageContainer(const StorageContainer& src)
+      : VersionValue(src.VersionValue)
+      , Integers(src.Integers)
+      , Strings(src.Strings)
+      , Datas(src.Datas)
+    {
+    }
+
     //accessor virtuals
     uint_t Version() const override
     {
@@ -199,6 +207,17 @@ namespace Parameters
   Container::Ptr Container::Create()
   {
     return MakePtr<StorageContainer>();
+  }
+
+  Container::Ptr Container::Clone(const Accessor& source)
+  {
+    if (const auto* storage = dynamic_cast<const StorageContainer*>(&source))
+    {
+      return MakePtr<StorageContainer>(*storage);
+    }
+    const auto res = Container::Create();
+    source.Process(*res);
+    return res;
   }
 
   Container::Ptr Container::CreateAdapter(Accessor::Ptr accessor, Modifier::Ptr modifier)
