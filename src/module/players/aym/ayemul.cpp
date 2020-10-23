@@ -609,9 +609,10 @@ namespace AYEMUL
 
     void SetPosition(Time::AtMillisecond request) override
     {
-      const auto current = State->At();
+      auto current = State->At();
       if (request < current)
       {
+        current = {};
         Comp->Reset();
         Device->Reset();
         DeviceTime = {};

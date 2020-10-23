@@ -108,9 +108,9 @@ namespace Module
       DoneStreams = 0;
     }
 
-    void Mix(const Sound::Chunk& data)
+    void MixStream(uint_t idx, const Sound::Chunk& data)
     {
-      auto offset = Portions[DoneStreams];
+      auto offset = Portions[idx];
       if (data.empty())
       {
         // Empty data means preliminary stream end
@@ -123,22 +123,26 @@ namespace Module
         {
           Buffer[offset++].Add(smp);
         }
+        ++DoneStreams;
       }
-      Portions[DoneStreams] = offset;
-      ++DoneStreams;
+      Portions[idx] = offset;
     }
     
     Sound::Chunk Convert()
     {
-      const auto avail = *std::min_element(Portions.begin(), Portions.begin());
-      Require(avail);
-      const auto divisor = DoneStreams;
-      Sound::Chunk result(avail);
-      std::transform(Buffer.begin(), Buffer.begin() + avail, result.begin(),
-         [divisor](WideSample in) {return in.Convert(divisor);});
-      Consume(avail);
-      DoneStreams = 0;
-      return result;
+      if (const auto avail = *std::min_element(Portions.begin(), Portions.end()))
+      {
+        Sound::Chunk result(avail);
+        if (const uint_t divisor = DoneStreams)
+        {
+          std::transform(Buffer.begin(), Buffer.begin() + avail, result.begin(),
+             [divisor](WideSample in) {return in.Convert(divisor);});
+        }
+        Consume(avail);
+        DoneStreams = 0;
+        return result;
+      }
+      return {};
     }
   private:
     void Consume(std::size_t size)
@@ -159,7 +163,7 @@ namespace Module
     }
   private:
     std::vector<WideSample> Buffer;
-    std::vector<uint_t> Portions;
+    std::vector<std::size_t> Portions;
     uint_t DoneStreams = 0;
   };
   
@@ -191,7 +195,7 @@ namespace Module
         if (Target.NeedStream(idx))
         {
           auto data = Delegates[idx]->Render(idx == 0 ? looped : INFINITE_LOOP);
-          Target.Mix(data);
+          Target.MixStream(idx, data);
         }
       }
       return Target.Convert();
