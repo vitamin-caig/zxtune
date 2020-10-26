@@ -411,13 +411,13 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="48"/>
-        <source>Fade in, mS</source>
-        <translation>Возрастание, мс</translation>
+        <source>Fade in, S</source>
+        <translation>Возрастание, с</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="55"/>
-        <source>Fade out, mS</source>
-        <translation>Затухание, мс</translation>
+        <source>Fade out, S</source>
+        <translation>Затухание, с</translation>
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="90"/>

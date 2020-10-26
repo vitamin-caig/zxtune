@@ -38,28 +38,28 @@
          <string/>
         </property>
         <property name="maximum">
-         <number>30000</number>
+         <number>30</number>
         </property>
        </widget>
       </item>
       <item row="3" column="0">
        <widget class="QLabel" name="fadeinLabel">
         <property name="text">
-         <string>Fade in, mS</string>
+         <string>Fade in, S</string>
         </property>
        </widget>
       </item>
       <item row="4" column="0">
        <widget class="QLabel" name="fadeoutLabel">
         <property name="text">
-         <string>Fade out, mS</string>
+         <string>Fade out, S</string>
         </property>
        </widget>
       </item>
       <item row="4" column="1">
        <widget class="QSpinBox" name="fadeoutValue">
         <property name="maximum">
-         <number>30000</number>
+         <number>30</number>
         </property>
        </widget>
       </item>

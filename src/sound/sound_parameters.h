@@ -41,8 +41,8 @@ namespace Parameters
       //@}
 
       //@{
-      //! @name Fadein in milliseconds
-      const IntType FADEIN_PRECISION = 1000;
+      //! @name Fadein in seconds
+      const IntType FADEIN_PRECISION = 1;
 
       //! Default value- no fading
       const IntType FADEIN_DEFAULT = 0;
@@ -51,8 +51,8 @@ namespace Parameters
       //@}
 
       //@{
-      //! @name Fadeout in milliseconds
-      const IntType FADEOUT_PRECISION = 1000;
+      //! @name Fadeout in seconds
+      const IntType FADEOUT_PRECISION = 1;
 
       //! Default value- no fading
       const IntType FADEOUT_DEFAULT = 0;
