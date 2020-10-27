@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- emulation -->
+  <string name="time_0s">Nein</string>
+  <string name="time_1s">1 Sekunde</string>
+  <string name="time_2s">2 Sekunden</string>
+  <string name="time_3s">3 Sekunden</string>
+  <string name="time_4s">4 Sekunden</string>
+  <string name="time_5s">5 Sekunden</string>
+  <string name="time_10s">10 Sekunden</string>
+  <string name="time_15s">15 Sekunden</string>
 
     <!-- common -->
   <string name="pref_interpolation">Interpolierung</string>
@@ -40,14 +48,6 @@
   </string-array>
   <!-- zxtune.sound.silencelimit -->
   <string  name="pref_zxtune_silence_limit_title">Stilleerkennung</string>
-  <string-array name="pref_zxtune_silence_limit_entries">
-    <item>Nein</item>
-    <item>3 Sekunden</item>
-    <item>4 Sekunden</item>
-    <item>5 Sekunden</item>
-    <item>10 Sekunden</item>
-    <item>15 Sekunden</item>
-  </string-array>
   <!-- zxtune.sound.looplimit -->
   <string  name="pref_zxtune_loop_limit_title">Schleifen Grenze</string>
   <string-array name="pref_zxtune_loop_limit_entries">
@@ -58,4 +58,9 @@
     <item>4 Schleifen</item>
     <item>5 Schleifen</item>
   </string-array>
+  <!-- zxtune.sound.fadein/fadeout -->
+  <string name="pref_zxtune_fadein_title">Fade-in</string>
+  <string name="pref_zxtune_fadeout_title">Fade-out</string>
+  <!-- zxtune.sound.gain -->
+  <string name="pref_zxtune_gain_title">Gain</string>
 </resources>

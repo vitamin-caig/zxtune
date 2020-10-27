@@ -158,6 +158,27 @@
         android:entryValues="@array/pref_zxtune_loop_limit_values"
         android:defaultValue="@integer/pref_zxtune_loop_limit_default"
         />
+    <ListPreference
+      android:key="@string/pref_zxtune_fadein"
+      android:title="@string/pref_zxtune_fadein_title"
+      android:entries="@array/pref_zxtune_fade_entries"
+      android:entryValues="@array/pref_zxtune_fade_values"
+      android:defaultValue="@integer/pref_zxtune_fade_default"
+      />
+    <ListPreference
+        android:key="@string/pref_zxtune_fadeout"
+        android:title="@string/pref_zxtune_fadeout_title"
+        android:entries="@array/pref_zxtune_fade_entries"
+        android:entryValues="@array/pref_zxtune_fade_values"
+        android:defaultValue="@integer/pref_zxtune_fade_default"
+        />
+    <app.zxtune.ui.utils.SeekBarPreference
+        android:key="@string/pref_zxtune_gain"
+        android:title="@string/pref_zxtune_gain_title"
+        android:defaultValue="@integer/pref_zxtune_gain_default"
+        android:min="50"
+        android:max="200"
+        />
   </PreferenceScreen>
   <!--</PreferenceScreen>-->
 </PreferenceScreen>
