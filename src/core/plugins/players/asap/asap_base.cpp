@@ -81,7 +81,7 @@ namespace ASAP
 
     void FillDuration(const Parameters::Accessor& params)
     {
-      if (!::ASAPInfo_GetDuration(Info, Track))
+      if (::ASAPInfo_GetDuration(Info, Track) <= 0)
       {
         const auto duration = GetDefaultDuration(params);
         ::ASAPInfo_SetDuration(const_cast<ASAPInfo*>(Info), Track, duration.CastTo<TimeUnit>().Get());
