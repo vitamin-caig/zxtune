@@ -25,7 +25,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 
 import app.zxtune.Log;
 import app.zxtune.MainActivity;
@@ -65,7 +64,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
     inflater.inflate(R.menu.track, menu);
 
     trackActionsMenu = new TrackActionsMenu(menu);
-    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+    final MediaSessionModel model = MediaSessionModel.of(getActivity());
     model.getMetadata().observe(this, new Observer<MediaMetadataCompat>() {
       @Override
       public void onChanged(@Nullable MediaMetadataCompat metadata) {
@@ -82,7 +81,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
   public boolean onOptionsItemSelected(MenuItem item) {
     try {
       return trackActionsMenu.selectItem(item)
-                 || super.onOptionsItemSelected(item);
+          || super.onOptionsItemSelected(item);
     } catch (Exception e) {//use the most common type
       Log.w(TAG, e, "onOptionsItemSelected");
       final Throwable cause = e.getCause();

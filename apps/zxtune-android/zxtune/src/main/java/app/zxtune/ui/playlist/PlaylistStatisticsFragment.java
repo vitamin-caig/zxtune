@@ -20,7 +20,7 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
+import androidx.lifecycle.ViewModelProvider;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -80,7 +80,7 @@ public class PlaylistStatisticsFragment extends DialogFragment {
     private final MutableLiveData<Statistics> data;
 
     static Model of(Fragment owner) {
-      return ViewModelProviders.of(owner).get(Model.class);
+      return new ViewModelProvider(owner).get(Model.class);
     }
 
     public Model(Application application) {

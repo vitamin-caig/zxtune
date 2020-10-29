@@ -1,12 +1,13 @@
 package app.zxtune.models;
 
-import androidx.annotation.Nullable;
-import androidx.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
 import android.os.RemoteException;
-import androidx.fragment.app.FragmentActivity;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
+
 import app.zxtune.Log;
 import app.zxtune.MainService;
 
@@ -32,7 +33,7 @@ public class MediaSessionConnection {
   }
 
   private void setControl(@Nullable MediaControllerCompat ctrl) {
-    final MediaSessionModel model = ViewModelProviders.of(activity).get(MediaSessionModel.class);
+    final MediaSessionModel model = MediaSessionModel.of(activity);
     model.setControl(ctrl);
     MediaControllerCompat.setMediaController(activity, ctrl);
   }

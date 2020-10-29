@@ -9,9 +9,11 @@ import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
 import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModelProvider;
 
 import app.zxtune.playback.Visualizer;
 import app.zxtune.rpc.ParcelableBinder;
@@ -24,6 +26,11 @@ public final class MediaSessionModel extends AndroidViewModel {
   private final MutableLiveData<MediaMetadataCompat> mediaMetadata;
   private final MutableLiveData<MediaControllerCompat> mediaController;
   private final MutableLiveData<Visualizer> visualizer;
+
+  public static MediaSessionModel of(FragmentActivity owner) {
+    return new ViewModelProvider(owner,
+        ViewModelProvider.AndroidViewModelFactory.getInstance(owner.getApplication())).get(MediaSessionModel.class);
+  }
 
   public MediaSessionModel(Application app) {
     super(app);

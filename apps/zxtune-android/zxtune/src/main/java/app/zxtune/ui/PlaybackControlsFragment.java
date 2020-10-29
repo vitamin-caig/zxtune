@@ -6,18 +6,18 @@
 
 package app.zxtune.ui;
 
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+
 import app.zxtune.R;
 import app.zxtune.models.MediaSessionModel;
 import app.zxtune.playback.PlaybackControl.SequenceMode;
@@ -39,7 +39,7 @@ public class PlaybackControlsFragment extends Fragment {
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    final MediaSessionModel model = ViewModelProviders.of(getActivity()).get(MediaSessionModel.class);
+    final MediaSessionModel model = MediaSessionModel.of(getActivity());
     model.getMediaController().observe(this, new Observer<MediaControllerCompat>() {
       @Override
       public void onChanged(@Nullable MediaControllerCompat controller) {

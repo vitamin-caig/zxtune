@@ -30,7 +30,6 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.viewpager.widget.ViewPager;
 
 import app.zxtune.analytics.Analytics;
@@ -176,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
     if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
       final Uri uri = intent.getData();
       if (uri != null) {
-        final MediaSessionModel model = ViewModelProviders.of(this).get(MediaSessionModel.class);
+        final MediaSessionModel model = MediaSessionModel.of(this);
         final LiveData<MediaControllerCompat> ctrl = model.getMediaController();
         ctrl.observe(this,
             new Observer<MediaControllerCompat>() {
