@@ -1,17 +1,22 @@
 package app.zxtune.playlist;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import javax.annotation.CheckForNull;
 
+import app.zxtune.R;
 import app.zxtune.analytics.Analytics;
 
 public final class ProviderClient {
@@ -149,5 +154,10 @@ public final class ProviderClient {
       }
     }
     return result;
+  }
+
+  public final void savePlaylist(String id, @CheckForNull long[] ids) throws Exception {
+      Provider.save(resolver, id, ids);
+      Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_SAVE, ids != null ? ids.length : 0);
   }
 }

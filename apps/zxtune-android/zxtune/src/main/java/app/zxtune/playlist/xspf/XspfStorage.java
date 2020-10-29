@@ -25,8 +25,6 @@ public class XspfStorage {
   private static final String TAG = XspfStorage.class.getName();
   private static final String EXTENSION = ".xspf";
   private final File root;
-  @Nullable
-  private ArrayList<String> cache;
 
   public XspfStorage(Context context) {
     final String path = context.getString(R.string.playlists_storage_path);
@@ -34,10 +32,6 @@ public class XspfStorage {
     if (root.mkdirs()) {
       Log.d(TAG, "Created playlists storage dir");
     }
-  }
-
-  public final boolean isPlaylistExists(String name) {
-    return -1 != getCachedPlaylists().indexOf(name);
   }
 
   public final ArrayList<String> enumeratePlaylists() {
@@ -52,12 +46,7 @@ public class XspfStorage {
         result.add(filename.substring(0, extPos));
       }
     }
-    cache = result;
     return result;
-  }
-
-  private ArrayList<String> getCachedPlaylists() {
-    return cache != null ? cache : enumeratePlaylists();
   }
 
   @Nullable
@@ -79,6 +68,5 @@ public class XspfStorage {
       builder.writeTrack(new Item(cursor));
     }
     builder.finish();
-    getCachedPlaylists().add(name);
   }
 }

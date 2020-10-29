@@ -19,16 +19,24 @@ import android.util.SparseIntArray;
 
 import androidx.annotation.Nullable;
 
+import java.io.IOException;
+
+import app.zxtune.Log;
 import app.zxtune.MainApplication;
 import app.zxtune.playlist.xspf.XspfStorage;
 
 public class Provider extends ContentProvider {
 
+  private static final String TAG = Provider.class.getName();
+
   private static final String METHOD_SORT = "sort";
   private static final String METHOD_MOVE = "move";
+  private static final String METHOD_SAVE = "save";
 
   @Nullable
   private Database db;
+  @Nullable
+  XspfStorage storage;
   @Nullable
   private ContentResolver resolver;
 
@@ -38,6 +46,7 @@ public class Provider extends ContentProvider {
     if (ctx != null) {
       MainApplication.initialize(ctx.getApplicationContext());
       db = new Database(ctx);
+      storage = new XspfStorage(ctx);
       resolver = ctx.getContentResolver();
       return true;
     } else {
@@ -65,7 +74,6 @@ public class Provider extends ContentProvider {
   private Cursor querySavedPlaylists(@Nullable String selection) {
     final String[] columns = {"name", "path"};
     final MatrixCursor cursor = new MatrixCursor(columns);
-    final XspfStorage storage = new XspfStorage(getContext());
     if (selection == null) {
       for (String id : storage.enumeratePlaylists()) {
         final String path = storage.findPlaylistPath(id);
@@ -98,8 +106,8 @@ public class Provider extends ContentProvider {
   public int delete(Uri uri, @Nullable String selection, @Nullable String[] selectionArgs) {
     final Long id = PlaylistQuery.idOf(uri);
     return id != null
-               ? db.deletePlaylistItems(PlaylistQuery.selectionFor(id), null)
-               : db.deletePlaylistItems(selection, selectionArgs);
+        ? db.deletePlaylistItems(PlaylistQuery.selectionFor(id), null)
+        : db.deletePlaylistItems(selection, selectionArgs);
   }
 
   @Override
@@ -122,11 +130,23 @@ public class Provider extends ContentProvider {
         id + " " + delta, null);
   }
 
+  static void save(ContentResolver resolver, String id, @Nullable long[] ids) throws Exception {
+    final Bundle args = new Bundle();
+    args.putLongArray("ids", ids);
+    final Bundle res = resolver.call(PlaylistQuery.ALL, METHOD_SAVE, id, args);
+    if (res != null) {
+      throw (Exception) res.getSerializable("error");
+    }
+  }
+
   @Nullable
   @Override
   public Bundle call(String method, @Nullable String arg, @Nullable Bundle extras) {
     if (arg == null) {
       return null;
+    }
+    if (METHOD_SAVE.equals(method)) {
+      return save(arg, extras.getLongArray("ids"));
     }
     final String[] args = TextUtils.split(arg, " ");
     if (METHOD_SORT.equals(method)) {
@@ -204,6 +224,22 @@ public class Provider extends ContentProvider {
       res.append(ids[i], pos[i]);
     }
     return res;
+  }
+
+  private Bundle save(String id, @Nullable long[] ids) {
+    final Cursor cursor = db.queryPlaylistItems(null, PlaylistQuery.selectionFor(ids),
+        null, null);
+    try {
+      storage.createPlaylist(id, cursor);
+      return null;
+    } catch (Exception error) {
+      Log.w(TAG, error, "Failed to save");
+      final Bundle res = new Bundle();
+      res.putSerializable("error", error);
+      return res;
+    } finally {
+      cursor.close();
+    }
   }
 
   @Nullable
