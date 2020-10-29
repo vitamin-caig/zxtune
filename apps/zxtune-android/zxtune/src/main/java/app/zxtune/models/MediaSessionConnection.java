@@ -44,7 +44,7 @@ public class MediaSessionConnection {
       try {
         final MediaControllerCompat ctrl = new MediaControllerCompat(activity, browser.getSessionToken());
         setControl(ctrl);
-      } catch (RemoteException e) {
+      } catch (Exception e) {
         Log.w(TAG, e, "Failed to connect to MediaBrowser");
         onConnectionFailed();
       }
