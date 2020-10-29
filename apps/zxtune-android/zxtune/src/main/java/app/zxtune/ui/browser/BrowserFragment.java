@@ -98,32 +98,21 @@ public class BrowserFragment extends Fragment {
 
   private void setupRootsView(View view) {
     final View roots = view.findViewById(R.id.browser_roots);
-    roots.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        browse(Uri.EMPTY);
-      }
-    });
+    roots.setOnClickListener(v -> browse(Uri.EMPTY));
   }
 
   private void setupBreadcrumbs(Model model, View view) {
     final RecyclerView listing = view.findViewById(R.id.browser_breadcrumb);
     final BreadcrumbsViewAdapter adapter = new BreadcrumbsViewAdapter();
     listing.setAdapter(adapter);
-    model.getState().observe(this, new Observer<Model.State>() {
-      @Override
-      public void onChanged(Model.State state) {
-        adapter.submitList(state.breadcrumbs);
-        listing.smoothScrollToPosition(state.breadcrumbs.size());
-      }
+    model.getState().observe(this, state -> {
+      adapter.submitList(state.breadcrumbs);
+      listing.smoothScrollToPosition(state.breadcrumbs.size());
     });
-    final View.OnClickListener onClick = new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        final int pos = listing.getChildAdapterPosition(v);
-        final BreadcrumbsEntry entry = adapter.getCurrentList().get(pos);
-        browse(entry.uri);
-      }
+    final View.OnClickListener onClick = v -> {
+      final int pos = listing.getChildAdapterPosition(v);
+      final BreadcrumbsEntry entry = adapter.getCurrentList().get(pos);
+      browse(entry.uri);
     };
     listing.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
       @Override
@@ -158,39 +147,30 @@ public class BrowserFragment extends Fragment {
         new SelectionClient(adapter));
 
     final TextView stub = view.findViewById(R.id.browser_stub);
-    model.getState().observe(this, new Observer<Model.State>() {
-      @Override
-      public void onChanged(final Model.State state) {
-        storeCurrentViewPosition(listing);
-        adapter.submitList(state.entries, new Runnable() {
-          @Override
-          public void run() {
-            stateStorage.setCurrentPath(state.uri);
-            restoreCurrentViewPosition(listing);
-          }
-        });
-        if (state.entries.isEmpty()) {
-          listing.setVisibility(View.GONE);
-          stub.setVisibility(View.VISIBLE);
-        } else {
-          listing.setVisibility(View.VISIBLE);
-          stub.setVisibility(View.GONE);
-        }
+    model.getState().observe(this, state -> {
+      storeCurrentViewPosition(listing);
+      adapter.submitList(state.entries, () -> {
+        stateStorage.setCurrentPath(state.uri);
+        restoreCurrentViewPosition(listing);
+      });
+      if (state.entries.isEmpty()) {
+        listing.setVisibility(View.GONE);
+        stub.setVisibility(View.VISIBLE);
+      } else {
+        listing.setVisibility(View.VISIBLE);
+        stub.setVisibility(View.GONE);
       }
     });
     final ProgressBar progress = view.findViewById(R.id.browser_loading);
-    model.getProgress().observe(this, new Observer<Integer>() {
-      @Override
-      public void onChanged(Integer prg) {
-        if (prg == null) {
-          progress.setIndeterminate(false);
-          progress.setProgress(0);
-        } else if (prg == -1) {
-          progress.setIndeterminate(true);
-        } else {
-          progress.setIndeterminate(false);
-          progress.setProgress(prg);
-        }
+    model.getProgress().observe(this, prg -> {
+      if (prg == null) {
+        progress.setIndeterminate(false);
+        progress.setProgress(0);
+      } else if (prg == -1) {
+        progress.setIndeterminate(true);
+      } else {
+        progress.setIndeterminate(false);
+        progress.setProgress(prg);
       }
     });
     model.setClient(new Model.Client() {
@@ -204,12 +184,7 @@ public class BrowserFragment extends Fragment {
 
       @Override
       public void onError(final String msg) {
-        listing.post(new Runnable() {
-          @Override
-          public void run() {
-            Toast.makeText(getActivity(), msg, Toast.LENGTH_LONG).show();
-          }
-        });
+        listing.post(() -> Toast.makeText(getActivity(), msg, Toast.LENGTH_LONG).show());
       }
     });
     getLifecycle().addObserver(new LifecycleObserver() {
@@ -242,13 +217,10 @@ public class BrowserFragment extends Fragment {
   private SearchView setupSearchView(final Model model, View view) {
     final SearchView search = view.findViewById(R.id.browser_search);
 
-    search.setOnSearchClickListener(new SearchView.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) search.getLayoutParams();
-        params.width = LayoutParams.MATCH_PARENT;
-        search.setLayoutParams(params);
-      }
+    search.setOnSearchClickListener(view1 -> {
+      final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) search.getLayoutParams();
+      params.width = LayoutParams.MATCH_PARENT;
+      search.setLayoutParams(params);
     });
     search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
       @Override
@@ -264,28 +236,19 @@ public class BrowserFragment extends Fragment {
         return true;
       }
     });
-    search.setOnCloseListener(new SearchView.OnCloseListener() {
-      @Override
-      public boolean onClose() {
-        final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) search.getLayoutParams();
-        params.width = LayoutParams.WRAP_CONTENT;
-        search.setLayoutParams(params);
-        search.post(new Runnable() {
-          @Override
-          public void run() {
-            search.clearFocus();
-            model.reload();
-          }
-        });
-        return false;
-      }
+    search.setOnCloseListener(() -> {
+      final LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) search.getLayoutParams();
+      params.width = LayoutParams.WRAP_CONTENT;
+      search.setLayoutParams(params);
+      search.post(() -> {
+        search.clearFocus();
+        model.reload();
+      });
+      return false;
     });
-    search.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-      @Override
-      public void onFocusChange(View v, boolean hasFocus) {
-        if (!search.isIconified() && 0 == search.getQuery().length()) {
-          search.setIconified(true);
-        }
+    search.setOnFocusChangeListener((v, hasFocus) -> {
+      if (!search.isIconified() && 0 == search.getQuery().length()) {
+        search.setIconified(true);
       }
     });
     return search;
@@ -382,12 +345,9 @@ public class BrowserFragment extends Fragment {
     selectionTracker.onRestoreInstanceState(state);
     final String query = state != null ? state.getString(SEARCH_QUERY_KEY) : null;
     if (!TextUtils.isEmpty(query)) {
-      search.post(new Runnable() {
-        @Override
-        public void run() {
-          search.setIconified(false);
-          search.setQuery(query, false);
-        }
+      search.post(() -> {
+        search.setIconified(false);
+        search.setQuery(query, false);
       });
     }
   }

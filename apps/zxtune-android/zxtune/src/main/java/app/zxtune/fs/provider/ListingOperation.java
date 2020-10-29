@@ -15,12 +15,7 @@ import app.zxtune.fs.VfsObject;
 class ListingOperation implements AsyncQueryOperation {
 
   private final ListingCursorBuilder builder =
-      new ListingCursorBuilder(new ListingCursorBuilder.TracksCountSource() {
-    @Override
-    public Integer[] getTracksCount(Uri[] uris) {
-      return VfsArchive.getModulesCount(uris);
-    }
-  });
+      new ListingCursorBuilder(VfsArchive::getModulesCount);
   private final Uri uri;
   @Nullable
   private VfsDir dir;

@@ -62,14 +62,11 @@ public class RingtoneFragment extends DialogFragment {
       return;
     }
 
-    final Button.OnClickListener listener = new Button.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        final String tag = (String) v.getTag();
-        final int tagValue = Integer.parseInt(tag);
-        RingtoneService.execute(getActivity(), uri, TimeStamp.createFrom(tagValue, TimeUnit.SECONDS));
-        dismiss();
-      }
+    final Button.OnClickListener listener = v -> {
+      final String tag = (String) v.getTag();
+      final int tagValue = Integer.parseInt(tag);
+      RingtoneService.execute(getActivity(), uri, TimeStamp.createFrom(tagValue, TimeUnit.SECONDS));
+      dismiss();
     };
     for (int idx = 0, lim = container.getChildCount(); idx != lim; ++idx) {
       final Button button = (Button) container.getChildAt(idx);

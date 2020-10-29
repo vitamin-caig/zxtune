@@ -79,39 +79,16 @@ public final class XspfIterator {
     });
     final Element tracks = result.getChild(Meta.XMLNS, Tags.TRACKLIST);
     final Element track = tracks.getChild(Meta.XMLNS, Tags.TRACK);
-    track.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final ReferencesIterator.Entry res = builder.captureResult();
-        if (res != null) {
-          entries.add(res);
-        }
+    track.setEndElementListener(() -> {
+      final ReferencesIterator.Entry res = builder.captureResult();
+      if (res != null) {
+        entries.add(res);
       }
     });
-    track.getChild(Meta.XMLNS, Tags.LOCATION).setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setLocation(body);
-      }
-    });
-    track.getChild(Meta.XMLNS, Tags.TITLE).setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setTitle(body);
-      }
-    });
-    track.getChild(Meta.XMLNS, Tags.CREATOR).setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setCreator(body);
-      }
-    });
-    track.getChild(Meta.XMLNS, Tags.DURATION).setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setDuration(body);
-      }
-    });
+    track.getChild(Meta.XMLNS, Tags.LOCATION).setEndTextElementListener(builder::setLocation);
+    track.getChild(Meta.XMLNS, Tags.TITLE).setEndTextElementListener(builder::setTitle);
+    track.getChild(Meta.XMLNS, Tags.CREATOR).setEndTextElementListener(builder::setCreator);
+    track.getChild(Meta.XMLNS, Tags.DURATION).setEndTextElementListener(builder::setDuration);
     //TODO: parse rest properties
     return result;
   }

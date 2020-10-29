@@ -64,14 +64,10 @@ class SearchOperation implements AsyncQueryOperation {
   }
 
   private void search() throws Exception {
-    final VfsExtensions.SearchEngine.Visitor visitor = new VfsExtensions.SearchEngine.Visitor() {
-
-      @Override
-      public void onFile(VfsFile obj) {
-        checkForCancel();
-        synchronized(result) {
-          result.get().onFile(obj);
-        }
+    final VfsExtensions.SearchEngine.Visitor visitor = obj -> {
+      checkForCancel();
+      synchronized(result) {
+        result.get().onFile(obj);
       }
     };
     search(visitor);
@@ -83,14 +79,11 @@ class SearchOperation implements AsyncQueryOperation {
     if (engine != null) {
       engine.find(query, visitor);
     } else {
-      final VfsIterator iter = new VfsIterator(new Uri[]{dir.getUri()}, new VfsIterator.ErrorHandler() {
-        @Override
-        public void onIOError(IOException e) {
-          if (e instanceof InterruptedIOException) {
-            throwCanceled();
-          } else {
-            Log.w(TAG, e, "Ignore I/O error");
-          }
+      final VfsIterator iter = new VfsIterator(new Uri[]{dir.getUri()}, e -> {
+        if (e instanceof InterruptedIOException) {
+          throwCanceled();
+        } else {
+          Log.w(TAG, e, "Ignore I/O error");
         }
       });
       for (; iter.isValid(); iter.next()) {
@@ -130,11 +123,6 @@ class SearchOperation implements AsyncQueryOperation {
   }
 
   private static ListingCursorBuilder makeBuilder() {
-    return new ListingCursorBuilder(new ListingCursorBuilder.TracksCountSource() {
-      @Override
-      public Integer[] getTracksCount(Uri[] uris) {
-        return VfsArchive.getModulesCount(uris);
-      }
-    });
+    return new ListingCursorBuilder(VfsArchive::getModulesCount);
   }
 }

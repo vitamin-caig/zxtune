@@ -38,14 +38,11 @@ public class Model extends AndroidViewModel {
     super(application);
     this.client = new ProviderClient(application);
     this.async = Executors.newSingleThreadExecutor();
-    client.registerObserver(new ProviderClient.ChangesObserver() {
-      @Override
-      public void onChange() {
-        if (items == null) {
-          items = new MutableLiveData<>();
-        }
-        loadAsync();
+    client.registerObserver(() -> {
+      if (items == null) {
+        items = new MutableLiveData<>();
       }
+      loadAsync();
     });
   }
 
@@ -63,12 +60,7 @@ public class Model extends AndroidViewModel {
   }
 
   private void loadAsync() {
-    async.execute(new Runnable() {
-      @Override
-      public void run() {
-        load();
-      }
-    });
+    async.execute(this::load);
   }
 
   private void load() {

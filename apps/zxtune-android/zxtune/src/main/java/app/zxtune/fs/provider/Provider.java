@@ -192,12 +192,9 @@ public class Provider extends ContentProvider {
       this.uri = uri;
       this.op = op;
       this.task = new FutureTask<>(op);
-      this.update = new Runnable() {
-        @Override
-        public void run() {
-          notifyUpdate(OperationHolder.this.uri);
-          scheduleUpdate();
-        }
+      this.update = () -> {
+        notifyUpdate(OperationHolder.this.uri);
+        scheduleUpdate();
       };
     }
 

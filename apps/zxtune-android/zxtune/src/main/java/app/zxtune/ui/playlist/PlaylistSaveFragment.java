@@ -64,13 +64,10 @@ public class PlaylistSaveFragment extends DialogFragment {
     final AlertDialog result = new AlertDialog.Builder(ctx)
         .setTitle(R.string.save)
         .setView(name)
-        .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
-          @Override
-          public void onClick(DialogInterface dialog, int which) {
-            final Bundle args = getArguments();
-            final long[] ids = args != null ? args.getLongArray(IDS_KEY) : null;
-            saveAsync(ctx, client, name.getText().toString(), ids);
-          }
+        .setPositiveButton(R.string.save, (dialog, which) -> {
+          final Bundle args = getArguments();
+          final long[] ids = args != null ? args.getLongArray(IDS_KEY) : null;
+          saveAsync(ctx, client, name.getText().toString(), ids);
         })
         .create();
     if (savedInstanceState != null && savedInstanceState.containsKey(NAME_KEY)) {

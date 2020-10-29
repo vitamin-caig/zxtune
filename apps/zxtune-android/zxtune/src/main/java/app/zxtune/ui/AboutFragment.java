@@ -59,12 +59,7 @@ public class AboutFragment extends DialogFragment {
     binding.aboutSystem.setText(getSystemInfo());
 
     binding.aboutPager.setAdapter(new ViewPagerAdapter(binding.aboutPager));
-    Model.of(this).getData().observe(this, new Observer<SparseArrayCompat<ArrayList<String>>>() {
-      @Override
-      public void onChanged(SparseArrayCompat<ArrayList<String>> data) {
-        fillPlugins(data);
-      }
-    });
+    Model.of(this).getData().observe(this, this::fillPlugins);
 
     return binding.getRoot();
   }

@@ -42,13 +42,10 @@ class ResolveOperation implements AsyncQueryOperation {
 
   private void maybeResolve() throws Exception {
     if (result == null) {
-      result = VfsArchive.resolveForced(uri, new ProgressCallback() {
-        @Override
-        public void onProgressUpdate(int done, int total) {
-          checkForCancel();
-          progress[0] = done;
-          progress[1] = total;
-        }
+      result = VfsArchive.resolveForced(uri, (done, total) -> {
+        checkForCancel();
+        progress[0] = done;
+        progress[1] = total;
       });
     }
   }

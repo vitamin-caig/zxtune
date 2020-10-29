@@ -98,49 +98,23 @@ public final class RemoteCatalog extends Catalog {
     final AuthorBuilder builder = new AuthorBuilder();
     final RootElement result = createRootElement();
     final Element list = result.getChild("authors");
-    list.setStartElementListener(new StartElementListener() {
-      @Override
-      public void start(Attributes attributes) {
-        final Integer count = HtmlUtils.tryGetInteger(attributes.getValue("count"));
-        if (count != null) {
-          visitor.setCountHint(count);
-        }
+    list.setStartElementListener(attributes -> {
+      final Integer count = HtmlUtils.tryGetInteger(attributes.getValue("count"));
+      if (count != null) {
+        visitor.setCountHint(count);
       }
     });
     final Element item = list.getChild("author");
-    item.setStartElementListener(new StartElementListener() {
-      @Override
-      public void start(Attributes attributes) {
-        builder.setId(attributes.getValue("id"));
+    item.setStartElementListener(attributes -> builder.setId(attributes.getValue("id")));
+    item.setEndElementListener(() -> {
+      final Author res = builder.captureResult();
+      if (res != null) {
+        visitor.accept(res);
       }
     });
-    item.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final Author res = builder.captureResult();
-        if (res != null) {
-          visitor.accept(res);
-        }
-      }
-    });
-    item.getChild("nickname").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setNickname(body);
-      }
-    });
-    item.getChild("name").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setName(body);
-      }
-    });
-    item.getChild("tracks").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setTracks(body);
-      }
-    });
+    item.getChild("nickname").setEndTextElementListener(builder::setNickname);
+    item.getChild("name").setEndTextElementListener(builder::setName);
+    item.getChild("tracks").setEndTextElementListener(builder::setTracks);
     return result;
   }
 
@@ -202,55 +176,24 @@ public final class RemoteCatalog extends Catalog {
     final ModuleBuilder builder = new ModuleBuilder();
     final RootElement result = createRootElement();
     final Element list = result.getChild("tracks");
-    list.setStartElementListener(new StartElementListener() {
-      @Override
-      public void start(Attributes attributes) {
-        final Integer count = HtmlUtils.tryGetInteger(attributes.getValue("count"));
-        if (count != null) {
-          visitor.setCountHint(count);
-        }
+    list.setStartElementListener(attributes -> {
+      final Integer count = HtmlUtils.tryGetInteger(attributes.getValue("count"));
+      if (count != null) {
+        visitor.setCountHint(count);
       }
     });
     final Element item = list.getChild("track");
-    item.setStartElementListener(new StartElementListener() {
-      @Override
-      public void start(Attributes attributes) {
-        builder.setId(attributes.getValue("id"));
+    item.setStartElementListener(attributes -> builder.setId(attributes.getValue("id")));
+    item.setEndElementListener(() -> {
+      final Track result1 = builder.captureResult();
+      if (result1 != null) {
+        visitor.accept(result1);
       }
     });
-    item.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final Track result = builder.captureResult();
-        if (result != null) {
-          visitor.accept(result);
-        }
-      }
-    });
-    item.getChild("filename").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setFilename(body);
-      }
-    });
-    item.getChild("title").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setTitle(body);
-      }
-    });
-    item.getChild("duration").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setDuration(body);
-      }
-    });
-    item.getChild("date").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setDate(body);
-      }
-    });
+    item.getChild("filename").setEndTextElementListener(builder::setFilename);
+    item.getChild("title").setEndTextElementListener(builder::setTitle);
+    item.getChild("duration").setEndTextElementListener(builder::setDuration);
+    item.getChild("date").setEndTextElementListener(builder::setDate);
     return result;
   }
 

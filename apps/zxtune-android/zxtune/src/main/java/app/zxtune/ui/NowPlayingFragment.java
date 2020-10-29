@@ -65,12 +65,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
 
     trackActionsMenu = new TrackActionsMenu(menu);
     final MediaSessionModel model = MediaSessionModel.of(getActivity());
-    model.getMetadata().observe(this, new Observer<MediaMetadataCompat>() {
-      @Override
-      public void onChanged(@Nullable MediaMetadataCompat metadata) {
-        trackActionsMenu.setupMenu(metadata);
-      }
-    });
+    model.getMetadata().observe(this, metadata -> trackActionsMenu.setupMenu(metadata));
   }
 
   /*

@@ -193,23 +193,17 @@ public class RemoteCatalog extends Catalog {
   private static RootElement createAuthorsParserRoot(final AuthorsVisitor visitor) {
     final AuthorBuilder builder = new AuthorBuilder();
     final RootElement root = createRootElement();
-    root.getChild("total_results").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        final Integer result = HtmlUtils.tryGetInteger(body);
-        if (result != null) {
-          visitor.setCountHint(result);
-        }
+    root.getChild("total_results").setEndTextElementListener(body -> {
+      final Integer result = HtmlUtils.tryGetInteger(body);
+      if (result != null) {
+        visitor.setCountHint(result);
       }
     });
     final Element item = root.getChild("items").getChild("item");
-    item.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final Author res = builder.captureResult();
-        if (res != null) {
-          visitor.accept(res);
-        }
+    item.setEndElementListener(() -> {
+      final Author res = builder.captureResult();
+      if (res != null) {
+        visitor.accept(res);
       }
     });
     bindAuthorFields(item, builder);
@@ -246,43 +240,22 @@ public class RemoteCatalog extends Catalog {
   private static RootElement createGenresParserRoot(final GenresVisitor visitor) {
     final GenreBuilder builder = new GenreBuilder();
     final RootElement root = createRootElement();
-    root.getChild("results").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        final Integer result = HtmlUtils.tryGetInteger(body);
-        if (result != null) {
-          visitor.setCountHint(result);
-        }
+    root.getChild("results").setEndTextElementListener(body -> {
+      final Integer result = HtmlUtils.tryGetInteger(body);
+      if (result != null) {
+        visitor.setCountHint(result);
       }
     });
     final Element item = root.getChild("parent").getChild("children").getChild("child");
-    item.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final Genre result = builder.captureResult();
-        if (result != null) {
-          visitor.accept(result);
-        }
+    item.setEndElementListener(() -> {
+      final Genre result = builder.captureResult();
+      if (result != null) {
+        visitor.accept(result);
       }
     });
-    item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setId(body);
-      }
-    });
-    item.getChild("text").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setText(body);
-      }
-    });
-    item.getChild("files").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setFiles(body);
-      }
-    });
+    item.getChild("id").setEndTextElementListener(builder::setId);
+    item.getChild("text").setEndTextElementListener(builder::setText);
+    item.getChild("files").setEndTextElementListener(builder::setFiles);
     return root;
   }
 
@@ -323,23 +296,17 @@ public class RemoteCatalog extends Catalog {
   private static RootElement createTracksParserRoot(final TracksVisitor visitor) {
     final TrackBuilder builder = new TrackBuilder();
     final RootElement root = createRootElement();
-    root.getChild("total_results").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        final Integer result = HtmlUtils.tryGetInteger(body);
-        if (result != null) {
-          visitor.setCountHint(result);
-        }
+    root.getChild("total_results").setEndTextElementListener(body -> {
+      final Integer result = HtmlUtils.tryGetInteger(body);
+      if (result != null) {
+        visitor.setCountHint(result);
       }
     });
     final Element item = root.getChild("module");
-    item.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final Track result = builder.captureResult();
-        if (result != null) {
-          visitor.accept(result);
-        }
+    item.setEndElementListener(() -> {
+      final Track result = builder.captureResult();
+      if (result != null) {
+        visitor.accept(result);
       }
     });
     bindTrackFields(item, builder);
@@ -391,24 +358,18 @@ public class RemoteCatalog extends Catalog {
     final TrackBuilder trackBuilder = new TrackBuilder();
     final AuthorBuilder authorBuilder = new AuthorBuilder();
     final RootElement root = createRootElement();
-    root.getChild("results").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        final Integer result = HtmlUtils.tryGetInteger(body);
-        if (result != null) {
-          visitor.setCountHint(result);
-        }
+    root.getChild("results").setEndTextElementListener(body -> {
+      final Integer result = HtmlUtils.tryGetInteger(body);
+      if (result != null) {
+        visitor.setCountHint(result);
       }
     });
     final Element item = root.getChild("module");
-    item.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final Track track = trackBuilder.captureResult();
-        final Author author = authorBuilder.captureResult();
-        if (track != null) {
-          visitor.accept(author != null ? author : Author.UNKNOWN, track);
-        }
+    item.setEndElementListener(() -> {
+      final Track track = trackBuilder.captureResult();
+      final Author author = authorBuilder.captureResult();
+      if (track != null) {
+        visitor.accept(author != null ? author : Author.UNKNOWN, track);
       }
     });
     bindTrackFields(item, trackBuilder);
@@ -417,58 +378,27 @@ public class RemoteCatalog extends Catalog {
   }
 
   private static void bindTrackFields(Element item, final TrackBuilder builder) {
-    item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setId(body);
-      }
-    });
-    item.getChild("filename").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setFilename(body);
-      }
-    });
-    item.getChild("bytes").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setSize(body);
-      }
-    });
-    item.getChild("songtitle").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        //CDATA
-        builder.setTitle(Html.fromHtml(body).toString());
-      }
+    item.getChild("id").setEndTextElementListener(builder::setId);
+    item.getChild("filename").setEndTextElementListener(builder::setFilename);
+    item.getChild("bytes").setEndTextElementListener(builder::setSize);
+    item.getChild("songtitle").setEndTextElementListener(body -> {
+      //CDATA
+      builder.setTitle(Html.fromHtml(body).toString());
     });
   }
 
   private static void bindAuthorFields(Element item, final AuthorBuilder builder) {
-    item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setId(body);
-      }
-    });
-    item.getChild("alias").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setAlias(body);
-      }
-    });
+    item.getChild("id").setEndTextElementListener(builder::setId);
+    item.getChild("alias").setEndTextElementListener(builder::setAlias);
   }
 
   private void loadPages(String baseUri, RootElement root, final ProgressCallback progress) throws IOException {
     final int[] totalPages = new int[]{1};
-    root.getChild("totalpages").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        final Integer result = HtmlUtils.tryGetInteger(body);
-        if (totalPages[0] == 1 && result != null) {
-          Log.d(TAG, "Loading %d pages", result);
-          totalPages[0] = result;
-        }
+    root.getChild("totalpages").setEndTextElementListener(body -> {
+      final Integer result = HtmlUtils.tryGetInteger(body);
+      if (totalPages[0] == 1 && result != null) {
+        Log.d(TAG, "Loading %d pages", result);
+        totalPages[0] = result;
       }
     });
     for (int page = 1; page <= totalPages[0]; ++page) {

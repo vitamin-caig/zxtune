@@ -174,14 +174,11 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
 
   @Override
   public void onViewAttachedToWindow(final EntryViewHolder holder) {
-    holder.binding.playlistEntryState.setOnTouchListener(new View.OnTouchListener() {
-      @Override
-      public boolean onTouch(View v, MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-          return client.onDrag(holder);
-        }
-        return false;
+    holder.binding.playlistEntryState.setOnTouchListener((v, event) -> {
+      if (event.getAction() == MotionEvent.ACTION_DOWN) {
+        return client.onDrag(holder);
       }
+      return false;
     });
   }
 

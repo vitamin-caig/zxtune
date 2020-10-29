@@ -133,43 +133,22 @@ public final class RemoteCatalog extends Catalog {
     final AuthorBuilder builder = new AuthorBuilder();
     final RootElement result = createRootElement();
     final Element data = result.getChild("responseData");
-    data.getChild("totalAmount").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        final Integer count = HtmlUtils.tryGetInteger(body);
-        if (count != null) {
-          visitor.setCountHint(count);
-        }
+    data.getChild("totalAmount").setEndTextElementListener(body -> {
+      final Integer count = HtmlUtils.tryGetInteger(body);
+      if (count != null) {
+        visitor.setCountHint(count);
       }
     });
     final Element item = data.getChild("authors").getChild("author");
-    item.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final Author res = builder.captureResult();
-        if (res != null) {
-          visitor.accept(res);
-        }
+    item.setEndElementListener(() -> {
+      final Author res = builder.captureResult();
+      if (res != null) {
+        visitor.accept(res);
       }
     });
-    item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setId(body);
-      }
-    });
-    item.getChild("title").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setNickname(body);
-      }
-    });
-    item.getChild("realName").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setName(body);
-      }
-    });
+    item.getChild("id").setEndTextElementListener(builder::setId);
+    item.getChild("title").setEndTextElementListener(builder::setNickname);
+    item.getChild("realName").setEndTextElementListener(builder::setName);
     return result;
   }
 
@@ -212,43 +191,22 @@ public final class RemoteCatalog extends Catalog {
     final PartiesBuilder builder = new PartiesBuilder();
     final RootElement result = createRootElement();
     final Element data = result.getChild("responseData");
-    data.getChild("totalAmount").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        final Integer count = HtmlUtils.tryGetInteger(body);
-        if (count != null) {
-          visitor.setCountHint(count);
-        }
+    data.getChild("totalAmount").setEndTextElementListener(body -> {
+      final Integer count = HtmlUtils.tryGetInteger(body);
+      if (count != null) {
+        visitor.setCountHint(count);
       }
     });
     final Element item = data.getChild("parties").getChild("party");
-    item.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final Party res = builder.captureResult();
-        if (res != null) {
-          visitor.accept(res);
-        }
+    item.setEndElementListener(() -> {
+      final Party res = builder.captureResult();
+      if (res != null) {
+        visitor.accept(res);
       }
     });
-    item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setId(body);
-      }
-    });
-    item.getChild("title").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setName(body);
-      }
-    });
-    item.getChild("year").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setYear(body);
-      }
-    });
+    item.getChild("id").setEndTextElementListener(builder::setId);
+    item.getChild("title").setEndTextElementListener(builder::setName);
+    item.getChild("year").setEndTextElementListener(builder::setYear);
     return result;
   }
 
@@ -294,23 +252,17 @@ public final class RemoteCatalog extends Catalog {
     final ModuleBuilder builder = new ModuleBuilder();
     final RootElement result = createRootElement();
     final Element data = result.getChild("responseData");
-    data.getChild("totalAmount").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        final Integer count = HtmlUtils.tryGetInteger(body);
-        if (count != null) {
-          visitor.setCountHint(count);
-        }
+    data.getChild("totalAmount").setEndTextElementListener(body -> {
+      final Integer count = HtmlUtils.tryGetInteger(body);
+      if (count != null) {
+        visitor.setCountHint(count);
       }
     });
     final Element item = data.getChild("tunes").getChild("tune");
-    item.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final Track result = builder.captureResult();
-        if (result != null) {
-          visitor.accept(result);
-        }
+    item.setEndElementListener(() -> {
+      final Track result1 = builder.captureResult();
+      if (result1 != null) {
+        visitor.accept(result1);
       }
     });
     bindXmlActions(item, builder);
@@ -322,24 +274,18 @@ public final class RemoteCatalog extends Catalog {
     final ModuleBuilder builder = new ModuleBuilder();
     final RootElement result = createRootElement();
     final Element data = result.getChild("responseData");
-    data.getChild("totalAmount").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        final Integer count = HtmlUtils.tryGetInteger(body);
-        if (count != null) {
-          visitor.setCountHint(count);
-        }
+    data.getChild("totalAmount").setEndTextElementListener(body -> {
+      final Integer count = HtmlUtils.tryGetInteger(body);
+      if (count != null) {
+        visitor.setCountHint(count);
       }
     });
     final Element item = data.getChild("tunes").getChild("tune");
-    item.setEndElementListener(new EndElementListener() {
-      @Override
-      public void end() {
-        final Author author = builder.captureResultAuthor();
-        final Track result = builder.captureResult();
-        if (result != null && author != null) {
-          visitor.accept(author, result);
-        }
+    item.setEndElementListener(() -> {
+      final Author author = builder.captureResultAuthor();
+      final Track result1 = builder.captureResult();
+      if (result1 != null && author != null) {
+        visitor.accept(author, result1);
       }
     });
     bindXmlActions(item, builder);
@@ -347,73 +293,18 @@ public final class RemoteCatalog extends Catalog {
   }
 
   private static void bindXmlActions(Element item, final ModuleBuilder builder) {
-    item.getChild("id").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setId(body);
-      }
-    });
+    item.getChild("id").setEndTextElementListener(builder::setId);
     //CDATA
-    item.getChild("originalFileName").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setFilename(Html.fromHtml(body).toString());
-      }
-    });
-    item.getChild("title").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setTitle(body);
-      }
-    });
-    item.getChild("internalAuthor").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setInternalAuthor(body);
-      }
-    });
-    item.getChild("internalTitle").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setInternalTitle(body);
-      }
-    });
-    item.getChild("votes").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setVotes(body);
-      }
-    });
-    item.getChild("time").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setDuration(body);
-      }
-    });
-    item.getChild("year").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setYear(body);
-      }
-    });
-    item.getChild("compo").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setCompo(body);
-      }
-    });
-    item.getChild("partyplace").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setPartyplace(body);
-      }
-    });
-    item.getChild("authors").getChild("id").setEndTextElementListener(new EndTextElementListener() {
-      @Override
-      public void end(String body) {
-        builder.setAuthorId(body);
-      }
-    });
+    item.getChild("originalFileName").setEndTextElementListener(body -> builder.setFilename(Html.fromHtml(body).toString()));
+    item.getChild("title").setEndTextElementListener(builder::setTitle);
+    item.getChild("internalAuthor").setEndTextElementListener(builder::setInternalAuthor);
+    item.getChild("internalTitle").setEndTextElementListener(builder::setInternalTitle);
+    item.getChild("votes").setEndTextElementListener(builder::setVotes);
+    item.getChild("time").setEndTextElementListener(builder::setDuration);
+    item.getChild("year").setEndTextElementListener(builder::setYear);
+    item.getChild("compo").setEndTextElementListener(builder::setCompo);
+    item.getChild("partyplace").setEndTextElementListener(builder::setPartyplace);
+    item.getChild("authors").getChild("id").setEndTextElementListener(builder::setAuthorId);
   }
 
   private static class ModuleBuilder {

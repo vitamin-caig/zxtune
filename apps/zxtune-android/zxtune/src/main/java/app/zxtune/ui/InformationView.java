@@ -45,15 +45,12 @@ class InformationView {
     this.locationField = activity.getString(R.string.information_location);
     this.content.setMovementMethod(ScrollingMovementMethod.getInstance());
     final MediaSessionModel model = MediaSessionModel.of(activity);
-    model.getMetadata().observe(activity, new Observer<MediaMetadataCompat>() {
-      @Override
-      public void onChanged(@Nullable MediaMetadataCompat mediaMetadataCompat) {
-        if (mediaMetadataCompat != null) {
-          update(mediaMetadataCompat);
-          content.setEnabled(true);
-        } else {
-          content.setEnabled(false);
-        }
+    model.getMetadata().observe(activity, mediaMetadataCompat -> {
+      if (mediaMetadataCompat != null) {
+        update(mediaMetadataCompat);
+        content.setEnabled(true);
+      } else {
+        content.setEnabled(false);
       }
     });
   }

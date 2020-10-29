@@ -29,12 +29,7 @@ public final class MultisourceHttpProvider {
   }
 
   public final HttpObject getObject(Uri[] uris) throws IOException {
-    return getSingleObject(uris, new Getter<HttpObject>() {
-      @Override
-      public HttpObject get(Uri uri) throws IOException {
-        return delegate.getObject(uri);
-      }
-    });
+    return getSingleObject(uris, delegate::getObject);
   }
 
   public final InputStream getInputStream(Uri uri) throws IOException {
@@ -42,12 +37,7 @@ public final class MultisourceHttpProvider {
   }
 
   public final InputStream getInputStream(Uri[] uris) throws IOException {
-    return getSingleObject(uris, new Getter<InputStream>() {
-      @Override
-      public InputStream get(Uri uri) throws IOException {
-        return delegate.getInputStream(uri);
-      }
-    });
+    return getSingleObject(uris, delegate::getInputStream);
   }
 
   private interface Getter<T> {

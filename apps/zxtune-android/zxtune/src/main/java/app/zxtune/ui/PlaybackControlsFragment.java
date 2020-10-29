@@ -40,25 +40,19 @@ public class PlaybackControlsFragment extends Fragment {
     super.onCreate(savedInstanceState);
 
     final MediaSessionModel model = MediaSessionModel.of(getActivity());
-    model.getMediaController().observe(this, new Observer<MediaControllerCompat>() {
-      @Override
-      public void onChanged(@Nullable MediaControllerCompat controller) {
-        if (controller != null) {
-          ctrl = controller.getTransportControls();
-          sequenceModeValue = controller.getShuffleMode();
-          updateSequenceModeStatus();
-        } else {
-          ctrl = null;
-        }
-        UiUtils.setViewEnabled(getView(), controller != null);
+    model.getMediaController().observe(this, controller -> {
+      if (controller != null) {
+        ctrl = controller.getTransportControls();
+        sequenceModeValue = controller.getShuffleMode();
+        updateSequenceModeStatus();
+      } else {
+        ctrl = null;
       }
+      UiUtils.setViewEnabled(getView(), controller != null);
     });
-    model.getState().observe(this, new Observer<PlaybackStateCompat>() {
-      @Override
-      public void onChanged(@Nullable PlaybackStateCompat state) {
-        final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
-        updateStatus(isPlaying);
-      }
+    model.getState().observe(this, state -> {
+      final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
+      updateStatus(isPlaying);
     });
   }
 
@@ -73,32 +67,12 @@ public class PlaybackControlsFragment extends Fragment {
   public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    view.findViewById(R.id.controls_prev).setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        prev();
-      }
-    });
+    view.findViewById(R.id.controls_prev).setOnClickListener(v -> prev());
     playPause = view.findViewById(R.id.controls_play_pause);
-    playPause.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        playPause();
-      }
-    });
-    view.findViewById(R.id.controls_next).setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        next();
-      }
-    });
+    playPause.setOnClickListener(v -> playPause());
+    view.findViewById(R.id.controls_next).setOnClickListener(v -> next());
     sequenceMode = view.findViewById(R.id.controls_sequence_mode);
-    sequenceMode.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        toggleSequenceMode();
-      }
-    });
+    sequenceMode.setOnClickListener(v -> toggleSequenceMode());
   }
 
   private void prev() {

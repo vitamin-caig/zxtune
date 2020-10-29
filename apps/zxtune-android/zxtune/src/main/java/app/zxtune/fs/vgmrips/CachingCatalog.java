@@ -75,12 +75,7 @@ class CachingCatalog extends Catalog {
 
       @Override
       public void updateCache() throws IOException {
-        final Pack pack = remote.findPack(id, new Visitor<Track>() {
-          @Override
-          public void accept(Track obj) {
-            db.addPackTrack(id, obj);
-          }
-        });
+        final Pack pack = remote.findPack(id, obj -> db.addPackTrack(id, obj));
         if (pack != null) {
           db.addPack(pack);
         }
@@ -111,12 +106,7 @@ class CachingCatalog extends Catalog {
     final Transaction trans = db.startTransaction();
     try {
       final ArrayList<Track> tracks = new ArrayList<>();
-      final Pack result = remote.findRandomPack(new Visitor<Track>() {
-        @Override
-        public void accept(Track obj) {
-          tracks.add(obj);
-        }
-      });
+      final Pack result = remote.findRandomPack(tracks::add);
       if (result != null) {
         db.addPack(result);
         for (Track tr : tracks) {
@@ -172,12 +162,7 @@ class CachingCatalog extends Catalog {
 
         @Override
         public void updateCache() throws IOException {
-          remote.query(new Visitor<Group>() {
-            @Override
-            public void accept(Group obj) {
-              db.addGroup(type, obj);
-            }
-          });
+          remote.query(obj -> db.addGroup(type, obj));
         }
 
         @Override
@@ -208,12 +193,7 @@ class CachingCatalog extends Catalog {
 
         @Override
         public void updateCache() throws IOException {
-          remote.queryPacks(id, new Visitor<Pack>() {
-            @Override
-            public void accept(Pack obj) {
-              db.addGroupPack(id, obj);
-            }
-          }, progress);
+          remote.queryPacks(id, obj -> db.addGroupPack(id, obj), progress);
         }
 
         @Override

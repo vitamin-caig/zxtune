@@ -76,12 +76,7 @@ public class RingtoneService extends IntentService {
   }
 
   private void makeToast(final String text, final int duration) {
-    handler.post(new Runnable() {
-      @Override
-      public void run() {
-        Toast.makeText(RingtoneService.this, text, duration).show();
-      }
-    });
+    handler.post(() -> Toast.makeText(RingtoneService.this, text, duration).show());
   }
 
   @Override

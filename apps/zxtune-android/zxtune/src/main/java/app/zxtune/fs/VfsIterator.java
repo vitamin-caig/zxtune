@@ -28,12 +28,7 @@ public final class VfsIterator {
   private final ArrayDeque<Uri> paths;
 
   public VfsIterator(Uri[] paths) {
-    this(paths, new ErrorHandler() {
-      @Override
-      public void onIOError(IOException e) {
-        Log.w(TAG, e, "Skip I/O error");
-      }
-    });
+    this(paths, e -> Log.w(TAG, e, "Skip I/O error"));
   }
 
   public VfsIterator(Uri[] paths, ErrorHandler handler) {

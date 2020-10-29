@@ -24,18 +24,10 @@ public class VisualizerFragment extends Fragment {
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     final MediaSessionModel model = MediaSessionModel.of(getActivity());
-    model.getVisualizer().observe(this, new Observer<Visualizer>() {
-      @Override
-      public void onChanged(@Nullable Visualizer visualizer) {
-        view.setSource(visualizer);
-      }
-    });
-    model.getState().observe(this, new Observer<PlaybackStateCompat>() {
-      @Override
-      public void onChanged(@Nullable PlaybackStateCompat state) {
-        final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
-        view.setIsUpdating(isPlaying);
-      }
+    model.getVisualizer().observe(this, visualizer -> view.setSource(visualizer));
+    model.getState().observe(this, state -> {
+      final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
+      view.setIsUpdating(isPlaying);
     });
   }
 

@@ -48,12 +48,7 @@ public class MainApplication extends Application {
     // Report only main thread due to way too big report - https://github.com/SalomonBrys/ANR-WatchDog/issues/29
     new ANRWatchDog(2000)
         .setReportMainThreadOnly()
-        .setANRListener(new ANRWatchDog.ANRListener() {
-      @Override
-      public void onAppNotResponding(ANRError error) {
-        Log.w("ANR", error, "Hangup");
-      }
-    }).start();
+        .setANRListener(error -> Log.w("ANR", error, "Hangup")).start();
   }
 
   public synchronized static Context getGlobalContext() {

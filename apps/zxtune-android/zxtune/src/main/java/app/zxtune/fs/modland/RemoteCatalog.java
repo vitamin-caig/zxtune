@@ -114,15 +114,12 @@ public class RemoteCatalog extends Catalog {
     public Group getGroup(final int id) throws IOException {
       Log.d(TAG, "getGroup(type=%s, id=%d)", tag, id);
       final Group[] resultRef = new Group[1];
-      loadPages(getTracksUriBuilder(tag, id), new PagesVisitor() {
-        @Override
-        public boolean onPage(String header, int results, Document doc) {
-          if (header.startsWith(headerPrefix)) {
-            final String name = header.substring(headerPrefix.length());
-            resultRef[0] = new Group(id, name, results);
-          }
-          return false;
+      loadPages(getTracksUriBuilder(tag, id), (header, results, doc) -> {
+        if (header.startsWith(headerPrefix)) {
+          final String name = header.substring(headerPrefix.length());
+          resultRef[0] = new Group(id, name, results);
         }
+        return false;
       });
       final Group result = resultRef[0];
       if (result != null) {

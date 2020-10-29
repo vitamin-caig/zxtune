@@ -244,17 +244,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   private void executeCommandImpl(final Command cmd) {
-    executor.execute(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          cmd.execute();
-        } catch (Exception e) {//IOException|InterruptedException
-          Log.w(TAG, e, cmd.getClass().getName());
-          final Throwable cause = e.getCause();
-          final String msg = cause != null ? cause.getMessage() : e.getMessage();
-          callbacks.onError(msg);
-        }
+    executor.execute(() -> {
+      try {
+        cmd.execute();
+      } catch (Exception e) {//IOException|InterruptedException
+        Log.w(TAG, e, cmd.getClass().getName());
+        final Throwable cause = e.getCause();
+        final String msg = cause != null ? cause.getMessage() : e.getMessage();
+        callbacks.onError(msg);
       }
     });
   }
@@ -377,12 +374,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public void stop() {
-      executeCommand(new Command() {
-        @Override
-        public void execute() {
-          stopSync();
-        }
-      });
+      executeCommand(PlaybackServiceLocal.this::stopSync);
     }
 
     @Override

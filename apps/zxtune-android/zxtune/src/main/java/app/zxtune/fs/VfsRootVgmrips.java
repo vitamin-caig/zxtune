@@ -167,12 +167,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      grouping.query(new Catalog.Visitor<Group>() {
-        @Override
-        public void accept(Group obj) {
-          visitor.onDir(makeChild(obj));
-        }
-      });
+      grouping.query(obj -> visitor.onDir(makeChild(obj)));
     }
 
     final String getCategory() {
@@ -309,12 +304,9 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     private Pair<Pack, Track> loadNextTrack() throws IOException {
       final ArrayList<Track> tracks = new ArrayList<>();
       final int[] duration = {0};
-      final Pack pack = catalog.findRandomPack(new Catalog.Visitor<Track>() {
-        @Override
-        public void accept(Track obj) {
-          tracks.add(obj);
-          duration[0] += obj.duration.convertTo(TimeUnit.SECONDS);
-        }
+      final Pack pack = catalog.findRandomPack(obj -> {
+        tracks.add(obj);
+        duration[0] += obj.duration.convertTo(TimeUnit.SECONDS);
       });
       if (pack == null || 0 == duration[0]) {
         return null;
@@ -373,13 +365,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      parent.grouping.queryPacks(group.id, new Catalog.Visitor<Pack>() {
-
-        @Override
-        public void accept(Pack obj) {
-          visitor.onDir(new PackDir(GroupDir.this, obj));
-        }
-      }, visitor);
+      parent.grouping.queryPacks(group.id, obj -> visitor.onDir(new PackDir(GroupDir.this, obj)), visitor);
     }
 
     @Override
@@ -420,12 +406,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.findPack(pack.id, new Catalog.Visitor<Track>() {
-        @Override
-        public void accept(Track obj) {
-          visitor.onFile(new TrackFile(PackDir.this, obj));
-        }
-      });
+      catalog.findPack(pack.id, obj -> visitor.onFile(new TrackFile(PackDir.this, obj)));
     }
 
     @Override

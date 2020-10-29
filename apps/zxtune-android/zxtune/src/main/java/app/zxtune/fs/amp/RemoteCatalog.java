@@ -90,12 +90,9 @@ public class RemoteCatalog extends Catalog {
   }
 
   private void queryAuthorsInternal(Uri.Builder uri, final AuthorsVisitor visitor) throws IOException {
-    loadPages(uri, new PagesVisitor() {
-      @Override
-      public boolean onPage(Document doc) {
-        parseAuthors(doc, visitor);
-        return true;
-      }
+    loadPages(uri, doc -> {
+      parseAuthors(doc, visitor);
+      return true;
     });
   }
 
@@ -136,12 +133,9 @@ public class RemoteCatalog extends Catalog {
   public void findTracks(String query, final FoundTracksVisitor visitor) throws IOException {
     Log.d(TAG, "findTracks(query=%s)", query);
     final Uri.Builder uri = getQueryUriBuilder("module", query);
-    loadPages(uri, new PagesVisitor() {
-      @Override
-      public boolean onPage(Document doc) {
-        parseFoundTracks(doc, visitor);
-        return true;
-      }
+    loadPages(uri, doc -> {
+      parseFoundTracks(doc, visitor);
+      return true;
     });
   }
 

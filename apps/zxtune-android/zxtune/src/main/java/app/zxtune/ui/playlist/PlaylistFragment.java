@@ -93,12 +93,9 @@ public class PlaylistFragment extends Fragment {
           final MenuItem item = sortMenuRoot.add(getMenuTitle(sortBy));
           final ProviderClient.SortBy by = sortBy;
           final ProviderClient.SortOrder order = sortOrder;
-          item.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-              ctrl.sort(by, order);
-              return true;
-            }
+          item.setOnMenuItemClickListener(item1 -> {
+            ctrl.sort(by, order);
+            return true;
           });
           item.setIcon(getMenuIcon(sortOrder));
         } catch (Exception e) {
@@ -176,37 +173,28 @@ public class PlaylistFragment extends Fragment {
     stub = view.findViewById(R.id.playlist_stub);
 
     final Model playlistModel = Model.of(this);
-    playlistModel.getItems().observe(this, new Observer<List<Entry>>() {
-      @Override
-      public void onChanged(List<Entry> entries) {
-        if (touchHelperCallback.isDragging()) {
-          return;
-        }
-        adapter.submitList(entries);
-        if (entries.isEmpty()) {
-          listing.setVisibility(View.GONE);
-          stub.setVisibility(View.VISIBLE);
-        } else {
-          listing.setVisibility(View.VISIBLE);
-          stub.setVisibility(View.GONE);
-        }
+    playlistModel.getItems().observe(this, entries -> {
+      if (touchHelperCallback.isDragging()) {
+        return;
+      }
+      adapter.submitList(entries);
+      if (entries.isEmpty()) {
+        listing.setVisibility(View.GONE);
+        stub.setVisibility(View.VISIBLE);
+      } else {
+        listing.setVisibility(View.VISIBLE);
+        stub.setVisibility(View.GONE);
       }
     });
     final MediaSessionModel model = MediaSessionModel.of(getActivity());
-    model.getState().observe(this, new Observer<PlaybackStateCompat>() {
-      @Override
-      public void onChanged(@Nullable PlaybackStateCompat state) {
-        final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
-        adapter.setIsPlaying(isPlaying);
-      }
+    model.getState().observe(this, state -> {
+      final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
+      adapter.setIsPlaying(isPlaying);
     });
-    model.getMetadata().observe(this, new Observer<MediaMetadataCompat>() {
-      @Override
-      public void onChanged(@Nullable MediaMetadataCompat metadata) {
-        if (metadata != null) {
-          final Uri uri = Uri.parse(metadata.getDescription().getMediaId());
-          adapter.setNowPlaying(ProviderClient.findId(uri));
-        }
+    model.getMetadata().observe(this, metadata -> {
+      if (metadata != null) {
+        final Uri uri = Uri.parse(metadata.getDescription().getMediaId());
+        adapter.setNowPlaying(ProviderClient.findId(uri));
       }
     });
   }

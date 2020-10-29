@@ -53,18 +53,15 @@ public class PlaylistStatisticsFragment extends DialogFragment {
         .setAdapter(adapter, null)
         .create();
     final Model model = Model.of(this);
-    model.getData().observe(this, new Observer<Statistics>() {
-      @Override
-      public void onChanged(Statistics stat) {
-        adapter.clear();
-        if (stat != null) {
-          final String tracks = getResources().getQuantityString(R.plurals.tracks, stat.getTotal(), stat.getTotal());
-          final String duration = stat.getDuration().toString();
-          adapter.add(getString(R.string.statistics_tracks) + ": " + tracks);
-          adapter.add(getString(R.string.statistics_duration) + ": " + duration);
-        } else {
-          adapter.add("Failed to load...");
-        }
+    model.getData().observe(this, stat -> {
+      adapter.clear();
+      if (stat != null) {
+        final String tracks = getResources().getQuantityString(R.plurals.tracks, stat.getTotal(), stat.getTotal());
+        final String duration = stat.getDuration().toString();
+        adapter.add(getString(R.string.statistics_tracks) + ": " + tracks);
+        adapter.add(getString(R.string.statistics_duration) + ": " + duration);
+      } else {
+        adapter.add("Failed to load...");
       }
     });
     final Bundle args = getArguments();
@@ -95,12 +92,7 @@ public class PlaylistStatisticsFragment extends DialogFragment {
     }
 
     final void load(@Nullable final long[] ids) {
-      async.execute(new Runnable() {
-        @Override
-        public void run() {
-          data.postValue(client.statistics(ids));
-        }
-      });
+      async.execute(() -> data.postValue(client.statistics(ids)));
     }
   }
 }
