@@ -17,12 +17,12 @@ import androidx.annotation.Nullable;
 
 import java.io.IOException;
 
-import app.zxtune.core.Identifier;
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.core.Scanner;
 import app.zxtune.TimeStamp;
+import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
+import app.zxtune.core.Scanner;
 import app.zxtune.playlist.DatabaseIterator;
 
 class PlaylistIterator implements Iterator {
@@ -44,7 +44,9 @@ class PlaylistIterator implements Iterator {
 
   @Override
   public PlayableItem getItem() {
-    return item;
+    PlayableItem result = item;
+    item = null;
+    return result;
   }
 
   @Override
@@ -109,6 +111,9 @@ class PlaylistIterator implements Iterator {
       @Override
       public void onModule(Identifier id, Module module) {
         final PlayableItem fileItem = new AsyncScanner.FileItem(id, module);
+        if (item != null) {
+          item.getModule().release();
+        }
         item = new PlaylistItem(meta, fileItem);
       }
       

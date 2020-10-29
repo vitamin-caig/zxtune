@@ -129,6 +129,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       setNewHolder(newHolder);
     } else {
       Log.d(TAG, "Drop stale session restore");
+      newHolder.release();
     }
   }
 
