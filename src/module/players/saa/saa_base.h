@@ -108,11 +108,7 @@ namespace Module
       virtual DataIterator::Ptr CreateDataIterator() const = 0;
     };
 
-    Analyzer::Ptr CreateAnalyzer(Devices::SAA::Device::Ptr device);
-
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
-
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::SAA::Device::Ptr device);
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
   }

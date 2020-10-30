@@ -14,7 +14,6 @@
 #include <make_ptr.h>
 //library includes
 #include <math/numeric.h>
-#include <sound/chunk_builder.h>
 //std includes
 #include <array>
 
@@ -26,7 +25,7 @@ namespace Wav
   static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
   static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound sample channels count");
 
-  using ConvertFunc = void(*)(const uint8_t*, std::size_t, Sound::ChunkBuilder&);
+  using ConvertFunc = void(*)(const uint8_t*, std::size_t, Sound::Chunk*);
 
   Sound::Sample MakeSample(int16_t val)
   {
@@ -79,23 +78,23 @@ namespace Wav
       return blockSize * 2 / channels - 14 + 2;
     } 
     
-    void ConvertMono(const uint8_t* data, std::size_t blockSize, Sound::ChunkBuilder& builder)
+    void ConvertMono(const uint8_t* data, std::size_t blockSize, Sound::Chunk* chunk)
     {
       Require(*data < 7);
       Decoder dec(data[0]);
       dec.Delta = ReadS16(data + 1);
       dec.S1 = ReadS16(data + 3);
       dec.S2 = ReadS16(data + 5);
-      builder.Add(MakeSample(dec.S2));
-      builder.Add(MakeSample(dec.S1));
+      chunk->push_back(MakeSample(dec.S2));
+      chunk->push_back(MakeSample(dec.S1));
       for (data += 7, blockSize -= 7; blockSize != 0; ++data, --blockSize)
       {
-        builder.Add(MakeSample(dec.Decode(*data >> 4)));
-        builder.Add(MakeSample(dec.Decode(*data & 15)));
+        chunk->push_back(MakeSample(dec.Decode(*data >> 4)));
+        chunk->push_back(MakeSample(dec.Decode(*data & 15)));
       }
     }
     
-    void ConvertStereo(const uint8_t* data, std::size_t blockSize, Sound::ChunkBuilder& builder)
+    void ConvertStereo(const uint8_t* data, std::size_t blockSize, Sound::Chunk* chunk)
     {
       Require(data[0] < 7 && data[1] < 7);
       Decoder left(data[0]);
@@ -106,11 +105,11 @@ namespace Wav
       right.S1 = ReadS16(data + 8);
       left.S2 = ReadS16(data + 10);
       right.S2 = ReadS16(data + 12);
-      builder.Add(Sound::Sample(left.S2, right.S2));
-      builder.Add(Sound::Sample(left.S1, right.S1));
+      chunk->push_back(Sound::Sample(left.S2, right.S2));
+      chunk->push_back(Sound::Sample(left.S1, right.S1));
       for (data += 14, blockSize -= 14; blockSize != 0; ++data, --blockSize)
       {
-        builder.Add(Sound::Sample(left.Decode(*data >> 4), right.Decode(*data & 15)));
+        chunk->push_back(Sound::Sample(left.Decode(*data >> 4), right.Decode(*data & 15)));
       }
     }
 
@@ -186,21 +185,21 @@ namespace Wav
       return blockSize * 2 / channels - 8 + 1;
     } 
   
-    void ConvertMono(const uint8_t* data, std::size_t blockSize, Sound::ChunkBuilder& builder)
+    void ConvertMono(const uint8_t* data, std::size_t blockSize, Sound::Chunk* chunk)
     {
       Require(data[2] < STEPS.size());
       Decoder dec;
       dec.Predictor = ReadS16(data);
       dec.Index = data[2];
-      builder.Add(MakeSample(dec.Predictor));
+      chunk->push_back(MakeSample(dec.Predictor));
       for (data += 4, blockSize -= 4; blockSize != 0; ++data, --blockSize)
       {
-        builder.Add(MakeSample(dec.Decode(*data & 15)));
-        builder.Add(MakeSample(dec.Decode(*data >> 4)));
+        chunk->push_back(MakeSample(dec.Decode(*data & 15)));
+        chunk->push_back(MakeSample(dec.Decode(*data >> 4)));
       }
     }
 
-    void ConvertStereo(const uint8_t* data, std::size_t blockSize, Sound::ChunkBuilder& builder)
+    void ConvertStereo(const uint8_t* data, std::size_t blockSize, Sound::Chunk* chunk)
     {
       Require(data[2] < STEPS.size() && data[6] < STEPS.size());
       Decoder left, right;
@@ -208,13 +207,13 @@ namespace Wav
       left.Index = data[2];
       right.Predictor = ReadS16(data + 4);
       right.Index = data[6];
-      builder.Add(Sound::Sample(left.Predictor, right.Predictor));
+      chunk->push_back(Sound::Sample(left.Predictor, right.Predictor));
       for (data += 8, blockSize -= 8; blockSize >= 8; blockSize -= 8)
       {
         for (uint_t byte = 0; byte < 4; ++byte, ++data)
         {
-          builder.Add(Sound::Sample(left.Decode(data[0] & 15), right.Decode(data[4] & 15)));
-          builder.Add(Sound::Sample(left.Decode(data[0] >> 4), right.Decode(data[4] >> 4)));
+          chunk->push_back(Sound::Sample(left.Decode(data[0] & 15), right.Decode(data[4] & 15)));
+          chunk->push_back(Sound::Sample(left.Decode(data[0] >> 4), right.Decode(data[4] >> 4)));
         }
         data += 4;
       }
@@ -248,14 +247,14 @@ namespace Wav
 
     Sound::Chunk RenderNextFrame() override
     {
-      Sound::ChunkBuilder builder;
+      Sound::Chunk chunk;
       if (const auto* start = Stream.PeekRawData(Props.BlockSize))
       {
-        builder.Reserve(Props.BlockSizeSamples);
-        Convert(start, Props.BlockSize, builder);
+        chunk.reserve(Props.BlockSizeSamples);
+        Convert(start, Props.BlockSize, &chunk);
         Stream.Skip(Props.BlockSize);
       }
-      return builder.CaptureResult();
+      return chunk;
     }
     
   private:

@@ -124,6 +124,9 @@ namespace Devices
 
       /// reset internal state to initial
       virtual void Reset() = 0;
+
+      /// Render rest data and return result
+      virtual Sound::Chunk RenderTill(Stamp stamp) = 0;
     };
 
     class ChipParameters
@@ -140,7 +143,7 @@ namespace Devices
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target);
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer);
   }
 }

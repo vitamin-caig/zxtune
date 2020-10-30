@@ -25,8 +25,6 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/render_params.h>
 #include <sound/resampler.h>
 
 #define FILE_TAG 72CE1906
@@ -40,11 +38,10 @@ namespace Wav
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(Model::Ptr data, Sound::Converter::Ptr target)
       : Tune(std::move(data))
       , State(MakePtr<SampledState>(Tune->GetTotalSamples(), Tune->GetSamplerate()))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , Params(std::move(params))
       , Target(std::move(target))
     {
     }
@@ -59,33 +56,28 @@ namespace Wav
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      try
+      if (!State->IsValid())
       {
-        ApplyParameters();
-
-        const auto loops = State->LoopCount();
-        auto frame = Tune->RenderNextFrame();
-        State->Consume(frame.size(), looped);
-        Analyzer->AddSoundData(frame);
-        Resampler->ApplyData(std::move(frame));
-        if (State->LoopCount() != loops)
-        {
-          Tune->Seek(0);
-        }
-        return State->IsValid();
+        return {};
       }
-      catch (const std::exception&)
+      const auto loops = State->LoopCount();
+      auto frame = Tune->RenderNextFrame();
+      State->Consume(frame.size(), looped);
+      if (State->LoopCount() != loops)
       {
-        return false;
+        Tune->Seek(0);
       }
+      frame = Target->Apply(std::move(frame));
+      Analyzer->AddSoundData(frame);
+      return frame;
     }
 
     void Reset() override
     {
-      Params.Reset();
       State->Reset();
+      Tune->Seek(0);
     }
 
     void SetPosition(Time::AtMillisecond request) override
@@ -95,20 +87,10 @@ namespace Wav
       State->SeekAtSample(aligned);
     }
   private:
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Resampler = Sound::CreateResampler(Tune->GetSamplerate(), Sound::GetSoundFrequency(*Params), Target);
-      }
-    }
-  private:
     const Model::Ptr Tune;
     const SampledState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
-    const Sound::Receiver::Ptr Target;
-    Sound::Receiver::Ptr Resampler;
+    const Sound::Converter::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -130,9 +112,9 @@ namespace Wav
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Data, std::move(target), std::move(params));
+      return MakePtr<Renderer>(Data, Sound::CreateResampler(Data->GetSamplerate(), samplerate));
     }
   private:
     const Model::Ptr Data;

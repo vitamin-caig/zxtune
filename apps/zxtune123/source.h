@@ -11,6 +11,7 @@
 #pragma once
 
 //library includes
+#include <binary/data.h>
 #include <module/holder.h>
 #include <parameters/container.h>
 //std includes

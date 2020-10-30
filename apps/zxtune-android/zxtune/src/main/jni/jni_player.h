@@ -65,22 +65,6 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getProgress
 
 /*
  * Class:     app_zxtune_core_jni_JniPlayer
- * Method:    getProperty
- * Signature: (Ljava/lang/String;J)J
- */
-JNIEXPORT jlong JNICALL Java_app_zxtune_core_jni_JniPlayer_getProperty__Ljava_lang_String_2J
-  (JNIEnv *, jobject, jstring, jlong);
-
-/*
- * Class:     app_zxtune_core_jni_JniPlayer
- * Method:    getProperty
- * Signature: (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_app_zxtune_core_jni_JniPlayer_getProperty__Ljava_lang_String_2Ljava_lang_String_2
-  (JNIEnv *, jobject, jstring, jstring);
-
-/*
- * Class:     app_zxtune_core_jni_JniPlayer
  * Method:    setProperty
  * Signature: (Ljava/lang/String;J)V
  */

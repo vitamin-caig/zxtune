@@ -73,3 +73,14 @@ public:
   //! @brief Pointer type.
   typedef typename std::shared_ptr<DataTransceiver<InType, OutType> > Ptr;
 };
+
+template<class InType, class OutType = InType>
+class DataConverter
+{
+public:
+  using Ptr = std::shared_ptr<DataConverter>;
+
+  virtual ~DataConverter() = default;
+
+  virtual OutType Apply(InType data) = 0;
+};

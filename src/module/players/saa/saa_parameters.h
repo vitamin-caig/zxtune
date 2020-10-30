@@ -18,6 +18,6 @@ namespace Module
 {
   namespace SAA
   {
-    Devices::SAA::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
+    Devices::SAA::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params);
   }
 }

@@ -17,11 +17,6 @@ class SeekableSamplesSource implements SamplesSource {
   }
 
   @Override
-  public void initialize(int sampleRate) {
-    player.setProperty(Properties.Sound.FREQUENCY, sampleRate);
-  }
-
-  @Override
   public boolean getSamples(short[] buf) {
     if (player.render(buf)) {
       return true;

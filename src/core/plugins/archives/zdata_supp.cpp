@@ -287,7 +287,7 @@ namespace Zdata
       return Binary::Format::Ptr();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& /*params*/, DataLocation::Ptr input, const Module::DetectCallback& /*callback*/) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& /*params*/, DataLocation::Ptr input, Module::DetectCallback& /*callback*/) const override
     {
       return Analysis::CreateUnmatchedResult(input->GetData()->Size());
     }

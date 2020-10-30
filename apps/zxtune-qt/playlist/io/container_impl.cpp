@@ -33,9 +33,7 @@ namespace
 
     Parameters::Container::Ptr CreateInitialAdjustedParameters() const override
     {
-      const Parameters::Container::Ptr res = Parameters::Container::Create();
-      Params.Process(*res);
-      return res;
+      return Parameters::Container::Clone(Params);
     }
 
     void ProcessItem(Playlist::Item::Data::Ptr item) override

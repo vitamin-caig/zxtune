@@ -22,6 +22,7 @@
 #include <platform/application.h>
 #include <sound/backends_parameters.h>
 #include <sound/service.h>
+#include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <strings/array.h>
 #include <strings/map.h>
@@ -218,6 +219,11 @@ namespace
     Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const override
     {
       return Service->EnumerateBackends();
+    }
+
+    uint_t GetSamplerate() const
+    {
+      return Sound::GetSoundFrequency(*Params->GetDefaultParameters());
     }
   private:
     const Sound::Service::Ptr Service;

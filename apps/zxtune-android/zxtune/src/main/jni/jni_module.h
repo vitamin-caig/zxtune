@@ -42,10 +42,10 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniModule_getDurationMs
 /*
  * Class:     app_zxtune_core_jni_JniModule
  * Method:    createPlayer
- * Signature: ()Lapp/zxtune/core/Player;
+ * Signature: (I)Lapp/zxtune/core/Player;
  */
 JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_createPlayer
-  (JNIEnv *, jobject);
+  (JNIEnv *, jobject, jint);
 
 /*
  * Class:     app_zxtune_core_jni_JniModule

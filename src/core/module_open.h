@@ -13,13 +13,16 @@
 //library includes
 #include <binary/container.h>
 #include <module/holder.h>
+#include <parameters/container.h>
 
 namespace Module
 {
   //! @param params Parameters for plugins
-  //! @param location Source data location
+  //! @param data Source data location
   //! @throw Error if no object detected
-  Holder::Ptr Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath);
+  Holder::Ptr Open(const Parameters::Accessor& params, Binary::Container::Ptr data,
+    const String& subpath, Parameters::Container::Ptr initialProperties);
 
-  Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data);
+  Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data,
+    Parameters::Container::Ptr initialProperties);
 }

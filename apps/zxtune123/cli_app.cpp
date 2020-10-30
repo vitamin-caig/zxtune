@@ -270,12 +270,23 @@ namespace
       {
         const auto total = info->Duration() * Iterations;
         BenchmarkSoundReceiver receiver;
-        const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), MakeSingletonPointer(receiver));
+        const auto renderer = holder->CreateRenderer(Sounder.GetSamplerate(), props);
         const Time::Timer timer;
         for (unsigned i = 0; i != Iterations; ++i)
         {
           renderer->SetPosition({});
-          while (renderer->RenderFrame({})) {}
+          for (;;)
+          {
+            auto data = renderer->Render({});
+            if (data.empty())
+            {
+              break;
+            }
+            else
+            {
+              receiver.ApplyData(std::move(data));
+            }
+          }
         }
         const auto real = timer.Elapsed<>();
         const auto relSpeed = total.Divide<double>(real);
@@ -296,10 +307,10 @@ namespace
       }
     }
   private:
-    class BenchmarkSoundReceiver : public Sound::Receiver
+    class BenchmarkSoundReceiver
     {
     public:
-      void ApplyData(Sound::Chunk data) override
+      void ApplyData(Sound::Chunk data)
       {
         Crc32 = Binary::Crc32(data, Crc32);
         for (const auto smp : data)
@@ -307,10 +318,6 @@ namespace
           MinMax(smp.Left());
           MinMax(smp.Right());
         }
-      }
-
-      void Flush() override
-      {
       }
 
       uint32_t GetHash() const

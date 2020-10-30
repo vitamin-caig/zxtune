@@ -25,8 +25,6 @@
 #include <module/players/duration.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/render_params.h>
 #include <sound/resampler.h>
 //3rdparty
 #include <3rdparty/snesspc/snes_spc/SNES_SPC.h>
@@ -203,11 +201,10 @@ namespace SPC
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(Model::Ptr tune, Sound::Converter::Ptr target)
       : Tune(std::move(tune))
       , Engine(MakePtr<SPC>(Tune->Data))
       , State(MakePtr<TimedState>(Tune->Duration))
-      , Params(std::move(params))
       , Target(std::move(target))
     {
     }
@@ -222,25 +219,18 @@ namespace SPC
       return Engine;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      try
+      if (!State->IsValid())
       {
-        ApplyParameters();
-
-        const auto avail = State->Consume(FRAME_DURATION, looped);
-        Resampler->ApplyData(Engine->Render(GetSamples(avail)));
-        return State->IsValid();
+        return {};
       }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      const auto avail = State->Consume(FRAME_DURATION, looped);
+      return Target->Apply(Engine->Render(GetSamples(avail)));
     }
 
     void Reset() override
     {
-      Params.Reset();
       Engine->Reset();
       State->Reset();
     }
@@ -258,20 +248,10 @@ namespace SPC
       }
     }
   private:
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Resampler = Sound::CreateResampler(::SNES_SPC::sample_rate, Sound::GetSoundFrequency(*Params), Target);
-      }
-    }
-  private:
     const Model::Ptr Tune;
     const SPC::Ptr Engine;
     const TimedState::Ptr State;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
-    const Sound::Receiver::Ptr Target;
-    Sound::Receiver::Ptr Resampler;
+    const Sound::Converter::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -293,9 +273,9 @@ namespace SPC
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Tune, target, params);
+      return MakePtr<Renderer>(Tune, Sound::CreateResampler(::SNES_SPC::sample_rate, samplerate));
     }
   private:
     const Model::Ptr Tune;
@@ -354,6 +334,7 @@ namespace SPC
     void SetIntro(Time::Milliseconds duration) override
     {
       Intro = std::max(Intro, duration);
+      Properties.SetFadein(Intro);
     }
     
     void SetLoop(Time::Milliseconds duration) override
@@ -364,6 +345,7 @@ namespace SPC
     void SetFade(Time::Milliseconds duration) override
     {
       Fade = duration;
+      Properties.SetFadeout(duration);
     }
     
     void SetArtist(String artist) override

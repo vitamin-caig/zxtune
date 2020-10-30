@@ -13,6 +13,7 @@
 #include "core/plugins/players/plugin.h"
 //common includes
 #include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <binary/format_factories.h>
 #include <core/core_parameters.h>
@@ -22,9 +23,7 @@
 #include <module/track_state.h>
 #include <module/players/properties_helper.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
-#include <sound/render_params.h>
-#include <sound/sound_parameters.h>
+#include <sound/loop.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
 #include <time/duration.h>
@@ -262,17 +261,16 @@ namespace Xmp
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Context::Ptr ctx, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params, Information::Ptr info)
+    Renderer(uint_t channels, Context::Ptr ctx, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Ctx(std::move(ctx))
       , State(new xmp_frame_info())
-      , Target(std::move(target))
       , Params(std::move(params))
       , Track(MakePtr<TrackState>(State))
-      , Analysis(MakePtr<Analyzer>(info->ChannelsCount(), State))
-      , SoundFreq(Sound::GetSoundFrequency(*Params))
+      , Analysis(MakePtr<Analyzer>(channels, State))
+      , SoundFreq(samplerate)
     {
       //Required in order to perform initial seeking
-      Ctx->Call(&::xmp_start_player, static_cast<int>(SoundFreq), 0);
+      Ctx->Call(&::xmp_start_player, static_cast<int>(samplerate), 0);
     }
 
     ~Renderer() override
@@ -290,32 +288,30 @@ namespace Xmp
       return Analysis;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
       static_assert(sizeof(Sound::Sample) == 4, "Incompatible sound sample size");
 
-      try
+      if (State->loop_count == 0 || looped(State->loop_count))
       {
         ApplyParameters();
         Ctx->Call(&::xmp_play_frame);
         Ctx->Call(&::xmp_get_frame_info, State.get());
-        Sound::ChunkBuilder builder;
         if (const std::size_t bytes = State->buffer_size)
         {
           const std::size_t samples = bytes / sizeof(Sound::Sample);
-          builder.Reserve(samples);
-          std::memcpy(builder.Allocate(samples), State->buffer, bytes);
           Track->Add(Time::Microseconds::FromRatio(samples, SoundFreq));
-          Target->ApplyData(builder.CaptureResult());
+          Sound::Chunk chunk(samples);
+          std::memcpy(chunk.data(), State->buffer, samples * sizeof(Sound::Sample));
+          return chunk;
         }
-        return State->loop_count == 0 || looped(State->loop_count);
       }
-      catch (const std::exception&)
+      else
       {
-        return false;
+        return {};
       }
     }
 
@@ -336,13 +332,6 @@ namespace Xmp
     {
       if (Params.IsChanged())
       {
-        const auto newSoundFreq = Sound::GetSoundFrequency(*Params);
-        if (SoundFreq != newSoundFreq)
-        {
-          SoundFreq = newSoundFreq;
-          Ctx->Call(&::xmp_end_player);
-          Ctx->Call(&::xmp_start_player, static_cast<int>(SoundFreq), 0);
-        }
         Parameters::IntType val = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
         Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val);
         const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
@@ -352,11 +341,10 @@ namespace Xmp
   private:
     const Context::Ptr Ctx;
     const StatePtr State;
-    const Sound::Receiver::Ptr Target;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
     const TrackState::Ptr Track;
     const Analyzer::Ptr Analysis;
-    uint_t SoundFreq;
+    const uint_t SoundFreq;
   };
 
   class Holder : public Module::Holder
@@ -379,9 +367,9 @@ namespace Xmp
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MakePtr<Renderer>(Ctx, std::move(target), std::move(params), Info);
+      return MakePtr<Renderer>(Info->ChannelsCount(), Ctx, samplerate, std::move(params));
     }
   private:
     const Context::Ptr Ctx;

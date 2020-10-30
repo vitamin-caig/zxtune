@@ -51,9 +51,9 @@ namespace XSF
       return GetDelegate().GetModuleProperties();
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return GetDelegate().CreateRenderer(std::move(params), std::move(target));
+      return GetDelegate().CreateRenderer(samplerate, std::move(params));
     }
     
     Strings::Array Enumerate() const override

@@ -12,12 +12,12 @@
 #include <devices/dac.h>
 #include <devices/details/freq_table.h>
 //common includes
+#include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
 //library includes
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 //std includes
 #include <array>
 #include <cmath>
@@ -374,7 +374,7 @@ namespace DAC
   public:
     virtual ~Renderer() = default;
 
-    virtual void RenderData(uint_t samples, Sound::ChunkBuilder& target) = 0;
+    virtual Sound::Chunk RenderData(uint_t samples) = 0;
   };
 
   template<unsigned Channels>
@@ -387,8 +387,10 @@ namespace DAC
     {
     }
 
-    void RenderData(uint_t samples, Sound::ChunkBuilder& target) override
+    Sound::Chunk RenderData(uint_t samples) override
     {
+      Sound::Chunk chunk;
+      chunk.reserve(samples);
       typename Sound::MultichannelSample<Channels>::Type result;
       for (uint_t counter = samples; counter != 0; --counter)
       {
@@ -398,8 +400,9 @@ namespace DAC
           result[chan] = state.GetNearest();
           state.Next();
         }
-        target.Add(Mixer.ApplyData(result));
+        chunk.push_back(Mixer.ApplyData(result));
       }
+      return chunk;
     }
   private:
     const Sound::FixedChannelsMixer<Channels>& Mixer;
@@ -416,9 +419,11 @@ namespace DAC
     {
     }
 
-    void RenderData(uint_t samples, Sound::ChunkBuilder& target) override
+    Sound::Chunk RenderData(uint_t samples) override
     {
       static const CosineTable COSTABLE;
+      Sound::Chunk chunk;
+      chunk.reserve(samples);
       typename Sound::MultichannelSample<Channels>::Type result;
       for (uint_t counter = samples; counter != 0; --counter)
       {
@@ -428,8 +433,9 @@ namespace DAC
           result[chan] = state.GetInterpolated(COSTABLE.Get());
           state.Next();
         }
-        target.Add(Mixer.ApplyData(result));
+        chunk.push_back(Mixer.ApplyData(result));
       }
+      return chunk;
     }
   private:
     class CosineTable
@@ -485,9 +491,9 @@ namespace DAC
       }
     }
 
-    void RenderData(uint_t samples, Sound::ChunkBuilder& target)
+    Sound::Chunk RenderData(uint_t samples)
     {
-      Current->RenderData(samples, target);
+      return Current->RenderData(samples);
     }
 
     void DropData(uint_t samples)
@@ -511,10 +517,9 @@ namespace DAC
   class FixedChannelsChip : public Chip
   {
   public:
-    FixedChannelsChip(ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer, Sound::Receiver::Ptr target)
+    FixedChannelsChip(ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer)
       : Params(std::move(params))
       , Mixer(std::move(mixer))
-      , Target(std::move(target))
       , Clock()
       , Renderers(*Mixer, State.data())
     {
@@ -529,22 +534,27 @@ namespace DAC
 
     void RenderData(const DataChunk& src) override
     {
-      SynchronizeParameters();
-      if (Clock.GetCurrentTime() < src.TimeStamp)
-      {
-        RenderChunksTill(src.TimeStamp);
-      }
+      // to simplify
+      Require(!(Clock.GetCurrentTime() < src.TimeStamp));
       UpdateChannelState(src);
     }
 
     void UpdateState(const DataChunk& src) override
     {
-      SynchronizeParameters();
       if (Clock.GetCurrentTime() < src.TimeStamp)
       {
         DropChunksTill(src.TimeStamp);
       }
       UpdateChannelState(src);
+    }
+
+    Sound::Chunk RenderTill(Stamp stamp) override
+    {
+      const uint_t samples = Clock.Advance(stamp);
+      Require(samples);
+      auto result = Renderers.RenderData(samples);
+      SynchronizeParameters();
+      return result;
     }
 
     DeviceState GetState() const override
@@ -567,6 +577,7 @@ namespace DAC
       Clock.Reset();
       Renderers.Reset();
       std::fill(State.begin(), State.end(), ChannelState(Samples.Get(0)));
+      SynchronizeParameters();
     }
 
   private:
@@ -577,16 +588,6 @@ namespace DAC
         Clock.SetFreq(Params->BaseSampleFreq(), Params->SoundFreq());
         Renderers.SetInterpolation(Params->Interpolate());
       }
-    }
-
-    void RenderChunksTill(Stamp stamp)
-    {
-      const uint_t samples = Clock.Advance(stamp);
-      Sound::ChunkBuilder builder;
-      builder.Reserve(samples);
-      Renderers.RenderData(samples, builder);
-      Target->ApplyData(builder.CaptureResult());
-      Target->Flush();
     }
 
     void DropChunksTill(Stamp stamp)
@@ -606,21 +607,20 @@ namespace DAC
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
     const typename Sound::FixedChannelsMixer<Channels>::Ptr Mixer;
-    const Sound::Receiver::Ptr Target;
     SamplesStorage Samples;
     ClockSource Clock;
     std::array<ChannelState, Channels> State;
     RenderersSet<Channels> Renderers;
   };
 
-  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer)
   {
-    return MakePtr<FixedChannelsChip<3> >(params, mixer, target);
+    return MakePtr<FixedChannelsChip<3> >(std::move(params), std::move(mixer));
   }
 
-  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer, Sound::Receiver::Ptr target)
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer)
   {
-    return MakePtr<FixedChannelsChip<4> >(params, mixer, target);
+    return MakePtr<FixedChannelsChip<4> >(std::move(params), std::move(mixer));
   }
 }
 }

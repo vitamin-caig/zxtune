@@ -32,10 +32,6 @@
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
-#include <sound/render_params.h>
-#include <sound/sound_parameters.h>
 #include <strings/optimize.h>
 //std includes
 #include <map>
@@ -128,15 +124,19 @@ namespace GME
   class GME
   {
   public:
-    explicit GME(GMETune::Ptr tune)
-      : Tune(std::move(tune))
-      , SoundFreq(0)
+    GME(const GMETune& tune, uint_t samplerate)
+      : Emu(tune.CreateEmu())
+      , SoundFreq(samplerate)
+      , Track(tune.Track)
     {
+      CheckError(Emu->set_sample_rate(samplerate));
+      CheckError(Emu->load_mem(tune.Data.data(), tune.Data.size()));
+      Reset();
     }
     
     void Reset()
     {
-      CheckError(Emu->start_track(Tune->Track));
+      CheckError(Emu->start_track(Track));
     }
     
     Sound::Chunk Render(uint_t samples)
@@ -144,7 +144,7 @@ namespace GME
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       Sound::Chunk result(samples);
-      ::Music_Emu::sample_t* const buffer = safe_ptr_cast< ::Music_Emu::sample_t*>(result.data());
+      auto* const buffer = safe_ptr_cast< ::Music_Emu::sample_t*>(result.data());
       CheckError(Emu->play(samples * Sound::Sample::CHANNELS, buffer));
       return result;
     }
@@ -154,43 +154,14 @@ namespace GME
       CheckError(Emu->skip(samples));
     }
     
-    void SetSoundFreq(uint_t soundFreq)
-    {
-      if (soundFreq != SoundFreq)
-      {
-        Reload(soundFreq);
-      }
-    }
-
     uint_t GetSoundFreq() const
     {
       return SoundFreq;
     }
-    
   private:
-    void Load(uint_t soundFreq)
-    {
-      auto emu = Tune->CreateEmu();
-      CheckError(emu->set_sample_rate(soundFreq));
-      CheckError(emu->load_mem(Tune->Data.data(), Tune->Data.size()));
-      Emu.swap(emu);
-      SoundFreq = soundFreq;
-    }
-
-    void Reload(uint_t soundFreq)
-    {
-      const auto oldPos = Emu ? Emu->tell() : 0;
-      Load(soundFreq);
-      Reset();
-      if (oldPos)
-      {
-        CheckError(Emu->seek(oldPos));
-      }
-    }
-  private:
-    const GMETune::Ptr Tune;
-    uint_t SoundFreq;
-    EmuPtr Emu;
+    const EmuPtr Emu;
+    const uint_t SoundFreq;
+    const uint_t Track;
   };
   
   const auto FRAME_DURATION = Time::Milliseconds(100);
@@ -198,12 +169,10 @@ namespace GME
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(GMETune::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : State(MakePtr<TimedState>(tune->Duration))
+    Renderer(const GMETune& tune, uint_t samplerate)
+      : State(MakePtr<TimedState>(tune.Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , Params(std::move(params))
-      , Engine(std::move(tune))
-      , Target(std::move(target))
+      , Engine(tune, samplerate)
     {
     }
 
@@ -217,30 +186,22 @@ namespace GME
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      try
+      if (!State->IsValid())
       {
-        ApplyParameters();
-
-        const auto avail = State->Consume(FRAME_DURATION, looped);
-        auto data = Engine.Render(GetSamples(avail));
-        Analyzer->AddSoundData(data);
-        Target->ApplyData(std::move(data));
-
-        return State->IsValid();
+        return {};
       }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      const auto avail = State->Consume(FRAME_DURATION, looped);
+      auto data = Engine.Render(GetSamples(avail));
+      Analyzer->AddSoundData(data);
+      return data;
     }
 
     void Reset() override
     {
       try
       {
-        Params.Reset();
         State->Reset();
         Engine.Reset();
       }
@@ -267,15 +228,6 @@ namespace GME
       return period.Get() * Engine.GetSoundFreq() / period.PER_SECOND;
     }
 
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        const auto freq = Sound::GetSoundFrequency(*Params);
-        Engine.SetSoundFreq(freq);
-      }
-    }
-
     void SeekTune(Time::AtMillisecond request)
     {
       if (request < State->At())
@@ -291,9 +243,7 @@ namespace GME
   private:
     const TimedState::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
     GME Engine;
-    const Sound::Receiver::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -315,11 +265,11 @@ namespace GME
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
       try
       {
-        return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
+        return MakePtr<Renderer>(*Tune, samplerate);
       }
       catch (const std::exception& e)
       {

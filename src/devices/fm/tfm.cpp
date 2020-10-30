@@ -50,14 +50,15 @@ namespace TFM
       }
     }
 
-    void RenderSamples(uint_t count, Sound::ChunkBuilder& tgt)
+    Sound::Chunk RenderSamples(uint_t count)
     {
-      Sound::Sample* const out = tgt.Allocate(count);
-      FM::Details::YM2203SampleType* const outRaw = safe_ptr_cast<FM::Details::YM2203SampleType*>(out);
+      Sound::Chunk result(count);
+      auto* const outRaw = safe_ptr_cast<FM::Details::YM2203SampleType*>(result.data());
       ::YM2203UpdateOne(Chips[0].get(), outRaw, count);
       ::YM2203UpdateOne(Chips[1].get(), outRaw, count);
-      std::transform(outRaw, outRaw + count, outRaw, std::bind2nd(std::divides<FM::Details::YM2203SampleType>(), 2));
-      Helper.ConvertSamples(outRaw, outRaw + count, out);
+      std::transform(outRaw, outRaw + count, outRaw, [](FM::Details::YM2203SampleType s) {return s / 2;});
+      Helper.ConvertSamples(outRaw, outRaw + count, result.data());
+      return result;
     }
 
     DeviceState GetState() const
@@ -86,9 +87,9 @@ namespace TFM
 
   typedef FM::Details::BaseChip<Traits> TFMChip;
 
-  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
+  Chip::Ptr CreateChip(ChipParameters::Ptr params)
   {
-    return MakePtr<TFMChip>(params, target);
+    return MakePtr<TFMChip>(std::move(params));
   }
 }
 }

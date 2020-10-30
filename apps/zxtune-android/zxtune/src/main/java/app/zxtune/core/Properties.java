@@ -18,11 +18,6 @@ public final class Properties {
     static final String PREFIX = Properties.PREFIX + "sound.";
 
     /**
-     * Sound frequency in Hz
-     */
-    public static final String FREQUENCY = PREFIX + "frequency";
-
-    /**
      * Loop mode
      */
     public static final String LOOPED = PREFIX + "looped";

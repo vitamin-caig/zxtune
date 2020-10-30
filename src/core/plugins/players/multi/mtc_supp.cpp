@@ -24,6 +24,7 @@
 #include <module/attributes.h>
 #include <module/players/properties_helper.h>
 #include <parameters/merged_accessor.h>
+#include <parameters/merged_container.h>
 #include <parameters/serialize.h>
 #include <parameters/tools.h>
 //std includes
@@ -99,7 +100,7 @@ namespace MTC
     void SetData(Binary::Container::Ptr data) override
     {
       Dbg("Set track data");
-      CurEntity = CurStream = CurTrack->AddStream(data);
+      CurEntity = CurStream = CurTrack->AddStream(std::move(data));
     }
 
     Module::Holder::Ptr GetResult() const
@@ -107,6 +108,11 @@ namespace MTC
       return Module.GetHolder();
     }
   private:
+    Parameters::Modifier& GetCurrentProperties()
+    {
+      return CurEntity->CreateProperties();
+    }
+
     class TrackEntity
     {
     public:
@@ -140,17 +146,22 @@ namespace MTC
     private:
       Parameters::Container::Ptr Props;
     };
-    
+
     class Stream : public StaticPropertiesTrackEntity
     {
     public:
-      explicit Stream(Module::Holder::Ptr holder)
-        : Holder(std::move(holder))
+      explicit Stream(const Parameters::Accessor& params, Binary::Container::Ptr data,
+        Parameters::Accessor::Ptr tuneProperties, Parameters::Accessor::Ptr trackProperties)
+        : Params(params)
+        , Data(std::move(data))
+        , TuneProperties(std::move(tuneProperties))
+        , TrackProperties(std::move(trackProperties))
       {
       }
       
       Module::Holder::Ptr GetHolder() const override
       {
+        DelayedOpenModule();
         Require(IsValid());
         return Holder;
       }
@@ -172,13 +183,14 @@ namespace MTC
       {
         if (Type.empty())
         {
-          Require(Holder->GetModuleProperties()->FindValue(Module::ATTR_TYPE, Type));
+          Require(GetHolder()->GetModuleProperties()->FindValue(Module::ATTR_TYPE, Type));
         }
         return Type;
       }
     private:
       bool IsValid() const
       {
+        DelayedOpenModule();
         return !!Holder;
       }
 
@@ -201,59 +213,69 @@ namespace MTC
           return 0;
         }
       }
+
+      void DelayedOpenModule() const
+      {
+        if (Data)
+        {
+          auto initialProperties = CombineProps(GetProperties(), std::move(TrackProperties), std::move(TuneProperties));
+          Holder = OpenModule(std::move(Data), std::move(initialProperties));
+        }
+      }
+
+      Module::Holder::Ptr OpenModule(Binary::Container::Ptr data, Parameters::Accessor::Ptr baseProperties) const
+      {
+        try
+        {
+          auto initialProperties = Parameters::CreateMergedContainer(std::move(baseProperties), Parameters::Container::Create());
+          return Module::Open(Params, *data, std::move(initialProperties));
+        }
+        catch (const Error&/*ignored*/)
+        {
+          return {};
+        }
+      }
     private:
-      const Module::Holder::Ptr Holder;
+      const Parameters::Accessor& Params;
+      mutable Binary::Container::Ptr Data;
+      mutable Parameters::Accessor::Ptr TuneProperties;
+      mutable Parameters::Accessor::Ptr TrackProperties;
+      mutable Module::Holder::Ptr Holder;
       mutable String Type;
     };
     
     class Track : public StaticPropertiesTrackEntity
     {
     public:      
-      explicit Track(const Parameters::Accessor& params)
+      Track(const Parameters::Accessor& params, Parameters::Accessor::Ptr tuneProperties)
         : Params(params)
+        , TuneProperties(tuneProperties)
         , SelectedStream()
       {
       }
       
       Stream* AddStream(Binary::Container::Ptr data)
       {
-        Streams.push_back(Stream(OpenModule(data)));
+        Streams.emplace_back(Params, std::move(data), TuneProperties, StaticPropertiesTrackEntity::GetProperties());
         SelectedStream = nullptr;
         return &Streams.back();
       }
     
       Module::Holder::Ptr GetHolder() const override
       {
-        //each track requires its own properties to create renderer (e.g. notetable)
-        const Stream& stream = SelectStream();
-        const Module::Holder::Ptr holder = stream.GetHolder();
-        const Parameters::Accessor::Ptr props = CombineProps(holder->GetModuleProperties(), stream.GetProperties(), StaticPropertiesTrackEntity::GetProperties());
-        return Module::CreateMixedPropertiesHolder(holder, props);
+        return SelectStream().GetHolder();
       }
       
       Parameters::Accessor::Ptr GetProperties() const override
       {
-        const Stream& stream = SelectStream();
-        return CombineProps(stream.GetProperties(), StaticPropertiesTrackEntity::GetProperties());
+        return SelectStream().GetProperties();
       }
     private:  
-      Module::Holder::Ptr OpenModule(Binary::Container::Ptr data) const
-      {
-        try
-        {
-          return Module::Open(Params, *data);
-        }
-        catch (const Error&/*ignored*/)
-        {
-          return Module::Holder::Ptr();
-        }
-      }
-      
       const Stream& SelectStream() const
       {
         if (!SelectedStream)
         {
-          Dbg("Select stream from %1% candiates", Streams.size());
+          Dbg("Select stream from %1% candidates", Streams.size());
           Require(!Streams.empty());
           SelectedStream = &*std::min_element(Streams.begin(), Streams.end());
           Dbg(" selected %1%", SelectedStream->GetType());
@@ -262,23 +284,24 @@ namespace MTC
       }
     private:
       const Parameters::Accessor& Params;
+      const Parameters::Accessor::Ptr TuneProperties;
       std::list<Stream> Streams;
       mutable const Stream* SelectedStream;
     };
-    
+
     class Tune : public TrackEntity
     {
     public:
-      Tune(const Parameters::Accessor& params, Parameters::Container::Ptr properties)
+      Tune(const Parameters::Accessor& params, Parameters::Container::Ptr tuneProperties)
         : Params(params)
-        , Props(std::move(properties))
+        , TuneProperties(std::move(tuneProperties))
       {
       }
       
       Track* AddTrack(uint_t idx)
       {
         Require(idx == Tracks.size());
-        Tracks.push_back(Track(Params));
+        Tracks.emplace_back(Params, TuneProperties);
         return &Tracks.back();
       }
       
@@ -291,53 +314,32 @@ namespace MTC
         std::transform(Tracks.begin(), Tracks.end(), holders.begin(),
             [](const TrackEntity& entity) {return entity.GetHolder();});
         const auto longest = std::max_element(holders.begin(), holders.end(), &CompareByDuration);
-        MergeAbsentMetadata(*(*longest)->GetModuleProperties());
         if (longest != holders.begin())
         {
           std::iter_swap(longest, holders.begin());
         }
-        return Module::Multi::CreateHolder(GetProperties(), holders);
+        return Module::Multi::CreateHolder(TuneProperties, std::move(holders));
       }
 
       Parameters::Accessor::Ptr GetProperties() const override
       {
-        return Props;
+        return TuneProperties;
       }
       
       Parameters::Modifier& CreateProperties() override
       {
-        return *Props;
+        return *TuneProperties;
       }
     private:
       static bool CompareByDuration(Module::Holder::Ptr lh, Module::Holder::Ptr rh)
       {
         return lh->GetModuleInformation()->Duration() < rh->GetModuleInformation()->Duration();
       }
-      
-      void MergeAbsentMetadata(const Parameters::Accessor& toMerge) const
-      {
-        String title, author, comment;
-        if (Props->FindValue(Module::ATTR_TITLE, title)
-         || Props->FindValue(Module::ATTR_AUTHOR, author)
-         || Props->FindValue(Module::ATTR_COMMENT, comment))
-        {
-          return;
-        }
-        Dbg("No existing metadata found. Merge from longest track.");
-        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, *Props, Module::ATTR_TITLE);
-        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, *Props, Module::ATTR_AUTHOR);
-        Parameters::CopyExistingValue<Parameters::StringType>(toMerge, *Props, Module::ATTR_COMMENT);
-      }
     private:
       const Parameters::Accessor& Params;
-      Parameters::Container::Ptr Props;
+      Parameters::Container::Ptr TuneProperties;
       std::list<Track> Tracks;
     };
-  private:
-    Parameters::Modifier& GetCurrentProperties()
-    {
-      return CurEntity->CreateProperties();
-    }
   private:
     Tune Module;
     Track* CurTrack;
@@ -353,7 +355,7 @@ namespace MTC
       try
       {
         DataBuilder dataBuilder(params, properties);
-        if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::MultiTrackContainer::Parse(rawData, dataBuilder))
+        if (const auto container = Formats::Chiptune::MultiTrackContainer::Parse(rawData, dataBuilder))
         {
           PropertiesHelper(*properties).SetSource(*container);
           return dataBuilder.GetResult();
@@ -363,7 +365,7 @@ namespace MTC
       {
         Dbg("Failed to create MTC: %s", e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   };
 }
@@ -376,9 +378,9 @@ namespace ZXTune
     const Char ID[] = {'M', 'T', 'C', 0};
     const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::MULTI;
 
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateMultiTrackContainerDecoder();
-    const Module::MTC::Factory::Ptr factory = MakePtr<Module::MTC::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateMultiTrackContainerDecoder();
+    auto factory = MakePtr<Module::MTC::Factory>();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }

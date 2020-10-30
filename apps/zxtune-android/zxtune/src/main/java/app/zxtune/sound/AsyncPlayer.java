@@ -52,7 +52,6 @@ public final class AsyncPlayer implements Player {
 
   @Override
   public void setSource(SamplesSource src) {
-    src.initialize(target.getSampleRate());
     synchronized(state) {
       source.set(src);
       seekRequest.set(null);

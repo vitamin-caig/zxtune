@@ -18,6 +18,6 @@ namespace Module
 {
   namespace TFM
   {
-    Devices::TFM::ChipParameters::Ptr CreateChipParameters(Parameters::Accessor::Ptr params);
+    Devices::TFM::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params);
   }
 }

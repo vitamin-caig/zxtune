@@ -16,6 +16,7 @@
 #include <analysis/result.h>
 #include <core/module_detect.h>
 #include <core/plugin.h>
+#include <parameters/container.h>
 
 namespace ZXTune
 {
@@ -30,8 +31,8 @@ namespace ZXTune
     virtual Binary::Format::Ptr GetFormat() const = 0;
 
     //! @brief Detect modules in data
-    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Module::DetectCallback& callback) const = 0;
+    virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, Module::DetectCallback& callback) const = 0;
 
-    virtual Module::Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data) const = 0;
+    virtual Module::Holder::Ptr TryOpen(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr initialProperties) const = 0;
   };
 }

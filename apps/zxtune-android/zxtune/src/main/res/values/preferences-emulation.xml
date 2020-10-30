@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <!-- emulation -->
+  <string name="time_0s">None</string>
+  <string name="time_1s">1 second</string>
+  <string name="time_2s">2 seconds</string>
+  <string name="time_3s">3 seconds</string>
+  <string name="time_4s">4 seconds</string>
+  <string name="time_5s">5 seconds</string>
+  <string name="time_10s">10 seconds</string>
+  <string name="time_15s">15 seconds</string>
 
     <!-- common -->
   <string name="pref_interpolation">Interpolation</string>
@@ -125,12 +133,12 @@
   <string  name="pref_zxtune_silence_limit" translatable="false">zxtune.sound.silencelimit</string>
   <string  name="pref_zxtune_silence_limit_title">Silence detection</string>
   <string-array name="pref_zxtune_silence_limit_entries">
-    <item>None</item>
-    <item>3 seconds</item>
-    <item>4 seconds</item>
-    <item>5 seconds</item>
-    <item>10 seconds</item>
-    <item>15 seconds</item>
+    <item>@string/time_0s</item>
+    <item>@string/time_3s</item>
+    <item>@string/time_4s</item>
+    <item>@string/time_5s</item>
+    <item>@string/time_10s</item>
+    <item>@string/time_15s</item>
   </string-array>
   <string-array name="pref_zxtune_silence_limit_values" translatable="false">
     <item>0</item>
@@ -161,4 +169,30 @@
     <item>5</item>
   </string-array>
   <integer name="pref_zxtune_loop_limit_default">0</integer>
+  <!-- zxtune.sound.fadein/fadeout -->
+  <string name="pref_zxtune_fadein" translatable="false">zxtune.sound.fadein</string>
+  <string name="pref_zxtune_fadeout" translatable="false">zxtune.sound.fadeout</string>
+  <string name="pref_zxtune_fadein_title">Fade-in</string>
+  <string name="pref_zxtune_fadeout_title">Fade-out</string>
+  <integer name="pref_zxtune_fade_default">0</integer>
+  <string-array name="pref_zxtune_fade_entries">
+    <item>@string/time_0s</item>
+    <item>@string/time_1s</item>
+    <item>@string/time_2s</item>
+    <item>@string/time_3s</item>
+    <item>@string/time_5s</item>
+    <item>@string/time_10s</item>
+  </string-array>
+  <string-array name="pref_zxtune_fade_values" translatable="false">
+    <item>0</item>
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+    <item>5</item>
+    <item>10</item>
+  </string-array>
+  <!-- zxtune.sound.gain -->
+  <string name="pref_zxtune_gain" translatable="false">zxtune.sound.gain</string>
+  <string name="pref_zxtune_gain_title">Gain</string>
+  <integer name="pref_zxtune_gain_default">100</integer>
 </resources>

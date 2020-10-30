@@ -19,10 +19,7 @@
 #include <module/players/analyzer.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/render_params.h>
 #include <sound/resampler.h>
-#include <sound/sound_parameters.h>
 //3rdparty
 #include <3rdparty/v2m/src/sounddef.h>
 #include <3rdparty/v2m/src/v2mconv.h>
@@ -138,14 +135,12 @@ namespace V2M
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(DataPtr tune, Time::Milliseconds duration, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(DataPtr tune, Time::Milliseconds duration, Sound::Converter::Ptr target)
       : Engine(std::move(tune))
       , State(MakePtr<TimedState>(duration))
       , Target(std::move(target))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , Params(std::move(params))
     {
-      ApplyParameters();
     }
 
     Module::State::Ptr GetState() const override
@@ -158,32 +153,25 @@ namespace V2M
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      try
+      if (!State->IsValid())
       {
-        ApplyParameters();
-
-        const auto avail = State->Consume(FRAME_DURATION, looped);
-
-        auto frame = Engine.RenderFrame(GetSamples(avail));
-        Analyzer->AddSoundData(frame);
-        Resampler->ApplyData(std::move(frame));
-        if (State->At() < Time::AtMillisecond() + FRAME_DURATION)
-        {
-          Engine.Reset();
-        }
-        return State->IsValid();
+        return {};
       }
-      catch (const std::exception&)
+      const auto avail = State->Consume(FRAME_DURATION, looped);
+
+      auto frame = Target->Apply(Engine.RenderFrame(GetSamples(avail)));
+      Analyzer->AddSoundData(frame);
+      if (State->At() < Time::AtMillisecond() + FRAME_DURATION)
       {
-        return false;
+        Engine.Reset();
       }
+      return frame;
     }
 
     void Reset() override
     {
-      Params.Reset();
       Engine.Reset();
       State->Reset();
     }
@@ -203,20 +191,10 @@ namespace V2M
       }
     }
   private:
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Resampler = Sound::CreateResampler(Engine.SAMPLERATE, Sound::GetSoundFrequency(*Params), Target);
-      }
-    }
-  private:
     V2mEngine Engine;
     const TimedState::Ptr State;
-    const Sound::Receiver::Ptr Target;
+    const Sound::Converter::Ptr Target;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
-    Sound::Receiver::Ptr Resampler;
   };
   
   class Holder : public Module::Holder
@@ -239,9 +217,9 @@ namespace V2M
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Data, Duration, std::move(target), std::move(params));
+      return MakePtr<Renderer>(Data, Duration, Sound::CreateResampler(V2mEngine::SAMPLERATE, samplerate));
     }
   private:
     const DataPtr Data;

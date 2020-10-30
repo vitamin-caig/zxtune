@@ -69,12 +69,12 @@ namespace AYM
       }
     }
 
-    void Render(Stamp tillTime, uint_t samples, Sound::ChunkBuilder& target)
+    Sound::Chunk Render(Stamp tillTime, uint_t samples)
     {
-      Current->Render(tillTime, samples, target);
+      return Current->Render(tillTime, samples);
     }
 
-    void Render(Stamp tillTime, Sound::ChunkBuilder& target)
+    void Render(Stamp tillTime, Sound::Chunk* target)
     {
       Current->Render(tillTime, target);
     }

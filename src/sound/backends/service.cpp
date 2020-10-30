@@ -18,7 +18,6 @@
 #include <make_ptr.h>
 //library includes
 #include <debug/log.h>
-#include <parameters/merged_accessor.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/service.h>
@@ -106,10 +105,9 @@ namespace Sound
     {
       try
       {
-        if (const BackendWorkerFactory::Ptr factory = FindFactory(backendId))
+        if (const auto factory = FindFactory(backendId))
         {
-          const Parameters::Accessor::Ptr params = Parameters::CreateMergedAccessor(module->GetModuleProperties(), Options);
-          return Sound::CreateBackend(params, module, callback, factory->CreateWorker(params, module));
+          return Sound::CreateBackend(Options, module, std::move(callback), factory->CreateWorker(Options, module));
         }
         throw MakeFormattedError(THIS_LINE, translate("Backend '%1%' not registered."), backendId);
       }

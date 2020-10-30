@@ -43,34 +43,8 @@ namespace Module
     return ARCHIVE_PLUGIN_PREFIX + pluginId;
   }
 
-  class OpenModuleCallback : public DetectCallback
-  {
-  public:
-    OpenModuleCallback()
-      : DetectCallback()
-    {
-    }
-
-    void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const override
-    {
-      Result = holder;
-    }
-
-    Log::ProgressCallback* GetProgress() const override
-    {
-      return nullptr;
-    }
-
-    Holder::Ptr GetResult() const
-    {
-      return Result;
-    }
-  private:
-    mutable Holder::Ptr Result;
-  };
-  
   template<class T>
-  std::size_t DetectByPlugins(const Parameters::Accessor& params, typename T::Iterator::Ptr plugins, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
+  std::size_t DetectByPlugins(const Parameters::Accessor& params, typename T::Iterator::Ptr plugins, ZXTune::DataLocation::Ptr location, DetectCallback& callback)
   {
     for (; plugins->IsValid(); plugins->Next())
     {
@@ -85,23 +59,23 @@ namespace Module
     return 0;
   }
   
-  class ResolveAdditionalFilesAdapter : public DetectCallback
+  class ResolveAdditionalFilesAdapter : public DetectCallbackDelegate
   {
   public:
-    ResolveAdditionalFilesAdapter(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& delegate)
-      : Source(std::unique_ptr<AdditionalFilesSource>(new FullpathFilesSource(params, std::move(data))))
-      , Delegate(delegate)
+    ResolveAdditionalFilesAdapter(const Parameters::Accessor& params, Binary::Container::Ptr data, DetectCallback& delegate)
+      : DetectCallbackDelegate(delegate)
+      , Source(std::unique_ptr<AdditionalFilesSource>(new FullpathFilesSource(params, std::move(data))))
     {
     }
 
-    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const override
+    void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& decoder, Module::Holder::Ptr holder) override
     {
       if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
       {
-        const auto path = location->GetPath();
+        const auto path = location.GetPath();
         if (const auto dir = path->GetParent())
         {
-          DetectDbg("Archived multifile %1% at '%2%'", decoder->Id(), path->AsString());
+          DetectDbg("Archived multifile %1% at '%2%'", decoder.Id(), path->AsString());
           try
           {
             const ArchivedFilesSource source(dir, Source);
@@ -114,12 +88,7 @@ namespace Module
           }
         }
       }
-      Delegate.ProcessModule(std::move(location), std::move(decoder), std::move(holder));
-    }
-
-    Log::ProgressCallback* GetProgress() const override
-    {
-      return Delegate.GetProgress();
+      Delegate.ProcessModule(location, decoder, std::move(holder));
     }
   private:
     class ArchivedFilesSource : public AdditionalFilesSource
@@ -188,7 +157,6 @@ namespace Module
     };
   private:
     const CachedFilesSource Source;
-    const DetectCallback& Delegate;
   };
 
   //TODO: remove
@@ -211,9 +179,9 @@ namespace Module
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
+      return Delegate->CreateRenderer(samplerate, Parameters::CreateMergedAccessor(params, Properties));
     }
   private:
     const Holder::Ptr Delegate;
@@ -239,56 +207,89 @@ namespace Module
       return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), target);
-    }
-
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Device::Ptr chip) const override
-    {
-      return Delegate->CreateRenderer(Parameters::CreateMergedAccessor(params, Properties), chip);
+      return Delegate->CreateRenderer(samplerate, Parameters::CreateMergedAccessor(params, Properties));
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override
     {
       return Delegate->GetChiptune();
     }
+    
+    void Dump(Devices::AYM::Device& dev) const override
+    {
+      return Delegate->Dump(dev);
+    }
   private:
     const AYM::Holder::Ptr Delegate;
     const Parameters::Accessor::Ptr Properties;
   };
 
-  std::size_t OpenInternal(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
+  std::size_t OpenInternal(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, DetectCallback& callback)
   {
     using namespace ZXTune;
     const PlayerPluginsEnumerator::Ptr usedPlayerPlugins = PlayerPluginsEnumerator::Create();
-    return DetectByPlugins<PlayerPlugin>(params, usedPlayerPlugins->Enumerate(), location, callback);
+    return DetectByPlugins<PlayerPlugin>(params, usedPlayerPlugins->Enumerate(), std::move(location), callback);
   }
 
-  void Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath, const DetectCallback& callback)
+  class OpenModuleCallback : public DetectCallback
   {
-    const ResolveAdditionalFilesAdapter adapter(params, data, callback);
-    const auto location = ZXTune::OpenLocation(params, data, subpath);
-    if (!OpenInternal(params, location, adapter))
+  public:
+    explicit OpenModuleCallback(Parameters::Container::Ptr properties)
+      : DetectCallback()
+      , Properties(std::move(properties))
+    {
+    }
+
+    Parameters::Container::Ptr CreateInitialProperties(const String& /*subpath*/) const override
+    {
+      return std::move(Properties);
+    }
+
+    void ProcessModule(const ZXTune::DataLocation& /*location*/, const ZXTune::Plugin& /*decoder*/, Module::Holder::Ptr holder) override
+    {
+      Result = std::move(holder);
+    }
+
+    Log::ProgressCallback* GetProgress() const override
+    {
+      return nullptr;
+    }
+
+    Holder::Ptr GetResult() const
+    {
+      return Result;
+    }
+  private:
+    mutable Parameters::Container::Ptr Properties;
+    Holder::Ptr Result;
+  };
+
+  void Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath, DetectCallback& callback)
+  {
+    ResolveAdditionalFilesAdapter adapter(params, data, callback);
+    auto location = ZXTune::OpenLocation(params, std::move(data), subpath);
+    if (!OpenInternal(params, std::move(location), adapter))
     {
       throw Error(THIS_LINE, translate("Failed to find module at specified location."));
     }
   }
-  
-  Holder::Ptr Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath)
+
+  Holder::Ptr Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath, Parameters::Container::Ptr initialProperties)
   {
-    const OpenModuleCallback callback;
-    Open(params, data, subpath, callback);
+    OpenModuleCallback callback(std::move(initialProperties));
+    Open(params, std::move(data), subpath, callback);
     return callback.GetResult();
   }
 
-  Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data)
+  Holder::Ptr Open(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr initialProperties)
   {
     using namespace ZXTune;
-    for (PlayerPlugin::Iterator::Ptr usedPlugins = PlayerPluginsEnumerator::Create()->Enumerate(); usedPlugins->IsValid(); usedPlugins->Next())
+    for (auto usedPlugins = PlayerPluginsEnumerator::Create()->Enumerate(); usedPlugins->IsValid(); usedPlugins->Next())
     {
-      const PlayerPlugin::Ptr plugin = usedPlugins->Get();
-      if (const Holder::Ptr res = plugin->Open(params, data))
+      const auto plugin = usedPlugins->Get();
+      if (const auto res = plugin->TryOpen(params, data, initialProperties))
       {
         return res;
       }
@@ -296,7 +297,7 @@ namespace Module
     throw Error(THIS_LINE, translate("Failed to find module at specified location."));
   }
 
-  std::size_t Detect(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, const DetectCallback& callback)
+  std::size_t Detect(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, DetectCallback& callback)
   {
     using namespace ZXTune;
     const ArchivePluginsEnumerator::Ptr usedArchivePlugins = ArchivePluginsEnumerator::Create();
@@ -304,12 +305,12 @@ namespace Module
     {
       return usedSize;
     }
-    return OpenInternal(params, location, callback);
+    return OpenInternal(params, std::move(location), callback);
   }
 
-  void Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, const DetectCallback& callback)
+  void Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, DetectCallback& callback)
   {
-    const ResolveAdditionalFilesAdapter adapter(params, data, callback);
+    ResolveAdditionalFilesAdapter adapter(params, data, callback);
     Detect(params, ZXTune::CreateLocation(data), adapter);
   }
   

@@ -21,14 +21,19 @@ namespace Module
   class DetectCallbackDelegate : public DetectCallback
   {
   public:
-    explicit DetectCallbackDelegate(const DetectCallback& delegate)
+    explicit DetectCallbackDelegate(DetectCallback& delegate)
       : Delegate(delegate)
     {
     }
 
-    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr decoder, Module::Holder::Ptr holder) const override
+    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const
     {
-      return Delegate.ProcessModule(location, decoder, holder);
+      return Delegate.CreateInitialProperties(subpath);
+    }
+
+    void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& decoder, Module::Holder::Ptr holder) override
+    {
+      return Delegate.ProcessModule(location, decoder, std::move(holder));
     }
 
     Log::ProgressCallback* GetProgress() const override
@@ -36,19 +41,19 @@ namespace Module
       return Delegate.GetProgress();
     }
   protected:
-    const DetectCallback& Delegate;
+    DetectCallback& Delegate;
   };
 
   class CustomProgressDetectCallbackAdapter : public DetectCallbackDelegate
   {
   public:
-    CustomProgressDetectCallbackAdapter(const DetectCallback& delegate, Log::ProgressCallback::Ptr progress)
+    CustomProgressDetectCallbackAdapter(DetectCallback& delegate, Log::ProgressCallback::Ptr progress)
       : DetectCallbackDelegate(delegate)
       , Progress(std::move(progress))
     {
     }
 
-    CustomProgressDetectCallbackAdapter(const DetectCallback& delegate)
+    CustomProgressDetectCallbackAdapter(DetectCallback& delegate)
       : DetectCallbackDelegate(delegate)
     {
     }

@@ -20,7 +20,7 @@ namespace Sound
 {
   //! @brief Simple sound stream endpoint receiver
   typedef DataReceiver<Chunk> Receiver;
-  typedef DataTransceiver<Chunk, Chunk> Converter;
+  typedef DataConverter<Chunk, Chunk> Converter;
   //! @brief Channel count-specific receivers
   template<unsigned Channels>
   class FixedChannelsReceiver : public DataReceiver<typename MultichannelSample<Channels>::Type> {};

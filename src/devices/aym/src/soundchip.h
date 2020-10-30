@@ -25,10 +25,9 @@ namespace AYM
   class SoundChip : public Traits::ChipBaseType
   {
   public:
-    SoundChip(ChipParameters::Ptr params, MixerType::Ptr mixer, Sound::Receiver::Ptr target)
+    SoundChip(ChipParameters::Ptr params, MixerType::Ptr mixer)
       : Params(std::move(params))
       , Mixer(std::move(mixer))
-      , Target(std::move(target))
       , PSG(VolTable)
       , Clock()
       , Renderers(Clock, PSG)
@@ -40,7 +39,6 @@ namespace AYM
     {
       if (Clock.HasSamplesBefore(src.TimeStamp))
       {
-        SynchronizeParameters();
         RenderTill(src.TimeStamp);
       }
       PSG.SetNewData(src.Data);
@@ -55,17 +53,12 @@ namespace AYM
       const Stamp end = src.back().TimeStamp;
       if (Clock.HasSamplesBefore(end))
       {
-        SynchronizeParameters();
-        const uint_t samples = Clock.SamplesTill(end);
-        Sound::ChunkBuilder builder;
-        builder.Reserve(samples);
+        RenderedData.reserve(RenderedData.size() + Clock.SamplesTill(end));
         for (const auto& chunk : src)
         {
-          Renderers.Render(chunk.TimeStamp, builder);
+          Renderers.Render(chunk.TimeStamp, &RenderedData);
           PSG.SetNewData(chunk.Data);
         }
-        Target->ApplyData(builder.CaptureResult());
-        Target->Flush();
       }
       else
       {
@@ -81,6 +74,24 @@ namespace AYM
       Params.Reset();
       PSG.Reset();
       Renderers.Reset();
+      SynchronizeParameters();
+    }
+
+    Sound::Chunk RenderTill(Stamp stamp) override
+    {
+      Sound::Chunk result;
+      if (RenderedData.empty())
+      {
+        result = Renderers.Render(stamp, Clock.SamplesTill(stamp)); 
+      }
+      else
+      {
+        Renderers.Render(stamp, &RenderedData);
+        result.swap(RenderedData);
+        RenderedData.reserve(result.size());
+      }
+      SynchronizeParameters();
+      return result;
     }
 
     DeviceState GetState() const override
@@ -105,25 +116,15 @@ namespace AYM
         VolTable.SetParameters(Params->Type(), Params->Layout(), *Mixer);
       }
     }
-
-    void RenderTill(Stamp stamp)
-    {
-      const uint_t samples = Clock.SamplesTill(stamp);
-      Sound::ChunkBuilder builder;
-      builder.Reserve(samples);
-      Renderers.Render(stamp, samples, builder);
-      Target->ApplyData(builder.CaptureResult());
-      Target->Flush();
-    }
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
     const MixerType::Ptr Mixer;
-    const Sound::Receiver::Ptr Target;
     MultiVolumeTable VolTable;
     typename Traits::PSGType PSG;
     ClockSource Clock;
     Details::AnalysisMap Analyser;
     RenderersSet<typename Traits::PSGType> Renderers;
+    Sound::Chunk RenderedData;
   };
 }
 }

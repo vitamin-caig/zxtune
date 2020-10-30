@@ -28,7 +28,6 @@ namespace Player
     typedef std::shared_ptr<Control> Ptr;
     virtual ~Control() = default;
 
-    virtual const Parameters::Accessor& GetProperties() const = 0;
     virtual Parameters::Modifier& GetParameters() const = 0;
 
     virtual uint_t GetPosition() const = 0;
@@ -43,7 +42,7 @@ namespace Player
 
   typedef ObjectsStorage<Control::Ptr> Storage;
 
-  jobject Create(JNIEnv* env, Module::Holder::Ptr module);
+  jobject Create(JNIEnv* env, const Module::Holder& module, uint_t samplerate);
 
   void InitJni(JNIEnv*);
   void CleanupJni(JNIEnv*);

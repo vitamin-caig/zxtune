@@ -21,11 +21,7 @@
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
-#include <module/players/fading.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
-#include <sound/render_params.h>
 #include <sound/resampler.h>
 //std includes
 #include <list>
@@ -190,12 +186,11 @@ namespace SDSF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(ModuleData::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(ModuleData::Ptr data, Sound::Converter::Ptr target)
       : Data(std::move(data))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , Params(params)
-      , Target(Module::CreateFadingReceiver(std::move(params), Data->Meta->Duration, State, std::move(target)))
+      , Target(std::move(target))
     {
       Engine.Initialize(*Data);
     }
@@ -210,32 +205,24 @@ namespace SDSF
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      try
+      if (!State->IsValid())
       {
-        ApplyParameters();
-
-        const auto avail = State->Consume(FRAME_DURATION, looped);
-
-        auto data = Engine.Render(GetSamples(avail));
-        Analyzer->AddSoundData(data);
-        Resampler->ApplyData(std::move(data));
-        return State->IsValid();
+        return {};
       }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      const auto avail = State->Consume(FRAME_DURATION, looped);
+
+      auto data = Target->Apply(Engine.Render(GetSamples(avail)));
+      Analyzer->AddSoundData(data);
+      return data;
     }
 
     void Reset() override
     {
-      Params.Reset();
       State->Reset();
       Engine.Initialize(*Data);
     }
-
 
     void SetPosition(Time::AtMillisecond request) override
     {
@@ -250,21 +237,11 @@ namespace SDSF
       }
     }
   private:
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Resampler = Sound::CreateResampler(SegaEngine::SAMPLERATE, Sound::GetSoundFrequency(*Params), Target);
-      }
-    }
-  private:
     const ModuleData::Ptr Data;
     const TimedState::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
     SegaEngine Engine;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
-    const Sound::Receiver::Ptr Target;
-    Sound::Receiver::Ptr Resampler;
+    const Sound::Converter::Ptr Target;
   };
 
   class Holder : public Module::Holder
@@ -286,9 +263,9 @@ namespace SDSF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
+      return MakePtr<Renderer>(Tune, Sound::CreateResampler(SegaEngine::SAMPLERATE, samplerate));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)

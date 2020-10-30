@@ -20,11 +20,7 @@
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
-#include <module/players/fading.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
-#include <sound/render_params.h>
 #include <sound/resampler.h>
 //std includes
 #include <list>
@@ -189,12 +185,11 @@ namespace USF
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const ModuleData& data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(const ModuleData& data, uint_t samplerate)
       : Engine(data)
       , State(MakePtr<TimedState>(data.Meta->Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , Params(params)
-      , Target(Module::CreateFadingReceiver(std::move(params), data.Meta->Duration, State, std::move(target)))
+      , Target(Sound::CreateResampler(Engine.GetSoundFrequency(), samplerate))
     {
     }
 
@@ -208,27 +203,20 @@ namespace USF
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      try
+      if (!State->IsValid())
       {
-        ApplyParameters();
-
-        const auto avail = State->Consume(FRAME_DURATION, looped);
-        auto data = Engine.Render(GetSamples(avail));
-        Analyzer->AddSoundData(data);
-        Resampler->ApplyData(std::move(data));
-        return State->IsValid();
+        return {};
       }
-      catch (const std::exception&)
-      {
-        return false;
-      }
+      const auto avail = State->Consume(FRAME_DURATION, looped);
+      auto data = Target->Apply(Engine.Render(GetSamples(avail)));
+      Analyzer->AddSoundData(data);
+      return data;
     }
 
     void Reset() override
     {
-      Params.Reset();
       State->Reset();
       Engine.Reset();
     }
@@ -250,21 +238,11 @@ namespace USF
     {
       return period.Get() * Engine.GetSoundFrequency() / period.PER_SECOND;
     }
-
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Resampler = Sound::CreateResampler(Engine.GetSoundFrequency(), Sound::GetSoundFrequency(*Params), Target);
-      }
-    }
   private:
     USFEngine Engine;
     const TimedState::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
-    const Sound::Receiver::Ptr Target;
-    Sound::Receiver::Ptr Resampler;
+    const Sound::Converter::Ptr Target;
   };
 
   class Holder : public Module::Holder
@@ -286,9 +264,9 @@ namespace USF
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(*Tune, std::move(target), std::move(params));
+      return MakePtr<Renderer>(*Tune, samplerate);
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)

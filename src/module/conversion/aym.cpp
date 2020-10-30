@@ -154,8 +154,7 @@ namespace Module
 
     try
     {
-      const Renderer::Ptr renderer = holder.CreateRenderer(params, dumper);
-      while (renderer->RenderFrame({})) {}
+      holder.Dump(*dumper);
       std::unique_ptr<Dump> dst(new Dump());
       dumper->GetDump(*dst);
       return Binary::CreateContainer(std::move(dst));
@@ -169,9 +168,9 @@ namespace Module
   Binary::Data::Ptr Convert(const Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params)
   {
     using namespace Conversion;
-    if (const AYM::Holder* aymHolder = dynamic_cast<const AYM::Holder*>(&holder))
+    if (const auto* aymHolder = dynamic_cast<const AYM::Holder*>(&holder))
     {
-      return ConvertAYMFormat(*aymHolder, spec, params);
+      return ConvertAYMFormat(*aymHolder, spec, std::move(params));
     }
     return Binary::Data::Ptr();
   }

@@ -12,11 +12,13 @@
 
 //local includes
 #include "device.h"
+//common includes
+#include <contract.h>
+#include <make_ptr.h>
 //library includes
 #include <devices/details/analysis_map.h>
 #include <devices/details/renderers.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 #include <sound/lpfilter.h>
 //std includes
 #include <cassert>
@@ -225,9 +227,9 @@ namespace SAA
       }
     }
 
-    void Render(Stamp tillTime, uint_t samples, Sound::ChunkBuilder& target)
+    Sound::Chunk Render(Stamp tillTime, uint_t samples)
     {
-      Current->Render(tillTime, samples, target);
+      return Current->Render(tillTime, samples);
     }
   private:
     uint64_t ClockFreq;
@@ -242,9 +244,8 @@ namespace SAA
   class RegularSAAChip : public Chip
   {
   public:
-    RegularSAAChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
+    explicit RegularSAAChip(ChipParameters::Ptr params)
       : Params(std::move(params))
-      , Target(std::move(target))
       , Clock()
       , Renderers(Clock, PSG)
     {
@@ -253,11 +254,8 @@ namespace SAA
 
     void RenderData(const DataChunk& src) override
     {
-      if (Clock.HasSamplesBefore(src.TimeStamp))
-      {
-        SynchronizeParameters();
-        RenderTill(src.TimeStamp);
-      }
+      // for simplicity
+      Require(!Clock.HasSamplesBefore(src.TimeStamp));
       PSG.SetNewData(src.Data);
     }
 
@@ -266,6 +264,16 @@ namespace SAA
       Params.Reset();
       PSG.Reset();
       Renderers.Reset();
+      SynchronizeParameters();
+    }
+
+    Sound::Chunk RenderTill(Stamp stamp) override
+    {
+      const uint_t samples = Clock.SamplesTill(stamp);
+      Require(samples);
+      auto result = Renderers.Render(stamp, samples);
+      SynchronizeParameters();
+      return result;
     }
 
     DeviceState GetState() const override
@@ -286,28 +294,17 @@ namespace SAA
         Analyser.SetClockRate(clock);
       }
     }
-
-    void RenderTill(Stamp stamp)
-    {
-      const uint_t samples = Clock.SamplesTill(stamp);
-      Sound::ChunkBuilder builder;
-      builder.Reserve(samples);
-      Renderers.Render(stamp, samples, builder);
-      Target->ApplyData(builder.CaptureResult());
-      Target->Flush();
-    }
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
-    const Sound::Receiver::Ptr Target;
     SAARenderer PSG;
     ClockSource Clock;
     Details::AnalysisMap Analyser;
     RenderersSet Renderers;
   };
 
-  Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target)
+  Chip::Ptr CreateChip(ChipParameters::Ptr params)
   {
-    return MakePtr<RegularSAAChip>(params, target);
+    return MakePtr<RegularSAAChip>(std::move(params));
   }
 }
 }

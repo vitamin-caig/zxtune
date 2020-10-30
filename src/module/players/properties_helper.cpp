@@ -12,6 +12,7 @@
 #include "module/players/properties_helper.h"
 //library includes
 #include <module/attributes.h>
+#include <sound/sound_parameters.h>
 //boost includes
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
@@ -95,5 +96,17 @@ namespace Module
   void PropertiesHelper::SetPlatform(const String& platform)
   {
     Delegate.SetValue(ATTR_PLATFORM, platform);
+  }
+
+  void PropertiesHelper::SetFadein(Time::Milliseconds fadein)
+  {
+    using namespace Parameters::ZXTune::Sound;
+    Delegate.SetValue(FADEIN, FADEIN_PRECISION * fadein.Get() / fadein.PER_SECOND);
+  }
+
+  void PropertiesHelper::SetFadeout(Time::Milliseconds fadeout)
+  {
+    using namespace Parameters::ZXTune::Sound;
+    Delegate.SetValue(FADEOUT, FADEOUT_PRECISION * fadeout.Get() / fadeout.PER_SECOND);
   }
 }

@@ -28,8 +28,7 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/render_params.h>
+#include <sound/loop.h>
 //3rdparty includes
 #include <3rdparty/vgm/player/s98player.hpp>
 #include <3rdparty/vgm/player/vgmplayer.hpp>
@@ -157,12 +156,14 @@ namespace LibVGM
   public:
     using RWPtr = std::shared_ptr<VGMEngine>;
 
-    explicit VGMEngine(Model::Ptr tune)
+    VGMEngine(Model::Ptr tune, uint_t samplerate)
       : Tune(std::move(tune))
       , Loader(Tune->Data)
       , Delegate(Tune->CreatePlayer())
     {
       Require(0 == Delegate->LoadFile(Loader.Get()));
+      Require(0 == Delegate->SetSampleRate(samplerate));
+      Delegate->Start();
       LoopTicks = Delegate->GetLoopTicks();
     }
 
@@ -195,15 +196,6 @@ namespace LibVGM
     {
       Delegate->Reset();
       WholeLoopCount = 0;
-    }
-
-    void SetSoundFreq(uint_t freq)
-    {
-      if (Delegate->GetSampleRate() != freq) {
-        Delegate->Stop();
-        Require(0 == Delegate->SetSampleRate(freq));
-        Delegate->Start();
-      }
     }
 
     Sound::Chunk Render()
@@ -264,14 +256,10 @@ namespace LibVGM
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Engine(MakeRWPtr<VGMEngine>(std::move(tune)))
+    Renderer(Model::Ptr tune, uint_t samplerate)
+      : Engine(MakeRWPtr<VGMEngine>(std::move(tune), samplerate))
       , Analyzer(CreateSoundAnalyzer())
-      , Params(std::move(params))
-      , Target(std::move(target))
     {
-      //Required in order to perform initial seeking!!!
-      ApplyParameters();
     }
 
     State::Ptr GetState() const override
@@ -284,22 +272,18 @@ namespace LibVGM
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      try
+      const auto loops = Engine->LoopCount();
+      if (loops == 0 || looped(loops))
       {
-        ApplyParameters();
-
         auto data = Engine->Render();
         Analyzer->AddSoundData(data);
-        Target->ApplyData(std::move(data));
-
-        const auto loops = Engine->LoopCount();
-        return loops == 0 || looped(loops);
+        return data;
       }
-      catch (const std::exception&)
+      else
       {
-        return false;
+        return {};
       }
     }
 
@@ -307,7 +291,6 @@ namespace LibVGM
     {
       try
       {
-        Params.Reset();
         Engine->Reset();
       }
       catch (const std::exception& e)
@@ -328,19 +311,8 @@ namespace LibVGM
       }
     }
   private:
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Engine->SetSoundFreq(Sound::GetSoundFrequency(*Params));
-      }
-    }
-
-  private:
     const VGMEngine::RWPtr Engine;
     const SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
-    const Sound::Receiver::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -363,11 +335,11 @@ namespace LibVGM
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
       try
       {
-        return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
+        return MakePtr<Renderer>(Tune, samplerate);
       }
       catch (const std::exception& e)
       {

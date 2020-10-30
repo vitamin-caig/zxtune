@@ -112,7 +112,7 @@ namespace Module
 
       if (const auto fadeout = Fadeout.Get())
       {
-        out.SetValue(Parameters::ZXTune::Sound::FADEOUT, Parameters::ZXTune::Sound::FADEOUT_PRECISION * fadeout / Fadeout.PER_SECOND);
+        props.SetFadeout(Fadeout);
       }
     }
   }

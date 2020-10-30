@@ -19,9 +19,9 @@ namespace Module
 {
   namespace Multi
   {
-    typedef std::vector<Module::Holder::Ptr> HoldersArray;
+    using HoldersArray = std::vector<Module::Holder::Ptr>;
     
     //first holder is used as a main one
-    Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr params, const HoldersArray& holders);
+    Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr tuneProperties, HoldersArray holders);
   }
 }

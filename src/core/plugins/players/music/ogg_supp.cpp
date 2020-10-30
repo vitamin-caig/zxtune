@@ -24,8 +24,6 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
-#include <parameters/tracking_helper.h>
-#include <sound/render_params.h>
 #include <sound/resampler.h>
 //3rdparty
 #define STB_VORBIS_NO_STDIO
@@ -105,11 +103,10 @@ namespace Ogg
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(Model::Ptr data, Sound::Converter::Ptr target)
       : Tune(data)
       , State(MakePtr<SampledState>(data->TotalSamples, data->Frequency))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , Params(std::move(params))
       , Target(std::move(target))
     {
     }
@@ -124,33 +121,27 @@ namespace Ogg
       return Analyzer;
     }
 
-    bool RenderFrame(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
-      try
+      if (!State->IsValid())
       {
-        ApplyParameters();
-
-        const auto loops = State->LoopCount();
-        auto frame = Tune.RenderFrame();
-        State->Consume(frame.size(), looped);
-        Analyzer->AddSoundData(frame);
-        Resampler->ApplyData(std::move(frame));
-        if (State->LoopCount() != loops)
-        {
-          Tune.Seek(0);
-        }
-        return State->IsValid();
+        return {};
       }
-      catch (const std::exception&)
+      const auto loops = State->LoopCount();
+      auto frame = Tune.RenderFrame();
+      State->Consume(frame.size(), looped);
+      if (State->LoopCount() != loops)
       {
-        return false;
+        Tune.Seek(0);
       }
+      frame = Target->Apply(std::move(frame));
+      Analyzer->AddSoundData(frame);
+      return frame;
     }
 
     void Reset() override
     {
       Tune.Reset();
-      Params.Reset();
       State->Reset();
     }
 
@@ -160,20 +151,10 @@ namespace Ogg
       Tune.Seek(State->AtSample());
     }
   private:
-    void ApplyParameters()
-    {
-      if (Params.IsChanged())
-      {
-        Resampler = Sound::CreateResampler(Tune.GetFrequency(), Sound::GetSoundFrequency(*Params), Target);
-      }
-    }
-  private:
     OggTune Tune;
     const SampledState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Parameters::Accessor> Params;
-    const Sound::Receiver::Ptr Target;
-    Sound::Receiver::Ptr Resampler;
+    const Sound::Converter::Ptr Target;
   };
   
   class Holder : public Module::Holder
@@ -195,9 +176,9 @@ namespace Ogg
       return Properties;
     }
 
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
+    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(Data, std::move(target), std::move(params));
+      return MakePtr<Renderer>(Data, Sound::CreateResampler(Data->Frequency, samplerate));
     }
   private:
     const Model::Ptr Data;

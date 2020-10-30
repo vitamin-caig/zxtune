@@ -26,7 +26,7 @@
 #include <io/api.h>
 #include <io/providers_parameters.h>
 #include <module/properties/path.h>
-#include <parameters/merged_accessor.h>
+#include <parameters/merged_container.h>
 #include <platform/application.h>
 #include <strings/array.h>
 #include <time/elapsed.h>
@@ -147,10 +147,16 @@ namespace
     {
     }
 
-    void ProcessModule(ZXTune::DataLocation::Ptr location, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const override
+    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const
     {
-      const auto& subpath = location->GetPath()->AsString();
-      if (subpath.empty())
+      auto subId = Id->WithSubpath(subpath);
+      auto moduleProperties = Module::CreatePathProperties(std::move(subId));
+      return Parameters::CreateMergedContainer(std::move(moduleProperties), Parameters::Container::Create());
+    }
+
+    void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& /*decoder*/, Module::Holder::Ptr holder) override
+    {
+      if (!location.GetPath()->Empty())
       {
         if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
         {
@@ -158,10 +164,7 @@ namespace
           Module::ResolveAdditionalFiles(source, *files);
         }
       }
-      const IO::Identifier::Ptr subId = Id->WithSubpath(subpath);
-      const Parameters::Accessor::Ptr moduleParams = Parameters::CreateMergedAccessor(Module::CreatePathProperties(subId), Params);
-      const Module::Holder::Ptr result = Module::CreateMixedPropertiesHolder(holder, moduleParams);
-      Callback.ProcessItem(location->GetData(), result);
+      Callback.ProcessItem(location.GetData(), std::move(holder));
     }
 
     Log::ProgressCallback* GetProgress() const override
@@ -247,17 +250,17 @@ namespace
       {
         const IO::Identifier::Ptr id = IO::ResolveUri(uri);
 
-        const DetectCallback detectCallback(Params, id, callback, ShowProgress);
-        const Binary::Container::Ptr data = IO::OpenData(id->Path(), *Params, Log::ProgressCallback::Stub());
+        DetectCallback detectCallback(Params, id, callback, ShowProgress);
+        auto data = IO::OpenData(id->Path(), *Params, Log::ProgressCallback::Stub());
 
         const String subpath = id->Subpath();
         if (subpath.empty())
         {
-          Module::Detect(*Params, data, detectCallback);
+          Module::Detect(*Params, std::move(data), detectCallback);
         }
         else
         {
-          Module::Open(*Params, data, subpath, detectCallback);
+          Module::Open(*Params, std::move(data), subpath, detectCallback);
         }
       }
       catch (const Error& e)

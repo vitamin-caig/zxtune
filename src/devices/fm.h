@@ -15,7 +15,7 @@
 #include <types.h>
 //library includes
 #include <devices/state.h>
-#include <sound/receiver.h>
+#include <sound/chunk.h>
 #include <time/instant.h>
 //std includes
 #include <array>
@@ -84,7 +84,10 @@ namespace Devices
     class Chip : public Device, public StateSource
     {
     public:
-      typedef std::shared_ptr<Chip> Ptr;
+      using Ptr = std::shared_ptr<Chip>;
+
+      /// Render rest data and return result
+      virtual Sound::Chunk RenderTill(Stamp stamp) = 0;
     };
 
     class ChipParameters
@@ -100,6 +103,6 @@ namespace Devices
     };
 
     /// Virtual constructors
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::Receiver::Ptr target);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params);
   }
 }
