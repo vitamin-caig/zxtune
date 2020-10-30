@@ -38,7 +38,7 @@ public class Item {
     this.location = location;
     this.title = module.getProperty(ModuleAttributes.TITLE, "");
     this.author = module.getProperty(ModuleAttributes.AUTHOR, "");
-    this.duration = TimeStamp.createFrom(module.getDurationInMs(), TimeUnit.MILLISECONDS);
+    this.duration = module.getDuration();
   }
 
   public Item(Identifier location, String title, String author, TimeStamp duration) {

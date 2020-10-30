@@ -91,25 +91,23 @@ namespace V2M
       Require(Player.IsPlaying());
     }
 
-    Sound::Chunk RenderFrame(Time::Milliseconds duration)
+    Sound::Chunk RenderFrame(uint_t samples)
     {
-      const auto samples = RenderImpl(duration);
+      RenderImpl(samples);
       Sound::Chunk result(samples);
       std::transform(Buffer.data(), Buffer.data() + samples, result.data(), &ConvertSample);
       return result;
     }
 
-    void SkipFrame(Time::Milliseconds duration)
+    void SkipFrame(uint_t samples)
     {
-      RenderImpl(duration);
+      RenderImpl(samples);
     }
   private:
-    uint_t RenderImpl(Time::Milliseconds duration)
+    void RenderImpl(uint_t samples)
     {
-      const auto samples = duration.Get() * SAMPLERATE / duration.PER_SECOND;
       Buffer.resize(std::max<uint_t>(samples, Buffer.size()));
       Player.Render(Buffer.front().data(), samples);
-      return samples;
     }
 
     using FloatPair = std::array<float, 2>;
@@ -130,19 +128,22 @@ namespace V2M
     V2MPlayer Player;
   };
 
-  const auto FRAME_DURATION = Time::Milliseconds(20);
+  const auto FRAME_DURATION = Time::Milliseconds(100);
+
+  uint_t GetSamples(Time::Microseconds period)
+  {
+    return period.Get() * V2mEngine::SAMPLERATE / period.PER_SECOND;
+  }
 
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(DataPtr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(DataPtr tune, Time::Milliseconds duration, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Engine(std::move(tune))
-      , Iterator(std::move(iterator))
-      , State(Iterator->GetStateObserver())
+      , State(MakePtr<TimedState>(duration))
       , Target(std::move(target))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
-      , Looped()
+      , Params(std::move(params))
     {
       ApplyParameters();
     }
@@ -157,21 +158,22 @@ namespace V2M
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
         ApplyParameters();
 
-        auto frame = Engine.RenderFrame(FRAME_DURATION);
+        const auto avail = State->Consume(FRAME_DURATION, looped);
+
+        auto frame = Engine.RenderFrame(GetSamples(avail));
         Analyzer->AddSoundData(frame);
         Resampler->ApplyData(std::move(frame));
-        Iterator->NextFrame(Looped);
-        if (0 == State->Frame())
+        if (State->At() < Time::AtMillisecond() + FRAME_DURATION)
         {
           Engine.Reset();
         }
-        return Iterator->IsValid();
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -181,60 +183,55 @@ namespace V2M
 
     void Reset() override
     {
-      SoundParams.Reset();
+      Params.Reset();
       Engine.Reset();
+      State->Reset();
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      auto current = State->Frame();
-      auto& iter = *Iterator;
-      if (frame <= current)
+      if (request < State->At())
       {
-        iter.Reset();
         Engine.Reset();
-        current = 0;
       }
-      while (current < frame && iter.IsValid())
+      const auto toSkip = State->Seek(request);
+      for (auto samples = GetSamples(toSkip); samples != 0;)
       {
-        Engine.SkipFrame(FRAME_DURATION);
-        iter.NextFrame({});
-        ++current;
+        const auto toSkip = std::min(samples, GetSamples(FRAME_DURATION));
+        Engine.SkipFrame(toSkip);
+        samples -= toSkip;
       }
     }
   private:
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Looped = SoundParams->Looped();
-        Resampler = Sound::CreateResampler(Engine.SAMPLERATE, SoundParams->SoundFreq(), Target);
+        Resampler = Sound::CreateResampler(Engine.SAMPLERATE, Sound::GetSoundFrequency(*Params), Target);
       }
     }
   private:
     V2mEngine Engine;
-    const StateIterator::Ptr Iterator;
-    const Module::State::Ptr State;
+    const TimedState::Ptr State;
     const Sound::Receiver::Ptr Target;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     Sound::Receiver::Ptr Resampler;
-    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder
   {
   public:
-    Holder(DataPtr data, Module::Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(DataPtr data, Time::Milliseconds duration, Parameters::Accessor::Ptr props)
       : Data(std::move(data))
-      , Info(std::move(info))
+      , Duration(duration)
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateTimedInfo(Duration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -244,11 +241,11 @@ namespace V2M
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Data, Module::CreateStreamStateIterator(Info), std::move(target), std::move(params));
+      return MakePtr<Renderer>(Data, Duration, std::move(target), std::move(params));
     }
   private:
     const DataPtr Data;
-    const Information::Ptr Info;
+    const Time::Milliseconds Duration;
     const Parameters::Accessor::Ptr Properties;
   };
   
@@ -267,16 +264,16 @@ namespace V2M
 
     void SetTotalDuration(Time::Milliseconds duration) override
     {
-      FramesCount = duration.Divide<uint_t>(FRAME_DURATION);
+      Duration = duration;
     }
 
-    uint_t GetFramesCount() const
+    Time::Milliseconds GetDuration() const
     {
-      return FramesCount;
+      return Duration;
     }
   private:
     MetaProperties Meta;
-    uint_t FramesCount = 0;
+    Time::Milliseconds Duration;
   };
   
   class Factory : public Module::Factory
@@ -292,8 +289,7 @@ namespace V2M
         {
           props.SetSource(*container);
           auto data = V2mEngine::Convert(*container);
-          auto info = Module::CreateStreamInfo(dataBuilder.GetFramesCount());
-          return MakePtr<Holder>(std::move(data), std::move(info), std::move(properties));
+          return MakePtr<Holder>(std::move(data), dataBuilder.GetDuration(), std::move(properties));
         }
       }
       catch (const std::exception& e)

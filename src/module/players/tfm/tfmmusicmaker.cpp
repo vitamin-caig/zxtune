@@ -19,6 +19,7 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+#include <sound/loop.h>
 
 namespace Module
 {
@@ -1148,8 +1149,9 @@ namespace TFMMusicMaker
   public:
     typedef std::shared_ptr<TrackStateCursor> Ptr;
 
-    explicit TrackStateCursor(ModuleData::Ptr data)
-      : Data(std::move(data))
+    TrackStateCursor(Time::Microseconds frameDuration, ModuleData::Ptr data)
+      : FrameDuration(frameDuration)
+      , Data(std::move(data))
       , Order(*Data->Order)
       , Patterns(*Data->Patterns)
       , NextLineState()
@@ -1159,9 +1161,14 @@ namespace TFMMusicMaker
     }
 
     //State
-    uint_t Frame() const override
+    Time::AtMillisecond At() const override
     {
-      return Plain.Frame;
+      return Time::AtMillisecond() + (FrameDuration * Plain.Frame).CastTo<Time::Millisecond>();
+    }
+
+    Time::Milliseconds Total() const override
+    {
+      return TotalPlayed.CastTo<Time::Millisecond>();
     }
 
     uint_t LoopCount() const override
@@ -1231,6 +1238,7 @@ namespace TFMMusicMaker
       Plain.TempoInterleaveCounter = 0;
       SetPosition(0);
       NextLineState = nullptr;
+      TotalPlayed = {};
       Loops = 0;
     }
 
@@ -1259,7 +1267,15 @@ namespace TFMMusicMaker
 
     bool NextFrame()
     {
-      return NextQuirk() || NextLine() || NextPosition();
+      if (NextQuirk() || NextLine() || NextPosition())
+      {
+        TotalPlayed += FrameDuration;
+        return true;
+      }
+      else
+      {
+        return false;
+      }
     }
 
     void DoneLoop()
@@ -1389,6 +1405,7 @@ namespace TFMMusicMaker
     }
   private:
     //context
+    const Time::Microseconds FrameDuration;
     const ModuleData::Ptr Data;
     const OrderList& Order;
     const PatternsSet& Patterns;
@@ -1398,15 +1415,16 @@ namespace TFMMusicMaker
     const class Line* CurLineObject;
     LoopState Loop;
     const PlainTrackState* NextLineState;
+    Time::Microseconds TotalPlayed;
     uint_t Loops;
   };
 
   class TrackStateIteratorImpl : public TrackStateIterator
   {
   public:
-    explicit TrackStateIteratorImpl(ModuleData::Ptr data)
+    TrackStateIteratorImpl(Time::Microseconds frameDuration, ModuleData::Ptr data)
       : Data(std::move(data))
-      , Cursor(MakePtr<TrackStateCursor>(Data))
+      , Cursor(MakePtr<TrackStateCursor>(frameDuration, Data))
     {
     }
 
@@ -1460,10 +1478,23 @@ namespace TFMMusicMaker
   class TrackInformation : public Module::TrackInformation
   {
   public:
-    explicit TrackInformation(ModuleData::Ptr data)
-      : Data(std::move(data))
-      , Frames(), LoopFrameNum()
+    TrackInformation(Time::Microseconds frameDuration, ModuleData::Ptr data)
+      : FrameDuration(frameDuration)
+      , Data(std::move(data))
+      , Frames(), LoopFrame()
     {
+    }
+
+    Time::Milliseconds Duration() const override
+    {
+      Initialize();
+      return (FrameDuration * Frames).CastTo<Time::Millisecond>();
+    }
+
+    Time::Milliseconds LoopDuration() const override
+    {
+      Initialize();
+      return (FrameDuration * (Frames - LoopFrame)).CastTo<Time::Millisecond>();
     }
 
     uint_t PositionsCount() const override
@@ -1476,26 +1507,9 @@ namespace TFMMusicMaker
       return Data->Order->GetLoopPosition();
     }
 
-    uint_t FramesCount() const override
-    {
-      Initialize();
-      return Frames;
-    }
-
-    uint_t LoopFrame() const override
-    {
-      Initialize();
-      return LoopFrameNum;
-    }
-
     uint_t ChannelsCount() const override
     {
       return TFM::TRACK_CHANNELS;
-    }
-
-    uint_t Tempo() const override
-    {
-      return Data->EvenInitialTempo;
     }
   private:
     void Initialize() const
@@ -1504,16 +1518,17 @@ namespace TFMMusicMaker
       {
         return;//initialized
       }
-      TrackStateCursor cursor(Data);
+      TrackStateCursor cursor({}, Data);
       cursor.Seek(Data->Order->GetLoopPosition());
-      LoopFrameNum = cursor.GetState().Frame;
+      LoopFrame = cursor.GetState().Frame;
       cursor.Seek(Data->Order->GetSize());
       Frames = cursor.GetState().Frame;
     }
   private:
+    const Time::Microseconds FrameDuration;
     const ModuleData::Ptr Data;
     mutable uint_t Frames;
-    mutable uint_t LoopFrameNum;
+    mutable uint_t LoopFrame;
   };
 
   class Chiptune : public TFM::Chiptune
@@ -1522,13 +1537,17 @@ namespace TFMMusicMaker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-      , Info(MakePtr<TrackInformation>(Data))
     {
+    }
+
+    Time::Microseconds GetFrameDuration() const override
+    {
+      return TFM::BASE_FRAME_DURATION;
     }
 
     Information::Ptr GetInformation() const override
     {
-      return Info;
+      return MakePtr<TrackInformation>(GetFrameDuration(), Data);
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -1538,14 +1557,13 @@ namespace TFMMusicMaker
 
     TFM::DataIterator::Ptr CreateDataIterator() const override
     {
-      auto iterator = MakePtr<TrackStateIteratorImpl>(Data);
+      auto iterator = MakePtr<TrackStateIteratorImpl>(GetFrameDuration(), Data);
       auto renderer = MakePtr<DataRenderer>(Data);
       return TFM::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
-    const Information::Ptr Info;
   };
 
   class Factory : public TFM::Factory
@@ -1567,7 +1585,7 @@ namespace TFMMusicMaker
       }
       else
       {
-        return TFM::Chiptune::Ptr();
+        return {};
       }
     }
   private:

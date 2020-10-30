@@ -14,7 +14,7 @@
 #include <make_ptr.h>
 //library includes
 #include <module/players/analyzer.h>
-#include <parameters/tracking_helper.h>
+#include <sound/loop.h>
 #include <sound/multichannel_sample.h>
 
 namespace Module
@@ -81,18 +81,11 @@ namespace Module
   class DACRenderer : public Renderer
   {
   public:
-    DACRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
-      : Params(std::move(params))
-      , Iterator(std::move(iterator))
+    DACRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+      : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration()
-      , Looped()
+      , FrameDuration(frameDuration)
     {
-#ifndef NDEBUG
-//perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame({}));
-      Iterator->Reset();
-#endif
     }
 
     State::Ptr GetState() const override
@@ -105,19 +98,18 @@ namespace Module
       return CreateAnalyzer(Device);
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
         if (Iterator->IsValid())
         {
-          SynchronizeParameters();
           if (LastChunk.TimeStamp == Devices::DAC::Stamp())
           {
             //first chunk
             TransferChunk();
           }
-          Iterator->NextFrame(Looped);
+          Iterator->NextFrame(looped);
           LastChunk.TimeStamp += FrameDuration;
           TransferChunk();
         }
@@ -131,60 +123,44 @@ namespace Module
 
     void Reset() override
     {
-      Params.Reset();
       Iterator->Reset();
       Device->Reset();
       LastChunk.TimeStamp = {};
-      FrameDuration = {};
-      Looped = {};
     }
 
-    void SetPosition(uint_t frameNum) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      uint_t curFrame = GetState()->Frame();
-      if (curFrame > frameNum)
+      const auto state = GetState();
+      if (request < state->At())
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = {};
-        curFrame = 0;
       }
       if (LastChunk.TimeStamp == Devices::DAC::Stamp())
       {
         Iterator->GetData(LastChunk.Data);
         Device->UpdateState(LastChunk);
       }
-      while (curFrame < frameNum && Iterator->IsValid())
+      while (state->At() < request && Iterator->IsValid())
       {
         Iterator->NextFrame({});
         LastChunk.TimeStamp += FrameDuration;
-        ++curFrame;
         Iterator->GetData(LastChunk.Data);
         Device->UpdateState(LastChunk);
       }
     }
   private:
-    void SynchronizeParameters()
-    {
-      if (Params.IsChanged())
-      {
-        FrameDuration = Params->FrameDuration();
-        Looped = Params->Looped();
-      }
-    }
-
     void TransferChunk()
     {
       Iterator->GetData(LastChunk.Data);
       Device->RenderData(LastChunk);
     }
   private:
-    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const DAC::DataIterator::Ptr Iterator;
     const Devices::DAC::Chip::Ptr Device;
+    const Time::Duration<Devices::DAC::TimeUnit> FrameDuration;
     Devices::DAC::DataChunk LastChunk;
-    Time::Duration<Devices::DAC::TimeUnit> FrameDuration;
-    Sound::LoopParameters Looped;
   };
 }
 
@@ -218,9 +194,9 @@ namespace Module
       return MakePtr<DACDataIterator>(std::move(iterator), std::move(renderer));
     }
 
-    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
     {
-      return MakePtr<DACRenderer>(std::move(params), std::move(iterator), std::move(device));
+      return MakePtr<DACRenderer>(frameDuration, std::move(iterator), std::move(device));
     }
   }
 }

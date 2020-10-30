@@ -85,6 +85,86 @@ namespace Module
       virtual void Reset() = 0;
     };
 
-    DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+    DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
+
+    template<class OrderListType, class SampleType, class OrnamentType>
+    class ModuleData : public TrackModel
+    {
+    public:
+      typedef std::shared_ptr<const ModuleData> Ptr;
+      typedef std::shared_ptr<ModuleData> RWPtr;
+
+      ModuleData()
+        : InitialTempo()
+      {
+      }
+
+      uint_t GetChannelsCount() const override
+      {
+        return TRACK_CHANNELS;
+      }
+
+      uint_t GetInitialTempo() const override
+      {
+        return InitialTempo;
+      }
+
+      const OrderList& GetOrder() const override
+      {
+        return *Order;
+      }
+
+      const PatternsSet& GetPatterns() const override
+      {
+        return *Patterns;
+      }
+
+      uint_t InitialTempo;
+      typename OrderListType::Ptr Order;
+      PatternsSet::Ptr Patterns;
+      SparsedObjectsStorage<SampleType> Samples;
+      SparsedObjectsStorage<OrnamentType> Ornaments;
+    };
+
+    template<class ModuleData, class DataRenderer>
+    class TrackingChiptune : public Chiptune
+    {
+    public:
+      TrackingChiptune(typename ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
+        : Data(std::move(data))
+        , Properties(std::move(properties))
+      {
+      }
+
+      Time::Microseconds GetFrameDuration() const override
+      {
+        return BASE_FRAME_DURATION;
+      }
+
+      TrackModel::Ptr FindTrackModel() const override
+      {
+        return Data;
+      }
+      
+      Module::StreamModel::Ptr FindStreamModel() const override
+      {
+        return {};
+      }
+
+      Parameters::Accessor::Ptr GetProperties() const override
+      {
+        return Properties;
+      }
+
+      AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
+      {
+        auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
+        auto renderer = MakePtr<DataRenderer>(Data);
+        return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
+      }
+    private:
+      const typename ModuleData::Ptr Data;
+      const Parameters::Accessor::Ptr Properties;
+    };
   }
 }

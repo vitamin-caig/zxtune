@@ -33,18 +33,18 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze
 
 /*
  * Class:     app_zxtune_core_jni_JniPlayer
- * Method:    getPosition
+ * Method:    getPositionMs
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPosition
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPositionMs
   (JNIEnv *, jobject);
 
 /*
  * Class:     app_zxtune_core_jni_JniPlayer
- * Method:    setPosition
+ * Method:    setPositionMs
  * Signature: (I)V
  */
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPosition
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPositionMs
   (JNIEnv *, jobject, jint);
 
 /*

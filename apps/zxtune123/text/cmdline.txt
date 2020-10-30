@@ -134,12 +134,6 @@
 < FREQUENCY_DESC
 > "specify sound frequency in Hz"
 
-< FRAMEDURATION_KEY
-> CMD_FRAMEDURATION_KEY
-
-< FRAMEDURATION_DESC
-> "specify frame duration in uS"
-
 < FREQTABLE_KEY
 > CMD_FREQTABLE_KEY
 

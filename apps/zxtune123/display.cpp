@@ -70,8 +70,6 @@ namespace
       , Updatefps(10)
       , InformationTemplate(Strings::Template::Create(Text::ITEM_INFO))
       , ScrSize(Console::Self().GetSize())
-      , TotalFrames(0)
-      , FrameDuration()
     {
       using namespace boost::program_options;
       Options.add_options()
@@ -96,12 +94,11 @@ namespace
       }
     }
 
-    void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player, Time::Microseconds frameDuration) override
+    void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player) override
     {
       const Module::Information::Ptr info = module->GetModuleInformation();
       const Parameters::Accessor::Ptr props = module->GetModuleProperties();
-      TotalFrames = info->FramesCount();
-      FrameDuration = frameDuration;
+      TotalDuration = info->Duration();
       State = player->GetState();
       TrackState = dynamic_cast<const Module::TrackState*>(State.get());
       if (!Silent && ShowAnalyze)
@@ -118,21 +115,22 @@ namespace
         return;
       }
       Message(InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
-      Message(Strings::Format(Text::ITEM_INFO_ADDON, Time::ToString(FrameDuration * info->FramesCount()), info->ChannelsCount()));
+      Message(Strings::Format(Text::ITEM_INFO_ADDON, Time::ToString(TotalDuration), Time::ToString(info->LoopDuration())));
+      //TODO: also dump track information
     }
 
-    uint_t BeginFrame(Sound::PlaybackControl::State state) override
+    Time::AtMillisecond BeginFrame(Sound::PlaybackControl::State state) override
     {
-      const uint_t curFrame = State->Frame();
+      const auto curPos = State->At();
       if (Silent || Quiet)
       {
-        return curFrame;
+        return curPos;
       }
       ScrSize = Console::Self().GetSize();
       if (ScrSize.first <= 0 || ScrSize.second <= 0)
       {
         Silent = true;
-        return curFrame;
+        return curPos;
       }
       const int_t trackingHeight = TrackState ? TRACKING_HEIGHT : 0;
       const int_t spectrumHeight = ScrSize.second - INFORMATION_HEIGHT - trackingHeight - PLAYING_HEIGHT - 1;
@@ -150,7 +148,7 @@ namespace
         {
           ShowTrackingStatus(*TrackState);
         }
-        ShowPlaybackStatus(curFrame, state);
+        ShowPlaybackStatus(Time::Milliseconds(curPos.CastTo<Time::Millisecond>().Get()), state);
         if (Analyzer)
         {
           const auto& curAnalyze = Analyzer->GetState();
@@ -159,7 +157,7 @@ namespace
           ShowAnalyzer(spectrumHeight);
         }
       }
-      return curFrame;
+      return curPos;
     }
 
     void EndFrame() override
@@ -173,15 +171,15 @@ namespace
       }
     }
   private:
-    void ShowPlaybackStatus(uint_t frame, Sound::PlaybackControl::State state) const
+    void ShowPlaybackStatus(Time::Milliseconds played, Sound::PlaybackControl::State state) const
     {
       const Char MARKER = '\x1';
-      String data = Strings::Format(Text::PLAYBACK_STATUS, Time::ToString(FrameDuration * frame), MARKER);
+      String data = Strings::Format(Text::PLAYBACK_STATUS, Time::ToString(played), MARKER);
       const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
       const String::size_type markerPos = data.find(MARKER);
 
       String prog(ScrSize.first - totalSize, '-');
-      const std::size_t pos = frame * (ScrSize.first - totalSize) / TotalFrames;
+      const auto pos = (played * (ScrSize.first - totalSize)).Divide<uint_t>(TotalDuration);
       prog[pos] = StateSymbol(state);
       data.replace(markerPos, 1, prog);
       assert(PLAYING_HEIGHT == static_cast<std::size_t>(std::count(data.begin(), data.end(), '\n')));
@@ -219,8 +217,7 @@ namespace
     const Strings::Template::Ptr InformationTemplate;
     //context
     Console::SizeType ScrSize;
-    uint_t TotalFrames;
-    Time::Microseconds FrameDuration;
+    Time::Milliseconds TotalDuration;
     Module::State::Ptr State;
     const Module::TrackState* TrackState;
     Module::Analyzer::Ptr Analyzer;

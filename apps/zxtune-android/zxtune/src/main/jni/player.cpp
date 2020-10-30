@@ -22,7 +22,9 @@
 #include <pointers.h>
 //library includes
 #include <parameters/merged_accessor.h>
+#include <parameters/tracking_helper.h>
 #include <sound/mixer_factory.h>
+#include <sound/render_params.h>
 #include <sound/silence.h>
 #include <sound/sound_parameters.h>
 //std includes
@@ -164,11 +166,6 @@ namespace
       }
       return 0;
     }
-
-    uint_t GetFramesDone() const
-    {
-      return Frames;
-    }
   private:
     std::clock_t LastStart = 0;
     std::clock_t Clocks = 0;
@@ -219,8 +216,8 @@ namespace
   class PlayerControl : public Player::Control
   {
   public:
-    PlayerControl(uint_t totalFrames, Parameters::Accessor::Ptr props, Parameters::Modifier::Ptr params, Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
-      : TotalFrames(totalFrames)
+    PlayerControl(Time::Milliseconds duration, Parameters::Accessor::Ptr props, Parameters::Modifier::Ptr params, Module::Renderer::Ptr render, BufferTarget::Ptr buffer)
+      : Duration(duration)
       , Props(std::move(props))
       , Params(std::move(params))
       , Renderer(std::move(render))
@@ -242,7 +239,7 @@ namespace
     
     uint_t GetPosition() const override
     {
-      return State->Frame();
+      return State->At().CastTo<Player::TimeBase>().Get();
     }
 
     uint_t Analyze(uint_t maxEntries, uint8_t* levels) const override
@@ -252,6 +249,7 @@ namespace
 
     bool Render(uint_t samples, int16_t* buffer) override
     {
+      ApplyParameters();
       bool hasMoreFrames = true;
       while (hasMoreFrames)
       {
@@ -265,7 +263,7 @@ namespace
           }
         }
         RenderingPerformance.StartAccounting();
-        hasMoreFrames = Renderer->RenderFrame();
+        hasMoreFrames = Renderer->RenderFrame(Looped);
         RenderingPerformance.StopAccounting();
         Analyser.FrameDone();
       }
@@ -273,9 +271,9 @@ namespace
       return samples == 0;
     }
 
-    void Seek(uint_t frame) override
+    void Seek(uint_t pos) override
     {
-      Renderer->SetPosition(frame);
+      Renderer->SetPosition(Time::Instant<Player::TimeBase>(pos));
     }
 
     uint_t GetPlaybackPerformance() const override
@@ -285,25 +283,38 @@ namespace
       return RenderingPerformance.Measure(Buffer->GetTotalSamplesDone(), sampleRate);
     }
 
+    //TODO: move to State
     uint_t GetPlaybackProgress() const override
     {
-      return static_cast<uint_t>(100ull * RenderingPerformance.GetFramesDone() / TotalFrames);
+      Parameters::IntType sampleRate = Parameters::ZXTune::Sound::FREQUENCY_DEFAULT;
+      Props->FindValue(Parameters::ZXTune::Sound::FREQUENCY, sampleRate);
+      const auto played = Time::Microseconds::FromRatio(Buffer->GetTotalSamplesDone(), sampleRate);
+      return (played * 100).Divide<uint_t>(Duration);
     }
   private:
-    const uint_t TotalFrames;
-    const Parameters::Accessor::Ptr Props;
+    void ApplyParameters()
+    {
+      if (Props.IsChanged())
+      {
+        Looped = Sound::GetLoopParameters(*Props);
+      }
+    }
+  private:
+    const Time::Milliseconds Duration;
+    Parameters::TrackingHelper<Parameters::Accessor> Props;
     const Parameters::Modifier::Ptr Params;
     const Module::Renderer::Ptr Renderer;
     const BufferTarget::Ptr Buffer;
     const Module::State::Ptr State;
     mutable AnalyzerWithHistory Analyser;
+    Sound::LoopParameters Looped;
     RenderingPerformanceAccountant RenderingPerformance;
   };
 
   Player::Control::Ptr CreateControl(Module::Holder::Ptr module)
   {
-    const auto frames = module->GetModuleInformation()->FramesCount();
-    Require(frames != 0);
+    const auto duration = module->GetModuleInformation()->Duration();
+    Require(duration.Get() != 0);
     auto globalParameters = MakeSingletonPointer(Parameters::GlobalOptions());
     auto localParameters = Parameters::Container::Create();
     auto internalProperties = module->GetModuleProperties();
@@ -311,7 +322,7 @@ namespace
     auto buffer = MakePtr<BufferTarget>();
     auto pipeline = Sound::CreateSilenceDetector(properties, buffer);
     auto renderer = module->CreateRenderer(properties, std::move(pipeline));
-    return MakePtr<PlayerControl>(frames, std::move(properties), std::move(localParameters), std::move(renderer), std::move(buffer));
+    return MakePtr<PlayerControl>(duration, std::move(properties), std::move(localParameters), std::move(renderer), std::move(buffer));
   }
 
   template<class StorageType, class ResultType>
@@ -427,7 +438,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPosition
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPositionMs
   (JNIEnv* env, jobject self)
 {
   return Jni::Call(env, [=] ()
@@ -444,7 +455,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPosition
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPosition
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPositionMs
   (JNIEnv* env, jobject self, jint position)
 {
   return Jni::Call(env, [=] ()

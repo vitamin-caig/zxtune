@@ -307,7 +307,6 @@ bool ZXTune_GetModuleInfo(ZXTuneHandle module, ZXTuneModuleInfo* info)
     info->Frames = modinfo->FramesCount();
     info->LoopFrame = modinfo->LoopFrame();
     info->Channels = modinfo->ChannelsCount();
-    info->InitialTempo = modinfo->Tempo();
     return true;
   }
   catch (const Error&)

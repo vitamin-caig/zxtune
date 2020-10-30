@@ -12,6 +12,8 @@
 
 //common includes
 #include <types.h>
+//library includes
+#include <time/duration.h>
 //std includes
 #include <memory>
 
@@ -26,11 +28,10 @@ namespace Module
 
     virtual ~Information() = default;
 
-    //! Total frames count
-    virtual uint_t FramesCount() const = 0;
-    //! Loop position frame
-    virtual uint_t LoopFrame() const = 0;
-    //! Channels count
-    virtual uint_t ChannelsCount() const = 0;
+    //! Total module duration
+    virtual Time::Milliseconds Duration() const = 0;
+
+    //! Loop duration
+    virtual Time::Milliseconds LoopDuration() const = 0;
   };
 }

@@ -26,7 +26,6 @@
 #include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/resampler.h>
-#include <sound/sound_parameters.h>
 //std includes
 #include <list>
 //3rdparty includes
@@ -52,6 +51,11 @@ namespace USF
     
     std::list<Binary::Data::Ptr> Sections;
     XSF::MetaInformation::Ptr Meta;
+
+      uint_t GetRefreshRate() const
+    {
+      return Meta->RefreshRate ? Meta->RefreshRate : 50;
+    }
   };
   
   class UsfHolder
@@ -179,22 +183,19 @@ namespace USF
     UsfHolder Emu;
     uint_t SoundFrequency = 0;
   };
-  
+
+  const auto FRAME_DURATION = Time::Milliseconds(100);
+
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const ModuleData& data, Information::Ptr info, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(const ModuleData& data, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Engine(data)
-      , Iterator(Module::CreateStreamStateIterator(info))
-      , State(Iterator->GetStateObserver())
+      , State(MakePtr<TimedState>(data.Meta->Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , SoundParams(Sound::RenderParameters::Create(params))
-      , Target(Module::CreateFadingReceiver(std::move(params), std::move(info), State, std::move(target)))
-      , Looped()
+      , Params(params)
+      , Target(Module::CreateFadingReceiver(std::move(params), data.Meta->Duration, State, std::move(target)))
     {
-      const auto frameDuration = SoundParams->FrameDuration();
-      SamplesPerFrame = frameDuration.Get() * Engine.GetSoundFrequency() / frameDuration.PER_SECOND;
-      ApplyParameters();
     }
 
     Module::State::Ptr GetState() const override
@@ -207,17 +208,17 @@ namespace USF
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
         ApplyParameters();
 
-        auto data = Engine.Render(SamplesPerFrame);
+        const auto avail = State->Consume(FRAME_DURATION, looped);
+        auto data = Engine.Render(GetSamples(avail));
         Analyzer->AddSoundData(data);
         Resampler->ApplyData(std::move(data));
-        Iterator->NextFrame(Looped);
-        return Iterator->IsValid();
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -227,65 +228,57 @@ namespace USF
 
     void Reset() override
     {
-      SoundParams.Reset();
-      Iterator->Reset();
+      Params.Reset();
+      State->Reset();
       Engine.Reset();
-      Looped = {};
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      SeekTune(frame);
-      Module::SeekIterator(*Iterator, frame);
-    }
-  private:
-    void ApplyParameters()
-    {
-      if (SoundParams.IsChanged())
-      {
-        Looped = SoundParams->Looped();
-        Resampler = Sound::CreateResampler(Engine.GetSoundFrequency(), SoundParams->SoundFreq(), Target);
-      }
-    }
-
-    void SeekTune(uint_t frame)
-    {
-      uint_t current = State->Frame();
-      if (frame < current)
+      if (request < State->At())
       {
         Engine.Reset();
-        current = 0;
       }
-      if (const uint_t delta = frame - current)
+      const auto toSkip = State->Seek(request);
+      if (toSkip.Get())
       {
-        Engine.Skip(delta * SamplesPerFrame);
+        Engine.Skip(GetSamples(toSkip));
+      }
+    }
+  private:
+    uint_t GetSamples(Time::Microseconds period) const
+    {
+      return period.Get() * Engine.GetSoundFrequency() / period.PER_SECOND;
+    }
+
+    void ApplyParameters()
+    {
+      if (Params.IsChanged())
+      {
+        Resampler = Sound::CreateResampler(Engine.GetSoundFrequency(), Sound::GetSoundFrequency(*Params), Target);
       }
     }
   private:
     USFEngine Engine;
-    const StateIterator::Ptr Iterator;
-    const Module::State::Ptr State;
+    const TimedState::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
-    uint_t SamplesPerFrame;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    Sound::LoopParameters Looped;
   };
 
   class Holder : public Module::Holder
   {
   public:
-    Holder(ModuleData::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(ModuleData::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
-      , Info(std::move(info))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateTimedInfo(Tune->Meta->Duration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -295,21 +288,17 @@ namespace USF
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(*Tune, Info, std::move(target), std::move(params));
+      return MakePtr<Renderer>(*Tune, std::move(target), std::move(params));
     }
     
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
-      const auto period = Sound::GetFrameDuration(*properties);
-      const auto duration = tune->Meta->Duration;
-      const auto frames = duration.Divide<uint_t>(period);
-      Information::Ptr info = CreateStreamInfo(frames);
       if (tune->Meta)
       {
         tune->Meta->Dump(*properties);
       }
       properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_64);
-      return MakePtr<Holder>(std::move(tune), std::move(info), std::move(properties));
+      return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
   private:
     const ModuleData::Ptr Tune;

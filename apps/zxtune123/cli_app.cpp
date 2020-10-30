@@ -35,6 +35,7 @@
 #include <parameters/template.h>
 #include <platform/application.h>
 #include <platform/version/api.h>
+#include <sound/loop.h>
 #include <sound/sound_parameters.h>
 #include <time/duration.h>
 #include <time/timer.h>
@@ -267,14 +268,14 @@ namespace
 
       try
       {
-        const auto total = Sounder.GetFrameDuration() * info->FramesCount() * Iterations;
+        const auto total = info->Duration() * Iterations;
         BenchmarkSoundReceiver receiver;
         const auto renderer = holder->CreateRenderer(holder->GetModuleProperties(), MakeSingletonPointer(receiver));
         const Time::Timer timer;
         for (unsigned i = 0; i != Iterations; ++i)
         {
-          renderer->SetPosition(0);
-          while (renderer->RenderFrame()) {}
+          renderer->SetPosition({});
+          while (renderer->RenderFrame({})) {}
         }
         const auto real = timer.Elapsed<>();
         const auto relSpeed = total.Divide<double>(real);
@@ -463,13 +464,11 @@ namespace
       const Sound::Backend::Ptr backend = Sounder->CreateBackend(holder);
       const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
 
-      const Time::Microseconds frameDuration = Sounder->GetFrameDuration();
-
       const Module::Information::Ptr info = holder->GetModuleInformation();
-      const uint_t seekStepFrames(info->FramesCount() * SeekStep / 100);
+      const auto seekStep = Time::Milliseconds(info->Duration().Get() * SeekStep / 100);
       control->Play();
 
-      Display->SetModule(holder, backend, frameDuration);
+      Display->SetModule(holder, backend);
 
       const Sound::Gain::Type minVol(0);
       const Sound::Gain::Type maxVol(1);
@@ -486,8 +485,9 @@ namespace
       {
         Sound::PlaybackControl::State state = control->GetCurrentState();
 
-        const uint_t curFrame = Display->BeginFrame(state);
+        const auto pos = Display->BeginFrame(state);
 
+        const auto START = Time::AtMillisecond();
         if (const uint_t key = Console::Self().GetPressedKey())
         {
           switch (key)
@@ -496,10 +496,10 @@ namespace
           case 'Q':
             throw CancelError();
           case Console::INPUT_KEY_LEFT:
-            control->SetPosition(curFrame < seekStepFrames ? 0 : curFrame - seekStepFrames);
+            control->SetPosition(pos < (START + seekStep) ? START : Time::AtMillisecond(pos.Get() - seekStep.Get()));
             break;
           case Console::INPUT_KEY_RIGHT:
-            control->SetPosition(curFrame + seekStepFrames);
+            control->SetPosition(pos + seekStep);
             break;
           case Console::INPUT_KEY_DOWN:
             if (volCtrl)

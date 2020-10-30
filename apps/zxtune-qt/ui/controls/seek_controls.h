@@ -35,5 +35,5 @@ public slots:
 private slots:
   virtual void EndSeeking() = 0;
 signals:
-  void OnSeeking(int);
+  void OnSeeking(Time::AtMillisecond);
 };

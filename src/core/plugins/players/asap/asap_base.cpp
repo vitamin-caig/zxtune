@@ -31,7 +31,6 @@
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/resampler.h>
 #include <strings/optimize.h>
@@ -49,6 +48,8 @@ namespace Module
 namespace ASAP
 {
   const Debug::Stream Dbg("Core::ASAPSupp");
+
+  using TimeUnit = Time::Millisecond;
   
   class AsapTune
   {
@@ -79,18 +80,19 @@ namespace ASAP
     {
       return ::ASAPInfo_GetSongs(Info);
     }
-    
-    Time::Milliseconds GetDuration(Time::Milliseconds defValue) const
+
+    void FillDuration(const Parameters::Accessor& params)
     {
-      const auto duration = ::ASAPInfo_GetDuration(Info, Track);
-      if (duration > 0)
+      if (!::ASAPInfo_GetDuration(Info, Track))
       {
-        return Time::Milliseconds(duration);
+        const auto duration = GetDefaultDuration(params);
+        ::ASAPInfo_SetDuration(const_cast<ASAPInfo*>(Info), Track, duration.CastTo<TimeUnit>().Get());
       }
-      else
-      {
-        return defValue;
-      }
+    }
+
+    Time::Duration<TimeUnit> GetDuration() const
+    {
+      return Time::Duration<TimeUnit>(::ASAPInfo_GetDuration(Info, Track));
     }
     
     void GetProperties(Binary::View data, PropertiesHelper& props) const
@@ -102,7 +104,6 @@ namespace ASAP
       props.SetTitle(title);
       props.SetAuthor(author);
       props.SetDate(date);
-      props.SetFramesFrequency(::ASAPInfo_GetPlayerRateHz(Info));
       Strings::Array instruments;
       for (int idx = 0; ; ++idx)
       {
@@ -123,12 +124,13 @@ namespace ASAP
       CheckError(::ASAP_PlaySong(Module, Track, -1), "ASAP_PlaySong");
     }
     
-    void Render(uint_t samples, Sound::ChunkBuilder& target)
+    Sound::Chunk Render(uint_t samples)
     {
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
+      Sound::Chunk result(samples);
       const auto fmt = isLE() ? ASAPSampleFormat_S16_L_E : ASAPSampleFormat_S16_B_E;
-      const auto stereo = target.Allocate(samples);
+      const auto stereo = result.data();
       if (Channels == 2)
       {
         const int bytes = samples * sizeof(*stereo);
@@ -141,11 +143,12 @@ namespace ASAP
         CheckError(bytes == ::ASAP_Generate(Module, safe_ptr_cast<unsigned char*>(mono), bytes, fmt), "ASAP_Generate");
         std::transform(mono, mono + samples, stereo, [](Sound::Sample::Type val) {return Sound::Sample(val, val);});
       }
+      return result;
     }
     
-    void Seek(Time::Microseconds frameDuration, uint_t framesCount)
+    void Seek(Time::Instant<TimeUnit> request)
     {
-      CheckError(::ASAP_Seek(Module, frameDuration.Get() * framesCount / 1000), "ASAP_Seek");
+      CheckError(::ASAP_Seek(Module, request.Get()), "ASAP_Seek");
     }
   private:
     void CheckError(bool ok, const char* msg)
@@ -162,24 +165,28 @@ namespace ASAP
     int Channels;
   };
   
+  const auto FRAME_DURATION = Time::Milliseconds(100);
+
+  uint_t GetSamples(Time::Microseconds period)
+  {
+    return period.Get() * ASAP_SAMPLE_RATE / period.PER_SECOND;
+  }
+  
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(AsapTune::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(AsapTune::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
-      , Iterator(std::move(iterator))
+      , State(MakePtr<TimedState>(Tune->GetDuration()))
       , Analyzer(Module::CreateSoundAnalyzer())
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+      , Params(std::move(params))
       , Target(std::move(target))
-      , Looped()
-      , SamplesPerFrame()
     {
-      ApplyParameters();
     }
 
-    State::Ptr GetState() const override
+    Module::State::Ptr GetState() const override
     {
-      return Iterator->GetStateObserver();
+      return State;
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
@@ -187,20 +194,18 @@ namespace ASAP
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
         ApplyParameters();
 
-        Sound::ChunkBuilder builder;
-        builder.Reserve(SamplesPerFrame);
-        Tune->Render(SamplesPerFrame, builder);
-        auto buf = builder.CaptureResult();
+        const auto avail = State->Consume(FRAME_DURATION, looped);
+
+        auto buf = Tune->Render(GetSamples(avail));
         Analyzer->AddSoundData(buf);
         Resampler->ApplyData(std::move(buf));
-        Iterator->NextFrame(Looped);
-        return Iterator->IsValid();
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -212,10 +217,9 @@ namespace ASAP
     {
       try
       {
-        SoundParams.Reset();
-        Iterator->Reset();
+        Params.Reset();
+        State->Reset();
         Tune->Reset();
-        Looped = {};
       }
       catch (const std::exception& e)
       {
@@ -223,53 +227,47 @@ namespace ASAP
       }
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
+      State->Seek(request);
       try
       {
-        Tune->Seek(SoundParams->FrameDuration(), frame);
+        Tune->Seek(State->At());
       }
       catch (const std::exception& e)
       {
         Dbg(e.what());
       }
-      Module::SeekIterator(*Iterator, frame);
     }
   private:
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Looped = SoundParams->Looped();
-        const auto frameDuration = SoundParams->FrameDuration();
-        SamplesPerFrame = static_cast<uint_t>(frameDuration.Get() * ASAP_SAMPLE_RATE / frameDuration.PER_SECOND);
-        Resampler = Sound::CreateResampler(ASAP_SAMPLE_RATE, SoundParams->SoundFreq(), Target);
+        Resampler = Sound::CreateResampler(ASAP_SAMPLE_RATE, Sound::GetSoundFrequency(*Params), Target);
       }
     }
   private:
     const AsapTune::Ptr Tune;
-    const StateIterator::Ptr Iterator;
+    const TimedState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    Sound::LoopParameters Looped;
-    std::size_t SamplesPerFrame;
   };
   
   class Holder : public Module::Holder
   {
   public:
-    Holder(AsapTune::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(AsapTune::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
-      , Info(std::move(info))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateTimedInfo(Tune->GetDuration());
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -281,7 +279,7 @@ namespace ASAP
     {
       try
       {
-        return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
+        return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
       }
       catch (const std::exception& e)
       {
@@ -290,7 +288,6 @@ namespace ASAP
     }
   private:
     const AsapTune::Ptr Tune;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
   
@@ -313,33 +310,30 @@ namespace ASAP
     {
       try
       {
-        if (const Formats::Multitrack::Container::Ptr container = Decoder->Decode(rawData))
+        if (const auto container = Decoder->Decode(rawData))
         {
           if (container->TracksCount() > 1)
           {
             Require(HasContainer(Desc.Id, properties));
           }
 
-          const auto tune = MakePtr<AsapTune>(Desc.Id, rawData, container->StartTrackIndex());
+          auto tune = MakePtr<AsapTune>(Desc.Id, rawData, container->StartTrackIndex());
           
           PropertiesHelper props(*properties);
           props.SetPlatform(Platforms::ATARI);
           tune->GetProperties(rawData, props);
-          const auto defaultDuration = GetDuration(params);
-          const auto duration = tune->GetDuration(defaultDuration);
-          const auto frameDuration = Sound::GetFrameDuration(*properties);
-          const Information::Ptr info = CreateStreamInfo(duration.Divide<uint_t>(frameDuration));
         
           props.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
-        
-          return MakePtr<Holder>(tune, info, properties);
+
+          tune->FillDuration(params);
+          return MakePtr<Holder>(std::move(tune), std::move(properties));
         }
       }
       catch (const std::exception& e)
       {
         Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   private:
     static bool HasContainer(const String& type, Parameters::Accessor::Ptr params)
@@ -391,21 +385,18 @@ namespace ASAP
       {
         if (const auto container = Decoder->Decode(rawData))
         {
-          const auto tune = MakePtr<AsapTune>(Desc.Id, rawData, 0);
+          auto tune = MakePtr<AsapTune>(Desc.Id, rawData, 0);
           
           Require(tune->GetSongsCount() == 1);
           
           PropertiesHelper props(*properties);
           props.SetPlatform(Platforms::ATARI);
           tune->GetProperties(rawData, props);
-          const auto defaultDuration = GetDuration(params);
-          const auto duration = tune->GetDuration(defaultDuration);
-          const auto frameDuration = Sound::GetFrameDuration(*properties);
-          const Information::Ptr info = CreateStreamInfo(duration.Divide<uint_t>(frameDuration));
-        
+
           props.SetSource(*container);
         
-          return MakePtr<Holder>(tune, info, properties);
+          tune->FillDuration(params);
+          return MakePtr<Holder>(std::move(tune), std::move(properties));
         }
       }
       catch (const std::exception& e)

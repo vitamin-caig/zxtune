@@ -26,47 +26,19 @@ namespace Module
 {
 namespace AYC
 {
-  typedef std::vector<Devices::AYM::Registers> RegistersArray;
-
-  class AYCStreamModel : public AYM::StreamModel
-  {
-  public:
-    explicit AYCStreamModel(RegistersArray& rh)
-    {
-      Data.swap(rh);
-    }
-
-    uint_t Size() const override
-    {
-      return static_cast<uint_t>(Data.size());
-    }
-
-    uint_t Loop() const override
-    {
-      return 0;
-    }
-
-    Devices::AYM::Registers Get(uint_t pos) const override
-    {
-      return Data[pos];
-    }
-  private:
-    RegistersArray Data;
-  };
-
   class DataBuilder : public Formats::Chiptune::AYC::Builder
   {
   public:
     DataBuilder()
       : Register(Devices::AYM::Registers::TOTAL)
       , Frame(0)
+      , Data(MakePtr<AYM::MutableStreamModel>())
     {
     }
     
     void SetFrames(std::size_t count) override
     {
-      Require(Data.empty());
-      Data.resize(count);
+      Data->Resize(count);
     }
     
     void StartChannel(uint_t idx) override
@@ -79,12 +51,11 @@ namespace AYC
     void AddValues(const Dump& values) override
     {
       Require(Register < Devices::AYM::Registers::TOTAL);
-      Require(Frame + values.size() <= Data.size());
       for (auto val : values)
       {
         if (Register != Devices::AYM::Registers::ENV || val != 0xff)
         {
-          Data[Frame++][Register] = val;
+          Data->Frame(Frame++)[Register] = val;
         }
         else
         {
@@ -93,16 +64,16 @@ namespace AYC
       }
     }
   
-    AYM::StreamModel::Ptr GetResult() const
+    AYM::StreamModel::Ptr CaptureResult() const
     {
-      return Data.empty()
+      return Data->IsEmpty()
         ? AYM::StreamModel::Ptr()
-        : MakePtr<AYCStreamModel>(Data);
+        : AYM::StreamModel::Ptr(std::move(Data));
     }
   private:
     Devices::AYM::Registers::Index Register;
     uint_t Frame;
-    mutable RegistersArray Data;
+    AYM::MutableStreamModel::Ptr Data;
   };
 
   class Factory : public AYM::Factory
@@ -113,16 +84,16 @@ namespace AYC
       DataBuilder dataBuilder;
       if (const auto container = Formats::Chiptune::AYC::Parse(rawData, dataBuilder))
       {
-        if (auto data = dataBuilder.GetResult())
+        if (auto data = dataBuilder.CaptureResult())
         {
           PropertiesHelper props(*properties);
           props.SetSource(*container);
           props.SetPlatform(Platforms::AMSTRAD_CPC);
           properties->SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, 1000000);
-          return AYM::CreateStreamedChiptune(std::move(data), std::move(properties));
+          return AYM::CreateStreamedChiptune(AYM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
         }
       }
-      return AYM::Chiptune::Ptr();
+      return {};
     }
   };
   

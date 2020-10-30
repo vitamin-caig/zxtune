@@ -33,18 +33,6 @@ namespace Parameters
       //@}
 
       //@{
-      //! @name Frame duration in microseconds
-      const IntType FRAMEDURATION_PRECISION = 1000000;
-
-      //! Default value- 20mS (50Hz)
-      const IntType FRAMEDURATION_DEFAULT = 20000;
-      const IntType FRAMEDURATION_MIN = 1000;
-      const IntType FRAMEDURATION_MAX = 1000000;
-      //! Parameter name
-      extern const NameType FRAMEDURATION;
-      //@}
-
-      //@{
       //! @name Looped playback
 
       //! Parameter name

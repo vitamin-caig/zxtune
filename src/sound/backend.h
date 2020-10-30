@@ -89,7 +89,7 @@ namespace Sound
     //! @param frame Number of specified frame
     //! @throw Error in case of error
     //! @note If parameter is out of range, playback will be stopped
-    virtual void SetPosition(uint_t frame) = 0;
+    virtual void SetPosition(Time::AtMillisecond request) = 0;
 
     //! @brief Current playback state
     enum State

@@ -18,6 +18,7 @@
 //library includes
 #include <async/worker.h>
 #include <debug/log.h>
+#include <parameters/tracking_helper.h>
 #include <sound/render_params.h>
 #include <sound/silence.h>
 #include <sound/sound_parameters.h>
@@ -121,15 +122,15 @@ namespace BackendBase
       return Delegate->GetAnalyzer();
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
-      const uint_t request = SeekRequest.exchange(NO_SEEK);
+      const auto request = SeekRequest.exchange(NO_SEEK);
       if (request != NO_SEEK)
       {
-        Delegate->SetPosition(request);
+        Delegate->SetPosition(Time::AtMillisecond(request));
       }
       Callback->OnFrame(*State);
-      return Delegate->RenderFrame();
+      return Delegate->RenderFrame(looped);
     }
 
     void Reset() override
@@ -138,9 +139,9 @@ namespace BackendBase
       Delegate->Reset();
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      SeekRequest = frame;
+      SeekRequest = request.Get();
     }
   private:
     static const uint_t NO_SEEK = ~uint_t(0);
@@ -150,11 +151,33 @@ namespace BackendBase
     std::atomic<uint_t> SeekRequest;
   };
 
+  class LoopParameterAdapter
+  {
+  public:
+    explicit LoopParameterAdapter(Parameters::Accessor::Ptr params)
+      : Delegate(std::move(params))
+    {
+    }
+
+    const LoopParameters& operator * () const
+    {
+      if (Delegate.IsChanged())
+      {
+        Value = GetLoopParameters(*Delegate);
+      }
+      return Value;
+    }
+  private:
+    mutable Parameters::TrackingHelper<Parameters::Accessor> Delegate;
+    mutable LoopParameters Value;
+  };
+
   class AsyncWrapper : public Async::Worker
   {
   public:
-    AsyncWrapper(BackendCallback::Ptr callback, Module::Renderer::Ptr render)
-      : Callback(std::move(callback))
+    AsyncWrapper(Parameters::Accessor::Ptr params, BackendCallback::Ptr callback, Module::Renderer::Ptr render)
+      : Looped(std::move(params))
+      , Callback(std::move(callback))
       , Render(std::move(render))
       , Playing(false)
     {
@@ -244,9 +267,10 @@ namespace BackendBase
   private:
     void RenderFrame()
     {
-      Playing = Render->RenderFrame();
+      Playing = Render->RenderFrame(*Looped);
     }
   private:
+    const LoopParameterAdapter Looped;
     const BackendWorker::Ptr Delegate;
     const BackendCallback::Ptr Callback;
     const Module::Renderer::Ptr Render;
@@ -319,11 +343,11 @@ namespace BackendBase
       }
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
       try
       {
-        Renderer->SetPosition(frame);
+        Renderer->SetPosition(request);
       }
       catch (const Error& e)
       {
@@ -383,14 +407,14 @@ namespace Sound
 {
   Backend::Ptr CreateBackend(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder, BackendCallback::Ptr origCallback, BackendWorker::Ptr worker)
   {
-    const Receiver::Ptr target = MakePtr<BackendBase::BufferRenderer>(*worker);
-    const auto pipeline = CreateSilenceDetector(params, target);
-    const Module::Renderer::Ptr origRenderer = holder->CreateRenderer(params, pipeline);
-    const BackendCallback::Ptr callback = BackendBase::CreateCallback(origCallback, worker);
-    const Module::Renderer::Ptr renderer = MakePtr<BackendBase::RendererWrapper>(origRenderer, callback);
-    const Async::Worker::Ptr asyncWorker = MakePtr<BackendBase::AsyncWrapper>(callback, renderer);
-    const Async::Job::Ptr job = Async::CreateJob(asyncWorker);
-    return MakePtr<BackendBase::BackendInternal>(worker, renderer, job);
+    auto target = MakePtr<BackendBase::BufferRenderer>(*worker);
+    auto pipeline = CreateSilenceDetector(params, std::move(target));
+    auto origRenderer = holder->CreateRenderer(params, std::move(pipeline));
+    auto callback = BackendBase::CreateCallback(std::move(origCallback), worker);
+    auto renderer = MakePtr<BackendBase::RendererWrapper>(std::move(origRenderer), callback);
+    auto asyncWorker = MakePtr<BackendBase::AsyncWrapper>(std::move(params), std::move(callback), renderer);
+    auto job = Async::CreateJob(std::move(asyncWorker));
+    return MakePtr<BackendBase::BackendInternal>(std::move(worker), std::move(renderer), std::move(job));
   }
 }
 

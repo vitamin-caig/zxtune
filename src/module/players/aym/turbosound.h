@@ -15,7 +15,6 @@
 //library includes
 #include <devices/turbosound.h>
 #include <module/holder.h>
-#include <sound/render_params.h>
 
 namespace Module
 {
@@ -23,10 +22,12 @@ namespace Module
   {
     const uint_t TRACK_CHANNELS = AYM::TRACK_CHANNELS * Devices::TurboSound::CHIPS;
 
-    class DataIterator : public StateIterator
+    class DataIterator : public Iterator
     {
     public:
       typedef std::shared_ptr<DataIterator> Ptr;
+
+      virtual State::Ptr GetStateObserver() const = 0;
 
       virtual Devices::TurboSound::Registers GetData() const = 0;
     };
@@ -37,7 +38,12 @@ namespace Module
       typedef std::shared_ptr<const Chiptune> Ptr;
       virtual ~Chiptune() = default;
 
-      virtual Information::Ptr GetInformation() const = 0;
+      virtual Time::Microseconds GetFrameDuration() const = 0;
+
+      // One of
+      virtual TrackModel::Ptr FindTrackModel() const = 0;
+      virtual Module::StreamModel::Ptr FindStreamModel() const = 0;
+
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
       virtual DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const = 0;
     };

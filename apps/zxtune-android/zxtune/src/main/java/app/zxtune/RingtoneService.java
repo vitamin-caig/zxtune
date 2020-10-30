@@ -226,7 +226,7 @@ public class RingtoneService extends IntentService {
     TimeLimitedSamplesSource(Player player, TimeStamp limit) {
       this.player = player;
       this.limit = limit;
-      player.setPosition(0);
+      player.setPosition(TimeStamp.EMPTY);
       player.setProperty(Properties.Sound.LOOPED, 1);
     }
     
@@ -242,7 +242,7 @@ public class RingtoneService extends IntentService {
         restSamples -= buf.length / SamplesSource.Channels.COUNT;
         return true;
       } else {
-        player.setPosition(0);
+        player.setPosition(TimeStamp.EMPTY);
         return false;
       }
     }

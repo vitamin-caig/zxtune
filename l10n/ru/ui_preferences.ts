@@ -401,41 +401,36 @@
     </message>
     <message>
         <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="38"/>
-        <source>Frame duration, uS</source>
-        <translation>Длительность кадра, мкс</translation>
-    </message>
-    <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="55"/>
         <source>Sound frequency, Hz</source>
         <translation>Частота звука, Гц</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="65"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="48"/>
         <source>Silence detection, S</source>
         <translation>Детектор тишины, с</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="79"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="62"/>
         <source>Loops count limit</source>
         <translation>Лимит зацикливания</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="96"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="79"/>
         <source>Backends settings</source>
         <translation>Настройки подсистем</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="119"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="102"/>
         <source>Move up</source>
         <translation>Вверх</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="163"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="146"/>
         <source>Move down</source>
         <translation>Вниз</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="178"/>
+        <location filename="../../apps/zxtune-qt/ui/preferences/sound.ui" line="161"/>
         <source>Select backend to setup</source>
         <translation>Выберите подсистему для настройки</translation>
     </message>

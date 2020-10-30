@@ -144,7 +144,7 @@ namespace XSF
     if (!hasDuration)
     {
       const MetaInformation::RWPtr newMeta = MakeRWPtr<MetaInformation>();
-      newMeta->Duration = GetDuration(params);
+      newMeta->Duration = GetDefaultDuration(params);
       if (hasMeta)
       {
         newMeta->Merge(*file.Meta);
@@ -176,7 +176,7 @@ namespace XSF
           if (file.Dependencies.empty())
           {
             Dbg("Singlefile");
-            return Delegate->CreateSinglefileModule(file, std::move(properties));
+            return Delegate->CreateSinglefileModule(std::move(file), std::move(properties));
           }
           else
           {

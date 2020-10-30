@@ -55,15 +55,28 @@ namespace AHX
     Require(result.get() != nullptr);
     return result;
   }
-  
+
+  const auto FRAME_DURATION = Time::Milliseconds::FromFrequency(50);
+
+  //TODO: test this
   class TrackInformation : public Module::TrackInformation
   {
   public:
     explicit TrackInformation(Binary::View data)
       : Hvl(LoadModule(data))
-      , CachedFramesCount()
-      , CachedLoopFrame()
     {
+    }
+
+    Time::Milliseconds Duration() const override
+    {
+      Initialize();
+      return (FRAME_DURATION * (Hvl->ht_PlayingTime / Hvl->ht_SpeedMultiplier));
+    }
+
+    Time::Milliseconds LoopDuration() const override
+    {
+      Initialize();
+      return (FRAME_DURATION * ((Hvl->ht_PlayingTime - LoopTime) / Hvl->ht_SpeedMultiplier));
     }
 
     uint_t PositionsCount() const override
@@ -75,64 +88,58 @@ namespace AHX
     {
       return Hvl->ht_PosJump;
     }
-
-    uint_t FramesCount() const override
-    {
-      if (!CachedFramesCount)
-      {
-        FillCache();
-      }
-      return CachedFramesCount;
-    }
-
-    uint_t LoopFrame() const override
-    {
-      if (!CachedLoopFrame)
-      {
-        FillCache();
-      }
-      return CachedLoopFrame;
-    }
     
     uint_t ChannelsCount() const override
     {
       return Hvl->ht_Channels;
     }
 
-    uint_t Tempo() const override
+    uint_t GetLoopTime() const
     {
-      return Hvl->ht_Tempo;
+      Initialize();
+      return LoopTime;
     }
   private:
-    void FillCache() const
+    void Initialize() const
     {
       while (!Hvl->ht_SongEndReached)
       {
         hvl_NextFrame(Hvl.get());
-        ++CachedFramesCount;
         if (Hvl->ht_PosNr == Hvl->ht_Restart && 0 == Hvl->ht_NoteNr && Hvl->ht_Tempo == Hvl->ht_StepWaitFrames)
         {
-          CachedLoopFrame = CachedFramesCount;
+          LoopTime = Hvl->ht_PlayingTime;
         }
       }
     }
   private:
     const HvlPtr Hvl;
-    mutable uint_t CachedFramesCount;
-    mutable uint_t CachedLoopFrame;
+    mutable uint_t LoopTime = 0;
   };
   
   class TrackState : public Module::TrackState
   {
   public:
-    explicit TrackState(HvlPtr hvl)
+    TrackState(HvlPtr hvl)
       : Hvl(std::move(hvl))
     {
     }
 
-    uint_t Frame() const override
+    Time::AtMillisecond At() const override
     {
-      return Hvl->ht_PlayingTime / Hvl->ht_SpeedMultiplier;
+      if (Hvl->ht_SongEndReached)
+      {
+        //TODO: investigate
+        return Time::AtMillisecond() + Total();
+      }
+      else
+      {
+        return Time::AtMillisecond() + Total();
+      }
+    }
+
+    Time::Milliseconds Total() const override
+    {
+      return (FRAME_DURATION * (Hvl->ht_PlayingTime / Hvl->ht_SpeedMultiplier)).CastTo<Time::Millisecond>();
     }
 
     uint_t LoopCount() const override
@@ -218,6 +225,7 @@ namespace AHX
     void Reset()
     {
       hvl_InitSubsong(Hvl.get(), 0);
+      //TODO: clarify
       SamplesPerFrame = Hvl->ht_Frequency / 50;
     }
     
@@ -241,8 +249,9 @@ namespace AHX
       hvl_DecodeFrame(Hvl.get(), static_cast<int8*>(buf), static_cast<int8*>(buf) + sizeof(Sound::Sample) / 2, sizeof(Sound::Sample));
     }
     
-    void Seek(uint_t frame)
+    void Seek(Time::AtMillisecond request)
     {
+      const auto frame = Hvl->ht_SpeedMultiplier * request.Get() / FRAME_DURATION.Get();
       uint_t current = Hvl->ht_PlayingTime;
       if (frame < current)
       {
@@ -281,7 +290,6 @@ namespace AHX
       : Tune(std::move(tune))
       , Target(std::move(target))
       , SoundParams(Sound::RenderParameters::Create(std::move(params)))
-      , Looped()
     {
       ApplyParameters();
     }
@@ -296,7 +304,7 @@ namespace AHX
       return Tune->MakeAnalyzer();
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
@@ -306,7 +314,7 @@ namespace AHX
         Tune->RenderFrame(builder);
         Target->ApplyData(builder.CaptureResult());
         const auto loops = Tune->LoopCount();
-        return loops == 0 || Looped(loops);
+        return loops == 0 || looped(loops);
       }
       catch (const std::exception&)
       {
@@ -320,16 +328,15 @@ namespace AHX
       Tune->Reset();
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      Tune->Seek(frame);
+      Tune->Seek(request);
     }
   private:
     void ApplyParameters()
     {
       if (SoundParams.IsChanged())
       {
-        Looped = SoundParams->Looped();
         Tune->SetFrequency(SoundParams->SoundFreq());
       }
     }
@@ -337,7 +344,6 @@ namespace AHX
     const HVL::Ptr Tune;
     const Sound::Receiver::Ptr Target;
     Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
-    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder

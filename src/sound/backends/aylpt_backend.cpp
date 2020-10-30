@@ -24,7 +24,6 @@
 #include <platform/shared_library.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
-#include <sound/render_params.h>
 //std includes
 #include <algorithm>
 #include <cstring>
@@ -86,9 +85,8 @@ namespace AyLpt
   class BackendWorker : public Sound::BackendWorker
   {
   public:
-    BackendWorker(Parameters::Accessor::Ptr params, Binary::Data::Ptr data, LptPort::Ptr port)
-      : Params(Sound::RenderParameters::Create(params))
-      , Data(data)
+    BackendWorker(Binary::Data::Ptr data, LptPort::Ptr port)
+      : Data(data)
       , Port(port)
     {
     }
@@ -107,7 +105,7 @@ namespace AyLpt
       Reset();
       Dbg("Successfull start");
       NextFrameTime = std::chrono::steady_clock::now();
-      FrameDuration = std::chrono::microseconds(Params->FrameDuration().Get());
+      FrameDuration = std::chrono::microseconds(20000);//TODO
     }
 
     virtual void Shutdown()
@@ -128,7 +126,8 @@ namespace AyLpt
     virtual void FrameStart(const Module::State& state)
     {
       WaitForNextFrame();
-      const uint8_t* regs = static_cast<const uint8_t*>(Data->Start()) + state.Frame() * Devices::AYM::Registers::TOTAL;
+      const auto frame = state.At().CastTo<Time::Microsecond>().Get() / FrameDuration.count();
+      const uint8_t* regs = static_cast<const uint8_t*>(Data->Start()) + frame * Devices::AYM::Registers::TOTAL;
       WriteRegisters(regs);
     }
 
@@ -183,7 +182,6 @@ namespace AyLpt
       }
     }
   private:
-    const Sound::RenderParameters::Ptr Params;
     const Binary::Data::Ptr Data;
     const LptPort::Ptr Port;
     std::chrono::steady_clock::time_point NextFrameTime;
@@ -258,7 +256,7 @@ namespace AyLpt
       static const Module::Conversion::AYDumpConvertParam spec;
       if (const Binary::Data::Ptr data = Module::Convert(*holder, spec, params))
       {
-        return MakePtr<BackendWorker>(params, data, Port);
+        return MakePtr<BackendWorker>(data, Port);
       }
       throw Error(THIS_LINE, translate("Real AY via LPT is not supported for this module."));
     }

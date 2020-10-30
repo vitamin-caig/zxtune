@@ -34,12 +34,12 @@ namespace TFD
     {
     }
 
-    uint_t Size() const override
+    uint_t GetTotalFrames() const override
     {
       return static_cast<uint_t>(Offsets.size() - 1);
     }
 
-    uint_t Loop() const override
+    uint_t GetLoopFrame() const override
     {
       return LoopPos;
     }
@@ -123,9 +123,9 @@ namespace TFD
      Data->AddRegister(Devices::TFM::Register(Chip, idx, val));
    }
 
-   TFM::StreamModel::Ptr GetResult() const
+   TFM::StreamModel::Ptr CaptureResult() const
    {
-     return Data;
+     return std::move(Data);
    }
   private:
     PropertiesHelper& Properties;
@@ -142,15 +142,15 @@ namespace TFD
       DataBuilder dataBuilder(props);
       if (const auto container = Formats::Chiptune::TFD::Parse(rawData, dataBuilder))
       {
-        auto data = dataBuilder.GetResult();
-        if (data->Size())
+        auto data = dataBuilder.CaptureResult();
+        if (data->GetTotalFrames())
         {
           props.SetSource(*container);
           props.SetPlatform(Platforms::ZX_SPECTRUM);
-          return TFM::CreateStreamedChiptune(std::move(data), std::move(properties));
+          return TFM::CreateStreamedChiptune(TFM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
         }
       }
-      return TFM::Chiptune::Ptr();
+      return {};
     }
   };
   

@@ -56,7 +56,7 @@ namespace
     {
       try
       {
-        Callback.OnProgress(state.Frame());
+        Callback.OnProgress(state.At().Get());
       }
       catch (const std::exception&)
       {
@@ -127,7 +127,7 @@ namespace
       {
         const Log::ProgressCallback::Ptr curItemProgress = Log::CreateNestedPercentProgressCallback(TotalItems, DoneItems, Callback);
         const Module::Information::Ptr info = item->GetModuleInformation();
-        const Log::ProgressCallback::Ptr framesProgress = Log::CreatePercentProgressCallback(info->FramesCount(), *curItemProgress);
+        const Log::ProgressCallback::Ptr framesProgress = Log::CreatePercentProgressCallback(info->Duration().Get(), *curItemProgress);
         ConvertCallback cb(*framesProgress);
         const Sound::Backend::Ptr backend = Service->CreateBackend(Type, item, Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
         const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();

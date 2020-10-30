@@ -26,10 +26,8 @@
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
-#include <sound/chunk_builder.h>
 #include <sound/render_params.h>
 #include <sound/resampler.h>
-#include <sound/sound_parameters.h>
 //3rdparty
 #include <3rdparty/snesspc/snes_spc/SNES_SPC.h>
 #include <3rdparty/snesspc/snes_spc/SPC_Filter.h>
@@ -42,6 +40,20 @@ namespace SPC
 {
   const Debug::Stream Dbg("Core::SPCSupp");
 
+  struct Model
+  {
+    using Ptr = std::shared_ptr<const Model>;
+
+    const Dump Data;
+    const Time::Milliseconds Duration;
+
+    Model(const Binary::Data& data, Time::Milliseconds duration)
+      : Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
+      , Duration(duration)
+    {
+    }
+  };
+
   class SPC : public Module::Analyzer
   {
     static const uint_t SPC_DIVIDER = 1 << 12;
@@ -50,7 +62,7 @@ namespace SPC
     typedef std::shared_ptr<SPC> Ptr;
     
     explicit SPC(Binary::View data)
-      : Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
+      : Data(data)
     {
       CheckError(Spc.init());
       // #0040 is C-1 (32Hz) - min
@@ -70,20 +82,22 @@ namespace SPC
     void Reset()
     {
       Spc.reset();
-      CheckError(Spc.load_spc(Data.data(), Data.size()));
+      CheckError(Spc.load_spc(Data.Start(), Data.Size()));
       Spc.clear_echo();
       Spc.disable_surround(true);
       Filter.clear();
       Filter.set_gain(::SPC_Filter::gain_unit * 1.4);//as in GME
     }
     
-    void Render(uint_t samples, Sound::ChunkBuilder& target)
+    Sound::Chunk Render(uint_t samples)
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
-      ::SNES_SPC::sample_t* const buffer = safe_ptr_cast< ::SNES_SPC::sample_t*>(target.Allocate(samples));
+      Sound::Chunk result(samples);
+      ::SNES_SPC::sample_t* const buffer = safe_ptr_cast< ::SNES_SPC::sample_t*>(result.data());
       CheckError(Spc.play(samples * Sound::Sample::CHANNELS, buffer));
       Filter.run(buffer, samples * Sound::Sample::CHANNELS);
+      return result;
     }
     
     void Skip(uint_t samples)
@@ -173,48 +187,50 @@ namespace SPC
       const ::SNES_SPC& Spc;
     };
   private:
-    const Dump Data;
+    const Binary::View Data;
     ::SNES_SPC Spc;
     ::SPC_Filter Filter;
     Devices::Details::AnalysisMap Analysis;
   };
 
+  const auto FRAME_DURATION = Time::Milliseconds(100);
+
+  uint_t GetSamples(Time::Microseconds period)
+  {
+    return period.Get() * ::SNES_SPC::sample_rate / period.PER_SECOND;
+  }
+
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(SPC::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+    Renderer(Model::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
       : Tune(std::move(tune))
-      , Iterator(std::move(iterator))
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+      , Engine(MakePtr<SPC>(Tune->Data))
+      , State(MakePtr<TimedState>(Tune->Duration))
+      , Params(std::move(params))
       , Target(std::move(target))
-      , Looped()
-      , SamplesPerFrame()
     {
-      ApplyParameters();
     }
 
-    State::Ptr GetState() const override
+    Module::State::Ptr GetState() const override
     {
-      return Iterator->GetStateObserver();
+      return State;
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
     {
-      return Tune;
+      return Engine;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
         ApplyParameters();
 
-        Sound::ChunkBuilder builder;
-        builder.Reserve(SamplesPerFrame);
-        Tune->Render(SamplesPerFrame, builder);
-        Resampler->ApplyData(builder.CaptureResult());
-        Iterator->NextFrame(Looped);
-        return Iterator->IsValid();
+        const auto avail = State->Consume(FRAME_DURATION, looped);
+        Resampler->ApplyData(Engine->Render(GetSamples(avail)));
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -224,65 +240,52 @@ namespace SPC
 
     void Reset() override
     {
-      SoundParams.Reset();
-      Tune->Reset();
-      Iterator->Reset();
-      Looped = {};
+      Params.Reset();
+      Engine->Reset();
+      State->Reset();
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      SeekTune(frame);
-      Module::SeekIterator(*Iterator, frame);
+      if (request < State->At())
+      {
+        Engine->Reset();
+      }
+      const auto toSkip = State->Seek(request);
+      if (toSkip.Get())
+      {
+        Engine->Skip(GetSamples(toSkip));
+      }
     }
   private:
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Looped = SoundParams->Looped();
-        const auto frameDuration = SoundParams->FrameDuration();
-        SamplesPerFrame = static_cast<uint_t>(frameDuration.Get() * ::SNES_SPC::sample_rate / frameDuration.PER_SECOND);
-        Resampler = Sound::CreateResampler(::SNES_SPC::sample_rate, SoundParams->SoundFreq(), Target);
-      }
-    }
-
-    void SeekTune(uint_t frame)
-    {
-      uint_t current = GetState()->Frame();
-      if (frame < current)
-      {
-        Tune->Reset();
-        current = 0;
-      }
-      if (const uint_t delta = frame - current)
-      {
-        Tune->Skip(delta * SamplesPerFrame);
+        Resampler = Sound::CreateResampler(::SNES_SPC::sample_rate, Sound::GetSoundFrequency(*Params), Target);
       }
     }
   private:
-    const SPC::Ptr Tune;
-    const StateIterator::Ptr Iterator;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    const Model::Ptr Tune;
+    const SPC::Ptr Engine;
+    const TimedState::Ptr State;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     const Sound::Receiver::Ptr Target;
     Sound::Receiver::Ptr Resampler;
-    Sound::LoopParameters Looped;
-    std::size_t SamplesPerFrame;
   };
   
   class Holder : public Module::Holder
   {
   public:
-    Holder(SPC::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(Model::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
-      , Info(std::move(info))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateTimedInfo(Tune->Duration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -292,11 +295,10 @@ namespace SPC
 
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target) const override
     {
-      return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
+      return MakePtr<Renderer>(Tune, target, params);
     }
   private:
-    const SPC::Ptr Tune;
-    const Information::Ptr Info;
+    const Model::Ptr Tune;
     const Parameters::Accessor::Ptr Properties;
   };
 
@@ -381,12 +383,9 @@ namespace SPC
     {
     }
     
-    Time::Milliseconds GetDuration(const Parameters::Accessor& params) const
+    Time::Milliseconds GetDuration() const
     {
-      auto total = Intro;
-      total += Loop;
-      total += Fade;
-      return total.Get() ? total : Time::Milliseconds(Module::GetDuration(params));
+      return Intro + Loop + Fade;
     }
   private:
     PropertiesHelper& Properties;
@@ -408,24 +407,26 @@ namespace SPC
       {
         PropertiesHelper props(*properties);
         DataBuilder dataBuilder(props);
-        if (const Formats::Chiptune::Container::Ptr container = Formats::Chiptune::SPC::Parse(rawData, dataBuilder))
+        if (const auto container = Formats::Chiptune::SPC::Parse(rawData, dataBuilder))
         {
-          const SPC::Ptr tune = MakePtr<SPC>(rawData);
-          const auto period = Time::Milliseconds(20);
           props.SetSource(*container);
-          props.SetFramesFrequency(period.ToFrequency<uint_t>());
           props.SetPlatform(Platforms::SUPER_NINTENDO_ENTERTAINMENT_SYSTEM);
-          const auto duration = Time::Milliseconds(dataBuilder.GetDuration(params));
-          const auto frames = duration.Divide<uint_t>(period);
-          const Information::Ptr info = CreateStreamInfo(frames);
-          return MakePtr<Holder>(tune, info, properties);
+
+          auto duration = dataBuilder.GetDuration();
+          if (!duration.Get())
+          {
+            duration = GetDefaultDuration(params);
+          }
+          auto tune = MakePtr<Model>(*container, duration);
+
+          return MakePtr<Holder>(std::move(tune), std::move(properties));
         }
       }
       catch (const std::exception& e)
       {
         Dbg("Failed to create SPC: %s", e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   };
 }

@@ -9,6 +9,8 @@
 **/
 
 //local includes
+#include "module/players/streaming.h"
+#include "module/players/tracking.h"
 #include "module/players/aym/aym_base.h"
 //common includes
 #include <make_ptr.h>
@@ -16,7 +18,7 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <module/players/analyzer.h>
-#include <parameters/tracking_helper.h>
+#include <sound/loop.h>
 #include <sound/mixer_factory.h>
 
 namespace Module
@@ -26,14 +28,21 @@ namespace Module
   class AYMHolder : public AYM::Holder
   {
   public:
-    explicit AYMHolder(AYM::Chiptune::Ptr chiptune)
+    AYMHolder(AYM::Chiptune::Ptr chiptune)
       : Tune(std::move(chiptune))
     {
     }
 
     Information::Ptr GetModuleInformation() const override
     {
-      return Tune->GetInformation();
+      if (auto track = Tune->FindTrackModel())
+      {
+        return CreateTrackInfo(Tune->GetFrameDuration(), std::move(track));
+      }
+      else
+      {
+        return CreateStreamInfo(Tune->GetFrameDuration(), Tune->FindStreamModel());
+      }
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -50,8 +59,7 @@ namespace Module
     {
       auto trackParams = AYM::TrackParameters::Create(params);
       auto iterator = Tune->CreateDataIterator(std::move(trackParams));
-      auto soundParams = Sound::RenderParameters::Create(std::move(params));
-      return AYM::CreateRenderer(std::move(soundParams), std::move(iterator), std::move(chip));
+      return AYM::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip));
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override
@@ -59,24 +67,18 @@ namespace Module
       return Tune;
     }
   private:
+    const Time::Microseconds FrameDuration;
     const AYM::Chiptune::Ptr Tune;
   };
 
   class AYMRenderer : public Renderer
   {
   public:
-    AYMRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
-      : Params(std::move(params))
-      , Iterator(std::move(iterator))
+    AYMRenderer(Time::Microseconds frameDuration, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
+      : Iterator(std::move(iterator))
       , Device(std::move(device))
-      , FrameDuration()
-      , Looped()
+      , FrameDuration(frameDuration)
     {
-#ifndef NDEBUG
-//perform self-test
-      for (; Iterator->IsValid(); Iterator->NextFrame({}));
-      Iterator->Reset();
-#endif
     }
 
     State::Ptr GetState() const override
@@ -89,19 +91,18 @@ namespace Module
       return AYM::CreateAnalyzer(Device);
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
         if (Iterator->IsValid())
         {
-          SynchronizeParameters();
           if (LastChunk.TimeStamp == Devices::AYM::Stamp())
           {
             //first chunk
             TransferChunk();
           }
-          Iterator->NextFrame(Looped);
+          Iterator->NextFrame(looped);
           LastChunk.TimeStamp += FrameDuration;
           TransferChunk();
         }
@@ -115,53 +116,37 @@ namespace Module
 
     void Reset() override
     {
-      Params.Reset();
       Iterator->Reset();
       Device->Reset();
       LastChunk.TimeStamp = {};
-      FrameDuration = {};
-      Looped = {};
     }
 
-    void SetPosition(uint_t frameNum) override
+    void SetPosition(Time::AtMillisecond request) override
     {
-      uint_t curFrame = GetState()->Frame();
-      if (curFrame > frameNum)
+      const auto state = GetState();
+      if (request < state->At())
       {
         Iterator->Reset();
         Device->Reset();
         LastChunk.TimeStamp = Devices::AYM::Stamp();
-        curFrame = 0;
       }
-      while (curFrame < frameNum && Iterator->IsValid())
+      while (state->At() < request && Iterator->IsValid())
       {
         TransferChunk();
         Iterator->NextFrame({});
-        ++curFrame;
       }
     }
   private:
-    void SynchronizeParameters()
-    {
-      if (Params.IsChanged())
-      {
-        FrameDuration = Params->FrameDuration();
-        Looped = Params->Looped();
-      }
-    }
-
     void TransferChunk()
     {
       LastChunk.Data = Iterator->GetData();
       Device->RenderData(LastChunk);
     }
   private:
-    Parameters::TrackingHelper<Sound::RenderParameters> Params;
     const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Device::Ptr Device;
+    const Time::Duration<Devices::AYM::TimeUnit> FrameDuration;
     Devices::AYM::DataChunk LastChunk;
-    Time::Duration<Devices::AYM::TimeUnit> FrameDuration;
-    Sound::LoopParameters Looped;
   };
 }
 
@@ -186,9 +171,9 @@ namespace Module
       }
     }
 
-    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, AYM::DataIterator::Ptr iterator, Devices::AYM::Device::Ptr device)
     {
-      return MakePtr<AYMRenderer>(std::move(params), std::move(iterator), std::move(device));
+      return MakePtr<AYMRenderer>(frameDuration, std::move(iterator), std::move(device));
     }
     
     Devices::AYM::Chip::Ptr CreateChip(Parameters::Accessor::Ptr params, Sound::Receiver::Ptr target)

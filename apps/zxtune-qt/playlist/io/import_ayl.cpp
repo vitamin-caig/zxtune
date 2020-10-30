@@ -69,17 +69,6 @@ namespace
     {
       return FromQString(Codec->toUnicode(str.toLocal8Bit()));
     }
-
-    Parameters::IntType DecodeFrameduration(Parameters::IntType playerFreq) const
-    {
-      if (!playerFreq)
-      {
-        return Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT;
-      }
-      const Parameters::IntType divisor = Version > 0
-        ? UINT64_C(1000000000) : UINT64_C(1000000);
-      return divisor / playerFreq;
-    }
   private:
     const int Version;
     const QTextCodec* const Codec;
@@ -309,8 +298,7 @@ namespace
       }
       else if (nameStr == AYL::PLAYER_FREQUENCY)
       {
-        Delegate.SetValue(Parameters::ZXTune::Sound::FRAMEDURATION,
-          Version.DecodeFrameduration(val));
+        //TODO: think about this...
       }
       else if (nameStr == AYL::FORMAT_SPECIFIC)
       {

@@ -10,13 +10,10 @@ import java.util.concurrent.TimeUnit;
 class SeekableSamplesSource implements SamplesSource {
 
   private final Player player;
-  private final TimeStamp frameDuration;
 
   SeekableSamplesSource(Player player) {
     this.player = player;
-    final long frameDurationUs = player.getProperty(Properties.Sound.FRAMEDURATION, Properties.Sound.FRAMEDURATION_DEFAULT);
-    this.frameDuration = TimeStamp.createFrom(frameDurationUs, TimeUnit.MICROSECONDS);
-    player.setPosition(0);
+    player.setPosition(TimeStamp.EMPTY);
   }
 
   @Override
@@ -29,22 +26,18 @@ class SeekableSamplesSource implements SamplesSource {
     if (player.render(buf)) {
       return true;
     } else {
-      player.setPosition(0);
+      player.setPosition(TimeStamp.EMPTY);
       return false;
     }
   }
 
   @Override
   public TimeStamp getPosition() {
-    return frameDuration.multiplies(player.getPosition());
+    return player.getPosition();
   }
 
   @Override
   public void setPosition(TimeStamp pos) {
-    player.setPosition(toFrame(pos));
-  }
-
-  private int toFrame(TimeStamp pos) {
-    return (int) pos.divides(frameDuration);
+    player.setPosition(pos);
   }
 }

@@ -11,23 +11,21 @@
 #pragma once
 
 //local includes
+#include "module/players/stream_model.h"
 #include "module/players/tfm/tfm_chiptune.h"
 
 namespace Module
 {
   namespace TFM
   {
-    class StreamModel
+    class StreamModel : public Module::StreamModel
     {
     public:
-      typedef std::shared_ptr<const StreamModel> Ptr;
-      virtual ~StreamModel() = default;
+      using Ptr = std::shared_ptr<const StreamModel>;
 
-      virtual uint_t Size() const = 0;
-      virtual uint_t Loop() const = 0;
       virtual void Get(uint_t pos, Devices::TFM::Registers& res) const = 0;
     };
 
-    Chiptune::Ptr CreateStreamedChiptune(StreamModel::Ptr model, Parameters::Accessor::Ptr properties);
+    Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model, Parameters::Accessor::Ptr properties);
   }
 }

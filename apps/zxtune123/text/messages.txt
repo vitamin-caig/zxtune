@@ -202,9 +202,6 @@
 < INFO_OPTIONS_SOUND_FREQUENCY
 > "sound frequency in Hz"
 
-< INFO_OPTIONS_SOUND_FRAMEDURATION
-> "frame duration in microseconds"
-
 < INFO_OPTIONS_SOUND_LOOPED
 > "loop playback"
 
@@ -410,7 +407,7 @@
 > "Author:  [Author]"
 
 < ITEM_INFO_ADDON
-> "\nTime:    %1%\t"     "Channels:  %2%\n"
+> "\nTime:    %1%\t"     "Loop duration:  %2%\n"
 
 < INPUT_ERROR_NO_FILES
 > "No files to process."

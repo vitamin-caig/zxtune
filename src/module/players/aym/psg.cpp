@@ -22,48 +22,11 @@ namespace Module
 {
 namespace PSG
 {
-  typedef std::vector<Devices::AYM::Registers> RegistersArray;
-
-  class StreamModel : public AYM::StreamModel
-  {
-  public:
-    typedef std::shared_ptr<StreamModel> RWPtr;
-  
-    uint_t Size() const override
-    {
-      return static_cast<uint_t>(Data.size());
-    }
-
-    uint_t Loop() const override
-    {
-      return 0;
-    }
-
-    Devices::AYM::Registers Get(uint_t pos) const override
-    {
-      return Data[pos];
-    }
-    
-    void Append(std::size_t count)
-    {
-      Data.resize(Data.size() + count);
-    }
-    
-    Devices::AYM::Registers* CurFrame()
-    {
-      return Data.empty()
-        ? nullptr
-        : &Data.back();
-    }
-  private:
-    RegistersArray Data;
-  };
-
   class DataBuilder : public Formats::Chiptune::PSG::Builder
   {
   public:
     DataBuilder()
-      : Data(MakeRWPtr<StreamModel>())
+      : Data(MakePtr<AYM::MutableStreamModel>())
     {
     }
     
@@ -76,21 +39,21 @@ namespace PSG
     {
       if (reg < Devices::AYM::Registers::TOTAL)
       {
-        if (Devices::AYM::Registers* regs = Data->CurFrame())
+        if (auto* regs = Data->LastFrame())
         {
           (*regs)[static_cast<Devices::AYM::Registers::Index>(reg)] = val;
         }
       }
     }
 
-    AYM::StreamModel::Ptr GetResult() const
+    AYM::StreamModel::Ptr CaptureResult() const
     {
-      return Data->Size()
-        ? Data
-        : AYM::StreamModel::Ptr();
+      return Data->IsEmpty()
+        ? AYM::StreamModel::Ptr()
+        : AYM::StreamModel::Ptr(std::move(Data));
     }
   private:
-    const StreamModel::RWPtr Data;
+    AYM::MutableStreamModel::Ptr Data;
   };
 
   class Factory : public AYM::Factory
@@ -101,14 +64,14 @@ namespace PSG
       DataBuilder dataBuilder;
       if (const auto container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
       {
-        if (auto data = dataBuilder.GetResult())
+        if (auto data = dataBuilder.CaptureResult())
         {
           PropertiesHelper props(*properties);
           props.SetSource(*container);
-          return AYM::CreateStreamedChiptune(std::move(data), std::move(properties));
+          return AYM::CreateStreamedChiptune(AYM::BASE_FRAME_DURATION, std::move(data), std::move(properties));
         }
       }
-      return AYM::Chiptune::Ptr();
+      return {};
     }
   };
 

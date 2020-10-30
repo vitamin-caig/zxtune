@@ -112,8 +112,7 @@ public class ArchivesService {
             final String author = module.getProperty(ModuleAttributes.AUTHOR, "");
             final String title = module.getProperty(ModuleAttributes.TITLE, "");
             final String description = Util.formatTrackTitle(title, author, "");
-            final TimeStamp duration = TimeStamp.createFrom(module.getDurationInMs(),
-                TimeUnit.MILLISECONDS);
+            final TimeStamp duration = module.getDuration();
             final Track track = new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration);
             module.release();
 

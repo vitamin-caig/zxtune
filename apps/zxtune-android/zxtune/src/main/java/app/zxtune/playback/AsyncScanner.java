@@ -193,7 +193,7 @@ public final class AsyncScanner {
 
     @Override
     public TimeStamp getDuration() {
-      return TimeStamp.createFrom(module.getDurationInMs(), TimeUnit.MILLISECONDS);
+      return module.getDuration();
     }
 
     @Override

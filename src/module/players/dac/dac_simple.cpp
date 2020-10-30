@@ -27,11 +27,11 @@ namespace Module
     class SimpleDataBuilderImpl : public SimpleDataBuilder
     {
     public:
-      SimpleDataBuilderImpl(DAC::PropertiesHelper& props, PatternsBuilder builder)
+      SimpleDataBuilderImpl(DAC::PropertiesHelper& props, PatternsBuilder builder, uint_t channels)
         : Properties(props)
         , Meta(props)
         , Patterns(std::move(builder))
-        , Data(MakeRWPtr<SimpleModuleData>())
+        , Data(MakeRWPtr<SimpleModuleData>(channels))
       {
       }
 
@@ -101,17 +101,16 @@ namespace Module
       SimpleModuleData::RWPtr Data;
     };
 
-    SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, PatternsBuilder builder)
+    SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, PatternsBuilder builder, uint_t channels)
     {
-      return MakePtr<SimpleDataBuilderImpl>(props, std::move(builder));
+      return MakePtr<SimpleDataBuilderImpl>(props, std::move(builder), channels);
     }
 
     class SimpleDataRenderer : public DAC::DataRenderer
     {
     public:
-      SimpleDataRenderer(SimpleModuleData::Ptr data, uint_t channels)
+      explicit SimpleDataRenderer(SimpleModuleData::Ptr data)
         : Data(std::move(data))
-        , Channels(channels)
       {
       }
 
@@ -131,7 +130,7 @@ namespace Module
       {
         if (const auto line = state.LineObject())
         {
-          for (uint_t chan = 0; chan != Channels; ++chan)
+          for (uint_t chan = 0; chan != Data->GetChannelsCount(); ++chan)
           {
             if (const auto src = line->GetChannel(chan))
             {
@@ -165,23 +164,20 @@ namespace Module
       }
     private:
       const SimpleModuleData::Ptr Data;
-      const uint_t Channels;
     };
 
     class SimpleChiptune : public DAC::Chiptune
     {
     public:
-      SimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels)
+      SimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties)
         : Data(std::move(data))
         , Properties(std::move(properties))
-        , Info(CreateTrackInfo(Data, channels))
-        , Channels(channels)
       {
       }
 
-      Information::Ptr GetInformation() const override
+      TrackModel::Ptr GetTrackModel() const override
       {
-        return Info;
+        return Data;
       }
 
       Parameters::Accessor::Ptr GetProperties() const override
@@ -191,28 +187,26 @@ namespace Module
 
       DAC::DataIterator::Ptr CreateDataIterator() const override
       {
-        auto iterator = CreateTrackStateIterator(Data);
-        auto renderer = MakePtr<SimpleDataRenderer>(Data, Channels);
+        auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
+        auto renderer = MakePtr<SimpleDataRenderer>(Data);
         return DAC::CreateDataIterator(std::move(iterator), std::move(renderer));
       }
 
-      void GetSamples(Devices::DAC::Chip::Ptr chip) const override
+      void GetSamples(Devices::DAC::Chip& chip) const override
       {
         for (uint_t idx = 0, lim = Data->Samples.Size(); idx != lim; ++idx)
         {
-          chip->SetSample(idx, Data->Samples.Get(idx));
+          chip.SetSample(idx, Data->Samples.Get(idx));
         }
       }
     private:
       const SimpleModuleData::Ptr Data;
       const Parameters::Accessor::Ptr Properties;
-      const Information::Ptr Info;
-      const uint_t Channels;
     };
 
-    DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties, uint_t channels)
+    DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties)
     {
-      return MakePtr<SimpleChiptune>(std::move(data), std::move(properties), channels);
+      return MakePtr<SimpleChiptune>(std::move(data), std::move(properties));
     }
   }
 }

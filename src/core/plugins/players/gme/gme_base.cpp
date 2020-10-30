@@ -79,6 +79,8 @@ namespace GME
     }
   }
 
+  using TimeBase = Time::Millisecond;
+
   struct GMETune
   {
     using Ptr = std::shared_ptr<GMETune>;
@@ -93,6 +95,7 @@ namespace GME
     EmuCreator CreateEmu;
     Dump Data;
     uint_t Track;
+    Time::Milliseconds Duration;
 
     ::track_info_t GetInfo() const
     {
@@ -103,6 +106,22 @@ namespace GME
       ::track_info_t info;
       CheckError(emu->track_info(&info, Track));
       return info;
+    }
+
+    void SetDuration(const ::track_info_t& info, const Parameters::Accessor& params)
+    {
+      if (info.length > 0)
+      {
+        Duration = Time::Duration<TimeBase>(info.length);
+      }
+      else if (info.loop_length > 0)
+      {
+        Duration = Time::Duration<TimeBase>(info.intro_length + info.loop_length);
+      }
+      else
+      {
+        Duration = GetDefaultDuration(params);
+      }
     }
   };
   
@@ -142,6 +161,11 @@ namespace GME
         Reload(soundFreq);
       }
     }
+
+    uint_t GetSoundFreq() const
+    {
+      return SoundFreq;
+    }
     
   private:
     void Load(uint_t soundFreq)
@@ -169,23 +193,23 @@ namespace GME
     EmuPtr Emu;
   };
   
+  const auto FRAME_DURATION = Time::Milliseconds(100);
+
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(GMETune::Ptr tune, StateIterator::Ptr iterator, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
-      : Iterator(std::move(iterator))
+    Renderer(GMETune::Ptr tune, Sound::Receiver::Ptr target, Parameters::Accessor::Ptr params)
+      : State(MakePtr<TimedState>(tune->Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , SoundParams(Sound::RenderParameters::Create(std::move(params)))
+      , Params(std::move(params))
       , Engine(std::move(tune))
       , Target(std::move(target))
-      , Looped()
     {
-      ApplyParameters();
     }
 
-    State::Ptr GetState() const override
+    Module::State::Ptr GetState() const override
     {
-      return Iterator->GetStateObserver();
+      return State;
     }
 
     Module::Analyzer::Ptr GetAnalyzer() const override
@@ -193,18 +217,18 @@ namespace GME
       return Analyzer;
     }
 
-    bool RenderFrame() override
+    bool RenderFrame(const Sound::LoopParameters& looped) override
     {
       try
       {
         ApplyParameters();
 
-        auto data = Engine.Render(SoundParams->SamplesPerFrame());
+        const auto avail = State->Consume(FRAME_DURATION, looped);
+        auto data = Engine.Render(GetSamples(avail));
         Analyzer->AddSoundData(data);
         Target->ApplyData(std::move(data));
 
-        Iterator->NextFrame(Looped);
-        return Iterator->IsValid();
+        return State->IsValid();
       }
       catch (const std::exception&)
       {
@@ -216,10 +240,9 @@ namespace GME
     {
       try
       {
-        SoundParams.Reset();
-        Iterator->Reset();
+        Params.Reset();
+        State->Reset();
         Engine.Reset();
-        Looped = {};
       }
       catch (const std::exception& e)
       {
@@ -227,63 +250,64 @@ namespace GME
       }
     }
 
-    void SetPosition(uint_t frame) override
+    void SetPosition(Time::AtMillisecond request) override
     {
       try
       {
-        SeekTune(frame);
+        SeekTune(request);
       }
       catch (const std::exception& e)
       {
         Dbg(e.what());
       }
-      Module::SeekIterator(*Iterator, frame);
     }
   private:
+    uint_t GetSamples(Time::Microseconds period) const
+    {
+      return period.Get() * Engine.GetSoundFreq() / period.PER_SECOND;
+    }
+
     void ApplyParameters()
     {
-      if (SoundParams.IsChanged())
+      if (Params.IsChanged())
       {
-        Looped = SoundParams->Looped();
-        Engine.SetSoundFreq(SoundParams->SoundFreq());
+        const auto freq = Sound::GetSoundFrequency(*Params);
+        Engine.SetSoundFreq(freq);
       }
     }
 
-    void SeekTune(uint_t frame)
+    void SeekTune(Time::AtMillisecond request)
     {
-      uint_t current = GetState()->Frame();
-      if (frame < current)
+      if (request < State->At())
       {
         Engine.Reset();
-        current = 0;
       }
-      if (const uint_t delta = frame - current)
+      const auto toSkip = State->Seek(request);
+      if (toSkip.Get())
       {
-        Engine.Skip(delta * SoundParams->SamplesPerFrame());
+        Engine.Skip(GetSamples(toSkip));
       }
     }
   private:
-    const StateIterator::Ptr Iterator;
+    const TimedState::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
-    Parameters::TrackingHelper<Sound::RenderParameters> SoundParams;
+    Parameters::TrackingHelper<Parameters::Accessor> Params;
     GME Engine;
     const Sound::Receiver::Ptr Target;
-    Sound::LoopParameters Looped;
   };
   
   class Holder : public Module::Holder
   {
   public:
-    Holder(GMETune::Ptr tune, Information::Ptr info, Parameters::Accessor::Ptr props)
+    Holder(GMETune::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
-      , Info(std::move(info))
       , Properties(std::move(props))
     {
     }
 
     Module::Information::Ptr GetModuleInformation() const override
     {
-      return Info;
+      return CreateTimedInfo(Tune->Duration);
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -295,7 +319,7 @@ namespace GME
     {
       try
       {
-        return MakePtr<Renderer>(Tune, Module::CreateStreamStateIterator(Info), target, params);
+        return MakePtr<Renderer>(Tune, std::move(target), std::move(params));
       }
       catch (const std::exception& e)
       {
@@ -304,7 +328,6 @@ namespace GME
     }
   private:
     const GMETune::Ptr Tune;
-    const Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
   
@@ -349,9 +372,7 @@ namespace GME
     }
   }
  
-  const auto PERIOD = Time::Milliseconds(20);
-  
-  Time::Milliseconds GetProperties(::track_info_t info, PropertiesHelper& props)
+  void GetProperties(const ::track_info_t& info, PropertiesHelper& props)
   {
     const auto system = Strings::OptimizeAscii(info.system);
     const auto song = Strings::OptimizeAscii(info.song);
@@ -369,20 +390,6 @@ namespace GME
     props.SetAuthor(author);
     props.SetComment(copyright);
     props.SetComment(comment);
-    props.SetFramesFrequency(PERIOD.ToFrequency());
-
-    if (info.length > 0)
-    {
-      return Time::Milliseconds(info.length);
-    }
-    else if (info.loop_length > 0)
-    {
-      return Time::Milliseconds(info.intro_length + info.loop_length);
-    }
-    else
-    {
-      return Time::Milliseconds();
-    }
   }
   
   class MultitrackFactory : public Module::Factory
@@ -408,21 +415,22 @@ namespace GME
           PropertiesHelper props(*properties);
           auto data = Desc.CreateData(*container);
           props.SetPlatform(Desc.DetectPlatform(data));
-          const GMETune::Ptr tune = MakePtr<GMETune>(Desc.CreateEmu, std::move(data), container->StartTrackIndex());
-          const auto storedDuration = GetProperties(tune->GetInfo(), props);
-          const auto duration = storedDuration == Time::Milliseconds(0) ? Time::Milliseconds(GetDuration(params)) : storedDuration;
-          const Information::Ptr info = CreateStreamInfo(duration.Divide<uint_t>(PERIOD));
-        
+          auto tune = MakePtr<GMETune>(Desc.CreateEmu, std::move(data), container->StartTrackIndex());
+
+          const auto info = tune->GetInfo();
+          GetProperties(info, props);
+          tune->SetDuration(info, params);
+
           props.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
         
-          return MakePtr<Holder>(tune, info, properties);
+          return MakePtr<Holder>(std::move(tune), std::move(properties));
         }
       }
       catch (const std::exception& e)
       {
         Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   private:
     static bool HasContainer(const String& type, Parameters::Accessor::Ptr params)
@@ -449,26 +457,26 @@ namespace GME
     {
       try
       {
-        if (const Formats::Chiptune::Container::Ptr container = Decoder->Decode(rawData))
+        if (const auto container = Decoder->Decode(rawData))
         {
           PropertiesHelper props(*properties);
           auto data = Desc.CreateData(*container);
           props.SetPlatform(Desc.DetectPlatform(data));
-          const GMETune::Ptr tune = MakePtr<GMETune>(Desc.CreateEmu, std::move(data), 0);
-          const auto storedDuration = GetProperties(tune->GetInfo(), props);
-          const auto duration = storedDuration == Time::Milliseconds(0) ? Time::Milliseconds(GetDuration(params)) : storedDuration;
-          const Information::Ptr info = CreateStreamInfo(duration.Divide<uint_t>(PERIOD));
-        
+          auto tune = MakePtr<GMETune>(Desc.CreateEmu, std::move(data), 0);
+          const auto info = tune->GetInfo();
+          GetProperties(info, props);
+          tune->SetDuration(info, params);
+       
           props.SetSource(*container);
         
-          return MakePtr<Holder>(tune, info, properties);
+          return MakePtr<Holder>(std::move(tune), std::move(properties));
         }
       }
       catch (const std::exception& e)
       {
         Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   private:
     const PluginDescription Desc;

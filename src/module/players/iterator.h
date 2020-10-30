@@ -37,8 +37,10 @@ namespace Module
   public:
     typedef std::shared_ptr<StateIterator> Ptr;
 
+    virtual uint_t CurrentFrame() const = 0;
+
     virtual State::Ptr GetStateObserver() const = 0;
   };
 
-  void SeekIterator(StateIterator& iter, uint_t frameNum);
+  void SeekIterator(Iterator& iter, State::Ptr state, Time::AtMillisecond pos);
 }

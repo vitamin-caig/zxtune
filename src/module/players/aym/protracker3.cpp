@@ -227,13 +227,22 @@ namespace ProTracker3
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-      , Info(CreateTrackInfo(Data, AYM::TRACK_CHANNELS))
     {
     }
 
-    Information::Ptr GetInformation() const override
+    Time::Microseconds GetFrameDuration() const override
     {
-      return Info;
+      return AYM::BASE_FRAME_DURATION;
+    }
+
+    TrackModel::Ptr FindTrackModel() const override
+    {
+      return Data;
+    }
+    
+    Module::StreamModel::Ptr FindStreamModel() const override
+    {
+      return {};
     }
 
     Parameters::Accessor::Ptr GetProperties() const override
@@ -243,14 +252,13 @@ namespace ProTracker3
 
     AYM::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams) const override
     {
-      const TrackStateIterator::Ptr iterator = CreateTrackStateIterator(Data);
-      const AYM::DataRenderer::Ptr renderer = CreateDataRenderer(Data, 0);
-      return AYM::CreateDataIterator(trackParams, iterator, renderer);
+      auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
+      auto renderer = CreateDataRenderer(Data, 0);
+      return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
-    const Information::Ptr Info;
   };
 
   namespace TS
@@ -442,13 +450,22 @@ namespace ProTracker3
       Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
         : Data(std::move(data))
         , Properties(std::move(properties))
-        , Info(CreateTrackInfo(Data, TurboSound::TRACK_CHANNELS))
       {
       }
 
-      Information::Ptr GetInformation() const override
+      Time::Microseconds GetFrameDuration() const override
       {
-        return Info;
+        return AYM::BASE_FRAME_DURATION;
+      }
+
+      TrackModel::Ptr FindTrackModel() const override
+      {
+        return Data;
+      }
+      
+      Module::StreamModel::Ptr FindStreamModel() const override
+      {
+        return {};
       }
 
       Parameters::Accessor::Ptr GetProperties() const override
@@ -458,14 +475,13 @@ namespace ProTracker3
 
       TurboSound::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr /*second*/) const override
       {
-        auto iterator = CreateTrackStateIterator(Data);
+        auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
         return MakePtr<DataIterator>(std::move(first), std::move(iterator), 
           Vortex::CreateDataRenderer(Data, 0), Vortex::CreateDataRenderer(Data, AYM::TRACK_CHANNELS));
       }
     private:
       const ModuleData::Ptr Data;
       const Parameters::Accessor::Ptr Properties;
-      const Information::Ptr Info;
     };
   }
 
@@ -477,7 +493,7 @@ namespace ProTracker3
     {
     }
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -501,7 +517,7 @@ namespace ProTracker3
           return AYM::CreateHolder(std::move(chiptune));
         }
       }
-      return Holder::Ptr();
+      return {};
     }
   private:
     const Formats::Chiptune::ProTracker3::Decoder::Ptr Decoder;

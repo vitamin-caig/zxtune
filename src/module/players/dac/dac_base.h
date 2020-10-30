@@ -15,7 +15,6 @@
 //library includes
 #include <module/renderer.h>
 #include <module/players/tracking.h>
-#include <sound/render_params.h>
 
 namespace Module
 {
@@ -107,6 +106,6 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-    Renderer::Ptr CreateRenderer(Sound::RenderParameters::Ptr params, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);
   }
 }

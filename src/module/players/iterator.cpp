@@ -15,18 +15,15 @@
 
 namespace Module
 {
-  void SeekIterator(StateIterator& iter, uint_t frameNum)
+  void SeekIterator(Iterator& iter, State::Ptr state, Time::AtMillisecond request)
   {
-    uint_t curFrame = iter.GetStateObserver()->Frame();
-    if (curFrame > frameNum)
+    if (request < state->At())
     {
       iter.Reset();
-      curFrame = 0;
     }
-    while (curFrame < frameNum && iter.IsValid())
+    while (state->At() < request && iter.IsValid())
     {
       iter.NextFrame({});
-      ++curFrame;
     }
   }
 }

@@ -33,10 +33,10 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_close
 
 /*
  * Class:     app_zxtune_core_jni_JniModule
- * Method:    getDuration
+ * Method:    getDurationMs
  * Signature: ()I
  */
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniModule_getDuration
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniModule_getDurationMs
   (JNIEnv *, jobject);
 
 /*

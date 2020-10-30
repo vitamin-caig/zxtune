@@ -164,13 +164,6 @@ extern const Char ERROR_INVALID_PARAMETER[] = {
   'I','n','v','a','l','i','d',' ','p','a','r','a','m','e','t','e','r',' ','\'','%','1','%','\'',' ','i','n',' ',
   'p','a','r','a','m','e','t','e','r',' ','s','t','r','i','n','g',' ','\'','%','2','%','\'','.',0
 };
-extern const Char FRAMEDURATION_DESC[] = {
-  's','p','e','c','i','f','y',' ','f','r','a','m','e',' ','d','u','r','a','t','i','o','n',' ','i','n',' ','u',
-  'S',0
-};
-extern const Char FRAMEDURATION_KEY[] = {
-  'f','r','a','m','e','d','u','r','a','t','i','o','n',0
-};
 extern const Char FREQTABLE_DESC[] = {
   's','p','e','c','i','f','y',' ','f','r','e','q','u','e','n','c','y',' ','t','a','b','l','e',0
 };
@@ -644,10 +637,6 @@ extern const Char INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE[] = {
   'd','e','v','i','c','e',' ','i','n','d','e','x',' ','f','o','r',' ','w','i','n','3','2',' ','b','a','c','k',
   'e','n','d',0
 };
-extern const Char INFO_OPTIONS_SOUND_FRAMEDURATION[] = {
-  'f','r','a','m','e',' ','d','u','r','a','t','i','o','n',' ','i','n',' ','m','i','c','r','o','s','e','c','o',
-  'n','d','s',0
-};
 extern const Char INFO_OPTIONS_SOUND_FREQUENCY[] = {
   's','o','u','n','d',' ','f','r','e','q','u','e','n','c','y',' ','i','n',' ','H','z',0
 };
@@ -738,8 +727,8 @@ extern const Char ITEM_INFO[] = {
 };
 extern const Char ITEM_INFO_ADDON[] = {
   '\n',
-  'T','i','m','e',':',' ',' ',' ',' ','%','1','%','\t','C','h','a','n','n','e','l','s',':',' ',' ','%','2','%',
-  '\n',
+  'T','i','m','e',':',' ',' ',' ',' ','%','1','%','\t','L','o','o','p',' ','d','u','r','a','t','i','o','n',':',
+  ' ',' ','%','2','%','\n',
   0
 };
 extern const Char LOOP_DESC[] = {

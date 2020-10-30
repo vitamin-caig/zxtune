@@ -8,8 +8,6 @@
 *
 **/
 
-#pragma once
-
 //local includes
 #include <core/plugins/players/plugins_list.h>
 

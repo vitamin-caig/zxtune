@@ -14,6 +14,11 @@
 #include <module/analyzer.h>
 #include <module/state.h>
 
+namespace Sound
+{
+  struct LoopParameters;
+}
+
 namespace Module
 {
   //! @brief %Module player interface
@@ -33,15 +38,15 @@ namespace Module
 
     //! @brief Rendering single frame and modifying internal state
     //! @return true if next frame can be rendered
-    virtual bool RenderFrame() = 0;
+    virtual bool RenderFrame(const Sound::LoopParameters& looped) = 0;
 
     //! @brief Performing reset to initial state
     virtual void Reset() = 0;
 
     //! @brief Seeking
-    //! @param frame Number of specified frame
+    //! @param position to seek
     //! @note Seeking out of range is safe, but state will be MODULE_PLAYING untill next RenderFrame call happends.
     //! @note It produces only the flush
-    virtual void SetPosition(uint_t frame) = 0;
+    virtual void SetPosition(Time::AtMillisecond position) = 0;
   };
 }
