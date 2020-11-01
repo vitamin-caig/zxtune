@@ -122,14 +122,16 @@ public final class Scanner {
     }
   }
 
+  //TODO: reuse VfsPlaylistDir
   private boolean analyzePlaylistFile(VfsFile file, Callback cb) throws IOException {
-    final String filename = file.getUri().getLastPathSegment();
+    final Uri uri = file.getUri();
+    final String filename = uri.getLastPathSegment();
     if (filename == null) {
       return false;
     } else if (filename.endsWith(".ayl")) {
       analyzePlaylist(file.getUri(), AylIterator.create(Vfs.read(file)), cb);
       return true;
-    } else if (filename.endsWith(".xspf")) {
+    } else if (filename.endsWith(".xspf") || "playlists".equals(uri.getScheme())) {
       analyzePlaylist(file.getUri(), XspfIterator.create(Vfs.read(file)), cb);
       return true;
     } else {
