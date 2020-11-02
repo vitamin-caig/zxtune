@@ -5,6 +5,14 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4970 from 02.11.2020
+
+[+] Added fadein, fadeout and preamp control
+[*] Reworked modules duration and playback position processing 
+[*] zxtune-android: fixed selection menu for browser
+[*] zxtune-android: fixed saved playlists navigation
+[*] zxtune-android: fixed high memory usage while scanning
+
 --- Rev4960 from 10.08.2020
 
 [+] Added support of S98 format
