@@ -1,0 +1,15 @@
+Title: 
+Game: Bakukyuu Renpatsu!! Super B-Dama
+Dumper: Knurek
+Comment: 
+Dump date: 05/16/2007
+Loop: 0:29.00
+Fade: 0:00.00
+Artist: Hudson Soft Sound Team
+Registers: PC=0x2961 A=0x80 X=0x0a Y=0x00 PSW=0xc1 SP=0x38
+RAM,bytes: 65536
+DSP registers,bytes: 128
+ExtraRAM,bytes: 64
+Game: Bakukyuu Renpatsu!! Super B-Daman
+Intro: 0:29.00
+66128 bytes total

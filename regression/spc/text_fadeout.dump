@@ -1,0 +1,16 @@
+Title: Despair
+Game: Dragon View
+Dumper: YK
+Comment: 
+Dump date: 
+Loop: 0:51.00
+Fade: 0:06.00
+Artist: M. Takenaka, N. Komatsu, T. Seki
+Registers: PC=0x0840 A=0x00 X=0x4e Y=0x02 PSW=0x80 SP=0xcf
+RAM,bytes: 65536
+DSP registers,bytes: 128
+ExtraRAM,bytes: 64
+Artist: M. Takenaka, N. Komatsu, T. Sekido, Mercado Inc. Staff
+Intro: 0:51.00
+Fade: 0:06.00
+66148 bytes total

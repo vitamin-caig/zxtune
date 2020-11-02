@@ -1,0 +1,15 @@
+Title: Caves
+Game: Secret of the Stars
+Dumper: CaitSith2
+Comment: Aqutallion (J)
+Dump date: 12/26/2001
+Loop: 1:19.00
+Fade: 0:09.00
+Artist: Tukushi Sasaki
+Registers: PC=0x0888 A=0x00 X=0x63 Y=0x02 PSW=0x03 SP=0xcf
+RAM,bytes: 65536
+DSP registers,bytes: 128
+ExtraRAM,bytes: 64
+Intro: 1:19.00
+Fade: 0:09.00
+66088 bytes total

@@ -26,7 +26,7 @@ namespace
     const Parameters::Container::Ptr emptyParams = Parameters::Container::Create();
     const String filename = fullPath;//TODO: split if required
     const Binary::Container::Ptr data = IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub());
-    return Module::Open(*emptyParams, *data);
+    return Module::Open(*emptyParams, *data, Parameters::Container::Create());
   }
 
   void ShowModuleInfo(const Module::Information& info)

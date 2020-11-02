@@ -1,0 +1,15 @@
+Title: 
+Game: Puzzle'n Desu!
+Dumper: Knurek
+Comment: 
+Dump date: 
+Loop: 0:03.00
+Fade: 0:01.00
+Artist: Nichibutsu Sound Team
+Registers: PC=0x086d A=0x0f X=0x4e Y=0x03 PSW=0x03 SP=0xcf
+RAM,bytes: 65536
+DSP registers,bytes: 128
+ExtraRAM,bytes: 64
+Intro: 0:03.00
+Fade: 0:01.00
+66092 bytes total

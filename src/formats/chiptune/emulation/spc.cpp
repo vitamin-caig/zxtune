@@ -21,11 +21,10 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/chiptune.h>
+#include <strings/format.h>
 #include <strings/optimize.h>
 //std includes
 #include <array>
-//boost includes
-#include <boost/lexical_cast.hpp>
 //text includes
 #include <formats/text/chiptune.h>
 
@@ -54,25 +53,38 @@ namespace Chiptune
       return GetString(str, str + D);
     }
     
-    inline bool IsValidDate(const String& str)
+    inline bool IsValidString(StringView str)
     {
-      return String::npos == str.find_first_not_of("0123456789/-");
-    }
-    
-    inline bool IsValidDigits(const String& str)
-    {
-      return String::npos == str.find_first_not_of("0123456789");
-    }
-    
-    inline String DateFromInteger(uint_t val)
-    {
-      String result(8, ' ');
-      for (char & pos : result)
+      bool finished = false;
+      for (const auto sym : str)
       {
-        pos = '0' + (val & 15);
-        val >>= 4;
+        if (sym == 0)
+        {
+          finished = true;
+        }
+        else if (sym < ' ' || finished)
+        {
+          return false;
+        }
       }
-      return result;
+      return true;
+    }
+
+    inline bool IsValidDigitsString(StringView str)
+    {
+      bool finished = false;
+      for (const auto sym : str)
+      {
+        if (sym == 0)
+        {
+          finished = true;
+        }
+        else if (sym < '0' || sym > '9' || finished)
+        {
+          return false;
+        }
+      }
+      return true;
     }
 
     inline uint_t ToInt(const String& str)
@@ -81,15 +93,16 @@ namespace Chiptune
       {
         return 0;
       }
-      else if (IsValidDigits(str))
+      else if (IsValidDigitsString(str))
       {
-        return boost::lexical_cast<uint_t>(str);
+        return std::stoul(str);
       }
       else
       {
         return ~uint_t(0);
       }
     }
+
     
     using Tick = Time::BaseUnit<uint_t, 64000>;
     
@@ -117,17 +130,33 @@ namespace Chiptune
     
     PACK_PRE struct ID666TextTag
     {
+      // +0x00
       char Song[32];
+      // +0x20
       char Game[32];
+      // +0x40
       char Dumper[16];
+      // +0x50
       char Comments[32];
-      char DumpDate[11];//MM/DD/YYYY or MM-DD-YYY or empty???
+      // +0x70
+      char DumpDate[11];//Almost arbitrary format
+      // +0x7b
       char FadeTimeSec[3];
+      // +0x7e
       char FadeDurationMs[5];
+      // +0x83
       char Artist[32];
+      // +0xa3
       uint8_t DisableDefaultChannel;//1-do
       uint8_t Emulator;
       uint8_t Reserved[45];
+
+      bool IsValid() const
+      {
+        return IsValidString(DumpDate)
+            && IsValidDigitsString(FadeTimeSec)
+            && IsValidDigitsString(FadeDurationMs);
+      }
       
       String GetDumpDate() const
       {
@@ -136,37 +165,78 @@ namespace Chiptune
       
       Time::Seconds GetFadeTime() const
       {
-        const String& str = GetString(FadeTimeSec);
+        const auto& str = GetString(FadeTimeSec);
         const uint_t val = ToInt(str);
         return Time::Seconds(val);
       }
       
       Time::Milliseconds GetFadeDuration() const
       {
-        const String& str = GetString(FadeDurationMs);
+        const auto& str = GetString(FadeDurationMs);
         const uint_t val = ToInt(str);
         return Time::Milliseconds(val);
+      }
+    } PACK_POST;
+
+    PACK_PRE struct BinaryDate
+    {
+      uint8_t Day;
+      uint8_t Month;
+      uint16_t Year;
+
+      bool IsEmpty() const
+      {
+        return Day == 0 && Month == 0 && Year == 0;
+      }
+
+      bool IsValid() const
+      {
+        return Math::InRange<uint_t>(Day, 1, 31)
+            && Math::InRange<uint_t>(Month, 1, 12)
+            && Math::InRange<uint_t>(fromLE(Year), 1980, 2100);
+      }
+
+      String ToString() const
+      {
+        return (IsEmpty() || !IsValid())
+          ? String()
+          : Strings::Format("%02u/%02u/%04u", uint_t(Month), uint_t(Day), uint_t(fromLE(Year)));
       }
     } PACK_POST;
     
     PACK_PRE struct ID666BinTag
     {
+      // +0x00
       char Song[32];
+      // +0x20
       char Game[32];
+      // +0x40
       char Dumper[16];
+      // +0x50
       char Comments[32];
-      uint32_t DumpDate;//YYYYMMDD
+      // +0x70
+      BinaryDate DumpDate;
+      // +0x74
       uint8_t Unused[7];
+      // +0x7b
       uint8_t FadeTimeSec[3];
+      // +0x7e
       uint32_t FadeDurationMs;
+      // +0x82
       char Artist[32];
       uint8_t DisableDefaultChannel;//1-do
       uint8_t Emulator;
       uint8_t Reserved[46];
-      
+
+      bool IsValid() const
+      {
+        return (DumpDate.IsEmpty() || DumpDate.IsValid())
+            && IsValidString(Artist);
+      }
+
       String GetDumpDate() const
       {
-        return DateFromInteger(fromLE(DumpDate));
+        return DumpDate.ToString();
       }
 
       Time::Seconds GetFadeTime() const
@@ -177,7 +247,7 @@ namespace Chiptune
       
       Time::Milliseconds GetFadeDuration() const
       {
-        return Time::Milliseconds(FadeDurationMs);
+        return Time::Milliseconds(fromLE(FadeDurationMs));
       }
     } PACK_POST;
     
@@ -238,7 +308,7 @@ namespace Chiptune
         GameName,
         ArtistName,
         DumperName,
-        //Integer
+        //Integer (BinaryDate)
         Date,
         //Length
         Emulator,
@@ -267,6 +337,14 @@ namespace Chiptune
       uint_t GetDataSize() const
       {
         return Type != Length ? fromLE(DataSize) : 0;
+      }
+
+      BinaryDate GetDate() const
+      {
+        Require(Type == Integer && DataSize == sizeof(uint32_t));
+        BinaryDate result;
+        std::memcpy(&result, this + 1, sizeof(result));
+        return result;
       }
       
       uint_t GetInteger() const
@@ -387,14 +465,14 @@ namespace Chiptune
     
     struct Tag
     {
-      const String Song;
-      const String Game;
-      const String Dumper;
-      const String Comments;
-      const String DumpDate;
-      const Time::Seconds FadeTime;
-      const Time::Milliseconds FadeDuration;
-      const String Artist;
+      String Song;
+      String Game;
+      String Dumper;
+      String Comments;
+      String DumpDate;
+      Time::Seconds FadeTime;
+      Time::Milliseconds FadeDuration;
+      String Artist;
       
       template<class T>
       explicit Tag(const T& tag)
@@ -411,11 +489,7 @@ namespace Chiptune
       
       uint_t GetScore() const
       {
-        return Song.size()
-             + Game.size()
-             + Dumper.size()
-             + Comments.size()
-             + DumpDate.size() * IsValidDate(DumpDate)
+        return Artist.size()
              + 100 * IsValidTime(FadeTime)
              + 100 * IsValidTime(FadeDuration)
         ;
@@ -475,7 +549,12 @@ namespace Chiptune
       {
         Tag text(tag.TextTag);
         Tag bin(tag.BinTag);
-        if (text.GetScore() >= bin.GetScore())
+        const auto textIsValid = tag.TextTag.IsValid();
+        const auto binIsValid = tag.BinTag.IsValid();
+        const auto useText = textIsValid == binIsValid
+          ? text.GetScore() >= bin.GetScore()
+          : textIsValid;
+        if (useText)
         {
           Dbg("Parse text ID666");
           ParseID666(text, target);
@@ -494,7 +573,7 @@ namespace Chiptune
         target.SetDumper(std::move(tag.Dumper));
         target.SetComment(std::move(tag.Comments));
         target.SetDumpDate(std::move(tag.DumpDate));
-        target.SetIntro(tag.FadeTime);
+        target.SetLoop(tag.FadeTime);
         target.SetFade(tag.FadeDuration);
         target.SetArtist(std::move(tag.Artist));
       }
@@ -543,7 +622,7 @@ namespace Chiptune
             target.SetDumper(hdr.GetString());
             break;
           case SubChunkHeader::Date:
-            target.SetDumpDate(DateFromInteger(hdr.GetInteger()));
+            target.SetDumpDate(hdr.GetDate().ToString());
             break;
           case SubChunkHeader::Comments:
             target.SetComment(hdr.GetString());
