@@ -23,15 +23,15 @@ namespace Binary
       typedef std::unique_ptr<FormatTokensVisitor> Ptr;
       virtual ~FormatTokensVisitor() = default;
 
-      virtual void Match(const std::string& val) = 0;
+      virtual void Match(StringView val) = 0;
       virtual void GroupStart() = 0;
       virtual void GroupEnd() = 0;
       virtual void Quantor(uint_t count) = 0;
-      virtual void Operation(const std::string& op) = 0;
+      virtual void Operation(StringView op) = 0;
     };
 
-    void ParseFormatNotation(const std::string& notation, FormatTokensVisitor& visitor);
-    void ParseFormatNotationPostfix(const std::string& notation, FormatTokensVisitor& visitor);
+    void ParseFormatNotation(StringView notation, FormatTokensVisitor& visitor);
+    void ParseFormatNotationPostfix(StringView notation, FormatTokensVisitor& visitor);
     FormatTokensVisitor::Ptr CreatePostfixSyntaxCheckAdapter(FormatTokensVisitor& visitor);
   }
 }

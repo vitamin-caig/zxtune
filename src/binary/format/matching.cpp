@@ -128,14 +128,14 @@ namespace Binary
 
 namespace Binary
 {
-  Format::Ptr CreateMatchOnlyFormat(const std::string& pattern)
+  Format::Ptr CreateMatchOnlyFormat(StringView pattern)
   {
     return CreateMatchOnlyFormat(pattern, 0);
   }
 
-  Format::Ptr CreateMatchOnlyFormat(const std::string& pattern, std::size_t minSize)
+  Format::Ptr CreateMatchOnlyFormat(StringView pattern, std::size_t minSize)
   {
-    const FormatDSL::Expression::Ptr expr = FormatDSL::Expression::Parse(pattern);
+    const auto expr = FormatDSL::Expression::Parse(pattern);
     return CreateMatchingFormatFromPredicates(*expr, minSize);
   }
 }

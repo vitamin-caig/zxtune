@@ -26,7 +26,7 @@ namespace LexicalAnalysis
     typedef std::unique_ptr<const TokensSet> Ptr;
     typedef std::unique_ptr<TokensSet> RWPtr;
 
-    explicit TokensSet(std::string lexeme)
+    explicit TokensSet(StringView lexeme)
       : Lexeme(std::move(lexeme))
     {
     }
@@ -59,7 +59,7 @@ namespace LexicalAnalysis
       }
     }
   private:
-    const std::string Lexeme;
+    const StringView Lexeme;
     TokenTypesSet Types;
   };
 
@@ -71,11 +71,11 @@ namespace LexicalAnalysis
       Sources.push_back(std::move(src));
     }
 
-    void Analyse(const std::string& notation, Callback& cb) const override
+    void Analyse(StringView notation, Callback& cb) const override
     {
-      for (std::string::const_iterator cursor = notation.begin(), lim = notation.end(); cursor != lim; )
+      for (auto cursor = notation.begin(), lim = notation.end(); cursor != lim; )
       {
-        if (const TokensSet::Ptr tokens = ExtractLongestTokens(cursor, lim))
+        if (const auto tokens = ExtractLongestTokens(cursor, lim))
         {
           tokens->Report(cb);
           cursor += tokens->LexemeSize();
@@ -88,15 +88,15 @@ namespace LexicalAnalysis
       }
     }
   private:
-    TokensSet::Ptr ExtractLongestTokens(std::string::const_iterator lexemeStart, std::string::const_iterator lim) const
+    TokensSet::Ptr ExtractLongestTokens(StringView::const_iterator lexemeStart, StringView::const_iterator lim) const
     {
       TokensSet::Ptr result;
       std::vector<const Tokenizer*> candidates(Sources.size());
       std::transform(Sources.begin(), Sources.end(), candidates.begin(),
           [](const Tokenizer::Ptr& obj) {return obj.get();});
-      for (std::string::const_iterator lexemeEnd = lexemeStart + 1; !candidates.empty(); ++lexemeEnd)
+      for (auto lexemeEnd = lexemeStart + 1; !candidates.empty(); ++lexemeEnd)
       {
-        const std::string lexeme(lexemeStart, lexemeEnd);
+        const StringView lexeme(lexemeStart, lexemeEnd);
         auto tokens = MakeRWPtr<TokensSet>(lexeme);
         std::vector<const Tokenizer*> passedCandidates;
         passedCandidates.reserve(candidates.size());

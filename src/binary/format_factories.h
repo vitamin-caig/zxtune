@@ -10,10 +10,10 @@
 
 #pragma once
 
+//common includes
+#include <types.h>
 //library includes
 #include <binary/format.h>
-//std includes
-#include <string>
 
 namespace Binary
 {
@@ -47,9 +47,9 @@ namespace Binary
   space_char   ::= ' ' | '\t' | '\n' | '\r'
   */
 
-  Format::Ptr CreateFormat(const std::string& pattern);
-  Format::Ptr CreateFormat(const std::string& pattern, std::size_t minSize);
+  Format::Ptr CreateFormat(StringView pattern);
+  Format::Ptr CreateFormat(StringView pattern, std::size_t minSize);
   Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset);
-  Format::Ptr CreateMatchOnlyFormat(const std::string& pattern);
-  Format::Ptr CreateMatchOnlyFormat(const std::string& pattern, std::size_t minSize);
+  Format::Ptr CreateMatchOnlyFormat(StringView pattern);
+  Format::Ptr CreateMatchOnlyFormat(StringView pattern, std::size_t minSize);
 }

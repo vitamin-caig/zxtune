@@ -246,14 +246,14 @@ namespace Binary
 
 namespace Binary
 {
-  Format::Ptr CreateFormat(const std::string& pattern)
+  Format::Ptr CreateFormat(StringView pattern)
   {
     return CreateFormat(pattern, 0);
   }
 
-  Format::Ptr CreateFormat(const std::string& pattern, std::size_t minSize)
+  Format::Ptr CreateFormat(StringView pattern, std::size_t minSize)
   {
-    const FormatDSL::Expression::Ptr expr = FormatDSL::Expression::Parse(pattern);
+    const auto expr = FormatDSL::Expression::Parse(pattern);
     return CreateScanningFormatFromPredicates(*expr, minSize);
   }
 }

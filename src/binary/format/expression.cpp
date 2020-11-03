@@ -29,7 +29,7 @@ namespace Binary
 {
 namespace FormatDSL
 {
-  typedef RangeIterator<std::string::const_iterator> PatternIterator;
+  typedef RangeIterator<StringView::const_iterator> PatternIterator;
 
   class AnyValuePredicate : public Predicate
   {
@@ -306,7 +306,7 @@ namespace FormatDSL
     return mult;
   }
 
-  Predicate::Ptr ParseSinglePredicate(const std::string& txt)
+  Predicate::Ptr ParseSinglePredicate(StringView txt)
   {
     PatternIterator it(txt.begin(), txt.end());
     Require(it);
@@ -325,7 +325,7 @@ namespace FormatDSL
     }
   }
 
-  Predicate::Ptr ParseOperation(const std::string& txt, Pattern& pat)
+  Predicate::Ptr ParseOperation(StringView txt, Pattern& pat)
   {
     Require(!txt.empty());
     if (txt[0] == RANGE_TEXT ||
@@ -357,7 +357,7 @@ namespace FormatDSL
   class PredicatesFactory : public FormatTokensVisitor
   {
   public:
-    void Match(const std::string& val) override
+    void Match(StringView val) override
     {
       Result.push_back(ParseSinglePredicate(val));
       Require(!IsNoByte(*Result.back()));
@@ -397,7 +397,7 @@ namespace FormatDSL
       }
     }
 
-    void Operation(const std::string& op) override
+    void Operation(StringView op) override
     {
       Result.emplace_back(ParseOperation(op, Result));
       Require(!IsAnyByte(*Result.back()));
@@ -415,7 +415,7 @@ namespace FormatDSL
     std::stack<std::pair<std::size_t, std::size_t> > Groups;
   };
 
-  Pattern CompilePattern(const std::string& textPattern)
+  Pattern CompilePattern(StringView textPattern)
   {
     PredicatesFactory factory;
     const FormatTokensVisitor::Ptr check = CreatePostfixSyntaxCheckAdapter(factory);
@@ -452,7 +452,7 @@ namespace Binary
 {
 namespace FormatDSL
 {
-  Expression::Ptr Expression::Parse(const std::string& notation)
+  Expression::Ptr Expression::Parse(StringView notation)
   {
     auto pat = CompilePattern(notation);
     const auto first = pat.begin();

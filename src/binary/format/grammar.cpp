@@ -20,16 +20,16 @@ namespace Binary
 {
 namespace FormatDSL
 {
-  const std::string BINDIGITS("01");
-  const std::string DIGITS = BINDIGITS + "23456789";
-  const std::string HEXDIGITS = DIGITS + "abcdefABCDEF";
+  const StringView HEX_TOKENS("xX0123456789abcdefABCDEF");
+  const auto HEXDIGITS = HEX_TOKENS.substr(2);
+  const auto DIGITS = HEXDIGITS.substr(0, 10);
 
   class SpaceDelimitersTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
+    LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      static const std::string SPACES(" \n\t\r");
+      static const StringView SPACES(" \n\t\r");
       return lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(SPACES)
         ? LexicalAnalysis::INVALID_TOKEN
         : DELIMITER;
@@ -39,9 +39,9 @@ namespace FormatDSL
   class SymbolDelimitersTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
+    LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      static const char DELIMITERS[] = {DELIMITER_TEXT, 0};
+      static const StringView DELIMITERS(&DELIMITER_TEXT, 1);
       return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(DELIMITERS)
         ? LexicalAnalysis::INVALID_TOKEN
         : DELIMITER;
@@ -51,7 +51,7 @@ namespace FormatDSL
   class DecimalNumbersTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
+    LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
       return lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(DIGITS)
         ? LexicalAnalysis::INVALID_TOKEN
@@ -62,7 +62,7 @@ namespace FormatDSL
   class CharacterTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
+    LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
       return lexeme.empty() || lexeme[0] != SYMBOL_TEXT
         ? LexicalAnalysis::INVALID_TOKEN
@@ -73,9 +73,9 @@ namespace FormatDSL
   class AnyMaskTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
+    LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      static const char MASKS[] = {ANY_BYTE_TEXT, 0};
+      static const StringView MASKS(&ANY_BYTE_TEXT, 1);
       return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(MASKS)
         ? LexicalAnalysis::INVALID_TOKEN
         : MASK;
@@ -85,10 +85,10 @@ namespace FormatDSL
   class BinaryMaskTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
+    LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      static const std::string ANY_BITS = std::string(1, ANY_BIT_TEXT) + char(std::toupper(ANY_BIT_TEXT));
-      static const std::string BITMATCHES = BINDIGITS + ANY_BITS;
+      static const auto BITMATCHES = HEX_TOKENS.substr(0, 4);
+      static const auto ANY_BITS = BITMATCHES.substr(0, 2);
       const std::size_t SIZE = 9;
       if (lexeme.empty() || lexeme[0] != BINARY_MASK_TEXT || lexeme.npos != lexeme.find_first_not_of(BITMATCHES, 1) || lexeme.size() > SIZE)
       {
@@ -108,10 +108,9 @@ namespace FormatDSL
   class HexadecimalMaskTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
+    LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      static const std::string ANY_NIBBLES = std::string(1, ANY_NIBBLE_TEXT) + char(std::toupper(ANY_NIBBLE_TEXT));
-      static const std::string HEX_TOKENS = HEXDIGITS + ANY_NIBBLES;
+      static const auto ANY_NIBBLES = HEX_TOKENS.substr(0, 2);
       if (lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(HEX_TOKENS))
       {
         return LexicalAnalysis::INVALID_TOKEN;
@@ -130,7 +129,7 @@ namespace FormatDSL
   class MultiplicityMaskTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
+    LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
       if (lexeme.empty() || lexeme[0] != MULTIPLICITY_TEXT)
       {
@@ -152,7 +151,7 @@ namespace FormatDSL
   class OperationTokenizer : public LexicalAnalysis::Tokenizer
   {
   public:
-    LexicalAnalysis::TokenType Parse(const std::string& lexeme) const override
+    LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
       static const char OPERATIONS[] = {RANGE_TEXT, CONJUNCTION_TEXT, DISJUNCTION_TEXT,
         QUANTOR_BEGIN, QUANTOR_END, GROUP_BEGIN, GROUP_END, 0};
@@ -184,7 +183,7 @@ namespace FormatDSL
       return Delegate->AddTokenizer(std::move(tokenizer));
     }
 
-    void Analyse(const std::string& notation, LexicalAnalysis::Grammar::Callback& cb) const override
+    void Analyse(StringView notation, LexicalAnalysis::Grammar::Callback& cb) const override
     {
       return Delegate->Analyse(notation, cb);
     }

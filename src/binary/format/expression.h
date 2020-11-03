@@ -15,7 +15,6 @@
 //std includes
 #include <list>
 #include <memory>
-#include <string>
 
 namespace Binary
 {
@@ -41,7 +40,7 @@ namespace Binary
       virtual std::size_t StartOffset() const = 0;
       virtual const Pattern& Predicates() const = 0;
 
-      static Ptr Parse(const std::string& notation);
+      static Ptr Parse(StringView notation);
     };
   }
 }
