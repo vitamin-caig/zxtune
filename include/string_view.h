@@ -117,7 +117,7 @@ public:
       : res - start;
   }
   
-  size_type find(const basic_string_view& rh, size_type pos = 0) const
+  size_type find(basic_string_view rh, size_type pos = 0) const
   {
     const auto begin = start + pos;
     if (begin >= finish)
@@ -128,6 +128,32 @@ public:
     return res >= finish
       ? npos
       : res - start;
+  }
+
+  size_type find_first_of(basic_string_view rh, size_type pos = 0) const
+  {
+    for (auto it = start + pos; it < finish; ++it)
+    {
+      const auto res = std::find(rh.begin(), rh.end(), *it);
+      if (res < rh.end())
+      {
+        return it - start;
+      }
+    }
+    return npos;
+  }
+
+  size_type find_first_not_of(basic_string_view rh, size_type pos = 0) const
+  {
+    for (auto it = start + pos; it < finish; ++it)
+    {
+      const auto res = std::find(rh.begin(), rh.end(), *it);
+      if (res >= rh.end())
+      {
+        return it - start;
+      }
+    }
+    return npos;
   }
   
   C operator [] (size_type pos) const
