@@ -37,8 +37,8 @@ namespace Packed
 
     struct Version61
     {
-      static const String DESCRIPTION;
-      static const std::string DEPACKER_PATTERN;
+      static const StringView DESCRIPTION;
+      static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -74,8 +74,8 @@ namespace Packed
 
     struct Version61i
     {
-      static const String DESCRIPTION;
-      static const std::string DEPACKER_PATTERN;
+      static const StringView DESCRIPTION;
+      static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -111,8 +111,8 @@ namespace Packed
     
     struct Version62
     {
-      static const String DESCRIPTION;
-      static const std::string DEPACKER_PATTERN;
+      static const StringView DESCRIPTION;
+      static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -146,8 +146,8 @@ namespace Packed
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
     };
 
-    const String Version61::DESCRIPTION = Text::PCD61_DECODER_DESCRIPTION;
-    const std::string Version61::DEPACKER_PATTERN =
+    const StringView Version61::DESCRIPTION = Text::PCD61_DECODER_DESCRIPTION;
+    const StringView Version61::DEPACKER_PATTERN =
       "?"       // di/nop
       "21??"    // ld hl,xxxx 0xc017   depacker src
       "11??"    // ld de,xxxx 0xbf00   depacker target
@@ -185,8 +185,8 @@ namespace Packed
       "18f1"    // jr ...
     ;
 
-    const String Version61i::DESCRIPTION = Text::PCD61i_DECODER_DESCRIPTION;
-    const std::string Version61i::DEPACKER_PATTERN =
+    const StringView Version61i::DESCRIPTION = Text::PCD61i_DECODER_DESCRIPTION;
+    const StringView Version61i::DEPACKER_PATTERN =
       "?"       // di/nop
       "21??"    // ld hl,xxxx 0x7017   depacker src
       "11??"    // ld de,xxxx 0xc000   depacker target
@@ -218,8 +218,8 @@ namespace Packed
       "18f1"    // jr ...
     ;
     
-    const String Version62::DESCRIPTION = Text::PCD62_DECODER_DESCRIPTION;
-    const std::string Version62::DEPACKER_PATTERN =
+    const StringView Version62::DESCRIPTION = Text::PCD62_DECODER_DESCRIPTION;
+    const StringView Version62::DEPACKER_PATTERN =
       "?"       // di/nop
       "21??"    // ld hl,xxxx 0x6026   depacker src
       "11??"    // ld de,xxxx 0x5b00   depacker target
@@ -490,7 +490,7 @@ namespace Packed
 
     String GetDescription() const override
     {
-      return Version::DESCRIPTION;
+      return Version::DESCRIPTION.to_string();
     }
 
     Binary::Format::Ptr GetFormat() const override

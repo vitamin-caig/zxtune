@@ -490,7 +490,7 @@ namespace Chiptune
       const RangeChecker::Ptr Ranges;
     };
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "?{192}"
       //layouts
       "(0080-c0 58-5f 01-80){8}"

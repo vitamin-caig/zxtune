@@ -32,7 +32,7 @@ namespace Archived
   {
     const Debug::Stream Dbg("Formats::Archived::SCL");
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'S'I'N'C'L'A'I'R"
       "01-ff"
     );

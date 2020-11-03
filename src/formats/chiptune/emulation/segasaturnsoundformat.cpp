@@ -23,7 +23,7 @@ namespace Chiptune
 {
   namespace SegaSaturnSoundFormat
   {
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'P'S'F"
       "11"
     );

@@ -41,7 +41,7 @@ namespace Packed
     struct Version1
     {
       static const String DESCRIPTION;
-      static const std::string FORMAT;
+      static const StringView FORMAT;
 
       PACK_PRE struct RawPlayer
       {
@@ -75,7 +75,7 @@ namespace Packed
     struct Version2
     {
       static const String DESCRIPTION;
-      static const std::string FORMAT;
+      static const StringView FORMAT;
 
       PACK_PRE struct RawPlayer
       {
@@ -122,7 +122,7 @@ namespace Packed
     const String Version1::DESCRIPTION = String(Text::SOUNDTRACKERPRO_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
     const String Version2::DESCRIPTION = String(Text::SOUNDTRACKERPRO2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
-    const std::string Version1::FORMAT =
+    const StringView Version1::FORMAT =
       "21??"     //ld hl,ModuleAddr
       "c3??"     //jp xxxx
       "c3??"     //jp xxxx
@@ -143,7 +143,7 @@ namespace Packed
       "32??"     //ld (xxxx),a
     ;
 
-    const std::string Version2::FORMAT =
+    const StringView Version2::FORMAT =
       "c3??"     //jp InitAddr
       "c3??"     //jp PlayAddr
       "??"       //nop,nop

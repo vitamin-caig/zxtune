@@ -38,7 +38,7 @@ namespace Archived
   {
     const Debug::Stream Dbg("Formats::Archived::Lha");
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "??"        //size+sum/size/size len
       "'-('l|'p)('z|'h|'m)('s|'d|'0-'7)'-" //method, see lha_decoder.c for all available
       "????"      //packed size

@@ -36,7 +36,7 @@ namespace Archived
   {
     const Debug::Stream Dbg("Formats::Archived::UMX");
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "c1832a9e"  //signature
       "? 00"      //version
       "??"        //license mode

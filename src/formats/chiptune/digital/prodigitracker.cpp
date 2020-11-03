@@ -489,7 +489,7 @@ namespace Chiptune
       return true;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       //std::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
       "(%xxxxxxx0{16}){11}"
       //std::array<PDTOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;

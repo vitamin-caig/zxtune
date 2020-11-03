@@ -52,7 +52,7 @@ namespace Chiptune
 
     static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
 
-    const std::string FORMAT =
+    const StringView FORMAT =
         "'K'S'C'C" //signature
         "??"       //load address
         "??"       //initial data size

@@ -35,7 +35,7 @@ namespace Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
     //checkers
-    const std::string DEPACKER_PATTERN =
+    const StringView DEPACKER_PATTERN =
       "?"       // di/nop
       "ed73??"  // ld (xxxx),sp
       "21??"    // ld hl,xxxx   start+0x1f

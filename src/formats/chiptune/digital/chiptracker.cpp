@@ -456,7 +456,7 @@ namespace Chiptune
       return true;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'C'H'I'P'v"    // uint8_t Signature[5];
       "3x2e3x"        // char Version[3];
       "20-7f{32}"     // char Name[32];

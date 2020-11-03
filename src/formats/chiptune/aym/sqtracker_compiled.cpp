@@ -929,7 +929,7 @@ namespace Chiptune
     }
 
     //TODO: size may be <256
-    const std::string FORMAT(
+    const StringView FORMAT(
       "?01-30"       //uint16_t Size;
       "?00|60-fb"    //uint16_t SamplesOffset;
       "?00|60-fb"    //uint16_t OrnamentsOffset;

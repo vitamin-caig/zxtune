@@ -26,8 +26,7 @@ namespace Image
 {
   namespace LaserCompact40
   {
-    const std::string DEPACKER_PATTERN(
-
+    const StringView DEPACKER_PATTERN(
      "0ef9"   //ld c,#f9
      "0d"     //dec c
      "cdc61f" //call #1fc6

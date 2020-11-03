@@ -110,7 +110,7 @@ namespace Archived
       }
     };
 
-    const std::string HEADER_FORMAT(
+    const StringView HEADER_FORMAT(
       "'Z'X'A'Y" // uint8_t Signature[4];
       "'E'M'U'L" // only one type is supported now
     );

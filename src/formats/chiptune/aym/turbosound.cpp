@@ -47,7 +47,7 @@ namespace Chiptune
 
     static_assert(sizeof(Footer) == 16, "Invalid layout");
 
-    const std::string FOOTER_FORMAT(
+    const StringView FOOTER_FORMAT(
       "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
       "?%0xxxxxxx"                     // uint16_t Size1;
       "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same

@@ -949,7 +949,7 @@ namespace Chiptune
       return true;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "03-0f"          //uint8_t Tempo;
       "???"            //uint8_t ID[3];
       "10-12"          //uint8_t Version; who knows?

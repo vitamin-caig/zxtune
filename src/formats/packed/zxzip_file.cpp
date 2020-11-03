@@ -39,7 +39,7 @@ namespace Packed
     const std::size_t MIN_SIZE = 0x16 + 32;
     //const std::size_t MAX_DECODED_SIZE = 0xff00;
     //checkers
-    const std::string HEADER_PATTERN =
+    const StringView HEADER_PATTERN =
       //Filename
       "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
       //Type

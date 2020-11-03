@@ -566,7 +566,7 @@ namespace Chiptune
       return true;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       //bank ends
       "(?c0-ff){6}"
       //pat size: 64,48,32,24

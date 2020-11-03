@@ -42,7 +42,7 @@ namespace Archived
   {
     const Debug::Stream Dbg("Formats::Archived::ZXState");
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'Z'X'S'T" //signature
       "01"       //major
       "00-04"    //minor

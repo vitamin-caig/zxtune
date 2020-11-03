@@ -31,7 +31,7 @@ namespace Archived
 {
   namespace Hrip
   {
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'H'R'i" //uint8_t ID[3];//'HRi'
       "01-ff"  //uint8_t FilesCount;
       "?"      //uint8_t UsedInLastSector;

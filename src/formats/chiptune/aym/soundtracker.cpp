@@ -416,7 +416,7 @@ namespace Chiptune
       return rawData.Size() >= sizeof(RawHeader);
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       //samples
       "("
         //levels

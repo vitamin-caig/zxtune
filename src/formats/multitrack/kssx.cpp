@@ -68,7 +68,7 @@ namespace Multitrack
     static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
     static_assert(sizeof(ExtraHeader) == 0x0c, "Invalid layout");
 
-    const std::string FORMAT =
+    const StringView FORMAT =
         "'K'S'S'X" //signature
         "??"       //load address
         "??"       //initial data size

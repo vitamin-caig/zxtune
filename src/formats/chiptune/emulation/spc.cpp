@@ -417,7 +417,7 @@ namespace Chiptune
     };
     
     //used nes_spc library doesn't support another versions
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'S'N'E'S'-'S'P'C'7'0'0' 'S'o'u'n'd' 'F'i'l'e' 'D'a't'a' "
       //actual|old
       "'v     |'0"

@@ -33,7 +33,7 @@ namespace Packed
     const std::size_t MIN_SIZE = 0x20;//TODO
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const std::string DEPACKER_PATTERN(
+    const StringView DEPACKER_PATTERN(
       "21??"          // ld hl,xxxx depacker body src
       "11??"          // ld de,xxxx depacker body dst
       "01??"          // ld bc,xxxx depacker body size

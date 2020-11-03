@@ -77,7 +77,7 @@ namespace Packed
 
     const String DESCRIPTION = String(Text::SOUNDTRACKER3_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "21??"     //ld hl,ModuleAddr
       "c3??"     //jp xxxx
       "c3??"     //jp xxxx

@@ -258,8 +258,8 @@ namespace Chiptune
       static const std::size_t MIN_SIZE = 80;
       static const std::size_t MAX_SIZE = 65536;
       static const std::size_t SIGNATURE_SIZE = 0;
-      static const String DESCRIPTION;
-      static const std::string FORMAT;
+      static const StringView DESCRIPTION;
+      static const StringView FORMAT;
 
       PACK_PRE struct RawCell
       {
@@ -343,8 +343,8 @@ namespace Chiptune
       static const std::size_t MIN_SIZE = 128;
       static const std::size_t MAX_SIZE = 65536;
       static const std::size_t SIGNATURE_SIZE = 8;
-      static const String DESCRIPTION;
-      static const std::string FORMAT;
+      static const StringView DESCRIPTION;
+      static const StringView FORMAT;
 
       PACK_PRE struct RawCell
       {
@@ -423,8 +423,8 @@ namespace Chiptune
     };
 
     //ver1 0.1..0.4/0.5..1.2
-    const String Version05::DESCRIPTION = Text::TFMMUSICMAKER05_DECODER_DESCRIPTION;
-    const std::string Version05::FORMAT(
+    const StringView Version05::DESCRIPTION = Text::TFMMUSICMAKER05_DECODER_DESCRIPTION;
+    const StringView Version05::FORMAT(
       //use more strict detection due to lack of format
       "11-13|21-25|32-35|42-46|52-57|62-68|76-79|87-89|98-9a|a6-a8"
       "01-06"  //interleave
@@ -435,8 +435,8 @@ namespace Chiptune
       "06-08|86-88|80" //save date year is between 2006 and 2008 or saved at 16th (marker,marker)
     );
 
-    const String Version13::DESCRIPTION = Text::TFMMUSICMAKER13_DECODER_DESCRIPTION;
-    const std::string Version13::FORMAT(
+    const StringView Version13::DESCRIPTION = Text::TFMMUSICMAKER13_DECODER_DESCRIPTION;
+    const StringView Version13::FORMAT(
       "'T'F'M'f'm't'V'2"  //signature
       "01-0f"       //even speed
       "01-0f|80"    //odd speed or marker
@@ -813,7 +813,7 @@ namespace Chiptune
         builder.SetTempo(Source.GetEvenSpeed(), Source.GetOddSpeed(), Source.SpeedInterleave);
         builder.SetDate(ConvertDate(Source.CreationDate), ConvertDate(Source.SaveDate));
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Version::DESCRIPTION);
+        meta.SetProgram(Version::DESCRIPTION.to_string());
         meta.SetTitle(DecodeString(Source.Title));
         meta.SetAuthor(DecodeString(Source.Author));
         builder.SetComment(DecodeString(Source.Comment));
@@ -1071,7 +1071,7 @@ namespace Chiptune
 
       String GetDescription() const override
       {
-        return Version::DESCRIPTION;
+        return Version::DESCRIPTION.to_string();
       }
 
       Binary::Format::Ptr GetFormat() const override

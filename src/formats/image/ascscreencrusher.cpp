@@ -25,7 +25,7 @@ namespace Image
 {
   namespace ASCScreenCrusher
   {
-    const std::string DEPACKER_PATTERN(
+    const StringView DEPACKER_PATTERN(
      "f3"      //di
      "cd5200"  //call #0052
      "3b"      //dec sp

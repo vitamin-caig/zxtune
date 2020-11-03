@@ -38,7 +38,7 @@ namespace Packed
     const Debug::Stream Dbg("Formats::Packed::Zip");
 
     //checkers
-    const std::string HEADER_PATTERN =
+    const StringView HEADER_PATTERN =
       "504b0304"      //uint32_t Signature;
       "?00"           //uint16_t VersionToExtract;
       "%0000xxx0 %0000x000"  //uint16_t Flags;

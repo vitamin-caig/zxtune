@@ -473,7 +473,7 @@ namespace Chiptune
       return MakePtr<SimpleDumpBuilder>(sizeHint);
     }
 
-    const std::string FORMAT =
+    const StringView FORMAT =
       //first page
       "'O'g'g'S" //signature
       "00"       //version

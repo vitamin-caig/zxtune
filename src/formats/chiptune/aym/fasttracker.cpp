@@ -1133,7 +1133,7 @@ namespace Chiptune
       return data.SubView(0, MAX_MODULE_SIZE);
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "?{8}"         //identifier
       "?{42}"        //title
       "?"            //semicolon

@@ -78,7 +78,7 @@ namespace Packed
       return false;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       //Filename
       "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
       //Start

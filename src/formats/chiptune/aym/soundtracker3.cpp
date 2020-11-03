@@ -711,7 +711,7 @@ namespace Chiptune
       return true;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
     "03-0f"       // uint8_t Tempo; 1..15
     "?01-08"      // uint16_t PositionsOffset;
     "?01-08"      // uint16_t SamplesOffset;

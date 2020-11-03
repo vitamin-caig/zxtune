@@ -34,8 +34,8 @@ namespace Packed
 
     struct Version1
     {
-      static const String DESCRIPTION;
-      static const std::string DEPACKER_PATTERN;
+      static const StringView DESCRIPTION;
+      static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -101,8 +101,8 @@ namespace Packed
 
     struct Version2
     {
-      static const String DESCRIPTION;
-      static const std::string DEPACKER_PATTERN;
+      static const StringView DESCRIPTION;
+      static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -166,8 +166,8 @@ namespace Packed
       }
     };
 
-    const String Version1::DESCRIPTION = Text::LZH1_DECODER_DESCRIPTION;
-    const std::string Version1::DEPACKER_PATTERN(
+    const StringView Version1::DESCRIPTION = Text::LZH1_DECODER_DESCRIPTION;
+    const StringView Version1::DEPACKER_PATTERN(
       "?"             // di/ei
       "21??"          // ld hl,xxxx depacker body src
       "11??"          // ld de,xxxx depacker body dst
@@ -199,8 +199,8 @@ namespace Packed
       "6f"            // ld l,a
     );
 
-    const String Version2::DESCRIPTION = Text::LZH2_DECODER_DESCRIPTION;
-    const std::string Version2::DEPACKER_PATTERN(
+    const StringView Version2::DESCRIPTION = Text::LZH2_DECODER_DESCRIPTION;
+    const StringView Version2::DEPACKER_PATTERN(
       "?"             // di/ei
       "21??"          // ld hl,xxxx depacker body src
       "11??"          // ld de,xxxx depacker body dst
@@ -380,7 +380,7 @@ namespace Packed
 
     String GetDescription() const override
     {
-      return Version::DESCRIPTION;
+      return Version::DESCRIPTION.to_string();
     }
 
     Binary::Format::Ptr GetFormat() const override

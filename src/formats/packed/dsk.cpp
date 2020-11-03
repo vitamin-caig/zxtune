@@ -220,7 +220,7 @@ namespace Packed
       Formats::ImageBuilder& Target;
     };
     
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'M|'E"
       "'V|'X"
       "' |'T"

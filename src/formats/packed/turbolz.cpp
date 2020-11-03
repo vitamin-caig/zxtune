@@ -36,9 +36,9 @@ namespace Packed
 
     struct Simple
     {
-      static const String DESCRIPTION;
+      static const StringView DESCRIPTION;
       static const std::size_t MIN_SIZE = 0x44;//TODO
-      static const std::string DEPACKER_PATTERN;
+      static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -114,9 +114,9 @@ namespace Packed
 
     struct Protected
     {
-      static const String DESCRIPTION;
+      static const StringView DESCRIPTION;
       static const std::size_t MIN_SIZE = 0x88;//TODO
-      static const std::string DEPACKER_PATTERN;
+      static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -200,8 +200,8 @@ namespace Packed
 #endif
     };
 
-    const String Simple::DESCRIPTION = Text::TLZ_DECODER_DESCRIPTION;
-    const std::string Simple::DEPACKER_PATTERN(
+    const StringView Simple::DESCRIPTION = Text::TLZ_DECODER_DESCRIPTION;
+    const StringView Simple::DEPACKER_PATTERN(
       "21??"          // ld hl,xxxx depacker body src
       "11??"          // ld de,xxxx depacker body dst
       "01??"          // ld bc,xxxx depacker body size
@@ -223,8 +223,8 @@ namespace Packed
       "e60f"          // and 0xf
     );
 
-    const String Protected::DESCRIPTION = Text::TLZP_DECODER_DESCRIPTION;
-    const std::string Protected::DEPACKER_PATTERN(
+    const StringView Protected::DESCRIPTION = Text::TLZP_DECODER_DESCRIPTION;
+    const StringView Protected::DEPACKER_PATTERN(
       "21??"          // ld hl,xxxx depacker body src
       "11??"          // ld de,xxxx depacker body dst
       "01??"          // ld bc,xxxx depacker body size
@@ -455,7 +455,7 @@ namespace Packed
 
     String GetDescription() const override
     {
-      return Version::DESCRIPTION;
+      return Version::DESCRIPTION.to_string();
     }
 
     Binary::Format::Ptr GetFormat() const override

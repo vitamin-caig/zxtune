@@ -317,7 +317,7 @@ namespace Chiptune
       ;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "01-10" //tempo
       "01-10{64}" //positions
       "?73-8b"  //first position ptr

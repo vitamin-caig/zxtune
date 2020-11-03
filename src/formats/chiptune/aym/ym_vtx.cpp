@@ -379,7 +379,7 @@ namespace Chiptune
       return {};
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'Y'M"
       "'2-'6"
       "'!|'b"
@@ -408,7 +408,7 @@ namespace Chiptune
       return {};
     }
 
-    const std::string PACKED_FORMAT(
+    const StringView PACKED_FORMAT(
       "16-ff"      //header size
       "?"          //header sum
       "'-'l'h'5'-" //method
@@ -653,7 +653,7 @@ namespace Chiptune
       return {};
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "('a|'A|'y|'Y)('y|'Y|'m|'M)" //type
       "00-06"          //layout
       "??"             //loop

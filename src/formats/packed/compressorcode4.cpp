@@ -37,9 +37,9 @@ namespace Packed
 
     struct Version4
     {
-      static const String DESCRIPTION;
+      static const StringView DESCRIPTION;
       static const std::size_t MIN_SIZE = 256;//TODO
-      static const std::string DEPACKER_PATTERN;
+      static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -80,9 +80,9 @@ namespace Packed
 
     struct Version4Plus
     {
-      static const String DESCRIPTION;
+      static const StringView DESCRIPTION;
       static const std::size_t MIN_SIZE = 256;//TODO
-      static const std::string DEPACKER_PATTERN;
+      static const StringView DEPACKER_PATTERN;
 
   #ifdef USE_PRAGMA_PACK
   #pragma pack(push,1)
@@ -125,8 +125,8 @@ namespace Packed
       static_assert(sizeof(RawHeader) == 0x36, "Invalid layout");
     };
 
-    const String Version4::DESCRIPTION = Text::CC4_DECODER_DESCRIPTION;
-    const std::string Version4::DEPACKER_PATTERN(
+    const StringView Version4::DESCRIPTION = Text::CC4_DECODER_DESCRIPTION;
+    const StringView Version4::DEPACKER_PATTERN(
       "cd5200"  // call 0x52
       "3b"      // dec sp
       "3b"      // dec sp
@@ -147,8 +147,8 @@ namespace Packed
       "c5"      // push bc
     );
 
-    const String Version4Plus::DESCRIPTION = Text::CC4PLUS_DECODER_DESCRIPTION;
-    const std::string Version4Plus::DEPACKER_PATTERN(
+    const StringView Version4Plus::DESCRIPTION = Text::CC4PLUS_DECODER_DESCRIPTION;
+    const StringView Version4Plus::DEPACKER_PATTERN(
       "cd5200"  // call 0x52
       "3b"      // dec sp
       "3b"      // dec sp
@@ -558,7 +558,7 @@ namespace Packed
 
     String GetDescription() const override
     {
-      return Version::DESCRIPTION;
+      return Version::DESCRIPTION.to_string();
     }
 
     Binary::Format::Ptr GetFormat() const override

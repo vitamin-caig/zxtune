@@ -42,7 +42,7 @@ namespace Packed
   {
     const Debug::Stream Dbg("Formats::Packed::Rar");
 
-    const std::string HEADER_PATTERN =
+    const StringView HEADER_PATTERN =
       "??"          // uint16_t CRC;
       "74"          // uint8_t Type;
       "?%1xxxxxxx"  // uint16_t Flags;

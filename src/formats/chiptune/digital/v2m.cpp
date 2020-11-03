@@ -212,7 +212,7 @@ namespace Chiptune
       return stub;
     }
     
-    const std::string FORMAT =
+    const StringView FORMAT =
       "%xxx00000 00-01 0000" // timediv
       "? 01-ff ? 00"         // maxtime
       "01-06 000000"         // gdnum

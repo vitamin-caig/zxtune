@@ -598,7 +598,7 @@ namespace Chiptune
       const RangeChecker::Ptr Ranges;
     };
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       //loop
       "00-63"
       //tempo

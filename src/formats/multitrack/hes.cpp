@@ -58,7 +58,7 @@ namespace Multitrack
 
     static_assert(sizeof(RawHeader) == 0x20, "Invalid layout");
 
-    const std::string FORMAT =
+    const StringView FORMAT =
         "'H'E'S'M" //signature
         "?"        //version
         "?"        //start song

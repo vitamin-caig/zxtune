@@ -94,7 +94,7 @@ namespace Chiptune
       return true;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "?00-75"             //10 min approx
       "01|04 2e00"         //assume first chunk is right after header
       "(01|04 ?00-80){13}" //no more than 32k

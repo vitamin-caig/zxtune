@@ -42,7 +42,7 @@ Offset         Size    Description
       target.SetRom(addr, stream.ReadData(std::min(size, avail)));
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'P'S'F"
       "22"
     );

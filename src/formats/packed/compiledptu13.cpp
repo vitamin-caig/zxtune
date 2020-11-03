@@ -72,7 +72,7 @@ namespace Packed
 
     const String DESCRIPTION = String(Text::PROTRACKERUTILITY13_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "21??"  //ld hl,xxxx +0x665
       "35"    //dec (hl)
       "c2??"  //jp nz,xxxx

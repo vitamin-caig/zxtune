@@ -341,7 +341,7 @@ namespace Chiptune
       return MakePtr<SimpleDumpBuilder>();
     }
     
-    const std::string FORMAT =
+    const StringView FORMAT =
       "'R'I'F'F"
       "????"
       "'W'A'V'E"

@@ -382,7 +382,7 @@ namespace Archived
       const uint_t FilesCount;
     };
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       //file marker
       "5261"       //uint16_t CRC;   "Ra"
       "72"         //uint8_t Type;   "r"

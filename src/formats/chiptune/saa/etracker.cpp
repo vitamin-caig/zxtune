@@ -905,7 +905,7 @@ loc_0_8262:
       return true;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "(?00-7f)"
       "(?00-7f)"
       "(?00-7f)"

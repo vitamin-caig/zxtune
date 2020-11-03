@@ -59,7 +59,7 @@ namespace Archived
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
-    const std::string FORMAT(
+    const StringView FORMAT(
         "'7'z bc af 27 1c" //signature
         "00 ?" //version
     );

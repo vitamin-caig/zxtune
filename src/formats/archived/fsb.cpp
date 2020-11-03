@@ -29,7 +29,7 @@ namespace Archived
   {
     const Debug::Stream Dbg("Formats::Archived::FSB");
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'F'S'B'5"
       "?{20}"
       "01-05|07|0b|0d|0f 000000" //pcm+imaadpcm+mpeg+at9+vorbis

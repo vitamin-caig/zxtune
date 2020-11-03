@@ -73,9 +73,9 @@ namespace Packed
         };
       } PACK_POST;
 
-      static const String DESCRIPTION;
-      static const std::string HEADER;
-      static const std::string FOOTER;
+      static const StringView DESCRIPTION;
+      static const StringView HEADER;
+      static const StringView FOOTER;
       static const std::size_t MIN_SIZE;
       static const std::size_t MAX_SIZE;
 
@@ -99,7 +99,7 @@ namespace Packed
 
         //16kb pages of data
 
-        static const std::string FORMAT;
+        static const StringView FORMAT;
       } PACK_POST;
 
       PACK_PRE struct MemoryPage
@@ -122,8 +122,8 @@ namespace Packed
         Ver_Scorpion //16 pages
       };
 
-      static const String DESCRIPTION;
-      static const std::string FORMAT;
+      static const StringView DESCRIPTION;
+      static const StringView FORMAT;
       static const std::size_t MIN_SIZE;
       static const std::size_t ADDITIONAL_SIZE = 23;
 
@@ -165,8 +165,8 @@ namespace Packed
         Ver_Scorpion //16 pages
       };
 
-      static const String DESCRIPTION;
-      static const std::string FORMAT;
+      static const StringView DESCRIPTION;
+      static const StringView FORMAT;
       static const std::size_t MIN_SIZE;
 
       static Formats::Packed::Container::Ptr Decode(Binary::InputStream& stream);
@@ -175,8 +175,8 @@ namespace Packed
 #pragma pack(pop)
 #endif
 
-    const String Version1_45::DESCRIPTION = Text::Z80V145_DECODER_DESCRIPTION;
-    const std::string Version1_45::HEADER(
+    const StringView Version1_45::DESCRIPTION = Text::Z80V145_DECODER_DESCRIPTION;
+    const StringView Version1_45::HEADER(
       "(\?\?){6}"    //skip registers
       "%001xxxxx"  //take into account only compressed data
       "(\?\?){7}"    //skip registers
@@ -184,14 +184,14 @@ namespace Packed
       "00|01|ff"      //iff2
       "%xxxxxx00|%xxxxxx01|%xxxxxx10" //im3 cannot be
     );
-    const std::string Version1_45::FOOTER("00eded00");
+    const StringView Version1_45::FOOTER("00eded00");
 
     //even if all 48kb are compressed, minimal compressed size is 4 bytes for each 255 sequenced bytes + final marker
     const std::size_t Version1_45::MIN_SIZE = sizeof(Version1_45::Header) + 4 * (49152 / 255) + 4;
     const std::size_t Version1_45::MAX_SIZE = sizeof(Version1_45::Header) + 49152 + 4;
 
-    const String Version2_0::DESCRIPTION = Text::Z80V20_DECODER_DESCRIPTION;
-    const std::string Version2_0::FORMAT(
+    const StringView Version2_0::DESCRIPTION = Text::Z80V20_DECODER_DESCRIPTION;
+    const StringView Version2_0::FORMAT(
       "(\?\?){3}"  //skip registers
       "0000"       //PC is 0
       "(\?\?){2}"
@@ -213,8 +213,8 @@ namespace Packed
     //at least 3 pages by 16384 bytes each
     const std::size_t Version2_0::MIN_SIZE = sizeof(Version2_0::Header) + 3 * (sizeof(Version2_0::MemoryPage) + 4 * (16384 / 255));
 
-    const String Version3_0::DESCRIPTION = Text::Z80V30_DECODER_DESCRIPTION;
-    const std::string Version3_0::FORMAT(
+    const StringView Version3_0::DESCRIPTION = Text::Z80V30_DECODER_DESCRIPTION;
+    const StringView Version3_0::FORMAT(
       "(\?\?){3}"    //skip registers
       "0000"       //PC is 0
       "(\?\?){2}"
@@ -558,7 +558,7 @@ namespace Packed
 
     String GetDescription() const override
     {
-      return Version::DESCRIPTION;
+      return Version::DESCRIPTION.to_string();
     }
 
     Binary::Format::Ptr GetFormat() const override

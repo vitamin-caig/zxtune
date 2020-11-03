@@ -32,7 +32,7 @@ namespace Archived
   {
     const Debug::Stream Dbg("Formats::Archived::TRD");
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "(00|01|20-7f??????? ??? ?? ? 0x 00-a0){128}"
       //service sector
       "00"     //zero

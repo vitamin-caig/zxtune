@@ -722,7 +722,7 @@ namespace Chiptune
     }
 
     //Statistic-based format based on 6k+ files
-    const std::string FORMAT(
+    const StringView FORMAT(
     "01-20"       // uint8_t Tempo; 1..50
     "?00-07"      // uint16_t PositionsOffset;
     "?00-07"      // uint16_t OrnamentsOffset;

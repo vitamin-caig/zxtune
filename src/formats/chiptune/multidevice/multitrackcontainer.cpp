@@ -267,7 +267,7 @@ namespace Chiptune
 
     const std::size_t MIN_SIZE = sizeof(IFF::ChunkHeader) * 3 + 256;
     
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'M'T'C'1"
       "00 00-10 ? ?" //max 1Mb
     );

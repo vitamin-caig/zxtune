@@ -35,7 +35,7 @@ namespace Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'H'R"
     );
 

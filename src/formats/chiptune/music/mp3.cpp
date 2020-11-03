@@ -482,7 +482,7 @@ namespace Chiptune
       return stub;
     }
     
-    const std::string FORMAT(
+    const StringView FORMAT(
       //ID3 tag    frame header
       "'I         |ff"
       "'D         |%111xxxxx"

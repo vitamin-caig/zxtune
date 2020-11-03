@@ -64,7 +64,7 @@ namespace Multitrack
     
     const std::size_t MAX_SIZE = 1048576;
 
-    const std::string FORMAT =
+    const StringView FORMAT =
       "'G'B'S"
       "01"    //version
       "01-ff" //1 song minimum

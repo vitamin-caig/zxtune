@@ -71,7 +71,7 @@ namespace Chiptune
       return 0 == std::memcmp(rawData.Start(), SIGNATURE.data(), SIGNATURE.size());
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'T'F'M'D"
     );
 

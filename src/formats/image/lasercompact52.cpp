@@ -281,7 +281,7 @@ namespace Image
       std::unique_ptr<Dump> Result;
     };
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       //Signature
       "'L'C'M'P'5"
     );

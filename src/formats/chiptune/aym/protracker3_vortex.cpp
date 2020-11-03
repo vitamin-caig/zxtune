@@ -1259,7 +1259,7 @@ namespace ProTracker3
       Builder& Target;
     };
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'['M'o'd'u'l'e']"
     );
 

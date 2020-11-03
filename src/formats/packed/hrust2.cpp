@@ -51,7 +51,7 @@ namespace Packed
 
     namespace Version1
     {
-      const std::string HEADER_FORMAT(
+      const StringView HEADER_FORMAT(
         "'h'r'2"    //ID
         "%x0110001" //Flag
       );
@@ -76,7 +76,7 @@ namespace Packed
 
     namespace Version3
     {
-      const std::string HEADER_FORMAT(
+      const StringView HEADER_FORMAT(
         "'H'r's't'2" //ID
         "%00x00xxx"  //Flag
       );

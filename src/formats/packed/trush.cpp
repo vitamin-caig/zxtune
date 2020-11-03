@@ -40,7 +40,7 @@ namespace Packed
     //At least two different prefixes
     //using ix/iy
     //Depacker beginning may be corrupted
-    const std::string DEPACKER_HEAD(
+    const StringView DEPACKER_HEAD(
       "???"   //di/ei      | jp xxxx
               //ld b,0x10
       "?"     //exx
@@ -73,7 +73,7 @@ namespace Packed
          ei
          ret
     */
-    const std::string DEPACKER_BODY(
+    const StringView DEPACKER_BODY(
       "d9"    //exx
       "e1"    //pop hl
       "1806"  //jr xx

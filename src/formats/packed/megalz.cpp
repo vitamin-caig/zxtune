@@ -35,7 +35,7 @@ namespace Packed
     const std::size_t MAX_DECODED_SIZE = 0xc000;
     //assume that packed data are located right after depacked
     //prologue is ignored due to standard absense
-    const std::string DEPACKER_PATTERN =
+    const StringView DEPACKER_PATTERN =
       "3e80"   //ld a,#80
       "08"     //ex af,af'
       "eda0"   //ldi

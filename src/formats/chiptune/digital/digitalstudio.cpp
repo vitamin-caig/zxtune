@@ -448,7 +448,7 @@ namespace Chiptune
       return rawData.Size() >= MODULE_SIZE;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "00-63"     //loop
       "00-1f{99}" //positions
       "02-0f"     //tempo

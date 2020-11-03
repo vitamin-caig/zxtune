@@ -223,7 +223,7 @@ namespace Chiptune
       return stub;
     }
     
-    const std::string FORMAT =
+    const StringView FORMAT =
       //ID3 tag    flac stream
       "'I         |'f"
       "'D         |'L"

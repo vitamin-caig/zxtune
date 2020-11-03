@@ -100,7 +100,7 @@ namespace Packed
 
     const std::size_t MIN_SIZE = sizeof(Header) + 2 + sizeof(Footer);
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "1f 8b" //signature
       "08"    //compression method
       "%000xxxxx" //flags

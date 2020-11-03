@@ -37,7 +37,7 @@ namespace Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const std::string DEPACKER_PATTERN(
+    const StringView DEPACKER_PATTERN(
     //$=6978
     //depack to 9900/61a8
       "?"       // di/nop

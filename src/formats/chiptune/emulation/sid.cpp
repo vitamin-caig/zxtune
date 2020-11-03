@@ -60,7 +60,7 @@ namespace Chiptune
 
     static_assert(sizeof(RawHeader) == 22, "Invalid layout");
 
-    const std::string FORMAT =
+    const StringView FORMAT =
         "'R|'P 'S'I'D" //signature
         "00 01-03"     //BE version
         "00 76|7c"     //BE data offset

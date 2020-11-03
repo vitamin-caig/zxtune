@@ -34,7 +34,7 @@ namespace Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const std::string DEPACKER_PATTERN(
+    const StringView DEPACKER_PATTERN(
       //classic depacker
       "?"       // di/nop
       "???"     // usually 'K','S','A','!'

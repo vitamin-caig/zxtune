@@ -1144,7 +1144,7 @@ namespace Chiptune
       return data.SubView(0, MAX_MODULE_SIZE);
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "?{69}"   //Id
       "?00"     //uint16_t SamplesStart;TODO
       "?03-3f"  //uint16_t PositionsOffset;

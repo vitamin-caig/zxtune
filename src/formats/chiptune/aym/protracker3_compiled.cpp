@@ -896,7 +896,7 @@ namespace Chiptune
       return true;
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "?{13}"      // uint8_t Id[13];        //'ProTracker 3.'
       "?"          // uint8_t Subversion;
       "?{16}"      // uint8_t Optional1[16]; //' compilation of '

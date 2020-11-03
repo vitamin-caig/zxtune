@@ -28,7 +28,7 @@ namespace Chiptune
   {
     //as for ASAP limitations
     //Details: http://atariki.krap.pl/index.php/RMT_%28format_pliku%29
-    const std::string FORMAT =
+    const StringView FORMAT =
         "00|ff 00|ff"   //signature
         "??"            //music address
         "??"            //initial data size

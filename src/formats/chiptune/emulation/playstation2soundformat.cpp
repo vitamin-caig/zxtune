@@ -216,7 +216,7 @@ namespace Chiptune
       Format(data).Parse(target);
     }
 
-    const std::string FORMAT(
+    const StringView FORMAT(
       "'P'S'F"
       "02"
     );

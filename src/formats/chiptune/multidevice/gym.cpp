@@ -56,7 +56,7 @@ namespace Chiptune
     const std::size_t MIN_SIZE = sizeof(RawHeader) + 256;
     const std::size_t MAX_SIZE = 16 * 1024 * 1024;
 
-    const std::string FORMAT =
+    const StringView FORMAT =
         "'G'Y'M'X" //signature
      ;
 

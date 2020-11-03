@@ -49,7 +49,7 @@ namespace Chiptune
     
     const std::size_t MIN_SIZE = 256;
 
-    const std::string FORMAT =
+    const StringView FORMAT =
         "'V'g'm' " //signature
         "????"     //eof offset
         //version

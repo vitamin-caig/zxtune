@@ -243,7 +243,7 @@ namespace Packed
       std::size_t UsedSize;
     };
 
-    const std::string FORMAT_PATTERN(
+    const StringView FORMAT_PATTERN(
       "'F'D'I"      // uint8_t ID[3]
       "%0000000x"   // uint8_t ReadOnly;
       "28-64 00"    // uint16_t Cylinders;
