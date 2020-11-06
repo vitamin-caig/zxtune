@@ -903,7 +903,7 @@ namespace Chiptune
         return Header;
       }
 
-      bool Check(const Binary::Container& rawData) const override
+      bool Check(Binary::View rawData) const override
       {
         return Header->Match(rawData) && SoundTrackerProCompiled::Check(rawData);
       }

@@ -485,9 +485,8 @@ namespace Chiptune
         return Format;
       }
 
-      bool Check(const Binary::Container& rawData) const override
+      bool Check(Binary::View data) const override
       {
-        const Binary::View data(rawData);
         return FastCheck(data) && Format->Match(data);
       }
 

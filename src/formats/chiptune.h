@@ -54,7 +54,7 @@ namespace Formats
       //! @brief Fast check for data consistensy
       //! @param rawData Data to be checked
       //! @return false if rawData has defenitely wrong format, else otherwise
-      virtual bool Check(const Binary::Container& rawData) const = 0;
+      virtual bool Check(Binary::View rawData) const = 0;
       //! @brief Perform raw data decoding
       //! @param rawData Data to be decoded
       //! @return Non-null object if data is successfully recognized and decoded

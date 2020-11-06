@@ -60,7 +60,7 @@ namespace Chiptune
       return Delegate->GetFormat();
     }
     
-    bool Check(const Binary::Container& rawData) const override
+    bool Check(Binary::View rawData) const override
     {
       return Delegate->Check(rawData);
     }

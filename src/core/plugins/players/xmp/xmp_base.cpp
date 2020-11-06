@@ -309,10 +309,7 @@ namespace Xmp
           return chunk;
         }
       }
-      else
-      {
-        return {};
-      }
+      return {};
     }
 
     void Reset() override
@@ -404,7 +401,7 @@ namespace Xmp
       return Fmt;
     }
 
-    bool Check(const Binary::Container& rawData) const override
+    bool Check(Binary::View rawData) const override
     {
       return Fmt->Match(rawData);
     }

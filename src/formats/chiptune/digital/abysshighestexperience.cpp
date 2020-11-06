@@ -132,7 +132,7 @@ namespace Chiptune
       const uint_t SamplesCount;
       const uint_t SubsongsCount;
       
-      explicit Header(Binary::InputStream& stream)
+      explicit Header(Binary::DataInputStream& stream)
         : Id(stream.ReadField<IdentifierType>())
         , Version(stream.ReadByte())
         , NamesOffset(stream.ReadBE<uint16_t>())
@@ -250,14 +250,14 @@ namespace Chiptune
       const Header Source;
     };
     
-    bool FastCheck(const Binary::Container& rawData)
+    bool FastCheck(Binary::View& rawData)
     {
       const auto size = rawData.Size();
       if (size < MIN_SIZE)
       {
         return false;
       }
-      Binary::InputStream stream(rawData);
+      Binary::DataInputStream stream(rawData);
       const Header hdr(stream);
       const auto tracksOffset = hdr.GetTracksOffset();
       return hdr.NamesOffset > tracksOffset && size > hdr.NamesOffset;
@@ -316,7 +316,7 @@ namespace Chiptune
         return Header;
       }
 
-      bool Check(const Binary::Container& rawData) const override
+      bool Check(Binary::View rawData) const override
       {
         return Header->Match(rawData) && FastCheck(rawData);
       }
