@@ -21,6 +21,7 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/chiptune.h>
+#include <math/numeric.h>
 #include <strings/format.h>
 #include <strings/optimize.h>
 //std includes
@@ -51,6 +52,12 @@ namespace Chiptune
     inline String GetString(const char (&str)[D])
     {
       return GetString(str, str + D);
+    }
+
+    template<std::size_t D>
+    inline StringView GetStringView(const char (&str)[D])
+    {
+      return StringView(str, str + D);
     }
     
     inline bool IsValidString(StringView str)
@@ -102,17 +109,11 @@ namespace Chiptune
         return ~uint_t(0);
       }
     }
-
     
     using Tick = Time::BaseUnit<uint_t, 64000>;
     
-    const auto MAX_DURATION = Time::Seconds(3600);
-    
-    template<class T>
-    inline bool IsValidTime(T t)
-    {
-      return t < MAX_DURATION;
-    }
+    const auto MAX_FADE_TIME = Time::Seconds(999);
+    const auto MAX_FADE_DURATION = Time::Milliseconds(99999);
     
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -153,9 +154,9 @@ namespace Chiptune
 
       bool IsValid() const
       {
-        return IsValidString(DumpDate)
-            && IsValidDigitsString(FadeTimeSec)
-            && IsValidDigitsString(FadeDurationMs);
+        return IsValidString(GetStringView(DumpDate))
+            && IsValidDigitsString(GetStringView(FadeTimeSec))
+            && IsValidDigitsString(GetStringView(FadeDurationMs));
       }
       
       String GetDumpDate() const
@@ -490,8 +491,8 @@ namespace Chiptune
       uint_t GetScore() const
       {
         return Artist.size()
-             + 100 * IsValidTime(FadeTime)
-             + 100 * IsValidTime(FadeDuration)
+             + 100 * (FadeTime < MAX_FADE_TIME)
+             + 100 * (FadeDuration < MAX_FADE_DURATION)
         ;
       }
     };

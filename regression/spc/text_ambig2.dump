@@ -1,0 +1,15 @@
+Title: Stage Intro
+Game: Megaman X
+Dumper: Datschge
+Comment: 
+Dump date: 
+Loop: 0:07.00
+Fade: 0:00.00
+Artist: Setsuo, Tomozou, Sato, Yuko, Kir
+Registers: PC=0x03cc A=0x0d X=0x07 Y=0x02 PSW=0x00 SP=0xcd
+RAM,bytes: 65536
+DSP registers,bytes: 128
+ExtraRAM,bytes: 64
+Artist: Setsuo, Tomozou, Sato, Yuko, Kirry
+Intro: 0:07.00
+66120 bytes total
