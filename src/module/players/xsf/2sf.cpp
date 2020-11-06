@@ -293,8 +293,7 @@ namespace TwoSF
       {
         Engine = MakePtr<DSEngine>(*Data);
       }
-      const auto toSkip = State->Seek(request);
-      if (toSkip.Get())
+      if (const auto toSkip = State->Seek(request))
       {
         Engine->Skip(GetSamples(toSkip));
       }

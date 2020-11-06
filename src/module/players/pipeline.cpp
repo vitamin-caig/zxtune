@@ -62,7 +62,7 @@ namespace Module
     
     bool IsFadeout(Time::Instant<TimeUnit> pos) const
     {
-      return Duration.Get() < FadeOut.Get() + pos.Get();
+      return FadeOut && Duration.Get() < FadeOut.Get() + pos.Get();
     }
     
     Sound::Gain::Type GetFadein(Sound::Gain::Type vol, Time::Instant<TimeUnit> pos) const

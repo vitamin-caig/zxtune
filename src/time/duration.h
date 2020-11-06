@@ -60,6 +60,16 @@ namespace Time
       return Get() ? (T(PER_SECOND) / Get()) : T();
     }
 
+    explicit operator bool () const
+    {
+      return Get() != 0;
+    }
+
+    bool operator ! () const
+    {
+      return Get() == 0;
+    }
+
     template<class T>
     static Duration FromFrequency(T frequency)
     {

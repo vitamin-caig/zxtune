@@ -241,8 +241,7 @@ namespace SPC
       {
         Engine->Reset();
       }
-      const auto toSkip = State->Seek(request);
-      if (toSkip.Get())
+      if (const auto toSkip = State->Seek(request))
       {
         Engine->Skip(GetSamples(toSkip));
       }
@@ -334,7 +333,7 @@ namespace SPC
     void SetIntro(Time::Milliseconds duration) override
     {
       // Some tracks contain specified intro instead of loop
-      if (Loop.Get() == 0)
+      if (!Loop)
       {
         Intro = duration;
         Properties.SetFadein(Intro);
@@ -348,7 +347,7 @@ namespace SPC
     
     void SetFade(Time::Milliseconds duration) override
     {
-      if (duration.Get() != 0)
+      if (duration)
       {
         Fade = duration;
         Properties.SetFadeout(duration);

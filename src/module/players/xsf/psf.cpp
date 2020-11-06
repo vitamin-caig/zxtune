@@ -342,8 +342,7 @@ namespace PSF
       {
         Engine->Initialize(*Data);
       }
-      const auto toSkip = State->Seek(request);
-      if (toSkip.Get())
+      if (const auto toSkip = State->Seek(request))
       {
         Engine->Skip(GetSamples(toSkip));
       }

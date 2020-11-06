@@ -69,7 +69,7 @@ namespace Sid
     {
       const auto* md5 = createMD5();
       Duration = GetSongLength(md5, Index - 1);
-      if (!Duration.Get())
+      if (!Duration)
       {
         Duration = GetDefaultDuration(params);
       }
@@ -292,8 +292,7 @@ namespace Sid
       {
         Engine->Stop();
       }
-      const auto toSkip = State->Seek(request);
-      if (toSkip.Get())
+      if (const auto toSkip = State->Seek(request))
       {
         Engine->Skip(GetSamples(toSkip));
       }
