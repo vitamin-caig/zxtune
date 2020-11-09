@@ -110,6 +110,11 @@ int main()
         Test<uint64_t>("P(50Hz)", period.Get(), 20000);
         Test<uint32_t>("F(25ms)", Time::Milliseconds(25).ToFrequency(), 40);
         Test<double>("3s / 2000ms", Time::Seconds(3).Divide<float>(Time::Milliseconds(2000)), 1.5f);
+        const auto done = Time::Microseconds::FromRatio(4762800, 44100);
+        const auto total = Time::Milliseconds(180000);
+        Test<uint64_t>("D(~4.7M@44100)", done.Get(), 108000000);
+        Test<float>("3m / ~4.7M@44100", done.Divide<float>(total), 0.6f);
+        Test<uint32_t>("3m / ~4.7M@44100, %", (done * 100).Divide<uint32_t>(total), 60);
         Test<uint32_t>("D(4.6M@44.1kHz)", Time::Milliseconds::FromRatio(4685324, 44100).Get(), 106243);
       }
     }
