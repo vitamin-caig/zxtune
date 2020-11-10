@@ -1,14 +1,16 @@
 #include <api_dynamic.h>
 #include <contract.h>
+#include <make_ptr.h>
+#include <async/worker.h>
 #include <devices/aym/chip.h>
 #include <core/core_parameters.h>
 #include <parameters/container.h>
-#include <module/holder.h>
 #include <sound/mixer_factory.h>
 #include <sound/backends/storage.h>
 #include <sound/backends/backends_list.h>
 #include <sound/sound_parameters.h>
 #include <iostream>
+#include <mutex>
 
 namespace
 {
@@ -75,75 +77,100 @@ namespace
     return mixer;
   }
 
-  class StubRenderer : public Module::Renderer
+  class StubState : public Module::State
   {
   public:
-    StubRenderer(std::shared_ptr<Devices::AYM::DataChunk> chunk, Sound::Receiver::Ptr target)
-      : Chunk(chunk)
-      , Target(std::move(target))
+    Time::AtMillisecond At() const override
+    {
+      return {};
+    }
+
+    Time::Milliseconds Total() const override
+    {
+      return {};
+    }
+
+    uint_t LoopCount() const override
+    {
+      return 0;
+    }
+  };
+
+  class State
+  {
+  public:
+    using Ptr = std::shared_ptr<State>;
+
+    void Write(uint_t reg, uint_t val)
+    {
+      const std::unique_lock<std::mutex> lock(Mutex);
+      Require(reg < Devices::AYM::Registers::TOTAL);
+      Require(val < 256);
+      Data[static_cast<Devices::AYM::Registers::Index>(reg)] = val;
+    }
+
+    void Read(Devices::AYM::Registers* out)
+    {
+      const std::unique_lock<std::mutex> lock(Mutex);
+      *out = Data;
+      Data = {};
+    }
+
+  private:
+    std::mutex Mutex;
+    Devices::AYM::Registers Data;
+  };
+
+  class AsyncWorker : public Async::Worker
+  {
+  public:
+    AsyncWorker(State::Ptr state, Sound::BackendWorker::Ptr worker)
+      : Data(std::move(state))
+      , Worker(std::move(worker))
       , Chip(Devices::AYM::CreateChip(StubChipParameters::Create(), CreateMixer()))
     {
     }
 
-    virtual Module::State::Ptr GetState() const
+    void Initialize() override
     {
-      return Module::State::Ptr();
+      Worker->Startup();
     }
 
-    virtual Module::Analyzer::Ptr GetAnalyzer() const
+    void Finalize() override
     {
-       return Module::Analyzer::Ptr();
+      Worker->Shutdown();
     }
 
-    virtual bool RenderFrame(const Sound::LoopParameters&)
+    void Suspend() override
     {
+      Worker->Pause();
+    }
+
+    void Resume() override
+    {
+      Worker->Resume();
+    }
+
+    bool IsFinished() const override
+    {
+      return false;
+    }
+    
+    void ExecuteCycle() override
+    {
+      static const StubState STATE;
       static const auto PERIOD = Time::Duration<Devices::AYM::TimeUnit>::FromFrequency(50);
-      Chip->RenderData(*Chunk);
-      Chunk->TimeStamp += PERIOD;
-      Target->ApplyData(Chip->RenderTill(Chunk->TimeStamp));
-      Target->Flush();
-      Chunk->Data = Devices::AYM::Registers();
-      return true;
-    }
-
-    virtual void Reset()
-    {
-      *Chunk = Devices::AYM::DataChunk();
-    }
-
-    virtual void SetPosition(Time::AtMillisecond /*request*/)
-    {
+      Worker->FrameStart(STATE);
+      Data->Read(&Chunk.Data);
+      Chip->RenderData(Chunk);
+      Chunk.TimeStamp += PERIOD;
+      Worker->FrameFinish(Chip->RenderTill(Chunk.TimeStamp));
     }
   private:
-    const std::shared_ptr<Devices::AYM::DataChunk> Chunk;
+    const State::Ptr Data;
+    const Sound::BackendWorker::Ptr Worker;
     const Devices::AYM::Chip::Ptr Chip;
-    const Sound::Receiver::Ptr Target;
-  };
-
-  class StubHolder : public Module::Holder
-  {
-  public:
-    explicit StubHolder(std::shared_ptr<Devices::AYM::DataChunk> chunk)
-      : Chunk(chunk)
-    {
-    }
-
-    virtual Module::Information::Ptr GetModuleInformation() const
-    {
-      return Module::Information::Ptr();
-    }
-
-    virtual Parameters::Accessor::Ptr GetModuleProperties() const
-    {
-      return EmptyParams();
-    }
-
-    virtual Module::Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr /*params*/, Sound::Receiver::Ptr target) const
-    {
-      return std::make_shared<StubRenderer>(Chunk, target);
-    }
-  private:
-    const std::shared_ptr<Devices::AYM::DataChunk> Chunk;
+    Devices::AYM::DataChunk Chunk;
   };
 
   class BackendFactoryHandle : public Sound::BackendsStorage
@@ -162,58 +189,54 @@ namespace
     {
     }
 
-    Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module)
+    Async::Job::Ptr CreatePlayer(State::Ptr state)
     {
-      const Sound::BackendWorker::Ptr worker = Factory->CreateWorker(module->GetModuleProperties(), module);
-      return Sound::CreateBackend(module->GetModuleProperties(), module, Sound::BackendCallback::Ptr(), worker);
+      auto backendWorker = Factory->CreateWorker(EmptyParams(), {});
+      auto asyncWorker = MakePtr<AsyncWorker>(std::move(state), std::move(backendWorker));
+      return Async::CreateJob(std::move(asyncWorker));
     }
   private:
     Sound::BackendWorkerFactory::Ptr Factory;
   };
 
-  Sound::Backend::Ptr CreateBackend(std::shared_ptr<Devices::AYM::DataChunk> chunk)
+  Async::Job::Ptr CreatePlayer(State::Ptr state)
   {
-    const Module::Holder::Ptr module = std::make_shared<StubHolder>(chunk);
     BackendFactoryHandle factory;
     Sound::RegisterDirectSoundBackend(factory);
-    return factory.CreateBackend(module);
+    return factory.CreatePlayer(std::move(state));
   }
   
   class Gate
   {
   public:
     Gate()
-      : Data(std::make_shared<Devices::AYM::DataChunk>())
-      , Backend(CreateBackend(Data))
-      , Control(Backend->GetPlaybackControl())
+      : Data(MakePtr<State>())
+      , Player(CreatePlayer(Data))
     {
     }
     
     bool IsStarted() const
     {
-      return Sound::PlaybackControl::STARTED == Control->GetCurrentState();
+      return Player->IsActive();
     }
     
     void Start()
     {
-      Control->Play();
+      Player->Start();
     }
     
     void Stop()
     {
-      Control->Stop();
+      Player->Stop();
     }
     
     void WriteReg(uint_t reg, uint_t val)
     {
-      Require(reg < Devices::AYM::Registers::TOTAL);
-      Require(val < 256);
-      Data->Data[static_cast<Devices::AYM::Registers::Index>(reg)] = val;
+      Data->Write(reg, val);
     }
   private:
-    const std::shared_ptr<Devices::AYM::DataChunk> Data;
-    const Sound::Backend::Ptr Backend;
-    const Sound::PlaybackControl::Ptr Control;
+    const State::Ptr Data;
+    const Async::Job::Ptr Player;
   };
 
   std::unique_ptr<Gate> GateInstance;
