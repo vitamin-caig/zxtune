@@ -189,7 +189,7 @@ namespace AYM
 
     uint_t GetToneN() const
     {
-      return 2 * Regs[Registers::TONEN];//for optimization
+      return 2 * std::max<uint_t>(1, Regs[Registers::TONEN]);//for optimization
     }
 
     uint_t GetToneE() const
