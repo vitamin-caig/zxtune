@@ -20,7 +20,6 @@
 //library includes
 #include <sound/service.h>
 //std includes
-#include <functional>
 #include <set>
 //qt includes
 #include <QtGui/QRadioButton>
@@ -87,8 +86,7 @@ namespace
       Buttons[TYPE_OGG] = selectOGG;
       Buttons[TYPE_FLAC] = selectFLAC;
 
-      std::for_each(Buttons.begin(), Buttons.end(),
-        std::bind1st(std::mem_fun(&SupportedFormats::SetupButton), this));
+      std::for_each(Buttons.begin(), Buttons.end(), [this](auto button) {SetupButton(button);});
       //fixup
       for (const auto& id2b : Buttons)
       {

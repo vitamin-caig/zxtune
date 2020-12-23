@@ -16,8 +16,6 @@
 #include <parameters/tracking_helper.h>
 //3rdparty includes
 #include <3rdparty/z80ex/include/z80ex.h>
-//std includes
-#include <functional>
 
 namespace Devices
 {
@@ -47,7 +45,7 @@ namespace Z80
       return std::shared_ptr<Z80EX_CONTEXT>(
         z80ex_create(&ReadByte, self, &WriteByte, self,
                      &InByte, self, &OutByte, self,
-                     &IntRead, self), std::ptr_fun(&z80ex_destroy));
+                     &IntRead, self), &z80ex_destroy);
     }
   private:
     static Z80EX_BYTE ReadByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
@@ -114,7 +112,7 @@ namespace Z80
       return std::shared_ptr<Z80EX_CONTEXT>(
         z80ex_create(read, self, write, self,
                      &InByte, self, &OutByte, self,
-                     &IntRead, self), std::ptr_fun(&z80ex_destroy));
+                     &IntRead, self), &z80ex_destroy);
     }
   private:
     static Z80EX_BYTE ReadByteUnlimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)

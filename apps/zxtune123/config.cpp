@@ -177,7 +177,7 @@ namespace
       {
         std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
         auto beginof = std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
-          std::not1(std::ptr_fun<int, int>(&std::isspace)));
+          [](Char c) {return !std::isspace(c);});
         if (beginof != endof && *beginof != Char('#'))
         {
           if (!lines.empty())

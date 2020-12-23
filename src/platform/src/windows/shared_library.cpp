@@ -97,7 +97,7 @@ namespace Details
     std::vector<std::string> res;
     res.push_back(GetSharedLibraryFilename(name.Base()));
     const std::vector<std::string>& alternatives = name.WindowsAlternatives();
-    std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), std::ptr_fun(&GetSharedLibraryFilename));
+    std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), &GetSharedLibraryFilename);
     return res;
   }
 }

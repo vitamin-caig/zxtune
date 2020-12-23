@@ -47,7 +47,7 @@ namespace Async
 
     void Start()
     {
-      Thread = std::thread(std::mem_fun(&ThreadActivity::WorkProc), this);
+      Thread = std::thread(&ThreadActivity::WorkProc, this);
       if (ActivityState::FAILED == State.WaitForAny(ActivityState::INITIALIZED, ActivityState::FAILED))
       {
         Thread.join();

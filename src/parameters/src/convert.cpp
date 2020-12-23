@@ -14,7 +14,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cctype>
-#include <functional>
 
 namespace
 {
@@ -24,9 +23,9 @@ namespace
 
   static_assert(1 == sizeof(DataType::value_type), "Invalid DataType::value_type");
 
-  inline bool DoTest(const String::const_iterator it, const String::const_iterator lim, int(*Fun)(int))
+  inline bool DoTest(const String::const_iterator it, const String::const_iterator lim, int(*fun)(int))
   {
-    return lim == std::find_if(it, lim, std::not1(std::ptr_fun(Fun)));
+    return std::all_of(it, lim, fun);
   }
 
   inline bool IsData(const String& str)
