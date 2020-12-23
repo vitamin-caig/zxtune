@@ -1,4 +1,4 @@
-FROM debian:stretch-slim
+FROM debian:buster-slim
 ARG cores=12
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates wget xz-utils bzip2 git make zip \

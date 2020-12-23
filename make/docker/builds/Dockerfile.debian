@@ -1,4 +1,4 @@
-FROM debian:stretch-slim
+FROM debian:buster-slim
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates debhelper build-essential fakeroot git zip python3-minimal \
       libpulse-dev libclalsadrv-dev \
@@ -13,7 +13,7 @@ USER build
 RUN mkdir /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=linux\narch=x86_64\npackaging?=deb\ndistro?=stretch\nqt.includes=/usr/include/qt4\nlibraries.linux+=icuuc icudata\ntools.python=python3" > variables.mak
+    echo "platform=linux\narch=x86_64\npackaging?=deb\ndistro?=buster\nqt.includes=/usr/include/qt4\nlibraries.linux+=icuuc icudata\ntools.python=python3" > variables.mak
 
 WORKDIR /build/zxtune
 COPY entrypoint.sh .
