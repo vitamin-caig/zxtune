@@ -20,7 +20,6 @@
 #include <math/numeric.h>
 //std includes
 #include <array>
-#include <functional>
 #include <numeric>
 //text includes
 #include <formats/text/packed.h>
@@ -64,8 +63,7 @@ namespace Packed
           dataSize + sizeof(*header) > rawData.Size() ||
           fullSize != Math::Align<std::size_t>(dataSize, 256) ||
           //check for valid name
-          header->Filename.end() != std::find_if(header->Filename.begin(), header->Filename.end(),
-            std::bind2nd(std::less<uint8_t>(), uint8_t(' ')))
+          std::any_of(header->Filename.begin(), header->Filename.end(), [](auto b) {return b < ' ';})
           )
       {
         return false;

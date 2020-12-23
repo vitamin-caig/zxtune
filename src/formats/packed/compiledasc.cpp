@@ -212,8 +212,9 @@ namespace Packed
       const auto ignoreStart = authorStart + 20;
       const auto titleStart = ignoreStart + 4;
       const auto end = titleStart + 20;
-      return ignoreStart == std::find_if(authorStart, ignoreStart, std::bind2nd(std::greater<Char>(), Char(' ')))
-          && end == std::find_if(titleStart, end, std::bind2nd(std::greater<Char>(), Char(' ')));
+      const auto isVisible = [](Char c) {return c > ' ';};
+      return std::none_of(authorStart, ignoreStart, isVisible)
+          && std::none_of(titleStart, end, isVisible);
     }
   }//CompiledASC
 

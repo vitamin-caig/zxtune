@@ -726,8 +726,7 @@ namespace Chiptune
         const DataCursors rangesStarts(pat);
         ParserState state(rangesStarts);
         //check only lower bound due to possible detection lack
-        Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(), 
-          std::bind2nd(std::less<std::size_t>(), minOffset)));
+        Require(std::all_of(rangesStarts.begin(), rangesStarts.end(), [minOffset](auto b) {return b >= minOffset;}));
 
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         patBuilder.StartLine(0);

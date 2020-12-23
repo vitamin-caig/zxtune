@@ -171,7 +171,7 @@ namespace Packed
       const auto start = info.As<Char>();
       const auto end = start + info.Size();
       const auto titleStart = start + 28;
-      return end == std::find_if(titleStart, end, std::bind2nd(std::greater<Char>(), Char(' ')));
+      return std::none_of(titleStart, end, [](auto b) {return b > ' ';});
     }
   }//CompiledSTP
 

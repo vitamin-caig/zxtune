@@ -107,7 +107,7 @@ namespace Archived
 
       bool IsEmpty() const
       {
-        return std::none_of(Content, std::end(Content), std::bind2nd(std::not_equal_to<uint8_t>(), 0));
+        return std::all_of(Content, std::end(Content), [](auto b) {return b == 0;});
       }
     };
 

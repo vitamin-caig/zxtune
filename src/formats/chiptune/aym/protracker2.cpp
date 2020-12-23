@@ -393,7 +393,7 @@ namespace Chiptune
         const uint8_t* const dataEnd = dataBegin + data.Size();
         const uint8_t* const lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
         if (lastPosition != dataEnd && 
-            lastPosition == std::find_if(hdr->Positions, lastPosition, std::bind2nd(std::greater_equal<std::size_t>(), MAX_PATTERNS_COUNT)))
+            std::none_of(hdr->Positions, lastPosition, [](auto b) {return b >= MAX_PATTERNS_COUNT;}))
         {
           return lastPosition + 1 - dataBegin;
         }

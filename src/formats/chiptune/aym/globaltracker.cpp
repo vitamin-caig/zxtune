@@ -445,7 +445,7 @@ namespace Chiptune
         Require(posEnd == std::find_if(posStart, posEnd, &IsInvalidPosEntry));
         Positions positions;
         positions.Lines.resize(posEnd - posStart);
-        std::transform(posStart, posEnd, positions.Lines.begin(), std::bind2nd(std::divides<uint_t>(), sizeof(RawPattern)));
+        std::transform(posStart, posEnd, positions.Lines.begin(), [](auto b) {return b / sizeof(RawPattern);});
         positions.Loop = std::min<uint_t>(Source.Loop, positions.Lines.size());
         Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
         builder.SetPositions(std::move(positions));

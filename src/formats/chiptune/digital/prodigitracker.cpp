@@ -354,7 +354,7 @@ namespace Chiptune
             Ornament res;
             res.Loop = loop.Begin;
             res.Lines.resize(loop.End);
-            std::transform(orn.begin(), orn.begin() + loop.End, res.Lines.begin(), std::bind2nd(std::divides<int8_t>(), 2));
+            std::transform(orn.begin(), orn.begin() + loop.End, res.Lines.begin(), [](auto b) {return b / 2;});
             target.SetOrnament(ornIdx, std::move(res));
           }
           else
