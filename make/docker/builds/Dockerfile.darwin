@@ -1,4 +1,4 @@
-FROM debian:stretch-slim
+FROM debian:buster-slim
 ARG cores=12
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -36,20 +36,20 @@ ENV boost=1.70.0
 RUN cd /build && \
     bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
     cd boost_* && ./bootstrap.sh --with-toolset=clang && \
-    echo "using clang : 3.8 : ${execprefix}clang : <archiver>${execprefix}ar <ranlib>${execprefix}ranlib <cxxflags>-stdlib=libc++ ;" > tools/build/src/user-config.jam
+    echo "using clang : 7.0 : ${execprefix}clang : <archiver>${execprefix}ar <ranlib>${execprefix}ranlib <cxxflags>-stdlib=libc++ ;" > tools/build/src/user-config.jam
 RUN cd /build/boost_* && \
-    ./bjam toolset=clang-3.8 link=static threading=multi target-os=darwin variant=release address-model=64 --layout=system \
+    ./bjam toolset=clang-7.0 link=static threading=multi target-os=darwin variant=release address-model=64 --layout=system \
       --with-filesystem --with-locale --with-program_options --with-system -j${cores} \
       --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-darwin-x86_64/lib install && \
     cd .. && rm -Rf boost_*
 
-ENV qt=4.8.6
+ENV qt=4.8.7
 #qt crossbuild is not supported now
 #root https://www.dropbox.com/sh/j879ottiu1tecsx/AAD4mXm8R1eTaslWKdGv3SiGa?dl=0
 RUN sudo apt-get update && \
     sudo apt-get install -y --no-install-recommends libqt4-dev-bin && \
     sudo rm -rf /var/lib/apt/lists/* && \
-    (wget -q "https://www.dropbox.com/sh/j879ottiu1tecsx/AAB-3KaCZzsS-_fxwr_-6cvGa/20180201/prebuilt/qt/qt-${qt}-darwin-x86_64.tar.bz2?dl=0" -O - |\
+    (wget -q "https://www.dropbox.com/sh/j879ottiu1tecsx/AADhIS1vKlMHNcFxPwN4Tuw6a/20180201/prebuilt/qt/qt-4.8.7-darwin-x86_64.tar.bz2?dl=0" -O - |\
       tar -xj -C ${prebuilt})
 
 #Sources
