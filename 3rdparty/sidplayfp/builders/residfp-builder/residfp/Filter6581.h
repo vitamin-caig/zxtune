@@ -354,10 +354,10 @@ private:
     const int voiceDC;
 
     /// VCR + associated capacitor connected to highpass output.
-    std::auto_ptr<Integrator> hpIntegrator;
+    std::unique_ptr<Integrator> hpIntegrator;
 
     /// VCR + associated capacitor connected to lowpass output.
-    std::auto_ptr<Integrator> bpIntegrator;
+    std::unique_ptr<Integrator> bpIntegrator;
 
 public:
     Filter6581() :

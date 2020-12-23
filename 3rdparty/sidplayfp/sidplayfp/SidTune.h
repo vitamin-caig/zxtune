@@ -45,7 +45,7 @@ private:
     static const char** fileNameExtensions;
 
 private:  // -------------------------------------------------------------
-    std::auto_ptr<SidTuneBase> tune;
+    std::unique_ptr<SidTuneBase> tune;
 
     const char* m_statusString;
 

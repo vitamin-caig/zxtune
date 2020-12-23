@@ -42,9 +42,9 @@ private:
     static const unsigned int DAC_BITS = 11;
 
 private:
-    static std::auto_ptr<FilterModelConfig> instance;
+    static std::unique_ptr<FilterModelConfig> instance;
     // This allows access to the private constructor
-    friend class std::auto_ptr<FilterModelConfig>;
+    friend class std::unique_ptr<FilterModelConfig>;
 
     static const Spline::Point opamp_voltage[OPAMP_SIZE];
 
@@ -132,7 +132,7 @@ public:
      */
     unsigned short* getDAC(double adjustment) const;
 
-    std::auto_ptr<Integrator> buildIntegrator();
+    std::unique_ptr<Integrator> buildIntegrator();
 };
 
 } // namespace reSIDfp
