@@ -140,7 +140,7 @@ namespace Binary
     
     void Seek(std::size_t pos)
     {
-      Require(pos <= (Finish - Start));
+      Require(pos <= std::size_t(Finish - Start));
       Cursor = Start + pos;
     }
 

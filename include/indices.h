@@ -63,7 +63,7 @@ public:
   template<class It>
   void Insert(It from, It to)
   {
-    std::for_each(from, to, [this](auto val) {Insert(val);});
+    std::for_each(from, to, [this](auto val) {this->Insert(val);});
   }
 
   bool Contain(uint_t val) const
