@@ -444,6 +444,7 @@ namespace Chiptune
                 {
                   break;
                 }
+                [[fallthrough]];
               case COMMAND_NOORNAMENT:
                 target.SetOrnament(0);
                 break;

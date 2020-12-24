@@ -264,11 +264,14 @@ namespace FormatDSL
       switch (Val[0])
       {
       case RANGE_TEXT:
-        ++Prec;
+        Prec = 3;
+        break;
       case CONJUNCTION_TEXT:
-        ++Prec;
+        Prec = 2;
+        break;
       case DISJUNCTION_TEXT:
-        ++Prec;
+        Prec = 1;
+        break;
       }
     }
 

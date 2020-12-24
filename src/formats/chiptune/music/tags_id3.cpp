@@ -79,6 +79,7 @@ namespace Chiptune
         case 0x434f4d4d://'COMM'
           //http://id3.org/id3v2.3.0#Comments
           encodedString = encodedString.substr(3);
+          [[fallthrough]];
         case 0x54585858://'TXXX'
           {
             // http://id3.org/id3v2.3.0#User_defined_text_information_frame

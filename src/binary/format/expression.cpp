@@ -105,6 +105,7 @@ namespace FormatDSL
           {
           case ONE_BIT_TEXT:
             value |= bitmask;
+            [[fallthrough]];
           case ZERO_BIT_TEXT:
             mask |= bitmask;
             break;

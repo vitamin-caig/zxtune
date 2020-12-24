@@ -87,6 +87,7 @@ namespace
         {
           break;
         }
+        [[fallthrough]];
       case IN_NAME:
         if (sym == '=')
         {

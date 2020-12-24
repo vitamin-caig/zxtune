@@ -705,6 +705,7 @@ namespace ProTracker3
           case 5:
             Require(fields[4] == "L");
             Looped = true;
+            [[fallthrough]];
           case 4:
             ParseMasks(fields[0]);
             ParseToneOffset(fields[1]);
