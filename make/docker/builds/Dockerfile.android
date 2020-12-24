@@ -4,7 +4,7 @@ FROM debian:stretch-slim
 RUN mkdir -p /usr/share/man/man1 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-            ca-certificates wget unzip python make git python python3-minimal bzip2 \
+            ca-certificates wget unzip python make git python python3-minimal bzip2 nano \
             openjdk-8-jre-headless openjdk-8-jdk-headless libncurses5 ccache && \
     rm -rf /var/lib/apt/lists/* && \
     useradd -m -s /bin/bash -U -G users -d /build build && \

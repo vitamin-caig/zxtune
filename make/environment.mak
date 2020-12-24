@@ -19,6 +19,7 @@ defines.android += ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N L
 # x86
 android.x86.execprefix = $(android.toolchain)/i686-linux-android-
 android.x86.cxx.flags = -m32 -target i686-linux-android16
+android.x86.ld.flags = -target i686-linux-android16
 # x86_64
 android.x86_64.execprefix = $(android.toolchain)/x86_64-linux-android-
 android.x86_64.cxx.flags = -m64 -target x86_64-linux-android21
@@ -26,8 +27,8 @@ android.x86_64.ld.flags = -target x86_64-linux-android21
 # armeabi-v7a
 android.armeabi-v7a.toolchain = $(toolchains.root)/arm-linux-androideabi
 android.armeabi-v7a.execprefix = $(android.armeabi-v7a.toolchain)/bin/arm-linux-androideabi-
-android.armeabi-v7a.cxx.flags = -march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -mthumb
-android.armeabi-v7a.ld.flags = -march=armv7-a -Wl,--fix-cortex-a8
+android.armeabi-v7a.cxx.flags = -target armv7a-linux-androideabi16
+android.armeabi-v7a.ld.flags = -target armv7a-linux-androideabi16
 # arm64-v8a
 android.arm64-v8a.execprefix = $(android.toolchain)/aarch64-linux-android-
 android.arm64-v8a.cxx.flags = -target aarch64-linux-android21

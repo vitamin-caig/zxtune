@@ -1,6 +1,6 @@
 #basic definitions for tools
 tools.cxx ?= $(tools.cxxwrapper) $($(platform).$(arch).execprefix)clang++
-tools.cc ?= $(tools.ccwrapper) $($(platform).$(arch).execprefix)clang++
+tools.cc ?= $(tools.ccwrapper) $($(platform).$(arch).execprefix)clang
 tools.ld ?= $($(platform).$(arch).execprefix)clang++
 tools.ar ?= $($(platform).$(arch).execprefix)ar
 tools.objcopy ?= $($(platform).$(arch).execprefix)objcopy
