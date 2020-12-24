@@ -43,14 +43,6 @@ typedef std::basic_string<Char> String;
 
 typedef basic_string_view<Char> StringView;
 
-//! @brief Helper for creating String from the array of chars
-template<std::size_t D>
-inline String FromCharArray(const char (&str)[D])
-{
-  //do not keep last zero symbol
-  return String(str, str + D);
-}
-
 //! @brief Helper for creating String from ordinary std::string
 inline String FromStdString(const std::string& str)
 {
