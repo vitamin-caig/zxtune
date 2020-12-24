@@ -1,18 +1,14 @@
 @echo off
-copy /Y user-config.jam tools\build\v2\user-config.jam
 
-set MINGW_ROOT_DIRECTORY=E:\Build\MinGW
+set MINGW_ROOT_DIRECTORY=E:\Build\mingw64-8.1.0-posix-sjlj
 ECHO %PATH% | FIND "%MINGW_ROOT_DIRECTORY%" > NUL && GOTO noset
 set PATH=%MINGW_ROOT_DIRECTORY%\bin;%PATH%
 :noset
 
-set OPTIONS=-j%NUMBER_OF_PROCESSORS% --build-type=minimal --layout=tagged
-set PARTS=--without-mpi --without-python --without-log --without-math
-set BOOST_COMMON_DIR=E:\Build\boost-1.55.0
+REM bootstrap.bat
+set BOOST_COMMON_DIR=e:\Build\boost-1.75.0
 
-::mingw x86_64
-set BOOST_DIR=%BOOST_COMMON_DIR%-mingw-x86_64
-bjam --stagedir=%BOOST_DIR% %OPTIONS% %PARTS% address-model=64 toolset=gcc stage
-::mingw x86
-set BOOST_DIR=%BOOST_COMMON_DIR%-mingw-x86
-bjam --stagedir=%BOOST_DIR% %OPTIONS% %PARTS% address-model=32 toolset=gcc stage
+b2    toolset=gcc link=static threading=multi target-os=windows variant=release --layout=system ^
+      address-model=64 cxxflags=-mno-ms-bitfields cxxflags=-mmmx cxxflags=-msse cxxflags=-msse2 cxxflags=-ffunction-sections cxxflags=-fdata-sections cxxflags=-std=c++2a ^
+      --with-filesystem --with-locale --with-program_options --with-system -j%NUMBER_OF_PROCESSORS% ^
+      --includedir=%BOOST_COMMON_DIR%/include --libdir=%BOOST_COMMON_DIR%-mingw-x86_64/lib install

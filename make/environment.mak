@@ -49,7 +49,7 @@ linux.armhf.qt.libs = $(linux.armhf.crossroot)/usr/lib/arm-linux-gnueabihf
 linux.armhf.cxx.flags = -march=armv6 -mfpu=vfp -mfloat-abi=hard -Wa,--no-warn
 
 #mingw
-mingw.toolchain = $(toolchains.root)/MinGW
+mingw.toolchain ?= $(toolchains.root)/MinGW
 mingw.execprefix ?= $(mingw.toolchain)/bin/
 mingw.cxx.flags = -mthreads -mwin32 -mno-ms-bitfields -mmmx -msse -msse2
 mingw.ld.flags = -mthreads -static -Wl,--allow-multiple-definition
