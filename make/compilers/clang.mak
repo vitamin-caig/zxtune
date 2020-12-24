@@ -1,9 +1,9 @@
 #basic definitions for tools
-tools.cxx ?= $($(platform).$(arch).execprefix)clang++
-tools.cc ?= $($(platform).$(arch).execprefix)clang
+tools.cxx ?= $(tools.cxxwrapper) $($(platform).$(arch).execprefix)clang++
+tools.cc ?= $(tools.ccwrapper) $($(platform).$(arch).execprefix)clang++
 tools.ld ?= $($(platform).$(arch).execprefix)clang++
 tools.ar ?= $($(platform).$(arch).execprefix)ar
-tools.objcopy ?= $($(platform).$(arch).execprefix)echo # STUB!
+tools.objcopy ?= $($(platform).$(arch).execprefix)objcopy
 tools.strip ?= $($(platform).$(arch).execprefix)strip
 
 LINKER_BEGIN_GROUP ?= -Wl,'-('
@@ -22,6 +22,9 @@ CXX_MODE_FLAGS += -pg
 LD_MODE_FLAGS += -pg
 else
 CXX_MODE_FLAGS += -fdata-sections -ffunction-sections
+ifdef release
+LD_MODE_FLAGS += -Wl,-O3,--gc-sections
+endif
 endif
 
 #setup PIC code
@@ -42,12 +45,6 @@ endif
 DEFINES = $(defines) $(defines.$(platform)) $(defines.$(platform).$(arch))
 INCLUDES_DIRS = $(sort $(includes.dirs) $(includes.dirs.$(platform)) $(includes.dirs.$(notdir $1)))
 INCLUDES_FILES = $(includes.files) $(includes.files.$(platform))
-
-linux.cxx.flags += -stdlib=libstdc++
-linux.ld.flags += -stdlib=libstdc++
-
-darwin.cxx.flags += -stdlib=libc++
-darwin.ld.flags += -stdlib=libc++
 
 #setup flags
 CCFLAGS = -g $(CXX_MODE_FLAGS) $(cxx_flags) $($(platform).cxx.flags) $($(platform).$(arch).cxx.flags) \
