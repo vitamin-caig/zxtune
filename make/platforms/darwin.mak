@@ -11,5 +11,11 @@ compiler=clang
 host=macos
 LINKER_BEGIN_GROUP=
 LINKER_END_GROUP=
+postlink_cmd = $(tools.strip) $@ && touch $@.pdb
 
 darwin.ld.flags += $(foreach file,$(embedded_files),-sectcreate __TEXT __emb_$(basename $(notdir $(file))) $(file))
+ifndef profile
+ifdef release
+darwin.ld.flags += -Wl,-dead_strip
+endif
+endif

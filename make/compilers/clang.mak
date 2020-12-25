@@ -22,9 +22,6 @@ CXX_MODE_FLAGS += -pg
 LD_MODE_FLAGS += -pg
 else
 CXX_MODE_FLAGS += -fdata-sections -ffunction-sections
-ifdef release
-LD_MODE_FLAGS += -Wl,-O3,--gc-sections
-endif
 endif
 
 #setup PIC code
@@ -69,7 +66,10 @@ link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
         $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $(libraries.$(platform)))) $(LINKER_END_GROUP)\
 	$(if $(libraries.dynamic),-L$(output_dir) $(addprefix -l,$(libraries.dynamic)),)
 
-postlink_cmd = $(tools.strip) $@ && touch $@.pdb
+#specify postlink command- generate pdb file
+postlink_cmd ?= $(tools.objcopy) --only-keep-debug $@ $@.pdb && $(sleep_cmd) && \
+	$(tools.objcopy) --strip-all $@ && $(sleep_cmd) && \
+	$(tools.objcopy) --add-gnu-debuglink=$@.pdb $@
 
 #include generated dependensies
 include $(wildcard $(objects_dir)/*.d)

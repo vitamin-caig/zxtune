@@ -14,4 +14,10 @@ tools.cxx ?= $(tools.cxxwrapper) $(android.toolchain)/clang++
 tools.cc ?= $(tools.ccwrapper) $(android.toolchain)/clang
 tools.ld ?= $(android.toolchain)/clang++
 
+ifndef profile
+ifdef release
+android.ld.flags += -Wl,-O3,--gc-sections
+endif
+endif
+
 libraries.android += c m
