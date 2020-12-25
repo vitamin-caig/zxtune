@@ -127,7 +127,7 @@ namespace PulseAudio
       if (const char* txt = PaApi->pa_strerror(code))
       {
         return MakeFormattedError(loc,
-          translate("Error in PulseAudio backend: %1%."), FromStdString(txt));
+          translate("Error in PulseAudio backend: %1%."), txt);
       }
       else
       {

@@ -210,7 +210,7 @@ namespace File
     }
     catch (const boost::interprocess::interprocess_exception& e)
     {
-      throw Error(THIS_LINE, FromStdString(e.what()));
+      throw Error(THIS_LINE, e.what());
     }
 
     const void* Start() const override

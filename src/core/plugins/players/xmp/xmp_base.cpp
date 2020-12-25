@@ -978,7 +978,7 @@ namespace ZXTune
     {
       const Formats::Chiptune::Decoder::Ptr decoder = MakePtr<Module::Xmp::Decoder>(desc);
       const Module::Factory::Ptr factory = MakePtr<Module::Xmp::Factory>(desc);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(FromStdString(desc.Id), CAPS, decoder, factory);
+      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Id, CAPS, decoder, factory);
       registrator.RegisterPlugin(plugin);
     }
   }

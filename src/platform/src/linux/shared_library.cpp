@@ -54,7 +54,7 @@ namespace Details
         return res;
       }
       throw MakeFormattedError(THIS_LINE,
-        translate("Failed to find symbol '%1%' in shared object."), FromStdString(name));
+        translate("Failed to find symbol '%1%' in shared object."), name);
     }
   private:
     void* const Handle;
@@ -75,7 +75,7 @@ namespace Details
       return Error();
     }
     return MakeFormattedError(THIS_LINE,
-      translate("Failed to load shared object '%1%' (%2%)."), FromStdString(fileName), FromStdString(::dlerror()));
+      translate("Failed to load shared object '%1%' (%2%)."), fileName, ::dlerror());
   }
     
   std::string GetSharedLibraryFilename(const std::string& name)

@@ -64,7 +64,7 @@ namespace
   String GetFilenameTemplate(const Parameters::Accessor& params)
   {
     String nameTemplate;
-    if (!params.FindValue(ToStdString(Text::CONVERSION_PARAM_FILENAME), nameTemplate))
+    if (!params.FindValue(String(Text::CONVERSION_PARAM_FILENAME), nameTemplate))
     {
       throw Error(THIS_LINE, Text::CONVERT_ERROR_NO_FILENAME);
     }
@@ -118,7 +118,7 @@ namespace
   std::unique_ptr<Module::Conversion::Parameter> CreateConversionParameters(const String& mode, const Parameters::Accessor& modeParams)
   {
     Parameters::IntType optimization = Module::Conversion::DEFAULT_OPTIMIZATION;
-    modeParams.FindValue(ToStdString(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
+    modeParams.FindValue(String(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
     std::unique_ptr<Module::Conversion::Parameter> param;
     if (mode == Text::CONVERSION_MODE_PSG)
     {
@@ -224,7 +224,7 @@ namespace
       : Pipe(HolderAndData::Receiver::CreateStub())
     {
       Parameters::StringType mode;
-      if (!params.FindValue(ToStdString(Text::CONVERSION_PARAM_MODE), mode))
+      if (!params.FindValue(String(Text::CONVERSION_PARAM_MODE), mode))
       {
         throw Error(THIS_LINE, Text::CONVERT_ERROR_NO_MODE);
       }

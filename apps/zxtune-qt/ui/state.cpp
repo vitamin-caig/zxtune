@@ -512,7 +512,7 @@ namespace UI
   State::Ptr State::Create(const String& category)
   {
     const Parameters::Container::Ptr container = MakePtr<NamespaceContainer>(
-      GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + ToStdString(category));
+      GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + category);
     return MakePtr<PersistentState>(container);
   }
 

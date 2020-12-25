@@ -54,7 +54,7 @@ namespace Details
         return res;
       }
       throw MakeFormattedError(THIS_LINE,
-        translate("Failed to find symbol '%1%' in dynamic library."), FromStdString(name));
+        translate("Failed to find symbol '%1%' in dynamic library."), name);
     }
   private:
     const HMODULE Handle;
@@ -81,7 +81,7 @@ namespace Details
       return Error();
     }
     return MakeFormattedError(THIS_LINE,
-      translate("Failed to load dynamic library '%1%' (error code is %2%)."), FromStdString(fileName), GetWindowsError());
+      translate("Failed to load dynamic library '%1%' (error code is %2%)."), fileName, GetWindowsError());
   }
 
 

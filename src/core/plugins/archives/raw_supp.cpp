@@ -259,7 +259,7 @@ namespace ZXTune
       StatItem& res = Detection[key];
       if (res.Name.empty())
       {
-        res.Name = ToStdString(plug.GetDescription()->Description());
+        res.Name = plug.GetDescription()->Description();
         res.Index = Detection.size() - 1;
       }
       return Detection[key];

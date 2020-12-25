@@ -29,9 +29,9 @@ namespace
 
   String GetDefaultConfigFileWindows()
   {
-    if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_WIN).c_str()))
+    if (const char* homeDir = ::getenv(Text::ENV_HOMEDIR_WIN))
     {
-      return FromStdString(homeDir) + '\\' + Text::CONFIG_PATH_WIN;
+      return String(homeDir) + '\\' + Text::CONFIG_PATH_WIN;
     }
     return Text::CONFIG_FILENAME;
   }
@@ -39,9 +39,9 @@ namespace
   String GetDefaultConfigFileNix()
   {
     const String configPath(Text::CONFIG_PATH_NIX);
-    if (const char* homeDir = ::getenv(ToStdString(Text::ENV_HOMEDIR_NIX).c_str()))
+    if (const char* homeDir = ::getenv(Text::ENV_HOMEDIR_NIX))
     {
-      return FromStdString(homeDir) + '/' + Text::CONFIG_PATH_NIX;
+      return String(homeDir) + '/' + Text::CONFIG_PATH_NIX;
     }
     return Text::CONFIG_FILENAME;
   }
@@ -133,14 +133,14 @@ namespace
 
       if (doApply)
       {
-        res.insert(Strings::Map::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
+        res.insert(Strings::Map::value_type((prefix + paramName).FullPath(), paramValue));
         paramName.clear();
         paramValue.clear();
       }
     }
     if (IN_VALUE == mode)
     {
-      res.insert(Strings::Map::value_type(FromStdString((prefix + ToStdString(paramName)).FullPath()), paramValue));
+      res.insert(Strings::Map::value_type((prefix + paramName).FullPath(), paramValue));
     }
     else if (IN_NOWHERE != mode)
     {

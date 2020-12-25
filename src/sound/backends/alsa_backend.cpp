@@ -415,7 +415,7 @@ namespace Alsa
     
     String GetName() const
     {
-      return FromStdString(AlsaApi->snd_mixer_selem_get_name(Current));
+      return AlsaApi->snd_mixer_selem_get_name(Current);
     }
 
     void Next()
@@ -980,9 +980,7 @@ namespace Alsa
 
     static Ptr Create(Api::Ptr api, const CardsIterator& card, const DevicesIterator& dev)
     {
-      return MakePtr<DeviceInfo>(api,
-        FromStdString(dev.Id()), FromStdString(dev.Name()), FromStdString(card.Name())
-        );
+      return MakePtr<DeviceInfo>(api, dev.Id(), dev.Name(), card.Name());
     }
 
   private:

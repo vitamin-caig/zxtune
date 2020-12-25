@@ -40,7 +40,7 @@ namespace Platform
   {
     const std::vector<std::string> filenames = Details::GetSharedLibraryFilenames(name);
     Error resError = MakeFormattedError(THIS_LINE,
-      translate("Failed to load dynamic library '%1%' by any of the alternative names."), FromStdString(name.Base()));
+      translate("Failed to load dynamic library '%1%' by any of the alternative names."), name.Base());
     for (const auto& file : filenames)
     {
       SharedLibrary::Ptr res;

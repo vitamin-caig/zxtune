@@ -109,21 +109,23 @@ namespace Wav
 
     void SetTitle(const String& title)
     {
-      AddElement(INAM, ToStdString(title));
+      AddElement(INAM, title);
     }
 
     void SetAuthor(const String& author)
     {
-      AddElement(IART, ToStdString(author));
+      AddElement(IART, author);
     }
 
     void SetComment(const String& comment)
     {
-      AddElement(ICMT, ToStdString(comment));
+      AddElement(ICMT, comment);
     }
   private:
-    void AddElement(const uint8_t* id, const std::string& str)
+    //TODO: clarify about terminating zero
+    void AddElement(const uint8_t* id, const String& str)
     {
+      static_assert(sizeof(str[0]) == 1, "No multibyte strings allowed here");
       ListHeader* const hdr = GetHeader();
       const std::size_t strSize = str.size() + 1;
       InfoElement* const elem = AddElement(strSize);

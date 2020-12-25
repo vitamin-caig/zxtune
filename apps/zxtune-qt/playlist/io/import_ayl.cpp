@@ -290,7 +290,7 @@ namespace
 
     void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
     {
-      const String nameStr = FromStdString(name.FullPath());
+      const auto nameStr = name.FullPath();
       Dbg("  property %1%=%2%", nameStr, val);
       if (nameStr == AYL::CHIP_FREQUENCY)
       {
@@ -313,7 +313,7 @@ namespace
 
     void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
     {
-      const String nameStr = FromStdString(name.FullPath());
+      const auto nameStr = name.FullPath();
       Dbg("  property %1%='%2%'", nameStr, val);
       if (nameStr == AYL::CHIP_TYPE)
       {
@@ -428,7 +428,7 @@ namespace
   void ApplyFormatSpecificData(std::size_t formatSpec, Playlist::IO::ContainerItem& item)
   {
     //for AY files FormatSpec is subtune index
-    if (boost::algorithm::iends_with(item.Path, FromStdString(".ay")))
+    if (boost::algorithm::iends_with(item.Path, String(".ay")))
     {
       const auto subPath = Strings::PrefixedIndex(Text::MULTITRACK_FILENAME_PREFIX, formatSpec).ToString();
       item.Path = AppendSubpath(item.Path, subPath);
@@ -438,8 +438,8 @@ namespace
   void ApplyOffset(std::size_t offset, Playlist::IO::ContainerItem& item)
   {
     //offset for YM/VTX cannot be applied
-    if (!boost::algorithm::iends_with(item.Path, FromStdString(".vtx")) &&
-        !boost::algorithm::iends_with(item.Path, FromStdString(".ym")))
+    if (!boost::algorithm::iends_with(item.Path, String(".vtx")) &&
+        !boost::algorithm::iends_with(item.Path, String(".ym")))
     {
       assert(offset);
       const auto subPath = Strings::PrefixedIndex(Text::RAW_PLUGIN_PREFIX, offset).ToString();

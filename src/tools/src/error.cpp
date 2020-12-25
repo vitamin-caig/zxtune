@@ -29,7 +29,7 @@ namespace
     }
     catch (const std::exception& e)
     {
-      return FromStdString(e.what());
+      return e.what();
     }
   }
 }

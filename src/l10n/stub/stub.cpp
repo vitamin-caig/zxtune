@@ -20,22 +20,22 @@ namespace
   public:
     String GetText(const char* text) const override
     {
-      return FromStdString(std::string(text));
+      return text;
     }
 
     String GetText(const char* single, const char* plural, int count) const override
     {
-      return FromStdString(std::string(count == 1 ? single : plural));
+      return count == 1 ? single : plural;
     }
 
     String GetText(const char* /*context*/, const char* text) const override
     {
-      return FromStdString(std::string(text));
+      return text;
     }
 
     String GetText(const char* /*context*/, const char* single, const char* plural, int count) const override
     {
-      return FromStdString(std::string(count == 1 ? single : plural));
+      return count == 1 ? single : plural;
     }
   };
 

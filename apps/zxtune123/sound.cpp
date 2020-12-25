@@ -70,7 +70,7 @@ namespace
 
     void SetBackendParameters(const String& id, const String& options)
     {
-      ParseParametersString(Parameters::ZXTune::Sound::Backends::PREFIX + ToStdString(id),
+      ParseParametersString(Parameters::ZXTune::Sound::Backends::PREFIX + id,
         options, *Params);
     }
 

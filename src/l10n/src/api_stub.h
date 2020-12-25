@@ -24,22 +24,22 @@ namespace L10n
 
     String operator() (const char* text) const
     {
-      return FromStdString(std::string(text));
+      return text;
     }
 
     String operator() (const char* single, const char* plural, int count) const
     {
-      return FromStdString(std::string(count == 1 ? single : plural));
+      return count == 1 ? single : plural;
     }
 
     String operator() (const char* /*context*/, const char* text) const
     {
-      return FromStdString(std::string(text));
+      return text;
     }
 
     String operator() (const char* /*context*/, const char* single, const char* plural, int count) const
     {
-      return FromStdString(std::string(count == 1 ? single : plural));
+      return count == 1 ? single : plural;
     }
   };
 }

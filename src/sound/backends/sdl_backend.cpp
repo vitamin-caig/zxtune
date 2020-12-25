@@ -260,7 +260,7 @@ namespace Sdl
         if (const char* txt = SdlApi->SDL_GetError())
         {
           throw MakeFormattedError(loc,
-            translate("Error in SDL backend: %1%."), FromStdString(txt));
+            translate("Error in SDL backend: %1%."), txt);
         }
         throw Error(loc, translate("Unknown error in SDL backend."));
       }
