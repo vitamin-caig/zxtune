@@ -525,7 +525,7 @@ namespace Alsa
     }
   private:
     const Api::Ptr AlsaApi;
-    const std::string Name;
+    const String Name;
     MixerDevice MixDev;
   };
 
@@ -794,7 +794,7 @@ namespace Alsa
     const Api::Ptr AlsaApi;
   };
 
-  std::shared_ptr<snd_ctl_t> OpenDevice(Api::Ptr api, const std::string& deviceName)
+  std::shared_ptr<snd_ctl_t> OpenDevice(Api::Ptr api, const String& deviceName)
   {
     snd_ctl_t* ctl = nullptr;
     return api->snd_ctl_open(&ctl, deviceName.c_str(), 0) >= 0
@@ -822,12 +822,12 @@ namespace Alsa
       return *CurHandle;
     }
 
-    std::string Name() const
+    String Name() const
     {
       return CurName;
     }
 
-    std::string Id() const
+    String Id() const
     {
       return CurId;
     }
@@ -842,8 +842,8 @@ namespace Alsa
 
       for (; AlsaApi->snd_card_next(&Index) >= 0 && Index >= 0; )
       {
-        const std::string hwId = (boost::format("hw:%i") % Index).str();
-        const std::shared_ptr<snd_ctl_t> handle = OpenDevice(AlsaApi, hwId);
+        const auto hwId = Strings::Format("hw:%i", Index);
+        const auto handle = OpenDevice(AlsaApi, hwId);
         if (!handle)
         {
           continue;
@@ -862,8 +862,8 @@ namespace Alsa
     const Api::Ptr AlsaApi;
     int Index;
     std::shared_ptr<snd_ctl_t> CurHandle;
-    std::string CurName;
-    std::string CurId;
+    String CurName;
+    String CurId;
   };
 
   class DevicesIterator
@@ -882,20 +882,20 @@ namespace Alsa
       return !CurName.empty();
     }
 
-    std::string Name() const
+    String Name() const
     {
       return CurName;
     }
 
-    std::string Id() const
+    String Id() const
     {
-      return (boost::format("hw:%s,%u") % Card.Id() % Index).str();
+      return Strings::Format("hw:%s,%u", Card.Id(), Index);
     }
 
     void Next()
     {
       CurName.clear();
-      const std::shared_ptr<snd_pcm_info_t> pcmInfo = Allocate<snd_pcm_info_t>(AlsaApi,
+      const auto pcmInfo = Allocate<snd_pcm_info_t>(AlsaApi,
         &Api::snd_pcm_info_malloc, &Alsa::Api::snd_pcm_info_free);
       for (; Card.IsValid() && AlsaApi->snd_ctl_pcm_next_device(&Card.Handle(), &Index) >= 0 && Index >= 0; )
       {
@@ -920,7 +920,7 @@ namespace Alsa
     const Api::Ptr AlsaApi;
     const CardsIterator& Card;
     int Index;
-    std::string CurName;
+    String CurName;
   };
 
   class DeviceInfo : public Device

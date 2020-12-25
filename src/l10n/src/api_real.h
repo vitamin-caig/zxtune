@@ -34,7 +34,7 @@ namespace L10n
   class TranslateFunctor
   {
   public:
-    explicit TranslateFunctor(const std::string& domain)
+    explicit TranslateFunctor(const String& domain)
       : Delegate(Library::Instance().GetVocabulary(domain))
     {
     }

@@ -27,25 +27,25 @@ namespace Sound
       {
       }
 
-      std::string Base() const override
+      String Base() const override
       {
         return "pulse-simple";
       }
       
-      std::vector<std::string> PosixAlternatives() const override
+      std::vector<String> PosixAlternatives() const override
       {
-        static const std::string ALTERNATIVES[] =
+        static const String ALTERNATIVES[] =
         {
           "libpulse-simple.so.0",
           "libpulse-simple.so.0.1",
           "libpulse-simple.so.0.1.0"
         };
-        return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
+        return std::vector<String>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
-      std::vector<std::string> WindowsAlternatives() const override
+      std::vector<String> WindowsAlternatives() const override
       {
-        return std::vector<std::string>();
+        return {};
       }
     };
 

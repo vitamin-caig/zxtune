@@ -87,9 +87,9 @@ namespace Archived
 
     struct ClassName
     {
-      const std::string Name;
+      const String Name;
 
-      explicit ClassName(const std::string& name)
+      explicit ClassName(const String& name)
         : Name(boost::algorithm::to_lower_copy(name))
       {
       }
@@ -104,9 +104,9 @@ namespace Archived
 
     struct Property
     {
-      const std::string Name;
+      const String Name;
 
-      explicit Property(const std::string& name)
+      explicit Property(const String& name)
         : Name(boost::algorithm::to_lower_copy(name))
       {
       }
@@ -119,7 +119,7 @@ namespace Archived
 
     struct NameEntry
     {
-      std::string Name;
+      String Name;
       uint32_t Flags;
 
       NameEntry()
@@ -212,7 +212,7 @@ namespace Archived
         res.Value = negative ? -result : +result;
       }
 
-      void Read(std::string& res)
+      void Read(String& res)
       {
         const uint8_t* const limit = Version >= 64
           ? Cursor + ReadByte()
@@ -324,7 +324,7 @@ namespace Archived
         return Exports.size();
       }
 
-      std::string GetEntryName(uint_t idx) const
+      String GetEntryName(uint_t idx) const
       {
         const auto& exp = Exports.at(idx);
         return GetName(exp.ObjectName);
@@ -396,7 +396,7 @@ namespace Archived
         }
       }
 
-      const std::string& GetName(Index idx) const
+      const String& GetName(Index idx) const
       {
         return Names.at(idx.Value).Name;
       }

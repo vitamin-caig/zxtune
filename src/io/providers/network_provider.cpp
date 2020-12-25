@@ -160,8 +160,8 @@ namespace Network
     static int DebugCallback(CURL* obj, curl_infotype type, char* data, size_t size, void* /*param*/)
     {
       static const char SPACES[] = "\n\r\t ";
-      std::string str(data, data + size);
-      const std::string::size_type lastSym = str.find_last_not_of(SPACES);
+      String str(data, data + size);
+      const auto lastSym = str.find_last_not_of(SPACES);
       if (lastSym == str.npos)
       {
         return 0;

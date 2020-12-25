@@ -34,8 +34,6 @@
 #include <array>
 #include <list>
 #include <map>
-//boost includes
-#include <boost/lexical_cast.hpp>
 //text includes
 #include <core/text/plugins.h>
 
@@ -47,7 +45,7 @@ namespace ZXTune
   class StatisticBuilder
   {
   public:
-    typedef std::array<std::string, Fields> Line;
+    typedef std::array<String, Fields> Line;
 
     StatisticBuilder()
       : Lines()
@@ -72,9 +70,9 @@ namespace ZXTune
       }
     }
 
-    std::string Get() const
+    String Get() const
     {
-      std::string res;
+      String res;
       for (const auto& line : Lines)
       {
         res += ToString(line);
@@ -82,9 +80,9 @@ namespace ZXTune
       return res;
     }
   private:
-    std::string ToString(const Line& line) const
+    String ToString(const Line& line) const
     {
-      std::string res;
+      String res;
       for (uint_t idx = 0; idx != Fields; ++idx)
       {
         res += Widen(line[idx], Widths[idx] + 1);
@@ -93,9 +91,9 @@ namespace ZXTune
       return res;
     }
 
-    static std::string Widen(const std::string& str, std::size_t wid)
+    static String Widen(const String& str, std::size_t wid)
     {
-      std::string res(wid, ' ');
+      String res(wid, ' ');
       std::copy(str.begin(), str.end(), res.begin());
       return res;
     }
@@ -186,7 +184,7 @@ namespace ZXTune
   private:
     struct StatItem
     {
-      std::string Name;
+      String Name;
       std::size_t Index;
       std::size_t Aimed;
       std::size_t Missed;
@@ -214,9 +212,9 @@ namespace ZXTune
       }
     };
 
-    static std::array<std::string, 7> MakeStatLine()
+    static std::array<String, 7> MakeStatLine()
     {
-      std::array<std::string, 7> res;
+      std::array<String, 7> res;
       res[0] = "\nDetector";
       res[1] = "Missed detect";
       res[2] = "Total detect";
@@ -227,16 +225,16 @@ namespace ZXTune
       return res;
     }
 
-    static std::array<std::string, 7> MakeStatLine(const StatItem& item)
+    static std::array<String, 7> MakeStatLine(const StatItem& item)
     {
-      std::array<std::string, 7> res;
+      std::array<String, 7> res;
       res[0] = item.Name;
-      res[1] = boost::lexical_cast<std::string>(item.Missed);
-      res[2] = boost::lexical_cast<std::string>(item.Aimed + item.Missed);
-      res[3] = boost::lexical_cast<std::string>(Percent(item.Aimed, item.Missed));
-      res[4] = boost::lexical_cast<std::string>(item.MissedTime.CastTo<Time::Millisecond>().Get());
-      res[5] = boost::lexical_cast<std::string>((item.MissedTime + item.AimedTime).CastTo<Time::Millisecond>().Get());
-      res[6] = boost::lexical_cast<std::string>(Percent(item.AimedTime.Get(), item.MissedTime.Get()));
+      res[1] = std::to_string(item.Missed);
+      res[2] = std::to_string(item.Aimed + item.Missed);
+      res[3] = std::to_string(Percent(item.Aimed, item.Missed));
+      res[4] = std::to_string(item.MissedTime.CastTo<Time::Millisecond>().Get());
+      res[5] = std::to_string((item.MissedTime + item.AimedTime).CastTo<Time::Millisecond>().Get());
+      res[6] = std::to_string(Percent(item.AimedTime.Get(), item.MissedTime.Get()));
       return res;
     }
 

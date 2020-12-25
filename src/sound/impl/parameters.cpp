@@ -80,7 +80,7 @@ namespace Parameters
 
         NameType LEVEL(uint_t totalChannels, uint_t inChannel, uint_t outChannel)
         {
-          return PREFIX + std::string(MIXERS[totalChannels - 1][inChannel][outChannel].Name);
+          return PREFIX + MIXERS[totalChannels - 1][inChannel][outChannel].Name;
         }
 
         //! @brief Function to get defaul percent-based level

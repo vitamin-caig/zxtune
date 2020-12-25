@@ -28,18 +28,18 @@ namespace
     PATH_ELEMENTS
   };
 
-  bool ParseFilename(const std::string& path, L10n::Translation& trans)
+  bool ParseFilename(const String& path, L10n::Translation& trans)
   {
-    std::vector<std::string> elements;
-    static const std::string PATH_DELIMITERS("/\\");
+    std::vector<String> elements;
+    static const String PATH_DELIMITERS("/\\");
     boost::algorithm::split(elements, path, boost::algorithm::is_any_of(PATH_DELIMITERS), boost::algorithm::token_compress_on);
     if (elements.size() == PATH_ELEMENTS)
     {
-      const std::string filename = elements[FILENAME_POS];
-      const std::string::size_type dotPos = filename.find_last_of('.');
+      const String filename = elements[FILENAME_POS];
+      const String::size_type dotPos = filename.find_last_of('.');
       trans.Domain = dotPos == filename.npos ? filename : filename.substr(0, dotPos);
       trans.Language = elements[TRANSLATION_POS];
-      trans.Type = dotPos == filename.npos ? std::string() : filename.substr(dotPos + 1);
+      trans.Type = dotPos == filename.npos ? String() : filename.substr(dotPos + 1);
       return true;
     }
     return false;

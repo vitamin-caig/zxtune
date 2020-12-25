@@ -59,13 +59,13 @@ namespace Oss
     {
     }
     
-    explicit AutoDescriptor(std::string name)
+    explicit AutoDescriptor(String name)
       : Name(std::move(name))
       , Handle(-1)
     {
     }
     
-    AutoDescriptor(std::string name, int mode)
+    AutoDescriptor(String name, int mode)
       : Name(std::move(name))
       , Handle(::open(Name.c_str(), mode, 0))
     {
@@ -149,7 +149,7 @@ namespace Oss
       }
     }
   private:
-    std::string Name;
+    String Name;
     //leave handle as int
     int Handle;
   };

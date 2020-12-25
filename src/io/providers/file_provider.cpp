@@ -44,9 +44,9 @@ namespace
 {
 //TODO
 #ifdef _WIN32
-  std::string ApplyOSFilenamesRestrictions(const std::string& in)
+  String ApplyOSFilenamesRestrictions(const String& in)
   {
-    static const std::string DEPRECATED_NAMES[] =
+    static const String DEPRECATED_NAMES[] =
     {
       "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
       "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
@@ -202,7 +202,7 @@ namespace File
   class MemoryMappedData : public Binary::Data
   {
   public:
-    explicit MemoryMappedData(const std::string& path)
+    explicit MemoryMappedData(const String& path)
     try
       : File(path.c_str(), boost::interprocess::read_only)
       , Region(File, boost::interprocess::read_only)
@@ -227,7 +227,7 @@ namespace File
     const boost::interprocess::mapped_region Region;
   };
 
-  Binary::Data::Ptr OpenMemoryMappedFile(const std::string& path)
+  Binary::Data::Ptr OpenMemoryMappedFile(const String& path)
   {
     return MakePtr<MemoryMappedData>(path);
   }

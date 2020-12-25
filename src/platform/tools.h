@@ -15,5 +15,5 @@
 
 namespace Platform
 {
-  std::string GetCurrentImageFilename();
+  String GetCurrentImageFilename();
 }

@@ -37,7 +37,7 @@ namespace AYM
     
     void Initialize() override
     {
-      static const std::string HEADER("000102030405060708090a0b0c0d\n");
+      static const String HEADER("000102030405060708090a0b0c0d\n");
       Data.assign(HEADER.begin(), HEADER.end());
       FrameNumber = 0;
     }

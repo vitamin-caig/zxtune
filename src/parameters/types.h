@@ -43,7 +43,7 @@ namespace Parameters
   public:
     NameType() = default;
 
-    /*explicit*/NameType(std::string path)
+    /*explicit*/NameType(String path)
       : Path(std::move(path))
     {
     }
@@ -96,7 +96,7 @@ namespace Parameters
 
     NameType operator - (const NameType& sup) const
     {
-      const std::string::size_type supSize = sup.Path.size();
+      const auto supSize = sup.Path.size();
       return supSize && Path.size() > supSize
           && 0 == Path.compare(0, supSize, sup.Path)
           && Path[supSize] == NAMESPACE_DELIMITER
@@ -104,26 +104,26 @@ namespace Parameters
         : NameType();
     }
 
-    NameType operator + (std::string rh) const
+    NameType operator + (String rh) const
     {
       return operator + (NameType(std::move(rh)));
     }
 
     NameType& operator = (const NameType& rh) = default;
 
-    std::string FullPath() const
+    String FullPath() const
     {
       return Path;
     }
 
-    std::string Name() const
+    String Name() const
     {
-      const std::string::size_type lastDelim = Path.find_last_of(NAMESPACE_DELIMITER);
+      const auto lastDelim = Path.find_last_of(NAMESPACE_DELIMITER);
       return lastDelim != Path.npos
         ? Path.substr(lastDelim + 1)
         : Path;
     }
   private:
-    std::string Path;
+    String Path;
   };
 }

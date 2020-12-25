@@ -70,20 +70,17 @@ namespace Mp3
 
     void SetTitle(const String& title) override
     {
-      const std::string titleC = title;//TODO
-      LameApi->id3tag_set_title(Context.get(), titleC.c_str());
+      LameApi->id3tag_set_title(Context.get(), title.c_str());
     }
 
     void SetAuthor(const String& author) override
     {
-      const std::string authorC = author;//TODO
-      LameApi->id3tag_set_artist(Context.get(), authorC.c_str());
+      LameApi->id3tag_set_artist(Context.get(), author.c_str());
     }
 
     void SetComment(const String& comment) override
     {
-      const std::string commentC = comment;//TODO
-      LameApi->id3tag_set_comment(Context.get(), commentC.c_str());
+      LameApi->id3tag_set_comment(Context.get(), comment.c_str());
     }
 
     void FlushMetadata() override

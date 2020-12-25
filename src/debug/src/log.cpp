@@ -31,7 +31,7 @@ namespace
     {
     }
   public:
-    bool EnabledFor(const std::string& module) const
+    bool EnabledFor(const String& module) const
     {
       return Variable &&
         (*Variable == DEBUG_ALL || 0 == module.compare(0, VariableSize, Variable));
@@ -50,12 +50,12 @@ namespace
 
 namespace Debug
 {
-  void Message(const std::string& module, const std::string& msg)
+  void Message(const String& module, const String& msg)
   {
     std::cerr << '[' << module << "]: " << msg << std::endl;
   }
 
-  bool IsEnabledFor(const std::string& module)
+  bool IsEnabledFor(const String& module)
   {
     return DebugSwitch::Instance().EnabledFor(module);
   }

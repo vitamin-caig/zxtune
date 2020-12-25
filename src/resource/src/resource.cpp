@@ -122,12 +122,12 @@ namespace
 
 namespace
 {
-  std::string GetArchiveContainerName()
+  String GetArchiveContainerName()
   {
     return Platform::GetCurrentImageFilename();
   }
 
-  Binary::Container::Ptr ReadFile(const std::string& filename)
+  Binary::Container::Ptr ReadFile(const String& filename)
   {
     std::ifstream file(filename.c_str(), std::ios::binary);
     if (!file)
@@ -144,7 +144,7 @@ namespace
 
   Binary::Container::Ptr LoadArchiveContainer()
   {
-    const std::string filename = GetArchiveContainerName();
+    const auto filename = GetArchiveContainerName();
     return ReadFile(filename);
   }
 

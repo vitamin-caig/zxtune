@@ -46,11 +46,11 @@ namespace
     {
     }
 
-    void SelectTranslation(const std::string& /*translation*/) override
+    void SelectTranslation(const String& /*translation*/) override
     {
     }
 
-    L10n::Vocabulary::Ptr GetVocabulary(const std::string& /*domain*/) const override
+    L10n::Vocabulary::Ptr GetVocabulary(const String& /*domain*/) const override
     {
       static StubVocabulary voc;
       return MakeSingletonPointer(voc);

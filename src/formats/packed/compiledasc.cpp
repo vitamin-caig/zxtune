@@ -117,20 +117,20 @@ namespace Packed
     {
       const std::size_t MinSize;
       const String Description;
-      const std::string Format;
+      const String Format;
       const CreatePlayerFunc CreatePlayer;
       const ParseFunc Parse;
       const InsertMetaInfoFunc InsertMetaInformation;
     };
 
-    const std::string ID_FORMAT =
+    const String ID_FORMAT =
       "'A'S'M' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
       "?{20}" //title
       "?{4}"  //any text
       "?{20}" //author
     ;
 
-    const std::string BASE_FORMAT = 
+    const String BASE_FORMAT = 
       "?{11}" //unknown
       "c3??"  //init
       "c3??"  //play

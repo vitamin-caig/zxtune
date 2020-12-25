@@ -19,8 +19,8 @@ namespace Platform
 {
   namespace Details
   {
-    std::string GetSharedLibraryFilename(const std::string& name);
-    std::vector<std::string> GetSharedLibraryFilenames(const SharedLibrary::Name& name);
-    Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res);
+    String GetSharedLibraryFilename(const String& name);
+    std::vector<String> GetSharedLibraryFilenames(const SharedLibrary::Name& name);
+    Error LoadSharedLibrary(const String& fileName, SharedLibrary::Ptr& res);
   }
 }

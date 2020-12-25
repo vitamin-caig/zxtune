@@ -10,8 +10,8 @@
 
 #pragma once
 
-//std includes
-#include <string>
+//common includes
+#include <types.h>
 
 namespace Module
 {
@@ -19,63 +19,63 @@ namespace Module
   //! @name Built-in attributes
 
   //! %Module type attribute @see PluginInformation#Id
-  extern const std::string ATTR_TYPE;
+  extern const String ATTR_TYPE;
   //! %Module title
-  extern const std::string ATTR_TITLE;
+  extern const String ATTR_TITLE;
   //! %Module author
-  extern const std::string ATTR_AUTHOR;
+  extern const String ATTR_AUTHOR;
   //! %Module program produced at
-  extern const std::string ATTR_PROGRAM;
+  extern const String ATTR_PROGRAM;
   //! %Module computer 
-  extern const std::string ATTR_COMPUTER;
+  extern const String ATTR_COMPUTER;
   //! %Module creating date
-  extern const std::string ATTR_DATE;
+  extern const String ATTR_DATE;
   //! %Module comment
-  extern const std::string ATTR_COMMENT;
+  extern const String ATTR_COMMENT;
   //! Internal format version 10 * major + minor
-  extern const std::string ATTR_VERSION;
+  extern const String ATTR_VERSION;
   //! Strings (e.g. from sample names)
-  extern const std::string ATTR_STRINGS;
+  extern const String ATTR_STRINGS;
   //! Platform id
-  extern const std::string ATTR_PLATFORM;
+  extern const String ATTR_PLATFORM;
   //@}
 
   //@{
   //! @name Storage-related attributes
 
   //! Raw module data crc32 checksum
-  extern const std::string ATTR_CRC;
+  extern const String ATTR_CRC;
   //! Constant  module data crc32 checksum
-  extern const std::string ATTR_FIXEDCRC;
+  extern const String ATTR_FIXEDCRC;
   //! Raw module size in bytes
-  extern const std::string ATTR_SIZE;
+  extern const String ATTR_SIZE;
   //@}
 
   //@{
   //! @name Named storage-related attributes
 
   //! %Module containers chain
-  extern const std::string ATTR_CONTAINER;
+  extern const String ATTR_CONTAINER;
   //! %Module path in top-level data dump
-  extern const std::string ATTR_SUBPATH;
+  extern const String ATTR_SUBPATH;
   //! Module's input data filename extension
-  extern const std::string ATTR_EXTENSION;
+  extern const String ATTR_EXTENSION;
   //! Module's input data filename
-  extern const std::string ATTR_FILENAME;
+  extern const String ATTR_FILENAME;
   //! Path of module's input data
-  extern const std::string ATTR_PATH;
+  extern const String ATTR_PATH;
   //! Full path of module including path of input data and subpath
-  extern const std::string ATTR_FULLPATH;
+  extern const String ATTR_FULLPATH;
   //@}
 
   //@{
   //! @name Runtime attributes
 
   //! Current module position
-  extern const std::string ATTR_CURRENT_POSITION;
+  extern const String ATTR_CURRENT_POSITION;
   //! Current module pattern
-  extern const std::string ATTR_CURRENT_PATTERN;
+  extern const String ATTR_CURRENT_PATTERN;
   //! Current module line
-  extern const std::string ATTR_CURRENT_LINE;
+  extern const String ATTR_CURRENT_LINE;
   //@}
 }

@@ -161,7 +161,7 @@ namespace File
     }
   private:
     template<class T>
-    T GetProperty(const std::string& name) const
+    T GetProperty(const String& name) const
     {
       T result = T();
       if (!Params->FindValue(GetBackendPropertyName(name), result))
