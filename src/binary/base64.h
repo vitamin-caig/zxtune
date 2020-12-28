@@ -32,7 +32,7 @@ namespace Binary
     {
       String result(CalculateConvertedSize(input.size()), ' ');
       const uint8_t* const in = input.data();
-      char* const out = result.data();
+      char* const out = &result[0];
       Encode(in, in + input.size(), out, out + result.size());
       return result;
     }

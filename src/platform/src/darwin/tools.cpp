@@ -45,7 +45,7 @@ namespace
     String result(100, '\0');
     for (uint32_t size = result.size(); ; )
     {
-      if (::_NSGetExecutablePath(result.data(), &size) == 0)
+      if (::_NSGetExecutablePath(&result[0], &size) == 0)
       {
         result.resize(size);
         break;
