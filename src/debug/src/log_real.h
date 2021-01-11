@@ -21,12 +21,12 @@
 namespace Debug
 {
   //! @brief Unconditionally outputs debug message
-  void Message(const std::string& module, const std::string& msg);
+  void Message(const String& module, const String& msg);
 
   //! @brief Checks if debug logs are enabled for module
-  bool IsEnabledFor(const std::string& module);
+  bool IsEnabledFor(const String& module);
 
-  inline void Log(const std::string& module, const std::string& msg)
+  inline void Log(const String& module, const String& msg)
   {
     if (IsEnabledFor(module))
     {
@@ -72,7 +72,7 @@ namespace Debug
       }
     }
   private:
-    const std::string Module;
+    const String Module;
     const bool Enabled;
   };
 }

@@ -464,7 +464,8 @@ namespace
       const Binary::Container::Ptr data = result->Data();
       const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
       const uint8_t* const end = begin + data->Size();
-      if (end != std::find_if(begin, end, std::bind1st(std::not_equal_to<uint8_t>(), *begin)))
+      const auto first = *begin;
+      if (std::any_of(begin, end, [first](auto b) {return first != b;}))
       {
         Target->ApplyData(std::move(result));
       }

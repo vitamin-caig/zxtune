@@ -76,10 +76,8 @@ namespace Flac
 
     void AddTag(const String& name, const String& value)
     {
-      const std::string& nameC = name;//TODO
-      const std::string& valueC = value;//TODO
       FLAC__StreamMetadata_VorbisComment_Entry entry;
-      CheckFlacCall(FlacApi->FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, nameC.c_str(), valueC.c_str()), THIS_LINE);
+      CheckFlacCall(FlacApi->FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, name.c_str(), value.c_str()), THIS_LINE);
       CheckFlacCall(FlacApi->FLAC__metadata_object_vorbiscomment_append_comment(Tags.get(), entry, false), THIS_LINE);
     }
 

@@ -146,7 +146,7 @@ namespace Packed
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
     const std::size_t MAX_IMAGE_SIZE = 1048576;
-    const std::string COMPRESSION_ALGORITHM("-lh1-");
+    const String COMPRESSION_ALGORITHM("-lh1-");
 
     enum SectorDataType
     {

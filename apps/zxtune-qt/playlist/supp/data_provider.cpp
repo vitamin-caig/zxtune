@@ -632,7 +632,7 @@ namespace
     {
     }
 
-    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const
+    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const override
     {
       auto moduleId = DataId->WithSubpath(subpath);
       auto pathProps = Module::CreatePathProperties(std::move(moduleId));

@@ -158,7 +158,7 @@ SidTuneBase* MUS::load (buffer_t& musBuf,
     if (!detect(&spPet[0], spPet.tellLength(), voice3Index))
         return 0;
 
-    std::auto_ptr<MUS> tune(new MUS());
+    std::unique_ptr<MUS> tune(new MUS());
     tune->tryLoad(musBuf, strBuf, spPet, voice3Index, init);
     tune->mergeParts(musBuf, strBuf);
 

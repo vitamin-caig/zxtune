@@ -161,7 +161,7 @@ namespace File
     }
   private:
     template<class T>
-    T GetProperty(const std::string& name) const
+    T GetProperty(const String& name) const
     {
       T result = T();
       if (!Params->FindValue(GetBackendPropertyName(name), result))
@@ -171,12 +171,12 @@ namespace File
       return result;
     }
 
-    Parameters::NameType GetBackendPropertyName(const std::string& name) const
+    Parameters::NameType GetBackendPropertyName(const String& name) const
     {
-      return Parameters::ZXTune::Sound::Backends::PREFIX + ToStdString(Id) + name;
+      return Parameters::ZXTune::Sound::Backends::PREFIX + Id + name;
     }
 
-    Parameters::NameType GetComonPropertyName(const std::string& name) const
+    Parameters::NameType GetComonPropertyName(const String& name) const
     {
       return Parameters::ZXTune::Sound::Backends::File::PREFIX + name;
     }

@@ -380,10 +380,13 @@ namespace Sid
         case 3:
           //copyright/publisher really
           props.SetComment(DecodeString(tuneInfo.infoString(2)));
+          [[fallthrough]];
         case 2:
           props.SetAuthor(DecodeString(tuneInfo.infoString(1)));
+          [[fallthrough]];
         case 1:
           props.SetTitle(DecodeString(tuneInfo.infoString(0)));
+          [[fallthrough]];
         case 0:
           break;
         }

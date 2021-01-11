@@ -40,7 +40,7 @@ namespace Chiptune
     PACK_PRE struct RawHeader
     {
       SignatureType Sign;
-      char Version[3];
+      std::array<char, 3> Version;
       uint8_t IntFreq;
       std::array<uint16_t, 6> Offsets;
       uint8_t Reserved[12];
@@ -294,7 +294,7 @@ namespace Chiptune
       {
         Binary::DataInputStream stream(data);
         const RawHeader& header = stream.ReadField<RawHeader>();
-        target.SetVersion(FromCharArray(header.Version));
+        target.SetVersion({header.Version.data(), header.Version.size()});
         target.SetIntFreq(header.IntFreq);
         target.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
         target.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));

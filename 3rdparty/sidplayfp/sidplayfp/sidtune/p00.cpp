@@ -131,7 +131,7 @@ SidTuneBase* p00::load(const char *fileName, buffer_t& dataBuf)
     if (bufLen < sizeof(X00Header)+2)
         throw loadError(ERR_TRUNCATED);
 
-    std::auto_ptr<p00> tune(new p00());
+    std::unique_ptr<p00> tune(new p00());
     tune->load(format, pHeader);
 
     return tune.release();

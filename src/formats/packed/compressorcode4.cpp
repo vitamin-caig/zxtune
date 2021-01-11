@@ -290,6 +290,7 @@ namespace Packed
             {
             case 0:
               len -= 2;
+              [[fallthrough]];
             case 1:
               while (len--)
               {
@@ -298,11 +299,13 @@ namespace Packed
               break;
             case 2:
               --len;
+              [[fallthrough]];
             case 3:
               std::fill_n(target, len, 0);
               break;
             case 4:
               --len;
+              [[fallthrough]];
             case 5:
               std::fill_n(target, len, 0xff);
               break;
@@ -312,6 +315,7 @@ namespace Packed
               break;
             case 8:
               ++len;
+              [[fallthrough]];
             case 9:
               for (uint8_t data = *source, delta = *source; len; --len, data += delta)
               {
@@ -320,6 +324,7 @@ namespace Packed
               break;
             case 0xa:
               --len;
+              [[fallthrough]];
             case 0xb:
               for (const uint8_t data1 = *source, data2 = *source; len; --len)
               {
@@ -329,6 +334,7 @@ namespace Packed
               break;
             case 0xc:
               --len;
+              [[fallthrough]];
             case 0xd:
               for (const uint8_t data1 = *source, data2 = *source, data3 = *source; len; --len)
               {
@@ -375,6 +381,7 @@ namespace Packed
               break;
             case 0x16:
               ++len;
+              [[fallthrough]];
             case 0x17:
               {
                 const uint_t hiOff = *source;

@@ -151,7 +151,7 @@ namespace Chiptune
         Digital::Positions positions;
         positions.Lines.resize(positionsCount);
         std::transform(Source.Positions.begin(), Source.Positions.begin() + positionsCount, positions.Lines.begin(),
-          std::bind2nd(std::minus<uint8_t>(), uint8_t(1)));
+          [](auto b) {return b - 1;});
         Dbg("Positions: %1%", positions.GetSize());
         target.SetPositions(std::move(positions));
       }

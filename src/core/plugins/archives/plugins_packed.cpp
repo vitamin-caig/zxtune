@@ -84,7 +84,7 @@ namespace ZXTune
   void RegisterPlugin(const ArchivePluginDescription& desc, ArchivePluginsRegistrator& registrator)
   {
     const Formats::Packed::Decoder::Ptr decoder = desc.Create();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(FromStdString(desc.Id), desc.Caps, decoder);
+    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(desc.Id, desc.Caps, decoder);
     registrator.RegisterPlugin(plugin);
   }
 }

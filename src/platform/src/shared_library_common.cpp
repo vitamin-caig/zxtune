@@ -27,9 +27,9 @@ namespace
 
 namespace Platform
 {
-  SharedLibrary::Ptr SharedLibrary::Load(const std::string& name)
+  SharedLibrary::Ptr SharedLibrary::Load(const String& name)
   {
-    const std::string& fileName = Details::GetSharedLibraryFilename(name);
+    const auto fileName = Details::GetSharedLibraryFilename(name);
     SharedLibrary::Ptr res;
     ThrowIfError(Details::LoadSharedLibrary(fileName, res));
     Dbg("Loaded '%1%' (as '%2%')", name, fileName);
@@ -38,9 +38,9 @@ namespace Platform
 
   SharedLibrary::Ptr SharedLibrary::Load(const SharedLibrary::Name& name)
   {
-    const std::vector<std::string> filenames = Details::GetSharedLibraryFilenames(name);
+    const auto filenames = Details::GetSharedLibraryFilenames(name);
     Error resError = MakeFormattedError(THIS_LINE,
-      translate("Failed to load dynamic library '%1%' by any of the alternative names."), FromStdString(name.Base()));
+      translate("Failed to load dynamic library '%1%' by any of the alternative names."), name.Base());
     for (const auto& file : filenames)
     {
       SharedLibrary::Ptr res;

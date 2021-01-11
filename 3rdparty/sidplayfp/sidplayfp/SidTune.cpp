@@ -58,7 +58,7 @@ SidTune::SidTune(const uint_least8_t* oneFileFormatSidtune, uint_least32_t sidtu
 
 SidTune::~SidTune()
 {
-    // Needed to delete auto_ptr with complete type
+    // Needed to delete unique_ptr with complete type
 }
 
 void SidTune::setFileNameExtensions(const char **fileNameExt)

@@ -120,7 +120,7 @@ public:  // ----------------------------------------------------------------
 
 protected:  // -------------------------------------------------------------
 
-    std::auto_ptr<SidTuneInfoImpl> info;
+    std::unique_ptr<SidTuneInfoImpl> info;
 
     uint_least8_t songSpeed[MAX_SONGS];
     SidTuneInfo::clock_t clockSpeed[MAX_SONGS];

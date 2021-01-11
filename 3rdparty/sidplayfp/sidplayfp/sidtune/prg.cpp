@@ -47,7 +47,7 @@ SidTuneBase* prg::load(const char *fileName, buffer_t& dataBuf)
         throw loadError(ERR_TRUNCATED);
     }
 
-    std::auto_ptr<prg> tune(new prg());
+    std::unique_ptr<prg> tune(new prg());
     tune->load();
 
     return tune.release();

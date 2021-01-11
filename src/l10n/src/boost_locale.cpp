@@ -42,7 +42,7 @@ namespace
   class DomainVocabulary : public L10n::Vocabulary
   {
   public:
-    DomainVocabulary(LocalePtr locale, std::string domain)
+    DomainVocabulary(LocalePtr locale, String domain)
       : Locale(std::move(locale))
       , Domain(std::move(domain))
     {
@@ -70,7 +70,7 @@ namespace
     }
   private:
     const LocalePtr Locale;
-    const std::string Domain;
+    const String Domain;
   };
   
   //language[_COUNTRY][.encoding][@variant]
@@ -79,11 +79,11 @@ namespace
     LocaleAttributes()
       : Name(boost::locale::util::get_system_locale(true/*use_utf8_on_windows*/))
     {
-      const std::string::size_type encPos = Name.find_first_of('.');
+      const auto encPos = Name.find_first_of('.');
       if (encPos != Name.npos)
       {
         Translation = Name.substr(0, encPos);
-        const std::string::size_type varPos = Name.find_first_of('@');
+        const auto varPos = Name.find_first_of('@');
         if (varPos != Name.npos)
         {
           Encoding = Name.substr(encPos + 1, varPos - encPos - 1);
@@ -95,12 +95,12 @@ namespace
       }
     }
 
-    const std::string Name;
-    std::string Translation;
-    std::string Encoding;
+    const String Name;
+    String Translation;
+    String Encoding;
   };
 
-  const std::string TYPE_MO("mo");
+  const String TYPE_MO("mo");
 
   class BoostLocaleLibrary : public L10n::Library
   {
@@ -120,7 +120,7 @@ namespace
       }
       using namespace boost::locale;
 
-      static const std::string EMPTY_PATH;
+      static const String EMPTY_PATH;
       gnu_gettext::messages_info& info = Locales[trans.Language];
       info.language = trans.Language;
       info.encoding = SystemLocale.Encoding;
@@ -128,12 +128,12 @@ namespace
       info.callback = &LoadMessage;
       info.paths.assign(&EMPTY_PATH, &EMPTY_PATH + 1);
 
-      const std::string filename = EMPTY_PATH + '/' + trans.Language + '/' + info.locale_category + '/' + trans.Domain + '.' + TYPE_MO;
+      const String filename = EMPTY_PATH + '/' + trans.Language + '/' + info.locale_category + '/' + trans.Domain + '.' + TYPE_MO;
       Translations[filename] = trans.Data;
       Dbg("Added translation %1% in %2% bytes", filename, trans.Data.size());
     }
 
-    void SelectTranslation(const std::string& translation) override
+    void SelectTranslation(const String& translation) override
     {
       using namespace boost::locale;
       try
@@ -155,7 +155,7 @@ namespace
       Dbg("Selected unknown translation %1%", translation);
     }
 
-    L10n::Vocabulary::Ptr GetVocabulary(const std::string& domain) const override
+    L10n::Vocabulary::Ptr GetVocabulary(const String& domain) const override
     {
       return MakePtr<DomainVocabulary>(CurrentLocale, domain);
     }
@@ -166,7 +166,7 @@ namespace
       return self;
     }
   private:
-    static std::vector<char> LoadMessage(const std::string& file, const std::string& encoding)
+    static std::vector<char> LoadMessage(const String& file, const String& encoding)
     {
       const BoostLocaleLibrary& self = Instance();
       if (const Dump* data = self.Translations.Find(file))
@@ -183,8 +183,8 @@ namespace
   private:
     const LocaleAttributes SystemLocale;
     const LocalePtr CurrentLocale;
-    MapAdapter<std::string, Dump> Translations;
-    MapAdapter<std::string, boost::locale::gnu_gettext::messages_info> Locales;
+    MapAdapter<String, Dump> Translations;
+    MapAdapter<String, boost::locale::gnu_gettext::messages_info> Locales;
   };
 }
 

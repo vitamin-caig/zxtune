@@ -19,7 +19,7 @@ package_deb:
 	-$(call rmfiles_cmd,$(pkg_file))
 	$(MAKE) $(pkg_file)
 
-$(pkg_file): $(pkg_debian)/changelog $(pkg_debian)/compat $(pkg_debian)/control $(pkg_debian)/docs $(pkg_debian)/rules $(pkg_debian)/copyright
+$(pkg_file): $(pkg_debian)/changelog $(pkg_debian)/compat $(pkg_debian)/control $(pkg_debian)/package.docs $(pkg_debian)/rules $(pkg_debian)/copyright
 	@$(call showtime_cmd)
 	(cd $(pkg_debian_root) && dpkg-buildpackage -b) && mv $(pkg_dir)/$(pkg_name)_$(root.version.index)_$(arch_deb).deb $@
 	$(call rmdir_cmd,$(pkg_debian_root))
@@ -44,5 +44,5 @@ $(pkg_debian)/rules: $(dirs.root)/make/build/debian/rules | $(pkg_debian)
 $(pkg_debian)/copyright: $(dirs.root)/apps/copyright | $(pkg_debian)
 	$(call copyfile_cmd,$^,$@)
 
-$(pkg_debian)/docs: | $(pkg_debian)
-	sed -r 's/.*/$(escaped_curdir)\/&/' dist/debian/docs > $@ || touch $@
+$(pkg_debian)/package.docs: | $(pkg_debian)
+	sed -r 's/.*/$(escaped_curdir)\/&/' dist/debian/package.docs > $@ || touch $@

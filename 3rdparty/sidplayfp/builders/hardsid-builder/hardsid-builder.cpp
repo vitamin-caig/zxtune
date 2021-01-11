@@ -85,7 +85,7 @@ unsigned int HardSIDBuilder::create(unsigned int sids)
     {
         try
         {
-            std::auto_ptr<HardSID> sid(new HardSID(this));
+            std::unique_ptr<HardSID> sid(new HardSID(this));
 
             // SID init failed?
             if (!sid->getStatus())

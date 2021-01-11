@@ -24,35 +24,35 @@ namespace
 
 namespace
 {
-  std::string GetSharedLibraryName()
+  String GetSharedLibraryName()
   {
     Dl_info info;
     if (::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info) &&
         info.dli_sname && info.dli_saddr)
     {
-      const std::string result(info.dli_fname);
+      const String result(info.dli_fname);
       Dbg("Shared library name: %1%", result);
       return result;
     }
     else
     {
-      return std::string();
+      return String();
     }
   }
   
-  std::string GetExecutableName()
+  String GetExecutableName()
   {
-    const std::string selfPath = "/proc/self/exe";
+    const String selfPath = "/proc/self/exe";
     struct stat sb;
     if (-1 == ::lstat(selfPath.c_str(), &sb))
     {
       Dbg("Failed to stat %1% (errno %2%)", selfPath, errno);
-      return std::string();
+      return String();
     }
     if (!S_ISLNK(sb.st_mode))
     {
       Dbg("%1% is not a symlink", selfPath);
-      return std::string();
+      return String();
     }
     
     std::vector<char> filename(1024);
@@ -62,7 +62,7 @@ namespace
       if (len == -1)
       {
         Dbg("Failed to readlink '%1%' (errno %2%)", selfPath, errno);
-        return std::string();
+        return String();
       }
       else if (len == static_cast<int>(filename.size()) - 1)
       {
@@ -74,7 +74,7 @@ namespace
         break;
       }
     }
-    const std::string result(filename.data());
+    const String result(filename.data());
     Dbg("Executable name: %1%", result);
     return result;
   }
@@ -82,15 +82,15 @@ namespace
 
 namespace Platform
 {
-  std::string GetCurrentImageFilename()
+  String GetCurrentImageFilename()
   {
-    static const std::string soName = GetSharedLibraryName();
+    static const String soName = GetSharedLibraryName();
     if (!soName.empty())
     {
       Dbg("Shared library name is '%1%'", soName);
       return soName;
     }
-    static const std::string binName = GetExecutableName();
+    static const String binName = GetExecutableName();
     return binName;
   }
 }

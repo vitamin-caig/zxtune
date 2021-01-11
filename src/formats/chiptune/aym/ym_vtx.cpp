@@ -190,7 +190,7 @@ namespace Chiptune
       {
         uint8_t HeaderSize;
         uint8_t HeaderSum;
-        char Method[5];
+        std::array<char, 5> Method;
         uint32_t PackedSize;
         uint32_t OriginalSize;
         uint32_t Time;
@@ -397,7 +397,8 @@ namespace Chiptune
       const std::size_t packedSize = fromLE(hdr.PackedSize);
       const auto packed = rawData.GetSubcontainer(packedOffset, packedSize);
       const std::size_t unpackedSize = fromLE(hdr.OriginalSize);
-      if (const auto unpacked = Formats::Packed::Lha::DecodeRawData(*packed, FromCharArray(hdr.Method), unpackedSize))
+      const String method(hdr.Method.data(), hdr.Method.size());
+      if (const auto unpacked = Formats::Packed::Lha::DecodeRawData(*packed, method, unpackedSize))
       {
         if (ParseUnpacked(*unpacked, target))
         {

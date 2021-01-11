@@ -94,7 +94,7 @@ namespace Archived
 
     String GetFullPath(const LHAFileHeader& header)
     {
-      std::string fullPath;
+      String fullPath;
       if (header.path)
       {
         fullPath = header.path;
@@ -134,7 +134,7 @@ namespace Archived
       const Binary::Container::Ptr Data;
       const String Name;
       const std::size_t Size;
-      const std::string Method;
+      const String Method;
     };
 
     class FilesIterator

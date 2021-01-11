@@ -125,9 +125,7 @@ namespace Ogg
 
     void AddTag(const String& name, const String& value)
     {
-      const std::string nameC = name;//TODO
-      const std::string valueC = value;//TODO
-      VorbisApi->vorbis_comment_add_tag(&Data, nameC.c_str(), valueC.c_str());
+      VorbisApi->vorbis_comment_add_tag(&Data, name.c_str(), value.c_str());
     }
 
     vorbis_comment* Get()

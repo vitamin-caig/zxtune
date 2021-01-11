@@ -370,6 +370,7 @@ namespace SQTracker
           {
             break;
           }
+          [[fallthrough]];
         default:
           dst.AddCommand(it->Type, it->Param1, it->Param2, it->Param3);
           break;

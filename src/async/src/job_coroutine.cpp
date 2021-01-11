@@ -102,6 +102,10 @@ namespace Async
             State.Set(JobState::STARTED);
             break;
           }
+          else
+          {
+            throw StoppingEvent();
+          }
         }
       case JobState::STOPPING:
         throw StoppingEvent();

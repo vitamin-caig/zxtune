@@ -126,7 +126,7 @@ namespace Flac
       if (status != FLAC__STREAM_DECODER_INIT_STATUS_OK)
       {
         throw MakeFormattedError(THIS_LINE, "Failed to init decoder. Status: %1%",
-          std::string( ::FLAC__StreamDecoderInitStatusString[status]));
+          ::FLAC__StreamDecoderInitStatusString[status]);
       }
       Reset();
     }

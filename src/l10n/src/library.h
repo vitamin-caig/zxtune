@@ -46,9 +46,9 @@ namespace L10n
 
   struct Translation
   {
-    std::string Domain;
-    std::string Language;
-    std::string Type;
+    String Domain;
+    String Language;
+    String Type;
     Dump Data;
   };
 
@@ -59,9 +59,9 @@ namespace L10n
 
     virtual void AddTranslation(const Translation& trans) = 0;
 
-    virtual void SelectTranslation(const std::string& translation) = 0;
+    virtual void SelectTranslation(const String& translation) = 0;
 
-    virtual Vocabulary::Ptr GetVocabulary(const std::string& domain) const = 0;
+    virtual Vocabulary::Ptr GetVocabulary(const String& domain) const = 0;
 
     static Library& Instance();
   };

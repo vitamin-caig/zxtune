@@ -24,28 +24,27 @@ namespace
 
 namespace
 {
-  std::string GetSharedLibraryName()
+  String GetSharedLibraryName()
   {
     Dl_info info;
     if (::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info) &&
         info.dli_sname && info.dli_saddr)
     {
-      const std::string result(info.dli_fname);
+      String result(info.dli_fname);
       Dbg("Shared library name: %1%", result);
       return result;
     }
     else
     {
-      return std::string();
+      return String();
     }
   }
   
-  std::string GetExecutableName()
+  String GetExecutableName()
   {
-    std::string result(100, '\0');
+    String result(100, '\0');
     for (uint32_t size = result.size(); ; )
     {
-      // No non-const std::string::data before C++17
       if (::_NSGetExecutablePath(&result[0], &size) == 0)
       {
         result.resize(size);
@@ -60,15 +59,15 @@ namespace
 
 namespace Platform
 {
-  std::string GetCurrentImageFilename()
+  String GetCurrentImageFilename()
   {
-    static const std::string soName = GetSharedLibraryName();
+    static const auto soName = GetSharedLibraryName();
     if (!soName.empty())
     {
       Dbg("Shared library name is '%1%'", soName);
       return soName;
     }
-    static const std::string binName = GetExecutableName();
+    static const auto binName = GetExecutableName();
     return binName;
   }
 }

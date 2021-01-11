@@ -27,24 +27,24 @@ namespace Sound
       {
       }
 
-      std::string Base() const override
+      String Base() const override
       {
         return "asound";
       }
       
-      std::vector<std::string> PosixAlternatives() const override
+      std::vector<String> PosixAlternatives() const override
       {
-        static const std::string ALTERNATIVES[] =
+        static const String ALTERNATIVES[] =
         {
           "libasound.so.2.0.0",//deb-based
           "libasound.so.2",    //rpm-based
         };
-        return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
+        return std::vector<String>(ALTERNATIVES, std::end(ALTERNATIVES));
       }
       
-      std::vector<std::string> WindowsAlternatives() const override
+      std::vector<String> WindowsAlternatives() const override
       {
-        return std::vector<std::string>();
+        return {};
       }
     };
 

@@ -71,7 +71,7 @@ namespace
         return Char(' ') + cap->second;
       }
     }
-    return FromStdString(" unknown");
+    return " unknown";
   }
 
   String PluginCaps(uint_t caps)
@@ -227,7 +227,7 @@ namespace
   struct OptionDesc
   {
     OptionDesc(const Parameters::NameType& name, String descr, ValueType def)
-      : Name(FromStdString(name.FullPath()))
+      : Name(name.FullPath())
       , Desc(std::move(descr))
       , Default(std::move(def))
     {

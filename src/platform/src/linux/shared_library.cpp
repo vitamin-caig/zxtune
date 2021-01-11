@@ -47,27 +47,27 @@ namespace Details
       }
     }
 
-    void* GetSymbol(const std::string& name) const override
+    void* GetSymbol(const String& name) const override
     {
       if (void* res = ::dlsym(Handle, name.c_str()))
       {
         return res;
       }
       throw MakeFormattedError(THIS_LINE,
-        translate("Failed to find symbol '%1%' in shared object."), FromStdString(name));
+        translate("Failed to find symbol '%1%' in shared object."), name);
     }
   private:
     void* const Handle;
   };
   
-  const std::string SUFFIX(".so");
+  const String SUFFIX(".so");
   
-  std::string BuildLibraryFilename(const std::string& name)
+  String BuildLibraryFilename(const String& name)
   {
     return "lib" + name + SUFFIX;
   }
 
-  Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res)
+  Error LoadSharedLibrary(const String& fileName, SharedLibrary::Ptr& res)
   {
     if (void* handle = ::dlopen(fileName.c_str(), RTLD_LAZY))
     {
@@ -75,21 +75,21 @@ namespace Details
       return Error();
     }
     return MakeFormattedError(THIS_LINE,
-      translate("Failed to load shared object '%1%' (%2%)."), FromStdString(fileName), FromStdString(::dlerror()));
+      translate("Failed to load shared object '%1%' (%2%)."), fileName, ::dlerror());
   }
     
-  std::string GetSharedLibraryFilename(const std::string& name)
+  String GetSharedLibraryFilename(const String& name)
   {
     return name.find(SUFFIX) == name.npos
       ? BuildLibraryFilename(name)
       : name;
   }
 
-  std::vector<std::string> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
+  std::vector<String> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
   {
-    std::vector<std::string> res;
+    std::vector<String> res;
     res.push_back(GetSharedLibraryFilename(name.Base()));
-    const std::vector<std::string>& alternatives = name.PosixAlternatives();
+    const auto& alternatives = name.PosixAlternatives();
     std::copy(alternatives.begin(), alternatives.end(), std::back_inserter(res));
     return res;
   }

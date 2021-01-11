@@ -31,7 +31,7 @@ namespace TRDos
     if (IsAlNum(type[0]))
     {
       fname += '.';
-      const char* const invalidSym = std::find_if(type, std::end(type), std::not1(std::ptr_fun(&IsAlNum)));
+      const char* const invalidSym = std::find_if_not(type, std::end(type), &IsAlNum);;
       fname += String(type, invalidSym);
     }
     return Strings::ToAutoUtf8(fname);

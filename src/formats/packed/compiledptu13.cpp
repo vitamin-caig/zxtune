@@ -109,7 +109,7 @@ namespace Packed
       const uint8_t* const dataEnd = dataBegin + maxSize;
       const uint8_t* const lastPosition = std::find(hdr.Positions, dataEnd, POS_END_MARKER);
       if (lastPosition != dataEnd && 
-          lastPosition == std::find_if(hdr.Positions, lastPosition, std::bind2nd(std::modulus<std::size_t>(), 3)))
+          std::all_of(hdr.Positions, lastPosition, [](auto p) { return 0 == p % 3;}))
       {
         return 1 + *std::max_element(hdr.Positions, lastPosition) / 3;
       }

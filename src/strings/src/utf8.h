@@ -71,7 +71,7 @@ namespace Strings
       }
     }
     
-    std::string GetResult()
+    String GetResult()
     {
       return std::move(Result);
     }
@@ -83,10 +83,10 @@ namespace Strings
     
     void AddRaw(uint8_t val)
     {
-      Result += static_cast<std::string::value_type>(val);
+      Result += static_cast<String::value_type>(val);
     }
   private:
-    std::string Result;
+    String Result;
   };
   
   inline bool IsUtf8(StringView str)

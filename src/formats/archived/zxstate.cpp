@@ -562,9 +562,9 @@ namespace Archived
 
     String GenerateChunkName(const Chunk& ch)
     {
-      char syms[sizeof(ch.Id)];
-      std::memcpy(syms, &ch.Id, sizeof(ch.Id));
-      return FromCharArray(syms);
+      std::array<char, sizeof(ch.Id)> syms;
+      std::memcpy(syms.data(), &ch.Id, sizeof(ch.Id));
+      return String(syms.data(), syms.size());
     }
 
     template<class T>

@@ -79,7 +79,7 @@ namespace OpenAl
     ActiveContext(Api& api, ALCdevice& device)
       : ApiRef(api)
       , Previous(OalApi.alcGetCurrentContext())
-      , Current(OalApi.alcCreateContext(&device, 0), std::bind1st(std::mem_fun(&Api::alcDestroyContext), &OalApi))
+      , Current(OalApi.alcCreateContext(&device, 0), [&api](ALCcontext* ctx) {api.alcDestroyContext(ctx);})
     {
       Dbg("Create context instead of current %p", Previous);
       if (!Current)
@@ -278,7 +278,7 @@ namespace OpenAl
   public:
     Device(Api& api, const String& deviceName)
       : ApiRef(api)
-      , Dev(OalApi.alcOpenDevice(deviceName.empty() ? 0 : deviceName.c_str()), std::bind1st(std::mem_fun(&Api::alcCloseDevice), &OalApi))
+      , Dev(OalApi.alcOpenDevice(deviceName.empty() ? 0 : deviceName.c_str()), [&api](ALCdevice* dev) {api.alcCloseDevice(dev);})
     {
       Dbg("Open device %1%", deviceName);
       if (!Dev)

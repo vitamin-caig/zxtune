@@ -51,7 +51,7 @@ namespace Chiptune
     PACK_PRE struct Header
     {
       uint8_t Signature[5];
-      char Version[3];
+      std::array<char, 3> Version;
       std::array<char, 32> Title;
       uint8_t Tempo;
       uint8_t Length;
@@ -275,7 +275,8 @@ namespace Chiptune
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(Strings::OptimizeAscii(Source.Title));
-        meta.SetProgram(Strings::Format(Text::CHIPTRACKER_EDITOR, FromCharArray(Source.Version)));
+        const StringView version(Source.Version.data(), Source.Version.size());
+        meta.SetProgram(Strings::Format(Text::CHIPTRACKER_EDITOR, version));
 
         Strings::Array names;
         names.reserve(Source.SampleNames.size());

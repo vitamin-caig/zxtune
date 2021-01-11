@@ -75,7 +75,7 @@ const Spline::Point FilterModelConfig::opamp_voltage[OPAMP_SIZE] =
   { 10.31,  0.81 },  // Approximate end of actual range
 };
 
-std::auto_ptr<FilterModelConfig> FilterModelConfig::instance(0);
+std::unique_ptr<FilterModelConfig> FilterModelConfig::instance(0);
 
 FilterModelConfig* FilterModelConfig::getInstance()
 {
@@ -292,7 +292,7 @@ unsigned short* FilterModelConfig::getDAC(double adjustment) const
     return f0_dac;
 }
 
-std::auto_ptr<Integrator> FilterModelConfig::buildIntegrator()
+std::unique_ptr<Integrator> FilterModelConfig::buildIntegrator()
 {
     // Vdd - Vth, normalized so that translated values can be subtracted:
     // k*Vddt - x = (k*Vddt - t) - (x - t)
@@ -306,7 +306,7 @@ std::auto_ptr<Integrator> FilterModelConfig::buildIntegrator()
     assert(tmp > -0.5 && tmp < 65535.5);
     const unsigned short n_snake = (unsigned short)(tmp + 0.5);
 
-    return std::auto_ptr<Integrator>(new Integrator(vcr_kVg, vcr_n_Ids_term, opamp_rev, nkVddt, n_snake));
+    return std::unique_ptr<Integrator>(new Integrator(vcr_kVg, vcr_n_Ids_term, opamp_rev, nkVddt, n_snake));
 }
 
 } // namespace reSIDfp

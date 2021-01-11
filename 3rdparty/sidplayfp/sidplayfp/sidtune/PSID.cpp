@@ -119,7 +119,7 @@ SidTuneBase* PSID::load(buffer_t& dataBuf)
         return 0;
     }
 
-    std::auto_ptr<PSID> tune(new PSID());
+    std::unique_ptr<PSID> tune(new PSID());
     tune->tryLoad(dataBuf);
 
     return tune.release();

@@ -215,24 +215,24 @@ namespace AyLpt
   class DllName : public Platform::SharedLibrary::Name
   {
   public:
-    virtual std::string Base() const
+    virtual String Base() const
     {
       return "dlportio";
     }
     
-    virtual std::vector<std::string> PosixAlternatives() const
+    virtual std::vector<String> PosixAlternatives() const
     {
-      return std::vector<std::string>();
+      return std::vector<String>();
     }
     
-    virtual std::vector<std::string> WindowsAlternatives() const
+    virtual std::vector<String> WindowsAlternatives() const
     {
-      static const std::string ALTERNATIVES[] =
+      static const String ALTERNATIVES[] =
       {
         "inpout32.dll",
         "inpoutx64.dll"
       };
-      return std::vector<std::string>(ALTERNATIVES, std::end(ALTERNATIVES));
+      return std::vector<String>(ALTERNATIVES, std::end(ALTERNATIVES));
     }
   };
 

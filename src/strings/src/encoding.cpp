@@ -863,7 +863,7 @@ namespace Strings
     }
   };
   
-  std::string Decode(StringView str)
+  String Decode(StringView str)
   {
     static const Codepage* CODEPAGES[] =
     {
@@ -900,11 +900,12 @@ namespace Strings
 
 namespace Strings
 {
-  std::string ToAutoUtf8(StringView str)
+  String ToAutoUtf8(StringView str)
   {
+    static_assert(sizeof(str[0]) == 1, "8-bit encodings only supported");
     if (str.empty())
     {
-      return std::string();
+      return {};
     }
     else if (IsUtf8(str))
     {
@@ -922,7 +923,7 @@ namespace Strings
     }
   }
 
-  std::string Utf16ToUtf8(basic_string_view<uint16_t> str)
+  String Utf16ToUtf8(basic_string_view<uint16_t> str)
   {
     static const uint16_t BOM = 0xfeff;
     Strings::Utf8Builder builder;

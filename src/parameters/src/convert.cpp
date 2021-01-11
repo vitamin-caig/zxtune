@@ -10,23 +10,20 @@
 
 //library includes
 #include <parameters/convert.h>
+#include <strings/conversion.h>
 //std includes
-#include <algorithm>
 #include <cassert>
 #include <cctype>
-#include <functional>
 
 namespace
 {
   using namespace Parameters;
 
-  const IntType RADIX = 10;
-
   static_assert(1 == sizeof(DataType::value_type), "Invalid DataType::value_type");
 
-  inline bool DoTest(const String::const_iterator it, const String::const_iterator lim, int(*Fun)(int))
+  inline bool DoTest(const String::const_iterator it, const String::const_iterator lim, int(*fun)(int))
   {
-    return lim == std::find_if(it, lim, std::not1(std::ptr_fun(Fun)));
+    return std::all_of(it, lim, fun);
   }
 
   inline bool IsData(const String& str)
@@ -79,43 +76,12 @@ namespace
 
   inline IntType IntegerFromString(const String& val)
   {
-    IntType res = 0;
-    String::const_iterator it = val.begin();
-    const bool negate = *it == '-';
-    if (negate || *it == '+')
-    {
-      ++it;
-    }
-    for (String::const_iterator lim = val.end(); it != lim; ++it)
-    {
-      res *= RADIX;
-      res += *it - '0';
-    }
-    return negate ? -res : res;
+    return Strings::ConvertTo<IntType>(val);
   }
 
   inline String IntegerToString(IntType var)
   {
-    //integer may be so long, so it's better to convert here
-    String res;
-    const bool negate = var < 0;
-
-    if (negate)
-    {
-      var = -var;
-    }
-    do
-    {
-      res += ToHex(static_cast<uint_t>(var % RADIX));
-    }
-    while (var /= RADIX);
-
-    if (negate)
-    {
-      res += '-';
-    }
-    std::reverse(res.begin(), res.end());
-    return res;
+    return Strings::ConvertFrom(var);
   }
 
   inline bool IsQuoted(const String& str)

@@ -455,6 +455,7 @@ namespace Devices
           {
             break;
           }
+          [[fallthrough]];
         case 2:
         case 6:
           Level = 0;

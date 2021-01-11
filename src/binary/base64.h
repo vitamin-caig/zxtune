@@ -28,15 +28,15 @@ namespace Binary
     uint8_t* Decode(const char* inBegin, const char* inEnd, uint8_t* outBegin, uint8_t* outEnd);
 
     //easy-to-use wrappers
-    inline std::string Encode(const Dump& input)
+    inline String Encode(const Dump& input)
     {
-      std::vector<char> result(CalculateConvertedSize(input.size()));
+      String result(CalculateConvertedSize(input.size()), ' ');
       const uint8_t* const in = input.data();
-      char* const out = result.data();
-      char* const outEnd = Encode(in, in + input.size(), out, out + result.size());
-      return std::string(out, outEnd);
+      char* const out = &result[0];
+      Encode(in, in + input.size(), out, out + result.size());
+      return result;
     }
 
-    Dump Decode(const std::string& input);
+    Dump Decode(StringView input);
   }
 }

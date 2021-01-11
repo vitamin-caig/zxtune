@@ -196,13 +196,13 @@ namespace Binary
       return out;
     }
 
-    Dump Decode(const std::string& input)
+    Dump Decode(StringView input)
     {
       const std::size_t inSize = input.size();
       Require(0 == inSize % TXT_GROUP_SIZE);
-      const std::size_t padPos = input.find_first_of(STUB_SYMBOL);
+      const std::size_t padPos = input.find(STUB_SYMBOL);
       const std::size_t outSize = BIN_GROUP_SIZE * (inSize / TXT_GROUP_SIZE) - (padPos == inSize - 1) - 2 * (padPos == inSize - 2);
-      const char* in = input.c_str();
+      const char* in = input.data();
       Dump result(outSize);
       uint8_t* out = result.data();
       Decode(in, in + inSize, out, out + outSize);

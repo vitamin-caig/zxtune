@@ -26,7 +26,7 @@ namespace Module
     {
     }
 
-    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const
+    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const override
     {
       return Delegate.CreateInitialProperties(subpath);
     }

@@ -223,9 +223,9 @@ namespace ProTracker3
         return Value;
       }
 
-      std::string AsString() const
+      String AsString() const
       {
-        std::string res(Width, AltZero);
+        String res(Width, AltZero);
         uint_t val = Value;
         for (uint_t idx = 0; val && idx != Width; ++idx, val >>= 4)
         {
@@ -280,9 +280,9 @@ namespace ProTracker3
         return Value;
       }
 
-      std::string AsString() const
+      String AsString() const
       {
-        std::string res(Width + 1, '0');
+        String res(Width + 1, '0');
         uint_t val = Math::Absolute(Value);
         for (uint_t idx = 0; val != 0 && idx != Width; ++idx, val >>= 4)
         {
@@ -304,13 +304,13 @@ namespace ProTracker3
     {
       static const uint_t NO_INDEX = ~uint_t(0);
     public:
-      SectionHeader(const std::string& category, StringView hdr)
+      SectionHeader(const String& category, StringView hdr)
         : Category(category)
         , Index(NO_INDEX)
         , Valid(false)
       {
-        const std::string start = '[' + category;
-        const std::string stop = "]";
+        const String start = '[' + category;
+        const String stop = "]";
         if (boost::algorithm::istarts_with(hdr, start) &&
             boost::algorithm::ends_with(hdr, stop))
         {
@@ -320,14 +320,14 @@ namespace ProTracker3
         }
       }
 
-      explicit SectionHeader(std::string category)
+      explicit SectionHeader(String category)
         : Category(std::move(category))
         , Index(NO_INDEX)
         , Valid(true)
       {
       }
 
-      SectionHeader(std::string category, int_t idx)
+      SectionHeader(String category, int_t idx)
         : Category(std::move(category))
         , Index(idx)
         , Valid(true)
@@ -356,9 +356,9 @@ namespace ProTracker3
         return Valid;
       }
     private:
-      const std::string Category;
+      const String Category;
       uint_t Index;
-      std::string Str;
+      String Str;
       bool Valid;
     };
 
@@ -480,9 +480,9 @@ namespace ProTracker3
           Dbg(" %1%=%2%", entry.Name, entry.Value);
           if (boost::algorithm::iequals(entry.Name, "Version"))
           {
-            static const std::string VERSION("3.");
+            static const String VERSION("3.");
             Require(boost::algorithm::starts_with(entry.Value, VERSION));
-            const std::string minorVal = entry.Value.substr(VERSION.size());
+            const String minorVal = entry.Value.substr(VERSION.size());
             const auto minor = Strings::ConvertTo<uint_t>(minorVal);
             Require(minor < 10);
             Version = minor;
@@ -540,8 +540,8 @@ namespace ProTracker3
 
       struct Entry
       {
-        std::string Name;
-        std::string Value;
+        String Name;
+        String Value;
 
         explicit Entry(StringView str)
         {
@@ -553,7 +553,7 @@ namespace ProTracker3
           Value = Strings::TrimSpaces(second).to_string();
         }
 
-        Entry(std::string name, std::string value)
+        Entry(String name, String value)
           : Name(std::move(name))
           , Value(std::move(value))
         {
@@ -572,8 +572,8 @@ namespace ProTracker3
       };
 
       uint_t Version;
-      std::string Title;
-      std::string Author;
+      String Title;
+      String Author;
       NoteTable Table;
       uint_t Tempo;
       LoopedList<uint_t> PlayOrder;
@@ -705,6 +705,7 @@ namespace ProTracker3
           case 5:
             Require(fields[4] == "L");
             Looped = true;
+            [[fallthrough]];
           case 4:
             ParseMasks(fields[0]);
             ParseToneOffset(fields[1]);
@@ -759,9 +760,9 @@ namespace ProTracker3
           EnvMask = EnvelopeFlag(str[2]).AsBool();
         }
 
-        std::string UnparseMasks() const
+        String UnparseMasks() const
         {
-          std::string res(3, ' ');
+          String res(3, ' ');
           res[0] = ToneFlag(ToneMask).AsChar();
           res[1] = NoiseFlag(NoiseMask).AsChar();
           res[2] = EnvelopeFlag(EnvMask).AsChar();
@@ -775,7 +776,7 @@ namespace ProTracker3
           KeepToneOffset = AccumulatorFlag(str[4]).AsBool();
         }
 
-        std::string UnparseToneOffset() const
+        String UnparseToneOffset() const
         {
           return ToneValue(ToneOffset).AsString() + AccumulatorFlag(KeepToneOffset).AsChar();
         }
@@ -787,7 +788,7 @@ namespace ProTracker3
           KeepNoiseOrEnvelopeOffset = AccumulatorFlag(str[3]).AsBool();
         }
 
-        std::string UnparseNoiseOffset() const
+        String UnparseNoiseOffset() const
         {
           return NoiseEnvelopeValue(NoiseOrEnvelopeOffset).AsString() + AccumulatorFlag(KeepNoiseOrEnvelopeOffset).AsChar();
         }
@@ -799,9 +800,9 @@ namespace ProTracker3
           VolumeSlideAddon = str[1] == '_' ? 0 : (SignFlag(str[1]).AsBool() ? +1 : -1);
         }
 
-        std::string UnparseVolume() const
+        String UnparseVolume() const
         {
-          std::string res(1, VolumeValue(Level).AsChar());
+          String res(1, VolumeValue(Level).AsChar());
           res += VolumeSlideAddon == 0
             ? '_'
             : SignFlag(VolumeSlideAddon > 0).AsChar()
@@ -815,13 +816,13 @@ namespace ProTracker3
       uint_t Index;
     };
 
-    const std::array<std::string, 12> NOTES = 
+    const std::array<String, 12> NOTES = 
     { {
       "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
     } };
 
-    const std::string EMPTY_NOTE("---");
-    const std::string REST_NOTE("R--");
+    const String EMPTY_NOTE("---");
+    const String REST_NOTE("R--");
 
     class NoteObject
     {
@@ -858,7 +859,7 @@ namespace ProTracker3
         }
       }
 
-      std::string AsString() const
+      String AsString() const
       {
         return Val;
       }
@@ -878,7 +879,7 @@ namespace ProTracker3
         return NOTES.size() * (octave - '1') + halftone;
       }
     private:
-      std::string Val;
+      String Val;
     };
 
     class NoteParametersObject
@@ -926,9 +927,9 @@ namespace ProTracker3
         }
       }
 
-      std::string AsString() const
+      String AsString() const
       {
-        std::string res(4, ' ');
+        String res(4, ' ');
         res[0] = Sample.AsChar();
         res[1] = Envelope.AsChar();
         res[2] = Ornament.AsChar();
@@ -1015,9 +1016,9 @@ namespace ProTracker3
         }
       }
 
-      std::string AsString() const
+      String AsString() const
       {
-        std::string res;
+        String res;
         res += Command.AsChar();
         res += Period.AsChar();
         res += Param.AsString();

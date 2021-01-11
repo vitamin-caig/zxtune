@@ -69,7 +69,7 @@ namespace Lha
   };
 
   //TODO: create own decoders for non-packing modes
-  Decompressor::Ptr CreateDecompressor(const std::string& method)
+  Decompressor::Ptr CreateDecompressor(const String& method)
   {
     if (LHADecoderType* type = ::lha_decoder_for_name(const_cast<char*>(method.c_str())))
     {
@@ -78,7 +78,7 @@ namespace Lha
     return Decompressor::Ptr();
   }
 
-  Formats::Packed::Container::Ptr DecodeRawData(const Binary::Container& input, const std::string& method, std::size_t outputSize)
+  Formats::Packed::Container::Ptr DecodeRawData(const Binary::Container& input, const String& method, std::size_t outputSize)
   {
     if (Formats::Packed::Container::Ptr result = DecodeRawDataAtLeast(input, method, outputSize))
     {
@@ -93,7 +93,7 @@ namespace Lha
     return Formats::Packed::Container::Ptr();
   }
 
-  Formats::Packed::Container::Ptr DecodeRawDataAtLeast(const Binary::Container& input, const std::string& method, std::size_t sizeHint)
+  Formats::Packed::Container::Ptr DecodeRawDataAtLeast(const Binary::Container& input, const String& method, std::size_t sizeHint)
   {
     if (const Lha::Decompressor::Ptr decompressor = Lha::CreateDecompressor(method))
     {

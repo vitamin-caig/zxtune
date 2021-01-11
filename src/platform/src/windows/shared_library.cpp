@@ -47,14 +47,14 @@ namespace Details
       }
     }
 
-    void* GetSymbol(const std::string& name) const override
+    void* GetSymbol(const String& name) const override
     {
       if (void* res = reinterpret_cast<void*>(::GetProcAddress(Handle, name.c_str())))
       {
         return res;
       }
       throw MakeFormattedError(THIS_LINE,
-        translate("Failed to find symbol '%1%' in dynamic library."), FromStdString(name));
+        translate("Failed to find symbol '%1%' in dynamic library."), name);
     }
   private:
     const HMODULE Handle;
@@ -66,14 +66,14 @@ namespace Details
     return ::GetLastError();
   }
 
-  const std::string SUFFIX(".dll");
+  const String SUFFIX(".dll");
   
-  std::string BuildLibraryFilename(const std::string& name)
+  String BuildLibraryFilename(const String& name)
   {
     return name + SUFFIX;
   }
 
-  Error LoadSharedLibrary(const std::string& fileName, SharedLibrary::Ptr& res)
+  Error LoadSharedLibrary(const String& fileName, SharedLibrary::Ptr& res)
   {
     if (HMODULE handle = ::LoadLibrary(fileName.c_str()))
     {
@@ -81,23 +81,23 @@ namespace Details
       return Error();
     }
     return MakeFormattedError(THIS_LINE,
-      translate("Failed to load dynamic library '%1%' (error code is %2%)."), FromStdString(fileName), GetWindowsError());
+      translate("Failed to load dynamic library '%1%' (error code is %2%)."), fileName, GetWindowsError());
   }
 
 
-  std::string GetSharedLibraryFilename(const std::string& name)
+  String GetSharedLibraryFilename(const String& name)
   {
     return name.find(SUFFIX) == name.npos
       ? BuildLibraryFilename(name)
       : name;
   }
 
-  std::vector<std::string> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
+  std::vector<String> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
   {
-    std::vector<std::string> res;
+    std::vector<String> res;
     res.push_back(GetSharedLibraryFilename(name.Base()));
-    const std::vector<std::string>& alternatives = name.WindowsAlternatives();
-    std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), std::ptr_fun(&GetSharedLibraryFilename));
+    const auto& alternatives = name.WindowsAlternatives();
+    std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), &GetSharedLibraryFilename);
     return res;
   }
 }
