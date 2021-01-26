@@ -156,7 +156,7 @@ namespace
 
     void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& /*decoder*/, Module::Holder::Ptr holder) override
     {
-      if (!location.GetPath()->Empty())
+      if (location.GetPath()->Empty())
       {
         if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
         {
