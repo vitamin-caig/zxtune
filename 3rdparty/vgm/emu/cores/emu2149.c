@@ -49,6 +49,8 @@ static DEVDEF_RWFUNC devFunc[] =
 	{RWF_REGISTER | RWF_QUICKREAD, DEVRW_A8D8, 0, EPSG_readReg},
 	{RWF_CLOCK | RWF_WRITE, DEVRW_VALUE, 0, EPSG_set_clock},
 	{RWF_SRATE | RWF_WRITE, DEVRW_VALUE, 0, EPSG_set_rate},
+	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, EPSG_setMuteMask},
+	{RWF_CHN_PAN | RWF_WRITE, DEVRW_ALL, 0, ay8910_pan_emu},
 	{0x00, 0x00, 0, NULL}
 };
 DEV_DEF devDef_YM2149_Emu =
@@ -596,7 +598,7 @@ void EPSG_set_pan (EPSG * psg, uint8_t ch, int16_t pan)
   Panning_Calculate( psg->pan[ch], pan );
 }
 
-static void ay8910_pan_emu(void* chipptr, INT16* PanVals)
+static void ay8910_pan_emu(void* chipptr, const INT16* PanVals)
 {
   UINT8 curChn;
   

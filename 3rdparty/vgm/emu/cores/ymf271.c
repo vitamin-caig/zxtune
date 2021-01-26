@@ -60,6 +60,7 @@ static DEVDEF_RWFUNC devFunc[] =
 	{RWF_REGISTER | RWF_READ, DEVRW_A8D8, 0, ymf271_r},
 	{RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, ymf271_write_rom},
 	{RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, ymf271_alloc_rom},
+	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, ymf271_set_mute_mask},
 	{0x00, 0x00, 0, NULL}
 };
 static DEV_DEF devDef =
@@ -576,7 +577,7 @@ static void init_envelope(YMF271Chip *chip, YMF271Slot *slot)
 
 	// init release state
 	rate = get_keyscaled_rate(slot->relrate * 4, keycode, slot->keyscale);
-	slot->env_release_step = (rate < 4) ? 0 : (int)(((double)(255-0) / chip->lut_ar[rate]) * 65536.0);
+	slot->env_release_step = (rate < 4) ? 0 : (int)(((double)(255-0) / chip->lut_dc[rate]) * 65536.0);
 
 	slot->volume = (255-160) << ENV_VOLUME_SHIFT; // -60db
 	slot->env_state = ENV_ATTACK;
@@ -1812,12 +1813,12 @@ static void init_tables(YMF271Chip *chip)
 
 	for (i = 0; i < 64; i++)
 	{
-		// attack/release rate in number of samples
+		// attack rate in number of samples
 		chip->lut_ar[i] = (ARTime[i] * clock_correction * 44100.0) / 1000.0;
 	}
 	for (i = 0; i < 64; i++)
 	{
-		// decay rate in number of samples
+		// decay/release rate in number of samples
 		chip->lut_dc[i] = (DCTime[i] * clock_correction * 44100.0) / 1000.0;
 	}
 }

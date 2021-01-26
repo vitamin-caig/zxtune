@@ -40,6 +40,7 @@ static DEVDEF_RWFUNC devFunc[] =
 	{RWF_MEMORY | RWF_WRITE, DEVRW_A16D8, 0, SCD_PCM_MemWrite},
 	{RWF_MEMORY | RWF_READ, DEVRW_A16D8, 0, SCD_PCM_MemRead},
 	{RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, SCD_PCM_MemBlockWrite},
+	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, SCD_PCM_SetMuteMask},
 	{0x00, 0x00, 0, NULL}
 };
 DEV_DEF devDef_RF5C68_Gens =
@@ -433,12 +434,14 @@ static void SCD_PCM_Update(void* info, UINT32 Length, DEV_SMPL **buf)
 static UINT8 SCD_PCM_MemRead(void *info, UINT16 offset)
 {
 	struct pcm_chip_ *chip = (struct pcm_chip_ *)info;
+	offset &= 0x0FFF;
 	return chip->RAM[chip->Bank | offset];
 }
 
 static void SCD_PCM_MemWrite(void *info, UINT16 offset, UINT8 data)
 {
 	struct pcm_chip_ *chip = (struct pcm_chip_ *)info;
+	offset &= 0x0FFF;
 	chip->RAM[chip->Bank | offset] = data;
 }
 
@@ -446,7 +449,7 @@ static void SCD_PCM_MemBlockWrite(void* info, UINT32 offset, UINT32 length, cons
 {
 	struct pcm_chip_ *chip = (struct pcm_chip_ *)info;
 	
-	//offset |= chip->Bank;
+	// offset is absolute here
 	if (offset >= chip->RAMSize)
 		return;
 	if (offset + length > chip->RAMSize)

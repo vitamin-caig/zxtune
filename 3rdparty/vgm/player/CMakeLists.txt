@@ -1,16 +1,5 @@
 #### File Playback Library ####
-if (POLICY CMP0048)
-	cmake_policy(SET CMP0048 NEW)
-endif ()
-
-project(vgm-player VERSION 1.0)
-cmake_minimum_required(VERSION 3.12)
-
-if (POLICY CMP0042)
-	cmake_policy(SET CMP0042 NEW)
-endif ()
-
-set(LIBVGM_SOURCE_DIR ${PROJECT_SOURCE_DIR}/..)
+project(vgm-player)
 
 set(PLAYER_DEFS)
 set(PLAYER_FILES
@@ -21,6 +10,7 @@ set(PLAYER_FILES
 	s98player.cpp
 	vgmplayer_cmdhandler.cpp
 	vgmplayer.cpp
+	playera.cpp
 )
 # export headers
 set(PLAYER_HEADERS
@@ -31,73 +21,42 @@ set(PLAYER_HEADERS
 	droplayer.hpp
 	s98player.hpp
 	vgmplayer.hpp
+	playera.hpp
 )
 set(PLAYER_INCLUDES)
 set(PLAYER_LIBS)
-set(VGMPLAYER_PKGCONFIG_CFLAGS)
-set(VGMPLAYER_PKGCONFIG_LDFLAGS)
-set(VGMPLAYER_PKGCONFIG_VERSION ${PROJECT_VERSION})
 
-add_library(${PROJECT_NAME}_obj OBJECT ${PLAYER_FILES})
-set_property(TARGET ${PROJECT_NAME}_obj PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(${PROJECT_NAME}_obj PRIVATE ${PLAYER_LIBS})
+set(PLAYER_PC_CFLAGS)
+set(PLAYER_PC_LDFLAGS)
 
-target_compile_definitions(${PROJECT_NAME}_obj PUBLIC ${PLAYER_DEFS})
 
-target_include_directories(${PROJECT_NAME}_obj
-	PUBLIC ${LIBVGM_SOURCE_DIR}
-	PRIVATE ${LIBVGM_SOURCE_DIR}/libs/include
-)
-if(WIN32 AND NOT MSVC)
-	target_include_directories(${PROJECT_NAME}_obj PRIVATE
-		${LIBVGM_SOURCE_DIR}/libs/include_mingw
-	)
-elseif(MSVC)
-	target_include_directories(${PROJECT_NAME}_obj PRIVATE
-		${LIBVGM_SOURCE_DIR}/libs/include_vc
-	)
-	if(MSVC_VERSION LESS 1400)
-		target_include_directories(${PROJECT_NAME}_obj PRIVATE
-			${LIBVGM_SOURCE_DIR}/libs/include_vc6
-		)
-	endif()
-endif()
-target_include_directories(${PROJECT_NAME}_obj PRIVATE ${PLAYER_INCLUDES})
-
-add_library(${PROJECT_NAME} STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+add_library(${PROJECT_NAME} ${LIBRARY_TYPE} ${PLAYER_FILES})
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${PLAYER_DEFS})
+target_include_directories(${PROJECT_NAME}
+	PUBLIC $<BUILD_INTERFACE:${LIBVGM_SOURCE_DIR}> $<INSTALL_INTERFACE:${LIBVGM_INSTALL_INCLUDE_DIR}>
+	PRIVATE ${PLAYER_INCLUDES}
+)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PLAYER_LIBS} vgm-emu vgm-utils)
 
-if(BUILD_SHARED)
-add_library(${PROJECT_NAME}_shared SHARED $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
-SET_TARGET_PROPERTIES(${PROJECT_NAME}_shared PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-target_compile_definitions(${PROJECT_NAME}_shared PUBLIC ${PLAYER_DEFS})
-target_link_libraries(${PROJECT_NAME}_shared PRIVATE ${PLAYER_LIBS} vgm-emu_shared vgm-utils_shared)
-endif(BUILD_SHARED)
 
-
-foreach(DEF ${PLAYER_DEFS})
-	string(REPLACE " " "" DEF "${DEF}")
-	set(VGMPLAYER_PKGCONFIG_CFLAGS ${VGMPLAYER_PKGCONFIG_CFLAGS} "-D${DEF}")
-endforeach(DEF)
-
-string(REPLACE ";" " " VGMPLAYER_PKGCONFIG_CFLAGS "${VGMPLAYER_PKGCONFIG_CFLAGS}")
-
-configure_file(vgm-player.pc.in ${CMAKE_CURRENT_BINARY_DIR}/vgm-player.pc @ONLY)
+pkgcfg_configure("${LIBVGM_SOURCE_DIR}/cmake/libvgm.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/vgm-player.pc"
+		NAME "LibVGM Player"
+		DESC "LibVGM file playback library"
+		VERSION ${LIBVGM_VERSION}
+		DEFINES ${PLAYER_DEFS}
+		CFLAGS ${PLAYER_PC_CFLAGS}
+		LDFLAGS_PRIV ${PLAYER_PC_LDFLAGS}
+		LDFLAGS_PUB "-l${PROJECT_NAME}"
+		PKGS_PRIV ${UTILS_PC_REQUIRES} vgm-emu vgm-utils
+	)
 
 install(TARGETS ${PROJECT_NAME}
-		RUNTIME DESTINATION "bin"
-		LIBRARY DESTINATION "lib"
-		ARCHIVE DESTINATION "lib"
-		)
-install(FILES ${PLAYER_HEADERS} DESTINATION include/vgm/player)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vgm-player.pc DESTINATION lib/pkgconfig)
-
-if(BUILD_SHARED)
-install(TARGETS ${PROJECT_NAME}_shared
-		RUNTIME DESTINATION "bin"
-		LIBRARY DESTINATION "lib"
-		ARCHIVE DESTINATION "lib"
-		)
-endif(BUILD_SHARED)
+		EXPORT "${LIBVGM_NAME}"
+		RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+		LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	)
+set(LIBVGM_INSTALL_TARGETS ${LIBVGM_INSTALL_TARGETS} "${PROJECT_NAME}" PARENT_SCOPE)
+install(FILES ${PLAYER_HEADERS} DESTINATION "${LIBVGM_INSTALL_INCLUDE_DIR}/player")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vgm-player.pc DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")

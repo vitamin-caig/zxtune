@@ -1,23 +1,13 @@
 #### Sound Emulation Library ####
-if (POLICY CMP0048)
-	cmake_policy(SET CMP0048 NEW)
-endif ()
+project(vgm-emu)
 
-project(vgm-emu VERSION 1.0)
-cmake_minimum_required(VERSION 3.12)
+set(EMU_PC_CFLAGS)
+set(EMU_PC_LDFLAGS)
 
-if (POLICY CMP0042)
-	cmake_policy(SET CMP0042 NEW)
-endif ()
-
-set(LIBVGM_SOURCE_DIR ${PROJECT_SOURCE_DIR}/..)
-set(VGMEMU_PKGCONFIG_CFLAGS)
-set(VGMEMU_PKGCONFIG_LDFLAGS)
-set(VGMEMU_PKGCONFIG_VERSION ${PROJECT_VERSION})
 
 # Note: If multiple cores are present for a device, the core chosed by default is marked with *.
 
-option(SNDEMU_ALL "build all sound devices (overrides other selections)" ON)
+option(SNDEMU__ALL "build all sound devices (overrides other selections)" ON)
 option(SNDEMU_SN76496_ALL "Sound Device SN76496: all cores" OFF)
 option(SNDEMU_SN76496_MAME "Sound Device SN76496: MAME core*" OFF)
 option(SNDEMU_SN76496_MAXIM "Sound Device SN76496: Maxim core" OFF)
@@ -30,6 +20,8 @@ option(SNDEMU_YM2612_GPGX "Sound Device YM2612: MAME/Genesis Plus GX core*" OFF)
 option(SNDEMU_YM2612_GENS "Sound Device YM2612: Gens core" OFF)
 option(SNDEMU_YM2612_NUKED "Sound Device YM2612: Nuked OPN2 core" OFF)
 option(SNDEMU_YM2151_ALL "Sound Device YM2151: all cores" OFF)
+option(SNDEMU_YM2151_MAME "Sound Device YM2151: MAME core*" OFF)
+option(SNDEMU_YM2151_NUKED "Sound Device YM2151: Nuked OPM core" OFF)
 option(SNDEMU_SEGAPCM_ALL "Sound Device SegaPCM: all cores" OFF)
 option(SNDEMU_RF5C68_ALL "Sound Device RF5C68: all cores" OFF)
 option(SNDEMU_RF5C68_MAME "Sound Device RF5C68: MAME core*" OFF)
@@ -89,12 +81,12 @@ option(SNDEMU_C352_ALL "Sound Device C352: all cores" OFF)
 option(SNDEMU_GA20_ALL "Sound Device Irem GA20: all cores" OFF)
 
 # console/computer presets
-option(SNDEMU_PRESET_SMS "Sound Dev. Preset: Sega Master System/Game Gear" OFF)
-option(SNDEMU_PRESET_SMD "Sound Dev. Preset: Sega MegaDrive (with CD/32X)" OFF)
-option(SNDEMU_PRESET_MSX "Sound Dev. Preset: MSX (with extentions)" OFF)
-option(SNDEMU_PRESET_S98 "Sound Dev. Preset: S98 logs" OFF)
-option(SNDEMU_PRESET_NES "Sound Dev. Preset: NES/Famicom (with extentions)" OFF)
-option(SNDEMU_PRESET_IBM_PC "Sound Dev. Preset: IBM PC (Tandy/CMS/Sound Blaster)" OFF)
+option(SNDEMU__PRESET_SMS "Sound Dev. Preset: Sega Master System/Game Gear" OFF)
+option(SNDEMU__PRESET_SMD "Sound Dev. Preset: Sega MegaDrive (with CD/32X)" OFF)
+option(SNDEMU__PRESET_MSX "Sound Dev. Preset: MSX (with extensions)" OFF)
+option(SNDEMU__PRESET_S98 "Sound Dev. Preset: S98 logs" OFF)
+option(SNDEMU__PRESET_NES "Sound Dev. Preset: NES/Famicom (with extensions)" OFF)
+option(SNDEMU__PRESET_IBM_PC "Sound Dev. Preset: IBM PC (Tandy/CMS/Sound Blaster)" OFF)
 
 
 # enable sound device selection
@@ -102,7 +94,7 @@ set(EMU_DEFS "SNDDEV_SELECT")
 
 
 #### general enable-all option ####
-if(SNDEMU_ALL)
+if(SNDEMU__ALL)
 	# turn all devices on
 	set(SNDEMU_SN76496_ALL ON)
 	set(SNDEMU_YM2413_ALL ON)
@@ -149,17 +141,17 @@ endif()
 
 
 #### presets for specific machines ####
-if(SNDEMU_PRESET_SMS)
+if(SNDEMU__PRESET_SMS)
 	set(SNDEMU_SN76496_ALL ON)
 	set(SNDEMU_YM2413_ALL ON)	# Sega Mark III FM Sound Unit
 endif()
-if(SNDEMU_PRESET_SMD)
+if(SNDEMU__PRESET_SMD)
 	set(SNDEMU_YM2612_ALL ON)
 	set(SNDEMU_SN76496_ALL ON)
 	set(SNDEMU_RF5C68_ALL ON)	# MegaCD
 	set(SNDEMU_32X_PWM_ALL ON)	# Sega 32X
 endif()
-if(SNDEMU_PRESET_MSX)
+if(SNDEMU__PRESET_MSX)
 	set(SNDEMU_AY8910_ALL ON)
 	set(SNDEMU_Y8950_ALL ON)	# MSX-AUDIO
 	set(SNDEMU_YM2413_ALL ON)	# MSX-MUSIC/FM-PAC
@@ -168,7 +160,7 @@ if(SNDEMU_PRESET_MSX)
 	set(SNDEMU_YMF262_ALL ON)	# MoonSound (FM-part)
 	set(SNDEMU_YM2151_ALL ON)	# Yamaha SFG-05
 endif()
-if(SNDEMU_PRESET_S98)
+if(SNDEMU__PRESET_S98)
 	set(SNDEMU_AY8910_ALL ON)	# PSG (device 1, 15)
 	set(SNDEMU_YM2203_ALL ON)	# OPN (device 2)
 	set(SNDEMU_YM2612_ALL ON)	# OPN2 (device 3)
@@ -180,12 +172,12 @@ if(SNDEMU_PRESET_S98)
 	set(SNDEMU_YMF262_ALL ON)	# OPL3 (device 9)
 	set(SNDEMU_SN76496_ALL ON)	# DCSG (device 16)
 endif()
-if(SNDEMU_PRESET_NES)
+if(SNDEMU__PRESET_NES)
 	set(SNDEMU_NESAPU_ALL ON)
 	set(SNDEMU_YM2413_ALL ON)	# VRC7
 	set(SNDEMU_AY8910_ALL ON)	# Sunsoft 5B
 endif()
-if(SNDEMU_PRESET_PC)
+if(SNDEMU__PRESET_PC)
 	set(SNDEMU_SN76496_ALL ON)	# Tandy
 	set(SNDEMU_SAA1099_ALL ON)	# CMS / Game Blaster
 	set(SNDEMU_YM3812_ALL ON)	# AdLib / Sound Blaster 1/2
@@ -207,6 +199,10 @@ if(SNDEMU_YM2612_ALL)
 	set(SNDEMU_YM2612_GPGX ON)
 	set(SNDEMU_YM2612_GENS ON)
 	set(SNDEMU_YM2612_NUKED ON)
+endif()
+if(SNDEMU_YM2151_ALL)
+	set(SNDEMU_YM2151_MAME ON)
+	set(SNDEMU_YM2151_NUKED ON)
 endif()
 if(SNDEMU_RF5C68_ALL)
 	set(SNDEMU_RF5C68_MAME ON)
@@ -316,6 +312,19 @@ if(SNDEMU_YM2151_ALL)
 	set(EMU_FILES ${EMU_FILES} cores/ym2151.c)
 	set(EMU_CORE_HEADERS ${EMU_CORE_HEADERS} cores/ym2151.h)
 endif()
+if(SNDEMU_YM2151_MAME OR SNDEMU_YM2151_NUKED)
+	set(EMU_DEFS ${EMU_DEFS} " SNDDEV_YM2151")
+	set(EMU_FILES ${EMU_FILES} cores/2151intf.c)
+	set(EMU_CORE_HEADERS ${EMU_CORE_HEADERS} cores/2151intf.h)
+	if(SNDEMU_YM2151_MAME)
+		set(EMU_DEFS ${EMU_DEFS} " EC_YM2151_MAME")
+		set(EMU_FILES ${EMU_FILES} cores/ym2151.c)
+	endif()
+	if(SNDEMU_YM2151_NUKED)
+		set(EMU_DEFS ${EMU_DEFS} " EC_YM2151_NUKED")
+		set(EMU_FILES ${EMU_FILES} cores/nukedopm.c)
+	endif()
+endif()
 if(SNDEMU_SEGAPCM_ALL)
 	set(EMU_DEFS ${EMU_DEFS} " SNDDEV_SEGAPCM")
 	set(EMU_FILES ${EMU_FILES} cores/segapcm.c)
@@ -366,7 +375,7 @@ if(SNDEMU_YM3812_MAME OR SNDEMU_YM3812_ADLIBEMU OR SNDEMU_YM3812_NUKED)
 	endif()
 	if(SNDEMU_YM3812_NUKED)
 		set(EMU_DEFS ${EMU_DEFS} " EC_YM3812_NUKED")
-		set(EMU_FILES ${EMU_FILES} cores/nukedopl.c)
+		set(EMU_FILES ${EMU_FILES} cores/nukedopl3.c)
 	endif()
 endif()
 if(SNDEMU_YM3526_ALL)
@@ -396,7 +405,7 @@ if(SNDEMU_YMF262_MAME OR SNDEMU_YMF262_ADLIBEMU OR SNDEMU_YMF262_NUKED)
 	endif()
 	if(SNDEMU_YMF262_NUKED)
 		set(EMU_DEFS ${EMU_DEFS} " EC_YMF262_NUKED")
-		set(EMU_FILES ${EMU_FILES} cores/nukedopl.c)
+		set(EMU_FILES ${EMU_FILES} cores/nukedopl3.c)
 	endif()
 endif()
 if(SNDEMU_YMF278B_ALL)
@@ -590,58 +599,38 @@ if(SNDEMU_GA20_ALL)
 endif()
 
 
-add_library(${PROJECT_NAME}_obj OBJECT ${EMU_FILES})
-set_property(TARGET ${PROJECT_NAME}_obj PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-target_compile_definitions(${PROJECT_NAME}_obj PUBLIC ${EMU_DEFS})
-
-target_include_directories(${PROJECT_NAME}_obj
-	PUBLIC ${LIBVGM_SOURCE_DIR}
+add_library(${PROJECT_NAME} ${LIBRARY_TYPE} ${EMU_FILES})
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_compile_definitions(${PROJECT_NAME} PUBLIC ${EMU_DEFS})
+target_include_directories(${PROJECT_NAME}
+	PUBLIC $<BUILD_INTERFACE:${LIBVGM_SOURCE_DIR}> $<INSTALL_INTERFACE:${LIBVGM_INSTALL_INCLUDE_DIR}>
 	PRIVATE ${LIBVGM_SOURCE_DIR}/libs/include
 )
-
-add_library(${PROJECT_NAME} STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-target_compile_definitions(${PROJECT_NAME} PUBLIC ${EMU_DEFS})
-
-if(BUILD_SHARED)
-add_library(${PROJECT_NAME}_shared SHARED $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
-SET_TARGET_PROPERTIES(${PROJECT_NAME}_shared PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-target_compile_definitions(${PROJECT_NAME}_shared PUBLIC ${EMU_DEFS})
-endif(BUILD_SHARED)
 
 if(CMAKE_COMPILER_IS_GNUCC OR UNIX)
 	# link Math library
 	target_link_libraries(${PROJECT_NAME} PRIVATE m)
-    if(BUILD_SHARED)
-	target_link_libraries(${PROJECT_NAME}_shared PRIVATE m)
-    endif(BUILD_SHARED)
-	set(VGMEMU_PKGCONFIG_LDFLAGS "-lm")
+	set(EMU_PC_LDFLAGS "-lm")
 endif()
 
-foreach(DEF ${EMU_DEFS})
-	string(REPLACE " " "" DEF "${DEF}")
-	set(VGMEMU_PKGCONFIG_CFLAGS ${VGMEMU_PKGCONFIG_CFLAGS} "-D${DEF}")
-endforeach(DEF)
 
-string(REPLACE ";" " " VGMEMU_PKGCONFIG_CFLAGS "${VGMEMU_PKGCONFIG_CFLAGS}")
-string(REPLACE ";" " " VGMEMU_PKGCONFIG_LDFLAGS "${VGMEMU_PKGCONFIG_LDFLAGS}")
-
-configure_file(vgm-emu.pc.in ${CMAKE_CURRENT_BINARY_DIR}/vgm-emu.pc @ONLY)
+pkgcfg_configure("${LIBVGM_SOURCE_DIR}/cmake/libvgm.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/vgm-emu.pc"
+		NAME "LibVGM Emu"
+		DESC "LibVGM sound chip emulation library"
+		VERSION ${LIBVGM_VERSION}
+		DEFINES ${EMU_DEFS}
+		CFLAGS ${EMU_PC_CFLAGS}
+		LDFLAGS_PRIV ${EMU_PC_LDFLAGS}
+		LDFLAGS_PUB "-l${PROJECT_NAME}"
+	)
 
 install(TARGETS ${PROJECT_NAME}
-		RUNTIME DESTINATION "bin"
-		LIBRARY DESTINATION "lib"
-		ARCHIVE DESTINATION "lib"
-		)
-install(FILES ${EMU_HEADERS} DESTINATION include/vgm/emu)
-install(FILES ${EMU_CORE_HEADERS} DESTINATION include/vgm/emu/cores)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vgm-emu.pc DESTINATION lib/pkgconfig)
-
-if(BUILD_SHARED)
-install(TARGETS ${PROJECT_NAME}_shared
-		RUNTIME DESTINATION "bin"
-		LIBRARY DESTINATION "lib"
-		ARCHIVE DESTINATION "lib"
-		)
-endif(BUILD_SHARED)
+		EXPORT "${LIBVGM_NAME}"
+		RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+		LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	)
+set(LIBVGM_INSTALL_TARGETS ${LIBVGM_INSTALL_TARGETS} "${PROJECT_NAME}" PARENT_SCOPE)
+install(FILES ${EMU_HEADERS} DESTINATION "${LIBVGM_INSTALL_INCLUDE_DIR}/emu")
+install(FILES ${EMU_CORE_HEADERS} DESTINATION "${LIBVGM_INSTALL_INCLUDE_DIR}/emu/cores")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vgm-emu.pc DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")

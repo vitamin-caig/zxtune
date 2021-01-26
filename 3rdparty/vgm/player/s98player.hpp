@@ -44,13 +44,25 @@ struct _s98_chip_device
 
 class S98Player : public PlayerBase
 {
+private:
+	struct DevCfgBuffer
+	{
+		std::vector<UINT8> data;
+	};
+	struct DEVLINK_CB_DATA
+	{
+		S98Player* player;
+		S98_CHIPDEV* chipDev;
+	};
+
 public:
 	S98Player();
 	~S98Player();
 	
 	UINT32 GetPlayerType(void) const;
 	const char* GetPlayerName(void) const;
-	static UINT8 IsMyFile(DATA_LOADER *dataLoader);
+	static UINT8 PlayerCanLoadFile(DATA_LOADER *dataLoader);
+	UINT8 CanLoadFile(DATA_LOADER *dataLoader) const;
 	UINT8 LoadFile(DATA_LOADER *dataLoader);
 	UINT8 UnloadFile(void);
 	const S98_HEADER* GetFileHeader(void) const;
@@ -66,7 +78,7 @@ public:
 	//UINT32 GetSampleRate(void) const;
 	UINT8 SetSampleRate(UINT32 sampleRate);
 	//UINT8 SetPlaybackSpeed(double speed);
-	//void SetCallback(PLAYER_EVENT_CB cbFunc, void* cbParam);
+	//void SetEventCallback(PLAYER_EVENT_CB cbFunc, void* cbParam);
 	UINT32 Tick2Sample(UINT32 ticks) const;
 	UINT32 Sample2Tick(UINT32 samples) const;
 	double Tick2Second(UINT32 ticks) const;
@@ -89,6 +101,7 @@ private:
 	UINT8 GetDeviceInstance(size_t id) const;
 	size_t DeviceID2OptionID(UINT32 id) const;
 	void RefreshMuting(S98_CHIPDEV& chipDev, const PLR_MUTE_OPTS& muteOpts);
+	void RefreshPanning(S98_CHIPDEV& chipDev, const PLR_PAN_OPTS& panOpts);
 	
 	void CalcSongLength(void);
 	UINT8 LoadTags(void);
@@ -98,10 +111,14 @@ private:
 	
 	void RefreshTSRates(void);
 	
+	void GenerateDeviceConfig(void);
+	static void DeviceLinkCallback(void* userParam, VGM_BASEDEV* cDev, DEVLINK_INFO* dLink);
 	UINT8 SeekToTick(UINT32 tick);
 	UINT8 SeekToFilePos(UINT32 pos);
 	void ParseFile(UINT32 ticks);
+	void HandleEOF(void);
 	void DoCommand(void);
+	void DoRegWrite(UINT8 deviceID, UINT8 port, UINT8 reg, UINT8 data);
 	
 	enum
 	{
@@ -114,6 +131,7 @@ private:
 	
 	S98_HEADER _fileHdr;
 	std::vector<S98_DEVICE> _devHdrs;
+	std::vector<DevCfgBuffer> _devCfgs;
 	UINT32 _totalTicks;
 	UINT32 _loopTick;
 	std::map<std::string, std::string> _tagData;
@@ -137,6 +155,7 @@ private:
 	UINT32 _playTick;
 	UINT32 _playSmpl;
 	UINT32 _curLoop;
+	UINT32 _lastLoopTick;
 	
 	UINT8 _playState;
 	UINT8 _psTrigger;	// used to temporarily trigger special commands

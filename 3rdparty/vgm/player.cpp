@@ -39,6 +39,8 @@ extern "C" int __cdecl _kbhit(void);
 #include "audio/AudioStream.h"
 #include "audio/AudioStream_SpcDrvFuns.h"
 #include "emu/Resampler.h"
+#include "emu/SoundDevs.h"	// for DEVID_*
+#include "emu/EmuCores.h"
 #include "utils/OSMutex.h"
 
 //#define USE_MEMORY_LOADER 1	// define to use the in-memory loader
@@ -53,6 +55,7 @@ static const char* GetFileTitle(const char* filePath);
 static UINT32 CalcCurrentVolume(UINT32 playbackSmpl);
 static UINT32 FillBuffer(void* drvStruct, void* userParam, UINT32 bufSize, void* Data);
 static UINT8 FilePlayCallback(PlayerBase* player, void* userParam, UINT8 evtType, void* evtParam);
+static DATA_LOADER* RequestFileCallback(void* userParam, PlayerBase* player, const char* fileName);
 static UINT32 GetNthAudioDriver(UINT8 adrvType, INT32 drvNumber);
 static UINT8 InitAudioSystem(void);
 static UINT8 DeinitAudioSystem(void);
@@ -85,14 +88,14 @@ static UINT32 idWavOut;
 static UINT32 idWavOutDev;
 static UINT32 idWavWrt;
 
-static INT32 AudioOutDrv = 0;
+static INT32 AudioOutDrv = -2;
 static INT32 WaveWrtDrv = -1;
 
 static UINT32 masterVol = 0x10000;	// fixed point 16.16
 static UINT32 fadeSmplStart;
 static UINT32 fadeSmplTime;
 
-static bool showTags = false;
+static UINT8 showTags = 1;
 static bool showFileInfo = false;
 
 static DROPlayer* droPlr;
@@ -167,7 +170,8 @@ int main(int argc, char* argv[])
 		fprintf(stderr, "Error 0x%02X loading file!\n", retVal);
 		continue;
 	}
-	player->SetCallback(&FilePlayCallback, NULL);
+	player->SetEventCallback(FilePlayCallback, NULL);
+	player->SetFileReqCallback(RequestFileCallback, NULL);
 	
 	if (player->GetPlayerType() == FCC_S98)
 	{
@@ -204,7 +208,7 @@ int main(int argc, char* argv[])
 				player->Tick2Second(player->GetTotalTicks()), hwType);
 	}
 	
-	if (showTags)
+	if (showTags > 0)
 	{
 		const char* songTitle = NULL;
 		const char* songAuthor = NULL;
@@ -229,22 +233,60 @@ int main(int argc, char* argv[])
 			else if (!strcmp(t[0], "COMMENT"))
 				songComment = t[1];
 		}
-	
+		
 		if (songTitle != NULL && songTitle[0] != '\0')
 			printf("\nSong Title: %s", songTitle);
-		if (songAuthor != NULL && songAuthor[0] != '\0')
-			printf("\nSong Author: %s", songAuthor);
-		if (songGame != NULL && songGame[0] != '\0')
-			printf("\nSong Game: %s", songGame);
-		if (songSystem != NULL && songSystem[0] != '\0')
-			printf("\nSong System: %s", songSystem);
-		if (songDate != NULL && songDate[0] != '\0')
-			printf("\nSong Date: %s", songDate);
-		if (songComment != NULL && songComment[0] != '\0')
-			printf("\nSong Comment: %s", songComment);
+		if (showTags >= 2)
+		{
+			if (songAuthor != NULL && songAuthor[0] != '\0')
+				printf("\nSong Author: %s", songAuthor);
+			if (songGame != NULL && songGame[0] != '\0')
+				printf("\nSong Game: %s", songGame);
+			if (songSystem != NULL && songSystem[0] != '\0')
+				printf("\nSong System: %s", songSystem);
+			if (songDate != NULL && songDate[0] != '\0')
+				printf("\nSong Date: %s", songDate);
+			if (songComment != NULL && songComment[0] != '\0')
+				printf("\nSong Comment: %s", songComment);
+		}
 	}
 	
 	putchar('\n');
+	
+	{
+		PLR_DEV_OPTS devOpts;
+		UINT32 devOptID;
+		
+		devOptID = PLR_DEV_ID(DEVID_SN76496, 0);
+		retVal = player->GetDeviceOptions(devOptID, devOpts);
+		if (! (retVal & 0x80))
+		{
+			static const INT16 panPos[4] = {0x00, -0x80, +0x80, 0x00};
+			devOpts.emuCore[0] = FCC_MAXM;
+			memcpy(devOpts.panOpts.chnPan, panPos, sizeof(panPos));
+			player->SetDeviceOptions(devOptID, devOpts);
+		}
+		
+		devOptID = PLR_DEV_ID(DEVID_YM2413, 0);
+		retVal = player->GetDeviceOptions(devOptID, devOpts);
+		if (! (retVal & 0x80))
+		{
+			static const INT16 panPos[14] = {
+				-0x100, +0x100, -0x80, +0x80, -0x40, +0x40, -0xC0, +0xC0, 0x00,
+				-0x60, +0x60, 0x00, -0xC0, +0xC0};
+			memcpy(devOpts.panOpts.chnPan, panPos, sizeof(panPos));
+			player->SetDeviceOptions(devOptID, devOpts);
+		}
+		
+		devOptID = PLR_DEV_ID(DEVID_AY8910, 0);
+		retVal = player->GetDeviceOptions(devOptID, devOpts);
+		if (! (retVal & 0x80))
+		{
+			static const INT16 panPos[3] = {-0x80, +0x80, 0x00};
+			memcpy(devOpts.panOpts.chnPan, panPos, sizeof(panPos));
+			player->SetDeviceOptions(devOptID, devOpts);
+		}
+	}
 	
 	player->SetSampleRate(sampleRate);
 	player->Start();
@@ -266,9 +308,7 @@ int main(int argc, char* argv[])
 		{
 			const PLR_DEV_INFO& pdi = diList[curDev];
 			printf(" Dev %d: Type 0x%02X #%d, Core %s, Clock %u, Rate %u, Volume 0x%X\n",
-				(int)pdi.id, pdi.type, (INT8)pdi.instance, FCC2Str(pdi.core).c_str(), pdi.clock, pdi.smplRate, pdi.volume);
-			if (pdi.cParams != 0)
-				printf("        CfgParams: 0x%08X\n", pdi.cParams);
+				(int)pdi.id, pdi.type, (INT8)pdi.instance, FCC2Str(pdi.core).c_str(), pdi.devCfg->clock, pdi.smplRate, pdi.volume);
 		}
 	}
 	
@@ -436,6 +476,7 @@ Sound Chip ID:
 			Note: The number is the ID of the active sound chip (as shown by device info).
 			      All sound chips can be controlled with 0x800I00NN (NN = libvgm device ID, I = instance, i.e. 0 or 1)
 		C param - set emulation core to param (four-character code, case sensitive, empty = use default)
+		LC param - set emulation core of *linked device* (OPN SSG/OPL4 FM) to param (four-character code, case sensitive, empty = use default)
 		O param - set sound core options (core-specific)
 		SRM param - set sample rate mode (0/1/2, see DEVRI_SRMODE_*)
 		SR param - set emulated sample rate (0 = use rate of output stream)
@@ -487,7 +528,7 @@ static void DoChipControlMode(PlayerBase* player)
 				}
 				
 				printf("Cfg: Core %s, Opts 0x%X, srMode 0x%02X, sRate %u, resampleMode 0x%02X\n",
-					FCC2Str(devOpts.emuCore).c_str(), devOpts.coreOpts, devOpts.srMode,
+					FCC2Str(devOpts.emuCore[0]).c_str(), devOpts.coreOpts, devOpts.srMode,
 					devOpts.smplRate, devOpts.resmplMode);
 				printf("Muting: Chip %s [0x%02X], Channel Mask: 0x%02X\n",
 					(devOpts.muteOpts.disable & 0x01) ? "Off" : "On", devOpts.muteOpts.disable,
@@ -540,8 +581,8 @@ static void DoChipControlMode(PlayerBase* player)
 				continue;
 			}
 			
-			// Core / Opts / SRMode / SampleRate / ReSampleMode / Muting
-			printf("Command [C/O/SRM/SR/RSM/M data]: ");
+			// Core / Linked Core / Opts / SRMode / SampleRate / ReSampleMode / Muting
+			printf("Command [C/LC/O/SRM/SR/RSM/M data]: ");
 			fgets(line, 0x80, stdin);
 			StripNewline(line);
 			
@@ -554,7 +595,16 @@ static void DoChipControlMode(PlayerBase* player)
 			{
 				std::string fccStr(tokenStr);
 				fccStr.resize(4, 0x00);
-				devOpts.emuCore =
+				devOpts.emuCore[0] =
+					(fccStr[0] << 24) | (fccStr[1] << 16) |
+					(fccStr[2] <<  8) | (fccStr[3] <<  0);
+				player->SetDeviceOptions((UINT32)chipID, devOpts);
+			}
+			else if (! strcmp(line, "LC"))
+			{
+				std::string fccStr(tokenStr);
+				fccStr.resize(4, 0x00);
+				devOpts.emuCore[1] =
 					(fccStr[0] << 24) | (fccStr[1] << 16) |
 					(fccStr[2] <<  8) | (fccStr[3] <<  0);
 				player->SetDeviceOptions((UINT32)chipID, devOpts);
@@ -725,7 +775,7 @@ static void DoChipControlMode(PlayerBase* player)
 				if (val >= 0)
 				{
 					if (! strcmp(line, "T"))
-						showTags = !!val;
+						showTags = val;
 					else if (! strcmp(line, "FI"))
 						showFileInfo = !!val;
 				}
@@ -791,11 +841,11 @@ static UINT8 GetPlayerForFile(DATA_LOADER *dLoad, PlayerBase** retPlayer)
 	UINT8 retVal;
 	PlayerBase* player;
 	
-	if (! VGMPlayer::IsMyFile(dLoad))
+	if (! vgmPlr->CanLoadFile(dLoad))
 		player = vgmPlr;
-	else if (! S98Player::IsMyFile(dLoad))
+	else if (! s98Plr->CanLoadFile(dLoad))
 		player = s98Plr;
-	else if (! DROPlayer::IsMyFile(dLoad))
+	else if (! droPlr->CanLoadFile(dLoad))
 		player = droPlr;
 	else
 		return 0xFF;
@@ -966,8 +1016,8 @@ static UINT8 FilePlayCallback(PlayerBase* player, void* userParam, UINT8 evtType
 				else
 				{
 					printf("Loop End.\n");
-					playState |= PLAYSTATE_END;
-					return 0x01;
+					playState |= PLAYSTATE_END;	// prevent "Song End" message
+					return 0x01;	// Note: will trigger PLREVT_END
 				}
 			}
 			if (player->GetState() & PLAYSTATE_SEEK)
@@ -976,6 +1026,8 @@ static UINT8 FilePlayCallback(PlayerBase* player, void* userParam, UINT8 evtType
 		}
 		break;
 	case PLREVT_END:
+		if (playState & PLAYSTATE_END)
+			break;
 		playState |= PLAYSTATE_END;
 		printf("Song End.\n");
 		break;
@@ -983,29 +1035,47 @@ static UINT8 FilePlayCallback(PlayerBase* player, void* userParam, UINT8 evtType
 	return 0x00;
 }
 
+static DATA_LOADER* RequestFileCallback(void* userParam, PlayerBase* player, const char* fileName)
+{
+	DATA_LOADER* dLoad = FileLoader_Init(fileName);
+	UINT8 retVal = DataLoader_Load(dLoad);
+	if (! retVal)
+		return dLoad;
+	DataLoader_Deinit(dLoad);
+	return NULL;
+}
+
 static UINT32 GetNthAudioDriver(UINT8 adrvType, INT32 drvNumber)
 {
+	// special numbers for drvNumber:
+	//	-1 - don't select any
+	//	-2 - select last found driver
 	if (drvNumber == -1)
 		return (UINT32)-1;
 	
 	UINT32 drvCount;
 	UINT32 curDrv;
 	INT32 typedDrv;
+	UINT32 lastDrv;
 	AUDDRV_INFO* drvInfo;
 	
 	// go through all audio drivers get the ID of the requested Output/Disk Writer driver
 	drvCount = Audio_GetDriverCount();
+	lastDrv = (UINT32)-1;
 	for (typedDrv = 0, curDrv = 0; curDrv < drvCount; curDrv ++)
 	{
 		Audio_GetDriverInfo(curDrv, &drvInfo);
 		if (drvInfo->drvType == adrvType)
 		{
+			lastDrv = curDrv;
 			if (typedDrv == drvNumber)
 				return curDrv;
 			typedDrv ++;
 		}
 	}
 	
+	if (drvNumber == -2)
+		return lastDrv;
 	return (UINT32)-1;
 }
 

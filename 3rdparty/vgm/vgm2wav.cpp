@@ -3,7 +3,7 @@
 /* need to link with:
  * vgm-player
  * vgm-emu
- * vmg-util
+ * vgm-util
  * iconv (depending on system)
  * z
  */
@@ -21,6 +21,11 @@
 #include "emu/SoundDevs.h"
 #include "emu/EmuCores.h"
 #include "emu/SoundEmu.h"
+
+#ifdef _MSC_VER
+#define strncasecmp	_strnicmp
+#define snprintf	_snprintf
+#endif
 
 #define str_equals(s1,s2) (strcmp(s1,s2) == 0)
 #define str_istarts(s1,s2) (strncasecmp(s1,s2,strlen(s2)) == 0)
@@ -90,13 +95,10 @@ extensible_guid_trailer= "\x00\x00\x00\x00\x10\x00\x80\x00\x00\xAA\x00\x38\x9B\x
 int main(int argc, const char *argv[]) {
     PlayerBase *player;
 
-    unsigned int i;
     unsigned int totalFrames;
     unsigned int fadeFrames;
     unsigned int curFrames;
     const char *const *tags;
-    const char *f_input;
-    const char *f_output;
     const char *self;
     const char *c;
     const char *s;
@@ -254,13 +256,13 @@ int main(int argc, const char *argv[]) {
     }
 
     /* figure out a player */
-    if(VGMPlayer::IsMyFile(loader) == 0) {
+    if(VGMPlayer::PlayerCanLoadFile(loader) == 0) {
         player = new VGMPlayer();
     }
-    else if(S98Player::IsMyFile(loader) == 0) {
+    else if(S98Player::PlayerCanLoadFile(loader) == 0) {
         player = new S98Player();
     }
-    else if(DROPlayer::IsMyFile(loader) == 0) {
+    else if(DROPlayer::PlayerCanLoadFile(loader) == 0) {
         player = new DROPlayer();
     }
     else {
@@ -389,7 +391,7 @@ static void set_core(PlayerBase *player, UINT8 devId, UINT32 coreId) {
     /* just going to set the first instance */
     id = PLR_DEV_ID(devId,0);
     if(player->GetDeviceOptions(id,devOpts)) return;
-    devOpts.emuCore = coreId;
+    devOpts.emuCore[0] = coreId;
     player->SetDeviceOptions(id,devOpts);
     return;
 }
@@ -399,7 +401,6 @@ static void dump_info(PlayerBase *player) {
     PLR_SONG_INFO songInfo;
     const DEV_DEF **devDefList;
     UINT32 i;
-    UINT8 ret;
     char str[5];
 
     fprintf(stderr,"PlayerName: %s\n",player->GetPlayerName());
@@ -424,7 +425,7 @@ static void dump_info(PlayerBase *player) {
           devInfList[i].type,
           (INT8)devInfList[i].instance,
           str,
-          devInfList[i].clock,
+          devInfList[i].devCfg->clock,
           devInfList[i].smplRate,
           devInfList[i].volume);
         devDefList = SndEmu_GetDevDefList(devInfList[i].type);

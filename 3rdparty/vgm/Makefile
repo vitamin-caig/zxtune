@@ -13,7 +13,8 @@ $(eval $(call device,SNDDEV_SN76496 EC_SN76496_MAME, sn764intf sn76496))
 $(eval $(call device,SNDDEV_YM2413 EC_YM2413_MAME, 2413intf ym2413))
 #gpgx default
 $(eval $(call device,SNDDEV_YM2612 EC_YM2612_GPGX, 2612intf fmopn2612))
-$(eval $(call device,SNDDEV_YM2151, ym2151))
+#mame default
+$(eval $(call device,SNDDEV_YM2151 EC_YM2151_MAME, ym2151 2151intf))
 $(eval $(call device,SNDDEV_SEGAPCM, segapcm))
 #both cores used
 $(eval $(call device,SNDDEV_RF5C68 EC_RF5C68_MAME SNDEMU_RF5C68_GENS, rf5cintf rf5c68 scd_pcm))
@@ -24,7 +25,7 @@ $(eval $(call device,SNDDEV_YM3812 EC_YM3812_ADLIBEMU, oplintf adlibemu_opl2 fmo
 $(eval $(call device,SNDDEV_YM3526, oplintf fmopl))
 $(eval $(call device,SNDDEV_Y8950, fmopl ymdeltat))
 #nuke default, adlib for 278b
-$(eval $(call device,SNDDEV_YMF262 EC_YMF262_NUKED EC_YMF262_ADLIBEMU, 262intf nukedopl adlibemu_opl3))
+$(eval $(call device,SNDDEV_YMF262 EC_YMF262_NUKED EC_YMF262_ADLIBEMU, 262intf nukedopl3 adlibemu_opl3))
 $(eval $(call device,SNDDEV_YMF278B, ymf278b))
 $(eval $(call device,SNDDEV_YMZ280B, ymz280b))
 $(eval $(call device,SNDDEV_YMF271, ymf271))

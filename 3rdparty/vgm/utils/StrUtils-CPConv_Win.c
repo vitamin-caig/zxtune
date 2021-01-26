@@ -8,13 +8,17 @@
 #include <stddef.h>
 #include <ctype.h>
 #include <wchar.h>
-#include <Windows.h>
+#include <windows.h>
 
 #ifdef _MSC_VER
 #define strdup		_strdup
 #define stricmp		_stricmp
 #define strnicmp	_strnicmp
 #define snprintf	_snprintf
+#endif
+
+#ifndef LSTATUS	// for MS VC6
+#define	LSTATUS	LONG
 #endif
 
 #include "../stdtype.h"
@@ -107,10 +111,16 @@ UINT8 CPConv_Init(CPCONV** retCPC, const char* cpFrom, const char* cpTo)
 	
 	cpc->cpiFrom = GetCodepageFromStr(cpFrom);
 	if (! cpc->cpiFrom)
+	{
+		free(cpc);
 		return 0x80;
+	}
 	cpc->cpiTo = GetCodepageFromStr(cpTo);
 	if (! cpc->cpiTo)
+	{
+		free(cpc);
 		return 0x81;
+	}
 	cpc->cpsFrom = strdup(cpFrom);
 	cpc->cpsTo = strdup(cpTo);
 	
@@ -133,16 +143,23 @@ UINT8 CPConv_StrConvert(CPCONV* cpc, size_t* outSize, char** outStr, size_t inSi
 	int wcBufSize;
 	wchar_t* wcBuf;
 	const wchar_t* wcStr;
-	int convChrs;
+	UINT8 canAlloc;
 	
 	if (inSize == 0)
-		inSize = strlen(inStr);
+	{
+		// add +1 for conuting the terminating \0 character
+		if (cpc->cpiFrom == CP_UTF16_NE || cpc->cpiFrom == CP_UTF16_OE)
+			inSize = (wcslen((const wchar_t*)inStr) + 1) * sizeof(wchar_t);
+		else
+			inSize = (strlen(inStr) + 1) * sizeof(char);
+	}
 	if (inSize == 0)
 	{
 		*outSize = 0;
 		return 0x02;	// nothing to convert
 	}
-
+	canAlloc = (*outStr == NULL);
+	
 	if (cpc->cpiFrom == CP_UTF16_NE)	// UTF-16, native endian
 	{
 		wcBufSize = inSize / sizeof(wchar_t);
@@ -168,7 +185,7 @@ UINT8 CPConv_StrConvert(CPCONV* cpc, size_t* outSize, char** outStr, size_t inSi
 	{
 		wcBufSize = MultiByteToWideChar(cpc->cpiFrom, 0x00, inStr, inSize, NULL, 0);
 		if (wcBufSize < 0 || (wcBufSize == 0 && inSize > 0))
-			return 0xFF;
+			return 0x80;	// conversion error
 		wcBuf = (wchar_t*)malloc(wcBufSize * sizeof(wchar_t));
 		wcBufSize = MultiByteToWideChar(cpc->cpiFrom, 0x00, inStr, inSize, wcBuf, wcBufSize);
 		if (wcBufSize < 0)
@@ -176,21 +193,74 @@ UINT8 CPConv_StrConvert(CPCONV* cpc, size_t* outSize, char** outStr, size_t inSi
 		wcStr = wcBuf;
 	}
 	
-	if (wcBufSize > 0 && wcStr[wcBufSize - 1] == L'\0')
-		wcBufSize --;	// remove trailing \0 character
-	convChrs = WideCharToMultiByte(cpc->cpiTo, 0x00, wcStr, wcBufSize, NULL, 0, NULL, NULL);
-	if (convChrs < 0)
-	{
-		free(wcBuf);
-		*outSize = 0;
-		return 0x80;	// conversion error
-	}
-	*outSize = (size_t)convChrs;
-	*outStr = (char*)malloc((*outSize + 1) * sizeof(char));
-	convChrs = WideCharToMultiByte(cpc->cpiTo, 0x00, wcStr, wcBufSize, *outStr, *outSize, NULL, NULL);
-	*outSize = (convChrs >= 0) ? (size_t)convChrs : 0;
-	(*outStr)[*outSize] = '\0';
+	// at this point we have a "wide-character" (UTF-16) string in wcStr
 	
-	free(wcBuf);
-	return (convChrs >= 0) ? 0x00 : 0x01;
+	if (cpc->cpiTo == CP_UTF16_NE || cpc->cpiTo == CP_UTF16_OE)
+	{
+		size_t reqSize = (size_t)wcBufSize * sizeof(wchar_t);
+		if (! canAlloc)
+		{
+			if (*outSize > reqSize)
+				*outSize = reqSize;
+			memcpy(*outStr, wcStr, *outSize);
+			free(wcBuf);
+		}
+		else if (wcStr == wcBuf)
+		{
+			*outSize = reqSize;
+			*outStr = (char*)wcBuf;
+		}
+		else
+		{
+			*outSize = reqSize;
+			*outStr = (char*)malloc(*outSize * sizeof(wchar_t));
+			memcpy(*outStr, wcStr, *outSize);
+			free(wcBuf);
+		}
+		
+		if (cpc->cpiTo == CP_UTF16_OE)
+		{
+			size_t curChrPos;
+			char* bufPtr = *outStr;
+			for (curChrPos = 0; curChrPos < *outSize; curChrPos += 0x02)
+			{
+				char temp = bufPtr[curChrPos + 0x00];
+				bufPtr[curChrPos + 0x00] = bufPtr[curChrPos + 0x01];
+				bufPtr[curChrPos + 0x01] = temp;
+			}
+		}
+		
+		if (*outSize < reqSize)
+			return 0x10;	// conversion incomplete due to lack of buffer space
+		else
+			return 0x00;	// conversion successfull
+	}
+	else
+	{
+		int reqSize;
+		int convChrs;
+		
+		reqSize = WideCharToMultiByte(cpc->cpiTo, 0x00, wcStr, wcBufSize, NULL, 0, NULL, NULL);
+		if (reqSize < 0)
+		{
+			free(wcBuf);
+			*outSize = 0;
+			return 0x80;	// conversion error
+		}
+		if (canAlloc)
+		{
+			*outSize = (size_t)reqSize;
+			*outStr = (char*)malloc((*outSize) * sizeof(char));
+		}
+		convChrs = WideCharToMultiByte(cpc->cpiTo, 0x00, wcStr, wcBufSize, *outStr, *outSize, NULL, NULL);
+		*outSize = (convChrs >= 0) ? (size_t)convChrs : 0;
+		
+		free(wcBuf);
+		if (convChrs <= 0)
+			return 0x80;	// conversion error
+		else if (convChrs < reqSize)
+			return 0x10;	// conversion incomplete due to lack of buffer space
+		else
+			return 0x00;	// conversion successfull
+	}
 }

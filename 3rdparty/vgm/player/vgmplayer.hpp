@@ -54,6 +54,7 @@ public:
 	{
 		VGM_BASEDEV base;
 		UINT8 vgmChipType;
+		UINT8 chipType;
 		UINT8 chipID;
 		UINT32 flags;
 		size_t optID;
@@ -91,7 +92,7 @@ protected:
 		size_t deviceID;	// index for _devices array
 		UINT8 vgmChipType;
 		UINT8 type;
-		UINT16 instance;
+		UINT8 instance;
 		std::vector<UINT8> cfgData;
 	};
 	
@@ -111,8 +112,9 @@ protected:
 	typedef void (VGMPlayer::*COMMAND_FUNC)(void);	// VGM command member function callback
 	struct DEVLINK_CB_DATA
 	{
-		VGMPlayer* object;
-		UINT8 chipType;
+		VGMPlayer* player;
+		SONG_DEV_CFG* sdCfg;
+		CHIP_DEVICE* chipDev;
 	};
 	struct COMMAND_INFO
 	{
@@ -134,8 +136,9 @@ public:
 	
 	UINT32 GetPlayerType(void) const;
 	const char* GetPlayerName(void) const;
-	static UINT8 IsMyFile(DATA_LOADER *fileLoader);
-	UINT8 LoadFile(DATA_LOADER *fileLoader);
+	static UINT8 PlayerCanLoadFile(DATA_LOADER *dataLoader);
+	UINT8 CanLoadFile(DATA_LOADER *dataLoader) const;
+	UINT8 LoadFile(DATA_LOADER *dataLoader);
 	UINT8 UnloadFile(void);
 	const VGM_HEADER* GetFileHeader(void) const;
 	
@@ -153,7 +156,8 @@ public:
 	//UINT32 GetSampleRate(void) const;
 	UINT8 SetSampleRate(UINT32 sampleRate);
 	//UINT8 SetPlaybackSpeed(double speed);
-	//void SetCallback(PLAYER_EVENT_CB cbFunc, void* cbParam);
+	//void SetEventCallback(PLAYER_EVENT_CB cbFunc, void* cbParam);
+	//void SetFileReqCallback(PLAYER_FILEREQ_CB cbFunc, void* cbParam);
 	UINT32 Tick2Sample(UINT32 ticks) const;
 	UINT32 Sample2Tick(UINT32 samples) const;
 	double Tick2Second(UINT32 ticks) const;
@@ -181,7 +185,9 @@ protected:
 	std::string GetUTF8String(const UINT8* startPtr, const UINT8* endPtr);
 	
 	size_t DeviceID2OptionID(UINT32 id) const;
+	void RefreshDevOptions(CHIP_DEVICE& chipDev, const PLR_DEV_OPTS& devOpts);
 	void RefreshMuting(CHIP_DEVICE& chipDev, const PLR_MUTE_OPTS& muteOpts);
+	void RefreshPanning(CHIP_DEVICE& chipDev, const PLR_PAN_OPTS& panOpts);
 	
 	void RefreshTSRates(void);
 	
@@ -191,6 +197,7 @@ protected:
 	UINT16 GetChipVolume(UINT8 chipType, UINT8 chipID, UINT8 isLinked) const;
 	UINT16 EstimateOverallVolume(void) const;
 	void NormalizeOverallVolume(UINT16 overallVol);
+	void GenerateDeviceConfig(void);
 	void InitDevices(void);
 	
 	static void DeviceLinkCallback(void* userParam, VGM_BASEDEV* cDev, DEVLINK_INFO* dLink);
@@ -243,11 +250,13 @@ protected:
 	void Cmd_NES_Reg(void);					// command B4 - NES APU register write (Reg8_Data8 with remapping)
 	void Cmd_YMW_Bank(void);				// command C3 - YMW258 bank write (Ofs8_Data16 with remapping)
 	void Cmd_SAA_Reg(void);					// command BD - SAA1099 register write (Reg8_Data8 with remapping)
+	void Cmd_OKIM6295_Reg(void);			// command B8 - OKIM6295 register write (Ofs8_Data8 with minor fixes)
 	void Cmd_AY_Stereo(void);				// command 30 - set AY8910 stereo mask
 	
 	CPCONV* _cpcUTF16;	// UTF-16 LE -> UTF-8 codepage conversion
 	DATA_LOADER *_dLoad;
 	const UINT8* _fileData;	// data pointer for quick access, equals _dLoad->GetFileData().data()
+	std::vector<UINT8> _yrwRom;	// cache for OPL4 sample ROM (yrw801.rom)
 	
 	enum
 	{
@@ -288,17 +297,22 @@ protected:
 	// tick/sample conversion rates
 	UINT64 _tsMult;
 	UINT64 _tsDiv;
+	UINT64 _ttMult;
+	UINT64 _ttDiv;
 	
 	UINT32 _filePos;
 	UINT32 _fileTick;
 	UINT32 _playTick;
 	UINT32 _playSmpl;
 	UINT32 _curLoop;
+	UINT32 _lastLoopTick;
 	
 	UINT8 _playState;
 	UINT8 _psTrigger;	// used to temporarily trigger special commands
 	//PLAYER_EVENT_CB _eventCbFunc;
 	//void* _eventCbParam;
+	//PLAYER_FILEREQ_CB _fileReqCbFunc;
+	//void* _fileReqCbParam;
 	
 	static const UINT8 _OPT_DEV_LIST[_OPT_DEV_COUNT];	// list of configurable libvgm devices (different from VGM chip list]
 	static const UINT8 _DEV_LIST[_CHIP_COUNT];	// VGM chip ID -> libvgm device ID
@@ -315,7 +329,7 @@ protected:
 	PLR_DEV_OPTS _devOpts[_OPT_DEV_COUNT * 2];	// space for 2 instances per chip
 	size_t _devOptMap[0x100][2];	// maps libvgm device ID to _devOpts vector
 	
-	std::vector<SONG_DEV_CFG> _songDevCfg;
+	std::vector<SONG_DEV_CFG> _devCfgs;
 	size_t _vdDevMap[_CHIP_COUNT][2];	// maps VGM device ID to _devices vector
 	size_t _optDevMap[_OPT_DEV_COUNT * 2];	// maps _devOpts vector index to _devices vector
 	std::vector<CHIP_DEVICE> _devices;
@@ -326,6 +340,7 @@ protected:
 	PCM_BANK _pcmBank[_PCM_BANK_COUNT];
 	PCM_COMPR_TBL _pcmComprTbl;
 	
+	UINT8 _p2612Fix;	// enable hack/fix for Project2612 VGMs
 	UINT32 _ym2612pcm_bnkPos;
 	UINT8 _rf5cBank[2][2];	// [0 RF5C68 / 1 RF5C164][chipID]
 	QSOUND_WORK _qsWork[2];

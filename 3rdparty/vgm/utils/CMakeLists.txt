@@ -1,51 +1,41 @@
 #### miscellaneous utility functions/classes ####
-if (POLICY CMP0048)
-	cmake_policy(SET CMP0048 NEW)
-endif ()
+project(vgm-utils)
 
-project(vgm-utils VERSION 1.0)
-cmake_minimum_required(VERSION 3.1)
+option(UTIL_LOADERS "build data (file/memory) loaders, requires zlib" ON)
+option(UTIL_THREADING "build threading utilities (thread/mutex/signal)" ON)
+option(UTIL_CHARSET_CONV "build charset conversion functions" ON)
 
-if (POLICY CMP0042)
-	cmake_policy(SET CMP0042 NEW)
-endif ()
-
-set(LIBVGM_SOURCE_DIR ${PROJECT_SOURCE_DIR}/..)
 
 set(UTIL_DEFS)
 set(UTIL_FILES)
-# export headers
-set(UTIL_HEADERS
-	DataLoader.h
-	FileLoader.h
-	MemoryLoader.h
-	OSMutex.h
-	OSSignal.h
-	OSThread.h
-	StrUtils.h
-)
+set(UTIL_HEADERS)	# export headers
 set(UTIL_INCLUDES)
 set(UTIL_LIBS)
-set(VGMUTILS_PKGCONFIG_CFLAGS)
-set(VGMUTILS_PKGCONFIG_LDFLAGS)
-set(VGMUTILS_PKGCONFIG_REQUIRES)
-set(VGMUTILS_PKGCONFIG_VERSION ${PROJECT_VERSION})
+
+set(UTIL_PC_CFLAGS)
+set(UTIL_PC_LDFLAGS)
+set(UTIL_PC_PKGS)
 
 
 
 # File Functions
 # --------------
+if(UTIL_LOADERS)
 find_package(ZLIB REQUIRED)
-set(UTIL_FILES ${UTIL_FILES} MemoryLoader.c FileLoader.c DataLoader.c)
+set(UTIL_HEADERS ${UTIL_HEADERS} DataLoader.h FileLoader.h MemoryLoader.h)
+set(UTIL_FILES ${UTIL_FILES} DataLoader.c FileLoader.c MemoryLoader.c)
 set(UTIL_LIBS ${UTIL_LIBS} ZLIB::ZLIB)
-set(VGMUTILS_PKGCONFIG_REQUIRES ${VGMUTILS_PKGCONFIG_REQUIRES} "zlib")
+set(UTIL_PC_PKGS ${UTIL_PC_PKGS} "zlib")
+endif(UTIL_LOADERS)
 
 
 
 # Threads and Synchronization
 # ---------------------------
+if(UTIL_THREADING)
 find_package(Threads REQUIRED)
 
+set(UTIL_HEADERS ${UTIL_HEADERS} OSMutex.h OSSignal.h OSThread.h)
 if(CMAKE_USE_WIN32_THREADS_INIT)
 	set(UTIL_FILES ${UTIL_FILES}
 		OSMutex_Win.c
@@ -60,12 +50,14 @@ elseif(CMAKE_USE_PTHREADS_INIT)
 	)
 endif()
 set(UTIL_LIBS ${UTIL_LIBS} Threads::Threads)
-set(VGMUTILS_PKGCONFIG_LDFLAGS ${VGMUTILS_PKGCONFIG_LDFLAGS} ${CMAKE_THREAD_LIBS_INIT})
+set(UTIL_PC_LDFLAGS ${UTIL_PC_LDFLAGS} ${CMAKE_THREAD_LIBS_INIT})
+endif(UTIL_THREADING)
 
 
 
 # String Codepage Conversion
 # --------------------------
+if(UTIL_CHARSET_CONV)
 find_package(Iconv QUIET)
 if(WIN32)
 	if(${ICONV_FOUND})
@@ -82,81 +74,48 @@ option(UTIL_CHARCNV_ICONV "Charset Conversion: iconv" ${ICONV_FOUND})
 option(UTIL_CHARCNV_WINAPI "Charset Conversion: WinAPI" ${CAN_WINAPI})
 
 
+set(UTIL_HEADERS ${UTIL_HEADERS} StrUtils.h)
 if(UTIL_CHARCNV_WINAPI)
 	set(UTIL_FILES ${UTIL_FILES} StrUtils-CPConv_Win.c)
 elseif(UTIL_CHARCNV_ICONV)
 	find_package(Iconv REQUIRED)
 	set(UTIL_FILES ${UTIL_FILES} StrUtils-CPConv_IConv.c)
 	set(UTIL_LIBS ${UTIL_LIBS} Iconv::Iconv)
-    if(NOT Iconv_IS_BUILT_IN)
-    	set(VGMUTILS_PKGCONFIG_LDFLAGS ${VGMUTILS_PKGCONFIG_LDFLAGS} "-liconv")
-    endif()
-endif()
-
-
-
-add_library(${PROJECT_NAME}_obj OBJECT ${UTIL_FILES})
-set_property(TARGET ${PROJECT_NAME}_obj PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(${PROJECT_NAME}_obj PRIVATE ${UTIL_LIBS})
-
-target_compile_definitions(${PROJECT_NAME}_obj PUBLIC ${UTIL_DEFS})
-
-target_include_directories(${PROJECT_NAME}_obj PRIVATE
-	PUBLIC ${LIBVGM_SOURCE_DIR}
-	PRIVATE ${LIBVGM_SOURCE_DIR}/libs/include
-)
-if(WIN32 AND NOT MSVC)
-	target_include_directories(${PROJECT_NAME}_obj PRIVATE
-		${LIBVGM_SOURCE_DIR}/libs/include_mingw
-	)
-elseif(MSVC)
-	target_include_directories(${PROJECT_NAME}_obj PRIVATE
-		${LIBVGM_SOURCE_DIR}/libs/include_vc
-	)
-	if(MSVC_VERSION LESS 1400)
-		target_include_directories(${PROJECT_NAME}_obj PRIVATE
-			${LIBVGM_SOURCE_DIR}/libs/include_vc6
-		)
+	if(NOT Iconv_IS_BUILT_IN)
+		set(UTIL_PC_LDFLAGS ${UTIL_PC_LDFLAGS} "-liconv")
 	endif()
 endif()
-target_include_directories(${PROJECT_NAME}_obj PRIVATE ${UTIL_INCLUDES})
+endif(UTIL_CHARSET_CONV)
 
-add_library(${PROJECT_NAME} STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
 
-SET_TARGET_PROPERTIES(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
+
+add_library(${PROJECT_NAME} ${LIBRARY_TYPE} ${UTIL_FILES})
+set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(${PROJECT_NAME} PUBLIC ${UTIL_DEFS})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${UTIL_LIBS})
+target_include_directories(${PROJECT_NAME}
+	PUBLIC $<BUILD_INTERFACE:${LIBVGM_SOURCE_DIR}> $<INSTALL_INTERFACE:${LIBVGM_INSTALL_INCLUDE_DIR}>
+	PRIVATE ${UTIL_INCLUDES}
+)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${UTIL_LIBS})
 
-if(BUILD_SHARED)
-add_library(${PROJECT_NAME}_shared SHARED $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
-SET_TARGET_PROPERTIES(${PROJECT_NAME}_shared PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
-target_compile_definitions(${PROJECT_NAME}_shared PUBLIC ${UTIL_DEFS})
-target_link_libraries(${PROJECT_NAME}_shared PRIVATE ${UTIL_LIBS})
-endif(BUILD_SHARED)
 
-foreach(DEF ${UTIL_DEFS})
-	string(REPLACE " " "" DEF "${DEF}")
-	set(VGMUTILS_PKGCONFIG_CFLAGS ${VGMUTILS_PKGCONFIG_CFLAGS} "-D${DEF}")
-endforeach(DEF)
-
-string(REPLACE ";" " " VGMUTILS_PKGCONFIG_CFLAGS "${VGMUTILS_PKGCONFIG_CFLAGS}")
-string(REPLACE ";" " " VGMUTILS_PKGCONFIG_LDFLAGS "${VGMUTILS_PKGCONFIG_LDFLAGS}")
-string(REPLACE ";" " " VGMUTILS_PKGCONFIG_REQUIRES "${VGMUTILS_PKGCONFIG_REQUIRES}")
-
-configure_file(vgm-utils.pc.in ${CMAKE_CURRENT_BINARY_DIR}/vgm-utils.pc @ONLY)
+pkgcfg_configure("${LIBVGM_SOURCE_DIR}/cmake/libvgm.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/vgm-utils.pc"
+		NAME "LibVGM Utils"
+		DESC "LibVGM utility library"
+		VERSION ${LIBVGM_VERSION}
+		DEFINES ${UTIL_DEFS}
+		CFLAGS ${UTIL_PC_CFLAGS}
+		LDFLAGS_PRIV ${UTIL_PC_LDFLAGS}
+		LDFLAGS_PUB "-l${PROJECT_NAME}"
+		PKGS_PRIV ${UTIL_PC_PKGS}
+	)
 
 install(TARGETS ${PROJECT_NAME}
-		RUNTIME DESTINATION "bin"
-		LIBRARY DESTINATION "lib"
-		ARCHIVE DESTINATION "lib"
-		)
-install(FILES ${UTIL_HEADERS} DESTINATION include/vgm/utils)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vgm-utils.pc DESTINATION lib/pkgconfig)
-
-if(BUILD_SHARED)
-install(TARGETS ${PROJECT_NAME}_shared
-		RUNTIME DESTINATION "bin"
-		LIBRARY DESTINATION "lib"
-		ARCHIVE DESTINATION "lib"
-		)
-endif(BUILD_SHARED)
+		EXPORT "${LIBVGM_NAME}"
+		RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+		LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	)
+set(LIBVGM_INSTALL_TARGETS ${LIBVGM_INSTALL_TARGETS} "${PROJECT_NAME}" PARENT_SCOPE)
+install(FILES ${UTIL_HEADERS} DESTINATION "${LIBVGM_INSTALL_INCLUDE_DIR}/utils")
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/vgm-utils.pc DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")

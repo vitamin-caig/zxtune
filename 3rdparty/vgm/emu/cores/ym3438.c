@@ -1,30 +1,30 @@
-//
-// Copyright (C) 2017-2018 Alexey Khokholov (Nuke.YKT)
-// 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-//
-//
-//  Nuked OPN2(Yamaha YM3438) emulator.
-//  Thanks:
-//      Silicon Pr0n:
-//          Yamaha YM3438 decap and die shot(digshadow).
-//      OPLx decapsulated(Matthew Gambrell, Olli Niemitalo):
-//          OPL2 ROMs.
-//
-// version: 1.0.9
-//
+/*
+ * Copyright (C) 2017-2018 Alexey Khokholov (Nuke.YKT)
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ *
+ *  Nuked OPN2(Yamaha YM3438) emulator.
+ *  Thanks:
+ *      Silicon Pr0n:
+ *          Yamaha YM3438 decap and die shot(digshadow).
+ *      OPLx decapsulated(Matthew Gambrell, Olli Niemitalo):
+ *          OPL2 ROMs.
+ *
+ * version: 1.0.10
+ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -33,6 +33,10 @@
 #include "../snddef.h"
 #include "ym3438.h"
 #include "ym3438_int.h"
+
+// superctr's MegaDrive model 1 filter
+#define FILTER_CUTOFF 0.512331301282628 // 5894Hz  single pole IIR low pass
+#define FILTER_CUTOFF_I (1-FILTER_CUTOFF)
 
 enum {
     eg_num_attack = 0,
@@ -221,7 +225,7 @@ static const Bit32u fm_algorithm[4][6][8] = {
     }
 };
 
-//static Bit32u chip_type = ym3438_mode_readmode;
+//static Bit32u chip_type = ym3438_mode_readmode;	// moved into ym3438_t struct
 
 void NOPN2_DoIO(ym3438_t *chip)
 {
@@ -536,12 +540,12 @@ void NOPN2_PhaseGenerate(ym3438_t *chip)
     }
     /* Phase step */
     slot = (chip->cycles + 19) % 24;
-    chip->pg_phase[slot] += chip->pg_inc[slot];
-    chip->pg_phase[slot] &= 0xfffff;
     if (chip->pg_reset[slot] || chip->mode_test_21[3])
     {
         chip->pg_phase[slot] = 0;
     }
+    chip->pg_phase[slot] += chip->pg_inc[slot];
+    chip->pg_phase[slot] &= 0xfffff;
 }
 
 void NOPN2_EnvelopeSSGEG(ym3438_t *chip)
@@ -1214,7 +1218,8 @@ void NOPN2_Reset(ym3438_t *chip, Bit32u clock, Bit32u rate)
 
 void NOPN2_SetChipType(ym3438_t *chip, Bit32u type)
 {
-    chip->chip_type = type;
+    chip->chip_type = type & 0x0F;
+    chip->use_filter = type & 0x10;
 }
 
 void NOPN2_Clock(ym3438_t *chip, Bit32s *buffer)
@@ -1539,8 +1544,16 @@ void NOPN2_GenerateResampled(ym3438_t *chip, Bit32s *buf)
             }
             chip->writebuf_samplecnt++;
         }
-        chip->samples[0] *= 11;
-        chip->samples[1] *= 11;
+        if(!chip->use_filter)
+        {
+            chip->samples[0] *= 11;
+            chip->samples[1] *= 11;
+        }
+        else
+        {
+            chip->samples[0] = chip->oldsamples[0] + FILTER_CUTOFF_I * (chip->samples[0]*(11+1) - chip->oldsamples[0]);
+            chip->samples[1] = chip->oldsamples[1] + FILTER_CUTOFF_I * (chip->samples[1]*(11+1) - chip->oldsamples[1]);
+        }
         chip->samplecnt -= chip->rateratio;
     }
     buf[0] = (Bit32s)((chip->oldsamples[0] * (chip->rateratio - chip->samplecnt)
@@ -1582,6 +1595,9 @@ void nukedopn2_set_options(void *chip, UINT32 flags)
     case 0x02: // Discrete YM3438
         NOPN2_SetChipType(opn2, ym3438_mode_ym2612 | ym3438_mode_readmode);
         break;
+    case 0x03: // YM2612 + MD1 filter (temporary hack)
+        NOPN2_SetChipType(opn2, ym3438_mode_ym2612 | 0x10);
+        break;
     }
 }
 
@@ -1621,16 +1637,19 @@ void nukedopn2_reset_chip(void *chip)
     DEV_DATA devData;
     UINT32 mute;
     Bit32u type;
+    Bit32u filter;
     
     devData = opn2->_devData;
     mute = 0;
     for (i = 0; i < 7; i++)
         mute |= (opn2->mute[i] << i);
     type = opn2->chip_type;
+    filter = opn2->use_filter;
     
     NOPN2_Reset(opn2, opn2->clock, opn2->smplRate);
     
     opn2->_devData = devData;
     nukedopn2_set_mutemask(opn2, mute);
     opn2->chip_type = type;
+    opn2->use_filter = filter;
 }

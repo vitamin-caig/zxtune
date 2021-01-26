@@ -64,9 +64,10 @@ static DEVDEF_RWFUNC devFunc_MAME[] =
 	{RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, ym2151_w},
 	{RWF_REGISTER | RWF_READ, DEVRW_A8D8, 0, ym2151_r},
 	{RWF_REGISTER | RWF_QUICKWRITE, DEVRW_A8D8, 0, ym2151_write_reg},
+	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, ym2151_set_mutemask},
 	{0x00, 0x00, 0, NULL}
 };
-static DEV_DEF devDef_MAME =
+DEV_DEF devDef_YM2151_MAME =
 {
 	"YM2151", "MAME", FCC_MAME,
 	
@@ -82,12 +83,6 @@ static DEV_DEF devDef_MAME =
 	NULL,	// LinkDevice
 	
 	devFunc_MAME,	// rwFuncs
-};
-
-const DEV_DEF* devDefList_YM2151[] =
-{
-	&devDef_MAME,
-	NULL
 };
 
 
@@ -2054,7 +2049,7 @@ static UINT8 device_start_ym2151(const DEV_GEN_CFG* cfg, DEV_INFO* retDevInf)
 	
 	devData = (DEV_DATA*)chip;
 	devData->chipInf = chip;
-	INIT_DEVINF(retDevInf, devData, rate, &devDef_MAME);
+	INIT_DEVINF(retDevInf, devData, rate, &devDef_YM2151_MAME);
 	return 0x00;
 }
 

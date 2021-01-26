@@ -2,7 +2,8 @@
 #define __PLAYERBASE_HPP__
 
 #include "../stdtype.h"
-#include "../emu/Resampler.h"
+#include "../emu/EmuStructs.h"	// for DEV_GEN_CFG
+#include "../emu/Resampler.h"	// for WAVE_32BS
 #include "../utils/DataLoader.h"
 #include <vector>
 
@@ -28,6 +29,8 @@ typedef UINT8 (*PLAYER_EVENT_CB)(PlayerBase* player, void* userParam, UINT8 evtT
 #define PLREVT_LOOP		0x03	// starting next loop [evtParam: UINT32* loopNumber, ret == 0x01 -> stop processing]
 #define PLREVT_END		0x04	// reached the end of the song
 
+typedef DATA_LOADER* (*PLAYER_FILEREQ_CB)(void* userParam, PlayerBase* player, const char* fileName);
+
 struct PLR_SONG_INFO
 {
 	UINT32 format;		// four-character-code for file format
@@ -47,10 +50,9 @@ struct PLR_DEV_INFO
 	UINT8 type;		// device type
 	UINT8 instance;	// instance ID of this device type (0xFF -> N/A for this format)
 	UINT16 volume;	// output volume (0x100 = 100%)
-	UINT32 core;	// FCC for device emulation core
-	UINT32 clock;	// chip clock
-	UINT32 cParams;	// additional device configuration parameters (SN76489 params, AY8910 type, ...)
+	UINT32 core;	// FCC of device emulation core
 	UINT32 smplRate;	// current sample rate (0 if not running)
+	const DEV_GEN_CFG* devCfg;	// device configuration parameters
 };
 
 struct PLR_MUTE_OPTS
@@ -58,17 +60,22 @@ struct PLR_MUTE_OPTS
 	UINT8 disable;		// suspend emulation (0x01 = main device, 0x02 = linked, 0xFF = all)
 	UINT32 chnMute[2];	// channel muting mask ([1] is used for linked devices)
 };
+struct PLR_PAN_OPTS
+{
+	INT16 chnPan[2][32];	// channel panning [TODO: rethink how this should be really configured]
+};
 
 #define PLR_DEV_ID(chip, instance)	(0x80000000 | (instance << 16) | (chip << 0))
 
 struct PLR_DEV_OPTS
 {
-	UINT32 emuCore;		// enforce a certain sound core (0 = use default)
+	UINT32 emuCore[2];	// enforce a certain sound core (0 = use default, [1] is used for linked devices)
 	UINT8 srMode;		// sample rate mode (see DEVRI_SRMODE)
 	UINT8 resmplMode;	// resampling mode (0 - high quality, 1 - low quality, 2 - LQ down, HQ up)
 	UINT32 smplRate;	// emulaiton sample rate
 	UINT32 coreOpts;
 	PLR_MUTE_OPTS muteOpts;
+	PLR_PAN_OPTS panOpts;
 };
 
 
@@ -76,6 +83,7 @@ struct PLR_DEV_OPTS
 //	- Player class does file rendering at fixed volume (but changeable speed)
 //	- host program handles master volume + fading + stopping after X loops (notified via callback)
 
+// TODO: rename to "PlayerEngine"
 class PlayerBase
 {
 public:
@@ -84,7 +92,8 @@ public:
 	
 	virtual UINT32 GetPlayerType(void) const;
 	virtual const char* GetPlayerName(void) const;
-	static UINT8 IsMyFile(DATA_LOADER *dataLoader);
+	static UINT8 PlayerCanLoadFile(DATA_LOADER *dataLoader);
+	virtual UINT8 CanLoadFile(DATA_LOADER *dataLoader) const;
 	virtual UINT8 LoadFile(DATA_LOADER *dataLoader) = 0;
 	virtual UINT8 UnloadFile(void) = 0;
 	
@@ -103,7 +112,8 @@ public:
 	virtual UINT32 GetSampleRate(void) const;
 	virtual UINT8 SetSampleRate(UINT32 sampleRate);
 	virtual UINT8 SetPlaybackSpeed(double speed);
-	virtual void SetCallback(PLAYER_EVENT_CB cbFunc, void* cbParam);
+	virtual void SetEventCallback(PLAYER_EVENT_CB cbFunc, void* cbParam);
+	virtual void SetFileReqCallback(PLAYER_FILEREQ_CB cbFunc, void* cbParam);
 	virtual UINT32 Tick2Sample(UINT32 ticks) const = 0;
 	virtual UINT32 Sample2Tick(UINT32 samples) const = 0;
 	virtual double Tick2Second(UINT32 ticks) const = 0;
@@ -126,6 +136,8 @@ protected:
 	UINT32 _outSmplRate;
 	PLAYER_EVENT_CB _eventCbFunc;
 	void* _eventCbParam;
+	PLAYER_FILEREQ_CB _fileReqCbFunc;
+	void* _fileReqCbParam;
 };
 
 #endif	// __PLAYERBASE_HPP__

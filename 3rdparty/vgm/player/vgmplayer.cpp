@@ -3,10 +3,6 @@
 #include <vector>
 #include <string>
 
-#ifndef NO_EXTERNAL_ROM
-#include <stdio.h>
-#endif
-
 #define INLINE	static inline
 
 #include "../common_def.h"
@@ -18,11 +14,14 @@
 #include "../emu/EmuCores.h"
 #include "../emu/dac_control.h"
 #include "../emu/cores/sn764intf.h"	// for SN76496_CFG
+#include "../emu/cores/2612intf.h"
 #include "../emu/cores/segapcm.h"		// for SEGAPCM_CFG
 #include "../emu/cores/ayintf.h"		// for AY8910_CFG
+#include "../emu/cores/gb.h"
 #include "../emu/cores/okim6258.h"		// for OKIM6258_CFG
 #include "../emu/cores/k054539.h"
 #include "../emu/cores/c140.h"
+#include "../emu/cores/qsoundintf.h"
 #include "../emu/cores/es5503.h"
 #include "../emu/cores/es5506.h"
 
@@ -64,15 +63,15 @@
 {	0x80, 0x200, 0x100, 0x100, 0x180, 0xB0, 0x100, 0x80,
 	0x80, 0x100, 0x100, 0x100, 0x100, 0x100, 0x100, 0x98,
 	0x80, 0xE0, 0x100, 0xC0, 0x100, 0x40, 0x11E, 0x1C0,
-	0x100, 0xA0, 0x100, 0x100, 0x55, 0xB3, 0x100, 0x100,
+	0x100, 0xA0, 0x100, 0x100, 0x100, 0x100, 0x100, 0x100,
 	0x20, 0x100, 0x100, 0x100, 0x40, 0x20, 0x100, 0x40,
 	0x280,
 };
 /*static*/ const UINT16 VGMPlayer::_PB_VOL_AMNT[_CHIP_COUNT] =
 {	0x100, 0x80, 0x100, 0x100, 0x100, 0x100, 0x100, 0x100,
 	0x100, 0x200, 0x200, 0x200, 0x200, 0x100, 0x100, 0x1AF,
-	0x200, 0x100, 0x200, 0x200, 0x200, 0x400, 0x100, 0x200,
-	0x200, 0x100, 0x100, 0x100, 0x300, 0x100, 0x100, 0x100,
+	0x200, 0x100, 0x200, 0x400, 0x200, 0x400, 0x100, 0x200,
+	0x200, 0x100, 0x100, 0x100, 0x180, 0x100, 0x100, 0x100,
 	0x800, 0x100, 0x100, 0x100, 0x800, 0x1000, 0x100, 0x800,
 	0x100,
 };
@@ -202,7 +201,7 @@ const char* VGMPlayer::GetPlayerName(void) const
 	return "VGM";
 }
 
-/*static*/ UINT8 VGMPlayer::IsMyFile(DATA_LOADER *dataLoader)
+/*static*/ UINT8 VGMPlayer::PlayerCanLoadFile(DATA_LOADER *dataLoader)
 {
 	DataLoader_ReadUntil(dataLoader,0x38);
 	if (DataLoader_GetSize(dataLoader) < 0x38)
@@ -210,6 +209,11 @@ const char* VGMPlayer::GetPlayerName(void) const
 	if (memcmp(&DataLoader_GetData(dataLoader)[0x00], "Vgm ", 4))
 		return 0xF0;	// invalid signature
 	return 0x00;
+}
+
+UINT8 VGMPlayer::CanLoadFile(DATA_LOADER *dataLoader) const
+{
+	return this->PlayerCanLoadFile(dataLoader);
 }
 
 UINT8 VGMPlayer::LoadFile(DATA_LOADER *dataLoader)
@@ -231,8 +235,12 @@ UINT8 VGMPlayer::LoadFile(DATA_LOADER *dataLoader)
 	ParseXHdr_Data32(_fileHdr.xhChpClkOfs, _xHdrChipClk);
 	ParseXHdr_Data16(_fileHdr.xhChpVolOfs, _xHdrChipVol);
 	
+	GenerateDeviceConfig();
+	
 	// parse tags
 	LoadTags();
+	
+	RefreshTSRates();	// make Tick2Sample etc. work
 	
 	return 0x00;
 }
@@ -245,7 +253,12 @@ UINT8 VGMPlayer::ParseHeader(void)
 	
 	_fileHdr.dataOfs = (_fileHdr.fileVer >= 0x150) ? ReadRelOfs(_fileData, 0x34) : 0x00;
 	if (! _fileHdr.dataOfs)
-		_fileHdr.dataOfs = 0x40;
+		_fileHdr.dataOfs = 0x40;	// offset not set - assume v1.00 header size
+	if (_fileHdr.dataOfs < 0x38)
+	{
+		fprintf(stderr, "Warning! Invalid Data Offset 0x%02X!\n", _fileHdr.dataOfs);
+		_fileHdr.dataOfs = 0x38;
+	}
 	_hdrLenFile = _fileHdr.dataOfs;
 	
 	_fileHdr.extraHdrOfs = (_hdrLenFile >= 0xC0) ? ReadRelOfs(_fileData, 0xBC) : 0x00;
@@ -262,6 +275,7 @@ UINT8 VGMPlayer::ParseHeader(void)
 	_fileHdr.numTicks = ReadLE32(&_hdrBuffer[0x18]);
 	_fileHdr.loopOfs = ReadRelOfs(_hdrBuffer, 0x1C);
 	_fileHdr.loopTicks = ReadLE32(&_hdrBuffer[0x20]);
+	_fileHdr.recordHz = ReadLE32(&_hdrBuffer[0x24]);
 	
 	_fileHdr.loopBase = (INT8)_hdrBuffer[0x7E];
 	_fileHdr.loopModifier = _hdrBuffer[0x7F];
@@ -285,7 +299,11 @@ UINT8 VGMPlayer::ParseHeader(void)
 	}
 	
 	if (! _fileHdr.eofOfs || _fileHdr.eofOfs > DataLoader_GetSize(_dLoad))
+	{
+		fprintf(stderr, "Warning! Invalid EOF Offset 0x%06X! (should be: 0x%06X)\n",
+				_fileHdr.eofOfs, DataLoader_GetSize(_dLoad));
 		_fileHdr.eofOfs = DataLoader_GetSize(_dLoad);	// catch invalid EOF values
+	}
 	_fileHdr.dataEnd = _fileHdr.eofOfs;
 	// command data ends at the GD3 offset if:
 	//	GD3 is used && GD3 offset < EOF (just to be sure) && GD3 offset > dataOfs (catch files with GD3 between header and data)
@@ -299,6 +317,19 @@ UINT8 VGMPlayer::ParseHeader(void)
 			debug("Invalid VGM loop offset 0x%06X - ignoring!\n", _fileHdr.loopOfs);
 			_fileHdr.loopOfs = 0x00;
 		}
+		if (_fileHdr.loopOfs && _fileHdr.loopTicks == 0)
+		{
+			// 0-Sample-Loops causes the program to hang in the playback routine
+			debug("Warning! Ignored Zero-Sample-Loop!\n");
+			_fileHdr.loopOfs = 0x00;
+		}
+	}
+	
+	_p2612Fix = 0x00;
+	if (_fileHdr.fileVer <= 0x150)
+	{
+		if (GetChipCount(0x02) == 1)	// there must be exactly 1x YM2612 present
+			_p2612Fix = 0x80;	// enable fix for Project2612 VGMs
 	}
 	
 	return 0x00;
@@ -359,15 +390,21 @@ void VGMPlayer::ParseXHdr_Data16(UINT32 fileOfs, std::vector<XHDR_DATA16>& xData
 
 UINT8 VGMPlayer::LoadTags(void)
 {
-	for (size_t curTag = 0; curTag < _TAG_COUNT; curTag ++)
-		_tagData[curTag].clear();
+	size_t curTag;
+	
+	for (curTag = 0; curTag < _TAG_COUNT; curTag ++)
+		_tagData[curTag] = std::string();
 	_tagList[0] = NULL;
 	if (! _fileHdr.gd3Ofs)
-		return 0x00;
+		return 0x00;	// no GD3 tag present
+	if (_fileHdr.gd3Ofs >= _fileHdr.eofOfs)
+		return 0xF3;	// tag error (offset out-of-range)
 	
 	UINT32 curPos;
 	UINT32 eotPos;
 	
+	if (_fileHdr.gd3Ofs + 0x0C > _fileHdr.eofOfs)	// separate check to catch overflows
+		return 0xF3;	// tag error (GD3 header incomplete)
 	if (memcmp(&_fileData[_fileHdr.gd3Ofs + 0x00], "Gd3 ", 4))
 		return 0xF0;	// bad tag
 	
@@ -382,7 +419,7 @@ UINT8 VGMPlayer::LoadTags(void)
 		eotPos = _fileHdr.eofOfs;
 	
 	const char **tagListEnd = _tagList;
-	for (size_t curTag = 0; curTag < _TAG_COUNT; curTag ++)
+	for (curTag = 0; curTag < _TAG_COUNT; curTag ++)
 	{
 		UINT32 startPos = curPos;
 		if (curPos >= eotPos)
@@ -430,10 +467,10 @@ UINT8 VGMPlayer::UnloadFile(void)
 	_fileData = NULL;
 	_fileHdr.fileVer = 0xFFFFFFFF;
 	_fileHdr.dataOfs = 0x00;
-	_songDevCfg.clear();
+	_devCfgs.clear();
 	_devices.clear();
 	for (size_t curTag = 0; curTag < _TAG_COUNT; curTag ++)
-		_tagData[curTag].clear();
+		_tagData[curTag] = std::string();
 	_tagList[0] = NULL;
 	
 	return 0x00;
@@ -475,90 +512,43 @@ UINT8 VGMPlayer::GetSongDeviceInfo(std::vector<PLR_DEV_INFO>& devInfList) const
 	if (_dLoad == NULL)
 		return 0xFF;
 	
+	size_t curDev;
+	
 	devInfList.clear();
+	devInfList.reserve(_devCfgs.size());
+	for (curDev = 0; curDev < _devCfgs.size(); curDev ++)
+	{
+		const SONG_DEV_CFG& sdCfg = _devCfgs[curDev];
+		const DEV_GEN_CFG* dCfg = (const DEV_GEN_CFG*)&sdCfg.cfgData[0];
+		const CHIP_DEVICE* cDev = (sdCfg.deviceID < _devices.size()) ? &_devices[sdCfg.deviceID] : NULL;
+		PLR_DEV_INFO devInf;
+		
+		// chip configuration from VGM header
+		memset(&devInf, 0x00, sizeof(PLR_DEV_INFO));
+		devInf.type = sdCfg.type;
+		devInf.id = sdCfg.deviceID;
+		devInf.instance = (UINT8)sdCfg.instance;
+		devInf.devCfg = dCfg;
+		if (cDev != NULL)
+		{
+			// when playing, get information from device structures (may feature modified volume levels)
+			const VGM_BASEDEV* clDev = &cDev->base;
+			devInf.core = (clDev->defInf.devDef != NULL) ? clDev->defInf.devDef->coreID : 0x00;
+			devInf.volume = (clDev->resmpl.volumeL + clDev->resmpl.volumeR) / 2;
+			devInf.smplRate = clDev->defInf.sampleRate;
+		}
+		else
+		{
+			devInf.core = 0x00;
+			devInf.volume = GetChipVolume(sdCfg.vgmChipType, sdCfg.instance, 0);
+			devInf.smplRate = 0;
+		}
+		devInfList.push_back(devInf);
+	}
 	if (_playState & PLAYSTATE_PLAY)
-	{
-		// when playing, get information from device structures (may feature modified volume levels)
-		size_t curDev;
-		
-		devInfList.reserve(_devices.size());
-		for (curDev = 0; curDev < _songDevCfg.size(); curDev ++)
-		{
-			const SONG_DEV_CFG& sdCfg = _songDevCfg[curDev];
-			const DEV_GEN_CFG* dCfg = (const DEV_GEN_CFG*)&sdCfg.cfgData[0];
-			const CHIP_DEVICE* cDev = (sdCfg.deviceID < _devices.size()) ? &_devices[sdCfg.deviceID] : NULL;
-			PLR_DEV_INFO devInf;
-			
-			memset(&devInf, 0x00, sizeof(PLR_DEV_INFO));
-			devInf.id = sdCfg.deviceID;
-			devInf.type = sdCfg.type;
-			devInf.instance = (UINT8)sdCfg.instance;
-			devInf.clock = dCfg->clock;
-			devInf.cParams = dCfg->flags;
-			if (devInf.type == DEVID_SN76496)
-			{
-				const SN76496_CFG* snCfg = (const SN76496_CFG*)dCfg;
-				devInf.cParams = (snCfg->noiseTaps << 0) | (snCfg->shiftRegWidth << 16) | (_hdrBuffer[0x2B] << 24);
-			}
-			else if (devInf.type == DEVID_AY8910)
-			{
-				const AY8910_CFG* ayCfg = (const AY8910_CFG*)dCfg;
-				devInf.cParams = (ayCfg->chipType << 0) | (ayCfg->chipFlags << 8);
-			}
-			else if (devInf.type == DEVID_SEGAPCM)
-			{
-				const SEGAPCM_CFG* spCfg = (const SEGAPCM_CFG*)dCfg;
-				devInf.cParams = (spCfg->bnkshift << 0) | (spCfg->bnkmask << 8);
-			}
-			else if (devInf.type == DEVID_OKIM6258)
-			{
-				//const OKIM6258_CFG* okiCfg = (const OKIM6258_CFG*)okiCfg;
-				devInf.cParams = _hdrBuffer[0x94];
-			}
-			if (cDev != NULL)
-			{
-				const VGM_BASEDEV* clDev = &cDev->base;
-				devInf.core = (clDev->defInf.devDef != NULL) ? clDev->defInf.devDef->coreID : 0x00;
-				devInf.volume = (clDev->resmpl.volumeL + clDev->resmpl.volumeR) / 2;
-				devInf.smplRate = clDev->defInf.sampleRate;
-			}
-			devInfList.push_back(devInf);
-		}
 		return 0x01;	// returned "live" data
-	}
 	else
-	{
-		UINT8 vgmChip;
-		UINT8 chipID;
-		UINT32 chipCnt;
-		
-		// get information from VGM header
-		chipCnt = 0;
-		for (vgmChip = 0x00; vgmChip < _CHIP_COUNT; vgmChip ++)
-			chipCnt += GetChipCount(vgmChip);
-		devInfList.reserve(chipCnt);
-		
-		for (vgmChip = 0x00; vgmChip < _CHIP_COUNT; vgmChip ++)
-		{
-			for (chipID = 0; chipID < GetChipCount(vgmChip); chipID ++)
-			{
-				PLR_DEV_INFO devInf;
-				memset(&devInf, 0x00, sizeof(PLR_DEV_INFO));
-				
-				devInf.type = _DEV_LIST[vgmChip];
-				if (devInf.type == DEVID_C140 && _hdrBuffer[0x96] == 2)
-					devInf.type = DEVID_C219;
-				devInf.id = chipID;
-				devInf.core = 0x00;
-				devInf.clock = GetChipClock(vgmChip, chipID) & ~0xC0000000;
-				devInf.cParams = 0x00;
-				devInf.volume = GetChipVolume(vgmChip, chipID, 0);
-				devInf.smplRate = 0;
-				devInfList.push_back(devInf);
-			}
-		}
 		return 0x00;	// returned data based on file header
-	}
 }
 
 size_t VGMPlayer::DeviceID2OptionID(UINT32 id) const
@@ -573,7 +563,7 @@ size_t VGMPlayer::DeviceID2OptionID(UINT32 id) const
 	}
 	else if (id < _devices.size())
 	{
-		type = _DEV_LIST[_devices[id].vgmChipType];
+		type = _devices[id].chipType;
 		instance = _devices[id].chipID;
 	}
 	else
@@ -585,6 +575,25 @@ size_t VGMPlayer::DeviceID2OptionID(UINT32 id) const
 		return _devOptMap[type][instance];
 	else
 		return (size_t)-1;
+}
+
+void VGMPlayer::RefreshDevOptions(CHIP_DEVICE& chipDev, const PLR_DEV_OPTS& devOpts)
+{
+	UINT8 chipType = chipDev.chipType;
+	DEV_INFO* devInf = &chipDev.base.defInf;
+	if (devInf->devDef->SetOptionBits == NULL)
+		return;
+	
+	UINT32 coreOpts = devOpts.coreOpts;
+	if (chipType == DEVID_YM2612 && (_p2612Fix & 0x01))
+		coreOpts |= OPT_YM2612_LEGACY_MODE;	// enable legacy mode
+	else if (chipType == DEVID_GB_DMG)
+		coreOpts |= OPT_GB_DMG_LEGACY_MODE;	// enable legacy mode (fix playback of old VGMs)
+	else if (chipType == DEVID_QSOUND)
+		coreOpts |= OPT_QSOUND_NOWAIT;	// make sure seeking works
+	
+	devInf->devDef->SetOptionBits(devInf->dataPtr, coreOpts);
+	return;
 }
 
 void VGMPlayer::RefreshMuting(VGMPlayer::CHIP_DEVICE& chipDev, const PLR_MUTE_OPTS& muteOpts)
@@ -602,10 +611,29 @@ void VGMPlayer::RefreshMuting(VGMPlayer::CHIP_DEVICE& chipDev, const PLR_MUTE_OP
 	return;
 }
 
+void VGMPlayer::RefreshPanning(VGMPlayer::CHIP_DEVICE& chipDev, const PLR_PAN_OPTS& panOpts)
+{
+	VGM_BASEDEV* clDev;
+	UINT8 linkCntr = 0;
+	
+	for (clDev = &chipDev.base; clDev != NULL && linkCntr < 2; clDev = clDev->linkDev, linkCntr ++)
+	{
+		DEV_INFO* devInf = &clDev->defInf;
+		if (devInf->dataPtr == NULL)
+			continue;
+		DEVFUNC_PANALL funcPan = NULL;
+		UINT8 retVal = SndEmu_GetDeviceFunc(devInf->devDef, RWF_CHN_PAN | RWF_WRITE, DEVRW_ALL, 0, (void**)&funcPan);
+		if (retVal != EERR_NOT_FOUND && funcPan != NULL)
+			funcPan(devInf->dataPtr, &panOpts.chnPan[linkCntr][0]);
+	}
+	
+	return;
+}
+
 UINT8 VGMPlayer::SetDeviceOptions(UINT32 id, const PLR_DEV_OPTS& devOpts)
 {
 	size_t optID = DeviceID2OptionID(id);
-	if (optID == (UINT32)-1)
+	if (optID == (size_t)-1)
 		return 0x80;	// bad device ID
 	
 	_devOpts[optID] = devOpts;
@@ -614,10 +642,9 @@ UINT8 VGMPlayer::SetDeviceOptions(UINT32 id, const PLR_DEV_OPTS& devOpts)
 	if (devID < _devices.size())
 	{
 		DEV_INFO* devInf = &_devices[devID].base.defInf;
-		if (devInf->devDef->SetOptionBits != NULL)
-			devInf->devDef->SetOptionBits(devInf->dataPtr, _devOpts[optID].coreOpts);
-		
+		RefreshDevOptions(_devices[devID], _devOpts[optID]);
 		RefreshMuting(_devices[devID], _devOpts[optID].muteOpts);
+		RefreshPanning(_devices[devID], _devOpts[optID].panOpts);
 	}
 	return 0x00;
 }
@@ -625,7 +652,7 @@ UINT8 VGMPlayer::SetDeviceOptions(UINT32 id, const PLR_DEV_OPTS& devOpts)
 UINT8 VGMPlayer::GetDeviceOptions(UINT32 id, PLR_DEV_OPTS& devOpts) const
 {
 	size_t optID = DeviceID2OptionID(id);
-	if (optID == (UINT32)-1)
+	if (optID == (size_t)-1)
 		return 0x80;	// bad device ID
 	
 	devOpts = _devOpts[optID];
@@ -635,7 +662,7 @@ UINT8 VGMPlayer::GetDeviceOptions(UINT32 id, PLR_DEV_OPTS& devOpts) const
 UINT8 VGMPlayer::SetDeviceMuting(UINT32 id, const PLR_MUTE_OPTS& muteOpts)
 {
 	size_t optID = DeviceID2OptionID(id);
-	if (optID == (UINT32)-1)
+	if (optID == (size_t)-1)
 		return 0x80;	// bad device ID
 	
 	_devOpts[optID].muteOpts = muteOpts;
@@ -649,7 +676,7 @@ UINT8 VGMPlayer::SetDeviceMuting(UINT32 id, const PLR_MUTE_OPTS& muteOpts)
 UINT8 VGMPlayer::GetDeviceMuting(UINT32 id, PLR_MUTE_OPTS& muteOpts) const
 {
 	size_t optID = DeviceID2OptionID(id);
-	if (optID == (UINT32)-1)
+	if (optID == (size_t)-1)
 		return 0x80;	// bad device ID
 	
 	muteOpts = _devOpts[optID].muteOpts;
@@ -659,6 +686,8 @@ UINT8 VGMPlayer::GetDeviceMuting(UINT32 id, PLR_MUTE_OPTS& muteOpts) const
 UINT8 VGMPlayer::SetPlayerOptions(const VGM_PLAY_OPTIONS& playOpts)
 {
 	_playOpts = playOpts;
+	// TODO: allow for mid-playback change of playbackHz (currently breaks playback)
+	//RefreshTSRates();	// refresh, in case _playOpts.playbackHz changed
 	return 0x00;
 }
 
@@ -685,12 +714,13 @@ UINT8 VGMPlayer::SetSampleRate(UINT32 sampleRate)
 
 void VGMPlayer::RefreshTSRates(void)
 {
-	_tsMult = _outSmplRate * 1;
-	_tsDiv = 44100;
+	_tsMult = _outSmplRate;
+	_ttMult = 1;
+	_tsDiv = _ttDiv = 44100;
 	if (_playOpts.playbackHz && _fileHdr.recordHz)
 	{
-		// TODO: fix at other places
 		_tsMult *= _fileHdr.recordHz;
+		_ttMult *= _fileHdr.recordHz;
 		_tsDiv *= _playOpts.playbackHz;
 	}
 	
@@ -699,17 +729,23 @@ void VGMPlayer::RefreshTSRates(void)
 
 UINT32 VGMPlayer::Tick2Sample(UINT32 ticks) const
 {
+	if (ticks == (UINT32)-1)
+		return -1;
 	return (UINT32)(ticks * _tsMult / _tsDiv);
 }
 
 UINT32 VGMPlayer::Sample2Tick(UINT32 samples) const
 {
+	if (samples == (UINT32)-1)
+		return -1;
 	return (UINT32)(samples * _tsDiv / _tsMult);
 }
 
 double VGMPlayer::Tick2Second(UINT32 ticks) const
 {
-	return ticks * 1 / 44100.0;
+	if (ticks == (UINT32)-1)
+		return -1.0;
+	return (INT64)(ticks * _ttMult) / (double)(INT64)_tsDiv;
 }
 
 UINT8 VGMPlayer::GetState(void) const
@@ -754,15 +790,7 @@ UINT32 VGMPlayer::GetLoopTicks(void) const
 
 UINT8 VGMPlayer::Start(void)
 {
-	size_t curStrm;
-	
 	InitDevices();
-	
-	_dacStreams.clear();
-	for (curStrm = 0; curStrm < 0x100; curStrm ++)
-		_dacStrmMap[curStrm] = (size_t)-1;
-	//memset(&_pcmBank, 0x00, sizeof(PCM_BANK) * _PCM_BANK_COUNT);
-	memset(&_pcmComprTbl, 0x00, sizeof(PCM_COMPR_TBL));
 	
 	_playState |= PLAYSTATE_PLAY;
 	Reset();
@@ -776,22 +804,19 @@ UINT8 VGMPlayer::Stop(void)
 {
 	size_t curDev;
 	size_t curBank;
-	DEV_INFO* devInf;
-	PCM_BANK* pcmBnk;
 	
 	_playState &= ~PLAYSTATE_PLAY;
 	
 	for (curDev = 0; curDev < _dacStreams.size(); curDev ++)
 	{
-		devInf = &_dacStreams[curDev].defInf;
+		DEV_INFO* devInf = &_dacStreams[curDev].defInf;
 		devInf->devDef->Stop(devInf->dataPtr);
-		devInf->dataPtr = NULL;
 	}
 	_dacStreams.clear();
 	
 	for (curBank = 0x00; curBank < _PCM_BANK_COUNT; curBank ++)
 	{
-		pcmBnk = &_pcmBank[curBank];
+		PCM_BANK* pcmBnk = &_pcmBank[curBank];
 		pcmBnk->bankOfs.clear();
 		pcmBnk->bankSize.clear();
 		pcmBnk->data.clear();
@@ -801,7 +826,7 @@ UINT8 VGMPlayer::Stop(void)
 	for (curDev = 0; curDev < _devices.size(); curDev ++)
 		FreeDeviceTree(&_devices[curDev].base, 0);
 	_devices.clear();
-	_songDevCfg.clear();
+	_devCfgs.clear();
 	if (_eventCbFunc != NULL)
 		_eventCbFunc(this, _eventCbParam, PLREVT_STOP, NULL);
 	
@@ -811,6 +836,9 @@ UINT8 VGMPlayer::Stop(void)
 UINT8 VGMPlayer::Reset(void)
 {
 	size_t curDev;
+	size_t curStrm;
+	UINT8 chipID;
+	size_t curBank;
 	
 	_filePos = _fileHdr.dataOfs;
 	_fileTick = 0;
@@ -819,19 +847,58 @@ UINT8 VGMPlayer::Reset(void)
 	_playState &= ~PLAYSTATE_END;
 	_psTrigger = 0x00;
 	_curLoop = 0;
+	_lastLoopTick = 0;
 	
 	RefreshTSRates();
 	
+	// TODO (optimization): keep _dacStreams vector and just reset devices
+	for (curDev = 0; curDev < _dacStreams.size(); curDev++)
+	{
+		DEV_INFO* devInf = &_dacStreams[curDev].defInf;
+		devInf->devDef->Stop(devInf->dataPtr);
+	}
+	_dacStreams.clear();
+	for (curStrm = 0; curStrm < 0x100; curStrm ++)
+		_dacStrmMap[curStrm] = (size_t)-1;
+	
+	// TODO (optimization): don't reset _pcmBank and instead skip data that was already loaded
+	for (curBank = 0x00; curBank < _PCM_BANK_COUNT; curBank++)
+	{
+		PCM_BANK* pcmBnk = &_pcmBank[curBank];
+		pcmBnk->bankOfs.clear();
+		pcmBnk->bankSize.clear();
+		pcmBnk->data.clear();
+	}
+	free(_pcmComprTbl.values.d8);	_pcmComprTbl.values.d8 = NULL;
+	memset(&_pcmComprTbl, 0x00, sizeof(PCM_COMPR_TBL));
+	
+	_ym2612pcm_bnkPos = 0x00;
+	memset(_rf5cBank, 0x00, sizeof(_rf5cBank));
+	for (chipID = 0; chipID < 2; chipID ++)
+	{
+		memset(_qsWork[chipID].startAddrCache, 0x00, sizeof(_qsWork[0].startAddrCache));
+		memset(_qsWork[chipID].pitchCache, 0x00, sizeof(_qsWork[0].pitchCache));
+	}
+	
 	for (curDev = 0; curDev < _devices.size(); curDev ++)
 	{
-		VGM_BASEDEV* clDev;
-		
-		clDev = &_devices[curDev].base;
+		VGM_BASEDEV* clDev = &_devices[curDev].base;
 		clDev->defInf.devDef->Reset(clDev->defInf.dataPtr);
 		for (; clDev != NULL; clDev = clDev->linkDev)
 		{
 			// TODO: Resmpl_Reset(&clDev->resmpl);
 		}
+	}
+	
+	if ((_p2612Fix & 0x80) && ! (_p2612Fix & 0x01))
+	{
+		_p2612Fix |= 0x01;	// enable Project2612 fix (YM2612 "legacy" mode)
+		
+		size_t optID = _devOptMap[DEVID_YM2612][0];
+		size_t devID = (optID == (size_t)-1) ? (size_t)-1 : _optDevMap[optID];
+		// refresh options, adding OPT_YM2612_LEGACY_MODE
+		if (devID < _devices.size())
+			RefreshDevOptions(_devices[devID], _devOpts[optID]);
 	}
 	
 	return 0x00;
@@ -908,12 +975,15 @@ UINT16 VGMPlayer::GetChipVolume(UINT8 chipType, UINT8 chipID, UINT8 isLinked) co
 			//	0 - absolute
 			//	1 - relative (0x0100 = 1.0, 0x80 = 0.5, etc.)
 			if (cData.data & 0x8000)
-				return MulFixed8x8(vol, cData.data & 0x7FFF);
+				vol = MulFixed8x8(vol, cData.data & 0x7FFF);
 			else
-				return cData.data;
+				vol = cData.data;
+			break;
 		}
 	}
 	
+	if (chipType == 0x1C)	// C140/C219
+		vol = (vol * 2 + 1) / 3;
 	return vol;
 }
 
@@ -988,65 +1058,30 @@ void VGMPlayer::NormalizeOverallVolume(UINT16 overallVol)
 	return;
 }
 
-void VGMPlayer::InitDevices(void)
+void VGMPlayer::GenerateDeviceConfig(void)
 {
 	UINT8 vgmChip;
-	UINT8 chipType;
 	UINT8 chipID;
-	size_t curChip;
-	UINT8 retVal;
 	
-	_songDevCfg.clear();
-	_devices.clear();
-	for (vgmChip = 0x00; vgmChip < _CHIP_COUNT; vgmChip ++)
-	{
-		for (chipID = 0; chipID < 2; chipID ++)
-			_vdDevMap[vgmChip][chipID] = (size_t)-1;
-	}
-	for (curChip = 0; curChip < _OPT_DEV_COUNT * 2; curChip ++)
-		_optDevMap[curChip] = (size_t)-1;
-	
+	_devCfgs.clear();
 	for (vgmChip = 0x00; vgmChip < _CHIP_COUNT; vgmChip ++)
 	{
 		for (chipID = 0; chipID < GetChipCount(vgmChip); chipID ++)
 		{
-			UINT32 hdrClock;
 			DEV_GEN_CFG devCfg;
-			CHIP_DEVICE chipDev;
-			DEV_INFO* devInf;
 			SONG_DEV_CFG sdCfg;
-			PLR_DEV_OPTS* devOpts;
+			UINT8 chipType = _DEV_LIST[vgmChip];
+			UINT32 hdrClock = GetChipClock(vgmChip, chipID);
 			
-			memset(&chipDev, 0x00, sizeof(CHIP_DEVICE));
-			devInf = &chipDev.base.defInf;
-			
-			chipType = _DEV_LIST[vgmChip];
-			hdrClock = GetChipClock(vgmChip, chipID);
-			chipDev.vgmChipType = vgmChip;
-			chipDev.chipID = chipID;
-			chipDev.optID = _devOptMap[chipType][chipID];
-			chipDev.base.defInf.dataPtr = NULL;
-			chipDev.base.linkDev = NULL;
-			
-			devOpts = (chipDev.optID != (size_t)-1) ? &_devOpts[chipDev.optID] : NULL;
-			devCfg.emuCore = (devOpts != NULL) ? devOpts->emuCore : 0x00;
-			devCfg.srMode = (devOpts != NULL) ? devOpts->srMode : DEVRI_SRMODE_NATIVE;
-			devCfg.flags = (hdrClock & 0x80000000) >> 31;
+			memset(&devCfg, 0x00, sizeof(DEV_GEN_CFG));
 			devCfg.clock = hdrClock & ~0xC0000000;
-			if (devOpts != NULL && devOpts->smplRate)
-				devCfg.smplRate = devOpts->smplRate;
-			else
-				devCfg.smplRate = _outSmplRate;
-			
+			devCfg.flags = (hdrClock & 0x80000000) >> 31;
 			switch(chipType)
 			{
 			case DEVID_SN76496:
 				{
 					SN76496_CFG snCfg;
 					
-					if (! devCfg.emuCore)
-						devCfg.emuCore = FCC_MAME;
-					devCfg.flags = 0x00;
 					snCfg._genCfg = devCfg;
 					snCfg.shiftRegWidth = _hdrBuffer[0x2A];
 					if (! snCfg.shiftRegWidth)
@@ -1060,19 +1095,7 @@ void VGMPlayer::InitDevices(void)
 					snCfg.clkDiv = (_hdrBuffer[0x2B] & 0x08) ? 1 : 8;
 					snCfg.ncrPSG = (_hdrBuffer[0x2B] & 0x10) ? 1 : 0;
 					snCfg.t6w28_tone = NULL;
-					
-					if ((chipID & 0x01) && (hdrClock & 0x80000000))	// must be 2nd chip + T6W28 mode
-					{
-						CHIP_DEVICE* otherDev = GetDevicePtr(vgmChip, chipID ^ 0x01);
-						if (otherDev != NULL)
-							snCfg.t6w28_tone = otherDev->base.defInf.dataPtr;
-					}
-					
 					SaveDeviceConfig(sdCfg.cfgData, &snCfg, sizeof(SN76496_CFG));
-					retVal = SndEmu_Start(chipType, (DEV_GEN_CFG*)&snCfg, devInf);
-					if (retVal)
-						break;
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
 				}
 				break;
 			case DEVID_SEGAPCM:
@@ -1083,86 +1106,28 @@ void VGMPlayer::InitDevices(void)
 					spCfg.bnkshift = _hdrBuffer[0x3C];
 					spCfg.bnkmask = _hdrBuffer[0x3E];
 					SaveDeviceConfig(sdCfg.cfgData, &spCfg, sizeof(SEGAPCM_CFG));
-					retVal = SndEmu_Start(chipType, (DEV_GEN_CFG*)&spCfg, devInf);
-					if (retVal)
-						break;
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
 				}
 				break;
 			case DEVID_RF5C68:
-				if (! devCfg.emuCore)
-				{
-					if (vgmChip == 0x05)	// RF5C68
-						devCfg.emuCore = FCC_MAME;
-					else //if (vgmChip == 0x10)	// RF5C164
-						devCfg.emuCore = FCC_GENS;
-				}
+				if (vgmChip == 0x05)	// RF5C68
+					devCfg.flags = 0;
+				else //if (vgmChip == 0x10)	// RF5C164
+					devCfg.flags = 1;
 				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-				retVal = SndEmu_Start(chipType, &devCfg, devInf);
-				if (retVal)
-					break;
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
-				break;
-			case DEVID_YM2610:
-				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-				retVal = SndEmu_Start(chipType, &devCfg, devInf);
-				if (retVal)
-					break;
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 'A', (void**)&chipDev.romSize);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 'A', (void**)&chipDev.romWrite);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 'B', (void**)&chipDev.romSizeB);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 'B', (void**)&chipDev.romWriteB);
-				break;
-			case DEVID_YMF278B:
-				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-				retVal = SndEmu_Start(chipType, &devCfg, devInf);
-				if (retVal)
-					break;
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0x524F, (void**)&chipDev.romSize);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0x524F, (void**)&chipDev.romWrite);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0x5241, (void**)&chipDev.romSizeB);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0x5241, (void**)&chipDev.romWriteB);
-				LoadOPL4ROM(&chipDev);
 				break;
 			case DEVID_AY8910:
 				{
 					AY8910_CFG ayCfg;
 					
-					if (! devCfg.emuCore)
-						devCfg.emuCore = FCC_EMU_;
 					ayCfg._genCfg = devCfg;
 					ayCfg.chipType = _hdrBuffer[0x78];
 					ayCfg.chipFlags = _hdrBuffer[0x79];
-					
 					SaveDeviceConfig(sdCfg.cfgData, &ayCfg, sizeof(AY8910_CFG));
-					retVal = SndEmu_Start(chipType, (DEV_GEN_CFG*)&ayCfg, devInf);
-					if (retVal)
-						break;
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
 				}
 				break;
-			case DEVID_32X_PWM:
-				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-				retVal = SndEmu_Start(chipType, &devCfg, devInf);
-				if (retVal)
-					break;
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D16, 0, (void**)&chipDev.writeD16);
-				break;
 			case DEVID_YMW258:
+				devCfg.clock = devCfg.clock * 224 / 180;	// fix VGM clock, which is based on the old /180 clock divider
 				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-				retVal = SndEmu_Start(chipType, &devCfg, devInf);
-				if (retVal)
-					break;
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D16, 0, (void**)&chipDev.writeD16);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
 				break;
 			case DEVID_OKIM6258:
 				{
@@ -1174,224 +1139,297 @@ void VGMPlayer::InitDevices(void)
 					okiCfg.outputBits = (_hdrBuffer[0x94] & 0x08) ? OKIM6258_OUT_12B : OKIM6258_OUT_10B;
 					
 					SaveDeviceConfig(sdCfg.cfgData, &okiCfg, sizeof(OKIM6258_CFG));
-					retVal = SndEmu_Start(chipType, (DEV_GEN_CFG*)&okiCfg, devInf);
-					if (retVal)
-						break;
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
 				}
 				break;
 			case DEVID_K054539:
-				{
-					if (devCfg.clock < 1000000)	// if < 1 MHz, then it's the sample rate, not the clock
-						devCfg.clock *= 384;	// (for backwards compatibility with old VGM logs from 2012/13)
-					devCfg.flags = _hdrBuffer[0x95];
-					
-					SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-					retVal = SndEmu_Start(chipType, &devCfg, devInf);
-					if (retVal)
-						break;
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
-				}
+				if (devCfg.clock < 1000000)	// if < 1 MHz, then it's the sample rate, not the clock
+					devCfg.clock *= 384;	// (for backwards compatibility with old VGM logs from 2012/13)
+				devCfg.flags = _hdrBuffer[0x95];
+				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
 				break;
 			case DEVID_C140:
+				if (_hdrBuffer[0x96] == 2)	// Namco ASIC 219
 				{
-					chipDev.flags = 0x00;
-					if (_hdrBuffer[0x96] == 2)	// Namco ASIC 219
-					{
-						chipDev.flags |= 0x01;	// enable 16-bit byteswap patch on all ROM data
-						if (devCfg.clock == 44100)
-							devCfg.clock = 25056500;
-						else if (devCfg.clock < 1000000)	// if < 1 MHz, then it's the (incorrect) sample rate, not the clock
-							devCfg.clock *= 576;	// (for backwards compatibility with old VGM logs from 2013/14)
-						chipType = DEVID_C219;
-					}
-					else
-					{
-						if (devCfg.clock == 21390)
-							devCfg.clock = 12288000;
-						else if (devCfg.clock < 1000000)	// if < 1 MHz, then it's the (incorrect) sample rate, not the clock
-							devCfg.clock *= 576;	// (for backwards compatibility with old VGM logs from 2013/14)
-						devCfg.flags = _hdrBuffer[0x96];	// banking type
-						chipType = DEVID_C140;
-					}
-					SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-					retVal = SndEmu_Start(chipType, &devCfg, devInf);
-					if (retVal)
-						break;
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
+					if (devCfg.clock == 44100)
+						devCfg.clock = 25056500;
+					else if (devCfg.clock < 1000000)	// if < 1 MHz, then it's the (incorrect) sample rate, not the clock
+						devCfg.clock *= 576;	// (for backwards compatibility with old VGM logs from 2013/14)
+					chipType = DEVID_C219;
 				}
+				else
+				{
+					if (devCfg.clock == 21390)
+						devCfg.clock = 12288000;
+					else if (devCfg.clock < 1000000)	// if < 1 MHz, then it's the (incorrect) sample rate, not the clock
+						devCfg.clock *= 576;	// (for backwards compatibility with old VGM logs from 2013/14)
+					devCfg.flags = _hdrBuffer[0x96];	// banking type
+					chipType = DEVID_C140;
+				}
+				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
 				break;
 			case DEVID_C352:
-				{
-					devCfg.clock = devCfg.clock * 72 / _hdrBuffer[0xD6];	// real clock = VGM clock / (VGM clkDiv * 4) * 288
-					
-					SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-					retVal = SndEmu_Start(chipType, &devCfg, devInf);
-					if (retVal)
-						break;
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D16, 0, (void**)&chipDev.writeM16);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
-				}
+				devCfg.clock = devCfg.clock * 72 / _hdrBuffer[0xD6];	// real clock = VGM clock / (VGM clkDiv * 4) * 288
+				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
 				break;
 			case DEVID_QSOUND:
-				chipDev.flags = 0x00;
 				if (devCfg.clock < 5000000)	// QSound clock used to be 4 MHz
-				{
 					devCfg.clock = devCfg.clock * 15;	// 4 MHz -> 60 MHz
-					chipDev.flags |= 0x01;	// enable QSound hacks (required for proper playback of old VGMs)
-				}
-				if (! devCfg.emuCore)
-					devCfg.emuCore = FCC_CTR_;
 				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-				retVal = SndEmu_Start(chipType, &devCfg, devInf);
-				if (retVal)
-					break;
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_QUICKWRITE, DEVRW_A8D16, 0, (void**)&chipDev.writeD16);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
-				
-				memset(&_qsWork[chipID], 0x00, sizeof(QSOUND_WORK));
-				if (devCfg.emuCore == FCC_MAME)
-					chipDev.flags &= ~0x01;	// MAME's old HLE doesn't need those hacks
-				if (chipDev.writeD16 != NULL)
-					_qsWork[chipID].write = &VGMPlayer::WriteQSound_A;
-				else if (chipDev.write8 != NULL)
-					_qsWork[chipID].write = &VGMPlayer::WriteQSound_B;
-				else
-					_qsWork[chipID].write = NULL;
-				break;
-			case DEVID_WSWAN:
-				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-				retVal = SndEmu_Start(chipType, &devCfg, devInf);
-				if (retVal)
-					break;
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
 				break;
 			case DEVID_ES5503:
-				{
-					devCfg.flags = _hdrBuffer[0xD4];	// output channels
-					
-					SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-					retVal = SndEmu_Start(chipType, &devCfg, devInf);
-					if (retVal)
-						break;
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
-				}
+				devCfg.flags = _hdrBuffer[0xD4];	// output channels
+				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
 				break;
 			case DEVID_ES5506:
-				{
-					devCfg.flags = _hdrBuffer[0xD5];	// output channels
-					
-					SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-					retVal = SndEmu_Start(chipType, &devCfg, devInf);
-					if (retVal)
-						break;
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D16, 0, (void**)&chipDev.writeD16);
-					SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
-				}
+				devCfg.flags = _hdrBuffer[0xD5];	// output channels
+				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
 				break;
 			case DEVID_SCSP:
 				if (devCfg.clock < 1000000)	// if < 1 MHz, then it's the sample rate, not the clock
 					devCfg.clock *= 512;	// (for backwards compatibility with old VGM logs from 2012-14)
 				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-				retVal = SndEmu_Start(chipType, &devCfg, devInf);
-				if (retVal)
-					break;
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D16, 0, (void**)&chipDev.writeM16);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
 				break;
 			default:
-				if (! devCfg.emuCore)
-				{
-					if (chipType == DEVID_YM2612)
-						devCfg.emuCore = FCC_GPGX;
-					else if (chipType == DEVID_YM3812)
-						devCfg.emuCore = FCC_ADLE;
-					else if (chipType == DEVID_YMF262)
-						devCfg.emuCore = FCC_NUKE;
-					else if (chipType == DEVID_NES_APU)
-						devCfg.emuCore = FCC_NSFP;
-					else if (chipType == DEVID_C6280)
-						devCfg.emuCore = FCC_OOTK;
-					else if (chipType == DEVID_SAA1099)
-						devCfg.emuCore = FCC_VBEL;
-				}
-				
 				SaveDeviceConfig(sdCfg.cfgData, &devCfg, sizeof(DEV_GEN_CFG));
-				retVal = SndEmu_Start(chipType, &devCfg, devInf);
-				if (retVal)
-					break;
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
-				SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
-				if (chipType == DEVID_YM2612)
-					devInf->devDef->SetOptionBits(devInf->dataPtr, 0x80);	// enable legacy mode
-				else if (chipType == DEVID_GB_DMG)
-					devInf->devDef->SetOptionBits(devInf->dataPtr, 0x80);	// enable legacy mode
 				break;
 			}
 			
-			sdCfg.deviceID = (! retVal) ? _devices.size() : (size_t)-1;
+			sdCfg.deviceID = (size_t)-1;
 			sdCfg.vgmChipType = vgmChip;
 			sdCfg.type = chipType;
 			sdCfg.instance = chipID;
-			_songDevCfg.push_back(sdCfg);	// chip init working doesn't matter here - configuration is song-info
-			
-			if (retVal)
-			{
-				devInf->dataPtr = NULL;
-				devInf->devDef = NULL;
-				continue;
-			}
-			
-			SetupLinkedDevices(&chipDev.base, &DeviceLinkCallback, this);
-			// already done by SndEmu_Start()
-			//devInf->devDef->Reset(devInf->dataPtr);
-			
-			if (devOpts != NULL)
-			{
-				if (devInf->devDef->SetOptionBits != NULL)
-					devInf->devDef->SetOptionBits(devInf->dataPtr, devOpts->coreOpts);
-				RefreshMuting(chipDev, devOpts->muteOpts);
-			}
-			if (devInf->devDef->SetPanning != NULL)
-			{
-				if (chipType == DEVID_SN76496)
-				{
-					INT16 panPos[4] = {0x00, -0x80, +0x80, 0x00};
-					devInf->devDef->SetPanning(devInf->dataPtr, panPos);
-				}
-				else if (chipType == DEVID_YM2413)
-				{
-					INT16 panPos[14] = {
-						-0x100, +0x100, -0x80, +0x80, -0x40, +0x40, -0xC0, +0xC0, 0x00,
-						-0x60, +0x60, 0x00, -0xC0, +0xC0};
-					devInf->devDef->SetPanning(devInf->dataPtr, panPos);
-				}
-				else if (chipType == DEVID_AY8910)
-				{
-					INT16 panPos[3] = {-0x80, +0x80, 0x00};
-					devInf->devDef->SetPanning(devInf->dataPtr, panPos);
-				}
-			}
-			
-			_vdDevMap[vgmChip][chipID] = _devices.size();
-			if (chipDev.optID != (size_t)-1)
-				_optDevMap[chipDev.optID] = _devices.size();
-			_devices.push_back(chipDev);
+			_devCfgs.push_back(sdCfg);
 		}	// for (chipID)
 	}	// end for (vgmChip)
+	
+	return;
+}
+
+void VGMPlayer::InitDevices(void)
+{
+	size_t curChip;
+	
+	_devices.clear();
+	{
+		UINT8 vgmChip;
+		UINT8 chipID;
+		for (vgmChip = 0x00; vgmChip < _CHIP_COUNT; vgmChip ++)
+		{
+			for (chipID = 0; chipID < 2; chipID ++)
+				_vdDevMap[vgmChip][chipID] = (size_t)-1;
+		}
+	}
+	for (curChip = 0; curChip < _OPT_DEV_COUNT * 2; curChip ++)
+		_optDevMap[curChip] = (size_t)-1;
+	
+	// When the Project2612 fix is enabled [bit 7], enable it during chip init [bit 0].
+	if (_p2612Fix & 0x80)
+		_p2612Fix |= 0x01;
+	else
+		_p2612Fix &= ~0x01;
+	
+	for (curChip = 0; curChip < _devCfgs.size(); curChip ++)
+	{
+		SONG_DEV_CFG& sdCfg = _devCfgs[curChip];
+		UINT8 chipType = sdCfg.type;
+		UINT8 chipID = sdCfg.instance;
+		DEV_GEN_CFG* devCfg = (DEV_GEN_CFG*)&sdCfg.cfgData[0];
+		CHIP_DEVICE chipDev;
+		DEV_INFO* devInf;
+		const PLR_DEV_OPTS* devOpts;
+		UINT8 retVal;
+		
+		memset(&chipDev, 0x00, sizeof(CHIP_DEVICE));
+		devInf = &chipDev.base.defInf;
+		
+		sdCfg.deviceID = (size_t)-1;
+		chipDev.vgmChipType = sdCfg.vgmChipType;
+		chipDev.chipType = sdCfg.type;
+		chipDev.chipID = chipID;
+		chipDev.optID = _devOptMap[chipType][chipID];
+		chipDev.base.defInf.dataPtr = NULL;
+		chipDev.base.linkDev = NULL;
+		
+		devOpts = (chipDev.optID != (size_t)-1) ? &_devOpts[chipDev.optID] : NULL;
+		devCfg->emuCore = (devOpts != NULL) ? devOpts->emuCore[0] : 0x00;
+		devCfg->srMode = (devOpts != NULL) ? devOpts->srMode : DEVRI_SRMODE_NATIVE;
+		if (devOpts != NULL && devOpts->smplRate)
+			devCfg->smplRate = devOpts->smplRate;
+		else
+			devCfg->smplRate = _outSmplRate;
+		
+		switch(chipType)
+		{
+		case DEVID_SN76496:
+			if ((chipID & 0x01) && devCfg->flags)	// must be 2nd chip + T6W28 mode
+			{
+				CHIP_DEVICE* otherDev = GetDevicePtr(sdCfg.vgmChipType, chipID ^ 0x01);
+				if (otherDev != NULL)
+				{
+					SN76496_CFG* snCfg = (SN76496_CFG*)devCfg;
+					snCfg->t6w28_tone = otherDev->base.defInf.dataPtr;
+				}
+			}
+			
+			if (! devCfg->emuCore)
+				devCfg->emuCore = FCC_MAME;
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
+			break;
+		case DEVID_RF5C68:
+			if (! devCfg->emuCore)
+			{
+				if (devCfg->flags == 1)	// RF5C164
+					devCfg->emuCore = FCC_GENS;
+				else //if (devCfg->flags == 0)	// RF5C68
+					devCfg->emuCore = FCC_MAME;
+			}
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
+			break;
+		case DEVID_YM2610:
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 'A', (void**)&chipDev.romSize);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 'A', (void**)&chipDev.romWrite);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 'B', (void**)&chipDev.romSizeB);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 'B', (void**)&chipDev.romWriteB);
+			break;
+		case DEVID_YMF278B:
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0x524F, (void**)&chipDev.romSize);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0x524F, (void**)&chipDev.romWrite);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0x5241, (void**)&chipDev.romSizeB);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0x5241, (void**)&chipDev.romWriteB);
+			LoadOPL4ROM(&chipDev);
+			break;
+		case DEVID_32X_PWM:
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D16, 0, (void**)&chipDev.writeD16);
+			break;
+		case DEVID_YMW258:
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D16, 0, (void**)&chipDev.writeD16);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
+			break;
+		case DEVID_C352:
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D16, 0, (void**)&chipDev.writeM16);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
+			break;
+		case DEVID_QSOUND:
+			chipDev.flags = 0x00;
+			{
+				UINT32 hdrClock = GetChipClock(sdCfg.vgmChipType, chipID) & ~0xC0000000;
+				if (hdrClock < devCfg->clock)	// QSound VGMs with old (4 MHz) clock
+					chipDev.flags |= 0x01;	// enable QSound hacks (required for proper playback of old VGMs)
+			}
+			if (! devCfg->emuCore)
+				devCfg->emuCore = FCC_CTR_;
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_QUICKWRITE, DEVRW_A8D16, 0, (void**)&chipDev.writeD16);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
+			
+			memset(&_qsWork[chipID], 0x00, sizeof(QSOUND_WORK));
+			if (devInf->devDef->coreID == FCC_MAME)
+				chipDev.flags &= ~0x01;	// MAME's old HLE doesn't need those hacks
+			if (chipDev.writeD16 != NULL)
+				_qsWork[chipID].write = &VGMPlayer::WriteQSound_A;
+			else if (chipDev.write8 != NULL)
+				_qsWork[chipID].write = &VGMPlayer::WriteQSound_B;
+			else
+				_qsWork[chipID].write = NULL;
+			break;
+		case DEVID_WSWAN:
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
+			break;
+		case DEVID_ES5506:
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D16, 0, (void**)&chipDev.writeD16);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
+			break;
+		case DEVID_SCSP:
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D16, 0, (void**)&chipDev.writeM16);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
+			break;
+		default:
+			if (chipType == DEVID_C219)
+				chipDev.flags |= 0x01;	// enable 16-bit byteswap patch on all ROM data
+			
+			retVal = SndEmu_Start(chipType, devCfg, devInf);
+			if (retVal)
+				break;
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&chipDev.write8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A16D8, 0, (void**)&chipDev.writeM8);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, (void**)&chipDev.romSize);
+			SndEmu_GetDeviceFunc(devInf->devDef, RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, (void**)&chipDev.romWrite);
+			break;
+		}
+		if (retVal)
+		{
+			devInf->dataPtr = NULL;
+			devInf->devDef = NULL;
+			continue;
+		}
+		sdCfg.deviceID = _devices.size();
+		
+		{
+			DEVLINK_CB_DATA dlCbData;
+			dlCbData.player = this;
+			dlCbData.sdCfg = &sdCfg;
+			dlCbData.chipDev = &chipDev;
+			SetupLinkedDevices(&chipDev.base, &DeviceLinkCallback, &dlCbData);
+		}
+		// already done by SndEmu_Start()
+		//devInf->devDef->Reset(devInf->dataPtr);
+		
+		if (devOpts != NULL)
+		{
+			RefreshDevOptions(chipDev, *devOpts);
+			RefreshMuting(chipDev, devOpts->muteOpts);
+			RefreshPanning(chipDev, devOpts->panOpts);
+		}
+		
+		_vdDevMap[sdCfg.vgmChipType][chipID] = _devices.size();
+		if (chipDev.optID != (size_t)-1)
+			_optDevMap[chipDev.optID] = _devices.size();
+		_devices.push_back(chipDev);
+	}	// end for (curChip)
 	
 	// Initializing the resampler has to be done separately due to reallocations happening above
 	// and the memory address of the RESMPL_STATE mustn't change in order to allow callbacks from the devices.
@@ -1409,7 +1447,7 @@ void VGMPlayer::InitDevices(void)
 			Resmpl_Init(&clDev->resmpl);
 		}
 		
-		if (_DEV_LIST[chipDev.vgmChipType] == DEVID_YM3812)
+		if (chipDev.chipType == DEVID_YM3812)
 		{
 			if (GetChipClock(chipDev.vgmChipType, chipDev.chipID) & 0x80000000)
 			{
@@ -1439,19 +1477,30 @@ void VGMPlayer::InitDevices(void)
 /*static*/ void VGMPlayer::DeviceLinkCallback(void* userParam, VGM_BASEDEV* cDev, DEVLINK_INFO* dLink)
 {
 	DEVLINK_CB_DATA* cbData = (DEVLINK_CB_DATA*)userParam;
-	VGMPlayer* oThis = cbData->object;
+	VGMPlayer* oThis = cbData->player;
+	//const SONG_DEV_CFG& sdCfg = *cbData->sdCfg;
+	const CHIP_DEVICE& chipDev = *cbData->chipDev;
+	const PLR_DEV_OPTS* devOpts = (chipDev.optID != (size_t)-1) ? &oThis->_devOpts[chipDev.optID] : NULL;
 	
-	if (dLink->devID == DEVID_AY8910)
-		dLink->cfg->emuCore = FCC_EMU_;
-	else if (dLink->devID == DEVID_YMF262)
-		dLink->cfg->emuCore = FCC_ADLE;
+	if (devOpts != NULL && devOpts->emuCore[1])
+	{
+		// set emulation core of linked device (OPN(A) SSG / OPL4 FM)
+		dLink->cfg->emuCore = devOpts->emuCore[1];
+	}
+	else
+	{
+		if (dLink->devID == DEVID_AY8910)
+			dLink->cfg->emuCore = FCC_EMU_;
+		else if (dLink->devID == DEVID_YMF262)
+			dLink->cfg->emuCore = FCC_ADLE;
+	}
 	
 	if (dLink->devID == DEVID_AY8910)
 	{
 		AY8910_CFG* ayCfg = (AY8910_CFG*)dLink->cfg;
-		if (cbData->chipType == DEVID_YM2203)
+		if (chipDev.chipType == DEVID_YM2203)
 			ayCfg->chipFlags = oThis->_hdrBuffer[0x7A];	// YM2203 SSG flags
-		else if (cbData->chipType == DEVID_YM2608)
+		else if (chipDev.chipType == DEVID_YM2608)
 			ayCfg->chipFlags = oThis->_hdrBuffer[0x7B];	// YM2608 SSG flags
 	}
 	
@@ -1471,30 +1520,34 @@ VGMPlayer::CHIP_DEVICE* VGMPlayer::GetDevicePtr(UINT8 chipType, UINT8 chipID)
 
 void VGMPlayer::LoadOPL4ROM(CHIP_DEVICE* chipDev)
 {
-#ifndef NO_EXTERNAL_ROM
+	static const char* romFile = "yrw801.rom";
+	
 	if (chipDev->romWrite == NULL)
 		return;
 	
-	const char* romFile = "yrw801.rom";
-	FILE* hFile;
-	std::vector<UINT8> yrwData;
-	
-	hFile = fopen(romFile, "rb");
-	if (hFile == NULL)
+	if (_yrwRom.empty())
 	{
-		debug("Warning: Couldn't load %s!\n", romFile);
-		return;
+		if (_fileReqCbFunc == NULL)
+			return;
+		DATA_LOADER* romDLoad = _fileReqCbFunc(_fileReqCbParam, this, romFile);
+		if (romDLoad == NULL)
+			return;
+		DataLoader_ReadAll(romDLoad);
+		
+		UINT32 yrwSize = DataLoader_GetSize(romDLoad);
+		const UINT8* yrwData = DataLoader_GetData(romDLoad);
+		if (yrwSize > 0 && yrwData != NULL)
+			_yrwRom.assign(yrwData, yrwData + yrwSize);
+		DataLoader_Deinit(romDLoad);
 	}
+	if (_yrwRom.empty())
+		return;
 	
-	fseek(hFile, 0, SEEK_END);
-	yrwData.resize(ftell(hFile));
-	rewind(hFile);
-	fread(&yrwData[0], 1, yrwData.size(), hFile);
-	fclose(hFile);
+	if (chipDev->romSize != NULL)
+		chipDev->romSize(chipDev->base.defInf.dataPtr, _yrwRom.size());
+	chipDev->romWrite(chipDev->base.defInf.dataPtr, 0x00, _yrwRom.size(), &_yrwRom[0]);
 	
-	chipDev->romSize(chipDev->base.defInf.dataPtr, yrwData.size());
-	chipDev->romWrite(chipDev->base.defInf.dataPtr, 0x00, yrwData.size(), &yrwData[0]);
-#endif
+	return;
 }
 
 UINT8 VGMPlayer::Seek(UINT8 unit, UINT32 pos)
@@ -1560,13 +1613,25 @@ UINT32 VGMPlayer::Render(UINT32 smplCnt, WAVE_32BS* data)
 {
 	UINT32 curSmpl;
 	UINT32 smplFileTick;
+	UINT32 maxSmpl;
+	INT32 smplStep;	// might be negative due to rounding errors in Tick2Sample
 	size_t curDev;
 	
-	for (curSmpl = 0; curSmpl < smplCnt; curSmpl ++)
+	// Note: use do {} while(), so that "smplCnt == 0" can be used to process until reaching the next sample.
+	curSmpl = 0;
+	do
 	{
 		smplFileTick = Sample2Tick(_playSmpl);
 		ParseFile(smplFileTick - _playTick);
-		_playSmpl ++;
+		
+		// render as many samples at once as possible (for better performance)
+		maxSmpl = Tick2Sample(_fileTick);
+		smplStep = maxSmpl - _playSmpl;
+		// When DAC streams are active, limit step size to 1, so that DAC streams and sound chip emulation are in sync.
+		if (smplStep < 1 || ! _dacStreams.empty())
+			smplStep = 1;	// must render at least 1 sample in order to advance
+		if ((UINT32)smplStep > smplCnt - curSmpl)
+			smplStep = smplCnt - curSmpl;
 		
 		for (curDev = 0; curDev < _devices.size(); curDev ++)
 		{
@@ -1577,21 +1642,23 @@ UINT32 VGMPlayer::Render(UINT32 smplCnt, WAVE_32BS* data)
 			for (clDev = &cDev->base; clDev != NULL; clDev = clDev->linkDev, disable >>= 1)
 			{
 				if (clDev->defInf.dataPtr != NULL && ! (disable & 0x01))
-					Resmpl_Execute(&clDev->resmpl, 1, &data[curSmpl]);
+					Resmpl_Execute(&clDev->resmpl, smplStep, &data[curSmpl]);
 			}
 		}
 		for (curDev = 0; curDev < _dacStreams.size(); curDev ++)
 		{
 			DEV_INFO* dacDInf = &_dacStreams[curDev].defInf;
-			dacDInf->devDef->Update(dacDInf->dataPtr, 1, NULL);
+			dacDInf->devDef->Update(dacDInf->dataPtr, smplStep, NULL);
 		}
 		
+		curSmpl += smplStep;
+		_playSmpl += smplStep;
 		if (_psTrigger & PLAYSTATE_END)
 		{
 			_psTrigger &= ~PLAYSTATE_END;
-			return curSmpl + 1;
+			break;
 		}
-	}
+	} while(curSmpl < smplCnt);
 	
 	return curSmpl;
 }
@@ -1610,8 +1677,24 @@ void VGMPlayer::ParseFile(UINT32 ticks)
 		_filePos += _CMD_INFO[curCmd].cmdLen;
 	}
 	
+	if (_p2612Fix & 0x01)
+	{
+		_p2612Fix &= ~0x01;	// disable Project2612 fix
+		// Note: Due to the way the Legacy Mode is implemented in YM2612 GPGX right now,
+		//       it should be no problem to keep it enabled during the whole song.
+		//       But let's just turn it off for safety.
+		
+		size_t optID = _devOptMap[DEVID_YM2612][0];
+		size_t devID = (optID == (size_t)-1) ? (size_t)-1 : _optDevMap[optID];
+		// refresh options, removing OPT_YM2612_LEGACY_MODE
+		if (devID < _devices.size())
+			RefreshDevOptions(_devices[devID], _devOpts[optID]);
+	}
+	
 	if (_filePos >= _fileHdr.dataEnd)
 	{
+		if (_playState & PLAYSTATE_SEEK)	// recalculate playSmpl to fix state when triggering callbacks
+			_playSmpl = Tick2Sample(_fileTick);	// Note: fileTick results in more accurate position
 		_playState |= PLAYSTATE_END;
 		_psTrigger |= PLAYSTATE_END;
 		if (_eventCbFunc != NULL)

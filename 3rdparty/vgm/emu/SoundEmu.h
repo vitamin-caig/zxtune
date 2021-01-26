@@ -51,12 +51,24 @@ void SndEmu_FreeDevLinkData(DEV_INFO* devInf);
  * @return error code. 0 = success, 1 - success, but more possible candidates found, see EERR constants
  */
 UINT8 SndEmu_GetDeviceFunc(const DEV_DEF* devInf, UINT8 funcType, UINT8 rwType, UINT16 user, void** retFuncPtr);
+/**
+ * @brief Retrieve the name of a sound device.
+ *        Device configuration parameters may be use to identify exact sound chip models.
+ *
+ * @param deviceID ID of the sound device to get the name of (see DEVID constants in SoundDevs.h)
+ * @param opts bitfield of options
+ *             Bit 0 (0x01): enable long names
+ * @param cfg chip-dependent configuration structure, allows for correct names of device variations,
+ *            ONLY used when long names are enabled
+ * @return pointer to name of the device
+ */
+const char* SndEmu_GetDevName(UINT8 deviceID, UINT8 opts, const DEV_GEN_CFG* devCfg);
 
 
 #define EERR_OK			0x00
 #define EERR_MORE_FOUND	0x01	// success, but more items were found
 #define EERR_UNK_DEVICE	0xF0	// unknown/invalid device ID
-#define EERR_NOT_FOUND	0xF8	// sound core of function not found
+#define EERR_NOT_FOUND	0xF8	// sound core or function not found
 #define EERR_INIT_ERR	0xFF	// sound core initialization error (usually malloc error)
 
 #ifdef __cplusplus

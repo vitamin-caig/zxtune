@@ -552,6 +552,7 @@ static DEVDEF_RWFUNC devFunc[] =
 	{RWF_REGISTER | RWF_READ, DEVRW_A8D8, 0, ay8910_read},
 	{RWF_CLOCK | RWF_WRITE, DEVRW_VALUE, 0, ay8910_set_clock},
 	{RWF_SRATE | RWF_READ, DEVRW_VALUE, 0, ay8910_get_sample_rate},
+	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, ay8910_set_mute_mask},
 	{0x00, 0x00, 0, NULL}
 };
 DEV_DEF devDef_AY8910_MAME =
@@ -690,7 +691,6 @@ struct _ay8910_context
 	UINT32 clock;
 	UINT8 chip_type;
 	UINT8 chip_flags;
-	UINT8 IsDisabled;
 	
 	DEVCB_SRATE_CHG SmpRateFunc;
 	void* SmpRateData;
@@ -1053,14 +1053,10 @@ void ay8910_write_reg(ay8910_context *psg, UINT8 r, UINT8 v)
 				//if (psg->port_b_write_cb != NULL)
 				//	psg->port_b_write_cb(psg, 0, (psg->regs[AY_ENABLE] & 0x80) ? psg->regs[AY_PORTB] : 0xff);
 			}
-			if (~v & 0x3F)	// one of the channels gets enabled -> enable emulation
-				psg->IsDisabled = 0x00;
 
 			psg->last_enable = psg->regs[AY_ENABLE] & 0xC0;
 			break;
 		case AY_ESHAPE:
-			//if ( (v & 0x0f) > 0)
-			//	osd_printf_verbose("EShape\n");
 			psg->attack = (psg->regs[AY_ESHAPE] & 0x04) ? psg->env_step_mask : 0x00;
 			if ((psg->regs[AY_ESHAPE] & 0x08) == 0)
 			{
@@ -1121,10 +1117,6 @@ void ay8910_update_one(void *param, UINT32 samples, DEV_SMPL **outputs)
 	
 	memset(outputs[0], 0x00, samples * sizeof(DEV_SMPL));
 	memset(outputs[1], 0x00, samples * sizeof(DEV_SMPL));
-	
-	// Speed hack for OPN chips (YM2203, YM26xx), that have an often unused AY8910
-	if (psg->IsDisabled)
-		return;
 	
 	/* The 8910 has three outputs, each output is the mix of one of the three */
 	/* tone generators and of the (single) noise generator. The two are mixed */
@@ -1465,9 +1457,6 @@ void ay8910_reset(void *chip)
 	//#define AY_ECOARSE    (12)
 	//#define AY_ESHAPE (13)
 #endif
-
-	if (psg->chip_type & 0x20)
-		psg->IsDisabled = 0x01;	// YM2203/2608/2610 SSG optimization
 }
 
 void ay8910_set_clock(void *chip, UINT32 clock)

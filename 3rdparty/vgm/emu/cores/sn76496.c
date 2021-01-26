@@ -166,6 +166,7 @@ static void sn76496_w_mame(void *chip, UINT8 reg, UINT8 data);
 static DEVDEF_RWFUNC devFunc[] =
 {
 	{RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, sn76496_w_mame},
+	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, sn76496_set_mutemask},
 	{0x00, 0x00, 0, NULL}
 };
 DEV_DEF devDef_SN76496_MAME =
@@ -437,7 +438,7 @@ static void sn76496_update(void* param, UINT32 samples, DEV_SMPL** outputs)
 				vol[i] = R->output[i] ? +1 : -1;
 				
 				// Disable high frequencies (> SampleRate / 2) for tone channels
-				// Freq. 0/1 isn't disabled becaus it would also disable PCM
+				// Freq. 0/1 isn't disabled because it would also disable PCM
 				if (i != 3)
 				{
 					if (R->period[i] <= R->FNumLimit && R->period[i] > 1)

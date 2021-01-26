@@ -1,30 +1,30 @@
-//
-// Copyright (C) 2017-2018 Alexey Khokholov (Nuke.YKT)
-// 
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-//
-//
-//  Nuked OPN2(Yamaha YM3438) emulator.
-//  Thanks:
-//      Silicon Pr0n:
-//          Yamaha YM3438 decap and die shot(digshadow).
-//      OPLx decapsulated(Matthew Gambrell, Olli Niemitalo):
-//          OPL2 ROMs.
-//
-// version: 1.0.9
-//
+/*
+ * Copyright (C) 2017-2018 Alexey Khokholov (Nuke.YKT)
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ *
+ *  Nuked OPN2(Yamaha YM3438) emulator.
+ *  Thanks:
+ *      Silicon Pr0n:
+ *          Yamaha YM3438 decap and die shot(digshadow).
+ *      OPLx decapsulated(Matthew Gambrell, Olli Niemitalo):
+ *          OPL2 ROMs.
+ *
+ * version: 1.0.10
+ */
 
 // Nuked OPN2 internal structures/functions
 #ifndef __YM3438_INT_H__
@@ -205,6 +205,7 @@ typedef struct
     Bit32u status_time;
     
     Bit32u chip_type;
+    Bit32u use_filter;
     Bit32u mute[7];
     Bit32s rateratio;
     Bit32s samplecnt;
@@ -225,6 +226,6 @@ void NOPN2_Write(ym3438_t *chip, Bit32u port, Bit8u data);
 void NOPN2_SetTestPin(ym3438_t *chip, Bit32u value);
 Bit32u NOPN2_ReadTestPin(ym3438_t *chip);
 Bit32u NOPN2_ReadIRQPin(ym3438_t *chip);
-UINT8 NOPN2_Read(ym3438_t *chip, Bit32u port);
+Bit8u NOPN2_Read(ym3438_t *chip, Bit32u port);
 
 #endif	// __YM3438_INT_H__

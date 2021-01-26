@@ -51,6 +51,7 @@ static DEVDEF_RWFUNC devFunc[] =
 	{RWF_REGISTER | RWF_READ, DEVRW_A16D8, 0, c140_r},
 	{RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, c140_write_rom},
 	{RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, c140_alloc_rom},
+	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, c140_set_mute_mask},
 	{0x00, 0x00, 0, NULL}
 };
 static DEV_DEF devDef =
@@ -322,11 +323,11 @@ static void c140_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 					}
 
 					/* Caclulate the sample value */
-					dt=((v->dltdt*v->ptoffset)>>16)+v->prevdt;
+					dt=(INT32)(((INT64)v->dltdt*v->ptoffset)>>16)+v->prevdt;
 
 					/* Write the data to the sample buffers */
-					lmix[j]+=(dt*vreg->volume_left)>>8;
-					rmix[j]+=(dt*vreg->volume_right)>>8;
+					lmix[j]+=(dt*vreg->volume_left)>>9;
+					rmix[j]+=(dt*vreg->volume_right)>>9;
 				}
 			}
 			else
@@ -361,11 +362,11 @@ static void c140_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 					}
 
 					/* Caclulate the sample value */
-					dt=((v->dltdt*v->ptoffset)>>16)+v->prevdt;
+					dt=(INT32)(((INT64)v->dltdt*v->ptoffset)>>16)+v->prevdt;
 
 					/* Write the data to the sample buffers */
-					lmix[j]+=(dt*vreg->volume_left)>>8;
-					rmix[j]+=(dt*vreg->volume_right)>>8;
+					lmix[j]+=(dt*vreg->volume_left)>>9;
+					rmix[j]+=(dt*vreg->volume_right)>>9;
 				}
 			}
 		}

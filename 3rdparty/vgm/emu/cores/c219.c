@@ -77,6 +77,7 @@ static DEVDEF_RWFUNC devFunc[] =
 	{RWF_REGISTER | RWF_READ, DEVRW_A16D8, 0, c219_r},
 	{RWF_MEMORY | RWF_WRITE, DEVRW_BLOCK, 0, c219_write_rom},
 	{RWF_MEMORY | RWF_WRITE, DEVRW_MEMSIZE, 0, c219_alloc_rom},
+	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, c219_set_mute_mask},
 	{0x00, 0x00, 0, NULL}
 };
 static DEV_DEF devDef =
@@ -201,7 +202,7 @@ static void c219_w(void *chip, UINT16 offset, UINT8 data)
 		offset &= ~0x008;
 
 	info->REG[offset]=data;
-	if (offset < 0x180)
+	if (offset < 0x100)
 	{
 		C219_VOICE *v = &info->voi[offset>>4];
 
@@ -311,8 +312,8 @@ static void c219_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 			}
 		}
 
-		outputs[0][i] += (out[0] >> 8);
-		outputs[1][i] += (out[1] >> 8);
+		outputs[0][i] += (out[0] >> 9);
+		outputs[1][i] += (out[1] >> 9);
 	}
 }
 

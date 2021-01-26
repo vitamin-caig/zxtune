@@ -19,7 +19,7 @@
 /*static*/ const VGMPlayer::COMMAND_INFO VGMPlayer::_CMD_INFO[0x100] =
 {
 	// {chip type, function},                         VGM command
-	{0xFF, 0x00, &VGMPlayer::Cmd_invalid},              // 00
+	{0xFF, 0x01, &VGMPlayer::Cmd_unknown},              // 00
 	{0xFF, 0x00, &VGMPlayer::Cmd_invalid},              // 01
 	{0xFF, 0x00, &VGMPlayer::Cmd_invalid},              // 02
 	{0xFF, 0x00, &VGMPlayer::Cmd_invalid},              // 03
@@ -203,7 +203,7 @@
 	{0x15, 0x03, &VGMPlayer::Cmd_Ofs8_Data8},           // B5 YMW258 (MultiPCM) register write
 	{0x16, 0x03, &VGMPlayer::Cmd_Ofs8_Data8},           // B6 uPD7759 register write
 	{0x17, 0x03, &VGMPlayer::Cmd_Ofs8_Data8},           // B7 OKIM6258 register write
-	{0x18, 0x03, &VGMPlayer::Cmd_Ofs8_Data8},           // B8 OKIM6295 register write
+	{0x18, 0x03, &VGMPlayer::Cmd_OKIM6295_Reg},         // B8 OKIM6295 register write
 	{0x1B, 0x03, &VGMPlayer::Cmd_Ofs8_Data8},           // B9 HuC6280 register write
 	{0x1D, 0x03, &VGMPlayer::Cmd_Ofs8_Data8},           // BA K053260 register write
 	{0x1E, 0x03, &VGMPlayer::Cmd_Ofs8_Data8},           // BB Pokey register write
@@ -546,45 +546,60 @@ void VGMPlayer::Cmd_unknown(void)
 
 void VGMPlayer::Cmd_EndOfData(void)
 {
-	if (! _fileHdr.loopOfs)
+	UINT8 silenceStop = 0;
+	UINT8 doLoop = (_fileHdr.loopOfs != 0);
+	
+	if (_playState & PLAYSTATE_SEEK)	// recalculate playSmpl to fix state when triggering callbacks
+		_playSmpl = Tick2Sample(_fileTick);	// Note: fileTick results in more accurate position
+	if (doLoop)
 	{
-		_playState |= PLAYSTATE_END;
-		_psTrigger |= PLAYSTATE_END;
-		if (_eventCbFunc != NULL)
-			_eventCbFunc(this, _eventCbParam, PLREVT_END, NULL);
-		
-		if (_playOpts.hardStopOld)
+		if (_lastLoopTick == _fileTick)
 		{
-			UINT8 doStop = 0x00;
-			doStop |= (_fileHdr.fileVer < 0x150) << 0;
-			doStop |= (_fileHdr.fileVer == 0x150 && _playOpts.hardStopOld == 2) << 1;
-			if (doStop)
-			{
-				size_t curDev;
-				for (curDev = 0; curDev < _devices.size(); curDev ++)
-				{
-					DEV_INFO* devInf = &_devices[curDev].base.defInf;
-					devInf->devDef->Reset(devInf->dataPtr);
-				}
-			}
+			doLoop = 0;	// prevent freezing due to infinite loop
+			fprintf(stderr, "Warning! Ignored Zero-Sample-Loop!\n");
+		}
+		else
+		{
+			_lastLoopTick = _fileTick;
 		}
 	}
-	else
+	if (doLoop)
 	{
 		_curLoop ++;
 		if (_eventCbFunc != NULL)
 		{
-			UINT8 retVal;
-			
-			retVal = _eventCbFunc(this, _eventCbParam, PLREVT_LOOP, &_curLoop);
-			if (retVal == 0x01)
+			UINT8 retVal = _eventCbFunc(this, _eventCbParam, PLREVT_LOOP, &_curLoop);
+			if (retVal == 0x01)	// "stop" signal?
 			{
 				_playState |= PLAYSTATE_END;
 				_psTrigger |= PLAYSTATE_END;
+				if (_eventCbFunc != NULL)
+					_eventCbFunc(this, _eventCbParam, PLREVT_END, NULL);
 				return;
 			}
 		}
 		_filePos = _fileHdr.loopOfs;
+		return;
+	}
+	
+	_playState |= PLAYSTATE_END;
+	_psTrigger |= PLAYSTATE_END;
+	if (_eventCbFunc != NULL)
+		_eventCbFunc(this, _eventCbParam, PLREVT_END, NULL);
+	
+	if (_playOpts.hardStopOld)
+	{
+		silenceStop |= (_fileHdr.fileVer < 0x150) << 0;
+		silenceStop |= (_fileHdr.fileVer == 0x150 && _playOpts.hardStopOld == 2) << 1;
+	}
+	if (silenceStop)
+	{
+		size_t curDev;
+		for (curDev = 0; curDev < _devices.size(); curDev ++)
+		{
+			DEV_INFO* devInf = &_devices[curDev].base.defInf;
+			devInf->devDef->Reset(devInf->dataPtr);
+		}
 	}
 	
 	return;
@@ -679,6 +694,9 @@ void VGMPlayer::Cmd_DataBlock(void)
 	{
 	case 0x00:	// uncompressed data block
 	case 0x40:	// compressed data block
+		if (_curLoop > 0)
+			return;	// skip during the 2nd/3rd/... loop, as these blocks were already loaded
+		
 		if (dblkType == 0x7F)
 		{
 			ReadPCMComprTable(dblkLen, &fData[0x00], &_pcmComprTbl);
@@ -712,7 +730,7 @@ void VGMPlayer::Cmd_DataBlock(void)
 				memcpy(&pcmBnk->data[oldLen], dataPtr, dataLen);
 			}
 			
-			// TODO: refresh DAC Stream pointers
+			// TODO: refresh DAC Stream pointers (call daccontrol_refresh_data)
 		}
 		break;
 	case 0x80:	// ROM/RAM write
@@ -728,6 +746,7 @@ void VGMPlayer::Cmd_DataBlock(void)
 		if (chipType == 0x1C && dataLen && (cDev->flags & 0x01))
 		{
 			// chip == ASIC 219 (ID 0x1C + flags 0x01): byte-swap sample data
+			dataLen &= ~0x01;
 			std::vector<UINT8> swpData(dataLen);
 			for (UINT32 curPos = 0x00; curPos < dataLen; curPos += 0x02)
 			{
@@ -806,6 +825,8 @@ void VGMPlayer::Cmd_PcmRamWrite(void)
 void VGMPlayer::Cmd_YM2612PCM_Delay(void)
 {
 	CHIP_DEVICE* cDev = GetDevicePtr(0x02, 0);
+	_fileTick += (fData[0x00] & 0x0F);
+	
 	if (cDev == NULL || cDev->write8 == NULL)
 		return;
 	if (_ym2612pcm_bnkPos >= _pcmBank[0].data.size())
@@ -816,7 +837,6 @@ void VGMPlayer::Cmd_YM2612PCM_Delay(void)
 	_ym2612pcm_bnkPos ++;
 	// TODO: clip when exceeding pcmBank size
 	
-	_fileTick += (fData[0x00] & 0x0F);
 	return;
 }
 
@@ -1105,6 +1125,8 @@ void VGMPlayer::Cmd_RF5C_Mem(void)
 		return;
 	
 	UINT16 memOfs = ReadLE16(&fData[0x01]);
+	if (memOfs & 0xF000)
+		fprintf(stderr, "Warning: RF5C mem write to out-of-window offset 0x%04X\n", memOfs);
 	cDev->writeM8(cDev->base.defInf.dataPtr, memOfs, fData[0x03]);
 	return;
 }
@@ -1271,6 +1293,30 @@ void VGMPlayer::Cmd_SAA_Reg(void)
 	
 	cDev->write8(cDev->base.defInf.dataPtr, 0x01, fData[0x01] & 0x7F);	// SAA commands are at offset 1, not 0
 	cDev->write8(cDev->base.defInf.dataPtr, 0x00, fData[0x02]);
+	return;
+}
+
+void VGMPlayer::Cmd_OKIM6295_Reg(void)
+{
+	UINT8 chipType = _CMD_INFO[fData[0x00]].chipType;
+	UINT8 chipID = (fData[0x01] & 0x80) >> 7;
+	CHIP_DEVICE* cDev = GetDevicePtr(chipType, chipID);
+	if (cDev == NULL || cDev->write8 == NULL)
+		return;
+	
+	UINT8 ofs = fData[0x01] & 0x7F;
+	UINT8 data = fData[0x02];
+	if (ofs == 0x0B)
+	{
+		if (data & 0x80)
+		{
+			data &= 0x7F;	// remove "pin7" bit (bug in some MAME VGM logs)
+			//fprintf(stderr, "OKIM6295 Warning: SetClock command (%02X %02X) includes Pin7 bit!\n",
+			//	fData[0x00], fData[0x01]);
+		}
+	}
+	
+	cDev->write8(cDev->base.defInf.dataPtr, ofs, data);
 	return;
 }
 
