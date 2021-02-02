@@ -323,6 +323,7 @@ CSoundFile::ProbeResult CSoundFile::Probe(ProbeFlags flags, mpt::span<const std:
 		throw std::invalid_argument("");
 	}
 	MemoryFileReader file(data);
+#ifndef NO_CONTAINERS_SUPPORT
 	if(flags & ProbeContainers)
 	{
 		MPT_DO_PROBE(result, ProbeFileHeaderMMCMP(file, pfilesize));
@@ -330,6 +331,7 @@ CSoundFile::ProbeResult CSoundFile::Probe(ProbeFlags flags, mpt::span<const std:
 		MPT_DO_PROBE(result, ProbeFileHeaderUMX(file, pfilesize));
 		MPT_DO_PROBE(result, ProbeFileHeaderXPK(file, pfilesize));
 	}
+#endif
 	if(flags & ProbeModules)
 	{
 		for(const auto &format : ModuleFormatLoaders)
@@ -397,6 +399,7 @@ bool CSoundFile::Create(FileReader file, ModLoadingFlags loadFlags)
 			}
 #endif
 
+#ifndef NO_CONTAINERS_SUPPORT
 			std::vector<ContainerItem> containerItems;
 			MODCONTAINERTYPE packedContainerType = MOD_CONTAINERTYPE_NONE;
 			if(!(loadFlags & skipContainer))
@@ -420,7 +423,7 @@ bool CSoundFile::Create(FileReader file, ModLoadingFlags loadFlags)
 					}
 				}
 			}
-
+#endif
 			if(loadFlags & skipModules)
 			{
 				return false;
@@ -445,11 +448,12 @@ bool CSoundFile::Create(FileReader file, ModLoadingFlags loadFlags)
 				return loaderSuccess;
 			}
 
+#ifndef NO_CONTAINERS_SUPPORT
 			if(packedContainerType != MOD_CONTAINERTYPE_NONE && m_ContainerType == MOD_CONTAINERTYPE_NONE)
 			{
 				m_ContainerType = packedContainerType;
 			}
-
+#endif
 #ifndef NO_ARCHIVE_SUPPORT
 			// Read archive comment if there is no song comment
 			if(m_songMessage.empty())
