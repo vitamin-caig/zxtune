@@ -1174,6 +1174,7 @@ std::vector<std::string> module_impl::get_metadata_keys() const {
 		"date",
 		"message",
 		"message_raw",
+		"message_heuristic",
 		"warnings",
 	};
 }
@@ -1235,9 +1236,13 @@ std::string module_impl::get_metadata( const std::string & key ) const {
 			return std::string();
 		}
 		return mpt::convert<std::string>( mpt::common_encoding::utf8, m_sndFile->GetFileHistory().back().AsISO8601() );
-	} else if ( key == std::string("message") ) {
-		std::string retval = m_sndFile->m_songMessage.GetFormatted( OpenMPT::SongMessage::leLF );
-		if ( retval.empty() ) {
+	} else if ( 0 == key.compare(0, 7, "message") ) {
+		std::string retval;
+		const bool is_message = key == std::string("message");
+		if ( is_message || key == std::string("message_raw")) {
+		  retval = m_sndFile->m_songMessage.GetFormatted( OpenMPT::SongMessage::leLF );
+		}
+		if ( (is_message && retval.empty()) || key == std::string("message_heuristic") ) {
 			switch ( m_sndFile->GetMessageHeuristic() ) {
 				case OpenMPT::ModMessageHeuristicOrder::Instruments:
 					retval = get_message_instruments();
@@ -1246,17 +1251,13 @@ std::string module_impl::get_metadata( const std::string & key ) const {
 					retval = get_message_samples();
 					break;
 				case OpenMPT::ModMessageHeuristicOrder::InstrumentsSamples:
-					if ( retval.empty() ) {
-						retval = get_message_instruments();
-					}
+					retval = get_message_instruments();
 					if ( retval.empty() ) {
 						retval = get_message_samples();
 					}
 					break;
 				case OpenMPT::ModMessageHeuristicOrder::SamplesInstruments:
-					if ( retval.empty() ) {
-						retval = get_message_samples();
-					}
+					retval = get_message_samples();
 					if ( retval.empty() ) {
 						retval = get_message_instruments();
 					}
@@ -1287,9 +1288,6 @@ std::string module_impl::get_metadata( const std::string & key ) const {
 					break;
 			}
 		}
-		return mod_string_to_utf8( retval );
-	} else if ( key == std::string("message_raw") ) {
-		std::string retval = m_sndFile->m_songMessage.GetFormatted( OpenMPT::SongMessage::leLF );
 		return mod_string_to_utf8( retval );
 	} else if ( key == std::string("warnings") ) {
 		std::string retval;
