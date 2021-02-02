@@ -72,7 +72,7 @@ OPENMPT_NAMESPACE_BEGIN
 // let MFC handle our asserts
 #define MPT_ASSERT_USE_FRAMEWORK 1
 
-#else // !MPT_WITH_MFC
+#elif !defined(MPT_ASSERT_USE_FRAMEWORK) // !MPT_WITH_MFC
 
 #if defined(ASSERT)
 #define MPT_FRAMEWORK_ASSERT_IS_DEFINED
