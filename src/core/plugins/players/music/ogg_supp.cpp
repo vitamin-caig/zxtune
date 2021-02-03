@@ -27,7 +27,7 @@
 #include <sound/resampler.h>
 //3rdparty
 #define STB_VORBIS_NO_STDIO
-#define STB_VORBIS_NO_PUSHDATA_API
+//#define STB_VORBIS_NO_PUSHDATA_API
 #define STB_VORBIS_MAX_CHANNELS 2
 #if BOOST_ENDIAN_BIG_BYTE
 #define STB_VORBIS_BIG_ENDIAN
