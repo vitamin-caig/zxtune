@@ -344,9 +344,10 @@ namespace Mpt
     props.SetDate(DecodeString(module.get_metadata("date")));
     props.SetComment(DecodeString(module.get_metadata("message_raw")));
     {
+      const auto metadata = module.get_metadata("message_heuristic");
       Strings::Array strings;
       using namespace boost::algorithm;
-      split(strings, module.get_metadata("message_heuristic"), is_any_of("\r\n"), token_compress_on);
+      split(strings, metadata, is_any_of("\r\n"), token_compress_on);
       if (!strings.empty())
       {
         props.SetStrings(strings);
