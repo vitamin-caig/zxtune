@@ -393,10 +393,12 @@ int xmp_get_player__(xmp_context opaque, int parm)
 	return ret;
 }
 
+#ifndef NO_COMPOSITE_LOADER
 char **xmp_get_format_list()
 {
 	return format_list();
 }
+#endif
 
 void xmp_inject_event(xmp_context opaque, int channel, struct xmp_event *e)
 {
