@@ -92,6 +92,10 @@ __cpp> "}//namespace Text\n"
 < MSP_DECODER_DESCRIPTION
 > "MicroSpace Packer v1.x"
 
+#Muse
+< MUSE_DECODER_DESCRIPTION
+> "MUSE Compressor"
+
 #Pack2
 < PACK2_DECODER_DESCRIPTION
 > "Pack v2.x"
