@@ -722,15 +722,6 @@ namespace Mpt
       //, "AM"
     },
     {
-      "J2B"
-      ,
-      "'M'U'S'E"
-      "de ad be|ba af|be"
-      ,
-      "Galaxy Sound System (compressed)"
-      //, "J2B"
-    },
-    {
       "MOD"
       ,
       "'F'O'R'M"

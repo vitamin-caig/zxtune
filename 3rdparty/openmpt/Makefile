@@ -31,9 +31,8 @@ source_files := $(addsuffix .cpp,$(source_files))
 
 defines += LIBOPENMPT_BUILD NO_LOGGING NO_MPG123 NO_OGG NO_VORBIS NO_VORBISFILE NO_PLUGINS NO_CONTAINERS_SUPPORT OPENMPT_VERSION_REVISION=0
 
-defines += MPT_WITH_ZLIB MPT_WITH_MINIMP3 MPT_WITH_STBVORBIS
+defines += MPT_WITH_MINIMP3 MPT_WITH_STBVORBIS
 
-includes.dirs.load_j2b.cpp = $(dirs.root)/3rdparty/zlib
 includes.dirs.SampleFormatMP3.cpp = $(dirs.root)/3rdparty
 # for stb_vorbis
 includes.dirs.Load_mo3.cpp = include
