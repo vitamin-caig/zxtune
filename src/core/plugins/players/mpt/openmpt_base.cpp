@@ -396,6 +396,108 @@ namespace Mpt
   const PluginDescription PLUGINS[] =
   {
     {
+      "XM"
+      ,
+      "'E'x't'e'n'd'e'd' 'M'o'd'u'l'e':' "
+      ,
+      "FastTracker II"
+      //, "XM"
+    },
+    {
+      "IT"
+      ,
+      "'I | 't"
+      "'M | 'p"
+      "'P | 'm"
+      "'M | '."
+      ,
+      "Impulse Tracker"
+      //, "IT"
+    },
+    {
+      "S3M"
+      ,
+      "?{28}"    // title
+      "?"        // eof
+      "10"       // file type
+      "??"       // reserved
+      "?{10}"    // sizes, flags
+      "01|02 00" // version
+      "'S'C'R'M"
+      ,
+      "ScreamTracker 3"
+      //, "S3M"
+    },
+    {
+      "STM"
+      ,
+      "?{20}"    // songname
+      "20-7e{8}" // trackername
+      "02|1a"    // eof
+      "02"       // type=module
+      "02"       // major
+      "00|0a|14|15" // minor
+      "?"        // tempo
+      "01-3f"    // num patterns
+      "00-40|58" // global volume or placeholder
+      ,
+      "ScreamTracker 2"
+      //, STM
+    },
+    {
+      "MED"
+      ,
+      "'M'M'D '0-'3" // signature
+      ,
+      "OctaMED / MED Soundstudio"
+      //, MED
+    },
+    {
+      "MTM"
+      ,
+      "'M'T'M" // signature
+      "00-1f"  // version
+      "?{20}"  // songName
+      "??"     // numTracks
+      "?"      // lastPattern
+      "00-7f"  // lastOrder
+      "??"     // commentSize
+      "? ?"    // numSamples, attribute
+      "00-40"  // beatsPerTrack
+      "01-20"  // numChannels
+      ,
+      "MultiTracker"
+      //, MTM
+    },
+    {
+      "MDL"
+      ,
+      "'D'M'D'L" // signature
+      "00-1f"    // version
+      ,
+      "Digitrakker"
+      //, "MDL"
+    },
+    {
+      "DBM"
+      ,
+      "'D'B'M'0" // signagure
+      "00-03"    // trkVerHi
+      ,
+      "DigiBooster Pro"
+      //, "DBM"
+    },
+    {
+      "FAR"
+      ,
+      "'F'A'R fe"  // signature
+      "?{40}"      // songName
+      "0d0a1a"     // eof
+      ,
+      "Farandole Composer"
+      //, "FAR"
+    },
+    {
       "AMS"
       ,
       "'E'x't'r'e'm'e"
@@ -412,6 +514,50 @@ namespace Mpt
       ,
       "Velvet Studio"
       //, "AMS2"
+    },
+    {
+      "OKT"
+      ,
+      "'O'K'T'A'S'O'N'G" // signature
+      "(20-7f){4}"  // iff id
+      ,
+      "Oktalyzer"
+      //, "OKT"
+    },
+    {
+      "PTM"
+      ,
+      "?{28}"    // songname
+      "1a"       // dosEOF
+      "? 00-02"  // version
+      "?"        // reserved
+      "? 00-01"  // numOrders 0..256
+      "01-ff 00" // numSamples 1..255
+      "01-80 00" // numPatterns 1..128
+      "01-20 00" // numChannels 1..32
+      "00 00 ??" // flags, reserved
+      "'P'T'M'F" // magic
+      ,
+      "PolyTracker"
+      //, "PTM"
+    },
+    {
+      "ULT"
+      ,
+      "'M'A'S'_'U'T'r'a'c'k'_'V'0'0"
+      "'1-'4"
+      ,
+      "UltraTracker"
+      //, "ULT"
+    },
+    {
+      "DMF"
+      ,
+      "'D'D'M'F"  // signature
+      "01-0a"     // version
+      ,
+      "X-Tracker"
+      //, "DMF"
     },
     {
       "DSM"
@@ -436,6 +582,55 @@ namespace Mpt
       //, "DSM"
     },
     {
+      "AMF"
+      ,
+      "'A'S'Y'L'U'M' 'M'u's'i'c' 'F'o'r'm'a't' 'V'1'.'0 00" // signature
+      "? ?"   // speed, tempo
+      "01-3f" // numSamples
+      ,
+      "ASYLUM Music Format"
+      //, "AMF_Asylum"
+    },
+    {
+      "AMF"
+      ,
+      "'A'M'F"  // signature
+      "08-0e"   // version
+      "?{32}"   // title
+      "? ? ?"   // samples, orders, tracks
+      "01-20"   // channels
+      ,
+      "DSMI / Digital Sound And Music Interface"
+      //, "AMF_DSMI"
+    },
+    {
+      "PSM"
+      ,
+      "'P'S'M' " // signature
+      "????"     // fileSize
+      "'F'I'L'E" // fileInfoID
+      ,
+      "Epic MegaGames MASI"
+      //, "PSM"
+    },
+    {
+      "PSM"
+      ,
+      "'P'S'M fe"  // formatID
+      "?{59}"      // songTitle
+      "1a"         // lineEnd
+      "%xxxxxx00"  // songType
+      "01|10"      // formatVersion
+      "00"         // patternVersion
+      "? ? ?"      // speed, tempo, masterVolume
+      "?? ?? ?? ??" // length, orders, patterns, samples
+      "? 00-01"    // channelsPlay
+      "? 00-01"    // channelsReal
+      ,
+      "Epic MegaGames MASI (Old Version)"
+      //, "PSM16"
+    },
+    {
       "MT2"
       ,
       "'M'T'2'0"  // signature
@@ -452,6 +647,59 @@ namespace Mpt
       //, "MT2"
     },
     // ITP not supported due to external files
+    {
+      "GDM"
+      ,
+      "'G'D'M fe"  // magic
+      "?{32}"      // songTitle
+      "?{32}"      // musician
+      "0d 0a 1a"   // dosEOF
+      "'G'M'F'S"   // magic2
+      "01 00"      // format major, minor
+      "?? ? ?"     // trackerId, tracker major, minor
+      "?{32}"      // pan map
+      "? ? ?"      // master vol, tempo, bpm
+      "01-09 00"   // originalFormat
+      ,
+      "BWSB Soundsystem"
+      //, "GDM"
+    },
+    {
+      "IMF"
+      ,
+      "?{32}"   // title
+      "? 00-01" // ordNum
+      "??"      // patNum
+      "? 00-01" // insNum 256?
+      "?? ?{8}" // flags, unused
+      "? ? ? ?" // tempo, bpm, master, amp
+      "?{8}"    // unused2
+      "'I'M'1'0" // signature
+      "(?{15} 00-02){32}"  // channels
+      ,
+      "Imago Orpheus"
+      //, "IMF"
+    },
+    {
+      "DBM"
+      ,
+      "'D'I'G'I' 'B'o'o's't'e'r' 'm'o'd'u'l'e 00"
+      "?{4} ?" // version + int
+      "01-08"  // numChannels
+      ,
+      "Digi Booster"
+      //, "DIGI"
+    },
+    {
+      "DTM"
+      ,
+      "'D'.'T'." // magic
+      "00 00 00 0e-ff" // headerSize
+      "00"             // type
+      ,
+      "Digital Tracker / Digital Home Studio"
+      //, "DTM"
+    },
     {
       "PLM"
       ,
@@ -483,6 +731,46 @@ namespace Mpt
       //, "J2B"
     },
     {
+      "MOD"
+      ,
+      "'F'O'R'M"
+      "????"
+      "'M'O'D'L"
+      ,
+      "ProTracker 3.6"
+      //, "PT36"
+    },
+    // no examples for MUS_KM
+    {
+      "FMT"
+      ,
+      "'F'M'T'r'a'c'k'e'r 01 01" // magic
+      "?{20}" // trackerName
+      "?{32}" // songName
+      "(?{8} ?{8} %000000xx{3}){8}" // channels
+      ,
+      "Davey W Taylor's FM Tracker"
+      //, "FMT"
+    },
+    {
+      "SFX"
+      ,
+      "(00 01-02 ?? ){15}" // samples offsets up to 141072 BE
+      "'S 'O 'N 'G" // magic
+      ,
+      "SoundFX 1.x"
+      //, "SFX"
+    },
+    {
+      "SFX"
+      ,
+      "(00 01-02 ?? ){31}" // samples offsets up to 141072 BE
+      "'S 'O '3 '1" // magic
+      ,
+      "SoundFX 2.0 / MultiMedia Sound"
+      //, "SFX"
+    },
+    {
       "STP"
       ,
       "'S'T'P'3"
@@ -496,6 +784,57 @@ namespace Mpt
       ,
       "Soundtracker Pro II"
       //, "STP"
+    },
+    {
+      "MOD"
+      ,
+      "?{1080}" // skip
+      "('M      |'P|'N|'L|'F|'N|'O   |'C   |'M|'8|'F   |'F|'E|'1-'9|'0-'9|'T)"
+      "('.|'!|'&|'A|'S|'A|'E|'.|'C|'K|'D   |00   |'A   |'L|'X|'C   |'0-'9|'D)"
+      "('K      |'T|'M|'R|'S|'T|'T   |'8|'6|00   |'0   |'T|'O|'H   |'C   |'Z)"
+      "('.|'!   |'T|'S|'D|'T|'.|'A   |'1   |00   |'4-'8|'4-'9|'N   |'H|'N|'4-'9)"
+      ,
+      "Generic MOD-compatible"
+      //, "MOD"
+    },
+    {
+      "MOD"
+      ,
+      "?{1464}"
+      "'M"
+      "'T"
+      "'N"
+      "00"
+      ,
+      "MnemoTroN SoundTracker (MOD-compatible)"
+      //, "ICE"
+    },
+    {
+      "MOD"
+      ,
+      "?{1464}"
+      "'I"
+      "'T"
+      "'1"
+      "'0"
+      ,
+      "Ice Tracker (MOD-compatible)"
+      //, "ICE"
+    },
+    {
+      "669"
+      ,
+      "'i|'J 'f|'N" // magic
+      "?{108}"      // message
+      "01-40"       // samples
+      "01-80"       // patterns
+      "00-7f"       // restart pos
+      "(00-7f|fe|ff){128}" // orders
+      "?{128}"      // tempoList
+      "(00-3f){128}"// breaks
+      ,
+      "669 Composer / UNIS 669"
+      //, "669"
     },
     {
       "C67"
@@ -525,6 +864,25 @@ namespace Mpt
       "Un4seen MO3"
       //, "MO3"
     },
+    {
+      "MOD"
+      ,
+      "(00|08|20-7f){20}"  //name
+      "("                  //instruments
+       "(00|08|20-7f){22}" // name
+       "00-7f?"            // BE size
+       "00"                // finetune
+       "00-40"             // volume
+       "??"                // BE loop start
+       "00-7f?"            // BE loop size
+      "){15}"
+      "00-7f"           //len
+      "00-dc"           //restart
+      "(00-3f){128}"    //order
+      ,
+      "Ultimate Soundtracker / etc (MOD Compatible)"
+      //, "M15"
+    }
   };
 }
 }

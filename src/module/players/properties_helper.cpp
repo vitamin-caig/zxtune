@@ -90,7 +90,7 @@ namespace Module
 
   void PropertiesHelper::SetDate(const String& date)
   {
-    Delegate.SetValue(ATTR_DATE, date);
+    SetNonEmptyProperty(ATTR_DATE, date);
   }
 
   void PropertiesHelper::SetPlatform(const String& platform)
