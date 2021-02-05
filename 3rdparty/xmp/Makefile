@@ -6,7 +6,7 @@ includes.dirs += include src
 
 source_files += $(addprefix src/,\
   control dataio effects envelope extras filter fnmatch format hio hmn_extras lfo \
-  load load_helpers med_extras misc mixer mix_all period player read_event scan smix virtual \
+  load load_helpers md5 med_extras misc mixer mix_all period player read_event scan smix virtual \
   )
 
 source_files += $(addprefix src/loaders/,\
