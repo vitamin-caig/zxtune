@@ -40,7 +40,6 @@ includes.dirs.Load_xm.cpp = include
 includes.dirs.SampleFormatVorbis.cpp = include
 
 # declare ASSERT macro as Require to avoid AssertHandler
-defines += MPT_FRAMEWORK_ASSERT_IS_DEFINED MPT_ASSERT_USE_FRAMEWORK=1 MPT_FRAMEWORK_ASSERT_IS_ACTIVE=1 ASSERT=Require
-includes.files += $(dirs.root)/include/contract.h
+defines += MPT_FRAMEWORK_ASSERT_IS_DEFINED MPT_ASSERT_USE_FRAMEWORK=1 MPT_FRAMEWORK_ASSERT_IS_ACTIVE=1 "ASSERT(p)=(void)(p)"
 
 include $(dirs.root)/makefile.mak
