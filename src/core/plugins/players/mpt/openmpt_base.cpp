@@ -438,7 +438,7 @@ namespace Mpt
       "02"       // major
       "00|0a|14|15" // minor
       "?"        // tempo
-      "01-3f"    // num patterns
+      "01-40"    // num patterns
       "00-40|58" // global volume or placeholder
       ,
       "ScreamTracker 2"
@@ -598,7 +598,7 @@ namespace Mpt
       "08-0e"   // version
       "?{32}"   // title
       "? ? ?"   // samples, orders, tracks
-      "01-20"   // channels
+      "00-20"   // channels
       ,
       "DSMI / Digital Sound And Music Interface"
       //, "AMF_DSMI"
@@ -746,7 +746,7 @@ namespace Mpt
     {
       "SFX"
       ,
-      "(00 01-02 ?? ){15}" // samples offsets up to 141072 BE
+      "(00 00-02 ?? ){15}" // samples offsets up to 131072 BE
       "'S 'O 'N 'G" // magic
       ,
       "SoundFX 1.x"
@@ -755,7 +755,7 @@ namespace Mpt
     {
       "SFX"
       ,
-      "(00 01-02 ?? ){31}" // samples offsets up to 141072 BE
+      "(00 00-02 ?? ){31}" // samples offsets up to 131072 BE
       "'S 'O '3 '1" // magic
       ,
       "SoundFX 2.0 / MultiMedia Sound"
@@ -860,14 +860,14 @@ namespace Mpt
       ,
       "(00|08|20-7f){20}"  //name
       "("                  //instruments
-       "(00|08|20-7f){22}" // name
+       "?{22}"             // name
        "00-7f?"            // BE size
        "00"                // finetune
        "00-40"             // volume
        "??"                // BE loop start
        "00-7f?"            // BE loop size
       "){15}"
-      "00-7f"           //len
+      "00-80"           //len
       "00-dc"           //restart
       "(00-3f){128}"    //order
       ,
