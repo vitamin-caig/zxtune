@@ -371,6 +371,9 @@ namespace Mpt
         //TODO: specify type filter
         auto track = ModulePtr(new openmpt::module(static_cast<const uint8_t*>(rawData.Start()), rawData.Size(), LOG, Controls));
 
+        // play all subsongs
+        track->select_subsong(-1);
+
         PropertiesHelper props(*properties);
         FillMetadata(*track, props);
 
