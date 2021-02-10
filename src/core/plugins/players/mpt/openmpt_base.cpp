@@ -227,7 +227,8 @@ namespace Mpt
       {
         Parameters::IntType val = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
         Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val);
-        const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? 4 : 0;
+        // cubic interpolation vs windowed sinc with 8 taps
+        const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? 8 : 3;
         Track->set_render_param(openmpt::module::render_param::RENDER_INTERPOLATIONFILTER_LENGTH, interpolation);
       }
     }
