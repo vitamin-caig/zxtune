@@ -236,7 +236,7 @@ static inline uint32_t ftou32(float v)
 }
 
 // linear interpolation between a and b using t.
-static inline float lerp(float a, float b, float t)
+static inline float lerp_local(float a, float b, float t)
 {
     return a + t * (b-a);
 }
@@ -2035,7 +2035,7 @@ private:
         // linear interpolation using low-order bits of offs32_32.
         float *delaybuf = db[ch];
         float x = utof23((uint32_t)(offs32_32 & 0xffffffffu));
-        float delayed = lerp(delaybuf[(index - 0) & dbufmask], delaybuf[(index - 1) & dbufmask], x);
+        float delayed = lerp_local(delaybuf[(index - 0) & dbufmask], delaybuf[(index - 1) & dbufmask], x);
 
         // mix and output
         delaybuf[dbptr] = in + delayed*fbval;
