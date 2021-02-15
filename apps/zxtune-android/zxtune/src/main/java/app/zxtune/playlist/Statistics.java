@@ -1,11 +1,7 @@
 /**
- *
  * @file
- *
  * @brief Database (metadata) item
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.playlist;
@@ -25,13 +21,15 @@ public class Statistics {
   public Statistics(Cursor cursor) {
     items = cursor.getInt(Database.Tables.Statistics.Fields.count.ordinal());
     locations = cursor.getInt(Database.Tables.Statistics.Fields.locations.ordinal());
-    duration = TimeStamp.createFrom(cursor.getInt(Database.Tables.Statistics.Fields.duration.ordinal()), TimeUnit.MILLISECONDS);
+    duration =
+        TimeStamp.createFrom(cursor.getLong(Database.Tables.Statistics.Fields.duration.ordinal()),
+            TimeUnit.MILLISECONDS);
   }
-  
+
   public final int getTotal() {
     return items;
   }
-  
+
   public final int getLocations() {
     return locations;
   }
