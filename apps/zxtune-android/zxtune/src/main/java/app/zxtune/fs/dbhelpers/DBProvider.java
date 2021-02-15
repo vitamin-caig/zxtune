@@ -11,6 +11,8 @@ public class DBProvider {
 
   public DBProvider(SQLiteOpenHelper delegate) {
     this.delegate = delegate;
+
+    Utils.sendStatistics(delegate);
   }
 
   public final SQLiteDatabase getWritableDatabase() {

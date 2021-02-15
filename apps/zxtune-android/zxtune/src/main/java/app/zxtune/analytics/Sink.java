@@ -4,6 +4,8 @@ import android.net.Uri;
 
 import androidx.collection.SparseArrayCompat;
 
+import java.util.HashMap;
+
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
 
@@ -29,4 +31,6 @@ interface Sink {
   void sendVfsEvent(String id, String scope, @Analytics.VfsAction int action, long duration);
 
   void sendNoTracksFoundEvent(Uri uri);
+
+  void sendDbMetrics(String name, long size, HashMap<String, Long> tablesRows);
 }

@@ -15,6 +15,7 @@ import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playlist.ProviderClient;
 
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import static app.zxtune.analytics.internal.UrlsBuilder.DEFAULT_LONG_VALUE;
@@ -204,6 +205,18 @@ final class InternalSink implements Sink {
       final int extPos = filename != null ? filename.lastIndexOf('.') : -1;
       final String type = extPos != -1 ? filename.substring(extPos + 1) : "none";
       builder.addParam("type", type);
+    }
+
+    send(builder);
+  }
+
+  @Override
+  public void sendDbMetrics(String name, long size, HashMap<String, Long> tablesRows) {
+    final UrlsBuilder builder = new UrlsBuilder("db/stat");
+    builder.addParam("name", name);
+    builder.addParam("size", size);
+    for (HashMap.Entry<String, Long> entry : tablesRows.entrySet()) {
+      builder.addParam("rows_" + entry.getKey(), entry.getValue());
     }
 
     send(builder);

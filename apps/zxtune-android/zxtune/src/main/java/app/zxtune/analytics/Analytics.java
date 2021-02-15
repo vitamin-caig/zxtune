@@ -9,6 +9,7 @@ import androidx.collection.SparseArrayCompat;
 import com.crashlytics.android.Crashlytics;
 
 import java.lang.annotation.Retention;
+import java.util.HashMap;
 
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
@@ -193,6 +194,12 @@ public class Analytics {
   public static void sendNoTracksFoundEvent(Uri uri) {
     for (Sink s : sinks) {
       s.sendNoTracksFoundEvent(uri);
+    }
+  }
+
+  public static void sendDbMetrics(String name, long size, HashMap<String, Long> tablesRows) {
+    for (Sink s : sinks) {
+      s.sendDbMetrics(name, size, tablesRows);
     }
   }
 }

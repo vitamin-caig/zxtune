@@ -22,6 +22,7 @@ import android.util.SparseIntArray;
 import java.util.Locale;
 
 import app.zxtune.Log;
+import app.zxtune.fs.dbhelpers.Utils;
 
 /*
  * Playlist DB model.
@@ -151,6 +152,7 @@ public class Database {
 
   public Database(Context context) {
     this.dbHelper = new DBHelper(context);
+    Utils.sendStatistics(dbHelper);
   }
   
   // ! @return Cursor with statistics

@@ -12,6 +12,8 @@ import androidx.collection.SparseArrayCompat;
 import com.crashlytics.android.Crashlytics;
 import com.crashlytics.android.ndk.CrashlyticsNdk;
 
+import java.util.HashMap;
+
 import app.zxtune.BuildConfig;
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
@@ -84,4 +86,7 @@ final class FabricSink implements Sink {
 
   @Override
   public void sendNoTracksFoundEvent(Uri uri) {}
+
+  @Override
+  public void sendDbMetrics(String name, long size, HashMap<String, Long> tablesRows) {}
 }
