@@ -5,6 +5,12 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4980 from 16.02.2021
+
+[+] Added support of AMS, DSM, MT2, PLM, J2B, FMT, C67 and MO3 formats
+[*] Using libopenmpt for almost all the tracker formats playback
+[*] zxtune-android: fix playlist statistics
+
 --- Rev4970 from 02.11.2020
 
 [+] Added fadein, fadeout and preamp control
