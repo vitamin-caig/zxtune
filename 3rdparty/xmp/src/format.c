@@ -12,6 +12,7 @@
 #include "format.h"
 #include "xmp_private.h"
 
+#ifndef NO_COMPOSITE_LOADER
 extern const struct pw_format *const pw_format[];
 
 const struct format_loader *const format_loader[NUM_FORMATS + 2] = {
@@ -104,6 +105,7 @@ char **format_list()
 
 	return (char **)_farray;
 }
+#endif
 
 const char* xmp_get_loader_name(const struct format_loader* loader)
 {

@@ -481,74 +481,8 @@ namespace Xmp
 
   const PluginDescription PLUGINS[] =
   {
-    //Composer 669
-    {
-      "669"
-      ,
-      "('i|'J)"
-      "('f|'N)" //marker
-      /*
-      "?{108}"        //message
-      "0-40"          //samples count
-      "0-80"          //patterns count
-      "0-7f"          //loop
-      */
-      ,
-      &ssn_loader
-    },
-    //DSMI Advanced Module Format
-    {
-      "AMF"
-      ,
-      "'A'M'F"        //signature
-      "0a-0e"         //version
-      ,
-      &amf_loader
-    },
     //{"ARCH", &arch_loader},
-    //Asylum Music Format
-    {
-      "AMF"
-      ,
-      "'A'S'Y'L'U'M' 'M'u's'i'c' 'F'o'r'm'a't' 'V'1'.'0"
-      "00{8}"
-      ,
-      &asylum_loader
-    },
     //{"COCO", &coco_loader},
-    //DigiBooster Pro
-    {
-      "DBM"
-      ,
-      "'D'B'M'0"
-      ,
-      &dbm_loader
-    },
-    //DIGI Booster
-    {
-      "DBM"
-      ,
-      "'D'I'G'I' 'B'o'o's't'e'r' 'm'o'd'u'l'e"
-      "00"
-      ,
-      &digi_loader
-    },
-    //X-Tracker
-    {
-      "DMF"
-      ,
-      "'D'D'M'F"
-      ,
-      &dmf_loader
-    },
-    //Digital Tracker
-    {
-      "DTM"
-      ,
-      "'D'.'T'."
-      ,
-      &dt_loader
-    },
     //Desktop Tracker
     {
       "DTT"
@@ -567,27 +501,6 @@ namespace Xmp
       ,
       &emod_loader
     },
-    //Farandole Composer
-    {
-      "FAR"
-      ,
-      "'F'A'R"
-      "fe"
-      ,
-      &far_loader
-    },
-    //Startrekker
-    {
-      "MOD"
-      ,
-      "?{1080}"
-      "('F   |'E)"
-      "('L   |'X)"
-      "('T   |'O)"
-      "('4|'8|'M)"
-      ,
-      &flt_loader
-    },
     //Funktracker
     {
       "FNK"
@@ -600,19 +513,6 @@ namespace Xmp
       ,
       &fnk_loader
     },
-    //{"J2B", &gal4_loader},//requires depacking from MUSE packer
-    //{"J2B", &gal5_loader},
-    //Generic Digital Music
-    {
-      "GDM"
-      ,
-      "'G'D'M"
-      "fe"
-      "?{67}"
-      "'G'M'F'S"
-      ,
-      &gdm_loader
-    },
     //Graoumf Tracker
     {
       "GTK"
@@ -621,39 +521,6 @@ namespace Xmp
       "00-03"
       ,
       &gtk_loader
-    },
-    //His Master's Noise
-    {
-      "MOD"
-      ,
-      "?{1080}"
-      "('F|'M)"
-      "('E|'&)"
-      "('S|'K)"
-      "('T|'!)"
-      ,
-      &hmn_loader
-    },
-    //Soundtracker 2.6/Ice Tracker
-    {
-      "MTN"
-      ,
-      "?{1464}"
-      "('M|'I)"
-      "'T"
-      "('N|'1)"
-      "(00|'0)"
-      ,
-      &ice_loader
-    },
-    //Imago Orpheus
-    {
-      "IMF"
-      ,
-      "?{60}"
-      "'I'M'1'0"
-      ,
-      &imf_loader
     },
     //Images Music System
     {
@@ -676,14 +543,6 @@ namespace Xmp
       ,
       &ims_loader
     },
-    //Impulse Tracker
-    {
-      "IT"
-      ,
-      "'I'M'P'M"
-      ,
-      &it_loader
-    },
     //Liquid Tracker
     {
       "LIQ"
@@ -691,24 +550,6 @@ namespace Xmp
       "'L'i'q'u'i'd' 'M'o'd'u'l'e':"
       ,
       &liq_loader
-    },
-    //Epic MegaGames MASI
-    {
-      "PSM"
-      ,
-      "'P'S'M' "
-      "???00"
-      "'F'I'L'E"
-      ,
-      &masi_loader
-    },
-    //Digitrakker
-    {
-      "MDL"
-      ,
-      "'D'M'D'L"
-      ,
-      &mdl_loader
     },
     //MED 1.12 MED2
     {
@@ -738,57 +579,6 @@ namespace Xmp
     },
     //{"MFP", &mfp_loader},//requires additional files
     //{"MGT", &mgt_loader},experimental
-    //MED 2.10/OctaMED
-    {
-      "MED"
-      ,
-      "'M'M'D('0|'1)"
-      ,
-      &mmd1_loader
-    },
-    //OctaMED
-    {
-      "MED"
-      ,
-      "'M'M'D('2|'3)"
-      ,
-      &mmd3_loader
-    },
-    //Protracker
-    {
-      "MOD"
-      ,
-      /*
-      "?{20}"
-      "("        //instruments
-       "?{22}"   // name
-       "00-7f?"  // BE size
-       "0x"      // finetune
-       "00-40"   // volume
-       "00-7f?"  // BE loop start
-       "00-7f?"  // BE loop size
-      "){31}"   
-      //+20+30*31=+950
-      "?{130}"
-      */
-      "?{1080}"
-      //+1080
-      "('0-'3|'1-'9|'M      |'N|'C   |'T|'F      |'N)"
-      "('0-'9|'C   |'.|'!|'&|'.|'D   |'D|'A      |'S)"
-      "('C   |'H   |'K      |'T|'6|'8|'Z|'0      |'M)"
-      "('H   |'N   |'.|'!   |'.|'1   |'4|'4|'6|'8|'S)"
-      ,
-      &mod_loader
-    },
-    //Multitracker
-    {
-      "MTM"
-      ,
-      "'M'T'M"
-      "10"
-      ,
-      &mtm_loader
-    },
     //Liquid Tracker NO
     {
       "LIQ"
@@ -798,44 +588,7 @@ namespace Xmp
       ,
       &no_loader
     },
-    //Oktalyzer
-    {
-      "OKT"
-      ,
-      "'O'K'T'A'S'O'N'G"
-      ,
-      &okt_loader
-    },
     //{"MOD", &polly_loader},//rle packed, too weak structure
-    //Protracker Studio
-    {
-      "PSM"
-      ,
-      "'P'S'M"
-      "fe"
-      ,
-      &psm_loader
-    },
-    //Protracker 3
-    {
-      "PT36"
-      ,
-      "'F'O'R'M"
-      "????"
-      "'M'O'D'L"
-      "'V'E'R'S"
-      ,
-      &pt3_loader
-    },
-    //Poly Tracker
-    {
-      "PTM"
-      ,
-      "?{44}"
-      "'P'T'M'F"
-      ,
-      &ptm_loader
-    },
     //{"MOD", &pw_loader},//requires depacking
     //Real Tracker
     {
@@ -846,46 +599,7 @@ namespace Xmp
       ,
       &rtm_loader
     },
-    //Scream Tracker 3
-    {
-      "S3M"
-      ,
-      "?{44}"
-      "'S'C'R'M"
-      ,
-      &s3m_loader
-    },
-    //SoundFX
-    {
-      "SFX"
-      ,
-      "?{60}"
-      "'S'O'N'G"
-      "?{60}"
-      "'S'O'N'G"
-      ,
-      &sfx_loader
-    },
     //{"MTP", &mtp_loader},//experimental
-    //Soundtracker
-    {
-      "MOD"
-      ,
-      "(00|08|20-7f){20}"  //name
-      "("                  //instruments
-       "(00|08|20-7f){22}" // name
-       "00-7f?"            // BE size
-       "0x"                // finetune
-       "00-40"             // volume
-       "??"                // BE loop start
-       "00-7f?"            // BE loop size
-      "){15}"
-      "01-7f"           //len
-      "?"               //restart
-      "(00-7f){128}"    //order
-      ,
-      &st_loader
-    },
     //Slamtilt
     {
       "STIM"
@@ -898,25 +612,6 @@ namespace Xmp
       "0001-80"          //BE count of saved patterns (1-128)
       ,
       &stim_loader
-    },
-    //Scream Tracker 2
-    {
-      "STM"
-      ,
-      "?{20}"
-      "('!|'B)"
-      "('S|'M)"
-      "('c|'O)"
-      "('r|'D)"
-      "('e|'2)"
-      "('a|'S)"
-      "('m|'T)"
-      "('!|'M)"
-      "?"
-      "02"      //type=module
-      "01-ff"   //no stx
-      ,
-      &stm_loader
     },
     //STMIK 0.2
     {
@@ -946,24 +641,6 @@ namespace Xmp
       "'A'N' 'C'O'O'L('.|'!)"
       ,
       &tcb_loader
-    },
-    //Ultra Tracker
-    {
-      "ULT"
-      ,
-      "'M'A'S'_'U'T'r'a'c'k'_'V'0'0"
-      "('0-'4)"
-      ,
-      &ult_loader
-    },
-    //{"UMX", &umx_loader},//container
-    //Fast Tracker II
-    {
-      "XM"
-      ,
-      "'E'x't'e'n'd'e'd' 'M'o'd'u'l'e':' "
-      ,
-      &xm_loader
     },
   };
 }

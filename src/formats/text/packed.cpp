@@ -66,6 +66,9 @@ extern const Char MEGALZ_DECODER_DESCRIPTION[] = {
 extern const Char MSP_DECODER_DESCRIPTION[] = {
   'M','i','c','r','o','S','p','a','c','e',' ','P','a','c','k','e','r',' ','v','1','.','x',0
 };
+extern const Char MUSE_DECODER_DESCRIPTION[] = {
+  'M','U','S','E',' ','C','o','m','p','r','e','s','s','o','r',0
+};
 extern const Char PACK2_DECODER_DESCRIPTION[] = {
   'P','a','c','k',' ','v','2','.','x',0
 };

@@ -61,5 +61,6 @@ namespace Formats
     Decoder::Ptr CreateMegaLZDecoder();
     Decoder::Ptr CreateDSKDecoder();
     Decoder::Ptr CreateGzipDecoder();
+    Decoder::Ptr CreateMUSEDecoder();
   }
 }

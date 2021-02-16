@@ -65,5 +65,6 @@ namespace ZXTune
     RegisterFLACPlugin(registrator);
     RegisterV2MSupport(registrator);
     RegisterVGMPlugins(registrator);
+    RegisterMPTPlugins(registrator);
   }
 }

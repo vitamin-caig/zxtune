@@ -64,6 +64,7 @@ namespace ZXTune
   void RegisterFLACPlugin(PlayerPluginsRegistrator& registrator);
   void RegisterV2MSupport(PlayerPluginsRegistrator& registrator);
   void RegisterVGMPlugins(PlayerPluginsRegistrator& registrator);
+  void RegisterMPTPlugins(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator);
 }
