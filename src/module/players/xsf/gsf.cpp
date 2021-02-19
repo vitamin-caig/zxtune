@@ -74,17 +74,38 @@ namespace GSF
     {
       Require(SamplesToSkip == 0);
       Require(Result.empty());
-      SamplesToRender = count;
-      Result.resize(count);
-      this->postAudioBuffer = &OnRenderComplete;
+      if (count >= Tail.size())
+      {
+        SamplesToRender = count - Tail.size();
+        Result.swap(Tail);
+        Result.resize(count);
+        this->postAudioBuffer = &OnRenderComplete;
+      }
+      else
+      {
+        SamplesToRender = 0;
+        Result.resize(count);
+        std::copy_n(Tail.begin(), count, Result.begin());
+        std::copy(Tail.begin() + count, Tail.end(), Tail.begin());
+        Tail.resize(Tail.size() - count);
+      }
     }
     
     void SkipSamples(uint_t count)
     {
       Require(SamplesToRender == 0);
       Require(Result.empty());
-      SamplesToSkip = count;
-      this->postAudioBuffer = &OnSkipComplete;
+      if (count >= Tail.size())
+      {
+        SamplesToSkip = count - Tail.size();
+        this->postAudioBuffer = &OnSkipComplete;
+      }
+      else
+      {
+        SamplesToSkip = 0;
+        std::copy(Tail.begin() + count, Tail.end(), Tail.begin());
+        Tail.resize(Tail.size() - count);
+      }
     }
     
     bool IsReady() const
@@ -94,7 +115,7 @@ namespace GSF
     
     Sound::Chunk CaptureResult()
     {
-      return std::move(Result);
+      return Sound::Chunk(std::move(Result));
     }
 
   private:
@@ -109,6 +130,10 @@ namespace GSF
       const auto dst = safe_ptr_cast<int16_t*>(&self->Result[ready]);
       const auto done = std::min(blip_read_samples(left, dst, self->SamplesToRender, true), blip_read_samples(right, dst + 1, self->SamplesToRender, true));
       self->SamplesToRender -= done;
+      if (!self->SamplesToRender)
+      {
+        self->KeepFrameTail(left, right);
+      }
     }
     
     static void OnSkipComplete(struct mAVStream* in, blip_t* left, blip_t* right)
@@ -118,11 +143,27 @@ namespace GSF
       const auto toSkip = std::min<uint_t>(self->SamplesToSkip, AUDIO_BUFFER_SIZE);
       const auto done = std::min(blip_read_samples(left, dummy, toSkip, false), blip_read_samples(right, dummy, toSkip, false));
       self->SamplesToSkip -= done;
+      if (!self->SamplesToSkip)
+      {
+        self->KeepFrameTail(left, right);
+      }
+    }
+
+    void KeepFrameTail(blip_t* left, blip_t* right)
+    {
+      if (const auto avail = std::min(blip_samples_avail(left), blip_samples_avail(right)))
+      {
+        Tail.resize(avail);
+        auto* dst = safe_ptr_cast<int16_t*>(Tail.data());
+        blip_read_samples(left, dst, avail, true);
+        blip_read_samples(right, dst + 1, avail, true);
+      }
     }
   private:
     Sound::Chunk Result;
     uint_t SamplesToRender = 0;
     uint_t SamplesToSkip = 0;
+    Sound::Chunk Tail;
   };
   
   class GbaCore
