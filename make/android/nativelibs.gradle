@@ -9,6 +9,13 @@ def getListProperty(name, defvalue) {
 }
 
 android {
+    // required for stripping
+    ndkVersion localProperties.getProperty("ndk.version", "")
+    // store debug symbols in bundle
+    defaultConfig.ndk.debugSymbolLevel 'FULL'
+}
+
+android {
     flavorDimensions "packaging"
 
     splits.abi {
@@ -63,122 +70,46 @@ android {
 
 def callMake(cmdline) {
     def fullCmd = "make platform=android ${cmdline}"
-    println fullCmd
     def proc = fullCmd.execute()
     proc.consumeProcessOutput(System.out, System.out)
     assert 0 == proc.waitFor()
 }
 
-def getABIs(variant) {
-   def abis = variant.outputs*.getFilter("ABI")
-   return abis.size() && abis[0] ? abis : variant.ndkCompile.abiFilters
+def abiToName(abi) {
+    return abi.replace('-', '_').capitalize()
 }
 
 android {
-    applicationVariants.all { variant ->
-        def suffix = variant.name.capitalize()
-        tasks.getByName("compile${suffix}Ndk").enabled = false
-        def nativeLibs = task("nativeLibs${suffix}", group: "Native") {
-            def libsDir = variant.ndkCompile.soFolder
-            def abis = getABIs(variant)
+    def jniIntermediateDir = "${project.buildDir}/jni"
+    sourceSets {
+        main {
+            jniLibs.srcDirs = [jniIntermediateDir]
+        }
+    }
+
+    def allAbis = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
+    allAbis.each { arch ->
+        task("nativeLibs${abiToName(arch)}", group: "Native") {
             //optimize incremental builds - assume existing soFolder means that all libs are ready
-            outputs.dir libsDir
+            def outDir = "${jniIntermediateDir}/${arch}"
+            outputs.dir outDir
             doLast {
                 def cpuCount = Runtime.runtime.availableProcessors()
-                def jniDir = variant.ndkCompile.source.first().parent
-                abis.each { arch ->
-                    def baseCmd = "arch=${arch} -C ${jniDir}"
-                    callMake("${baseCmd} -j ${cpuCount}")
-                    def dstDir = file("${libsDir}/${arch}")
-                    dstDir.mkdirs()
-                    callMake("${baseCmd} DESTDIR=${dstDir} install")
-                }
-            }
-        }
-        tasks.getByName("package${suffix}").dependsOn.add(nativeLibs)
-        tasks.getByName("merge${suffix}JniLibFolders").dependsOn.add(nativeLibs)
-
-        task("nativeLibsDebugSymbols${suffix}", group: "Native", dependsOn: nativeLibs) {
-            def objsDir = variant.ndkCompile.objFolder
-            def abis = getABIs(variant)
-            //optimize incremental builds - assume existing objFolder means that all libs are ready
-            outputs.dir objsDir
-            doLast {
-                def jniDir = variant.ndkCompile.source.first().parent
-                abis.each { arch ->
-                    def baseCmd = "arch=${arch} -C ${jniDir}"
-                    def objDir = file("${objsDir}/${arch}")
-                    objDir.mkdirs()
-                    callMake("${baseCmd} DESTDIR=${objDir} install_debug")
+                android.sourceSets.main.jni.srcDirs.each { jniDir ->
+                    callMake("arch=${arch} bins_dir=${outDir} -C ${jniDir} -j ${cpuCount}")
                 }
             }
         }
     }
-}
 
-// publish
-android {
-    ext.publicBuildsDir = "${treeRoot}/Builds/${defaultConfig.versionName}/android"
-
-    task publicBuild(group: "Publish") {}
-    
     applicationVariants.all { variant ->
         def suffix = variant.name.capitalize()
-        def baseName = "${project.name}_${defaultConfig.versionName}"
-        def publishApk = task("publishApk${suffix}", group: "Publish", dependsOn: ["assemble${suffix}"] ) << {
-            variant.outputs.each { out ->
-              copy {
-                def abi = out.getFilter("ABI")
-                from out.outputFile
-                into publicBuildsDir
-                rename ".*\\.apk", "${baseName}${abi ? '_' + abi : ''}.apk"
-              }
-            }
-        }
-
-        def publishAab = task("publishAab${suffix}", group: "Publish", dependsOn: ["bundle${suffix}"]) << {
-          variant.outputs.each { out -> 
-            //TODO: find more suitable way to get bundle path
-            def bundleDir = tasks["package${suffix}Bundle"].outputs.files.singleFile
-            copy {
-             from bundleDir
-             into publicBuildsDir
-             rename ".*\\.aab", "${baseName}.aab"
-            }
-          }
-        }
-
-        def publicBuildVariant = task("publicBuild${suffix}", group: "Publish") {
-            if (variant.getBuildType().isMinifyEnabled()) {
-                publishApk.doLast {
-                    copy {
-                        from variant.mappingFile
-                        into publicBuildsDir
-                        rename ".*", "${baseName}-mapping.txt"
-                    }
-                }
-            }
-
-            if (variant.buildType.name == "release") {
-               if (variant.name =~ /thin/) {
-                  dependsOn publishAab
-               } else {
-                  dependsOn publishApk
-               }
-            }
-        }
-
-        publicBuild.dependsOn publicBuildVariant
-    }
-
-    task publishPdb(group: "Publish", type: Tar) {
-        compression "BZIP2"
-        archiveName "${project.name}.tar.bz2"
-        destinationDir new File("${publicBuildsDir}")
-        from ("${treeRoot}/bin") {
-            include "android_*/*/*.pdb"
+        def pkg = tasks.getByName("package${suffix}")
+        def fld = tasks.getByName("merge${suffix}JniLibFolders")
+        [variant.productFlavors*.ndk.abiFilters, splits.abiFilters].flatten().unique().each { arch ->
+            def makeNative = "nativeLibs${abiToName(arch)}"
+            pkg.dependsOn.add(makeNative)
+            fld.dependsOn.add(makeNative)
         }
     }
-
-    publicBuild.dependsOn publishPdb
 }

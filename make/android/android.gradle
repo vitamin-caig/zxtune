@@ -73,3 +73,46 @@ android {
         abortOnError false
     }
 }
+
+// publish
+android {
+    ext.publicBuildsDir = "${treeRoot}/Builds/${defaultConfig.versionName}/android"
+
+    task publicBuild(group: "Publish") {}
+
+    applicationVariants.all { variant ->
+        def suffix = variant.name.capitalize()
+        def baseName = "${project.name}_${defaultConfig.versionName}"
+        def publishApk = task("publishApk${suffix}", group: "Publish", dependsOn: ["assemble${suffix}"] ).doLast {
+            variant.outputs.each { out ->
+              copy {
+                def abi = out.getFilter("ABI")
+                from out.outputFile
+                into publicBuildsDir
+                rename ".*\\.apk", "${baseName}${abi ? '_' + abi : ''}.apk"
+              }
+            }
+        }
+
+        def publishAab = task("publishAab${suffix}", group: "Publish", dependsOn: ["bundle${suffix}"]).doLast {
+            def aab = tasks["sign${suffix}Bundle"].outputs.files.filter { it.name.endsWith('.aab') }.singleFile
+            copy {
+               from aab
+               into publicBuildsDir
+               rename ".*\\.aab", "${baseName}.aab"
+            }
+        }
+
+        def publicBuildVariant = task("publicBuild${suffix}", group: "Publish") {
+            if (variant.buildType.name == "release") {
+               if (variant.name =~ /thin/) {
+                  dependsOn publishAab
+               } else {
+                  dependsOn publishApk
+               }
+            }
+        }
+
+        publicBuild.dependsOn publicBuildVariant
+    }
+}
