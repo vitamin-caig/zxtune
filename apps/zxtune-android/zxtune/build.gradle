@@ -1,19 +1,4 @@
-/*buildscript {
-    repositories {
-        maven { url 'https://maven.fabric.io/public' }
-    }
-
-    dependencies {
-        classpath 'io.fabric.tools:gradle:1.31.2'
-    }
-}*/
-
 apply plugin: 'com.android.application'
-/*apply plugin: 'io.fabric'
-
-repositories {
-    maven { url 'https://maven.fabric.io/public' }
-}*/
 
 android {
     compileSdkVersion 29
@@ -56,12 +41,6 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-livedata:2.2.0"
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'androidx.recyclerview:recyclerview-selection:1.1.0-rc03'
-    implementation('com.crashlytics.sdk.android:crashlytics:2.10.1@aar') {
-        transitive = true
-    }
-    implementation('com.crashlytics.sdk.android:crashlytics-ndk:2.1.1@aar') {
-        transitive = true
-    }
     implementation 'org.jsoup:jsoup:1.13.1'
     implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
     implementation 'com.google.code.findbugs:jsr305:3.0.2'
@@ -94,7 +73,6 @@ android {
     defaultConfig {
         manifestPlaceholders += [
             modarchiveKey: localProperties.getProperty("key.modarchive"),
-            crashlyticsKey: localProperties.getProperty("key.crashlytics")
         ]
 
         def cdnRoot = localProperties.getProperty('cdn.root')
@@ -115,56 +93,3 @@ android {
         }
     }
 }
-
-//http://stackoverflow.com/questions/40134153/crashlytics-ndk-symbol-building-from-command-line
-//http://stackoverflow.com/questions/33735332/crashlytics-ndk-multi-androidndkout-path-support
-/*android {
-    ext.crashlyticsTmpDir = "${project.buildDir}/crashlytics"
-    ext.crashlyticsNdkOut = "${crashlyticsTmpDir}/debug"
-    ext.crashlyticsNdkLibsOut = "${crashlyticsTmpDir}/release"
-
-    //crashlytics tasks should be performed in the same execution due to apk rebuild
-    task publicBuildWithCrashlytics() {}
-    
-    applicationVariants.all { variant ->
-        def variantName = variant.name.capitalize()
-        def prepareDebugSymbols = task("prepareDebugSymbols${variantName}", dependsOn: "nativeLibsDebugSymbols${variantName}") {
-            def libsDir = variant.ndkCompile.soFolder
-            def objsDir = variant.ndkCompile.objFolder
-            doFirst {*/
-                //fileTree(dir: objsDir, include: '**/*.pdb').each { file ->
-                /*    def target = file.getAbsolutePath().replace('so.pdb', 'so')
-                    file.renameTo(target)
-                }
-            }
-            doLast {
-                new File(crashlyticsTmpDir).deleteDir()
-                copy {
-                    from objsDir
-                    into crashlyticsNdkOut
-                }
-                copy {
-                    from libsDir
-                    into crashlyticsNdkLibsOut
-                }
-            }
-        }
-        // replace assemble dependency by processManifest to avoid unneeded .apk creating
-        def assemble = tasks.getByName("assemble${variantName}")
-        def genSyms = tasks.getByName("crashlyticsGenerateSymbols${variantName}")
-        genSyms.dependsOn += [prepareDebugSymbols, "process${variantName}Manifest"]
-        genSyms.dependsOn -= assemble
-
-        if (variant.buildType.name == "release") {
-            publicBuildWithCrashlytics.dependsOn += ["publicBuild${variantName}", "crashlyticsUploadSymbols${variantName}"]
-        }
-    }
-    publicBuildWithCrashlytics.dependsOn += 'publishPdb'
-
-}
-
-crashlytics {
-    enableNdk true
-    androidNdkOut android.crashlyticsNdkOut
-    androidNdkLibsOut android.crashlyticsNdkLibsOut
-}*/
