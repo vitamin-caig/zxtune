@@ -1,4 +1,4 @@
-buildscript {
+/*buildscript {
     repositories {
         maven { url 'https://maven.fabric.io/public' }
     }
@@ -6,18 +6,17 @@ buildscript {
     dependencies {
         classpath 'io.fabric.tools:gradle:1.31.2'
     }
-}
+}*/
 
 apply plugin: 'com.android.application'
-apply plugin: 'io.fabric'
+/*apply plugin: 'io.fabric'
 
 repositories {
     maven { url 'https://maven.fabric.io/public' }
-}
+}*/
 
 android {
     compileSdkVersion 29
-    buildToolsVersion '29.0.3'
 
     defaultConfig {
         applicationId "app.zxtune"
@@ -119,7 +118,7 @@ android {
 
 //http://stackoverflow.com/questions/40134153/crashlytics-ndk-symbol-building-from-command-line
 //http://stackoverflow.com/questions/33735332/crashlytics-ndk-multi-androidndkout-path-support
-android {
+/*android {
     ext.crashlyticsTmpDir = "${project.buildDir}/crashlytics"
     ext.crashlyticsNdkOut = "${crashlyticsTmpDir}/debug"
     ext.crashlyticsNdkLibsOut = "${crashlyticsTmpDir}/release"
@@ -132,9 +131,9 @@ android {
         def prepareDebugSymbols = task("prepareDebugSymbols${variantName}", dependsOn: "nativeLibsDebugSymbols${variantName}") {
             def libsDir = variant.ndkCompile.soFolder
             def objsDir = variant.ndkCompile.objFolder
-            doFirst {
-                fileTree(dir: objsDir, include: '**/*.pdb').each { file ->
-                    def target = file.getAbsolutePath().replace('so.pdb', 'so')
+            doFirst {*/
+                //fileTree(dir: objsDir, include: '**/*.pdb').each { file ->
+                /*    def target = file.getAbsolutePath().replace('so.pdb', 'so')
                     file.renameTo(target)
                 }
             }
@@ -168,4 +167,4 @@ crashlytics {
     enableNdk true
     androidNdkOut android.crashlyticsNdkOut
     androidNdkLibsOut android.crashlyticsNdkLibsOut
-}
+}*/
