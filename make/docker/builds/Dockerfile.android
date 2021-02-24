@@ -30,11 +30,6 @@ RUN mkdir -p ${androidsdk} && cd ${androidsdk} && \
     rm *.zip && \
     (yes | tools/bin/sdkmanager --install "build-tools;${build_tools}" "platform-tools" "platforms;android-${platform}" "ndk;${ndk}")
 
-#Precache gradle and dependencies
-COPY --chown=build android_env android_env/
-RUN cd android_env && ./gradlew resolveDependencies && \
-    rm -Rf .gradle build
-
 #Sources
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
