@@ -39,6 +39,9 @@ RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}\nndk.version=${ndk}" > apps/zxtune-android/local.properties && \
     echo "org.gradle.jvmargs=-Xmx4g\nandroid.enableJetifier=true\nandroid.useAndroidX=true" > apps/zxtune-android/gradle.properties
 
+# To allow volume binding with proper access rights
+RUN  mkdir /build/.gradle && chown build:users /build/.gradle
+
 WORKDIR /build/zxtune/apps/zxtune-android
 COPY entrypoint.sh .
 ENTRYPOINT ["./entrypoint.sh"]
