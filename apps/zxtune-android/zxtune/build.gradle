@@ -13,8 +13,10 @@ android {
         vectorDrawables.generatedDensities  "mdpi", "hdpi", "xhdpi", "xxhdpi"
     }
 
-    dataBinding {
-        enabled true
+    buildFeatures {
+        renderScript false
+        shaders false
+        dataBinding true
     }
 
     dexOptions {
