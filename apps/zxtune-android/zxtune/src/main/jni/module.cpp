@@ -70,6 +70,46 @@ namespace
   jclass NativeModuleJni::Class;
   jmethodID NativeModuleJni::Constructor;
   jfieldID NativeModuleJni::Handle;
+
+  class CallbacksJni
+  {
+  public:
+    static void Init(JNIEnv* env)
+    {
+      const auto detectClass = env->FindClass("app/zxtune/core/ModuleDetectCallback");
+      Require(detectClass);
+      OnModule = env->GetMethodID(detectClass, "onModule", "(Ljava/lang/String;Lapp/zxtune/core/Module;)V");
+      Require(OnModule);
+      OnProgress = env->GetMethodID(detectClass, "onProgress", "(I)V");
+      Require(OnProgress);
+    }
+
+    static void Cleanup(JNIEnv* /*env*/)
+    {
+      OnModule = 0;
+      OnProgress = 0;
+    }
+
+    static void CallOnModule(JNIEnv* env, jobject cb, const String& subpath, jobject module)
+    {
+      const Jni::TempJString tmpSubpath(env, subpath);
+      env->CallVoidMethod(cb, OnModule, tmpSubpath.Get(), module);
+      Jni::ThrowIfError(env);
+    }
+
+    static void CallOnProgress(JNIEnv* env, jobject cb, int progress)
+    {
+      env->CallVoidMethod(cb, OnProgress, progress);
+      Jni::ThrowIfError(env);
+    }
+
+  private:
+    static jmethodID OnModule;
+    static jmethodID OnProgress;
+  };
+
+  jmethodID CallbacksJni::OnModule;
+  jmethodID CallbacksJni::OnProgress;
 }  // namespace
 
 namespace
@@ -103,9 +143,6 @@ namespace
     explicit DetectCallback(JNIEnv* env, jobject delegate)
       : Env(env)
       , Delegate(delegate)
-      , CallbackClass()
-      , OnModuleMethod()
-      , OnProgressMethod()
       , LastProgress(0)
     {}
 
@@ -117,10 +154,8 @@ namespace
     void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& /*decoder*/,
                        Module::Holder::Ptr holder) override
     {
-      const Jni::TempJString subpath(Env, location.GetPath()->AsString());
       const auto object = CreateJniObject(Env, std::move(holder));
-      Env->CallVoidMethod(Delegate, GetMethodId(), subpath.Get(), object);
-      Jni::ThrowIfError(Env);
+      CallbacksJni::CallOnModule(Env, Delegate, location.GetPath()->AsString(), object);
     }
 
     Log::ProgressCallback* GetProgress() const override
@@ -133,8 +168,7 @@ namespace
     {
       if (LastProgress != current)
       {
-        Env->CallVoidMethod(Delegate, GetProgressMethodId(), LastProgress = current);
-        Jni::ThrowIfError(Env);
+        CallbacksJni::CallOnProgress(Env, Delegate, LastProgress = current);
       }
     }
 
@@ -143,40 +177,9 @@ namespace
       OnProgress(current);
     }
 
-    jmethodID GetMethodId() const
-    {
-      if (!OnModuleMethod)
-      {
-        OnModuleMethod =
-            Env->GetMethodID(GetCallbackClass(), "onModule", "(Ljava/lang/String;Lapp/zxtune/core/Module;)V");
-      }
-      return OnModuleMethod;
-    }
-
-    jmethodID GetProgressMethodId() const
-    {
-      if (!OnProgressMethod)
-      {
-        OnProgressMethod = Env->GetMethodID(GetCallbackClass(), "onProgress", "(I)V");
-      }
-      return OnProgressMethod;
-    }
-
-    jclass GetCallbackClass() const
-    {
-      if (!CallbackClass)
-      {
-        CallbackClass = Env->GetObjectClass(Delegate);
-      }
-      return CallbackClass;
-    }
-
   private:
     JNIEnv* const Env;
     const jobject Delegate;
-    mutable jclass CallbackClass;
-    mutable jmethodID OnModuleMethod;
-    mutable jmethodID OnProgressMethod;
     uint_t LastProgress;
   };
 }  // namespace
@@ -186,10 +189,12 @@ namespace Module
   void InitJni(JNIEnv* env)
   {
     NativeModuleJni::Init(env);
+    CallbacksJni::Init(env);
   }
 
   void CleanupJni(JNIEnv* env)
   {
+    CallbacksJni::Cleanup(env);
     NativeModuleJni::Cleanup(env);
   }
 }  // namespace Module
