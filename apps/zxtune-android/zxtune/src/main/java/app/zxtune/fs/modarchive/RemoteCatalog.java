@@ -13,8 +13,6 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.sax.Element;
-import android.sax.EndElementListener;
-import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.text.Html;
 import android.util.Xml;
@@ -28,9 +26,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import app.zxtune.Log;
-import app.zxtune.StubProgressCallback;
+import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.fs.HtmlUtils;
-import app.zxtune.fs.ProgressCallback;
+import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 

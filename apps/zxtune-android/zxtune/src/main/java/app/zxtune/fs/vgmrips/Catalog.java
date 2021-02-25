@@ -6,7 +6,7 @@ import androidx.annotation.Nullable;
 
 import java.io.IOException;
 
-import app.zxtune.fs.ProgressCallback;
+import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
 public abstract class Catalog {

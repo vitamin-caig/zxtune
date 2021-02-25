@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -20,7 +19,7 @@ import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.ModuleDetectCallback;
-import app.zxtune.fs.ProgressCallback;
+import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.dbhelpers.Transaction;
 

@@ -1,6 +1,4 @@
-package app.zxtune;
-
-import app.zxtune.fs.ProgressCallback;
+package app.zxtune.utils;
 
 public final class StubProgressCallback implements ProgressCallback {
 

@@ -13,7 +13,7 @@ import java.util.Locale;
 import app.zxtune.Log;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.core.jni.JniModule;
-import app.zxtune.fs.ProgressCallback;
+import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;

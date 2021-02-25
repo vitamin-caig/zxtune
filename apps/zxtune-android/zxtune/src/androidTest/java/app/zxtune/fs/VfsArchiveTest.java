@@ -7,7 +7,7 @@ import androidx.annotation.RawRes;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import app.zxtune.StubProgressCallback;
+import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.io.Io;
 import app.zxtune.io.TransactionalOutputStream;
 

@@ -24,6 +24,7 @@ import app.zxtune.fs.vgmrips.Identifier;
 import app.zxtune.fs.vgmrips.Pack;
 import app.zxtune.fs.vgmrips.RemoteCatalog;
 import app.zxtune.fs.vgmrips.Track;
+import app.zxtune.utils.ProgressCallback;
 
 @Icon(R.drawable.ic_browser_vfs_vgmrips)
 final class VfsRootVgmrips extends StubObject implements VfsRoot {

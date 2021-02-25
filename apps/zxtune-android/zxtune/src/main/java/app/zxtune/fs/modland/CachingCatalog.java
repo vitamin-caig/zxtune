@@ -10,9 +10,9 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import app.zxtune.StubProgressCallback;
+import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.ProgressCallback;
+import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.FetchCommand;
 import app.zxtune.fs.dbhelpers.QueryCommand;

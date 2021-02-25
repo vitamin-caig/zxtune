@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.ProgressCallback;
+import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.HttpProviderFactory;
 import app.zxtune.fs.http.MultisourceHttpProvider;

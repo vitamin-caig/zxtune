@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
-import app.zxtune.fs.ProgressCallback;
+import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;

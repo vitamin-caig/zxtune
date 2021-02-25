@@ -26,6 +26,7 @@ import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.HttpProviderFactory;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.io.Io;
+import app.zxtune.utils.ProgressCallback;
 
 public final class Vfs {
 
