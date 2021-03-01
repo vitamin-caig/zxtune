@@ -56,7 +56,7 @@ public class Core {
     final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback,
         progress);
     Analytics.setNativeCallTags(file.getUri(), "*", content.limit());
-    JniModule.detect(makeDirectBuffer(content), adapter);
+    JniModule.detect(makeDirectBuffer(content), adapter, progress);
     if (0 == adapter.getDetectedModulesCount()) {
       Analytics.sendNoTracksFoundEvent(file.getUri());
     }
@@ -115,11 +115,6 @@ public class Core {
       } catch (ResolvingException e) {
         Log.w(TAG, e, "Skip module at %s in %s", subpath, location.getUri());
       }
-    }
-
-    @Override
-    public void onProgress(int done) {
-      delegate.onProgress(done);
     }
 
     private Module resolve(Module obj, String[] files) throws ResolvingException {

@@ -132,11 +132,6 @@ public class ArchivesService {
             dirEntries.add(dirEntry.parent);
           }
         }
-
-        @Override
-        public void onProgress(int done) {
-          cb.onProgressUpdate(done, 100);
-        }
       }, cb);
       final Archive result = new Archive(path, report[0]);
       Log.d(TAG, "Found %d tracks total", result.modules);

@@ -18,10 +18,10 @@ JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_load
 /*
  * Class:     app_zxtune_core_jni_JniModule
  * Method:    detect
- * Signature: (Ljava/nio/ByteBuffer;Lapp/zxtune/core/ModuleDetectCallback;)V
+ * Signature: (Ljava/nio/ByteBuffer;Lapp/zxtune/core/ModuleDetectCallback;Lapp/zxtune/utils/ProgressCallback;)V
  */
 JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_detect
-  (JNIEnv *, jclass, jobject, jobject);
+  (JNIEnv *, jclass, jobject, jobject, jobject);
 
 /*
  * Class:     app_zxtune_core_jni_JniModule

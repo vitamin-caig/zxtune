@@ -163,9 +163,6 @@ public final class Scanner {
       public void onModule(String subpath, Module obj) {
         cb.onModule(new Identifier(uri, subpath), obj);
       }
-
-      @Override
-      public void onProgress(int done) {}
     });
   }
 
