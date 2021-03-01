@@ -9,23 +9,6 @@ package app.zxtune.playback.service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
-import app.zxtune.analytics.Analytics;
-import app.zxtune.Log;
-import app.zxtune.Preferences;
-import app.zxtune.Releaseable;
-import app.zxtune.TimeStamp;
-import app.zxtune.core.Properties;
-import app.zxtune.core.jni.GlobalOptions;
-import app.zxtune.device.sound.SoundOutputSamplesTarget;
-import app.zxtune.playback.*;
-import app.zxtune.playback.stubs.IteratorStub;
-import app.zxtune.playback.stubs.PlayableItemStub;
-import app.zxtune.playback.stubs.VisualizerStub;
-import app.zxtune.sound.AsyncPlayer;
-import app.zxtune.sound.PlayerEventsListener;
-import app.zxtune.sound.SamplesSource;
-import app.zxtune.sound.SamplesTarget;
-import app.zxtune.sound.StubSamplesSource;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,6 +17,34 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+
+import app.zxtune.Log;
+import app.zxtune.Preferences;
+import app.zxtune.Releaseable;
+import app.zxtune.TimeStamp;
+import app.zxtune.analytics.Analytics;
+import app.zxtune.core.Properties;
+import app.zxtune.core.PropertiesContainer;
+import app.zxtune.core.jni.JniApi;
+import app.zxtune.device.sound.SoundOutputSamplesTarget;
+import app.zxtune.playback.Callback;
+import app.zxtune.playback.CompositeCallback;
+import app.zxtune.playback.Item;
+import app.zxtune.playback.Iterator;
+import app.zxtune.playback.IteratorFactory;
+import app.zxtune.playback.PlayableItem;
+import app.zxtune.playback.PlaybackControl;
+import app.zxtune.playback.PlaybackService;
+import app.zxtune.playback.SeekControl;
+import app.zxtune.playback.Visualizer;
+import app.zxtune.playback.stubs.IteratorStub;
+import app.zxtune.playback.stubs.PlayableItemStub;
+import app.zxtune.playback.stubs.VisualizerStub;
+import app.zxtune.sound.AsyncPlayer;
+import app.zxtune.sound.PlayerEventsListener;
+import app.zxtune.sound.SamplesSource;
+import app.zxtune.sound.SamplesTarget;
+import app.zxtune.sound.StubSamplesSource;
 
 public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
@@ -361,9 +372,11 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final class DispatchedPlaybackControl implements PlaybackControl {
 
     private final IteratorFactory.NavigationMode navigation;
+    private final PropertiesContainer options;
 
     DispatchedPlaybackControl() {
       this.navigation = new IteratorFactory.NavigationMode(context);
+      this.options = JniApi.getOptions();
     }
 
     @Override
@@ -388,14 +401,14 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public TrackMode getTrackMode() {
-      final long val = GlobalOptions.instance().getProperty(Properties.Sound.LOOPED, 0);
+      final long val = options.getProperty(Properties.Sound.LOOPED, 0);
       return val != 0 ? TrackMode.LOOPED : TrackMode.REGULAR;
     }
 
     @Override
     public void setTrackMode(TrackMode mode) {
       final long val = mode == TrackMode.LOOPED ? 1 : 0;
-      GlobalOptions.instance().setProperty(Properties.Sound.LOOPED, val);
+      options.setProperty(Properties.Sound.LOOPED, val);
       saveProperty(Properties.Sound.LOOPED, val);
     }
 

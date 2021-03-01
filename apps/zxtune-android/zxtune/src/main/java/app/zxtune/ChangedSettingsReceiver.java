@@ -10,7 +10,7 @@ import java.util.Map;
 
 import app.zxtune.core.Properties;
 import app.zxtune.core.PropertiesModifier;
-import app.zxtune.core.jni.GlobalOptions;
+import app.zxtune.core.jni.JniApi;
 
 class ChangedSettingsReceiver extends BroadcastReceiver {
 
@@ -21,7 +21,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
 
   static Releaseable subscribe(Context ctx) {
     final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(ctx);
-    final PropertiesModifier options = GlobalOptions.instance();
+    final PropertiesModifier options = JniApi.getOptions();
     for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
       final String key = entry.getKey();
       if (key.startsWith(Properties.PREFIX)) {
@@ -40,7 +40,7 @@ class ChangedSettingsReceiver extends BroadcastReceiver {
     if (key.startsWith(Properties.PREFIX)) {
       final Object value = intent.getExtras().get(PreferencesActivity.EXTRA_PREFERENCE_VALUE);
       if (value != null) {
-        setProperty(key, value, GlobalOptions.instance());
+        setProperty(key, value, JniApi.getOptions());
       }
     }
   }

@@ -2,13 +2,9 @@ package app.zxtune.core.jni;
 
 import app.zxtune.core.PropertiesContainer;
 
-public class GlobalOptions implements PropertiesContainer {
+final class JniOptions implements PropertiesContainer {
 
-  static {
-    JniLibrary.load();
-  }
-
-  private GlobalOptions() {
+  private JniOptions() {
   }
 
   @Override
@@ -23,13 +19,12 @@ public class GlobalOptions implements PropertiesContainer {
   @Override
   public native String getProperty(String name, String defVal);
 
-  //TODO: return PropertiesContainer after throws cleanup
   @SuppressWarnings("SameReturnValue")
-  public static GlobalOptions instance() {
+  static PropertiesContainer instance() {
     return Holder.INSTANCE;
   }
 
   private static class Holder {
-    static final GlobalOptions INSTANCE = new GlobalOptions();
+    static final JniOptions INSTANCE = new JniOptions();
   }
 }

@@ -22,8 +22,8 @@ include $(dirs.root)/makefile.mak
 jni_api.h: ../java/app/zxtune/core/jni/JniApi.java
 	javah -classpath ../java -o $@ app.zxtune.core.jni.JniApi
 
-jni_global_options.h: ../java/app/zxtune/core/jni/GlobalOptions.java
-	javah -classpath ../java -o $@ app.zxtune.core.jni.GlobalOptions
+jni_options.h: ../java/app/zxtune/core/jni/JniOptions.java
+	javah -classpath ../java -o $@ app.zxtune.core.jni.JniOptions
 
 jni_module.h: ../java/app/zxtune/core/jni/JniModule.java
 	javah -classpath ../java -o $@ app.zxtune.core.jni.JniModule
