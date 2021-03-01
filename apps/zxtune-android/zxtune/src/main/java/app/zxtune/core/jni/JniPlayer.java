@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Player;
 
-public final class JniPlayer implements Player {
+final class JniPlayer implements Player {
 
   @Native
   private final int handle;

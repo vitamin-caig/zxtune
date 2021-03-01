@@ -14,6 +14,7 @@
 #include "debug.h"
 #include "exception.h"
 #include "global_options.h"
+#include "jni_api.h"
 #include "jni_module.h"
 #include "player.h"
 #include "properties.h"
@@ -27,6 +28,12 @@
 
 namespace
 {
+#define Require(c)                                                                                                     \
+  while (!(c))                                                                                                         \
+  {                                                                                                                    \
+    throw std::runtime_error(#c);                                                                                      \
+  }
+
   class NativeModuleJni
   {
   public:
@@ -76,7 +83,7 @@ namespace
   public:
     static void Init(JNIEnv* env)
     {
-      const auto detectClass = env->FindClass("app/zxtune/core/ModuleDetectCallback");
+      const auto detectClass = env->FindClass("app/zxtune/core/jni/DetectCallback");
       Require(detectClass);
       OnModule = env->GetMethodID(detectClass, "onModule", "(Ljava/lang/String;Lapp/zxtune/core/Module;)V");
       Require(OnModule);
@@ -112,6 +119,8 @@ namespace
 
   jmethodID CallbacksJni::OnModule;
   jmethodID CallbacksJni::OnProgress;
+
+#undef Require
 }  // namespace
 
 namespace
@@ -217,8 +226,8 @@ namespace Module
   }
 }  // namespace Module
 
-JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_load(JNIEnv* env, jclass /*self*/, jobject buffer,
-                                                                  jstring subpath)
+JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule(JNIEnv* env, jclass /*self*/, jobject buffer,
+                                                                     jstring subpath)
 {
   return Jni::Call(env, [=]() {
     auto module = CreateModule(Binary::CreateByteBufferContainer(env, buffer), Jni::MakeString(env, subpath));
@@ -226,8 +235,8 @@ JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_load(JNIEnv* env, j
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_detect(JNIEnv* env, jclass /*self*/, jobject buffer,
-                                                                 jobject cb, jobject progress)
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules(JNIEnv* env, jclass /*self*/, jobject buffer,
+                                                                     jobject cb, jobject progress)
 {
   return Jni::Call(env, [=]() {
     ProgressCallback progressAdapter(env, progress);

@@ -9,22 +9,6 @@ extern "C" {
 #endif
 /*
  * Class:     app_zxtune_core_jni_JniModule
- * Method:    load
- * Signature: (Ljava/nio/ByteBuffer;Ljava/lang/String;)Lapp/zxtune/core/jni/JniModule;
- */
-JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniModule_load
-  (JNIEnv *, jclass, jobject, jstring);
-
-/*
- * Class:     app_zxtune_core_jni_JniModule
- * Method:    detect
- * Signature: (Ljava/nio/ByteBuffer;Lapp/zxtune/core/ModuleDetectCallback;Lapp/zxtune/utils/ProgressCallback;)V
- */
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_detect
-  (JNIEnv *, jclass, jobject, jobject, jobject);
-
-/*
- * Class:     app_zxtune_core_jni_JniModule
  * Method:    close
  * Signature: (I)V
  */

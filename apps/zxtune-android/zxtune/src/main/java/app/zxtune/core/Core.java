@@ -12,12 +12,13 @@ import java.util.Locale;
 
 import app.zxtune.Log;
 import app.zxtune.analytics.Analytics;
-import app.zxtune.core.jni.JniModule;
-import app.zxtune.utils.ProgressCallback;
+import app.zxtune.core.jni.DetectCallback;
+import app.zxtune.core.jni.JniApi;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
+import app.zxtune.utils.ProgressCallback;
 
 public class Core {
   private static final String TAG = Core.class.getName();
@@ -28,11 +29,11 @@ public class Core {
 
   @SuppressWarnings("SameParameterValue")
   private static Module loadModule(VfsFile file, String subpath,
-                                  @Nullable ProgressCallback progress) throws IOException,
+                                   @Nullable ProgressCallback progress) throws IOException,
       ResolvingException {
     final ByteBuffer content = Vfs.read(file);
     Analytics.setNativeCallTags(file.getUri(), subpath, content.limit());
-    final Module obj = JniModule.load(makeDirectBuffer(content), subpath);
+    final Module obj = JniApi.loadModule(makeDirectBuffer(content), subpath);
     final String[] files = obj.getAdditionalFiles();
     if (files == null || files.length == 0) {
       return obj;
@@ -53,10 +54,10 @@ public class Core {
                                    ModuleDetectCallback callback,
                                    @Nullable ProgressCallback progress) throws IOException {
     final ByteBuffer content = Vfs.read(file, progress);
-    final ModuleDetectCallbackAdapter adapter = new ModuleDetectCallbackAdapter(file, callback,
+    final DetectCallbackAdapter adapter = new DetectCallbackAdapter(file, callback,
         progress);
     Analytics.setNativeCallTags(file.getUri(), "*", content.limit());
-    JniModule.detect(makeDirectBuffer(content), adapter, progress);
+    JniApi.detectModules(makeDirectBuffer(content), adapter, progress);
     if (0 == adapter.getDetectedModulesCount()) {
       Analytics.sendNoTracksFoundEvent(file.getUri());
     }
@@ -77,7 +78,7 @@ public class Core {
     }
   }
 
-  private static class ModuleDetectCallbackAdapter implements ModuleDetectCallback {
+  private static class DetectCallbackAdapter implements DetectCallback {
 
     private final VfsFile location;
     private final ModuleDetectCallback delegate;
@@ -87,8 +88,8 @@ public class Core {
     private Resolver resolver;
     private int modulesCount = 0;
 
-    ModuleDetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate,
-                                @Nullable ProgressCallback progress) {
+    DetectCallbackAdapter(VfsFile location, ModuleDetectCallback delegate,
+                          @Nullable ProgressCallback progress) {
       this.location = location;
       this.delegate = delegate;
       this.progress = progress;
