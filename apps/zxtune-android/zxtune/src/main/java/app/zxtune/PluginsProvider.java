@@ -20,6 +20,7 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
+import app.zxtune.core.jni.JniApi;
 import app.zxtune.core.jni.Plugins;
 
 public final class PluginsProvider extends ContentProvider {
@@ -102,7 +103,7 @@ public final class PluginsProvider extends ContentProvider {
                       @Nullable String[] selectionArgs, @Nullable String sortOrder) {
     final String[] columns = {Columns.Type.name(), Columns.Description.name()}; 
     final MatrixCursor res = new MatrixCursor(columns);
-    Plugins.enumerate(new Plugins.Visitor() {
+    JniApi.enumeratePlugins(new Plugins.Visitor() {
       @Override
       public void onPlayerPlugin(int devices, String id, String description) {
         final int type = getPlayerPluginType(devices).ordinal();

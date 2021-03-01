@@ -18,4 +18,5 @@ public class JniApi {
 
   public static native void detectModules(ByteBuffer data, DetectCallback callback, @Nullable ProgressCallback progress);
 
+  public static native void enumeratePlugins(Plugins.Visitor visitor);
 }

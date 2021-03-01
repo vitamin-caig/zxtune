@@ -28,11 +28,7 @@
 
 namespace
 {
-#define Require(c)                                                                                                     \
-  while (!(c))                                                                                                         \
-  {                                                                                                                    \
-    throw std::runtime_error(#c);                                                                                      \
-  }
+  // #define Require(c) while (! (c)) { throw std::runtime_error( #c ); }
 
   class NativeModuleJni
   {

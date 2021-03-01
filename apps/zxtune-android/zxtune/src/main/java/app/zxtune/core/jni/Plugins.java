@@ -2,10 +2,6 @@ package app.zxtune.core.jni;
 
 public final class Plugins {
 
-  static {
-    JniLibrary.load();
-  }
-
   public static final class DeviceType {
     //ZXTune::Capabilities::Module::Device::Type
     public static final int AY38910 = 1;
@@ -42,5 +38,4 @@ public final class Plugins {
     void onContainerPlugin(int type, String id, String description);
   }
 
-  public static native void enumerate(Visitor visitor);
 }

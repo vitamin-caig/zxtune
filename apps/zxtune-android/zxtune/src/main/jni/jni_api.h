@@ -23,17 +23,14 @@ JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule
 JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules
   (JNIEnv *, jclass, jobject, jobject, jobject);
 
-#ifdef __cplusplus
-}
-#endif
-#endif
-/* Header for class app_zxtune_core_jni_JniApi_DetectCallback */
+/*
+ * Class:     app_zxtune_core_jni_JniApi
+ * Method:    enumeratePlugins
+ * Signature: (Lapp/zxtune/core/jni/Plugins/Visitor;)V
+ */
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_enumeratePlugins
+  (JNIEnv *, jclass, jobject);
 
-#ifndef _Included_app_zxtune_core_jni_JniApi_DetectCallback
-#define _Included_app_zxtune_core_jni_JniApi_DetectCallback
-#ifdef __cplusplus
-extern "C" {
-#endif
 #ifdef __cplusplus
 }
 #endif
