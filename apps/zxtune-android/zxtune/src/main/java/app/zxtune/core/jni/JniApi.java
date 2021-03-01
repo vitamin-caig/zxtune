@@ -12,7 +12,7 @@ import app.zxtune.utils.ProgressCallback;
 public class JniApi {
 
   static {
-    JniLibrary.load();
+    System.loadLibrary("zxtune");
   }
 
   public static native Module loadModule(ByteBuffer data, String subPath) throws ResolvingException;
