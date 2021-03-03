@@ -49,5 +49,6 @@
   <!-- containers -->
   <string name="plugin_multitrack">Víceskladbové kontejnery</string>
   <string name="plugin_archive">Archivátory</string>
+  <string name="plugin_compressor">Datové balírny</string>
   <string name="plugin_decompiler">Dekompilátory</string>
 </resources>

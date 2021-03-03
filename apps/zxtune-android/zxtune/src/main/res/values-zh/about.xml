@@ -47,5 +47,6 @@
   <!-- containers -->
   <string name="plugin_multitrack">多轨容器</string>
   <string name="plugin_archive">解压工具</string>
+  <string name="plugin_compressor">数据打包机</string>
   <string name="plugin_decompiler">反编译器</string>
 </resources>

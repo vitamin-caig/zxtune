@@ -47,5 +47,6 @@
   <!-- containers -->
   <string name="plugin_multitrack">Múltiples módulos</string>
   <string name="plugin_archive">Archivadores</string>
+  <string name="plugin_compressor">Empaquetadores de datos</string>
   <string name="plugin_decompiler">Decompiladores</string>
 </resources>

@@ -46,5 +46,6 @@
   <!-- containers -->
   <string name="plugin_multitrack">Многотрековые</string>
   <string name="plugin_archive">Архиваторы</string>
+  <string name="plugin_compressor">Упаковщики</string>
   <string name="plugin_decompiler">Декомпиляторы</string>
 </resources>

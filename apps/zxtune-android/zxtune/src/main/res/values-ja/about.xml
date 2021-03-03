@@ -48,5 +48,6 @@
   <!-- containers -->
   <string name="plugin_multitrack">マルチトラックコンテナ</string>
   <string name="plugin_archive">アーカイバを解除</string>
+  <string name="plugin_compressor">データパッカー</string>
   <string name="plugin_decompiler">逆コンパイラ</string>
 </resources>

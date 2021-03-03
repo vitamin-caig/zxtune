@@ -45,6 +45,7 @@ public final class PluginsProvider extends ContentProvider {
     
     ContainerMultitrack(R.string.plugin_multitrack),
     ContainerArchive(R.string.plugin_archive),
+    ContainerCompressor(R.string.plugin_compressor),
     ContainerDecompiler(R.string.plugin_decompiler),
     
     Unknown(R.string.plugin_unknown);
@@ -153,6 +154,8 @@ public final class PluginsProvider extends ContentProvider {
     switch (type) {
       case Plugins.ContainerType.ARCHIVE:
         return Types.ContainerArchive;
+      case Plugins.ContainerType.COMPRESSOR:
+        return Types.ContainerCompressor;
       case Plugins.ContainerType.DECOMPILER:
         return Types.ContainerDecompiler;
       case Plugins.ContainerType.MULTITRACK:

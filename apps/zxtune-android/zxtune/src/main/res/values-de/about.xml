@@ -46,5 +46,6 @@
   <!-- containers -->
   <string name="plugin_multitrack">Multi-Spuren</string>
   <string name="plugin_archive">Archiver</string>
+  <string name="plugin_compressor">Datenpacker</string>
   <string name="plugin_decompiler">Decompiler</string>
 </resources>
