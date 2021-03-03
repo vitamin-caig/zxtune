@@ -65,7 +65,7 @@ public final class VfsArchive {
 
   private static boolean isArchived(Uri uri) {
     final Identifier id = new Identifier(uri);
-    return !id.getSubpath().isEmpty();
+    return !id.getSubPath().isEmpty();
   }
 
   /*
@@ -146,7 +146,7 @@ public final class VfsArchive {
   @Nullable
   private VfsObject resolveUri(Uri uri, @Nullable ProgressCallback cb) throws IOException {
     final Identifier id = new Identifier(uri);
-    final String subpath = id.getSubpath();
+    final String subpath = id.getSubPath();
     if (TextUtils.isEmpty(subpath)) {
       return resolveFileUri(uri, cb);
     } else {

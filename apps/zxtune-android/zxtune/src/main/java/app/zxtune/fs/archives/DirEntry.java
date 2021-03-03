@@ -27,7 +27,7 @@ public class DirEntry {
   }
 
   static DirEntry create(Identifier id) {
-    final String subpath = id.getSubpath();
+    final String subpath = id.getSubPath();
     if (TextUtils.isEmpty(subpath)) {
       /*
        * TODO: fix model to avoid conflicts in the next case:

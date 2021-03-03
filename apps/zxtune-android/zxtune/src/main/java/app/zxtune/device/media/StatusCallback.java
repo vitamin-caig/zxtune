@@ -117,7 +117,7 @@ class StatusCallback implements Callback {
       builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, getLocationIcon(dataId.getDataLocation()));
       builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, dataId.toString());
       builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, item.getId().toString());
-      fillObjectUrls(dataId.getDataLocation(), dataId.getSubpath(), builder);
+      fillObjectUrls(dataId.getDataLocation(), dataId.getSubPath(), builder);
       session.setMetadata(builder.build());
     } catch (Exception e) {
       Log.w(TAG, e, "onItemChanged()");

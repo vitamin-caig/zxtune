@@ -44,7 +44,7 @@ public final class Scanner {
 
   public static void analyzeIdentifier(Identifier id, Callback cb) {
     try {
-      if (id.getSubpath().isEmpty()) {
+      if (id.getSubPath().isEmpty()) {
         Holder.INSTANCE.analyzeRealObject(id, cb);
       } else {
         Holder.INSTANCE.analyzeArchiveObject(id, cb);
@@ -112,7 +112,7 @@ public final class Scanner {
     final Identifier id = new Identifier(file.getUri());
     try {
       //may be called from recursion, so additionally check for archived objects
-      if (!id.getSubpath().isEmpty()) {
+      if (!id.getSubPath().isEmpty()) {
         analyzeArchiveObject(id, cb);
       } else if (!analyzePlaylistFile(file, cb)) {
         analyzeRealFile(file, cb);
@@ -172,7 +172,7 @@ public final class Scanner {
   private void analyzeArchiveObject(Identifier id, Callback cb) throws Exception {
     try {
       final VfsFile archive = openArchive(id.getDataLocation());
-      final Module module = Core.loadModule(archive, id.getSubpath());
+      final Module module = Core.loadModule(archive, id.getSubPath());
       cb.onModule(id, module);
     } catch (ResolvingException e) {
       final Uri uri = id.getFullLocation();
