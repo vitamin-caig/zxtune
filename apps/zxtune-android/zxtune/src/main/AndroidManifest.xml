@@ -25,9 +25,6 @@
         <meta-data
                 android:name="key.modarchive"
                 android:value="${modarchiveKey}" />
-        <meta-data
-                android:name="io.fabric.ApiKey"
-                android:value="${crashlyticsKey}" />
 
         <activity
                 android:name=".MainActivity"

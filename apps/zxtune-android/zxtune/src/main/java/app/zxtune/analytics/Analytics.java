@@ -6,8 +6,6 @@ import android.net.Uri;
 import androidx.annotation.IntDef;
 import androidx.collection.SparseArrayCompat;
 
-import com.crashlytics.android.Crashlytics;
-
 import java.lang.annotation.Retention;
 import java.util.HashMap;
 
@@ -21,11 +19,7 @@ public class Analytics {
   private static Sink[] sinks = {};
 
   public static void initialize(Context ctx) {
-    if (FabricSink.isEnabled()) {
-      sinks = new Sink[]{new FabricSink(ctx), new InternalSink(ctx)};
-    } else {
-      sinks = new Sink[]{new InternalSink(ctx)};
-    }
+    sinks = new Sink[]{new InternalSink(ctx)};
   }
 
   public static void logException(Throwable e) {
@@ -77,12 +71,6 @@ public class Analytics {
   }
 
   public static void setNativeCallTags(Uri uri, String subpath, int size) {
-    if (FabricSink.isEnabled()) {
-      Crashlytics.setString("file", "file".equals(uri.getScheme()) ? uri.getLastPathSegment() :
-          uri.toString());
-      Crashlytics.setString("subpath", subpath);
-      Crashlytics.setInt("size", size);
-    }
   }
 
   public static void sendPlayEvent(PlayableItem item, Player player) {

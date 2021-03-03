@@ -48,7 +48,7 @@ submode_pathname = $(if $(pic),_pic,)$(if $(static_runtime),_static,)
 includes.dirs += $(dirs.root)/include $(dirs.root)/src $(dirs.root)
 objs_dir = $(dirs.root)/obj/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
 libraries.dir = $(dirs.root)/lib/$(platform_pathname)/$(mode_pathname)$(submode_pathname)
-bins_dir = $(dirs.root)/bin/$(platform_pathname)/$(mode_pathname)
+bins_dir ?= $(dirs.root)/bin/$(platform_pathname)/$(mode_pathname)
 
 #set environment
 include $(dirs.root)/make/environment.mak

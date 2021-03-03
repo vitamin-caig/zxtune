@@ -22,32 +22,25 @@ RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boo
     mv boost_*/boost ${prebuilt}/boost-${boost}/include/ && \
     rm -Rf boost_*
 
-#Android SDK
-ENV build_tools=29.0.3 platform=29
+#Android SDK AGP=4.1.0
+ENV build_tools=29.0.2 platform=29 ndk=21.1.6352462
 RUN mkdir -p ${androidsdk} && cd ${androidsdk} && \
     wget -q https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && \
     unzip -q *.zip && \
     rm *.zip && \
-    (yes | tools/bin/sdkmanager --install "build-tools;${build_tools}" "platform-tools" "platforms;android-${platform}")
-
-#NDK toolchains
-ENV ndk_version=r21d
-RUN wget -q https://dl.google.com/android/repository/android-ndk-${ndk_version}-linux-x86_64.zip && \
-    unzip -q *.zip && rm *.zip
-
-#Precache gradle and dependencies
-COPY --chown=build android_env android_env/
-RUN cd android_env && ./gradlew resolveDependencies && \
-    rm -Rf .gradle build
+    (yes | tools/bin/sdkmanager --install "build-tools;${build_tools}" "platform-tools" "platforms;android-${platform}" "ndk;${ndk}")
 
 #Sources
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "android.ndk=/build/android-ndk-${ndk_version}\nprebuilt.dir=${prebuilt}\nboost.version=${boost}\n"\
+    echo "android.ndk=${androidsdk}/ndk/${ndk}\nprebuilt.dir=${prebuilt}\nboost.version=${boost}\n"\
          "tools.python=python3\n" > variables.mak && \
-    mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}" > apps/zxtune-android/local.properties && \
+    mkdir -p apps/zxtune-android && echo "sdk.dir=${androidsdk}\nndk.version=${ndk}" > apps/zxtune-android/local.properties && \
     echo "org.gradle.jvmargs=-Xmx4g\nandroid.enableJetifier=true\nandroid.useAndroidX=true" > apps/zxtune-android/gradle.properties
+
+# To allow volume binding with proper access rights
+RUN  mkdir /build/.gradle && chown build:users /build/.gradle
 
 WORKDIR /build/zxtune/apps/zxtune-android
 COPY entrypoint.sh .
