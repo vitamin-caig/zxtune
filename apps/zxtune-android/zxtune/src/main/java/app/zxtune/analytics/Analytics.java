@@ -4,7 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 
 import androidx.annotation.IntDef;
-import androidx.collection.SparseArrayCompat;
+import androidx.collection.LongSparseArray;
 
 import java.lang.annotation.Retention;
 import java.util.HashMap;
@@ -32,7 +32,7 @@ public class Analytics {
   public static class Trace {
     private final String id;
     private final long start = System.nanoTime();
-    private final SparseArrayCompat<String> points = new SparseArrayCompat<>();
+    private final LongSparseArray<String> points = new LongSparseArray<>();
     private String method = "";
 
     public static Trace create(String id) {
@@ -59,12 +59,12 @@ public class Analytics {
       method = "";
     }
 
-    private int getElapsed() {
-      return (int) ((System.nanoTime() - start) / 1000);
+    private long getElapsed() {
+      return ((System.nanoTime() - start) / 1000);
     }
   }
 
-  private static void sendTrace(String id, SparseArrayCompat<String> points) {
+  private static void sendTrace(String id, LongSparseArray<String> points) {
     for (Sink s : sinks) {
       s.sendTrace(id, points);
     }
@@ -81,7 +81,8 @@ public class Analytics {
 
   @Retention(SOURCE)
   @IntDef({BROWSER_ACTION_BROWSE, BROWSER_ACTION_BROWSE_PARENT, BROWSER_ACTION_SEARCH})
-  @interface BrowserAction {}
+  @interface BrowserAction {
+  }
 
   public static final int BROWSER_ACTION_BROWSE = 0;
   public static final int BROWSER_ACTION_BROWSE_PARENT = 1;
@@ -95,7 +96,8 @@ public class Analytics {
 
   @Retention(SOURCE)
   @IntDef({SOCIAL_ACTION_RINGTONE, SOCIAL_ACTION_SHARE, SOCIAL_ACTION_SEND})
-  @interface SocialAction {}
+  @interface SocialAction {
+  }
 
   public static final int SOCIAL_ACTION_RINGTONE = 0;
   public static final int SOCIAL_ACTION_SHARE = 1;
@@ -109,8 +111,9 @@ public class Analytics {
 
   @Retention(SOURCE)
   @IntDef({UI_ACTION_OPEN, UI_ACTION_CLOSE, UI_ACTION_PREFERENCES, UI_ACTION_RATE, UI_ACTION_ABOUT,
-      UI_ACTION_QUIT})
-  @interface UiAction {}
+          UI_ACTION_QUIT})
+  @interface UiAction {
+  }
 
   public static final int UI_ACTION_OPEN = 0;
   public static final int UI_ACTION_CLOSE = 1;
@@ -127,9 +130,10 @@ public class Analytics {
 
   @Retention(SOURCE)
   @IntDef({PLAYLIST_ACTION_ADD, PLAYLIST_ACTION_DELETE, PLAYLIST_ACTION_MOVE, PLAYLIST_ACTION_SORT,
-      PLAYLIST_ACTION_SAVE,
-      PLAYLIST_ACTION_STATISTICS})
-  @interface PlaylistAction {}
+          PLAYLIST_ACTION_SAVE,
+          PLAYLIST_ACTION_STATISTICS})
+  @interface PlaylistAction {
+  }
 
   public static final int PLAYLIST_ACTION_ADD = 0;
   public static final int PLAYLIST_ACTION_DELETE = 1;
@@ -146,7 +150,8 @@ public class Analytics {
 
   @Retention(SOURCE)
   @IntDef({VFS_ACTION_REMOTE_FETCH, VFS_ACTION_REMOTE_FALLBACK, VFS_ACTION_CACHED_FETCH, VFS_ACTION_CACHED_FALLBACK})
-  @interface VfsAction {}
+  @interface VfsAction {
+  }
 
   public static final int VFS_ACTION_REMOTE_FETCH = 0;
   public static final int VFS_ACTION_REMOTE_FALLBACK = 1;

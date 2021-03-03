@@ -3,7 +3,10 @@ package app.zxtune.analytics;
 import android.content.Context;
 import android.net.Uri;
 
-import androidx.collection.SparseArrayCompat;
+import androidx.collection.LongSparseArray;
+
+import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.analytics.internal.Factory;
@@ -14,9 +17,6 @@ import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playlist.ProviderClient;
-
-import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
 import static app.zxtune.analytics.internal.UrlsBuilder.DEFAULT_LONG_VALUE;
 import static app.zxtune.analytics.internal.UrlsBuilder.DEFAULT_STRING_VALUE;
@@ -36,12 +36,12 @@ final class InternalSink implements Sink {
   }
 
   @Override
-  public void sendTrace(String id, SparseArrayCompat<String> points) {
+  public void sendTrace(String id, LongSparseArray<String> points) {
     final UrlsBuilder builder = new UrlsBuilder("trace");
     builder.addParam("id", id);
     for (int idx = 0, lim = points.size(); idx < lim; ++idx) {
       final String tag = points.valueAt(idx);
-      final int offset = points.keyAt(idx);
+      final long offset = points.keyAt(idx);
       builder.addParam(tag, offset);
     }
     send(builder);
@@ -202,7 +202,7 @@ final class InternalSink implements Sink {
     builder.addUri(uri);
     if ("file".equals(uri.getScheme())) {
       final String filename = uri.getLastPathSegment();
-      final int extPos = filename != null ? filename.lastIndexOf('.') : -1;
+      final int extPos = filename != null ? filename.lastIndexOf('.' ) : -1;
       final String type = extPos != -1 ? filename.substring(extPos + 1) : "none";
       builder.addParam("type", type);
     }

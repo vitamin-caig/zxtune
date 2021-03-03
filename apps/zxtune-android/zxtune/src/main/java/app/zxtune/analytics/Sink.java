@@ -2,7 +2,7 @@ package app.zxtune.analytics;
 
 import android.net.Uri;
 
-import androidx.collection.SparseArrayCompat;
+import androidx.collection.LongSparseArray;
 
 import java.util.HashMap;
 
@@ -14,7 +14,7 @@ interface Sink {
   void logException(Throwable e);
 
   // elapsed => tag
-  void sendTrace(String id, SparseArrayCompat<String> points);
+  void sendTrace(String id, LongSparseArray<String> points);
 
   void sendPlayEvent(PlayableItem item, Player player);
 
