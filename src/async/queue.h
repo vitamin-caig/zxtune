@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Typed thread-safe queue interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Typed thread-safe queue interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
 
 namespace Async
@@ -34,4 +34,4 @@ namespace Async
     //! @brief Wait until queue become empty
     virtual void Flush() = 0;
   };
-}
+}  // namespace Async

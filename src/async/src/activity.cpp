@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief Asynchronous activity implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Asynchronous activity implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "async/src/event.h"
-//common includes
-#include <pointers.h>
+// common includes
 #include <make_ptr.h>
-//library includes
+#include <pointers.h>
+// library includes
 #include <async/activity.h>
-//std includes
+// std includes
 #include <cassert>
 #include <thread>
 
@@ -37,8 +37,7 @@ namespace Async
     explicit ThreadActivity(Operation::Ptr op)
       : Oper(std::move(op))
       , State(ActivityState::STOPPED)
-    {
-    }
+    {}
 
     ~ThreadActivity() override
     {
@@ -70,6 +69,7 @@ namespace Async
       }
       ThrowIfError(LastError);
     }
+
   private:
     void WorkProc()
     {
@@ -88,6 +88,7 @@ namespace Async
         State.Set(ActivityState::FAILED);
       }
     }
+
   private:
     const Operation::Ptr Oper;
     Event<ActivityState> State;
@@ -103,11 +104,9 @@ namespace Async
       return false;
     }
 
-    void Wait() override
-    {
-    }
+    void Wait() override {}
   };
-}
+}  // namespace Async
 
 namespace Async
 {
@@ -123,4 +122,4 @@ namespace Async
     static StubActivity stub;
     return MakeSingletonPointer(stub);
   }
-}
+}  // namespace Async

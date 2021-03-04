@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief Asynchronous adapter for data streams
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Asynchronous adapter for data streams
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <contract.h>
 #include <data_streaming.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <async/activity.h>
 #include <async/progress.h>
 #include <async/sized_queue.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <list>
 
@@ -52,17 +52,17 @@ namespace Async
     void Flush() override
     {
       CheckWorkersAvailable();
-      //may not flush queue
+      // may not flush queue
       Statistic->WaitForComplete();
       Delegate->Flush();
     }
 
-    static typename ::DataReceiver<T>::Ptr Create(std::size_t workersCount, std::size_t queueSize, typename ::DataReceiver<T>::Ptr delegate)
+    static typename ::DataReceiver<T>::Ptr Create(std::size_t workersCount, std::size_t queueSize,
+                                                  typename ::DataReceiver<T>::Ptr delegate)
     {
-      return workersCount
-        ? MakePtr<DataReceiver>(workersCount, queueSize, delegate)
-        : delegate;
+      return workersCount ? MakePtr<DataReceiver>(workersCount, queueSize, delegate) : delegate;
     }
+
   private:
     void StartAll(std::size_t count)
     {
@@ -96,14 +96,14 @@ namespace Async
     void CheckWorkersAvailable()
     {
       if (std::none_of(Activities.begin(), Activities.end(),
-          [](const Activity::Ptr& activity) {return activity->IsExecuted();}))
+                       [](const Activity::Ptr& activity) { return activity->IsExecuted(); }))
       {
         const auto& errors = WaitAll();
-        throw errors.empty()
-          ? Error()//TODO
-          : *errors.begin();
+        throw errors.empty() ? Error()  // TODO
+                             : *errors.begin();
       }
     }
+
   private:
     class TransceiveOperation : public Operation
     {
@@ -112,12 +112,9 @@ namespace Async
         : QueueObject(std::move(queue))
         , Statistic(std::move(stat))
         , Target(std::move(target))
-      {
-      }
+      {}
 
-      void Prepare() override
-      {
-      }
+      void Prepare() override {}
 
       void Execute() override
       {
@@ -128,11 +125,13 @@ namespace Async
           Statistic->Consume(1);
         }
       }
+
     private:
       const typename Queue<T>::Ptr QueueObject;
       const Progress::Ptr Statistic;
       const typename DataReceiver<T>::Ptr Target;
     };
+
   private:
     const typename Queue<T>::Ptr QueueObject;
     const Progress::Ptr Statistic;
@@ -140,4 +139,4 @@ namespace Async
     typedef std::list<typename Activity::Ptr> ActivitiesList;
     ActivitiesList Activities;
   };
-}
+}  // namespace Async

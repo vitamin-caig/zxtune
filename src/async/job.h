@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Asynchronous job interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Asynchronous job interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
 
 namespace Async
@@ -28,4 +28,4 @@ namespace Async
     virtual bool IsActive() const = 0;
     virtual bool IsPaused() const = 0;
   };
-}
+}  // namespace Async
