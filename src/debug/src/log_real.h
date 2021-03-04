@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  Debug logging implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Debug logging implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <cassert>
 #include <string>
-//library includes
+// library includes
 #include <strings/format.h>
 
 namespace Debug
@@ -48,11 +48,10 @@ namespace Debug
     explicit Stream(const char* module)
       : Module(module)
       , Enabled(IsEnabledFor(Module))
-    {
-    }
+    {}
 
     //! @brief Conditionally outputs debug message from specified module
-    void operator ()(const char* msg) const
+    void operator()(const char* msg) const
     {
       assert(msg);
       if (Enabled)
@@ -63,7 +62,7 @@ namespace Debug
 
     //! @brief Conditionally outputs formatted debug message from specified module
     template<class... P>
-    void operator ()(const char* msg, P&&... p) const
+    void operator()(const char* msg, P&&... p) const
     {
       assert(msg);
       if (Enabled)
@@ -71,8 +70,9 @@ namespace Debug
         Message(Module, Strings::Format(msg, p...));
       }
     }
+
   private:
     const String Module;
     const bool Enabled;
   };
-}
+}  // namespace Debug
