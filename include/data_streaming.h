@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Defenition of data streaming abstractions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Defenition of data streaming abstractions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <pointers.h>
-//std includes
+// std includes
 #include <memory>
 
 //! @brief Template data consuming interface. Instantiated with working data class
@@ -66,8 +66,9 @@ public:
 
 //! @brief Template data chained with possible converting interface
 template<class InType, class OutType = InType>
-class DataTransceiver : public DataReceiver<InType>
-                      , public DataTransmitter<OutType>
+class DataTransceiver
+  : public DataReceiver<InType>
+  , public DataTransmitter<OutType>
 {
 public:
   //! @brief Pointer type.

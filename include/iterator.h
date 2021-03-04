@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Iterator interfaces and helper functions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Iterator interfaces and helper functions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <pointers.h>
-//std includes
+// std includes
 #include <cassert>
 #include <iterator>
 #include <memory>
@@ -29,21 +29,29 @@ template<class C>
 class CycledIterator
 {
 public:
-  CycledIterator() : Begin(), End(), Cur()
-  {
-  }
+  CycledIterator()
+    : Begin()
+    , End()
+    , Cur()
+  {}
 
-  CycledIterator(C start, C stop) : Begin(start), End(stop), Cur(start)
+  CycledIterator(C start, C stop)
+    : Begin(start)
+    , End(stop)
+    , Cur(start)
   {
     assert(std::distance(Begin, End) > 0);
   }
 
-  CycledIterator(const CycledIterator<C>& rh) : Begin(rh.Begin), End(rh.End), Cur(rh.Cur)
+  CycledIterator(const CycledIterator<C>& rh)
+    : Begin(rh.Begin)
+    , End(rh.End)
+    , Cur(rh.Cur)
   {
     assert(std::distance(Begin, End) > 0);
   }
 
-  CycledIterator<C>& operator = (const CycledIterator<C>& rh)
+  CycledIterator<C>& operator=(const CycledIterator<C>& rh)
   {
     Begin = rh.Begin;
     End = rh.End;
@@ -52,7 +60,7 @@ public:
     return *this;
   }
 
-  CycledIterator<C>& operator ++ ()
+  CycledIterator<C>& operator++()
   {
     if (End == ++Cur)
     {
@@ -61,7 +69,7 @@ public:
     return *this;
   }
 
-  CycledIterator<C>& operator -- ()
+  CycledIterator<C>& operator--()
   {
     if (Begin == Cur)
     {
@@ -71,17 +79,17 @@ public:
     return *this;
   }
 
-  typename std::iterator_traits<C>::reference operator * () const
+  typename std::iterator_traits<C>::reference operator*() const
   {
     return *Cur;
   }
 
-  typename std::iterator_traits<C>::pointer operator ->() const
+  typename std::iterator_traits<C>::pointer operator->() const
   {
     return &*Cur;
   }
 
-  CycledIterator<C> operator + (std::size_t dist) const
+  CycledIterator<C> operator+(std::size_t dist) const
   {
     const std::size_t len = std::distance(Begin, End);
     const std::size_t pos = std::distance(Begin, Cur);
@@ -91,7 +99,7 @@ public:
     return res;
   }
 
-  CycledIterator<C> operator - (std::size_t dist) const
+  CycledIterator<C> operator-(std::size_t dist) const
   {
     const std::size_t len = std::distance(Begin, End);
     const std::size_t pos = std::distance(Begin, Cur);
@@ -100,6 +108,7 @@ public:
     std::advance(res.Cur, newPos);
     return res;
   }
+
 private:
   C Begin;
   C End;
@@ -119,40 +128,40 @@ private:
 template<class C>
 class RangeIterator
 {
-  void TrueFunc() const
-  {
-  }
+  void TrueFunc() const {}
+
 public:
   RangeIterator(C from, C to)
-    : Cur(std::move(from)), Lim(std::move(to))
-  {
-  }
+    : Cur(std::move(from))
+    , Lim(std::move(to))
+  {}
 
   typedef void (RangeIterator<C>::*BoolType)() const;
 
-  operator BoolType () const
+  operator BoolType() const
   {
     return Cur != Lim ? &RangeIterator<C>::TrueFunc : nullptr;
   }
 
-  typename std::iterator_traits<C>::reference operator * () const
+  typename std::iterator_traits<C>::reference operator*() const
   {
     assert(Cur != Lim);
     return *Cur;
   }
 
-  typename std::iterator_traits<C>::pointer operator -> () const
+  typename std::iterator_traits<C>::pointer operator->() const
   {
     assert(Cur != Lim);
     return &*Cur;
   }
 
-  RangeIterator<C>& operator ++ ()
+  RangeIterator<C>& operator++()
   {
     assert(Cur != Lim);
     ++Cur;
     return *this;
   }
+
 private:
   C Cur;
   const C Lim;
@@ -213,8 +222,7 @@ class RangedObjectIteratorAdapter : public ObjectIterator<V>
 public:
   explicit RangedObjectIteratorAdapter(I from, I to)
     : Range(from, to)
-  {
-  }
+  {}
 
   bool IsValid() const override
   {
@@ -232,6 +240,7 @@ public:
     assert(Range);
     ++Range;
   }
+
 private:
   RangeIterator<I> Range;
 };

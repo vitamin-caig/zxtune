@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Pointers creating with controllable overhead
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Pointers creating with controllable overhead
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <utility>
 
 template<class T, class... P>

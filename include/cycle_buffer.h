@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Simple cycle buffer template
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Simple cycle buffer template
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <algorithm>
 #include <cstring>
 #include <memory>
@@ -27,8 +27,7 @@ public:
     , FreeAvailable(size)
     , BusyCursor(BufferStart)
     , BusyAvailable(0)
-  {
-  }
+  {}
 
   void Reset()
   {
@@ -42,11 +41,9 @@ public:
   {
     const std::size_t toPut = std::min(count, FreeAvailable);
     const T* input = src;
-    for (std::size_t rest = toPut; rest != 0; )
+    for (std::size_t rest = toPut; rest != 0;)
     {
-      const std::size_t availFree = BusyCursor <= FreeCursor
-        ? BufferEnd - FreeCursor
-        : BusyCursor - FreeCursor;
+      const std::size_t availFree = BusyCursor <= FreeCursor ? BufferEnd - FreeCursor : BusyCursor - FreeCursor;
       const std::size_t toCopy = std::min(availFree, rest);
       std::memcpy(FreeCursor, input, toCopy * sizeof(T));
       input += toCopy;
@@ -62,7 +59,8 @@ public:
     return toPut;
   }
 
-  std::size_t Peek(std::size_t count, const T*& part1Start, std::size_t& part1Size, const T*& part2Start, std::size_t& part2Size) const
+  std::size_t Peek(std::size_t count, const T*& part1Start, std::size_t& part1Size, const T*& part2Start,
+                   std::size_t& part2Size) const
   {
     if (const std::size_t toPeek = std::min(count, BusyAvailable))
     {
@@ -72,7 +70,7 @@ public:
       part2Size = 0;
       if (BusyCursor >= FreeCursor)
       {
-        //possible split
+        // possible split
         const std::size_t availAtEnd = BufferEnd - BusyCursor;
         if (toPeek > availAtEnd)
         {
@@ -98,6 +96,7 @@ public:
     BusyAvailable -= toConsume;
     return toConsume;
   }
+
 private:
   const std::unique_ptr<T[]> Buffer;
   T* const BufferStart;

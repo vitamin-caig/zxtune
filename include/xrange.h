@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Python-alike xrange implementation to use in for-ranged loops
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Python-alike xrange implementation to use in for-ranged loops
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <iterator>
 #include <type_traits>
 
@@ -26,7 +26,7 @@ namespace XrangePrivate
     {
       static_assert(std::is_integral<T>::value || std::is_pointer<T>::value, "T should be integral type or pointer");
     }
-    
+
     class Iterator
     {
     public:
@@ -35,80 +35,79 @@ namespace XrangePrivate
       using pointer = const T*;
       using reference = const T&;
       using iterator_category = std::random_access_iterator_tag;
-      
+
       explicit Iterator(T value)
         : Value(value)
-      {
-      }
-      
-      T operator * () const
+      {}
+
+      T operator*() const
       {
         return Value;
       }
-      
-      bool operator != (const Iterator& rh) const
+
+      bool operator!=(const Iterator& rh) const
       {
         return Value != rh.Value;
       }
-      
-      bool operator == (const Iterator& rh) const
+
+      bool operator==(const Iterator& rh) const
       {
         return Value == rh.Value;
       }
-      
-      Iterator& operator ++ ()
+
+      Iterator& operator++()
       {
         ++Value;
         return *this;
       }
-      
-      difference_type operator - (const Iterator& rh) const
+
+      difference_type operator-(const Iterator& rh) const
       {
         return Value - rh.Value;
       }
-      
+
       template<class P>
-      Iterator operator + (const P& p) const
+      Iterator operator+(const P& p) const
       {
         return Iterator(Value + p);
       }
 
       template<class P>
-      Iterator& operator += (const P& p) const
+      Iterator& operator+=(const P& p) const
       {
         Value += p;
         return *this;
       }
 
       template<class P>
-      Iterator operator - (const P& p) const
+      Iterator operator-(const P& p) const
       {
         return Iterator(Value - p);
       }
-      
+
     private:
       T Value;
     };
-    
+
     using value_type = T;
     using iterator = Iterator;
     using const_iterator = Iterator;
-    
+
     Iterator begin() const
     {
       return Iterator(Start);
     }
-    
+
     Iterator end() const
     {
       return Iterator(Finish);
     }
-    
+
     T size() const
     {
       return Finish - Start;
     }
-    
+
     template<class Container>
     operator Container() const
     {
@@ -119,7 +118,7 @@ namespace XrangePrivate
     const T Start;
     const T Finish;
   };
-}
+}  // namespace XrangePrivate
 
 template<class T>
 ::XrangePrivate::SimpleRange<T> xrange(T finish)

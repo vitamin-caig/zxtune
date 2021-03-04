@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  Fast analogue of std::set<uint_t>
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Fast analogue of std::set<uint_t>
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <contract.h>
 #include <types.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <functional>
 #include <vector>
@@ -28,8 +28,7 @@ public:
     , MinValue(Maximal)
     , MaxValue(Minimal)
     , Size(0)
-  {
-  }
+  {}
 
   template<class It>
   void Assign(It from, It to)
@@ -63,7 +62,7 @@ public:
   template<class It>
   void Insert(It from, It to)
   {
-    std::for_each(from, to, [this](auto val) {this->Insert(val);});
+    std::for_each(from, to, [this](auto val) { this->Insert(val); });
   }
 
   bool Contain(uint_t val) const
@@ -112,21 +111,22 @@ public:
 
     typedef bool (Iterator::*BoolType)() const;
 
-    operator BoolType () const
+    operator BoolType() const
     {
       return IsValid() ? &Iterator::IsValid : nullptr;
     }
 
-    uint_t operator * () const
+    uint_t operator*() const
     {
       return Idx + Container.Minimal;
     }
 
-    void operator ++ ()
+    void operator++()
     {
       Next();
       SkipSparsed();
     }
+
   private:
     bool IsValid() const
     {
@@ -155,6 +155,7 @@ public:
         Next();
       }
     }
+
   private:
     const Indices& Container;
     uint_t Idx;
@@ -166,6 +167,7 @@ public:
   {
     return Iterator(*this);
   }
+
 private:
   struct Position
   {
@@ -175,8 +177,7 @@ private:
     Position(uint_t off, uint_t msk)
       : Offset(off)
       , Mask(msk)
-    {
-    }
+    {}
   };
 
   Position GetPosition(uint_t val) const
@@ -184,6 +185,7 @@ private:
     const uint_t off = val - Minimal;
     return Position(off / BITS_PER_MASK, uint_t(1) << (off % BITS_PER_MASK));
   }
+
 private:
   static const uint_t BITS_PER_MASK = 8 * sizeof(uint_t);
   const uint_t Minimal;

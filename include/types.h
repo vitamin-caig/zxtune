@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Basic types definitions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Basic types definitions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <char_type.h>
 #include <string_view.h>
-//std includes
+// std includes
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -63,22 +63,22 @@ typedef basic_string_view<Char> StringView;
 //! #endif
 //! @endcode
 #if defined __GNUC__
-#define PACK_PRE
-#define PACK_POST __attribute__ ((packed))
+#  define PACK_PRE
+#  define PACK_POST __attribute__((packed))
 #elif defined _MSC_VER
-#define PACK_PRE
-#define PACK_POST
-#define USE_PRAGMA_PACK
+#  define PACK_PRE
+#  define PACK_POST
+#  define USE_PRAGMA_PACK
 #else
-#define PACK_PRE
-#define PACK_POST
+#  define PACK_PRE
+#  define PACK_POST
 #endif
 //@}
 
 //! @brief Plain data type
 typedef std::vector<uint8_t> Dump;
 
-//assertions
+// assertions
 static_assert(sizeof(uint_t) >= sizeof(uint32_t), "Invalid uint_t type");
 static_assert(sizeof(int_t) >= sizeof(int32_t), "Invalid int_t type");
 static_assert(sizeof(uint8_t) == 1, "Invalid uint8_t type");
