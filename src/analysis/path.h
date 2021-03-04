@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Analyzed data path interface and factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Analyzed data path interface and factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <iterator.h>
 #include <types.h>
 
@@ -51,4 +51,4 @@ namespace Analysis
   };
 
   Path::Ptr ParsePath(const String& str, Char separator);
-}
+}  // namespace Analysis

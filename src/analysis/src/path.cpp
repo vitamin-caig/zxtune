@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief Analyzed data path implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Analyzed data path implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <analysis/path.h>
 #include <strings/array.h>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/split.hpp>
-//std includes
+// std includes
 #include <cassert>
 
 namespace Analysis
@@ -28,8 +28,8 @@ namespace Analysis
     const String delimiter(1, separator);
     Strings::Array parts;
     boost::algorithm::split(parts, str, boost::algorithm::is_any_of(delimiter), boost::algorithm::token_compress_on);
-    const Strings::Array::iterator newEnd = std::remove_if(parts.begin(), parts.end(),
-        [](const String& element) {return element.empty();});
+    const Strings::Array::iterator newEnd =
+        std::remove_if(parts.begin(), parts.end(), [](const String& element) { return element.empty(); });
     parts.erase(newEnd, parts.end());
     return parts;
   }
@@ -42,7 +42,7 @@ namespace Analysis
 
   template<class It>
   Path::Ptr CreatePath(Char separator, It from, It to);
-  
+
   Path::Ptr CreatePath(Char separator, Strings::Array data);
 
   class ParsedPath : public Path
@@ -55,7 +55,7 @@ namespace Analysis
     {
       Require(from != to);
     }
-    
+
     ParsedPath(Char separator, Strings::Array data)
       : Components(std::move(data))
       , Separator(separator)
@@ -82,8 +82,7 @@ namespace Analysis
     {
       const Strings::Array& newOne = SplitPath(element, Separator);
       Strings::Array result(Components.size() + newOne.size());
-      std::copy(newOne.begin(), newOne.end(),
-        std::copy(Components.begin(), Components.end(), result.begin()));
+      std::copy(newOne.begin(), newOne.end(), std::copy(Components.begin(), Components.end(), result.begin()));
       return CreatePath(Separator, std::move(result));
     }
 
@@ -112,6 +111,7 @@ namespace Analysis
       }
       return CreatePath(Separator, first, last);
     }
+
   private:
     const Strings::Array Components;
     const Char Separator;
@@ -122,8 +122,7 @@ namespace Analysis
   public:
     explicit EmptyPath(Char separator)
       : Separator(separator)
-    {
-    }
+    {}
 
     bool Empty() const override
     {
@@ -147,15 +146,14 @@ namespace Analysis
 
     Ptr Extract(const String& startPath) const override
     {
-      return startPath.empty()
-        ? MakePtr<EmptyPath>(Separator)
-        : Ptr();
+      return startPath.empty() ? MakePtr<EmptyPath>(Separator) : Ptr();
     }
-    
+
     Ptr GetParent() const override
     {
       return Ptr();
     }
+
   private:
     const Char Separator;
   };
@@ -184,7 +182,7 @@ namespace Analysis
       return MakePtr<EmptyPath>(separator);
     }
   }
-}
+}  // namespace Analysis
 
 namespace Analysis
 {
@@ -193,4 +191,4 @@ namespace Analysis
     auto parsed = SplitPath(str, separator);
     return CreatePath(separator, std::move(parsed));
   }
-}
+}  // namespace Analysis

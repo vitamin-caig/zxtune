@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief Scanner implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Scanner implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <contract.h>
 #include <iterator.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <analysis/scanner.h>
 #include <debug/log.h>
-//std includes
+// std includes
 #include <deque>
 #include <list>
 
@@ -61,6 +61,7 @@ namespace Analysis
       }
       Storage.swap(other);
     }
+
   private:
     struct PositionAndDecoder
     {
@@ -70,10 +71,9 @@ namespace Analysis
       PositionAndDecoder(std::size_t pos, DecoderPtrType decoder)
         : Position(pos)
         , Decoder(std::move(decoder))
-      {
-      }
+      {}
 
-      bool operator < (const PositionAndDecoder& rh) const
+      bool operator<(const PositionAndDecoder& rh) const
       {
         return Position < rh.Position;
       }
@@ -90,8 +90,7 @@ namespace Analysis
       , Limit(Delegate.Size())
       , Content(static_cast<const uint8_t*>(Delegate.Start()))
       , Offset(0)
-    {
-    }
+    {}
 
     std::size_t GetOffset() const
     {
@@ -119,7 +118,7 @@ namespace Analysis
       Offset = Limit;
     }
 
-    //Binary::Container
+    // Binary::Container
     const void* Start() const override
     {
       return Content + Offset;
@@ -134,6 +133,7 @@ namespace Analysis
     {
       return Delegate.GetSubcontainer(Offset + offset, size);
     }
+
   private:
     const Binary::Container& Delegate;
     const std::size_t Limit;
@@ -150,8 +150,7 @@ namespace Analysis
       , Base(base)
       , Window(data)
       , Unrecognized(data)
-    {
-    }
+    {}
 
     void Scan(Scanner::Target& target)
     {
@@ -167,6 +166,7 @@ namespace Analysis
       }
       FlushUnrecognized(target);
     }
+
   private:
     bool IsFinished() const
     {
@@ -270,6 +270,7 @@ namespace Analysis
       Dbg("Schedule to check %1% at %2%", decoder->GetDescription(), Window.GetOffset());
       Scheduled.Add(Window.GetOffset(), decoder);
     }
+
   private:
     RangeIterator<typename Traits::DecodersList::const_iterator> Unprocessed;
     DecodersQueue<typename Traits::Decoder::Ptr> Scheduled;
@@ -338,12 +339,12 @@ namespace Analysis
   class DecodeUnrecognizedTarget : public Scanner::Target
   {
   public:
-    DecodeUnrecognizedTarget(const typename Traits::DecodersList& decoders, Scanner::Target& recognized, Scanner::Target& unrecognized)
+    DecodeUnrecognizedTarget(const typename Traits::DecodersList& decoders, Scanner::Target& recognized,
+                             Scanner::Target& unrecognized)
       : Decoders(decoders)
       , Recognized(recognized)
       , Unrecognized(unrecognized)
-    {
-    }
+    {}
 
     void Apply(const Archived::Decoder& decoder, std::size_t offset, Archived::Container::Ptr data) override
     {
@@ -373,13 +374,12 @@ namespace Analysis
 
     Scanner::Target& GetUnrecognizedTarget()
     {
-      return Decoders.empty()
-        ? Unrecognized
-        : *this;
+      return Decoders.empty() ? Unrecognized : *this;
     }
+
   private:
     const typename Traits::DecodersList& Decoders;
-    Scanner::Target& Recognized; 
+    Scanner::Target& Recognized;
     Scanner::Target& Unrecognized;
   };
 
@@ -408,7 +408,7 @@ namespace Analysis
 
     void Scan(Binary::Container::Ptr data, Target& target) const override
     {
-      //order: Archive -> Packed -> Image -> Chiptune -> unrecognized with possible skipping
+      // order: Archive -> Packed -> Image -> Chiptune -> unrecognized with possible skipping
       DecodeUnrecognizedTarget<ChiptuneDataTraits> chiptune(Decoders.Chiptune, target, target);
       DecodeUnrecognizedTarget<ImageDataTraits> image(Decoders.Image, target, chiptune.GetUnrecognizedTarget());
       DecodeUnrecognizedTarget<PackedDataTraits> packed(Decoders.Packed, target, image.GetUnrecognizedTarget());
@@ -416,10 +416,11 @@ namespace Analysis
 
       archived.Apply(0, data);
     }
+
   private:
     DecodersSet Decoders;
   };
-}
+}  // namespace Analysis
 
 namespace Analysis
 {
@@ -427,4 +428,4 @@ namespace Analysis
   {
     return MakeRWPtr<LinearScanner>();
   }
-}
+}  // namespace Analysis

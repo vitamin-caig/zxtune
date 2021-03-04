@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Scanner interface and factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Scanner interface and factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/container.h>
 #include <formats/archived.h>
 #include <formats/chiptune.h>
@@ -37,10 +37,14 @@ namespace Analysis
     public:
       virtual ~Target() = default;
 
-      virtual void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset, Formats::Archived::Container::Ptr data) = 0;
-      virtual void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset, Formats::Packed::Container::Ptr data) = 0;
-      virtual void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data) = 0;
-      virtual void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset, Formats::Chiptune::Container::Ptr data) = 0;
+      virtual void Apply(const Formats::Archived::Decoder& decoder, std::size_t offset,
+                         Formats::Archived::Container::Ptr data) = 0;
+      virtual void Apply(const Formats::Packed::Decoder& decoder, std::size_t offset,
+                         Formats::Packed::Container::Ptr data) = 0;
+      virtual void Apply(const Formats::Image::Decoder& decoder, std::size_t offset,
+                         Formats::Image::Container::Ptr data) = 0;
+      virtual void Apply(const Formats::Chiptune::Decoder& decoder, std::size_t offset,
+                         Formats::Chiptune::Container::Ptr data) = 0;
       virtual void Apply(std::size_t offset, Binary::Container::Ptr data) = 0;
     };
 
@@ -48,4 +52,4 @@ namespace Analysis
   };
 
   Scanner::RWPtr CreateScanner();
-}
+}  // namespace Analysis

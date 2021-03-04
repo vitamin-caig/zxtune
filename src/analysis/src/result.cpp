@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief Analysis result implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Analysis result implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <analysis/result.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Analysis
@@ -23,8 +23,7 @@ namespace Analysis
     explicit CalculatedResult(std::size_t matchedSize, std::size_t unmatchedSize)
       : MatchedSize(matchedSize)
       , UnmatchedSize(unmatchedSize)
-    {
-    }
+    {}
 
     std::size_t GetMatchedDataSize() const override
     {
@@ -35,6 +34,7 @@ namespace Analysis
     {
       return UnmatchedSize;
     }
+
   private:
     const std::size_t MatchedSize;
     const std::size_t UnmatchedSize;
@@ -46,8 +46,7 @@ namespace Analysis
     UnmatchedResult(Binary::Format::Ptr format, Binary::Container::Ptr data)
       : Format(std::move(format))
       , RawData(std::move(data))
-    {
-    }
+    {}
 
     std::size_t GetMatchedDataSize() const override
     {
@@ -58,11 +57,12 @@ namespace Analysis
     {
       return Format->NextMatchOffset(*RawData);
     }
+
   private:
     const Binary::Format::Ptr Format;
     const Binary::Container::Ptr RawData;
   };
-}
+}  // namespace Analysis
 
 namespace Analysis
 {
@@ -80,4 +80,4 @@ namespace Analysis
   {
     return MakePtr<CalculatedResult>(0, unmatchedSize);
   }
-}
+}  // namespace Analysis
