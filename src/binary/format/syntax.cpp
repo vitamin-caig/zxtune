@@ -21,9 +21,7 @@
 #include <stack>
 #include <utility>
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   inline uint_t ParseDecimalValue(StringView num)
   {
@@ -508,11 +506,8 @@ namespace FormatDSL
     std::stack<Group> Groups;
   };
 }
-}
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   void ParseFormatNotation(StringView notation, FormatTokensVisitor& visitor)
   {
@@ -531,5 +526,4 @@ namespace FormatDSL
   {
     return MakePtr<SyntaxCheck>(visitor);
   }
-}
 }

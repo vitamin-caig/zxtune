@@ -13,9 +13,7 @@
 //local includes
 #include "lexic_analysis.h"
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   const LexicalAnalysis::TokenType DELIMITER = 0;
   const LexicalAnalysis::TokenType CONSTANT = 1;
@@ -44,5 +42,4 @@ namespace FormatDSL
   const char DELIMITER_TEXT = ',';
 
   LexicalAnalysis::Grammar::Ptr CreateFormatGrammar();
-}
 }

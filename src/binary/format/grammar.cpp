@@ -16,9 +16,7 @@
 //std includes
 #include <cctype>
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   const StringView HEX_TOKENS("xX0123456789abcdefABCDEF");
   const auto HEXDIGITS = HEX_TOKENS.substr(2);
@@ -191,16 +189,12 @@ namespace FormatDSL
     const LexicalAnalysis::Grammar::RWPtr Delegate;
   };
 }
-}
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   LexicalAnalysis::Grammar::Ptr CreateFormatGrammar()
   {
     static FormatGrammar grammar;
     return MakeSingletonPointer(grammar);
   }
-}
 }

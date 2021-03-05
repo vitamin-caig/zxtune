@@ -25,9 +25,7 @@
 #include <stack>
 #include <vector>
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   typedef RangeIterator<StringView::const_iterator> PatternIterator;
 
@@ -447,11 +445,8 @@ namespace FormatDSL
     const Pattern Pat;
   };
 }
-}
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   Expression::Ptr Expression::Parse(StringView notation)
   {
@@ -466,5 +461,4 @@ namespace FormatDSL
     pat.erase(pat.begin(), firstNotAny);
     return MakePtr<LinearExpression>(offset, std::move(pat));
   }
-}
 }

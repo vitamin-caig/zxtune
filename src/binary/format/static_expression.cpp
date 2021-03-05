@@ -11,9 +11,7 @@
 //local includes
 #include "binary/format/static_expression.h"
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   //result[x] = backward offset of suffix size x
   std::vector<std::size_t> StaticPattern::GetSuffixOffsets() const
@@ -85,5 +83,4 @@ namespace FormatDSL
       ? GetSize()
       : size;
   }
-}
 }
