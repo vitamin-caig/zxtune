@@ -36,9 +36,7 @@
 
 #define FILE_TAG B064CB04
 
-namespace Module
-{
-namespace Ogg
+namespace Module::Ogg
 {
   const Debug::Stream Dbg("Core::OggSupp");
   
@@ -259,7 +257,6 @@ namespace Ogg
       return {};
     }
   };
-}
 }
 
 namespace ZXTune

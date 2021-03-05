@@ -11,9 +11,7 @@
 //local includes
 #include "core/plugins/players/sid/roms.h"
 
-namespace Module
-{
-namespace Sid
+namespace Module::Sid
 {
   const uint8_t KERNAL[] =
   {
@@ -29,13 +27,7 @@ namespace Sid
   {
 #include "core/plugins/players/sid/chargen.inc"
   };
-}
-}
 
-namespace Module
-{
-namespace Sid
-{
   const uint8_t* GetKernalROM()
   {
     return KERNAL;
@@ -50,5 +42,4 @@ namespace Sid
   {
     return CHARGEN;
   }
-}
 }

@@ -41,9 +41,7 @@
 
 #define FILE_TAG 90B9A91A
 
-namespace Module
-{
-namespace ASAP
+namespace Module::ASAP
 {
   const Debug::Stream Dbg("Core::ASAPSupp");
 
@@ -409,7 +407,6 @@ namespace ASAP
       &Formats::Chiptune::CreateRasterMusicTrackerDecoder
     },
   };
-}
 }
 
 namespace ZXTune

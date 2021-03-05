@@ -13,9 +13,7 @@
 #include <contract.h>
 #include <make_ptr.h>
 
-namespace Module
-{
-namespace Wav
+namespace Module::Wav
 {
   namespace Pcm
   {
@@ -189,5 +187,4 @@ namespace Wav
     Require(func);
     return MakePtr<PcmModel>(std::move(props), func);
   }
-}
 }

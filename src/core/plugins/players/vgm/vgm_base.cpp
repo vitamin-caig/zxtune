@@ -40,9 +40,7 @@
 
 #define FILE_TAG 975CF2F9
 
-namespace Module
-{
-namespace LibVGM
+namespace Module::LibVGM
 {
   const Debug::Stream Dbg("Core::VGMSupp");
 
@@ -351,9 +349,9 @@ namespace LibVGM
     const Module::Information::Ptr Info;
     const Parameters::Accessor::Ptr Properties;
   };
-} //namespace LibVGM
+} //namespace Module::LibVGM
 
-namespace VideoGameMusic
+namespace Module::VideoGameMusic
 {
   class DataBuilder : public Formats::Chiptune::VideoGameMusic::Builder
   {
@@ -411,9 +409,9 @@ namespace VideoGameMusic
       return {};
     }
   };
-} // namespace VideoGameMusic
+} // namespace Module::VideoGameMusic
 
-namespace Sound98
+namespace Module::Sound98
 {
   class DataBuilder : public Formats::Chiptune::Sound98::Builder
   {
@@ -469,8 +467,7 @@ namespace Sound98
       return {};
     }
   };
-} // namespace Sound98
-} // namespace Module
+} // namespace Module::Sound98
 
 namespace ZXTune
 {

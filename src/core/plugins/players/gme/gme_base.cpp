@@ -51,9 +51,7 @@
 
 #define FILE_TAG 513E65A8
 
-namespace Module
-{
-namespace GME
+namespace Module::GME
 {
   const Debug::Stream Dbg("Core::GMESupp");
 
@@ -539,7 +537,6 @@ namespace GME
       &Formats::Chiptune::CreateKSSDecoder
     }
   };
-}
 }
 
 namespace ZXTune

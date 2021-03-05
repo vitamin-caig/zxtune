@@ -37,9 +37,7 @@
 #define BUILDING_STATIC
 #include <3rdparty/openmpt/libopenmpt/libopenmpt.hpp>
 
-namespace Module
-{
-namespace Mpt
+namespace Module::Mpt
 {
   const Debug::Stream Dbg("Core::OpenMPT");
 
@@ -879,7 +877,6 @@ namespace Mpt
       //, "M15"
     }
   };
-}
 }
 
 namespace ZXTune

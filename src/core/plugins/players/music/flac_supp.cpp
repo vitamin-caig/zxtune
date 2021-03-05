@@ -32,9 +32,7 @@
 
 #define FILE_TAG B064CB05
 
-namespace Module
-{
-namespace Flac
+namespace Module::Flac
 {
   const Debug::Stream Dbg("Core::FlacSupp");
   
@@ -474,7 +472,6 @@ namespace Flac
       return {};
     }
   };
-}
 }
 
 namespace ZXTune

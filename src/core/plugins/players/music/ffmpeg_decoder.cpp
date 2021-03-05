@@ -25,9 +25,7 @@ extern AVCodec ff_atrac3_decoder;
 extern AVCodec ff_atrac3p_decoder;
 extern AVCodec ff_atrac9_decoder;
 
-namespace Module
-{
-namespace FFmpeg
+namespace Module::FFmpeg
 {
   class DecoderImpl : public Decoder
   {
@@ -258,5 +256,4 @@ namespace FFmpeg
     decoder->Init();
     return Decoder::Ptr(std::move(decoder));
   }
-}
 }

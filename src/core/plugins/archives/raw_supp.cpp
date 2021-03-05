@@ -272,9 +272,7 @@ namespace ZXTune
   };
 }
 
-namespace ZXTune
-{
-namespace Raw
+namespace ZXTune::Raw
 {
   const Debug::Stream Dbg("Core::RawScaner");
 
@@ -801,7 +799,6 @@ namespace Raw
   private:
     const Plugin::Ptr Description;
   };
-}
 }
 
 namespace ZXTune

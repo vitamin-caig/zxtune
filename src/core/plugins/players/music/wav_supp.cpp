@@ -29,9 +29,7 @@
 
 #define FILE_TAG 72CE1906
 
-namespace Module
-{
-namespace Wav
+namespace Module::Wav
 {
   const Debug::Stream Dbg("Core::WavSupp");
 
@@ -245,7 +243,6 @@ namespace Wav
       return {};
     }
   };
-}
 }
 
 namespace ZXTune

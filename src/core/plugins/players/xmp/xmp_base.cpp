@@ -34,9 +34,7 @@
 #include <3rdparty/xmp/include/xmp.h>
 #include <3rdparty/xmp/src/xmp_private.h>
 
-namespace Module
-{
-namespace Xmp
+namespace Module::Xmp
 {
   class BaseContext
   {
@@ -643,7 +641,6 @@ namespace Xmp
       &tcb_loader
     },
   };
-}
 }
 
 namespace ZXTune

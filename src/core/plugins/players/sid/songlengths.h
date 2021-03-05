@@ -11,12 +11,9 @@
 //library includes
 #include <time/duration.h>
 
-namespace Module
-{
-namespace Sid
+namespace Module::Sid
 {
   typedef Time::Milliseconds TimeType;
 
   TimeType GetSongLength(const char* md5digest, uint_t idx);
-}//namespace Sid
-}//namespace Module
+}//namespace Module::Sid

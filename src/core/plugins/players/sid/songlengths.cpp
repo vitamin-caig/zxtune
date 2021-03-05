@@ -18,9 +18,7 @@
 //std includes
 #include <algorithm>
 
-namespace Module
-{
-namespace Sid
+namespace Module::Sid
 {
   struct SongEntry
   {
@@ -53,5 +51,4 @@ namespace Sid
     }
     return TimeType();
   }
-}//namespace Sid
-}//namespace Module
+}//namespace Module::Sid

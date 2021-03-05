@@ -32,9 +32,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace SPC
+namespace Module::SPC
 {
   const Debug::Stream Dbg("Core::SPCSupp");
 
@@ -417,7 +415,6 @@ namespace SPC
       return {};
     }
   };
-}
 }
 
 namespace ZXTune

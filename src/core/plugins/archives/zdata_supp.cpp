@@ -31,9 +31,7 @@
 //text includes
 #include <core/text/plugins.h>
 
-namespace ZXTune
-{
-namespace Zdata
+namespace ZXTune::Zdata
 {
   const Debug::Stream Dbg("Core::ZData");
 
@@ -240,16 +238,12 @@ namespace Zdata
     return Binary::CreateContainer(std::move(result));
   }
 }
-}
 
-namespace ZXTune
-{
-namespace Zdata
+namespace ZXTune::Zdata
 {
   const Char ID[] = {'Z', 'D', 'A', 'T', 'A', 0};
   const Char* const INFO = Text::ZDATA_PLUGIN_INFO;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::ARCHIVE;
-}
 }
 
 namespace ZXTune
@@ -265,9 +259,7 @@ namespace ZXTune
   }
 }
 
-namespace ZXTune
-{
-namespace Zdata
+namespace ZXTune::Zdata
 {
   class Plugin : public ArchivePlugin
   {
@@ -311,6 +303,8 @@ namespace Zdata
   };
 }
 
+namespace ZXTune
+{
   void RegisterZdataContainer(ArchivePluginsRegistrator& registrator)
   {
     const ArchivePlugin::Ptr plugin = MakePtr<Zdata::Plugin>();

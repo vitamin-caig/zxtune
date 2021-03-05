@@ -26,9 +26,7 @@
 #include <module/players/aym/aym_base.h>
 #include <module/players/aym/turbosound.h>
 
-namespace Module
-{
-namespace TS
+namespace Module::TS
 {
   const Debug::Stream Dbg("Core::TSSupp");
 
@@ -125,7 +123,6 @@ namespace TS
   private:
     const Formats::Chiptune::TurboSound::Decoder::Ptr Decoder;
   };
-}
 }
 
 namespace ZXTune

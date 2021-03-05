@@ -42,9 +42,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace Sid
+namespace Module::Sid
 {
   const Debug::Stream Dbg("Core::SIDSupp");
 
@@ -405,7 +403,6 @@ namespace Sid
       }
     }
   };
-}
 }
 
 namespace ZXTune

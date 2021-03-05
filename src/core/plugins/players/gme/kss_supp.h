@@ -13,10 +13,7 @@
 //library includes
 #include <binary/view.h>
 
-namespace Module
+namespace Module::KSS
 {
-  namespace KSS
-  {
-    String DetectPlatform(Binary::View blob);
-  }
+  String DetectPlatform(Binary::View blob);
 }

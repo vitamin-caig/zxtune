@@ -17,9 +17,7 @@
 //std includes
 #include <array>
 
-namespace Module
-{
-namespace Wav
+namespace Module::Wav
 {
   static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
   static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
@@ -280,5 +278,4 @@ namespace Wav
     props.BlockSizeSamples = ImaAdpcm::GetSamplesPerBlock(props.Channels, props.BlockSize);
     return MakePtr<AdpcmModel>(std::move(props), func);
   }
-}
 }

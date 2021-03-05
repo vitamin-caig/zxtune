@@ -32,9 +32,7 @@
 
 #define FILE_TAG 04123EA8
 
-namespace Module
-{
-namespace Mp3
+namespace Module::Mp3
 {
   const Debug::Stream Dbg("Core::Mp3Supp");
 
@@ -395,7 +393,6 @@ namespace Mp3
       return {};
     }
   };
-}
 }
 
 namespace ZXTune

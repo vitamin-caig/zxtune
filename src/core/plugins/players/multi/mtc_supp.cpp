@@ -31,9 +31,7 @@
 #include <algorithm>
 #include <list>
 
-namespace Module
-{
-namespace MTC
+namespace Module::MTC
 {
   const Debug::Stream Dbg("Core::MTCSupp");
 
@@ -368,7 +366,6 @@ namespace MTC
       return {};
     }
   };
-}
 }
 
 namespace ZXTune

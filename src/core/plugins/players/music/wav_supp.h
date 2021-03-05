@@ -16,9 +16,7 @@
 #include <binary/input_stream.h>
 #include <sound/chunk.h>
 
-namespace Module
-{
-namespace Wav
+namespace Module::Wav
 {
   struct Properties
   {
@@ -85,5 +83,4 @@ namespace Wav
   Model::Ptr CreateAtrac3Model(Properties props, Binary::View extraData);
   Model::Ptr CreateAtrac3PlusModel(Properties props);
   Model::Ptr CreateAtrac9Model(Properties props, Binary::View extraData);
-}
 }
