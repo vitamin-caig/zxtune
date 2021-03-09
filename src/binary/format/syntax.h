@@ -12,6 +12,8 @@
 
 //common includes
 #include <types.h>
+// std includes
+#include <memory>
 
 namespace Binary
 {

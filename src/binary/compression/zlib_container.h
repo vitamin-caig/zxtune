@@ -12,6 +12,7 @@
 
 //library includes
 #include <binary/container.h>
+#include <binary/view.h>
 
 namespace Binary
 {
