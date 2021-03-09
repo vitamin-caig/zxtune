@@ -34,9 +34,7 @@
 #undef min
 #undef max
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Rar
   {
@@ -311,5 +309,4 @@ namespace Packed
   {
     return MakePtr<RarDecoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

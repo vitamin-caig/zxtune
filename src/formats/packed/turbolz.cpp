@@ -26,9 +26,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace TurboLZ
   {
@@ -490,5 +488,4 @@ namespace Packed
   {
     return MakePtr<TurboLZDecoder<TurboLZ::Protected> >();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

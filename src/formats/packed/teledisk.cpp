@@ -29,9 +29,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace TeleDiskImage
   {
@@ -430,5 +428,4 @@ namespace Packed
   {
     return MakePtr<TeleDiskImageDecoder>();
   }
-}//namespace TeleDiskImage
-}//namespace Formats
+}//namespace Formats::Packed

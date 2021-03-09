@@ -24,9 +24,7 @@
 //text include
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace CharPres
   {
@@ -285,5 +283,4 @@ namespace Packed
   {
     return MakePtr<CharPresDecoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

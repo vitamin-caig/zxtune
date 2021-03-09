@@ -26,9 +26,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace CodeCruncher3
   {
@@ -382,5 +380,4 @@ namespace Packed
   {
     return MakePtr<CodeCruncher3Decoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

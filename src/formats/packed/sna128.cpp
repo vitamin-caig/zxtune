@@ -23,9 +23,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Sna128
   {
@@ -184,5 +182,4 @@ namespace Packed
   {
     return MakePtr<Sna128Decoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

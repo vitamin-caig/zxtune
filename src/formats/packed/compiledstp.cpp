@@ -24,9 +24,7 @@
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace CompiledSTP
   {
@@ -247,5 +245,4 @@ namespace Packed
   {
     return MakePtr<CompiledSTPDecoder<CompiledSTP::Version2> >();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

@@ -23,9 +23,7 @@
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace CompiledST3
   {
@@ -173,5 +171,4 @@ namespace Packed
   {
     return MakePtr<CompiledST3Decoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

@@ -29,9 +29,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace MSPack
   {
@@ -281,5 +279,4 @@ namespace Packed
   {
     return MakePtr<MSPackDecoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

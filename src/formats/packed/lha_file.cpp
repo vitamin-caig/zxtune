@@ -21,11 +21,7 @@
 //3rdparty includes
 #include <3rdparty/lhasa/lib/lha_decoder.h>
 
-namespace Formats
-{
-namespace Packed
-{
-namespace Lha
+namespace Formats::Packed::Lha
 {
   const Debug::Stream Dbg("Formats::Packed::Lha");
 
@@ -101,7 +97,5 @@ namespace Lha
     }
     return Formats::Packed::Container::Ptr();
   }
-}//namespace Lha
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed::Lha
 

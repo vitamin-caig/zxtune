@@ -27,9 +27,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace CompressorCode
   {
@@ -600,5 +598,4 @@ namespace Packed
   {
     return MakePtr<CompressorCodeDecoder<CompressorCode::Version4Plus> >();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

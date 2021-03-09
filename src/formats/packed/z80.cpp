@@ -24,9 +24,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Z80
   {
@@ -603,5 +601,4 @@ namespace Packed
   {
     return MakePtr<Z80Decoder<Z80::Version3_0> >();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

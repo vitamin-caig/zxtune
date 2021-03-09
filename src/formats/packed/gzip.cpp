@@ -25,9 +25,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Gzip
   {
@@ -182,5 +180,4 @@ namespace Packed
   {
     return MakePtr<GzipDecoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

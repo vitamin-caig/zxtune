@@ -27,9 +27,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Hrum
   {
@@ -344,5 +342,4 @@ namespace Packed
   {
     return MakePtr<HrumDecoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

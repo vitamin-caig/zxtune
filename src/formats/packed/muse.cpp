@@ -25,9 +25,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Muse
   {
@@ -100,5 +98,4 @@ namespace Packed
   {
     return MakePtr<Muse::Decoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

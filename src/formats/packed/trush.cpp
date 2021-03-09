@@ -27,9 +27,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Trush
   {
@@ -345,5 +343,4 @@ namespace Packed
   {
     return MakePtr<TrushDecoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

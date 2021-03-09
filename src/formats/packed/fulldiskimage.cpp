@@ -25,9 +25,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace FullDiskImage
   {
@@ -289,5 +287,4 @@ namespace Packed
   {
     return MakePtr<FullDiskImageDecoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

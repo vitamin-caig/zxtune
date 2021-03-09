@@ -24,9 +24,7 @@
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace CompiledASC
   {
@@ -295,5 +293,4 @@ namespace Packed
   {
     return MakePtr<CompiledASCDecoder>(CompiledASC::VERSION2);
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

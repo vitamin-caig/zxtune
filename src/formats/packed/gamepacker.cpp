@@ -25,9 +25,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace GamePacker
   {
@@ -342,5 +340,4 @@ namespace Packed
   {
     return MakePtr<GamePackerDecoder<GamePacker::Version2> >();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

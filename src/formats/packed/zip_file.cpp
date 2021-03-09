@@ -29,9 +29,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Zip
   {
@@ -344,5 +342,4 @@ namespace Packed
   {
     return MakePtr<ZipDecoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed

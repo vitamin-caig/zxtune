@@ -31,9 +31,7 @@
 //text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Hrust2
   {
@@ -670,5 +668,4 @@ namespace Packed
   {
     return MakePtr<Hrust23Decoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}//namespace Formats::Packed
