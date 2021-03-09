@@ -18,9 +18,7 @@
 #include <formats/chiptune/aym/psg.h>
 #include <module/players/properties_helper.h>
 
-namespace Module
-{
-namespace PSG
+namespace Module::PSG
 {
   class DataBuilder : public Formats::Chiptune::PSG::Builder
   {
@@ -79,5 +77,4 @@ namespace PSG
   {
     return MakePtr<Factory>();
   }
-}
 }

@@ -22,9 +22,7 @@
 #include <core/text/plugins.h>
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace TFC
+namespace Module::TFC
 {
   class ChannelData
   {
@@ -252,5 +250,4 @@ namespace TFC
   {
     return MakePtr<Factory>();
   }
-}
 }

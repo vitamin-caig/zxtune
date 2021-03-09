@@ -23,9 +23,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace ProSoundCreator
+namespace Module::ProSoundCreator
 {
   /*
     Do not use GLISS_NOTE command due to possible ambiguation while parsing
@@ -648,5 +646,4 @@ namespace ProSoundCreator
   {
     return MakePtr<Factory>();
   }
-}
 }

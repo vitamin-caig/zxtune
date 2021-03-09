@@ -23,9 +23,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace ExtremeTracker1
+namespace Module::ExtremeTracker1
 {
   const std::size_t CHANNELS_COUNT = 4;
 
@@ -314,5 +312,4 @@ namespace ExtremeTracker1
   {
     return MakePtr<Factory>();
   }
-}
 }

@@ -26,9 +26,7 @@
 #include <map>
 #include <set>
 
-namespace Module
-{
-namespace TurboSound
+namespace Module::TurboSound
 {
   class MergedModuleProperties : public Parameters::Accessor
   {
@@ -441,5 +439,4 @@ namespace TurboSound
   {
     return MakePtr<Holder>(std::move(chiptune));
   }
-}
 }

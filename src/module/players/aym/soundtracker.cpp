@@ -19,9 +19,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace SoundTracker
+namespace Module::SoundTracker
 {
   enum CmdType
   {
@@ -496,5 +494,4 @@ namespace SoundTracker
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
 }

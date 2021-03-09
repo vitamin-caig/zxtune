@@ -27,9 +27,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace V2M
+namespace Module::V2M
 {
   const Debug::Stream Dbg("Core::V2MSupp");
 
@@ -282,5 +280,4 @@ namespace V2M
   {
     return MakePtr<Factory>();
   }
-}
 }

@@ -20,9 +20,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace ETracker
+namespace Module::ETracker
 {
   //supported commands and parameters
   enum CmdType
@@ -509,5 +507,4 @@ namespace ETracker
   {
     return MakePtr<Factory>();
   }
-}
 }

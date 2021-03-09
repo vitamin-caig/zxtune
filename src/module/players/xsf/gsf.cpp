@@ -34,9 +34,7 @@
 
 #undef min
 
-namespace Module
-{
-namespace GSF
+namespace Module::GSF
 {
   const Debug::Stream Dbg("Module::GSF");
 
@@ -473,5 +471,4 @@ namespace GSF
   {
     return XSF::CreateFactory(MakePtr<Factory>());
   }
-}
 }

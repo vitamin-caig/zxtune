@@ -17,9 +17,7 @@
 //std includes
 #include <utility>
 
-namespace Module
-{
-namespace Vortex
+namespace Module::Vortex
 {
   const uint_t LIMITER = ~uint_t(0);
 
@@ -427,5 +425,4 @@ namespace Vortex
   {
     return MakePtr<DataRenderer>(std::move(data), trackChannelStart);
   }
-}
 }

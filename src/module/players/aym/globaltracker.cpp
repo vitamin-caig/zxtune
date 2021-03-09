@@ -23,9 +23,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace GlobalTracker
+namespace Module::GlobalTracker
 {
   enum CmdType
   {
@@ -320,5 +318,4 @@ namespace GlobalTracker
   {
     return MakePtr<Factory>();
   }
-}
 }

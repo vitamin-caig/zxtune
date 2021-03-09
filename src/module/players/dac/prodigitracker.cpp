@@ -23,9 +23,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace ProDigiTracker
+namespace Module::ProDigiTracker
 {
   const uint_t CHANNELS_COUNT = 4;
 
@@ -296,5 +294,4 @@ namespace ProDigiTracker
   {
     return MakePtr<Factory>();
   }
-}
 }

@@ -15,9 +15,7 @@
 //library includes
 #include <core/core_parameters.h>
 
-namespace Module
-{
-namespace SAA
+namespace Module::SAA
 {
   class ChipParameters : public Devices::SAA::ChipParameters
   {
@@ -60,5 +58,4 @@ namespace SAA
   {
     return MakePtr<ChipParameters>(samplerate, std::move(params));
   }
-}
 }

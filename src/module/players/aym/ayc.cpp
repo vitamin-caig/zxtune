@@ -22,9 +22,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace AYC
+namespace Module::AYC
 {
   class DataBuilder : public Formats::Chiptune::AYC::Builder
   {
@@ -101,5 +99,4 @@ namespace AYC
   {
     return MakePtr<Factory>();
   }
-}
 }

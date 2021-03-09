@@ -23,9 +23,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace ChipTracker
+namespace Module::ChipTracker
 {
   const std::size_t CHANNELS_COUNT = 4;
 
@@ -314,5 +312,4 @@ namespace ChipTracker
   {
     return MakePtr<Factory>();
   }
-}
 }

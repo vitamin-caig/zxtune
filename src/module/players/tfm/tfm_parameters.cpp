@@ -17,9 +17,7 @@
 //std includes
 #include <utility>
 
-namespace Module
-{
-namespace TFM
+namespace Module::TFM
 {
   class ChipParameters : public Devices::TFM::ChipParameters
   {
@@ -55,5 +53,4 @@ namespace TFM
   {
     return MakePtr<ChipParameters>(samplerate, std::move(params));
   }
-}
 }

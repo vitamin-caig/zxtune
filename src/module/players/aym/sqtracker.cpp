@@ -28,9 +28,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace SQTracker
+namespace Module::SQTracker
 {
   const Debug::Stream Dbg("Core::SQTSupp");
 
@@ -777,5 +775,4 @@ namespace SQTracker
   {
     return MakePtr<Factory>();
   }
-}
 }

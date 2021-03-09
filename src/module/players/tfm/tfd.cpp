@@ -20,9 +20,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace TFD
+namespace Module::TFD
 {
   class ModuleData : public TFM::StreamModel
   {
@@ -158,5 +156,4 @@ namespace TFD
   {
     return MakePtr<Factory>();
   }
-}
 }

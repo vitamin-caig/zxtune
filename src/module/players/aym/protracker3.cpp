@@ -25,9 +25,7 @@
 #include <core/text/plugins.h>
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace ProTracker3
+namespace Module::ProTracker3
 {
   typedef Vortex::ModuleData ModuleData;
 
@@ -527,5 +525,4 @@ namespace ProTracker3
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
 }

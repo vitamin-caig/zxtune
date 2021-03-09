@@ -23,9 +23,7 @@
 
 #define FILE_TAG 153C53E0
 
-namespace Module
-{
-namespace XSF
+namespace Module::XSF
 {
   const Debug::Stream Dbg("Module::xSF");
 
@@ -199,7 +197,6 @@ namespace XSF
   {
     return MakePtr<GenericFactory>(std::move(delegate));
   }
-}
 }
 
 #undef FILE_TAG

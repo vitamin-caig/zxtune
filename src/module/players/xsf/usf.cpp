@@ -31,9 +31,7 @@
 
 #define FILE_TAG 59F6FD73
 
-namespace Module
-{
-namespace USF
+namespace Module::USF
 {
   const Debug::Stream Dbg("Module::USF");
   
@@ -384,7 +382,6 @@ namespace USF
   {
     return XSF::CreateFactory(MakePtr<Factory>());
   }
-}
 }
 
 #undef FILE_TAG

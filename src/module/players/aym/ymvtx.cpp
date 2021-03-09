@@ -22,9 +22,7 @@
 //boost includes
 #include <boost/lexical_cast.hpp>
 
-namespace Module
-{
-namespace YMVTX
+namespace Module::YMVTX
 {
   Devices::AYM::LayoutType VtxMode2AymLayout(uint_t mode)
   {
@@ -192,5 +190,4 @@ namespace YMVTX
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
 }

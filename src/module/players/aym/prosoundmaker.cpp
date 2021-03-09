@@ -26,9 +26,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace ProSoundMaker
+namespace Module::ProSoundMaker
 {
   //supported commands and parameters
   enum CmdType
@@ -492,5 +490,4 @@ namespace ProSoundMaker
   {
     return MakePtr<Factory>();
   }
-}
 }

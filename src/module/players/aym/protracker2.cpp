@@ -22,9 +22,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace ProTracker2
+namespace Module::ProTracker2
 {
   //supported commands and parameters
   enum CmdType
@@ -406,5 +404,4 @@ namespace ProTracker2
   {
     return MakePtr<Factory>();
   }
-}
 }

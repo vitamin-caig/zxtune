@@ -18,9 +18,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace DigitalStudio
+namespace Module::DigitalStudio
 {
   const std::size_t CHANNELS_COUNT = 3;
 
@@ -51,5 +49,4 @@ namespace DigitalStudio
   {
     return MakePtr<Factory>();
   }
-}
 }

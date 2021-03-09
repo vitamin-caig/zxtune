@@ -28,9 +28,7 @@
 //std includes
 #include <algorithm>
 
-namespace Module
-{
-namespace AYEMUL
+namespace Module::AYEMUL
 {
   const Debug::Stream Dbg("Core::AYSupp");
 
@@ -832,5 +830,4 @@ namespace AYEMUL
   {
     return MakePtr<Factory>();
   }
-}
 }

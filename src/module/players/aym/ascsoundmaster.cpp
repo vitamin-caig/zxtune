@@ -23,9 +23,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace ASCSoundMaster
+namespace Module::ASCSoundMaster
 {
   //supported commands and their parameters
   enum CmdType
@@ -582,5 +580,4 @@ namespace ASCSoundMaster
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
 }

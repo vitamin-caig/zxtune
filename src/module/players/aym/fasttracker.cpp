@@ -23,9 +23,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace FastTracker
+namespace Module::FastTracker
 {
   //supported commands and their parameters
   enum CmdType
@@ -543,5 +541,4 @@ namespace FastTracker
   {
     return MakePtr<Factory>();
   }
-}
 }

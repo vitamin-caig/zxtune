@@ -34,9 +34,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace PSF
+namespace Module::PSF
 {
   const Debug::Stream Dbg("Module::PSF");
  
@@ -561,5 +559,4 @@ namespace PSF
   {
     return XSF::CreateFactory(MakePtr<Factory>());
   }
-}
 }

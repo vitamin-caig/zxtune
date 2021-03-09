@@ -34,9 +34,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace TwoSF
+namespace Module::TwoSF
 {
   const Debug::Stream Dbg("Module::2SF");
   
@@ -451,5 +449,4 @@ namespace TwoSF
   {
     return XSF::CreateFactory(MakePtr<Factory>());
   }
-}
 }

@@ -21,9 +21,7 @@
 #include <module/players/simple_orderlist.h>
 #include <sound/loop.h>
 
-namespace Module
-{
-namespace TFMMusicMaker
+namespace Module::TFMMusicMaker
 {
   enum CmdType
   {
@@ -1596,5 +1594,4 @@ namespace TFMMusicMaker
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
 }

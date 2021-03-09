@@ -23,9 +23,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace DigitalMusicMaker
+namespace Module::DigitalMusicMaker
 {
   const std::size_t CHANNELS_COUNT = 3;
 
@@ -717,5 +715,4 @@ namespace DigitalMusicMaker
   {
     return MakePtr<Factory>();
   }
-}
 }

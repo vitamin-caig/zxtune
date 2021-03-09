@@ -30,9 +30,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace SDSF
+namespace Module::SDSF
 {
   const Debug::Stream Dbg("Module::SDSF");
   
@@ -394,5 +392,4 @@ namespace SDSF
   {
     return XSF::CreateFactory(MakePtr<Factory>());
   }
-}
 }

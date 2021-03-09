@@ -27,9 +27,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace AHX
+namespace Module::AHX
 {
   const Debug::Stream Dbg("Core::AHXSupp");
 
@@ -403,5 +401,4 @@ namespace AHX
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
 }

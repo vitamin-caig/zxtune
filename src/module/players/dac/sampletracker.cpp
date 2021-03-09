@@ -18,9 +18,7 @@
 //text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace SampleTracker
+namespace Module::SampleTracker
 {
   const std::size_t CHANNELS_COUNT = 3;
 
@@ -60,5 +58,4 @@ namespace SampleTracker
   {
     return MakePtr<Factory>();
   }
-}
 }

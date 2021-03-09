@@ -28,9 +28,7 @@
 
 #define FILE_TAG 6972CAAF
 
-namespace Module
-{
-namespace AYM
+namespace Module::AYM
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module_players");
 
@@ -295,7 +293,6 @@ namespace AYM
   {
     return MakePtr<TSTrackParameters>(std::move(params), idx);
   }
-}
 }
 
 #undef FILE_TAG
