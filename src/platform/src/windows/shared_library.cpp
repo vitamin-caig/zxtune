@@ -26,9 +26,7 @@ namespace
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("platform");
 }
 
-namespace Platform
-{
-namespace Details
+namespace Platform::Details
 {
   class WindowsSharedLibrary : public SharedLibrary
   {
@@ -100,5 +98,4 @@ namespace Details
     std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), &GetSharedLibraryFilename);
     return res;
   }
-}
 }
