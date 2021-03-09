@@ -1,30 +1,30 @@
 /**
-* 
-* @file
-*
-* @brief Playlist controller interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist controller interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "data_provider.h"
 #include "playlist/io/container.h"
 #include "playlist/supp/model.h"
 #include "playlist/supp/scanner.h"
-//common includes
+// common includes
 #include <iterator.h>
-//qt includes
+// qt includes
 #include <QtCore/QObject>
 
 namespace Playlist
 {
   namespace Item
   {
-    //dynamic part
+    // dynamic part
     enum State
     {
       STOPPED,
@@ -52,22 +52,23 @@ namespace Playlist
       Q_OBJECT
     protected:
       explicit Iterator(QObject& parent);
+
     public:
       typedef Iterator* Ptr;
 
-      //access
+      // access
       virtual unsigned GetIndex() const = 0;
       virtual State GetState() const = 0;
-      //change
+      // change
       virtual void SetState(State state) = 0;
-      //navigate
+      // navigate
       virtual bool Next(unsigned playorderMode) = 0;
       virtual bool Prev(unsigned playorderMode) = 0;
 
-      //select item without activation 
+      // select item without activation
       virtual void Select(unsigned idx) = 0;
     public slots:
-      //navigate
+      // navigate
       virtual void Reset() = 0;
       virtual void Reset(unsigned idx) = 0;
     private slots:
@@ -78,7 +79,7 @@ namespace Playlist
       void ItemActivated(unsigned idx);
       void Deactivated();
     };
-  }
+  }  // namespace Item
 
   class TextNotification
   {
@@ -111,4 +112,4 @@ namespace Playlist
   signals:
     void Renamed(const QString& name);
   };
-}
+}  // namespace Playlist

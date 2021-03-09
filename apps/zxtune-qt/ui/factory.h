@@ -1,28 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief UI widgets factory interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief UI widgets factory interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "mainwindow.h"
-//library includes
+// library includes
 #include <parameters/container.h>
 
 class WidgetsFactory
 {
 public:
   virtual ~WidgetsFactory() = default;
-  
-  //main window
+
+  // main window
   virtual MainWindow::Ptr CreateMainWindow(Parameters::Container::Ptr options) const = 0;
 
-  //singleton
+  // singleton
   static WidgetsFactory& Instance();
 };

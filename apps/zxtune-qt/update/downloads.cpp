@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief Downloads visitor adapter implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Downloads visitor adapter implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "downloads.h"
 #include "apps/zxtune-qt/ui/utils.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
-//qt includes
+// qt includes
 #include <QtCore/QRegExp>
 
 namespace
@@ -25,9 +25,7 @@ namespace
 
 namespace
 {
-  const QLatin1String CONTENT_FORMAT(
-    "([\\w\\d]+)\\s+(revision|version)\\s+(\\d+)"
-  );
+  const QLatin1String CONTENT_FORMAT("([\\w\\d]+)\\s+(revision|version)\\s+(\\d+)");
 
   enum
   {
@@ -61,22 +59,16 @@ namespace
     UpdateDownload(RSS::Entry entry, const QString& version)
       : Entry(std::move(entry))
       , VersionValue(version)
-    {
-    }
+    {}
 
     Product::Release::PlatformTag Platform() const override
     {
       if (Entry.HtmlContent.contains(OPSYS_WINDOWS))
       {
-        return Entry.HtmlContent.contains(COMPILER_GCC)
-          ? Product::Release::MINGW
-          : Product::Release::WINDOWS
-        ;
+        return Entry.HtmlContent.contains(COMPILER_GCC) ? Product::Release::MINGW : Product::Release::WINDOWS;
       }
-      else if (Entry.HtmlContent.contains(OPSYS_LINUX) ||
-               Entry.HtmlContent.contains(OPSYS_ARCHLINUX) ||
-               Entry.HtmlContent.contains(OPSYS_UBUNTU) ||
-               Entry.HtmlContent.contains(OPSYS_REDHAT))
+      else if (Entry.HtmlContent.contains(OPSYS_LINUX) || Entry.HtmlContent.contains(OPSYS_ARCHLINUX)
+               || Entry.HtmlContent.contains(OPSYS_UBUNTU) || Entry.HtmlContent.contains(OPSYS_REDHAT))
       {
         return Product::Release::LINUX;
       }
@@ -92,7 +84,7 @@ namespace
 
     Product::Release::ArchitectureTag Architecture() const override
     {
-      //check x86_64 first
+      // check x86_64 first
       if (Entry.HtmlContent.contains(PLATFORM_X86_64))
       {
         return Product::Release::X86_64;
@@ -101,7 +93,7 @@ namespace
       {
         return Product::Release::X86;
       }
-      //check armhf first
+      // check armhf first
       else if (Entry.HtmlContent.contains(PLATFORM_ARMHF))
       {
         return Product::Release::ARMHF;
@@ -173,6 +165,7 @@ namespace
     {
       return Entry.DirectLink;
     }
+
   private:
     const RSS::Entry Entry;
     const QString VersionValue;
@@ -185,8 +178,7 @@ namespace
       : Project(project)
       , Delegate(delegate)
       , ContentMatch(CONTENT_FORMAT)
-    {
-    }
+    {}
 
     void OnEntry(const RSS::Entry& e) override
     {
@@ -206,12 +198,13 @@ namespace
       const Product::Update::Ptr update = MakePtr<UpdateDownload>(e, revision);
       Delegate.OnDownload(update);
     }
+
   private:
     const QString Project;
     Downloads::Visitor& Delegate;
     QRegExp ContentMatch;
   };
-}
+}  // namespace
 
 namespace Downloads
 {
@@ -219,4 +212,4 @@ namespace Downloads
   {
     return std::unique_ptr<RSS::Visitor>(new FeedVisitor(project, delegate));
   }
-}
+}  // namespace Downloads

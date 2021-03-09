@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief Playlist container interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist container interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "controller.h"
-//library includes
+// library includes
 #include <parameters/accessor.h>
-//qt includes
+// qt includes
 #include <QtCore/QObject>
 
 namespace Playlist
@@ -25,7 +25,7 @@ namespace Playlist
   public:
     typedef std::shared_ptr<Container> Ptr;
 
-    //creator
+    // creator
     static Ptr Create(Parameters::Accessor::Ptr parameters);
 
     virtual Controller::Ptr CreatePlaylist(const QString& name) const = 0;
@@ -35,4 +35,4 @@ namespace Playlist
   };
 
   void Save(Controller::Ptr ctrl, const QString& filename, uint_t flags);
-}
+}  // namespace Playlist

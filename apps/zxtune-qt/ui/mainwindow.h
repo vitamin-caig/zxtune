@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief Main window interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Main window interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//qt includes
+// qt includes
 #include <QtCore/QPointer>
 #include <QtGui/QMainWindow>
 

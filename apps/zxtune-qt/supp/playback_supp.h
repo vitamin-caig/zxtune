@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief Playback support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playback support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "playlist/supp/data.h"
-//library includes
+// library includes
 #include <sound/backend.h>
-//qt includes
+// qt includes
 #include <QtCore/QThread>
 
 class PlaybackSupport : public QObject
@@ -22,6 +22,7 @@ class PlaybackSupport : public QObject
   Q_OBJECT
 protected:
   explicit PlaybackSupport(QObject& parent);
+
 public:
   static PlaybackSupport* Create(QObject& parent, Parameters::Accessor::Ptr sndOptions);
 

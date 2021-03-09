@@ -1,17 +1,17 @@
 /**
-* 
-* @file
-*
-* @brief WidgetsFactory implementation for desktop
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief WidgetsFactory implementation for desktop
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "ui/factory.h"
 #include "mainwindow.h"
-//std includes
+// std includes
 #include <utility>
 
 namespace
@@ -24,7 +24,7 @@ namespace
       return DesktopMainWindow::Create(options);
     }
   };
-}
+}  // namespace
 
 WidgetsFactory& WidgetsFactory::Instance()
 {

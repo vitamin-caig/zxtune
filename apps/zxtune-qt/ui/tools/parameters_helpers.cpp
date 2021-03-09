@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief Parameters helpers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Parameters helpers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "parameters_helpers.h"
-//common includes
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-//qt includes
+// qt includes
 #include <QtGui/QAbstractButton>
 #include <QtGui/QAction>
 #include <QtGui/QComboBox>
@@ -34,7 +34,8 @@ namespace
   class BooleanValueImpl : public BooleanValue
   {
   public:
-    BooleanValueImpl(Holder& parent, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue, const Parameters::IntType& oneValue)
+    BooleanValueImpl(Holder& parent, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue,
+                     const Parameters::IntType& oneValue)
       : BooleanValue(parent)
       , Parent(parent)
       , Container(ctr)
@@ -64,6 +65,7 @@ namespace
     {
       Parent.setChecked(GetValue());
     }
+
   private:
     bool GetValue() const
     {
@@ -71,6 +73,7 @@ namespace
       Container.FindValue(Name, val);
       return val != 0;
     }
+
   private:
     Holder& Parent;
     Parameters::Container& Container;
@@ -82,7 +85,8 @@ namespace
   class StringSetValue : public ExclusiveValue
   {
   public:
-    StringSetValue(QAbstractButton& parent, Parameters::Container& ctr, const Parameters::NameType& name, Parameters::StringType value)
+    StringSetValue(QAbstractButton& parent, Parameters::Container& ctr, const Parameters::NameType& name,
+                   Parameters::StringType value)
       : ExclusiveValue(parent)
       , Parent(parent)
       , Container(ctr)
@@ -113,6 +117,7 @@ namespace
     {
       Parent.setChecked(GetValue() == Value);
     }
+
   private:
     Parameters::StringType GetValue() const
     {
@@ -120,6 +125,7 @@ namespace
       Container.FindValue(Name, value);
       return value;
     }
+
   private:
     QAbstractButton& Parent;
     Parameters::Container& Container;
@@ -181,6 +187,7 @@ namespace
     {
       SetWidgetValue(Parent, GetValue());
     }
+
   private:
     int GetValue() const
     {
@@ -188,6 +195,7 @@ namespace
       Container.FindValue(Name, value);
       return value;
     }
+
   private:
     Holder& Parent;
     Parameters::Container& Container;
@@ -224,6 +232,7 @@ namespace
     {
       SetWidgetValue(Parent, Value->Get());
     }
+
   private:
     Holder& Parent;
     const Integer::Ptr Value;
@@ -242,7 +251,6 @@ namespace
       Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));
       Require(connect(&parent, SIGNAL(editingFinished()), SLOT(Reload())));
     }
-
 
     void Set(const QString& value) override
     {
@@ -273,6 +281,7 @@ namespace
         Parent.clear();
       }
     }
+
   private:
     Parameters::IntType GetValue() const
     {
@@ -280,6 +289,7 @@ namespace
       Container.FindValue(Traits.Name, value);
       return value;
     }
+
   private:
     QLineEdit& Parent;
     Parameters::Container& Container;
@@ -289,7 +299,8 @@ namespace
   class StringValueImpl : public StringValue
   {
   public:
-    StringValueImpl(QLineEdit& parent, Parameters::Container& ctr, const Parameters::NameType& name, Parameters::StringType defValue)
+    StringValueImpl(QLineEdit& parent, Parameters::Container& ctr, const Parameters::NameType& name,
+                    Parameters::StringType defValue)
       : StringValue(parent)
       , Parent(parent)
       , Container(ctr)
@@ -318,6 +329,7 @@ namespace
     {
       Parent.setText(ToQString(GetValue()));
     }
+
   private:
     Parameters::StringType GetValue() const
     {
@@ -325,61 +337,67 @@ namespace
       Container.FindValue(Name, value);
       return value;
     }
+
   private:
     QLineEdit& Parent;
     Parameters::Container& Container;
     const Parameters::NameType Name;
     const Parameters::StringType Default;
   };
-}
+}  // namespace
 
 namespace Parameters
 {
-  Value::Value(QObject& parent) : QObject(&parent)
-  {
-  }
+  Value::Value(QObject& parent)
+    : QObject(&parent)
+  {}
 
-  BooleanValue::BooleanValue(QObject& parent) : Value(parent)
-  {
-  }
+  BooleanValue::BooleanValue(QObject& parent)
+    : Value(parent)
+  {}
 
-  ExclusiveValue::ExclusiveValue(QObject& parent) : Value(parent)
-  {
-  }
+  ExclusiveValue::ExclusiveValue(QObject& parent)
+    : Value(parent)
+  {}
 
-  IntegerValue::IntegerValue(QObject& parent) : Value(parent)
-  {
-  }
+  IntegerValue::IntegerValue(QObject& parent)
+    : Value(parent)
+  {}
 
-  BigIntegerValue::BigIntegerValue(QObject &parent) : Value(parent)
-  {
-  }
+  BigIntegerValue::BigIntegerValue(QObject& parent)
+    : Value(parent)
+  {}
 
-  StringValue::StringValue(QObject &parent) : Value(parent)
-  {
-  }
+  StringValue::StringValue(QObject& parent)
+    : Value(parent)
+  {}
 
-  Value* BooleanValue::Bind(QAction& action, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue)
+  Value* BooleanValue::Bind(QAction& action, Parameters::Container& ctr, const Parameters::NameType& name,
+                            bool defValue)
   {
     return new BooleanValueImpl<QAction>(action, ctr, name, defValue, 1);
   }
 
-  Value* BooleanValue::Bind(QAbstractButton& button, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue, const Parameters::IntType& oneValue)
+  Value* BooleanValue::Bind(QAbstractButton& button, Parameters::Container& ctr, const Parameters::NameType& name,
+                            bool defValue, const Parameters::IntType& oneValue)
   {
     return new BooleanValueImpl<QAbstractButton>(button, ctr, name, defValue, oneValue);
   }
 
-  Value* BooleanValue::Bind(QGroupBox& box, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue, const Parameters::IntType& oneValue)
+  Value* BooleanValue::Bind(QGroupBox& box, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue,
+                            const Parameters::IntType& oneValue)
   {
     return new BooleanValueImpl<QGroupBox>(box, ctr, name, defValue, oneValue);
   }
 
-  Value* ExclusiveValue::Bind(QAbstractButton& button, Parameters::Container& ctr, const Parameters::NameType& name, const Parameters::StringType& value)
+  Value* ExclusiveValue::Bind(QAbstractButton& button, Parameters::Container& ctr, const Parameters::NameType& name,
+                              const Parameters::StringType& value)
   {
     return new StringSetValue(button, ctr, name, value);
   }
 
-  Value* IntegerValue::Bind(QComboBox& combo, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
+  Value* IntegerValue::Bind(QComboBox& combo, Parameters::Container& ctr, const Parameters::NameType& name,
+                            int defValue)
   {
     return new IntegerValueImpl<QComboBox>(combo, ctr, name, defValue);
   }
@@ -389,7 +407,8 @@ namespace Parameters
     return new IntegerValueImpl<QSlider>(slider, ctr, name, defValue);
   }
 
-  Value* IntegerValue::Bind(QSpinBox& spinbox, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
+  Value* IntegerValue::Bind(QSpinBox& spinbox, Parameters::Container& ctr, const Parameters::NameType& name,
+                            int defValue)
   {
     return new IntegerValueImpl<QSpinBox>(spinbox, ctr, name, defValue);
   }
@@ -404,8 +423,9 @@ namespace Parameters
     return new BigIntegerValueImpl(edit, ctr, traits);
   }
 
-  Value* StringValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const Parameters::NameType& name, const Parameters::StringType& defValue)
+  Value* StringValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const Parameters::NameType& name,
+                           const Parameters::StringType& defValue)
   {
     return new StringValueImpl(edit, ctr, name, defValue);
   }
-}
+}  // namespace Parameters

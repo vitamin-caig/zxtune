@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief Search operation implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Search operation implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "operations_search.h"
 #include "storage.h"
 #include "ui/utils.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//qt includes
+// qt includes
 #include <QtCore/QRegExp>
 
 namespace
@@ -37,8 +37,7 @@ namespace
       , Pred(std::move(pred))
       , Result(MakeRWPtr<Playlist::Model::IndexSet>())
       , Done(0)
-    {
-    }
+    {}
 
     void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
     {
@@ -53,6 +52,7 @@ namespace
     {
       return Result;
     }
+
   private:
     Log::ProgressCallback& Callback;
     const Predicate::Ptr Pred;
@@ -91,9 +91,10 @@ namespace
       }
       emit ResultAcquired(visitor.GetResult());
     }
+
   private:
     const Playlist::Model::IndexSet::Ptr SelectedItems;
-    const Predicate::Ptr Pred;  
+    const Predicate::Ptr Pred;
   };
 
   class StringPredicate
@@ -113,16 +114,14 @@ namespace
       , MatchTitle(0 != (scope & Playlist::Item::Search::TITLE))
       , MatchAuthor(0 != (scope & Playlist::Item::Search::AUTHOR))
       , MatchPath(0 != (scope & Playlist::Item::Search::PATH))
-    {
-    }
+    {}
 
     bool Match(const Playlist::Item::Data& data) const override
     {
-      return (MatchTitle && Pred->Match(data.GetTitle()))
-          || (MatchAuthor && Pred->Match(data.GetAuthor()))
-          || (MatchPath && Pred->Match(data.GetFullPath()))
-      ;
+      return (MatchTitle && Pred->Match(data.GetTitle())) || (MatchAuthor && Pred->Match(data.GetAuthor()))
+             || (MatchPath && Pred->Match(data.GetFullPath()));
     }
+
   private:
     const StringPredicate::Ptr Pred;
     const bool MatchTitle;
@@ -145,13 +144,13 @@ namespace
     SimpleStringPredicate(const QString& pat, bool caseSensitive)
       : Pattern(pat)
       , Mode(caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive)
-    {
-    }
+    {}
 
     bool Match(const String& str) const override
     {
       return ToQString(str).contains(Pattern, Mode);
     }
+
   private:
     const QString Pattern;
     const Qt::CaseSensitivity Mode;
@@ -162,13 +161,13 @@ namespace
   public:
     RegexStringPredicate(const QString& val, bool caseSensitive)
       : Pattern(val, caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive)
-    {
-    }
+    {}
 
     bool Match(const String& str) const override
     {
       return ToQString(str).contains(Pattern);
     }
+
   private:
     const QRegExp Pattern;
   };
@@ -193,7 +192,7 @@ namespace
       return MakePtr<ScopePredicateDispatcher>(str, data.Scope);
     }
   }
-}
+}  // namespace
 
 namespace Playlist
 {
@@ -210,5 +209,5 @@ namespace Playlist
       const Predicate::Ptr pred = CreatePredicate(data);
       return MakePtr<SearchOperation>(items, pred);
     }
-  }
-}
+  }  // namespace Item
+}  // namespace Playlist

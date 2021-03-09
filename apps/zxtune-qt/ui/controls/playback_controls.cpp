@@ -1,40 +1,41 @@
 /**
-* 
-* @file
-*
-* @brief Playback controls widget implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playback controls widget implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "playback_controls.h"
 #include "playback_controls.ui.h"
 #include "supp/playback_supp.h"
-//common includes
+// common includes
 #include <contract.h>
-//std includes
+// std includes
 #include <cassert>
 #include <utility>
-//qt includes
+// qt includes
 #include <QtGui/QMenu>
 
 namespace
 {
-  class PlaybackControlsImpl : public PlaybackControls
-                             , private Ui::PlaybackControls
+  class PlaybackControlsImpl
+    : public PlaybackControls
+    , private Ui::PlaybackControls
   {
   public:
     PlaybackControlsImpl(QWidget& parent, PlaybackSupport& supp)
       : ::PlaybackControls(parent)
       , ActionsMenu(new QMenu(this))
     {
-      //setup self
+      // setup self
       setupUi(this);
       SetupMenu();
 
-      //connect actions with self signals
+      // connect actions with self signals
       Require(connect(actionPlay, SIGNAL(triggered()), SIGNAL(OnPlay())));
       Require(connect(actionPause, SIGNAL(triggered()), SIGNAL(OnPause())));
       Require(connect(actionStop, SIGNAL(triggered()), SIGNAL(OnStop())));
@@ -51,7 +52,7 @@ namespace
       return ActionsMenu;
     }
 
-    //QWidget
+    // QWidget
     void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
@@ -61,6 +62,7 @@ namespace
       }
       ::PlaybackControls::changeEvent(event);
     }
+
   private:
     void SetupMenu()
     {
@@ -77,14 +79,15 @@ namespace
     {
       ActionsMenu->setTitle(::PlaybackControls::tr("Playback"));
     }
+
   private:
     QMenu* const ActionsMenu;
   };
-}
+}  // namespace
 
-PlaybackControls::PlaybackControls(QWidget& parent) : QWidget(&parent)
-{
-}
+PlaybackControls::PlaybackControls(QWidget& parent)
+  : QWidget(&parent)
+{}
 
 PlaybackControls* PlaybackControls::Create(QWidget& parent, PlaybackSupport& supp)
 {

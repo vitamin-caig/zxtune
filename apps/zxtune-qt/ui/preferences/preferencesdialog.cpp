@@ -1,30 +1,30 @@
 /**
-* 
-* @file
-*
-* @brief Preferences dialog implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Preferences dialog implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "preferencesdialog.h"
-#include "preferencesdialog.ui.h"
 #include "aym.h"
-#include "saa.h"
-#include "sid.h"
-#include "z80.h"
-#include "sound.h"
+#include "interface.h"
 #include "mixing.h"
 #include "plugins.h"
-#include "interface.h"
+#include "preferencesdialog.ui.h"
+#include "saa.h"
+#include "sid.h"
+#include "sound.h"
 #include "ui/state.h"
-//std includes
+#include "z80.h"
+// std includes
 #include <algorithm>
-//std includes
+// std includes
 #include <utility>
-//qt includes
+// qt includes
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QTabWidget>
@@ -32,8 +32,9 @@
 
 namespace
 {
-  class PreferencesDialog : public QDialog
-                          , public Ui::PreferencesDialog
+  class PreferencesDialog
+    : public QDialog
+    , public Ui::PreferencesDialog
   {
   public:
     PreferencesDialog(QWidget& parent, bool playing)
@@ -41,20 +42,17 @@ namespace
     {
       setupUi(this);
       State = UI::State::Create(*this);
-      //fill
+      // fill
       QWidget* const soundSettingsPage = UI::SoundSettingsWidget::Create(*Categories);
-      QWidget* const pages[] =
-      {
-        UI::AYMSettingsWidget::Create(*Categories),
-        UI::SAASettingsWidget::Create(*Categories),
-        UI::SIDSettingsWidget::Create(*Categories),
-        UI::Z80SettingsWidget::Create(*Categories),
-        soundSettingsPage,
-        UI::MixingSettingsWidget::Create(*Categories, 3),
-        UI::MixingSettingsWidget::Create(*Categories, 4),
-        UI::PluginsSettingsWidget::Create(*Categories),
-        UI::InterfaceSettingsWidget::Create(*Categories)
-      };
+      QWidget* const pages[] = {UI::AYMSettingsWidget::Create(*Categories),
+                                UI::SAASettingsWidget::Create(*Categories),
+                                UI::SIDSettingsWidget::Create(*Categories),
+                                UI::Z80SettingsWidget::Create(*Categories),
+                                soundSettingsPage,
+                                UI::MixingSettingsWidget::Create(*Categories, 3),
+                                UI::MixingSettingsWidget::Create(*Categories, 4),
+                                UI::PluginsSettingsWidget::Create(*Categories),
+                                UI::InterfaceSettingsWidget::Create(*Categories)};
       for (auto* p : pages)
       {
         Categories->addTab(p, p->windowTitle());
@@ -64,7 +62,7 @@ namespace
       State->Load();
     }
 
-    //QWidgets virtuals
+    // QWidgets virtuals
     void closeEvent(QCloseEvent* event) override
     {
       State->Save();
@@ -79,7 +77,7 @@ namespace
         for (int idx = 0, lim = Categories->count(); idx != lim; ++idx)
         {
           QWidget* const tab = Categories->widget(idx);
-          //tab->changeEvent(event);
+          // tab->changeEvent(event);
           Categories->setTabText(idx, tab->windowTitle());
         }
       }
@@ -88,10 +86,11 @@ namespace
         QDialog::changeEvent(event);
       }
     }
+
   private:
     UI::State::Ptr State;
   };
-}
+}  // namespace
 
 namespace UI
 {
@@ -100,4 +99,4 @@ namespace UI
     PreferencesDialog dialog(parent, playing);
     dialog.exec();
   }
-}
+}  // namespace UI

@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief Scanner view interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Scanner view interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "playlist/supp/scanner.h"
-//qt includes
+// qt includes
 #include <QtGui/QWidget>
 
 namespace Playlist
@@ -24,6 +24,7 @@ namespace Playlist
       Q_OBJECT
     protected:
       explicit ScannerView(QWidget& parent);
+
     public:
       static ScannerView* Create(QWidget& parent, Playlist::Scanner::Ptr scanner);
 
@@ -33,5 +34,5 @@ namespace Playlist
       virtual void ShowProgress(unsigned) = 0;
       virtual void ShowProgressMessage(const QString&) = 0;
     };
-  }
-}
+  }  // namespace UI
+}  // namespace Playlist

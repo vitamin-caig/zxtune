@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Z80 settings pane interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Z80 settings pane interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//qt includes
+// qt includes
 #include <QtGui/QWidget>
 
 namespace UI
@@ -20,7 +20,8 @@ namespace UI
     Q_OBJECT
   protected:
     explicit Z80SettingsWidget(QWidget& parent);
+
   public:
     static Z80SettingsWidget* Create(QWidget& parent);
   };
-}
+}  // namespace UI

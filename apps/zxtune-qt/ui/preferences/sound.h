@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Sound settings pane interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Sound settings pane interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//qt includes
+// qt includes
 #include <QtGui/QWidget>
 
 namespace UI
@@ -20,6 +20,7 @@ namespace UI
     Q_OBJECT
   protected:
     explicit SoundSettingsWidget(QWidget& parent);
+
   public:
     static SoundSettingsWidget* Create(QWidget& parent);
   private slots:
@@ -28,4 +29,4 @@ namespace UI
     virtual void MoveBackendUp() = 0;
     virtual void MoveBackendDown() = 0;
   };
-}
+}  // namespace UI

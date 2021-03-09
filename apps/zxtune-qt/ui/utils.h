@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief Different utilities
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Different utilities
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//qt includes
-#include <QtCore/QString>
+// qt includes
 #include <QtCore/QMetaType>
+#include <QtCore/QString>
 
 inline QString ToQString(const String& str)
 {
@@ -50,17 +50,19 @@ public:
   explicit AutoBlockSignal(QObject& obj)
     : Obj(obj)
     , Previous(Obj.blockSignals(true))
-  {
-  }
+  {}
 
   ~AutoBlockSignal()
   {
     Obj.blockSignals(Previous);
   }
+
 private:
   QObject& Obj;
   const bool Previous;
 };
 
-
-#define REGISTER_METATYPE(A) {static AutoMetaTypeRegistrator<A> tmp(#A);}
+#define REGISTER_METATYPE(A)                                                                                           \
+  {                                                                                                                    \
+    static AutoMetaTypeRegistrator<A> tmp(#A);                                                                         \
+  }

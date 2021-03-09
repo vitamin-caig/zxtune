@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief SAA settings pane interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief SAA settings pane interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//qt includes
+// qt includes
 #include <QtGui/QWidget>
 
 namespace UI
@@ -20,7 +20,8 @@ namespace UI
     Q_OBJECT
   protected:
     explicit SAASettingsWidget(QWidget& parent);
+
   public:
     static SAASettingsWidget* Create(QWidget& parent);
   };
-}
+}  // namespace UI

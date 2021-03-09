@@ -1,14 +1,14 @@
 /**
-* 
-* @file
-*
-* @brief Playlist operations helpers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist operations helpers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "operations_helpers.h"
 #include "storage.h"
 
@@ -21,29 +21,31 @@ namespace
       : Delegate(delegate)
       , Callback(cb)
       , Done(0)
-    {
-    }
+    {}
 
     void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
     {
       Delegate.OnItem(index, data);
       Callback.OnProgress(++Done);
     }
+
   private:
     Playlist::Item::Visitor& Delegate;
     Log::ProgressCallback& Callback;
     uint_t Done;
   };
-}
+}  // namespace
 
 namespace Playlist
 {
   namespace Item
   {
-    void ExecuteOperation(const Storage& stor, Model::IndexSet::Ptr selectedItems, Visitor& visitor, Log::ProgressCallback& cb)
+    void ExecuteOperation(const Storage& stor, Model::IndexSet::Ptr selectedItems, Visitor& visitor,
+                          Log::ProgressCallback& cb)
     {
       const std::size_t totalItems = selectedItems ? selectedItems->size() : stor.CountItems();
-      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
+      const Log::ProgressCallback::Ptr progress =
+          Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
       ProgressModelVisitor progressed(visitor, *progress);
       if (selectedItems)
       {
@@ -54,5 +56,5 @@ namespace Playlist
         stor.ForAllItems(progressed);
       }
     }
-  }
-}
+  }  // namespace Item
+}  // namespace Playlist

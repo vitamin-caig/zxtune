@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief UI parameters definition
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief UI parameters definition
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "app_parameters.h"
 
 namespace Parameters
@@ -28,6 +28,6 @@ namespace Parameters
       const std::string PARAM_VISIBLE("Visible");
       const std::string PARAM_INDEX("Index");
       const std::string PARAM_SIZE("Size");
-    }
-  }
-}
+    }  // namespace UI
+  }    // namespace ZXTuneQT
+}  // namespace Parameters

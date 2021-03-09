@@ -1,25 +1,25 @@
 /**
-* 
-* @file
-*
-* @brief UI state helper implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief UI state helper implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "state.h"
 #include "parameters.h"
 #include "supp/options.h"
 #include "ui/utils.h"
-//common includes
-#include <pointers.h>
+// common includes
 #include <make_ptr.h>
-//library includes
+#include <pointers.h>
+// library includes
 #include <debug/log.h>
 #include <parameters/convert.h>
-//qt includes
+// qt includes
 #include <QtCore/QByteArray>
 #include <QtGui/QAbstractButton>
 #include <QtGui/QComboBox>
@@ -51,8 +51,7 @@ namespace
     NamespaceContainer(Parameters::Container::Ptr delegate, const Parameters::NameType& prefix)
       : Delegate(std::move(delegate))
       , Prefix(prefix)
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -99,6 +98,7 @@ namespace
       NamespacedVisitor namedVisitor(Prefix, visitor);
       Delegate->Process(namedVisitor);
     }
+
   private:
     class NamespacedVisitor : public Parameters::Visitor
     {
@@ -106,8 +106,7 @@ namespace
       NamespacedVisitor(const Parameters::NameType& prefix, Parameters::Visitor& delegate)
         : Prefix(prefix)
         , Delegate(delegate)
-      {
-      }
+      {}
 
       void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
       {
@@ -123,6 +122,7 @@ namespace
       {
         FilterValue(name, val);
       }
+
     private:
       template<class T>
       void FilterValue(const Parameters::NameType& name, const T& val)
@@ -133,10 +133,12 @@ namespace
           Delegate.SetValue(subName, val);
         }
       }
+
     private:
       const Parameters::NameType& Prefix;
       Parameters::Visitor& Delegate;
     };
+
   private:
     const Parameters::Container::Ptr Delegate;
     const Parameters::NameType Prefix;
@@ -169,9 +171,7 @@ namespace
   Parameters::Container::Ptr CreateSubcontainer(Parameters::Container::Ptr parent, QObject& obj)
   {
     const QString name = obj.objectName();
-    return name.size() == 0
-      ? parent
-      : MakePtr<NamespaceContainer>(parent, name.toStdString());
+    return name.size() == 0 ? parent : MakePtr<NamespaceContainer>(parent, name.toStdString());
   }
 
   class MainWindowState : public WidgetState
@@ -179,10 +179,9 @@ namespace
   public:
     MainWindowState(QMainWindow* wnd, Parameters::Container::Ptr ctr)
       : Wnd(*wnd)
-      //store in 'main' namespace
+      // store in 'main' namespace
       , Container(std::move(ctr))
-    {
-    }
+    {}
 
     void Load() const override
     {
@@ -195,6 +194,7 @@ namespace
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY, Wnd.saveGeometry());
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT, Wnd.saveState(PARAMETERS_VERSION));
     }
+
   private:
     QMainWindow& Wnd;
     const Parameters::Container::Ptr Container;
@@ -205,10 +205,9 @@ namespace
   public:
     DialogState(QDialog* wnd, Parameters::Container::Ptr ctr)
       : Wnd(*wnd)
-      //store in 'main' namespace
+      // store in 'main' namespace
       , Container(std::move(ctr))
-    {
-    }
+    {}
 
     void Load() const override
     {
@@ -219,6 +218,7 @@ namespace
     {
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY, Wnd.saveGeometry());
     }
+
   private:
     QDialog& Wnd;
     const Parameters::Container::Ptr Container;
@@ -229,10 +229,9 @@ namespace
   public:
     FileDialogState(QFileDialog* wnd, Parameters::Container::Ptr ctr)
       : Wnd(*wnd)
-      //store in 'main' namespace
+      // store in 'main' namespace
       , Container(std::move(ctr))
-    {
-    }
+    {}
 
     void Load() const override
     {
@@ -243,6 +242,7 @@ namespace
     {
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT, Wnd.saveState());
     }
+
   private:
     QFileDialog& Wnd;
     const Parameters::Container::Ptr Container;
@@ -254,8 +254,7 @@ namespace
     TabWidgetState(QTabWidget* tabs, Parameters::Container::Ptr ctr)
       : Wid(*tabs)
       , Container(CreateSubcontainer(ctr, Wid))
-    {
-    }
+    {}
 
     void Load() const override
     {
@@ -268,6 +267,7 @@ namespace
     {
       Container->SetValue(Parameters::ZXTuneQT::UI::PARAM_INDEX, Wid.currentIndex());
     }
+
   private:
     QTabWidget& Wid;
     const Parameters::Container::Ptr Container;
@@ -279,8 +279,7 @@ namespace
     ComboBoxState(QComboBox* tabs, Parameters::Container::Ptr ctr)
       : Wid(*tabs)
       , Container(CreateSubcontainer(ctr, Wid))
-    {
-    }
+    {}
 
     void Load() const override
     {
@@ -309,8 +308,8 @@ namespace
         const Parameters::StringType str = FromQString(Wid.itemText(idx));
         Container->SetValue(Parameters::ConvertToString(idx), str);
       }
-      //remove rest
-      for (; ; ++idx)
+      // remove rest
+      for (;; ++idx)
       {
         const Parameters::NameType name = Parameters::ConvertToString(idx);
         Parameters::StringType str;
@@ -324,6 +323,7 @@ namespace
         }
       }
     }
+
   private:
     QComboBox& Wid;
     const Parameters::Container::Ptr Container;
@@ -337,14 +337,14 @@ namespace
       , IsShown(View.isSortIndicatorShown())
       , Order(View.sortIndicatorOrder())
       , Column(View.sortIndicatorSection())
-    {
-    }
+    {}
 
     ~SortState()
     {
       View.setSortIndicatorShown(IsShown);
       View.setSortIndicator(Column, Order);
     }
+
   private:
     QHeaderView& View;
     const bool IsShown;
@@ -358,12 +358,11 @@ namespace
     HeaderViewState(QHeaderView* view, Parameters::Container::Ptr ctr)
       : View(*view)
       , Container(CreateSubcontainer(ctr, View))
-    {
-    }
+    {}
 
     void Load() const override
     {
-      //do not load sorting-related data
+      // do not load sorting-related data
       const AutoBlockSignal blockstate(View);
       const SortState sortstate(View);
       if (!View.restoreState(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT)))
@@ -376,6 +375,7 @@ namespace
     {
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT, View.saveState());
     }
+
   private:
     QHeaderView& View;
     const Parameters::Container::Ptr Container;
@@ -388,8 +388,7 @@ namespace
       : Wid(*wid)
       , Container(std::move(ctr))
       , Name(FromQString(Wid.objectName()))
-    {
-    }
+    {}
 
     void Load() const override
     {
@@ -404,6 +403,7 @@ namespace
     {
       Container->SetValue(Name, Wid.isChecked());
     }
+
   private:
     QAbstractButton& Wid;
     const Parameters::Container::Ptr Container;
@@ -416,8 +416,7 @@ namespace
     AnyWidgetState(QWidget* wid, Parameters::Container::Ptr ctr)
       : Wid(*wid)
       , Container(CreateSubcontainer(ctr, Wid))
-    {
-    }
+    {}
 
     void Load() const override
     {
@@ -437,6 +436,7 @@ namespace
       SaveBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY, Wid.saveGeometry());
       Container->SetValue(Parameters::ZXTuneQT::UI::PARAM_VISIBLE, Wid.isVisible());
     }
+
   private:
     QWidget& Wid;
     const Parameters::Container::Ptr Container;
@@ -447,8 +447,7 @@ namespace
   public:
     explicit PersistentState(Parameters::Container::Ptr ctr)
       : Options(std::move(ctr))
-    {
-    }
+    {}
 
     void AddWidget(QWidget& wid) override
     {
@@ -501,27 +500,28 @@ namespace
         state->Save();
       }
     }
+
   private:
     const Parameters::Container::Ptr Options;
     std::list<WidgetState::Ptr> Substates;
   };
-}
+}  // namespace
 
 namespace UI
 {
   State::Ptr State::Create(const String& category)
   {
-    const Parameters::Container::Ptr container = MakePtr<NamespaceContainer>(
-      GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + category);
+    const Parameters::Container::Ptr container =
+        MakePtr<NamespaceContainer>(GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + category);
     return MakePtr<PersistentState>(container);
   }
 
   State::Ptr State::Create(QWidget& root)
   {
     const Parameters::Container::Ptr container = MakePtr<NamespaceContainer>(
-      GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + root.objectName().toStdString());
+        GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + root.objectName().toStdString());
     State::Ptr res = MakePtr<PersistentState>(container);
     res->AddWidget(root);
     return res;
   }
-}
+}  // namespace UI

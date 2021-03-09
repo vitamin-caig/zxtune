@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief Filename template building widget implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Filename template building widget implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "filename_template.h"
 #include "filename_template.ui.h"
 #include "parameters.h"
 #include "supp/options.h"
 #include "ui/state.h"
-#include "ui/utils.h"
 #include "ui/tools/filedialog.h"
 #include "ui/tools/parameters_helpers.h"
-//common includes
+#include "ui/utils.h"
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 #include <io/providers_parameters.h>
-//qt includes
+// qt includes
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDialogButtonBox>
 #include <QtGui/QLineEdit>
@@ -33,18 +33,19 @@ namespace
 {
   void UpdateRecent(QComboBox& box)
   {
-    //emulate QComboBox::returnPressed
+    // emulate QComboBox::returnPressed
     const QString txt = box.currentText();
     const int idx = box.findText(txt);
     if (-1 != idx)
-    { 
+    {
       box.removeItem(idx);
     }
     box.insertItem(0, txt);
   }
 
-  class FilenameTemplateWidgetImpl : public UI::FilenameTemplateWidget
-                                   , private UI::Ui_FilenameTemplateWidget
+  class FilenameTemplateWidgetImpl
+    : public UI::FilenameTemplateWidget
+    , private UI::Ui_FilenameTemplateWidget
   {
   public:
     explicit FilenameTemplateWidgetImpl(QWidget& parent)
@@ -52,7 +53,7 @@ namespace
       , Options(GlobalOptions::Instance().Get())
       , State(UI::State::Create(Parameters::ZXTuneQT::UI::Export::NAMESPACE_NAME))
     {
-      //setup self
+      // setup self
       setupUi(this);
       State->AddWidget(*DirectoryName);
       State->AddWidget(*FileTemplate);
@@ -63,8 +64,10 @@ namespace
       State->Load();
 
       using namespace Parameters;
-      IntegerValue::Bind(*overwriteExisting, *Options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING, ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT);
-      BooleanValue::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES, ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
+      IntegerValue::Bind(*overwriteExisting, *Options, ZXTune::IO::Providers::File::OVERWRITE_EXISTING,
+                         ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT);
+      BooleanValue::Bind(*createDirectories, *Options, ZXTune::IO::Providers::File::CREATE_DIRECTORIES,
+                         ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT);
     }
 
     ~FilenameTemplateWidgetImpl() override
@@ -84,9 +87,7 @@ namespace
       if (dir.size() != 0)
       {
         static const QLatin1Char SEPARATOR('/');
-        return dir.endsWith(SEPARATOR)
-          ? dir + name
-          : dir + SEPARATOR + name;
+        return dir.endsWith(SEPARATOR) ? dir + name : dir + SEPARATOR + name;
       }
       return name;
     }
@@ -106,12 +107,14 @@ namespace
       QLineEdit* const editor = FileTemplate->lineEdit();
       editor->setText(editor->text() + hint);
     }
+
   private:
     void UpdateRecentItemsLists() const
     {
       UpdateRecent(*FileTemplate);
       UpdateRecent(*DirectoryName);
     }
+
   private:
     const Parameters::Container::Ptr Options;
     const UI::State::Ptr State;
@@ -140,16 +143,17 @@ namespace
     {
       return TemplateBuilder->GetFilenameTemplate();
     }
+
   private:
     UI::FilenameTemplateWidget* TemplateBuilder;
   };
-}
+}  // namespace
 
 namespace UI
 {
-  FilenameTemplateWidget::FilenameTemplateWidget(QWidget& parent) : QWidget(&parent)
-  {
-  }
+  FilenameTemplateWidget::FilenameTemplateWidget(QWidget& parent)
+    : QWidget(&parent)
+  {}
 
   FilenameTemplateWidget* FilenameTemplateWidget::Create(QWidget& parent)
   {
@@ -167,11 +171,10 @@ namespace UI
         result = res;
         return true;
       }
-      QMessageBox warning(QMessageBox::Critical,
-        UI::FilenameTemplateWidget::tr("Invalid parameter"),
-        UI::FilenameTemplateWidget::tr("Filename template is empty"), QMessageBox::Ok);
+      QMessageBox warning(QMessageBox::Critical, UI::FilenameTemplateWidget::tr("Invalid parameter"),
+                          UI::FilenameTemplateWidget::tr("Filename template is empty"), QMessageBox::Ok);
       warning.exec();
     }
     return false;
   }
-}
+}  // namespace UI

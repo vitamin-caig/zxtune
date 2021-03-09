@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief Playlist search dialog interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist search dialog interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
-#include "playlist/ui/search.h"
+// local includes
 #include "playlist/supp/model.h"
 #include "playlist/supp/operations_search.h"
-//qt includes
+#include "playlist/ui/search.h"
+// qt includes
 #include <QtGui/QDialog>
 
 namespace Playlist
@@ -26,6 +26,7 @@ namespace Playlist
       Q_OBJECT
     protected:
       explicit SearchDialog(QWidget& parent);
+
     public:
       typedef std::shared_ptr<SearchDialog> Ptr;
       static Ptr Create(QWidget& parent);
@@ -34,5 +35,5 @@ namespace Playlist
     };
 
     Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent, Playlist::Model::IndexSet::Ptr scope);
-  }
-}
+  }  // namespace UI
+}  // namespace Playlist

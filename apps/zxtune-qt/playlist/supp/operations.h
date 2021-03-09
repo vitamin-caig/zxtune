@@ -1,27 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief Playlist common operations interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist common operations interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "controller.h"
 #include "model.h"
-//qt includes
+// qt includes
 #include <QtCore/QObject>
 
 namespace Playlist
 {
   namespace Item
   {
-    class SelectionOperation : public QObject
-                             , public Playlist::Item::StorageAccessOperation
+    class SelectionOperation
+      : public QObject
+      , public Playlist::Item::StorageAccessOperation
     {
       Q_OBJECT
     public:
@@ -30,8 +31,9 @@ namespace Playlist
       void ResultAcquired(Playlist::Model::IndexSet::Ptr);
     };
 
-    class TextResultOperation : public QObject
-                              , public Playlist::Item::StorageAccessOperation
+    class TextResultOperation
+      : public QObject
+      , public Playlist::Item::StorageAccessOperation
     {
       Q_OBJECT
     public:
@@ -40,18 +42,18 @@ namespace Playlist
       void ResultAcquired(Playlist::TextNotification::Ptr);
     };
 
-    //rip-offs
+    // rip-offs
     SelectionOperation::Ptr CreateSelectAllRipOffsOperation();
     SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items);
     SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(Playlist::Model::IndexSet::Ptr items);
-    //duplicates
+    // duplicates
     SelectionOperation::Ptr CreateSelectAllDuplicatesOperation();
     SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items);
     SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSet::Ptr items);
-    //other
+    // other
     SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items);
     SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items);
     SelectionOperation::Ptr CreateSelectAllUnavailableOperation();
     SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSet::Ptr items);
-  }
-}
+  }  // namespace Item
+}  // namespace Playlist

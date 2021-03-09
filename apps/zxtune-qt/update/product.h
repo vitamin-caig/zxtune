@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Product entity interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Product entity interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
 #include <vector>
-//qt includes
+// qt includes
 #include <QtCore/QDate>
 #include <QtCore/QString>
 #include <QtCore/QUrl>
@@ -63,7 +63,7 @@ namespace Product
       TARXZ,
       DEB,
       RPM,
-    };  
+    };
 
     enum TypeTag
     {
@@ -92,6 +92,7 @@ namespace Product
   };
 
   const Release& ThisRelease();
-  Update::TypeTag GetUpdateType(Release::PlatformTag platform, Release::ArchitectureTag architecture, Update::PackagingTag packaging);
+  Update::TypeTag GetUpdateType(Release::PlatformTag platform, Release::ArchitectureTag architecture,
+                                Update::PackagingTag packaging);
   std::vector<Update::TypeTag> SupportedUpdateTypes();
-}
+}  // namespace Product

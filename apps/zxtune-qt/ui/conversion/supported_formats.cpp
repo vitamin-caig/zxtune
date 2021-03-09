@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief Supported formats pane implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Supported formats pane implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "supported_formats.h"
-#include "supported_formats.ui.h"
 #include "parameters.h"
 #include "supp/options.h"
-#include "ui/utils.h"
+#include "supported_formats.ui.h"
 #include "ui/tools/parameters_helpers.h"
-//common includes
+#include "ui/utils.h"
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 #include <sound/service.h>
-//std includes
+// std includes
 #include <set>
-//qt includes
+// qt includes
 #include <QtGui/QRadioButton>
 
 namespace
@@ -32,13 +32,14 @@ namespace
     explicit FileBackendsSet(Parameters::Accessor::Ptr options)
     {
       const Sound::Service::Ptr service = Sound::CreateFileService(options);
-      for (Sound::BackendInformation::Iterator::Ptr backends = service->EnumerateBackends(); backends->IsValid(); backends->Next())
+      for (Sound::BackendInformation::Iterator::Ptr backends = service->EnumerateBackends(); backends->IsValid();
+           backends->Next())
       {
         const Sound::BackendInformation::Ptr info = backends->Get();
         Ids.insert(std::make_pair(info->Id(), info->Status()));
       }
     }
-    
+
     Strings::Array GetAvailable() const
     {
       Strings::Array result;
@@ -55,10 +56,9 @@ namespace
     Error GetStatus(const String& id) const
     {
       const Id2Status::const_iterator it = Ids.find(id);
-      return it != Ids.end()
-        ? it->second
-        : Error();//TODO
+      return it != Ids.end() ? it->second : Error();  // TODO
     }
+
   private:
     typedef std::map<String, Error> Id2Status;
     Id2Status Ids;
@@ -69,8 +69,9 @@ namespace
   const Char TYPE_OGG[] = {'o', 'g', 'g', 0};
   const Char TYPE_FLAC[] = {'f', 'l', 'a', 'c', 0};
 
-  class SupportedFormats : public UI::SupportedFormatsWidget
-                         , private Ui::SupportedFormats
+  class SupportedFormats
+    : public UI::SupportedFormatsWidget
+    , private Ui::SupportedFormats
   {
   public:
     explicit SupportedFormats(QWidget& parent)
@@ -78,7 +79,7 @@ namespace
       , Options(GlobalOptions::Instance().Get())
       , Backends(Options)
     {
-      //setup self
+      // setup self
       setupUi(this);
 
       Buttons[TYPE_WAV] = selectWAV;
@@ -86,8 +87,8 @@ namespace
       Buttons[TYPE_OGG] = selectOGG;
       Buttons[TYPE_FLAC] = selectFLAC;
 
-      std::for_each(Buttons.begin(), Buttons.end(), [this](auto button) {SetupButton(button);});
-      //fixup
+      std::for_each(Buttons.begin(), Buttons.end(), [this](auto button) { SetupButton(button); });
+      // fixup
       for (const auto& id2b : Buttons)
       {
         if (id2b.second->isChecked())
@@ -122,6 +123,7 @@ namespace
       }
       return {};
     }
+
   private:
     typedef std::map<String, QRadioButton*> IdToButton;
 
@@ -139,19 +141,19 @@ namespace
       }
       Parameters::ExclusiveValue::Bind(*but.second, *Options, Parameters::ZXTuneQT::UI::Export::TYPE, but.first);
     }
+
   private:
     const Parameters::Container::Ptr Options;
     const FileBackendsSet Backends;
     IdToButton Buttons;
   };
-}
+}  // namespace
 
 namespace UI
 {
   SupportedFormatsWidget::SupportedFormatsWidget(QWidget& parent)
     : QWidget(&parent)
-  {
-  }
+  {}
 
   SupportedFormatsWidget* SupportedFormatsWidget::Create(QWidget& parent)
   {
@@ -162,4 +164,4 @@ namespace UI
   {
     return FileBackendsSet(GlobalOptions::Instance().Get()).GetAvailable();
   }
-}
+}  // namespace UI

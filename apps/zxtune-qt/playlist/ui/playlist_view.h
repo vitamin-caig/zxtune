@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief Playlist view interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist view interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "playlist/supp/controller.h"
-//qt includes
+// qt includes
 #include <QtGui/QWidget>
 
 namespace Playlist
@@ -29,6 +29,7 @@ namespace Playlist
       Q_OBJECT
     protected:
       explicit View(QWidget& parent);
+
     public:
       static View* Create(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params);
 
@@ -36,7 +37,7 @@ namespace Playlist
     public slots:
       virtual void AddItems(const QStringList& items) = 0;
 
-      //navigate
+      // navigate
       virtual void Play() = 0;
       virtual void Pause() = 0;
       virtual void Stop() = 0;
@@ -46,7 +47,7 @@ namespace Playlist
       virtual void Clear() = 0;
       virtual void AddFiles() = 0;
       virtual void AddFolder() = 0;
-      //actions
+      // actions
       virtual void Save() = 0;
       virtual void Rename() = 0;
     private slots:
@@ -57,5 +58,5 @@ namespace Playlist
       void Renamed(const QString&);
       void ItemActivated(Playlist::Item::Data::Ptr);
     };
-  }
-}
+  }  // namespace UI
+}  // namespace Playlist

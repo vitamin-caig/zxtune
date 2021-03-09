@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Playlist parameters definition
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist parameters definition
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "app_parameters.h"
 
 namespace Parameters
@@ -42,14 +42,13 @@ namespace Parameters
       //@}
 
       //@}
-      //! @name Index of last played tab 
+      //! @name Index of last played tab
       const NameType INDEX = PREFIX + "Index";
-      
+
       //! @name Index of last played track
       const NameType TRACK = PREFIX + "Track";
       //@}
 
-    
       const NameType CMDLINE_TARGET = PREFIX + "CmdlineTarget";
 
       const IntType CMDLINE_TARGET_NEW = 0;
@@ -57,7 +56,7 @@ namespace Parameters
       const IntType CMDLINE_TARGET_VISIBLE = 2;
 
       const IntType CMDLINE_TARGET_DEFAULT = CMDLINE_TARGET_NEW;
-      
+
       namespace Cache
       {
         const std::string NAMESPACE_NAME("Cache");
@@ -81,7 +80,7 @@ namespace Parameters
         //! Default value
         const IntType FILES_LIMIT_DEFAULT = 1000;
         //@}
-      }
+      }  // namespace Cache
 
       namespace Store
       {
@@ -98,7 +97,7 @@ namespace Parameters
         //! Default value
         const IntType PROPERTIES_DEFAULT = 0;
         //@}
-      }
-    }
-  }
-}
+      }  // namespace Store
+    }    // namespace Playlist
+  }      // namespace ZXTuneQT
+}  // namespace Parameters

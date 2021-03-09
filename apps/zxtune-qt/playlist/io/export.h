@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief Playlist export interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist export interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "container.h"
-//common includes
+// common includes
 #include <progress_callback.h>
 
 class QString;
@@ -30,5 +30,5 @@ namespace Playlist
     typedef uint_t ExportFlags;
 
     void SaveXSPF(Container::Ptr container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags);
-  }
-}
+  }  // namespace IO
+}  // namespace Playlist

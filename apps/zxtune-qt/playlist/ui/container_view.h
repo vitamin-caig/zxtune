@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief Playlist container view interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist container view interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "playlist/supp/controller.h"
 #include "playlist/supp/data.h"
-//library includes
+// library includes
 #include <parameters/container.h>
-//qt includes
+// qt includes
 #include <QtGui/QWidget>
 
 class QMenu;
@@ -32,8 +32,9 @@ namespace Playlist
       Q_OBJECT
     protected:
       explicit ContainerView(QWidget& parent);
+
     public:
-      //creator
+      // creator
       static ContainerView* Create(QWidget& parent, Parameters::Container::Ptr parameters);
 
       virtual void Setup() = 0;
@@ -44,18 +45,18 @@ namespace Playlist
       virtual QMenu* GetActionsMenu() const = 0;
 
     public slots:
-      //navigate
+      // navigate
       virtual void Play() = 0;
       virtual void Pause() = 0;
       virtual void Stop() = 0;
       virtual void Finish() = 0;
       virtual void Next() = 0;
       virtual void Prev() = 0;
-      //actions
+      // actions
       virtual void Clear() = 0;
       virtual void AddFiles() = 0;
       virtual void AddFolder() = 0;
-      //playlist actions
+      // playlist actions
       virtual void CreatePlaylist() = 0;
       virtual void LoadPlaylist() = 0;
       virtual void SavePlaylist() = 0;
@@ -72,5 +73,5 @@ namespace Playlist
       void ItemActivated(Playlist::Item::Data::Ptr);
       void Deactivated();
     };
-  }
-}
+  }  // namespace UI
+}  // namespace Playlist

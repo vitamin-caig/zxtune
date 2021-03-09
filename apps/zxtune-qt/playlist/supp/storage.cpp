@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief Playlist storage implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist storage implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "storage.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-//boost includes
+// boost includes
 #include <boost/iterator/counting_iterator.hpp>
 
 namespace
@@ -24,10 +24,11 @@ namespace
 
   typedef std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType> IndexedItem;
 
-  //simple std::list wrapper that guarantees contstant complexivity of size() method
+  // simple std::list wrapper that guarantees contstant complexivity of size() method
   class ItemsContainer : private std::list<IndexedItem>
   {
     typedef std::list<IndexedItem> Parent;
+
   public:
     using Parent::value_type;
     using Parent::const_iterator;
@@ -39,11 +40,9 @@ namespace
 
     ItemsContainer()
       : Size()
-    {
-    }
+    {}
 
-    ItemsContainer(const ItemsContainer& rh)
-      = default;
+    ItemsContainer(const ItemsContainer& rh) = default;
 
     Parent::size_type size() const
     {
@@ -95,12 +94,13 @@ namespace
       Size += x.Size;
       x.Size = 0;
     }
-    
+
     void swap(ItemsContainer& rh)
     {
       Parent::swap(rh);
       std::swap(Size, rh.Size);
     }
+
   private:
     std::size_t Size;
   };
@@ -119,13 +119,13 @@ namespace
   public:
     explicit PlaylistItemVisitorAdapter(Playlist::Item::Visitor& delegate)
       : Delegate(delegate)
-    {
-    }
+    {}
 
     void OnItem(ItemsContainer::const_iterator it) override
     {
       Delegate.OnItem(it->second, it->first);
     }
+
   private:
     Playlist::Item::Visitor& Delegate;
   };
@@ -137,8 +137,7 @@ namespace
       : Container(container)
       , LastRangeStart(Container.end())
       , LastRangeEnd(Container.end())
-    {
-    }
+    {}
 
     ~RemoveItemsWalker() override
     {
@@ -154,11 +153,13 @@ namespace
       }
       LastRangeEnd = ++it;
     }
+
   private:
     void Erase()
     {
       Container.erase(LastRangeStart, LastRangeEnd);
     }
+
   private:
     ItemsContainer& Container;
     ItemsContainer::iterator LastRangeStart;
@@ -173,8 +174,7 @@ namespace
       , Dst(dst)
       , LastRangeStart(Src.end())
       , LastRangeEnd(Src.end())
-    {
-    }
+    {}
 
     ~MoveItemsWalker() override
     {
@@ -190,11 +190,13 @@ namespace
       }
       LastRangeEnd = ++it;
     }
+
   private:
     void Splice()
     {
       Dst.splice(Dst.end(), Src, LastRangeStart, LastRangeEnd);
     }
+
   private:
     ItemsContainer& Src;
     ItemsContainer& Dst;
@@ -210,8 +212,7 @@ namespace
     ItemsCollection(ItemsContainer::const_iterator begin, ItemsContainer::const_iterator end)
       : Current(std::move(begin))
       , Limit(std::move(end))
-    {
-    }
+    {}
 
     bool IsValid() const override
     {
@@ -227,6 +228,7 @@ namespace
     {
       ++Current;
     }
+
   private:
     ItemsContainer::const_iterator Current;
     const ItemsContainer::const_iterator Limit;
@@ -259,12 +261,14 @@ namespace
     {
       return MakePtr<LinearStorage>(*this);
     }
-   
+
     Model::OldToNewIndexMap::Ptr ResetIndices() override
     {
       const Model::OldToNewIndexMap::RWPtr result = MakeRWPtr<Model::OldToNewIndexMap>();
-      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), std::inserter(*result, result->end()), &MakeIndexPair);
-      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), Items.begin(), &UpdateItemIndex);
+      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0),
+                     std::inserter(*result, result->end()), &MakeIndexPair);
+      std::transform(Items.begin(), Items.end(), boost::counting_iterator<Model::IndexType>(0), Items.begin(),
+                     &UpdateItemIndex);
       return result;
     }
 
@@ -332,7 +336,7 @@ namespace
       }
       else
       {
-        //try to move at the first nonselected and place before it
+        // try to move at the first nonselected and place before it
         for (Model::IndexType moveAfter = destination; moveAfter != Items.size(); ++moveAfter)
         {
           if (!indices.count(moveAfter))
@@ -362,7 +366,8 @@ namespace
       }
       std::random_shuffle(iters.begin(), iters.end());
       ItemsContainer newOne;
-      for (std::vector<ItemsContainer::const_iterator>::const_iterator it = iters.begin(), lim = iters.end(); it != lim; ++it)
+      for (std::vector<ItemsContainer::const_iterator>::const_iterator it = iters.begin(), lim = iters.end(); it != lim;
+           ++it)
       {
         newOne.push_back(**it);
       }
@@ -370,7 +375,7 @@ namespace
       ClearCache();
       Modify();
     }
-    
+
     void RemoveItems(const Model::IndexSet& indices) override
     {
       if (indices.empty())
@@ -384,6 +389,7 @@ namespace
       ClearCache();
       Modify();
     }
+
   private:
     static Model::OldToNewIndexMap::value_type MakeIndexPair(const IndexedItem& item, Model::IndexType idx)
     {
@@ -400,13 +406,13 @@ namespace
     public:
       explicit ComparerWrapper(const Item::Comparer& cmp)
         : Cmp(cmp)
-      {
-      }
+      {}
 
       result_type operator()(first_argument_type lh, second_argument_type rh) const
       {
         return Cmp.CompareItems(*lh.first, *rh.first);
       }
+
     private:
       const Item::Comparer& Cmp;
     };
@@ -443,9 +449,7 @@ namespace
       {
         return cachedEntry;
       }
-      return predefinedDelta <= cachedDelta
-        ? predefinedEntry
-        : cachedEntry;
+      return predefinedDelta <= cachedDelta ? predefinedEntry : cachedEntry;
     }
 
     IndexToIterator::value_type GetNearestPredefinedIterator(Model::IndexType idx) const
@@ -478,7 +482,7 @@ namespace
       {
         return *lower;
       }
-      //upper->first > idx
+      // upper->first > idx
       const std::size_t toLower = idx - lower->first;
       const std::size_t toUpper = upper->first - idx;
       return *(toLower <= toUpper ? lower : upper);
@@ -503,7 +507,7 @@ namespace
       ItemsContainer afterItems;
       afterItems.splice(afterItems.begin(), Items, delimiter, Items.end());
 
-      //gathering back
+      // gathering back
       Items.splice(Items.end(), movedItems);
       Items.splice(Items.end(), afterItems);
       ClearCache();
@@ -520,8 +524,8 @@ namespace
       assert(*indices.rbegin() < Items.size());
       if (indices.size() == Items.size())
       {
-        //all items
-        for (IteratorType it = Items.begin(), lim = Items.end(); it != lim; )
+        // all items
+        for (IteratorType it = Items.begin(), lim = Items.end(); it != lim;)
         {
           const IteratorType op = it;
           ++it;
@@ -557,12 +561,13 @@ namespace
     {
       ++Version;
     }
+
   private:
     unsigned Version;
     mutable ItemsContainer Items;
     mutable IndexToIterator IteratorsCache;
   };
-}
+}  // namespace
 
 namespace Playlist
 {
@@ -572,5 +577,5 @@ namespace Playlist
     {
       return MakePtr<LinearStorage>();
     }
-  }
-}
+  }  // namespace Item
+}  // namespace Playlist

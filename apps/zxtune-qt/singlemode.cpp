@@ -1,26 +1,26 @@
 /**
-*
-* @file
-*
-* @brief Single instance support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Single instance support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "app_parameters.h"
+// local includes
 #include "singlemode.h"
+#include "app_parameters.h"
 #include "ui/utils.h"
-//common includes
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 #include <debug/log.h>
-//qt includes
+// qt includes
 #include <QtCore/QDir>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
-//text includes
+// text includes
 #include "text/text.h"
 
 namespace
@@ -31,8 +31,8 @@ namespace
 namespace
 {
   const QString SERVER_NAME(Text::PROGRAM_NAME);
-  
-  const QDataStream::Version STREAM_VERSION = QDataStream::Qt_4_6;//compatible with up to 4.9
+
+  const QDataStream::Version STREAM_VERSION = QDataStream::Qt_4_6;  // compatible with up to 4.9
 
   class StubModeDispatcher : public SingleModeDispatcher
   {
@@ -67,6 +67,7 @@ namespace
 
   protected:
     void SlaveStarted() override {}
+
   protected:
     QStringList Cmdline;
   };
@@ -77,8 +78,7 @@ namespace
     template<class It>
     SocketBasedSingleModeDispatcher(It cmdBegin, It cmdEnd)
       : StubModeDispatcher(cmdBegin, cmdEnd)
-    {
-    }
+    {}
 
     bool StartMaster() override
     {
@@ -109,14 +109,14 @@ namespace
         emit OnSlaveStarted(cmdline);
       }
     }
+
   private:
     class SocketHelper
     {
     public:
       explicit SocketHelper(QLocalSocket& sock)
         : Sock(sock)
-      {
-      }
+      {}
 
       void Write(const QByteArray& data)
       {
@@ -132,6 +132,7 @@ namespace
         data.resize(size);
         Read(data.data(), size);
       }
+
     private:
       void Write(const void* data, quint64 size)
       {
@@ -201,8 +202,7 @@ namespace
       Require(connect(Server.get(), SIGNAL(newConnection()), SLOT(SlaveStarted())));
       while (!Server->listen(SERVER_NAME))
       {
-        if (Server->serverError() == QAbstractSocket::AddressInUseError
-         && QLocalServer::removeServer(SERVER_NAME))
+        if (Server->serverError() == QAbstractSocket::AddressInUseError && QLocalServer::removeServer(SERVER_NAME))
         {
           Dbg("Try to restore from previously crashed session");
           continue;
@@ -218,7 +218,7 @@ namespace
   private:
     std::unique_ptr<QLocalServer> Server;
   };
-}
+}  // namespace
 
 SingleModeDispatcher::Ptr SingleModeDispatcher::Create(Parameters::Accessor::Ptr params, Strings::Array argv)
 {

@@ -1,47 +1,48 @@
 /**
-* 
-* @file
-*
-* @brief Playlist statistic operations implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist statistic operations implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "operations_helpers.h"
+// local includes
 #include "operations_statistic.h"
+#include "operations_helpers.h"
 #include "storage.h"
-//common includes
+// common includes
 #include <make_ptr.h>
 
 namespace
 {
-  class CollectStatisticOperation : public Playlist::Item::TextResultOperation
-                                  , private Playlist::Item::Visitor
+  class CollectStatisticOperation
+    : public Playlist::Item::TextResultOperation
+    , private Playlist::Item::Visitor
   {
   public:
     explicit CollectStatisticOperation(Playlist::Item::StatisticTextNotification::Ptr result)
       : SelectedItems()
       , Result(std::move(result))
-    {
-    }
+    {}
 
-    CollectStatisticOperation(Playlist::Model::IndexSet::Ptr items, Playlist::Item::StatisticTextNotification::Ptr result)
+    CollectStatisticOperation(Playlist::Model::IndexSet::Ptr items,
+                              Playlist::Item::StatisticTextNotification::Ptr result)
       : SelectedItems(std::move(items))
       , Result(std::move(result))
-    {
-    }
+    {}
 
     void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       ExecuteOperation(stor, SelectedItems, *this, cb);
       emit ResultAcquired(Result);
     }
+
   private:
     void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
-      //check for the data first to define is data valid or not
+      // check for the data first to define is data valid or not
       const String type = data->GetType();
       if (data->GetState())
       {
@@ -57,11 +58,12 @@ namespace
         Result->AddPath(data->GetFilePath());
       }
     }
+
   private:
     const Playlist::Model::IndexSet::Ptr SelectedItems;
     const Playlist::Item::StatisticTextNotification::Ptr Result;
   };
-}
+}  // namespace
 
 namespace Playlist
 {
@@ -72,9 +74,10 @@ namespace Playlist
       return MakePtr<CollectStatisticOperation>(result);
     }
 
-    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSet::Ptr items, StatisticTextNotification::Ptr result)
+    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSet::Ptr items,
+                                                             StatisticTextNotification::Ptr result)
     {
       return MakePtr<CollectStatisticOperation>(items, result);
     }
-  }
-}
+  }  // namespace Item
+}  // namespace Playlist

@@ -1,26 +1,26 @@
 /**
-* 
-* @file
-*
-* @brief DirectSound settings pane implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief DirectSound settings pane implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound_dsound.h"
 #include "sound_dsound.ui.h"
 #include "supp/options.h"
-#include "ui/utils.h"
 #include "ui/tools/parameters_helpers.h"
-//common includes
+#include "ui/utils.h"
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 #include <debug/log.h>
-#include <sound/backends_parameters.h>
 #include <sound/backends/dsound.h>
-//text includes
+#include <sound/backends_parameters.h>
+// text includes
 #include "text/text.h"
 
 namespace
@@ -30,15 +30,16 @@ namespace
 
 namespace
 {
-  class DirectSoundOptionsWidget : public UI::DirectSoundSettingsWidget
-                                 , public Ui::DirectSoundOptions
+  class DirectSoundOptionsWidget
+    : public UI::DirectSoundSettingsWidget
+    , public Ui::DirectSoundOptions
   {
   public:
     explicit DirectSoundOptionsWidget(QWidget& parent)
       : UI::DirectSoundSettingsWidget(parent)
       , Options(GlobalOptions::Instance().Get())
     {
-      //setup self
+      // setup self
       setupUi(this);
 
       FillDevices();
@@ -65,7 +66,7 @@ namespace
       const String& id = FromQString(name);
       Dbg("Selecting device '%1%'", id);
       const auto it = std::find_if(Devices.begin(), Devices.end(),
-        [&name, &id](const Device& dev) {return dev.Name == name || dev.Id == id;});
+                                   [&name, &id](const Device& dev) { return dev.Name == name || dev.Id == id; });
       if (it != Devices.end())
       {
         devices->setCurrentIndex(it - Devices.begin());
@@ -77,7 +78,7 @@ namespace
       }
     }
 
-    //QWidget
+    // QWidget
     void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
@@ -86,6 +87,7 @@ namespace
       }
       UI::DirectSoundSettingsWidget::changeEvent(event);
     }
+
   private:
     void SelectDevice()
     {
@@ -99,27 +101,25 @@ namespace
     {
       using namespace Sound;
       for (DirectSound::Device::Iterator::Ptr availableDevices = DirectSound::EnumerateDevices();
-        availableDevices->IsValid(); availableDevices->Next())
+           availableDevices->IsValid(); availableDevices->Next())
       {
         const DirectSound::Device::Ptr cur = availableDevices->Get();
         Devices.push_back(Device(*cur));
         devices->addItem(Devices.back().Name);
       }
     }
+
   private:
     const Parameters::Container::Ptr Options;
 
     struct Device
     {
-      Device()
-      {
-      }
+      Device() {}
 
       explicit Device(const Sound::DirectSound::Device& in)
         : Name(ToQString(in.Name()))
         , Id(in.Id())
-      {
-      }
+      {}
 
       QString Name;
       String Id;
@@ -128,16 +128,15 @@ namespace
     typedef std::vector<Device> DevicesArray;
     DevicesArray Devices;
   };
-}
+}  // namespace
 namespace UI
 {
   DirectSoundSettingsWidget::DirectSoundSettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
-  {
-  }
+  {}
 
   BackendSettingsWidget* DirectSoundSettingsWidget::Create(QWidget& parent)
   {
     return new DirectSoundOptionsWidget(parent);
   }
-}
+}  // namespace UI

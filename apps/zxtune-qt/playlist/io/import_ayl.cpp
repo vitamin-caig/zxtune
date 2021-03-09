@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief Import .ayl implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Import .ayl implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "import.h"
+// local includes
 #include "container_impl.h"
-#include "ui/utils.h"
+#include "import.h"
 #include "tags/ayl.h"
-//common includes
+#include "ui/utils.h"
+// common includes
 #include <error.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/core_parameters.h>
 #include <core/plugins/utils.h>
 #include <debug/log.h>
@@ -27,17 +27,17 @@
 #include <parameters/serialize.h>
 #include <sound/sound_parameters.h>
 #include <strings/prefixed_index.h>
-//std includes
+// std includes
 #include <cctype>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/predicate.hpp>
-//qt includes
+// qt includes
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
-//text includes
+// text includes
 #include <core/text/plugins.h>
 #include <formats/text/archived.h>
 
@@ -69,6 +69,7 @@ namespace
     {
       return FromQString(Codec->toUnicode(str.toLocal8Bit()));
     }
+
   private:
     const int Version;
     const QTextCodec* const Codec;
@@ -116,7 +117,7 @@ namespace
       }
     }
 
-    String GetLine() const 
+    String GetLine() const
     {
       return Line;
     }
@@ -130,6 +131,7 @@ namespace
     {
       return Stream.pos();
     }
+
   private:
     QTextStream& Stream;
     const VersionLayer& Version;
@@ -149,6 +151,7 @@ namespace
       typedef std::shared_ptr<const AYLEntries> Ptr;
       typedef std::shared_ptr<AYLEntries> RWPtr;
     };
+
   public:
     AYLContainer(LinesSource& source, Log::ProgressCallback& cb)
       : Container(MakeRWPtr<AYLEntries>())
@@ -156,8 +159,9 @@ namespace
     {
       const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(source.GetSize(), cb);
       const uint_t REPORT_PERIOD_ITEMS = 1000;
-      //parse playlist parameters
-      while (ParseParameters(source, Parameters)) {}
+      // parse playlist parameters
+      while (ParseParameters(source, Parameters))
+      {}
       for (uint_t counter = 0; source.IsValid(); ++counter)
       {
         ParseEntry(source);
@@ -175,8 +179,7 @@ namespace
       explicit Iterator(AYLEntries::Ptr container)
         : Container(std::move(container))
         , Delegate(Container->begin(), Container->end())
-      {
-      }
+      {}
 
       bool IsValid() const
       {
@@ -197,6 +200,7 @@ namespace
       {
         ++Delegate;
       }
+
     private:
       const AYLEntries::Ptr Container;
       RangeIterator<AYLEntries::const_iterator> Delegate;
@@ -211,13 +215,15 @@ namespace
     {
       return Parameters;
     }
+
   private:
     void ParseEntry(LinesSource& source)
     {
       AYLEntry entry;
       entry.Path = source.GetLine();
       source.Next();
-      while (ParseParameters(source, entry.Parameters)) {}
+      while (ParseParameters(source, entry.Parameters))
+      {}
       std::replace(entry.Path.begin(), entry.Path.end(), '\\', '/');
       Container->push_back(entry);
     }
@@ -262,6 +268,7 @@ namespace
         parameters.insert(Strings::Map::value_type(name, value));
       }
     }
+
   private:
     const AYLEntries::RWPtr Container;
     Strings::Map Parameters;
@@ -275,8 +282,7 @@ namespace
       , Delegate(delegate)
       , FormatSpec()
       , Offset()
-    {
-    }
+    {}
 
     std::size_t GetFormatSpec() const
     {
@@ -298,7 +304,7 @@ namespace
       }
       else if (nameStr == AYL::PLAYER_FREQUENCY)
       {
-        //TODO: think about this...
+        // TODO: think about this...
       }
       else if (nameStr == AYL::FORMAT_SPECIFIC)
       {
@@ -308,7 +314,7 @@ namespace
       {
         Offset = static_cast<std::size_t>(val);
       }
-      //ignore "Loop", "Length", "Time"
+      // ignore "Loop", "Length", "Time"
     }
 
     void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
@@ -319,12 +325,12 @@ namespace
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
       }
-      //ignore "Channels"
+      // ignore "Channels"
       else if (nameStr == AYL::CHANNELS_ALLOCATION)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, DecodeChipLayout(val));
       }
-      //ignore "Length", "Address", "Loop", "Time", "Original"
+      // ignore "Length", "Address", "Loop", "Time", "Original"
       else if (nameStr == AYL::NAME)
       {
         Delegate.SetValue(Module::ATTR_TITLE, val);
@@ -347,17 +353,18 @@ namespace
       }
       else if (nameStr == AYL::COMMENT)
       {
-        //TODO: process escape sequence
+        // TODO: process escape sequence
         Delegate.SetValue(Module::ATTR_COMMENT, val);
       }
-      //ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
+      // ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
     }
 
     void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
     {
-      //try to process as string
+      // try to process as string
       Delegate.SetValue(name, Parameters::ConvertToString(val));
     }
+
   private:
     static Parameters::IntType DecodeChipType(const String& value)
     {
@@ -392,10 +399,11 @@ namespace
       }
       else
       {
-        //default fallback
+        // default fallback
         return Devices::AYM::LAYOUT_ABC;
       }
     }
+
   private:
     const VersionLayer& Version;
     Parameters::Visitor& Delegate;
@@ -427,7 +435,7 @@ namespace
 
   void ApplyFormatSpecificData(std::size_t formatSpec, Playlist::IO::ContainerItem& item)
   {
-    //for AY files FormatSpec is subtune index
+    // for AY files FormatSpec is subtune index
     if (boost::algorithm::iends_with(item.Path, String(".ay")))
     {
       const auto subPath = Strings::PrefixedIndex(Text::MULTITRACK_FILENAME_PREFIX, formatSpec).ToString();
@@ -437,9 +445,9 @@ namespace
 
   void ApplyOffset(std::size_t offset, Playlist::IO::ContainerItem& item)
   {
-    //offset for YM/VTX cannot be applied
-    if (!boost::algorithm::iends_with(item.Path, String(".vtx")) &&
-        !boost::algorithm::iends_with(item.Path, String(".ym")))
+    // offset for YM/VTX cannot be applied
+    if (!boost::algorithm::iends_with(item.Path, String(".vtx"))
+        && !boost::algorithm::iends_with(item.Path, String(".ym")))
     {
       assert(offset);
       const auto subPath = Strings::PrefixedIndex(Text::RAW_PLUGIN_PREFIX, offset).ToString();
@@ -447,7 +455,8 @@ namespace
     }
   }
 
-  Playlist::IO::ContainerItems::Ptr CreateItems(const QString& basePath, const VersionLayer& version, const AYLContainer& aylItems)
+  Playlist::IO::ContainerItems::Ptr CreateItems(const QString& basePath, const VersionLayer& version,
+                                                const AYLContainer& aylItems)
   {
     const QDir baseDir(basePath);
     const Playlist::IO::ContainerItems::RWPtr items = MakeRWPtr<Playlist::IO::ContainerItems>();
@@ -481,7 +490,7 @@ namespace
     static const QLatin1String AYL_SUFFIX(AYL::SUFFIX);
     return filename.endsWith(AYL_SUFFIX, Qt::CaseInsensitive);
   }
-}
+}  // namespace
 
 namespace Playlist
 {
@@ -490,8 +499,7 @@ namespace Playlist
     Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
     {
       const QFileInfo info(filename);
-      if (!info.isFile() || !info.isReadable() ||
-          !CheckAYLByName(info.fileName()))
+      if (!info.isFile() || !info.isReadable() || !CheckAYLByName(info.fileName()))
       {
         return Container::Ptr();
       }
@@ -518,5 +526,5 @@ namespace Playlist
       properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
       return Playlist::IO::CreateContainer(provider, properties, items);
     }
-  }
-}
+  }  // namespace IO
+}  // namespace Playlist

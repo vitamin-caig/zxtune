@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief RSS feed parser implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief RSS feed parser implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "rss.h"
 #include "apps/zxtune-qt/ui/utils.h"
-//library includes
+// library includes
 #include <debug/log.h>
-//qt includes
+// qt includes
 #include <QtCore/QXmlStreamReader>
 
 namespace
@@ -35,7 +35,7 @@ namespace RSS
   const QLatin1String ALTERNATE("alternate");
   const QLatin1String TYPE("type");
   const QLatin1String HTML("html");
-}
+}  // namespace RSS
 
 namespace
 {
@@ -84,7 +84,7 @@ namespace
     }
     return res;
   }
-}
+}  // namespace
 
 namespace RSS
 {
@@ -92,8 +92,7 @@ namespace RSS
   {
     Dbg("Parsing rss feed in %1% bytes", rss.size());
     QXmlStreamReader xml(rss);
-    if (!xml.readNextStartElement() ||
-         xml.name() != RSS::FEED)
+    if (!xml.readNextStartElement() || xml.name() != RSS::FEED)
     {
       Dbg("Invalid rss content");
       return false;
@@ -113,4 +112,4 @@ namespace RSS
     }
     return !xml.error();
   }
-}
+}  // namespace RSS

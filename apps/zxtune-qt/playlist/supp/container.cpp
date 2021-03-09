@@ -1,28 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief Playlist container implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist container implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "controller.h"
+// local includes
 #include "container.h"
-#include "scanner.h"
-#include "storage.h"
+#include "controller.h"
 #include "playlist/io/export.h"
 #include "playlist/io/import.h"
-#include "ui/utils.h"
+#include "scanner.h"
+#include "storage.h"
 #include "ui/tools/errordialog.h"
-//common includes
+#include "ui/utils.h"
+// common includes
 #include <error.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <platform/version/api.h>
-//text includes
+// text includes
 #include "text/text.h"
 
 namespace
@@ -59,6 +59,7 @@ namespace
     {
       return Storage.GetItems();
     }
+
   private:
     const Parameters::Container::Ptr Properties;
     const Playlist::Item::Storage& Storage;
@@ -71,8 +72,7 @@ namespace
       : Name(FromQString(name))
       , Filename(filename)
       , Flags(flags)
-    {
-    }
+    {}
 
     void Execute(const Playlist::Item::Storage& storage, Log::ProgressCallback& cb) override
     {
@@ -86,6 +86,7 @@ namespace
         ShowErrorMessage(QString(), e);
       }
     }
+
   private:
     const String Name;
     const QString Filename;
@@ -95,14 +96,14 @@ namespace
   class LoadPlaylistOperation : public Playlist::Item::StorageModifyOperation
   {
   public:
-    LoadPlaylistOperation(Playlist::Item::DataProvider::Ptr provider, const QString& filename, Playlist::Controller& ctrl)
+    LoadPlaylistOperation(Playlist::Item::DataProvider::Ptr provider, const QString& filename,
+                          Playlist::Controller& ctrl)
       : Provider(std::move(provider))
       , Filename(filename)
       , Controller(ctrl)
-    {
-    }
+    {}
 
-    //do not track progress since view may not be created
+    // do not track progress since view may not be created
     void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb) override
     {
       if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(Provider, Filename, cb))
@@ -114,9 +115,10 @@ namespace
       }
       else
       {
-        //TODO: handle error
+        // TODO: handle error
       }
     }
+
   private:
     const Playlist::Item::DataProvider::Ptr Provider;
     const QString Filename;
@@ -128,8 +130,7 @@ namespace
   public:
     explicit PlaylistContainer(Parameters::Accessor::Ptr parameters)
       : Params(std::move(parameters))
-    {
-    }
+    {}
 
     Playlist::Controller::Ptr CreatePlaylist(const QString& name) const override
     {
@@ -141,15 +142,18 @@ namespace
     void OpenPlaylist(const QString& filename) override
     {
       const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
-      const Playlist::Controller::Ptr playlist = Playlist::Controller::Create(QLatin1String(Text::PLAYLIST_LOADING_HEADER), provider);
-      const Playlist::Item::StorageModifyOperation::Ptr op = MakePtr<LoadPlaylistOperation>(provider, filename, *playlist);
+      const Playlist::Controller::Ptr playlist =
+          Playlist::Controller::Create(QLatin1String(Text::PLAYLIST_LOADING_HEADER), provider);
+      const Playlist::Item::StorageModifyOperation::Ptr op =
+          MakePtr<LoadPlaylistOperation>(provider, filename, *playlist);
       playlist->GetModel()->PerformOperation(op);
       emit PlaylistCreated(playlist);
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
   };
-}
+}  // namespace
 
 namespace Playlist
 {
@@ -164,4 +168,4 @@ namespace Playlist
     const Playlist::Item::StorageAccessOperation::Ptr op = MakePtr<SavePlaylistOperation>(name, filename, flags);
     ctrl->GetModel()->PerformOperation(op);
   }
-}
+}  // namespace Playlist

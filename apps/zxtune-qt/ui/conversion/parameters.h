@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Export parameters declaration
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Export parameters declaration
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "ui/parameters.h"
 
 namespace Parameters
@@ -26,7 +26,7 @@ namespace Parameters
         const NameType PREFIX = UI::PREFIX + NAMESPACE_NAME;
 
         const NameType TYPE = PREFIX + "Type";
-      }
-    }
-  }
-}
+      }  // namespace Export
+    }    // namespace UI
+  }      // namespace ZXTuneQT
+}  // namespace Parameters

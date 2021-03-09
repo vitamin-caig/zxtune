@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Search operation factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Search operation factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "operations.h"
 
 namespace Playlist
@@ -43,12 +43,11 @@ namespace Playlist
         Data()
           : Scope(ALL)
           , Options()
-        {
-        }
+        {}
       };
-    }
+    }  // namespace Search
 
     SelectionOperation::Ptr CreateSearchOperation(const Search::Data& data);
     SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSet::Ptr items, const Search::Data& data);
-  }
-}
+  }  // namespace Item
+}  // namespace Playlist

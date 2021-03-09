@@ -1,25 +1,25 @@
 /**
-* 
-* @file
-*
-* @brief Playlist controller implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist controller implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "controller.h"
 #include "model.h"
 #include "scanner.h"
 #include "ui/utils.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
-//qt includes
+// qt includes
 #include <QtGui/QMessageBox>
 
 namespace
@@ -44,7 +44,7 @@ namespace
       , State(Playlist::Item::STOPPED)
     {
       Require(connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
-        SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
+                      SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
     }
 
     unsigned GetIndex() const override
@@ -59,16 +59,12 @@ namespace
 
     bool Next(unsigned playorderMode) override
     {
-      return
-        Index != NO_INDEX &&
-        Navigate(Index + 1, playorderMode);
+      return Index != NO_INDEX && Navigate(Index + 1, playorderMode);
     }
 
     bool Prev(unsigned playorderMode) override
     {
-      return
-        Index != NO_INDEX &&
-        Navigate(int(Index) - 1, playorderMode);
+      return Index != NO_INDEX && Navigate(int(Index) - 1, playorderMode);
     }
 
     void SetState(Playlist::Item::State state) override
@@ -80,7 +76,7 @@ namespace
     {
       Activate(idx);
     }
-    
+
     void Reset() override
     {
       Reset(0);
@@ -111,6 +107,7 @@ namespace
         Activate(*newOne);
       }
     }
+
   private:
     bool SelectItem(unsigned idx)
     {
@@ -153,9 +150,7 @@ namespace
         }
       }
       const bool isRandom = Playlist::Item::RANDOMIZED == (playorderMode & Playlist::Item::RANDOMIZED);
-      const unsigned mappedIndex = isRandom
-        ? Randomized(newIndex, itemsCount)
-        : newIndex;
+      const unsigned mappedIndex = isRandom ? Randomized(newIndex, itemsCount) : newIndex;
       return SelectItem(mappedIndex);
     }
 
@@ -175,6 +170,7 @@ namespace
       Dbg("Iterator: invalidated after removing.");
       emit Deactivated();
     }
+
   private:
     const Playlist::Model::Ptr Model;
     unsigned Index;
@@ -190,10 +186,12 @@ namespace
       , Model(Playlist::Model::Create(*this))
       , Iterator(new ItemIteratorImpl(*this, Model))
     {
-      //setup connections
-      //use direct connection due to possible model locking
-      Require(Model->connect(Scanner, SIGNAL(ItemFound(Playlist::Item::Data::Ptr)), SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
-      Require(Model->connect(Scanner, SIGNAL(ItemsFound(Playlist::Item::Collection::Ptr)), SLOT(AddItems(Playlist::Item::Collection::Ptr)), Qt::DirectConnection));
+      // setup connections
+      // use direct connection due to possible model locking
+      Require(Model->connect(Scanner, SIGNAL(ItemFound(Playlist::Item::Data::Ptr)),
+                             SLOT(AddItem(Playlist::Item::Data::Ptr)), Qt::DirectConnection));
+      Require(Model->connect(Scanner, SIGNAL(ItemsFound(Playlist::Item::Collection::Ptr)),
+                             SLOT(AddItems(Playlist::Item::Collection::Ptr)), Qt::DirectConnection));
 
       Dbg("Created at %1%", this);
     }
@@ -243,12 +241,11 @@ namespace
 
     void ShowNotification(Playlist::TextNotification::Ptr notification) override
     {
-      QMessageBox msgBox(QMessageBox::Information,
-        notification->Category(), notification->Text(),
-        QMessageBox::Ok);
+      QMessageBox msgBox(QMessageBox::Information, notification->Category(), notification->Text(), QMessageBox::Ok);
       msgBox.setDetailedText(notification->Details());
       msgBox.exec();
     }
+
   private:
     QString Name;
     Playlist::Item::DataProvider::Ptr Provider;
@@ -256,20 +253,20 @@ namespace
     const Playlist::Model::Ptr Model;
     const Playlist::Item::Iterator::Ptr Iterator;
   };
-}
+}  // namespace
 
 namespace Playlist
 {
   namespace Item
   {
-    Iterator::Iterator(QObject& parent) : QObject(&parent)
-    {
-    }
-  }
+    Iterator::Iterator(QObject& parent)
+      : QObject(&parent)
+    {}
+  }  // namespace Item
 
   Controller::Ptr Controller::Create(const QString& name, Playlist::Item::DataProvider::Ptr provider)
   {
     REGISTER_METATYPE(Playlist::TextNotification::Ptr);
     return MakePtr<ControllerImpl>(name, provider);
   }
-}
+}  // namespace Playlist

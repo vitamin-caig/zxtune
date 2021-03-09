@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief FLAC settings widget factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief FLAC settings widget factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "backend_settings.h"
 
 namespace UI

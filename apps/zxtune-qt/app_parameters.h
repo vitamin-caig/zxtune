@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Application parameters definitions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Application parameters definitions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
 
 namespace Parameters
@@ -21,5 +21,5 @@ namespace Parameters
 
     const NameType SINGLE_INSTANCE = PREFIX + "SingleInstance";
     const IntType SINGLE_INSTANCE_DEFAULT = 0;
-  }
-}
+  }  // namespace ZXTuneQT
+}  // namespace Parameters

@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Playlist item properties dialog interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist item properties dialog interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "playlist/supp/model.h"
 #include "playlist/supp/operations_search.h"
-//qt includes
+// qt includes
 #include <QtGui/QDialog>
 
 class QAbstractButton;
@@ -26,6 +26,7 @@ namespace Playlist
       Q_OBJECT
     protected:
       explicit PropertiesDialog(QWidget& parent);
+
     public:
       typedef std::shared_ptr<PropertiesDialog> Ptr;
 
@@ -37,5 +38,5 @@ namespace Playlist
     };
 
     void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Playlist::Model::IndexSet::Ptr scope);
-  }
-}
+  }  // namespace UI
+}  // namespace Playlist

@@ -1,30 +1,30 @@
 /**
-* 
-* @file
-*
-* @brief Sessions support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Sessions support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "container.h"
+// local includes
 #include "session.h"
+#include "container.h"
 #include "ui/utils.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <list>
-//qt includes
+// qt includes
 #include <QtCore/QDir>
 #include <QtCore/QStringList>
 #include <QtGui/QDesktopServices>
-//text includes
+// text includes
 #include "text/text.h"
 
 namespace
@@ -34,7 +34,7 @@ namespace
   QStringList Substract(const QStringList& lh, const QStringList& rh)
   {
     QStringList result(lh);
-    std::for_each(rh.begin(), rh.end(), [&result](const QString& s) {result.removeAll(s);});
+    std::for_each(rh.begin(), rh.end(), [&result](const QString& s) { result.removeAll(s); });
     return result;
   }
 
@@ -54,6 +54,7 @@ namespace
         Models.pop_front();
       }
     }
+
   private:
     std::list<Playlist::Model::Ptr> Models;
   };
@@ -101,6 +102,7 @@ namespace
       RemoveFiles(toRemove);
       Files = newFiles;
     }
+
   private:
     QStringList SaveFiles(Playlist::Controller::Iterator::Ptr it)
     {
@@ -126,11 +128,12 @@ namespace
         Directory.remove(name);
       }
     }
+
   private:
     QDir Directory;
     QStringList Files;
   };
-}
+}  // namespace
 
 namespace Playlist
 {
@@ -138,4 +141,4 @@ namespace Playlist
   {
     return MakePtr<FiledSession>();
   }
-}
+}  // namespace Playlist

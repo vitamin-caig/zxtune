@@ -1,28 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief Scanner implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Scanner implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "scanner.h"
 #include "playlist/io/import.h"
 #include "ui/utils.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <async/coroutine.h>
 #include <debug/log.h>
 #include <time/elapsed.h>
-//std includes
+// std includes
 #include <mutex>
-//qt includes
+// qt includes
 #include <QtCore/QDirIterator>
 #include <QtCore/QStringList>
 
@@ -49,8 +49,9 @@ namespace
     virtual QString GetNext() = 0;
   };
 
-  class SourceFilenames : public FilenamesTarget
-                        , public FilenamesSource
+  class SourceFilenames
+    : public FilenamesTarget
+    , public FilenamesSource
   {
   public:
     void Add(const QStringList& items) override
@@ -68,6 +69,7 @@ namespace
       Require(!Items.isEmpty());
       return Items.takeFirst();
     }
+
   private:
     QStringList Items;
   };
@@ -77,8 +79,7 @@ namespace
   public:
     explicit ResolvedFilenames(FilenamesSource& delegate)
       : Delegate(delegate)
-    {
-    }
+    {}
 
     bool Empty() const override
     {
@@ -103,6 +104,7 @@ namespace
       }
       return CurDir->next();
     }
+
   private:
     bool NoCurrentDir() const
     {
@@ -124,6 +126,7 @@ namespace
     {
       CurDir.reset(nullptr);
     }
+
   private:
     FilenamesSource& Delegate;
     std::unique_ptr<QDirIterator> CurDir;
@@ -136,8 +139,7 @@ namespace
       : Delegate(delegate)
       , LowerBound(lowerBound)
       , UpperBound(upperBound)
-    {
-    }
+    {}
 
     bool Empty() const override
     {
@@ -150,6 +152,7 @@ namespace
       Require(!Cache.isEmpty());
       return Cache.takeFirst();
     }
+
   private:
     void Prefetch()
     {
@@ -162,6 +165,7 @@ namespace
         }
       }
     }
+
   private:
     FilenamesSource& Delegate;
     const int LowerBound;
@@ -175,8 +179,7 @@ namespace
     FilenamesSourceStatistic(FilenamesSource& delegate)
       : Delegate(delegate)
       , GotFilenames(0)
-    {
-    }
+    {}
 
     bool Empty() const override
     {
@@ -193,14 +196,16 @@ namespace
     {
       return GotFilenames;
     }
+
   private:
     FilenamesSource& Delegate;
     unsigned GotFilenames;
   };
 
-  class FilesQueue : public FilenamesTarget
-                   , public FilenamesSource
-                   , public Playlist::ScanStatus
+  class FilesQueue
+    : public FilenamesTarget
+    , public FilenamesSource
+    , public Playlist::ScanStatus
   {
   public:
     typedef std::shared_ptr<FilesQueue> Ptr;
@@ -210,8 +215,7 @@ namespace
       , ResolvedStatistic(Resolved)
       , Prefetched(ResolvedStatistic, 500, 1000)
       , PrefetchedStatistic(Prefetched)
-    {
-    }
+    {}
 
     void Add(const QStringList& items) override
     {
@@ -219,7 +223,7 @@ namespace
       Source.Add(items);
     }
 
-    //FilenamesSource
+    // FilenamesSource
     bool Empty() const override
     {
       return Prefetched.Empty();
@@ -231,7 +235,7 @@ namespace
       return Current = PrefetchedStatistic.GetNext();
     }
 
-    //ScanStatus
+    // ScanStatus
     unsigned DoneFiles() const override
     {
       return PrefetchedStatistic.Get();
@@ -251,6 +255,7 @@ namespace
     {
       return Resolved.Empty();
     }
+
   private:
     std::mutex Lock;
     SourceFilenames Source;
@@ -281,8 +286,7 @@ namespace
     DetectParamsAdapter(ScannerCallback& cb, Log::ProgressCallback& progress)
       : Callback(cb)
       , Progress(progress)
-    {
-    }
+    {}
 
     Parameters::Container::Ptr CreateInitialAdjustedParameters() const override
     {
@@ -298,6 +302,7 @@ namespace
     {
       return &Progress;
     }
+
   private:
     ScannerCallback& Callback;
     Log::ProgressCallback& Progress;
@@ -312,8 +317,7 @@ namespace
       : Callback(cb)
       , Scheduler(sched)
       , ReportTimeout(UI_NOTIFICATION_PERIOD)
-    {
-    }
+    {}
 
     void OnProgress(uint_t current) override
     {
@@ -333,14 +337,16 @@ namespace
         Scheduler.Yield();
       }
     }
+
   private:
     ScannerCallback& Callback;
     Async::Scheduler& Scheduler;
     Time::Elapsed ReportTimeout;
   };
 
-  class ScanRoutine : public FilenamesTarget
-                    , public Async::Coroutine
+  class ScanRoutine
+    : public FilenamesTarget
+    , public Async::Coroutine
   {
   public:
     typedef std::shared_ptr<ScanRoutine> Ptr;
@@ -368,13 +374,9 @@ namespace
       CreateQueue();
     }
 
-    void Suspend() override
-    {
-    }
+    void Suspend() override {}
 
-    void Resume() override
-    {
-    }
+    void Resume() override {}
 
     void Execute(Async::Scheduler& sched) override
     {
@@ -387,10 +389,10 @@ namespace
           ScanFile(file, cb);
         }
         catch (const std::exception&)
-        {
-        }
+        {}
       }
     }
+
   private:
     void CreateQueue()
     {
@@ -435,14 +437,16 @@ namespace
         Callback.OnError(e);
       }
     }
+
   private:
     ScannerCallback& Callback;
     const Playlist::Item::DataProvider::Ptr Provider;
     FilesQueue::Ptr Queue;
   };
 
-  class ScannerImpl : public Playlist::Scanner
-                    , private ScannerCallback
+  class ScannerImpl
+    : public Playlist::Scanner
+    , private ScannerCallback
   {
   public:
     ScannerImpl(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
@@ -469,7 +473,7 @@ namespace
     void PasteItems(const QStringList& items) override
     {
       Dbg("Paste %1% items to %2%", items.size(), this);
-      //TODO: optimize
+      // TODO: optimize
       const Playlist::IO::Container::Ptr container = Playlist::IO::OpenPlainList(Provider, items);
       emit ItemsFound(container->GetItems());
     }
@@ -492,6 +496,7 @@ namespace
       Dbg("Stopping %1%", this);
       ScanJob->Stop();
     }
+
   private:
     void OnItem(Playlist::Item::Data::Ptr item) override
     {
@@ -527,18 +532,19 @@ namespace
     {
       emit ScanStopped();
     }
+
   private:
     const Playlist::Item::DataProvider::Ptr Provider;
     const ScanRoutine::Ptr Routine;
     const Async::Job::Ptr ScanJob;
   };
-}
+}  // namespace
 
 namespace Playlist
 {
-  Scanner::Scanner(QObject& parent) : QObject(&parent)
-  {
-  }
+  Scanner::Scanner(QObject& parent)
+    : QObject(&parent)
+  {}
 
   Scanner::Ptr Scanner::Create(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
   {
@@ -547,4 +553,4 @@ namespace Playlist
     REGISTER_METATYPE(Playlist::ScanStatus::Ptr);
     return new ScannerImpl(parent, provider);
   }
-}
+}  // namespace Playlist

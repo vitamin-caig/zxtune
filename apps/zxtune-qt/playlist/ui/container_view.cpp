@@ -1,35 +1,35 @@
 /**
-* 
-* @file
-*
-* @brief Playlist container view implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist container view implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "container_view.h"
 #include "container_view.ui.h"
-#include "playlist_view.h"
 #include "playlist/io/export.h"
 #include "playlist/parameters.h"
-#include "playlist/supp/controller.h"
 #include "playlist/supp/container.h"
+#include "playlist/supp/controller.h"
 #include "playlist/supp/scanner.h"
 #include "playlist/supp/session.h"
-#include "ui/utils.h"
+#include "playlist_view.h"
 #include "ui/tools/filedialog.h"
 #include "ui/tools/parameters_helpers.h"
-//common includes
+#include "ui/utils.h"
+// common includes
 #include <contract.h>
 #include <error.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
-//std includes
+// std includes
 #include <cassert>
-//qt includes
+// qt includes
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
 #include <QtCore/QTimer>
@@ -66,6 +66,7 @@ namespace
       assert(IsValid());
       GetNext();
     }
+
   private:
     void GetNext()
     {
@@ -78,6 +79,7 @@ namespace
         Current = Playlist::Controller::Ptr();
       }
     }
+
   private:
     QTabWidget& Container;
     int Index;
@@ -94,8 +96,9 @@ namespace
     }
   }
 
-  class ContainerViewImpl : public Playlist::UI::ContainerView
-                          , public Playlist::UI::Ui_ContainerView
+  class ContainerViewImpl
+    : public Playlist::UI::ContainerView
+    , public Playlist::UI::Ui_ContainerView
   {
   public:
     ContainerViewImpl(QWidget& parent, Parameters::Container::Ptr parameters)
@@ -106,11 +109,11 @@ namespace
       , ActionsMenu(new QMenu(this))
       , ActivePlaylistView(nullptr)
     {
-      //setup self
+      // setup self
       setupUi(this);
       SetupMenu();
 
-      //playlist actions
+      // playlist actions
       Require(connect(actionCreatePlaylist, SIGNAL(triggered()), SLOT(CreatePlaylist())));
       Require(connect(actionLoadPlaylist, SIGNAL(triggered()), SLOT(LoadPlaylist())));
       Require(connect(actionSavePlaylist, SIGNAL(triggered()), SLOT(SavePlaylist())));
@@ -119,12 +122,14 @@ namespace
       Require(connect(actionClearPlaylist, SIGNAL(triggered()), SLOT(Clear())));
 
       Require(connect(Container.get(), SIGNAL(PlaylistCreated(Playlist::Controller::Ptr)),
-        SLOT(CreatePlaylist(Playlist::Controller::Ptr))));
+                      SLOT(CreatePlaylist(Playlist::Controller::Ptr))));
 
       Require(connect(widgetsContainer, SIGNAL(tabCloseRequested(int)), SLOT(ClosePlaylist(int))));
 
-      Parameters::BooleanValue::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED, Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
-      Parameters::BooleanValue::Bind(*actionRandom, *Options, Parameters::ZXTuneQT::Playlist::RANDOMIZED, Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT);
+      Parameters::BooleanValue::Bind(*actionLoop, *Options, Parameters::ZXTuneQT::Playlist::LOOPED,
+                                     Parameters::ZXTuneQT::Playlist::LOOPED_DEFAULT);
+      Parameters::BooleanValue::Bind(*actionRandom, *Options, Parameters::ZXTuneQT::Playlist::RANDOMIZED,
+                                     Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT);
 
       Dbg("Created at %1%", this);
     }
@@ -233,7 +238,7 @@ namespace
     {
       QString file;
       if (UI::OpenSingleFileDialog(actionLoadPlaylist->text(),
-         Playlist::UI::ContainerView::tr("Playlist files (*.xspf *.ayl)"), file))
+                                   Playlist::UI::ContainerView::tr("Playlist files (*.xspf *.ayl)"), file))
       {
         Container->OpenPlaylist(file);
       }
@@ -259,11 +264,10 @@ namespace
     void ClosePlaylist(int index) override
     {
       Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
-      view->hide();//to save layout
+      view->hide();  // to save layout
       view->GetPlaylist()->Shutdown();
       widgetsContainer->removeTab(index);
-      Dbg("Closed playlist idx=%1% val=%2%, active=%3%",
-        index, view, ActivePlaylistView);
+      Dbg("Closed playlist idx=%1% val=%2%, active=%3%", index, view, ActivePlaylistView);
       if (view == ActivePlaylistView)
       {
         emit Deactivated();
@@ -273,7 +277,7 @@ namespace
       view->deleteLater();
     }
 
-    //qwidget virtuals
+    // qwidget virtuals
     void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
@@ -294,6 +298,7 @@ namespace
     {
       CreatePlaylist();
     }
+
   private:
     void CreatePlaylist(Playlist::Controller::Ptr ctrl) override
     {
@@ -304,7 +309,7 @@ namespace
     {
       if (QObject* sender = this->sender())
       {
-        //assert(dynamic_cast<QWidget*>(sender));
+        // assert(dynamic_cast<QWidget*>(sender));
         QWidget* const widget = static_cast<QWidget*>(sender);
         const int idx = widgetsContainer->indexOf(widget);
         if (idx != -1)
@@ -318,15 +323,16 @@ namespace
     {
       if (QObject* sender = this->sender())
       {
-        //assert(dynamic_cast<Playlist::UI::View*>(sender));
+        // assert(dynamic_cast<Playlist::UI::View*>(sender));
         Playlist::UI::View* const newView = static_cast<Playlist::UI::View*>(sender);
         if (newView != ActivePlaylistView)
         {
-          ActivePlaylistView->Stop();//just update state
+          ActivePlaylistView->Stop();  // just update state
           SwitchTo(newView);
         }
       }
     }
+
   private:
     void SetupMenu()
     {
@@ -371,8 +377,10 @@ namespace
       Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist, Options);
       widgetsContainer->addTab(plView, playlist->GetName());
       Require(connect(plView, SIGNAL(Renamed(const QString&)), SLOT(RenamePlaylist(const QString&))));
-      Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SLOT(ActivateItem(Playlist::Item::Data::Ptr))));
-      Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)), SIGNAL(ItemActivated(Playlist::Item::Data::Ptr))));
+      Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)),
+                      SLOT(ActivateItem(Playlist::Item::Data::Ptr))));
+      Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)),
+                      SIGNAL(ItemActivated(Playlist::Item::Data::Ptr))));
       if (!ActivePlaylistView)
       {
         SwitchTo(plView);
@@ -396,7 +404,8 @@ namespace
       {
         const Playlist::Controller::Ptr ctrl = ActivePlaylistView->GetPlaylist();
         const Playlist::Item::Iterator::Ptr iter = ctrl->GetIterator();
-        Require(connect(iter, SIGNAL(Activated(Playlist::Item::Data::Ptr)), SIGNAL(Activated(Playlist::Item::Data::Ptr))));
+        Require(
+            connect(iter, SIGNAL(Activated(Playlist::Item::Data::Ptr)), SIGNAL(Activated(Playlist::Item::Data::Ptr))));
         Require(connect(iter, SIGNAL(Deactivated()), SIGNAL(Deactivated())));
       }
     }
@@ -439,7 +448,7 @@ namespace
         SwitchTo(static_cast<Playlist::UI::View*>(widget));
       }
     }
-    
+
     void RestorePlaylistSession()
     {
       Session->Load(Container);
@@ -453,7 +462,7 @@ namespace
       playlist->GetModel()->WaitOperationFinish();
       playlist->GetIterator()->Select(trk);
     }
-    
+
     void StorePlaylistSession()
     {
       const Playlist::Controller::Iterator::Ptr iter = MakePtr<PlaylistsIterator>(*widgetsContainer);
@@ -465,7 +474,6 @@ namespace
       Options->SetValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
     }
 
-    
     Playlist::UI::View& GetCmdlineTarget()
     {
       using namespace Parameters::ZXTuneQT::Playlist;
@@ -478,35 +486,36 @@ namespace
       case CMDLINE_TARGET_VISIBLE:
         return GetVisiblePlaylist();
       default:
-        {
-          auto& pl = GetEmptyPlaylist();
-          QTimer::singleShot(1000, pl.GetPlaylist()->GetIterator(), SLOT(Reset()));
-          return pl;
-        }
+      {
+        auto& pl = GetEmptyPlaylist();
+        QTimer::singleShot(1000, pl.GetPlaylist()->GetIterator(), SLOT(Reset()));
+        return pl;
+      }
       }
     }
+
   private:
     const Parameters::Container::Ptr Options;
     const Playlist::Container::Ptr Container;
     const Playlist::Session::Ptr Session;
     QMenu* const ActionsMenu;
-    //state context
+    // state context
     Playlist::UI::View* ActivePlaylistView;
   };
-}
+}  // namespace
 
 namespace Playlist
 {
   namespace UI
   {
-    ContainerView::ContainerView(QWidget& parent) : QWidget(&parent)
-    {
-    }
+    ContainerView::ContainerView(QWidget& parent)
+      : QWidget(&parent)
+    {}
 
     ContainerView* ContainerView::Create(QWidget& parent, Parameters::Container::Ptr parameters)
     {
       REGISTER_METATYPE(Playlist::Controller::Ptr);
       return new ContainerViewImpl(parent, parameters);
     }
-  }
-}
+  }  // namespace UI
+}  // namespace Playlist
