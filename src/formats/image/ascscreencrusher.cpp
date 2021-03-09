@@ -19,9 +19,7 @@
 //text includes
 #include <formats/text/image.h>
 
-namespace Formats
-{
-namespace Image
+namespace Formats::Image
 {
   namespace ASCScreenCrusher
   {
@@ -234,5 +232,4 @@ namespace Image
   {
     return MakePtr<ASCScreenCrusherDecoder>();
   }
-}//namespace Image
-}//namespace Formats
+}//namespace Formats::Image

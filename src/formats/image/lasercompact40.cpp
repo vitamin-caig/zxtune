@@ -20,9 +20,7 @@
 //text includes
 #include <formats/text/image.h>
 
-namespace Formats
-{
-namespace Image
+namespace Formats::Image
 {
   namespace LaserCompact40
   {
@@ -277,5 +275,4 @@ namespace Image
   {
     return MakePtr<LaserCompact40Decoder>();
   }
-}//namespace Image
-}//namespace Formats
+}//namespace Formats::Image
