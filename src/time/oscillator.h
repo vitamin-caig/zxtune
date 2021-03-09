@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Oscillator interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Oscillator interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <math/fixedpoint.h>
 #include <time/instant.h>
 
@@ -20,11 +20,11 @@ namespace Time
   class Oscillator
   {
     typedef Math::FixedPoint<Tick, Precision> FixedPoint;
+
   public:
     Oscillator()
       : CurTick()
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -69,6 +69,7 @@ namespace Time
       const Tick relTick = (TicksPerTimeSlice * relTime).Integer();
       return CurTick + relTick;
     }
+
   private:
     Tick CurTick;
     FixedPoint CurTime;
@@ -77,4 +78,4 @@ namespace Time
   };
 
   typedef Oscillator<Microsecond> MicrosecOscillator;
-}
+}  // namespace Time
