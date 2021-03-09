@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  TurboFM Compiled support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TurboFM Compiled support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/fm/tfc.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
-//std includes
+// std includes
 #include <array>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -30,10 +30,10 @@ namespace Formats::Chiptune
   {
     typedef std::array<uint8_t, 6> SignatureType;
 
-    const SignatureType SIGNATURE = { {'T', 'F', 'M', 'c', 'o', 'm'} };
+    const SignatureType SIGNATURE = {{'T', 'F', 'M', 'c', 'o', 'm'}};
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -44,9 +44,9 @@ namespace Formats::Chiptune
       uint8_t Reserved[12];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
-    const std::size_t MIN_SIZE = sizeof(RawHeader) + 3 + 6;//header + 3 empty strings + 6 finish markers
+    const std::size_t MIN_SIZE = sizeof(RawHeader) + 3 + 6;  // header + 3 empty strings + 6 finish markers
     const std::size_t MAX_STRING_SIZE = 64;
     const std::size_t MAX_COMMENT_SIZE = 384;
 
@@ -79,23 +79,22 @@ namespace Formats::Chiptune
       }
       const auto& hdr = *rawData.As<RawHeader>();
       return hdr.Sign == SIGNATURE
-        && hdr.Offsets.end() == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(),
-             [size](uint16_t o) {return fromLE(o) >= size;});
+             && hdr.Offsets.end() == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(), [size](uint16_t o) {
+                  return fromLE(o) >= size;
+                });
     }
 
     const StringView FORMAT(
-      "'T'F'M'c'o'm"
-      "???"
-      "32|3c"
-    );
+        "'T'F'M'c'o'm"
+        "???"
+        "32|3c");
 
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -117,6 +116,7 @@ namespace Formats::Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -129,8 +129,7 @@ namespace Formats::Chiptune
       Context()
         : RetAddr()
         , RepeatFrames()
-      {
-      }
+      {}
     };
 
     class Container
@@ -140,8 +139,7 @@ namespace Formats::Chiptune
         : Data(data)
         , Min(Data.Size())
         , Max(0)
-      {
-      }
+      {}
 
       std::size_t ParseFrameControl(std::size_t cursor, Builder& target, Context& context) const
       {
@@ -153,16 +151,16 @@ namespace Formats::Chiptune
         for (;;)
         {
           const uint_t cmd = Get<uint8_t>(cursor++);
-          if (cmd == 0x7f)//%01111111
+          if (cmd == 0x7f)  //%01111111
           {
             return 0;
           }
-          else if (0x7e == cmd)//%01111110
+          else if (0x7e == cmd)  //%01111110
           {
             target.SetLoop();
             continue;
           }
-          else if (0xd0 == cmd)//%11010000
+          else if (0xd0 == cmd)  //%11010000
           {
             Require(context.RepeatFrames == 0);
             Require(context.RetAddr == 0);
@@ -181,22 +179,22 @@ namespace Formats::Chiptune
       std::size_t ParseFrameCommands(std::size_t cursor, Builder& target) const
       {
         const uint_t cmd = Get<uint8_t>(cursor++);
-        if (0xbf == cmd)//%10111111
+        if (0xbf == cmd)  //%10111111
         {
           const int_t offset = fromBE(Get<int16_t>(cursor));
           cursor += 2;
           ParseFrameData(AdvanceCursor(cursor, offset), target);
         }
-        else if (0xff == cmd)//%11111111
+        else if (0xff == cmd)  //%11111111
         {
           const int_t offset = -256 + Get<uint8_t>(cursor++);
           ParseFrameData(AdvanceCursor(cursor, offset), target);
         }
-        else if (cmd >= 0xe0)//%111ttttt
+        else if (cmd >= 0xe0)  //%111ttttt
         {
           target.SetSkip(256 - cmd);
         }
-        else if (cmd >= 0xc0)//%110ddddd
+        else if (cmd >= 0xc0)  //%110ddddd
         {
           target.SetSlide(cmd + 0x30);
         }
@@ -216,10 +214,11 @@ namespace Formats::Chiptune
       {
         return Max;
       }
+
     private:
       static std::size_t AdvanceCursor(std::size_t cursor, std::ptrdiff_t offset)
       {
-        //disable UB
+        // disable UB
         if (offset >= 0)
         {
           return cursor + offset;
@@ -231,7 +230,7 @@ namespace Formats::Chiptune
           return cursor - back;
         }
       }
-      
+
       std::size_t ParseFrameData(std::size_t cursor, Builder& target) const
       {
         const uint_t data = Get<uint8_t>(cursor++);
@@ -260,6 +259,7 @@ namespace Formats::Chiptune
         }
         return cursor;
       }
+
     private:
       template<class T>
       const T& Get(std::size_t offset) const
@@ -270,12 +270,13 @@ namespace Formats::Chiptune
         Max = std::max(Max, offset + sizeof(T));
         return *ptr;
       }
+
     private:
       const Binary::View Data;
       mutable std::size_t Min;
       mutable std::size_t Max;
     };
-    
+
     String DecodeString(StringView str)
     {
       return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
@@ -312,7 +313,7 @@ namespace Formats::Chiptune
             }
           }
         }
-        Require(container.GetMin() < container.GetMax());//anything parsed
+        Require(container.GetMin() < container.GetMax());  // anything parsed
 
         const std::size_t usedSize = std::max(container.GetMax(), stream.GetPosition());
         const std::size_t fixedOffset = container.GetMin();
@@ -330,10 +331,10 @@ namespace Formats::Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace TFC
+  }  // namespace TFC
 
   Decoder::Ptr CreateTFCDecoder()
   {
     return MakePtr<TFC::Decoder>();
   }
-}//namespace Formats::Chiptune
+}  // namespace Formats::Chiptune

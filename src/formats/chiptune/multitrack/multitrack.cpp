@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  Multitrack chiptunes support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Multitrack chiptunes support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/multitrack/multitrack.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <binary/crc.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Formats::Chiptune
@@ -25,8 +25,7 @@ namespace Formats::Chiptune
   public:
     explicit MultitrackContainer(Multitrack::Container::Ptr data)
       : BaseContainer(std::move(data))
-    {
-    }
+    {}
 
     uint_t Checksum() const override
     {
@@ -45,8 +44,7 @@ namespace Formats::Chiptune
     MultitrackDecoder(String description, Formats::Multitrack::Decoder::Ptr delegate)
       : Description(std::move(description))
       , Delegate(std::move(delegate))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -57,7 +55,7 @@ namespace Formats::Chiptune
     {
       return Delegate->GetFormat();
     }
-    
+
     bool Check(Binary::View rawData) const override
     {
       return Delegate->Check(rawData);
@@ -71,6 +69,7 @@ namespace Formats::Chiptune
       }
       return Formats::Chiptune::Container::Ptr();
     }
+
   private:
     const String Description;
     const Formats::Multitrack::Decoder::Ptr Delegate;
@@ -80,9 +79,9 @@ namespace Formats::Chiptune
   {
     return MakePtr<MultitrackContainer>(delegate);
   }
-  
+
   Decoder::Ptr CreateMultitrackChiptuneDecoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
   {
     return MakePtr<MultitrackDecoder>(description, delegate);
   }
-}
+}  // namespace Formats::Chiptune

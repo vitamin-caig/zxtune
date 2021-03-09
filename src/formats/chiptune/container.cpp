@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  Chiptune container helpers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Chiptune container helpers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <binary/crc.h>
-//std includes
+// std includes
 #include <cassert>
 
 namespace Formats
@@ -27,8 +27,7 @@ namespace Formats
     public:
       explicit BaseDelegateContainer(Binary::Container::Ptr delegate)
         : BaseContainer(std::move(delegate))
-      {
-      }
+      {}
 
       uint_t Checksum() const override
       {
@@ -42,13 +41,13 @@ namespace Formats
       KnownCrcContainer(Binary::Container::Ptr delegate, uint_t crc)
         : BaseDelegateContainer(delegate)
         , Crc(crc)
-      {
-      }
+      {}
 
       uint_t FixedChecksum() const override
       {
         return Crc;
       }
+
     private:
       const uint_t Crc;
     };
@@ -60,13 +59,13 @@ namespace Formats
         : BaseDelegateContainer(delegate)
         , FixedOffset(offset)
         , FixedSize(size)
-      {
-      }
+      {}
 
       uint_t FixedChecksum() const override
       {
         return Binary::Crc32(Binary::View(*Delegate).SubView(FixedOffset, FixedSize));
       }
+
     private:
       const std::size_t FixedOffset;
       const std::size_t FixedSize;
@@ -74,16 +73,12 @@ namespace Formats
 
     Container::Ptr CreateKnownCrcContainer(Binary::Container::Ptr data, uint_t crc)
     {
-      return data && data->Size()
-        ? MakePtr<KnownCrcContainer>(data, crc)
-        : Container::Ptr();
+      return data && data->Size() ? MakePtr<KnownCrcContainer>(data, crc) : Container::Ptr();
     }
 
     Container::Ptr CreateCalculatingCrcContainer(Binary::Container::Ptr data, std::size_t offset, std::size_t size)
     {
-      return data && data->Size()
-        ? MakePtr<CalculatingCrcContainer>(data, offset, size)
-        : Container::Ptr();
+      return data && data->Size() ? MakePtr<CalculatingCrcContainer>(data, offset, size) : Container::Ptr();
     }
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

@@ -1,41 +1,41 @@
 /**
-* 
-* @file
-*
-* @brief  RMT support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  RMT support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
-#include <pointers.h>
 #include <make_ptr.h>
-//library includes
+#include <pointers.h>
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/chiptune/container.h>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace RasterMusicTracker
   {
-    //as for ASAP limitations
-    //Details: http://atariki.krap.pl/index.php/RMT_%28format_pliku%29
+    // as for ASAP limitations
+    // Details: http://atariki.krap.pl/index.php/RMT_%28format_pliku%29
     const StringView FORMAT =
-        "00|ff 00|ff"   //signature
-        "??"            //music address
-        "??"            //initial data size
-        "'R'M'T '4|'8" //signature
+        "00|ff 00|ff"   // signature
+        "??"            // music address
+        "??"            // initial data size
+        "'R'M'T '4|'8"  // signature
         "??"            //+a +b
-        "01-04"         //tempo
+        "01-04"         // tempo
         "01"            //+d
-    ;
-    
+        ;
+
     const std::size_t MIN_SIZE = 0x30;
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -43,8 +43,7 @@ namespace Formats::Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -90,17 +89,17 @@ namespace Formats::Chiptune
           return CreateCalculatingCrcContainer(stream.GetReadContainer(), 0, fixedSize);
         }
         catch (const std::exception&)
-        {
-        }
+        {}
         return Formats::Chiptune::Container::Ptr();
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
-  }
+  }  // namespace RasterMusicTracker
 
   Decoder::Ptr CreateRasterMusicTrackerDecoder()
   {
     return MakePtr<RasterMusicTracker::Decoder>();
   }
-}
+}  // namespace Formats::Chiptune

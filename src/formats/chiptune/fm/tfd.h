@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  TurboFM Dump support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TurboFM Dump support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -39,8 +39,8 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
-    }
+    }  // namespace TFD
 
     Decoder::Ptr CreateTFDDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  SoundTracker support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SoundTracker support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -31,29 +31,29 @@ namespace Formats
           , NoiseMask(true)
           , EnvelopeMask(true)
           , Effect()
-        {
-        }
+        {}
 
-        uint_t Level;//0-15
-        uint_t Noise;//0-31
+        uint_t Level;  // 0-15
+        uint_t Noise;  // 0-31
         bool NoiseMask;
         bool EnvelopeMask;
         int_t Effect;
       };
-      
+
       typedef LinesObjectWithLoopLimit<SampleLine> Sample;
       typedef LinesObject<int_t> Ornament;
-      
+
       struct PositionEntry
       {
-        PositionEntry() : PatternIndex(), Transposition()
-        {
-        }
+        PositionEntry()
+          : PatternIndex()
+          , Transposition()
+        {}
 
         uint_t PatternIndex;
         int_t Transposition;
       };
-      
+
       typedef LinesObject<PositionEntry> Positions;
 
       class Builder
@@ -63,10 +63,10 @@ namespace Formats
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
-        //samples+ornaments
+        // samples+ornaments
         virtual void SetSample(uint_t index, Sample sample) = 0;
         virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
-        //patterns
+        // patterns
         virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
@@ -95,7 +95,7 @@ namespace Formats
       {
         Decoder::Ptr CreateUncompiledDecoder();
         Decoder::Ptr CreateCompiledDecoder();
-      }
+      }  // namespace Ver1
 
       namespace Ver3
       {
@@ -103,11 +103,11 @@ namespace Formats
 
         Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
         Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, Binary::View info);
-      }
-    }
+      }  // namespace Ver3
+    }    // namespace SoundTracker
 
     Decoder::Ptr CreateSoundTrackerDecoder();
     Decoder::Ptr CreateSoundTrackerCompiledDecoder();
     Decoder::Ptr CreateSoundTracker3Decoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

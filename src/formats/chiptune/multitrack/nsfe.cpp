@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  NSFE chiptunes support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  NSFE chiptunes support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/multitrack/multitrack.h"
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats
@@ -21,5 +21,5 @@ namespace Formats
     {
       return CreateMultitrackChiptuneDecoder(Text::NSFE_DECODER_DESCRIPTION, decoder);
     }
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

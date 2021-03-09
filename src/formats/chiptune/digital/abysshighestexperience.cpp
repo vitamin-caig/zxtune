@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  Abyss' Highest Experience support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Abyss' Highest Experience support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/digital/abysshighestexperience.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
-//std includes
+// std includes
 #include <array>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -29,95 +29,95 @@ namespace Formats::Chiptune
   namespace AbyssHighestExperience
   {
     typedef std::array<uint8_t, 3> IdentifierType;
-    
+
     const IdentifierType ID_AHX = {{'T', 'H', 'X'}};
     const IdentifierType ID_HVL = {{'H', 'V', 'L'}};
 
-/*
-    struct Header
-    {
-      //+0
-      IdentifierType Identifier;
-      //+4
-      uint16_t NamesOffset;
-      //+6
-      uint16_t PositionsCountAndFlags;
-      //+8
-      uint16_t LoopPosition;//HVL: upper 6 bits are additional channels count
-      //+10
-      uint8_t TrackSize;
-      //+11
-      uint8_t TracksCount;
-      //+12
-      uint8_t SamplesCount;
-      //+13
-      uint8_t SubsongsCount;
-      //HVL:
-      //+14
-      uint8_t MixGain;
-      //+15
-      uint8_t Defstereo;
-    };
-    
-    struct Subsong
-    {
-      uint16_t Position;
-    };
-    
-    struct Position
-    {
-      struct Channel
-      {
-        uint8_t Track;
-        int8_t Transposition;
-      };
-      std::array<Channel, 4> Channels;//HVL: according to total channels count
-    };
-    
-    struct Note
-    {
-      uint16_t NoteSampleCommand;
-      uint8_t CommandData;
-    };
-    
-    struct HVLNote
-    {
-      uint8_t Note;//if 0x3f, no other data stored
-      uint8_t Sample;
-      uint8_t Effect;
-      uint16_t EffectParams;
-    };
-    
-    struct Sample
-    {
-      uint8_t MasterVolume;
-      uint8_t Flags;
-      uint8_t AttackLength;
-      uint8_t AttackVolume;
-      uint8_t DecayLength;
-      uint8_t DecayVolume;
-      uint8_t SustainLength;
-      uint8_t ReleaseLength;
-      uint8_t ReleaseVolume;
-      uint8_t Unused[3];
-      uint8_t FilterModulationSpeedLowerLimit;
-      uint8_t VibratoDelay;
-      uint8_t HardcutVibratoDepth;
-      uint8_t VibratoSpeed;
-      uint8_t SquareModulationLowerLimit;
-      uint8_t SquareModulationUpperLimit;
-      uint8_t SquareModulationSpeed;
-      uint8_t FilterModulationSpeedUpperLimit;
-      uint8_t Speed;
-      uint8_t Length;
-      
-      struct Entry
-      {
-        uint8_t Data[4];//HVL: 5 bytes
-      };
-    };
-*/ 
-    
+    /*
+        struct Header
+        {
+          //+0
+          IdentifierType Identifier;
+          //+4
+          uint16_t NamesOffset;
+          //+6
+          uint16_t PositionsCountAndFlags;
+          //+8
+          uint16_t LoopPosition;//HVL: upper 6 bits are additional channels count
+          //+10
+          uint8_t TrackSize;
+          //+11
+          uint8_t TracksCount;
+          //+12
+          uint8_t SamplesCount;
+          //+13
+          uint8_t SubsongsCount;
+          //HVL:
+          //+14
+          uint8_t MixGain;
+          //+15
+          uint8_t Defstereo;
+        };
+
+        struct Subsong
+        {
+          uint16_t Position;
+        };
+
+        struct Position
+        {
+          struct Channel
+          {
+            uint8_t Track;
+            int8_t Transposition;
+          };
+          std::array<Channel, 4> Channels;//HVL: according to total channels count
+        };
+
+        struct Note
+        {
+          uint16_t NoteSampleCommand;
+          uint8_t CommandData;
+        };
+
+        struct HVLNote
+        {
+          uint8_t Note;//if 0x3f, no other data stored
+          uint8_t Sample;
+          uint8_t Effect;
+          uint16_t EffectParams;
+        };
+
+        struct Sample
+        {
+          uint8_t MasterVolume;
+          uint8_t Flags;
+          uint8_t AttackLength;
+          uint8_t AttackVolume;
+          uint8_t DecayLength;
+          uint8_t DecayVolume;
+          uint8_t SustainLength;
+          uint8_t ReleaseLength;
+          uint8_t ReleaseVolume;
+          uint8_t Unused[3];
+          uint8_t FilterModulationSpeedLowerLimit;
+          uint8_t VibratoDelay;
+          uint8_t HardcutVibratoDepth;
+          uint8_t VibratoSpeed;
+          uint8_t SquareModulationLowerLimit;
+          uint8_t SquareModulationUpperLimit;
+          uint8_t SquareModulationSpeed;
+          uint8_t FilterModulationSpeedUpperLimit;
+          uint8_t Speed;
+          uint8_t Length;
+
+          struct Entry
+          {
+            uint8_t Data[4];//HVL: 5 bytes
+          };
+        };
+    */
+
     struct Header
     {
       const IdentifierType Id;
@@ -129,7 +129,7 @@ namespace Formats::Chiptune
       const uint_t TracksCount;
       const uint_t SamplesCount;
       const uint_t SubsongsCount;
-      
+
       explicit Header(Binary::DataInputStream& stream)
         : Id(stream.ReadField<IdentifierType>())
         , Version(stream.ReadByte())
@@ -140,19 +140,18 @@ namespace Formats::Chiptune
         , TracksCount(stream.ReadByte())
         , SamplesCount(stream.ReadByte())
         , SubsongsCount(stream.ReadByte())
-      {
-      }
-      
+      {}
+
       bool IsAHX() const
       {
         return Id == ID_AHX && Version < 2;
       }
-      
+
       bool IsHVL() const
       {
         return Id == ID_HVL && Version < 2;
       }
-      
+
       std::size_t GetTracksOffset() const
       {
         const std::size_t HEADER_SIZE = IsAHX() ? 14 : 16;
@@ -161,9 +160,9 @@ namespace Formats::Chiptune
         return HEADER_SIZE + SubsongsCount * SUBSONG_SIZE + PositionsCount * ChannelsCount * POSITION_CHANNEL_SIZE;
       }
     };
-    
+
     const std::size_t MIN_SIZE = 32;
-    
+
     class StubBuilder : public Builder
     {
     public:
@@ -172,25 +171,24 @@ namespace Formats::Chiptune
         return GetStubMetaBuilder();
       }
     };
-    
+
     Builder& GetStubBuilder()
     {
       static StubBuilder stub;
       return stub;
     }
-    
+
     class Format
     {
     public:
       explicit Format(const Binary::Container& data)
         : Stream(data)
         , Source(Stream)
-      {
-      }
-      
+      {}
+
       void Parse(Builder& target)
       {
-        //TODO: add and use Stream.Seek
+        // TODO: add and use Stream.Seek
         Require(Stream.GetPosition() <= Source.NamesOffset);
         Stream.Skip(Source.NamesOffset - Stream.GetPosition());
         MetaBuilder& meta = target.GetMetaBuilder();
@@ -199,12 +197,14 @@ namespace Formats::Chiptune
         ParseSampleNames(meta);
         ParseProgram(meta);
       }
-      
+
       Formats::Chiptune::Container::Ptr GetContainer() const
       {
         const auto tracksOffset = Source.GetTracksOffset();
-        return CreateCalculatingCrcContainer(Stream.GetReadContainer(), tracksOffset, Source.NamesOffset - tracksOffset);
+        return CreateCalculatingCrcContainer(Stream.GetReadContainer(), tracksOffset,
+                                             Source.NamesOffset - tracksOffset);
       }
+
     private:
       void ParseSampleNames(MetaBuilder& meta)
       {
@@ -217,7 +217,7 @@ namespace Formats::Chiptune
         }
         meta.SetStrings(std::move(names));
       }
-      
+
       void ParseProgram(MetaBuilder& meta)
       {
         if (Source.IsAHX())
@@ -243,11 +243,12 @@ namespace Formats::Chiptune
           }
         }
       }
+
     private:
       Binary::InputStream Stream;
       const Header Source;
     };
-    
+
     bool FastCheck(Binary::View& rawData)
     {
       const auto size = rawData.Size();
@@ -260,53 +261,51 @@ namespace Formats::Chiptune
       const auto tracksOffset = hdr.GetTracksOffset();
       return hdr.NamesOffset > tracksOffset && size > hdr.NamesOffset;
     }
-    
+
     struct FormatTraits
     {
       const char* Format;
       const Char* Description;
     };
-    
+
     const FormatTraits AHXTraits = {
-        "'T'H'X 00-01" //signature
-        "??"           //names offset
-        "%xxxx00xx ?"  //flags and positions count 0-0x3e7
-        "%000000xx ?"  //restart position 0-0x3e6
-        "01-40"        //track len
-        "?"            //tracks count
-        "00-3f"        //samples count
-        "?"            //subsongs count
+        "'T'H'X 00-01"  // signature
+        "??"            // names offset
+        "%xxxx00xx ?"   // flags and positions count 0-0x3e7
+        "%000000xx ?"   // restart position 0-0x3e6
+        "01-40"         // track len
+        "?"             // tracks count
+        "00-3f"         // samples count
+        "?"             // subsongs count
         ,
-        Text::ABYSSHIGHESTEXPERIENCE_DECODER_DESCRIPTION
-    };
-    
+        Text::ABYSSHIGHESTEXPERIENCE_DECODER_DESCRIPTION};
+
     const FormatTraits HVLTraits = {
-      "'H'V'L 00-01" //signature
-      "??"           //names offset
-      "%xxxx00xx ?"  //flags and positions count 0-0x3e7
-      "%00xxxxxx ?"  //restart position 0-0x3e6, channels 0..12
-      "01-40"        //track len
-      "?"            //tracks count
-      "00-3f"        //samples count
-      "?"            //subsongs count
-      "01-ff"        //mixgain, not zero
-      "00-04"        //defstereo
-      ,
-      Text::HIVELYTRACKER_DECODER_DESCRIPTION
-    };
-    
+        "'H'V'L 00-01"  // signature
+        "??"            // names offset
+        "%xxxx00xx ?"   // flags and positions count 0-0x3e7
+        "%00xxxxxx ?"   // restart position 0-0x3e6, channels 0..12
+        "01-40"         // track len
+        "?"             // tracks count
+        "00-3f"         // samples count
+        "?"             // subsongs count
+        "01-ff"         // mixgain, not zero
+        "00-04"         // defstereo
+        ,
+        Text::HIVELYTRACKER_DECODER_DESCRIPTION};
+
     class VersionedDecoder : public Decoder
     {
     public:
       explicit VersionedDecoder(const FormatTraits& traits)
         : Traits(traits)
         , Header(Binary::CreateFormat(Traits.Format, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
-        return Traits.Description;;
+        return Traits.Description;
+        ;
       }
 
       Binary::Format::Ptr GetFormat() const override
@@ -343,6 +342,7 @@ namespace Formats::Chiptune
           return Formats::Chiptune::Container::Ptr();
         }
       }
+
     private:
       const FormatTraits Traits;
       const Binary::Format::Ptr Header;
@@ -352,16 +352,16 @@ namespace Formats::Chiptune
     {
       return MakePtr<VersionedDecoder>(AHXTraits);
     }
-    
+
     namespace HivelyTracker
     {
       Decoder::Ptr CreateDecoder()
       {
         return MakePtr<VersionedDecoder>(HVLTraits);
       }
-    }
-  }//namespace AbyssHighestExperience
-  
+    }  // namespace HivelyTracker
+  }    // namespace AbyssHighestExperience
+
   Decoder::Ptr CreateAbyssHighestExperienceDecoder()
   {
     return AbyssHighestExperience::CreateDecoder();
@@ -371,4 +371,4 @@ namespace Formats::Chiptune
   {
     return AbyssHighestExperience::HivelyTracker::CreateDecoder();
   }
-}
+}  // namespace Formats::Chiptune

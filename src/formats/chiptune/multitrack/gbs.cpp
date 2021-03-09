@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  GBS chiptunes support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  GBS chiptunes support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/multitrack/multitrack.h"
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats
@@ -21,5 +21,5 @@ namespace Formats
     {
       return CreateMultitrackChiptuneDecoder(Text::GBS_DECODER_DESCRIPTION, decoder);
     }
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

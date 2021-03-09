@@ -1,31 +1,31 @@
 /**
-* 
-* @file
-*
-* @brief  YM/VTX support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  YM/VTX support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/ym.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/packed/lha_supp.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -35,18 +35,18 @@ namespace Formats::Chiptune
     const Debug::Stream Dbg("Formats::Chiptune::YM");
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     typedef std::array<uint8_t, 14> RegistersDump;
     typedef std::array<uint8_t, 4> IdentifierType;
 
-    const uint_t CLOCKRATE_MIN = 100000;//100kHz
-    const uint_t CLOCKRATE_MAX = 10000000;//10MHz
+    const uint_t CLOCKRATE_MIN = 100000;    // 100kHz
+    const uint_t CLOCKRATE_MAX = 10000000;  // 10MHz
 
     const uint_t INTFREQ_MIN = 25;
     const uint_t INTFREQ_DEFAULT = 50;
     const uint_t INTFREQ_MAX = 100;
-    
+
     const uint_t DURATION_MIN = 1;
     const uint_t DURATION_MAX = 30 * 60;
 
@@ -61,7 +61,7 @@ namespace Formats::Chiptune
         IdentifierType Signature;
         RegistersDump Row;
       } PACK_POST;
-      
+
       const std::size_t MIN_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MIN;
       const std::size_t MAX_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MAX;
 
@@ -74,7 +74,7 @@ namespace Formats::Chiptune
       {
         return CheckMinSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
-    }
+    }  // namespace Ver2
 
     namespace Ver3
     {
@@ -98,7 +98,7 @@ namespace Formats::Chiptune
       {
         return CheckMinSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
-    }
+    }  // namespace Ver3
 
     namespace Ver3b
     {
@@ -110,8 +110,10 @@ namespace Formats::Chiptune
         RegistersDump Row;
       } PACK_POST;
 
-      const std::size_t MIN_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MIN + sizeof(uint32_t);
-      const std::size_t MAX_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MAX + sizeof(uint32_t);
+      const std::size_t MIN_SIZE =
+          sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MIN + sizeof(uint32_t);
+      const std::size_t MAX_SIZE =
+          sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MAX + sizeof(uint32_t);
 
       bool CheckMinSize(std::size_t size)
       {
@@ -122,11 +124,11 @@ namespace Formats::Chiptune
       {
         return CheckMinSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
-    }
+    }  // namespace Ver3b
 
     namespace Ver5
     {
-      const uint8_t ID[] = {'Y', 'M', '5', '!', 'L', 'e','O', 'n', 'A', 'r', 'D', '!'};
+      const uint8_t ID[] = {'Y', 'M', '5', '!', 'L', 'e', 'O', 'n', 'A', 'r', 'D', '!'};
 
       typedef std::array<uint8_t, 16> RegistersDump;
       typedef std::array<uint8_t, 4> Footer;
@@ -170,17 +172,17 @@ namespace Formats::Chiptune
       {
         return CheckMinSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
-    }
+    }  // namespace Ver5
 
     namespace Ver6
     {
-      const uint8_t ID[] = {'Y', 'M', '6', '!', 'L', 'e','O', 'n', 'A', 'r', 'D', '!'};
+      const uint8_t ID[] = {'Y', 'M', '6', '!', 'L', 'e', 'O', 'n', 'A', 'r', 'D', '!'};
 
       bool FastCheck(const void* data, std::size_t size)
       {
         return Ver5::CheckMinSize(size) && 0 == std::memcmp(data, ID, sizeof(ID));
       }
-    }
+    }  // namespace Ver6
 
     namespace Compressed
     {
@@ -215,19 +217,18 @@ namespace Formats::Chiptune
           }
           const std::size_t origSize = fromLE(hdr->OriginalSize);
           return Math::InRange(origSize, Ver2::MIN_SIZE, Ver2::MAX_SIZE)
-              || Math::InRange(origSize, Ver3::MIN_SIZE, Ver3::MAX_SIZE)
-              || Math::InRange(origSize, Ver3b::MIN_SIZE, Ver3b::MAX_SIZE)
-              || Math::InRange(origSize, Ver5::MIN_SIZE, Ver5::MAX_SIZE)
-          ;
+                 || Math::InRange(origSize, Ver3::MIN_SIZE, Ver3::MAX_SIZE)
+                 || Math::InRange(origSize, Ver3b::MIN_SIZE, Ver3b::MAX_SIZE)
+                 || Math::InRange(origSize, Ver5::MIN_SIZE, Ver5::MAX_SIZE);
         }
         else
         {
           return false;
         }
       }
-    }
+    }  // namespace Compressed
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     class StubBuilder : public Builder
@@ -254,12 +255,8 @@ namespace Formats::Chiptune
     {
       const void* const data = rawData.Start();
       const std::size_t size = rawData.Size();
-      return Ver2::FastCheck(data, size)
-          || Ver3::FastCheck(data, size)
-          || Ver3b::FastCheck(data, size)
-          || Ver5::FastCheck(data, size)
-          || Ver6::FastCheck(data, size)
-      ;
+      return Ver2::FastCheck(data, size) || Ver3::FastCheck(data, size) || Ver3b::FastCheck(data, size)
+             || Ver5::FastCheck(data, size) || Ver6::FastCheck(data, size);
     }
 
     void ParseTransponedMatrix(Binary::View input, std::size_t rows, std::size_t columns, Builder& target)
@@ -280,7 +277,7 @@ namespace Formats::Chiptune
     void ParseMatrix(Binary::View input, std::size_t rows, std::size_t columns, Builder& target)
     {
       Require(rows != 0);
-      const auto* cursor = input.As<uint8_t>(), *limit = cursor + input.Size();
+      const auto *cursor = input.As<uint8_t>(), *limit = cursor + input.Size();
       for (std::size_t row = 0; row != rows; ++row)
       {
         const uint8_t* const nextCursor = cursor + columns;
@@ -291,25 +288,21 @@ namespace Formats::Chiptune
         }
         else
         {
-          Dump registers = cursor < limit
-              ? Dump(cursor, limit)
-              : Dump();
+          Dump registers = cursor < limit ? Dump(cursor, limit) : Dump();
           registers.resize(columns);
           target.AddData(registers);
         }
         cursor = nextCursor;
       }
     }
-    
+
     Formats::Chiptune::Container::Ptr ParseUnpacked(const Binary::Container& rawData, Builder& target)
     {
       const void* const data = rawData.Start();
       const std::size_t size = rawData.Size();
       try
       {
-        if (Ver2::FastCheck(data, size)
-         || Ver3::FastCheck(data, size)
-         || Ver3b::FastCheck(data, size))
+        if (Ver2::FastCheck(data, size) || Ver3::FastCheck(data, size) || Ver3b::FastCheck(data, size))
         {
           Binary::InputStream stream(rawData);
           const IdentifierType& type = stream.ReadField<IdentifierType>();
@@ -329,8 +322,7 @@ namespace Formats::Chiptune
           }
           return CreateCalculatingCrcContainer(stream.GetReadContainer(), dumpOffset, matrixSize);
         }
-        else if (Ver5::FastCheck(data, size)
-              || Ver6::FastCheck(data, size))
+        else if (Ver5::FastCheck(data, size) || Ver6::FastCheck(data, size))
         {
           Binary::InputStream stream(rawData);
           const Ver5::RawHeader& header = stream.ReadField<Ver5::RawHeader>();
@@ -378,11 +370,10 @@ namespace Formats::Chiptune
     }
 
     const StringView FORMAT(
-      "'Y'M"
-      "'2-'6"
-      "'!|'b"
-    );
-      
+        "'Y'M"
+        "'2-'6"
+        "'!|'b");
+
     Formats::Chiptune::Container::Ptr ParsePacked(const Binary::Container& rawData, Builder& target)
     {
       const Binary::View data(rawData);
@@ -408,24 +399,23 @@ namespace Formats::Chiptune
     }
 
     const StringView PACKED_FORMAT(
-      "16-ff"      //header size
-      "?"          //header sum
-      "'-'l'h'5'-" //method
-      "????"       //packed size
-      "????"       //original size
-      "????"       //time+date
-      "%00x00xxx"  //attribute
-      "00"         //level
+        "16-ff"       // header size
+        "?"           // header sum
+        "'-'l'h'5'-"  // method
+        "????"        // packed size
+        "????"        // original size
+        "????"        // time+date
+        "%00x00xxx"   // attribute
+        "00"          // level
     );
 
     class YMDecoder : public Formats::Chiptune::YM::Decoder
     {
     public:
       YMDecoder()
-        //disable seeking due to slight format  
+        // disable seeking due to slight format
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -456,6 +446,7 @@ namespace Formats::Chiptune
       {
         return ParseUnpacked(data, target);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -465,8 +456,7 @@ namespace Formats::Chiptune
     public:
       PackedDecoder()
         : Format(Binary::CreateFormat(PACKED_FORMAT))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -497,10 +487,11 @@ namespace Formats::Chiptune
       {
         return ParsePacked(data, target);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
-  }
+  }  // namespace YM
 
   namespace VTX
   {
@@ -515,11 +506,11 @@ namespace Formats::Chiptune
     const uint_t LAYOUT_MIN = 0;
     const uint_t LAYOUT_MAX = 6;
 
-    const uint_t UNPACKED_MIN = sizeof(RegistersDump) * INTFREQ_MIN * 1;//1 sec
-    const uint_t UNPACKED_MAX = sizeof(RegistersDump) * INTFREQ_MAX * 30 * 60;//30 min
+    const uint_t UNPACKED_MIN = sizeof(RegistersDump) * INTFREQ_MIN * 1;        // 1 sec
+    const uint_t UNPACKED_MAX = sizeof(RegistersDump) * INTFREQ_MAX * 30 * 60;  // 30 min
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawBasicHeader
     {
@@ -544,7 +535,7 @@ namespace Formats::Chiptune
       uint32_t UnpackedSize;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawBasicHeader) == 10, "Invalid layout");
@@ -653,11 +644,11 @@ namespace Formats::Chiptune
     }
 
     const StringView FORMAT(
-      "('a|'A|'y|'Y)('y|'Y|'m|'M)" //type
-      "00-06"          //layout
-      "??"             //loop
-      "??01-9800"      //clockrate
-      "19-64"          //intfreq, 25..100Hz
+        "('a|'A|'y|'Y)('y|'Y|'m|'M)"  // type
+        "00-06"                       // layout
+        "??"                          // loop
+        "??01-9800"                   // clockrate
+        "19-64"                       // intfreq, 25..100Hz
     );
 
     class Decoder : public Formats::Chiptune::YM::Decoder
@@ -665,8 +656,7 @@ namespace Formats::Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -693,10 +683,11 @@ namespace Formats::Chiptune
       {
         return ParseVTX(data, target);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
-  }//namespace VTX
+  }  // namespace VTX
 
   namespace YM
   {
@@ -720,7 +711,7 @@ namespace Formats::Chiptune
     {
       return MakePtr<VTX::Decoder>();
     }
-  }
+  }  // namespace YM
 
   Formats::Chiptune::Decoder::Ptr CreatePackedYMDecoder()
   {
@@ -736,4 +727,4 @@ namespace Formats::Chiptune
   {
     return YM::CreateVTXDecoder();
   }
-}//namespace Formats::Chiptune
+}  // namespace Formats::Chiptune

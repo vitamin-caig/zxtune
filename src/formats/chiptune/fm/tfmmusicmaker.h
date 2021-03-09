@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  TFMMusicMaker support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TFMMusicMaker support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
-//std includes
+// std includes
 #include <array>
 
 namespace Formats
@@ -30,11 +30,17 @@ namespace Formats
         struct Operator
         {
           Operator()
-            : Multiple(), Detune(), TotalLevel(), RateScaling()
-            , Attack(), Decay(), Sustain(), Release()
-            , SustainLevel(), EnvelopeType()
-          {
-          }
+            : Multiple()
+            , Detune()
+            , TotalLevel()
+            , RateScaling()
+            , Attack()
+            , Decay()
+            , Sustain()
+            , Release()
+            , SustainLevel()
+            , EnvelopeType()
+          {}
 
           uint_t Multiple;
           int_t Detune;
@@ -51,8 +57,7 @@ namespace Formats
         Instrument()
           : Algorithm()
           , Feedback()
-        {
-        }
+        {}
 
         uint_t Algorithm;
         uint_t Feedback;
@@ -62,15 +67,16 @@ namespace Formats
       struct Date
       {
         Date()
-          : Year(), Month(), Day()
-        {
-        }
+          : Year()
+          , Month()
+          , Day()
+        {}
 
         uint_t Year;
         uint_t Month;
         uint_t Day;
       };
-      
+
       typedef LinesObject<uint_t> Positions;
 
       class Builder
@@ -84,7 +90,7 @@ namespace Formats
         virtual void SetComment(const String& comment) = 0;
 
         virtual void SetInstrument(uint_t index, Instrument instrument) = 0;
-        //patterns
+        // patterns
         virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
@@ -136,9 +142,9 @@ namespace Formats
       {
         Decoder::Ptr CreateDecoder();
       }
-    }
+    }  // namespace TFMMusicMaker
 
     Decoder::Ptr CreateTFMMusicMaker05Decoder();
     Decoder::Ptr CreateTFMMusicMaker13Decoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

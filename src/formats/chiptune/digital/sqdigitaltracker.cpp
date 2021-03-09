@@ -1,32 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief  SQDigitalTracker support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SQDigitalTracker support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/digital/sqdigitaltracker.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -35,7 +35,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::SQDigitalTracker");
 
-    //const std::size_t MAX_MODULE_SIZE = 0x4400 + 8 * 0x4000;
+    // const std::size_t MAX_MODULE_SIZE = 0x4400 + 8 * 0x4000;
     const std::size_t MAX_POSITIONS_COUNT = 100;
     const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t PATTERNS_COUNT = 32;
@@ -47,7 +47,7 @@ namespace Formats::Chiptune
     const std::size_t SAMPLES_LIMIT = 0x10000;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct Pattern
     {
@@ -70,8 +70,7 @@ namespace Formats::Chiptune
 
           const uint8_t* GetNewTempo() const
           {
-            return 62 == NoteCmd
-              ? &SampleEffect : nullptr;
+            return 62 == NoteCmd ? &SampleEffect : nullptr;
           }
 
           bool IsEndOfPattern() const
@@ -81,15 +80,14 @@ namespace Formats::Chiptune
 
           const uint8_t* GetVolumeSlidePeriod() const
           {
-            return 64 == NoteCmd
-              ? &SampleEffect : nullptr;
+            return 64 == NoteCmd ? &SampleEffect : nullptr;
           }
 
           int_t GetVolumeSlideDirection() const
           {
-            //0 - no slide,
-            //1 - -1
-            //2,3 - +1
+            // 0 - no slide,
+            // 1 - -1
+            // 2,3 - +1
             if (const int_t val = NoteCmd >> 6)
             {
               return val == 1 ? -1 : +1;
@@ -120,11 +118,7 @@ namespace Formats::Chiptune
 
         bool IsEmpty() const
         {
-          return Channels[0].IsEmpty()
-              && Channels[1].IsEmpty()
-              && Channels[2].IsEmpty()
-              && Channels[3].IsEmpty()
-          ;
+          return Channels[0].IsEmpty() && Channels[1].IsEmpty() && Channels[2].IsEmpty() && Channels[3].IsEmpty();
         }
       } PACK_POST;
 
@@ -184,7 +178,7 @@ namespace Formats::Chiptune
       //+0x4400
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(Header) == 0x4400, "Invalid layout");
@@ -224,8 +218,7 @@ namespace Formats::Chiptune
         : Delegate(delegate)
         , UsedPatterns(0, PATTERNS_COUNT - 1)
         , UsedSamples(0, SAMPLES_COUNT - 1)
-      {
-      }
+      {}
 
       MetaBuilder& GetMetaBuilder() override
       {
@@ -300,6 +293,7 @@ namespace Formats::Chiptune
         Require(!UsedSamples.Empty());
         return UsedSamples;
       }
+
     private:
       Builder& Delegate;
       Indices UsedPatterns;
@@ -314,7 +308,7 @@ namespace Formats::Chiptune
         , Source(*RawData.As<Header>())
         , Ranges(RangeChecker::Create(RawData.Size()))
       {
-        //info
+        // info
         AddRange(0, sizeof(Source));
       }
 
@@ -323,8 +317,8 @@ namespace Formats::Chiptune
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
         const auto title = *Source.Title.begin() == '|' && *Source.Title.rbegin() == '|'
-          ? StringView(Source.Title.data() + 1, &Source.Title.back())
-          : StringView(Source.Title);
+                               ? StringView(Source.Title.data() + 1, &Source.Title.back())
+                               : StringView(Source.Title);
         meta.SetTitle(Strings::OptimizeAscii(title));
         meta.SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
         Strings::Array names;
@@ -381,8 +375,7 @@ namespace Formats::Chiptune
           const SampleInfo& info = Source.Samples[samIdx];
           const std::size_t rawAddr = fromLE(info.Start);
           const std::size_t rawLoop = fromLE(info.Loop);
-          if (rawAddr < BIG_SAMPLE_ADDR
-           || rawLoop < rawAddr)
+          if (rawAddr < BIG_SAMPLE_ADDR || rawLoop < rawAddr)
           {
             Dbg("Skip sample %1%", samIdx);
             continue;
@@ -395,8 +388,8 @@ namespace Formats::Chiptune
           const std::size_t offset = offsetSize.first + rawAddr - sampleBase;
           if (const auto sample = GetSample(offset, size))
           {
-            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", 
-              samIdx, rawAddr, rawLoop, sample.Size(), uint_t(info.Bank));
+            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", samIdx, rawAddr, rawLoop, sample.Size(),
+                uint_t(info.Bank));
             const std::size_t loop = info.IsLooped ? rawLoop - sampleBase : sample.Size();
             target.SetSample(samIdx, loop, sample);
           }
@@ -406,7 +399,7 @@ namespace Formats::Chiptune
           }
         }
       }
-      
+
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
@@ -416,6 +409,7 @@ namespace Formats::Chiptune
       {
         return RangeChecker::Range(offsetof(Header, Patterns), sizeof(Source.Patterns));
       }
+
     private:
       static void ParsePattern(const Pattern& src, PatternBuilder& patBuilder, Builder& target)
       {
@@ -482,6 +476,7 @@ namespace Formats::Chiptune
         const uint8_t* const end = std::find(start, start + size, 0);
         return RawData.SubView(offset, end - start);
       }
+
     private:
       const Binary::View RawData;
       const Header& Source;
@@ -489,32 +484,30 @@ namespace Formats::Chiptune
     };
 
     const StringView FORMAT(
-      "?{192}"
-      //layouts
-      "(0080-c0 58-5f 01-80){8}"
-      "?{32}"
-      //title
-      "20-7f{32}"
-      "?{128}"
-      //positions
-      "00-1f{100}"
-      "ff"
-      "?{11}"
-      //tempo???
-      "02-10"
-      //loop
-      "00-63"
-      //length
-      "01-64"
-    );
+        "?{192}"
+        // layouts
+        "(0080-c0 58-5f 01-80){8}"
+        "?{32}"
+        // title
+        "20-7f{32}"
+        "?{128}"
+        // positions
+        "00-1f{100}"
+        "ff"
+        "?{11}"
+        // tempo???
+        "02-10"
+        // loop
+        "00-63"
+        // length
+        "01-64");
 
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -540,6 +533,7 @@ namespace Formats::Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -563,7 +557,8 @@ namespace Formats::Chiptune
         Require(format.GetSize() >= MIN_SIZE);
         auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -577,10 +572,10 @@ namespace Formats::Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace SQDigitalTracker
+  }  // namespace SQDigitalTracker
 
   Decoder::Ptr CreateSQDigitalTrackerDecoder()
   {
     return MakePtr<SQDigitalTracker::Decoder>();
   }
-} //namespace Formats::Chiptune
+}  // namespace Formats::Chiptune

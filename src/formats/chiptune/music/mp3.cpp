@@ -1,45 +1,46 @@
 /**
-* 
-* @file
-*
-* @brief  MP3 parser implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  MP3 parser implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/music/mp3.h"
-#include "formats/chiptune/music/tags_id3.h"
 #include "formats/chiptune/container.h"
-//common includes
+#include "formats/chiptune/music/tags_id3.h"
+// common includes
 #include <make_ptr.h>
-//library includes
-#include <binary/input_stream.h>
+// library includes
 #include <binary/format_factories.h>
+#include <binary/input_stream.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
-//std includes
+// std includes
 #include <array>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace Mp3
   {
-    //http://wiki.hydrogenaud.io/index.php?title=APEv2_specification
+    // http://wiki.hydrogenaud.io/index.php?title=APEv2_specification
     namespace ApeTag
     {
       String MakeString(StringView str)
       {
-        //do not trim before- it may break some encodings
+        // do not trim before- it may break some encodings
         auto decoded = Strings::ToAutoUtf8(str);
-        std::replace_if(decoded.begin(), decoded.end(), [](Char c) {return c < ' ';}, ' ');
+        std::replace_if(
+            decoded.begin(), decoded.end(), [](Char c) { return c < ' '; }, ' ');
         auto trimmed = Strings::TrimSpaces(decoded);
         return decoded.size() == trimmed.size() ? decoded : trimmed.to_string();
       }
-      
+
       void ParseKey(StringView key, StringView value, MetaBuilder& target)
       {
         if (key == "Artist")
@@ -52,11 +53,11 @@ namespace Formats::Chiptune
         }
         else if (key == "Comment")
         {
-          //TODO: SetComment
+          // TODO: SetComment
           target.SetStrings({MakeString(value)});
         }
       }
-      
+
       void ParseV2(uint_t count, Binary::DataInputStream& stream, MetaBuilder& target)
       {
         try
@@ -64,7 +65,7 @@ namespace Formats::Chiptune
           for (uint_t idx = 0; idx < count; ++idx)
           {
             const auto dataSize = stream.ReadLE<uint32_t>();
-            /*const auto flags = */stream.ReadLE<uint32_t>();
+            /*const auto flags = */ stream.ReadLE<uint32_t>();
             const auto avail = stream.GetRestSize();
             Require(avail >= dataSize);
             const auto key = stream.ReadCString(avail - dataSize);
@@ -73,10 +74,9 @@ namespace Formats::Chiptune
           }
         }
         catch (const std::exception&)
-        {
-        }
+        {}
       }
-      
+
       bool Parse(Binary::DataInputStream& stream, MetaBuilder& target)
       {
         static const std::size_t HEADER_SIZE = 32;
@@ -89,7 +89,7 @@ namespace Formats::Chiptune
         const auto version = ReadLE<uint32_t>(hdr + 8);
         const auto restSize = ReadLE<uint32_t>(hdr + 12);
         const auto itemsCount = ReadLE<uint32_t>(hdr + 16);
-        //const auto globalFlags = ReadLE<uint32_t>(hdr + 20);
+        // const auto globalFlags = ReadLE<uint32_t>(hdr + 20);
         if (stream.PeekRawData(HEADER_SIZE + restSize))
         {
           stream.Skip(HEADER_SIZE);
@@ -106,8 +106,8 @@ namespace Formats::Chiptune
           return false;
         }
       }
-    } //namespace ApeTag
-    
+    }  // namespace ApeTag
+
     class StubBuilder : public Builder
     {
     public:
@@ -116,16 +116,14 @@ namespace Formats::Chiptune
         return GetStubMetaBuilder();
       }
 
-      void AddFrame(const Frame& /*frame*/) override
-      {
-      }
+      void AddFrame(const Frame& /*frame*/) override {}
     };
-    
-    //as in minimp3
+
+    // as in minimp3
     struct FrameHeader
     {
       std::array<uint8_t, 4> Data;
-      
+
       struct Version
       {
         enum
@@ -136,7 +134,7 @@ namespace Formats::Chiptune
           MPEG_1 = 3
         };
       };
-      
+
       struct Layer
       {
         enum
@@ -147,7 +145,7 @@ namespace Formats::Chiptune
           I = 3
         };
       };
-      
+
       struct Bitrate
       {
         enum
@@ -156,7 +154,7 @@ namespace Formats::Chiptune
           INVALID = 0xf
         };
       };
-      
+
       struct Channels
       {
         enum
@@ -167,58 +165,46 @@ namespace Formats::Chiptune
           MONO = 3
         };
       };
-      
+
       bool IsValid() const
       {
-        return CheckSync()
-            && GetLayer() != Layer::RESERVED
-            && GetBitrate() != Bitrate::INVALID
-            && GetFrequency() != 3
-            && GetChannels() != Channels::DUAL
-        ;
+        return CheckSync() && GetLayer() != Layer::RESERVED && GetBitrate() != Bitrate::INVALID && GetFrequency() != 3
+               && GetChannels() != Channels::DUAL;
       }
-      
+
       bool GetIsMono() const
       {
         return GetChannels() == Channels::MONO;
       }
-      
+
       uint_t GetBitrateKbps() const
       {
-        static const uint_t HALFRATE[2][3][15] =
-        {
-          //Mpeg2/2.5
-          {
-            //Layer III
-            { 0,4,8,12,16,20,24,28,32,40,48,56,64,72,80 },
-            //Layer II
-            { 0,4,8,12,16,20,24,28,32,40,48,56,64,72,80 },
-            //Layer I
-            { 0,16,24,28,32,40,48,56,64,72,80,88,96,112,128 }
-          },
-          //Mpeg1
-          {
-            //Layer III
-            { 0,16,20,24,28,32,40,48,56,64,80,96,112,128,160 },
-            //Layer II
-            { 0,16,24,28,32,40,48,56,64,80,96,112,128,160,192 },
-            //Layer I
-            { 0,16,32,48,64,80,96,112,128,144,160,176,192,208,224 }
-          },
+        static const uint_t HALFRATE[2][3][15] = {
+            // Mpeg2/2.5
+            {// Layer III
+             {0, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 72, 80},
+             // Layer II
+             {0, 4, 8, 12, 16, 20, 24, 28, 32, 40, 48, 56, 64, 72, 80},
+             // Layer I
+             {0, 16, 24, 28, 32, 40, 48, 56, 64, 72, 80, 88, 96, 112, 128}},
+            // Mpeg1
+            {// Layer III
+             {0, 16, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160},
+             // Layer II
+             {0, 16, 24, 28, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192},
+             // Layer I
+             {0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224}},
         };
         return 2 * HALFRATE[GetVersion() == Version::MPEG_1][GetLayer() - 1][GetBitrate()];
       }
 
       uint_t GetSamplerate() const
       {
-        static const uint_t FREQUENCY[3] =
-        { 
-          44100, 48000, 32000
-        };
+        static const uint_t FREQUENCY[3] = {44100, 48000, 32000};
         const auto divider = GetVersion() == Version::MPEG2_5 ? 4 : (GetVersion() == Version::MPEG_2 ? 2 : 1);
         return FREQUENCY[GetFrequency()] / divider;
       }
-      
+
       uint_t GetSamplesCount() const
       {
         const auto layer = GetLayer();
@@ -235,17 +221,16 @@ namespace Formats::Chiptune
           return 576;
         }
       }
-      
+
       bool IsFreeFormat() const
       {
         return 0 == GetBitrate();
       }
-      
+
       bool Matches(const FrameHeader& rh) const
       {
-        return ((Data[1] ^ rh.Data[1]) & 0xFE) == 0 &&
-               ((Data[2] ^ rh.Data[2]) & 0x0C) == 0 &&
-               (IsFreeFormat() == rh.IsFreeFormat());
+        return ((Data[1] ^ rh.Data[1]) & 0xFE) == 0 && ((Data[2] ^ rh.Data[2]) & 0x0C) == 0
+               && (IsFreeFormat() == rh.IsFreeFormat());
       }
 
       std::size_t GetFrameDataSize() const
@@ -268,47 +253,46 @@ namespace Formats::Chiptune
         // Mpeg2.5 only LayerIII supported
         return Data[0] == 0xff && ((Data[1] & 0xf0) == 0xf0 || (Data[1] & 0xfe) == 0xe2);
       }
-      
+
       uint_t GetVersion() const
       {
         return (Data[1] & 0x18) >> 3;
       }
-      
+
       uint_t GetLayer() const
       {
         return (Data[1] & 0x06) >> 1;
       }
-      
+
       uint_t GetBitrate() const
       {
         return Data[2] >> 4;
       }
-      
+
       uint_t GetFrequency() const
       {
         return (Data[2] & 0x0c) >> 2;
       }
-      
+
       uint_t GetChannels() const
       {
         return (Data[3] & 0xc0) >> 6;
       }
     };
-    
+
     static_assert(sizeof(FrameHeader) == 4, "Invalid layout");
     static const std::size_t MIN_FREEFORMAT_FRAME_SIZE = 16;
     static const std::size_t MAX_FREEFORMAT_FRAME_SIZE = 2304;
     static const uint_t MAX_SYNC_GAP_NOTLOST = 3;
     static const uint_t MAX_SYNC_LOSTS_COUNT = 3;
-    
+
     class Format
     {
     public:
       explicit Format(const Binary::Container& data)
         : Stream(data)
-      {
-      }
-      
+      {}
+
       Container::Ptr Parse(Builder& target)
       {
         Id3::Parse(Stream, target.GetMetaBuilder());
@@ -337,7 +321,7 @@ namespace Formats::Chiptune
             const auto skip = Stream.GetPosition() - offset;
             if (!skip)
             {
-              //nothing found
+              // nothing found
               break;
             }
             if (skip > MAX_SYNC_GAP_NOTLOST && ++syncLostsCount > MAX_SYNC_LOSTS_COUNT)
@@ -355,6 +339,7 @@ namespace Formats::Chiptune
           return Container::Ptr();
         }
       }
+
     private:
       //@return free format frame size
       std::size_t Synchronize()
@@ -376,7 +361,8 @@ namespace Formats::Chiptune
               break;
             }
           }
-          for (std::size_t validFrames = 2; frameSize > MIN_FREEFORMAT_FRAME_SIZE && frameSize < MAX_FREEFORMAT_FRAME_SIZE; ++validFrames)
+          for (std::size_t validFrames = 2;
+               frameSize > MIN_FREEFORMAT_FRAME_SIZE && frameSize < MAX_FREEFORMAT_FRAME_SIZE; ++validFrames)
           {
             const auto nextFrame = SkipToNextFrame(frameSize);
             if (!nextFrame || validFrames >= FREEFORMAT_SYNC_FRAMES_COUNT)
@@ -393,7 +379,7 @@ namespace Formats::Chiptune
         }
         return 0;
       }
-    
+
       const FrameHeader* ReadFrame(std::size_t freeFormatSize)
       {
         const auto frame = safe_ptr_cast<const FrameHeader*>(Stream.PeekRawData(sizeof(FrameHeader)));
@@ -429,7 +415,7 @@ namespace Formats::Chiptune
         }
         return nullptr;
       }
-      
+
       const FrameHeader* SkipToNextFrame(std::size_t startOffset)
       {
         const auto restSize = Stream.GetRestSize();
@@ -439,7 +425,7 @@ namespace Formats::Chiptune
         }
         const auto data = Stream.PeekRawData(restSize);
         const auto end = data + restSize - sizeof(FrameHeader);
-        for (std::size_t offset = startOffset; ; )
+        for (std::size_t offset = startOffset;;)
         {
           const auto match = std::find(data + offset, end, 0xff);
           if (match == end)
@@ -458,6 +444,7 @@ namespace Formats::Chiptune
         }
         return nullptr;
       }
+
     private:
       Binary::InputStream Stream;
     };
@@ -473,36 +460,35 @@ namespace Formats::Chiptune
         return Formats::Chiptune::Container::Ptr();
       }
     }
-    
+
     Builder& GetStubBuilder()
     {
       static StubBuilder stub;
       return stub;
     }
-    
+
     const StringView FORMAT(
-      //ID3 tag    frame header
-      "'I         |ff"
-      "'D         |%111xxxxx"
-      "'3         |%00000000-%11101011" //%(0000-1110)(00-10)xx really
-      /* useless due to frame header signature end
-      "02-04"
-      "?"
-      "%xxx00000"
-      "%0xxxxxxx"
-      "%0xxxxxxx"
-      "%0xxxxxxx"
-      "%0xxxxxxx"
-      */
+        // ID3 tag    frame header
+        "'I         |ff"
+        "'D         |%111xxxxx"
+        "'3         |%00000000-%11101011"  //%(0000-1110)(00-10)xx really
+                                           /* useless due to frame header signature end
+                                           "02-04"
+                                           "?"
+                                           "%xxx00000"
+                                           "%0xxxxxxx"
+                                           "%0xxxxxxx"
+                                           "%0xxxxxxx"
+                                           "%0xxxxxxx"
+                                           */
     );
-    
+
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -530,13 +516,14 @@ namespace Formats::Chiptune
           return Formats::Chiptune::Container::Ptr();
         }
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
-  } //namespace Mp3
+  }  // namespace Mp3
 
   Decoder::Ptr CreateMP3Decoder()
   {
     return MakePtr<Mp3::Decoder>();
   }
-}
+}  // namespace Formats::Chiptune

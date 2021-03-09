@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  Metadata builder interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Metadata builder interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <strings/array.h>
 
 namespace Formats
@@ -31,5 +31,5 @@ namespace Formats
     };
 
     MetaBuilder& GetStubMetaBuilder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

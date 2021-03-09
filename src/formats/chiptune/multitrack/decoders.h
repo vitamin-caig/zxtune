@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Multitrack chiptunes decoders factories
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Multitrack chiptunes decoders factories
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <formats/chiptune.h>
 #include <formats/multitrack.h>
 
@@ -24,5 +24,5 @@ namespace Formats
     Decoder::Ptr CreateSAPDecoder(Formats::Multitrack::Decoder::Ptr decoder);
     Decoder::Ptr CreateKSSXDecoder(Formats::Multitrack::Decoder::Ptr decoder);
     Decoder::Ptr CreateHESDecoder(Formats::Multitrack::Decoder::Ptr decoder);
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

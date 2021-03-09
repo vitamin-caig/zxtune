@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  YM/VTX support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  YM/VTX support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -27,7 +27,7 @@ namespace Formats
         typedef std::shared_ptr<Builder> Ptr;
         virtual ~Builder() = default;
 
-        //YMx
+        // YMx
         virtual void SetVersion(const String& version) = 0;
         // Default: false
         virtual void SetChipType(bool ym) = 0;
@@ -63,10 +63,10 @@ namespace Formats
       Decoder::Ptr CreatePackedYMDecoder();
       Decoder::Ptr CreateYMDecoder();
       Decoder::Ptr CreateVTXDecoder();
-    }
+    }  // namespace YM
 
     Decoder::Ptr CreatePackedYMDecoder();
     Decoder::Ptr CreateYMDecoder();
     Decoder::Ptr CreateVTXDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

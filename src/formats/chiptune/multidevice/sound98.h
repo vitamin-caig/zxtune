@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  S98 support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  S98 support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 #include <time/duration.h>
 
@@ -35,8 +35,8 @@ namespace Formats
       Builder& GetStubBuilder();
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-    }
+    }  // namespace Sound98
 
     Decoder::Ptr CreateSound98Decoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

@@ -1,14 +1,14 @@
 /**
-* 
-* @file
-*
-* @brief  Simple digital trackers support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Simple digital trackers support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/digital/digital.h"
 
 namespace Formats::Chiptune
@@ -44,5 +44,5 @@ namespace Formats::Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace Digital
-} //namespace Formats::Chiptune
+  }  // namespace Digital
+}  // namespace Formats::Chiptune

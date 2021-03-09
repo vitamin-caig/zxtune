@@ -1,32 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief  SoundTracker v3.x support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SoundTracker v3.x support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/soundtracker_detail.h"
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/metainfo.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <iterator.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -55,7 +55,7 @@ namespace Formats::Chiptune
     */
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -66,11 +66,8 @@ namespace Formats::Chiptune
       uint16_t PatternsOffset;
     } PACK_POST;
 
-    const uint8_t ID[] =
-    {
-      'K', 'S', 'A', ' ', 'S', 'O', 'F', 'T', 'W', 'A', 'R', 'E', ' ',
-      'C', 'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '
-    };
+    const uint8_t ID[] = {'K', 'S', 'A', ' ', 'S', 'O', 'F', 'T', 'W', 'A', 'R', 'E', ' ', 'C',
+                          'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '};
 
     PACK_PRE struct RawId
     {
@@ -89,7 +86,7 @@ namespace Formats::Chiptune
       PACK_PRE struct PosEntry
       {
         int8_t Transposition;
-        uint8_t PatternOffset;//*6
+        uint8_t PatternOffset;  //*6
       } PACK_POST;
       PosEntry Data[1];
     } PACK_POST;
@@ -121,8 +118,8 @@ namespace Formats::Chiptune
       uint8_t Loop;
       uint8_t LoopLimit;
 
-      //NxxTAAAA
-      //nnnnnnnn
+      // NxxTAAAA
+      // nnnnnnnn
       // N - noise mask
       // T - tone mask
       // A - Level
@@ -161,7 +158,7 @@ namespace Formats::Chiptune
       Line Data[SAMPLE_SIZE];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 9, "Invalid layout");
@@ -266,6 +263,7 @@ namespace Formats::Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       template<class T>
       const T* PeekObject(std::size_t offset) const
@@ -327,14 +325,12 @@ namespace Formats::Chiptune
             : Offset()
             , Period()
             , Counter()
-          {
-          }
+          {}
 
           void Skip(uint_t toSkip)
           {
             Counter -= toSkip;
           }
-
 
           static bool CompareByCounter(const ChannelState& lh, const ChannelState& rh)
           {
@@ -376,7 +372,7 @@ namespace Formats::Chiptune
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
-          //skip lines if required
+          // skip lines if required
           if (const uint_t linesToSkip = state.GetMinCounter())
           {
             state.SkipLines(linesToSkip);
@@ -448,35 +444,35 @@ namespace Formats::Chiptune
         while (state.Offset < Data.Size())
         {
           const uint_t cmd = PeekByte(state.Offset++);
-          if (cmd <= 0x5f)//note
+          if (cmd <= 0x5f)  // note
           {
             builder.SetNote(cmd);
             break;
           }
-          else if (cmd <= 0x6f)//sample
+          else if (cmd <= 0x6f)  // sample
           {
             builder.SetSample(cmd - 0x60);
           }
-          else if (cmd <= 0x7f)//ornament
+          else if (cmd <= 0x7f)  // ornament
           {
             builder.SetNoEnvelope();
             builder.SetOrnament(cmd - 0x70);
           }
-          else if (cmd == 0x80)//reset
+          else if (cmd == 0x80)  // reset
           {
             builder.SetRest();
             break;
           }
-          else if (cmd == 0x81)//empty
+          else if (cmd == 0x81)  // empty
           {
             break;
           }
-          else if (cmd == 0x82) //orn 0 without envelope
+          else if (cmd == 0x82)  // orn 0 without envelope
           {
             builder.SetOrnament(0);
             builder.SetNoEnvelope();
           }
-          else if (cmd <= 0x8e)//orn 0, with envelope
+          else if (cmd <= 0x8e)  // orn 0, with envelope
           {
             builder.SetOrnament(0);
             const uint_t envPeriod = PeekByte(state.Offset++);
@@ -507,7 +503,7 @@ namespace Formats::Chiptune
         dst.LoopLimit = std::min<uint_t>(src.Loop + src.LoopLimit, SAMPLE_SIZE);
         return dst;
       }
-      
+
       static Ornament ParseOrnament(const RawOrnament& src)
       {
         Ornament dst;
@@ -525,6 +521,7 @@ namespace Formats::Chiptune
         AddRange(offset, size);
         Require(FixedRanges->AddRange(offset, size));
       }
+
     private:
       const Binary::View Data;
       const RawHeader& Source;
@@ -680,13 +677,15 @@ namespace Formats::Chiptune
       {
         return false;
       }
-      if (samples->Offsets + samples->Count != std::adjacent_find(samples->Offsets, samples->Offsets + samples->Count,
-          [](uint16_t lh, uint16_t rh) {return !AreSequenced(lh, rh, sizeof(RawSample));}))
+      if (samples->Offsets + samples->Count
+          != std::adjacent_find(samples->Offsets, samples->Offsets + samples->Count,
+                                [](uint16_t lh, uint16_t rh) { return !AreSequenced(lh, rh, sizeof(RawSample)); }))
       {
         return false;
       }
-      if (ornaments->Offsets + ornaments->Count != std::adjacent_find(ornaments->Offsets, ornaments->Offsets + ornaments->Count,
-          [](uint16_t lh, uint16_t rh) {return !AreSequenced(lh, rh, sizeof(RawOrnament));}))
+      if (ornaments->Offsets + ornaments->Count
+          != std::adjacent_find(ornaments->Offsets, ornaments->Offsets + ornaments->Count,
+                                [](uint16_t lh, uint16_t rh) { return !AreSequenced(lh, rh, sizeof(RawOrnament)); }))
       {
         return false;
       }
@@ -710,11 +709,11 @@ namespace Formats::Chiptune
     }
 
     const StringView FORMAT(
-    "03-0f"       // uint8_t Tempo; 1..15
-    "?01-08"      // uint16_t PositionsOffset;
-    "?01-08"      // uint16_t SamplesOffset;
-    "?01-0a"      // uint16_t OrnamentsOffset;
-    "?02-16"      // uint16_t PatternsOffset;
+        "03-0f"   // uint8_t Tempo; 1..15
+        "?01-08"  // uint16_t PositionsOffset;
+        "?01-08"  // uint16_t SamplesOffset;
+        "?01-0a"  // uint16_t OrnamentsOffset;
+        "?02-16"  // uint16_t PatternsOffset;
     );
 
     class Decoder : public Formats::Chiptune::SoundTracker::Decoder
@@ -722,8 +721,7 @@ namespace Formats::Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -755,10 +753,11 @@ namespace Formats::Chiptune
       {
         return SoundTracker::Ver3::Parse(data, target);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
-  }//SoundTracker3
+  }  // namespace SoundTracker3
 
   namespace SoundTracker
   {
@@ -800,7 +799,8 @@ namespace Formats::Chiptune
           Require(format.GetSize() >= MIN_SIZE);
           auto subData = rawData.GetSubcontainer(0, format.GetSize());
           const auto fixedRange = format.GetFixedArea();
-          return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+          return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                               fixedRange.second - fixedRange.first);
         }
         catch (const std::exception&)
         {
@@ -842,7 +842,7 @@ namespace Formats::Chiptune
               patch->FixLEWord(patOffsets + 2, delta);
               patch->FixLEWord(patOffsets + 4, delta);
             }
-            //fix all samples and ornaments
+            // fix all samples and ornaments
             const std::size_t ornamentsStart = fromLE(header.OrnamentsOffset);
             const auto& orns = *parsedData.SubView(ornamentsStart).As<RawOrnaments>();
             for (uint_t idx = 0; idx != orns.Count; ++idx)
@@ -862,11 +862,11 @@ namespace Formats::Chiptune
         }
         return {};
       }
-    }
-  }
+    }  // namespace Ver3
+  }    // namespace SoundTracker
 
   Formats::Chiptune::Decoder::Ptr CreateSoundTracker3Decoder()
   {
     return SoundTracker::Ver3::CreateDecoder();
   }
-}// namespace Formats::Chiptune
+}  // namespace Formats::Chiptune

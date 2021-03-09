@@ -1,31 +1,31 @@
 /**
-* 
-* @file
-*
-* @brief  ProTracker v2.x support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ProTracker v2.x support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/protracker2.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
 #include <make_ptr.h>
 #include <pointers.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -55,7 +55,7 @@ namespace Formats::Chiptune
     */
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -86,16 +86,16 @@ namespace Formats::Chiptune
     {
       PACK_PRE struct Line
       {
-        //nnnnnsTN
-        //aaaaHHHH
-        //LLLLLLLL
+        // nnnnnsTN
+        // aaaaHHHH
+        // LLLLLLLL
 
-        //HHHHLLLLLLLL - vibrato
-        //s - vibrato sign
-        //a - level
-        //N - noise off
-        //T - tone off
-        //n - noise value
+        // HHHHLLLLLLLL - vibrato
+        // s - vibrato sign
+        // a - level
+        // N - noise off
+        // T - tone off
+        // n - noise value
         uint8_t NoiseAndFlags;
         uint8_t LevelHiVibrato;
         uint8_t LoVibrato;
@@ -135,7 +135,7 @@ namespace Formats::Chiptune
       Line GetLine(uint_t idx) const
       {
         const uint8_t* const src = safe_ptr_cast<const uint8_t*>(this + 1);
-        //using 8-bit offsets
+        // using 8-bit offsets
         uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
         Line res;
         res.NoiseAndFlags = src[offset++];
@@ -157,7 +157,7 @@ namespace Formats::Chiptune
       Line GetLine(uint_t idx) const
       {
         const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
-        //using 8-bit offsets
+        // using 8-bit offsets
         uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
@@ -173,7 +173,7 @@ namespace Formats::Chiptune
       }
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 132, "Invalid layout");
@@ -333,6 +333,7 @@ namespace Formats::Chiptune
       {
         return UsedOrnaments;
       }
+
     private:
       Builder& Delegate;
       Indices UsedPatterns;
@@ -347,8 +348,7 @@ namespace Formats::Chiptune
         : ServiceRanges(RangeChecker::CreateShared(limit))
         , TotalRanges(RangeChecker::CreateSimple(limit))
         , FixedRanges(RangeChecker::CreateSimple(limit))
-      {
-      }
+      {}
 
       void AddService(std::size_t offset, std::size_t size) const
       {
@@ -377,6 +377,7 @@ namespace Formats::Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       const RangeChecker::Ptr ServiceRanges;
       const RangeChecker::Ptr TotalRanges;
@@ -390,8 +391,8 @@ namespace Formats::Chiptune
         const uint8_t* const dataBegin = &hdr->Tempo;
         const uint8_t* const dataEnd = dataBegin + data.Size();
         const uint8_t* const lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
-        if (lastPosition != dataEnd && 
-            std::none_of(hdr->Positions, lastPosition, [](auto b) {return b >= MAX_PATTERNS_COUNT;}))
+        if (lastPosition != dataEnd
+            && std::none_of(hdr->Positions, lastPosition, [](auto b) { return b >= MAX_PATTERNS_COUNT; }))
         {
           return lastPosition + 1 - dataBegin;
         }
@@ -433,7 +434,8 @@ namespace Formats::Chiptune
         Positions positions;
         positions.Lines.assign(startPos, endPos);
         positions.Loop = Source.Loop;
-        Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.GetSize(), positions.GetLoop(), uint_t(Source.Length));
+        Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.GetSize(), positions.GetLoop(),
+            uint_t(Source.Length));
         builder.SetPositions(std::move(positions));
       }
 
@@ -550,6 +552,7 @@ namespace Formats::Chiptune
       {
         return Ranges.GetFixedArea();
       }
+
     private:
       template<class T>
       const T* PeekObject(std::size_t offset) const
@@ -598,14 +601,12 @@ namespace Formats::Chiptune
             : Offset()
             , Period()
             , Counter()
-          {
-          }
+          {}
 
           void Skip(uint_t toSkip)
           {
             Counter -= toSkip;
           }
-
 
           static bool CompareByCounter(const ChannelState& lh, const ChannelState& rh)
           {
@@ -642,15 +643,16 @@ namespace Formats::Chiptune
       {
         const RawPattern& pat = GetPattern(patIndex);
         const DataCursors rangesStarts(pat);
-        Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(),
-          Math::NotInRange(minOffset, Data.Size() - 1)));
+        Require(
+            rangesStarts.end()
+            == std::find_if(rangesStarts.begin(), rangesStarts.end(), Math::NotInRange(minOffset, Data.Size() - 1)));
 
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         ParserState state(rangesStarts);
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
-          //skip lines if required
+          // skip lines if required
           if (const uint_t linesToSkip = state.GetMinCounter())
           {
             state.SkipLines(linesToSkip);
@@ -726,74 +728,74 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          else if (cmd >= 0xe1) //sample
+          else if (cmd >= 0xe1)  // sample
           {
             const uint_t num = cmd - 0xe0;
             builder.SetSample(num);
           }
-          else if (cmd == 0xe0) //sample 0 - shut up
+          else if (cmd == 0xe0)  // sample 0 - shut up
           {
             builder.SetRest();
             break;
           }
-          else if (cmd >= 0x80)//note
+          else if (cmd >= 0x80)  // note
           {
             const uint_t note = cmd - 0x80;
             builder.SetNote(note);
             break;
           }
-          else if (cmd == 0x7f) //env off
+          else if (cmd == 0x7f)  // env off
           {
             builder.SetNoEnvelope();
           }
-          else if (cmd >= 0x71) //envelope
+          else if (cmd >= 0x71)  // envelope
           {
             const uint_t type = cmd - 0x70;
             const uint_t tone = PeekLEWord(state.Offset);
             state.Offset += 2;
             builder.SetEnvelope(type, tone);
           }
-          else if (cmd == 0x70)//quit
+          else if (cmd == 0x70)  // quit
           {
             break;
           }
-          else if (cmd >= 0x60)//ornament
+          else if (cmd >= 0x60)  // ornament
           {
             const uint_t num = cmd - 0x60;
             builder.SetOrnament(num);
           }
-          else if (cmd >= 0x20)//skip
+          else if (cmd >= 0x20)  // skip
           {
             state.Period = cmd - 0x20;
           }
-          else if (cmd >= 0x10)//volume
+          else if (cmd >= 0x10)  // volume
           {
             const uint_t vol = cmd - 0x10;
             builder.SetVolume(vol);
           }
-          else if (cmd == 0x0f)//new delay
+          else if (cmd == 0x0f)  // new delay
           {
             const uint_t tempo = PeekByte(state.Offset++);
-            //do not check tempo
+            // do not check tempo
             patBuilder.SetTempo(tempo);
           }
-          else if (cmd == 0x0e)//gliss
+          else if (cmd == 0x0e)  // gliss
           {
             const int8_t val = static_cast<int8_t>(PeekByte(state.Offset++));
             builder.SetGlissade(val);
           }
-          else if (cmd == 0x0d)//note gliss
+          else if (cmd == 0x0d)  // note gliss
           {
             const int_t step = static_cast<int8_t>(PeekByte(state.Offset++));
             const uint_t limit = PeekLEWord(state.Offset);
             state.Offset += 2;
             builder.SetNoteGliss(step, limit);
           }
-          else if (cmd == 0x0c)//gliss off
+          else if (cmd == 0x0c)  // gliss off
           {
             builder.SetNoGliss();
           }
-          else if (cmd >= 0x01)//noise add
+          else if (cmd >= 0x01)  // noise add
           {
             const int_t val = static_cast<int8_t>(PeekByte(state.Offset++));
             builder.SetNoiseAddon(val);
@@ -832,6 +834,7 @@ namespace Formats::Chiptune
         }
         dst.Loop = std::min<uint_t>(src.Loop, dst.Lines.size());
       }
+
     private:
       const Binary::View Data;
       RangesMap Ranges;
@@ -891,17 +894,17 @@ namespace Formats::Chiptune
     }
 
     const StringView FORMAT(
-      "02-ff"      // uint8_t Tempo; 2..15
-      "01-ff"      // uint8_t Length;
-      "00-fe"      // uint8_t Loop; 0..99
-      //std::array<uint16_t, 32> SamplesOffsets;
-      "(?00-36){32}"
-      //std::array<uint16_t, 16> OrnamentsOffsets;
-      "(?00-36){16}"
-      "?00-01" // uint16_t PatternsOffset;
-      "?{30}"   // char Name[30];
-      "00-1f"  // uint8_t Positions[1]; at least one
-      "ff|00-1f" //next position or limit
+        "02-ff"  // uint8_t Tempo; 2..15
+        "01-ff"  // uint8_t Length;
+        "00-fe"  // uint8_t Loop; 0..99
+        // std::array<uint16_t, 32> SamplesOffsets;
+        "(?00-36){32}"
+        // std::array<uint16_t, 16> OrnamentsOffsets;
+        "(?00-36){16}"
+        "?00-01"    // uint16_t PatternsOffset;
+        "?{30}"     // char Name[30];
+        "00-1f"     // uint8_t Positions[1]; at least one
+        "ff|00-1f"  // next position or limit
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -909,8 +912,7 @@ namespace Formats::Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -937,6 +939,7 @@ namespace Formats::Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -968,7 +971,8 @@ namespace Formats::Chiptune
         Require(format.GetSize() >= MIN_SIZE);
         auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -982,10 +986,10 @@ namespace Formats::Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }// namespace SoundTracker
+  }  // namespace ProTracker2
 
   Decoder::Ptr CreateProTracker2Decoder()
   {
     return MakePtr<ProTracker2::Decoder>();
   }
-}// namespace Formats::Chiptune
+}  // namespace Formats::Chiptune

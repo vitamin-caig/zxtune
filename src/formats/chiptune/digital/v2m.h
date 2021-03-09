@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  V2M parser interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  V2M parser interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 #include <time/duration.h>
 
@@ -22,7 +22,7 @@ namespace Formats
   {
     namespace V2m
     {
-      //Use simplified parsing due to thirdparty library used
+      // Use simplified parsing due to thirdparty library used
       class Builder
       {
       public:
@@ -35,6 +35,6 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
-    }
-  }
-}
+    }  // namespace V2m
+  }    // namespace Chiptune
+}  // namespace Formats

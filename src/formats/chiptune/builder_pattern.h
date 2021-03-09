@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Pattern builder interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Pattern builder interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 namespace Formats
@@ -29,5 +29,5 @@ namespace Formats
     };
 
     PatternBuilder& GetStubPatternBuilder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

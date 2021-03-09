@@ -1,32 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief  DigitalMusicMaker support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DigitalMusicMaker support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/digital/digitalmusicmaker.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
 #include <map>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -35,16 +35,16 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::DigitalMusicMaker");
 
-    //const std::size_t MAX_POSITIONS_COUNT = 0x32;
-    //const std::size_t MAX_PATTERN_SIZE = 64;
+    // const std::size_t MAX_POSITIONS_COUNT = 0x32;
+    // const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t PATTERNS_COUNT = 24;
     const std::size_t CHANNELS_COUNT = 3;
-    const std::size_t SAMPLES_COUNT = 16;//15 really
+    const std::size_t SAMPLES_COUNT = 16;  // 15 really
 
     const std::size_t SAMPLES_ADDR = 0xc000;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct Pattern
     {
@@ -60,7 +60,7 @@ namespace Formats::Chiptune
         Channel Channels[CHANNELS_COUNT];
       } PACK_POST;
 
-      Line Lines[1];//at least 1
+      Line Lines[1];  // at least 1
     } PACK_POST;
 
     PACK_PRE struct SampleInfo
@@ -107,10 +107,10 @@ namespace Formats::Chiptune
       //+0x15a
       uint8_t Padding4[4];
       //+0x15e
-      //patterns starts here
+      // patterns starts here
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(MixedLine) == 4, "Invalid layout");
@@ -197,15 +197,14 @@ namespace Formats::Chiptune
       }
     };
 
-    //Do not collect samples info due to high complexity of intermediate layers
+    // Do not collect samples info due to high complexity of intermediate layers
     class StatisticCollectionBuilder : public Builder
     {
     public:
       explicit StatisticCollectionBuilder(Builder& delegate)
         : Delegate(delegate)
         , UsedPatterns(0, PATTERNS_COUNT - 1)
-      {
-      }
+      {}
 
       MetaBuilder& GetMetaBuilder() override
       {
@@ -248,6 +247,7 @@ namespace Formats::Chiptune
       {
         return UsedPatterns;
       }
+
     private:
       Builder& Delegate;
       Indices UsedPatterns;
@@ -303,9 +303,9 @@ namespace Formats::Chiptune
 
       void ParseMixins(Builder& target) const
       {
-        //disable UB with out-of-bound array access
+        // disable UB with out-of-bound array access
         const MixedLine* const mixings = Source.Mixings;
-        //big mixins amount support
+        // big mixins amount support
         const uint_t availMixingsCount = 64;
         const uint_t maxMixingsCount = (RawData.Size() - offsetof(Header, Mixings)) / sizeof(MixedLine);
         for (uint_t mixIdx = 0, mixLimit = std::min(availMixingsCount, maxMixingsCount); mixIdx < mixLimit; ++mixIdx)
@@ -319,10 +319,11 @@ namespace Formats::Chiptune
 
       void ParseSamples(Builder& target) const
       {
-        const bool is4bitSamples = true;//TODO: detect
+        const bool is4bitSamples = true;  // TODO: detect
         const std::size_t limit = RawData.Size();
         std::map<uint_t, Binary::View> regions;
-        for (std::size_t layIdx = 0, lastData = 256 * Source.HeaderSizeSectors; layIdx < Source.EndOfBanks.size(); ++layIdx)
+        for (std::size_t layIdx = 0, lastData = 256 * Source.HeaderSizeSectors; layIdx < Source.EndOfBanks.size();
+             ++layIdx)
         {
           static const uint_t BANKS[] = {0, 1, 3, 4, 6, 7};
 
@@ -341,7 +342,8 @@ namespace Formats::Chiptune
             const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
             Require(lastData + realSize <= limit);
             regions.emplace(bankNum, RawData.SubView(lastData, realSize));
-            Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize, lastData);
+            Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize,
+                lastData);
             AddRange(lastData, realSize);
             lastData += realSize;
           }
@@ -349,12 +351,13 @@ namespace Formats::Chiptune
           {
             Require(lastData + alignedBankSize <= limit);
             regions.emplace(bankNum, RawData.SubView(lastData, alignedBankSize));
-            Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, alignedBankSize, lastData);
+            Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, alignedBankSize,
+                lastData);
             AddRange(lastData, alignedBankSize);
             lastData += alignedBankSize;
           }
         }
-        
+
         for (uint_t samIdx = 1; samIdx < SAMPLES_COUNT; ++samIdx)
         {
           const SampleInfo& srcSample = Source.SampleDescriptions[samIdx - 1];
@@ -366,7 +369,8 @@ namespace Formats::Chiptune
           const std::size_t sampleStart = fromLE(srcSample.Start);
           const std::size_t sampleEnd = fromLE(srcSample.Limit);
           std::size_t sampleLoop = fromLE(srcSample.Loop);
-          Dbg("Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank), sampleStart, sampleEnd, sampleLoop);
+          Dbg("Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank),
+              sampleStart, sampleEnd, sampleLoop);
           Require(sampleStart >= SAMPLES_ADDR && sampleStart <= sampleEnd);
           if (sampleLoop < sampleStart)
           {
@@ -389,7 +393,7 @@ namespace Formats::Chiptune
           }
         }
       }
-      
+
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
@@ -399,6 +403,7 @@ namespace Formats::Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       void ParsePattern(uint_t idx, Builder& target) const
       {
@@ -498,12 +503,12 @@ namespace Formats::Chiptune
             dstChan.SetNoEffects();
             break;
           default:
-            {
-              const uint_t mixNum = srcChan.Effect - FX_MIX;
-              //according to player there can be up to 64 mixins (with enabled 4)
-              dstChan.SetMixSample(mixNum % 64);
-            }
-            break; 
+          {
+            const uint_t mixNum = srcChan.Effect - FX_MIX;
+            // according to player there can be up to 64 mixins (with enabled 4)
+            dstChan.SetMixSample(mixNum % 64);
+          }
+          break;
           }
         }
         else
@@ -547,6 +552,7 @@ namespace Formats::Chiptune
         Require(FixedRanges->AddRange(start, size));
         Require(Ranges->AddRange(start, size));
       }
+
     private:
       const Binary::View RawData;
       const Header& Source;
@@ -557,7 +563,9 @@ namespace Formats::Chiptune
     bool FastCheck(Binary::View data)
     {
       const auto* header = data.As<Header>();
-      if (!header || !(header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32 || header->PatternSize == 24))
+      if (!header
+          || !(header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32
+               || header->PatternSize == 24))
       {
         return false;
       }
@@ -565,29 +573,27 @@ namespace Formats::Chiptune
     }
 
     const StringView FORMAT(
-      //bank ends
-      "(?c0-ff){6}"
-      //pat size: 64,48,32,24
-      "%0xxxx000 ?"
-      //positions
-      "(00-17){50}"
-      //tempo (3..30)
-      "03-1e"
-      //loop position
-      "00-32 ?"
-      //length
-      "01-32"
-      //base size
-      "02-38"
-    );
+        // bank ends
+        "(?c0-ff){6}"
+        // pat size: 64,48,32,24
+        "%0xxxx000 ?"
+        // positions
+        "(00-17){50}"
+        // tempo (3..30)
+        "03-1e"
+        // loop position
+        "00-32 ?"
+        // length
+        "01-32"
+        // base size
+        "02-38");
 
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -614,6 +620,7 @@ namespace Formats::Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -641,7 +648,8 @@ namespace Formats::Chiptune
 
         auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -655,10 +663,10 @@ namespace Formats::Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace DigitalMusicMaker
+  }  // namespace DigitalMusicMaker
 
   Decoder::Ptr CreateDigitalMusicMakerDecoder()
   {
     return MakePtr<DigitalMusicMaker::Decoder>();
   }
-} //namespace Formats::Chiptune
+}  // namespace Formats::Chiptune

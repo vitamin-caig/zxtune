@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  Abyss' Highest Experience support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Abyss' Highest Experience support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -22,7 +22,7 @@ namespace Formats
   {
     namespace AbyssHighestExperience
     {
-      //Use simplified parsing due to thirdparty library used
+      // Use simplified parsing due to thirdparty library used
       class Builder
       {
       public:
@@ -42,14 +42,14 @@ namespace Formats
       };
 
       Decoder::Ptr CreateDecoder();
-      
+
       namespace HivelyTracker
       {
         Decoder::Ptr CreateDecoder();
       }
-    }
-    
+    }  // namespace AbyssHighestExperience
+
     Decoder::Ptr CreateAbyssHighestExperienceDecoder();
     Decoder::Ptr CreateHivelyTrackerDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  ID3 tags parser implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ID3 tags parser implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/music/tags_id3.h"
-//library includes
+// library includes
 #include <strings/encoding.h>
 #include <strings/trim.h>
-//std includes
+// std includes
 #include <array>
 
 namespace Formats::Chiptune
@@ -22,27 +22,27 @@ namespace Formats::Chiptune
   {
     StringView CutValid(StringView str)
     {
-      const auto end = std::find_if(str.begin(), str.end(), [](Char c) {return c < ' ' && c != '\t' && c != '\r' && c != '\n';});
+      const auto end =
+          std::find_if(str.begin(), str.end(), [](Char c) { return c < ' ' && c != '\t' && c != '\r' && c != '\n'; });
       return {str.begin(), end};
     }
-  
+
     String MakeString(StringView str)
     {
-      //do not trim before- it may break some encodings
+      // do not trim before- it may break some encodings
       auto decoded = Strings::ToAutoUtf8(str);
       auto trimmed = Strings::TrimSpaces(CutValid(decoded));
       return decoded.size() == trimmed.size() ? decoded : trimmed.to_string();
     }
 
-    //support V2.2+ only due to different tag size
+    // support V2.2+ only due to different tag size
     class V2Format
     {
     public:
       explicit V2Format(Binary::View data)
         : Stream(data)
-      {
-      }
-      
+      {}
+
       void Parse(MetaBuilder& target)
       {
         static const size_t HEADER_SIZE = 10;
@@ -60,6 +60,7 @@ namespace Formats::Chiptune
           }
         }
       }
+
     private:
       static void ParseTag(uint32_t id, Binary::View data, MetaBuilder& target)
       {
@@ -67,61 +68,62 @@ namespace Formats::Chiptune
         StringView encodedString(data.As<char>() + 1, data.Size() - 1);
         switch (id)
         {
-        case 0x54495432://'TIT2'
+        case 0x54495432:  //'TIT2'
           target.SetTitle(MakeString(encodedString));
           break;
-        case 0x54504531://'TPE1'
-        case 0x544f5045://'TOPE'
+        case 0x54504531:  //'TPE1'
+        case 0x544f5045:  //'TOPE'
           target.SetAuthor(MakeString(encodedString));
           break;
-        case 0x434f4d4d://'COMM'
-          //http://id3.org/id3v2.3.0#Comments
+        case 0x434f4d4d:  //'COMM'
+          // http://id3.org/id3v2.3.0#Comments
           encodedString = encodedString.substr(3);
           [[fallthrough]];
-        case 0x54585858://'TXXX'
+        case 0x54585858:  //'TXXX'
+        {
+          // http://id3.org/id3v2.3.0#User_defined_text_information_frame
+          const auto zeroPos = encodedString.find(0);
+          Strings::Array strings;
+          if (zeroPos != StringView::npos)
           {
-            // http://id3.org/id3v2.3.0#User_defined_text_information_frame
-            const auto zeroPos = encodedString.find(0);
-            Strings::Array strings;
-            if (zeroPos != StringView::npos)
+            const auto descr = MakeString(encodedString.substr(0, zeroPos));
+            if (!descr.empty())
             {
-              const auto descr = MakeString(encodedString.substr(0, zeroPos));
-              if (!descr.empty())
-              {
-                strings.push_back(descr);
-              }
-              const auto value = MakeString(encodedString.substr(zeroPos + 1));
-              if (!value.empty())
-              {
-                strings.push_back(value);
-              }
+              strings.push_back(descr);
             }
-            else
+            const auto value = MakeString(encodedString.substr(zeroPos + 1));
+            if (!value.empty())
             {
-              const auto val = MakeString(encodedString);
-              if (!val.empty())
-              {
-                strings.push_back(val);
-              }
-            }
-            if (!strings.empty())
-            {
-              target.SetStrings(strings);
+              strings.push_back(value);
             }
           }
-          break;
-        case 0x54535345://'TSSE'
-        case 0x54454e43://'TENC'
+          else
+          {
+            const auto val = MakeString(encodedString);
+            if (!val.empty())
+            {
+              strings.push_back(val);
+            }
+          }
+          if (!strings.empty())
+          {
+            target.SetStrings(strings);
+          }
+        }
+        break;
+        case 0x54535345:  //'TSSE'
+        case 0x54454e43:  //'TENC'
           target.SetProgram(MakeString(encodedString));
           break;
         default:
           break;
         }
       }
+
     private:
       Binary::DataInputStream Stream;
     };
-    
+
     using TagString = std::array<char, 30>;
 
     struct Tag
@@ -134,11 +136,11 @@ namespace Formats::Chiptune
       TagString Comment;
       uint8_t Genre;
     };
-    
+
     static_assert(sizeof(Tag) == 128, "Invalid layout");
-    
+
     using EnhancedTagString = std::array<char, 60>;
-    
+
     struct EnhancedTag
     {
       char Signature[3];
@@ -151,7 +153,7 @@ namespace Formats::Chiptune
       uint8_t Start[6];
       uint8_t End[6];
     };
-    
+
     static_assert(sizeof(EnhancedTag) == 227, "Invalid layout");
 
     String MakeCompositeString(const EnhancedTagString& part1, const TagString& part2)
@@ -160,8 +162,8 @@ namespace Formats::Chiptune
       std::copy(part2.begin(), part2.end(), std::copy(part1.begin(), part1.end(), buf.begin()));
       return MakeString(buf);
     }
-    
-    //https://en.wikipedia.org/wiki/ID3#ID3v1_and_ID3v1.1
+
+    // https://en.wikipedia.org/wiki/ID3#ID3v1_and_ID3v1.1
     bool ParseV1(Binary::DataInputStream& stream, MetaBuilder& target)
     {
       try
@@ -184,20 +186,19 @@ namespace Formats::Chiptune
           target.SetTitle(MakeString(tag->Title));
           target.SetAuthor(MakeString(tag->Artist));
         }
-        //TODO: add MetaBuilder::SetComment field
+        // TODO: add MetaBuilder::SetComment field
         {
           const auto comment = StringView(tag->Comment);
-          const auto hasTrackNum = comment[28] == 0 || comment[28] == 0xff;//standard violation
+          const auto hasTrackNum = comment[28] == 0 || comment[28] == 0xff;  // standard violation
           target.SetStrings({MakeString(hasTrackNum ? comment.substr(0, 28) : comment)});
         }
         return true;
       }
       catch (const std::exception&)
-      {
-      }
+      {}
       return false;
     }
-    
+
     struct Header
     {
       char Signature[3];
@@ -206,13 +207,14 @@ namespace Formats::Chiptune
       uint8_t Flags;
       uint8_t Size[4];
     };
-    
+
     static_assert(sizeof(Header) == 10, "Invalid layout");
-    
+
     bool ParseV2(Binary::DataInputStream& stream, MetaBuilder& target)
     {
       const auto& header = stream.ReadField<Header>();
-      const uint_t tagSize = ((header.Size[0] & 0x7f) << 21) | ((header.Size[1] & 0x7f) << 14) | ((header.Size[2] & 0x7f) << 7) | (header.Size[3] & 0x7f);
+      const uint_t tagSize = ((header.Size[0] & 0x7f) << 21) | ((header.Size[1] & 0x7f) << 14)
+                             | ((header.Size[2] & 0x7f) << 7) | (header.Size[3] & 0x7f);
       const auto content = stream.ReadData(tagSize);
       const bool hasExtendedHeader = header.Flags & 0x40;
       try
@@ -223,11 +225,10 @@ namespace Formats::Chiptune
         }
       }
       catch (const std::exception&)
-      {
-      }
+      {}
       return true;
     }
-    
+
     bool Parse(Binary::DataInputStream& stream, MetaBuilder& target)
     {
       static const std::size_t SIGNATURE_SIZE = 3;
@@ -251,5 +252,5 @@ namespace Formats::Chiptune
         return false;
       }
     }
-  } //namespace Id3
-}
+  }  // namespace Id3
+}  // namespace Formats::Chiptune

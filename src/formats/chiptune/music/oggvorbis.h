@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  OGG vorbis parser interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  OGG vorbis parser interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -21,14 +21,14 @@ namespace Formats
   {
     namespace OggVorbis
     {
-      //Use simplified parsing due to thirdparty library used
+      // Use simplified parsing due to thirdparty library used
       class Builder
       {
       public:
         virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
-        
+
         virtual void SetStreamId(uint32_t id) = 0;
         virtual void SetProperties(uint_t channels, uint_t frequency, uint_t blockSizeLo, uint_t blockSizeHi) = 0;
         // Full setup block, including header
@@ -43,13 +43,13 @@ namespace Formats
       {
       public:
         using Ptr = std::shared_ptr<DumpBuilder>;
-        
+
         virtual Binary::Container::Ptr GetDump() = 0;
       };
 
       DumpBuilder::Ptr CreateDumpBuilder(std::size_t sizeHint);
-    }
+    }  // namespace OggVorbis
 
     Decoder::Ptr CreateOGGDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

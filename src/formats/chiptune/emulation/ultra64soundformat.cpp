@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  USF parser implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  USF parser implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/emulation/ultra64soundformat.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -26,15 +26,14 @@ namespace Formats::Chiptune
     typedef std::array<uint8_t, 4> SignatureType;
     const SignatureType EMPTY_SIGNATURE = {{0, 0, 0, 0}};
     const SignatureType SR64_SIGNATURE = {{'S', 'R', '6', '4'}};
-    
+
     class SectionFormat
     {
     public:
       explicit SectionFormat(const Binary::View& data)
         : Stream(data)
-      {
-      }
-      
+      {}
+
       bool HasSection()
       {
         const auto& sign = Stream.ReadField<SignatureType>();
@@ -52,7 +51,7 @@ namespace Formats::Chiptune
           return false;
         }
       }
-      
+
       void ParseROM(Builder& target)
       {
         while (const auto size = Stream.ReadLE<uint32_t>())
@@ -61,7 +60,7 @@ namespace Formats::Chiptune
           target.SetRom(offset, Stream.ReadData(size));
         }
       }
-      
+
       void ParseSavestate(Builder& target)
       {
         while (const auto size = Stream.ReadLE<uint32_t>())
@@ -79,10 +78,11 @@ namespace Formats::Chiptune
         target.SetRom(0, *romHeader);
         */
       }
+
     private:
       Binary::DataInputStream Stream;
     };
-    
+
     void ParseSection(Binary::View data, Builder& target)
     {
       SectionFormat format(data);
@@ -95,19 +95,17 @@ namespace Formats::Chiptune
         format.ParseSavestate(target);
       }
     }
-    
+
     const StringView FORMAT(
-      "'P'S'F"
-      "21"
-    );
-    
+        "'P'S'F"
+        "21");
+
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -126,15 +124,16 @@ namespace Formats::Chiptune
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
       {
-        return Formats::Chiptune::Container::Ptr();//TODO
+        return Formats::Chiptune::Container::Ptr();  // TODO
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
-  }
+  }  // namespace Ultra64SoundFormat
 
   Decoder::Ptr CreateUSFDecoder()
   {
     return MakePtr<Ultra64SoundFormat::Decoder>();
   }
-}
+}  // namespace Formats::Chiptune

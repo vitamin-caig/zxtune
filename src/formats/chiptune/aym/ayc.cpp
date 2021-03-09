@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  AYC support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AYC support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/ayc.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -29,21 +29,21 @@ namespace Formats::Chiptune
   namespace AYC
   {
     const std::size_t MAX_REGISTERS = 14;
-  
+
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct BufferDescription
     {
       uint8_t SizeHi;
       uint16_t Offset;
-      
+
       std::size_t GetAbsoluteOffset(uint_t idx) const
       {
         return fromLE(Offset) + idx * sizeof(*this) + 4;
       }
     } PACK_POST;
-    
+
     PACK_PRE struct Header
     {
       uint16_t Duration;
@@ -51,12 +51,12 @@ namespace Formats::Chiptune
       uint8_t Reserved[6];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(BufferDescription) == 3, "Invalid layout");
     static_assert(sizeof(Header) == 50, "Invalid layout");
-    
+
     const std::size_t MIN_SIZE = sizeof(Header) + 14;
 
     class StubBuilder : public Builder
@@ -93,19 +93,17 @@ namespace Formats::Chiptune
     }
 
     const StringView FORMAT(
-      "?00-75"             //10 min approx
-      "01|04 2e00"         //assume first chunk is right after header
-      "(01|04 ?00-80){13}" //no more than 32k
-      "ff{6}"
-    );
+        "?00-75"              // 10 min approx
+        "01|04 2e00"          // assume first chunk is right after header
+        "(01|04 ?00-80){13}"  // no more than 32k
+        "ff{6}");
 
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -127,10 +125,11 @@ namespace Formats::Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
-    
+
     class Stream
     {
     public:
@@ -138,54 +137,52 @@ namespace Formats::Chiptune
         : SizeHi(sizeHi)
         , Cursor(begin)
         , Limit(end)
-      {
-      }
-      
+      {}
+
       uint_t GetBufferSize() const
       {
         return SizeHi << 8;
       }
-      
+
       uint8_t ReadByte()
       {
         Require(Cursor < Limit);
         return *Cursor++;
       }
-      
+
       uint_t ReadCounter()
       {
         const uint8_t val = -ReadByte();
         return val ? val : 256;
       }
-      
+
       std::size_t ReadBackRef()
       {
         const std::size_t lo = ReadByte();
-        return SizeHi == 1
-          ? lo
-          : lo | 256 * ReadByte();
+        return SizeHi == 1 ? lo : lo | 256 * ReadByte();
       }
-      
+
       const uint8_t* GetCursor() const
       {
         return Cursor;
       }
+
     private:
       const uint_t SizeHi;
       const uint8_t* Cursor;
       const uint8_t* const Limit;
     };
-    
+
     void ParseBuffer(uint_t count, Stream& source, Builder& target)
     {
       const std::size_t bufSize = source.GetBufferSize();
       Dump buf(bufSize);
       std::size_t cursor = 0;
       uint_t flag = 0x40;
-      //dX_flag
+      // dX_flag
       while (count)
       {
-        //dX_next
+        // dX_next
         flag <<= 1;
         if ((flag & 0xff) == 0)
         {
@@ -215,7 +212,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          //dX_chr
+          // dX_chr
           --count;
           buf[cursor++] = source.ReadByte();
           if (cursor >= bufSize)
@@ -275,10 +272,10 @@ namespace Formats::Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace AYC
+  }  // namespace AYC
 
   Decoder::Ptr CreateAYCDecoder()
   {
     return MakePtr<AYC::Decoder>();
   }
-}//namespace Formats::Chiptune
+}  // namespace Formats::Chiptune

@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  SoundTrackerPro format details
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SoundTrackerPro format details
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/soundtrackerpro.h"
-//common includes
+// common includes
 #include <indices.h>
-//std includes
+// std includes
 #include <cassert>
 
 namespace Formats
@@ -146,12 +146,13 @@ namespace Formats
         {
           return UsedOrnaments;
         }
+
       private:
         Builder& Delegate;
         Indices UsedPatterns;
         Indices UsedSamples;
         Indices UsedOrnaments;
       };
-    }
-  }
-}
+    }  // namespace SoundTrackerPro
+  }    // namespace Chiptune
+}  // namespace Formats

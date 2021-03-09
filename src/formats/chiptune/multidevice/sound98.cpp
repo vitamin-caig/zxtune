@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  S98 support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  S98 support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/multidevice/sound98.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -43,26 +43,25 @@ namespace Formats::Chiptune
 
       void SetTimings(Time::Milliseconds /*total*/, Time::Milliseconds /*loop*/) override {}
     };
-    
+
     const std::size_t MIN_SIZE = 256;
 
     const StringView FORMAT =
-        "'S'9'8" //signature
-        "'0-'3"  //version
-        "???00"  //mult
-        "???00"  //div
-        "00000000" //not compressed
-        "???00"  //offset to tag
-        "??0000" //offset to data
-     ;
+        "'S'9'8"    // signature
+        "'0-'3"     // version
+        "???00"     // mult
+        "???00"     // div
+        "00000000"  // not compressed
+        "???00"     // offset to tag
+        "??0000"    // offset to data
+        ;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -90,6 +89,7 @@ namespace Formats::Chiptune
           return {};
         }
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -112,7 +112,7 @@ namespace Formats::Chiptune
         }
         return res;
       }
-    }
+    }  // namespace Tags
 
     enum Areas
     {
@@ -129,8 +129,7 @@ namespace Formats::Chiptune
     public:
       explicit Format(const Binary::Container& data)
         : Stream(data)
-      {
-      }
+      {}
 
       Formats::Chiptune::Container::Ptr Parse(Builder& target)
       {
@@ -162,6 +161,7 @@ namespace Formats::Chiptune
 
         return CreateContainer(areas);
       }
+
     private:
       bool ParseTags(const AreaController& areas, uint_t sign, MetaBuilder& target)
       {
@@ -221,7 +221,7 @@ namespace Formats::Chiptune
           String value;
           if (!ReadTagVariable(str, name, value))
           {
-            //blank lines or invalid form
+            // blank lines or invalid form
             continue;
           }
           else if (name == Tags::TITLE)
@@ -266,7 +266,7 @@ namespace Formats::Chiptune
         Stream.Seek(areas.GetAreaAddress(DATA));
         uint64_t totalTicks = 0;
         uint64_t loopTicks = 0;
-        for (bool finished = false; !finished && Stream.GetRestSize(); )
+        for (bool finished = false; !finished && Stream.GetRestSize();)
         {
           if (Stream.GetPosition() == loopOffset)
           {
@@ -292,14 +292,15 @@ namespace Formats::Chiptune
         {
           return false;
         }
-        target.SetTimings(Time::Milliseconds::FromRatio(totalTicks * mult, div), Time::Milliseconds::FromRatio(loopTicks * mult, div));
+        target.SetTimings(Time::Milliseconds::FromRatio(totalTicks * mult, div),
+                          Time::Milliseconds::FromRatio(loopTicks * mult, div));
         return true;
       }
 
       uint_t ReadVarInt()
       {
         uint_t res = 0;
-        for (uint_t shift = 0; ; shift += 7)
+        for (uint_t shift = 0;; shift += 7)
         {
           const auto val = Stream.ReadByte();
           res |= uint_t(val & 0x7f) << shift;
@@ -318,12 +319,14 @@ namespace Formats::Chiptune
         Require(dataSize != 0);
 
         const auto tagsEnd = areas.GetAreaAddress(TAG_END);
-        const auto fileEnd = tagsEnd != AreaController::Undefined ? std::max(tagsEnd, dataOffset + dataSize) : dataOffset + dataSize;
+        const auto fileEnd = tagsEnd != AreaController::Undefined ? std::max(tagsEnd, dataOffset + dataSize)
+                                                                  : dataOffset + dataSize;
 
         Stream.Seek(fileEnd);
         auto data = Stream.GetReadContainer();
         return CreateCalculatingCrcContainer(std::move(data), dataOffset, dataSize);
       }
+
     private:
       Binary::InputStream Stream;
     };
@@ -345,10 +348,10 @@ namespace Formats::Chiptune
       static StubBuilder stub;
       return stub;
     }
-  } //namespace Sound98
+  }  // namespace Sound98
 
   Decoder::Ptr CreateSound98Decoder()
   {
     return MakePtr<Sound98::Decoder>();
   }
-}
+}  // namespace Formats::Chiptune

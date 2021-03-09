@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  FastTracker support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FastTracker support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -26,15 +26,21 @@ namespace Formats
       struct SampleLine
       {
         SampleLine()
-          : Level(), VolSlide()
-          , Noise(), AccumulateNoise(), NoiseMask(true)
-          , Tone(), AccumulateTone(), ToneMask(true)
-          , EnvelopeAddon(), AccumulateEnvelope(), EnableEnvelope()
-        {
-        }
+          : Level()
+          , VolSlide()
+          , Noise()
+          , AccumulateNoise()
+          , NoiseMask(true)
+          , Tone()
+          , AccumulateTone()
+          , ToneMask(true)
+          , EnvelopeAddon()
+          , AccumulateEnvelope()
+          , EnableEnvelope()
+        {}
 
-        uint_t Level;//0-15
-        int_t VolSlide;//0/+1/-1
+        uint_t Level;    // 0-15
+        int_t VolSlide;  // 0/+1/-1
         uint_t Noise;
         bool AccumulateNoise;
         bool NoiseMask;
@@ -45,29 +51,32 @@ namespace Formats
         bool AccumulateEnvelope;
         bool EnableEnvelope;
       };
-      
+
       typedef LinesObject<SampleLine> Sample;
 
       struct OrnamentLine
       {
         OrnamentLine()
-          : NoteAddon(), KeepNoteAddon(), NoiseAddon(), KeepNoiseAddon()
-        {
-        }
+          : NoteAddon()
+          , KeepNoteAddon()
+          , NoiseAddon()
+          , KeepNoiseAddon()
+        {}
 
         int_t NoteAddon;
         bool KeepNoteAddon;
         int_t NoiseAddon;
         bool KeepNoiseAddon;
       };
-      
+
       typedef LinesObject<OrnamentLine> Ornament;
 
       struct PositionEntry
       {
-        PositionEntry() : PatternIndex(), Transposition()
-        {
-        }
+        PositionEntry()
+          : PatternIndex()
+          , Transposition()
+        {}
 
         uint_t PatternIndex;
         int_t Transposition;
@@ -81,20 +90,20 @@ namespace Formats
         SOUNDTRACKER,
         FASTTRACKER
       };
-      
+
       class Builder
       {
       public:
         virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
-        //common properties
+        // common properties
         virtual void SetNoteTable(NoteTable table) = 0;
         virtual void SetInitialTempo(uint_t tempo) = 0;
-        //samples+ornaments
+        // samples+ornaments
         virtual void SetSample(uint_t index, Sample sample) = 0;
         virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
-        //patterns
+        // patterns
         virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
@@ -106,7 +115,7 @@ namespace Formats
         virtual void SetSample(uint_t sample) = 0;
         virtual void SetOrnament(uint_t ornament) = 0;
         virtual void SetVolume(uint_t vol) = 0;
-        //cmds
+        // cmds
         virtual void SetEnvelope(uint_t type, uint_t tone) = 0;
         virtual void SetNoEnvelope() = 0;
         virtual void SetNoise(uint_t val) = 0;
@@ -116,8 +125,8 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
-    }
+    }  // namespace FastTracker
 
     Decoder::Ptr CreateFastTrackerDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

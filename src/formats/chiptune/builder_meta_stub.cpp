@@ -1,14 +1,14 @@
 /**
-* 
-* @file
-*
-* @brief  Metadata builder stub implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Metadata builder stub implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
 
 namespace Formats
@@ -29,5 +29,5 @@ namespace Formats
       static StubMetaBuilder instance;
       return instance;
     }
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

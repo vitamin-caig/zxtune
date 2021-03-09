@@ -1,32 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief  SoundTrackerPro compiled modules support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SoundTrackerPro compiled modules support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/soundtrackerpro_detail.h"
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/metainfo.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <iterator.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -37,7 +37,7 @@ namespace Formats::Chiptune
 
     using namespace SoundTrackerPro;
 
-    //size and offsets are taken from ~3400 modules analyzing
+    // size and offsets are taken from ~3400 modules analyzing
     const std::size_t MIN_SIZE = 200;
     const std::size_t MAX_SIZE = 0x2800;
 
@@ -57,7 +57,7 @@ namespace Formats::Chiptune
     */
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -69,11 +69,8 @@ namespace Formats::Chiptune
       uint8_t FixesCount;
     } PACK_POST;
 
-    const uint8_t ID[] =
-    {
-      'K', 'S', 'A', ' ', 'S', 'O', 'F', 'T', 'W', 'A', 'R', 'E', ' ',
-      'C', 'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '
-    };
+    const uint8_t ID[] = {'K', 'S', 'A', ' ', 'S', 'O', 'F', 'T', 'W', 'A', 'R', 'E', ' ', 'C',
+                          'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '};
 
     PACK_PRE struct RawId
     {
@@ -92,7 +89,7 @@ namespace Formats::Chiptune
       uint8_t Loop;
       PACK_PRE struct PosEntry
       {
-        uint8_t PatternOffset;//*6
+        uint8_t PatternOffset;  //*6
         int8_t Transposition;
       } PACK_POST;
       PosEntry Data[1];
@@ -110,16 +107,12 @@ namespace Formats::Chiptune
 
       uint_t GetSize() const
       {
-        return Size < 0
-          ? 0
-          : Size;
+        return Size < 0 ? 0 : Size;
       }
-      
+
       uint_t GetLoop() const
       {
-        return Loop < 0
-          ? GetSize()
-          : Loop;
+        return Loop < 0 ? GetSize() : Loop;
       }
     } PACK_POST;
 
@@ -214,7 +207,7 @@ namespace Formats::Chiptune
       std::array<uint16_t, MAX_SAMPLES_COUNT> Offsets;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 10, "Invalid layout");
@@ -254,7 +247,7 @@ namespace Formats::Chiptune
 
     uint_t GetUnfixDelta(const RawHeader& hdr, const RawId& id, const RawPattern& firstPattern)
     {
-      //first pattern is always placed after the header (and optional id);
+      // first pattern is always placed after the header (and optional id);
       const std::size_t hdrSize = sizeof(hdr) + (id.Check() ? sizeof(id) : 0);
       const std::size_t firstData = fromLE(firstPattern.Offsets[0]);
       if (0 != hdr.FixesCount)
@@ -280,8 +273,7 @@ namespace Formats::Chiptune
         : ServiceRanges(RangeChecker::CreateShared(limit))
         , TotalRanges(RangeChecker::CreateSimple(limit))
         , FixedRanges(RangeChecker::CreateSimple(limit))
-      {
-      }
+      {}
 
       void AddService(std::size_t offset, std::size_t size) const
       {
@@ -310,6 +302,7 @@ namespace Formats::Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       const RangeChecker::Ptr ServiceRanges;
       const RangeChecker::Ptr TotalRanges;
@@ -392,7 +385,7 @@ namespace Formats::Chiptune
           const RawSample& src = GetSample(samIdx);
           builder.SetSample(samIdx, ParseSample(src));
         }
-        //mark possible samples offsets as used
+        // mark possible samples offsets as used
         const std::size_t samplesOffsets = fromLE(Source.SamplesOffset);
         Ranges.Add(samplesOffsets, std::min(sizeof(RawSamples), Data.Size() - samplesOffsets));
       }
@@ -420,6 +413,7 @@ namespace Formats::Chiptune
       {
         return Ranges.GetFixedArea();
       }
+
     private:
       RangeIterator<const RawPositions::PosEntry*> GetPositions() const
       {
@@ -516,14 +510,12 @@ namespace Formats::Chiptune
             : Offset()
             , Period()
             , Counter()
-          {
-          }
+          {}
 
           void Skip(uint_t toSkip)
           {
             Counter -= toSkip;
           }
-
 
           static bool CompareByCounter(const ChannelState& lh, const ChannelState& rh)
           {
@@ -565,7 +557,7 @@ namespace Formats::Chiptune
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
-          //skip lines if required
+          // skip lines if required
           if (const uint_t linesToSkip = state.GetMinCounter())
           {
             state.SkipLines(linesToSkip);
@@ -641,26 +633,26 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          else if (cmd <= 0x60)//note
+          else if (cmd <= 0x60)  // note
           {
             builder.SetNote(cmd - 1);
             break;
           }
-          else if (cmd <= 0x6f)//sample
+          else if (cmd <= 0x6f)  // sample
           {
             builder.SetSample(cmd - 0x61);
           }
-          else if (cmd <= 0x7f)//ornament
+          else if (cmd <= 0x7f)  // ornament
           {
             builder.SetOrnament(cmd - 0x70);
             builder.SetNoEnvelope();
             builder.SetGliss(0);
           }
-          else if (cmd <= 0xbf) //skip
+          else if (cmd <= 0xbf)  // skip
           {
             state.Period = cmd - 0x80;
           }
-          else if (cmd <= 0xcf) //envelope
+          else if (cmd <= 0xcf)  // envelope
           {
             if (cmd != 0xc0)
             {
@@ -673,20 +665,20 @@ namespace Formats::Chiptune
             builder.SetOrnament(0);
             builder.SetGliss(0);
           }
-          else if (cmd <= 0xdf) //reset
+          else if (cmd <= 0xdf)  // reset
           {
             builder.SetRest();
             break;
           }
-          else if (cmd <= 0xef)//empty
+          else if (cmd <= 0xef)  // empty
           {
             break;
           }
-          else if (cmd == 0xf0)//glissade
+          else if (cmd == 0xf0)  // glissade
           {
             builder.SetGliss(static_cast<int8_t>(PeekByte(state.Offset++)));
           }
-          else //volume
+          else  // volume
           {
             builder.SetVolume(cmd - 0xf1);
           }
@@ -725,6 +717,7 @@ namespace Formats::Chiptune
         dst.Loop = std::min(src.GetLoop(), size);
         return dst;
       }
+
     private:
       const Binary::View Data;
       RangesMap Ranges;
@@ -784,10 +777,10 @@ namespace Formats::Chiptune
         const std::size_t requiredSize = sizeof(RawPositions) + (positions - 1) * sizeof(RawPositions::PosEntry);
         if (requiredSize > size)
         {
-          //no place
+          // no place
           return false;
         }
-        //check for possible invalid length in header- real positions should fit place
+        // check for possible invalid length in header- real positions should fit place
         return 0 == (size - requiredSize) % sizeof(RawPositions::PosEntry);
       }
 
@@ -798,7 +791,7 @@ namespace Formats::Chiptune
         {
           return false;
         }
-        //samples offsets should be the last region
+        // samples offsets should be the last region
         return IsLast(SAMPLES);
       }
 
@@ -812,6 +805,7 @@ namespace Formats::Chiptune
         const std::size_t requiredSize = sizeof(RawOrnaments);
         return requiredSize == size;
       }
+
     private:
       bool IsLast(AreaTypes area) const
       {
@@ -826,15 +820,14 @@ namespace Formats::Chiptune
     {
       return rawData.SubView(0, MAX_SIZE);
     }
-    
+
     bool CheckHeader(const RawHeader& hdr)
     {
       return Math::InRange<uint_t>(hdr.Tempo, 3, 15)
-          && Math::InRange<uint_t>(fromLE(hdr.PositionsOffset), sizeof(hdr), 0x2600)
-          && Math::InRange<uint_t>(fromLE(hdr.PatternsOffset), sizeof(hdr), 0x2700)
-          && Math::InRange<uint_t>(fromLE(hdr.OrnamentsOffset), sizeof(hdr), 0x2700)
-          && Math::InRange<uint_t>(fromLE(hdr.SamplesOffset), sizeof(hdr), 0x2700)
-      ;
+             && Math::InRange<uint_t>(fromLE(hdr.PositionsOffset), sizeof(hdr), 0x2600)
+             && Math::InRange<uint_t>(fromLE(hdr.PatternsOffset), sizeof(hdr), 0x2700)
+             && Math::InRange<uint_t>(fromLE(hdr.OrnamentsOffset), sizeof(hdr), 0x2700)
+             && Math::InRange<uint_t>(fromLE(hdr.SamplesOffset), sizeof(hdr), 0x2700);
     }
 
     bool Check(Binary::View data)
@@ -876,11 +869,11 @@ namespace Formats::Chiptune
     }
 
     const StringView FORMAT(
-      "03-0f"  // uint8_t Tempo; 3..15
-      "?00-26" // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
-      "?00-27" // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
-      "?00-27" // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
-      "?00-27" // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
+        "03-0f"   // uint8_t Tempo; 3..15
+        "?00-26"  // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
+        "?00-27"  // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
+        "?00-27"  // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
+        "?00-27"  // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
     );
 
     class Decoder : public Formats::Chiptune::SoundTrackerPro::Decoder
@@ -888,8 +881,7 @@ namespace Formats::Chiptune
     public:
       Decoder()
         : Header(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -916,10 +908,11 @@ namespace Formats::Chiptune
       {
         return ParseCompiled(rawData, target);
       }
+
     private:
       const Binary::Format::Ptr Header;
     };
-  }//SoundTrackerProCompiled
+  }  // namespace SoundTrackerProCompiled
 
   namespace SoundTrackerPro
   {
@@ -962,7 +955,8 @@ namespace Formats::Chiptune
         Require(format.GetSize() >= MIN_SIZE);
         auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -997,7 +991,7 @@ namespace Formats::Chiptune
           patch->FixLEWord(offsetof(RawHeader, SamplesOffset), delta);
           const std::size_t patternsStart = fromLE(header.PatternsOffset);
           Indices usedPatterns = statistic.GetUsedPatterns();
-          //first pattern is used to detect fixdelta
+          // first pattern is used to detect fixdelta
           usedPatterns.Insert(0);
           for (Indices::Iterator it = usedPatterns.Items(); it; ++it)
           {
@@ -1025,10 +1019,10 @@ namespace Formats::Chiptune
       }
       return {};
     }
-  }// namespace SoundTrackerPro
+  }  // namespace SoundTrackerPro
 
   Formats::Chiptune::Decoder::Ptr CreateSoundTrackerProCompiledDecoder()
   {
     return SoundTrackerPro::CreateCompiledModulesDecoder();
   }
-}// namespace Formats::Chiptune
+}  // namespace Formats::Chiptune

@@ -1,23 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief  TurboSound container support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TurboSound container support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/turbosound.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <math/numeric.h>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
@@ -29,28 +29,28 @@ namespace Formats::Chiptune
     const std::size_t MAX_SIZE = MAX_MODULE_SIZE * 2;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct Footer
     {
-      uint8_t ID1[4];//'PT3!' or other type
+      uint8_t ID1[4];  //'PT3!' or other type
       uint16_t Size1;
-      uint8_t ID2[4];//same
+      uint8_t ID2[4];  // same
       uint16_t Size2;
-      uint8_t ID3[4];//'02TS'
+      uint8_t ID3[4];  //'02TS'
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(Footer) == 16, "Invalid layout");
 
     const StringView FOOTER_FORMAT(
-      "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
-      "?%0xxxxxxx"                     // uint16_t Size1;
-      "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
-      "?%0xxxxxxx"                     // uint16_t Size2;
-      "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
+        "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
+        "?%0xxxxxxx"                     // uint16_t Size1;
+        "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
+        "?%0xxxxxxx"                     // uint16_t Size2;
+        "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
     );
 
     class StubBuilder : public Builder
@@ -68,12 +68,12 @@ namespace Formats::Chiptune
         , Foot(data.SubView(footerOffset).As<Footer>())
         , FirstSize(Foot ? fromLE(Foot->Size1) : 0)
         , SecondSize(Foot ? fromLE(Foot->Size2) : 0)
-      {
-      }
+      {}
 
       bool Matched() const
       {
-        return Foot != nullptr && FooterOffset == FirstSize + SecondSize && Math::InRange(FooterOffset, MIN_SIZE, MAX_SIZE);
+        return Foot != nullptr && FooterOffset == FirstSize + SecondSize
+               && Math::InRange(FooterOffset, MIN_SIZE, MAX_SIZE);
       }
 
       std::size_t NextOffset() const
@@ -107,6 +107,7 @@ namespace Formats::Chiptune
       {
         return FooterOffset + sizeof(*Foot);
       }
+
     private:
       const std::size_t FooterOffset;
       const Footer* const Foot;
@@ -121,8 +122,7 @@ namespace Formats::Chiptune
 
       FooterFormat()
         : Delegate(Binary::CreateFormat(FOOTER_FORMAT))
-      {
-      }
+      {}
 
       bool Match(Binary::View data) const override
       {
@@ -140,6 +140,7 @@ namespace Formats::Chiptune
       {
         return ModuleTraits(data, Delegate->NextMatchOffset(data));
       }
+
     private:
       const Binary::Format::Ptr Delegate;
     };
@@ -149,8 +150,7 @@ namespace Formats::Chiptune
     public:
       DecoderImpl()
         : Format(MakePtr<FooterFormat>())
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -187,9 +187,10 @@ namespace Formats::Chiptune
 
         const std::size_t usedSize = traits.GetTotalSize();
         auto subData = rawData.GetSubcontainer(0, usedSize);
-        //use whole container as a fixed data
+        // use whole container as a fixed data
         return CreateCalculatingCrcContainer(std::move(subData), 0, usedSize);
       }
+
     private:
       const FooterFormat::Ptr Format;
     };
@@ -204,10 +205,10 @@ namespace Formats::Chiptune
     {
       return MakePtr<DecoderImpl>();
     }
-  }//namespace TurboSound
+  }  // namespace TurboSound
 
   Decoder::Ptr CreateTurboSoundDecoder()
   {
     return TurboSound::CreateDecoder();
   }
-}//namespace Formats::Chiptune
+}  // namespace Formats::Chiptune
