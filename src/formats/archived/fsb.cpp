@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief  FSB images support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FSB images support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/fsb_formats.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <binary/format_factories.h>
-#include <formats/archived.h>
 #include <debug/log.h>
-//text include
+#include <formats/archived.h>
+// text include
 #include <formats/text/archived.h>
 
 namespace Formats::Archived
@@ -28,9 +28,9 @@ namespace Formats::Archived
     const Debug::Stream Dbg("Formats::Archived::FSB");
 
     const StringView FORMAT(
-      "'F'S'B'5"
-      "?{20}"
-      "01-05|07|0b|0d|0f 000000" //pcm+imaadpcm+mpeg+at9+vorbis
+        "'F'S'B'5"
+        "?{20}"
+        "01-05|07|0b|0d|0f 000000"  // pcm+imaadpcm+mpeg+at9+vorbis
     );
 
     class File : public Archived::File
@@ -39,8 +39,7 @@ namespace Formats::Archived
       File(String name, Binary::Container::Ptr data)
         : Name(std::move(name))
         , Data(std::move(data))
-      {
-      }
+      {}
 
       String GetName() const override
       {
@@ -56,6 +55,7 @@ namespace Formats::Archived
       {
         return Data;
       }
+
     private:
       const String Name;
       const Binary::Container::Ptr Data;
@@ -69,8 +69,7 @@ namespace Formats::Archived
       Container(Binary::Container::Ptr delegate, NamedDataMap files)
         : BaseContainer(std::move(delegate))
         , Files(std::move(files))
-      {
-      }
+      {}
 
       void ExploreFiles(const Container::Walker& walker) const override
       {
@@ -84,22 +83,21 @@ namespace Formats::Archived
       File::Ptr FindFile(const String& name) const override
       {
         const auto it = Files.find(name);
-        return it != Files.end()
-          ? MakePtr<File>(it->first, it->second)
-          : File::Ptr();
+        return it != Files.end() ? MakePtr<File>(it->first, it->second) : File::Ptr();
       }
 
       uint_t CountFiles() const override
       {
         return static_cast<uint_t>(Files.size());
       }
+
     private:
       NamedDataMap Files;
     };
-    
-    //header+single sample header + 1 byte of data
+
+    // header+single sample header + 1 byte of data
     const std::size_t MIN_SIZE = 60 + 8 + 1;
-    
+
     class DispatchedBuilder : public FormatBuilder
     {
     public:
@@ -130,46 +128,47 @@ namespace Formats::Archived
         }
         Delegate->Setup(samplesCount, format);
       }
-      
+
       void StartSample(uint_t idx) override
       {
         Delegate->StartSample(idx);
       }
-      
+
       void SetFrequency(uint_t frequency) override
       {
         Delegate->SetFrequency(frequency);
       }
-      
+
       void SetChannels(uint_t channels) override
       {
         Delegate->SetChannels(channels);
       }
-      
+
       void SetName(String name) override
       {
         Delegate->SetName(std::move(name));
       }
-      
+
       void AddMetaChunk(uint_t type, Binary::View chunk) override
       {
         Delegate->AddMetaChunk(type, chunk);
       }
-      
+
       void SetData(uint_t samplesCount, Binary::Container::Ptr blob) override
       {
         Delegate->SetData(samplesCount, std::move(blob));
       }
-      
+
       NamedDataMap CaptureResult() override
       {
         return Delegate->CaptureResult();
       }
+
     private:
       Ptr Delegate;
     };
 
-    //fill descriptors array and return actual container size
+    // fill descriptors array and return actual container size
     Container::Ptr ParseArchive(const Binary::Container& data)
     {
       DispatchedBuilder builder;
@@ -183,15 +182,14 @@ namespace Formats::Archived
       }
       return Container::Ptr();
     }
-  }//namespace FSB
+  }  // namespace FSB
 
   class FSBDecoder : public Decoder
   {
   public:
     FSBDecoder()
       : Format(Binary::CreateFormat(FSB::FORMAT, FSB::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -214,6 +212,7 @@ namespace Formats::Archived
         return Container::Ptr();
       }
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -222,4 +221,4 @@ namespace Formats::Archived
   {
     return MakePtr<FSBDecoder>();
   }
-}//namespace Formats::Archived
+}  // namespace Formats::Archived

@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  SCL images support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SCL images support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
-//common includes
+// common includes
 #include <byteorder.h>
-#include <pointers.h>
 #include <make_ptr.h>
-//library includes
+#include <pointers.h>
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
-//std includes
+// std includes
 #include <cstring>
 #include <numeric>
-//text include
+// text include
 #include <formats/text/archived.h>
 
 namespace Formats::Archived
@@ -31,15 +31,14 @@ namespace Formats::Archived
     const Debug::Stream Dbg("Formats::Archived::SCL");
 
     const StringView FORMAT(
-      "'S'I'N'C'L'A'I'R"
-      "01-ff"
-    );
+        "'S'I'N'C'L'A'I'R"
+        "01-ff");
 
     const std::size_t BYTES_PER_SECTOR = 256;
 
-  #ifdef USE_PRAGMA_PACK
-  #pragma pack(push,1)
-  #endif
+#ifdef USE_PRAGMA_PACK
+#  pragma pack(push, 1)
+#endif
     PACK_PRE struct Entry
     {
       char Name[8];
@@ -49,24 +48,24 @@ namespace Formats::Archived
 
       uint_t Size() const
       {
-        //use rounded file size for better compatibility
+        // use rounded file size for better compatibility
         return BYTES_PER_SECTOR * SizeInSectors;
       }
     } PACK_POST;
 
     PACK_PRE struct Header
     {
-      uint8_t ID[8];//'SINCLAIR'
+      uint8_t ID[8];  //'SINCLAIR'
       uint8_t BlocksCount;
       Entry Blocks[1];
     };
-  #ifdef USE_PRAGMA_PACK
-  #pragma pack(pop)
-  #endif
+#ifdef USE_PRAGMA_PACK
+#  pragma pack(pop)
+#endif
 
     const uint8_t SIGNATURE[] = {'S', 'I', 'N', 'C', 'L', 'A', 'I', 'R'};
 
-    //header with one entry + one sector + CRC
+    // header with one entry + one sector + CRC
     const std::size_t MIN_SIZE = sizeof(Header) + BYTES_PER_SECTOR + 4;
 
     static_assert(sizeof(Entry) == 14, "Invalid layout");
@@ -85,8 +84,7 @@ namespace Formats::Archived
         return false;
       }
       const auto* header = data.As<Header>();
-      if (0 != std::memcmp(header->ID, SIGNATURE, sizeof(SIGNATURE)) ||
-          0 == header->BlocksCount)
+      if (0 != std::memcmp(header->ID, SIGNATURE, sizeof(SIGNATURE)) || 0 == header->BlocksCount)
       {
         return false;
       }
@@ -96,7 +94,8 @@ namespace Formats::Archived
         Dbg("No place for data at all");
         return false;
       }
-      const std::size_t dataSize = std::accumulate(header->Blocks, header->Blocks + header->BlocksCount, 0, &SumDataSize);
+      const std::size_t dataSize =
+          std::accumulate(header->Blocks, header->Blocks + header->BlocksCount, 0, &SumDataSize);
       if (descriptionsSize + dataSize + sizeof(uint32_t) > limit)
       {
         Dbg("No place for all data");
@@ -114,7 +113,7 @@ namespace Formats::Archived
       return true;
     }
 
-    //fill descriptors array and return actual container size
+    // fill descriptors array and return actual container size
     Container::Ptr ParseArchive(const Binary::Container& rawData)
     {
       const Binary::View data(rawData);
@@ -125,8 +124,8 @@ namespace Formats::Archived
       const auto* header = data.As<Header>();
 
       const auto builder = TRDos::CatalogueBuilder::CreateFlat();
-      std::size_t offset = safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) -
-                      safe_ptr_cast<const uint8_t*>(header);
+      std::size_t offset =
+          safe_ptr_cast<const uint8_t*>(header->Blocks + header->BlocksCount) - safe_ptr_cast<const uint8_t*>(header);
       for (uint_t idx = 0; idx != header->BlocksCount; ++idx)
       {
         const Entry& entry = header->Blocks[idx];
@@ -136,20 +135,19 @@ namespace Formats::Archived
         builder->AddFile(std::move(newOne));
         offset = nextOffset;
       }
-      //use checksum
+      // use checksum
       offset += sizeof(uint32_t);
       builder->SetRawData(rawData.GetSubcontainer(0, offset));
       return builder->GetResult();
     }
-  }//namespace SCL
+  }  // namespace SCL
 
   class SCLDecoder : public Decoder
   {
   public:
     SCLDecoder()
       : Format(Binary::CreateFormat(SCL::FORMAT, SCL::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -163,9 +161,10 @@ namespace Formats::Archived
 
     Container::Ptr Decode(const Binary::Container& data) const override
     {
-      //implies SCL::FastCheck
+      // implies SCL::FastCheck
       return SCL::ParseArchive(data);
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -174,4 +173,4 @@ namespace Formats::Archived
   {
     return MakePtr<SCLDecoder>();
   }
-}//namespace Formats::Archived
+}  // namespace Formats::Archived

@@ -1,31 +1,31 @@
 /**
-* 
-* @file
-*
-* @brief  UMX containers support
-* @note   http://wiki.beyondunreal.com/Legacy:Package_File_Format
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  UMX containers support
+ * @note   http://wiki.beyondunreal.com/Legacy:Package_File_Format
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/decoders.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
-//std includes
+// std includes
 #include <array>
 #include <map>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/case_conv.hpp>
-//text includes
+// text includes
 #include <formats/text/archived.h>
 
 namespace Formats::Archived
@@ -35,13 +35,13 @@ namespace Formats::Archived
     const Debug::Stream Dbg("Formats::Archived::UMX");
 
     const StringView FORMAT(
-      "c1832a9e"  //signature
-      "? 00"      //version
-      "??"        //license mode
-      "????"      //package flags
-      "??0000 ????" //names
-      "??0000 ????" //exports
-      "??0000 ????" //imports
+        "c1832a9e"     // signature
+        "? 00"         // version
+        "??"           // license mode
+        "????"         // package flags
+        "??0000 ????"  // names
+        "??0000 ????"  // exports
+        "??0000 ????"  // imports
     );
 
     typedef std::array<uint8_t, 4> SignatureType;
@@ -49,7 +49,7 @@ namespace Formats::Archived
     const SignatureType SIGNATURE = {{0xc1, 0x83, 0x2a, 0x9e}};
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct TableDescription
     {
@@ -68,7 +68,7 @@ namespace Formats::Archived
       TableDescription Imports;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 36, "Invalid layout");
@@ -79,8 +79,7 @@ namespace Formats::Archived
 
       Index()
         : Value()
-      {
-      }
+      {}
     };
 
     struct ClassName
@@ -89,14 +88,11 @@ namespace Formats::Archived
 
       explicit ClassName(const String& name)
         : Name(boost::algorithm::to_lower_copy(name))
-      {
-      }
+      {}
 
       bool IsMusic() const
       {
-        return Name == "music"
-            || Name == "sound"
-        ;
+        return Name == "music" || Name == "sound";
       }
     };
 
@@ -106,8 +102,7 @@ namespace Formats::Archived
 
       explicit Property(const String& name)
         : Name(boost::algorithm::to_lower_copy(name))
-      {
-      }
+      {}
 
       bool IsLimiter() const
       {
@@ -122,8 +117,7 @@ namespace Formats::Archived
 
       NameEntry()
         : Flags()
-      {
-      }
+      {}
     };
 
     struct ExportEntry
@@ -139,8 +133,7 @@ namespace Formats::Archived
       ExportEntry()
         : Group()
         , ObjectFlags()
-      {
-      }
+      {}
     };
 
     struct ImportEntry
@@ -152,8 +145,7 @@ namespace Formats::Archived
 
       ImportEntry()
         : Package()
-      {
-      }
+      {}
     };
 
     class InputStream
@@ -166,10 +158,9 @@ namespace Formats::Archived
         , Cursor(Start)
         , Limit(Start + Data.Size())
         , MaxUsedSize()
-      {
-      }
+      {}
 
-      //primitives
+      // primitives
       template<class T>
       void Read(T& res)
       {
@@ -212,9 +203,7 @@ namespace Formats::Archived
 
       void Read(String& res)
       {
-        const uint8_t* const limit = Version >= 64
-          ? Cursor + ReadByte()
-          : Limit;
+        const uint8_t* const limit = Version >= 64 ? Cursor + ReadByte() : Limit;
         Require(limit <= Limit);
         const uint8_t* const strEnd = std::find(Cursor, limit, 0);
         Require(strEnd != Limit);
@@ -222,7 +211,7 @@ namespace Formats::Archived
         Cursor = strEnd + 1;
       }
 
-      //complex types
+      // complex types
       void Read(NameEntry& res)
       {
         Read(res.Name);
@@ -254,7 +243,7 @@ namespace Formats::Archived
       void Read(Property& res)
       {
         Require(!res.IsLimiter());
-        //TODO: implement
+        // TODO: implement
         Require(false);
       }
 
@@ -281,12 +270,14 @@ namespace Formats::Archived
       {
         return std::max<std::size_t>(MaxUsedSize, Cursor - Start);
       }
+
     private:
       uint8_t ReadByte()
       {
         Require(Cursor != Limit);
         return *Cursor++;
       }
+
     private:
       const uint_t Version;
       const Binary::Container& Data;
@@ -341,9 +332,7 @@ namespace Formats::Archived
           ReadProperties(stream);
           const ClassName& cls = GetClass(exp.Class);
           Dbg("Entry[%1%] data at %2% size=%3% class=%4%", idx, offset, size, cls.Name);
-          const Binary::Container::Ptr result = cls.IsMusic()
-             ? ExtractMusicData(stream)
-             : stream.ReadRestContainer();
+          const Binary::Container::Ptr result = cls.IsMusic() ? ExtractMusicData(stream) : stream.ReadRestContainer();
           UsedSize = std::max(UsedSize, offset + stream.GetMaxUsedSize());
           return result;
         }
@@ -352,6 +341,7 @@ namespace Formats::Archived
           return Binary::Container::Ptr();
         }
       }
+
     private:
       void ReadNames(InputStream& stream)
       {
@@ -375,8 +365,8 @@ namespace Formats::Archived
         {
           ExportEntry& entry = Exports[idx];
           stream.Read(entry);
-          Dbg("Exports[%1%] = {class=%2% name=%3% super=%4% size=%5%}",
-            idx, entry.Class.Value, entry.ObjectName.Value, entry.Super.Value, entry.SerialSize.Value);
+          Dbg("Exports[%1%] = {class=%2% name=%3% super=%4% size=%5%}", idx, entry.Class.Value, entry.ObjectName.Value,
+              entry.Super.Value, entry.SerialSize.Value);
         }
       }
 
@@ -389,8 +379,8 @@ namespace Formats::Archived
         {
           ImportEntry& entry = Imports[idx];
           stream.Read(entry);
-          Dbg("Imports[%1%] = {pkg=%2% class=%3% name=%4%}",
-            idx, entry.ClassPackage.Value, entry.ClassName.Value, entry.ObjectName.Value);
+          Dbg("Imports[%1%] = {pkg=%2% class=%3% name=%4%}", idx, entry.ClassPackage.Value, entry.ClassName.Value,
+              entry.ObjectName.Value);
         }
       }
 
@@ -466,6 +456,7 @@ namespace Formats::Archived
         Dbg("Extract music data from container (version=%1% format=%2% size=%3%)", version, format.Value, size.Value);
         return stream.ReadContainer(size.Value);
       }
+
     private:
       const Binary::Container& Data;
       const RawHeader Header;
@@ -481,8 +472,7 @@ namespace Formats::Archived
       File(String name, Binary::Container::Ptr data)
         : Name(std::move(name))
         , Data(std::move(data))
-      {
-      }
+      {}
 
       String GetName() const override
       {
@@ -498,6 +488,7 @@ namespace Formats::Archived
       {
         return Data;
       }
+
     private:
       const String Name;
       const Binary::Container::Ptr Data;
@@ -511,8 +502,7 @@ namespace Formats::Archived
       Container(Binary::Container::Ptr delegate, NamedDataMap files)
         : BaseContainer(std::move(delegate))
         , Files(std::move(files))
-      {
-      }
+      {}
 
       void ExploreFiles(const Container::Walker& walker) const override
       {
@@ -526,27 +516,25 @@ namespace Formats::Archived
       File::Ptr FindFile(const String& name) const override
       {
         const auto it = Files.find(name);
-        return it != Files.end()
-          ? MakePtr<File>(it->first, it->second)
-          : File::Ptr();
+        return it != Files.end() ? MakePtr<File>(it->first, it->second) : File::Ptr();
       }
 
       uint_t CountFiles() const override
       {
         return static_cast<uint_t>(Files.size());
       }
+
     private:
       NamedDataMap Files;
     };
-  }//namespace UMX
+  }  // namespace UMX
 
   class UMXDecoder : public Decoder
   {
   public:
     UMXDecoder()
       : Format(Binary::CreateFormat(UMX::FORMAT))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -582,6 +570,7 @@ namespace Formats::Archived
       UMX::Dbg("No files found");
       return Container::Ptr();
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -590,4 +579,4 @@ namespace Formats::Archived
   {
     return MakePtr<UMXDecoder>();
   }
-}//namespace Formats::Archived
+}  // namespace Formats::Archived

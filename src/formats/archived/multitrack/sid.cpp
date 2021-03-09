@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief  SID containers support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SID containers support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
 #include <formats/chiptune/emulation/sid.h>
 #include <strings/prefixed_index.h>
-//std includes
+// std includes
 #include <utility>
-//text includes
+// text includes
 #include <formats/text/archived.h>
 
 namespace Formats::Archived
@@ -31,8 +31,7 @@ namespace Formats::Archived
       File(String name, Binary::Container::Ptr data)
         : Name(std::move(name))
         , Data(std::move(data))
-      {
-      }
+      {}
 
       String GetName() const override
       {
@@ -48,6 +47,7 @@ namespace Formats::Archived
       {
         return Data;
       }
+
     private:
       const String Name;
       const Binary::Container::Ptr Data;
@@ -58,8 +58,7 @@ namespace Formats::Archived
     public:
       explicit Container(Binary::Container::Ptr data)
         : BaseContainer(std::move(data))
-      {
-      }
+      {}
 
       void ExploreFiles(const Container::Walker& walker) const override
       {
@@ -96,25 +95,24 @@ namespace Formats::Archived
     };
 
     const StringView FORMAT =
-        "'R|'P 'S'I'D" //signature
-        "00 01-03"     //BE version
-        "00 76|7c"     //BE data offset
-        "??"           //BE load address
-        "??"           //BE init address
-        "??"           //BE play address
-        "00|01 ?"      //BE songs count 1-256
-        "??"           //BE start song
-        "????"         //BE speed flag
-     ;
-  }//namespace MultiSID
+        "'R|'P 'S'I'D"  // signature
+        "00 01-03"      // BE version
+        "00 76|7c"      // BE data offset
+        "??"            // BE load address
+        "??"            // BE init address
+        "??"            // BE play address
+        "00|01 ?"       // BE songs count 1-256
+        "??"            // BE start song
+        "????"          // BE speed flag
+        ;
+  }  // namespace MultiSID
 
   class MultiSIDDecoder : public Decoder
   {
   public:
     MultiSIDDecoder()
       : Format(Binary::CreateMatchOnlyFormat(MultiSID::FORMAT))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -136,6 +134,7 @@ namespace Formats::Archived
       const Binary::Container::Ptr sidData = rawData.GetSubcontainer(0, rawData.Size());
       return MakePtr<MultiSID::Container>(sidData);
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -144,4 +143,4 @@ namespace Formats::Archived
   {
     return MakePtr<MultiSIDDecoder>();
   }
-}//namespace Formats::Archived
+}  // namespace Formats::Archived

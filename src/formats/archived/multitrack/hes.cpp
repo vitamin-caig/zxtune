@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  HES containers support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  HES containers support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/multitrack/multitrack.h"
-//library includes
+// library includes
 #include <formats/multitrack/decoders.h>
-//text includes
+// text includes
 #include <formats/text/archived.h>
 
 namespace Formats
@@ -24,5 +24,5 @@ namespace Formats
       const Formats::Multitrack::Decoder::Ptr decoder = Formats::Multitrack::CreateHESDecoder();
       return CreateMultitrackArchiveDecoder(Text::HES_ARCHIVE_DECODER_DESCRIPTION, decoder);
     }
-  }
-}
+  }  // namespace Archived
+}  // namespace Formats

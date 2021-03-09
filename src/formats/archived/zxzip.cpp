@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  ZXZIP archives support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ZXZIP archives support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/trdos_catalogue.h"
 #include "formats/archived/trdos_utils.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <formats/packed/decoders.h>
 
 namespace Formats::Archived
@@ -21,7 +21,7 @@ namespace Formats::Archived
   namespace ZXZip
   {
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct ZXZipHeader
     {
@@ -31,7 +31,7 @@ namespace Formats::Archived
       char Type[3];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     String ExtractFileName(const void* data)
@@ -71,15 +71,14 @@ namespace Formats::Archived
         return Container::Ptr();
       }
     }
-  }//namespace ZXZip
+  }  // namespace ZXZip
 
   class ZXZipDecoder : public Decoder
   {
   public:
     ZXZipDecoder()
       : FileDecoder(Formats::Packed::CreateZXZipDecoder())
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -99,10 +98,9 @@ namespace Formats::Archived
       }
 
       const Container::Ptr files = ZXZip::ParseArchive(*FileDecoder, data);
-      return files && files->CountFiles()
-        ? files
-        : Container::Ptr();
+      return files && files->CountFiles() ? files : Container::Ptr();
     }
+
   private:
     const Formats::Packed::Decoder::Ptr FileDecoder;
   };
@@ -111,4 +109,4 @@ namespace Formats::Archived
   {
     return MakePtr<ZXZipDecoder>();
   }
-}//namespace Formats::Archived
+}  // namespace Formats::Archived

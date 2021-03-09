@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  FMOD FSB format parser implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FMOD FSB format parser implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/fmod.h"
-//common includes
+// common includes
 #include <byteorder.h>
-//library includes
+// library includes
 #include <binary/input_stream.h>
 #include <strings/format.h>
 
@@ -28,8 +28,7 @@ namespace Formats::Archived
         explicit Format(const Binary::Container& rawData)
           : Stream(rawData)
           , Header(HeaderType::Read(Stream))
-        {
-        }
+        {}
 
         Binary::Container::Ptr Parse(Builder& target)
         {
@@ -45,7 +44,7 @@ namespace Formats::Archived
             locations.push_back(meta.Read(target));
           }
           locations.push_back({Header.SamplesDataSize, 0});
-          //possibly truncated data
+          // possibly truncated data
           const auto samplesData = Stream.ReadContainer(std::min(Header.SamplesDataSize, Stream.GetRestSize()));
           for (uint_t idx = 0; idx < Header.SamplesCount; ++idx)
           {
@@ -56,6 +55,7 @@ namespace Formats::Archived
           }
           return Stream.GetReadContainer();
         }
+
       private:
         struct HeaderType
         {
@@ -66,7 +66,7 @@ namespace Formats::Archived
           std::size_t SamplesDataSize;
           uint_t Mode;
           uint_t Flags;
-          
+
           static HeaderType Read(Binary::DataInputStream& stream)
           {
             static const uint8_t SIGNATURE[] = {'F', 'S', 'B', '5'};
@@ -81,26 +81,25 @@ namespace Formats::Archived
             result.Mode = stream.ReadLE<uint32_t>();
             stream.Skip(version == 0 ? 8 : 4);
             result.Flags = stream.ReadLE<uint32_t>();
-            stream.Skip(16 + 8);//hash + dummy
+            stream.Skip(16 + 8);  // hash + dummy
             result.Size = stream.GetPosition();
             return result;
           }
         };
-        
+
         class Metadata
         {
         public:
           Metadata(Binary::DataInputStream& stream, const HeaderType& hdr)
             : Stream(stream.ReadData(hdr.SamplesHeadersSize))
-          {
-          }
-          
+          {}
+
           struct SampleLocation
           {
             std::size_t Offset;
             uint_t SamplesCount;
           };
-          
+
           SampleLocation Read(Builder& target)
           {
             const auto header = Stream.ReadLE<uint64_t>();
@@ -120,6 +119,7 @@ namespace Formats::Archived
             }
             return result;
           }
+
         private:
           // From low to high:
           // 1 bit flag
@@ -127,7 +127,7 @@ namespace Formats::Archived
           // 2 bits channels
           // 27 bits offset in blocks
           // 30 bits samples count
-          
+
           static uint_t DecodeSampleFrequency(uint64_t raw)
           {
             switch ((raw >> 1) & 15)
@@ -158,7 +158,7 @@ namespace Formats::Archived
               return 44100;
             }
           }
-          
+
           static uint_t DecodeChannelsCount(uint64_t raw)
           {
             switch ((raw >> 5) & 3)
@@ -176,29 +176,29 @@ namespace Formats::Archived
               return 1;
             }
           }
-          
+
           static std::size_t DecodeDataOffset(uint64_t raw)
           {
             return 32 * ((raw >> 7) & 0x7ffffff);
           }
-          
+
           static uint_t DecodeSamplesCount(uint64_t raw)
           {
             return raw >> 34;
           }
+
         private:
           Binary::DataInputStream Stream;
         };
-        
+
         class Names
         {
         public:
           Names(Binary::DataInputStream& stream, const HeaderType& hdr)
             : Stream(stream.ReadData(hdr.SamplesNamesSize))
             , HasNames(hdr.SamplesNamesSize != 0)
-          {
-          }
-          
+          {}
+
           String Read(uint_t idx)
           {
             if (HasNames)
@@ -212,15 +212,17 @@ namespace Formats::Archived
               return Strings::Format("#%1%", idx);
             }
           }
+
         private:
           Binary::DataInputStream Stream;
           const bool HasNames;
         };
+
       private:
         Binary::InputStream Stream;
         const HeaderType Header;
       };
-    }
+    }  // namespace Ver5
 
     Binary::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
     {
@@ -232,9 +234,8 @@ namespace Formats::Archived
         }
       }
       catch (const std::exception&)
-      {
-      }
+      {}
       return Binary::Container::Ptr();
     }
-  }
-}
+  }  // namespace Fmod
+}  // namespace Formats::Archived

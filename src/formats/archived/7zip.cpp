@@ -1,33 +1,33 @@
 /**
-* 
-* @file
-*
-* @brief  7zip archives support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  7zip archives support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <formats/archived.h>
 #include <strings/encoding.h>
-//3rdparty includes
+// 3rdparty includes
 #include <3rdparty/lzma/C/7z.h>
 #include <3rdparty/lzma/C/7zCrc.h>
-//std includes
+// std includes
 #include <cstring>
 #include <list>
 #include <map>
 #include <numeric>
-//text include
+// text include
 #include <formats/text/archived.h>
 
 namespace Formats::Archived
@@ -37,7 +37,7 @@ namespace Formats::Archived
     const Debug::Stream Dbg("Formats::Archived::7zip");
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct Header
     {
@@ -50,7 +50,7 @@ namespace Formats::Archived
       uint32_t NextHeaderCRC;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(Header) == 0x20, "Invalid layout");
@@ -58,8 +58,8 @@ namespace Formats::Archived
     const std::size_t MIN_SIZE = sizeof(Header);
 
     const StringView FORMAT(
-        "'7'z bc af 27 1c" //signature
-        "00 ?" //version
+        "'7'z bc af 27 1c"  // signature
+        "00 ?"              // version
     );
 
     class LzmaContext : private ISzAlloc
@@ -70,6 +70,7 @@ namespace Formats::Archived
         static LzmaContext Instance;
         return &Instance;
       }
+
     private:
       LzmaContext()
       {
@@ -105,7 +106,8 @@ namespace Formats::Archived
       }
 
     private:
-      static SRes DoRead(void *p, void *buf, size_t *size) {
+      static SRes DoRead(void* p, void* buf, size_t* size)
+      {
         if (size_t originalSize = *size)
         {
           SeekStream& self = *static_cast<SeekStream*>(p);
@@ -124,7 +126,8 @@ namespace Formats::Archived
         return SZ_OK;
       }
 
-      static SRes DoSeek(void *p, Int64 *pos, ESzSeek origin) {
+      static SRes DoSeek(void* p, Int64* pos, ESzSeek origin)
+      {
         SeekStream& self = *static_cast<SeekStream*>(p);
         Int64 newPos = *pos;
         switch (origin)
@@ -141,6 +144,7 @@ namespace Formats::Archived
         *pos = self.Position = static_cast<std::size_t>(std::min<Int64>(newPos, self.Limit));
         return SZ_OK;
       }
+
     private:
       const Binary::Data::Ptr Data;
       const uint8_t* const Start;
@@ -158,10 +162,11 @@ namespace Formats::Archived
         realStream = &Stream;
         LookToRead_Init(this);
       }
+
     private:
       SeekStream Stream;
     };
-    
+
     class Archive
     {
     public:
@@ -207,17 +212,20 @@ namespace Formats::Archived
 
       Binary::Container::Ptr GetFileData(uint_t idx) const
       {
-        //WARN: not thread-safe
+        // WARN: not thread-safe
         size_t offset = 0;
         size_t outSizeProcessed = 0;
-        CheckError(SzArEx_Extract(&Db, const_cast<ILookInStream*>(&Stream.s), idx, &Cache.BlockIndex, &Cache.OutBuffer, &Cache.OutBufferSize, &offset, &outSizeProcessed, LzmaContext::Allocator(), LzmaContext::Allocator()));
+        CheckError(SzArEx_Extract(&Db, const_cast<ILookInStream*>(&Stream.s), idx, &Cache.BlockIndex, &Cache.OutBuffer,
+                                  &Cache.OutBufferSize, &offset, &outSizeProcessed, LzmaContext::Allocator(),
+                                  LzmaContext::Allocator()));
         Require(outSizeProcessed == SzArEx_GetFileSize(&Db, idx));
         return Binary::CreateContainer(Binary::View(Cache.OutBuffer + offset, outSizeProcessed));
       }
+
     private:
       static void CheckError(SRes err)
       {
-        //TODO: detailize
+        // TODO: detailize
         Require(err == SZ_OK);
       }
 
@@ -231,9 +239,9 @@ namespace Formats::Archived
           : BlockIndex(~UInt32(0))
           , OutBuffer(nullptr)
           , OutBufferSize(0)
-        {
-        }
+        {}
       };
+
     private:
       LookupStream Stream;
       CSzArEx Db;
@@ -267,6 +275,7 @@ namespace Formats::Archived
         Dbg("Decompressing '%1%'", Name);
         return Arch->GetFileData(Idx);
       }
+
     private:
       const Archive::Ptr Arch;
       const uint_t Idx;
@@ -298,29 +307,27 @@ namespace Formats::Archived
       File::Ptr FindFile(const String& name) const override
       {
         const auto it = Lookup.find(name);
-        return it != Lookup.end()
-          ? it->second
-          : File::Ptr();
+        return it != Lookup.end() ? it->second : File::Ptr();
       }
 
       uint_t CountFiles() const override
       {
         return static_cast<uint_t>(Files.size());
       }
+
     private:
       std::vector<File::Ptr> Files;
       typedef std::map<String, File::Ptr> FilesMap;
       FilesMap Lookup;
     };
-  }//namespace SevenZip
+  }  // namespace SevenZip
 
   class SevenZipDecoder : public Decoder
   {
   public:
     SevenZipDecoder()
       : Format(Binary::CreateFormat(SevenZip::FORMAT, SevenZip::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -357,6 +364,7 @@ namespace Formats::Archived
       }
       return MakePtr<SevenZip::Container>(std::move(archiveData), std::move(files));
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -365,4 +373,4 @@ namespace Formats::Archived
   {
     return MakePtr<SevenZipDecoder>();
   }
-}//namespace Formats::Archived
+}  // namespace Formats::Archived

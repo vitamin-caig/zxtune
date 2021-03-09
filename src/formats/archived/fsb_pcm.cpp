@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  FSB PCM images support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FSB PCM images support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/fsb_formats.h"
-//library includes
+// library includes
 #include <formats/chiptune/music/wav.h>
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
 
@@ -50,7 +50,7 @@ namespace Formats::Archived::FSB
           Require(false);
         }
       }
-      
+
       String Name;
       uint_t Frequency = 0;
       uint_t Channels = 0;
@@ -60,14 +60,13 @@ namespace Formats::Archived::FSB
       uint_t SamplesCount = 0;
       Binary::Container::Ptr Data;
     };
-    
+
     class LazyContainer : public Binary::Container
     {
     public:
       explicit LazyContainer(SampleProperties&& props) noexcept
         : Properties(std::move(props))
-      {
-      }
+      {}
 
       const void* Start() const override
       {
@@ -86,7 +85,7 @@ namespace Formats::Archived::FSB
         }
         return Delegate->Size();
       }
-      
+
       Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         if (!Delegate)
@@ -95,13 +94,16 @@ namespace Formats::Archived::FSB
         }
         return Delegate->GetSubcontainer(offset, size);
       }
+
     private:
       void Build() const
       {
         using namespace Chiptune::Wav;
         const auto builder = CreateDumpBuilder();
-        const auto format = Properties.IsFloat ? Format::IEEE_FLOAT : (Properties.IsAdpcm ? Format::IMA_ADPCM : Format::PCM);
-        const auto blockSize = Properties.IsAdpcm ? 36 * Properties.Channels : (Properties.Channels * Properties.Bits + 7) / 8;
+        const auto format = Properties.IsFloat ? Format::IEEE_FLOAT
+                                               : (Properties.IsAdpcm ? Format::IMA_ADPCM : Format::PCM);
+        const auto blockSize = Properties.IsAdpcm ? 36 * Properties.Channels
+                                                  : (Properties.Channels * Properties.Bits + 7) / 8;
         builder->SetProperties(format, Properties.Frequency, Properties.Channels, Properties.Bits, blockSize);
         if (Properties.SamplesCount)
         {
@@ -110,11 +112,12 @@ namespace Formats::Archived::FSB
         builder->SetSamplesData(std::move(Properties.Data));
         Delegate = builder->GetDump();
       }
+
     private:
       mutable SampleProperties Properties;
       mutable Ptr Delegate;
     };
-    
+
     class Builder : public FormatBuilder
     {
     public:
@@ -122,38 +125,36 @@ namespace Formats::Archived::FSB
       {
         Samples.resize(samplesCount, SampleProperties(format));
       }
-      
+
       void StartSample(uint_t idx) override
       {
         CurSample = idx;
       }
-      
+
       void SetFrequency(uint_t frequency) override
       {
         Samples[CurSample].Frequency = frequency;
       }
-      
+
       void SetChannels(uint_t channels) override
       {
         Samples[CurSample].Channels = channels;
       }
-      
+
       void SetName(String name) override
       {
         Samples[CurSample].Name = std::move(name);
       }
-      
-      void AddMetaChunk(uint_t /*type*/, Binary::View /*chunk*/) override
-      {
-      }
-      
+
+      void AddMetaChunk(uint_t /*type*/, Binary::View /*chunk*/) override {}
+
       void SetData(uint_t samplesCount, Binary::Container::Ptr blob) override
       {
         auto& dst = Samples[CurSample];
         dst.SamplesCount = samplesCount;
         dst.Data = std::move(blob);
       }
-      
+
       NamedDataMap CaptureResult() override
       {
         NamedDataMap result;
@@ -167,14 +168,15 @@ namespace Formats::Archived::FSB
         }
         return result;
       }
+
     private:
       uint_t CurSample = 0;
       std::vector<SampleProperties> Samples;
     };
-  }
+  }  // namespace Pcm
 
   FormatBuilder::Ptr CreatePcmBuilder()
   {
     return MakePtr<Pcm::Builder>();
   }
-}
+}  // namespace Formats::Archived::FSB

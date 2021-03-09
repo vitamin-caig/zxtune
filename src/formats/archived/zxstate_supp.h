@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  ZX-State snapshots structures
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ZX-State snapshots structures
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <byteorder.h>
 #include <pointers.h>
 #include <types.h>
@@ -30,7 +30,7 @@ namespace Formats
       const std::size_t UNKNOWN = ~std::size_t(0);
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
       PACK_PRE struct Header
       {
@@ -61,9 +61,7 @@ namespace Formats
         template<class T>
         const T* IsA() const
         {
-          return Id == T::SIGNATURE
-            ? static_cast<const T*>(this)
-            : nullptr;
+          return Id == T::SIGNATURE ? static_cast<const T*>(this) : nullptr;
         }
       } PACK_POST;
 
@@ -114,9 +112,7 @@ namespace Formats
 
         std::size_t GetUncompressedSize() const
         {
-          return 0 != (fromLE(Flags) & EMBEDDED)
-            ? 0x4000
-            : 0;
+          return 0 != (fromLE(Flags) & EMBEDDED) ? 0x4000 : 0;
         }
 
         uint32_t Flags;
@@ -137,9 +133,7 @@ namespace Formats
 
         std::size_t GetUncompressedSize() const
         {
-          return 0 != (fromLE(Flags) & EMBEDDED)
-            ? UNKNOWN
-            : 0;
+          return 0 != (fromLE(Flags) & EMBEDDED) ? UNKNOWN : 0;
         }
 
         uint32_t Flags;
@@ -230,9 +224,7 @@ namespace Formats
 
         std::size_t GetUncompressedSize() const
         {
-          return 0 != (fromLE(Flags) & EMBEDDED)
-            ? fromLE(UncompressedSize)
-            : 0;
+          return 0 != (fromLE(Flags) & EMBEDDED) ? fromLE(UncompressedSize) : 0;
         }
 
         uint16_t Flags;
@@ -249,9 +241,7 @@ namespace Formats
 
         std::size_t GetUncompressedSize() const
         {
-          return 0 != (Flags & EMBEDDED)
-            ? 0x8000
-            : 0;
+          return 0 != (Flags & EMBEDDED) ? 0x8000 : 0;
         }
 
         uint8_t Model;
@@ -259,7 +249,7 @@ namespace Formats
         uint8_t Volume[4];
         uint8_t Level[4];
         uint8_t Flags;
-        uint16_t Registers[13];//af/bc/de/hl/af'/bc'/de'/hl'/ix/iy/sp/pc/ir
+        uint16_t Registers[13];  // af/bc/de/hl/af'/bc'/de'/hl'/ix/iy/sp/pc/ir
         uint8_t Iff[2];
         uint8_t ImMode;
         uint32_t CyclesStart;
@@ -333,9 +323,7 @@ namespace Formats
 
         std::size_t GetUncompressedSize() const
         {
-          return 0 != (fromLE(Flags) & EMBEDDED)
-            ? fromLE(UncompressedSize)
-            : 0;
+          return 0 != (fromLE(Flags) & EMBEDDED) ? fromLE(UncompressedSize) : 0;
         }
 
         uint16_t Flags;
@@ -364,9 +352,7 @@ namespace Formats
 
         std::size_t GetUncompressedSize() const
         {
-          return 0 != (Flags & RAM16K)
-            ? 0x4000
-            : 0x2000;
+          return 0 != (Flags & RAM16K) ? 0x4000 : 0x2000;
         }
 
         uint8_t Model;
@@ -404,9 +390,7 @@ namespace Formats
 
         std::size_t GetUncompressedSize() const
         {
-          return 0 != (fromLE(Flags) & EMBEDDED) && (Type == TYPE_OPD || Type == TYPE_OPU)
-            ? UNKNOWN
-            : 0;
+          return 0 != (fromLE(Flags) & EMBEDDED) && (Type == TYPE_OPD || Type == TYPE_OPU) ? UNKNOWN : 0;
         }
 
         uint32_t Flags;
@@ -420,7 +404,7 @@ namespace Formats
       {
         static const uint32_t SIGNATURE = Sequence<'P', 'L', 'T', 'T'>::Value;
 
-        //structure is unkown
+        // structure is unkown
       } PACK_POST;
 
       PACK_PRE struct ChunkPLUS3 : Chunk
@@ -467,9 +451,7 @@ namespace Formats
 
         std::size_t GetUncompressedSize() const
         {
-          return 0 != (fromLE(Flags) & EMBEDDED) && (Type == TYPE_MGT || Type == TYPE_IMG)
-            ? UNKNOWN
-            : 0;
+          return 0 != (fromLE(Flags) & EMBEDDED) && (Type == TYPE_MGT || Type == TYPE_IMG) ? UNKNOWN : 0;
         }
 
         uint32_t Flags;
@@ -548,7 +530,7 @@ namespace Formats
         uint16_t Trap;
         uint8_t W5100[0x30];
         uint32_t FlashSize;
-        uint8_t Data[1];//flash+ram prepend with size
+        uint8_t Data[1];  // flash+ram prepend with size
       } PACK_POST;
 
       PACK_PRE struct ChunkTAPE : Chunk
@@ -559,9 +541,7 @@ namespace Formats
 
         std::size_t GetUncompressedSize() const
         {
-          return 0 != (fromLE(Flags) & EMBEDDED)
-            ? fromLE(UncompressedSize)
-            : 0;
+          return 0 != (fromLE(Flags) & EMBEDDED) ? fromLE(UncompressedSize) : 0;
         }
 
         uint16_t Number;
@@ -590,7 +570,7 @@ namespace Formats
       {
         static const uint32_t SIGNATURE = Sequence<'Z', '8', '0', 'R'>::Value;
 
-        uint16_t Registers[13];//af/bc/de/hl/af'/bc'/de'/hl'/ix/iy/sp/pc/ir
+        uint16_t Registers[13];  // af/bc/de/hl/af'/bc'/de'/hl'/ix/iy/sp/pc/ir
         uint8_t Iff[2];
         uint8_t ImMode;
         uint32_t CyclesStart;
@@ -607,7 +587,7 @@ namespace Formats
       } PACK_POST;
       */
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
       static_assert(sizeof(Header) == 8, "Invalid layout");
@@ -652,7 +632,7 @@ namespace Formats
       static_assert(sizeof(ChunkZXPRINTER) == 8 + 2, "Invalid layout");
       static_assert(sizeof(ChunkZ80REGS) == 8 + 37, "Invalid layout");
 
-      //unified field access traits
+      // unified field access traits
       template<class ChunkType>
       struct ChunkTraits
       {
@@ -681,6 +661,6 @@ namespace Formats
           return ch.Number;
         }
       };
-    }
-  }
-}
+    }  // namespace ZXState
+  }    // namespace Archived
+}  // namespace Formats

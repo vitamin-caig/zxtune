@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  FSB subformats support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FSB subformats support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "fmod.h"
-//std includes
+// std includes
 #include <map>
 
 namespace Formats::Archived
@@ -25,7 +25,7 @@ namespace Formats::Archived
     {
     public:
       using Ptr = std::shared_ptr<FormatBuilder>;
-      
+
       virtual NamedDataMap CaptureResult() = 0;
     };
 
@@ -33,5 +33,5 @@ namespace Formats::Archived
     FormatBuilder::Ptr CreatePcmBuilder();
     FormatBuilder::Ptr CreateOggVorbisBuilder();
     FormatBuilder::Ptr CreateAtrac9Builder();
-  }
-}
+  }  // namespace FSB
+}  // namespace Formats::Archived

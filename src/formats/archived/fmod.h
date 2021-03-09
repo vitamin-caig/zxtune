@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  FMOD FSB format parser
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FMOD FSB format parser
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <binary/container.h>
 #include <binary/view.h>
 
@@ -39,7 +39,7 @@ namespace Formats::Archived
       XWMA,
       VORBIS,
     };
-    
+
     enum ChunkType : uint_t
     {
       CHANNELS = 1,
@@ -51,23 +51,23 @@ namespace Formats::Archived
       XWMADATA = 10,
       VORBISDATA = 11
     };
-    
+
     class Builder
     {
     public:
       virtual ~Builder() = default;
-      
+
       virtual void Setup(uint_t samplesCount, uint_t format) = 0;
-      
+
       virtual void StartSample(uint_t idx) = 0;
       virtual void SetFrequency(uint_t frequency) = 0;
       virtual void SetChannels(uint_t channels) = 0;
       virtual void SetName(String name) = 0;
-      
+
       virtual void AddMetaChunk(uint_t type, Binary::View chunk) = 0;
       virtual void SetData(uint_t samplesCount, Binary::Container::Ptr blob) = 0;
     };
-    
+
     Binary::Container::Ptr Parse(const Binary::Container& rawData, Builder& target);
-  }
-}
+  }  // namespace Fmod
+}  // namespace Formats::Archived

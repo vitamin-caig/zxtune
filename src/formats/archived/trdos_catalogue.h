@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  TR-DOS catalogue helpers
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TR-DOS catalogue helpers
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <formats/archived.h>
 
 namespace TRDos
@@ -42,4 +42,4 @@ namespace TRDos
     static Ptr CreateGeneric();
     static Ptr CreateFlat();
   };
-}
+}  // namespace TRDos
