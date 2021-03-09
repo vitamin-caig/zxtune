@@ -17,9 +17,7 @@
 #include <devices/details/analysis_map.h>
 #include <parameters/tracking_helper.h>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   template<class Traits>
   class SoundChip : public Traits::ChipBaseType
@@ -126,5 +124,4 @@ namespace AYM
     RenderersSet<typename Traits::PSGType> Renderers;
     Sound::Chunk RenderedData;
   };
-}
 }

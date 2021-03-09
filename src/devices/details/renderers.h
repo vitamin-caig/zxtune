@@ -14,9 +14,7 @@
 #include <devices/details/clock_source.h>
 #include <sound/lpfilter.h>
 
-namespace Devices
-{
-namespace Details
+namespace Devices::Details
 {
   template<class StampType>
   class Renderer
@@ -266,5 +264,4 @@ namespace Details
       Parent::PSG.SetClockFrequency(clockFreq);
     }
   };
-}
 }

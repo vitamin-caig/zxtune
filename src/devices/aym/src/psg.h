@@ -16,9 +16,7 @@
 //library includes
 #include <devices/details/analysis_map.h>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   class PSG
   {
@@ -208,5 +206,4 @@ namespace AYM
     //device
     AYMDevice Device;
   };
-}
 }

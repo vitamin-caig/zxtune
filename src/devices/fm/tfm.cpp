@@ -17,9 +17,7 @@
 //std includes
 #include <functional>
 
-namespace Devices
-{
-namespace TFM
+namespace Devices::TFM
 {
   class ChipAdapter
   {
@@ -91,5 +89,4 @@ namespace TFM
   {
     return MakePtr<TFMChip>(std::move(params));
   }
-}
 }

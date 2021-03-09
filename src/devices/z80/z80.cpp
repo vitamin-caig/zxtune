@@ -17,9 +17,7 @@
 //3rdparty includes
 #include <3rdparty/z80ex/include/z80ex.h>
 
-namespace Devices
-{
-namespace Z80
+namespace Devices::Z80
 {
   class IOBus
   {
@@ -394,7 +392,6 @@ namespace Z80
     const std::unique_ptr<IOBus> Bus;
     const std::shared_ptr<Z80EX_CONTEXT> Context;
   };
-}
 }
 
 namespace Devices

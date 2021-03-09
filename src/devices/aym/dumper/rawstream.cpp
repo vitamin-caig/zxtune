@@ -16,9 +16,7 @@
 #include <algorithm>
 #include <iterator>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   class RawDumpBuilder : public FramedDumpBuilder
   {
@@ -80,5 +78,4 @@ namespace AYM
     const FramedDumpBuilder::Ptr builder = CreateRawDumpBuilder();
     return CreateDumper(params, builder);
   }
-}
 }

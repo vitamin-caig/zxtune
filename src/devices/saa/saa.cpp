@@ -29,9 +29,7 @@
 #include <numeric>
 #include <utility>
 
-namespace Devices
-{
-namespace SAA
+namespace Devices::SAA
 {
   static_assert(Registers::TOTAL <= 8 * sizeof(uint_t), "Too many registers for mask");
   static_assert(sizeof(Registers) == 32, "Invalid layout");
@@ -306,5 +304,4 @@ namespace SAA
   {
     return MakePtr<RegularSAAChip>(std::move(params));
   }
-}
 }

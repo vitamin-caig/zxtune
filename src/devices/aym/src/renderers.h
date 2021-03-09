@@ -13,9 +13,7 @@
 //library includes
 #include <devices/details/renderers.h>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   typedef Details::ClockSource<Stamp> ClockSource;
 
@@ -87,5 +85,4 @@ namespace AYM
     Details::HQRenderer<Stamp, PSGType> HQ;
     Details::Renderer<Stamp>* Current;
   };
-}
 }

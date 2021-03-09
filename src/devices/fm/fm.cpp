@@ -11,12 +11,9 @@
 //local includes
 #include "chip.h"
 
-namespace Devices
-{
-namespace FM
+namespace Devices::FM
 {
   /*
     No implementation required yet
   */
-}
 }

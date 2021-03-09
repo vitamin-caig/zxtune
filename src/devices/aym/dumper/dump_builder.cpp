@@ -15,9 +15,7 @@
 //std includes
 #include <utility>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   class RenderState
   {
@@ -206,5 +204,4 @@ namespace AYM
     }
     return MakePtr<FrameDumper>(params->FrameDuration(), builder, state);
   }
-}
 }

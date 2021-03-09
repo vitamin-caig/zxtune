@@ -15,9 +15,7 @@
 //std includes
 #include <cassert>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   class MultiVolumeTable
   {
@@ -142,5 +140,4 @@ namespace AYM
     const LayoutData* Layout;
     std::array<Sound::Sample, 1 << SOUND_CHANNELS * BITS_PER_LEVEL> Lookup;
   };
-}
 }

@@ -23,9 +23,7 @@ namespace
   }
 }
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   class DebugDumpBuilder : public FramedDumpBuilder
   {
@@ -91,5 +89,4 @@ namespace AYM
     const FramedDumpBuilder::Ptr builder = MakePtr<DebugDumpBuilder>();
     return CreateDumper(params, builder);
   }
-}
 }

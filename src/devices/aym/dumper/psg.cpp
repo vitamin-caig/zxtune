@@ -15,9 +15,7 @@
 #include <iterator>
 #include <make_ptr.h>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   class PSGDumpBuilder : public FramedDumpBuilder
   {
@@ -86,5 +84,4 @@ namespace AYM
     const FramedDumpBuilder::Ptr builder = MakePtr<PSGDumpBuilder>();
     return CreateDumper(params, builder);
   }
-}
 }

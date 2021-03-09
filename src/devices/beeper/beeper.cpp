@@ -17,9 +17,7 @@
 //std includes
 #include <utility>
 
-namespace Devices
-{
-namespace Beeper
+namespace Devices::Beeper
 {
   class BeeperPSG
   {
@@ -137,5 +135,4 @@ namespace Beeper
   {
     return MakePtr<ChipImpl>(std::move(params));
   }
-}
 }

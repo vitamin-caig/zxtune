@@ -16,9 +16,7 @@
 #include <algorithm>
 #include <iterator>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   class ZX50DumpBuilder : public FramedDumpBuilder
   {
@@ -68,5 +66,4 @@ namespace AYM
     const FramedDumpBuilder::Ptr builder = MakePtr<ZX50DumpBuilder>();
     return CreateDumper(params, builder);
   }
-}
 }

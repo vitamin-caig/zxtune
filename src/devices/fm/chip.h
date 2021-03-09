@@ -21,9 +21,7 @@
 #include <parameters/tracking_helper.h>
 #include <time/duration.h>
 
-namespace Devices
-{
-namespace FM
+namespace Devices::FM
 {
   namespace Details
   {
@@ -175,5 +173,4 @@ namespace FM
       ClockSource Clock;
     };
   }
-}
 }

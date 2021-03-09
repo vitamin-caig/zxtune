@@ -22,9 +22,7 @@
 #include <array>
 #include <cmath>
 
-namespace Devices
-{
-namespace DAC
+namespace Devices::DAC
 {
   const uint_t NO_INDEX = uint_t(-1);
 
@@ -622,5 +620,4 @@ namespace DAC
   {
     return MakePtr<FixedChannelsChip<4> >(std::move(params), std::move(mixer));
   }
-}
 }

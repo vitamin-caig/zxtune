@@ -21,9 +21,7 @@
 #include <iterator>
 #include <utility>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
 #ifdef USE_PRAGMA_PACK
 #pragma pack(push,1)
@@ -114,5 +112,4 @@ namespace AYM
     const FramedDumpBuilder::Ptr builder = MakePtr<FYMBuilder>(params);
     return CreateDumper(params, builder);
   }
-}
 }

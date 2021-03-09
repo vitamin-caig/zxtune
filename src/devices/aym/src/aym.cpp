@@ -16,9 +16,7 @@
 //std includes
 #include <utility>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   static_assert(Registers::TOTAL == 14, "Invalid registers count");
   static_assert(sizeof(Registers) == 16, "Invalid layout");
@@ -35,5 +33,4 @@ namespace AYM
   {
     return MakePtr<SoundChip<Traits> >(std::move(params), std::move(mixer));
   }
-}
 }

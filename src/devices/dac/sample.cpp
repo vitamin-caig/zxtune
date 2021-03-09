@@ -17,9 +17,7 @@
 #include <cstring>
 #include <numeric>
 
-namespace Devices
-{
-namespace DAC
+namespace Devices::DAC
 {
   const uint_t NO_RMS = uint_t(-1);
 
@@ -52,7 +50,6 @@ namespace DAC
   {
     return AYVolumeTab[inSample >> 4];
   }
-}
 }
 
 namespace Devices

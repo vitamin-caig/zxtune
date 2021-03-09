@@ -18,9 +18,7 @@
 //std includes
 #include <utility>
 
-namespace Devices
-{
-namespace TurboSound
+namespace Devices::TurboSound
 {
   class PSG
   {
@@ -105,5 +103,4 @@ namespace TurboSound
     auto halfMixer = MakePtr<HalfLevelMixer>(mixer);
     return MakePtr<AYM::SoundChip<Traits> >(std::move(params), std::move(halfMixer));
   }
-}
 }
