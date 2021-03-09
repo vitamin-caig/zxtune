@@ -1,15 +1,15 @@
 /**
-*
-* @file
-*
-* @brief  Math library test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Math library test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-#include <math/scale.h>
 #include <iostream>
+#include <math/scale.h>
 
 namespace
 {
@@ -60,7 +60,7 @@ namespace
     Test<T>("CountBits(" + type + ", high half)", Math::CountBits<T>(highHalf), 4 * sizeof(T));
     Test<T>("CountBits(" + type + ", max)", Math::CountBits<T>(maximal), 8 * sizeof(T));
   }
-}
+}  // namespace
 
 int main()
 {
@@ -105,10 +105,14 @@ int main()
       TestScale<uint64_t>("uint64_t big up overhead", 4000000, 3000000, 2000000, 2666666);
       TestScale<uint64_t>("uint64_t big down", 1000000, 2000000, 3000000, 1500000);
       TestScale<uint64_t>("uint64_t big down overhead", 4000000, 2000000, 3000000, 6000000);
-      TestScale<uint64_t>("uint64_t giant up", UINT64_C(10000000000), UINT64_C(30000000000), UINT64_C(20000000000), UINT64_C(6666666666));
-      TestScale<uint64_t>("uint64_t giant up overhead", UINT64_C(4000000000), UINT64_C(3000000000), UINT64_C(20000000000), UINT64_C(26666666666));
-      TestScale<uint64_t>("uint64_t giant down", UINT64_C(10000000000), UINT64_C(20000000000), UINT64_C(30000000000), UINT64_C(15000000000));
-      TestScale<uint64_t>("uint64_t giant down overhead", UINT64_C(4000000000), UINT64_C(2000000000), UINT64_C(3000000000), UINT64_C(6000000000));
+      TestScale<uint64_t>("uint64_t giant up", UINT64_C(10000000000), UINT64_C(30000000000), UINT64_C(20000000000),
+                          UINT64_C(6666666666));
+      TestScale<uint64_t>("uint64_t giant up overhead", UINT64_C(4000000000), UINT64_C(3000000000),
+                          UINT64_C(20000000000), UINT64_C(26666666666));
+      TestScale<uint64_t>("uint64_t giant down", UINT64_C(10000000000), UINT64_C(20000000000), UINT64_C(30000000000),
+                          UINT64_C(15000000000));
+      TestScale<uint64_t>("uint64_t giant down overhead", UINT64_C(4000000000), UINT64_C(2000000000),
+                          UINT64_C(3000000000), UINT64_C(6000000000));
     }
   }
   catch (int code)

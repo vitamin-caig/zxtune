@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Scaling functions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Scaling functions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <math/bitops.h>
-//std includes
+// std includes
 #include <cassert>
 
 namespace Math
@@ -47,7 +47,7 @@ namespace Math
 
   inline uint64_t Scale(uint64_t value, uint64_t inRange, uint64_t outRange)
   {
-    //really reverseBits(significantBits(val))
+    // really reverseBits(significantBits(val))
     const uint64_t unsafeScaleMask = HiBitsMask<uint64_t>(Log2(outRange));
     if (0 == (value & unsafeScaleMask))
     {
@@ -57,9 +57,8 @@ namespace Math
     {
       const std::pair<uint64_t, uint64_t> valIn = OptimizeRatio(value, inRange);
       const std::pair<uint64_t, uint64_t> outIn = OptimizeRatio(outRange, valIn.second);
-      return outIn.second != inRange
-          ? Scale(valIn.first, outIn.second, outIn.first)
-          : static_cast<uint64_t>(double(value) * outRange / inRange);
+      return outIn.second != inRange ? Scale(valIn.first, outIn.second, outIn.first)
+                                     : static_cast<uint64_t>(double(value) * outRange / inRange);
     }
   }
 
@@ -70,19 +69,18 @@ namespace Math
     ScaleFunctor(T inRange, T outRange)
       : InRange(inRange)
       , OutRange(outRange)
-    {
-    }
+    {}
 
     ScaleFunctor(const ScaleFunctor<T>& rh)
       : InRange(rh.InRange)
       , OutRange(rh.OutRange)
-    {
-    }
+    {}
 
     T operator()(T value) const
     {
       return Scale(value, InRange, OutRange);
     }
+
   private:
     T InRange;
     T OutRange;
@@ -95,8 +93,7 @@ namespace Math
     ScaleFunctor(uint64_t inRange, uint64_t outRange)
       : Range(OptimizeRatio(inRange, outRange))
       , UnsafeScaleMask(HiBitsMask<uint64_t>(Log2(Range.second)))
-    {
-    }
+    {}
 
     ScaleFunctor(const ScaleFunctor<uint64_t>& rh) = default;
 
@@ -111,8 +108,9 @@ namespace Math
         return static_cast<uint64_t>(double(value) * Range.second / Range.first);
       }
     }
+
   private:
     std::pair<uint64_t, uint64_t> Range;
     uint64_t UnsafeScaleMask;
   };
-}
+}  // namespace Math

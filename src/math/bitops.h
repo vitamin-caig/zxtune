@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Bits operating and related functions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Bits operating and related functions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include <types.h>
-//std includes
+// std includes
 #include <type_traits>
 
 namespace Math
@@ -82,4 +82,4 @@ namespace Math
   {
     return ~((T(1) << (8 * sizeof(T) - hiBits)) - 1);
   }
-}
+}  // namespace Math
