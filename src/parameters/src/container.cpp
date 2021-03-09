@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Parameters containers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters containers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <parameters/container.h>
-//std includes
+// std includes
 #include <map>
 #include <utility>
 
@@ -22,9 +22,7 @@ namespace Parameters
   bool FindByName(const std::map<NameType, T>& map, const NameType& name, T& res)
   {
     const typename std::map<NameType, T>::const_iterator it = map.find(name);
-    return it != map.end()
-      ? (res = it->second, true)
-      : false;
+    return it != map.end() ? (res = it->second, true) : false;
   }
 
   class StorageContainer : public Container
@@ -32,18 +30,16 @@ namespace Parameters
   public:
     StorageContainer()
       : VersionValue(0)
-    {
-    }
+    {}
 
     StorageContainer(const StorageContainer& src)
       : VersionValue(src.VersionValue)
       , Integers(src.Integers)
       , Strings(src.Strings)
       , Datas(src.Datas)
-    {
-    }
+    {}
 
-    //accessor virtuals
+    // accessor virtuals
     uint_t Version() const override
     {
       return VersionValue;
@@ -80,7 +76,7 @@ namespace Parameters
       }
     }
 
-    //visitor virtuals
+    // visitor virtuals
     void SetValue(const NameType& name, IntType val) override
     {
       if (Set(Integers[name], val) | Strings.erase(name) | Datas.erase(name))
@@ -105,7 +101,7 @@ namespace Parameters
       }
     }
 
-    //modifier virtuals
+    // modifier virtuals
     void RemoveValue(const NameType& name) override
     {
       if (Integers.erase(name) | Strings.erase(name) | Datas.erase(name))
@@ -113,6 +109,7 @@ namespace Parameters
         ++VersionValue;
       }
     }
+
   private:
     template<class Type>
     static std::size_t Set(Type& dst, const Type& src)
@@ -133,6 +130,7 @@ namespace Parameters
       dst = src;
       return 1;
     }
+
   private:
     uint_t VersionValue;
     typedef std::map<NameType, IntType> IntegerMap;
@@ -149,10 +147,9 @@ namespace Parameters
     CompositeContainer(Accessor::Ptr accessor, Modifier::Ptr modifier)
       : AccessDelegate(std::move(accessor))
       , ModifyDelegate(std::move(modifier))
-    {
-    }
+    {}
 
-    //accessor virtuals
+    // accessor virtuals
     uint_t Version() const override
     {
       return AccessDelegate->Version();
@@ -178,7 +175,7 @@ namespace Parameters
       return AccessDelegate->Process(visitor);
     }
 
-    //visitor virtuals
+    // visitor virtuals
     void SetValue(const NameType& name, IntType val) override
     {
       return ModifyDelegate->SetValue(name, val);
@@ -194,11 +191,12 @@ namespace Parameters
       return ModifyDelegate->SetValue(name, val);
     }
 
-    //modifier virtuals
+    // modifier virtuals
     void RemoveValue(const NameType& name) override
     {
       return ModifyDelegate->RemoveValue(name);
     }
+
   private:
     const Accessor::Ptr AccessDelegate;
     const Modifier::Ptr ModifyDelegate;
@@ -224,4 +222,4 @@ namespace Parameters
   {
     return MakePtr<CompositeContainer>(std::move(accessor), std::move(modifier));
   }
-}
+}  // namespace Parameters

@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Parameters conversion functions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters conversion functions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
 
 namespace Parameters
@@ -24,4 +24,4 @@ namespace Parameters
   bool ConvertFromString(const String& str, IntType& res);
   bool ConvertFromString(const String& str, StringType& res);
   bool ConvertFromString(const String& str, DataType& res);
-}
+}  // namespace Parameters

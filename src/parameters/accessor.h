@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Parameters accessor interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters accessor interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Parameters
@@ -40,4 +40,4 @@ namespace Parameters
     //! Valk along the stored values
     virtual void Process(class Visitor& visitor) const = 0;
   };
-}
+}  // namespace Parameters

@@ -1,27 +1,28 @@
 /**
-*
-* @file
-*
-* @brief  Serialization-related implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Serialization-related implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
+// library includes
 #include <parameters/accessor.h>
 #include <parameters/convert.h>
 #include <parameters/serialize.h>
 #include <parameters/visitor.h>
-//std includes
+// std includes
 #include <algorithm>
 
 namespace
 {
   using namespace Parameters;
 
-  class StringConvertor : public Strings::Map
-                        , public Visitor
+  class StringConvertor
+    : public Strings::Map
+    , public Visitor
   {
   public:
     void SetValue(const NameType& name, IntType val) override
@@ -58,7 +59,7 @@ namespace
       visitor.SetValue(name, asString);
     }
   }
-}
+}  // namespace
 
 namespace Parameters
 {
@@ -76,4 +77,4 @@ namespace Parameters
     ac.Process(cnv);
     cnv.swap(strings);
   }
-}
+}  // namespace Parameters

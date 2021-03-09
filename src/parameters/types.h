@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Parameters-related types definitions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters-related types definitions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 //! @brief Namespace is used to keep parameters-working related types and functions
@@ -40,25 +40,25 @@ namespace Parameters
   {
     //! @brief Delimiter between namespaces in parameters' names
     static const char NAMESPACE_DELIMITER = '.';
+
   public:
     NameType() = default;
 
-    /*explicit*/NameType(String path)
+    /*explicit*/ NameType(String path)
       : Path(std::move(path))
-    {
-    }
+    {}
 
-    bool operator < (const NameType& rh) const
+    bool operator<(const NameType& rh) const
     {
       return Path < rh.Path;
     }
 
-    bool operator == (const NameType& rh) const
+    bool operator==(const NameType& rh) const
     {
       return Path == rh.Path;
     }
 
-    bool operator != (const NameType& rh) const
+    bool operator!=(const NameType& rh) const
     {
       return Path != rh.Path;
     }
@@ -78,38 +78,33 @@ namespace Parameters
       return !(*this - sup).IsEmpty();
     }
 
-    NameType operator + (const NameType& rh) const
+    NameType operator+(const NameType& rh) const
     {
       if (Path.empty())
       {
-        return rh.Path.empty()
-          ? NameType()
-          : rh;
+        return rh.Path.empty() ? NameType() : rh;
       }
       else
       {
-        return rh.Path.empty()
-          ? *this
-          : NameType(Path + NAMESPACE_DELIMITER + rh.Path);
+        return rh.Path.empty() ? *this : NameType(Path + NAMESPACE_DELIMITER + rh.Path);
       }
     }
 
-    NameType operator - (const NameType& sup) const
+    NameType operator-(const NameType& sup) const
     {
       const auto supSize = sup.Path.size();
-      return supSize && Path.size() > supSize
-          && 0 == Path.compare(0, supSize, sup.Path)
-          && Path[supSize] == NAMESPACE_DELIMITER
-        ? NameType(Path.substr(supSize + 1))
-        : NameType();
+      return supSize && Path.size() > supSize && 0 == Path.compare(0, supSize, sup.Path)
+                     && Path[supSize] == NAMESPACE_DELIMITER
+                 ? NameType(Path.substr(supSize + 1))
+                 : NameType();
     }
 
-    NameType operator + (String rh) const
+    NameType operator+(String rh) const
     {
-      return operator + (NameType(std::move(rh)));
+      return operator+(NameType(std::move(rh)));
     }
 
-    NameType& operator = (const NameType& rh) = default;
+    NameType& operator=(const NameType& rh) = default;
 
     String FullPath() const
     {
@@ -119,11 +114,10 @@ namespace Parameters
     String Name() const
     {
       const auto lastDelim = Path.find_last_of(NAMESPACE_DELIMITER);
-      return lastDelim != Path.npos
-        ? Path.substr(lastDelim + 1)
-        : Path;
+      return lastDelim != Path.npos ? Path.substr(lastDelim + 1) : Path;
     }
+
   private:
     String Path;
   };
-}
+}  // namespace Parameters

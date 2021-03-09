@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Parameters-related tools
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters-related tools
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/accessor.h>
 #include <parameters/visitor.h>
 
@@ -25,4 +25,4 @@ namespace Parameters
       dst.SetValue(name, val);
     }
   }
-}
+}  // namespace Parameters

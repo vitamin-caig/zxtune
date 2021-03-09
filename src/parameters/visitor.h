@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Parameters visitor interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters visitor interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Parameters
@@ -33,4 +33,4 @@ namespace Parameters
     //! Add/modify data parameter
     virtual void SetValue(const NameType& name, const DataType& val) = 0;
   };
-}
+}  // namespace Parameters
