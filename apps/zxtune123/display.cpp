@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Display component implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Display component implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "console.h"
+// local includes
 #include "display.h"
-//common includes
+#include "console.h"
+// common includes
 #include <error.h>
-//library includes
+// library includes
 #include <module/track_state.h>
 #include <parameters/template.h>
 #include <platform/application.h>
@@ -21,27 +21,25 @@
 #include <strings/template.h>
 #include <time/duration.h>
 #include <time/serialize.h>
-//std includes
+// std includes
 #include <thread>
-//boost includes
+// boost includes
 #include <boost/program_options.hpp>
-//text includes
+// text includes
 #include "text/text.h"
 
 namespace
 {
-  //layout constants
-  //TODO: make dynamic calculation
+  // layout constants
+  // TODO: make dynamic calculation
   const std::size_t INFORMATION_HEIGHT = 5;
   const std::size_t TRACKING_HEIGHT = 3;
   const std::size_t PLAYING_HEIGHT = 2;
 
   inline void ShowTrackingStatus(const Module::TrackState& state)
   {
-    const String& dump = Strings::Format(Text::TRACKING_STATUS,
-      state.Position(), state.Pattern(),
-      state.Line(), state.Quirk(),
-      state.Channels(), state.Tempo());
+    const String& dump = Strings::Format(Text::TRACKING_STATUS, state.Position(), state.Pattern(), state.Line(),
+                                         state.Quirk(), state.Channels(), state.Tempo());
     assert(TRACKING_HEIGHT == static_cast<std::size_t>(std::count(dump.begin(), dump.end(), '\n')));
     StdOut << dump;
   }
@@ -72,12 +70,10 @@ namespace
       , ScrSize(Console::Self().GetSize())
     {
       using namespace boost::program_options;
-      Options.add_options()
-        (Text::SILENT_KEY, bool_switch(&Silent), Text::SILENT_DESC)
-        (Text::QUIET_KEY, bool_switch(&Quiet), Text::QUIET_DESC)
-        (Text::ANALYZER_KEY, bool_switch(&ShowAnalyze), Text::ANALYZER_DESC)
-        (Text::UPDATEFPS_KEY, value<uint_t>(&Updatefps), Text::UPDATEFPS_DESC)
-      ;
+      Options.add_options()(Text::SILENT_KEY, bool_switch(&Silent),
+                            Text::SILENT_DESC)(Text::QUIET_KEY, bool_switch(&Quiet), Text::QUIET_DESC)(
+          Text::ANALYZER_KEY, bool_switch(&ShowAnalyze),
+          Text::ANALYZER_DESC)(Text::UPDATEFPS_KEY, value<uint_t>(&Updatefps), Text::UPDATEFPS_DESC);
     }
 
     const boost::program_options::options_description& GetOptionsDescription() const override
@@ -115,8 +111,9 @@ namespace
         return;
       }
       Message(InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
-      Message(Strings::Format(Text::ITEM_INFO_ADDON, Time::ToString(TotalDuration), Time::ToString(info->LoopDuration())));
-      //TODO: also dump track information
+      Message(
+          Strings::Format(Text::ITEM_INFO_ADDON, Time::ToString(TotalDuration), Time::ToString(info->LoopDuration())));
+      // TODO: also dump track information
     }
 
     Time::AtMillisecond BeginFrame(Sound::PlaybackControl::State state) override
@@ -134,7 +131,7 @@ namespace
       }
       const int_t trackingHeight = TrackState ? TRACKING_HEIGHT : 0;
       const int_t spectrumHeight = ScrSize.second - INFORMATION_HEIGHT - trackingHeight - PLAYING_HEIGHT - 1;
-      if (spectrumHeight < 4)//minimal spectrum height
+      if (spectrumHeight < 4)  // minimal spectrum height
       {
         Analyzer.reset();
       }
@@ -167,9 +164,11 @@ namespace
       if (!Silent && !Quiet)
       {
         const int_t trackingHeight = TrackState ? TRACKING_HEIGHT : 0;
-        Console::Self().MoveCursorUp(Analyzer ? ScrSize.second - INFORMATION_HEIGHT - 1 : trackingHeight + PLAYING_HEIGHT);
+        Console::Self().MoveCursorUp(Analyzer ? ScrSize.second - INFORMATION_HEIGHT - 1
+                                              : trackingHeight + PLAYING_HEIGHT);
       }
     }
+
   private:
     void ShowPlaybackStatus(Time::Milliseconds played, Sound::PlaybackControl::State state) const
     {
@@ -194,7 +193,7 @@ namespace
       {
         const int_t limit = (y - 1) * 100 / high;
         std::transform(AnalyzerData.begin(), AnalyzerData.end(), buffer.begin(),
-          [limit](const int_t val) {return val > limit ? '#' : ' ';});
+                       [limit](const int_t val) { return val > limit ? '#' : ' '; });
         StdOut << buffer << '\n';
       }
       StdOut << std::flush;
@@ -215,7 +214,7 @@ namespace
     bool ShowAnalyze;
     uint_t Updatefps;
     const Strings::Template::Ptr InformationTemplate;
-    //context
+    // context
     Console::SizeType ScrSize;
     Time::Milliseconds TotalDuration;
     Module::State::Ptr State;
@@ -223,7 +222,7 @@ namespace
     Module::Analyzer::Ptr Analyzer;
     std::vector<int_t> AnalyzerData;
   };
-}
+}  // namespace
 
 DisplayComponent::Ptr DisplayComponent::Create()
 {
