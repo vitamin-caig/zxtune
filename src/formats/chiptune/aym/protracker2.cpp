@@ -28,9 +28,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace ProTracker2
   {
@@ -990,5 +988,4 @@ namespace Chiptune
   {
     return MakePtr<ProTracker2::Decoder>();
   }
-}// namespace Chiptune
-}// namespace Formats
+}// namespace Formats::Chiptune

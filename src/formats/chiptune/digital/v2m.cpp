@@ -21,9 +21,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace V2m
   {
@@ -261,5 +259,4 @@ namespace Chiptune
   {
     return MakePtr<V2m::Decoder>();
   }
-}
 }

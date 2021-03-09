@@ -19,9 +19,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace Ultra64SoundFormat
   {
@@ -139,5 +137,4 @@ namespace Chiptune
   {
     return MakePtr<Ultra64SoundFormat::Decoder>();
   }
-}
 }

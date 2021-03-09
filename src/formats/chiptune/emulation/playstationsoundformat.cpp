@@ -69,9 +69,7 @@ si17911@ci.uminho.pt
 
 */
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace PlaystationSoundFormat
   {
@@ -209,5 +207,4 @@ namespace Chiptune
   {
     return MakePtr<PlaystationSoundFormat::Decoder>();
   }
-}
 }

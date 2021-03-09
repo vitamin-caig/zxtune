@@ -20,9 +20,7 @@
 #include <set>
 #include <map>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   class Patcher : public PatchedDataBuilder
   {
@@ -122,7 +120,7 @@ namespace Chiptune
     std::size_t SizeAddon;
   };
 }
-}
+
 
 namespace Formats
 {

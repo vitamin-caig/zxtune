@@ -24,9 +24,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace Playstation2SoundFormat
   {
@@ -257,5 +255,4 @@ namespace Chiptune
   {
     return MakePtr<Playstation2SoundFormat::Decoder>();
   }
-}
 }

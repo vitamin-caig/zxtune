@@ -24,9 +24,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace Mp3
   {
@@ -541,5 +539,4 @@ namespace Chiptune
   {
     return MakePtr<Mp3::Decoder>();
   }
-}
 }

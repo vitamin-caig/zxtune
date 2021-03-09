@@ -28,9 +28,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace ProSoundMakerCompiled
   {
@@ -1115,5 +1113,4 @@ namespace Chiptune
   {
     return MakePtr<ProSoundMakerCompiled::Decoder>();
   }
-}// namespace Chiptune
-}// namespace Formats
+}// namespace Formats::Chiptune

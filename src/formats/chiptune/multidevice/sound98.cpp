@@ -24,9 +24,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace Sound98
   {
@@ -353,5 +351,4 @@ namespace Chiptune
   {
     return MakePtr<Sound98::Decoder>();
   }
-}
 }

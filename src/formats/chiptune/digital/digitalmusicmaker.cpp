@@ -29,9 +29,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace DigitalMusicMaker
   {
@@ -663,5 +661,4 @@ namespace Chiptune
   {
     return MakePtr<DigitalMusicMaker::Decoder>();
   }
-} //namespace Chiptune
-} //namespace Formats
+} //namespace Formats::Chiptune

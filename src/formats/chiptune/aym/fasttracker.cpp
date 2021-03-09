@@ -28,9 +28,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace FastTracker
   {
@@ -1232,5 +1230,4 @@ namespace Chiptune
   {
     return MakePtr<FastTracker::Decoder>();
   }
-}//namespace Chiptune
-}//namespace Formats
+}//namespace Formats::Chiptune

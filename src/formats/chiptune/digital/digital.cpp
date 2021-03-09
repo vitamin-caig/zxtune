@@ -11,9 +11,7 @@
 //local includes
 #include "formats/chiptune/digital/digital.h"
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace Digital
   {
@@ -47,5 +45,4 @@ namespace Chiptune
       return stub;
     }
   }//namespace Digital
-} //namespace Chiptune
-} //namespace Formats
+} //namespace Formats::Chiptune

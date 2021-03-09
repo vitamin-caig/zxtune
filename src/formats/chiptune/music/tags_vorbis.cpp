@@ -19,9 +19,7 @@
 #include <array>
 #include <cctype>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace Vorbis
   {
@@ -101,5 +99,4 @@ namespace Chiptune
       }
     }
   } //namespace Vorbis
-}
 }

@@ -29,9 +29,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace SPC
   {
@@ -679,5 +677,4 @@ namespace Chiptune
   {
     return MakePtr<SPC::Decoder>();
   }
-} //namespace Chiptune
-} //namespace Formats
+} //namespace Formats::Chiptune

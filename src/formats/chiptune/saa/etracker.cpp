@@ -26,9 +26,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace ETracker
   {
@@ -998,5 +996,4 @@ loc_0_8262:
   {
     return MakePtr<ETracker::Decoder>();
   }
-}// namespace Chiptune
-}// namespace Formats
+}// namespace Formats::Chiptune

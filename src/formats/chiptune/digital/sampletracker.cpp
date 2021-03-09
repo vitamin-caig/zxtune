@@ -28,9 +28,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace SampleTracker
   {
@@ -400,5 +398,4 @@ namespace Chiptune
   {
     return MakePtr<SampleTracker::Decoder>();
   }
-} //namespace Chiptune
-} //namespace Formats
+} //namespace Formats::Chiptune

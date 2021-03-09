@@ -28,9 +28,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace Ogg
   {
@@ -544,5 +542,4 @@ namespace Chiptune
   {
     return MakePtr<OggVorbis::Decoder>();
   }
-}
 }

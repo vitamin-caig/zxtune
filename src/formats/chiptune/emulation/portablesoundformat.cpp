@@ -27,11 +27,7 @@
 #include <cctype>
 #include <set>
 
-namespace Formats
-{
-namespace Chiptune
-{
-namespace PortableSoundFormat
+namespace Formats::Chiptune::PortableSoundFormat
 {
   const Debug::Stream Dbg("Formats::Chiptune::PortableSoundFormat");
 
@@ -288,7 +284,4 @@ namespace PortableSoundFormat
       return Container::Ptr();
     }
   }
-
-}
-}
 }

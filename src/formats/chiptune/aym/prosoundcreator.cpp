@@ -33,9 +33,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace ProSoundCreator
   {
@@ -1235,5 +1233,4 @@ namespace Chiptune
   {
     return MakePtr<ProSoundCreator::Decoder>();
   }
-}//namespace Chiptune
-}//namespace Formats
+}//namespace Formats::Chiptune

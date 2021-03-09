@@ -241,9 +241,7 @@ namespace IFF
   };
 }
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace MultiTrackContainer
   {
@@ -553,5 +551,4 @@ namespace Chiptune
   {
     return MakePtr<MultiTrackContainer::Decoder>();
   }
-}
 }

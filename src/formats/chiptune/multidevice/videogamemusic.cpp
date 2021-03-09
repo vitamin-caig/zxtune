@@ -24,9 +24,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace VideoGameMusic
   {
@@ -272,5 +270,4 @@ namespace Chiptune
   {
     return MakePtr<VideoGameMusic::Decoder>();
   }
-}
 }

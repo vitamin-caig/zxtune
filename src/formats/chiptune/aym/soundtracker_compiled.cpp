@@ -27,9 +27,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace SoundTrackerCompiled
   {
@@ -825,5 +823,4 @@ namespace Chiptune
   {
     return SoundTracker::Ver1::CreateCompiledDecoder();
   }
-}// namespace Chiptune
-}// namespace Formats
+}// namespace Formats::Chiptune

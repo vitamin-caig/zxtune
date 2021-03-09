@@ -16,9 +16,7 @@
 //std includes
 #include <array>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace Id3
   {
@@ -254,5 +252,4 @@ namespace Chiptune
       }
     }
   } //namespace Id3
-}
 }

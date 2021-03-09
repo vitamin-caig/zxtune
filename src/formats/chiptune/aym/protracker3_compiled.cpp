@@ -30,9 +30,7 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace ProTracker3
   {
@@ -1015,5 +1013,4 @@ namespace Chiptune
   {
     return ProTracker3::CreateDecoder();
   }
-}// namespace Chiptune
-}// namespace Formats
+}// namespace Formats::Chiptune

@@ -18,9 +18,7 @@
 //std includes
 #include <utility>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   class MultitrackContainer : public Binary::BaseContainer<Container, Multitrack::Container>
   {
@@ -87,5 +85,4 @@ namespace Chiptune
   {
     return MakePtr<MultitrackDecoder>(description, delegate);
   }
-}
 }

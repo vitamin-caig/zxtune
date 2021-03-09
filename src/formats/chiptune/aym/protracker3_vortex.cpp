@@ -34,13 +34,9 @@
 //text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-namespace Chiptune
-{
-namespace ProTracker3
-{
-  namespace VortexTracker2
+  namespace ProTracker3::VortexTracker2
   {
     const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
 
@@ -1651,12 +1647,10 @@ namespace ProTracker3
     {
       return MakePtr<TextBuilder>();
     }
-  }//VortexTracker2
-  }//ProTracker3
+  }//namespace ProTracker3::VortexTracker2
 
   Decoder::Ptr CreateVortexTracker2Decoder()
   {
     return ProTracker3::VortexTracker2::CreateDecoder();
   }
-}// namespace Chiptune
-}// namespace Formats
+}// namespace Formats::Chiptune
