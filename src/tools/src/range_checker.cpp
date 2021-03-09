@@ -1,32 +1,31 @@
 /**
-*
-* @file
-*
-* @brief  Range checking helpers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Range checking helpers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
 #include <range_checker.h>
-//std includes
+// std includes
 #include <cassert>
 #include <map>
 #include <set>
 
 namespace
 {
-  //simple range checker implementation
+  // simple range checker implementation
   class SimpleRangeChecker : public RangeChecker
   {
   public:
     explicit SimpleRangeChecker(std::size_t limit)
       : Limit(limit)
       , Result(Limit, 0)
-    {
-    }
+    {}
 
     bool AddRange(std::size_t offset, std::size_t size) override
     {
@@ -42,23 +41,23 @@ namespace
 
     Range GetAffectedRange() const override
     {
-      return Result.first == Limit
-        ? Range(0, 0)
-        : Result;
+      return Result.first == Limit ? Range(0, 0) : Result;
     }
+
   private:
     const std::size_t Limit;
     Range Result;
   };
 
-  //range checker implementation
+  // range checker implementation
   class RangeCheckerImpl : public RangeChecker
   {
     typedef std::map<std::size_t, std::size_t> RangeMap;
+
   public:
-    explicit RangeCheckerImpl(std::size_t limit) : Base(limit)
-    {
-    }
+    explicit RangeCheckerImpl(std::size_t limit)
+      : Base(limit)
+    {}
 
     bool AddRange(std::size_t offset, std::size_t size) override
     {
@@ -73,18 +72,18 @@ namespace
       }
       // regular iterator for simplification- compiler gets regular iterator from Ranges member
       auto bound = Ranges.upper_bound(offset);
-      if (bound == Ranges.end()) //to end
+      if (bound == Ranges.end())  // to end
       {
         --bound;
         if (bound->first + bound->second > offset)
         {
-          //overlap
+          // overlap
           return false;
         }
       }
       else
       {
-        if (offset + size > bound->first) //before upper bound
+        if (offset + size > bound->first)  // before upper bound
         {
           return false;
         }
@@ -93,7 +92,7 @@ namespace
           --bound;
           if (bound->first + bound->second > offset)
           {
-            //overlap with the previous
+            // overlap with the previous
             return false;
           }
         }
@@ -107,16 +106,16 @@ namespace
 
     Range GetAffectedRange() const override
     {
-      return Ranges.empty()
-        ? Range(0, 0)
-        : Range(Ranges.begin()->first, Ranges.rbegin()->first + Ranges.rbegin()->second);
+      return Ranges.empty() ? Range(0, 0)
+                            : Range(Ranges.begin()->first, Ranges.rbegin()->first + Ranges.rbegin()->second);
     }
+
   private:
     void DoMerge(RangeMap::iterator bound)
     {
       if (bound != Ranges.begin())
       {
-        //try to merge with previous
+        // try to merge with previous
         auto prev = bound;
         --prev;
         assert(prev->first + prev->second <= bound->first);
@@ -127,7 +126,7 @@ namespace
           bound = prev;
         }
       }
-      //try to merge with next
+      // try to merge with next
       auto next = bound;
       if (++next != Ranges.end())
       {
@@ -139,6 +138,7 @@ namespace
         }
       }
     }
+
   private:
     SimpleRangeChecker Base;
     RangeMap Ranges;
@@ -147,10 +147,11 @@ namespace
   class SharedRangeChecker : public RangeChecker
   {
     typedef std::map<std::size_t, std::size_t> RangeMap;
+
   public:
-    explicit SharedRangeChecker(std::size_t limit) : Base(limit)
-    {
-    }
+    explicit SharedRangeChecker(std::size_t limit)
+      : Base(limit)
+    {}
 
     bool AddRange(std::size_t offset, std::size_t size) override
     {
@@ -160,8 +161,7 @@ namespace
       }
       const std::size_t endPos = offset + size;
       auto bound = Ranges.upper_bound(offset);
-      if (bound != Ranges.end() &&
-          endPos > bound->first)
+      if (bound != Ranges.end() && endPos > bound->first)
       {
         return false;
       }
@@ -178,13 +178,13 @@ namespace
       {
         if (bound->first + bound->second > offset)
         {
-          //overlap with prev
+          // overlap with prev
           return false;
         }
       }
       else if (bound->first == offset)
       {
-        //true if full match or zero sized
+        // true if full match or zero sized
         if (bound->second)
         {
           return !size || bound->second == size;
@@ -192,19 +192,19 @@ namespace
       }
       Ranges[offset] = size;
       return true;
-   }
+    }
 
     Range GetAffectedRange() const override
     {
-      return Ranges.empty()
-        ? Range(0, 0)
-        : Range(Ranges.begin()->first, Ranges.rbegin()->first + Ranges.rbegin()->second);
+      return Ranges.empty() ? Range(0, 0)
+                            : Range(Ranges.begin()->first, Ranges.rbegin()->first + Ranges.rbegin()->second);
     }
+
   private:
     SimpleRangeChecker Base;
     RangeMap Ranges;
   };
-}
+}  // namespace
 
 RangeChecker::Ptr RangeChecker::CreateSimple(std::size_t limit)
 {

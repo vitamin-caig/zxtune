@@ -1,14 +1,14 @@
 /**
-*
-* @file
-*
-* @brief  Progress callback helpers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Progress callback helpers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
 #include <progress_callback.h>
 
@@ -17,13 +17,9 @@ namespace
   class StubProgressCallback : public Log::ProgressCallback
   {
   public:
-    void OnProgress(uint_t /*current*/) override
-    {
-    }
+    void OnProgress(uint_t /*current*/) override {}
 
-    void OnProgress(uint_t /*current*/, const String& /*message*/) override
-    {
-    }
+    void OnProgress(uint_t /*current*/, const String& /*message*/) override {}
   };
 
   inline uint_t ScaleToPercent(uint_t total, uint_t current)
@@ -31,15 +27,14 @@ namespace
     return static_cast<uint_t>(uint64_t(current) * 100 / total);
   }
 
-  //TODO: use template method or functor
+  // TODO: use template method or functor
   class PercentProgressCallback : public Log::ProgressCallback
   {
   public:
     PercentProgressCallback(uint_t total, Log::ProgressCallback& delegate)
       : Total(total)
       , Delegate(delegate)
-    {
-    }
+    {}
 
     void OnProgress(uint_t current) override
     {
@@ -52,6 +47,7 @@ namespace
       const int_t curProg = ScaleToPercent(Total, current);
       Delegate.OnProgress(curProg, message);
     }
+
   private:
     const uint_t Total;
     Log::ProgressCallback& Delegate;
@@ -64,8 +60,7 @@ namespace
       : Start(ScaleToPercent(total, current))
       , Range(ScaleToPercent(total, current + 1) - Start)
       , Delegate(delegate)
-    {
-    }
+    {}
 
     void OnProgress(uint_t current) override
     {
@@ -78,17 +73,19 @@ namespace
       const int_t curProg = ScaleToProgress(current);
       Delegate.OnProgress(curProg, message);
     }
+
   private:
     uint_t ScaleToProgress(uint_t position) const
     {
       return Start + static_cast<uint_t>(uint64_t(position) * Range / 100);
     }
+
   private:
     const uint_t Start;
     const uint_t Range;
     Log::ProgressCallback& Delegate;
   };
-}
+}  // namespace
 
 namespace Log
 {
@@ -107,4 +104,4 @@ namespace Log
   {
     return MakePtr<NestedPercentProgressCallback>(total, current, delegate);
   }
-}
+}  // namespace Log

@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Error object implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Error object implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <error_tools.h>
-//text includes
+// text includes
 #include <tools/text/tools.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace
@@ -32,15 +32,15 @@ namespace
       return e.what();
     }
   }
-}
+}  // namespace
 
 // implementation of error's core used to keep data
 struct Error::Meta
 {
   Meta(LocationRef loc, String txt)
-    : Location(std::move(loc)), Text(std::move(txt))
-  {
-  }
+    : Location(std::move(loc))
+    , Text(std::move(txt))
+  {}
 
   // source error location
   Error::Location Location;
@@ -52,12 +52,11 @@ struct Error::Meta
 
 Error::Error(LocationRef loc, const String& txt)
   : ErrorMeta(std::make_shared<Meta>(loc, txt))
-{
-}
+{}
 
 Error& Error::AddSuberror(const Error& e)
 {
-  //do not add/add to 'success' error
+  // do not add/add to 'success' error
   if (e && *this)
   {
     MetaPtr ptr = ErrorMeta;
@@ -90,7 +89,7 @@ Error::operator Error::BoolType() const
   return ErrorMeta ? &Error::TrueFunc : nullptr;
 }
 
-bool Error::operator ! () const
+bool Error::operator!() const
 {
   return !ErrorMeta;
 }
