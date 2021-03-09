@@ -83,9 +83,7 @@ namespace
   }
 }
 
-namespace IO
-{
-namespace File
+namespace IO::File
 {
   const Debug::Stream Dbg("IO::Provider::File");
 
@@ -506,7 +504,6 @@ namespace File
       return CreateLocalFile(path, parameters);
     }
   };
-}
 }
 
 namespace IO

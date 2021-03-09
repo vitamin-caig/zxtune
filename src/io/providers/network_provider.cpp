@@ -29,9 +29,7 @@
 
 #define FILE_TAG 18F46494
 
-namespace IO
-{
-namespace Network
+namespace IO::Network
 {
   const Debug::Stream Dbg("IO::Provider::Network");
 
@@ -370,7 +368,6 @@ namespace Network
     const Curl::Api::Ptr Api;
     const Strings::Set SupportedSchemes;
   };
-}
 }
 
 namespace IO
