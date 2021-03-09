@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Volume control delegate factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Volume control delegate factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <sound/backend.h>
 
 namespace Sound

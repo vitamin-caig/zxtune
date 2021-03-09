@@ -1,22 +1,22 @@
 /**
-*
-* @file
-*
-* @brief  Null backend implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Null backend implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <sound/backend_attrs.h>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 #define FILE_TAG 9A6FD87F
@@ -29,29 +29,17 @@ namespace Sound::Null
   class BackendWorker : public Sound::BackendWorker
   {
   public:
-    void Startup() override
-    {
-    }
+    void Startup() override {}
 
-    void Shutdown() override
-    {
-    }
+    void Shutdown() override {}
 
-    void Pause() override
-    {
-    }
+    void Pause() override {}
 
-    void Resume() override
-    {
-    }
+    void Resume() override {}
 
-    void FrameStart(const Module::State& /*state*/) override
-    {
-    }
+    void FrameStart(const Module::State& /*state*/) override {}
 
-    void FrameFinish(Chunk /*buffer*/) override
-    {
-    }
+    void FrameFinish(Chunk /*buffer*/) override {}
 
     VolumeControl::Ptr GetVolumeControl() const override
     {
@@ -67,7 +55,7 @@ namespace Sound::Null
       return MakePtr<BackendWorker>();
     }
   };
-}//Sound::Null
+}  // namespace Sound::Null
 
 namespace Sound
 {
@@ -76,6 +64,6 @@ namespace Sound
     const BackendWorkerFactory::Ptr factory = MakePtr<Null::BackendWorkerFactory>();
     storage.Register(Null::ID, Null::DESCRIPTION, CAP_TYPE_STUB, factory);
   }
-}
+}  // namespace Sound
 
 #undef FILE_TAG

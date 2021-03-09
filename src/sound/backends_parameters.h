@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Backends parameters names
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Backends parameters names
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
 
 namespace Parameters
@@ -45,7 +45,7 @@ namespace Parameters
           //! @note Not zero if use asynchronous saving
           extern const NameType BUFFERS;
           //@}
-        }
+        }  // namespace File
 
         //! @brief %Win32 backend parameters namespace
         namespace Win32
@@ -66,7 +66,7 @@ namespace Parameters
           //! Buffers count
           extern const NameType BUFFERS;
           //@}
-        }
+        }  // namespace Win32
 
         //! @brief %Oss backend parameters
         namespace Oss
@@ -87,7 +87,7 @@ namespace Parameters
           //! Mixer filename
           extern const NameType MIXER;
           //@}
-        }
+        }  // namespace Oss
 
         //! @brief %Alsa backend parameters
         namespace Alsa
@@ -111,7 +111,7 @@ namespace Parameters
           //! Latency in mS
           extern const NameType LATENCY;
           //@}
-        }
+        }  // namespace Alsa
 
         //! @brief %Sdl backend parameters
         namespace Sdl
@@ -127,7 +127,7 @@ namespace Parameters
           //! Buffers count
           extern const NameType BUFFERS;
           //@}
-        }
+        }  // namespace Sdl
 
         //! @brief %DirectSound backend parameters
         namespace DirectSound
@@ -146,7 +146,7 @@ namespace Parameters
           //! Latency in mS
           extern const NameType LATENCY;
           //@}
-        }
+        }  // namespace DirectSound
 
         //! @brief %Mp3 backend parameters
         namespace Mp3
@@ -157,11 +157,11 @@ namespace Parameters
           //@{
           //! @name Mp3 backend parameters
 
-          const Char MODE_CBR[] = {'c','b','r',0};
-          const Char MODE_VBR[] = {'v','b','r',0};
-          const Char MODE_ABR[] = {'a','b','r',0};
+          const Char MODE_CBR[] = {'c', 'b', 'r', 0};
+          const Char MODE_VBR[] = {'v', 'b', 'r', 0};
+          const Char MODE_ABR[] = {'a', 'b', 'r', 0};
           //! Default
-          const Char MODE_DEFAULT[] = {'c','b','r',0};
+          const Char MODE_DEFAULT[] = {'c', 'b', 'r', 0};
           //! Operational mode
           extern const NameType MODE;
 
@@ -175,14 +175,14 @@ namespace Parameters
           //! VBR quality 9..0
           extern const NameType QUALITY;
 
-          const Char CHANNELS_DEFAULT[] = {'d','e','f','a','u','l','t',0};
-          const Char CHANNELS_STEREO[] = {'s','t','e','r','e','o',0};
-          const Char CHANNELS_JOINTSTEREO[] = {'j','o','i','n','t','s','t','e','r','e','o',0};
-          const Char CHANNELS_MONO[] = {'m','o','n','o',0};
+          const Char CHANNELS_DEFAULT[] = {'d', 'e', 'f', 'a', 'u', 'l', 't', 0};
+          const Char CHANNELS_STEREO[] = {'s', 't', 'e', 'r', 'e', 'o', 0};
+          const Char CHANNELS_JOINTSTEREO[] = {'j', 'o', 'i', 'n', 't', 's', 't', 'e', 'r', 'e', 'o', 0};
+          const Char CHANNELS_MONO[] = {'m', 'o', 'n', 'o', 0};
           //! Channels encoding mode
           extern const NameType CHANNELS;
           //@}
-        }
+        }  // namespace Mp3
 
         //! @brief %Ogg backend parameters
         namespace Ogg
@@ -193,10 +193,11 @@ namespace Parameters
           //@{
           //! @name Ogg backend parameters
 
-          const Char MODE_QUALITY[] = {'q','u','a','l','i','t','y',0};
-          const Char MODE_ABR[] = {'a','b','r',0};
+          const Char MODE_QUALITY[] = {'q', 'u', 'a', 'l', 'i', 't', 'y', 0};
+          const Char MODE_ABR[] = {'a', 'b', 'r', 0};
           //! Default value
-          const Char MODE_DEFAULT[] = {'q','u','a','l','i','t','y',0};;
+          const Char MODE_DEFAULT[] = {'q', 'u', 'a', 'l', 'i', 't', 'y', 0};
+          ;
           // Working mode
           extern const NameType MODE;
 
@@ -210,7 +211,7 @@ namespace Parameters
           //! ABR bitrate in kbps
           extern const NameType BITRATE;
           //@}
-        }
+        }  // namespace Ogg
 
         //! @brief %Flac backend parameters
         namespace Flac
@@ -229,7 +230,7 @@ namespace Parameters
           //! Block size in samples
           extern const NameType BLOCKSIZE;
           //@}
-        }
+        }  // namespace Flac
 
         //! @brief %OpenAl backend parameters namespace
         namespace OpenAl
@@ -250,8 +251,8 @@ namespace Parameters
           //! Buffers count
           extern const NameType BUFFERS;
           //@}
-        }
-      }
-    }
-  }
-}
+        }  // namespace OpenAl
+      }    // namespace Backends
+    }      // namespace Sound
+  }        // namespace ZXTune
+}  // namespace Parameters

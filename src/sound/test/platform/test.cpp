@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Platform test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Platform test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
+#include <iostream>
 #include <sound/backends/alsa.h>
 #include <sound/backends/dsound.h>
 #include <sound/backends/openal.h>
 #include <sound/backends/win32.h>
-#include <iostream>
 #include <strings/format.h>
 
 namespace
@@ -24,7 +24,8 @@ namespace
     for (const Device::Iterator::Ptr devices = EnumerateDevices(); devices->IsValid(); devices->Next())
     {
       const Device::Ptr device = devices->Get();
-      std::cout << Strings::Format("Name: '%1%' Card: '%2%' Id: '%3%'\n", device->Name(), device->CardName(), device->Id());
+      std::cout << Strings::Format("Name: '%1%' Card: '%2%' Id: '%3%'\n", device->Name(), device->CardName(),
+                                   device->Id());
       const Strings::Array& mixers = device->Mixers();
       for (Strings::Array::const_iterator mit = mixers.begin(), mlim = mixers.end(); mit != mlim; ++mit)
       {
@@ -43,7 +44,7 @@ namespace
       std::cout << Strings::Format(" Name: '%1%' Id: '%2%'", device->Name(), device->Id()) << std::endl;
     }
   }
-  
+
   void ShowOpenAlDevices()
   {
     using namespace Sound::OpenAl;
@@ -65,7 +66,7 @@ namespace
       std::cout << Strings::Format(" Name: '%1%' Id: '%2%'", device->Name(), device->Id()) << std::endl;
     }
   }
-}
+}  // namespace
 
 int main()
 {

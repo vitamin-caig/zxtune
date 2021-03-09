@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Parameters::ZXTune::Sound and tested
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters::ZXTune::Sound and tested
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
-#include <zxtune.h>
+// library includes
 #include <sound/backends_parameters.h>
-#include <sound/sound_parameters.h>
 #include <sound/gain.h>
+#include <sound/sound_parameters.h>
+#include <zxtune.h>
 
 namespace
 {
@@ -24,38 +24,37 @@ namespace
     const Parameters::IntType DefVal;
   };
 
-  const MixerValue MIXERS[4][4][2] =
-  {
-    //1-channel
-    {
-      { {"1.0_0", 100}, {"1.0_1", 100} },
-      { {nullptr,         0}, {nullptr,         0} },
-      { {nullptr,         0}, {nullptr,         0} },
-      { {nullptr,         0}, {nullptr,         0} },
-    },
-    //2-channel
-    {
-      { {"2.0_0", 100}, {"2.0_1",   0} },
-      { {"2.1_0",   0}, {"2.1_1", 100} },
-      { {nullptr,         0}, {nullptr,         0} },
-      { {nullptr,         0}, {nullptr,         0} },
-    },
-    //3-channel
-    {
-      { {"3.0_0", 100}, {"3.0_1",   0} },
-      { {"3.1_0",  60}, {"3.1_1",  60} },
-      { {"3.2_0",   0}, {"3.2_1", 100} },
-      { {nullptr,         0}, {nullptr,         0} },
-    },
-    //4-channel
-    {
-      { {"4.0_0", 100}, {"4.0_1",   0} },
-      { {"4.1_0", 100}, {"4.1_1",   0} },
-      { {"4.2_0",   0}, {"4.2_1", 100} },
-      { {"4.3_0",   0}, {"4.3_1", 100} },
-    },
+  const MixerValue MIXERS[4][4][2] = {
+      // 1-channel
+      {
+          {{"1.0_0", 100}, {"1.0_1", 100}},
+          {{nullptr, 0}, {nullptr, 0}},
+          {{nullptr, 0}, {nullptr, 0}},
+          {{nullptr, 0}, {nullptr, 0}},
+      },
+      // 2-channel
+      {
+          {{"2.0_0", 100}, {"2.0_1", 0}},
+          {{"2.1_0", 0}, {"2.1_1", 100}},
+          {{nullptr, 0}, {nullptr, 0}},
+          {{nullptr, 0}, {nullptr, 0}},
+      },
+      // 3-channel
+      {
+          {{"3.0_0", 100}, {"3.0_1", 0}},
+          {{"3.1_0", 60}, {"3.1_1", 60}},
+          {{"3.2_0", 0}, {"3.2_1", 100}},
+          {{nullptr, 0}, {nullptr, 0}},
+      },
+      // 4-channel
+      {
+          {{"4.0_0", 100}, {"4.0_1", 0}},
+          {{"4.1_0", 100}, {"4.1_1", 0}},
+          {{"4.2_0", 0}, {"4.2_1", 100}},
+          {{"4.3_0", 0}, {"4.3_1", 100}},
+      },
   };
-}
+}  // namespace
 
 namespace Parameters
 {
@@ -88,7 +87,7 @@ namespace Parameters
         {
           return MIXERS[totalChannels - 1][inChannel][outChannel].DefVal;
         }
-      }
+      }  // namespace Mixer
 
       namespace Backends
       {
@@ -101,8 +100,8 @@ namespace Parameters
           extern const NameType PREFIX = Backends::PREFIX + "file";
 
           extern const NameType FILENAME = PREFIX + "filename";
-					extern const NameType BUFFERS = PREFIX + "buffers";
-        }
+          extern const NameType BUFFERS = PREFIX + "buffers";
+        }  // namespace File
 
         namespace Win32
         {
@@ -110,7 +109,7 @@ namespace Parameters
 
           extern const NameType DEVICE = PREFIX + "device";
           extern const NameType BUFFERS = PREFIX + "buffers";
-        }
+        }  // namespace Win32
 
         namespace Oss
         {
@@ -118,7 +117,7 @@ namespace Parameters
 
           extern const NameType DEVICE = PREFIX + "device";
           extern const NameType MIXER = PREFIX + "mixer";
-        }
+        }  // namespace Oss
 
         namespace Alsa
         {
@@ -127,14 +126,14 @@ namespace Parameters
           extern const NameType DEVICE = PREFIX + "device";
           extern const NameType MIXER = PREFIX + "mixer";
           extern const NameType LATENCY = PREFIX + "latency";
-        }
+        }  // namespace Alsa
 
         namespace Sdl
         {
           extern const NameType PREFIX = Backends::PREFIX + "sdl";
 
           extern const NameType BUFFERS = PREFIX + "buffers";
-        }
+        }  // namespace Sdl
 
         namespace DirectSound
         {
@@ -142,7 +141,7 @@ namespace Parameters
 
           extern const NameType DEVICE = PREFIX + "device";
           extern const NameType LATENCY = PREFIX + "latency";
-        }
+        }  // namespace DirectSound
 
         namespace Mp3
         {
@@ -152,7 +151,7 @@ namespace Parameters
           extern const NameType BITRATE = PREFIX + "bitrate";
           extern const NameType QUALITY = PREFIX + "quality";
           extern const NameType CHANNELS = PREFIX + "channels";
-        }
+        }  // namespace Mp3
 
         namespace Ogg
         {
@@ -161,7 +160,7 @@ namespace Parameters
           extern const NameType MODE = PREFIX + "mode";
           extern const NameType QUALITY = PREFIX + "quality";
           extern const NameType BITRATE = PREFIX + "bitrate";
-        }
+        }  // namespace Ogg
 
         namespace Flac
         {
@@ -169,7 +168,7 @@ namespace Parameters
 
           extern const NameType COMPRESSION = PREFIX + "compression";
           extern const NameType BLOCKSIZE = PREFIX + "blocksize";
-        }
+        }  // namespace Flac
 
         namespace OpenAl
         {
@@ -177,8 +176,8 @@ namespace Parameters
 
           extern const NameType DEVICE = PREFIX + "device";
           extern const NameType BUFFERS = PREFIX + "buffers";
-        }
-      }
-    }
-  }
-}
+        }  // namespace OpenAl
+      }    // namespace Backends
+    }      // namespace Sound
+  }        // namespace ZXTune
+}  // namespace Parameters

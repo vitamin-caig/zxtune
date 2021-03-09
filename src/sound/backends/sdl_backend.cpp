@@ -1,34 +1,34 @@
 /**
-*
-* @file
-*
-* @brief  SDL backend implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SDL backend implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #define DECLSPEC
 
-//local includes
+// local includes
 #include "sound/backends/backend_impl.h"
+#include "sound/backends/gates/sdl_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
-#include "sound/backends/gates/sdl_api.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//std includes
+// std includes
 #include <condition_variable>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 #define FILE_TAG 608CF986
@@ -49,20 +49,21 @@ namespace Sound::Sdl
   public:
     explicit BackendParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
-    {
-    }
+    {}
 
     uint_t GetBuffersCount() const
     {
       Parameters::IntType val = Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS, val) &&
-          (!Math::InRange<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
+      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS, val)
+          && (!Math::InRange<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
         throw MakeFormattedError(THIS_LINE,
-          translate("SDL backend error: buffers count (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
+                                 translate("SDL backend error: buffers count (%1%) is out of range (%2%..%3%)."),
+                                 static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<uint_t>(val);
     }
+
   private:
     const Parameters::Accessor& Accessor;
   };
@@ -74,8 +75,7 @@ namespace Sound::Sdl
       : Buffers(size)
       , FillIter(Buffers.data(), Buffers.data() + Buffers.size())
       , PlayIter(FillIter)
-    {
-    }
+    {}
 
     void AddData(Chunk& buffer)
     {
@@ -95,7 +95,7 @@ namespace Sound::Sdl
       std::unique_lock<std::mutex> lock(BufferMutex);
       while (len)
       {
-        //wait for data
+        // wait for data
         while (!PlayIter->BytesToPlay)
         {
           FilledEvent.wait(lock);
@@ -109,7 +109,7 @@ namespace Sound::Sdl
         len -= toCopy;
         if (!PlayIter->BytesToPlay)
         {
-          //buffer is played
+          // buffer is played
           ++PlayIter;
           PlayedEvent.notify_one();
         }
@@ -128,14 +128,15 @@ namespace Sound::Sdl
     {
       return Buffers.size();
     }
+
   private:
     std::mutex BufferMutex;
     std::condition_variable FilledEvent, PlayedEvent;
     struct Buffer
     {
-      Buffer() : BytesToPlay()
-      {
-      }
+      Buffer()
+        : BytesToPlay()
+      {}
       uint_t BytesToPlay;
       Chunk Data;
     };
@@ -201,8 +202,8 @@ namespace Sound::Sdl
       const BackendParameters backend(*Params);
       format.freq = sound->SoundFreq();
       format.channels = static_cast< ::Uint8>(Sample::CHANNELS);
-      format.samples = format.freq / 2;// keep 0.5 seconds of data
-      //fix if size is not power of 2
+      format.samples = format.freq / 2;  // keep 0.5 seconds of data
+      // fix if size is not power of 2
       if (0 != (format.samples & (format.samples - 1)))
       {
         unsigned msk = 1;
@@ -237,9 +238,7 @@ namespace Sound::Sdl
       SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void FrameStart(const Module::State& /*state*/)
-    {
-    }
+    virtual void FrameStart(const Module::State& /*state*/) {}
 
     virtual void FrameFinish(Chunk buffer)
     {
@@ -250,6 +249,7 @@ namespace Sound::Sdl
     {
       return VolumeControl::Ptr();
     }
+
   private:
     void CheckCall(bool ok, Error::LocationRef loc) const
     {
@@ -257,8 +257,7 @@ namespace Sound::Sdl
       {
         if (const char* txt = SdlApi->SDL_GetError())
         {
-          throw MakeFormattedError(loc,
-            translate("Error in SDL backend: %1%."), txt);
+          throw MakeFormattedError(loc, translate("Error in SDL backend: %1%."), txt);
         }
         throw Error(loc, translate("Unknown error in SDL backend."));
       }
@@ -269,6 +268,7 @@ namespace Sound::Sdl
       BuffersQueue* const queue = static_cast<BuffersQueue*>(param);
       queue->GetData(stream, len);
     }
+
   private:
     const Api::Ptr SdlApi;
     const Parameters::Accessor::Ptr Params;
@@ -281,17 +281,17 @@ namespace Sound::Sdl
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
       : SdlApi(api)
-    {
-    }
+    {}
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
       return MakePtr<BackendWorker>(SdlApi, params);
     }
+
   private:
     const Api::Ptr SdlApi;
   };
-}//Sound::Sdl
+}  // namespace Sound::Sdl
 
 namespace Sound
 {
@@ -310,6 +310,6 @@ namespace Sound
       storage.Register(Sdl::ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, e);
     }
   }
-}
+}  // namespace Sound
 
 #undef FILE_TAG

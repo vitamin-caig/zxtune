@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Typedef for gain
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Typedef for gain
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <math/fixedpoint.h>
 
 namespace Sound
@@ -24,14 +24,12 @@ namespace Sound
     Gain()
       : LeftVal()
       , RightVal()
-    {
-    }
+    {}
 
     Gain(Type l, Type r)
       : LeftVal(l)
       , RightVal(r)
-    {
-    }
+    {}
 
     Type Left() const
     {
@@ -47,16 +45,17 @@ namespace Sound
     {
       static const Type MIN(0, Type::PRECISION);
       static const Type MAX(Type::PRECISION, Type::PRECISION);
-      //TODO: use Math::Clamp
+      // TODO: use Math::Clamp
       return LeftVal >= MIN && LeftVal <= MAX && RightVal >= MIN && RightVal <= MAX;
     }
 
-    bool operator == (const Gain& rh) const
+    bool operator==(const Gain& rh) const
     {
       return LeftVal == rh.LeftVal && RightVal == rh.RightVal;
     }
+
   private:
     Type LeftVal;
     Type RightVal;
   };
-}
+}  // namespace Sound

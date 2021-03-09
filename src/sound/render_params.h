@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Rendering parameters definition. Used as POD-helper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Rendering parameters definition. Used as POD-helper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/accessor.h>
 #include <parameters/modifier.h>
 #include <sound/loop.h>
@@ -35,7 +35,7 @@ namespace Sound
 
     static Ptr Create(Parameters::Accessor::Ptr soundParameters);
   };
-  
+
   LoopParameters GetLoopParameters(const Parameters::Accessor& params);
   uint_t GetSoundFrequency(const Parameters::Accessor& params);
-}
+}  // namespace Sound

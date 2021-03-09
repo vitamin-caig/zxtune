@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Defenition of mixing-related functionality
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Defenition of mixing-related functionality
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <sound/receiver.h>
 
 namespace Sound
@@ -30,4 +30,4 @@ namespace Sound
   typedef FixedChannelsMixer<2> TwoChannelsMixer;
   typedef FixedChannelsMixer<3> ThreeChannelsMixer;
   typedef FixedChannelsMixer<4> FourChannelsMixer;
-}
+}  // namespace Sound

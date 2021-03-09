@@ -1,17 +1,17 @@
 /**
-*
-* @file
-*
-* @brief  Resampler implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Resampler implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <math/fixedpoint.h>
 #include <sound/resampler.h>
 
@@ -26,7 +26,7 @@ namespace Sound
     const Sample::WideType delta = next - prev;
     return prev + (ratio * delta).Integer();
   }
-  
+
   inline Sample Interpolate(Sample prev, FixedStep ratio, Sample next)
   {
     if (0 == ratio.Raw())
@@ -35,7 +35,8 @@ namespace Sound
     }
     else
     {
-      return Sample(Sound::Interpolate(prev.Left(), ratio, next.Left()), Sound::Interpolate(prev.Right(), ratio, next.Right()));
+      return Sample(Sound::Interpolate(prev.Left(), ratio, next.Left()),
+                    Sound::Interpolate(prev.Right(), ratio, next.Right()));
     }
   }
 
@@ -67,7 +68,7 @@ namespace Sound
       Chunk result;
       result.reserve(1 + (FixedStep(data.size()) / Step).Round());
       Sample next = *it;
-      for (; ; Position += Step)
+      for (;; Position += Step)
       {
         if (Position.Raw() >= Position.PRECISION)
         {
@@ -83,6 +84,7 @@ namespace Sound
       }
       return result;
     }
+
   private:
     const FixedStep Step;
     FixedStep Position;
@@ -124,6 +126,7 @@ namespace Sound
       }
       return result;
     }
+
   private:
     const FixedStep Step;
     FixedStep Position;
@@ -143,25 +146,25 @@ namespace Sound
       return std::move(data);
     }
   };
-  
+
   class UpsampleReceiver : public Receiver
   {
   public:
     UpsampleReceiver(uint_t freqIn, uint_t freqOut, Receiver::Ptr delegate)
       : Delegate(std::move(delegate))
       , Core(freqIn, freqOut)
-    {
-    }
-    
+    {}
+
     void ApplyData(Chunk data) override
     {
       Delegate->ApplyData(Core.Apply(data));
     }
-    
+
     void Flush() override
     {
       Delegate->Flush();
     }
+
   private:
     const Receiver::Ptr Delegate;
     UpsampleCore Core;
@@ -173,25 +176,24 @@ namespace Sound
   public:
     Resampler(uint_t freqIn, uint_t freqOut)
       : Core(freqIn, freqOut)
-    {
-    }
+    {}
 
     Chunk Apply(Chunk in) override
     {
       return Core.Apply(std::move(in));
     }
+
   private:
     CoreType Core;
   };
-  
+
   class DownsampleReceiver : public Receiver
   {
   public:
     DownsampleReceiver(uint_t freqIn, uint_t freqOut, Receiver::Ptr delegate)
       : Delegate(std::move(delegate))
       , Core(freqOut, freqIn)
-    {
-    }
+    {}
 
     void ApplyData(Chunk data) override
     {
@@ -202,6 +204,7 @@ namespace Sound
     {
       Delegate->Flush();
     }
+
   private:
     const Receiver::Ptr Delegate;
     DownsampleCore Core;
@@ -238,4 +241,4 @@ namespace Sound
       return MakePtr<Resampler<DownsampleCore>>(inFreq, outFreq);
     }
   }
-}
+}  // namespace Sound

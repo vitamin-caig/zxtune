@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Render params implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Render params implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 
@@ -23,8 +23,7 @@ namespace Sound
   public:
     explicit RenderParametersImpl(Parameters::Accessor::Ptr params)
       : Params(std::move(params))
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -42,6 +41,7 @@ namespace Sound
       using namespace Parameters::ZXTune::Sound;
       return {0 != FoundProperty(LOOPED, 0), static_cast<uint_t>(FoundProperty(LOOP_LIMIT, 0))};
     }
+
   private:
     Parameters::IntType FoundProperty(const Parameters::NameType& name, Parameters::IntType defVal) const
     {
@@ -49,17 +49,19 @@ namespace Sound
       Params->FindValue(name, ret);
       return ret;
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
   };
 
-  Parameters::IntType GetProperty(const Parameters::Accessor& params, const Parameters::NameType& name, Parameters::IntType defVal = 0)
+  Parameters::IntType GetProperty(const Parameters::Accessor& params, const Parameters::NameType& name,
+                                  Parameters::IntType defVal = 0)
   {
     Parameters::IntType ret = defVal;
     params.FindValue(name, ret);
     return ret;
   }
-}
+}  // namespace Sound
 
 namespace Sound
 {
@@ -79,4 +81,4 @@ namespace Sound
     using namespace Parameters::ZXTune::Sound;
     return static_cast<uint_t>(GetProperty(params, FREQUENCY, FREQUENCY_DEFAULT));
   }
-}
+}  // namespace Sound

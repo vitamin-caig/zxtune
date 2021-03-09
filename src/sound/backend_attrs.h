@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  Backends attributes
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Backends attributes
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
@@ -31,4 +31,4 @@ namespace Sound
     //! Hardware volume control
     CAP_FEAT_HWVOLUME = 0x100
   };
-}
+}  // namespace Sound

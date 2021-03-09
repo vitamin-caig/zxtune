@@ -1,23 +1,23 @@
 /**
-*
-* @file
-*
-* @brief  Mixer implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Mixer implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound/impl/mixer_core.h"
-//common includes
+// common includes
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <l10n/api.h>
 #include <math/numeric.h>
 #include <sound/matrix_mixer.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <numeric>
 
@@ -31,6 +31,7 @@ namespace Sound
   class MixerImpl : public FixedChannelsMatrixMixer<Channels>
   {
     typedef FixedChannelsMatrixMixer<Channels> Base;
+
   public:
     MixerImpl()
     {
@@ -46,7 +47,7 @@ namespace Sound
 
     void SetMatrix(const typename Base::Matrix& data) override
     {
-      if (std::any_of(data.begin(), data.end(), [](Gain gain) {return !gain.IsNormalized();}))
+      if (std::any_of(data.begin(), data.end(), [](Gain gain) { return !gain.IsNormalized(); }))
       {
         throw Error(THIS_LINE, translate("Failed to set mixer matrix: gain is out of range."));
       }
@@ -56,11 +57,12 @@ namespace Sound
         LastMatrix = data;
       }
     }
+
   private:
     MixerCore<Channels> Core;
     typename Base::Matrix LastMatrix;
   };
-}
+}  // namespace Sound
 
 namespace Sound
 {
@@ -87,4 +89,4 @@ namespace Sound
   {
     return MakePtr<MixerImpl<4> >();
   }
-}
+}  // namespace Sound

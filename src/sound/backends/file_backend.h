@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  File-based backends interfaces and fatory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  File-based backends interfaces and fatory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "sound/backends/backend_impl.h"
-//library includes
+// library includes
 #include <binary/output_stream.h>
 #include <sound/receiver.h>
 
@@ -40,4 +40,4 @@ namespace Sound
   };
 
   BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory);
-}
+}  // namespace Sound

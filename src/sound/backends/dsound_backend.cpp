@@ -1,35 +1,35 @@
 /**
-*
-* @file
-*
-* @brief  DirectSound backend implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DirectSound backend implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/dsound.h"
+#include "sound/backends/gates/dsound_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/volume_control.h"
-#include "sound/backends/gates/dsound_api.h"
-//common includes
+// common includes
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <strings/encoding.h>
-//std includes
+// std includes
 #include <thread>
-//boost includes
+// boost includes
 #include <boost/range/size.hpp>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 #define FILE_TAG BCBCECCC
@@ -197,8 +197,7 @@ namespace Sound::DirectSound
 
         for (;;)
         {
-          const HRESULT res = Buff->Lock(Cursor, srcSize,
-            &part1Data, &part1Size, &part2Data, &part2Size, 0);
+          const HRESULT res = Buff->Lock(Cursor, srcSize, &part1Data, &part1Size, &part2Data, &part2Size, 0);
           if (DSERR_BUFFERLOST == res)
           {
             Dbg("Buffer lost. Retry to lock");
@@ -228,8 +227,7 @@ namespace Sound::DirectSound
       DWORD part1Size = 0, part2Size = 0;
       for (;;)
       {
-        const HRESULT res = Buff->Lock(0, 0,
-          &part1Data, &part1Size, &part2Data, &part2Size, DSBLOCK_ENTIREBUFFER);
+        const HRESULT res = Buff->Lock(0, 0, &part1Data, &part1Size, &part2Data, &part2Size, DSBLOCK_ENTIREBUFFER);
         if (DSERR_BUFFERLOST == res)
         {
           Dbg("Buffer lost. Retry to lock");
@@ -255,6 +253,7 @@ namespace Sound::DirectSound
         Wait();
       }
     }
+
   private:
     bool WaitForFree(std::size_t srcSize) const
     {
@@ -273,11 +272,11 @@ namespace Sound::DirectSound
     {
       DWORD playCursor = 0;
       CheckWin32Error(Buff->GetCurrentPosition(&playCursor, NULL), THIS_LINE);
-      if (Cursor > playCursor) //go ahead
+      if (Cursor > playCursor)  // go ahead
       {
         return BuffSize - (Cursor - playCursor);
       }
-      else //overlap
+      else  // overlap
       {
         return playCursor - Cursor;
       }
@@ -294,6 +293,7 @@ namespace Sound::DirectSound
     {
       std::this_thread::sleep_for(SleepPeriod);
     }
+
   private:
     const DirectSoundBufferPtr Buff;
     const std::chrono::milliseconds SleepPeriod;
@@ -301,8 +301,8 @@ namespace Sound::DirectSound
     std::size_t Cursor;
   };
 
-  //in centidecibell
-  //use simple scale method due to less error in forward and backward conversion
+  // in centidecibell
+  // use simple scale method due to less error in forward and backward conversion
   Gain::Type AttenuationToGain(int_t cdB)
   {
     return Gain::Type(1) - Gain::Type(cdB, int(DSBVOLUME_MIN));
@@ -316,18 +316,17 @@ namespace Sound::DirectSound
   class VolumeControl : public Sound::VolumeControl
   {
   public:
-    //buffer depends of device
+    // buffer depends of device
     VolumeControl(DirectSoundPtr device, DirectSoundBufferPtr buffer)
       : Device(device)
       , Buffer(buffer)
-    {
-    }
+    {}
 
     virtual Gain GetVolume() const
     {
       const VolPan vols = GetVolumeImpl();
       static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
-      //in hundredths of a decibel
+      // in hundredths of a decibel
       const int_t attLeft = vols.first - (vols.second > 0 ? vols.second : 0);
       const int_t attRight = vols.first - (vols.second < 0 ? -vols.second : 0);
       const Gain volume(AttenuationToGain(attLeft), AttenuationToGain(attRight));
@@ -344,11 +343,12 @@ namespace Sound::DirectSound
       const int_t attLeft = GainToAttenuation(volume.Left());
       const int_t attRight = GainToAttenuation(volume.Right());
       const LONG vol = std::max(attLeft, attRight);
-      //pan is negative for left
+      // pan is negative for left
       const LONG pan = attLeft < vol ? vol - attLeft : vol - attRight;
       Dbg("SetVolume(vol=%1% pan=%2%)", vol, pan);
       SetVolumeImpl(VolPan(vol, pan));
     }
+
   private:
     typedef std::pair<LONG, LONG> VolPan;
 
@@ -365,6 +365,7 @@ namespace Sound::DirectSound
       CheckWin32Error(Buffer->SetVolume(vols.first), THIS_LINE);
       CheckWin32Error(Buffer->SetPan(vols.second), THIS_LINE);
     }
+
   private:
     const DirectSoundPtr Device;
     const DirectSoundBufferPtr Buffer;
@@ -375,8 +376,7 @@ namespace Sound::DirectSound
   public:
     explicit BackendParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
-    {
-    }
+    {}
 
     String GetDevice() const
     {
@@ -388,14 +388,16 @@ namespace Sound::DirectSound
     uint_t GetLatency() const
     {
       Parameters::IntType latency = Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY, latency) &&
-          !Math::InRange<Parameters::IntType>(latency, LATENCY_MIN, LATENCY_MAX))
+      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY, latency)
+          && !Math::InRange<Parameters::IntType>(latency, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
-          translate("DirectSound backend error: latency (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(latency), LATENCY_MIN, LATENCY_MAX);
+                                 translate("DirectSound backend error: latency (%1%) is out of range (%2%..%3%)."),
+                                 static_cast<int_t>(latency), LATENCY_MIN, LATENCY_MAX);
       }
       return static_cast<uint_t>(latency);
     }
+
   private:
     const Parameters::Accessor& Accessor;
   };
@@ -407,8 +409,7 @@ namespace Sound::DirectSound
       : DsApi(api)
       , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
-    {
-    }
+    {}
 
     virtual void Startup()
     {
@@ -429,13 +430,9 @@ namespace Sound::DirectSound
       Objects.Stream->Pause();
     }
 
-    virtual void Resume()
-    {
-    }
+    virtual void Resume() {}
 
-    virtual void FrameStart(const Module::State& /*state*/)
-    {
-    }
+    virtual void FrameStart(const Module::State& /*state*/) {}
 
     virtual void FrameFinish(Chunk buffer)
     {
@@ -461,6 +458,7 @@ namespace Sound::DirectSound
     {
       return CreateVolumeControlDelegate(Objects.Volume);
     }
+
   private:
     struct DSObjects
     {
@@ -468,7 +466,7 @@ namespace Sound::DirectSound
       StreamBuffer::Ptr Stream;
       VolumeControl::Ptr Volume;
 
-      DSObjects& operator = (const DSObjects& rh)
+      DSObjects& operator=(const DSObjects& rh)
       {
         if (Stream)
         {
@@ -497,11 +495,12 @@ namespace Sound::DirectSound
       res.Volume = MakePtr<VolumeControl>(res.Device, primary);
       return res;
     }
+
   private:
     const Api::Ptr DsApi;
     const Parameters::Accessor::Ptr BackendParams;
     const RenderParameters::Ptr RenderingParameters;
-    DSObjects Objects; 
+    DSObjects Objects;
   };
 
   class BackendWorkerFactory : public Sound::BackendWorkerFactory
@@ -509,13 +508,13 @@ namespace Sound::DirectSound
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
       : DsApi(api)
-    {
-    }
+    {}
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
       return MakePtr<BackendWorker>(DsApi, params);
     }
+
   private:
     const Api::Ptr DsApi;
   };
@@ -526,8 +525,7 @@ namespace Sound::DirectSound
     DirectSoundDevice(const String& id, const String& name)
       : IdValue(id)
       , NameValue(name)
-    {
-    }
+    {}
 
     virtual String Id() const
     {
@@ -538,6 +536,7 @@ namespace Sound::DirectSound
     {
       return NameValue;
     }
+
   private:
     const String IdValue;
     const String NameValue;
@@ -568,9 +567,7 @@ namespace Sound::DirectSound
 
     virtual Device::Ptr Get() const
     {
-      return IsValid()
-        ? MakePtr<DirectSoundDevice>(Current->first, Current->second)
-        : Device::Ptr();
+      return IsValid() ? MakePtr<DirectSoundDevice>(Current->first, Current->second) : Device::Ptr();
     }
 
     virtual void Next()
@@ -580,6 +577,7 @@ namespace Sound::DirectSound
         ++Current;
       }
     }
+
   private:
     static BOOL CALLBACK EnumerateDevicesCallback(LPGUID guid, LPCWSTR descr, LPCWSTR module, LPVOID param)
     {
@@ -592,13 +590,14 @@ namespace Sound::DirectSound
       devices.push_back(IdAndName(id, name));
       return TRUE;
     }
+
   private:
     typedef std::pair<String, String> IdAndName;
     typedef std::vector<IdAndName> DevicesArray;
     DevicesArray Devices;
     DevicesArray::const_iterator Current;
   };
-}//Sound::DirectSound
+}  // namespace Sound::DirectSound
 
 namespace Sound
 {
@@ -638,7 +637,7 @@ namespace Sound
         return Device::Iterator::CreateStub();
       }
     }
-  }
-}
+  }  // namespace DirectSound
+}  // namespace Sound
 
 #undef FILE_TAG

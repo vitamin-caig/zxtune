@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Backend internal interfaces and factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Backend internal interfaces and factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
-#include <module/state.h>
+// library includes
 #include <module/holder.h>
+#include <module/state.h>
 #include <sound/backend.h>
 #include <sound/chunk.h>
 
@@ -42,5 +42,6 @@ namespace Sound
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const = 0;
   };
 
-  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr globalParams, Module::Holder::Ptr holder, BackendCallback::Ptr callback, BackendWorker::Ptr worker);
-}
+  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr globalParams, Module::Holder::Ptr holder,
+                             BackendCallback::Ptr callback, BackendWorker::Ptr worker);
+}  // namespace Sound

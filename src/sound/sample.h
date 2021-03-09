@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Declaration of sound sample
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Declaration of sound sample
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 namespace Sound
@@ -28,14 +28,12 @@ namespace Sound
 
     Sample()
       : Value()
-    {
-    }
+    {}
 
     template<class T>
     Sample(T left, T right)
       : Value((StorageType(static_cast<uint16_t>(right)) << SHIFT) | static_cast<uint16_t>(left))
-    {
-    }
+    {}
 
     WideType Left() const
     {
@@ -47,7 +45,7 @@ namespace Sound
       return static_cast<Type>(Value >> SHIFT);
     }
 
-    bool operator == (const Sample& rh) const
+    bool operator==(const Sample& rh) const
     {
       return Value == rh.Value;
     }
@@ -56,14 +54,15 @@ namespace Sound
     {
       return Sample(lh.Value + rh.Value);
     }
+
   private:
     explicit Sample(uint_t val)
       : Value(val)
-    {
-    }
+    {}
+
   private:
     typedef uint32_t StorageType;
     static const uint_t SHIFT = 8 * sizeof(StorageType) / 2;
     StorageType Value;
   };
-}
+}  // namespace Sound

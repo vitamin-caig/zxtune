@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Defenition of sound receiver interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Defenition of sound receiver interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <data_streaming.h>
-//library includes
+// library includes
 #include <sound/chunk.h>
 #include <sound/multichannel_sample.h>
 
@@ -23,10 +23,11 @@ namespace Sound
   typedef DataConverter<Chunk, Chunk> Converter;
   //! @brief Channel count-specific receivers
   template<unsigned Channels>
-  class FixedChannelsReceiver : public DataReceiver<typename MultichannelSample<Channels>::Type> {};
+  class FixedChannelsReceiver : public DataReceiver<typename MultichannelSample<Channels>::Type>
+  {};
 
   typedef FixedChannelsReceiver<1> OneChannelReceiver;
   typedef FixedChannelsReceiver<2> TwoChannelsReceiver;
   typedef FixedChannelsReceiver<3> ThreeChannelsReceiver;
   typedef FixedChannelsReceiver<4> FourChannelsReceiver;
-}
+}  // namespace Sound

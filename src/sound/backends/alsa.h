@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  ALSA subsystem access functions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ALSA subsystem access functions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <iterator.h>
-//library includes
+// library includes
 #include <strings/array.h>
 
 namespace Sound
@@ -34,5 +34,5 @@ namespace Sound
     };
 
     Device::Iterator::Ptr EnumerateDevices();
-  }
-}
+  }  // namespace Alsa
+}  // namespace Sound

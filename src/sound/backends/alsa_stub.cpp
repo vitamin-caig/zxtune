@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  ALSA backend stub implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ALSA backend stub implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound/backends/alsa.h"
 #include "sound/backends/storage.h"
-//library includes
+// library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 namespace Sound
@@ -30,5 +30,5 @@ namespace Sound
     {
       return Device::Iterator::CreateStub();
     }
-  }
-}
+  }  // namespace Alsa
+}  // namespace Sound

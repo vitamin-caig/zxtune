@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  Backends factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Backends factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
@@ -14,7 +14,7 @@ namespace Sound
 {
   class BackendsStorage;
 
-  //forward declaration of supported backends
+  // forward declaration of supported backends
   void RegisterNullBackend(BackendsStorage& storage);
   void RegisterWavBackend(BackendsStorage& storage);
   void RegisterMp3Backend(BackendsStorage& storage);
@@ -51,11 +51,11 @@ namespace Sound
 
   inline void RegisterAllBackends(BackendsStorage& storage)
   {
-    //potentially unsafe backends
+    // potentially unsafe backends
     RegisterSystemBackends(storage);
-    //stub
+    // stub
     RegisterNullBackend(storage);
-    //never default backends
+    // never default backends
     RegisterFileBackends(storage);
   }
-}
+}  // namespace Sound

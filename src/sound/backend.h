@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Sound backend interface definition
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Sound backend interface definition
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <error.h>
 #include <iterator.h>
-//library includes
+// library includes
 #include <module/analyzer.h>
 #include <module/state.h>
 #include <sound/gain.h>
@@ -142,4 +142,4 @@ namespace Sound
     virtual void OnResume() = 0;
     virtual void OnFinish() = 0;
   };
-}
+}  // namespace Sound

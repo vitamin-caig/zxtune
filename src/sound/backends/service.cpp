@@ -1,27 +1,27 @@
 /**
-*
-* @file
-*
-* @brief  Sound service implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Sound service implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "sound/backends/backends_list.h"
+// local includes
 #include "sound/backends/backend_impl.h"
+#include "sound/backends/backends_list.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
-//common includes
+// common includes
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/service.h>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
@@ -34,13 +34,12 @@ namespace Sound
   class StaticBackendInformation : public BackendInformation
   {
   public:
-    StaticBackendInformation(String id, const char* descr, uint_t caps, Error  status)
+    StaticBackendInformation(String id, const char* descr, uint_t caps, Error status)
       : IdValue(std::move(id))
       , DescrValue(descr)
       , CapsValue(caps)
       , StatusValue(std::move(status))
-    {
-    }
+    {}
 
     String Id() const override
     {
@@ -61,6 +60,7 @@ namespace Sound
     {
       return StatusValue;
     }
+
   private:
     const String IdValue;
     const char* const DescrValue;
@@ -68,15 +68,16 @@ namespace Sound
     const Error StatusValue;
   };
 
-  class ServiceImpl : public Service, public BackendsStorage
+  class ServiceImpl
+    : public Service
+    , public BackendsStorage
   {
   public:
     typedef std::shared_ptr<ServiceImpl> RWPtr;
-    
+
     explicit ServiceImpl(Parameters::Accessor::Ptr options)
       : Options(std::move(options))
-    {
-    }
+    {}
 
     BackendInformation::Iterator::Ptr EnumerateBackends() const override
     {
@@ -101,7 +102,8 @@ namespace Sound
       return result;
     }
 
-    Backend::Ptr CreateBackend(const String& backendId, Module::Holder::Ptr module, BackendCallback::Ptr callback) const override
+    Backend::Ptr CreateBackend(const String& backendId, Module::Holder::Ptr module,
+                               BackendCallback::Ptr callback) const override
     {
       try
       {
@@ -113,8 +115,7 @@ namespace Sound
       }
       catch (const Error& e)
       {
-        throw MakeFormattedError(THIS_LINE,
-          translate("Failed to create backend '%1%'."), backendId).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to create backend '%1%'."), backendId).AddSuberror(e);
       }
     }
 
@@ -140,6 +141,7 @@ namespace Sound
       Infos.push_back(info);
       Dbg("Service(%1%): Registered stub backend %2%", this, id);
     }
+
   private:
     Strings::Array GetOrder() const
     {
@@ -166,10 +168,9 @@ namespace Sound
     BackendWorkerFactory::Ptr FindFactory(const String& id) const
     {
       const std::vector<FactoryWithId>::const_iterator it = std::find(Factories.begin(), Factories.end(), id);
-      return it != Factories.end()
-        ? it->Factory
-        : BackendWorkerFactory::Ptr();
+      return it != Factories.end() ? it->Factory : BackendWorkerFactory::Ptr();
     }
+
   private:
     const Parameters::Accessor::Ptr Options;
     std::vector<BackendInformation::Ptr> Infos;
@@ -178,17 +179,14 @@ namespace Sound
       String Id;
       BackendWorkerFactory::Ptr Factory;
 
-      FactoryWithId()
-      {
-      }
+      FactoryWithId() {}
 
       FactoryWithId(String id, BackendWorkerFactory::Ptr factory)
         : Id(std::move(id))
         , Factory(std::move(factory))
-      {
-      }
+      {}
 
-      bool operator == (const String& id) const
+      bool operator==(const String& id) const
       {
         return Id == id;
       }
@@ -216,6 +214,6 @@ namespace Sound
     RegisterAllBackends(*result);
     return result;
   }
-}
+}  // namespace Sound
 
 #undef FILE_TAG

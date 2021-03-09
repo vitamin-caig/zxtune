@@ -7,7 +7,5 @@ namespace Sound
     return {};
   }
 
-  void RegisterWavBackend(class BackendsStorage&)
-  {
-  }
-}
+  void RegisterWavBackend(class BackendsStorage&) {}
+}  // namespace Sound
