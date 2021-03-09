@@ -25,9 +25,7 @@
 //text include
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace Rar
   {
@@ -448,5 +446,4 @@ namespace Archived
   {
     return MakePtr<RarDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

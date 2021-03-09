@@ -28,9 +28,7 @@
 //text includes
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace UMX
   {
@@ -592,5 +590,4 @@ namespace Archived
   {
     return MakePtr<UMXDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

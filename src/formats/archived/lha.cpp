@@ -30,9 +30,7 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace Lha
   {
@@ -284,6 +282,4 @@ namespace Archived
   {
     return MakePtr<LhaDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
-
+}//namespace Formats::Archived

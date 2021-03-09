@@ -21,9 +21,7 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace FSB
   {
@@ -224,5 +222,4 @@ namespace Archived
   {
     return MakePtr<FSBDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

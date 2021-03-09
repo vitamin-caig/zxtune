@@ -16,11 +16,7 @@
 #include <contract.h>
 #include <make_ptr.h>
 
-namespace Formats
-{
-namespace Archived
-{
-namespace FSB
+namespace Formats::Archived::FSB
 {
   namespace Pcm
   {
@@ -181,6 +177,4 @@ namespace FSB
   {
     return MakePtr<Pcm::Builder>();
   }
-}
-}
 }

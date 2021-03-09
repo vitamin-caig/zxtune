@@ -22,9 +22,7 @@
 #include <map>
 #include <numeric>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace Zip
   {
@@ -374,5 +372,4 @@ namespace Archived
   {
     return MakePtr<ZipDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

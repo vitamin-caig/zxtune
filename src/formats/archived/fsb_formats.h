@@ -15,9 +15,7 @@
 //std includes
 #include <map>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace FSB
   {
@@ -36,5 +34,4 @@ namespace Archived
     FormatBuilder::Ptr CreateOggVorbisBuilder();
     FormatBuilder::Ptr CreateAtrac9Builder();
   }
-}
 }

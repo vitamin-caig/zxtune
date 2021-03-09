@@ -25,9 +25,7 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace Hrip
   {
@@ -215,5 +213,4 @@ namespace Archived
   {
     return MakePtr<HripDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

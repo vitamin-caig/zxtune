@@ -24,9 +24,7 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace SCL
   {
@@ -176,5 +174,4 @@ namespace Archived
   {
     return MakePtr<SCLDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

@@ -24,9 +24,7 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace TRD
   {
@@ -280,5 +278,4 @@ namespace Archived
   {
     return MakePtr<TRDDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

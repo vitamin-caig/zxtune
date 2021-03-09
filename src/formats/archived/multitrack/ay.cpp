@@ -22,9 +22,7 @@
 //text includes
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace MultiAY
   {
@@ -168,5 +166,4 @@ namespace Archived
   {
     return MakePtr<MultiAYDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

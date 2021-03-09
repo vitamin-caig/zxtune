@@ -16,9 +16,7 @@
 #include <binary/input_stream.h>
 #include <strings/format.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace Fmod
   {
@@ -239,5 +237,4 @@ namespace Archived
       return Binary::Container::Ptr();
     }
   }
-}
 }

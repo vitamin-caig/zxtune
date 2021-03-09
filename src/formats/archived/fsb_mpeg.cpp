@@ -15,11 +15,7 @@
 #include <make_ptr.h>
 #include <xrange.h>
 
-namespace Formats
-{
-namespace Archived
-{
-namespace FSB
+namespace Formats::Archived::FSB
 {
   namespace Mpeg
   {
@@ -83,6 +79,4 @@ namespace FSB
   {
     return MakePtr<Mpeg::Builder>();
   }
-}
-}
 }

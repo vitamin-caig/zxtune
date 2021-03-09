@@ -21,9 +21,7 @@
 //text includes
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace MultiSID
   {
@@ -146,5 +144,4 @@ namespace Archived
   {
     return MakePtr<MultiSIDDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

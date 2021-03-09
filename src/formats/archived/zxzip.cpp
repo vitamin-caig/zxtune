@@ -16,9 +16,7 @@
 //library includes
 #include <formats/packed/decoders.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace ZXZip
   {
@@ -113,5 +111,4 @@ namespace Archived
   {
     return MakePtr<ZXZipDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

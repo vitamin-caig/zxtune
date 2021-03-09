@@ -16,9 +16,7 @@
 #include <binary/container.h>
 #include <binary/view.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace Fmod
   {
@@ -72,5 +70,4 @@ namespace Archived
     
     Binary::Container::Ptr Parse(const Binary::Container& rawData, Builder& target);
   }
-}
 }

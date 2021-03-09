@@ -20,9 +20,7 @@
 //text includes
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace MultitrackArchives
   {
@@ -137,5 +135,4 @@ namespace Archived
   {
     return MakePtr<MultitrackArchives::Decoder>(description, delegate);
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

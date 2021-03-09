@@ -17,11 +17,7 @@
 #include <contract.h>
 #include <make_ptr.h>
 
-namespace Formats
-{
-namespace Archived
-{
-namespace FSB
+namespace Formats::Archived::FSB
 {
   namespace Vorbis
   {
@@ -233,6 +229,4 @@ namespace FSB
   {
     return MakePtr<Vorbis::Builder>();
   }
-}
-}
 }

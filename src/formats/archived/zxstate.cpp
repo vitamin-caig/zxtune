@@ -34,9 +34,7 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace ZXState
   {
@@ -751,5 +749,4 @@ namespace Archived
   {
     return MakePtr<ZXStateDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived

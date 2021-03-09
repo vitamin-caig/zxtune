@@ -30,9 +30,7 @@
 //text include
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace SevenZip
   {
@@ -367,5 +365,4 @@ namespace Archived
   {
     return MakePtr<SevenZipDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}//namespace Formats::Archived
