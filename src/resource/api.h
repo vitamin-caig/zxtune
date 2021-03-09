@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Interface for working with embedded resources
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Interface for working with embedded resources
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <binary/container.h>
 
 namespace Resource
@@ -28,4 +28,4 @@ namespace Resource
   };
 
   void Enumerate(Visitor& visitor);
-}
+}  // namespace Resource
