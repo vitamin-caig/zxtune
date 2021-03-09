@@ -1,12 +1,12 @@
 /**
-* 
-* @file
-*
-* @brief OS detection
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief OS detection
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
@@ -37,6 +37,6 @@ namespace Platform
 #else
       static const char OS[] = "unknown-platform";
 #endif
-    }
-  }
-}
+    }  // namespace Details
+  }    // namespace Version
+}  // namespace Platform

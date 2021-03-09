@@ -1,21 +1,21 @@
 /**
-*
-* @file
-*
-* @brief  Darwin implementation of tools
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Darwin implementation of tools
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
+// library includes
 #include <debug/log.h>
 #include <platform/tools.h>
-//platform includes
+// platform includes
 #include <dlfcn.h>
 #include <errno.h>
-#include <unistd.h>
 #include <mach-o/dyld.h>
+#include <unistd.h>
 
 namespace
 {
@@ -27,8 +27,7 @@ namespace
   String GetSharedLibraryName()
   {
     Dl_info info;
-    if (::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info) &&
-        info.dli_sname && info.dli_saddr)
+    if (::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info) && info.dli_sname && info.dli_saddr)
     {
       String result(info.dli_fname);
       Dbg("Shared library name: %1%", result);
@@ -39,11 +38,11 @@ namespace
       return String();
     }
   }
-  
+
   String GetExecutableName()
   {
     String result(100, '\0');
-    for (uint32_t size = result.size(); ; )
+    for (uint32_t size = result.size();;)
     {
       if (::_NSGetExecutablePath(&result[0], &size) == 0)
       {
@@ -55,7 +54,7 @@ namespace
     Dbg("Executable name: %1%", result);
     return result;
   }
-}
+}  // namespace
 
 namespace Platform
 {
@@ -70,4 +69,4 @@ namespace Platform
     static const auto binName = GetExecutableName();
     return binName;
   }
-}
+}  // namespace Platform

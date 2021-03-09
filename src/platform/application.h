@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  Application interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Application interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <strings/array.h>
-//std includes
+// std includes
 #include <iostream>
 #include <memory>
 
@@ -33,4 +33,4 @@ namespace Platform
 
     static std::unique_ptr<Application> Create();
   };
-}
+}  // namespace Platform

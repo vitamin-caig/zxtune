@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Common SharedLibrary logic implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Common SharedLibrary logic implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "shared_library_common.h"
-//common includes
+// common includes
 #include <error_tools.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <l10n/api.h>
 
@@ -23,7 +23,7 @@ namespace
   const Debug::Stream Dbg("Platform");
 
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("platform");
-}
+}  // namespace
 
 namespace Platform
 {
@@ -39,8 +39,8 @@ namespace Platform
   SharedLibrary::Ptr SharedLibrary::Load(const SharedLibrary::Name& name)
   {
     const auto filenames = Details::GetSharedLibraryFilenames(name);
-    Error resError = MakeFormattedError(THIS_LINE,
-      translate("Failed to load dynamic library '%1%' by any of the alternative names."), name.Base());
+    Error resError = MakeFormattedError(
+        THIS_LINE, translate("Failed to load dynamic library '%1%' by any of the alternative names."), name.Base());
     for (const auto& file : filenames)
     {
       SharedLibrary::Ptr res;
@@ -55,7 +55,7 @@ namespace Platform
       }
     }
     throw resError;
-    //workaround for MSVS7.1
+    // workaround for MSVS7.1
     return SharedLibrary::Ptr();
   }
-}
+}  // namespace Platform

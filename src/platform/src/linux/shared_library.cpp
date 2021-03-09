@@ -1,22 +1,22 @@
 /**
-*
-* @file
-*
-* @brief  SharedLibrary implementation for Linux
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SharedLibrary implementation for Linux
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "platform/src/shared_library_common.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <l10n/api.h>
-//platform includes
+// platform includes
 #include <dlfcn.h>
 
 #define FILE_TAG 4C0042B0
@@ -51,15 +51,15 @@ namespace Platform::Details
       {
         return res;
       }
-      throw MakeFormattedError(THIS_LINE,
-        translate("Failed to find symbol '%1%' in shared object."), name);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to find symbol '%1%' in shared object."), name);
     }
+
   private:
     void* const Handle;
   };
-  
+
   const String SUFFIX(".so");
-  
+
   String BuildLibraryFilename(const String& name)
   {
     return "lib" + name + SUFFIX;
@@ -72,15 +72,12 @@ namespace Platform::Details
       res = MakePtr<LinuxSharedLibrary>(handle);
       return Error();
     }
-    return MakeFormattedError(THIS_LINE,
-      translate("Failed to load shared object '%1%' (%2%)."), fileName, ::dlerror());
+    return MakeFormattedError(THIS_LINE, translate("Failed to load shared object '%1%' (%2%)."), fileName, ::dlerror());
   }
-    
+
   String GetSharedLibraryFilename(const String& name)
   {
-    return name.find(SUFFIX) == name.npos
-      ? BuildLibraryFilename(name)
-      : name;
+    return name.find(SUFFIX) == name.npos ? BuildLibraryFilename(name) : name;
   }
 
   std::vector<String> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
@@ -91,4 +88,4 @@ namespace Platform::Details
     std::copy(alternatives.begin(), alternatives.end(), std::back_inserter(res));
     return res;
   }
-}
+}  // namespace Platform::Details

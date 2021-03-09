@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief Version API implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Version API implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 // Used information from http://sourceforge.net/p/predef/wiki/Home/
-#include "platform/version/src/os.h"
 #include "platform/version/src/arch.h"
+#include "platform/version/src/os.h"
 #include "platform/version/src/toolset.h"
-//library includes
+// library includes
 #include <platform/version/api.h>
 #include <strings/format.h>
-//text includes
+// text includes
 #include <platform/version/text/text.h>
 
 namespace Text
@@ -35,8 +35,8 @@ namespace Platform
 
     String GetProgramVersion()
     {
-      #define TOSTRING(a) #a
-      #define STR(a) TOSTRING(a)
+#define TOSTRING(a) #a
+#define STR(a) TOSTRING(a)
       static const char VERSION[] = STR(BUILD_VERSION);
       return VERSION;
     }
@@ -51,7 +51,7 @@ namespace Platform
     {
       const String os = Details::OS;
       const String toolset = Details::TOOLSET;
-      //some business-logic
+      // some business-logic
       if (os == "windows" && toolset == "mingw")
       {
         return toolset;
@@ -61,12 +61,12 @@ namespace Platform
         return os;
       }
     }
-    
+
     String GetBuildArchitecture()
     {
       return Details::ARCH;
     }
-    
+
     String GetBuildArchitectureVersion()
     {
       return Details::ARCH_VERSION;
@@ -74,13 +74,8 @@ namespace Platform
 
     String GetProgramVersionString()
     {
-      return Strings::Format(Text::PROGRAM_VERSION_STRING,
-        GetProgramTitle(),
-        GetProgramVersion(),
-        GetBuildDate(),
-        GetBuildPlatform(),
-        GetBuildArchitecture(),
-        GetBuildArchitectureVersion());
+      return Strings::Format(Text::PROGRAM_VERSION_STRING, GetProgramTitle(), GetProgramVersion(), GetBuildDate(),
+                             GetBuildPlatform(), GetBuildArchitecture(), GetBuildArchitectureVersion());
     }
-  }
-}
+  }  // namespace Version
+}  // namespace Platform

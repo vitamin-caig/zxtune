@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Shared library adapter
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Shared library adapter
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <platform/shared_library.h>
-//std includes
+// std includes
 #include <map>
 
 namespace Platform
@@ -22,8 +22,7 @@ namespace Platform
   public:
     explicit SharedLibraryAdapter(SharedLibrary::Ptr lib)
       : Library(std::move(lib))
-    {
-    }
+    {}
 
     template<class F>
     F GetSymbol(const char* name) const
@@ -37,9 +36,10 @@ namespace Platform
       Symbols.insert(NameToSymbol::value_type(name, symbol));
       return reinterpret_cast<F>(symbol);
     }
+
   private:
     const SharedLibrary::Ptr Library;
     typedef std::map<const char*, void*> NameToSymbol;
     mutable NameToSymbol Symbols;
   };
-}
+}  // namespace Platform
