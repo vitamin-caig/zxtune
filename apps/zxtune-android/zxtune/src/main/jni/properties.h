@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Properties access helpers
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Properties access helpers
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/accessor.h>
 #include <parameters/modifier.h>
-//platform includes
+// platform includes
 #include <jni.h>
 
 namespace Jni
@@ -26,8 +26,8 @@ namespace Jni
   inline String MakeString(JNIEnv* env, jstring str)
   {
     String res;
-    //Since android-4.0.1-r1 GetStringUTFLength returns 0 on null string
-    //So, emulate that behaviour for all platforms
+    // Since android-4.0.1-r1 GetStringUTFLength returns 0 on null string
+    // So, emulate that behaviour for all platforms
     if (const std::size_t size = str ? env->GetStringUTFLength(str) : 0)
     {
       const char* const syms = env->GetStringUTFChars(str, 0);
@@ -43,8 +43,7 @@ namespace Jni
     TempJString(JNIEnv* env, const String& str)
       : Env(env)
       , Jstr(MakeJstring(env, str))
-    {
-    }
+    {}
 
     ~TempJString()
     {
@@ -55,6 +54,7 @@ namespace Jni
     {
       return Jstr;
     }
+
   private:
     JNIEnv* const Env;
     const jstring Jstr;
@@ -66,16 +66,15 @@ namespace Jni
     PropertiesReadHelper(JNIEnv* env, const Parameters::Accessor& params)
       : Env(env)
       , Params(params)
-    {
-    }
-    
+    {}
+
     jlong Get(jstring name, jlong defVal) const
     {
       Parameters::IntType val = defVal;
       Params.FindValue(MakeString(Env, name), val);
       return val;
     }
-    
+
     jstring Get(jstring name, jstring defVal) const
     {
       Parameters::StringType val;
@@ -85,19 +84,19 @@ namespace Jni
       }
       return defVal;
     }
+
   private:
     JNIEnv* const Env;
     const Parameters::Accessor& Params;
   };
-  
+
   class PropertiesWriteHelper
   {
   public:
     PropertiesWriteHelper(JNIEnv* env, Parameters::Modifier& params)
       : Env(env)
       , Params(params)
-    {
-    }
+    {}
 
     virtual void Set(jstring name, jlong value)
     {
@@ -108,8 +107,9 @@ namespace Jni
     {
       Params.SetValue(MakeString(Env, name), MakeString(Env, value));
     }
+
   private:
     JNIEnv* const Env;
     Parameters::Modifier& Params;
   };
-}
+}  // namespace Jni

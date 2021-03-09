@@ -1,32 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief Player access implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Player access implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
+#include "player.h"
 #include "debug.h"
 #include "exception.h"
 #include "global_options.h"
 #include "jni_player.h"
 #include "module.h"
-#include "player.h"
 #include "properties.h"
-//common includes
+// common includes
 #include "contract.h"
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <module/players/pipeline.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/tracking_helper.h>
 #include <sound/mixer_factory.h>
 #include <sound/render_params.h>
-//std includes
+// std includes
 #include <ctime>
 #include <deque>
 
@@ -102,20 +102,20 @@ namespace
       }
       return copied * Sound::Sample::CHANNELS;
     }
-    
+
     uint64_t GetTotalSamplesDone() const
     {
       return TotalSamples;
     }
+
   private:
     struct Buff
     {
       explicit Buff(Sound::Chunk data)
         : Data(std::move(data))
         , Avail(Data.size())
-      {
-      }
-      
+      {}
+
       std::size_t Get(std::size_t count, void* target)
       {
         const std::size_t toCopy = std::min(count, Avail);
@@ -123,14 +123,14 @@ namespace
         Avail -= toCopy;
         return toCopy;
       }
-    
+
       Sound::Chunk Data;
       std::size_t Avail;
     };
     std::deque<Buff> Buffers;
     uint64_t TotalSamples = 0;
   };
-  
+
   class RenderingPerformanceAccountant
   {
   public:
@@ -144,14 +144,14 @@ namespace
       Clocks += std::clock() - LastStart;
       ++Frames;
     }
-    
+
     uint_t Measure(uint64_t totalSamples, uint_t sampleRate) const
     {
       const uint_t MIN_DURATION_SEC = 1;
       const uint_t minSamples = sampleRate * MIN_DURATION_SEC;
       if (totalSamples >= minSamples)
       {
-        if (const uint64_t totalClocks = Clocks + Frames / 2) //compensate measuring error
+        if (const uint64_t totalClocks = Clocks + Frames / 2)  // compensate measuring error
         {
           // 100 * (totalSamples / sampleRate) / (totalClocks / CLOCKS_PER_SEC)
           return (totalSamples * CLOCKS_PER_SEC * 100) / (totalClocks * sampleRate);
@@ -159,6 +159,7 @@ namespace
       }
       return 0;
     }
+
   private:
     std::clock_t LastStart = 0;
     std::clock_t Clocks = 0;
@@ -170,8 +171,7 @@ namespace
   public:
     explicit AnalyzerWithHistory(Module::Analyzer::Ptr delegate)
       : Delegate(std::move(delegate))
-    {
-    }
+    {}
 
     void FrameDone()
     {
@@ -190,7 +190,7 @@ namespace
         const auto& out = History[ReadPos];
         const auto doneEntries = std::min<uint_t>(maxEntries, out.Data.size());
         std::transform(out.Data.begin(), out.Data.begin() + doneEntries, levels,
-          [](Module::Analyzer::LevelType level) {return level.Raw();});
+                       [](Module::Analyzer::LevelType level) { return level.Raw(); });
         ReadPos = (ReadPos + 1) % History.size();
         return doneEntries;
       }
@@ -199,6 +199,7 @@ namespace
         return 0;
       }
     }
+
   private:
     const Module::Analyzer::Ptr Delegate;
     std::array<Module::Analyzer::SpectrumState, 8> History;
@@ -271,12 +272,13 @@ namespace
       return RenderingPerformance.Measure(Buffer.GetTotalSamplesDone(), Samplerate);
     }
 
-    //TODO: move to State
+    // TODO: move to State
     uint_t GetPlaybackProgress() const override
     {
       const auto played = Time::Microseconds::FromRatio(Buffer.GetTotalSamplesDone(), Samplerate);
       return (played * 100).Divide<uint_t>(Duration);
     }
+
   private:
     Sound::Chunk RenderNextFrame()
     {
@@ -287,6 +289,7 @@ namespace
       Analyser.FrameDone();
       return chunk;
     }
+
   private:
     void ApplyParameters()
     {
@@ -295,6 +298,7 @@ namespace
         Looped = Sound::GetLoopParameters(*Props);
       }
     }
+
   private:
     const Time::Milliseconds Duration;
     const uint_t Samplerate;
@@ -322,8 +326,7 @@ namespace
       , Storage(storage)
       , Length(Env->GetArrayLength(Storage))
       , Content(static_cast<ResultType*>(Env->GetPrimitiveArrayCritical(Storage, 0)))
-    {
-    }
+    {}
 
     ~AutoArray()
     {
@@ -333,7 +336,7 @@ namespace
       }
     }
 
-    operator bool () const
+    operator bool() const
     {
       return Length != 0 && Content != 0;
     }
@@ -347,13 +350,14 @@ namespace
     {
       return Length;
     }
+
   private:
     JNIEnv* const Env;
     const StorageType Storage;
     const jsize Length;
     ResultType* const Content;
   };
-}
+}  // namespace
 
 namespace Player
 {
@@ -374,10 +378,9 @@ namespace Player
   {
     NativePlayerJni::Cleanup(env);
   }
-}
+}  // namespace Player
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_close
-  (JNIEnv* /*env*/, jclass /*self*/, jint handle)
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_close(JNIEnv* /*env*/, jclass /*self*/, jint handle)
 {
   if (Player::Storage::Instance().Fetch(handle))
   {
@@ -385,11 +388,9 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_close
   }
 }
 
-JNIEXPORT jboolean JNICALL Java_app_zxtune_core_jni_JniPlayer_render
-  (JNIEnv* env, jobject self, jshortArray buffer)
+JNIEXPORT jboolean JNICALL Java_app_zxtune_core_jni_JniPlayer_render(JNIEnv* env, jobject self, jshortArray buffer)
 {
-  return Jni::Call(env, [=] ()
-  {
+  return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     typedef AutoArray<jshortArray, int16_t> ArrayType;
     ArrayType buf(env, buffer);
@@ -405,11 +406,9 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_core_jni_JniPlayer_render
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze
-  (JNIEnv* env, jobject self, jbyteArray levels)
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze(JNIEnv* env, jobject self, jbyteArray levels)
 {
-  return Jni::Call(env, [=] ()
-  {
+  return Jni::Call(env, [=]() {
     // Should be before AutoArray calls - else causes 'using JNI after critical get' error
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto player = Player::Storage::Instance().Find(playerHandle);
@@ -426,11 +425,9 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPositionMs
-  (JNIEnv* env, jobject self)
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPositionMs(JNIEnv* env, jobject self)
 {
-  return Jni::Call(env, [=] ()
-  {
+  return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     if (const auto player = Player::Storage::Instance().Find(playerHandle))
     {
@@ -443,11 +440,9 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPositionMs
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPositionMs
-  (JNIEnv* env, jobject self, jint position)
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPositionMs(JNIEnv* env, jobject self, jint position)
 {
-  return Jni::Call(env, [=] ()
-  {
+  return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     if (const auto player = Player::Storage::Instance().Find(playerHandle))
     {
@@ -456,11 +451,9 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setPositionMs
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPerformance
-  (JNIEnv* env, jobject self)
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPerformance(JNIEnv* env, jobject self)
 {
-  return Jni::Call(env, [=] ()
-  {
+  return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     if (const auto player = Player::Storage::Instance().Find(playerHandle))
     {
@@ -473,11 +466,9 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getPerformance
   });
 }
 
-JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getProgress
-  (JNIEnv* env, jobject self)
+JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getProgress(JNIEnv* env, jobject self)
 {
-  return Jni::Call(env, [=] ()
-  {
+  return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     if (const auto player = Player::Storage::Instance().Find(playerHandle))
     {
@@ -490,11 +481,11 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_getProgress
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lang_String_2J
-  (JNIEnv* env, jobject self, jstring propName, jlong value)
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lang_String_2J(JNIEnv* env, jobject self,
+                                                                                            jstring propName,
+                                                                                            jlong value)
 {
-  return Jni::Call(env, [=] ()
-  {
+  return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     if (const auto player = Player::Storage::Instance().Get(playerHandle))
     {
@@ -505,11 +496,10 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lan
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lang_String_2Ljava_lang_String_2
-  (JNIEnv* env, jobject self, jstring propName, jstring value)
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_setProperty__Ljava_lang_String_2Ljava_lang_String_2(
+    JNIEnv* env, jobject self, jstring propName, jstring value)
 {
-  return Jni::Call(env, [=] ()
-  {
+  return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     if (const auto player = Player::Storage::Instance().Get(playerHandle))
     {

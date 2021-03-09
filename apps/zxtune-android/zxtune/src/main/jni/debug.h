@@ -1,17 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Debug functionality interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
-
+ *
+ * @file
+ *
+ * @brief Debug functionality interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <debug/log.h>
 
 extern const Debug::Stream Dbg;

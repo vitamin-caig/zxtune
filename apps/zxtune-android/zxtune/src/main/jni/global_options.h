@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Global parameters interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Global parameters interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/container.h>
 
 namespace Parameters

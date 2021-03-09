@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief Player access interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Player access interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "storage.h"
-//library includes
+// library includes
 #include <module/holder.h>
 #include <parameters/container.h>
-//platform includes
+// platform includes
 #include <jni.h>
 
 namespace Player
@@ -32,10 +32,10 @@ namespace Player
 
     virtual uint_t GetPosition() const = 0;
     virtual uint_t Analyze(uint_t maxEntries, uint8_t* levels) const = 0;
-    
+
     virtual bool Render(uint_t samples, int16_t* buffer) = 0;
     virtual void Seek(uint_t frame) = 0;
-    
+
     virtual uint_t GetPlaybackPerformance() const = 0;
     virtual uint_t GetPlaybackProgress() const = 0;
   };
@@ -46,4 +46,4 @@ namespace Player
 
   void InitJni(JNIEnv*);
   void CleanupJni(JNIEnv*);
-}
+}  // namespace Player
