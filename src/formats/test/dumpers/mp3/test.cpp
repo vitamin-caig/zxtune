@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  MP3 dumper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  MP3 dumper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../../utils.h"
 #include <formats/chiptune/music/mp3.h>
@@ -16,29 +16,31 @@ namespace
 {
   using namespace Formats::Chiptune;
 
-  class Mp3Builder : public Mp3::Builder, public MetaBuilder
+  class Mp3Builder
+    : public Mp3::Builder
+    , public MetaBuilder
   {
   public:
     void SetProgram(const String& program) override
     {
       std::cout << "Program: " << program << std::endl;
     }
-    
+
     void SetTitle(const String& title) override
     {
       std::cout << "Title: " << title << std::endl;
     }
-    
+
     void SetAuthor(const String& author) override
     {
       std::cout << "Author: " << author << std::endl;
     }
-    
+
     void SetStrings(const Strings::Array& strings) override
     {
       for (const auto& str : strings)
       {
-        std::cout << "Strings: " <<  str << std::endl;
+        std::cout << "Strings: " << str << std::endl;
       }
     }
 
@@ -46,14 +48,14 @@ namespace
     {
       return *this;
     }
-    
+
     void AddFrame(const Mp3::Frame& frame) override
     {
-      std::cout << Strings::Format("Frame: @%1%(0x%1$08x)/%2% bytes %3%hz %4% samples\n",
-        frame.Location.Offset, frame.Location.Size, frame.Properties.Samplerate, frame.Properties.SamplesCount);
+      std::cout << Strings::Format("Frame: @%1%(0x%1$08x)/%2% bytes %3%hz %4% samples\n", frame.Location.Offset,
+                                   frame.Location.Size, frame.Properties.Samplerate, frame.Properties.SamplesCount);
     }
   };
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

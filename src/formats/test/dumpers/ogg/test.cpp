@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  OGG dumper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  OGG dumper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../../utils.h"
 #include <formats/chiptune/music/oggvorbis.h>
@@ -16,29 +16,31 @@ namespace
 {
   using namespace Formats::Chiptune;
 
-  class OggBuilder : public OggVorbis::Builder, public MetaBuilder
+  class OggBuilder
+    : public OggVorbis::Builder
+    , public MetaBuilder
   {
   public:
     void SetProgram(const String& program) override
     {
       std::cout << "Program: " << program << std::endl;
     }
-    
+
     void SetTitle(const String& title) override
     {
       std::cout << "Title: " << title << std::endl;
     }
-    
+
     void SetAuthor(const String& author) override
     {
       std::cout << "Author: " << author << std::endl;
     }
-    
+
     void SetStrings(const Strings::Array& strings) override
     {
       for (const auto& str : strings)
       {
-        std::cout << "Strings: " <<  str << std::endl;
+        std::cout << "Strings: " << str << std::endl;
       }
     }
 
@@ -51,7 +53,7 @@ namespace
     {
       std::cout << "StreamId: " << id << std::endl;
     }
-    
+
     void SetProperties(uint_t channels, uint_t frequency, uint_t blockSizeLo, uint_t blockSizeHi) override
     {
       std::cout << "Channels: " << channels << std::endl
@@ -59,18 +61,18 @@ namespace
                 << "BlockSizeLo: " << blockSizeLo << std::endl
                 << "BlockSizeHi: " << blockSizeHi << std::endl;
     }
-    
+
     void SetSetup(Binary::View data) override
     {
       std::cout << "Setup: " << data.Size() << " bytes" << std::endl;
     }
-    
+
     void AddFrame(std::size_t offset, uint_t samplesCount, Binary::View data) override
     {
       std::cout << Strings::Format("Frame: @%1%(0x%1$08x) %2% samples, %3% bytes\n", offset, samplesCount, data.Size());
     }
   };
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  HRiP test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  HRiP test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../utils.h"
 
@@ -41,8 +41,7 @@ namespace
     tests["test48k"] = Dump(data + 0x21c0, data + 0x4821);
     Test::TestPacked(*packed, etalon, tests);
   }
-}
-
+}  // namespace
 
 int main()
 {

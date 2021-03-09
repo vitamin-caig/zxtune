@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  WAV dumper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  WAV dumper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../../utils.h"
 #include <formats/chiptune/music/wav.h>
@@ -25,7 +25,7 @@ namespace
   {
     String result;
     result.reserve(data.Size() * 2);
-    for (const auto* p = data.As<uint8_t>(), *lim = p + data.Size(); p != lim; ++p)
+    for (const auto *p = data.As<uint8_t>(), *lim = p + data.Size(); p != lim; ++p)
     {
       result += ToHex(*p >> 4);
       result += ToHex(*p & 15);
@@ -33,29 +33,31 @@ namespace
     return result;
   }
 
-  class WavBuilder : public Wav::Builder, public MetaBuilder
+  class WavBuilder
+    : public Wav::Builder
+    , public MetaBuilder
   {
   public:
     void SetProgram(const String& program) override
     {
       std::cout << "Program: " << program << std::endl;
     }
-    
+
     void SetTitle(const String& title) override
     {
       std::cout << "Title: " << title << std::endl;
     }
-    
+
     void SetAuthor(const String& author) override
     {
       std::cout << "Author: " << author << std::endl;
     }
-    
+
     void SetStrings(const Strings::Array& strings) override
     {
       for (const auto& str : strings)
       {
-        std::cout << "Strings: " <<  str << std::endl;
+        std::cout << "Strings: " << str << std::endl;
       }
     }
 
@@ -66,39 +68,35 @@ namespace
 
     void SetProperties(uint_t formatCode, uint_t frequency, uint_t channels, uint_t bits, uint_t blocksize) override
     {
-      std::cout <<
-      "Format: " << FormatToString(formatCode) <<
-      "\nFrequency: " << frequency <<
-      "\nChannels: " << channels <<
-      "\nBits: " << bits <<
-      "\nBlocksize: " << blocksize << std::endl;
+      std::cout << "Format: " << FormatToString(formatCode) << "\nFrequency: " << frequency
+                << "\nChannels: " << channels << "\nBits: " << bits << "\nBlocksize: " << blocksize << std::endl;
     }
 
-    void SetExtendedProperties(uint_t validBitsOrBlockSize, uint_t channelsMask,
-      const Wav::Guid& formatId, Binary::View restData) override
+    void SetExtendedProperties(uint_t validBitsOrBlockSize, uint_t channelsMask, const Wav::Guid& formatId,
+                               Binary::View restData) override
     {
-      std::cout <<
-      "Extdended format: {" << ToHex(formatId) << "}"
-      "\nValid bits or block size: " << validBitsOrBlockSize <<
-      "\nChannels mask: " << channelsMask <<
-      "\nExtra data: (" << restData.Size() << " bytes) " << ToHex(restData) << std::endl; 
+      std::cout << "Extdended format: {" << ToHex(formatId)
+                << "}"
+                   "\nValid bits or block size: "
+                << validBitsOrBlockSize << "\nChannels mask: " << channelsMask << "\nExtra data: (" << restData.Size()
+                << " bytes) " << ToHex(restData) << std::endl;
     }
 
     void SetExtraData(Binary::View data) override
     {
-      std::cout <<
-      "\nExtra data: (" << data.Size() << " bytes) " << ToHex(data) << std::endl;
+      std::cout << "\nExtra data: (" << data.Size() << " bytes) " << ToHex(data) << std::endl;
     }
 
     void SetSamplesData(Binary::Container::Ptr data) override
     {
       std::cout << "Samples data: " << data->Size() << " bytes" << std::endl;
     }
-    
+
     void SetSamplesCountHint(uint_t count) override
     {
       std::cout << "Samples: " << count << std::endl;
     }
+
   private:
     static const char* FormatToString(uint_t formatCode)
     {
@@ -119,7 +117,7 @@ namespace
       }
     }
   };
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

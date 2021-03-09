@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  Hrum test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Hrum test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../utils.h"
 

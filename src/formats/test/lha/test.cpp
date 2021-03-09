@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  LHA test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  LHA test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../utils.h"
 
@@ -38,7 +38,7 @@ namespace
     files.push_back("test/lh5");
     Test::TestArchived(*archived, "etalon.bin", "test_h2.lha", files);
   }
-}
+}  // namespace
 
 int main()
 {

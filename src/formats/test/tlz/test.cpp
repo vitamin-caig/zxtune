@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  TLZ test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TLZ test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../utils.h"
 
@@ -27,8 +27,7 @@ namespace
     tests.push_back("packed2.bin");
     Test::TestPacked(*decoder, "etalon.bin", tests);
   }
-}
-
+}  // namespace
 
 int main()
 {

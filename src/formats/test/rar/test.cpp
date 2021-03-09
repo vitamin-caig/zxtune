@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  RAR test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  RAR test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../utils.h"
 
@@ -15,14 +15,14 @@ namespace
   void TestBase(const Dump& etalon)
   {
     std::cout << "Testing usual archive" << std::endl;
-    //0ffsets:
-    //0x14
-    //0x403a
-    //0x6095
-    //0x80ef
-    //0xa10d
-    //0xc129
-    //0xe148
+    // 0ffsets:
+    // 0x14
+    // 0x403a
+    // 0x6095
+    // 0x80ef
+    // 0xa10d
+    // 0xc129
+    // 0xe148
     Dump rar;
     Test::OpenFile("test_v2.rar", rar);
 
@@ -53,9 +53,9 @@ namespace
   void TestSolid(const Dump& etalon)
   {
     std::cout << "Testing solid archive" << std::endl;
-    //Offsets:
-    //0x14
-    //0x2033
+    // Offsets:
+    // 0x14
+    // 0x2033
     Dump rar;
     Test::OpenFile("test_v2solid5.rar", rar);
 
@@ -72,7 +72,7 @@ namespace
     files.push_back("p5_solid.bin");
     Test::TestArchived(*archived, "etalon.bin", "test_v2solid5.rar", files);
   }
-}
+}  // namespace
 
 int main()
 {

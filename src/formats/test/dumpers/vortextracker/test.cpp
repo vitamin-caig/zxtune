@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  VortexTracker-based tracks dumper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  VortexTracker-based tracks dumper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../../utils.h"
 #include <formats/chiptune/aym/protracker3.h>
@@ -28,7 +28,7 @@ namespace
       throw std::runtime_error("Invalid type " + type);
     }
   }
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {
@@ -41,7 +41,8 @@ int main(int argc, char* argv[])
     std::unique_ptr<Dump> rawData(new Dump());
     Test::OpenFile(argv[2], *rawData);
     const Binary::Container::Ptr data = Binary::CreateContainer(std::move(rawData));
-    const Formats::Chiptune::ProTracker3::ChiptuneBuilder::Ptr builder = Formats::Chiptune::ProTracker3::VortexTracker2::CreateBuilder();
+    const Formats::Chiptune::ProTracker3::ChiptuneBuilder::Ptr builder =
+        Formats::Chiptune::ProTracker3::VortexTracker2::CreateBuilder();
     const std::string type(argv[1]);
     const Formats::Chiptune::ProTracker3::Decoder::Ptr decoder = CreateDecoder(type);
     decoder->Parse(*data, *builder);

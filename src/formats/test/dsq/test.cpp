@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  DataSqueezer test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DataSqueezer test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../utils.h"
 
@@ -19,9 +19,9 @@ int main()
     tests.push_back("win512.bin");
     tests.push_back("win1024.bin");
     tests.push_back("win2048.bin");
-    //tests.push_back("win4096.bin");
+    // tests.push_back("win4096.bin");
     tests.push_back("win8192.bin");
-    //tests.push_back("win16384.bin");
+    // tests.push_back("win16384.bin");
     tests.push_back("win32768.bin");
     tests.push_back("60005f00.bin");
     tests.push_back("60006100.bin");
