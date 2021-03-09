@@ -31,9 +31,7 @@
 
 #define FILE_TAG B01A305D
 
-namespace Sound
-{
-namespace Ogg
+namespace Sound::Ogg
 {
   const Debug::Stream Dbg("Sound::Backend::Ogg");
 
@@ -423,8 +421,7 @@ namespace Ogg
     const Vorbis::Api::Ptr VorbisApi;
     const VorbisEnc::Api::Ptr VorbisEncApi;
   };
-}//Ogg
-}//Sound
+}//Sound::Ogg
 
 namespace Sound
 {

@@ -21,9 +21,7 @@
 
 #define FILE_TAG 9A6FD87F
 
-namespace Sound
-{
-namespace Null
+namespace Sound::Null
 {
   const String ID = Text::NULL_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("Null output backend");
@@ -69,8 +67,7 @@ namespace Null
       return MakePtr<BackendWorker>();
     }
   };
-}//Null
-}//Sound
+}//Sound::Null
 
 namespace Sound
 {

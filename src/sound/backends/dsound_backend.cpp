@@ -34,9 +34,7 @@
 
 #define FILE_TAG BCBCECCC
 
-namespace Sound
-{
-namespace DirectSound
+namespace Sound::DirectSound
 {
   const Debug::Stream Dbg("Sound::Backend::DirectSound");
 
@@ -600,8 +598,7 @@ namespace DirectSound
     DevicesArray Devices;
     DevicesArray::const_iterator Current;
   };
-}//DirectSound
-}//Sound
+}//Sound::DirectSound
 
 namespace Sound
 {

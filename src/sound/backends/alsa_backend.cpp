@@ -37,9 +37,7 @@
 
 #define FILE_TAG 8B5627E4
 
-namespace Sound
-{
-namespace Alsa
+namespace Sound::Alsa
 {
   const Debug::Stream Dbg("Sound::Backend::Alsa");
 
@@ -1035,8 +1033,7 @@ namespace Alsa
     DevicesIterator Devices;
     Device::Ptr Current;
   };
-}//Alsa
-}//Sound
+}//Sound::Alsa
 
 namespace Sound
 {

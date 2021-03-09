@@ -29,9 +29,7 @@
 
 #define FILE_TAG 6575CD3F
 
-namespace Sound
-{
-namespace Flac
+namespace Sound::Flac
 {
   const Debug::Stream Dbg("Sound::Backend::Flac");
 
@@ -288,8 +286,7 @@ namespace Flac
   private:
     const Api::Ptr FlacApi;
   };
-}//Flac
-}//Sound
+}//Sound::Flac
 
 namespace Sound
 {

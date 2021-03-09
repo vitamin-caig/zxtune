@@ -33,9 +33,7 @@
 
 #define FILE_TAG 608CF986
 
-namespace Sound
-{
-namespace Sdl
+namespace Sound::Sdl
 {
   const Debug::Stream Dbg("Sound::Backend::Sdl");
 
@@ -293,8 +291,7 @@ namespace Sdl
   private:
     const Api::Ptr SdlApi;
   };
-}//Sdl
-}//Sound
+}//Sound::Sdl
 
 namespace Sound
 {

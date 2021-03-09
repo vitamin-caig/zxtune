@@ -33,9 +33,7 @@
 
 #define FILE_TAG 07CDA82B
 
-namespace Sound
-{
-namespace OpenAl
+namespace Sound::OpenAl
 {
   const Debug::Stream Dbg("Sound::Backend::OpenAL");
 
@@ -436,8 +434,7 @@ namespace OpenAl
   private:
     const Api::Ptr OalApi;
   };
-}//OpenAl
-}//Sound
+}//Sound::OpenAl
 
 namespace Sound
 {

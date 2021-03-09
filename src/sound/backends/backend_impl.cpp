@@ -27,9 +27,7 @@
 
 #define FILE_TAG B3D60DB5
 
-namespace Sound
-{
-namespace BackendBase
+namespace Sound::BackendBase
 {
   const Debug::Stream Dbg("Sound::Backend::Base");
 
@@ -404,7 +402,6 @@ namespace BackendBase
     const Module::Renderer::Ptr Renderer;
     const PlaybackControl::Ptr Control;
   };
-}
 }
 
 namespace Sound

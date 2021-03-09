@@ -30,9 +30,7 @@
 
 #define FILE_TAG B4CB6B0C
 
-namespace Sound
-{
-namespace File
+namespace Sound::File
 {
   const Debug::Stream Dbg("Sound::Backend::FileBase");
 
@@ -317,8 +315,7 @@ namespace File
     std::unique_ptr<StreamSource> Source;
     Receiver::Ptr Stream;
   };
-}//File
-}//Sound
+}//Sound::File
 
 namespace Sound
 {

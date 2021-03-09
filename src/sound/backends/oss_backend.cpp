@@ -39,9 +39,7 @@
 
 #define FILE_TAG 69200152
 
-namespace Sound
-{
-namespace Oss
+namespace Sound::Oss
 {
   const Debug::Stream Dbg("Sound::Backend::Oss");
 
@@ -392,8 +390,7 @@ namespace Oss
       return MakePtr<BackendWorker>(params);
     }
   };
-}//Oss
-}//Sound
+}//Sound::Oss
 
 namespace Sound
 {

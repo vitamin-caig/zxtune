@@ -29,9 +29,7 @@
 
 #define FILE_TAG EF5CB4C6
 
-namespace Sound
-{
-namespace Wav
+namespace Sound::Wav
 {
   const String ID = Text::WAV_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("WAV support backend");
@@ -277,8 +275,7 @@ namespace Wav
       return CreateFileBackendWorker(params, factory);
     }
   };
-}//Wav
-}//Sound
+}//Sound::Wav
 
 namespace Sound
 {

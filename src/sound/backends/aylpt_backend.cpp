@@ -33,9 +33,7 @@
 
 #define FILE_TAG F1936398
 
-namespace Sound
-{
-namespace AyLpt
+namespace Sound::AyLpt
 {
   const Debug::Stream Dbg("Sound::Backend::Aylpt");
 
@@ -263,8 +261,7 @@ namespace AyLpt
   private:
     const LptPort::Ptr Port;
   };
-}//AyLpt
-}//Sound
+}//Sound::AyLpt
 
 namespace Sound
 {

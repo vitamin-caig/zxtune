@@ -31,9 +31,7 @@
 
 #define FILE_TAG 181AC911
 
-namespace Sound
-{
-namespace PulseAudio
+namespace Sound::PulseAudio
 {
   const Debug::Stream Dbg("Sound::Backend::PulseAudio");
 
@@ -171,8 +169,7 @@ namespace PulseAudio
   private:
     const Api::Ptr PaApi;
   };
-}//PulseAudio
-}//Sound
+}//Sound::PulseAudio
 
 namespace Sound
 {

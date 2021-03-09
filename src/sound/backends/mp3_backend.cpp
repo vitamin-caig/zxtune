@@ -30,9 +30,7 @@
 
 #define FILE_TAG 3B251603
 
-namespace Sound
-{
-namespace Mp3
+namespace Sound::Mp3
 {
   const Debug::Stream Dbg("Sound::Backend::Mp3");
 
@@ -350,8 +348,7 @@ namespace Mp3
   private:
     const Api::Ptr FlacApi;
   };
-}//Mp3
-}//Sound
+}//Sound::Mp3
 
 namespace Sound
 {

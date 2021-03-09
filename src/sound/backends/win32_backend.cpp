@@ -35,9 +35,7 @@
 
 #define FILE_TAG 5E3F141A
 
-namespace Sound
-{
-namespace Win32
+namespace Sound::Win32
 {
   const Debug::Stream Dbg("Sound::Backend::Win32");
 
@@ -583,8 +581,7 @@ namespace Win32
     const int_t Limit;
     int_t Current;
   };
-}//Win32
-}//Sound
+}//Sound::Win32
 
 namespace Sound
 {
