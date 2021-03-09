@@ -27,9 +27,7 @@
 #include <map>
 #include <utility>
 
-namespace Formats
-{
-namespace Multitrack
+namespace Formats::Multitrack
 {
   namespace SAP
   {
@@ -303,5 +301,4 @@ namespace Multitrack
   {
     return MakePtr<SAP::Decoder>();
   }
-}//namespace Multitrack
-}//namespace Formats
+}//namespace Formats::Multitrack

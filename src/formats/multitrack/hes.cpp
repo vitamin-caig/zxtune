@@ -25,9 +25,7 @@
 #include <cstring>
 #include <utility>
 
-namespace Formats
-{
-namespace Multitrack
+namespace Formats::Multitrack
 {
   namespace HES
   {
@@ -167,5 +165,4 @@ namespace Multitrack
   {
     return MakePtr<HES::Decoder>();
   }
-}//namespace Multitrack
-}//namespace Formats
+}//namespace Formats::Multitrack

@@ -24,9 +24,7 @@
 #include <cstring>
 #include <utility>
 
-namespace Formats
-{
-namespace Multitrack
+namespace Formats::Multitrack
 {
   namespace KSSX
   {
@@ -174,5 +172,4 @@ namespace Multitrack
   {
     return MakePtr<KSSX::Decoder>();
   }
-}
 }

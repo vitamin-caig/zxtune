@@ -25,9 +25,7 @@
 #include <cstring>
 #include <utility>
 
-namespace Formats
-{
-namespace Multitrack
+namespace Formats::Multitrack
 {
   namespace GBS
   {
@@ -173,5 +171,4 @@ namespace Multitrack
   {
     return MakePtr<GBS::Decoder>();
   }
-}//namespace Multitrack
-}//namespace Formats
+}//namespace Formats::Multitrack

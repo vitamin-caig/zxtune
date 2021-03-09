@@ -26,9 +26,7 @@
 #include <cstring>
 #include <utility>
 
-namespace Formats
-{
-namespace Multitrack
+namespace Formats::Multitrack
 {
   namespace NSFE
   {
@@ -195,5 +193,4 @@ namespace Multitrack
   {
     return MakePtr<NSFE::Decoder>();
   }
-}//namespace Multitrack
-}//namespace Formats
+}//namespace Formats::Multitrack
