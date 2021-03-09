@@ -1,28 +1,28 @@
 /**
-*
-* @file
-*
-* @brief  AYM-based conversion implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AYM-based conversion implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "api.h"
-//common includes
+// common includes
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_factories.h>
 #include <core/core_parameters.h>
-#include <module/attributes.h>
-#include <module/players/aym/aym_base.h>
 #include <devices/aym/dumper.h>
 #include <l10n/api.h>
+#include <module/attributes.h>
 #include <module/conversion/types.h>
+#include <module/players/aym/aym_base.h>
 #include <sound/loop.h>
-//boost includes
+// boost includes
 #include <boost/algorithm/string.hpp>
 
 #define FILE_TAG ED36600C
@@ -36,8 +36,7 @@ namespace Module
   public:
     explicit BaseDumperParameters(uint_t opt)
       : Optimization(static_cast<Devices::AYM::DumperParameters::Optimization>(opt))
-    {
-    }
+    {}
 
     Time::Microseconds FrameDuration() const override
     {
@@ -48,6 +47,7 @@ namespace Module
     {
       return Optimization;
     }
+
   private:
     const Devices::AYM::DumperParameters::Optimization Optimization;
   };
@@ -59,8 +59,7 @@ namespace Module
       : Base(opt)
       , Params(params)
       , Loop(loopFrame)
-    {
-    }
+    {}
 
     Time::Microseconds FrameDuration() const override
     {
@@ -97,54 +96,59 @@ namespace Module
     {
       return Loop;
     }
+
   private:
     const BaseDumperParameters Base;
     const Parameters::Accessor::Ptr Params;
     const uint_t Loop;
   };
 
-  //aym-based conversion
-  Binary::Data::Ptr ConvertAYMFormat(const AYM::Holder& holder, const Conversion::Parameter& spec, Parameters::Accessor::Ptr params)
+  // aym-based conversion
+  Binary::Data::Ptr ConvertAYMFormat(const AYM::Holder& holder, const Conversion::Parameter& spec,
+                                     Parameters::Accessor::Ptr params)
   {
     using namespace Conversion;
 
     Devices::AYM::Dumper::Ptr dumper;
     String errMessage;
 
-    //convert to PSG
+    // convert to PSG
     if (const PSGConvertParam* psg = parameter_cast<PSGConvertParam>(&spec))
     {
       const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(psg->Optimization);
       dumper = Devices::AYM::CreatePSGDumper(dumpParams);
       errMessage = translate("Failed to convert to PSG format.");
     }
-    //convert to ZX50
+    // convert to ZX50
     else if (const ZX50ConvertParam* zx50 = parameter_cast<ZX50ConvertParam>(&spec))
     {
       const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(zx50->Optimization);
       dumper = Devices::AYM::CreateZX50Dumper(dumpParams);
       errMessage = translate("Failed to convert to ZX50 format.");
     }
-    //convert to debugay
+    // convert to debugay
     else if (const DebugAYConvertParam* dbg = parameter_cast<DebugAYConvertParam>(&spec))
     {
       const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(dbg->Optimization);
       dumper = Devices::AYM::CreateDebugDumper(dumpParams);
       errMessage = translate("Failed to convert to debug ay format.");
     }
-    //convert to aydump
+    // convert to aydump
     else if (const AYDumpConvertParam* aydump = parameter_cast<AYDumpConvertParam>(&spec))
     {
       const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(aydump->Optimization);
       dumper = Devices::AYM::CreateRawStreamDumper(dumpParams);
-      errMessage = translate("Failed to convert to raw ay dump.");;
+      errMessage = translate("Failed to convert to raw ay dump.");
+      ;
     }
-    //convert to fym
+    // convert to fym
     else if (const FYMConvertParam* fym = parameter_cast<FYMConvertParam>(&spec))
     {
-      const Devices::AYM::FYMDumperParameters::Ptr dumpParams = MakePtr<FYMDumperParameters>(params, 0/*LoopFrame - TODO*/, fym->Optimization);
+      const Devices::AYM::FYMDumperParameters::Ptr dumpParams =
+          MakePtr<FYMDumperParameters>(params, 0 /*LoopFrame - TODO*/, fym->Optimization);
       dumper = Devices::AYM::CreateFYMDumper(dumpParams);
-      errMessage = translate("Failed to convert to FYM format.");;
+      errMessage = translate("Failed to convert to FYM format.");
+      ;
     }
 
     if (!dumper)
@@ -174,5 +178,4 @@ namespace Module
     }
     return Binary::Data::Ptr();
   }
-}
-
+}  // namespace Module

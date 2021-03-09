@@ -1,21 +1,21 @@
 /**
-*
-* @file
-*
-* @brief  State interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  State interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <time/duration.h>
 #include <time/instant.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Module
@@ -38,4 +38,4 @@ namespace Module
     //! Count of restarts due to looping
     virtual uint_t LoopCount() const = 0;
   };
-}
+}  // namespace Module

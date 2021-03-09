@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Conversion base support types
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Conversion base support types
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <pointers.h>
 #include <types.h>
 
@@ -22,9 +22,9 @@ namespace Module
     //! @brief Base conversion parameter structure
     struct Parameter
     {
-      explicit Parameter(uint64_t id) : ID(id)
-      {
-      }
+      explicit Parameter(uint64_t id)
+        : ID(id)
+      {}
 
       virtual ~Parameter() = default;
 
@@ -78,9 +78,9 @@ namespace Module
     struct DummyParameter : public Parameter
     {
       static const uint64_t TYPE_ID = ParamID5<'D', 'u', 'm', 'm', 'y'>::Value;
-      DummyParameter() : Parameter(TYPE_ID)
-      {
-      }
+      DummyParameter()
+        : Parameter(TYPE_ID)
+      {}
     };
 
     //! @brief Determine real parameters type
@@ -89,5 +89,5 @@ namespace Module
     {
       return in->ID == T::TYPE_ID ? safe_ptr_cast<const T*>(in) : nullptr;
     }
-  }
-}
+  }  // namespace Conversion
+}  // namespace Module

@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Analyzer interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Analyzer interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <math/fixedpoint.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Module
@@ -32,20 +32,18 @@ namespace Module
 
     struct SpectrumState
     {
-      SpectrumState() {};
+      SpectrumState(){};
       SpectrumState(const SpectrumState&) = delete;
-      SpectrumState& operator = (const SpectrumState&) = delete;
-      SpectrumState(SpectrumState&& rh) noexcept// = default;
-          : Data(std::move(rh.Data))
-      {
-      }
+      SpectrumState& operator=(const SpectrumState&) = delete;
+      SpectrumState(SpectrumState&& rh) noexcept  // = default;
+        : Data(std::move(rh.Data))
+      {}
 
       using DataType = std::array<LevelType, 96>;
 
       SpectrumState(DataType&& rh) noexcept
         : Data(std::move(rh))
-      {
-      }
+      {}
 
       void Set(uint_t band, LevelType val)
       {
@@ -65,4 +63,4 @@ namespace Module
 
     virtual SpectrumState GetState() const = 0;
   };
-}
+}  // namespace Module
