@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  SampleTracker chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SampleTracker chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/dac/sampletracker.h"
 #include "module/players/dac/dac_simple.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <formats/chiptune/digital/sampletracker.h>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module::SampleTracker
@@ -37,7 +37,8 @@ namespace Module::SampleTracker
   class Factory : public DAC::Factory
   {
   public:
-    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       DAC::PropertiesHelper props(*properties);
       DataBuilder::Ptr dataBuilder = DAC::CreateSimpleDataBuilder<CHANNELS_COUNT>(props);
@@ -53,9 +54,9 @@ namespace Module::SampleTracker
       }
     }
   };
-  
+
   Factory::Ptr CreateFactory()
   {
     return MakePtr<Factory>();
   }
-}
+}  // namespace Module::SampleTracker

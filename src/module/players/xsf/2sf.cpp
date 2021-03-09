@@ -1,22 +1,22 @@
 /**
-*
-* @file
-*
-* @brief  2SF chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  2SF chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/xsf/2sf.h"
 #include "module/players/xsf/memory_region.h"
 #include "module/players/xsf/xsf.h"
 #include "module/players/xsf/xsf_factory.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <devices/details/analysis_map.h>
@@ -26,26 +26,26 @@
 #include <module/players/analyzer.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
-//std includes
+// std includes
 #include <list>
-//3rdparty includes
+// 3rdparty includes
 #include <3rdparty/vio2sf/desmume/SPU.h>
 #include <3rdparty/vio2sf/desmume/state.h>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module::TwoSF
 {
   const Debug::Stream Dbg("Module::2SF");
-  
+
   struct ModuleData
   {
     using Ptr = std::shared_ptr<const ModuleData>;
     using RWPtr = std::shared_ptr<ModuleData>;
-    
+
     ModuleData() = default;
     ModuleData(const ModuleData&) = delete;
-    
+
     std::list<Binary::Container::Ptr> PackedProgramSections;
     std::list<Binary::Container::Ptr> ReservedSections;
 
@@ -56,7 +56,7 @@ namespace Module::TwoSF
       return Meta->RefreshRate ? Meta->RefreshRate : 50;
     }
   };
-  
+
   class AnalysisMap
   {
   public:
@@ -67,25 +67,26 @@ namespace Module::TwoSF
       const auto C3_SAMPLERATE = 8000;
       Delegate.SetClockRate(CLOCKRATE * C3_RATE / C3_SAMPLERATE);
     }
-    
+
     uint_t GetBand(uint_t timer) const
     {
       return Delegate.GetBandByPeriod(0x10000 - timer);
     }
+
   private:
     Devices::Details::AnalysisMap Delegate;
   };
-  
+
   class DSEngine : public Module::Analyzer
   {
   public:
     using Ptr = std::shared_ptr<DSEngine>;
-  
+
     enum
     {
       SAMPLERATE = 44100
     };
-    
+
     explicit DSEngine(const ModuleData& data)
     {
       Require(0 == ::state_init(&State));
@@ -102,12 +103,12 @@ namespace Module::TwoSF
         SetupState(data.ReservedSections);
       }
     }
-    
+
     ~DSEngine() override
     {
       ::state_deinit(&State);
     }
-    
+
     Sound::Chunk Render(uint_t samples)
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Invalid sound channels count");
@@ -118,7 +119,7 @@ namespace Module::TwoSF
       ::state_render(&State, safe_ptr_cast<s16*>(res.data()), samples);
       return res;
     }
-    
+
     void Skip(uint_t samples)
     {
       ::state_render(&State, nullptr, samples);
@@ -142,13 +143,14 @@ namespace Module::TwoSF
       }
       return result;
     }
+
   private:
     void SetupEnvironment(const XSF::MetaInformation& meta)
     {
       int clockDown = 0;
       State.dwChannelMute = 0;
       State.initial_frames = -1;
-      //TODO: interpolation
+      // TODO: interpolation
       for (const auto& tag : meta.Tags)
       {
         if (tag.first == "_clockdown")
@@ -169,7 +171,7 @@ namespace Module::TwoSF
         State.arm9_clockdown_level = clockDown;
       }
     }
-    
+
     int* FindTagTarget(const String& name)
     {
       if (name == "_frames")
@@ -193,7 +195,7 @@ namespace Module::TwoSF
         return nullptr;
       }
     }
-    
+
     void SetupRom(const std::list<Binary::Container::Ptr>& blocks)
     {
       ChunkBuilder builder;
@@ -202,14 +204,14 @@ namespace Module::TwoSF
         const auto unpacked = Binary::Compression::Zlib::Decompress(*block);
         Formats::Chiptune::NintendoDSSoundFormat::ParseRom(*unpacked, builder);
       }
-      //possibly, emulation writes to ROM are, so copy it
+      // possibly, emulation writes to ROM are, so copy it
       Rom = builder.CaptureResult();
-      //required power of 2 size
+      // required power of 2 size
       const auto alignedRomSize = uint32_t(1) << Math::Log2(Rom.Data.size());
       Rom.Data.resize(alignedRomSize);
       ::state_setrom(&State, Rom.Data.data(), alignedRomSize);
     }
-    
+
     void SetupState(const std::list<Binary::Container::Ptr>& blocks)
     {
       ChunkBuilder builder;
@@ -220,6 +222,7 @@ namespace Module::TwoSF
       const auto& state = builder.CaptureResult();
       ::state_loadstate(&State, state.Data.data(), state.Data.size());
     }
+
   private:
     class ChunkBuilder : public Formats::Chiptune::NintendoDSSoundFormat::Builder
     {
@@ -228,14 +231,16 @@ namespace Module::TwoSF
       {
         Result.Update(offset, content);
       }
-      
+
       MemoryRegion CaptureResult()
       {
         return std::move(Result);
       }
+
     private:
       MemoryRegion Result;
     };
+
   private:
     NDS_state State;
     MemoryRegion Rom;
@@ -247,7 +252,7 @@ namespace Module::TwoSF
   {
     return period.Get() * DSEngine::SAMPLERATE / period.PER_SECOND;
   }
-  
+
   class Renderer : public Module::Renderer
   {
   public:
@@ -256,8 +261,7 @@ namespace Module::TwoSF
       , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Target(std::move(target))
       , Engine(MakePtr<DSEngine>(*Data))
-    {
-    }
+    {}
 
     Module::State::Ptr GetState() const override
     {
@@ -296,6 +300,7 @@ namespace Module::TwoSF
         Engine->Skip(GetSamples(toSkip));
       }
     }
+
   private:
     const ModuleData::Ptr Data;
     const TimedState::Ptr State;
@@ -309,8 +314,7 @@ namespace Module::TwoSF
     Holder(ModuleData::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
       , Properties(std::move(props))
-    {
-    }
+    {}
 
     Module::Information::Ptr GetModuleInformation() const override
     {
@@ -326,7 +330,7 @@ namespace Module::TwoSF
     {
       return MakePtr<Renderer>(Tune, Sound::CreateResampler(DSEngine::SAMPLERATE, samplerate));
     }
-    
+
     static Ptr Create(ModuleData::Ptr tune, Parameters::Container::Ptr properties)
     {
       if (tune->Meta)
@@ -336,6 +340,7 @@ namespace Module::TwoSF
       properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_DS);
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
+
   private:
     const ModuleData::Ptr Tune;
     const Parameters::Accessor::Ptr Properties;
@@ -346,21 +351,20 @@ namespace Module::TwoSF
   public:
     ModuleDataBuilder()
       : Result(MakeRWPtr<ModuleData>())
-    {
-    }
-    
+    {}
+
     void AddProgramSection(Binary::Container::Ptr packedSection)
     {
       Require(!!packedSection);
       Result->PackedProgramSections.push_back(std::move(packedSection));
     }
-    
+
     void AddReservedSection(Binary::Container::Ptr reservedSection)
     {
       Require(!!reservedSection);
       Result->ReservedSections.push_back(std::move(reservedSection));
     }
-    
+
     void AddMeta(const XSF::MetaInformation& meta)
     {
       if (!Meta)
@@ -372,16 +376,17 @@ namespace Module::TwoSF
         Meta->Merge(meta);
       }
     }
-    
+
     ModuleData::Ptr CaptureResult()
     {
       return Result;
     }
+
   private:
     const ModuleData::RWPtr Result;
     XSF::MetaInformation::RWPtr Meta;
   };
-  
+
   class Factory : public XSF::Factory
   {
   public:
@@ -402,18 +407,21 @@ namespace Module::TwoSF
       }
       return Holder::Create(builder.CaptureResult(), std::move(properties));
     }
-    
-    Holder::Ptr CreateMultifileModule(const XSF::File& file, const std::map<String, XSF::File>& additionalFiles, Parameters::Container::Ptr properties) const override
+
+    Holder::Ptr CreateMultifileModule(const XSF::File& file, const std::map<String, XSF::File>& additionalFiles,
+                                      Parameters::Container::Ptr properties) const override
     {
       ModuleDataBuilder builder;
       MergeSections(file, additionalFiles, builder);
       MergeMeta(file, additionalFiles, builder);
       return Holder::Create(builder.CaptureResult(), std::move(properties));
     }
+
   private:
     static const uint_t MAX_LEVEL = 10;
 
-    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
+    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles,
+                              ModuleDataBuilder& dst, uint_t level = 1)
     {
       if (!data.Dependencies.empty() && level < MAX_LEVEL)
       {
@@ -428,8 +436,9 @@ namespace Module::TwoSF
         dst.AddReservedSection(data.ReservedSection);
       }
     }
-    
-    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst, uint_t level = 1)
+
+    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles,
+                          ModuleDataBuilder& dst, uint_t level = 1)
     {
       if (level < MAX_LEVEL)
       {
@@ -444,9 +453,9 @@ namespace Module::TwoSF
       }
     }
   };
-  
+
   Module::Factory::Ptr CreateFactory()
   {
     return XSF::CreateFactory(MakePtr<Factory>());
   }
-}
+}  // namespace Module::TwoSF

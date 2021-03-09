@@ -1,28 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief  TurboSound-based chiptunes support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TurboSound-based chiptunes support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "module/players/streaming.h"
+// local includes
 #include "module/players/aym/turbosound.h"
-//common includes
+#include "module/players/streaming.h"
+// common includes
 #include <error.h>
 #include <iterator.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/visitor.h>
 #include <sound/loop.h>
 #include <sound/mixer_factory.h>
-//std includes
+// std includes
 #include <map>
 #include <set>
 
@@ -44,8 +44,7 @@ namespace Module::TurboSound
     public:
       explicit MergedStringsVisitor(Visitor& delegate)
         : Delegate(delegate)
-      {
-      }
+      {}
 
       void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
       {
@@ -83,6 +82,7 @@ namespace Module::TurboSound
           Delegate.SetValue(str.first, str.second);
         }
       }
+
     private:
       Parameters::Visitor& Delegate;
       typedef std::map<Parameters::NameType, Parameters::StringType> StringsValuesMap;
@@ -90,12 +90,12 @@ namespace Module::TurboSound
       std::set<Parameters::NameType> DoneIntegers;
       std::set<Parameters::NameType> DoneDatas;
     };
+
   public:
     MergedModuleProperties(Parameters::Accessor::Ptr first, Parameters::Accessor::Ptr second)
       : First(std::move(first))
       , Second(std::move(second))
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -136,6 +136,7 @@ namespace Module::TurboSound
       Second->Process(mergedVisitor);
       mergedVisitor.ProcessRestStrings();
     }
+
   private:
     const Parameters::Accessor::Ptr First;
     const Parameters::Accessor::Ptr Second;
@@ -146,9 +147,9 @@ namespace Module::TurboSound
   {
   public:
     MergedStateBase(typename Base::Ptr first, typename Base::Ptr second)
-      : First(std::move(first)), Second(std::move(second))
-    {
-    }
+      : First(std::move(first))
+      , Second(std::move(second))
+    {}
 
     Time::AtMillisecond At() const override
     {
@@ -175,11 +176,10 @@ namespace Module::TurboSound
   class MergedTrackState : public MergedStateBase<TrackState>
   {
   public:
-    //required for msvs...
+    // required for msvs...
     MergedTrackState(Ptr lh, Ptr rh)
       : MergedStateBase(std::move(lh), std::move(rh))
-    {
-    }
+    {}
 
     uint_t Position() const override
     {
@@ -233,8 +233,7 @@ namespace Module::TurboSound
       : Observer(CreateState(first->GetStateObserver(), second->GetStateObserver()))
       , First(std::move(first))
       , Second(std::move(second))
-    {
-    }
+    {}
 
     void Reset() override
     {
@@ -262,6 +261,7 @@ namespace Module::TurboSound
     {
       return {{First->GetData(), Second->GetData()}};
     }
+
   private:
     const State::Ptr Observer;
     const AYM::DataIterator::Ptr First;
@@ -275,8 +275,7 @@ namespace Module::TurboSound
       : Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration(frameDuration)
-    {
-    }
+    {}
 
     State::Ptr GetState() const override
     {
@@ -322,12 +321,14 @@ namespace Module::TurboSound
         Iterator->NextFrame({});
       }
     }
+
   private:
     void TransferChunk()
     {
       LastChunk.Data = Iterator->GetData();
       Device->RenderData(LastChunk);
     }
+
   private:
     const TurboSound::DataIterator::Ptr Iterator;
     const Devices::TurboSound::Chip::Ptr Device;
@@ -342,8 +343,7 @@ namespace Module::TurboSound
       : Properties(std::move(props))
       , First(std::move(first))
       , Second(std::move(second))
-    {
-    }
+    {}
 
     Time::Microseconds GetFrameDuration() const override
     {
@@ -354,7 +354,7 @@ namespace Module::TurboSound
     {
       return First->FindTrackModel();
     }
-    
+
     Module::StreamModel::Ptr FindStreamModel() const override
     {
       return First->FindStreamModel();
@@ -366,13 +366,13 @@ namespace Module::TurboSound
       return Parameters::CreateMergedAccessor(Properties, std::move(mixProps));
     }
 
-    DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr second) const override
+    DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first,
+                                         AYM::TrackParameters::Ptr second) const override
     {
-      return MakePtr<MergedDataIterator>(
-	First->CreateDataIterator(std::move(first)),
-        Second->CreateDataIterator(std::move(second))
-      );
+      return MakePtr<MergedDataIterator>(First->CreateDataIterator(std::move(first)),
+                                         Second->CreateDataIterator(std::move(second)));
     }
+
   private:
     const Parameters::Accessor::Ptr Properties;
     const AYM::Chiptune::Ptr First;
@@ -393,8 +393,7 @@ namespace Module::TurboSound
   public:
     Holder(Chiptune::Ptr chiptune)
       : Tune(std::move(chiptune))
-    {
-    }
+    {}
 
     Information::Ptr GetModuleInformation() const override
     {
@@ -415,11 +414,13 @@ namespace Module::TurboSound
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      auto iterator = Tune->CreateDataIterator(AYM::TrackParameters::Create(params, 0), AYM::TrackParameters::Create(params, 1));
+      auto iterator =
+          Tune->CreateDataIterator(AYM::TrackParameters::Create(params, 0), AYM::TrackParameters::Create(params, 1));
       auto chip = CreateChip(samplerate, std::move(params));
-      return MakePtr<Renderer>(Tune->GetFrameDuration()/*TODO: speed variation*/,
-        std::move(iterator), std::move(chip));
+      return MakePtr<Renderer>(Tune->GetFrameDuration() /*TODO: speed variation*/, std::move(iterator),
+                               std::move(chip));
     }
+
   private:
     const Chiptune::Ptr Tune;
   };
@@ -439,4 +440,4 @@ namespace Module::TurboSound
   {
     return MakePtr<Holder>(std::move(chiptune));
   }
-}
+}  // namespace Module::TurboSound

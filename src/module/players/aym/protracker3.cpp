@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  ProTracker v3.x chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ProTracker v3.x chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/protracker3.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_properties_helper.h"
 #include "module/players/aym/turbosound.h"
 #include "module/players/aym/vortex.h"
-//common includes
+// common includes
 #include <pointers.h>
-//library includes
+// library includes
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <parameters/tracking_helper.h>
-//text includes
+// text includes
 #include <core/text/plugins.h>
 #include <module/text/platforms.h>
 
@@ -38,8 +38,7 @@ namespace Module::ProTracker3
       , PatOffset(Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
       , Patterns(PatternsBuilder::Create<AYM::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
-    {
-    }
+    {}
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
@@ -134,7 +133,7 @@ namespace Module::ProTracker3
 
     void SetNoteGliss(uint_t period, int_t val, uint_t /*limit*/) override
     {
-      //ignore limit
+      // ignore limit
       Patterns.GetChannel().AddCommand(Vortex::GLISS_NOTE, period, val);
     }
 
@@ -183,6 +182,7 @@ namespace Module::ProTracker3
       Data->Patterns = Patterns.CaptureResult();
       return std::move(Data);
     }
+
   private:
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
@@ -193,9 +193,8 @@ namespace Module::ProTracker3
 
   class StubLine : public Line
   {
-    StubLine()
-    {
-    }
+    StubLine() {}
+
   public:
     const Cell* GetChannel(uint_t /*idx*/) const override
     {
@@ -225,8 +224,7 @@ namespace Module::ProTracker3
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-    {
-    }
+    {}
 
     Time::Microseconds GetFrameDuration() const override
     {
@@ -237,7 +235,7 @@ namespace Module::ProTracker3
     {
       return Data;
     }
-    
+
     Module::StreamModel::Ptr FindStreamModel() const override
     {
       return {};
@@ -254,6 +252,7 @@ namespace Module::ProTracker3
       auto renderer = CreateDataRenderer(Data, 0);
       return AYM::CreateDataIterator(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
+
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
@@ -265,18 +264,15 @@ namespace Module::ProTracker3
     {
     public:
       typedef std::unique_ptr<Line> Ptr;
-      
+
       Line(const Module::Line* first, const Module::Line* second)
         : First(first ? first : StubLine::Create())
         , Second(second ? second : StubLine::Create())
-      {
-      }
+      {}
 
       const Cell* GetChannel(uint_t idx) const override
       {
-        return idx < AYM::TRACK_CHANNELS
-          ? First->GetChannel(idx)
-          : Second->GetChannel(idx - AYM::TRACK_CHANNELS);
+        return idx < AYM::TRACK_CHANNELS ? First->GetChannel(idx) : Second->GetChannel(idx - AYM::TRACK_CHANNELS);
       }
 
       uint_t CountActiveChannels() const override
@@ -292,6 +288,7 @@ namespace Module::ProTracker3
         }
         return First->GetTempo();
       }
+
     private:
       const Module::Line* const First;
       const Module::Line* const Second;
@@ -305,8 +302,7 @@ namespace Module::ProTracker3
       Pattern(const Module::Pattern& first, const Module::Pattern& second)
         : First(first)
         , Second(second)
-      {
-      }
+      {}
 
       const Line* GetLine(uint_t row) const override
       {
@@ -326,6 +322,7 @@ namespace Module::ProTracker3
       {
         return std::min(First.GetSize(), Second.GetSize());
       }
+
     private:
       const Module::Pattern& First;
       const Module::Pattern& Second;
@@ -338,8 +335,7 @@ namespace Module::ProTracker3
       PatternsSet(uint_t base, Module::PatternsSet::Ptr delegate)
         : Base(base)
         , Delegate(std::move(delegate))
-      {
-      }
+      {}
 
       const Pattern* Get(uint_t idx) const override
       {
@@ -359,6 +355,7 @@ namespace Module::ProTracker3
       {
         return Delegate->GetSize();
       }
+
     private:
       const uint_t Base;
       const PatternsSet::Ptr Delegate;
@@ -374,14 +371,13 @@ namespace Module::ProTracker3
     {
     public:
       DataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator,
-          AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second)
+                   AYM::DataRenderer::Ptr first, AYM::DataRenderer::Ptr second)
         : Params(std::move(trackParams))
         , Delegate(std::move(iterator))
         , State(Delegate->GetStateObserver())
         , First(std::move(first))
         , Second(std::move(second))
-      {
-      }
+      {}
 
       void Reset() override
       {
@@ -408,10 +404,9 @@ namespace Module::ProTracker3
 
       Devices::TurboSound::Registers GetData() const override
       {
-        return Delegate->IsValid()
-          ? GetCurrentChunk()
-          : Devices::TurboSound::Registers();
+        return Delegate->IsValid() ? GetCurrentChunk() : Devices::TurboSound::Registers();
       }
+
     private:
       Devices::TurboSound::Registers GetCurrentChunk() const
       {
@@ -433,6 +428,7 @@ namespace Module::ProTracker3
           Params->FreqTable(Table);
         }
       }
+
     private:
       Parameters::TrackingHelper<AYM::TrackParameters> Params;
       const TrackStateIterator::Ptr Delegate;
@@ -448,8 +444,7 @@ namespace Module::ProTracker3
       Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
         : Data(std::move(data))
         , Properties(std::move(properties))
-      {
-      }
+      {}
 
       Time::Microseconds GetFrameDuration() const override
       {
@@ -460,7 +455,7 @@ namespace Module::ProTracker3
       {
         return Data;
       }
-      
+
       Module::StreamModel::Ptr FindStreamModel() const override
       {
         return {};
@@ -471,27 +466,29 @@ namespace Module::ProTracker3
         return Properties;
       }
 
-      TurboSound::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first, AYM::TrackParameters::Ptr /*second*/) const override
+      TurboSound::DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr first,
+                                                       AYM::TrackParameters::Ptr /*second*/) const override
       {
         auto iterator = CreateTrackStateIterator(GetFrameDuration(), Data);
-        return MakePtr<DataIterator>(std::move(first), std::move(iterator), 
-          Vortex::CreateDataRenderer(Data, 0), Vortex::CreateDataRenderer(Data, AYM::TRACK_CHANNELS));
+        return MakePtr<DataIterator>(std::move(first), std::move(iterator), Vortex::CreateDataRenderer(Data, 0),
+                                     Vortex::CreateDataRenderer(Data, AYM::TRACK_CHANNELS));
       }
+
     private:
       const ModuleData::Ptr Data;
       const Parameters::Accessor::Ptr Properties;
     };
-  }
+  }  // namespace TS
 
   class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::ProTracker3::Decoder::Ptr decoder)
       : Decoder(std::move(decoder))
-    {
-    }
+    {}
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
+                             Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -503,7 +500,7 @@ namespace Module::ProTracker3
         auto modData = dataBuilder.CaptureResult();
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
-          //TurboSound modules
+          // TurboSound modules
           props.SetComment(Text::PT3_TURBOSOUND_MODULE);
           modData->Patterns = TS::CreatePatterns(patOffset, std::move(modData->Patterns));
           auto chiptune = MakePtr<TS::Chiptune>(std::move(modData), std::move(properties));
@@ -517,6 +514,7 @@ namespace Module::ProTracker3
       }
       return {};
     }
+
   private:
     const Formats::Chiptune::ProTracker3::Decoder::Ptr Decoder;
   };
@@ -525,4 +523,4 @@ namespace Module::ProTracker3
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
+}  // namespace Module::ProTracker3

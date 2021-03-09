@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  DAC-based modules support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC-based modules support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/dac/dac_base.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <module/players/analyzer.h>
 #include <sound/loop.h>
 #include <sound/multichannel_sample.h>
@@ -57,6 +57,7 @@ namespace Module
     {
       res.assign(CurrentData.begin(), CurrentData.end());
     }
+
   private:
     void FillCurrentData()
     {
@@ -71,6 +72,7 @@ namespace Module
         CurrentData.clear();
       }
     }
+
   private:
     const TrackStateIterator::Ptr Delegate;
     const TrackModelState::Ptr State;
@@ -85,8 +87,7 @@ namespace Module
       : Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration(frameDuration)
-    {
-    }
+    {}
 
     State::Ptr GetState() const override
     {
@@ -139,19 +140,21 @@ namespace Module
         Device->UpdateState(LastChunk);
       }
     }
+
   private:
     void TransferChunk()
     {
       Iterator->GetData(LastChunk.Data);
       Device->RenderData(LastChunk);
     }
+
   private:
     const DAC::DataIterator::Ptr Iterator;
     const Devices::DAC::Chip::Ptr Device;
     const Time::Duration<Devices::DAC::TimeUnit> FrameDuration;
     Devices::DAC::DataChunk LastChunk;
   };
-}
+}  // namespace Module
 
 namespace Module
 {
@@ -160,7 +163,8 @@ namespace Module
     ChannelDataBuilder TrackBuilder::GetChannel(uint_t chan)
     {
       using namespace Devices::DAC;
-      const auto existing = std::find_if(Data.begin(), Data.end(), [chan](const ChannelData& data) {return data.Channel == chan;});
+      const auto existing =
+          std::find_if(Data.begin(), Data.end(), [chan](const ChannelData& data) { return data.Channel == chan; });
       if (existing != Data.end())
       {
         return ChannelDataBuilder(*existing);
@@ -174,7 +178,8 @@ namespace Module
     void TrackBuilder::GetResult(Devices::DAC::Channels& result)
     {
       using namespace Devices::DAC;
-      const auto last = std::remove_if(Data.begin(), Data.end(), [](const ChannelData& data) {return data.Mask == 0;});
+      const auto last =
+          std::remove_if(Data.begin(), Data.end(), [](const ChannelData& data) { return data.Mask == 0; });
       result.assign(Data.begin(), last);
     }
 
@@ -183,9 +188,10 @@ namespace Module
       return MakePtr<DACDataIterator>(std::move(iterator), std::move(renderer));
     }
 
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr device)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DAC::DataIterator::Ptr iterator,
+                                 Devices::DAC::Chip::Ptr device)
     {
       return MakePtr<DACRenderer>(frameDuration, std::move(iterator), std::move(device));
     }
-  }
-}
+  }  // namespace DAC
+}  // namespace Module

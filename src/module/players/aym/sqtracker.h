@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  SQ-Tracker chiptune factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SQ-Tracker chiptune factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "module/players/aym/aym_factory.h"
 
 namespace Module
@@ -19,4 +19,4 @@ namespace Module
   {
     AYM::Factory::Ptr CreateFactory();
   }
-}
+}  // namespace Module

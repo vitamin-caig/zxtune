@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  SAA-based chiptunes common functionality implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SAA-based chiptunes common functionality implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/saa/saa_base.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <math/numeric.h>
 #include <module/players/analyzer.h>
 #include <sound/loop.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Module
@@ -59,6 +59,7 @@ namespace Module
     {
       return CurrentData;
     }
+
   private:
     void FillCurrentData()
     {
@@ -69,6 +70,7 @@ namespace Module
         builder.GetResult(CurrentData);
       }
     }
+
   private:
     const TrackStateIterator::Ptr Delegate;
     const TrackModelState::Ptr State;
@@ -83,8 +85,7 @@ namespace Module
       : Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration(frameDuration)
-    {
-    }
+    {}
 
     State::Ptr GetState() const override
     {
@@ -130,12 +131,14 @@ namespace Module
         Iterator->NextFrame({});
       }
     }
+
   private:
     void TransferChunk()
     {
       LastChunk.Data = Iterator->GetData();
       Device->RenderData(LastChunk);
     }
+
   private:
     const SAA::DataIterator::Ptr Iterator;
     const Devices::SAA::Chip::Ptr Device;
@@ -148,8 +151,7 @@ namespace Module
   public:
     explicit SAAHolder(SAA::Chiptune::Ptr chiptune)
       : Tune(std::move(chiptune))
-    {
-    }
+    {}
 
     Information::Ptr GetModuleInformation() const override
     {
@@ -166,13 +168,14 @@ namespace Module
       auto chipParams = SAA::CreateChipParameters(samplerate, std::move(params));
       auto chip = Devices::SAA::CreateChip(std::move(chipParams));
       auto iterator = Tune->CreateDataIterator();
-      return MakePtr<SAARenderer>(Tune->GetFrameDuration()/*TODO: playback speed*/,
-        std::move(iterator), std::move(chip));
+      return MakePtr<SAARenderer>(Tune->GetFrameDuration() /*TODO: playback speed*/, std::move(iterator),
+                                  std::move(chip));
     }
+
   private:
     const SAA::Chiptune::Ptr Tune;
   };
-}
+}  // namespace Module
 
 namespace Module
 {
@@ -188,7 +191,8 @@ namespace Module
 
     void ChannelBuilder::SetVolume(int_t left, int_t right)
     {
-      SetRegister(Devices::SAA::Registers::LEVEL0 + Channel, 16 * Math::Clamp<int_t>(right, 0, 15) + Math::Clamp<int_t>(left, 0, 15));
+      SetRegister(Devices::SAA::Registers::LEVEL0 + Channel,
+                  16 * Math::Clamp<int_t>(right, 0, 15) + Math::Clamp<int_t>(left, 0, 15));
     }
 
     void ChannelBuilder::SetTone(uint_t octave, uint_t note)
@@ -233,5 +237,5 @@ namespace Module
     {
       return MakePtr<SAAHolder>(std::move(chiptune));
     }
-  }
-}
+  }  // namespace SAA
+}  // namespace Module

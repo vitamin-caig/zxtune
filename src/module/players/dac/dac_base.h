@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  DAC-based modules support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC-based modules support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "module/players/dac/dac_chiptune.h"
-//library includes
-#include <module/renderer.h>
+// library includes
 #include <module/players/tracking.h>
+#include <module/renderer.h>
 
 namespace Module
 {
@@ -25,8 +25,7 @@ namespace Module
     public:
       explicit ChannelDataBuilder(Devices::DAC::ChannelData& data)
         : Data(data)
-      {
-      }
+      {}
 
       void SetEnabled(bool enabled)
       {
@@ -79,6 +78,7 @@ namespace Module
       {
         return Data;
       }
+
     private:
       Devices::DAC::ChannelData& Data;
     };
@@ -89,6 +89,7 @@ namespace Module
       ChannelDataBuilder GetChannel(uint_t chan);
 
       void GetResult(Devices::DAC::Channels& result);
+
     private:
       Devices::DAC::Channels Data;
     };
@@ -106,6 +107,7 @@ namespace Module
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::DAC::Chip::Ptr chip);
-  }
-}
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
+                                 Devices::DAC::Chip::Ptr chip);
+  }  // namespace DAC
+}  // namespace Module

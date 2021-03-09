@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  State iterators support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  State iterators support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/iterator.h"
-//library includes
+// library includes
 #include <sound/loop.h>
 
 namespace Module
@@ -26,4 +26,4 @@ namespace Module
       iter.NextFrame({});
     }
   }
-}
+}  // namespace Module

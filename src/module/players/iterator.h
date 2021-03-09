@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Iterators interfaces
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Iterators interfaces
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <module/state.h>
 
 namespace Sound
@@ -43,4 +43,4 @@ namespace Module
   };
 
   void SeekIterator(Iterator& iter, State::Ptr state, Time::AtMillisecond pos);
-}
+}  // namespace Module

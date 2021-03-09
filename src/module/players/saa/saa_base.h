@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  SAA-based chiptunes support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SAA-based chiptunes support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "module/players/saa/saa_parameters.h"
-//library includes
+// library includes
 #include <module/holder.h>
 #include <module/players/tracking.h>
 
@@ -35,6 +35,7 @@ namespace Module
       void SetEnvelope(uint_t type);
       void EnableTone();
       void EnableNoise();
+
     private:
       void SetRegister(uint_t reg, uint_t val)
       {
@@ -53,6 +54,7 @@ namespace Module
         Regs.Data[reg] |= static_cast<uint8_t>(val);
         Regs.Mask |= 1 << reg;
       }
+
     private:
       const uint_t Channel;
       Devices::SAA::Registers& Regs;
@@ -70,6 +72,7 @@ namespace Module
       {
         result = Regs;
       }
+
     private:
       Devices::SAA::Registers Regs;
     };
@@ -111,5 +114,5 @@ namespace Module
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
-  }
-}
+  }  // namespace SAA
+}  // namespace Module

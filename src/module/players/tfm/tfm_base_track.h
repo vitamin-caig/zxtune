@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  TFM-based track chiptunes support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TFM-based track chiptunes support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "module/players/tfm/tfm_chiptune.h"
-//library includes
+// library includes
 #include <module/players/tracking.h>
 
 namespace Module
@@ -41,10 +41,12 @@ namespace Module
       void SetTone(uint_t octave, uint_t tone);
       void SetTone(uint_t op, uint_t octave, uint_t tone);
       void SetPane(uint_t val);
+
     private:
       void WriteOperatorRegister(uint_t base, uint_t op, uint_t val);
       void WriteChannelRegister(uint_t base, uint_t val);
       void WriteChipRegister(uint_t idx, uint_t val);
+
     private:
       const uint_t Chip;
       const uint_t Channel;
@@ -63,6 +65,7 @@ namespace Module
       {
         res.swap(Data);
       }
+
     private:
       Devices::TFM::Registers Data;
     };
@@ -79,5 +82,5 @@ namespace Module
     };
 
     DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
-  }
-}
+  }  // namespace TFM
+}  // namespace Module

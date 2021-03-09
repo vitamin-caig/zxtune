@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  TFM-based chiptunes common functionality implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TFM-based chiptunes common functionality implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/tfm/tfm_base.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <module/players/analyzer.h>
 #include <sound/loop.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Module
@@ -27,8 +27,7 @@ namespace Module
       : Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration(frameDuration)
-    {
-    }
+    {}
 
     State::Ptr GetState() const override
     {
@@ -74,27 +73,30 @@ namespace Module
         Iterator->NextFrame({});
       }
     }
+
   private:
     void TransferChunk()
     {
       Iterator->GetData(LastChunk.Data);
       Device->RenderData(LastChunk);
     }
+
   private:
     const TFM::DataIterator::Ptr Iterator;
     const Devices::TFM::Chip::Ptr Device;
     const Time::Duration<Devices::TFM::TimeUnit> FrameDuration;
     Devices::TFM::DataChunk LastChunk;
   };
-}
+}  // namespace Module
 
 namespace Module
 {
   namespace TFM
   {
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator, Devices::TFM::Chip::Ptr device)
+    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
+                                 Devices::TFM::Chip::Ptr device)
     {
       return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device));
     }
-  }
-}
+  }  // namespace TFM
+}  // namespace Module

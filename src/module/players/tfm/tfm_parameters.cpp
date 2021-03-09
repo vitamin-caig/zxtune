@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  TFM parameters helpers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TFM parameters helpers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/tfm/tfm_parameters.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/core_parameters.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Module::TFM
@@ -25,8 +25,7 @@ namespace Module::TFM
     ChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
       : Samplerate(samplerate)
       , Params(params)
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -44,6 +43,7 @@ namespace Module::TFM
     {
       return Samplerate;
     }
+
   private:
     const uint_t Samplerate;
     const Parameters::Accessor::Ptr Params;
@@ -53,4 +53,4 @@ namespace Module::TFM
   {
     return MakePtr<ChipParameters>(samplerate, std::move(params));
   }
-}
+}  // namespace Module::TFM

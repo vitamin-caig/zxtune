@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Sound pipeline support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Sound pipeline support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <module/holder.h>
 #include <module/players/pipeline.h>
@@ -19,7 +19,7 @@
 #include <sound/gainer.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//std includes
+// std includes
 #include <algorithm>
 
 namespace Module
@@ -28,8 +28,8 @@ namespace Module
 
   using TimeUnit = Time::Millisecond;
 
-  Time::Duration<TimeUnit> GetDurationValue(const Parameters::Accessor& params,
-    const Parameters::NameType& name, Parameters::IntType def, Parameters::IntType precision)
+  Time::Duration<TimeUnit> GetDurationValue(const Parameters::Accessor& params, const Parameters::NameType& name,
+                                            Parameters::IntType def, Parameters::IntType precision)
   {
     auto value = def;
     params.FindValue(name, value);
@@ -41,7 +41,7 @@ namespace Module
     const Time::Duration<TimeUnit> FadeIn;
     const Time::Duration<TimeUnit> FadeOut;
     const Time::Duration<TimeUnit> Duration;
-    
+
     FadeInfo(Time::Duration<TimeUnit> fadeIn, Time::Duration<TimeUnit> fadeOut, Time::Duration<TimeUnit> duration)
       : FadeIn(fadeIn)
       , FadeOut(fadeOut)
@@ -49,22 +49,22 @@ namespace Module
     {
       Debug("Fading: %u+%u/%u ms", fadeIn.Get(), fadeOut.Get(), duration.Get());
     }
-    
+
     bool IsValid() const
     {
       return FadeIn + FadeOut < Duration;
     }
-    
+
     bool IsFadein(Time::Instant<TimeUnit> pos) const
     {
       return pos.Get() < FadeIn.Get();
     }
-    
+
     bool IsFadeout(Time::Instant<TimeUnit> pos) const
     {
       return FadeOut && Duration.Get() < FadeOut.Get() + pos.Get();
     }
-    
+
     Sound::Gain::Type GetFadein(Sound::Gain::Type vol, Time::Instant<TimeUnit> pos) const
     {
       return vol * pos.Get() / FadeIn.Get();
@@ -95,14 +95,14 @@ namespace Module
         return false;
       }
       const auto silent = LastSample;
-      if (Counter != 0 && std::all_of(in.begin(), in.end(), [silent](Sound::Sample in) {return in == silent;}))
+      if (Counter != 0 && std::all_of(in.begin(), in.end(), [silent](Sound::Sample in) { return in == silent; }))
       {
         Counter += in.size();
       }
       else
       {
         LastSample = in.back();
-        //approximate counting
+        // approximate counting
         Counter = std::count(in.begin(), in.end(), LastSample);
       }
       return Counter >= Limit;
@@ -121,11 +121,12 @@ namespace Module
       Debug("Silence detection: %u ms (%u samples)", duration.Get(), limit);
       return SilenceDetector(limit);
     }
+
   private:
     explicit SilenceDetector(std::size_t limit)
       : Limit(limit)
-    {
-    }
+    {}
+
   private:
     const std::size_t Limit;
     std::size_t Counter = 0;
@@ -142,8 +143,7 @@ namespace Module
       , Fading(FadeInfo::Create(holder.GetModuleInformation()->Duration(), *Params))
       , Gainer(Sound::CreateGainer())
       , Silence(SilenceDetector::Create(samplerate, *Params))
-    {
-    }
+    {}
 
     Module::State::Ptr GetState() const override
     {
@@ -179,6 +179,7 @@ namespace Module
       Silence.Reset();
       Delegate->SetPosition(position);
     }
+
   private:
     Sound::Gain::Type CalculateGain(const Sound::LoopParameters& loop)
     {
@@ -208,6 +209,7 @@ namespace Module
         return Preamp;
       }
     }
+
   private:
     const Renderer::Ptr Delegate;
     const Module::State::Ptr State;
@@ -229,4 +231,4 @@ namespace Module
     auto props = Parameters::CreateMergedAccessor(holder.GetModuleProperties(), std::move(globalParams));
     return MakePtr<PipelinedRenderer>(holder, samplerate, std::move(props));
   }
-}
+}  // namespace Module

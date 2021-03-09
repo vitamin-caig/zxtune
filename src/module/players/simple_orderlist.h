@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  Simple order list implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Simple order list implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "module/players/track_model.h"
-//std includes
+// std includes
 #include <vector>
 
 namespace Module
@@ -23,8 +23,7 @@ namespace Module
     SimpleOrderList(uint_t loop, std::vector<uint_t> order)
       : Loop(loop)
       , Order(std::move(order))
-    {
-    }
+    {}
 
     uint_t GetSize() const override
     {
@@ -40,6 +39,7 @@ namespace Module
     {
       return Loop;
     }
+
   private:
     const uint_t Loop;
     const std::vector<uint_t> Order;
@@ -54,14 +54,12 @@ namespace Module
     SimpleOrderListWithTransposition(uint_t loop, std::vector<T> positions)
       : Loop(loop)
       , Positions(std::move(positions))
-    {
-    }
-    
+    {}
+
     explicit SimpleOrderListWithTransposition(std::vector<T> positions)
       : Loop(0)
       , Positions(std::move(positions))
-    {
-    }
+    {}
 
     uint_t GetSize() const override
     {
@@ -82,8 +80,9 @@ namespace Module
     {
       return Positions[pos].Transposition;
     }
+
   private:
     const uint_t Loop;
     const std::vector<T> Positions;
   };
-}
+}  // namespace Module

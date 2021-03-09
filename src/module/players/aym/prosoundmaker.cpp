@@ -1,43 +1,43 @@
 /**
-* 
-* @file
-*
-* @brief  ProSoundMaker chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ProSoundMaker chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/prosoundmaker.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_properties_helper.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <formats/chiptune/aym/prosoundmaker.h>
 #include <math/numeric.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-//boost includes
+// boost includes
 #include <boost/optional.hpp>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module::ProSoundMaker
 {
-  //supported commands and parameters
+  // supported commands and parameters
   enum CmdType
   {
-    //no parameters
+    // no parameters
     EMPTY,
-    //r13,period,note delta
+    // r13,period,note delta
     ENVELOPE,
-    //disable ornament
+    // disable ornament
     NOORNAMENT,
-    //envelope reinit on every note,true/false
+    // envelope reinit on every note,true/false
     ENVELOPE_REINIT
   };
 
@@ -146,6 +146,7 @@ namespace Module::ProSoundMaker
       Data->Patterns = Patterns.CaptureResult();
       return std::move(Data);
     }
+
   private:
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
@@ -160,8 +161,7 @@ namespace Module::ProSoundMaker
       , Position(0)
       , LoopsCount(0)
       , Finished(false)
-    {
-    }
+    {}
 
     const Sample* Current;
     uint_t Position;
@@ -176,8 +176,7 @@ namespace Module::ProSoundMaker
       , Position(0)
       , Finished()
       , KeepFinished()
-    {
-    }
+    {}
 
     const Ornament* Current;
     uint_t Position;
@@ -190,8 +189,7 @@ namespace Module::ProSoundMaker
     EnvelopeState()
       : Reinit(false)
       , Type()
-    {
-    }
+    {}
 
     bool Reinit;
     uint_t Type;
@@ -228,10 +226,10 @@ namespace Module::ProSoundMaker
     ChannelState()
       : Enabled(false)
       , Note()
-      , VolumeDelta(), BaseVolumeDelta()
+      , VolumeDelta()
+      , BaseVolumeDelta()
       , Slide()
-    {
-    }
+    {}
     bool Enabled;
     EnvelopeState Envelope;
     uint_t Note;
@@ -246,7 +244,7 @@ namespace Module::ProSoundMaker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-       : Data(std::move(data))
+      : Data(std::move(data))
     {
       Reset();
     }
@@ -270,6 +268,7 @@ namespace Module::ProSoundMaker
       }
       SynthesizeChannelsData(track);
     }
+
   private:
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
@@ -401,8 +400,8 @@ namespace Module::ProSoundMaker
       const int_t halftones = Math::Clamp<int_t>(int_t(dst.Note) + ornamentLine, 0, 95);
       const int_t tone = Math::Clamp<int_t>(track.GetFrequency(halftones) + dst.Slide, 0, 4095);
       channel.SetTone(tone);
-      
-      //emulate level construction due to possibility of envelope bit reset
+
+      // emulate level construction due to possibility of envelope bit reset
       int_t level = int_t(curSampleLine.Level | (hasEnvelope ? 16 : 0)) + dst.VolumeDelta - 15;
       if (!dst.Enabled || level < 0)
       {
@@ -461,6 +460,7 @@ namespace Module::ProSoundMaker
         }
       }
     }
+
   private:
     const ModuleData::Ptr Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
@@ -469,7 +469,8 @@ namespace Module::ProSoundMaker
   class Factory : public AYM::Factory
   {
   public:
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -490,4 +491,4 @@ namespace Module::ProSoundMaker
   {
     return MakePtr<Factory>();
   }
-}
+}  // namespace Module::ProSoundMaker

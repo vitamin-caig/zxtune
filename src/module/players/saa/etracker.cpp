@@ -1,37 +1,37 @@
 /**
-* 
-* @file
-*
-* @brief  ETracker chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ETracker chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/saa/etracker.h"
 #include "module/players/saa/saa_base.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <formats/chiptune/saa/etracker.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module::ETracker
 {
-  //supported commands and parameters
+  // supported commands and parameters
   enum CmdType
   {
-    //no parameters
+    // no parameters
     EMPTY,
-    //yes/no
+    // yes/no
     SWAPCHANNELS,
-    //tone
+    // tone
     ENVELOPE,
-    //type
+    // type
     NOISE
   };
 
@@ -48,8 +48,7 @@ namespace Module::ETracker
 
     ModuleData()
       : InitialTempo()
-    {
-    }
+    {}
 
     uint_t GetChannelsCount() const override
     {
@@ -85,8 +84,7 @@ namespace Module::ETracker
       : Meta(props)
       , Patterns(PatternsBuilder::Create<SAA::TRACK_CHANNELS>())
       , Data(MakeRWPtr<ModuleData>())
-    {
-    }
+    {}
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
@@ -169,6 +167,7 @@ namespace Module::ETracker
       Data->Patterns = Patterns.CaptureResult();
       return std::move(Data);
     }
+
   private:
     MetaProperties Meta;
     PatternsBuilder Patterns;
@@ -182,8 +181,7 @@ namespace Module::ETracker
     ObjectLinesIterator()
       : Obj()
       , Position()
-    {
-    }
+    {}
 
     void Set(const Object& obj)
     {
@@ -213,20 +211,20 @@ namespace Module::ETracker
         Position = Obj->GetLoop();
       }
     }
+
   private:
     const Object* Obj;
     uint_t Position;
   };
 
-  //enabled state via sample
+  // enabled state via sample
   struct ChannelState
   {
     ChannelState()
       : Note()
       , Attenuation()
       , SwapSampleChannels()
-    {
-    }
+    {}
 
     uint_t Note;
     ObjectLinesIterator<Sample> SampleIterator;
@@ -239,9 +237,9 @@ namespace Module::ETracker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-       : Data(std::move(data))
-       , Noise()
-       , Transposition()
+      : Data(std::move(data))
+      , Noise()
+      , Transposition()
     {
       Reset();
     }
@@ -275,6 +273,7 @@ namespace Module::ETracker
       }
       SynthesizeChannelsData(track);
     }
+
   private:
     void GetNewLineState(const TrackModelState& state, SAA::TrackBuilder& track)
     {
@@ -293,10 +292,8 @@ namespace Module::ETracker
 
     void GetNewChannelState(uint_t idx, const Cell& src, ChannelState& dst, SAA::ChannelBuilder& channel)
     {
-      static const uint_t ENVELOPE_TABLE[] = 
-      {
-        0x00, 0x96, 0x9e, 0x9a, 0x086, 0x8e, 0x8a, 0x97, 0x9f, 0x9b, 0x87, 0x8f, 0x8b
-      };
+      static const uint_t ENVELOPE_TABLE[] = {0x00, 0x96, 0x9e, 0x9a, 0x086, 0x8e, 0x8a,
+                                              0x97, 0x9f, 0x9b, 0x87, 0x8f,  0x8b};
       if (const bool* enabled = src.GetEnabled())
       {
         if (!*enabled)
@@ -361,16 +358,13 @@ namespace Module::ETracker
     public:
       Note()
         : Value(0x7ff)
-      {
-      }
+      {}
 
       void Set(uint_t halfTones)
       {
         const uint_t TONES_PER_OCTAVE = 12;
-        static const uint_t TONE_TABLE[TONES_PER_OCTAVE] = 
-        {
-          0x5, 0x21, 0x3c, 0x55, 0x6d, 0x84, 0x99, 0xad, 0xc0, 0xd2, 0xe3, 0xf3
-        };
+        static const uint_t TONE_TABLE[TONES_PER_OCTAVE] = {0x5,  0x21, 0x3c, 0x55, 0x6d, 0x84,
+                                                            0x99, 0xad, 0xc0, 0xd2, 0xe3, 0xf3};
         Value = ((halfTones / TONES_PER_OCTAVE) << 8) + TONE_TABLE[halfTones % TONES_PER_OCTAVE];
       }
 
@@ -388,6 +382,7 @@ namespace Module::ETracker
       {
         return Value & 0xff;
       }
+
     private:
       uint_t Value;
     };
@@ -408,7 +403,7 @@ namespace Module::ETracker
         halfTones += *curOrnamentLine;
         dst.OrnamentIterator.Next();
       }
-      //set tone
+      // set tone
       Note note;
       if (halfTones != 0x5f)
       {
@@ -426,14 +421,14 @@ namespace Module::ETracker
         channel.EnableTone();
       }
 
-      //set levels
+      // set levels
       if (dst.SwapSampleChannels)
       {
         std::swap(curLine.LeftLevel, curLine.RightLevel);
       }
       channel.SetVolume(int_t(curLine.LeftLevel) - dst.Attenuation, int_t(curLine.RightLevel) - dst.Attenuation);
 
-      //set noise
+      // set noise
       if (curLine.NoiseEnabled)
       {
         channel.EnableNoise();
@@ -443,6 +438,7 @@ namespace Module::ETracker
         channel.SetNoise(curLine.NoiseFreq);
       }
     }
+
   private:
     const ModuleData::Ptr Data;
     std::array<ChannelState, SAA::TRACK_CHANNELS> PlayerState;
@@ -456,9 +452,8 @@ namespace Module::ETracker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-    {
-    }
-    
+    {}
+
     Time::Microseconds GetFrameDuration() const override
     {
       return SAA::BASE_FRAME_DURATION;
@@ -480,6 +475,7 @@ namespace Module::ETracker
       auto renderer = MakePtr<DataRenderer>(Data);
       return SAA::CreateDataIterator(std::move(iterator), std::move(renderer));
     }
+
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
@@ -488,7 +484,8 @@ namespace Module::ETracker
   class Factory : public Module::Factory
   {
   public:
-    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
+                             Parameters::Container::Ptr properties) const override
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -507,4 +504,4 @@ namespace Module::ETracker
   {
     return MakePtr<Factory>();
   }
-}
+}  // namespace Module::ETracker

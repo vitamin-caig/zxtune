@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  AYM-based chiptunes support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AYM-based chiptunes support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
+#include "module/players/aym/aym_parameters.h"
 #include "module/players/stream_model.h"
 #include "module/players/track_model.h"
-#include "module/players/aym/aym_parameters.h"
-//library includes
+// library includes
 #include <devices/aym.h>
 #include <module/players/iterator.h>
 #include <module/players/streaming.h>
@@ -51,5 +51,5 @@ namespace Module
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
       virtual DataIterator::Ptr CreateDataIterator(TrackParameters::Ptr trackParams) const = 0;
     };
-  }
-}
+  }  // namespace AYM
+}  // namespace Module

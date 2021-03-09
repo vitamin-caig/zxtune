@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Duration info implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Duration info implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/duration.h"
-//library includes
+// library includes
 #include <core/plugins_parameters.h>
 #include <parameters/accessor.h>
 
@@ -23,4 +23,4 @@ namespace Module
     params.FindValue(DEFAULT_DURATION, duration);
     return Time::Seconds(duration);
   }
-}
+}  // namespace Module

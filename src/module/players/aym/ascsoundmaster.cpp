@@ -1,56 +1,56 @@
 /**
-* 
-* @file
-*
-* @brief  ASCSoundMaster chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ASCSoundMaster chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/ascsoundmaster.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_properties_helper.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <formats/chiptune/aym/ascsoundmaster.h>
 #include <math/numeric.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module::ASCSoundMaster
 {
-  //supported commands and their parameters
+  // supported commands and their parameters
   enum CmdType
   {
-    //no parameters
+    // no parameters
     EMPTY,
-    //r13,envL
+    // r13,envL
     ENVELOPE,
-    //no parameters
+    // no parameters
     ENVELOPE_ON,
-    //no parameters
+    // no parameters
     ENVELOPE_OFF,
-    //value
+    // value
     NOISE,
-    //no parameters
+    // no parameters
     CONT_SAMPLE,
-    //no parameters
+    // no parameters
     CONT_ORNAMENT,
-    //glissade value
+    // glissade value
     GLISS,
-    //steps
+    // steps
     SLIDE,
-    //steps,note
+    // steps,note
     SLIDE_NOTE,
-    //period,delta
+    // period,delta
     AMPLITUDE_SLIDE,
-    //no parameter
+    // no parameter
     BREAK_SAMPLE
   };
 
@@ -120,7 +120,7 @@ namespace Module::ASCSoundMaster
       }
       if (Command* cmd = Patterns.GetChannel().FindCommand(SLIDE))
       {
-        //set slide to note
+        // set slide to note
         cmd->Type = SLIDE_NOTE;
         cmd->Param3 = cmd->Param2;
         cmd->Param2 = note;
@@ -166,7 +166,7 @@ namespace Module::ASCSoundMaster
       }
       else
       {
-        //strange situation
+        // strange situation
         Patterns.GetChannel().AddCommand(ENVELOPE, -1, int_t(tone));
       }
     }
@@ -221,6 +221,7 @@ namespace Module::ASCSoundMaster
       Data->Patterns = Patterns.CaptureResult();
       return std::move(Data);
     }
+
   private:
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
@@ -233,16 +234,30 @@ namespace Module::ASCSoundMaster
   struct ChannelState
   {
     ChannelState()
-      : Enabled(false), Envelope(false), BreakSample(false)
-      , Volume(15), VolumeAddon(0), VolSlideDelay(0), VolSlideAddon(), VolSlideCounter(0)
-      , BaseNoise(0), CurrentNoise(0)
-      , Note(0), NoteAddon(0)
-      , SampleNum(0), CurrentSampleNum(0), PosInSample(0)
-      , OrnamentNum(0), CurrentOrnamentNum(0), PosInOrnament(0)
+      : Enabled(false)
+      , Envelope(false)
+      , BreakSample(false)
+      , Volume(15)
+      , VolumeAddon(0)
+      , VolSlideDelay(0)
+      , VolSlideAddon()
+      , VolSlideCounter(0)
+      , BaseNoise(0)
+      , CurrentNoise(0)
+      , Note(0)
+      , NoteAddon(0)
+      , SampleNum(0)
+      , CurrentSampleNum(0)
+      , PosInSample(0)
+      , OrnamentNum(0)
+      , CurrentOrnamentNum(0)
+      , PosInOrnament(0)
       , ToneDeviation(0)
-      , SlidingSteps(0), Sliding(0), SlidingTargetNote(LIMITER), Glissade(0)
-    {
-    }
+      , SlidingSteps(0)
+      , Sliding(0)
+      , SlidingTargetNote(LIMITER)
+      , Glissade(0)
+    {}
     bool Enabled;
     bool Envelope;
     bool BreakSample;
@@ -262,7 +277,7 @@ namespace Module::ASCSoundMaster
     uint_t CurrentOrnamentNum;
     uint_t PosInOrnament;
     int_t ToneDeviation;
-    int_t SlidingSteps;//may be infinite (negative)
+    int_t SlidingSteps;  // may be infinite (negative)
     int_t Sliding;
     uint_t SlidingTargetNote;
     int_t Glissade;
@@ -279,8 +294,7 @@ namespace Module::ASCSoundMaster
     explicit DataRenderer(ModuleData::Ptr data)
       : Data(std::move(data))
       , EnvelopeTone(0)
-    {
-    }
+    {}
 
     void Reset() override
     {
@@ -295,6 +309,7 @@ namespace Module::ASCSoundMaster
       }
       SynthesizeChannelsData(track);
     }
+
   private:
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
@@ -359,7 +374,7 @@ namespace Module::ASCSoundMaster
           break;
         case GLISS:
           dst.Glissade = it->Param1;
-          dst.SlidingSteps = -1;//infinite sliding
+          dst.SlidingSteps = -1;  // infinite sliding
           break;
         case SLIDE:
         {
@@ -455,7 +470,7 @@ namespace Module::ASCSoundMaster
       const Ornament& curOrnament = Data->Ornaments.Get(dst.CurrentOrnamentNum);
       const Ornament::Line& curOrnamentLine = curOrnament.GetLine(dst.PosInOrnament);
 
-      //calculate volume addon
+      // calculate volume addon
       if (dst.VolSlideCounter >= 2)
       {
         dst.VolSlideCounter--;
@@ -468,26 +483,26 @@ namespace Module::ASCSoundMaster
       dst.VolumeAddon += curSampleLine.VolSlide;
       dst.VolumeAddon = Math::Clamp<int_t>(dst.VolumeAddon, -15, 15);
 
-      //calculate tone
+      // calculate tone
       dst.ToneDeviation += curSampleLine.ToneDeviation;
       dst.NoteAddon += curOrnamentLine.NoteAddon;
       const int_t halfTone = Math::Clamp<int8_t>(int8_t(dst.Note) + dst.NoteAddon, 0, 0x55);
       const int_t toneAddon = dst.ToneDeviation + dst.Sliding / 16;
-      //apply tone
+      // apply tone
       channel.SetTone(halfTone, toneAddon);
 
-      //apply level
+      // apply level
       channel.SetLevel((dst.Volume + 1) * Math::Clamp<int_t>(dst.VolumeAddon + curSampleLine.Level, 0, 15) / 16);
-      //apply envelope
+      // apply envelope
       if (dst.Envelope && curSampleLine.EnableEnvelope)
       {
         channel.EnableEnvelope();
       }
 
-      //calculate noise
+      // calculate noise
       dst.CurrentNoise += curOrnamentLine.NoiseAddon;
 
-      //mixer
+      // mixer
       if (curSampleLine.ToneMask)
       {
         channel.DisableTone();
@@ -511,13 +526,12 @@ namespace Module::ASCSoundMaster
         channel.DisableNoise();
       }
 
-      //recalc positions
+      // recalc positions
       if (dst.SlidingSteps != 0)
       {
         if (dst.SlidingSteps > 0)
         {
-          if (!--dst.SlidingSteps &&
-              LIMITER != dst.SlidingTargetNote) //finish slide to note
+          if (!--dst.SlidingSteps && LIMITER != dst.SlidingTargetNote)  // finish slide to note
           {
             dst.Note = dst.SlidingTargetNote;
             dst.SlidingTargetNote = LIMITER;
@@ -543,6 +557,7 @@ namespace Module::ASCSoundMaster
         dst.PosInOrnament = curOrnament.GetLoop();
       }
     }
+
   private:
     const ModuleData::Ptr Data;
     uint_t EnvelopeTone;
@@ -554,10 +569,10 @@ namespace Module::ASCSoundMaster
   public:
     explicit Factory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder)
       : Decoder(std::move(decoder))
-    {
-    }
+    {}
 
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -565,19 +580,21 @@ namespace Module::ASCSoundMaster
       {
         props.SetSource(*container);
         props.SetPlatform(Platforms::ZX_SPECTRUM);
-        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(), std::move(properties));
+        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
+                                                                        std::move(properties));
       }
       else
       {
         return {};
       }
     }
+
   private:
     const Formats::Chiptune::ASCSoundMaster::Decoder::Ptr Decoder;
   };
-  
+
   AYM::Factory::Ptr CreateFactory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder)
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
+}  // namespace Module::ASCSoundMaster

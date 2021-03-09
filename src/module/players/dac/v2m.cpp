@@ -1,30 +1,30 @@
 /**
-* 
-* @file
-*
-* @brief  V2M chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  V2M chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/dac/v2m.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <formats/chiptune/digital/v2m.h>
 #include <module/players/analyzer.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
-//3rdparty
+// 3rdparty
 #include <3rdparty/v2m/src/sounddef.h>
 #include <3rdparty/v2m/src/v2mconv.h>
 #include <3rdparty/v2m/src/v2mplayer.h>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module::V2M
@@ -98,6 +98,7 @@ namespace Module::V2M
     {
       RenderImpl(samples);
     }
+
   private:
     void RenderImpl(uint_t samples)
     {
@@ -138,8 +139,7 @@ namespace Module::V2M
       , State(MakePtr<TimedState>(duration))
       , Target(std::move(target))
       , Analyzer(Module::CreateSoundAnalyzer())
-    {
-    }
+    {}
 
     Module::State::Ptr GetState() const override
     {
@@ -188,13 +188,14 @@ namespace Module::V2M
         samples -= toSkip;
       }
     }
+
   private:
     V2mEngine Engine;
     const TimedState::Ptr State;
     const Sound::Converter::Ptr Target;
     const Module::SoundAnalyzer::Ptr Analyzer;
   };
-  
+
   class Holder : public Module::Holder
   {
   public:
@@ -202,8 +203,7 @@ namespace Module::V2M
       : Data(std::move(data))
       , Duration(duration)
       , Properties(std::move(props))
-    {
-    }
+    {}
 
     Module::Information::Ptr GetModuleInformation() const override
     {
@@ -219,19 +219,19 @@ namespace Module::V2M
     {
       return MakePtr<Renderer>(Data, Duration, Sound::CreateResampler(V2mEngine::SAMPLERATE, samplerate));
     }
+
   private:
     const DataPtr Data;
     const Time::Milliseconds Duration;
     const Parameters::Accessor::Ptr Properties;
   };
-  
+
   class DataBuilder : public Formats::Chiptune::V2m::Builder
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Meta(props)
-    {
-    }
+    {}
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
@@ -247,15 +247,17 @@ namespace Module::V2M
     {
       return Duration;
     }
+
   private:
     MetaProperties Meta;
     Time::Milliseconds Duration;
   };
-  
+
   class Factory : public Module::Factory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
+                                     Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -275,9 +277,9 @@ namespace Module::V2M
       return Module::Holder::Ptr();
     }
   };
-  
+
   Factory::Ptr CreateFactory()
   {
     return MakePtr<Factory>();
   }
-}
+}  // namespace Module::V2M

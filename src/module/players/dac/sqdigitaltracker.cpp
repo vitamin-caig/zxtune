@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief  SQDigitalTracker chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SQDigitalTracker chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/dac/sqdigitaltracker.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
-//library includes
+// library includes
 #include <devices/dac/sample_factories.h>
 #include <formats/chiptune/digital/sqdigitaltracker.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <module/players/tracking.h>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module::SQDigitalTracker
@@ -29,15 +29,15 @@ namespace Module::SQDigitalTracker
   const uint_t TICKS_PER_CYCLE = 346;
   const uint_t C_1_STEP = 44;
   const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
-  
-  //supported tracking commands
+
+  // supported tracking commands
   enum CmdType
   {
-    //no parameters
+    // no parameters
     EMPTY,
-    //1 param
+    // 1 param
     VOLUME_SLIDE_PERIOD,
-    //1 param
+    // 1 param
     VOLUME_SLIDE,
   };
 
@@ -122,6 +122,7 @@ namespace Module::SQDigitalTracker
       Data->Patterns = Patterns.CaptureResult();
       return std::move(Data);
     }
+
   private:
     DAC::PropertiesHelper& Properties;
     MetaProperties Meta;
@@ -136,8 +137,7 @@ namespace Module::SQDigitalTracker
       , SlideDirection(0)
       , SlideCounter(0)
       , SlidePeriod(0)
-    {
-    }
+    {}
 
     int_t Value;
     int_t SlideDirection;
@@ -186,6 +186,7 @@ namespace Module::SQDigitalTracker
         GetNewLineState(state, track);
       }
     }
+
   private:
     void SynthesizeChannelsData(DAC::TrackBuilder& track)
     {
@@ -255,6 +256,7 @@ namespace Module::SQDigitalTracker
         }
       }
     }
+
   private:
     const ModuleData::Ptr Data;
     std::array<VolumeState, CHANNELS_COUNT> Volumes;
@@ -266,8 +268,7 @@ namespace Module::SQDigitalTracker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-    {
-    }
+    {}
 
     TrackModel::Ptr GetTrackModel() const override
     {
@@ -293,6 +294,7 @@ namespace Module::SQDigitalTracker
         chip.SetSample(idx, Data->Samples.Get(idx));
       }
     }
+
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
@@ -301,7 +303,8 @@ namespace Module::SQDigitalTracker
   class Factory : public DAC::Factory
   {
   public:
-    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       DAC::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -317,9 +320,9 @@ namespace Module::SQDigitalTracker
       }
     }
   };
-  
+
   Factory::Ptr CreateFactory()
   {
     return MakePtr<Factory>();
   }
-}
+}  // namespace Module::SQDigitalTracker

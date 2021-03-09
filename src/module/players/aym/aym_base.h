@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  AYM-based chiptunes support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AYM-based chiptunes support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "module/players/aym/aym_chiptune.h"
-//library includes
+// library includes
 #include <module/holder.h>
 
 namespace Module
@@ -27,12 +27,12 @@ namespace Module
       using Module::Holder::CreateRenderer;
       virtual AYM::Chiptune::Ptr GetChiptune() const = 0;
 
-      //TODO: move to another place
+      // TODO: move to another place
       virtual void Dump(Devices::AYM::Device& dev) const = 0;
     };
 
     Holder::Ptr CreateHolder(Chiptune::Ptr chiptune);
 
     Devices::AYM::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params);
-  }
-}
+  }  // namespace AYM
+}  // namespace Module

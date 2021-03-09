@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  AYM-based chiptunes common functionality implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AYM-based chiptunes common functionality implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
+#include "module/players/aym/aym_base.h"
 #include "module/players/streaming.h"
 #include "module/players/tracking.h"
-#include "module/players/aym/aym_base.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <module/players/analyzer.h>
@@ -32,8 +32,7 @@ namespace Module
       : Iterator(std::move(iterator))
       , Device(std::move(device))
       , FrameDuration(frameDuration)
-    {
-    }
+    {}
 
     State::Ptr GetState() const override
     {
@@ -79,12 +78,14 @@ namespace Module
         Iterator->NextFrame({});
       }
     }
+
   private:
     void TransferChunk()
     {
       LastChunk.Data = Iterator->GetData();
       Device->RenderData(LastChunk);
     }
+
   private:
     const AYM::DataIterator::Ptr Iterator;
     const Devices::AYM::Chip::Ptr Device;
@@ -97,8 +98,7 @@ namespace Module
   public:
     AYMHolder(AYM::Chiptune::Ptr chiptune)
       : Tune(std::move(chiptune))
-    {
-    }
+    {}
 
     Information::Ptr GetModuleInformation() const override
     {
@@ -122,8 +122,8 @@ namespace Module
       auto chip = AYM::CreateChip(samplerate, params);
       auto trackParams = AYM::TrackParameters::Create(std::move(params));
       auto iterator = Tune->CreateDataIterator(std::move(trackParams));
-      return MakePtr<AYMRenderer>(Tune->GetFrameDuration()/*TODO: speed variation*/,
-        std::move(iterator), std::move(chip));
+      return MakePtr<AYMRenderer>(Tune->GetFrameDuration() /*TODO: speed variation*/, std::move(iterator),
+                                  std::move(chip));
     }
 
     AYM::Chiptune::Ptr GetChiptune() const override
@@ -136,18 +136,18 @@ namespace Module
       auto trackParams = AYM::TrackParameters::Create(Tune->GetProperties());
       const auto iterator = Tune->CreateDataIterator(std::move(trackParams));
       Devices::AYM::DataChunk chunk;
-      for (const auto frameDuration = Tune->GetFrameDuration();
-        iterator->IsValid();
-        chunk.TimeStamp += frameDuration, iterator->NextFrame({}))
+      for (const auto frameDuration = Tune->GetFrameDuration(); iterator->IsValid();
+           chunk.TimeStamp += frameDuration, iterator->NextFrame({}))
       {
         chunk.Data = iterator->GetData();
         aym.RenderData(chunk);
       }
     }
+
   private:
     const AYM::Chiptune::Ptr Tune;
   };
-}
+}  // namespace Module
 
 namespace Module
 {
@@ -166,5 +166,5 @@ namespace Module
       auto chipParams = AYM::CreateChipParameters(samplerate, std::move(pollParams));
       return Devices::AYM::CreateChip(std::move(chipParams), std::move(mixer));
     }
-  }
-}
+  }  // namespace AYM
+}  // namespace Module

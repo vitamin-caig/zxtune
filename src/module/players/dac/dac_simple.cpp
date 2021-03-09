@@ -1,23 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief  Simple DAC-based tracks support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Simple DAC-based tracks support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/dac/dac_simple.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <devices/dac/sample_factories.h>
 #include <module/players/properties_meta.h>
-#include <module/players/tracking.h>
 #include <module/players/simple_orderlist.h>
-//std includes
+#include <module/players/tracking.h>
+// std includes
 #include <utility>
 
 namespace Module
@@ -32,8 +32,7 @@ namespace Module
         , Meta(props)
         , Patterns(std::move(builder))
         , Data(MakeRWPtr<SimpleModuleData>(channels))
-      {
-      }
+      {}
 
       Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
       {
@@ -52,9 +51,8 @@ namespace Module
 
       void SetSample(uint_t index, std::size_t loop, Binary::View content, bool is4Bit) override
       {
-        Data->Samples.Add(index, is4Bit
-          ? Devices::DAC::CreateU4Sample(content, loop)
-          : Devices::DAC::CreateU8Sample(content, loop));
+        Data->Samples.Add(index, is4Bit ? Devices::DAC::CreateU4Sample(content, loop)
+                                        : Devices::DAC::CreateU8Sample(content, loop));
       }
 
       void SetPositions(Formats::Chiptune::Digital::Positions positions) override
@@ -94,6 +92,7 @@ namespace Module
         Data->Patterns = Patterns.CaptureResult();
         return std::move(Data);
       }
+
     private:
       DAC::PropertiesHelper& Properties;
       MetaProperties Meta;
@@ -101,7 +100,8 @@ namespace Module
       SimpleModuleData::RWPtr Data;
     };
 
-    SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, PatternsBuilder builder, uint_t channels)
+    SimpleDataBuilder::Ptr SimpleDataBuilder::Create(DAC::PropertiesHelper& props, PatternsBuilder builder,
+                                                     uint_t channels)
     {
       return MakePtr<SimpleDataBuilderImpl>(props, std::move(builder), channels);
     }
@@ -111,12 +111,9 @@ namespace Module
     public:
       explicit SimpleDataRenderer(SimpleModuleData::Ptr data)
         : Data(std::move(data))
-      {
-      }
+      {}
 
-      void Reset() override
-      {
-      }
+      void Reset() override {}
 
       void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
       {
@@ -125,6 +122,7 @@ namespace Module
           GetNewLineState(state, track);
         }
       }
+
     private:
       void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
       {
@@ -162,6 +160,7 @@ namespace Module
           builder.SetPosInSample(0);
         }
       }
+
     private:
       const SimpleModuleData::Ptr Data;
     };
@@ -172,8 +171,7 @@ namespace Module
       SimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties)
         : Data(std::move(data))
         , Properties(std::move(properties))
-      {
-      }
+      {}
 
       TrackModel::Ptr GetTrackModel() const override
       {
@@ -199,6 +197,7 @@ namespace Module
           chip.SetSample(idx, Data->Samples.Get(idx));
         }
       }
+
     private:
       const SimpleModuleData::Ptr Data;
       const Parameters::Accessor::Ptr Properties;
@@ -208,5 +207,5 @@ namespace Module
     {
       return MakePtr<SimpleChiptune>(std::move(data), std::move(properties));
     }
-  }
-}
+  }  // namespace DAC
+}  // namespace Module

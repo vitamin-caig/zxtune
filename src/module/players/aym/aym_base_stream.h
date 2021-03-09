@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  AYM-based stream chiptunes support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AYM-based stream chiptunes support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
-#include "module/players/stream_model.h"
+// local includes
 #include "module/players/aym/aym_chiptune.h"
-//common includes
+#include "module/players/stream_model.h"
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 
 namespace Module
 {
@@ -40,6 +40,7 @@ namespace Module
       {
         return Data[pos];
       }
+
     protected:
       uint_t Loop = 0;
       std::vector<Devices::AYM::Registers> Data;
@@ -70,7 +71,7 @@ namespace Module
       {
         Data.resize(Data.size() + count);
       }
-      
+
       Devices::AYM::Registers& Frame(uint_t pos)
       {
         return Data.at(pos);
@@ -78,9 +79,7 @@ namespace Module
 
       Devices::AYM::Registers* LastFrame()
       {
-        return Data.empty()
-          ? nullptr
-          : &Data.back();
+        return Data.empty() ? nullptr : &Data.back();
       }
 
       Devices::AYM::Registers& AddFrame()
@@ -90,6 +89,7 @@ namespace Module
       }
     };
 
-    Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model, Parameters::Accessor::Ptr properties);
-  }
-}
+    Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model,
+                                         Parameters::Accessor::Ptr properties);
+  }  // namespace AYM
+}  // namespace Module

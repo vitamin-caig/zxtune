@@ -1,51 +1,51 @@
 /**
-* 
-* @file
-*
-* @brief  SQTracker chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SQTracker chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/sqtracker.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_track.h"
 #include "module/players/aym/aym_properties_helper.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <formats/chiptune/aym/sqtracker.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-//std includes
-#include <unordered_set>
+// std includes
 #include <unordered_map>
-//boost includes
+#include <unordered_set>
+// boost includes
 #include <boost/functional/hash.hpp>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module::SQTracker
 {
   const Debug::Stream Dbg("Core::SQTSupp");
 
-  //supported commands and parameters
+  // supported commands and parameters
   enum CmdType
   {
-    //no parameters
+    // no parameters
     EMPTY,
-    //value
+    // value
     TEMPO_ADDON,
-    //r13,period
+    // r13,period
     ENVELOPE,
-    //glissade
+    // glissade
     GLISS,
-    //value,isGlobal
+    // value,isGlobal
     ATTENUATION,
-    //value,isGlobal
+    // value,isGlobal
     ATTENUATION_ADDON,
   };
 
@@ -61,6 +61,7 @@ namespace Module::SQTracker
       const HashedPosition hashedPos(pos);
       return Storage.insert(std::make_pair(hashedPos, newIdx)).first->second;
     }
+
   private:
     struct HashedPosition : Formats::Chiptune::SQTracker::PositionEntry
     {
@@ -68,8 +69,7 @@ namespace Module::SQTracker
 
       HashedPosition()
         : Hash()
-      {
-      }
+      {}
 
       explicit HashedPosition(const Formats::Chiptune::SQTracker::PositionEntry& pos)
         : Formats::Chiptune::SQTracker::PositionEntry(pos)
@@ -86,22 +86,18 @@ namespace Module::SQTracker
         }
       }
 
-      bool operator == (const HashedPosition& rh) const
+      bool operator==(const HashedPosition& rh) const
       {
-        return Tempo == rh.Tempo
-            && Equal(Channels[0], rh.Channels[0])
-            && Equal(Channels[1], rh.Channels[1])
-            && Equal(Channels[2], rh.Channels[2])
-        ;
+        return Tempo == rh.Tempo && Equal(Channels[0], rh.Channels[0]) && Equal(Channels[1], rh.Channels[1])
+               && Equal(Channels[2], rh.Channels[2]);
       }
+
     private:
-      static bool Equal(const Formats::Chiptune::SQTracker::PositionEntry::Channel& lh, const Formats::Chiptune::SQTracker::PositionEntry::Channel& rh)
+      static bool Equal(const Formats::Chiptune::SQTracker::PositionEntry::Channel& lh,
+                        const Formats::Chiptune::SQTracker::PositionEntry::Channel& rh)
       {
-        return lh.Pattern == rh.Pattern
-            && lh.Transposition == rh.Transposition
-            && lh.Attenuation == rh.Attenuation
-            && lh.EnabledEffects == rh.EnabledEffects
-        ;
+        return lh.Pattern == rh.Pattern && lh.Transposition == rh.Transposition && lh.Attenuation == rh.Attenuation
+               && lh.EnabledEffects == rh.EnabledEffects;
       }
     };
 
@@ -112,6 +108,7 @@ namespace Module::SQTracker
         return pos.Hash;
       }
     };
+
   private:
     typedef std::unordered_map<HashedPosition, uint_t, PositionHash> StorageType;
     StorageType Storage;
@@ -156,6 +153,7 @@ namespace Module::SQTracker
     mutable PatternsSet::Ptr RawPatterns;
     SparsedObjectsStorage<Sample> Samples;
     SparsedObjectsStorage<Ornament> Ornaments;
+
   private:
     OrderList::Ptr CreateFlatOrderlist() const
     {
@@ -210,6 +208,7 @@ namespace Module::SQTracker
       {
         return Delegates[chan];
       }
+
     private:
       std::array<const Line*, AYM::TRACK_CHANNELS> Delegates;
     };
@@ -234,6 +233,7 @@ namespace Module::SQTracker
       {
         return MultiLine(Delegates[0]->GetLine(row), Delegates[1]->GetLine(row), Delegates[2]->GetLine(row));
       }
+
     private:
       std::array<const Pattern*, AYM::TRACK_CHANNELS> Delegates;
     };
@@ -246,8 +246,7 @@ namespace Module::SQTracker
         , Tempo()
         , Row()
         , CurrentLine()
-      {
-      }
+      {}
 
       void SetRow(uint_t row)
       {
@@ -281,6 +280,7 @@ namespace Module::SQTracker
       {
         SetTempo((Tempo + delta) & 31);
       }
+
     private:
       PatternsBuilder& Pattern;
       uint_t Tempo;
@@ -292,7 +292,8 @@ namespace Module::SQTracker
     {
       const MultiPattern inPattern(*RawPatterns, patAttrs);
       const uint_t maxLines = inPattern.GetSize();
-      Dbg(" subpatterns (%1%, %2%, %3%), size=%4%", patAttrs.Channels[0].Pattern, patAttrs.Channels[1].Pattern, patAttrs.Channels[2].Pattern, maxLines);
+      Dbg(" subpatterns (%1%, %2%, %3%), size=%4%", patAttrs.Channels[0].Pattern, patAttrs.Channels[1].Pattern,
+          patAttrs.Channels[2].Pattern, maxLines);
       MutablePatternHelper outPattern(builder);
       uint_t tempo = patAttrs.Tempo;
       for (uint_t row = 0; row != maxLines; ++row)
@@ -309,7 +310,8 @@ namespace Module::SQTracker
       builder.FinishPattern(maxLines);
     }
 
-    static void ConvertLine(const MultiLine& inLine, const Formats::Chiptune::SQTracker::PositionEntry& patAttrs, uint_t& tempo, MutableLine& outLine)
+    static void ConvertLine(const MultiLine& inLine, const Formats::Chiptune::SQTracker::PositionEntry& patAttrs,
+                            uint_t& tempo, MutableLine& outLine)
     {
       for (uint_t idx = 0; idx != patAttrs.Channels.size(); ++idx)
       {
@@ -376,6 +378,7 @@ namespace Module::SQTracker
       }
       return tempoAddon;
     }
+
   private:
     mutable OrderList::Ptr FlatOrder;
     mutable PatternsSet::Ptr FlatPatterns;
@@ -385,13 +388,12 @@ namespace Module::SQTracker
   {
     explicit SingleChannelPatternsBuilder(MutablePatternsSet::Ptr patterns)
       : PatternsBuilder(std::move(patterns))
-    {
-    }
+    {}
+
   public:
-    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh) noexcept// = default
+    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh) noexcept  // = default
       : PatternsBuilder(std::move(rh))
-    {
-    }
+    {}
 
     void StartLine(uint_t index) override
     {
@@ -508,6 +510,7 @@ namespace Module::SQTracker
       Data->RawPatterns = Patterns.CaptureResult();
       return std::move(Data);
     }
+
   private:
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
@@ -519,18 +522,23 @@ namespace Module::SQTracker
   struct ChannelState
   {
     ChannelState()
-      : Note(), Attenuation(), Transposition()
-      , CurSample(), SampleTick(), SamplePos()
-      , CurOrnament(), OrnamentTick(), OrnamentPos()
+      : Note()
+      , Attenuation()
+      , Transposition()
+      , CurSample()
+      , SampleTick()
+      , SamplePos()
+      , CurOrnament()
+      , OrnamentTick()
+      , OrnamentPos()
       , Envelope()
       , Sliding()
       , Glissade()
-    {
-    }
+    {}
     uint_t Note;
     uint_t Attenuation;
     int_t Transposition;
-    //ornament presence means enabled channel
+    // ornament presence means enabled channel
     const Sample* CurSample;
     uint_t SampleTick;
     uint_t SamplePos;
@@ -551,9 +559,8 @@ namespace Module::SQTracker
   {
   public:
     explicit DataRenderer(ModuleData::Ptr data)
-       : Data(std::move(data))
-    {
-    }
+      : Data(std::move(data))
+    {}
 
     void Reset() override
     {
@@ -572,6 +579,7 @@ namespace Module::SQTracker
       }
       SynthesizeChannelsData(track);
     }
+
   private:
     void StartNewPattern(const Formats::Chiptune::SQTracker::PositionEntry& posAttrs)
     {
@@ -641,7 +649,7 @@ namespace Module::SQTracker
           dst.Sliding = 0;
           break;
         case ATTENUATION:
-          //global
+          // global
           if (it->Param2)
           {
             for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
@@ -655,7 +663,7 @@ namespace Module::SQTracker
           }
           break;
         case ATTENUATION_ADDON:
-          //global
+          // global
           if (it->Param2)
           {
             for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
@@ -691,13 +699,13 @@ namespace Module::SQTracker
         return;
       }
       const Sample::Line& curSampleLine = dst.CurSample->GetLine(dst.SamplePos++);
-      //level
+      // level
       channel.SetLevel(int_t(curSampleLine.Level) - dst.Attenuation);
       if (0 == curSampleLine.Level && dst.Envelope)
       {
         channel.EnableEnvelope();
       }
-      //noise
+      // noise
       if (curSampleLine.EnableNoise)
       {
         track.SetNoise(curSampleLine.Noise);
@@ -706,7 +714,7 @@ namespace Module::SQTracker
       {
         channel.DisableNoise();
       }
-      //tone
+      // tone
       if (!curSampleLine.EnableTone)
       {
         channel.DisableTone();
@@ -746,6 +754,7 @@ namespace Module::SQTracker
       }
       dst.Sliding += dst.Glissade;
     }
+
   private:
     const ModuleData::Ptr Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
@@ -754,7 +763,8 @@ namespace Module::SQTracker
   class Factory : public AYM::Factory
   {
   public:
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -762,7 +772,8 @@ namespace Module::SQTracker
       {
         props.SetSource(*container);
         props.SetPlatform(Platforms::ZX_SPECTRUM);
-        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(), std::move(properties));
+        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
+                                                                        std::move(properties));
       }
       else
       {
@@ -775,4 +786,4 @@ namespace Module::SQTracker
   {
     return MakePtr<Factory>();
   }
-}
+}  // namespace Module::SQTracker

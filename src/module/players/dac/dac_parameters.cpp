@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  DAC-based parameters helpers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC-based parameters helpers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/dac/dac_parameters.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/core_parameters.h>
 
 namespace Module
@@ -25,8 +25,7 @@ namespace Module
       ChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
         : Samplerate(samplerate)
         , Params(params)
-      {
-      }
+      {}
 
       uint_t Version() const override
       {
@@ -51,6 +50,7 @@ namespace Module
         Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, intVal);
         return intVal != 0;
       }
+
     private:
       const uint_t Samplerate;
       const Parameters::Accessor::Ptr Params;
@@ -60,5 +60,5 @@ namespace Module
     {
       return MakePtr<ChipParameters>(samplerate, std::move(params));
     }
-  }
-}
+  }  // namespace DAC
+}  // namespace Module
