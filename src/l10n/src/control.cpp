@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  L10n loading from resources
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  L10n loading from resources
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
+// library includes
 #include <l10n/api.h>
 #include <l10n/control.h>
 #include <resource/api.h>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -32,7 +32,8 @@ namespace
   {
     std::vector<String> elements;
     static const String PATH_DELIMITERS("/\\");
-    boost::algorithm::split(elements, path, boost::algorithm::is_any_of(PATH_DELIMITERS), boost::algorithm::token_compress_on);
+    boost::algorithm::split(elements, path, boost::algorithm::is_any_of(PATH_DELIMITERS),
+                            boost::algorithm::token_compress_on);
     if (elements.size() == PATH_ELEMENTS)
     {
       const String filename = elements[FILENAME_POS];
@@ -57,8 +58,7 @@ namespace
   public:
     explicit ResourceFilesVisitor(L10n::Library& lib)
       : Lib(lib)
-    {
-    }
+    {}
 
     void OnResource(const String& name) override
     {
@@ -69,10 +69,11 @@ namespace
         Lib.AddTranslation(trans);
       }
     }
+
   private:
     L10n::Library& Lib;
   };
-}
+}  // namespace
 
 namespace L10n
 {
@@ -81,4 +82,4 @@ namespace L10n
     ResourceFilesVisitor visitor(lib);
     Resource::Enumerate(visitor);
   }
-}
+}  // namespace L10n

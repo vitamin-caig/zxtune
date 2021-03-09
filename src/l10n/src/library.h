@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief    Localization support API
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief    Localization support API
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace L10n
@@ -65,4 +65,4 @@ namespace L10n
 
     static Library& Instance();
   };
-}
+}  // namespace L10n
