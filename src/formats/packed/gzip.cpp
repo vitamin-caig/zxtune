@@ -1,28 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief  GZIP compressor support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  GZIP compressor support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <error.h>
 #include <make_ptr.h>
-//library includes
+// library includes
+#include <binary/compression/zlib_stream.h>
 #include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-#include <binary/compression/zlib_stream.h>
 #include <formats/packed.h>
-//std includes
+// std includes
 #include <array>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -30,9 +30,9 @@ namespace Formats::Packed
   namespace Gzip
   {
     typedef std::array<uint8_t, 2> SignatureType;
-    
-    const SignatureType SIGNATURE = {{ 0x1f, 0x8b }};
-    
+
+    const SignatureType SIGNATURE = {{0x1f, 0x8b}};
+
     enum CompressionMethods
     {
       DEFLATE = 8
@@ -46,9 +46,9 @@ namespace Formats::Packed
       HAS_FILENAME = 8,
       HAS_COMMENT = 16
     };
-    
+
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct Header
     {
@@ -58,40 +58,40 @@ namespace Formats::Packed
       uint32_t ModTime;
       uint8_t ExtraFlags;
       uint8_t OSType;
-      
+
       bool Check() const
       {
         return Signature == SIGNATURE && CompressionMethod == DEFLATE;
       }
-      
+
       bool HasExtraData() const
       {
         return 0 != (Flags & HAS_EXTRA);
       }
-      
+
       bool HasFilename() const
       {
         return 0 != (Flags & HAS_FILENAME);
       }
-      
+
       bool HasComment() const
       {
         return 0 != (Flags & HAS_COMMENT);
       }
-      
+
       bool HasCrc16() const
       {
         return 0 != (Flags & HAS_COMMENT);
       }
     } PACK_POST;
-    
+
     PACK_PRE struct Footer
     {
       uint32_t Crc32;
       uint32_t OriginalSize;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(Header) == 10, "Invalid layout");
@@ -99,22 +99,21 @@ namespace Formats::Packed
     const std::size_t MIN_SIZE = sizeof(Header) + 2 + sizeof(Footer);
 
     const StringView FORMAT(
-      "1f 8b" //signature
-      "08"    //compression method
-      "%000xxxxx" //flags
-      "????"  //modtime
-      "?"     //extra flags
-      "?"     //OS
+        "1f 8b"      // signature
+        "08"         // compression method
+        "%000xxxxx"  // flags
+        "????"       // modtime
+        "?"          // extra flags
+        "?"          // OS
     );
-  }//namespace Gzip
+  }  // namespace Gzip
 
   class GzipDecoder : public Decoder
   {
   public:
     GzipDecoder()
       : Format(Binary::CreateFormat(Gzip::FORMAT, Gzip::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -160,18 +159,17 @@ namespace Formats::Packed
         {
           const Gzip::Footer footer = input.ReadField<Gzip::Footer>();
           Require(result->Size() == fromLE(footer.OriginalSize));
-          //TODO: check CRC
+          // TODO: check CRC
           return CreateContainer(std::move(result), input.GetPosition());
         }
       }
       catch (const Error&)
-      {
-      }
+      {}
       catch (const std::exception&)
-      {
-      }
+      {}
       return Formats::Packed::Container::Ptr();
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -180,4 +178,4 @@ namespace Formats::Packed
   {
     return MakePtr<GzipDecoder>();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed

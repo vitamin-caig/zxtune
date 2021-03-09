@@ -1,33 +1,30 @@
 /**
-*
-* @file
-*
-* @brief  Image utilities implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Image utilities implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/image_utils.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_factories.h>
-//std includes
+// std includes
 #include <map>
 
 namespace Formats
 {
   bool CompareCHS(const CHS& lh, const CHS& rh)
   {
-    return lh.Cylinder == rh.Cylinder
-      ? (lh.Head == rh.Head
-         ? lh.Sector < rh.Sector
-         : lh.Head < rh.Head)
-      : lh.Cylinder < rh.Cylinder;
+    return lh.Cylinder == rh.Cylinder ? (lh.Head == rh.Head ? lh.Sector < rh.Sector : lh.Head < rh.Head)
+                                      : lh.Cylinder < rh.Cylinder;
   }
-}
+}  // namespace Formats
 
 namespace Formats
 {
@@ -37,12 +34,9 @@ namespace Formats
     SparsedImageBuilder()
       : Sectors(&CompareCHS)
       , TotalSize()
-    {
-    }
+    {}
 
-    void SetGeometry(const CHS& /*geometry*/) override
-    {
-    }
+    void SetGeometry(const CHS& /*geometry*/) override {}
 
     void SetSector(const CHS& location, Dump data) override
     {
@@ -63,8 +57,9 @@ namespace Formats
       }
       return Binary::CreateContainer(std::move(result));
     }
+
   private:
-    typedef std::map<CHS, Dump, bool(*)(const CHS&, const CHS&)> SectorsMap;
+    typedef std::map<CHS, Dump, bool (*)(const CHS&, const CHS&)> SectorsMap;
     SectorsMap Sectors;
     std::size_t TotalSize;
   };
@@ -73,4 +68,4 @@ namespace Formats
   {
     return MakePtr<SparsedImageBuilder>();
   }
-}
+}  // namespace Formats

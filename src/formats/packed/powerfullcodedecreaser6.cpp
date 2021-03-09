@@ -1,30 +1,30 @@
 /**
-* 
-* @file
-*
-* @brief  PverfullCodeDecreaser v6.x packer support
-*
-* @author vitamin.caig@gmail.com
-*
-* @note   Based on XLook sources by HalfElf
-*
-**/
+ *
+ * @file
+ *
+ * @brief  PverfullCodeDecreaser v6.x packer support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ * @note   Based on XLook sources by HalfElf
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/hrust1_bitstream.h"
 #include "formats/packed/pack_utils.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <iterator>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -39,7 +39,7 @@ namespace Formats::Packed
       static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
       PACK_PRE struct RawHeader
       {
@@ -62,7 +62,7 @@ namespace Formats::Packed
         uint8_t Bitstream[2];
       } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
       static_assert(sizeof(RawHeader) == 0xc9 + 3 + 2, "Invalid layout");
@@ -76,7 +76,7 @@ namespace Formats::Packed
       static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
       PACK_PRE struct RawHeader
       {
@@ -99,21 +99,21 @@ namespace Formats::Packed
         uint8_t Bitstream[2];
       } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
       static_assert(sizeof(RawHeader) == 0xc1 + 3 + 2, "Invalid layout");
 
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
     };
-    
+
     struct Version62
     {
       static const StringView DESCRIPTION;
       static const StringView DEPACKER_PATTERN;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
       PACK_PRE struct RawHeader
       {
@@ -136,7 +136,7 @@ namespace Formats::Packed
         uint8_t Bitstream[2];
       } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
       static_assert(sizeof(RawHeader) == 0xc4 + 5 + 2, "Invalid layout");
@@ -146,108 +146,108 @@ namespace Formats::Packed
 
     const StringView Version61::DESCRIPTION = Text::PCD61_DECODER_DESCRIPTION;
     const StringView Version61::DEPACKER_PATTERN =
-      "?"       // di/nop
-      "21??"    // ld hl,xxxx 0xc017   depacker src
-      "11??"    // ld de,xxxx 0xbf00   depacker target
-      "01b500"  // ld bc,xxxx 0x00b5   depacker size
-      "d5"      // push de
-      "edb0"    // ldir
-      "21??"    // ld hl,xxxx 0xd845   last of src packed (data = +0xe)
-      "11??"    // ld de,xxxx 0xffff   last of dst packed (data = +0x11)
-      "01??"    // ld bc,xxxx 0x177d   packed size (data = +0x14)
-      "c9"      // ret
-      "ed?"     // lddr/ldir                +0x18
-      "21??"    // ld hl,xxxx 0xe883   rest bytes src (data = +0x1a)
-      "11??"    // ld de,xxxx 0xbfb2   rest bytes dst (data = +0x1d)
-      "01??"    // ld bc,xxxx 0x0003   rest bytes count
-      "d5"      // push de
-      "c5"      // push bc
-      "edb0"    // ldir
-      "ed73??"  // ld (xxxx),sp 0xbfa3
-      "f9"      // ld sp,hl
-      "11??"    // ld de,xxxx   0xc000 target of depack (data = +0x2c)
-      "60"      // ld h,b
-      "d9"      // exx
-      "011001"  // ld bc,xxxx ; 0x110
-      "3ed9"    // ld a,x ;0xd9
-      "1002"    // djnz xxx, (2)
-      "e1"      // pop hl
-      "41"      // ld b,c
-      "29"      // add hl,hl
-      "3007"    // jr nc,xx
-      "3b"      // dec sp
-      "f1"      // pop af
-      "d9"      // exx
-      "12"      // ld (de),a
-      "13"      // inc de
-      "18f1"    // jr ...
-    ;
+        "?"       // di/nop
+        "21??"    // ld hl,xxxx 0xc017   depacker src
+        "11??"    // ld de,xxxx 0xbf00   depacker target
+        "01b500"  // ld bc,xxxx 0x00b5   depacker size
+        "d5"      // push de
+        "edb0"    // ldir
+        "21??"    // ld hl,xxxx 0xd845   last of src packed (data = +0xe)
+        "11??"    // ld de,xxxx 0xffff   last of dst packed (data = +0x11)
+        "01??"    // ld bc,xxxx 0x177d   packed size (data = +0x14)
+        "c9"      // ret
+        "ed?"     // lddr/ldir                +0x18
+        "21??"    // ld hl,xxxx 0xe883   rest bytes src (data = +0x1a)
+        "11??"    // ld de,xxxx 0xbfb2   rest bytes dst (data = +0x1d)
+        "01??"    // ld bc,xxxx 0x0003   rest bytes count
+        "d5"      // push de
+        "c5"      // push bc
+        "edb0"    // ldir
+        "ed73??"  // ld (xxxx),sp 0xbfa3
+        "f9"      // ld sp,hl
+        "11??"    // ld de,xxxx   0xc000 target of depack (data = +0x2c)
+        "60"      // ld h,b
+        "d9"      // exx
+        "011001"  // ld bc,xxxx ; 0x110
+        "3ed9"    // ld a,x ;0xd9
+        "1002"    // djnz xxx, (2)
+        "e1"      // pop hl
+        "41"      // ld b,c
+        "29"      // add hl,hl
+        "3007"    // jr nc,xx
+        "3b"      // dec sp
+        "f1"      // pop af
+        "d9"      // exx
+        "12"      // ld (de),a
+        "13"      // inc de
+        "18f1"    // jr ...
+        ;
 
     const StringView Version61i::DESCRIPTION = Text::PCD61i_DECODER_DESCRIPTION;
     const StringView Version61i::DEPACKER_PATTERN =
-      "?"       // di/nop
-      "21??"    // ld hl,xxxx 0x7017   depacker src
-      "11??"    // ld de,xxxx 0xc000   depacker target
-      "01ad00"  // ld bc,xxxx 0x00ad   depacker size
-      "d5"      // push de
-      "edb0"    // ldir
-      "21??"    // ld hl,xxxx 0x9ef5   last of src packed (data = +0xe)
-      "11??"    // ld de,xxxx 0xb732   last of dst packed (data = +0x11)
-      "01??"    // ld bc,xxxx 0x2e32   packed size (data = +0x14)
-      "c9"      // ret
-      "ed?"     // lddr/ldir                +0x18
-      "ed73??"  // ld (xxxx),sp 0xc098
-      "31??"    // ld sp,xxx 0x8901
-      "11??"    // ld de,xxxx   0x7000 target of depack (data = +0x21)
-      "60"      // ld h,b
-      "d9"      // exx
-      "011001"  // ld bc,xxxx ; 0x110
-      "3ed9"    // ld a,x ;0xd9
-      "1002"    // djnz xxx, (2)
-      "e1"      // pop hl
-      "41"      // ld b,c
-      "29"      // add hl,hl
-      "3007"    // jr nc,xx
-      "3b"      // dec sp
-      "f1"      // pop af
-      "d9"      // exx
-      "12"      // ld (de),a
-      "13"      // inc de
-      "18f1"    // jr ...
-    ;
-    
+        "?"       // di/nop
+        "21??"    // ld hl,xxxx 0x7017   depacker src
+        "11??"    // ld de,xxxx 0xc000   depacker target
+        "01ad00"  // ld bc,xxxx 0x00ad   depacker size
+        "d5"      // push de
+        "edb0"    // ldir
+        "21??"    // ld hl,xxxx 0x9ef5   last of src packed (data = +0xe)
+        "11??"    // ld de,xxxx 0xb732   last of dst packed (data = +0x11)
+        "01??"    // ld bc,xxxx 0x2e32   packed size (data = +0x14)
+        "c9"      // ret
+        "ed?"     // lddr/ldir                +0x18
+        "ed73??"  // ld (xxxx),sp 0xc098
+        "31??"    // ld sp,xxx 0x8901
+        "11??"    // ld de,xxxx   0x7000 target of depack (data = +0x21)
+        "60"      // ld h,b
+        "d9"      // exx
+        "011001"  // ld bc,xxxx ; 0x110
+        "3ed9"    // ld a,x ;0xd9
+        "1002"    // djnz xxx, (2)
+        "e1"      // pop hl
+        "41"      // ld b,c
+        "29"      // add hl,hl
+        "3007"    // jr nc,xx
+        "3b"      // dec sp
+        "f1"      // pop af
+        "d9"      // exx
+        "12"      // ld (de),a
+        "13"      // inc de
+        "18f1"    // jr ...
+        ;
+
     const StringView Version62::DESCRIPTION = Text::PCD62_DECODER_DESCRIPTION;
     const StringView Version62::DEPACKER_PATTERN =
-      "?"       // di/nop
-      "21??"    // ld hl,xxxx 0x6026   depacker src
-      "11??"    // ld de,xxxx 0x5b00   depacker target
-      "01a300"  // ld bc,xxxx 0x00a3   depacker size
-      "edb0"    // ldir
-      "011001"  // ld bc,xxxx ; 0x110
-      "d9"      // exx
-      "22??"    // ld (xxxx),hl 0x5b97
-      "21??"    // ld hl,xxxx 0xb244   last of src packed (data = +0x14)
-      "11??"    // ld de,xxxx 0xfaa4   last of dst packed (data = +0x17)
-      "01??"    // ld bc,xxxx 0x517c   packed size (data = +0x1a)
-      "ed73??"  // ld (xxxx),sp 0x0000
-      "31??"    // ld sp,xxxx   0xa929
-      "c3??"    // jp xxxx 0x5b00
-      "ed?"     // lddr/lddr           +0x26
-      "11??"    // ld de,xxxx 0x6000   target of depack (data = +0x29)
-      "60"      // ld h,b
-      "d9"      // exx
-      "1002"    // djnz xxx, (2)
-      "e1"      // pop hl
-      "41"      // ld b,c
-      "29"      // add hl,hl
-      "3007"    // jr nc,xx
-      "3b"      // dec sp
-      "f1"      // pop af
-      "d9"      // exx
-      "12"      // ld (de),a
-      "13"      // inc de
-      "18f1"    // jr ...
-    ;
+        "?"       // di/nop
+        "21??"    // ld hl,xxxx 0x6026   depacker src
+        "11??"    // ld de,xxxx 0x5b00   depacker target
+        "01a300"  // ld bc,xxxx 0x00a3   depacker size
+        "edb0"    // ldir
+        "011001"  // ld bc,xxxx ; 0x110
+        "d9"      // exx
+        "22??"    // ld (xxxx),hl 0x5b97
+        "21??"    // ld hl,xxxx 0xb244   last of src packed (data = +0x14)
+        "11??"    // ld de,xxxx 0xfaa4   last of dst packed (data = +0x17)
+        "01??"    // ld bc,xxxx 0x517c   packed size (data = +0x1a)
+        "ed73??"  // ld (xxxx),sp 0x0000
+        "31??"    // ld sp,xxxx   0xa929
+        "c3??"    // jp xxxx 0x5b00
+        "ed?"     // lddr/lddr           +0x26
+        "11??"    // ld de,xxxx 0x6000   target of depack (data = +0x29)
+        "60"      // ld h,b
+        "d9"      // exx
+        "1002"    // djnz xxx, (2)
+        "e1"      // pop hl
+        "41"      // ld b,c
+        "29"      // add hl,hl
+        "3007"    // jr nc,xx
+        "3b"      // dec sp
+        "f1"      // pop af
+        "d9"      // exx
+        "12"      // ld (de),a
+        "13"      // inc de
+        "18f1"    // jr ...
+        ;
 
     template<class Version>
     class Container
@@ -256,8 +256,7 @@ namespace Formats::Packed
       Container(const void* data, std::size_t size)
         : Data(static_cast<const uint8_t*>(data))
         , Size(size)
-      {
-      }
+      {}
 
       bool FastCheck() const
       {
@@ -278,11 +277,12 @@ namespace Formats::Packed
         assert(Size >= sizeof(typename Version::RawHeader));
         return *safe_ptr_cast<const typename Version::RawHeader*>(Data);
       }
-      
+
       std::size_t GetSize() const
       {
         return Size;
       }
+
     private:
       const uint8_t* const Data;
       const std::size_t Size;
@@ -293,9 +293,9 @@ namespace Formats::Packed
     public:
       Bitstream(const uint8_t* data, std::size_t size)
         : ByteStream(data, size)
-        , Bits(), Mask(0)
-      {
-      }
+        , Bits()
+        , Mask(0)
+      {}
 
       uint_t GetBit()
       {
@@ -316,6 +316,7 @@ namespace Formats::Packed
         }
         return result;
       }
+
     private:
       uint_t Bits;
       uint_t Mask;
@@ -334,8 +335,7 @@ namespace Formats::Packed
 
       bool DecodeMainData()
       {
-        while (GetSingleBytes() &&
-               Decoded.size() < MAX_DECODED_SIZE)
+        while (GetSingleBytes() && Decoded.size() < MAX_DECODED_SIZE)
         {
           const uint_t index = GetIndex();
           uint_t offset = 0;
@@ -364,11 +364,12 @@ namespace Formats::Packed
         }
         return false;
       }
-      
+
       std::size_t GetUsedSize() const
       {
         return Stream.GetProcessedBytes();
       }
+
     private:
       bool GetSingleBytes()
       {
@@ -421,12 +422,12 @@ namespace Formats::Packed
           do
           {
             hiOffset = 4 * hiOffset + Stream.GetBits(2);
-          }
-          while (Stream.GetBit());
+          } while (Stream.GetBit());
           ++hiOffset;
         }
         return 256 * hiOffset + loOffset;
       }
+
     protected:
       Bitstream Stream;
       std::unique_ptr<Dump> Result;
@@ -438,7 +439,8 @@ namespace Formats::Packed
     {
     public:
       explicit DataDecoder(const Container<Version>& container)
-        : BitstreamDecoder(container.GetHeader().Bitstream, container.GetSize() - offsetof(typename Version::RawHeader, Bitstream))
+        : BitstreamDecoder(container.GetHeader().Bitstream,
+                           container.GetSize() - offsetof(typename Version::RawHeader, Bitstream))
         , IsValid(container.FastCheck())
         , Header(container.GetHeader())
       {
@@ -450,15 +452,14 @@ namespace Formats::Packed
 
       std::unique_ptr<Dump> GetResult()
       {
-        return IsValid
-          ? std::move(Result)
-          : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
       }
-      
+
       std::size_t GetUsedSize() const
       {
         return offsetof(typename Version::RawHeader, Bitstream) + BitstreamDecoder::GetUsedSize();
       }
+
     private:
       bool DecodeData()
       {
@@ -471,11 +472,12 @@ namespace Formats::Packed
         std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
         return true;
       }
+
     private:
       bool IsValid;
       const typename Version::RawHeader& Header;
     };
-  }//namespace PowerfullCodeDecreaser6
+  }  // namespace PowerfullCodeDecreaser6
 
   template<class Version>
   class PowerfullCodeDecreaser6Decoder : public Decoder
@@ -483,8 +485,7 @@ namespace Formats::Packed
   public:
     PowerfullCodeDecreaser6Decoder()
       : Depacker(Binary::CreateFormat(Version::DEPACKER_PATTERN, Version::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -510,6 +511,7 @@ namespace Formats::Packed
       PowerfullCodeDecreaser6::DataDecoder<Version> decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
+
   private:
     const Binary::Format::Ptr Depacker;
   };
@@ -523,9 +525,9 @@ namespace Formats::Packed
   {
     return MakePtr<PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version61i> >();
   }
-  
+
   Decoder::Ptr CreatePowerfullCodeDecreaser62Decoder()
   {
     return MakePtr<PowerfullCodeDecreaser6Decoder<PowerfullCodeDecreaser6::Version62> >();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed

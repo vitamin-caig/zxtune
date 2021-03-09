@@ -1,32 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief  ESVCruncher packer support
-*
-* @author vitamin.caig@gmail.com
-*
-* @note   Based on XLook sources by HalfElf
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ESVCruncher packer support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ * @note   Based on XLook sources by HalfElf
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <functional>
 #include <iterator>
 #include <numeric>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -36,122 +36,122 @@ namespace Formats::Packed
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
     const StringView DEPACKER_PATTERN(
-    //$=6978
-    //depack to 9900/61a8
-      "?"       // di/nop
-      "21??"    // ld hl,xxxx                                        698f/698f
-      "11??"    // ld de,xxxx                                        6000/5b00
-      "01a300"  // ld bc,0x00a3 rest depacker size
-      "d5"      // push de
-      "edb0"    // ldir
-      "21??"    // ld hl,xxxx last/first of packed (data = +#0e)     89b6/6a32
-      "11??"    // ld de,xxxx last/first dst of packed (data = +#11) b884/61a7
-      "01??"    // ld bc,xxxx size of packed  (data = +#14)          1f85/0815
-      "c9"      // ret
-      "ed?"     // lddr/lddr           +0x17                         b8/b0
-      "21??"    // ld hl,xxxx last of packed (data = +#1a)           b884/69bb
-      "010801"  // ld bc,xxxx                                        0108
-      "d9"      // exx
-      "e5"      // push hl
-      "11??"    // ld de,xxxx last of depacked (data = +#22)         f929/72bb
-      "210100"  // ld hl,xxxx                                        0001
-      /*
-      "cd??"    // call getbit                                         6099
-      "44"      // ld b,h
-      "3025"    // jr nc,xxxx
-      "45"      // ld b,l
-      "2c"      // inc l
-      "cd??"    // call getbit                                         6099
-      "382f"    // jr c,xx
-      "04"      // inc b
-      "2e04"    // ld l,xx
-      "cd??"    // call getbit                                         6099
-      "3827"    // jr c,xx
-      "cd??"    // call getbit                                         6099
-      "301e"    // jr nc,xxxx
-      "45"      // ld b,l
-      "cd??"    // call getbits                                         608c
-      "c608"    // ld a,xx
-      "6f"      // ld l,a
-      "1820"    // jr xxxx
-      "0605"    // ld b,xx
-      "cd??"    // call getbits                                         608c
-      "c60a"    // ld a,xx
-      "6f"      // ld l,a
-      "4d"      // ld c,l
-      "d9"      // exx
-      "e5"      // push hl
-      "d9"      // exx
-      "e1"      // pop hl
-      "edb8"    // lddr
-      "e5"      // push hl
-      "d9"      // exx
-      "e1"      // pop hl
-      "d9"      // exx
-      "1836"    // jr xxxx
-      "2e18"    // ld l,xx
-      "0608"    // ld b,xx
-      "cd??"    // call getbits                                         608c
-      "09"      // add hl,bc
-      "3c"      // inc a
-      "28f7"    // jr z,xx
-      "e5"      // push hl
-      "cd??"    // call getbit                                         6099
-      "212100"  // ld hl,xxxx                                        0021
-      "380f"    // jr c,xx
-      "0609"    // ld b,xx
-      "19"      // add hl,de
-      "cd??"    // call xxxx                                         6099
-      "3013"    // jr nc,xxxx
-      "0605"    // ld b,xx
-      "6b"      // ld l,e
-      "62"      // ld h,d
-      "23"      // inc hl
-      "180c"    // jr xxxx
-      "2602"    // ld h,xx
-      "c1"      // pop bc
-      "79"      // ld a,c
-      "94"      // sub h
-      "b0"      // or b
-      "28c0"    // jr z,xx
-      "c5"      // push bc
-      "06?"     // ld b,xx     ; window size (data = +0x8c)
-      "19"      // add hl,de
-      "cd??"    // call xxxx                                         608c
-      "09"      // add hl,bc
-      "c1"      // pop bc
-      "edb8"    // lddr
-      "21??"    // ld hl,xxxx  ; start of packed-1 (data = +           98ff/61a7
-      "ed52"    // sbc hl,de
-      "da??"    // jp c,xxxx
-      "e1"      // pop hl
-      "d9"      // exx
-      "?"       // di/ei/nop
-      "c3??"    // jp xxxx                                          0052/61a8
-      //getbits
-      "af"      // xor a
-      "4f"      // ld c,a
-      "cd??"    // call xxxx                                         6099
-      "cb11"    // rl c
-      "17"      // lra
-      "10f8"    // djnz xx
-      "47"      // ld b,a
-      "79"      // ld a,c
-      "c9"      // ret
-      //getbit
-      "d9"      // exx
-      "1003"    // djnz xx
-      "41"      // ld b,c
-      "5e"      // ld e,(hl)
-      "2b"      // dec hl
-      "cb13"    // rl e
-      "d9"      // exx
-      "c9"      // ret
-      */
+        //$=6978
+        // depack to 9900/61a8
+        "?"       // di/nop
+        "21??"    // ld hl,xxxx                                        698f/698f
+        "11??"    // ld de,xxxx                                        6000/5b00
+        "01a300"  // ld bc,0x00a3 rest depacker size
+        "d5"      // push de
+        "edb0"    // ldir
+        "21??"    // ld hl,xxxx last/first of packed (data = +#0e)     89b6/6a32
+        "11??"    // ld de,xxxx last/first dst of packed (data = +#11) b884/61a7
+        "01??"    // ld bc,xxxx size of packed  (data = +#14)          1f85/0815
+        "c9"      // ret
+        "ed?"     // lddr/lddr           +0x17                         b8/b0
+        "21??"    // ld hl,xxxx last of packed (data = +#1a)           b884/69bb
+        "010801"  // ld bc,xxxx                                        0108
+        "d9"      // exx
+        "e5"      // push hl
+        "11??"    // ld de,xxxx last of depacked (data = +#22)         f929/72bb
+        "210100"  // ld hl,xxxx                                        0001
+                  /*
+                  "cd??"    // call getbit                                         6099
+                  "44"      // ld b,h
+                  "3025"    // jr nc,xxxx
+                  "45"      // ld b,l
+                  "2c"      // inc l
+                  "cd??"    // call getbit                                         6099
+                  "382f"    // jr c,xx
+                  "04"      // inc b
+                  "2e04"    // ld l,xx
+                  "cd??"    // call getbit                                         6099
+                  "3827"    // jr c,xx
+                  "cd??"    // call getbit                                         6099
+                  "301e"    // jr nc,xxxx
+                  "45"      // ld b,l
+                  "cd??"    // call getbits                                         608c
+                  "c608"    // ld a,xx
+                  "6f"      // ld l,a
+                  "1820"    // jr xxxx
+                  "0605"    // ld b,xx
+                  "cd??"    // call getbits                                         608c
+                  "c60a"    // ld a,xx
+                  "6f"      // ld l,a
+                  "4d"      // ld c,l
+                  "d9"      // exx
+                  "e5"      // push hl
+                  "d9"      // exx
+                  "e1"      // pop hl
+                  "edb8"    // lddr
+                  "e5"      // push hl
+                  "d9"      // exx
+                  "e1"      // pop hl
+                  "d9"      // exx
+                  "1836"    // jr xxxx
+                  "2e18"    // ld l,xx
+                  "0608"    // ld b,xx
+                  "cd??"    // call getbits                                         608c
+                  "09"      // add hl,bc
+                  "3c"      // inc a
+                  "28f7"    // jr z,xx
+                  "e5"      // push hl
+                  "cd??"    // call getbit                                         6099
+                  "212100"  // ld hl,xxxx                                        0021
+                  "380f"    // jr c,xx
+                  "0609"    // ld b,xx
+                  "19"      // add hl,de
+                  "cd??"    // call xxxx                                         6099
+                  "3013"    // jr nc,xxxx
+                  "0605"    // ld b,xx
+                  "6b"      // ld l,e
+                  "62"      // ld h,d
+                  "23"      // inc hl
+                  "180c"    // jr xxxx
+                  "2602"    // ld h,xx
+                  "c1"      // pop bc
+                  "79"      // ld a,c
+                  "94"      // sub h
+                  "b0"      // or b
+                  "28c0"    // jr z,xx
+                  "c5"      // push bc
+                  "06?"     // ld b,xx     ; window size (data = +0x8c)
+                  "19"      // add hl,de
+                  "cd??"    // call xxxx                                         608c
+                  "09"      // add hl,bc
+                  "c1"      // pop bc
+                  "edb8"    // lddr
+                  "21??"    // ld hl,xxxx  ; start of packed-1 (data = +           98ff/61a7
+                  "ed52"    // sbc hl,de
+                  "da??"    // jp c,xxxx
+                  "e1"      // pop hl
+                  "d9"      // exx
+                  "?"       // di/ei/nop
+                  "c3??"    // jp xxxx                                          0052/61a8
+                  //getbits
+                  "af"      // xor a
+                  "4f"      // ld c,a
+                  "cd??"    // call xxxx                                         6099
+                  "cb11"    // rl c
+                  "17"      // lra
+                  "10f8"    // djnz xx
+                  "47"      // ld b,a
+                  "79"      // ld a,c
+                  "c9"      // ret
+                  //getbit
+                  "d9"      // exx
+                  "1003"    // djnz xx
+                  "41"      // ld b,c
+                  "5e"      // ld e,(hl)
+                  "2b"      // dec hl
+                  "cb13"    // rl e
+                  "d9"      // exx
+                  "c9"      // ret
+                  */
     );
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -186,28 +186,30 @@ namespace Formats::Packed
       //+0x8d
       uint8_t Padding8[9];
       //+0x96
-      uint16_t DepackedLimit; //depacked - 1
+      uint16_t DepackedLimit;  // depacked - 1
       //+0x98
       uint8_t Padding9[0x22];
       //+0xba
       uint8_t Data[1];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 0xba + 1, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
 
-    //dsq bitstream decoder
+    // dsq bitstream decoder
     class Bitstream
     {
     public:
       Bitstream(const uint8_t* data, std::size_t size)
-        : Data(data), Pos(Data + size), Bits(), Mask(0)
-      {
-      }
+        : Data(data)
+        , Pos(Data + size)
+        , Bits()
+        , Mask(0)
+      {}
 
       bool Eof() const
       {
@@ -238,6 +240,7 @@ namespace Formats::Packed
         }
         return result;
       }
+
     private:
       const uint8_t* const Data;
       const uint8_t* Pos;
@@ -251,8 +254,7 @@ namespace Formats::Packed
       Container(const void* data, std::size_t size)
         : Data(static_cast<const uint8_t*>(data))
         , Size(size)
-      {
-      }
+      {}
 
       bool FastCheck() const
       {
@@ -269,7 +271,8 @@ namespace Formats::Packed
         {
           return false;
         }
-        const DataMovementChecker checker(fromLE(header.PackedSource), fromLE(header.PackedTarget), fromLE(header.SizeOfPacked), header.PackedDataCopyDirection);
+        const DataMovementChecker checker(fromLE(header.PackedSource), fromLE(header.PackedTarget),
+                                          fromLE(header.SizeOfPacked), header.PackedDataCopyDirection);
         if (!checker.IsValid())
         {
           return false;
@@ -297,6 +300,7 @@ namespace Formats::Packed
         assert(Size >= sizeof(RawHeader));
         return *safe_ptr_cast<const RawHeader*>(Data);
       }
+
     private:
       const uint8_t* const Data;
       const std::size_t Size;
@@ -320,17 +324,15 @@ namespace Formats::Packed
 
       std::unique_ptr<Dump> GetResult()
       {
-        return IsValid
-          ? std::move(Result)
-          : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
       }
+
     private:
       bool DecodeData()
       {
         const uint_t unpackedSize = 1 + fromLE(Header.LastOfDepacked) - ((fromLE(Header.DepackedLimit) + 1) & 0xffff);
         Decoded.reserve(unpackedSize);
-        while (!Stream.Eof() &&
-               Decoded.size() < unpackedSize)
+        while (!Stream.Eof() && Decoded.size() < unpackedSize)
         {
           if (!Stream.GetBit())
           {
@@ -407,6 +409,7 @@ namespace Formats::Packed
         //%00
         return 0x21 + Stream.GetBits(9);
       }
+
     private:
       bool IsValid;
       const RawHeader& Header;
@@ -414,15 +417,14 @@ namespace Formats::Packed
       std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
-  }//namespace ESVCruncher
+  }  // namespace ESVCruncher
 
   class ESVCruncherDecoder : public Decoder
   {
   public:
     ESVCruncherDecoder()
       : Depacker(Binary::CreateFormat(ESVCruncher::DEPACKER_PATTERN, ESVCruncher::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -448,6 +450,7 @@ namespace Formats::Packed
       ESVCruncher::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSize());
     }
+
   private:
     const Binary::Format::Ptr Depacker;
   };
@@ -456,4 +459,4 @@ namespace Formats::Packed
   {
     return MakePtr<ESVCruncherDecoder>();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed

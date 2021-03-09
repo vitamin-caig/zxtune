@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  Z80 snapshots support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Z80 snapshots support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/packed.h>
-//std includes
+// std includes
 #include <array>
 #include <numeric>
 #include <utility>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -29,7 +29,7 @@ namespace Formats::Packed
   namespace Z80
   {
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     struct Version1_45
     {
@@ -41,12 +41,12 @@ namespace Formats::Packed
         uint16_t RegPC;
         uint16_t RegSP;
         uint16_t RegRI;
-        //0 - R7
-        //1..3 - border
-        //4 - basic SamRam
-        //5 - compressed
-        //6..7 - not used
-        //if Flag1 == 255 then Flag1 = 1;
+        // 0 - R7
+        // 1..3 - border
+        // 4 - basic SamRam
+        // 5 - compressed
+        // 6..7 - not used
+        // if Flag1 == 255 then Flag1 = 1;
         uint8_t Flag1;
         uint16_t RegDE;
         uint16_t RegBC_;
@@ -57,13 +57,13 @@ namespace Formats::Packed
         uint16_t RegIX;
         uint8_t Iff1;
         uint8_t Iff2;
-        //0..1 - im mode
-        //2 - spectrum2 emulation
-        //3 - double int freq
-        //4..5 - videosync type
-        //6..7 - joystick type
+        // 0..1 - im mode
+        // 2 - spectrum2 emulation
+        // 3 - double int freq
+        // 4..5 - videosync type
+        // 6..7 - joystick type
         uint8_t Flag2;
-        //48kb of data
+        // 48kb of data
 
         enum
         {
@@ -88,14 +88,14 @@ namespace Formats::Packed
         uint16_t PC;
         uint8_t HardwareMode;
         uint8_t Port7ffd;
-        uint8_t Interface2ROM;//00/ff
-        //0 - R emulated
-        //1 - LDIR emulated
+        uint8_t Interface2ROM;  // 00/ff
+        // 0 - R emulated
+        // 1 - LDIR emulated
         uint8_t Flag3;
         uint8_t Portfffd;
         uint8_t AYRegisters[16];
 
-        //16kb pages of data
+        // 16kb pages of data
 
         static const StringView FORMAT;
       } PACK_POST;
@@ -115,9 +115,9 @@ namespace Formats::Packed
         Ver_SamRam,
         Ver128k,
         Ver128k_iface1,
-        //some of the emulators write such hardware in ver2 snapshots
+        // some of the emulators write such hardware in ver2 snapshots
         Ver_Pentagon = 9,
-        Ver_Scorpion //16 pages
+        Ver_Scorpion  // 16 pages
       };
 
       static const StringView DESCRIPTION;
@@ -134,33 +134,33 @@ namespace Formats::Packed
       {
         uint16_t TicksLo;
         uint8_t TicksHi;
-        uint8_t Flag4;//00
-        uint8_t GordonROM;  //00/ff
-        uint8_t M128ROM;//00
-        uint8_t Rom0000;//00/ff
-        uint8_t Rom2000;//00/ff
+        uint8_t Flag4;      // 00
+        uint8_t GordonROM;  // 00/ff
+        uint8_t M128ROM;    // 00
+        uint8_t Rom0000;    // 00/ff
+        uint8_t Rom2000;    // 00/ff
         uint8_t CustomJoystick[10];
         uint8_t CustomJoystickKbd[10];
-        uint8_t GordonType;//00/01/10
-        uint8_t InhibitKeyStatus;//00/ff
-        uint8_t InhibitIfaceStatus;//00/ff
+        uint8_t GordonType;          // 00/01/10
+        uint8_t InhibitKeyStatus;    // 00/ff
+        uint8_t InhibitIfaceStatus;  // 00/ff
       } PACK_POST;
 
       enum HardwareTypes
       {
         Ver_48k = 0,
         Ver_48k_iface1,
-        //according to http://www.worldofspectrum.org/faq/reference/z80format.htm, SamRam == 2
+        // according to http://www.worldofspectrum.org/faq/reference/z80format.htm, SamRam == 2
         Ver_SamRam,
         Ver_48k_mgt,
         Ver_128k,
         Ver_128k_iface1,
         Ver_128k_mgt,
-        //added by XZX
+        // added by XZX
         Ver_Plus3,
         Ver_Plus3_alt,
         Ver_Pentagon,
-        Ver_Scorpion //16 pages
+        Ver_Scorpion  // 16 pages
       };
 
       static const StringView DESCRIPTION;
@@ -170,77 +170,79 @@ namespace Formats::Packed
       static Formats::Packed::Container::Ptr Decode(Binary::InputStream& stream);
     };
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     const StringView Version1_45::DESCRIPTION = Text::Z80V145_DECODER_DESCRIPTION;
     const StringView Version1_45::HEADER(
-      "(\?\?){6}"    //skip registers
-      "%001xxxxx"  //take into account only compressed data
-      "(\?\?){7}"    //skip registers
-      "00|01|ff"      //iff1
-      "00|01|ff"      //iff2
-      "%xxxxxx00|%xxxxxx01|%xxxxxx10" //im3 cannot be
+        "(\?\?){6}"                      // skip registers
+        "%001xxxxx"                      // take into account only compressed data
+        "(\?\?){7}"                      // skip registers
+        "00|01|ff"                       // iff1
+        "00|01|ff"                       // iff2
+        "%xxxxxx00|%xxxxxx01|%xxxxxx10"  // im3 cannot be
     );
     const StringView Version1_45::FOOTER("00eded00");
 
-    //even if all 48kb are compressed, minimal compressed size is 4 bytes for each 255 sequenced bytes + final marker
+    // even if all 48kb are compressed, minimal compressed size is 4 bytes for each 255 sequenced bytes + final marker
     const std::size_t Version1_45::MIN_SIZE = sizeof(Version1_45::Header) + 4 * (49152 / 255) + 4;
     const std::size_t Version1_45::MAX_SIZE = sizeof(Version1_45::Header) + 49152 + 4;
 
     const StringView Version2_0::DESCRIPTION = Text::Z80V20_DECODER_DESCRIPTION;
     const StringView Version2_0::FORMAT(
-      "(\?\?){3}"  //skip registers
-      "0000"       //PC is 0
-      "(\?\?){2}"
-      "%00xxxxxx"
-      "(\?\?){7}"  //skip registers
-      "00|01|ff"   //iff1
-      "00|01|ff"   //iff2
-      "%xxxxxx00|%xxxxxx01|%xxxxxx10" //im3 cannot be
-      "1700"       //additional size is 23
-      "\?\?"       //PC
-      "00-04|09"   //Mode
-      "\?"         //7ffd
-      "00|ff"      //Interface2ROM
-      "%000000xx"  //Flag3
-      "\?"         //fffd
-      "\?{16}"     //AYPorts
+        "(\?\?){3}"  // skip registers
+        "0000"       // PC is 0
+        "(\?\?){2}"
+        "%00xxxxxx"
+        "(\?\?){7}"                      // skip registers
+        "00|01|ff"                       // iff1
+        "00|01|ff"                       // iff2
+        "%xxxxxx00|%xxxxxx01|%xxxxxx10"  // im3 cannot be
+        "1700"                           // additional size is 23
+        "\?\?"                           // PC
+        "00-04|09"                       // Mode
+        "\?"                             // 7ffd
+        "00|ff"                          // Interface2ROM
+        "%000000xx"                      // Flag3
+        "\?"                             // fffd
+        "\?{16}"                         // AYPorts
     );
 
-    //at least 3 pages by 16384 bytes each
-    const std::size_t Version2_0::MIN_SIZE = sizeof(Version2_0::Header) + 3 * (sizeof(Version2_0::MemoryPage) + 4 * (16384 / 255));
+    // at least 3 pages by 16384 bytes each
+    const std::size_t Version2_0::MIN_SIZE =
+        sizeof(Version2_0::Header) + 3 * (sizeof(Version2_0::MemoryPage) + 4 * (16384 / 255));
 
     const StringView Version3_0::DESCRIPTION = Text::Z80V30_DECODER_DESCRIPTION;
     const StringView Version3_0::FORMAT(
-      "(\?\?){3}"    //skip registers
-      "0000"       //PC is 0
-      "(\?\?){2}"
-      "%00xxxxxx"
-      "(\?\?){7}"    //skip registers
-      "00|01|ff"      //iff1
-      "00|01|ff"      //iff2
-      "%xxxxxx00|%xxxxxx01|%xxxxxx10" //im3 cannot be
-      "36|3700"    //additional size is 54 or 55 for XZX files
-      "\?\?"       //PC
-      "00-0a"      //Mode
-      "\?"         //7ffd
-      "00|ff"      //Interface2ROM
-      "%000000xx"  //Flag3
-      "\?"         //fffd
-      "\?{16}"     //AYPorts
-      "\?\?\?"     //Ticks
-      "00"         //Flag4
-      "00|ff"      //GordonROM
-      "00"         //M128ROM
-      "00|ff{2}"   //ROM/Cache
-      "\?{20}"     //joystick
-      "00|01|10"   //GordonType
-      "00|ff{2}"   //Inhibitstate
+        "(\?\?){3}"  // skip registers
+        "0000"       // PC is 0
+        "(\?\?){2}"
+        "%00xxxxxx"
+        "(\?\?){7}"                      // skip registers
+        "00|01|ff"                       // iff1
+        "00|01|ff"                       // iff2
+        "%xxxxxx00|%xxxxxx01|%xxxxxx10"  // im3 cannot be
+        "36|3700"                        // additional size is 54 or 55 for XZX files
+        "\?\?"                           // PC
+        "00-0a"                          // Mode
+        "\?"                             // 7ffd
+        "00|ff"                          // Interface2ROM
+        "%000000xx"                      // Flag3
+        "\?"                             // fffd
+        "\?{16}"                         // AYPorts
+        "\?\?\?"                         // Ticks
+        "00"                             // Flag4
+        "00|ff"                          // GordonROM
+        "00"                             // M128ROM
+        "00|ff{2}"                       // ROM/Cache
+        "\?{20}"                         // joystick
+        "00|01|10"                       // GordonType
+        "00|ff{2}"                       // Inhibitstate
     );
 
-    //at least 3 pages by 16384 bytes each
-    const std::size_t Version3_0::MIN_SIZE = sizeof(Version3_0::Header) + 3 * (sizeof(Version2_0::MemoryPage) + 4 * (16384 / 255));
+    // at least 3 pages by 16384 bytes each
+    const std::size_t Version3_0::MIN_SIZE =
+        sizeof(Version3_0::Header) + 3 * (sizeof(Version2_0::MemoryPage) + 4 * (16384 / 255));
 
     static_assert(sizeof(Version1_45::Header) == 30, "Invalid layout");
     static_assert(sizeof(Version2_0::Header) == 55, "Invalid layout");
@@ -335,10 +337,9 @@ namespace Formats::Packed
 
       int_t PageNumber(uint_t idx) const
       {
-        return idx < Numbers.size()
-          ? Numbers[idx]
-          : -1;
+        return idx < Numbers.size() ? Numbers[idx] : -1;
       }
+
     private:
       static bool Is48kLocked(uint_t port)
       {
@@ -347,17 +348,14 @@ namespace Formats::Packed
 
       void Fill48kTraits()
       {
-        static const int_t VER48_PAGES[] =
-        {
-          NO_PAGE, //ROM not need
-          NO_PAGE, //interface rom is not available
-          NO_PAGE,
-          NO_PAGE,
-          1,  //p4 to 4000
-          2,  //p5 to 8000
-          NO_PAGE,
-          NO_PAGE,
-          0   //p8 to 0000
+        static const int_t VER48_PAGES[] = {
+            NO_PAGE,  // ROM not need
+            NO_PAGE,  // interface rom is not available
+            NO_PAGE, NO_PAGE,
+            1,  // p4 to 4000
+            2,  // p5 to 8000
+            NO_PAGE, NO_PAGE,
+            0  // p8 to 0000
         };
 
         Pages = 3;
@@ -366,17 +364,16 @@ namespace Formats::Packed
 
       void FillSamRamTraits()
       {
-        static const int_t SAMRAM_PAGES[] =
-        {    
-          NO_PAGE, //ROM not need
-          NO_PAGE, //interface ROM not need
-          NO_PAGE, //SamRam basic ROM not need
-          NO_PAGE, //SamRam monitor ROM not need
-          1,  //p4 to 4000
-          2,  //p5 to 8000
-          3,  //p6 to c000 (shadow)
-          4,  //p7 to 10000 (shadow)
-          0   //p8 to 0000
+        static const int_t SAMRAM_PAGES[] = {
+            NO_PAGE,  // ROM not need
+            NO_PAGE,  // interface ROM not need
+            NO_PAGE,  // SamRam basic ROM not need
+            NO_PAGE,  // SamRam monitor ROM not need
+            1,        // p4 to 4000
+            2,        // p5 to 8000
+            3,        // p6 to c000 (shadow)
+            4,        // p7 to 10000 (shadow)
+            0         // p8 to 0000
         };
 
         Pages = 5;
@@ -385,19 +382,18 @@ namespace Formats::Packed
 
       void Fill128kTraits()
       {
-        static const int_t VER128_PAGES[] =
-        {
-          NO_PAGE, //old ROM not need
-          NO_PAGE, //interface ROM not need
-          NO_PAGE, //new ROM not need
-          2,  //p3(0)  to  8000
-          3,  //p4(1)  to  c000
-          1,  //p5(2)  to  4000
-          4,  //p6(3)  to 10000
-          5,  //p7(4)  to 14000
-          0,  //p8(5)  to  0000
-          6,  //p9(6)  to 18000
-          7,  //p10(7) to 1c000
+        static const int_t VER128_PAGES[] = {
+            NO_PAGE,  // old ROM not need
+            NO_PAGE,  // interface ROM not need
+            NO_PAGE,  // new ROM not need
+            2,        // p3(0)  to  8000
+            3,        // p4(1)  to  c000
+            1,        // p5(2)  to  4000
+            4,        // p6(3)  to 10000
+            5,        // p7(4)  to 14000
+            0,        // p8(5)  to  0000
+            6,        // p9(6)  to 18000
+            7,        // p10(7) to 1c000
         };
         Pages = 8;
         Numbers.assign(VER128_PAGES, std::end(VER128_PAGES));
@@ -405,27 +401,19 @@ namespace Formats::Packed
 
       void Fill256kTraits()
       {
-        static const int_t VER256_PAGES[] =
-        {
-          NO_PAGE, //old ROM not need
-          NO_PAGE, //interface ROM not need
-          NO_PAGE, //new ROM not need
-          2,  //p3(0)  to  8000
-          3,  //p4(1)  to  c000
-          1,  //p5(2)  to  4000
-          4,  //p6(3)  to 10000
-          5,  //p7(4)  to 14000
-          0,  //p8(5)  to  0000
-          6,  //p9(6)  to 18000
-          7,  //p10(7) to 1c000
-          8,
-          9,
-          10,
-          11,
-          12,
-          13,
-          14,
-          15,
+        static const int_t VER256_PAGES[] = {
+            NO_PAGE,  // old ROM not need
+            NO_PAGE,  // interface ROM not need
+            NO_PAGE,  // new ROM not need
+            2,        // p3(0)  to  8000
+            3,        // p4(1)  to  c000
+            1,        // p5(2)  to  4000
+            4,        // p6(3)  to 10000
+            5,        // p7(4)  to 14000
+            0,        // p8(5)  to  0000
+            6,        // p9(6)  to 18000
+            7,        // p10(7) to 1c000
+            8,       9, 10, 11, 12, 13, 14, 15,
         };
         Pages = 16;
         Numbers.assign(VER256_PAGES, std::end(VER256_PAGES));
@@ -479,6 +467,7 @@ namespace Formats::Packed
           break;
         }
       }
+
     private:
       uint_t MinPages;
       uint_t Pages;
@@ -538,7 +527,7 @@ namespace Formats::Packed
     {
       return DecodeNew(stream);
     }
-  }//namespace Z80
+  }  // namespace Z80
 
   template<class Version>
   class Z80Decoder : public Decoder
@@ -546,13 +535,11 @@ namespace Formats::Packed
   public:
     Z80Decoder()
       : Format(Binary::CreateFormat(Version::FORMAT, Version::MIN_SIZE))
-    {
-    }
+    {}
 
     explicit Z80Decoder(Binary::Format::Ptr format)
       : Format(std::move(format))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -580,6 +567,7 @@ namespace Formats::Packed
         return Container::Ptr();
       }
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -588,7 +576,8 @@ namespace Formats::Packed
   {
     const Binary::Format::Ptr header = Binary::CreateFormat(Z80::Version1_45::HEADER, Z80::Version1_45::MIN_SIZE);
     const Binary::Format::Ptr footer = Binary::CreateFormat(Z80::Version1_45::FOOTER);
-    const Binary::Format::Ptr format = Binary::CreateCompositeFormat(header, footer, Z80::Version1_45::MIN_SIZE - 4, Z80::Version1_45::MAX_SIZE - 4);
+    const Binary::Format::Ptr format =
+        Binary::CreateCompositeFormat(header, footer, Z80::Version1_45::MIN_SIZE - 4, Z80::Version1_45::MAX_SIZE - 4);
     return MakePtr<Z80Decoder<Z80::Version1_45> >(format);
   }
 
@@ -601,4 +590,4 @@ namespace Formats::Packed
   {
     return MakePtr<Z80Decoder<Z80::Version3_0> >();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed

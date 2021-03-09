@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  RAR archives structures
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  RAR archives structures
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <byteorder.h>
 
 namespace Formats
@@ -20,7 +20,7 @@ namespace Formats
     namespace Rar
     {
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
       PACK_PRE struct BlockHeader
       {
@@ -55,7 +55,7 @@ namespace Formats
         static const uint8_t TYPE = 0x73;
 
         BlockHeader Block;
-        //CRC from Type till Reserved2
+        // CRC from Type till Reserved2
         uint16_t Reserved1;
         uint32_t Reserved2;
 
@@ -75,7 +75,7 @@ namespace Formats
         static const uint8_t TYPE = 0x74;
 
         ExtendedBlockHeader Extended;
-        //CRC from Type to Attributes+
+        // CRC from Type to Attributes+
         uint32_t UnpackedSize;
         uint8_t HostOS;
         uint32_t UnpackedCRC;
@@ -126,10 +126,10 @@ namespace Formats
         FileBlockHeader File;
         uint32_t PackedSizeHi;
         uint32_t UnpackedSizeHi;
-      } PACK_POST; 
+      } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
-    }
-  }
-}
+    }  // namespace Rar
+  }    // namespace Packed
+}  // namespace Formats

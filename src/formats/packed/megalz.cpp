@@ -1,26 +1,26 @@
 /**
-* 
-* @file
-*
-* @brief  MegaLZ packer support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  MegaLZ packer support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
-//std includes
+// std includes
 #include <numeric>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -31,40 +31,40 @@ namespace Formats::Packed
     const std::size_t DEPACKER_SIZE = 110;
     const std::size_t MIN_SIZE = 256;
     const std::size_t MAX_DECODED_SIZE = 0xc000;
-    //assume that packed data are located right after depacked
-    //prologue is ignored due to standard absense
+    // assume that packed data are located right after depacked
+    // prologue is ignored due to standard absense
     const StringView DEPACKER_PATTERN =
-      "3e80"   //ld a,#80
-      "08"     //ex af,af'
-      "eda0"   //ldi
-      "01ff02" //ld bc,#02ff
-      "08"     //ex af,af'
-      "87"     //add a,a
-      "2003"   //jr nz,xxx
-      "7e"     //ld a,(hl)
-      "23"     //inc hl
-      "17"     //rla
-      "cb11"   //rl c
-      "30f6"   //jr nc,xxx
-      "08"     //ex af,af'
-      "100f"   //djnz xxxx
-      "3e02"   //ld a,2
-      "cb29"   //sra c
-      "3818"   //jr c,xxxx
-      "3c"     //inc a
-      "0c"     //inc c
-      "280f"   //jr z,xxxx
-      "013f03" //ld bc,#033f
-    ;
+        "3e80"    // ld a,#80
+        "08"      // ex af,af'
+        "eda0"    // ldi
+        "01ff02"  // ld bc,#02ff
+        "08"      // ex af,af'
+        "87"      // add a,a
+        "2003"    // jr nz,xxx
+        "7e"      // ld a,(hl)
+        "23"      // inc hl
+        "17"      // rla
+        "cb11"    // rl c
+        "30f6"    // jr nc,xxx
+        "08"      // ex af,af'
+        "100f"    // djnz xxxx
+        "3e02"    // ld a,2
+        "cb29"    // sra c
+        "3818"    // jr c,xxxx
+        "3c"      // inc a
+        "0c"      // inc c
+        "280f"    // jr z,xxxx
+        "013f03"  // ld bc,#033f
+        ;
 
     class Bitstream : private ByteStream
     {
     public:
       explicit Bitstream(Binary::View data)
         : ByteStream(data.As<uint8_t>(), data.Size())
-        , Bits(), Mask(0)
-      {
-      }
+        , Bits()
+        , Mask(0)
+      {}
 
       uint8_t GetByte()
       {
@@ -116,6 +116,7 @@ namespace Formats::Packed
       }
 
       using ByteStream::GetProcessedBytes;
+
     private:
       uint_t Bits;
       uint_t Mask;
@@ -139,15 +140,14 @@ namespace Formats::Packed
 
       std::unique_ptr<Dump> GetResult()
       {
-        return IsValid
-          ? std::move(Result)
-          : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
       {
         return DEPACKER_SIZE + Stream.GetProcessedBytes();
       }
+
     private:
       bool DecodeData()
       {
@@ -195,25 +195,24 @@ namespace Formats::Packed
           }
         }
         catch (const std::exception&)
-        {
-        }
+        {}
         return false;
       }
+
     private:
       bool IsValid;
       Bitstream Stream;
       std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
-  }//namespace MegaLZ
+  }  // namespace MegaLZ
 
   class MegaLZDecoder : public Decoder
   {
   public:
     MegaLZDecoder()
       : Depacker(Binary::CreateFormat(MegaLZ::DEPACKER_PATTERN, MegaLZ::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -235,6 +234,7 @@ namespace Formats::Packed
       MegaLZ::DataDecoder decoder(data.SubView(0, MegaLZ::MAX_DECODED_SIZE));
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
+
   private:
     const Binary::Format::Ptr Depacker;
   };
@@ -243,4 +243,4 @@ namespace Formats::Packed
   {
     return MakePtr<MegaLZDecoder>();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed

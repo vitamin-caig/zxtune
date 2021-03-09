@@ -1,26 +1,26 @@
 /**
-* 
-* @file
-*
-* @brief  DSK images support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DSK images support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/image_utils.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/packed.h>
-//std includes
+// std includes
 #include <array>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -28,16 +28,14 @@ namespace Formats::Packed
   namespace DSK
   {
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     typedef std::array<uint8_t, 34> DiskSignatureType;
-    
-    const DiskSignatureType DISK_SIGNATURE =
-    {{
-      'M', 'V', ' ', '-', ' ', 'C', 'P', 'C', 'E', 'M', 'U', ' ', 'D', 'i', 's', 'k', '-', 'F', 'i', 'l', 'e', '\r', '\n',
-      'D', 'i', 's', 'k', '-', 'I', 'n', 'f', 'o', '\r', '\n'
-    }};
-    
+
+    const DiskSignatureType DISK_SIGNATURE = {{'M', 'V', ' ', '-', ' ', 'C', 'P', 'C', 'E',  'M',  'U',  ' ',
+                                               'D', 'i', 's', 'k', '-', 'F', 'i', 'l', 'e',  '\r', '\n', 'D',
+                                               'i', 's', 'k', '-', 'I', 'n', 'f', 'o', '\r', '\n'}};
+
     PACK_PRE struct DiskInformationBlock
     {
       DiskSignatureType Signature;
@@ -46,7 +44,7 @@ namespace Formats::Packed
       uint8_t Sides;
       uint16_t TrackSize;
       uint8_t Unused[204];
-      
+
       uint_t GetTrackSize() const
       {
         return fromLE(TrackSize);
@@ -54,11 +52,8 @@ namespace Formats::Packed
     } PACK_POST;
 
     typedef std::array<uint8_t, 12> TrackSignatureType;
-    
-    const TrackSignatureType TRACK_SIGNATURE =
-    {{
-      'T', 'r', 'a', 'c', 'k', '-', 'I', 'n', 'f', 'o', '\r', '\n'
-    }};
+
+    const TrackSignatureType TRACK_SIGNATURE = {{'T', 'r', 'a', 'c', 'k', '-', 'I', 'n', 'f', 'o', '\r', '\n'}};
 
     PACK_PRE struct TrackInformationBlock
     {
@@ -83,13 +78,11 @@ namespace Formats::Packed
       uint8_t Filler;
       std::array<SectorInfo, 29> Sectors;
     } PACK_POST;
-    
-    const DiskSignatureType EXTENDED_DISK_SIGNATURE =
-    {{
-      'E', 'X', 'T', 'E', 'N', 'D', 'E', 'D', ' ', 'C', 'P', 'C', ' ', 'D', 'S', 'K', ' ', 'F', 'i', 'l', 'e', '\r', '\n',
-      'D', 'i', 's', 'k', '-', 'I', 'n', 'f', 'o', '\r', '\n'
-    }};
-   
+
+    const DiskSignatureType EXTENDED_DISK_SIGNATURE = {{'E', 'X', 'T', 'E', 'N', 'D', 'E', 'D', ' ',  'C',  'P',  'C',
+                                                        ' ', 'D', 'S', 'K', ' ', 'F', 'i', 'l', 'e',  '\r', '\n', 'D',
+                                                        'i', 's', 'k', '-', 'I', 'n', 'f', 'o', '\r', '\n'}};
+
     PACK_PRE struct ExtendedDiskInformationBlock
     {
       DiskSignatureType Signature;
@@ -98,35 +91,34 @@ namespace Formats::Packed
       uint8_t Sides;
       uint8_t Unused[2];
       uint8_t TrackSizes[204];
-      
+
       uint_t GetTrackSize(uint_t trackIdx) const
       {
         return 256 * TrackSizes[trackIdx];
       }
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(DiskInformationBlock) == 256, "Invalid layout");
     static_assert(sizeof(TrackInformationBlock::SectorInfo) == 8, "Invalid layout");
     static_assert(sizeof(TrackInformationBlock) == 256, "Invalid layout");
     static_assert(sizeof(ExtendedDiskInformationBlock) == 256, "Invalid layout");
-    
+
     inline std::size_t GetSectorDataSize(uint_t sectorSize)
     {
-      //For 8k Sectors (N="6"), only 1800h bytes is stored
+      // For 8k Sectors (N="6"), only 1800h bytes is stored
       return sectorSize == 6 ? 0x1800 : (128 << (sectorSize & 3));
     }
-    
+
     class Format
     {
     public:
       explicit Format(Formats::ImageBuilder& target)
         : Target(target)
-      {
-      }
-      
+      {}
+
       std::size_t Parse(Binary::View diskData)
       {
         Require(diskData.Size() > sizeof(DiskSignatureType));
@@ -144,7 +136,7 @@ namespace Formats::Packed
           throw std::exception();
         }
       }
-      
+
       std::size_t ParseBase(Binary::View diskData)
       {
         Binary::DataInputStream diskStream(diskData);
@@ -161,7 +153,7 @@ namespace Formats::Packed
         }
         return diskStream.GetPosition();
       }
-      
+
       std::size_t ParseExtended(Binary::View diskData)
       {
         Binary::DataInputStream diskStream(diskData);
@@ -180,6 +172,7 @@ namespace Formats::Packed
         }
         return diskStream.GetPosition();
       }
+
     private:
       void ParseTrack(Binary::View trackData)
       {
@@ -194,10 +187,11 @@ namespace Formats::Packed
           const std::size_t usedSectorSize = GetSectorDataSize(sectorInfo.Size);
           Require(rawSectorSize >= usedSectorSize);
           const auto sectorData = trackStream.ReadData(rawSectorSize).As<uint8_t>();
-          Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector), Dump(sectorData, sectorData + usedSectorSize));
+          Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector),
+                           Dump(sectorData, sectorData + usedSectorSize));
         }
       }
-      
+
       void ParseExtendedTrack(Binary::View trackData)
       {
         Binary::DataInputStream trackStream(trackData);
@@ -210,49 +204,49 @@ namespace Formats::Packed
           if (const std::size_t sectorSize = fromLE(sectorInfo.ActualDataSize))
           {
             const auto sectorData = trackStream.ReadData(sectorSize).As<uint8_t>();
-            Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector), Dump(sectorData, sectorData + sectorSize));
+            Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector),
+                             Dump(sectorData, sectorData + sectorSize));
           }
         }
       }
+
     private:
       Formats::ImageBuilder& Target;
     };
-    
+
     const StringView FORMAT(
-      "'M|'E"
-      "'V|'X"
-      "' |'T"
-      "'-|'E"
-      "' |'N"
-      "'C|'D"
-      "'P|'E"
-      "'C|'D"
-      "'E|' "
-      "'M|'C"
-      "'U|'P"
-      "' |'C"
-      "'D|' "
-      "'i|'D"
-      "'s|'S"
-      "'k|'K"
-      "'-|' "
-      "'F'i'l'e'\r'\n'D'i's'k'-'I'n'f'o'\r'\n"      //signature
-      "?{14}" //creator
-      "01-64" //tracks
-      "01-02" //sides
-      "?{206}"//skipped
-      //first track
-      "'T'r'a'c'k'-'I'n'f'o'\r'\n"
-    );
-  }//namespace DSK
+        "'M|'E"
+        "'V|'X"
+        "' |'T"
+        "'-|'E"
+        "' |'N"
+        "'C|'D"
+        "'P|'E"
+        "'C|'D"
+        "'E|' "
+        "'M|'C"
+        "'U|'P"
+        "' |'C"
+        "'D|' "
+        "'i|'D"
+        "'s|'S"
+        "'k|'K"
+        "'-|' "
+        "'F'i'l'e'\r'\n'D'i's'k'-'I'n'f'o'\r'\n"  // signature
+        "?{14}"                                   // creator
+        "01-64"                                   // tracks
+        "01-02"                                   // sides
+        "?{206}"                                  // skipped
+        // first track
+        "'T'r'a'c'k'-'I'n'f'o'\r'\n");
+  }  // namespace DSK
 
   class DSKDecoder : public Decoder
   {
   public:
     DSKDecoder()
       : Format(Binary::CreateFormat(DSK::FORMAT))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -281,6 +275,7 @@ namespace Formats::Packed
         return Container::Ptr();
       }
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -289,4 +284,4 @@ namespace Formats::Packed
   {
     return MakePtr<DSKDecoder>();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed

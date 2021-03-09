@@ -1,26 +1,26 @@
 /**
-* 
-* @file
-*
-* @brief  SNA128 snapshots support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SNA128 snapshots support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
-//std includes
+// std includes
 #include <array>
 #include <numeric>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -30,7 +30,7 @@ namespace Formats::Packed
     typedef std::array<uint8_t, 16384> PageData;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct Header
     {
@@ -61,13 +61,13 @@ namespace Formats::Packed
       //+0xc01e 0/1
       uint8_t TRDosROM;
       PageData Pages[5];
-      //optional page starts here
+      // optional page starts here
     } PACK_POST;
 
-    //5,2,0,1,3,4,6,7
+    // 5,2,0,1,3,4,6,7
     typedef std::array<PageData, 8> ResultData;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(Header) == 131103, "Invalid layout");
@@ -93,7 +93,7 @@ namespace Formats::Packed
       {
         return false;
       }
-      //in case of duped one more page
+      // in case of duped one more page
       if (pageDuped)
       {
         const PageData& cmpPage = curPage == 2 ? header.Page2 : header.Page5;
@@ -134,22 +134,21 @@ namespace Formats::Packed
     }
 
     const StringView FORMAT(
-      "?{19}"
-      "00|01|02|03|04|ff" //iff. US saves 0x00/0x04/0xff instead of normal 0x00..0x03 flags
-      "?{3}"
-      "? 40-ff" //sp
-      "00-02" //im mode
-      "00-07" //border
+        "?{19}"
+        "00|01|02|03|04|ff"  // iff. US saves 0x00/0x04/0xff instead of normal 0x00..0x03 flags
+        "?{3}"
+        "? 40-ff"  // sp
+        "00-02"    // im mode
+        "00-07"    // border
     );
-  }//namespace Sna128
+  }  // namespace Sna128
 
   class Sna128Decoder : public Decoder
   {
   public:
     Sna128Decoder()
       : Format(Binary::CreateFormat(Sna128::FORMAT, Sna128::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -174,6 +173,7 @@ namespace Formats::Packed
       }
       return Sna128::Decode(data);
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -182,4 +182,4 @@ namespace Formats::Packed
   {
     return MakePtr<Sna128Decoder>();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed

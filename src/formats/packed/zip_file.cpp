@@ -1,32 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief  ZIP compressor support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ZIP compressor support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/zip_supp.h"
-//common includes
+// common includes
 #include <error.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
-#include <binary/format_factories.h>
+// library includes
 #include <binary/compression/zlib_stream.h>
 #include <binary/data_builder.h>
+#include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/packed.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <cassert>
 #include <memory>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -35,13 +35,13 @@ namespace Formats::Packed
   {
     const Debug::Stream Dbg("Formats::Packed::Zip");
 
-    //checkers
+    // checkers
     const StringView HEADER_PATTERN =
-      "504b0304"      //uint32_t Signature;
-      "?00"           //uint16_t VersionToExtract;
-      "%0000xxx0 %0000x000"  //uint16_t Flags;
-      "%0000x00x 00"  //uint16_t CompressionMethod;
-    ;
+        "504b0304"             // uint32_t Signature;
+        "?00"                  // uint16_t VersionToExtract;
+        "%0000xxx0 %0000x000"  // uint16_t Flags;
+        "%0000x00x 00"         // uint16_t CompressionMethod;
+        ;
 
     class Container
     {
@@ -49,8 +49,7 @@ namespace Formats::Packed
       explicit Container(const Binary::Container& data)
         : Data(data)
         , View(data)
-      {
-      }
+      {}
 
       bool FastCheck() const
       {
@@ -86,12 +85,13 @@ namespace Formats::Packed
       {
         return Data.GetSubcontainer(GetHeader().GetSize(), File->GetPackedSize());
       }
+
     private:
       const Binary::Container& Data;
       const Binary::View View;
       mutable std::unique_ptr<const CompressedFile> File;
     };
-    
+
     class DataDecoder
     {
     public:
@@ -106,8 +106,7 @@ namespace Formats::Packed
       StoreDataDecoder(Binary::Container::Ptr data, std::size_t destSize)
         : Data(std::move(data))
         , DestSize(destSize)
-      {
-      }
+      {}
 
       Binary::Container::Ptr Decompress() const override
       {
@@ -122,6 +121,7 @@ namespace Formats::Packed
           return Data;
         }
       }
+
     private:
       const Binary::Container::Ptr Data;
       const std::size_t DestSize;
@@ -133,8 +133,7 @@ namespace Formats::Packed
       InflatedDataDecoder(Binary::Container::Ptr data, std::size_t destSize)
         : Data(std::move(data))
         , DestSize(destSize)
-      {
-      }
+      {}
 
       Binary::Container::Ptr Decompress() const override
       {
@@ -157,6 +156,7 @@ namespace Formats::Packed
         }
         return {};
       }
+
     private:
       const Binary::Container::Ptr Data;
       const std::size_t DestSize;
@@ -184,15 +184,14 @@ namespace Formats::Packed
       }
       return {};
     }
-   
+
     class DispatchedDataDecoder : public DataDecoder
     {
     public:
       explicit DispatchedDataDecoder(const Container& container)
         : Delegate(CreateDecoder(container))
         , IsValid(Delegate.get())
-      {
-      }
+      {}
 
       Binary::Container::Ptr Decompress() const override
       {
@@ -204,6 +203,7 @@ namespace Formats::Packed
         IsValid = !!result;
         return result;
       }
+
     private:
       const std::unique_ptr<DataDecoder> Delegate;
       mutable bool IsValid;
@@ -214,8 +214,7 @@ namespace Formats::Packed
     public:
       explicit RegularFile(const LocalFileHeader& header)
         : Header(header)
-      {
-      }
+      {}
 
       std::size_t GetPackedSize() const override
       {
@@ -226,6 +225,7 @@ namespace Formats::Packed
       {
         return fromLE(Header.Attributes.UncompressedSize);
       }
+
     private:
       const LocalFileHeader& Header;
     };
@@ -236,8 +236,7 @@ namespace Formats::Packed
       StreamedFile(const LocalFileHeader& header, const LocalFileFooter& footer)
         : Header(header)
         , Footer(footer)
-      {
-      }
+      {}
 
       std::size_t GetPackedSize() const override
       {
@@ -248,6 +247,7 @@ namespace Formats::Packed
       {
         return fromLE(Footer.Attributes.UncompressedSize);
       }
+
     private:
       const LocalFileHeader& Header;
       const LocalFileFooter& Footer;
@@ -262,7 +262,7 @@ namespace Formats::Packed
 
       const uint8_t* const seekStart = safe_ptr_cast<const uint8_t*>(&header);
       const uint8_t* const seekEnd = seekStart + size;
-      for (const uint8_t* seekPos = seekStart; seekPos < seekEnd; )
+      for (const uint8_t* seekPos = seekStart; seekPos < seekEnd;)
       {
         const uint8_t* const found = std::search(seekPos, seekEnd, rawSignature, rawSignature + sizeof(signature));
         if (found == seekEnd)
@@ -300,15 +300,14 @@ namespace Formats::Packed
         return std::unique_ptr<const CompressedFile>(new RegularFile(hdr));
       }
     }
-  }//namespace Zip
+  }  // namespace Zip
 
   class ZipDecoder : public Decoder
   {
   public:
     ZipDecoder()
       : Depacker(Binary::CreateFormat(Zip::HEADER_PATTERN, sizeof(Zip::LocalFileHeader)))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -334,6 +333,7 @@ namespace Formats::Packed
       Zip::DispatchedDataDecoder decoder(container);
       return CreateContainer(decoder.Decompress(), container.GetFile().GetPackedSize());
     }
+
   private:
     const Binary::Format::Ptr Depacker;
   };
@@ -342,4 +342,4 @@ namespace Formats::Packed
   {
     return MakePtr<ZipDecoder>();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed

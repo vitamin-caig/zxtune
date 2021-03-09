@@ -1,29 +1,29 @@
 /**
-* 
-* @file
-*
-* @brief  CodeCruncher v3 packer support
-*
-* @author vitamin.caig@gmail.com
-*
-* @note   Based on XLook sources by HalfElf
-*
-**/
+ *
+ * @file
+ *
+ * @brief  CodeCruncher v3 packer support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ * @note   Based on XLook sources by HalfElf
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/pack_utils.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
-//std includes
+// std includes
 #include <functional>
 #include <iterator>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -33,118 +33,118 @@ namespace Formats::Packed
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
     const StringView DEPACKER_PATTERN(
-      //classic depacker
-      "?"       // di/nop
-      "???"     // usually 'K','S','A','!'
-      "21??"    // ld hl,xxxx                                        754a/88d2
-      "11??"    // ld de,xxxx                                        5b81/5b81
-      "017f00"  // ld bc,0x007f rest depacker size
-      "d5"      // push de
-      "edb0"    // ldir
-      "21??"    // ld hl,xxxx last of src packed       (data = +#11) a15b/c949
-      "11??"    // ld de,xxxx last of target depack    (data = +#14) ffff/ffff
-      "01??"    // ld bc,xxxx size of packed           (data = +#17) 2b93/3ff9
-      "c9"      // ret
-      //+0x1a
-      "ed?"     // lddr/ldir
-      "21??"    // ld hl,xxxx src of packed after move (data = +#1d) d46d/c007
-      "11??"    // ld de,xxxx dst of depack            (data = +#20) 7530/88b8
-      "7e"      // ld a,(hl)
-      "cb3f"    // srl a
-      "382b"    // jr c,xx
-      "e607"    // and 7
-      "47"      // ld b,a
-      "ed6f"    // rld
-      "23"      // inc hl
-      "4e"      // ld c,(hl)
-      "23"      // inc hl
-      "e5"      // push hl
-      "08"      // ex af,af'
-      "7e"      // ld a,(hl)
-      "08"      // ex af,af'
-      "62"      // ld h,d
-      "6b"      // ld l,e
-      "ed42"    // sbc hl,bc
-      "0600"    // ld b,xx
-      "3C"      // inc a
-      "4f"      // ld c,a
-      "03"      // inc bc
-      "03"      // inc bc
-      "edb0"    // ldir
-      "fe10"    // cp xx
-      "200b"    // jr nz,xx
-      "e3"      // ld (sp),hl
-      "23"      // inc hl
-      "7e"      // ld a,(hl)
-      "e3"      // ld (sp),hl
-      "08"      // ex af,af'
-      "4f"      // ld c,a
-      "b7"      // or a
-      "2802"    // jr z,xx
-      "edb0"    // ldir
-      "08"      // ex af,af'
-      "e1"      // pop hl
-      "18d1"    // jr xxxx
-  /*
-      "23"      // inc hl
-      "cb3f"    // srl a
-      "3823"    // jr c,xx
-      "1f"      // rra
-      "3813"    // jr c,xx
-      "1f"      // rra
-      "4f"      // ld c,a
-      "3803"    // jr c,xx
-      "41"      // ld b,c
-      "4e"      // ld c,(hl)
-      "23"      // inc hl
-      "7e"      // ld a,(hl)
-      "12"      // ld (de),a
-      "23"      // inc hl
-      "7e"      // ld a,(hl)
-      "08"      // ex af,af'
-      "e5"      // push hl
-      "62"      // ld h,d
-      "6b"      // ld l,e
-      "13"      // inc de
-      "7a"      // ld a,d
-      "18ce"    // jr xxxx
-      "cb3f"    // srl a
-      "4f"      // ld c,a
-      "3003"    // jr nc,xxxx
-      "41"      // ld b,c
-      "4e"      // ld c,(hl)
-      "23"      // inc hl
-      "03"      // inc bc
-      "edb0"    // ldir
-      "18a8"    // jr xxxx
-      "cb3f"    // srl a
-      "380a"    // jr c,xx
-      "1f"      // rra
-      "3014"    // jr nc,xxxx
-      "3d"      // dec a
-      "12"      // ld (de),a
-      "13"      // inc de
-      "12"      // ld (de),a
-      "13"      // inc de
-      "189a"    // jr xxxx
-      "08"      // ex af,af'
-      "7e"      // ld a,(hl)
-      "08"      // ex af,af'
-      "e5"      // push hl
-      "62"      // ld h,d
-      "6b"      // ld l,e
-      "2b"      // dec hl
-      "3d"      // dec a
-      "20fc"    // jr nz,xx
-      "48"      // ld c,b
-      "18a6"    // jr xxxx
-      "?"       // ei/nop
-      "c3??"    // jp xxxx
-  */
+        // classic depacker
+        "?"       // di/nop
+        "???"     // usually 'K','S','A','!'
+        "21??"    // ld hl,xxxx                                        754a/88d2
+        "11??"    // ld de,xxxx                                        5b81/5b81
+        "017f00"  // ld bc,0x007f rest depacker size
+        "d5"      // push de
+        "edb0"    // ldir
+        "21??"    // ld hl,xxxx last of src packed       (data = +#11) a15b/c949
+        "11??"    // ld de,xxxx last of target depack    (data = +#14) ffff/ffff
+        "01??"    // ld bc,xxxx size of packed           (data = +#17) 2b93/3ff9
+        "c9"      // ret
+        //+0x1a
+        "ed?"   // lddr/ldir
+        "21??"  // ld hl,xxxx src of packed after move (data = +#1d) d46d/c007
+        "11??"  // ld de,xxxx dst of depack            (data = +#20) 7530/88b8
+        "7e"    // ld a,(hl)
+        "cb3f"  // srl a
+        "382b"  // jr c,xx
+        "e607"  // and 7
+        "47"    // ld b,a
+        "ed6f"  // rld
+        "23"    // inc hl
+        "4e"    // ld c,(hl)
+        "23"    // inc hl
+        "e5"    // push hl
+        "08"    // ex af,af'
+        "7e"    // ld a,(hl)
+        "08"    // ex af,af'
+        "62"    // ld h,d
+        "6b"    // ld l,e
+        "ed42"  // sbc hl,bc
+        "0600"  // ld b,xx
+        "3C"    // inc a
+        "4f"    // ld c,a
+        "03"    // inc bc
+        "03"    // inc bc
+        "edb0"  // ldir
+        "fe10"  // cp xx
+        "200b"  // jr nz,xx
+        "e3"    // ld (sp),hl
+        "23"    // inc hl
+        "7e"    // ld a,(hl)
+        "e3"    // ld (sp),hl
+        "08"    // ex af,af'
+        "4f"    // ld c,a
+        "b7"    // or a
+        "2802"  // jr z,xx
+        "edb0"  // ldir
+        "08"    // ex af,af'
+        "e1"    // pop hl
+        "18d1"  // jr xxxx
+                /*
+                    "23"      // inc hl
+                    "cb3f"    // srl a
+                    "3823"    // jr c,xx
+                    "1f"      // rra
+                    "3813"    // jr c,xx
+                    "1f"      // rra
+                    "4f"      // ld c,a
+                    "3803"    // jr c,xx
+                    "41"      // ld b,c
+                    "4e"      // ld c,(hl)
+                    "23"      // inc hl
+                    "7e"      // ld a,(hl)
+                    "12"      // ld (de),a
+                    "23"      // inc hl
+                    "7e"      // ld a,(hl)
+                    "08"      // ex af,af'
+                    "e5"      // push hl
+                    "62"      // ld h,d
+                    "6b"      // ld l,e
+                    "13"      // inc de
+                    "7a"      // ld a,d
+                    "18ce"    // jr xxxx
+                    "cb3f"    // srl a
+                    "4f"      // ld c,a
+                    "3003"    // jr nc,xxxx
+                    "41"      // ld b,c
+                    "4e"      // ld c,(hl)
+                    "23"      // inc hl
+                    "03"      // inc bc
+                    "edb0"    // ldir
+                    "18a8"    // jr xxxx
+                    "cb3f"    // srl a
+                    "380a"    // jr c,xx
+                    "1f"      // rra
+                    "3014"    // jr nc,xxxx
+                    "3d"      // dec a
+                    "12"      // ld (de),a
+                    "13"      // inc de
+                    "12"      // ld (de),a
+                    "13"      // inc de
+                    "189a"    // jr xxxx
+                    "08"      // ex af,af'
+                    "7e"      // ld a,(hl)
+                    "08"      // ex af,af'
+                    "e5"      // push hl
+                    "62"      // ld h,d
+                    "6b"      // ld l,e
+                    "2b"      // dec hl
+                    "3d"      // dec a
+                    "20fc"    // jr nz,xx
+                    "48"      // ld c,b
+                    "18a6"    // jr xxxx
+                    "?"       // ei/nop
+                    "c3??"    // jp xxxx
+                */
     );
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -174,7 +174,7 @@ namespace Formats::Packed
       uint8_t Data[1];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 0x99 + 1, "Invalid layout");
@@ -192,8 +192,7 @@ namespace Formats::Packed
       Container(const void* data, std::size_t size)
         : Data(static_cast<const uint8_t*>(data))
         , Size(size)
-      {
-      }
+      {}
 
       bool FastCheck() const
       {
@@ -202,7 +201,8 @@ namespace Formats::Packed
           return false;
         }
         const RawHeader& header = GetHeader();
-        const DataMovementChecker checker(fromLE(header.PackedSource), fromLE(header.PackedTarget), fromLE(header.SizeOfPacked), header.PackedDataCopyDirection);
+        const DataMovementChecker checker(fromLE(header.PackedSource), fromLE(header.PackedTarget),
+                                          fromLE(header.SizeOfPacked), header.PackedDataCopyDirection);
         if (!checker.IsValid())
         {
           return false;
@@ -219,11 +219,12 @@ namespace Formats::Packed
         assert(Size >= sizeof(RawHeader));
         return *safe_ptr_cast<const RawHeader*>(Data);
       }
-      
+
       std::size_t GetSize() const
       {
         return Size;
       }
+
     private:
       const uint8_t* const Data;
       const std::size_t Size;
@@ -247,38 +248,35 @@ namespace Formats::Packed
 
       std::unique_ptr<Dump> GetResult()
       {
-        return IsValid
-          ? std::move(Result)
-          : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
       }
-      
+
       std::size_t GetUsedSize() const
       {
         return offsetof(RawHeader, Data) + Stream.GetProcessedBytes();
       }
+
     private:
       bool DecodeData()
       {
         // The main concern is to decode data as much as possible, skipping defenitely invalid structure
         Decoded.reserve(2 * fromLE(Header.SizeOfPacked));
-        //assume that first byte always exists due to header format
+        // assume that first byte always exists due to header format
         while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
         {
           const uint_t data = Stream.GetByte();
           if (IsFinishMarker(data))
           {
-            //exit
-            //do not check if real decoded size is equal to calculated;
-            //do not check if eof is reached
+            // exit
+            // do not check if real decoded size is equal to calculated;
+            // do not check if eof is reached
             return true;
           }
           else if (Stream.Eof())
           {
             return false;
           }
-          const bool res = (0 == (data & 1))
-            ? ProcessBackReference(data)
-            : ProcessCommand(data);
+          const bool res = (0 == (data & 1)) ? ProcessBackReference(data) : ProcessCommand(data);
           if (!res)
           {
             break;
@@ -305,32 +303,33 @@ namespace Formats::Packed
         std::back_insert_iterator<Dump> dst(Decoded);
         switch (loNibble)
         {
-        case 0x01://long RLE
-          {
-            const uint_t len = 256 * hiNibble + Stream.GetByte() + 3;
-            std::fill_n(dst, len, Stream.GetByte());
-          }
+        case 0x01:  // long RLE
+        {
+          const uint_t len = 256 * hiNibble + Stream.GetByte() + 3;
+          std::fill_n(dst, len, Stream.GetByte());
+        }
           return true;
-        //case 0x03://exit
-        case 0x05://short copy
+        // case 0x03://exit
+        case 0x05:  // short copy
           std::generate_n(dst, hiNibble + 1, std::bind(&ByteStream::GetByte, &Stream));
           return true;
-        case 0x09://short RLE
+        case 0x09:  // short RLE
           std::fill_n(dst, hiNibble + 3, Stream.GetByte());
           return true;
-        case 0x0b://2 bytes
+        case 0x0b:  // 2 bytes
           std::fill_n(dst, 2, static_cast<uint8_t>(hiNibble - 1));
           return true;
-        case 0x0d://long copy
-          {
-            const uint_t len = 256 * hiNibble + Stream.GetByte() + 1;
-            std::generate_n(dst, len, std::bind(&ByteStream::GetByte, &Stream));
-          }
+        case 0x0d:  // long copy
+        {
+          const uint_t len = 256 * hiNibble + Stream.GetByte() + 1;
+          std::generate_n(dst, len, std::bind(&ByteStream::GetByte, &Stream));
+        }
           return true;
-        default://short backref
+        default:  // short backref
           return CopyFromBack((data & 0xf8) >> 3, Decoded, 2);
         }
       }
+
     private:
       bool IsValid;
       const RawHeader& Header;
@@ -338,15 +337,14 @@ namespace Formats::Packed
       std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
-  }//namespace CodeCruncher3
+  }  // namespace CodeCruncher3
 
   class CodeCruncher3Decoder : public Decoder
   {
   public:
     CodeCruncher3Decoder()
       : Depacker(Binary::CreateFormat(CodeCruncher3::DEPACKER_PATTERN, CodeCruncher3::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -372,6 +370,7 @@ namespace Formats::Packed
       CodeCruncher3::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
+
   private:
     const Binary::Format::Ptr Depacker;
   };
@@ -380,4 +379,4 @@ namespace Formats::Packed
   {
     return MakePtr<CodeCruncher3Decoder>();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed

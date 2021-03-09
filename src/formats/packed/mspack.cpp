@@ -1,32 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief  MicrospacePacker packer support
-*
-* @author vitamin.caig@gmail.com
-*
-* @note   Based on XLook sources by HalfElf
-*
-**/
+ *
+ * @file
+ *
+ * @brief  MicrospacePacker packer support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ * @note   Based on XLook sources by HalfElf
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/hrust1_bitstream.h"
 #include "formats/packed/pack_utils.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-//std includes
+// std includes
 #include <algorithm>
-#include <iterator>
 #include <cstring>
-//text includes
+#include <iterator>
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -35,17 +35,15 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const StringView DEPACKER_PATTERN(
-      "'M's'P'k"
-    );
+    const StringView DEPACKER_PATTERN("'M's'P'k");
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
       //+0
-      char Signature[4]; //'M','s','P','k'
+      char Signature[4];  //'M','s','P','k'
       //+4
       uint16_t LastSrcRestBytes;
       //+6
@@ -53,14 +51,14 @@ namespace Formats::Packed
       //+8
       uint16_t DstPacked;
       //+a
-      uint16_t SizeOfPacked;//full data size starting from next field excluding last 5 bytes
+      uint16_t SizeOfPacked;  // full data size starting from next field excluding last 5 bytes
       //+c
       uint16_t DstAddress;
       //+e
       uint8_t BitStream[2];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
@@ -75,8 +73,7 @@ namespace Formats::Packed
       Container(const void* data, std::size_t size)
         : Data(static_cast<const uint8_t*>(data))
         , Size(size)
-      {
-      }
+      {}
 
       bool FastCheck() const
       {
@@ -92,11 +89,11 @@ namespace Formats::Packed
         const uint_t srcPacked = fromLE(header.SrcPacked);
         if (bitStreamAddr == srcPacked)
         {
-          //move forward
+          // move forward
         }
         else if (lastBytesAddr == srcPacked + 1)
         {
-          //move backward
+          // move backward
         }
         else
         {
@@ -117,6 +114,7 @@ namespace Formats::Packed
         assert(Size >= sizeof(RawHeader));
         return *safe_ptr_cast<const RawHeader*>(Data);
       }
+
     private:
       const uint8_t* const Data;
       const std::size_t Size;
@@ -140,10 +138,9 @@ namespace Formats::Packed
 
       std::unique_ptr<Dump> GetResult()
       {
-        return IsValid
-          ? std::move(Result)
-          : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
       }
+
     private:
       bool DecodeData()
       {
@@ -194,7 +191,7 @@ namespace Formats::Packed
             return false;
           }
         }
-        //last bytes are always copied from exact address
+        // last bytes are always copied from exact address
         const uint8_t* const lastBytes = Header.BitStream + fromLE(Header.SizeOfPacked) - sizeof(Header.DstAddress);
         std::copy(lastBytes, lastBytes + LAST_BYTES_COUNT, std::back_inserter(Decoded));
         return true;
@@ -230,6 +227,7 @@ namespace Formats::Packed
         const uint_t lodisp = Stream.GetByte();
         return 256 * hidisp + lodisp + 1;
       }
+
     private:
       bool IsValid;
       const RawHeader& Header;
@@ -237,15 +235,14 @@ namespace Formats::Packed
       std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
-  }//namespace MSPack
+  }  // namespace MSPack
 
   class MSPackDecoder : public Decoder
   {
   public:
     MSPackDecoder()
       : Depacker(Binary::CreateFormat(MSPack::DEPACKER_PATTERN, MSPack::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -271,12 +268,13 @@ namespace Formats::Packed
       MSPack::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSize());
     }
+
   private:
-  const Binary::Format::Ptr Depacker;
+    const Binary::Format::Ptr Depacker;
   };
 
   Decoder::Ptr CreateMSPackDecoder()
   {
     return MakePtr<MSPackDecoder>();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed

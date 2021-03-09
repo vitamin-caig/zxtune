@@ -1,28 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief  FullDiskImage images support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FullDiskImage images support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-//std includes
+// std includes
 #include <cassert>
 #include <cstring>
 #include <numeric>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
 namespace Formats::Packed
@@ -30,7 +30,7 @@ namespace Formats::Packed
   namespace FullDiskImage
   {
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -60,7 +60,7 @@ namespace Formats::Packed
       Sector Sectors[1];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 14, "Invalid layout");
@@ -76,17 +76,21 @@ namespace Formats::Packed
 
     struct SectorDescr
     {
-      SectorDescr() : Num(), Begin(), End()
-      {
-      }
-      SectorDescr(uint_t num, const uint8_t* beg, const uint8_t* end) : Num(num), Begin(beg), End(end)
-      {
-      }
+      SectorDescr()
+        : Num()
+        , Begin()
+        , End()
+      {}
+      SectorDescr(uint_t num, const uint8_t* beg, const uint8_t* end)
+        : Num(num)
+        , Begin(beg)
+        , End(end)
+      {}
       uint_t Num;
       const uint8_t* Begin;
       const uint8_t* End;
 
-      bool operator < (const SectorDescr& rh) const
+      bool operator<(const SectorDescr& rh) const
       {
         return Num < rh.Num;
       }
@@ -98,8 +102,7 @@ namespace Formats::Packed
       Container(const void* data, std::size_t size)
         : Data(static_cast<const uint8_t*>(data))
         , Size(size)
-      {
-      }
+      {}
 
       bool FastCheck() const
       {
@@ -114,8 +117,7 @@ namespace Formats::Packed
           return false;
         }
         const std::size_t dataOffset = fromLE(header.DataOffset);
-        if (dataOffset < sizeof(header) ||
-            dataOffset > Size)
+        if (dataOffset < sizeof(header) || dataOffset > Size)
         {
           return false;
         }
@@ -142,6 +144,7 @@ namespace Formats::Packed
       {
         return Size;
       }
+
     private:
       const uint8_t* const Data;
       const std::size_t Size;
@@ -163,15 +166,14 @@ namespace Formats::Packed
 
       std::unique_ptr<Dump> GetResult()
       {
-        return IsValid
-          ? std::move(Result)
-          : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize()
       {
         return UsedSize;
       }
+
     private:
       bool DecodeData()
       {
@@ -195,15 +197,15 @@ namespace Formats::Packed
 
             const RawTrack* const trackInfo = safe_ptr_cast<const RawTrack*>(rawData + trackInfoOffset);
             typedef std::vector<SectorDescr> SectorDescrs;
-            //collect sectors reference
+            // collect sectors reference
             SectorDescrs sectors;
             sectors.reserve(trackInfo->SectorsCount);
             for (std::size_t secNum = 0; secNum != trackInfo->SectorsCount; ++secNum)
             {
               const RawTrack::Sector* const sector = trackInfo->Sectors + secNum;
               const std::size_t secSize = std::size_t(128) << sector->Size;
-              //since there's no information about head number (always 0), do not check it
-              //assert(sector->Head == sid);
+              // since there's no information about head number (always 0), do not check it
+              // assert(sector->Head == sid);
               if (sector->Cylinder != cyl)
               {
                 return false;
@@ -217,14 +219,14 @@ namespace Formats::Packed
               rawSize = std::max(rawSize, offset + secSize);
             }
 
-            //sort by number
+            // sort by number
             std::sort(sectors.begin(), sectors.end());
-            //and gather data
+            // and gather data
             for (SectorDescrs::const_iterator it = sectors.begin(), lim = sectors.end(); it != lim; ++it)
             {
               result.insert(result.end(), it->Begin, it->End);
             }
-            //calculate next track by offset
+            // calculate next track by offset
             trackInfoOffset += sizeof(*trackInfo) + (trackInfo->SectorsCount - 1) * sizeof(trackInfo->Sectors);
           }
         }
@@ -232,6 +234,7 @@ namespace Formats::Packed
         Decoded.swap(result);
         return true;
       }
+
     private:
       bool IsValid;
       const RawHeader& Header;
@@ -242,20 +245,19 @@ namespace Formats::Packed
     };
 
     const StringView FORMAT_PATTERN(
-      "'F'D'I"      // uint8_t ID[3]
-      "%0000000x"   // uint8_t ReadOnly;
-      "28-64 00"    // uint16_t Cylinders;
-      "01-02 00"    // uint16_t Sides;
+        "'F'D'I"     // uint8_t ID[3]
+        "%0000000x"  // uint8_t ReadOnly;
+        "28-64 00"   // uint16_t Cylinders;
+        "01-02 00"   // uint16_t Sides;
     );
-  }//namespace FullDiskImage
+  }  // namespace FullDiskImage
 
   class FullDiskImageDecoder : public Decoder
   {
   public:
     FullDiskImageDecoder()
       : Format(Binary::CreateFormat(FullDiskImage::FORMAT_PATTERN))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -279,6 +281,7 @@ namespace Formats::Packed
       FullDiskImage::Decoder decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -287,4 +290,4 @@ namespace Formats::Packed
   {
     return MakePtr<FullDiskImageDecoder>();
   }
-}//namespace Formats::Packed
+}  // namespace Formats::Packed
