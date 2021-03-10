@@ -1,14 +1,14 @@
 /**
-*
-* @file
-*
-* @brief  Per-library l10n functor implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Per-library l10n functor implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "io/impl/l10n.h"
 
 namespace IO

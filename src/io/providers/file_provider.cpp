@@ -1,39 +1,39 @@
 /**
-*
-* @file
-*
-* @brief  File provider implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  File provider implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
+#include "io/providers/file_provider.h"
 #include "io/impl/boost_filesystem_path.h"
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
-#include "io/providers/file_provider.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_factories.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
 #include <parameters/accessor.h>
 #include <strings/encoding.h>
 #include <strings/format.h>
-//std includes
+// std includes
 #include <cctype>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-//text includes
+// text includes
 #include <io/text/io.h>
 
 #define FILE_TAG 0D4CB3DA
@@ -42,15 +42,13 @@
 
 namespace
 {
-//TODO
+// TODO
 #ifdef _WIN32
   String ApplyOSFilenamesRestrictions(const String& in)
   {
-    static const String DEPRECATED_NAMES[] =
-    {
-      "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
-      "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
-    };
+    static const String DEPRECATED_NAMES[] = {"CON",  "PRN",  "AUX",  "NUL",  "COM1", "COM2", "COM3", "COM4",
+                                              "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3",
+                                              "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
     const auto dotPos = in.find('.');
     const auto filename = in.substr(0, dotPos);
     if (std::end(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, std::end(DEPRECATED_NAMES), filename))
@@ -60,7 +58,7 @@ namespace
     }
     return in;
   }
-  
+
 #else
   String ApplyOSFilenamesRestrictions(const String& in)
   {
@@ -70,18 +68,16 @@ namespace
 
   String GetErrorMessage(const boost::system::system_error& err)
   {
-    //TODO: remove when BOOST_NO_ANSI_APIS will be applied
+    // TODO: remove when BOOST_NO_ANSI_APIS will be applied
     return Strings::ToAutoUtf8(err.code().message());
   }
 
   inline bool IsNotFSSymbol(Char sym)
   {
-    return std::iscntrl(sym) || 
-      sym == '*' || sym == '\?' || sym == '%' || 
-      sym == ':' || sym == '|' || sym == '\"' || sym == '<' || sym == '>' || 
-      sym == '\\' || sym == '/';
+    return std::iscntrl(sym) || sym == '*' || sym == '\?' || sym == '%' || sym == ':' || sym == '|' || sym == '\"'
+           || sym == '<' || sym == '>' || sym == '\\' || sym == '/';
   }
-}
+}  // namespace
 
 namespace IO::File
 {
@@ -92,8 +88,7 @@ namespace IO::File
   public:
     explicit ProviderParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
-    {
-    }
+    {}
 
     std::size_t MemoryMappingThreshold() const
     {
@@ -122,6 +117,7 @@ namespace IO::File
       Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, intVal);
       return intVal != 0;
     }
+
   private:
     const Parameters::Accessor& Accessor;
   };
@@ -165,9 +161,7 @@ namespace IO::File
     String Extension() const override
     {
       const String result = Details::ToString(PathValue.extension());
-      return result.empty()
-        ? result
-        : result.substr(1);//skip initial dot
+      return result.empty() ? result : result.substr(1);  // skip initial dot
     }
 
     String Subpath() const override
@@ -179,10 +173,11 @@ namespace IO::File
     {
       return MakePtr<FileIdentifier>(PathValue, subpath);
     }
+
   private:
     String Serialize() const
     {
-      //do not place scheme
+      // do not place scheme
       auto res = Details::ToString(PathValue);
       if (!SubpathValue.empty())
       {
@@ -191,6 +186,7 @@ namespace IO::File
       }
       return res;
     }
+
   private:
     const boost::filesystem::path PathValue;
     const String SubpathValue;
@@ -201,11 +197,8 @@ namespace IO::File
   {
   public:
     explicit MemoryMappedData(const String& path)
-    try
-      : File(path.c_str(), boost::interprocess::read_only)
-      , Region(File, boost::interprocess::read_only)
-    {
-    }
+    try : File(path.c_str(), boost::interprocess::read_only), Region(File, boost::interprocess::read_only)
+    {}
     catch (const boost::interprocess::interprocess_exception& e)
     {
       throw Error(THIS_LINE, e.what());
@@ -220,6 +213,7 @@ namespace IO::File
     {
       return Region.get_size();
     }
+
   private:
     const boost::interprocess::file_mapping File;
     const boost::interprocess::mapped_region Region;
@@ -238,11 +232,12 @@ namespace IO::File
     {
       throw MakeFormattedError(THIS_LINE, translate("Failed to read %1% bytes. Actually got %2% bytes."), size, read);
     }
-    //TODO: Binary::CreateData
+    // TODO: Binary::CreateData
     return Binary::CreateContainer(std::move(res));
   }
 
-  //since dingux platform does not support wide strings(???) that boost.filesystem v3 requires, specify adapters in return-style
+  // since dingux platform does not support wide strings(???) that boost.filesystem v3 requires, specify adapters in
+  // return-style
   boost::uintmax_t FileSize(const boost::filesystem::path& filePath, Error::LocationRef loc)
   {
     try
@@ -254,7 +249,7 @@ namespace IO::File
       throw Error(loc, GetErrorMessage(err));
     }
   }
-  
+
   bool IsDirectory(const boost::filesystem::path& filePath)
   {
     try
@@ -266,7 +261,7 @@ namespace IO::File
       return false;
     }
   }
-  
+
   bool IsExists(const boost::filesystem::path& filePath)
   {
     try
@@ -278,12 +273,12 @@ namespace IO::File
       return false;
     }
   }
-  
+
   void CreateDirectory(const boost::filesystem::path& path, Error::LocationRef loc)
   {
     try
     {
-      //do not check result
+      // do not check result
       boost::filesystem::create_directory(path);
     }
     catch (const boost::system::system_error& err)
@@ -303,7 +298,7 @@ namespace IO::File
     else if (size >= mmapThreshold)
     {
       Dbg("Using memory-mapped i/o for '%1%'.", path);
-      //use local encoding here
+      // use local encoding here
       return OpenMemoryMappedFile(fileName.string());
     }
     else
@@ -355,12 +350,13 @@ namespace IO::File
     {
       return const_cast<boost::filesystem::ofstream&>(Stream).tellp();
     }
+
   private:
     const String Name;
     boost::filesystem::ofstream Stream;
   };
 
-  //standard implementation does not work in mingw
+  // standard implementation does not work in mingw
   void CreateDirectoryRecursive(const boost::filesystem::path& dir)
   {
     if (IsDirectory(dir))
@@ -407,9 +403,8 @@ namespace IO::File
   {
     try
     {
-      boost::filesystem::path path = params.SanitizeNames()
-        ? CreateSanitizedPath(fileName)
-        : Details::FromString(fileName);
+      boost::filesystem::path path = params.SanitizeNames() ? CreateSanitizedPath(fileName)
+                                                            : Details::FromString(fileName);
       Dbg("CreateStream: input='%1%' path='%2%'", fileName, Details::ToString(path));
       if (params.CreateDirectories() && path.has_parent_path())
       {
@@ -424,18 +419,18 @@ namespace IO::File
         }
         break;
       case RENAME_NEW:
+      {
+        const auto oldStem = path.stem();
+        const auto extension = path.extension();
+        for (uint_t idx = 1; IsExists(path); ++idx)
         {
-          const auto oldStem = path.stem();
-          const auto extension = path.extension();
-          for (uint_t idx = 1; IsExists(path); ++idx)
-          {
-            auto newFilename = oldStem;
-            newFilename += Strings::Format(" (%1%)", idx);
-            newFilename += extension;
-            path.remove_filename();
-            path /= newFilename;
-          }
+          auto newFilename = oldStem;
+          newFilename += Strings::Format(" (%1%)", idx);
+          newFilename += extension;
+          path.remove_filename();
+          path /= newFilename;
         }
+      }
       case OVERWRITE_EXISTING:
         break;
       default:
@@ -470,10 +465,7 @@ namespace IO::File
 
     Strings::Set Schemes() const override
     {
-      static const Char* SCHEMES[] = 
-      {
-        SCHEME_FILE
-      };
+      static const Char* SCHEMES[] = {SCHEME_FILE};
       return Strings::Set(SCHEMES, std::end(SCHEMES));
     }
 
@@ -487,24 +479,25 @@ namespace IO::File
       const String scheme = String::npos == schemePos ? String(SCHEME_FILE) : uri.substr(0, schemePos);
       const String path = String::npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
       const String subpath = String::npos == subPos ? String() : uri.substr(subPos + 1);
-      return !path.empty() && scheme == SCHEME_FILE
-        ? MakePtr<FileIdentifier>(Details::FromString(path), subpath)
-        : Identifier::Ptr();
+      return !path.empty() && scheme == SCHEME_FILE ? MakePtr<FileIdentifier>(Details::FromString(path), subpath)
+                                                    : Identifier::Ptr();
     }
 
-    Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& /*cb*/) const override
+    Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params,
+                                Log::ProgressCallback& /*cb*/) const override
     {
       const ProviderParameters parameters(params);
       return Binary::CreateContainer(OpenLocalFile(path, parameters.MemoryMappingThreshold()));
     }
 
-    Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params, Log::ProgressCallback&) const override
+    Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params,
+                                     Log::ProgressCallback&) const override
     {
       const ProviderParameters parameters(params);
       return CreateLocalFile(path, parameters);
     }
   };
-}
+}  // namespace IO::File
 
 namespace IO
 {
@@ -541,6 +534,6 @@ namespace IO
   {
     enumerator.RegisterProvider(CreateFileDataProvider());
   }
-}
+}  // namespace IO
 
 #undef FILE_TAG

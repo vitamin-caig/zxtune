@@ -1,30 +1,30 @@
 /**
-*
-* @file
-*
-* @brief  Network provider implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Network provider implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
 #include "io/providers/gates/curl_api.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
 #include <progress_callback.h>
-//library includes
+// library includes
 #include <binary/container_factories.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
 #include <parameters/accessor.h>
-//std includes
+// std includes
 #include <cstring>
-//text includes
+// text includes
 #include <io/text/io.h>
 
 #define FILE_TAG 18F46494
@@ -38,8 +38,7 @@ namespace IO::Network
   public:
     explicit ProviderParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
-    {
-    }
+    {}
 
     String GetHttpUseragent() const
     {
@@ -47,6 +46,7 @@ namespace IO::Network
       Accessor.FindValue(Parameters::ZXTune::IO::Providers::Network::Http::USERAGENT, res);
       return res;
     }
+
   private:
     const Parameters::Accessor& Accessor;
   };
@@ -88,6 +88,7 @@ namespace IO::Network
     {
       CheckCurlResult(Api->curl_easy_getinfo(Object, info, param), loc);
     }
+
   private:
     void CheckCurlResult(CURLcode code, Error::LocationRef loc) const
     {
@@ -96,6 +97,7 @@ namespace IO::Network
         throw MakeFormattedError(loc, translate("Network error happends: %1%"), Api->curl_easy_strerror(code));
       }
     }
+
   private:
     const Curl::Api::Ptr Api;
     CURL* Object;
@@ -139,7 +141,7 @@ namespace IO::Network
       Object.SetOption(CURLOPT_NOPROGRESS, 0, THIS_LINE);
     }
 
-    //TODO: pass callback to handle progress and other
+    // TODO: pass callback to handle progress and other
     Binary::Container::Ptr Download()
     {
       std::unique_ptr<Dump> result(new Dump());
@@ -154,6 +156,7 @@ namespace IO::Network
       }
       return Binary::CreateContainer(std::move(result));
     }
+
   private:
     static int DebugCallback(CURL* obj, curl_infotype type, char* data, size_t size, void* /*param*/)
     {
@@ -193,7 +196,7 @@ namespace IO::Network
 
     static int ProgressCallback(void* data, double dlTotal, double dlNow, double /*ulTotal*/, double /*ulNow*/)
     {
-      if (dlTotal)//0 for source files with unknown size
+      if (dlTotal)  // 0 for source files with unknown size
       {
         Log::ProgressCallback* const cb = static_cast<Log::ProgressCallback*>(data);
         const uint_t progress = static_cast<uint_t>(dlNow * 100 / dlTotal);
@@ -201,6 +204,7 @@ namespace IO::Network
       }
       return 0;
     }
+
   private:
     CurlObject Object;
   };
@@ -212,11 +216,10 @@ namespace IO::Network
   const Char SCHEME_FTP[] = {'f', 't', 'p', 0};
   const Char SUBPATH_DELIMITER = '#';
 
-  const Char* ALL_SCHEMES[] = 
-  {
-    SCHEME_HTTP,
-    SCHEME_HTTPS,
-    SCHEME_FTP,
+  const Char* ALL_SCHEMES[] = {
+      SCHEME_HTTP,
+      SCHEME_HTTPS,
+      SCHEME_FTP,
   };
 
   class RemoteIdentifier : public Identifier
@@ -248,13 +251,13 @@ namespace IO::Network
 
     String Filename() const override
     {
-      //filename usually is useless on remote schemes
+      // filename usually is useless on remote schemes
       return String();
     }
 
     String Extension() const override
     {
-      //filename usually is useless on remote schemes
+      // filename usually is useless on remote schemes
       return String();
     }
 
@@ -267,10 +270,11 @@ namespace IO::Network
     {
       return MakePtr<RemoteIdentifier>(SchemeValue, PathValue, subpath);
     }
+
   private:
     String Serialize() const
     {
-      //do not place scheme
+      // do not place scheme
       String res = PathValue;
       if (!SubpathValue.empty())
       {
@@ -279,6 +283,7 @@ namespace IO::Network
       }
       return res;
     }
+
   private:
     const String SchemeValue;
     const String PathValue;
@@ -295,8 +300,7 @@ namespace IO::Network
     explicit DataProvider(Curl::Api::Ptr api)
       : Api(std::move(api))
       , SupportedSchemes(ALL_SCHEMES, std::end(ALL_SCHEMES))
-    {
-    }
+    {}
 
     String Id() const override
     {
@@ -324,7 +328,7 @@ namespace IO::Network
       const String::size_type schemePos = uri.find(schemeSign);
       if (String::npos == schemePos)
       {
-        //scheme is required
+        // scheme is required
         return Identifier::Ptr();
       }
       const String::size_type hierPos = schemePos + schemeSign.size();
@@ -334,16 +338,17 @@ namespace IO::Network
       const String hier = String::npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
       if (hier.empty() || !SupportedSchemes.count(scheme))
       {
-        //scheme and hierarchy part is mandatory
+        // scheme and hierarchy part is mandatory
         return Identifier::Ptr();
       }
-      //Path should include scheme and all possible parameters
+      // Path should include scheme and all possible parameters
       const String path = String::npos == subPos ? uri : uri.substr(0, subPos);
       const String subpath = String::npos == subPos ? String() : uri.substr(subPos + 1);
       return MakePtr<RemoteIdentifier>(scheme, path, subpath);
     }
 
-    Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const override
+    Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params,
+                                Log::ProgressCallback& cb) const override
     {
       try
       {
@@ -360,15 +365,17 @@ namespace IO::Network
       }
     }
 
-    Binary::OutputStream::Ptr Create(const String& /*path*/, const Parameters::Accessor& /*params*/, Log::ProgressCallback& /*cb*/) const override
+    Binary::OutputStream::Ptr Create(const String& /*path*/, const Parameters::Accessor& /*params*/,
+                                     Log::ProgressCallback& /*cb*/) const override
     {
       throw Error(THIS_LINE, translate("Not supported."));
     }
+
   private:
     const Curl::Api::Ptr Api;
     const Strings::Set SupportedSchemes;
   };
-}
+}  // namespace IO::Network
 
 namespace IO
 {
@@ -390,6 +397,6 @@ namespace IO
       enumerator.RegisterProvider(CreateUnavailableProviderStub(Network::ID, Network::DESCRIPTION, e));
     }
   }
-}
+}  // namespace IO
 
 #undef FILE_TAG

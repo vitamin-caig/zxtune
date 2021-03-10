@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  File operations test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  File operations test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include <src/io/api.h>
-#include <src/io/providers_parameters.h>
 #include <src/io/providers/file_provider.h>
+#include <src/io/providers_parameters.h>
 
 #include <error.h>
 #include <progress_callback.h>
@@ -35,7 +35,7 @@ namespace
 #endif
   const char INVALID_NAME[] = "Invalid?Name!";
   const char EMPTY_FILE[] = "empty";
-  
+
   bool ShowIfError(const Error& e)
   {
     if (e)
@@ -56,7 +56,7 @@ namespace
     std::cout << (res ? "Passed" : "Failed") << " test '" << text << "' at " << line << std::endl;
     return res;
   }
-  
+
   void CheckError(const Error& e, const String& text, unsigned line)
   {
     Test(!!e, text, line);
@@ -88,7 +88,7 @@ namespace
       return e;
     }
   }
-}
+}  // namespace
 
 int main()
 {
@@ -97,15 +97,16 @@ int main()
     using namespace IO;
     std::cout << "------ test for openers --------\n";
     Parameters::Container::Ptr params = Parameters::Container::Create();
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, std::numeric_limits<int64_t>::max());//set always buffered
+    params->SetValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD,
+                     std::numeric_limits<int64_t>::max());  // set always buffered
     Test(OpenData(EXISTING_FILE, *params), "Opening in buffer mode", __LINE__);
     CheckError(OpenData(NONEXISTING_FILE, *params), "Open non-existent in buffer mode", __LINE__);
     CheckError(OpenData(LOCKED_FILE, *params), "Open locked in buffer mode", __LINE__);
     CheckError(OpenData(FOLDER, *params), "Open folder in buffer mode", __LINE__);
     CheckError(OpenData(EMPTY_FILE, *params), "Open empty file in buffer mode", __LINE__);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, 0);//set always mmaped
+    params->SetValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, 0);  // set always mmaped
     Test(OpenData(EXISTING_FILE, *params), "Opening in mmap mode", __LINE__);
-    CheckError(OpenData(NONEXISTING_FILE, *params), "Open non-existent in shared mode", __LINE__);  
+    CheckError(OpenData(NONEXISTING_FILE, *params), "Open non-existent in shared mode", __LINE__);
     CheckError(OpenData(LOCKED_FILE, *params), "Open locked in shared mode", __LINE__);
     CheckError(OpenData(FOLDER, *params), "Open folder in shared mode", __LINE__);
     CheckError(OpenData(EMPTY_FILE, *params), "Open empty file in shared mode", __LINE__);
@@ -120,7 +121,8 @@ int main()
     CheckError(CreateData(nestedFile, *params), "Create file in nonexisting dir", __LINE__);
     params->SetValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, 1);
     Test(CreateData(nestedFile, *params), "Create file with intermediate dirs", __LINE__);
-    CheckError(CreateData(nestedFile, *params), "Create existing non-overwritable file with intermediate dirs", __LINE__);
+    CheckError(CreateData(nestedFile, *params), "Create existing non-overwritable file with intermediate dirs",
+               __LINE__);
     CheckError(CreateData(folder, *params), "Create file as existing folder", __LINE__);
     params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OVERWRITE_EXISTING);
     Test(CreateData(fileName, *params), "Overwrite file", __LINE__);

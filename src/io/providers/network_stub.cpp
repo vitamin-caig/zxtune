@@ -1,23 +1,24 @@
 /**
-*
-* @file
-*
-* @brief  Network provider stub
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Network provider stub
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "io/providers/enumerator.h"
-//common includes
+// common includes
 #include <l10n/api.h>
-//text includes
+// text includes
 #include <io/text/io.h>
 
 namespace IO
 {
   void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
   {
-    enumerator.RegisterProvider(CreateDisabledProviderStub(Text::IO_NETWORK_PROVIDER_ID, L10n::translate("Network files access via different schemes support")));
+    enumerator.RegisterProvider(CreateDisabledProviderStub(
+        Text::IO_NETWORK_PROVIDER_ID, L10n::translate("Network files access via different schemes support")));
   }
-}
+}  // namespace IO

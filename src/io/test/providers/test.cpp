@@ -1,17 +1,17 @@
 /**
-*
-* @file
-*
-* @brief  Providers test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Providers test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-#include <io/providers/providers_factories.h>
 #include <algorithm>
-#include <iostream>
+#include <io/providers/providers_factories.h>
 #include <iomanip>
+#include <iostream>
 
 namespace
 {
@@ -29,6 +29,7 @@ namespace
     std::string WithChangedSubpath;
   };
 
+  // clang-format off
   const Case FILE_PROVIDER_CASES[] =
   {
     {
@@ -260,6 +261,7 @@ namespace
       "http://example.com?param=val#Complex/Subpath",
     }
   };
+  // clang-format on
 
   template<class T>
   void Test(const std::string& msg, T result, T reference)
@@ -312,7 +314,7 @@ namespace
       TestProvider(*prov, testCase);
     }
   }
-}
+}  // namespace
 
 int main()
 {

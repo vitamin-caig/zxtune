@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Providers parameters names
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Providers parameters names
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
 
 namespace Parameters
@@ -64,7 +64,7 @@ namespace Parameters
           const IntType SANITIZE_NAMES_DEFAULT = 1;
           //! @Parameter full path
           extern const NameType SANITIZE_NAMES;
-        }
+        }  // namespace File
 
         //! @brief %Network provider parameters namespace
         namespace Network
@@ -83,9 +83,9 @@ namespace Parameters
 
             //! Parameter full path
             extern const NameType USERAGENT;
-          }
-        }
-      }
-    }
-  }
-}
+          }  // namespace Http
+        }    // namespace Network
+      }      // namespace Providers
+    }        // namespace IO
+  }          // namespace ZXTune
+}  // namespace Parameters
