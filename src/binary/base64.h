@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Base64 functions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Base64 functions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 namespace Binary
@@ -27,7 +27,7 @@ namespace Binary
     //! @return End of decoded data
     uint8_t* Decode(const char* inBegin, const char* inEnd, uint8_t* outBegin, uint8_t* outEnd);
 
-    //easy-to-use wrappers
+    // easy-to-use wrappers
     inline String Encode(const Dump& input)
     {
       String result(CalculateConvertedSize(input.size()), ' ');
@@ -38,5 +38,5 @@ namespace Binary
     }
 
     Dump Decode(StringView input);
-  }
-}
+  }  // namespace Base64
+}  // namespace Binary

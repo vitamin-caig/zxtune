@@ -1,24 +1,24 @@
 /**
-*
-* @file
-*
-* @brief  Input binary stream helper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Input binary stream helper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/container.h>
 #include <binary/view.h>
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <pointers.h>
 #include <types.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <cstring>
 
@@ -32,8 +32,7 @@ namespace Binary
       : Start(static_cast<const uint8_t*>(data.Start()))
       , Finish(Start + data.Size())
       , Cursor(Start)
-    {
-    }
+    {}
 
     //! @brief Simple adapter to read specified type data
     template<class T>
@@ -137,7 +136,7 @@ namespace Binary
       Require(size <= GetRestSize());
       Cursor += size;
     }
-    
+
     void Seek(std::size_t pos)
     {
       Require(pos <= std::size_t(Finish - Start));
@@ -155,6 +154,7 @@ namespace Binary
     {
       return Finish - Cursor;
     }
+
   private:
     const uint8_t* ReadRawData(std::size_t size)
     {
@@ -163,23 +163,22 @@ namespace Binary
       Cursor += size;
       return res;
     }
-    
+
   protected:
     const uint8_t* const Start;
     const uint8_t* const Finish;
     const uint8_t* Cursor;
   };
-  
-  //TODO: rename
+
+  // TODO: rename
   class InputStream : public DataInputStream
   {
   public:
     explicit InputStream(const Container& rawData)
       : DataInputStream(rawData)
       , Data(rawData)
-    {
-    }
-    
+    {}
+
     Container::Ptr ReadContainer(std::size_t size)
     {
       Require(size <= GetRestSize());
@@ -203,7 +202,8 @@ namespace Binary
     {
       return Data.GetSubcontainer(0, GetPosition());
     }
+
   private:
     const Container& Data;
   };
-}
+}  // namespace Binary

@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Format grammar
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Format grammar
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "binary/format/grammar.h"
-//common includes
-#include <pointers.h>
+// common includes
 #include <make_ptr.h>
-//std includes
+#include <pointers.h>
+// std includes
 #include <cctype>
 
 namespace Binary::FormatDSL
@@ -28,9 +28,8 @@ namespace Binary::FormatDSL
     LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
       static const StringView SPACES(" \n\t\r");
-      return lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(SPACES)
-        ? LexicalAnalysis::INVALID_TOKEN
-        : DELIMITER;
+      return lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(SPACES) ? LexicalAnalysis::INVALID_TOKEN
+                                                                               : DELIMITER;
     }
   };
 
@@ -40,9 +39,8 @@ namespace Binary::FormatDSL
     LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
       static const StringView DELIMITERS(&DELIMITER_TEXT, 1);
-      return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(DELIMITERS)
-        ? LexicalAnalysis::INVALID_TOKEN
-        : DELIMITER;
+      return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(DELIMITERS) ? LexicalAnalysis::INVALID_TOKEN
+                                                                                       : DELIMITER;
     }
   };
 
@@ -51,9 +49,8 @@ namespace Binary::FormatDSL
   public:
     LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      return lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(DIGITS)
-        ? LexicalAnalysis::INVALID_TOKEN
-        : CONSTANT;
+      return lexeme.empty() || lexeme.npos != lexeme.find_first_not_of(DIGITS) ? LexicalAnalysis::INVALID_TOKEN
+                                                                               : CONSTANT;
     }
   };
 
@@ -63,8 +60,8 @@ namespace Binary::FormatDSL
     LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
       return lexeme.empty() || lexeme[0] != SYMBOL_TEXT
-        ? LexicalAnalysis::INVALID_TOKEN
-        : (2 == lexeme.size() ? CONSTANT : LexicalAnalysis::INCOMPLETE_TOKEN);
+                 ? LexicalAnalysis::INVALID_TOKEN
+                 : (2 == lexeme.size() ? CONSTANT : LexicalAnalysis::INCOMPLETE_TOKEN);
     }
   };
 
@@ -74,9 +71,8 @@ namespace Binary::FormatDSL
     LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
       static const StringView MASKS(&ANY_BYTE_TEXT, 1);
-      return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(MASKS)
-        ? LexicalAnalysis::INVALID_TOKEN
-        : MASK;
+      return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(MASKS) ? LexicalAnalysis::INVALID_TOKEN
+                                                                                  : MASK;
     }
   };
 
@@ -88,7 +84,8 @@ namespace Binary::FormatDSL
       static const auto BITMATCHES = HEX_TOKENS.substr(0, 4);
       static const auto ANY_BITS = BITMATCHES.substr(0, 2);
       const std::size_t SIZE = 9;
-      if (lexeme.empty() || lexeme[0] != BINARY_MASK_TEXT || lexeme.npos != lexeme.find_first_not_of(BITMATCHES, 1) || lexeme.size() > SIZE)
+      if (lexeme.empty() || lexeme[0] != BINARY_MASK_TEXT || lexeme.npos != lexeme.find_first_not_of(BITMATCHES, 1)
+          || lexeme.size() > SIZE)
       {
         return LexicalAnalysis::INVALID_TOKEN;
       }
@@ -139,9 +136,7 @@ namespace Binary::FormatDSL
       }
       else
       {
-        return lexeme.npos != lexeme.find_first_not_of(DIGITS, 1)
-          ? LexicalAnalysis::INVALID_TOKEN
-          : MASK;
+        return lexeme.npos != lexeme.find_first_not_of(DIGITS, 1) ? LexicalAnalysis::INVALID_TOKEN : MASK;
       }
     }
   };
@@ -151,11 +146,10 @@ namespace Binary::FormatDSL
   public:
     LexicalAnalysis::TokenType Parse(StringView lexeme) const override
     {
-      static const char OPERATIONS[] = {RANGE_TEXT, CONJUNCTION_TEXT, DISJUNCTION_TEXT,
-        QUANTOR_BEGIN, QUANTOR_END, GROUP_BEGIN, GROUP_END, 0};
-      return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(OPERATIONS)
-        ? LexicalAnalysis::INVALID_TOKEN
-        : OPERATION;
+      static const char OPERATIONS[] = {RANGE_TEXT,  CONJUNCTION_TEXT, DISJUNCTION_TEXT, QUANTOR_BEGIN,
+                                        QUANTOR_END, GROUP_BEGIN,      GROUP_END,        0};
+      return lexeme.size() != 1 || lexeme.npos != lexeme.find_first_not_of(OPERATIONS) ? LexicalAnalysis::INVALID_TOKEN
+                                                                                       : OPERATION;
     }
   };
 
@@ -185,10 +179,11 @@ namespace Binary::FormatDSL
     {
       return Delegate->Analyse(notation, cb);
     }
+
   private:
     const LexicalAnalysis::Grammar::RWPtr Delegate;
   };
-}
+}  // namespace Binary::FormatDSL
 
 namespace Binary::FormatDSL
 {
@@ -197,4 +192,4 @@ namespace Binary::FormatDSL
     static FormatGrammar grammar;
     return MakeSingletonPointer(grammar);
   }
-}
+}  // namespace Binary::FormatDSL

@@ -1,12 +1,12 @@
-#include <pointers.h>
-#include <types.h>
 #include <binary/format_factories.h>
-#include <debug/log.h>
-#include <strings/format.h>
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <bitset>
+#include <debug/log.h>
+#include <fstream>
+#include <iostream>
+#include <pointers.h>
+#include <sstream>
+#include <strings/format.h>
+#include <types.h>
 
 namespace
 {
@@ -14,11 +14,12 @@ namespace
   {
     uint_t Min;
     uint_t Max;
-    
-    Range() : Min(255), Max(0) 
-    {
-    }
-    
+
+    Range()
+      : Min(255)
+      , Max(0)
+    {}
+
     void Apply(uint_t val)
     {
       Min = std::min(val, Min);
@@ -29,7 +30,7 @@ namespace
     {
       return Min <= Max && (Max - Min < 255);
     }
-    
+
     std::size_t CountCatches() const
     {
       return Max - Min + 1;
@@ -58,28 +59,29 @@ namespace
     assert(val <= 15);
     return val >= 10 ? (val - 10 + 'a') : (val + '0');
   }
-  
+
   struct BinaryMask
   {
     uint_t Zeroes;
     uint_t Ones;
-    
-    BinaryMask() : Zeroes(), Ones()
-    {
-    }
-    
+
+    BinaryMask()
+      : Zeroes()
+      , Ones()
+    {}
+
     void Apply(uint_t val)
     {
       Zeroes |= ~val & 0xff;
       Ones |= val;
     }
-    
+
     bool IsThis() const
     {
       const uint8_t fixed = Zeroes ^ Ones;
       return 0 != fixed;
     }
-    
+
     std::size_t CountCatches() const
     {
       const uint_t mask = ~(Zeroes & Ones) & 0xff;
@@ -91,7 +93,7 @@ namespace
       }
       return res;
     }
-    
+
     std::string ToString() const
     {
       if (IsNibbles())
@@ -108,12 +110,11 @@ namespace
         const bool hasAny = hasZero && hasOne;
         assert(hasZero || hasOne);
         const std::size_t sympos = 9 - idx;
-        result[sympos] = hasAny
-          ? 'x'
-          : (hasOne ? '1' : '0');
+        result[sympos] = hasAny ? 'x' : (hasOne ? '1' : '0');
       }
       return result;
     }
+
   private:
     bool IsNibbles() const
     {
@@ -122,7 +123,7 @@ namespace
       const uint_t loNibble = fixed & 15;
       return (hiNibble == 15 || hiNibble == 0) && (loNibble == 15 || loNibble == 0);
     }
-    
+
     std::string ToNibblesString() const
     {
       assert(IsNibbles());
@@ -142,8 +143,7 @@ namespace
 
     Bitmask()
       : Values()
-    {
-    }
+    {}
 
     void Apply(uint_t val)
     {
@@ -171,8 +171,7 @@ namespace
       : Ranges()
       , Binaries()
       , Bitmasks()
-    {
-    }
+    {}
 
     bool Add(const Dump& data)
     {
@@ -182,16 +181,16 @@ namespace
       CutTail();
       return !Ranges.empty();
     }
-    
+
     std::string ToString() const
     {
       Dbg("Result has %1% entries", Ranges.size());
-      if (std::all_of(Ranges.begin(), Ranges.end(), [](const Range& rng) {return rng.IsThis();}))
+      if (std::all_of(Ranges.begin(), Ranges.end(), [](const Range& rng) { return rng.IsThis(); }))
       {
         Dbg("Using ranges format");
         return HomogeniousToString(Ranges);
       }
-      if (std::all_of(Binaries.begin(), Binaries.end(), [](const BinaryMask& msk) {return msk.IsThis();}))
+      if (std::all_of(Binaries.begin(), Binaries.end(), [](const BinaryMask& msk) { return msk.IsThis(); }))
       {
         Dbg("", "Using binary format");
         return HomogeniousToString(Binaries);
@@ -204,6 +203,7 @@ namespace
     {
       return HomogeniousToString(Bitmasks);
     }
+
   private:
     void Resize(std::size_t len)
     {
@@ -215,7 +215,7 @@ namespace
         Bitmasks.resize(len);
       }
     }
-    
+
     void Apply(const Dump& data)
     {
       const std::size_t toApply = std::min(data.size(), Ranges.size());
@@ -227,7 +227,7 @@ namespace
         Bitmasks[idx].Apply(val);
       }
     }
-    
+
     void CutTail()
     {
       std::size_t size = Ranges.size();
@@ -241,7 +241,7 @@ namespace
       }
       Resize(size);
     }
-    
+
     template<class T>
     std::string HomogeniousToString(const std::vector<T>& vals) const
     {
@@ -252,7 +252,7 @@ namespace
       }
       return result;
     }
-    
+
     std::string HeterogeniousToString() const
     {
       std::string result;
@@ -288,19 +288,18 @@ namespace
           const std::size_t rngWeight = rng.CountCatches();
           const std::size_t binWeight = bin.CountCatches();
           Dbg(" range=%1% bytes bin=%2% bytes", rngWeight, binWeight);
-          result += rngWeight <= binWeight
-            ? rng.ToString()
-            : bin.ToString();
+          result += rngWeight <= binWeight ? rng.ToString() : bin.ToString();
         }
       }
       return result;
     }
+
   private:
     std::vector<Range> Ranges;
     std::vector<BinaryMask> Binaries;
     std::vector<Bitmask> Bitmasks;
   };
-  
+
   Dump Read(const std::string& name)
   {
     std::ifstream stream(name.c_str(), std::ios::binary);
@@ -315,7 +314,7 @@ namespace
     stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
     return tmp;
   }
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

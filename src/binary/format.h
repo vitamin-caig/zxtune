@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Binary data format interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Binary data format interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/view.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Binary
@@ -34,4 +34,4 @@ namespace Binary
     //! @invariant return value is always > 0
     virtual std::size_t NextMatchOffset(View data) const = 0;
   };
-}
+}  // namespace Binary

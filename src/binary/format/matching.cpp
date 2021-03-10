@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Matching-only format implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Matching-only format implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "binary/format/static_expression.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 
 namespace Binary
@@ -33,8 +33,7 @@ namespace Binary
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.GetSize() + offset))
       , Pattern(std::move(mtx))
-    {
-    }
+    {}
 
     bool Match(View data) const override
     {
@@ -57,6 +56,7 @@ namespace Binary
     {
       return MakePtr<FuzzyMatchOnlyFormat>(std::move(expr), startOffset, minSize);
     }
+
   private:
     const std::size_t Offset;
     const std::size_t MinSize;
@@ -72,8 +72,7 @@ namespace Binary
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
       , Pattern(std::move(mtx))
-    {
-    }
+    {}
 
     bool Match(View data) const override
     {
@@ -105,6 +104,7 @@ namespace Binary
       }
       return MakePtr<ExactMatchOnlyFormat>(std::move(tmp), startOffset, minSize);
     }
+
   private:
     const std::size_t Offset;
     const std::size_t MinSize;
@@ -124,7 +124,7 @@ namespace Binary
       return FuzzyMatchOnlyFormat::Create(std::move(pattern), startOffset, minSize);
     }
   }
-}
+}  // namespace Binary
 
 namespace Binary
 {
@@ -138,4 +138,4 @@ namespace Binary
     const auto expr = FormatDSL::Expression::Parse(pattern);
     return CreateMatchingFormatFromPredicates(*expr, minSize);
   }
-}
+}  // namespace Binary

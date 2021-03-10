@@ -1,22 +1,24 @@
 /**
-*
-* @file
-*
-* @brief  Binary data format factories
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Binary data format factories
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <binary/format.h>
 
 namespace Binary
 {
+  // clang-format off
+
   //Text pattern format (in regular expression notation):
   //  \?           - any byte
   //  [0-9a-fx]{2} - match byte/nibble
@@ -47,9 +49,12 @@ namespace Binary
   space_char   ::= ' ' | '\t' | '\n' | '\r'
   */
 
+  // clang-format on
+
   Format::Ptr CreateFormat(StringView pattern);
   Format::Ptr CreateFormat(StringView pattern, std::size_t minSize);
-  Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset);
+  Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset,
+                                    std::size_t maxFooterOffset);
   Format::Ptr CreateMatchOnlyFormat(StringView pattern);
   Format::Ptr CreateMatchOnlyFormat(StringView pattern, std::size_t minSize);
-}
+}  // namespace Binary

@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Output stream interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Output stream interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <data_streaming.h>
 #include <types.h>
-//library includes
+// library includes
 #include <binary/view.h>
 
 namespace Binary
@@ -28,4 +28,4 @@ namespace Binary
     virtual void Seek(uint64_t pos) = 0;
     virtual uint64_t Position() const = 0;
   };
-}
+}  // namespace Binary

@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Binary format expression interface and factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Binary format expression interface and factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <list>
 #include <memory>
 
@@ -42,5 +42,5 @@ namespace Binary
 
       static Ptr Parse(StringView notation);
     };
-  }
-}
+  }  // namespace FormatDSL
+}  // namespace Binary

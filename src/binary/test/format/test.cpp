@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Format test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Format test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-#include <types.h>
-#include <binary/format_factories.h>
 #include <binary/format/grammar.h>
 #include <binary/format/syntax.h>
-#include <sstream>
-#include <iostream>
+#include <binary/format_factories.h>
 #include <functional>
+#include <iostream>
+#include <sstream>
+#include <types.h>
 
 namespace
 {
@@ -24,7 +24,7 @@ namespace
     if (!val)
       throw 1;
   }
-  
+
   template<class T>
   void Test(const std::string& msg, T result, T reference)
   {
@@ -38,10 +38,10 @@ namespace
       throw 1;
     }
   }
-}
+}  // namespace
 
 namespace
-{  
+{
   const std::string TOKENS("DCMO");
 
   class GrammarReportCallback : public LexicalAnalysis::Grammar::Callback
@@ -49,8 +49,7 @@ namespace
   public:
     explicit GrammarReportCallback(std::ostream& str)
       : Str(str)
-    {
-    }
+    {}
 
     void TokenMatched(StringView lexeme, LexicalAnalysis::TokenType type) override
     {
@@ -66,6 +65,7 @@ namespace
     {
       Str << notation.substr(0, position) << " >" << notation.substr(position);
     }
+
   private:
     std::ostream& Str;
   };
@@ -75,8 +75,7 @@ namespace
   public:
     explicit SyntaxReportCallback(std::ostream& str)
       : Str(str)
-    {
-    }
+    {}
 
     void Match(StringView val) override
     {
@@ -102,6 +101,7 @@ namespace
     {
       Str << op << ' ';
     }
+
   private:
     std::ostream& Str;
   };
@@ -124,8 +124,7 @@ namespace
       Binary::FormatDSL::ParseFormatNotation(notation, cb);
     }
     catch (const std::exception&)
-    {
-    }
+    {}
     return result.str();
   }
 
@@ -138,8 +137,7 @@ namespace
       Binary::FormatDSL::ParseFormatNotationPostfix(notation, cb);
     }
     catch (const std::exception&)
-    {
-    }
+    {}
     return result.str();
   }
 
@@ -149,15 +147,15 @@ namespace
     try
     {
       SyntaxReportCallback cb(result);
-      const Binary::FormatDSL::FormatTokensVisitor::Ptr adapter = Binary::FormatDSL::CreatePostfixSyntaxCheckAdapter(cb);
+      const Binary::FormatDSL::FormatTokensVisitor::Ptr adapter =
+          Binary::FormatDSL::CreatePostfixSyntaxCheckAdapter(cb);
       Binary::FormatDSL::ParseFormatNotationPostfix(notation, *adapter);
     }
     catch (const std::exception&)
-    {
-    }
+    {}
     return result.str();
   }
-}
+}  // namespace
 
 namespace
 {
@@ -169,8 +167,7 @@ namespace
     FormatResult(bool matched, std::size_t nextMatch)
       : Matched(matched)
       , NextMatch(nextMatch)
-    {
-    }
+    {}
   };
 
   const FormatResult INVALID_FORMAT = FormatResult(false, 0);
@@ -187,7 +184,8 @@ namespace
     FormatResult MatchOnlyResult;
   };
 
-  const uint8_t SAMPLE[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
+  const uint8_t SAMPLE[] = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15,
+                            16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
 
   FormatResult CheckFormat(StringView notation)
   {
@@ -233,6 +231,7 @@ namespace
     }
   }
 
+  // clang-format off
   const FormatTest TESTS[] =
   {
     //invalid grammar/syntax
@@ -903,6 +902,7 @@ namespace
       FormatResult(false, 32)
     }
   };
+  // clang-format on
 
   void ExecuteTest(const FormatTest& tst)
   {
@@ -919,6 +919,7 @@ namespace
     Test("next match offset (only)", resMatched.NextMatch, tst.MatchOnlyResult.NextMatch);
   }
 
+  // clang-format off
   struct CompositeFormatTest
   {
     StringView Name;
@@ -1010,6 +1011,7 @@ namespace
       FormatResult(false, 2)
     },
   };
+  // clang-format on
 
   void ExecuteCompositeTest(const CompositeFormatTest& tst)
   {
@@ -1018,7 +1020,7 @@ namespace
     Test("match", res.Matched, tst.Result.Matched);
     Test("next match offset", res.NextMatch, tst.Result.NextMatch);
   }
-}
+}  // namespace
 
 int main()
 {

@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Lexic analyser implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Lexic analyser implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "binary/format/lexic_analysis.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <list>
 #include <vector>
@@ -28,8 +28,7 @@ namespace LexicalAnalysis
 
     explicit TokensSet(StringView lexeme)
       : Lexeme(std::move(lexeme))
-    {
-    }
+    {}
 
     void Add(TokenType type)
     {
@@ -40,7 +39,7 @@ namespace LexicalAnalysis
     {
       return Types.Empty();
     }
-    
+
     std::size_t LexemeSize() const
     {
       return Lexeme.size();
@@ -58,6 +57,7 @@ namespace LexicalAnalysis
         cb.MultipleTokensMatched(Lexeme, Types);
       }
     }
+
   private:
     const StringView Lexeme;
     TokenTypesSet Types;
@@ -73,7 +73,7 @@ namespace LexicalAnalysis
 
     void Analyse(StringView notation, Callback& cb) const override
     {
-      for (auto cursor = notation.begin(), lim = notation.end(); cursor != lim; )
+      for (auto cursor = notation.begin(), lim = notation.end(); cursor != lim;)
       {
         if (const auto tokens = ExtractLongestTokens(cursor, lim))
         {
@@ -87,13 +87,14 @@ namespace LexicalAnalysis
         }
       }
     }
+
   private:
     TokensSet::Ptr ExtractLongestTokens(StringView::const_iterator lexemeStart, StringView::const_iterator lim) const
     {
       TokensSet::Ptr result;
       std::vector<const Tokenizer*> candidates(Sources.size());
       std::transform(Sources.begin(), Sources.end(), candidates.begin(),
-          [](const Tokenizer::Ptr& obj) {return obj.get();});
+                     [](const Tokenizer::Ptr& obj) { return obj.get(); });
       for (auto lexemeEnd = lexemeStart + 1; !candidates.empty(); ++lexemeEnd)
       {
         const StringView lexeme(lexemeStart, lexemeEnd);
@@ -127,6 +128,7 @@ namespace LexicalAnalysis
       }
       return result;
     }
+
   private:
     std::vector<Tokenizer::Ptr> Sources;
   };
@@ -135,4 +137,4 @@ namespace LexicalAnalysis
   {
     return MakeRWPtr<ContextIndependentGrammar>();
   }
-}
+}  // namespace LexicalAnalysis

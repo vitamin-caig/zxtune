@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Format grammar declaration
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Format grammar declaration
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "lexic_analysis.h"
 
 namespace Binary::FormatDSL
@@ -42,4 +42,4 @@ namespace Binary::FormatDSL
   const char DELIMITER_TEXT = ',';
 
   LexicalAnalysis::Grammar::Ptr CreateFormatGrammar();
-}
+}  // namespace Binary::FormatDSL

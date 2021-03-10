@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Simple binary data abstraction
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Simple binary data abstraction
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
 
 namespace Binary
@@ -32,4 +32,4 @@ namespace Binary
     //! @invariant Always >= 0
     virtual std::size_t Size() const = 0;
   };
-}
+}  // namespace Binary

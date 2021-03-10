@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Binary data container interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Binary data container interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/data.h>
 
 namespace Binary
@@ -24,4 +24,4 @@ namespace Binary
     //! @brief Provides isolated access to nested subcontainers should be able even after parent container destruction
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const = 0;
   };
-}
+}  // namespace Binary
