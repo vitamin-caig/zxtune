@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  String trimming implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  String trimming implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
+// library includes
 #include <strings/trim.h>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/trim.hpp>
 
 namespace Strings
@@ -19,4 +19,4 @@ namespace Strings
   {
     return boost::algorithm::trim_copy_if(str, boost::is_from_range('\x00', '\x20'));
   }
-}
+}  // namespace Strings

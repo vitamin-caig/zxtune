@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Fields source filter adapter
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Fields source filter adapter
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 #include <strings/fields.h>
-//std includes
+// std includes
 #include <set>
 #include <type_traits>
 
@@ -34,9 +34,7 @@ namespace Strings
       for (std::size_t idx = 0; idx != Table.size(); ++idx)
       {
         const String::size_type srcPos = src.find(idx);
-        Table[idx] = srcPos != src.npos
-          ? tgt[srcPos]
-          : idx;
+        Table[idx] = srcPos != src.npos ? tgt[srcPos] : idx;
       }
     }
 
@@ -48,9 +46,7 @@ namespace Strings
       Require(srcSymbols.size() == src.size());
       for (std::size_t idx = 0; idx != Table.size(); ++idx)
       {
-        Table[idx] = srcSymbols.count(idx)
-          ? tgt
-          : idx;
+        Table[idx] = srcSymbols.count(idx) ? tgt : idx;
       }
     }
 
@@ -63,8 +59,9 @@ namespace Strings
       }
       return val;
     }
+
   private:
     const FieldsSource& Delegate;
     std::vector<Char> Table;
   };
-}
+}  // namespace Strings

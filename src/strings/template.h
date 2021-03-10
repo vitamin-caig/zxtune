@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  %String template working
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  %String template working
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Strings
@@ -40,4 +40,4 @@ namespace Strings
     //! @param endMark Placeholders' end marker
     static String Instantiate(const String& templ, const FieldsSource& source);
   };
-}
+}  // namespace Strings

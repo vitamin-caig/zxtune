@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Strings test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Strings test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include <strings/conversion.h>
 #include <strings/encoding.h>
 #include <strings/fields.h>
 #include <strings/fields_filter.h>
+#include <strings/map.h>
 #include <strings/optimize.h>
 #include <strings/prefixed_index.h>
-#include <strings/map.h>
 #include <strings/template.h>
 
 #include <iostream>
@@ -27,18 +27,18 @@ namespace
   public:
     explicit FieldsSourceFromMap(const Strings::Map& map)
       : Map(map)
-    {
-    }
-    
+    {}
+
     String GetFieldValue(const String& name) const override
     {
       const auto it = Map.find(name);
       return it == Map.end() ? Policy::GetFieldValue(name) : it->second;
     }
+
   private:
     const Strings::Map& Map;
   };
-  
+
   void Test(bool result, const String& msg)
   {
     if (result)
@@ -51,7 +51,7 @@ namespace
       throw 1;
     }
   }
-  
+
   void TestTemplate(const Strings::FieldsSource& source, const String& templ, const String& reference)
   {
     const String res = Strings::Template::Instantiate(templ, source);
@@ -72,7 +72,7 @@ namespace
     const FieldsSourceFromMap<Policy> source(params);
     TestTemplate(source, templ, reference);
   }
-  
+
   void TestTranscode(const char* encoding, const String& str, const String& reference)
   {
     const String& trans = Strings::ToAutoUtf8(str);
@@ -82,7 +82,8 @@ namespace
     }
     else
     {
-      std::cout << "Failed " << encoding << " test '" << str << "' => '" << reference << "' (result is '" << trans << "')" << std::endl;
+      std::cout << "Failed " << encoding << " test '" << str << "' => '" << reference << "' (result is '" << trans
+                << "')" << std::endl;
     }
     const String& transTrans = Strings::ToAutoUtf8(trans);
     if (transTrans != trans)
@@ -103,7 +104,7 @@ namespace
       std::cout << "Failed test '" << str << "' => '" << reference << "' (result is '" << opt << "')" << std::endl;
     }
   }
-  
+
   template<class T>
   void TestParse(const String& msg, const StringView str, T reference, const StringView restPart)
   {
@@ -119,7 +120,7 @@ namespace
       Test(strCopy == restPart, "ParsePartial rest " + msg);
     }
   }
-}
+}  // namespace
 
 int main()
 {
@@ -134,17 +135,21 @@ int main()
       Strings::Map params;
       params["name"] = "value";
       TestTemplate<Strings::SkipFieldsSource>("single [name] test", params, "single value test");
-      TestTemplate<Strings::SkipFieldsSource>("duplicate [name] and [name] test", params, "duplicate value and value test");
+      TestTemplate<Strings::SkipFieldsSource>("duplicate [name] and [name] test", params,
+                                              "duplicate value and value test");
       params["value"] = "name";
-      TestTemplate<Strings::SkipFieldsSource>("multiple [name] and [value] test", params, "multiple value and name test");
+      TestTemplate<Strings::SkipFieldsSource>("multiple [name] and [value] test", params,
+                                              "multiple value and name test");
       TestTemplate<Strings::SkipFieldsSource>("syntax error [name test", params, "syntax error [name test");
       TestTemplate<Strings::SkipFieldsSource>("[name] at the beginning", params, "value at the beginning");
       TestTemplate<Strings::SkipFieldsSource>("at the end [name]", params, "at the end value");
       const FieldsSourceFromMap<Strings::SkipFieldsSource> source(params);
       const Strings::FilterFieldsSource replaceToChar(source, "abcde", '%');
-      TestTemplate(replaceToChar, "Replace bunch of symbols to single in [name] and [value]", "Replace bunch of symbols to single in v%lu% and n%m%");
+      TestTemplate(replaceToChar, "Replace bunch of symbols to single in [name] and [value]",
+                   "Replace bunch of symbols to single in v%lu% and n%m%");
       const Strings::FilterFieldsSource replaceToCharsSet(source, "abcde", "ABCDE");
-      TestTemplate(replaceToCharsSet, "Replace bunch of symbols to multiple in [name] and [value]", "Replace bunch of symbols to multiple in vAluE and nAmE");
+      TestTemplate(replaceToCharsSet, "Replace bunch of symbols to multiple in [name] and [value]",
+                   "Replace bunch of symbols to multiple in vAluE and nAmE");
     }
     std::cout << "---- Test for transcode ----" << std::endl;
     {
@@ -160,12 +165,14 @@ int main()
       TestTranscode("CP866", "\xac\xe3\xa7\xeb\xaa\xa0", "\xd0\xbc\xd1\x83\xd0\xb7\xd1\x8b\xd0\xba\xd0\xb0");
       TestTranscode("UTF-8", "\xe3\x81\xaf\xe3\x81\x98", "\xe3\x81\xaf\xe3\x81\x98");
       TestTranscode("UTF-8 BOM", "\xef\xbb\xbf\xe3\x81\xaf\xe3\x81\x98", "\xe3\x81\xaf\xe3\x81\x98");
-      TestTranscode("CP1251", "\xe4\xe5\xe4\xf3\xf8\xea\xe0", "\xd0\xb4\xd0\xb5\xd0\xb4\xd1\x83\xd1\x88\xd0\xba\xd0\xb0");
-      TestTranscode("SJIS", "\x83\x50\x83\x43\x83\x93\x82\xcc\x83\x65\x81\x5b\x83\x7d", "\xe3\x82\xb1\xe3\x82\xa4\xe3\x83\xb3\xe3\x81\xae\xe3\x83\x86\xe3\x83\xbc\xe3\x83\x9e");
+      TestTranscode("CP1251", "\xe4\xe5\xe4\xf3\xf8\xea\xe0",
+                    "\xd0\xb4\xd0\xb5\xd0\xb4\xd1\x83\xd1\x88\xd0\xba\xd0\xb0");
+      TestTranscode("SJIS", "\x83\x50\x83\x43\x83\x93\x82\xcc\x83\x65\x81\x5b\x83\x7d",
+                    "\xe3\x82\xb1\xe3\x82\xa4\xe3\x83\xb3\xe3\x81\xae\xe3\x83\x86\xe3\x83\xbc\xe3\x83\x9e");
       TestTranscode("UTF-16LE", "\xff\xfe\x22\x04\x35\x04\x41\x04\x42\x04", "\xd0\xa2\xd0\xb5\xd1\x81\xd1\x82");
       TestTranscode("UTF-16BE", "\xfe\xff\x04\x22\x04\x35\x04\x41\x04\x42", "\xd0\xa2\xd0\xb5\xd1\x81\xd1\x82");
       TestTranscode("UTF-16 surrogate", "\xfe\xff\xd8\x52\xdf\x62", "\xf0\xa4\xad\xa2");
-      //unpaired surrogate should be encoded into 3 utf-8 bytes
+      // unpaired surrogate should be encoded into 3 utf-8 bytes
       TestTranscode("UTF-16 unpaired surrogate", "\xfe\xff\xd8\x52", "\xed\xa1\x92");
     }
     std::cout << "---- Test for optimize ----" << std::endl;

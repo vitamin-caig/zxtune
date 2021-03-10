@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  String template implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  String template implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
+// library includes
 #include <strings/array.h>
 #include <strings/fields.h>
 #include <strings/template.h>
-//common includes
+// common includes
 #include <make_ptr.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <cassert>
 
@@ -39,9 +39,10 @@ namespace Strings
     {
       Array resultFields(Fields.size());
       std::transform(Fields.begin(), Fields.end(), resultFields.begin(),
-        [&src](const String& name) {return src.GetFieldValue(name);});
+                     [&src](const String& name) { return src.GetFieldValue(name); });
       return SubstFields(resultFields);
     }
+
   private:
     void ParseTemplate(const String& templ)
     {
@@ -51,16 +52,16 @@ namespace Strings
         const auto fieldBegin = templ.find(FIELD_START, textBegin);
         if (String::npos == fieldBegin)
         {
-          break;//no more fields
+          break;  // no more fields
         }
         const auto fieldEnd = templ.find(FIELD_END, fieldBegin);
         if (String::npos == fieldEnd)
         {
-          break;//invalid syntax
+          break;  // invalid syntax
         }
         if (textBegin != fieldBegin)
         {
-          //add text to set
+          // add text to set
           auto text = templ.substr(textBegin, fieldBegin - textBegin);
           const auto idx = FixedStrings.size();
           FixedStrings.emplace_back(std::move(text));
@@ -74,7 +75,7 @@ namespace Strings
         }
         textBegin = fieldEnd + 1;
       }
-      //add rest text
+      // add rest text
       {
         auto restText = templ.substr(textBegin);
         const auto restIdx = FixedStrings.size();
@@ -82,7 +83,7 @@ namespace Strings
         Entries.emplace_back(restIdx, false);
       }
     }
-    
+
     String SubstFields(const Array& fields) const
     {
       String res;
@@ -92,10 +93,11 @@ namespace Strings
       }
       return res;
     }
+
   private:
     Array FixedStrings;
     Array Fields;
-    typedef std::pair<std::size_t, bool> PartEntry; //index => isField
+    typedef std::pair<std::size_t, bool> PartEntry;  // index => isField
     typedef std::vector<PartEntry> PartEntries;
     PartEntries Entries;
   };
@@ -109,4 +111,4 @@ namespace Strings
   {
     return PreprocessingTemplate(templ).Instantiate(source);
   }
-}
+}  // namespace Strings

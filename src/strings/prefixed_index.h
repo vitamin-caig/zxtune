@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Simple parser for <prefix><index> pairs
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Simple parser for <prefix><index> pairs
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 namespace Strings
@@ -36,9 +36,10 @@ namespace Strings
     {
       return Str;
     }
+
   private:
     const String Str;
     bool Valid;
     std::size_t Index;
   };
-}
+}  // namespace Strings

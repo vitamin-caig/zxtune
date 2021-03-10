@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Formatter type definition
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Formatter type definition
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <utility>
-//boost includes
+// boost includes
 #include <boost/format.hpp>
 
 namespace Strings
@@ -26,14 +26,14 @@ namespace Strings
     {
       return fmt;
     }
-  
+
     template<class F, class P, class... R>
     F DoFormat(F&& fmt, P&& p, R&&... rest)
     {
       fmt % std::forward<P>(p);
       return DoFormat(std::forward<F>(fmt), rest...);
     }
-  }
+  }  // namespace Details
   //! @brief Format functions
   //! @code
   //! const String& txt = Strings::Format(FORMAT_STRING, param1, param2);
@@ -46,4 +46,4 @@ namespace Strings
   }
 
   String FormatTime(uint_t hours, uint_t minutes, uint_t seconds, uint_t frames);
-}
+}  // namespace Strings
