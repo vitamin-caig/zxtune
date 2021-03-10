@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Mixer test implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Mixer test implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "mixer.h"
-//library includes
+// library includes
 #include <sound/matrix_mixer.h>
 #include <time/timer.h>
 
@@ -21,7 +21,8 @@ namespace Benchmark
     template<unsigned Channels>
     double Test(const Time::Milliseconds& duration, uint_t soundFreq)
     {
-      const typename Sound::FixedChannelsMixer<Channels>::Ptr mixer = Sound::FixedChannelsMatrixMixer<Channels>::Create();
+      const typename Sound::FixedChannelsMixer<Channels>::Ptr mixer =
+          Sound::FixedChannelsMatrixMixer<Channels>::Create();
 
       typename Sound::MultichannelSample<Channels>::Type input;
       const Time::Timer timer;
@@ -50,5 +51,5 @@ namespace Benchmark
         return 0;
       }
     }
-  }
-}
+  }  // namespace Mixer
+}  // namespace Benchmark

@@ -1,12 +1,12 @@
 #include <byteorder.h>
 #include <contract.h>
-#include <types.h>
-#include <pointers.h>
-#include <strings/format.h>
 #include <fstream>
 #include <iostream>
-#include <set>
 #include <map>
+#include <pointers.h>
+#include <set>
+#include <strings/format.h>
+#include <types.h>
 
 namespace
 {
@@ -18,7 +18,7 @@ namespace
     {
       Check();
     }
-    
+
     template<class T>
     T ReadData()
     {
@@ -27,46 +27,47 @@ namespace
       Check();
       return res;
     }
-    
+
     uint32_t ReadDword()
     {
       return ReadData<uint32_t>();
     }
-    
+
     uint16_t ReadWord()
     {
       return ReadData<uint16_t>();
     }
-    
+
     uint8_t ReadByte()
     {
       return ReadData<uint8_t>();
     }
-    
+
     void Skip(std::ptrdiff_t size)
     {
       Delegate.seekg(size, std::ios_base::cur);
       Check();
     }
-    
+
     void Seek(std::size_t pos)
     {
       Delegate.seekg(pos);
       Check();
     }
-    
+
     uint_t ReadVersion()
     {
       uint8_t vers[4] = {0};
       Delegate.read(safe_ptr_cast<char*>(vers), sizeof(vers));
       Check();
-      return (vers[0] & 15) + 10 *(vers[0] >> 4) + 100 * (vers[1] & 15) + 1000 * (vers[1] >> 4);
+      return (vers[0] & 15) + 10 * (vers[0] >> 4) + 100 * (vers[1] & 15) + 1000 * (vers[1] >> 4);
     }
-    
+
     std::size_t GetPos()
     {
       return Delegate.tellg();
     }
+
   private:
     void Check()
     {
@@ -75,19 +76,19 @@ namespace
         throw std::runtime_error("Read error");
       }
     }
+
   private:
     std::ifstream Delegate;
   };
-  
+
   class Header
   {
   public:
     Header()
       : Version()
       , Framerate()
-    {
-    }
-    
+    {}
+
     void Parse(Stream& stream)
     {
       const uint32_t signature = stream.ReadDword();
@@ -109,15 +110,15 @@ namespace
       }
       if (Version >= 110)
       {
-        stream.ReadDword();//flags for sn76489
+        stream.ReadDword();  // flags for sn76489
         ParseDevice("YM2612", stream);
         ParseDevice("YM2151", stream);
       }
       if (Version >= 150)
       {
-        stream.ReadDword();//vgm offset
+        stream.ReadDword();  // vgm offset
         ParseSimpleDevice("SegaPCM", stream);
-        stream.ReadDword();//segapcm flags
+        stream.ReadDword();  // segapcm flags
       }
       if (Version >= 151)
       {
@@ -136,7 +137,7 @@ namespace
         ParseSimpleDevice("RF5C164", stream);
         ParseSimpleDevice("PWM", stream);
         ParseAY8910(stream);
-        stream.ReadDword();//other flags
+        stream.ReadDword();  // other flags
       }
       if (Version >= 161)
       {
@@ -146,7 +147,7 @@ namespace
         ParseDevice("MultiPCM", stream);
         ParseDevice("uPD7759", stream);
         ParseDevice("OKIM6258", stream);
-        stream.ReadDword();//flags
+        stream.ReadDword();  // flags
         ParseDevice("OKIM6295", stream);
         ParseDevice("K051649", stream);
         ParseDevice("K054539", stream);
@@ -160,7 +161,7 @@ namespace
       {
         Require(0xb8 == stream.GetPos());
         ParseDevice("SCSP", stream);
-        stream.ReadDword();//extra header offset
+        stream.ReadDword();  // extra header offset
       }
       if (Version >= 171)
       {
@@ -170,7 +171,7 @@ namespace
         ParseSimpleDevice("SA1099", stream);
         ParseSimpleDevice("ES5503", stream);
         ParseES5505(stream);
-        stream.ReadDword();//flags
+        stream.ReadDword();  // flags
         ParseSimpleDevice("X1-010", stream);
         ParseSimpleDevice("C352", stream);
         ParseSimpleDevice("GA20", stream);
@@ -181,12 +182,10 @@ namespace
         ParseGD3Tags(stream);
       }
     }
-    
+
     void Dump() const
     {
-      std::cout << 
-        "Version: " << Version / 100 << '.' << Version % 100 << std::endl <<
-        "Devices: " << std::endl;
+      std::cout << "Version: " << Version / 100 << '.' << Version % 100 << std::endl << "Devices: " << std::endl;
       for (const auto& dev : Devices)
       {
         std::cout << "  " << dev.first << " (" << dev.second << "hz)" << std::endl;
@@ -206,6 +205,7 @@ namespace
         }
       }
     }
+
   private:
     void ParseSN76489(Stream& stream)
     {
@@ -222,7 +222,7 @@ namespace
         }
       }
     }
-    
+
     void ParseAY8910(Stream& stream)
     {
       const char* const AY_CHIPS[] = {"AY8910", "AY8912", "AY8913", "AY8930"};
@@ -243,7 +243,7 @@ namespace
         }
       }
     }
-    
+
     void ParseES5505(Stream& stream)
     {
       if (const uint32_t data = stream.ReadDword())
@@ -252,7 +252,7 @@ namespace
         AddDevice(isES5506 ? "ES5506" : "ES5505", data & 0x3fffffff);
       }
     }
-    
+
     void ParseDevice(const String& name, Stream& stream)
     {
       if (const uint32_t data = stream.ReadDword())
@@ -260,7 +260,7 @@ namespace
         AddDevice(name, data);
       }
     }
-    
+
     void ParseSimpleDevice(const String& name, Stream& stream)
     {
       if (const uint32_t data = stream.ReadDword())
@@ -268,7 +268,7 @@ namespace
         Devices[name] = data;
       }
     }
-    
+
     void AddDevice(const String& name, uint32_t data)
     {
       const bool dual = data & 0x40000000;
@@ -285,7 +285,7 @@ namespace
       }
       Devices[fullName] = clock;
     }
-    
+
     void ParseGD3Tags(Stream& stream)
     {
       const uint32_t tag = stream.ReadDword();
@@ -293,8 +293,8 @@ namespace
       {
         return;
       }
-      stream.ReadDword();//ver
-      stream.ReadDword();//size
+      stream.ReadDword();  // ver
+      stream.ReadDword();  // size
       ReadTag("Title(eng)", stream);
       ReadTag("Title(jap)", stream);
       ReadTag("Game(eng)", stream);
@@ -307,7 +307,7 @@ namespace
       ReadTag("RippedBy", stream);
       ReadTag("Notes", stream);
     }
-    
+
     void ReadTag(const String& name, Stream& stream)
     {
       String value;
@@ -334,6 +334,7 @@ namespace
         Tags[name] = value;
       }
     }
+
   private:
     uint_t Version;
     uint_t Samples;
@@ -350,7 +351,7 @@ namespace
     header.Parse(stream);
     header.Dump();
   }
-  
+
   class CommandsSet
   {
   public:
@@ -362,15 +363,10 @@ namespace
       {
         return false;
       }
-      return ParseFixedCommand(code, stream)
-          || ParseDataBlock(code, stream)
-          || ParseRamWrite(code, stream)
-          || ParseDacControl(code, stream)
-          || ParseBuggyCommand(code, stream)
-          || ParseUnknownCommand(code, stream)
-      ;
+      return ParseFixedCommand(code, stream) || ParseDataBlock(code, stream) || ParseRamWrite(code, stream)
+             || ParseDacControl(code, stream) || ParseBuggyCommand(code, stream) || ParseUnknownCommand(code, stream);
     }
-    
+
     void Dump() const
     {
       std::cout << "Used commands:" << std::endl;
@@ -379,6 +375,7 @@ namespace
         std::cout << "  " << cmd << std::endl;
       }
     }
+
   private:
     struct FixedCmd
     {
@@ -397,6 +394,7 @@ namespace
         return true;
       }
 
+      // clang-format off
       static const FixedCmd FIXED_COMMANDS[] =
       {
         {0x30, 0x30, 1, "dual sn76489"},
@@ -459,6 +457,7 @@ namespace
         {0xe1, 0xe1, 4, "c352"},
         {0xe2, 0xff, 4, "reserved32"},
       };
+      // clang-format on
 
       for (const auto& cmd : FIXED_COMMANDS)
       {
@@ -472,7 +471,7 @@ namespace
       }
       return false;
     }
-    
+
     bool ParseDataBlock(uint8_t code, Stream& stream)
     {
       if (code != 0x67)
@@ -488,7 +487,7 @@ namespace
       const uint8_t type = stream.ReadByte();
       uint32_t size = stream.ReadDword();
       size &= 0x7fffffff;
-      
+
       if (type <= 0x3f)
       {
         Add("uncompressed " + GetDataBlockType(type));
@@ -512,7 +511,7 @@ namespace
       stream.Skip(size);
       return true;
     }
-    
+
     static String GetDataBlockType(uint_t code)
     {
       switch (code)
@@ -537,7 +536,7 @@ namespace
         return Strings::Format("data type=0x%02x", code);
       }
     }
-    
+
     static String GetRomDataType(uint8_t code)
     {
       switch (code)
@@ -586,7 +585,7 @@ namespace
         return Strings::Format("type=0x%02x", code);
       }
     }
-    
+
     static String GetRamWriteType(uint8_t code)
     {
       switch (code)
@@ -605,7 +604,7 @@ namespace
         return Strings::Format("type=0x%02x", code);
       }
     }
-    
+
     bool ParseRamWrite(uint8_t code, Stream& stream)
     {
       if (code != 0x68)
@@ -663,7 +662,7 @@ namespace
       }
       return true;
     }
-    
+
     bool ParseBuggyCommand(uint8_t code, Stream& stream)
     {
       if (code >= 0x40 && code <= 0x4e)
@@ -679,26 +678,24 @@ namespace
 
     bool ParseUnknownCommand(uint8_t code, Stream& stream)
     {
-      static const std::size_t SIZES[] =
-      {
-      //0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
-        1, 1, 1, 2, 2, 3, 1, 1, 1, 1, 3, 3, 4, 4, 5, 5
-      };
+      static const std::size_t SIZES[] = {// 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+                                          1, 1, 1, 2, 2, 3, 1, 1, 1, 1, 3, 3, 4, 4, 5, 5};
       const auto size = SIZES[code >> 4];
       const std::size_t curPos = stream.GetPos();
       Add(Strings::Format("unknown 0x%02x (%u bytes) @ 0x%x", uint_t(code), size, curPos - 1));
       stream.Skip(size - 1);
       return true;
     }
-    
+
     void Add(const String& cmd)
     {
       Commands.insert(cmd);
     }
+
   private:
     std::set<String> Commands;
   };
-  
+
   void DumpData(Stream& stream)
   {
     const std::size_t offsetPos = 0x34;
@@ -709,8 +706,7 @@ namespace
     try
     {
       while (cmds.ParseCommand(stream))
-      {
-      }
+      {}
     }
     catch (const std::exception& e)
     {
@@ -726,7 +722,7 @@ namespace
     DumpHeader(stream);
     DumpData(stream);
   }
-}
+}  // namespace
 
 int main(int argc, const char* argv[])
 {

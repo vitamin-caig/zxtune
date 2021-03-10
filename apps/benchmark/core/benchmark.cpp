@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  Benchmark library implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Benchmark library implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "benchmark.h"
 #include "ay.h"
-#include "z80.h"
 #include "mixer.h"
-//common includes
+#include "z80.h"
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//boost includes
+// boost includes
 #include <boost/format.hpp>
 
 namespace Benchmark
@@ -32,8 +32,7 @@ namespace Benchmark
     public:
       explicit PerformanceTest(Devices::AYM::InterpolationType interpolate)
         : Interpolate(interpolate)
-      {
-      }
+      {}
 
       std::string Category() const override
       {
@@ -61,6 +60,7 @@ namespace Benchmark
         const Devices::AYM::Chip::Ptr dev = CreateDevice(1750000, SOUND_FREQ, Interpolate);
         return Test(*dev, TEST_DURATION, FRAME_DURATION);
       }
+
     private:
       const Devices::AYM::InterpolationType Interpolate;
     };
@@ -71,7 +71,7 @@ namespace Benchmark
       visitor.OnPerformanceTest(PerformanceTest(Devices::AYM::INTERPOLATION_LQ));
       visitor.OnPerformanceTest(PerformanceTest(Devices::AYM::INTERPOLATION_HQ));
     }
-  }
+  }  // namespace AY
 
   namespace Z80
   {
@@ -90,17 +90,16 @@ namespace Benchmark
 
       double Execute() const override
       {
-        static const uint8_t Z80_TEST_MEM[] =
-        {
-          0xf3,             //di
-          0x21, 0x00, 0x00, //ld hl,0
-          0x11, 0x00, 0x00, //ld de,0
-          //loop:
-          0x7e,             //ld a,(hl)
-          0x12,             //ld (de),a
-          0x23,             //inc hl
-          0x13,             //inc de
-          0x18, 0xfa        //jr loop
+        static const uint8_t Z80_TEST_MEM[] = {
+            0xf3,              // di
+            0x21, 0x00, 0x00,  // ld hl,0
+            0x11, 0x00, 0x00,  // ld de,0
+            // loop:
+            0x7e,       // ld a,(hl)
+            0x12,       // ld (de),a
+            0x23,       // inc hl
+            0x13,       // inc de
+            0x18, 0xfa  // jr loop
         };
         Dump mem(Z80_TEST_MEM, std::end(Z80_TEST_MEM));
         mem.resize(65536);
@@ -124,20 +123,20 @@ namespace Benchmark
 
       double Execute() const override
       {
-        static const uint8_t Z80_TEST_IO[] =
-        {
-          0xf3,             //di
-          0x01, 0x00, 0x00, //ld bc,0
-          //loop:
-          0xed, 0x78,       //in a,(c)
-          0xd3, 0x00,       //out (0),a
-          0x18, 0xfa        //jr loop
+        static const uint8_t Z80_TEST_IO[] = {
+            0xf3,              // di
+            0x01, 0x00, 0x00,  // ld bc,0
+            // loop:
+            0xed, 0x78,  // in a,(c)
+            0xd3, 0x00,  // out (0),a
+            0x18, 0xfa   // jr loop
         };
         Dump mem(Z80_TEST_IO, std::end(Z80_TEST_IO));
         mem.resize(65536);
         const Devices::Z80::Chip::Ptr dev = CreateDevice(UINT64_C(3500000), 24, mem, MakePtr<Z80Ports>());
         return Test(*dev, TEST_DURATION, FRAME_DURATION);
       }
+
     private:
       class Z80Ports : public Devices::Z80::ChipIO
       {
@@ -154,6 +153,7 @@ namespace Benchmark
           Require(data == 0x00);
           Dummy = stamp.GetCurrentTime();
         }
+
       private:
         Devices::Z80::Stamp Dummy;
       };
@@ -164,7 +164,7 @@ namespace Benchmark
       visitor.OnPerformanceTest(MemoryPerformanceTest());
       visitor.OnPerformanceTest(IoPerformanceTest());
     }
-  }
+  }  // namespace Z80
 
   namespace Mixer
   {
@@ -173,8 +173,7 @@ namespace Benchmark
     public:
       explicit PerformanceTest(uint_t channels)
         : Channels(channels)
-      {
-      }
+      {}
 
       std::string Category() const override
       {
@@ -190,6 +189,7 @@ namespace Benchmark
       {
         return Test(Channels, TEST_DURATION, SOUND_FREQ);
       }
+
     private:
       const uint_t Channels;
     };
@@ -201,7 +201,7 @@ namespace Benchmark
         visitor.OnPerformanceTest(PerformanceTest(chan));
       }
     }
-  }
+  }  // namespace Mixer
 
   void ForAllTests(TestsVisitor& visitor)
   {
@@ -209,4 +209,4 @@ namespace Benchmark
     Z80::ForAllTests(visitor);
     Mixer::ForAllTests(visitor);
   }
-}
+}  // namespace Benchmark
