@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief  DAC-based player plugin factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC-based player plugin factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/players/dac/dac_plugin.h"
 #include "core/plugins/players/plugin.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/plugin_attrs.h>
 #include <module/players/dac/dac_base.h>
 #include <module/players/dac/dac_parameters.h>
 #include <sound/mixer_factory.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Module
@@ -51,8 +51,7 @@ namespace Module
   public:
     DACHolder(DAC::Chiptune::Ptr chiptune)
       : Tune(std::move(chiptune))
-    {
-    }
+    {}
 
     Information::Ptr GetModuleInformation() const override
     {
@@ -69,8 +68,10 @@ namespace Module
       auto iterator = Tune->CreateDataIterator();
       auto chip = CreateChip(Tune->GetTrackModel()->GetChannelsCount(), samplerate, std::move(params));
       Tune->GetSamples(*chip);
-      return DAC::CreateRenderer(Tune->GetFrameDuration()/*TODO: speed variation*/, std::move(iterator), std::move(chip));
+      return DAC::CreateRenderer(Tune->GetFrameDuration() /*TODO: speed variation*/, std::move(iterator),
+                                 std::move(chip));
     }
+
   private:
     const DAC::Chiptune::Ptr Tune;
   };
@@ -80,10 +81,10 @@ namespace Module
   public:
     explicit DACFactory(DAC::Factory::Ptr delegate)
       : Delegate(std::move(delegate))
-    {
-    }
+    {}
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& data,
+                             Parameters::Container::Ptr properties) const override
     {
       if (auto chiptune = Delegate->CreateChiptune(data, std::move(properties)))
       {
@@ -94,17 +95,19 @@ namespace Module
         return {};
       }
     }
+
   private:
     const DAC::Factory::Ptr Delegate;
   };
-}
+}  // namespace Module
 
 namespace ZXTune
 {
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::DAC::Factory::Ptr factory)
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder,
+                                       Module::DAC::Factory::Ptr factory)
   {
     const Module::Factory::Ptr modFactory = MakePtr<Module::DACFactory>(factory);
     const uint_t caps = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
     return CreatePlayerPlugin(id, caps, decoder, modFactory);
   }
-}
+}  // namespace ZXTune

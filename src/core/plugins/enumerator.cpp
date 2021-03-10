@@ -1,35 +1,35 @@
 /**
-* 
-* @file
-*
-* @brief  Plugins container implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Plugins container implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/archive_plugins_enumerator.h"
-#include "core/plugins/player_plugins_enumerator.h"
-#include "core/plugins/registrator.h"
 #include "core/plugins/archives/plugins_list.h"
+#include "core/plugins/player_plugins_enumerator.h"
 #include "core/plugins/players/plugins_list.h"
+#include "core/plugins/registrator.h"
 #include "core/src/callback.h"
 #include "core/src/l10n.h"
-//common includes
+// common includes
 #include <error_tools.h>
-#include <pointers.h>
 #include <make_ptr.h>
-//library includes
+#include <pointers.h>
+// library includes
 #include <core/module_detect.h>
 #include <core/module_open.h>
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <time/timer.h>
-//std includes
+// std includes
 #include <list>
 #include <map>
-//text includes
+// text includes
 #include <core/text/core.h>
 
 #define FILE_TAG 04EDD719
@@ -40,8 +40,9 @@ namespace ZXTune
   using Module::translate;
 
   template<class PluginType>
-  class PluginsContainer : public PluginsRegistrator<PluginType>
-                         , public PluginsEnumerator<PluginType>
+  class PluginsContainer
+    : public PluginsRegistrator<PluginType>
+    , public PluginsEnumerator<PluginType>
   {
   public:
     void RegisterPlugin(typename PluginType::Ptr plugin) override
@@ -55,6 +56,7 @@ namespace ZXTune
     {
       return CreateRangedObjectIteratorAdapter(Plugins.begin(), Plugins.end());
     }
+
   protected:
     std::vector<typename PluginType::Ptr> Plugins;
   };
@@ -66,7 +68,8 @@ namespace ZXTune
     {
       const Time::Timer timer;
       RegisterArchivePlugins(*this);
-      EnumeratorDbg("Registered %1% archive plugins for %2%ms", Plugins.size(), timer.Elapsed<Time::Millisecond>().Get());
+      EnumeratorDbg("Registered %1% archive plugins for %2%ms", Plugins.size(),
+                    timer.Elapsed<Time::Millisecond>().Get());
     }
   };
 
@@ -77,19 +80,19 @@ namespace ZXTune
     {
       const Time::Timer timer;
       RegisterPlayerPlugins(*this);
-      EnumeratorDbg("Registered %1% player plugins for %2%ms", Plugins.size(), timer.Elapsed<Time::Millisecond>().Get());
+      EnumeratorDbg("Registered %1% player plugins for %2%ms", Plugins.size(),
+                    timer.Elapsed<Time::Millisecond>().Get());
     }
   };
 
   class SimplePluginDescription : public Plugin
   {
   public:
-    SimplePluginDescription(String  id, String  info, uint_t capabilities)
+    SimplePluginDescription(String id, String info, uint_t capabilities)
       : ID(std::move(id))
       , Info(std::move(info))
       , Caps(capabilities)
-    {
-    }
+    {}
 
     String Id() const override
     {
@@ -105,6 +108,7 @@ namespace ZXTune
     {
       return Caps;
     }
+
   private:
     const String ID;
     const String Info;
@@ -143,6 +147,7 @@ namespace ZXTune
         Next(Players);
       }
     }
+
   private:
     template<class T>
     void Next(T& iter)
@@ -150,7 +155,7 @@ namespace ZXTune
       iter->Next();
       Check(iter);
     }
-    
+
     template<class T>
     void Check(T& iter)
     {
@@ -159,6 +164,7 @@ namespace ZXTune
         iter = T();
       }
     }
+
   private:
     ArchivePlugin::Iterator::Ptr Archives;
     PlayerPlugin::Iterator::Ptr Players;
@@ -189,6 +195,6 @@ namespace ZXTune
   {
     return MakePtr<SimplePluginDescription>(id, info, capabilities);
   }
-}
+}  // namespace ZXTune
 
 #undef FILE_TAG

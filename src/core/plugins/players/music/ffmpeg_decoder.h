@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  FFmpeg adapter interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FFmpeg adapter interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/view.h>
 #include <sound/chunk.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Module::FFmpeg
@@ -30,4 +30,4 @@ namespace Module::FFmpeg
   Decoder::Ptr CreateAtrac3Decoder(uint_t channels, uint_t blockSize, Binary::View config);
   Decoder::Ptr CreateAtrac3PlusDecoder(uint_t channels, uint_t blockSize);
   Decoder::Ptr CreateAtrac9Decoder(uint_t blockSize, Binary::View config);
-}
+}  // namespace Module::FFmpeg

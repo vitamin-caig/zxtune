@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Plugins types definitions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Plugins types definitions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <core/plugin.h>
 
 namespace ZXTune

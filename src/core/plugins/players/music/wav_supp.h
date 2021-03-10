@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  WAV player internals interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  WAV player internals interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/data.h>
-#include <binary/view.h>
 #include <binary/input_stream.h>
+#include <binary/view.h>
 #include <sound/chunk.h>
 
 namespace Module::Wav
@@ -34,7 +34,7 @@ namespace Module::Wav
   public:
     using Ptr = std::shared_ptr<Model>;
     virtual ~Model() = default;
-    
+
     virtual uint_t GetSamplerate() const = 0;
     virtual uint64_t GetTotalSamples() const = 0;
 
@@ -60,9 +60,8 @@ namespace Module::Wav
 
     uint64_t GetTotalSamples() const override
     {
-      return Props.SamplesCountHint
-        ? Props.SamplesCountHint
-        : Props.BlockSizeSamples * (Props.Data->Size() / Props.BlockSize);
+      return Props.SamplesCountHint ? Props.SamplesCountHint
+                                    : Props.BlockSizeSamples * (Props.Data->Size() / Props.BlockSize);
     }
 
     uint64_t Seek(uint64_t request) override
@@ -71,6 +70,7 @@ namespace Module::Wav
       Stream.Seek(block * Props.BlockSize);
       return block * Props.BlockSizeSamples;
     }
+
   protected:
     const Properties Props;
     Binary::DataInputStream Stream;
@@ -83,4 +83,4 @@ namespace Module::Wav
   Model::Ptr CreateAtrac3Model(Properties props, Binary::View extraData);
   Model::Ptr CreateAtrac3PlusModel(Properties props);
   Model::Ptr CreateAtrac9Model(Properties props, Binary::View extraData);
-}
+}  // namespace Module::Wav

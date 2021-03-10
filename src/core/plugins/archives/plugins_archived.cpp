@@ -1,17 +1,17 @@
 /**
-* 
-* @file
-*
-* @brief  Factories of different container plugins
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Factories of different container plugins
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/archives/archived.h"
 #include "core/plugins/archives/plugins.h"
-//library includes
+// library includes
 #include <core/plugin_attrs.h>
 #include <formats/archived/decoders.h>
 #include <formats/archived/multitrack/decoders.h>
@@ -29,6 +29,7 @@ namespace ZXTune
 
   using namespace Formats::Archived;
 
+  // clang-format off
   const ContainerPluginDescription UNARCHIVES[] =
   {
     {"ZIP",     &CreateZipDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
@@ -59,6 +60,7 @@ namespace ZXTune
     {"KSSX",    &CreateKSSXDecoder,    Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
     {"HES",     &CreateHESDecoder,     Capabilities::Container::Type::MULTITRACK | Capabilities::Container::Traits::ONCEAPPLIED},
   };
+  // clang-format on
 
   void RegisterPlugin(const ContainerPluginDescription& desc, ArchivePluginsRegistrator& registrator)
   {
@@ -66,7 +68,7 @@ namespace ZXTune
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(desc.Id, desc.Caps, decoder);
     registrator.RegisterPlugin(plugin);
   }
-}
+}  // namespace ZXTune
 
 namespace ZXTune
 {
@@ -93,4 +95,4 @@ namespace ZXTune
       RegisterPlugin(desc, registrator);
     }
   }
-}
+}  // namespace ZXTune

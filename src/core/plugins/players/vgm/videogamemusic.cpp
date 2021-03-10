@@ -1,22 +1,22 @@
 /**
-*
-* @file
-*
-* @brief  VGM format support tools implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  VGM format support tools implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/players/vgm/videogamemusic.h"
-//common includes
+// common includes
 #include <byteorder.h>
-//library includes
+// library includes
 #include <binary/input_stream.h>
-//std includes
+// std includes
 #include <map>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module
@@ -67,12 +67,12 @@ namespace Module
       X1_010,
       C352,
       GA20,
-      
+
       GAMEGEAR_STEREO,
-     
+
       DUAL = 0x8000000,
     };
-    
+
     struct DeviceTraits
     {
       uint_t Clock = 0;
@@ -86,18 +86,18 @@ namespace Module
       uint_t ClockMatched = 0;
       uint_t HasCommands = 0;
     };
-    
+
     struct PlatformTrait
     {
       const Char* Id;
-      
+
       struct DeviceTrait
       {
         uint_t Id;
         uint_t Clocks[6];
       };
       DeviceTrait Devices[4];
-      
+
       bool HasDevice(uint_t id, uint_t clock) const
       {
         for (const auto& dev : Devices)
@@ -140,7 +140,8 @@ namespace Module
         return false;
       }
     };
-    
+
+    // clang-format off
     static const PlatformTrait::DeviceTrait SEGA_SN76489 =
     {
       SN76489,
@@ -311,7 +312,8 @@ namespace Module
         }
       }
     };
-    
+    // clang-format on
+
     class PlatformsSet
     {
     public:
@@ -319,17 +321,17 @@ namespace Module
       {
         Value &= rh.Value;
       }
-      
+
       PlatformsSet Intersect(PlatformsSet rh) const
       {
         return PlatformsSet(Value & rh.Value);
       }
-      
+
       bool IsEmpty() const
       {
         return Value == 0;
       }
-      
+
       const Char* FindSingleName() const
       {
         uint_t mask = 1;
@@ -337,15 +339,13 @@ namespace Module
         {
           if (Value & mask)
           {
-            return Value == mask
-              ? plat.Id
-              : nullptr;
+            return Value == mask ? plat.Id : nullptr;
           }
           mask <<= 1;
         }
         return nullptr;
       }
-      
+
       String GetBaseName() const
       {
         uint_t mask = 1;
@@ -359,12 +359,12 @@ namespace Module
         }
         return String();
       }
-      
+
       static PlatformsSet All()
       {
         return PlatformsSet(~uint_t(0));
       }
-      
+
       static PlatformsSet ForDevice(uint_t id, uint_t clock)
       {
         uint_t mask = 1;
@@ -394,13 +394,13 @@ namespace Module
         }
         return PlatformsSet(val);
       }
+
     private:
       PlatformsSet() = default;
       explicit PlatformsSet(uint_t val)
         : Value(val)
-      {
-      }
-      
+      {}
+
     private:
       uint_t Value = 0;
     };
@@ -413,7 +413,7 @@ namespace Module
       {
         Input.Seek(0x8);
         const auto vers = Input.PeekRawData(4);
-        Version = (vers[0] & 15) + 10 *(vers[0] >> 4) + 100 * (vers[1] & 15) + 1000 * (vers[1] >> 4);
+        Version = (vers[0] & 15) + 10 * (vers[0] >> 4) + 100 * (vers[1] & 15) + 1000 * (vers[1] >> 4);
 
         {
           const std::size_t offsetPos = 0x34;
@@ -428,7 +428,7 @@ namespace Module
           TagsOffset = gd3Offset ? gd3Offset + offsetPos : 0;
         }
       }
-      
+
       String GetResult()
       {
         if (const auto fromTags = GetFromTags())
@@ -468,6 +468,7 @@ namespace Module
           }
         }
       }
+
     private:
       const Char* GetFromTags()
       {
@@ -480,29 +481,28 @@ namespace Module
           Input.Seek(TagsOffset);
           Require(ReadDword() == 0x20336447);
           Input.Skip(8);
-          ReadUtf16();//title en
-          ReadUtf16();//title ja
-          ReadUtf16();//game en
-          ReadUtf16();//game ja
+          ReadUtf16();  // title en
+          ReadUtf16();  // title ja
+          ReadUtf16();  // game en
+          ReadUtf16();  // game ja
           const auto sys = ReadUtf16();
           return ConvertPlatform(String(sys.begin(), sys.end()));
         }
         catch (const std::exception&)
-        {
-        }
+        {}
         return nullptr;
       }
-      
+
       uint8_t ReadByte()
       {
         return Input.ReadByte();
       }
-      
+
       uint32_t ReadDword()
       {
         return Input.ReadLE<uint32_t>();
       }
-      
+
       basic_string_view<uint16_t> ReadUtf16()
       {
         const auto symbolsAvailable = Input.GetRestSize() / sizeof(uint16_t);
@@ -512,7 +512,7 @@ namespace Module
         Input.Skip((end + 1 - begin) * sizeof(uint16_t));
         return basic_string_view<uint16_t>(begin, end);
       }
-      
+
       static const Char* ConvertPlatform(const String& str)
       {
         struct PlatformName
@@ -520,7 +520,8 @@ namespace Module
           const String Name;
           const Char* Id;
         };
-        
+
+        // clang-format off
         static const PlatformName PLATFORMS[] =
         {
           {"Sega Master System", Platforms::SEGA_MASTER_SYSTEM},
@@ -533,6 +534,7 @@ namespace Module
           {"Coleco", Platforms::COLECOVISION},
           {"BBC M", Platforms::BBC_MICRO},
         };
+        // clang-format on
         for (const auto& pair : PLATFORMS)
         {
           const auto prefixSize = pair.Name.size();
@@ -543,7 +545,7 @@ namespace Module
         }
         return nullptr;
       }
-      
+
       PlatformsSet GuessByClocks()
       {
         AnalyzeClocks();
@@ -554,7 +556,7 @@ namespace Module
         }
         return result;
       }
-      
+
       PlatformsSet GuessByCommands()
       {
         AnalyzeCommands();
@@ -568,7 +570,7 @@ namespace Module
         }
         return result;
       }
-      
+
       void AnalyzeClocks()
       {
         struct DeviceDesc
@@ -576,7 +578,8 @@ namespace Module
           DeviceType Id;
           std::size_t ClockOffset;
         };
-        
+
+        // clang-format off
         static const DeviceDesc SIMPLE_DEVICES[] =
         {
           {SEGA_PCM, 0x38},
@@ -625,7 +628,8 @@ namespace Module
           {C352, 0xdc},
           {GA20, 0xe0}
         };
-        
+        // clang-format on
+
         for (const auto& dev : SIMPLE_DEVICES)
         {
           if (const auto data = ReadClock(dev.ClockOffset))
@@ -641,7 +645,7 @@ namespace Module
           }
         }
       }
-      
+
       void AnalyzeCommands()
       {
         Input.Seek(DataOffset);
@@ -654,17 +658,13 @@ namespace Module
             {
               break;
             }
-            Require(ParseFixedCommand(code)
-                 || ParseDataBlock(code)
-                 || ParseRamWrite(code)
-                 || ParseBuggyCommand(code));
+            Require(ParseFixedCommand(code) || ParseDataBlock(code) || ParseRamWrite(code) || ParseBuggyCommand(code));
           }
         }
         catch (const std::exception&)
-        {
-        }
+        {}
       }
-      
+
       uint32_t ReadClock(std::size_t offset)
       {
         if (offset + sizeof(uint32_t) <= DataOffset)
@@ -694,14 +694,14 @@ namespace Module
         auto& trait = Traits[id];
         trait.Clock = data;
       }
-      
+
       struct FixedCmd
       {
         const uint8_t CodeMin;
         const uint8_t CodeMax;
         const std::size_t SequentSize;
         DeviceType Device;
-        
+
         bool Match(uint8_t code) const
         {
           return code >= CodeMin && code <= CodeMax;
@@ -712,7 +712,7 @@ namespace Module
       {
         if (code == 0x4f)
         {
-          //assume that else Game Gear is backward compatible with Sega Master System
+          // assume that else Game Gear is backward compatible with Sega Master System
           const auto param = ReadByte();
           if (param != 0xff)
           {
@@ -720,7 +720,8 @@ namespace Module
           }
           return true;
         }
-        
+
+        // clang-format off
         static const FixedCmd SIMPLE_COMMANDS[] =
         {
           {0x50, 0x50, 1, SN76489},
@@ -747,7 +748,8 @@ namespace Module
           {0x94, 0x94, 1, UNUSED},
           {0x95, 0x95, 4, UNUSED},
         };
-        
+        // clang-format on
+
         for (const auto& cmd : SIMPLE_COMMANDS)
         {
           if (cmd.Match(code))
@@ -757,11 +759,10 @@ namespace Module
           }
         }
 
-        static const FixedCmd DUAL_COMMANDS[] =
-        {
-          {0x30, 0x3f, 1, SN76489},
+        static const FixedCmd DUAL_COMMANDS[] = {
+            {0x30, 0x3f, 1, SN76489},
         };
-        
+
         for (const auto& cmd : DUAL_COMMANDS)
         {
           if (cmd.Match(code))
@@ -770,7 +771,8 @@ namespace Module
             return Skip(cmd);
           }
         }
-          
+
+        // clang-format off
         static const FixedCmd DUAL_YM_COMMANDS[] =
         {
           {0x51, 0x51, 2, YM2413},
@@ -785,7 +787,8 @@ namespace Module
           {0x5d, 0x5d, 2, YMZ280B},
           {0x5e, 0x5f, 2, YMF262},
         };
-        
+        // clang-format on
+
         for (const auto& cmd : DUAL_YM_COMMANDS)
         {
           if (cmd.Match(code))
@@ -800,6 +803,7 @@ namespace Module
           }
         }
 
+        // clang-format off
         static const FixedCmd DUAL_PARAMETER_COMMANDS[] =
         {
           {0xa0, 0xa0, 2, AY8910},
@@ -829,7 +833,8 @@ namespace Module
           {0xd6, 0xd6, 3, ES5506},
           {0xe1, 0xe1, 4, C352},
         };
-        
+        // clang-format on
+
         for (const auto& cmd : DUAL_PARAMETER_COMMANDS)
         {
           if (cmd.Match(code))
@@ -849,7 +854,7 @@ namespace Module
         }
         return false;
       }
-    
+
       void AddCmd(DeviceType id)
       {
         if (id != UNUSED)
@@ -862,7 +867,7 @@ namespace Module
       {
         Traits[id | DUAL].HasCommands = true;
       }
-      
+
       bool Skip(const FixedCmd& cmd)
       {
         Input.Skip(cmd.SequentSize);
@@ -899,25 +904,17 @@ namespace Module
         Input.Skip(size);
         return true;
       }
-      
+
       static DeviceType GetDeviceTypeByBlockType(uint8_t type)
       {
-        static const DeviceType STREAMS[64] =
-        {
-          YM2612, RF5C68, RF5C164, PWM, OKIM6258, HUC6280, SCSP, N2A03
-        };
-        
-        static const DeviceType DUMPS[64] =
-        {
-          SEGA_PCM, YM2608, YM2610, YM2610, YMF278B, YMF271, YMZ280B, YMF278B, Y8950, MULTI_PCM, UPD7759, OKIM6295, K054539, C140, K053260, QSOUND,
-          ES5506, X1_010, C352, GA20
-        };
-        
-        static const DeviceType WRITES[64] =
-        {
-          RF5C68, RF5C164, N2A03, SCSP, ES5503
-        };
-        
+        static const DeviceType STREAMS[64] = {YM2612, RF5C68, RF5C164, PWM, OKIM6258, HUC6280, SCSP, N2A03};
+
+        static const DeviceType DUMPS[64] = {SEGA_PCM, YM2608, YM2610,    YM2610,  YMF278B,  YMF271,  YMZ280B,
+                                             YMF278B,  Y8950,  MULTI_PCM, UPD7759, OKIM6295, K054539, C140,
+                                             K053260,  QSOUND, ES5506,    X1_010,  C352,     GA20};
+
+        static const DeviceType WRITES[64] = {RF5C68, RF5C164, N2A03, SCSP, ES5503};
+
         if (type < 0x40)
         {
           return STREAMS[type];
@@ -949,6 +946,7 @@ namespace Module
         }
         return false;
       }
+
     private:
       Binary::DataInputStream Input;
       uint_t Version = 0;
@@ -956,11 +954,11 @@ namespace Module
       std::size_t TagsOffset;
       std::map<uint_t, DeviceTraits> Traits;
     };
-    
+
     String DetectPlatform(Binary::View data)
     {
       PlatformDetector detector(data);
       return detector.GetResult();
     }
-  }
-}
+  }  // namespace VideoGameMusic
+}  // namespace Module

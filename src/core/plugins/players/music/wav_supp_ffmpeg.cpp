@@ -1,17 +1,17 @@
 /**
-* 
-* @file
-*
-* @brief  FFmpeg-based model
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FFmpeg-based model
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "core/plugins/players/music/wav_supp.h"
+// local includes
 #include "core/plugins/players/music/ffmpeg_decoder.h"
-//common includes
+#include "core/plugins/players/music/wav_supp.h"
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
 
@@ -23,8 +23,7 @@ namespace Module::Wav
     FFmpegModel(Properties props, FFmpeg::Decoder::Ptr decoder)
       : BlockingModel(std::move(props))
       , Decoder(std::move(decoder))
-    {
-    }
+    {}
 
     Sound::Chunk RenderNextFrame() override
     {
@@ -37,6 +36,7 @@ namespace Module::Wav
       }
       return result;
     }
+
   private:
     const FFmpeg::Decoder::Ptr Decoder;
   };
@@ -67,4 +67,4 @@ namespace Module::Wav
     auto decoder = FFmpeg::CreateAtrac9Decoder(props.BlockSize, extraData);
     return MakePtr<FFmpegModel>(props, std::move(decoder));
   }
-}
+}  // namespace Module::Wav

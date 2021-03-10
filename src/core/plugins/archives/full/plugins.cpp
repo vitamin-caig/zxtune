@@ -1,32 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief  Archive plugins full factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Archive plugins full factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include <core/plugins/archives/plugins.h>
 
 namespace ZXTune
 {
   void RegisterArchivePlugins(ArchivePluginsRegistrator& registrator)
   {
-    //process raw container first
+    // process raw container first
     RegisterRawContainer(registrator);
 
     RegisterArchiveContainers(registrator);
     RegisterZXArchiveContainers(registrator);
-    //process containers last
+    // process containers last
     RegisterMultitrackContainers(registrator);
     RegisterZdataContainer(registrator);
 
-    //packed
+    // packed
     RegisterDepackPlugins(registrator);
     RegisterChiptunePackerPlugins(registrator);
     RegisterDecompilePlugins(registrator);
   }
-}
+}  // namespace ZXTune

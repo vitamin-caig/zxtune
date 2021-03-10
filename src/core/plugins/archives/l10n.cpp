@@ -1,14 +1,14 @@
 /**
-*
-* @file
-*
-* @brief  Per-library l10n functor implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Per-library l10n functor implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/archives/l10n.h"
 
 namespace ZXTune

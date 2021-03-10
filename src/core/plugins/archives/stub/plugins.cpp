@@ -1,19 +1,17 @@
 /**
-* 
-* @file
-*
-* @brief  Archive plugins stub factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Archive plugins stub factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include <core/plugins/archive_plugins_registrator.h>
 
 namespace ZXTune
 {
-  void RegisterArchivePlugins(ArchivePluginsRegistrator& /*registrator*/)
-  {
-  }
-}
+  void RegisterArchivePlugins(ArchivePluginsRegistrator& /*registrator*/) {}
+}  // namespace ZXTune

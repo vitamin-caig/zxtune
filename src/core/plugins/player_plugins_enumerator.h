@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Plugins enumerator interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Plugins enumerator interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "enumerator.h"
 #include "player_plugin.h"
 

@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  PSF1 support plugin
-*
-* @author vitamin.caig@gmail.com
-*
-**/
-//local includes
+ *
+ * @file
+ *
+ * @brief  PSF1 support plugin
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
+// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-//library includes
+// library includes
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/decoders.h>
 #include <module/players/xsf/psf.h>
@@ -19,10 +19,11 @@ namespace ZXTune
 {
   void RegisterPSFSupport(PlayerPluginsRegistrator& registrator)
   {
-    const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::DAC | Capabilities::Module::Traits::MULTIFILE;
+    const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::DAC
+                        | Capabilities::Module::Traits::MULTIFILE;
     const auto factory = Module::PSF::CreateFactory();
     {
-      //plugin attributes
+      // plugin attributes
       const Char ID[] = {'P', 'S', 'F', 0};
 
       const auto decoder = Formats::Chiptune::CreatePSFDecoder();
@@ -30,7 +31,7 @@ namespace ZXTune
       registrator.RegisterPlugin(plugin);
     }
     {
-      //plugin attributes
+      // plugin attributes
       const Char ID[] = {'P', 'S', 'F', '2', 0};
 
       const auto decoder = Formats::Chiptune::CreatePSF2Decoder();
@@ -38,4 +39,4 @@ namespace ZXTune
       registrator.RegisterPlugin(plugin);
     }
   }
-}
+}  // namespace ZXTune

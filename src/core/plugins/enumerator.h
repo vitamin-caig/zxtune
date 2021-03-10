@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Plugins enumerator interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Plugins enumerator interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
 
 namespace ZXTune
@@ -27,4 +27,4 @@ namespace ZXTune
     //! Enumerate all supported plugins
     static Ptr Create();
   };
-}
+}  // namespace ZXTune

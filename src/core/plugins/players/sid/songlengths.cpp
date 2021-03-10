@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  Song length database implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Song length database implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/players/sid/songlengths.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/crc.h>
-//std includes
+// std includes
 #include <algorithm>
 
 namespace Module::Sid
@@ -24,15 +24,14 @@ namespace Module::Sid
   {
     const uint32_t HashCrc32;
     const uint32_t Seconds;
-    
-    bool operator < (uint32_t hashCrc32) const
+
+    bool operator<(uint32_t hashCrc32) const
     {
       return HashCrc32 < hashCrc32;
     }
   };
-  
-  const SongEntry SONGS[] =
-  {
+
+  const SongEntry SONGS[] = {
 #include "core/plugins/players/sid/songlengths_db.inc"
   };
 
@@ -51,4 +50,4 @@ namespace Module::Sid
     }
     return TimeType();
   }
-}//namespace Module::Sid
+}  // namespace Module::Sid

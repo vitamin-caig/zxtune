@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Zdata containers support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Zdata containers support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/view.h>
 #include <core/data_location.h>
 

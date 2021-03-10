@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  Container plugin factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Container plugin factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "core/plugins/archive_plugin.h"
-//library includes
+// library includes
 #include <formats/archived.h>
 
 namespace ZXTune
@@ -21,4 +21,4 @@ namespace ZXTune
 
   String ProgressMessage(const String& id, const String& path);
   String ProgressMessage(const String& id, const String& path, const String& element);
-}
+}  // namespace ZXTune

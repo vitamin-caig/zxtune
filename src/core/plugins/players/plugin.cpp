@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief  Player plugin implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Player plugin implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/players/plugin.h"
 #include "core/src/callback.h"
 #include <core/plugins/plugins_types.h>
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/plugin_attrs.h>
 #include <module/attributes.h>
 #include <module/players/properties_helper.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace ZXTune
@@ -30,8 +30,7 @@ namespace ZXTune
       : Description(std::move(descr))
       , Decoder(std::move(decoder))
       , Factory(std::move(factory))
-    {
-    }
+    {}
 
     Plugin::Ptr GetDescription() const override
     {
@@ -43,7 +42,8 @@ namespace ZXTune
       return Decoder->GetFormat();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, Module::DetectCallback& callback) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                                 Module::DetectCallback& callback) const override
     {
       auto data = inputData->GetData();
       if (Decoder->Check(*data))
@@ -63,7 +63,8 @@ namespace ZXTune
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), std::move(data));
     }
 
-    Module::Holder::Ptr TryOpen(const Parameters::Accessor& params, const Binary::Container& data, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr TryOpen(const Parameters::Accessor& params, const Binary::Container& data,
+                                Parameters::Container::Ptr properties) const override
     {
       if (Decoder->Check(data))
       {
@@ -75,16 +76,17 @@ namespace ZXTune
       }
       return {};
     }
+
   private:
     const Plugin::Ptr Description;
     const Formats::Chiptune::Decoder::Ptr Decoder;
     const Module::Factory::Ptr Factory;
   };
 
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps,
-    Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory)
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
+                                       Module::Factory::Ptr factory)
   {
     auto description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::MODULE);
     return MakePtr<CommonPlayerPlugin>(std::move(description), std::move(decoder), std::move(factory));
   }
-}
+}  // namespace ZXTune

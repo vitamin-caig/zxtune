@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  Container plugin implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Container plugin implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/archives/archived.h"
-#include "core/src/callback.h"
-#include "core/src/detect.h"
 #include "core/plugins/archives/l10n.h"
 #include "core/plugins/plugins_types.h"
 #include "core/plugins/utils.h"
-//common includes
+#include "core/src/callback.h"
+#include "core/src/detect.h"
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <strings/format.h>
-//text includes
+// text includes
 #include <core/text/core.h>
 
 namespace ZXTune
@@ -38,8 +38,7 @@ namespace ZXTune
       , Id(std::move(plugin))
       , Path(std::move(path))
       , Current()
-    {
-    }
+    {}
 
     void operator()(const Formats::Archived::File& cur)
     {
@@ -55,8 +54,10 @@ namespace ZXTune
       Log::ProgressCallback* const parentProgress = Delegate.GetProgress();
       if (parentProgress && Total < 50)
       {
-        Log::ProgressCallback::Ptr nestedProgress = CreateNestedPercentProgressCallback(Total, Current, *parentProgress);
-        return std::unique_ptr<Module::DetectCallback>(new Module::CustomProgressDetectCallbackAdapter(Delegate, std::move(nestedProgress)));
+        Log::ProgressCallback::Ptr nestedProgress =
+            CreateNestedPercentProgressCallback(Total, Current, *parentProgress);
+        return std::unique_ptr<Module::DetectCallback>(
+            new Module::CustomProgressDetectCallbackAdapter(Delegate, std::move(nestedProgress)));
       }
       else
       {
@@ -68,6 +69,7 @@ namespace ZXTune
     {
       ++Current;
     }
+
   private:
     const uint_t Total;
     Module::DetectCallback& Delegate;
@@ -80,14 +82,14 @@ namespace ZXTune
   class ContainerDetectCallback : public Formats::Archived::Container::Walker
   {
   public:
-    ContainerDetectCallback(const Parameters::Accessor& params, std::size_t maxSize, String plugin, DataLocation::Ptr location, uint_t count, Module::DetectCallback& callback)
+    ContainerDetectCallback(const Parameters::Accessor& params, std::size_t maxSize, String plugin,
+                            DataLocation::Ptr location, uint_t count, Module::DetectCallback& callback)
       : Params(params)
       , MaxSize(maxSize)
       , BaseLocation(std::move(location))
       , SubPlugin(std::move(plugin))
       , Logger(count, callback, SubPlugin, BaseLocation->GetPath()->AsString())
-    {
-    }
+    {}
 
     void OnFile(const Formats::Archived::File& file) const override
     {
@@ -102,6 +104,7 @@ namespace ZXTune
         ArchivedDbg("'%1%' is too big (%1%). Skipping.", name, size);
       }
     }
+
   private:
     void ProcessFile(const Formats::Archived::File& file) const
     {
@@ -115,6 +118,7 @@ namespace ZXTune
       }
       Logger.Next();
     }
+
   private:
     const Parameters::Accessor& Params;
     const std::size_t MaxSize;
@@ -130,8 +134,7 @@ namespace ZXTune
       : Description(std::move(descr))
       , Decoder(std::move(decoder))
       , SupportDirectories(0 != (Description->Capabilities() & Capabilities::Container::Traits::DIRECTORIES))
-    {
-    }
+    {}
 
     Plugin::Ptr GetDescription() const override
     {
@@ -143,7 +146,8 @@ namespace ZXTune
       return Decoder->GetFormat();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input, Module::DetectCallback& callback) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input,
+                                 Module::DetectCallback& callback) const override
     {
       const Binary::Container::Ptr rawData = input->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -158,7 +162,8 @@ namespace ZXTune
       return Analysis::CreateUnmatchedResult(Decoder->GetFormat(), rawData);
     }
 
-    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location, const Analysis::Path& inPath) const override
+    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location,
+                           const Analysis::Path& inPath) const override
     {
       const Binary::Container::Ptr rawData = location->GetData();
       if (const Formats::Archived::Container::Ptr archive = Decoder->Decode(*rawData))
@@ -173,12 +178,14 @@ namespace ZXTune
       }
       return DataLocation::Ptr();
     }
+
   private:
-    Formats::Archived::File::Ptr FindFile(const Formats::Archived::Container& container, const Analysis::Path& path) const
+    Formats::Archived::File::Ptr FindFile(const Formats::Archived::Container& container,
+                                          const Analysis::Path& path) const
     {
       Analysis::Path::Ptr resolved = Analysis::ParsePath(String(), Text::MODULE_SUBPATH_DELIMITER[0]);
-      for (const Analysis::Path::Iterator::Ptr components = path.GetIterator();
-           components->IsValid(); components->Next())
+      for (const Analysis::Path::Iterator::Ptr components = path.GetIterator(); components->IsValid();
+           components->Next())
       {
         resolved = resolved->Append(components->Get());
         const String filename = resolved->AsString();
@@ -195,6 +202,7 @@ namespace ZXTune
       }
       return Formats::Archived::File::Ptr();
     }
+
   private:
     const Plugin::Ptr Description;
     const Formats::Archived::Decoder::Ptr Decoder;
@@ -207,8 +215,7 @@ namespace ZXTune
     explicit OnceAppliedContainerPluginAdapter(ArchivePlugin::Ptr delegate)
       : Delegate(std::move(delegate))
       , Id(Delegate->GetDescription()->Id())
-    {
-    }
+    {}
 
     Plugin::Ptr GetDescription() const override
     {
@@ -220,7 +227,8 @@ namespace ZXTune
       return Delegate->GetFormat();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, Module::DetectCallback& callback) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                                 Module::DetectCallback& callback) const override
     {
       if (SelfIsVisited(*inputData->GetPluginsChain()))
       {
@@ -232,7 +240,8 @@ namespace ZXTune
       }
     }
 
-    DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData, const Analysis::Path& pathToOpen) const override
+    DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                           const Analysis::Path& pathToOpen) const override
     {
       if (SelfIsVisited(*inputData->GetPluginsChain()))
       {
@@ -243,6 +252,7 @@ namespace ZXTune
         return Delegate->Open(params, inputData, pathToOpen);
       }
     }
+
   private:
     bool SelfIsVisited(const Analysis::Path& path) const
     {
@@ -255,34 +265,34 @@ namespace ZXTune
       }
       return false;
     }
+
   private:
     const ArchivePlugin::Ptr Delegate;
     const String Id;
   };
-}
+}  // namespace ZXTune
 
 namespace ZXTune
 {
   ArchivePlugin::Ptr CreateArchivePlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
+    const Plugin::Ptr description =
+        CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
     const ArchivePlugin::Ptr result = MakePtr<ArchivedContainerPlugin>(description, decoder);
     return 0 != (caps & Capabilities::Container::Traits::ONCEAPPLIED)
-      ? MakePtr<OnceAppliedContainerPluginAdapter>(result)
-      : result;
+               ? MakePtr<OnceAppliedContainerPluginAdapter>(result)
+               : result;
   }
 
   String ProgressMessage(const String& id, const String& path)
   {
-    return path.empty()
-      ? Strings::Format(translate("%1% processing"), id)
-      : Strings::Format(translate("%1% processing at %2%"), id, path);
+    return path.empty() ? Strings::Format(translate("%1% processing"), id)
+                        : Strings::Format(translate("%1% processing at %2%"), id, path);
   }
 
   String ProgressMessage(const String& id, const String& path, const String& element)
   {
-    return path.empty()
-      ? Strings::Format(translate("%1% processing for %2%"), id, element)
-      : Strings::Format(translate("%1% processing for %2% at %3%"), id, element, path);
+    return path.empty() ? Strings::Format(translate("%1% processing for %2%"), id, element)
+                        : Strings::Format(translate("%1% processing for %2% at %3%"), id, element, path);
   }
-}
+}  // namespace ZXTune

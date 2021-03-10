@@ -1,23 +1,24 @@
 /**
-*
-* @file
-*
-* @brief  FFmpeg adapter implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FFmpeg adapter implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/players/music/ffmpeg_decoder.h"
-//common includes
+// common includes
 #include <contract.h>
-#include <pointers.h>
 #include <make_ptr.h>
-//library includes
+#include <pointers.h>
+// library includes
 #include <math/numeric.h>
-//3rdparty
-extern "C" {
+// 3rdparty
+extern "C"
+{
 #include "3rdparty/ffmpeg/libavcodec/avcodec.h"
 }
 
@@ -35,8 +36,7 @@ namespace Module::FFmpeg
     explicit DecoderImpl(const AVCodec& codec)
       : Context(::avcodec_alloc_context3(&codec))
       , Frame(::av_frame_alloc())
-    {
-    }
+    {}
 
     void SetBlockSize(uint_t blockSize)
     {
@@ -87,6 +87,7 @@ namespace Module::FFmpeg
         }
       }
     }
+
   private:
     static void CheckError(int code)
     {
@@ -130,24 +131,24 @@ namespace Module::FFmpeg
 
     void DecodeMono(Sound::Sample* target) const
     {
-      switch(Frame->format)
+      switch (Frame->format)
       {
       case AV_SAMPLE_FMT_S16P:
       case AV_SAMPLE_FMT_S16:
-        {
-          const auto begin = safe_ptr_cast<const int16_t*>(Frame->data[0]);
-          const auto end = begin + Frame->nb_samples;
-          std::transform(begin, end, target, DecodeMonoSample<int16_t>);
-        }
-        break;
+      {
+        const auto begin = safe_ptr_cast<const int16_t*>(Frame->data[0]);
+        const auto end = begin + Frame->nb_samples;
+        std::transform(begin, end, target, DecodeMonoSample<int16_t>);
+      }
+      break;
       case AV_SAMPLE_FMT_FLT:
       case AV_SAMPLE_FMT_FLTP:
-        {
-          const auto begin = safe_ptr_cast<const float*>(Frame->data[0]);
-          const auto end = begin + Frame->nb_samples;
-          std::transform(begin, end, target, DecodeMonoSample<int16_t>);
-        }
-        break;
+      {
+        const auto begin = safe_ptr_cast<const float*>(Frame->data[0]);
+        const auto end = begin + Frame->nb_samples;
+        std::transform(begin, end, target, DecodeMonoSample<int16_t>);
+      }
+      break;
       default:
         Require(false);
         break;
@@ -156,38 +157,38 @@ namespace Module::FFmpeg
 
     void DecodeStereo(Sound::Sample* target) const
     {
-      switch(Frame->format)
+      switch (Frame->format)
       {
       case AV_SAMPLE_FMT_S16P:
-        {
-          const auto begin1 = safe_ptr_cast<const int16_t*>(Frame->data[0]);
-          const auto begin2 = safe_ptr_cast<const int16_t*>(Frame->data[1]);
-          const auto end = begin1 + Frame->nb_samples;
-          std::transform(begin1, end, begin2, target, DecodePlanarSample<int16_t>);
-        }
-        break;
+      {
+        const auto begin1 = safe_ptr_cast<const int16_t*>(Frame->data[0]);
+        const auto begin2 = safe_ptr_cast<const int16_t*>(Frame->data[1]);
+        const auto end = begin1 + Frame->nb_samples;
+        std::transform(begin1, end, begin2, target, DecodePlanarSample<int16_t>);
+      }
+      break;
       case AV_SAMPLE_FMT_S16:
-        {
-          const auto begin = safe_ptr_cast<const std::array<int16_t, 2>*>(Frame->data[0]);
-          const auto end = begin + Frame->nb_samples;
-          std::transform(begin, end, target, DecodeStereoSample<int16_t>);
-        }
-        break;
+      {
+        const auto begin = safe_ptr_cast<const std::array<int16_t, 2>*>(Frame->data[0]);
+        const auto end = begin + Frame->nb_samples;
+        std::transform(begin, end, target, DecodeStereoSample<int16_t>);
+      }
+      break;
       case AV_SAMPLE_FMT_FLTP:
-        {
-          const auto begin1 = safe_ptr_cast<const float*>(Frame->data[0]);
-          const auto begin2 = safe_ptr_cast<const float*>(Frame->data[1]);
-          const auto end = begin1 + Frame->nb_samples;
-          std::transform(begin1, end, begin2, target, DecodePlanarSample<float>);
-        }
-        break;
+      {
+        const auto begin1 = safe_ptr_cast<const float*>(Frame->data[0]);
+        const auto begin2 = safe_ptr_cast<const float*>(Frame->data[1]);
+        const auto end = begin1 + Frame->nb_samples;
+        std::transform(begin1, end, begin2, target, DecodePlanarSample<float>);
+      }
+      break;
       case AV_SAMPLE_FMT_FLT:
-        {
-          const auto begin = safe_ptr_cast<const std::array<float, 2>*>(Frame->data[0]);
-          const auto end = begin + Frame->nb_samples;
-          std::transform(begin, end, target, DecodeStereoSample<float>);
-        }
-        break;
+      {
+        const auto begin = safe_ptr_cast<const std::array<float, 2>*>(Frame->data[0]);
+        const auto end = begin + Frame->nb_samples;
+        std::transform(begin, end, target, DecodeStereoSample<float>);
+      }
+      break;
       default:
         Require(false);
         break;
@@ -223,6 +224,7 @@ namespace Module::FFmpeg
     {
       return DecodePlanarSample(s[0], s[1]);
     }
+
   private:
     AVCodecContext* Context;
     AVFrame* Frame;
@@ -256,4 +258,4 @@ namespace Module::FFmpeg
     decoder->Init();
     return Decoder::Ptr(std::move(decoder));
   }
-}
+}  // namespace Module::FFmpeg

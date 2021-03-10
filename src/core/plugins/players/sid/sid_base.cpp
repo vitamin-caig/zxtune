@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  SID support plugin
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SID support plugin
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "core/plugins/players/sid/roms.h"
-#include "core/plugins/players/sid/songlengths.h"
+// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-//common includes
+#include "core/plugins/players/sid/roms.h"
+#include "core/plugins/players/sid/songlengths.h"
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
@@ -31,15 +31,15 @@
 #include <parameters/tracking_helper.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
-//3rdparty includes
-#include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
+// 3rdparty includes
+#include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidInfo.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTune.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
-#include <3rdparty/sidplayfp/builders/resid-builder/resid.h>
-//boost includes
+#include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
+// boost includes
 #include <boost/algorithm/string/predicate.hpp>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module::Sid
@@ -48,7 +48,7 @@ namespace Module::Sid
 
   void CheckSidplayError(bool ok)
   {
-    Require(ok);//TODO
+    Require(ok);  // TODO
   }
 
   class Model : public SidTune
@@ -78,6 +78,7 @@ namespace Module::Sid
     {
       return Duration;
     }
+
   private:
     uint_t Index = 0;
     Time::Milliseconds Duration;
@@ -102,8 +103,7 @@ namespace Module::Sid
 
     explicit SidParameters(Parameters::Accessor::Ptr params)
       : Params(std::move(params))
-    {
-    }
+    {}
 
     uint_t Version() const
     {
@@ -117,8 +117,8 @@ namespace Module::Sid
 
     SidConfig::sampling_method_t GetSamplingMethod() const
     {
-      return Parameters::ZXTune::Core::SID::INTERPOLATION_HQ == GetInterpolation()
-          ? SidConfig::RESAMPLE_INTERPOLATE : SidConfig::INTERPOLATE;
+      return Parameters::ZXTune::Core::SID::INTERPOLATION_HQ == GetInterpolation() ? SidConfig::RESAMPLE_INTERPOLATE
+                                                                                   : SidConfig::INTERPOLATE;
     }
 
     bool GetUseFilter() const
@@ -127,6 +127,7 @@ namespace Module::Sid
       Params->FindValue(Parameters::ZXTune::Core::SID::FILTER, val);
       return static_cast<bool>(val);
     }
+
   private:
     Parameters::IntType GetInterpolation() const
     {
@@ -134,6 +135,7 @@ namespace Module::Sid
       Params->FindValue(Parameters::ZXTune::Core::SID::INTERPOLATION, val);
       return val;
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
   };
@@ -147,8 +149,7 @@ namespace Module::Sid
       : Builder("resid")
       , Config(Player.config())
       , UseFilter()
-    {
-    }
+    {}
 
     void Init(uint_t samplerate, const Parameters::Accessor& params)
     {
@@ -172,8 +173,7 @@ namespace Module::Sid
       const auto newFastSampling = sidParams.GetFastSampling();
       const auto newSamplingMethod = sidParams.GetSamplingMethod();
       const auto newFilter = sidParams.GetUseFilter();
-      if (Config.fastSampling != newFastSampling
-          || Config.samplingMethod != newSamplingMethod
+      if (Config.fastSampling != newFastSampling || Config.samplingMethod != newSamplingMethod
           || UseFilter != newFilter)
       {
         Config.playback = Sound::Sample::CHANNELS == 1 ? SidConfig::MONO : SidConfig::STEREO;
@@ -223,11 +223,12 @@ namespace Module::Sid
       }
       return result;
     }
+
   private:
     void SetClockRate(uint_t rate)
     {
-      //Fout = (Fn * Fclk/16777216) Hz
-      //http://www.waitingforfriday.com/index.php/Commodore_SID_6581_Datasheet
+      // Fout = (Fn * Fclk/16777216) Hz
+      // http://www.waitingforfriday.com/index.php/Commodore_SID_6581_Datasheet
       Analysis.SetClockAndDivisor(rate, 16777216);
     }
 
@@ -235,8 +236,8 @@ namespace Module::Sid
     sidplayfp Player;
     ReSIDBuilder Builder;
     SidConfig Config;
-    
-    //cache filter flag
+
+    // cache filter flag
     bool UseFilter;
     Devices::Details::AnalysisMap Analysis;
   };
@@ -295,6 +296,7 @@ namespace Module::Sid
         Engine->Skip(GetSamples(toSkip));
       }
     }
+
   private:
     uint_t GetSamples(Time::Microseconds period) const
     {
@@ -308,6 +310,7 @@ namespace Module::Sid
         Engine->ApplyParameters(*SidParams);
       }
     }
+
   private:
     const Model::Ptr Tune;
     const TimedState::Ptr State;
@@ -322,8 +325,7 @@ namespace Module::Sid
     Holder(Model::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
       , Properties(std::move(props))
-    {
-    }
+    {}
 
     Module::Information::Ptr GetModuleInformation() const override
     {
@@ -339,6 +341,7 @@ namespace Module::Sid
     {
       return MakePtr<Renderer>(Tune, samplerate, std::move(params));
     }
+
   private:
     const Model::Ptr Tune;
     const Parameters::Accessor::Ptr Properties;
@@ -350,7 +353,7 @@ namespace Module::Sid
     Require(params.FindValue(Module::ATTR_CONTAINER, container));
     return container == "SID" || boost::algorithm::ends_with(container, ">SID");
   }
-  
+
   String DecodeString(StringView str)
   {
     return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
@@ -359,7 +362,8 @@ namespace Module::Sid
   class Factory : public Module::Factory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData,
+                                     Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -376,7 +380,7 @@ namespace Module::Sid
         {
         default:
         case 3:
-          //copyright/publisher really
+          // copyright/publisher really
           props.SetComment(DecodeString(tuneInfo.infoString(2)));
           [[fallthrough]];
         case 2:
@@ -403,7 +407,7 @@ namespace Module::Sid
       }
     }
   };
-}
+}  // namespace Module::Sid
 
 namespace ZXTune
 {
@@ -416,4 +420,4 @@ namespace ZXTune
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
-}
+}  // namespace ZXTune

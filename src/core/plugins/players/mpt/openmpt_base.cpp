@@ -1,39 +1,39 @@
 /**
-* 
-* @file
-*
-* @brief  libopenmpt support plugin
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  libopenmpt support plugin
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/container.h>
-#include <module/track_information.h>
-#include <module/track_state.h>
 #include <module/players/analyzer.h>
 #include <module/players/properties_helper.h>
+#include <module/track_information.h>
+#include <module/track_state.h>
 #include <parameters/tracking_helper.h>
 #include <sound/loop.h>
 #include <strings/trim.h>
 #include <time/duration.h>
-//std includes
+// std includes
 #include <utility>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-//3rdparty includes
+// 3rdparty includes
 #define BUILDING_STATIC
 #include <3rdparty/openmpt/libopenmpt/libopenmpt.hpp>
 
@@ -55,8 +55,7 @@ namespace Module::Mpt
 
     Information(ModulePtr track)
       : Track(std::move(track))
-    {
-    }
+    {}
 
     Time::Milliseconds Duration() const override
     {
@@ -65,7 +64,7 @@ namespace Module::Mpt
 
     Time::Milliseconds LoopDuration() const override
     {
-      return Duration();//TODO
+      return Duration();  // TODO
     }
 
     uint_t PositionsCount() const override
@@ -75,13 +74,14 @@ namespace Module::Mpt
 
     uint_t LoopPosition() const override
     {
-      return 0; //TODO
+      return 0;  // TODO
     }
 
     uint_t ChannelsCount() const override
     {
       return Track->get_num_channels();
     }
+
   private:
     const ModulePtr Track;
   };
@@ -93,8 +93,7 @@ namespace Module::Mpt
 
     explicit TrackState(ModulePtr track)
       : Track(std::move(track))
-    {
-    }
+    {}
 
     Time::AtMillisecond At() const override
     {
@@ -152,6 +151,7 @@ namespace Module::Mpt
       LastLoopStart = {};
       LoopsDone = 0;
     }
+
   private:
     const ModulePtr Track;
     double LastLoopStart = 0;
@@ -167,8 +167,7 @@ namespace Module::Mpt
       , Params(std::move(params))
       , Analyzer(Module::CreateSoundAnalyzer())
       , SoundFreq(samplerate)
-    {
-    }
+    {}
 
     Module::State::Ptr GetState() const override
     {
@@ -188,7 +187,7 @@ namespace Module::Mpt
       static_assert(sizeof(Sound::Sample) == 4, "Incompatible sound sample size");
 
       ApplyParameters();
-      const auto samples = SoundFreq / 10;//TODO
+      const auto samples = SoundFreq / 10;  // TODO
       Sound::Chunk chunk(samples);
       while (State->LoopCount() == 0 || looped(State->LoopCount()))
       {
@@ -218,6 +217,7 @@ namespace Module::Mpt
       Track->set_position_seconds(double(request.Get()) / request.PER_SECOND);
       State->Reset();
     }
+
   private:
     void ApplyParameters()
     {
@@ -230,6 +230,7 @@ namespace Module::Mpt
         Track->set_render_param(openmpt::module::render_param::RENDER_INTERPOLATIONFILTER_LENGTH, interpolation);
       }
     }
+
   private:
     const ModulePtr Track;
     const TrackState::Ptr State;
@@ -245,8 +246,7 @@ namespace Module::Mpt
       : Track(std::move(track))
       , Info(MakePtr<Information>(Track))
       , Properties(std::move(props))
-    {
-    }
+    {}
 
     Module::Information::Ptr GetModuleInformation() const override
     {
@@ -260,9 +260,10 @@ namespace Module::Mpt
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      Require(!!Track);//TODO
+      Require(!!Track);  // TODO
       return MakePtr<Renderer>(std::move(Track), samplerate, std::move(params));
     }
+
   private:
     ModulePtr Track;
     const Information::Ptr Info;
@@ -282,14 +283,12 @@ namespace Module::Mpt
     explicit Decoder(const PluginDescription& desc)
       : Desc(desc)
       , Fmt(Binary::CreateMatchOnlyFormat(Desc.Format))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
       return Desc.Description;
     }
-
 
     Binary::Format::Ptr GetFormat() const override
     {
@@ -303,13 +302,14 @@ namespace Module::Mpt
 
     Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
     {
-      return Formats::Chiptune::Container::Ptr();//TODO
+      return Formats::Chiptune::Container::Ptr();  // TODO
     }
+
   private:
     const PluginDescription& Desc;
     const Binary::Format::Ptr Fmt;
   };
-  
+
   String DecodeString(String str)
   {
     const auto out = Strings::TrimSpaces(str);
@@ -353,7 +353,7 @@ namespace Module::Mpt
       }
     }
   }
-  
+
   class Factory : public Module::Factory
   {
   public:
@@ -363,12 +363,14 @@ namespace Module::Mpt
       Controls.emplace("play.at_end", "continue");
     }
 
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
+                                     Parameters::Container::Ptr properties) const override
     {
       try
       {
-        //TODO: specify type filter
-        auto track = ModulePtr(new openmpt::module(static_cast<const uint8_t*>(rawData.Start()), rawData.Size(), LOG, Controls));
+        // TODO: specify type filter
+        auto track =
+            ModulePtr(new openmpt::module(static_cast<const uint8_t*>(rawData.Start()), rawData.Size(), LOG, Controls));
 
         // play all subsongs
         track->select_subsong(-1);
@@ -376,7 +378,7 @@ namespace Module::Mpt
         PropertiesHelper props(*properties);
         FillMetadata(*track, props);
 
-        const auto moduleSize = rawData.Size();//TODO
+        const auto moduleSize = rawData.Size();  // TODO
         if (auto data = rawData.GetSubcontainer(0, moduleSize))
         {
           const auto source = Formats::Chiptune::CreateCalculatingCrcContainer(std::move(data), 0, moduleSize);
@@ -390,11 +392,13 @@ namespace Module::Mpt
       }
       return {};
     }
+
   private:
     const PluginDescription& Desc;
     std::map<std::string, std::string> Controls;
   };
 
+  // clang-format off
   const PluginDescription PLUGINS[] =
   {
     {
@@ -877,7 +881,8 @@ namespace Module::Mpt
       //, "M15"
     }
   };
-}
+  // clang-format on
+}  // namespace Module::Mpt
 
 namespace ZXTune
 {
@@ -892,4 +897,4 @@ namespace ZXTune
       registrator.RegisterPlugin(std::move(plugin));
     }
   }
-}
+}  // namespace ZXTune
