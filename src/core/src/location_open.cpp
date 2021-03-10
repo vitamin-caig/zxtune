@@ -1,23 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief  Location open and resolving implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Location open and resolving implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/archive_plugins_enumerator.h"
 #include "core/src/l10n.h"
 #include "core/src/location.h"
-//common includes
+// common includes
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
-//text includes
+// text includes
 #include <src/core/text/core.h>
 
 #define FILE_TAG BCCC5654
@@ -44,8 +44,7 @@ namespace ZXTune
   public:
     explicit UnresolvedLocation(Binary::Container::Ptr data)
       : Data(std::move(data))
-    {
-    }
+    {}
 
     Binary::Container::Ptr GetData() const override
     {
@@ -61,6 +60,7 @@ namespace ZXTune
     {
       return CreateEmptyPluginsChain();
     }
+
   private:
     const Binary::Container::Ptr Data;
   };
@@ -72,8 +72,7 @@ namespace ZXTune
       : Data(std::move(data))
       , Path(Analysis::ParsePath(path, Text::MODULE_SUBPATH_DELIMITER[0]))
       , Plugins(Analysis::ParsePath(plugin, Text::MODULE_CONTAINERS_DELIMITER[0]))
-    {
-    }
+    {}
 
     Binary::Container::Ptr GetData() const override
     {
@@ -89,13 +88,15 @@ namespace ZXTune
     {
       return Plugins;
     }
+
   private:
     const Binary::Container::Ptr Data;
     const Analysis::Path::Ptr Path;
     const Analysis::Path::Ptr Plugins;
   };
 
-  DataLocation::Ptr TryToOpenLocation(const ArchivePluginsEnumerator& plugins, const Parameters::Accessor& params, DataLocation::Ptr location, const Analysis::Path& subPath)
+  DataLocation::Ptr TryToOpenLocation(const ArchivePluginsEnumerator& plugins, const Parameters::Accessor& params,
+                                      DataLocation::Ptr location, const Analysis::Path& subPath)
   {
     for (ArchivePlugin::Iterator::Ptr iter = plugins.Enumerate(); iter->IsValid(); iter->Next())
     {
@@ -107,7 +108,7 @@ namespace ZXTune
     }
     return DataLocation::Ptr();
   }
-}
+}  // namespace ZXTune
 
 namespace ZXTune
 {
@@ -121,7 +122,8 @@ namespace ZXTune
     const ArchivePluginsEnumerator::Ptr usedPlugins = ArchivePluginsEnumerator::Create();
     DataLocation::Ptr resolvedLocation = MakePtr<UnresolvedLocation>(data);
     const Analysis::Path::Ptr sourcePath = Analysis::ParsePath(subpath, Text::MODULE_SUBPATH_DELIMITER[0]);
-    for (Analysis::Path::Ptr unresolved = sourcePath; !unresolved->Empty(); unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString()))
+    for (Analysis::Path::Ptr unresolved = sourcePath; !unresolved->Empty();
+         unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString()))
     {
       const String toResolve = unresolved->AsString();
       Dbg("Resolving '%1%'", toResolve);
@@ -138,6 +140,6 @@ namespace ZXTune
   {
     return MakePtr<GeneratedLocation>(data, plugin, path);
   }
-}
+}  // namespace ZXTune
 
 #undef FILE_TAG

@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Plugins parameters names
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Plugins parameters names
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
 
 namespace Parameters
@@ -24,7 +24,7 @@ namespace Parameters
       {
         //! @brief Parameters#ZXTune#Core#Plugins namespace prefix
         extern const NameType PREFIX;
-        
+
         //@{
         //! @name Default song duration in seconds (if not specified exactly) for all types (can be overriden)
 
@@ -55,7 +55,7 @@ namespace Parameters
           //! Parameter name
           extern const NameType MIN_SIZE;
           //@}
-        }
+        }  // namespace Raw
 
         //! @brief HRIP container parameters namespace
         namespace Hrip
@@ -66,7 +66,7 @@ namespace Parameters
           //! @brief Ignore corrupted blocks
           //! @details 1 if do so
           extern const NameType IGNORE_CORRUPTED;
-        }
+        }  // namespace Hrip
 
         //! @brief SID container/player parameters namespace
         namespace SID
@@ -76,7 +76,7 @@ namespace Parameters
 
           //@{
           //! @name ROMs content
-          
+
           //! 8192 bytes
           extern const NameType KERNAL;
           //! 8192 bytes
@@ -84,8 +84,8 @@ namespace Parameters
           //! 4096 bytes
           extern const NameType CHARGEN;
           //@}
-        }
-        
+        }  // namespace SID
+
         //! @brief ZIP container parameters namespace
         namespace Zip
         {
@@ -100,8 +100,8 @@ namespace Parameters
           //! Parameter name
           extern const NameType MAX_DEPACKED_FILE_SIZE_MB;
           //@}
-        }
-      }
-    }
-  }
-}
+        }  // namespace Zip
+      }    // namespace Plugins
+    }      // namespace Core
+  }        // namespace ZXTune
+}  // namespace Parameters

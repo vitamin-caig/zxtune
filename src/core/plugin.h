@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Plugins related interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Plugins related interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <iterator.h>
 #include <types.h>
 
@@ -37,4 +37,4 @@ namespace ZXTune
   };
 
   Plugin::Iterator::Ptr EnumeratePlugins();
-}
+}  // namespace ZXTune

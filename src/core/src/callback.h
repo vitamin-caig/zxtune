@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  Detect callback helpers
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Detect callback helpers
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//core includes
+// core includes
 #include <core/module_detect.h>
-//common includes
+// common includes
 #include <progress_callback.h>
 
 namespace Module
@@ -23,15 +23,15 @@ namespace Module
   public:
     explicit DetectCallbackDelegate(DetectCallback& delegate)
       : Delegate(delegate)
-    {
-    }
+    {}
 
     Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const override
     {
       return Delegate.CreateInitialProperties(subpath);
     }
 
-    void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& decoder, Module::Holder::Ptr holder) override
+    void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& decoder,
+                       Module::Holder::Ptr holder) override
     {
       return Delegate.ProcessModule(location, decoder, std::move(holder));
     }
@@ -40,6 +40,7 @@ namespace Module
     {
       return Delegate.GetProgress();
     }
+
   protected:
     DetectCallback& Delegate;
   };
@@ -50,19 +51,18 @@ namespace Module
     CustomProgressDetectCallbackAdapter(DetectCallback& delegate, Log::ProgressCallback::Ptr progress)
       : DetectCallbackDelegate(delegate)
       , Progress(std::move(progress))
-    {
-    }
+    {}
 
     CustomProgressDetectCallbackAdapter(DetectCallback& delegate)
       : DetectCallbackDelegate(delegate)
-    {
-    }
+    {}
 
     Log::ProgressCallback* GetProgress() const override
     {
       return Progress.get();
     }
+
   private:
     const Log::ProgressCallback::Ptr Progress;
   };
-}
+}  // namespace Module

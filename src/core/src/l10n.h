@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Per-library l10n functor
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Per-library l10n functor
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <l10n/api.h>
 
 namespace Module

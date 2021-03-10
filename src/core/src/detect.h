@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Internal interfaces
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Internal interfaces
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <core/module_detect.h>
 
 namespace Module

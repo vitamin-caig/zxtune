@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Core parameters names
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Core parameters names
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
 
 namespace Parameters
@@ -98,7 +98,7 @@ namespace Parameters
         //! Parameter name
         extern const NameType LAYOUT;
         //@}
-      }
+      }  // namespace AYM
 
       //! @brief DAC-related parameters namespace
       namespace DAC
@@ -120,7 +120,7 @@ namespace Parameters
         const IntType SAMPLES_FREQUENCY_MAX = 16000;
         //! @brief Base samples frequency for C-1 (32.7Hz)
         extern const NameType SAMPLES_FREQUENCY;
-      }
+      }  // namespace DAC
 
       //! @brief Z80-related parameters namespace
       namespace Z80
@@ -137,7 +137,7 @@ namespace Parameters
         extern const NameType INT_TICKS;
         //@}
 
-          //@{
+        //@{
         //! @name CPU clockrate in Hz
 
         //! Default value- 3.5MHz
@@ -147,7 +147,7 @@ namespace Parameters
         //! Parameter name
         extern const NameType CLOCKRATE;
         //@}
-      }
+      }  // namespace Z80
 
       //! @brief FM-related parameters namespace
       namespace FM
@@ -163,7 +163,7 @@ namespace Parameters
         //! Parameter name
         extern const NameType CLOCKRATE;
         //@}
-      }
+      }  // namespace FM
 
       //! @brief SAA-related parameters namespace
       namespace SAA
@@ -192,7 +192,7 @@ namespace Parameters
         //! Parameter name
         extern const NameType INTERPOLATION;
         //@}
-      }
+      }  // namespace SAA
 
       //! @brief SID-related parameters namespace
       namespace SID
@@ -220,7 +220,7 @@ namespace Parameters
         //! Parameter name
         extern const NameType INTERPOLATION;
         //@}
-      }
-    }
-  }
-}
+      }  // namespace SID
+    }    // namespace Core
+  }      // namespace ZXTune
+}  // namespace Parameters

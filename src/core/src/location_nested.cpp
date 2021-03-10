@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  Nested location implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Nested location implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/src/location.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace ZXTune
@@ -25,8 +25,7 @@ namespace ZXTune
       , SubData(std::move(subData))
       , SubPlugin(std::move(subPlugin))
       , Subpath(std::move(subPath))
-    {
-    }
+    {}
 
     Binary::Container::Ptr GetData() const override
     {
@@ -42,19 +41,21 @@ namespace ZXTune
     {
       return Parent->GetPluginsChain()->Append(SubPlugin);
     }
+
   private:
     const DataLocation::Ptr Parent;
     const Binary::Container::Ptr SubData;
     const String SubPlugin;
     const String Subpath;
   };
-}
+}  // namespace ZXTune
 
 namespace ZXTune
 {
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, const String& subPlugin, const String& subPath)
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData,
+                                         const String& subPlugin, const String& subPath)
   {
     assert(subData);
     return MakePtr<NestedLocation>(parent, subPlugin, subData, subPath);
   }
-}
+}  // namespace ZXTune

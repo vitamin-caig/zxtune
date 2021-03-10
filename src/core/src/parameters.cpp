@@ -1,17 +1,17 @@
 /**
-* 
-* @file
-*
-* @brief  Parameters::ZXTune::Core and nested
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters::ZXTune::Core and nested
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
-#include <zxtune.h>
+// library includes
 #include <core/core_parameters.h>
 #include <core/plugins_parameters.h>
+#include <zxtune.h>
 
 namespace Parameters
 {
@@ -32,7 +32,7 @@ namespace Parameters
         extern const NameType DUTY_CYCLE = PREFIX + "duty_cycle";
         extern const NameType DUTY_CYCLE_MASK = PREFIX + "duty_cycle_mask";
         extern const NameType LAYOUT = PREFIX + "layout";
-      }
+      }  // namespace AYM
 
       namespace DAC
       {
@@ -41,7 +41,7 @@ namespace Parameters
         extern const NameType INTERPOLATION = PREFIX + "interpolation";
 
         extern const NameType SAMPLES_FREQUENCY = PREFIX + "samples_frequency";
-      }
+      }  // namespace DAC
 
       namespace Z80
       {
@@ -49,14 +49,14 @@ namespace Parameters
 
         extern const NameType INT_TICKS = PREFIX + "int_ticks";
         extern const NameType CLOCKRATE = PREFIX + "clockrate";
-      }
+      }  // namespace Z80
 
       namespace FM
       {
         extern const NameType PREFIX = Core::PREFIX + "fm";
 
         extern const NameType CLOCKRATE = PREFIX + "clockrate";
-      }
+      }  // namespace FM
 
       namespace SAA
       {
@@ -64,7 +64,7 @@ namespace Parameters
 
         extern const NameType CLOCKRATE = PREFIX + "clockrate";
         extern const NameType INTERPOLATION = PREFIX + "interpolation";
-      }
+      }  // namespace SAA
 
       namespace SID
       {
@@ -72,12 +72,12 @@ namespace Parameters
 
         extern const NameType FILTER = PREFIX + "filter";
         extern const NameType INTERPOLATION = PREFIX + "interpolation";
-      }
+      }  // namespace SID
 
       namespace Plugins
       {
         extern const NameType PREFIX = Core::PREFIX + "plugins";
-        
+
         extern const NameType DEFAULT_DURATION = PREFIX + "default_duration";
 
         namespace Raw
@@ -86,14 +86,14 @@ namespace Parameters
 
           extern const NameType PLAIN_DOUBLE_ANALYSIS = PREFIX + "plain_double_analysis";
           extern const NameType MIN_SIZE = PREFIX + "min_size";
-        }
+        }  // namespace Raw
 
         namespace Hrip
         {
           extern const NameType PREFIX = Plugins::PREFIX + "hrip";
 
           extern const NameType IGNORE_CORRUPTED = PREFIX + "ignore_corrupted";
-        }
+        }  // namespace Hrip
 
         namespace SID
         {
@@ -102,15 +102,15 @@ namespace Parameters
           extern const NameType KERNAL = PREFIX + "kernal";
           extern const NameType BASIC = PREFIX + "basic";
           extern const NameType CHARGEN = PREFIX + "chargen";
-        }
+        }  // namespace SID
 
         namespace Zip
         {
           extern const NameType PREFIX = Plugins::PREFIX + "zip";
 
           extern const NameType MAX_DEPACKED_FILE_SIZE_MB = PREFIX + "max_depacked_size_mb";
-        }
-      }
-    }
-  }
-}
+        }  // namespace Zip
+      }    // namespace Plugins
+    }      // namespace Core
+  }        // namespace ZXTune
+}  // namespace Parameters
