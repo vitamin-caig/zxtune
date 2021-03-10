@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  PSG dumper implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  PSG dumper implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "devices/aym/dumper/dump_builder.h"
-//std includes
+// std includes
 #include <algorithm>
 #include <iterator>
 #include <make_ptr.h>
@@ -29,14 +29,11 @@ namespace Devices::AYM
 
     void Initialize() override
     {
-      static const uint8_t HEADER[] =
-      {
-        'P', 'S', 'G', 0x1a,
-        0,//version
-        0,//freq rate
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,//padding
-        END_MUS
-      };
+      static const uint8_t HEADER[] = {'P',    'S', 'G', 0x1a,
+                                       0,                                         // version
+                                       0,                                         // freq rate
+                                       0,      0,   0,   0,    0, 0, 0, 0, 0, 0,  // padding
+                                       END_MUS};
       static_assert(sizeof(HEADER) == 16 + 1, "Invalid header layout");
       Data.assign(HEADER, std::end(HEADER));
     }
@@ -51,7 +48,7 @@ namespace Devices::AYM
       assert(framesPassed);
 
       Dump frame;
-      //SKIP_INTS code groups 4 skipped interrupts
+      // SKIP_INTS code groups 4 skipped interrupts
       const uint_t SKIP_GROUP_SIZE = 4;
       const uint_t groupsSkipped = framesPassed / SKIP_GROUP_SIZE;
       const uint_t remainInts = framesPassed % SKIP_GROUP_SIZE;
@@ -63,7 +60,7 @@ namespace Devices::AYM
         *inserter = static_cast<Dump::value_type>(groupsSkipped);
       }
       std::fill_n(inserter, remainInts, INTERRUPT);
-      //store data
+      // store data
       for (Registers::IndicesIterator it(update); it; ++it)
       {
         *inserter = static_cast<Dump::value_type>(*it);
@@ -71,10 +68,11 @@ namespace Devices::AYM
       }
       *inserter = END_MUS;
       assert(!Data.empty());
-      Data.pop_back();//delete limiter
+      Data.pop_back();  // delete limiter
       Data.reserve(Data.size() + frame.size());
       std::copy(frame.begin(), frame.end(), std::back_inserter(Data));
     }
+
   private:
     Dump Data;
   };
@@ -84,4 +82,4 @@ namespace Devices::AYM
     const FramedDumpBuilder::Ptr builder = MakePtr<PSGDumpBuilder>();
     return CreateDumper(params, builder);
   }
-}
+}  // namespace Devices::AYM

@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  FYM dumper implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FYM dumper implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "devices/aym/dumper/dump_builder.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/compression/zlib_stream.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <iterator>
 #include <utility>
@@ -24,7 +24,7 @@
 namespace Devices::AYM
 {
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
   PACK_PRE struct FYMHeader
   {
@@ -35,7 +35,7 @@ namespace Devices::AYM
     uint32_t IntFreq;
   } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
   class FYMBuilder : public FramedDumpBuilder
@@ -44,8 +44,7 @@ namespace Devices::AYM
     explicit FYMBuilder(FYMDumperParameters::Ptr params)
       : Params(std::move(params))
       , Delegate(CreateRawDumpBuilder())
-    {
-    }
+    {}
 
     void Initialize() override
     {
@@ -68,6 +67,7 @@ namespace Devices::AYM
     {
       return Delegate->WriteFrame(framesPassed, state, update);
     }
+
   private:
     void GetUnpackedResult(Dump& result) const
     {
@@ -102,6 +102,7 @@ namespace Devices::AYM
       }
       builder.CaptureResult(result);
     }
+
   private:
     const FYMDumperParameters::Ptr Params;
     const FramedDumpBuilder::Ptr Delegate;
@@ -112,4 +113,4 @@ namespace Devices::AYM
     const FramedDumpBuilder::Ptr builder = MakePtr<FYMBuilder>(params);
     return CreateDumper(params, builder);
   }
-}
+}  // namespace Devices::AYM

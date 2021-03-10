@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  Raw stream dumper implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Raw stream dumper implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "devices/aym/dumper/dump_builder.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <iterator>
 
@@ -25,7 +25,7 @@ namespace Devices::AYM
     {
       NO_R13 = 0xff
     };
-    
+
     void Initialize() override
     {
       Data.clear();
@@ -64,6 +64,7 @@ namespace Devices::AYM
       const uint8_t* const rawStart = &fixedState[Registers::TONEA_L];
       std::copy(rawStart, rawStart + Registers::TOTAL, inserter);
     }
+
   private:
     Dump Data;
   };
@@ -78,4 +79,4 @@ namespace Devices::AYM
     const FramedDumpBuilder::Ptr builder = CreateRawDumpBuilder();
     return CreateDumper(params, builder);
   }
-}
+}  // namespace Devices::AYM

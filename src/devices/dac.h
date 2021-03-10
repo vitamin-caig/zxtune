@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  DAC-based devices support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC-based devices support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
-#include <devices/state.h>
+// library includes
 #include <devices/dac/sample.h>
+#include <devices/state.h>
 #include <sound/mixer.h>
 #include <time/instant.h>
 
-//supporting for multichannel sample-based DAC
+// supporting for multichannel sample-based DAC
 namespace Devices
 {
   namespace DAC
@@ -36,8 +36,7 @@ namespace Devices
         , SampleNum()
         , PosInSample()
         , Level()
-      {
-      }
+      {}
 
       enum Flags
       {
@@ -145,5 +144,5 @@ namespace Devices
     /// Virtual constructors
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::ThreeChannelsMixer::Ptr mixer);
     Chip::Ptr CreateChip(ChipParameters::Ptr params, Sound::FourChannelsMixer::Ptr mixer);
-  }
-}
+  }  // namespace DAC
+}  // namespace Devices

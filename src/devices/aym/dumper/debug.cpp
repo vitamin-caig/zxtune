@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  Debug stream dumper implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Debug stream dumper implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "devices/aym/dumper/dump_builder.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//std includes
+// std includes
 #include <algorithm>
 
 namespace
@@ -21,7 +21,7 @@ namespace
   {
     return sym >= 10 ? 'A' + sym - 10 : '0' + sym;
   }
-}
+}  // namespace
 
 namespace Devices::AYM
 {
@@ -30,9 +30,8 @@ namespace Devices::AYM
   public:
     DebugDumpBuilder()
       : FrameNumber()
-    {
-    }
-    
+    {}
+
     void Initialize() override
     {
       static const String HEADER("000102030405060708090a0b0c0d\n");
@@ -62,6 +61,7 @@ namespace Devices::AYM
       AddData(str);
       AddEndOfFrame();
     }
+
   private:
     void AddNochangesMessage()
     {
@@ -79,6 +79,7 @@ namespace Devices::AYM
       Data.push_back('\n');
       ++FrameNumber;
     }
+
   private:
     Dump Data;
     uint_t FrameNumber;
@@ -89,4 +90,4 @@ namespace Devices::AYM
     const FramedDumpBuilder::Ptr builder = MakePtr<DebugDumpBuilder>();
     return CreateDumper(params, builder);
   }
-}
+}  // namespace Devices::AYM

@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  SAA device implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SAA device implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "generators.h"
-//library includes
+// library includes
 #include <devices/details/analysis_map.h>
 
 namespace Devices
@@ -37,8 +37,7 @@ namespace Devices
         , Noise()
         , Envelope()
         , Levels()
-      {
-      }
+      {}
 
       void SetLevel(uint_t generator, uint_t left, uint_t right)
       {
@@ -142,6 +141,7 @@ namespace Devices
           state.Set(analyser.GetBandByPeriod(period), toneLevels[2]);
         }
       }
+
     private:
       void UpdateLinkedGenerators(uint_t generator)
       {
@@ -154,6 +154,7 @@ namespace Devices
           Envelope.SetPeriod(Tones[1].GetHalfPeriod());
         }
       }
+
     private:
       ToneGenerator Tones[3];
       NoiseGenerator Noise;
@@ -166,8 +167,7 @@ namespace Devices
     public:
       SAADevice()
         : Subdevices()
-      {
-      }
+      {}
 
       void SetLevel(uint_t generator, uint_t left, uint_t right)
       {
@@ -247,13 +247,14 @@ namespace Devices
         return out.Convert();
       }
 
-    void GetState(const Details::AnalysisMap& analysis, DeviceState& state) const
-    {
-      Subdevices[0].GetState(analysis, state);
-      Subdevices[1].GetState(analysis, state);
-    }
+      void GetState(const Details::AnalysisMap& analysis, DeviceState& state) const
+      {
+        Subdevices[0].GetState(analysis, state);
+        Subdevices[1].GetState(analysis, state);
+      }
+
     private:
       SAASubDevice Subdevices[2];
     };
-  }
-}
+  }  // namespace SAA
+}  // namespace Devices

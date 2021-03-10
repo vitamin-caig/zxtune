@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM-based chips base implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM-based chips base implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "renderers.h"
 #include "volume_table.h"
-//library includes
+// library includes
 #include <devices/details/analysis_map.h>
 #include <parameters/tracking_helper.h>
 
@@ -80,7 +80,7 @@ namespace Devices::AYM
       Sound::Chunk result;
       if (RenderedData.empty())
       {
-        result = Renderers.Render(stamp, Clock.SamplesTill(stamp)); 
+        result = Renderers.Render(stamp, Clock.SamplesTill(stamp));
       }
       else
       {
@@ -98,6 +98,7 @@ namespace Devices::AYM
       PSG.GetState(Analyser, res);
       return res;
     }
+
   private:
     void SynchronizeParameters()
     {
@@ -114,6 +115,7 @@ namespace Devices::AYM
         VolTable.SetParameters(Params->Type(), Params->Layout(), *Mixer);
       }
     }
+
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
     const MixerType::Ptr Mixer;
@@ -124,4 +126,4 @@ namespace Devices::AYM
     RenderersSet<typename Traits::PSGType> Renderers;
     Sound::Chunk RenderedData;
   };
-}
+}  // namespace Devices::AYM

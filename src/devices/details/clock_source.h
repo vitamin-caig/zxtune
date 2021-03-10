@@ -1,12 +1,12 @@
 /**
-* 
-* @file
-*
-* @brief  Sound devices clock source
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Sound devices clock source
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
@@ -20,14 +20,14 @@ namespace Devices
     class ClockSource
     {
       typedef Math::FixedPoint<uint_t, 65536u> FastFixedPoint;
+
     public:
       typedef Math::FixedPoint<typename StampType::ValueType, 65536u> FixedPoint;
       typedef FixedPoint FastStamp;
 
       ClockSource()
         : SoundFreq()
-      {
-      }
+      {}
 
       void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
       {
@@ -91,7 +91,7 @@ namespace Devices
 
       uint_t AdvanceTimeToNextSample()
       {
-        //synchronization point
+        // synchronization point
         const uint_t res = AdvanceTime(NextSampleTime);
         NextSampleTime = CurPsgTime;
         return res;
@@ -110,6 +110,7 @@ namespace Devices
           return 0;
         }
       }
+
     private:
       void CommitSample()
       {
@@ -123,6 +124,7 @@ namespace Devices
         TicksDelta = FastFixedPoint(TicksDelta.Fraction(), FastFixedPoint::PRECISION);
         return res;
       }
+
     private:
       uint_t SoundFreq;
       FastStamp NextSampleTime;
@@ -130,10 +132,10 @@ namespace Devices
       FixedPoint SampleFreq;
       FastStamp CurPsgTime;
       FixedPoint PsgFreq;
-      //tick error accumulator
+      // tick error accumulator
       FastFixedPoint TicksDelta;
       //
       FastFixedPoint TicksPerSample;
     };
-  }
-}
+  }  // namespace Details
+}  // namespace Devices

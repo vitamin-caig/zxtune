@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  PSG-based renderers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  PSG-based renderers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <devices/details/clock_source.h>
 #include <sound/lpfilter.h>
 
@@ -46,13 +46,13 @@ namespace Devices::Details
   class BaseRenderer : public Renderer<StampType>
   {
     typedef typename ClockSource<StampType>::FastStamp FastStamp;
+
   public:
     template<class ParameterType>
     BaseRenderer(ClockSource<StampType>& clock, ParameterType& psg)
       : Clock(clock)
       , PSG(psg)
-    {
-    }
+    {}
 
     Sound::Chunk Render(StampType tillTime, uint_t samples) override
     {
@@ -77,6 +77,7 @@ namespace Devices::Details
       }
       StartNextSample(end);
     }
+
   private:
     void FinishPreviousSample(Sound::Chunk* target)
     {
@@ -113,6 +114,7 @@ namespace Devices::Details
         PSG.Tick(ticksPassed);
       }
     }
+
   protected:
     ClockSource<StampType>& Clock;
     PSGType PSG;
@@ -127,8 +129,7 @@ namespace Devices::Details
   public:
     explicit LQWrapper(PSGType& delegate)
       : Delegate(delegate)
-    {
-    }
+    {}
 
     void Tick(uint_t ticks)
     {
@@ -139,6 +140,7 @@ namespace Devices::Details
     {
       return Delegate.GetLevels();
     }
+
   private:
     PSGType& Delegate;
   };
@@ -148,12 +150,11 @@ namespace Devices::Details
   */
   template<class PSGType>
   class MQWrapper
-  { 
+  {
   public:
     explicit MQWrapper(PSGType& delegate)
       : Delegate(delegate)
-    {
-    }
+    {}
 
     void Tick(uint_t ticks)
     {
@@ -165,6 +166,7 @@ namespace Devices::Details
       const Sound::Sample curLevel = Delegate.GetLevels();
       return Interpolate(curLevel);
     }
+
   private:
     Sound::Sample Interpolate(Sound::Sample newLevel) const
     {
@@ -182,26 +184,25 @@ namespace Devices::Details
     {
       return Sound::Sample(Average(first.Left(), second.Left()), Average(first.Right(), second.Right()));
     }
+
   private:
     PSGType& Delegate;
     mutable Sound::Sample PrevLevel;
   };
 
-  
   /*
     Decimation is performed after 2-order IIR LPF
     Cutoff freq of LPF should be less than Nyquist frequency of target signal
   */
   const uint_t SOUND_CUTOFF_FREQUENCY = 9500;
-  
+
   template<class PSGType>
   class HQWrapper
   {
   public:
     explicit HQWrapper(PSGType& delegate)
       : Delegate(delegate)
-    {
-    }
+    {}
 
     void SetClockFrequency(uint64_t clockFreq)
     {
@@ -221,31 +222,33 @@ namespace Devices::Details
     {
       return Filter.Get();
     }
+
   private:
     PSGType& Delegate;
     Sound::LPFilter Filter;
-  };   
+  };
 
   template<class StampType, class PSGType>
   class LQRenderer : public BaseRenderer<StampType, LQWrapper<PSGType> >
   {
     typedef BaseRenderer<StampType, LQWrapper<PSGType> > Parent;
+
   public:
     LQRenderer(ClockSource<StampType>& clock, PSGType& psg)
       : Parent(clock, psg)
-    {
-    }
+    {}
   };
 
   template<class StampType, class PSGType>
   class MQRenderer : public BaseRenderer<StampType, MQWrapper<PSGType> >
   {
     typedef BaseRenderer<StampType, MQWrapper<PSGType> > Parent;
+
   public:
     MQRenderer(ClockSource<StampType>& clock, PSGType& psg)
       : Parent(clock, psg)
-    {
-    }
+    {}
+
   private:
   };
 
@@ -253,15 +256,15 @@ namespace Devices::Details
   class HQRenderer : public BaseRenderer<StampType, HQWrapper<PSGType> >
   {
     typedef BaseRenderer<StampType, HQWrapper<PSGType> > Parent;
+
   public:
     HQRenderer(ClockSource<StampType>& clock, PSGType& psg)
       : Parent(clock, psg)
-    {
-    }
+    {}
 
     void SetClockFrequency(uint64_t clockFreq)
     {
       Parent::PSG.SetClockFrequency(clockFreq);
     }
   };
-}
+}  // namespace Devices::Details

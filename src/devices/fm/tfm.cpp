@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  TurboFM chips implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TurboFM chips implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "chip.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <devices/tfm.h>
-//std includes
+// std includes
 #include <functional>
 
 namespace Devices::TFM
@@ -54,7 +54,7 @@ namespace Devices::TFM
       auto* const outRaw = safe_ptr_cast<FM::Details::YM2203SampleType*>(result.data());
       ::YM2203UpdateOne(Chips[0].get(), outRaw, count);
       ::YM2203UpdateOne(Chips[1].get(), outRaw, count);
-      std::transform(outRaw, outRaw + count, outRaw, [](FM::Details::YM2203SampleType s) {return s / 2;});
+      std::transform(outRaw, outRaw + count, outRaw, [](FM::Details::YM2203SampleType s) { return s / 2; });
       Helper.ConvertSamples(outRaw, outRaw + count, result.data());
       return result;
     }
@@ -70,6 +70,7 @@ namespace Devices::TFM
       Helper.ConvertState(attenuations.data(), periods.data(), res);
       return res;
     }
+
   private:
     FM::Details::ChipAdapterHelper Helper;
     std::array<FM::Details::ChipPtr, TFM::CHIPS> Chips;
@@ -89,4 +90,4 @@ namespace Devices::TFM
   {
     return MakePtr<TFMChip>(std::move(params));
   }
-}
+}  // namespace Devices::TFM

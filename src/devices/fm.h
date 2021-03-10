@@ -1,23 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief  FM support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FM support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <data_streaming.h>
 #include <types.h>
-//library includes
+// library includes
 #include <devices/state.h>
 #include <sound/chunk.h>
 #include <time/instant.h>
-//std includes
+// std includes
 #include <array>
 
 namespace Devices
@@ -34,13 +34,11 @@ namespace Devices
     public:
       Register()
         : Val()
-      {
-      }
+      {}
 
       Register(uint_t idx, uint_t val)
         : Val((idx << 8) | val)
-      {
-      }
+      {}
 
       uint_t Index() const
       {
@@ -51,6 +49,7 @@ namespace Devices
       {
         return Val & 0xff;
       }
+
     protected:
       uint_t Val;
     };
@@ -59,9 +58,9 @@ namespace Devices
 
     struct DataChunk
     {
-      DataChunk() : TimeStamp()
-      {
-      }
+      DataChunk()
+        : TimeStamp()
+      {}
 
       Stamp TimeStamp;
       Registers Data;
@@ -81,7 +80,9 @@ namespace Devices
     };
 
     // Describes real device
-    class Chip : public Device, public StateSource
+    class Chip
+      : public Device
+      , public StateSource
     {
     public:
       using Ptr = std::shared_ptr<Chip>;
@@ -104,5 +105,5 @@ namespace Devices
 
     /// Virtual constructors
     Chip::Ptr CreateChip(ChipParameters::Ptr params);
-  }
-}
+  }  // namespace FM
+}  // namespace Devices

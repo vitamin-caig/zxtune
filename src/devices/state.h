@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  Device state source interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Device state source interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <math/fixedpoint.h>
-//std includes
-#include <memory>
+// std includes
 #include <array>
+#include <memory>
 
 namespace Devices
 {
@@ -40,4 +40,4 @@ namespace Devices
 
     virtual DeviceState GetState() const = 0;
   };
-}
+}  // namespace Devices

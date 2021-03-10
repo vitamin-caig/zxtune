@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM device bus implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM device bus implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "device.h"
 #include "volume_table.h"
-//library includes
+// library includes
 #include <devices/details/analysis_map.h>
 
 namespace Devices::AYM
@@ -46,10 +46,10 @@ namespace Devices::AYM
 
     void SetNewData(const Registers& data)
     {
-      const uint_t REGS_4BIT_SET = (1 << Registers::TONEA_H) | (1 << Registers::TONEB_H) |
-        (1 << Registers::TONEC_H) | (1 << Registers::ENV);
-      const uint_t REGS_5BIT_SET = (1 << Registers::TONEN) | (1 << Registers::VOLA) |
-        (1 << Registers::VOLB) | (1 << Registers::VOLC);
+      const uint_t REGS_4BIT_SET = (1 << Registers::TONEA_H) | (1 << Registers::TONEB_H) | (1 << Registers::TONEC_H)
+                                   | (1 << Registers::ENV);
+      const uint_t REGS_5BIT_SET = (1 << Registers::TONEN) | (1 << Registers::VOLA) | (1 << Registers::VOLB)
+                                   | (1 << Registers::VOLC);
 
       uint_t used = 0;
       for (Registers::IndicesIterator it(data); it; ++it)
@@ -57,13 +57,13 @@ namespace Devices::AYM
         const Registers::Index reg = *it;
         if (!data.Has(reg))
         {
-          //no new data
+          // no new data
           continue;
         }
-        //copy registers
+        // copy registers
         uint8_t val = data[reg];
         const uint_t mask = 1 << reg;
-        //limit values
+        // limit values
         if (mask & REGS_4BIT_SET)
         {
           val &= 0x0f;
@@ -125,31 +125,30 @@ namespace Devices::AYM
       const LevelType COMMON_LEVEL_DELTA(1, TONE_VOICES);
       const LevelType EMPTY_LEVEL;
       LevelType noiseLevel, envLevel;
-      //taking into account only periodic envelope
+      // taking into account only periodic envelope
       const bool periodicEnv = 0 != ((1 << GetEnvType()) & ((1 << 8) | (1 << 10) | (1 << 12) | (1 << 14)));
       const uint_t mixer = ~GetMixer();
-      for (uint_t chan = 0; chan != TONE_VOICES; ++chan) 
+      for (uint_t chan = 0; chan != TONE_VOICES; ++chan)
       {
         const uint_t volReg = Regs[Registers::VOLA + chan];
         const bool hasNoise = 0 != (mixer & (uint_t(Registers::MASK_NOISEA) << chan));
         const bool hasTone = 0 != (mixer & (uint_t(Registers::MASK_TONEA) << chan));
         const bool hasEnv = 0 != (volReg & Registers::MASK_ENV);
-        //accumulate level in noise channel
+        // accumulate level in noise channel
         if (hasNoise)
         {
           noiseLevel += COMMON_LEVEL_DELTA;
         }
-        //accumulate level in envelope channel      
+        // accumulate level in envelope channel
         if (hasEnv)
-        {        
+        {
           envLevel += COMMON_LEVEL_DELTA;
         }
-        //calculate tone channel
+        // calculate tone channel
         if (hasTone)
         {
           const uint_t MAX_VOL = Registers::MASK_VOL;
-          const uint_t period = 2 * (256 * Regs[Registers::TONEA_H + chan * 2] +
-            Regs[Registers::TONEA_L + chan * 2]);
+          const uint_t period = 2 * (256 * Regs[Registers::TONEA_H + chan * 2] + Regs[Registers::TONEA_L + chan * 2]);
           const LevelType level(volReg & Registers::MASK_VOL, MAX_VOL);
           state.Set(analyzer.GetBandByPeriod(period), level);
         }
@@ -160,10 +159,11 @@ namespace Devices::AYM
       }
       if (periodicEnv && envLevel != EMPTY_LEVEL)
       {
-        //periodic envelopes has 32 steps, so multiply period to 32
+        // periodic envelopes has 32 steps, so multiply period to 32
         state.Set(analyzer.GetBandByPeriod(32 * GetToneE()), envLevel);
-      }  
+      }
     }
+
   private:
     uint_t GetMixer() const
     {
@@ -187,7 +187,7 @@ namespace Devices::AYM
 
     uint_t GetToneN() const
     {
-      return 2 * std::max<uint_t>(1, Regs[Registers::TONEN]);//for optimization
+      return 2 * std::max<uint_t>(1, Regs[Registers::TONEN]);  // for optimization
     }
 
     uint_t GetToneE() const
@@ -199,11 +199,12 @@ namespace Devices::AYM
     {
       return Regs[Registers::ENV];
     }
+
   private:
     const MultiVolumeTable& Table;
-    //registers state
+    // registers state
     std::array<uint_t, Registers::TOTAL> Regs;
-    //device
+    // device
     AYMDevice Device;
   };
-}
+}  // namespace Devices::AYM

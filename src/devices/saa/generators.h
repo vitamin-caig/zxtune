@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  SAA chip generators implementation
-*
-* @author vitamin.caig@gmail.com
-*
-* @note Based on sources of PerfectZX emulator
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SAA chip generators implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ * @note Based on sources of PerfectZX emulator
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <devices/saa.h>
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <array>
 
 namespace Devices
@@ -32,13 +32,11 @@ namespace Devices
     public:
       FastSample()
         : Value()
-      {
-      }
+      {}
 
       FastSample(uint_t left, uint_t right)
         : Value(left | (right << 16))
-      {
-      }
+      {}
 
       uint_t Left() const
       {
@@ -59,16 +57,18 @@ namespace Devices
       {
         return Sound::Sample(ToSample(Left()), ToSample(Right()));
       }
+
     private:
       static Sound::Sample::Type ToSample(uint_t idx)
       {
         return Sound::Sample::MID + (idx << 8) + (idx << 5);
       }
+
     private:
       uint_t Value;
     };
 
-    //PSG-related functionality
+    // PSG-related functionality
     class ToneGenerator
     {
     public:
@@ -110,9 +110,9 @@ namespace Devices
 
       uint_t GetHalfPeriod() const
       {
-        //octave0: 31Hz...61Hz, full period is 258064(0x3f010) .. 141147(0x2004b)
+        // octave0: 31Hz...61Hz, full period is 258064(0x3f010) .. 141147(0x2004b)
         //...
-        //octave7: 3910Hz...7810Hz, full period is 2046(0x7fe) .. 1024 (0x400)
+        // octave7: 3910Hz...7810Hz, full period is 2046(0x7fe) .. 1024 (0x400)
         return (511 - Frequency) << (8 - Octave);
       }
 
@@ -131,6 +131,7 @@ namespace Devices
       {
         return Masked;
       }
+
     private:
       void UpdatePeriod()
       {
@@ -155,10 +156,10 @@ namespace Devices
 
       void WrapCounter() const
       {
-        //Some of the hardware platforms has no native div/mod operations, so it's better to substract.
-        //In any case, it's better than sequental incremental/comparing
+        // Some of the hardware platforms has no native div/mod operations, so it's better to substract.
+        // In any case, it's better than sequental incremental/comparing
         const uint_t mask = FullPeriod - 1;
-        //if power of two
+        // if power of two
         if (0 == (FullPeriod & mask))
         {
           Counter &= mask;
@@ -171,6 +172,7 @@ namespace Devices
           }
         }
       }
+
     private:
       bool Masked;
       uint_t Frequency;
@@ -187,8 +189,7 @@ namespace Devices
         : Period(1)
         , Counter(0)
         , Index(0)
-      {
-      }
+      {}
 
       void Reset()
       {
@@ -207,6 +208,7 @@ namespace Devices
       {
         Counter += ticks;
       }
+
     protected:
       void UpdateIndex() const
       {
@@ -231,6 +233,7 @@ namespace Devices
           }
         }
       }
+
     protected:
       uint_t Period;
       mutable uint_t Counter;
@@ -245,8 +248,7 @@ namespace Devices
         , ExternalPeriod(1)
         , Mixer()
         , Seed(0)
-      {
-      }
+      {}
 
       void Reset()
       {
@@ -306,6 +308,7 @@ namespace Devices
       {
         return Period;
       }
+
     private:
       void Update() const
       {
@@ -318,6 +321,7 @@ namespace Devices
           Seed |= 0 == bits || 0x8080 == bits;
         }
       }
+
     private:
       uint_t Mode;
       uint_t ExternalPeriod;
@@ -345,8 +349,7 @@ namespace Devices
         , Level()
         , Decay()
         , XorValue()
-      {
-      }
+      {}
 
       void Reset()
       {
@@ -360,7 +363,7 @@ namespace Devices
 
       void SetControl(uint_t ctrl)
       {
-        //TODO: implement external clocking
+        // TODO: implement external clocking
         XorValue = 0 != (ctrl & 0x01) ? HIGH_LEVEL : 0;
         Enabled = 0 != (ctrl & 0x80);
         if (Enabled)
@@ -420,6 +423,7 @@ namespace Devices
         }
         return 0;
       }
+
     private:
       void Update() const
       {
@@ -461,7 +465,7 @@ namespace Devices
           Level = 0;
           Decay = 0;
           break;
-        }    
+        }
       }
 
       static uint_t Scale(uint_t lh, uint_t rh)
@@ -471,9 +475,9 @@ namespace Devices
 
       uint_t GetSteps() const
       {
-        return Decay > 0 ? MAX_VALUE / Decay
-          : (Decay < 0 ? MAX_VALUE / -Decay : 1);
+        return Decay > 0 ? MAX_VALUE / Decay : (Decay < 0 ? MAX_VALUE / -Decay : 1);
       }
+
     private:
       bool Enabled;
       uint_t Type;
@@ -481,5 +485,5 @@ namespace Devices
       mutable int_t Decay;
       uint_t XorValue;
     };
-  }
-}
+  }  // namespace SAA
+}  // namespace Devices

@@ -1,23 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief  Frequency table helper class
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Frequency table helper class
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <math/fixedpoint.h>
 
 namespace Devices
 {
   namespace Details
   {
-    //in centiHz
+    // in centiHz
     typedef Math::FixedPoint<int_t, 100> Frequency;
 
     class FreqTable
@@ -27,7 +27,8 @@ namespace Devices
 
       static Frequency GetHalftoneFrequency(uint_t halftones)
       {
-        //http://www.phy.mtu.edu/~suits/notefreqs.html
+        // http://www.phy.mtu.edu/~suits/notefreqs.html
+        // clang-format off
         static const Frequency NOTES[SIZE] =
         {
         //C           C#/Db       D           D#/Eb       E           F           F#/Gb       G           G#/Ab       A           A#/Bb       B
@@ -48,13 +49,15 @@ namespace Devices
           //octave8
           CHz(418601),CHz(443492),CHz(469864),CHz(497803),CHz(527405),CHz(558766),CHz(591991),CHz(627192),CHz(664488),CHz(704000),CHz(745862),CHz(790214)
         };
+        // clang-format on
         return NOTES[halftones];
       }
+
     private:
       static inline Frequency CHz(uint_t frq)
       {
         return Frequency(frq, Frequency::PRECISION);
       }
     };
-  }
-}
+  }  // namespace Details
+}  // namespace Devices

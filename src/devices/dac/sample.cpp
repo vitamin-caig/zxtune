@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  DAC sample implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC sample implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <devices/dac/sample_factories.h>
-//std includes
+// std includes
 #include <cmath>
 #include <cstring>
 #include <numeric>
@@ -23,16 +23,14 @@ namespace Devices::DAC
 
   inline Sound::Sample::Type ToSample(uint_t val)
   {
-    return Sound::Sample::MID + val * (Sound::Sample::MAX - Sound::Sample::MID) / (Sound::Sample::MAX - Sound::Sample::MIN);
+    return Sound::Sample::MID
+           + val * (Sound::Sample::MAX - Sound::Sample::MID) / (Sound::Sample::MAX - Sound::Sample::MIN);
   }
 
-  static const Sound::Sample::Type AYVolumeTab[] =
-  {
-    ToSample(0x0000), ToSample(0x0340), ToSample(0x04C0), ToSample(0x06F2),
-    ToSample(0x0A44), ToSample(0x0F13), ToSample(0x1510), ToSample(0x227E),
-    ToSample(0x289F), ToSample(0x414E), ToSample(0x5B21), ToSample(0x7258),
-    ToSample(0x905E), ToSample(0xB550), ToSample(0xD7A0), ToSample(0xFFFF)
-  };
+  static const Sound::Sample::Type AYVolumeTab[] = {
+      ToSample(0x0000), ToSample(0x0340), ToSample(0x04C0), ToSample(0x06F2), ToSample(0x0A44), ToSample(0x0F13),
+      ToSample(0x1510), ToSample(0x227E), ToSample(0x289F), ToSample(0x414E), ToSample(0x5B21), ToSample(0x7258),
+      ToSample(0x905E), ToSample(0xB550), ToSample(0xD7A0), ToSample(0xFFFF)};
 
   inline Sound::Sample::Type FromU8(uint8_t inSample)
   {
@@ -50,7 +48,7 @@ namespace Devices::DAC
   {
     return AYVolumeTab[inSample >> 4];
   }
-}
+}  // namespace Devices::DAC
 
 namespace Devices
 {
@@ -93,6 +91,7 @@ namespace Devices
         }
         return RmsValue;
       }
+
     protected:
       const std::unique_ptr<uint8_t[]> Content;
       const uint8_t* const StartValue;
@@ -100,20 +99,17 @@ namespace Devices
       const std::size_t LoopValue;
       mutable uint_t RmsValue;
     };
-    
+
     class U8Sample : public BaseSample
     {
     public:
       U8Sample(Binary::View content, std::size_t loop)
         : BaseSample(content, loop)
-      {
-      }
+      {}
 
       Sound::Sample::Type Get(std::size_t pos) const override
       {
-        return pos < SizeValue
-          ? FromU8(StartValue[pos])
-          : Sound::Sample::MID;
+        return pos < SizeValue ? FromU8(StartValue[pos]) : Sound::Sample::MID;
       }
     };
 
@@ -122,14 +118,11 @@ namespace Devices
     public:
       U4Sample(Binary::View content, std::size_t loop)
         : BaseSample(content, loop)
-      {
-      }
+      {}
 
       Sound::Sample::Type Get(std::size_t pos) const override
       {
-        return pos < SizeValue
-          ? FromU4Lo(StartValue[pos])
-          : Sound::Sample::MID;
+        return pos < SizeValue ? FromU4Lo(StartValue[pos]) : Sound::Sample::MID;
       }
     };
 
@@ -138,17 +131,14 @@ namespace Devices
     public:
       U4PackedSample(Binary::View content, std::size_t loop)
         : BaseSample(content, loop)
-      {
-      }
+      {}
 
       Sound::Sample::Type Get(std::size_t pos) const override
       {
         if (pos < SizeValue * 2)
         {
           const uint8_t val = StartValue[pos >> 1];
-          return 0 != (pos & 1)
-            ? FromU4Hi(val)
-            : FromU4Lo(val);
+          return 0 != (pos & 1) ? FromU4Hi(val) : FromU4Lo(val);
         }
         else
         {
@@ -176,5 +166,5 @@ namespace Devices
     {
       return MakePtr<U4PackedSample>(content, loop);
     }
-  }
-}
+  }  // namespace DAC
+}  // namespace Devices

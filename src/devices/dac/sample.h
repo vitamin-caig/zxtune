@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  DAC sample interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC sample interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <sound/sample.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Devices
@@ -30,5 +30,5 @@ namespace Devices
       virtual std::size_t Loop() const = 0;
       virtual uint_t Rms() const = 0;
     };
-  }
-}
+  }  // namespace DAC
+}  // namespace Devices

@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM renderers
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM renderers
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <devices/details/renderers.h>
 
 namespace Devices::AYM
@@ -29,8 +29,7 @@ namespace Devices::AYM
       , MQ(clock, psg)
       , HQ(clock, psg)
       , Current()
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -76,6 +75,7 @@ namespace Devices::AYM
     {
       Current->Render(tillTime, target);
     }
+
   private:
     uint64_t ClockFreq;
     uint_t SoundFreq;
@@ -85,4 +85,4 @@ namespace Devices::AYM
     Details::HQRenderer<Stamp, PSGType> HQ;
     Details::Renderer<Stamp>* Current;
   };
-}
+}  // namespace Devices::AYM

@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Data chunks cache helper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Data chunks cache helper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <vector>
 
 namespace Devices
@@ -30,7 +30,7 @@ namespace Devices
       {
         return Buffer.data();
       }
-      
+
       const ChunkType* GetEnd() const
       {
         return GetBegin() + Buffer.size();
@@ -45,8 +45,9 @@ namespace Devices
       {
         return Buffer.empty() ? StampType() : Buffer.back().TimeStamp;
       }
+
     private:
       std::vector<ChunkType> Buffer;
     };
-  }
-}
+  }  // namespace Details
+}  // namespace Devices
