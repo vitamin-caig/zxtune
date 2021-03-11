@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief Playlist context menu interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist context menu interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "playlist/ui/contextmenu.h"
-//qt includes
+// qt includes
 #include <QtCore/QObject>
 
 namespace Playlist
@@ -51,5 +51,5 @@ namespace Playlist
       virtual void ShowPropertiesOfSelected() const = 0;
       virtual void ShuffleAll() const = 0;
     };
-  }
-}
+  }  // namespace UI
+}  // namespace Playlist

@@ -1,29 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  FM chips base implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FM chips base implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "Ym2203_Emu.h"
-//common includes
+// common includes
 #include <contract.h>
-//library includes
-#include <devices/fm.h>
+// library includes
 #include <devices/details/analysis_map.h>
+#include <devices/fm.h>
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
 #include <time/duration.h>
 
-namespace Devices
-{
-namespace FM
+namespace Devices::FM
 {
   namespace Details
   {
@@ -35,6 +33,7 @@ namespace FM
     class ClockSource
     {
       typedef Math::FixedPoint<Stamp::ValueType, Stamp::PER_SECOND> FixedPoint;
+
     public:
       void SetFrequency(uint_t sndFreq)
       {
@@ -59,6 +58,7 @@ namespace FM
         LastTime += Time::Duration<TimeUnit>((FixedPoint(res) / Frequency).Integer());
         return res;
       }
+
     private:
       Stamp LastTime;
       FixedPoint Frequency;
@@ -70,8 +70,7 @@ namespace FM
       ChipAdapterHelper()
         : LastClockrate()
         , LastSoundFreq()
-      {
-      }
+      {}
 
       bool SetNewParams(uint64_t clock, uint_t sndFreq)
       {
@@ -108,6 +107,7 @@ namespace FM
           }
         }
       }
+
     private:
       static Sound::Sample ConvertToSample(YM2203SampleType level)
       {
@@ -115,6 +115,7 @@ namespace FM
         const Sample::WideType val = Math::Clamp<Sample::WideType>(level + Sample::MID, Sample::MIN, Sample::MAX);
         return Sound::Sample(val, val);
       }
+
     private:
       uint64_t LastClockrate;
       uint_t LastSoundFreq;
@@ -158,6 +159,7 @@ namespace FM
         SynchronizeParameters();
         return result;
       }
+
     private:
       void SynchronizeParameters()
       {
@@ -169,11 +171,11 @@ namespace FM
           Clock.SetFrequency(sndFreq);
         }
       }
+
     private:
       Parameters::TrackingHelper<ChipParameters> Params;
       typename ChipTraits::AdapterType Adapter;
       ClockSource Clock;
     };
-  }
-}
-}
+  }  // namespace Details
+}  // namespace Devices::FM

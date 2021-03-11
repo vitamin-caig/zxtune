@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Range-checking helper interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Range-checking helper interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <algorithm>
 #include <cassert>
 #include <memory>
@@ -68,6 +68,7 @@ class AreaController
   typedef std::size_t KeyType;
   typedef std::size_t AddrType;
   typedef std::vector<AddrType> Area2AddrMap;
+
 public:
   enum
   {
@@ -91,16 +92,14 @@ public:
     const AddrType begin = Areas[key];
     if (Undefined == begin)
     {
-      //no such area
+      // no such area
       return 0;
     }
     AddrType res = Undefined;
     for (std::size_t idx = 0; idx < Areas.size(); ++idx)
     {
       const AddrType curAddr = Areas[idx];
-      if (Undefined == curAddr ||
-          curAddr < begin ||
-          idx == key)
+      if (Undefined == curAddr || curAddr < begin || idx == key)
       {
         continue;
       }
@@ -112,6 +111,7 @@ public:
     }
     return res;
   }
+
 private:
   Area2AddrMap Areas;
 };

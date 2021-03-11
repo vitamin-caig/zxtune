@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  Zip test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Zip test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../utils.h"
 
@@ -17,17 +17,17 @@ namespace
     Dump etalon;
     Test::OpenFile("etalon.bin", etalon);
     Dump zip;
-    //0ffsets:
-    //0
-    //0x4035
-    //0x6160
-    //0x826e
-    //0xa36e
-    //0xc433
-    //0xe4e9
-    //0x105a2
-    //0x1265a
-    //0x1470b
+    // 0ffsets:
+    // 0
+    // 0x4035
+    // 0x6160
+    // 0x826e
+    // 0xa36e
+    // 0xc433
+    // 0xe4e9
+    // 0x105a2
+    // 0x1265a
+    // 0x1470b
     Test::OpenFile("test.zip", zip);
 
     const Formats::Packed::Decoder::Ptr packed = Formats::Packed::CreateZipDecoder();
@@ -82,7 +82,7 @@ namespace
       Test::TestArchived(*archived, "streamed_p9.zip", "streamed_p9_p0.zip", files);
     }
   }
-}
+}  // namespace
 
 int main()
 {

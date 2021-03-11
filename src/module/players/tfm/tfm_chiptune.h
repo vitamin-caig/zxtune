@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  TFM-based chiptunes support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TFM-based chiptunes support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <devices/tfm.h>
-#include <parameters/accessor.h>
 #include <module/information.h>
 #include <module/players/iterator.h>
+#include <parameters/accessor.h>
 
 namespace Module
 {
@@ -44,5 +44,5 @@ namespace Module
       virtual Parameters::Accessor::Ptr GetProperties() const = 0;
       virtual DataIterator::Ptr CreateDataIterator() const = 0;
     };
-  }
-}
+  }  // namespace TFM
+}  // namespace Module

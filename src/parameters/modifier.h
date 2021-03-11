@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Parameters modifier interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters modifier interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/visitor.h>
 
 namespace Parameters
@@ -24,4 +24,4 @@ namespace Parameters
     //! Remove parameter
     virtual void RemoveValue(const NameType& name) = 0;
   };
-}
+}  // namespace Parameters

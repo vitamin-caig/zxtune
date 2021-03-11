@@ -1,38 +1,35 @@
 /**
-* 
-* @file
-*
-* @brief  TurboFM Compiled chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TurboFM Compiled chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/tfm/tfc.h"
 #include "module/players/tfm/tfm_base_stream.h"
-//common includes
+// common includes
 #include <iterator.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <formats/chiptune/fm/tfc.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
-//text includes
+// text includes
 #include <core/text/plugins.h>
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace TFC
+namespace Module::TFC
 {
   class ChannelData
   {
   public:
     ChannelData()
       : Loop()
-    {
-    }
+    {}
 
     void AddFrame()
     {
@@ -70,21 +67,22 @@ namespace TFC
     {
       return Offsets.size();
     }
+
   private:
     std::vector<std::size_t> Offsets;
     Devices::FM::Registers Data;
     std::size_t Loop;
   };
-  
+
   class ModuleData : public TFM::StreamModel
   {
   public:
     typedef std::shared_ptr<ModuleData> RWPtr;
-    
+
     uint_t GetTotalFrames() const override
     {
-      return static_cast<uint_t>(std::max({Data[0].GetSize(), Data[1].GetSize(), Data[2].GetSize(),
-        Data[3].GetSize(), Data[4].GetSize(), Data[5].GetSize()}));
+      return static_cast<uint_t>(std::max({Data[0].GetSize(), Data[1].GetSize(), Data[2].GetSize(), Data[3].GetSize(),
+                                           Data[4].GetSize(), Data[5].GetSize()}));
     }
 
     uint_t GetLoopFrame() const override
@@ -105,13 +103,14 @@ namespace TFC
       }
       res.swap(result);
     }
-    
+
     ChannelData& GetChannel(uint_t channel)
     {
       return Data[channel];
     }
+
   private:
-    std::array<ChannelData, 6> Data;  
+    std::array<ChannelData, 6> Data;
   };
 
   class DataBuilder : public Formats::Chiptune::TFC::Builder
@@ -122,8 +121,7 @@ namespace TFC
       , Data(MakeRWPtr<ModuleData>())
       , Channel(0)
       , Frequency()
-    {
-    }
+    {}
 
     void SetVersion(const String& version) override
     {
@@ -214,11 +212,13 @@ namespace TFC
     {
       return FrameDuration;
     }
+
   private:
     ChannelData& GetChannel()
     {
       return Data->GetChannel(Channel);
     }
+
   private:
     PropertiesHelper& Properties;
     const ModuleData::RWPtr Data;
@@ -230,7 +230,8 @@ namespace TFC
   class Factory : public TFM::Factory
   {
   public:
-    TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    TFM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -252,5 +253,4 @@ namespace TFC
   {
     return MakePtr<Factory>();
   }
-}
-}
+}  // namespace Module::TFC

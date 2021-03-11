@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Lexic analyser interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Lexic analyser interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <math/bitops.h>
-//std includes
+// std includes
 #include <cassert>
 #include <memory>
 
@@ -24,31 +24,30 @@ namespace LexicalAnalysis
 
   const TokenType INVALID_TOKEN = TokenType(-1);
   const TokenType INCOMPLETE_TOKEN = TokenType(-2);
-  
+
   class TokenTypesSet
   {
   public:
     TokenTypesSet()
       : Mask()
-    {
-    }
-    
+    {}
+
     void Add(TokenType type)
     {
       assert(type < 8 * sizeof(Mask));
       Mask |= 1 << type;
     }
-    
+
     bool Empty() const
     {
       return Mask == 0;
     }
-    
+
     std::size_t Size() const
     {
       return Math::CountBits(Mask);
     }
-    
+
     TokenType GetFirst() const
     {
       assert(!Empty());
@@ -59,11 +58,12 @@ namespace LexicalAnalysis
       }
       return res;
     }
-    
+
     bool Contains(TokenType type) const
     {
       return 0 != (Mask & (1 << type));
     }
+
   private:
     uint_t Mask;
   };
@@ -85,7 +85,7 @@ namespace LexicalAnalysis
     virtual ~Grammar() = default;
 
     virtual void AddTokenizer(Tokenizer::Ptr src) = 0;
-    
+
     class Callback
     {
     public:
@@ -99,4 +99,4 @@ namespace LexicalAnalysis
   };
 
   Grammar::RWPtr CreateContextIndependentGrammar();
-}
+}  // namespace LexicalAnalysis

@@ -1,42 +1,40 @@
 /**
-* 
-* @file
-*
-* @brief  SampleTracker support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SampleTracker support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "formats/chiptune/digital/digital_detail.h"
+// local includes
 #include "formats/chiptune/digital/sampletracker.h"
 #include "formats/chiptune/container.h"
-//common includes
+#include "formats/chiptune/digital/digital_detail.h"
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace SampleTracker
   {
     const Debug::Stream Dbg("Formats::Chiptune::SampleTracker");
 
-    //const std::size_t MAX_MODULE_SIZE = 0x87a0;
+    // const std::size_t MAX_MODULE_SIZE = 0x87a0;
     const std::size_t MAX_POSITIONS_COUNT = 0x40;
     const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t PATTERNS_COUNT = 16;
@@ -44,7 +42,7 @@ namespace Chiptune
     const std::size_t SAMPLES_COUNT = 16;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct Pattern
     {
@@ -90,7 +88,7 @@ namespace Chiptune
       uint8_t Samples[1];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(Header) == 0x19a1, "Invalid layout");
@@ -109,9 +107,9 @@ namespace Chiptune
     const std::size_t MIN_SIZE = sizeof(Header) + 256;
 
     const uint64_t Z80_FREQ = 3500000;
-    //109+113+113+10=345 ticks/out cycle = 10144 outs/sec
+    // 109+113+113+10=345 ticks/out cycle = 10144 outs/sec
     const uint_t TICKS_PER_CYCLE = 109 + 113 + 113 + 10;
-    //C-1 step 22/256 32.7Hz = ~871 samples/sec
+    // C-1 step 22/256 32.7Hz = ~871 samples/sec
     const uint_t C_1_STEP = 22;
     const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP / TICKS_PER_CYCLE / 256;
 
@@ -124,7 +122,7 @@ namespace Chiptune
         , Ranges(RangeChecker::Create(rawData.Size()))
         , FixedRanges(RangeChecker::Create(rawData.Size()))
       {
-        //info
+        // info
         AddRange(0, offsetof(Header, Samples));
       }
 
@@ -151,7 +149,7 @@ namespace Chiptune
         Digital::Positions positions;
         positions.Lines.resize(positionsCount);
         std::transform(Source.Positions.begin(), Source.Positions.begin() + positionsCount, positions.Lines.begin(),
-          [](auto b) {return b - 1;});
+                       [](auto b) { return b - 1; });
         Dbg("Positions: %1%", positions.GetSize());
         target.SetPositions(std::move(positions));
       }
@@ -195,7 +193,7 @@ namespace Chiptune
         }
         Require(validSamples != 0);
       }
-      
+
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
@@ -205,11 +203,12 @@ namespace Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       static void ParsePattern(const Pattern& src, PatternBuilder& patBuilder, Builder& target)
       {
         const uint_t lastLine = MAX_PATTERN_SIZE - 1;
-        for (uint_t lineNum = 0; lineNum <= lastLine ; ++lineNum)
+        for (uint_t lineNum = 0; lineNum <= lastLine; ++lineNum)
         {
           const Pattern::Line& srcLine = src.Lines[lineNum];
           if (srcLine.Note[0] == Pattern::LIMIT)
@@ -256,15 +255,13 @@ namespace Chiptune
 
       static bool IsEmptyLine(const Pattern::Line& srcLine)
       {
-        return IsEmptyChannel(0, srcLine)
-            && IsEmptyChannel(1, srcLine)
-            && IsEmptyChannel(2, srcLine)
-        ;
+        return IsEmptyChannel(0, srcLine) && IsEmptyChannel(1, srcLine) && IsEmptyChannel(2, srcLine);
       }
 
       static bool IsEmptyChannel(uint_t chan, const Pattern::Line& srcLine)
       {
-        return srcLine.Note[chan] == NOTE_EMPTY && (srcLine.Sample[chan] == SAMPLE_EMPTY || srcLine.Sample[chan] >= SAMPLE_BASE + SAMPLES_COUNT);
+        return srcLine.Note[chan] == NOTE_EMPTY
+               && (srcLine.Sample[chan] == SAMPLE_EMPTY || srcLine.Sample[chan] >= SAMPLE_BASE + SAMPLES_COUNT);
       }
 
       Binary::View GetSample(uint_t samIdx) const
@@ -282,8 +279,7 @@ namespace Chiptune
           return Binary::View(nullptr, 0);
         }
         const std::size_t sampleAvail = std::min(maxSize, RawData.Size() - sampleOffset);
-        Dbg("Sample %1%: start=#%2$04x size=#%3$04x (avail=#%4$04x)", 
-          samIdx, absAddr, maxSize, sampleAvail);
+        Dbg("Sample %1%: start=#%2$04x size=#%3$04x (avail=#%4$04x)", samIdx, absAddr, maxSize, sampleAvail);
         const uint8_t* const sampleStart = Source.Samples + (absAddr - SAMPLES_ADDR);
         const uint8_t* const sampleEnd = std::find(sampleStart, sampleStart + sampleAvail, 0);
         const std::size_t sampleSize = sampleEnd - sampleStart;
@@ -300,6 +296,7 @@ namespace Chiptune
       {
         Require(FixedRanges->AddRange(start, size));
       }
+
     private:
       const Binary::View RawData;
       const Header& Source;
@@ -310,20 +307,17 @@ namespace Chiptune
     bool FastCheck(Binary::View rawData)
     {
       const auto* header = rawData.As<Header>();
-      return header 
-          && header->LastPositionDoubled >= 2
-          && header->LastPositionDoubled <= 128
-          && 0 == (header->LastPositionDoubled & 1)
-      ;
+      return header && header->LastPositionDoubled >= 2 && header->LastPositionDoubled <= 128
+             && 0 == (header->LastPositionDoubled & 1);
     }
 
     const StringView FORMAT(
-      "01-10" //tempo
-      "01-10{64}" //positions
-      "?73-8b"  //first position ptr
-      "?{126}"  //other ptrs
-      "20-7f{10}" //title
-      "%xxxxxxx0" //doubled last position
+        "01-10"      // tempo
+        "01-10{64}"  // positions
+        "?73-8b"     // first position ptr
+        "?{126}"     // other ptrs
+        "20-7f{10}"  // title
+        "%xxxxxxx0"  // doubled last position
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -331,8 +325,7 @@ namespace Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -358,6 +351,7 @@ namespace Chiptune
         Builder& stub = Digital::GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -386,7 +380,8 @@ namespace Chiptune
         Require(format.GetSize() >= MIN_SIZE);
         auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -394,11 +389,10 @@ namespace Chiptune
         return Formats::Chiptune::Container::Ptr();
       }
     }
-  }//namespace SampleTracker
+  }  // namespace SampleTracker
 
   Decoder::Ptr CreateSampleTrackerDecoder()
   {
     return MakePtr<SampleTracker::Decoder>();
   }
-} //namespace Chiptune
-} //namespace Formats
+}  // namespace Formats::Chiptune

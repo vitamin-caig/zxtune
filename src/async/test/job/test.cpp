@@ -1,64 +1,63 @@
 /**
-* 
-* @file
-*
-* @brief Job test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Job test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-#include <error.h>
-#include <pointers.h>
 #include <async/worker.h>
-#include <thread>
+#include <error.h>
 #include <iostream>
+#include <pointers.h>
+#include <thread>
 
 #define FILE_TAG 8D106607
 
 namespace
 {
-	using namespace Async;
-	
-	Error FailedToInitializeError()
+  using namespace Async;
+
+  Error FailedToInitializeError()
   {
     return Error(THIS_LINE, "Failed to initialize");
   }
 
-	Error FailedToFinalizeError()
+  Error FailedToFinalizeError()
   {
     return Error(THIS_LINE, "Failed to finalize");
   }
 
-	Error FailedToSuspendError()
+  Error FailedToSuspendError()
   {
     return Error(THIS_LINE, "Failed to suspend");
   }
 
-	Error FailedToResumeError()
+  Error FailedToResumeError()
   {
     return Error(THIS_LINE, "Failed to resume");
   }
 
-	Error FailedToExecuteError()
+  Error FailedToExecuteError()
   {
     return Error(THIS_LINE, "Failed to execute");
   }
 
-	class TempWorker : public Worker
-	{
-	public:
+  class TempWorker : public Worker
+  {
+  public:
     TempWorker()
       : Finished(true)
-    {
-    }
-    
+    {}
+
     void Initialize() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << InitError << ")" << std::endl;
       ThrowIfError(InitError);
     }
-    
+
     void Finalize() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << FinalError << ")" << std::endl;
@@ -70,7 +69,7 @@ namespace
       std::cerr << " " << __FUNCTION__ << " called (" << SuspendError << ")" << std::endl;
       ThrowIfError(SuspendError);
     }
-    
+
     void Resume() override
     {
       std::cerr << " " << __FUNCTION__ << " called (" << ResumeError << ")" << std::endl;
@@ -84,7 +83,7 @@ namespace
 #endif
       ThrowIfError(ExecError);
     }
-    
+
     bool IsFinished() const override
     {
 #ifndef NDEBUG
@@ -99,7 +98,7 @@ namespace
     Error ResumeError;
     Error ExecError;
     bool Finished;
-	};
+  };
 
   void CheckActive(const Job& job, Error::LocationRef loc)
   {
@@ -133,9 +132,9 @@ namespace
     }
   }
 
-	void TestInvalidWorker()
-	{
-		std::cout << "Test for invalid worker" << std::endl;
+  void TestInvalidWorker()
+  {
+    std::cout << "Test for invalid worker" << std::endl;
     TempWorker worker;
     const Job::Ptr job = CreateJob(Worker::Ptr(&worker, NullDeleter<Worker>()));
     const Error& initErr = FailedToInitializeError();
@@ -143,9 +142,9 @@ namespace
     try
     {
       job->Start();
-			throw Error(THIS_LINE, "Should not start job");
-		}
-		catch (const Error& err)
+      throw Error(THIS_LINE, "Should not start job");
+    }
+    catch (const Error& err)
     {
       if (err != initErr)
       {
@@ -196,9 +195,9 @@ namespace
     }
     CheckNotActive(*job, THIS_LINE);
     std::cout << "Succeed\n";
-	}
+  }
 
-	void TestErrorStopWorker()
+  void TestErrorStopWorker()
   {
     std::cout << "Test for deinit error worker" << std::endl;
     TempWorker worker;
@@ -386,13 +385,13 @@ namespace
     }
     std::cout << "Succeed\n";
   }
-}
+}  // namespace
 
 int main()
 {
   try
   {
-		TestInvalidWorker();
+    TestInvalidWorker();
     TestNoCycleWorker();
     TestErrorCycleWorker();
     TestErrorStopWorker();
@@ -405,7 +404,7 @@ int main()
   }
   catch (const Error& err)
   {
-		std::cout << "Failed: \n";
-		std::cerr << err.ToString();
+    std::cout << "Failed: \n";
+    std::cerr << err.ToString();
   }
 }

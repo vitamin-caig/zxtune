@@ -1,31 +1,31 @@
 /**
-* 
-* @file
-*
-* @brief Sound component interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Sound component interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <module/holder.h>
 #include <parameters/container.h>
 #include <sound/backend.h>
 #include <time/duration.h>
-//std includes
+// std includes
 #include <memory>
 
-//forward declarations
+// forward declarations
 namespace boost
 {
   namespace program_options
   {
     class options_description;
   }
-}
+}  // namespace boost
 
 class SoundComponent
 {
@@ -36,7 +36,8 @@ public:
   virtual void ParseParameters() = 0;
   virtual void Initialize() = 0;
   // functional part
-  virtual Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, const String& typeHint = String(), Sound::BackendCallback::Ptr callback = Sound::BackendCallback::Ptr()) = 0;
+  virtual Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, const String& typeHint = String(),
+                                            Sound::BackendCallback::Ptr callback = Sound::BackendCallback::Ptr()) = 0;
 
   virtual Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const = 0;
 

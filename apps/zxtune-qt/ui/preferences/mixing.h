@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Mixing settings pane interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Mixing settings pane interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//qt includes
+// qt includes
 #include <QtGui/QWidget>
 
 namespace UI
@@ -20,7 +20,8 @@ namespace UI
     Q_OBJECT
   protected:
     explicit MixingSettingsWidget(QWidget& parent);
+
   public:
     static MixingSettingsWidget* Create(QWidget& parent, unsigned channels);
   };
-}
+}  // namespace UI

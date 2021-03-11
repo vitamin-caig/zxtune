@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  SoundTracker tracks dumper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SoundTracker tracks dumper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../../utils.h"
 #include <formats/chiptune/aym/soundtracker.h>
@@ -29,16 +29,19 @@ namespace
     return std::string(TONES + halftone * 2, TONES + halftone * 2 + 2) + char('1' + octave);
   }
 
-  class STDumpBuilder : public Builder, public Formats::Chiptune::MetaBuilder, public Formats::Chiptune::PatternBuilder
+  class STDumpBuilder
+    : public Builder
+    , public Formats::Chiptune::MetaBuilder
+    , public Formats::Chiptune::PatternBuilder
   {
   public:
-    //Builder
+    // Builder
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return *this;
     }
 
-    //MetaBuilder
+    // MetaBuilder
     void SetProgram(const String& program) override
     {
       std::cout << "Program: " << program << std::endl;
@@ -53,12 +56,10 @@ namespace
     {
       std::cout << "Author: " << author << std::endl;
     }
-    
-    void SetStrings(const Strings::Array& /*strings*/) override
-    {
-    }
-    
-    //Builder
+
+    void SetStrings(const Strings::Array& /*strings*/) override {}
+
+    // Builder
     void SetInitialTempo(uint_t tempo) override
     {
       std::cout << "Tempo: " << tempo << std::endl;
@@ -86,13 +87,13 @@ namespace
 
     Formats::Chiptune::PatternBuilder& StartPattern(uint_t index) override
     {
-      //nn C-1 soETT
+      // nn C-1 soETT
       Line = String(33, ' ');
       std::cout << std::endl << "Pattern" << index << ':';
       return *this;
     }
-    
-    //PatternBuilder
+
+    // PatternBuilder
     void Finish(uint_t size) override
     {
       std::cout << Line << std::endl;
@@ -105,12 +106,10 @@ namespace
       Line[0] = '0' + index / 10;
       Line[1] = '0' + index % 10;
     }
-    
-    void SetTempo(uint_t /*tempo*/) override
-    {
-    }
 
-    //Builder
+    void SetTempo(uint_t /*tempo*/) override {}
+
+    // Builder
     void StartChannel(uint_t index) override
     {
       ChanPtr = &Line[3 + index * 10];
@@ -147,6 +146,7 @@ namespace
     {
       ChanPtr[6] = '0';
     }
+
   private:
     String Line;
     Char* ChanPtr;
@@ -171,7 +171,7 @@ namespace
       throw std::runtime_error("Unknown type " + type);
     }
   }
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

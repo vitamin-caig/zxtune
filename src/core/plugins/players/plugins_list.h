@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Player plugins factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Player plugins factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include <core/plugins/player_plugins_registrator.h>
 
 namespace ZXTune
@@ -67,4 +67,4 @@ namespace ZXTune
   void RegisterMPTPlugins(PlayerPluginsRegistrator& registrator);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator);
-}
+}  // namespace ZXTune

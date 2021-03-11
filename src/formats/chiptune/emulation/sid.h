@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  SID support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SID support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -29,8 +29,8 @@ namespace Formats
        * and only for multitrack modules.
        */
       Binary::Container::Ptr FixStartSong(Binary::View data, uint_t idx);
-    }
+    }  // namespace SID
 
     Decoder::Ptr CreateSIDDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

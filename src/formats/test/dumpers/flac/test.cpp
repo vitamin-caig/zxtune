@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  FLAC dumper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FLAC dumper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../../utils.h"
 #include <formats/chiptune/music/flac.h>
@@ -16,29 +16,31 @@ namespace
 {
   using namespace Formats::Chiptune;
 
-  class FlacBuilder : public Flac::Builder, public MetaBuilder
+  class FlacBuilder
+    : public Flac::Builder
+    , public MetaBuilder
   {
   public:
     void SetProgram(const String& program) override
     {
       std::cout << "Program: " << program << std::endl;
     }
-    
+
     void SetTitle(const String& title) override
     {
       std::cout << "Title: " << title << std::endl;
     }
-    
+
     void SetAuthor(const String& author) override
     {
       std::cout << "Author: " << author << std::endl;
     }
-    
+
     void SetStrings(const Strings::Array& strings) override
     {
       for (const auto& str : strings)
       {
-        std::cout << "Strings: " <<  str << std::endl;
+        std::cout << "Strings: " << str << std::endl;
       }
     }
 
@@ -56,7 +58,7 @@ namespace
     {
       std::cout << "FrameSize: " << minimal << "..." << maximal << std::endl;
     }
-    
+
     void SetStreamParameters(uint_t sampleRate, uint_t channels, uint_t bitsPerSample) override
     {
       std::cout << "Frequency: " << sampleRate << std::endl
@@ -86,11 +88,12 @@ namespace
     {
       return FramesCount;
     }
+
   private:
     uint64_t UnpackedSize = 0;
     uint_t FramesCount = 0;
   };
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

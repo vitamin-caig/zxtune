@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief Objects storage
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Objects storage
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "exception.h"
-//common includes
+// common includes
 #include <pointers.h>
-//std includes
+// std includes
 #include <map>
 #include <mutex>
 
@@ -23,11 +23,10 @@ class ObjectsStorage
 {
 public:
   typedef int32_t HandleType;
-  
+
   ObjectsStorage()
     : NextHandle()
-  {
-  }
+  {}
 
   HandleType Add(PtrType obj)
   {
@@ -50,9 +49,7 @@ public:
   {
     const std::lock_guard<std::mutex> guard(Lock);
     const auto it = Storage.find(handle);
-    return it != Storage.end()
-        ? it->second
-        : PtrType();
+    return it != Storage.end() ? it->second : PtrType();
   }
 
   PtrType Fetch(HandleType handle)
@@ -73,11 +70,13 @@ public:
     static ObjectsStorage<PtrType> Self;
     return Self;
   }
+
 private:
   HandleType GetNextHandle()
   {
     return ++NextHandle;
   }
+
 private:
   typedef std::map<HandleType, PtrType> StorageType;
   StorageType Storage;

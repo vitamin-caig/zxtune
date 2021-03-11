@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Render parameters names
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Render parameters names
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
 
 namespace Parameters
@@ -59,25 +59,25 @@ namespace Parameters
       //! Parameter name
       extern const NameType FADEOUT;
       //@}
-      
+
       //@{
       //! @name Gain in percents
       const IntType GAIN_PRECISION = 100;
-      
+
       //! Default value - no gain
       const IntType GAIN_DEFAULT = GAIN_PRECISION;
       //! Parameter name
       extern const NameType GAIN;
       //@}
-      
+
       //@{
       const IntType SILENCE_LIMIT_PRECISION = 1;
-      
+
       //! Default value - no silence detection
       const IntType SILENCE_LIMIT_DEFAULT = 0;
       //! Parameter name
       extern const NameType SILENCE_LIMIT;
       //@}
-    }
-  }
-}
+    }  // namespace Sound
+  }    // namespace ZXTune
+}  // namespace Parameters

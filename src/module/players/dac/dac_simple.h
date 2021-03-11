@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  Simple DAC-based tracks support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Simple DAC-based tracks support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "module/players/dac/dac_base.h"
 #include "module/players/dac/dac_properties_helper.h"
-//library includes
+// library includes
 #include <formats/chiptune/digital/digital.h>
 
 namespace Module
@@ -29,8 +29,7 @@ namespace Module
       explicit SimpleModuleData(uint_t channels)
         : ChannelsCount(channels)
         , InitialTempo()
-      {
-      }
+      {}
 
       uint_t GetChannelsCount() const override
       {
@@ -58,15 +57,16 @@ namespace Module
       PatternsSet::Ptr Patterns;
       SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;
     };
-    
+
     class SimpleDataBuilder : public Formats::Chiptune::Digital::Builder
     {
     public:
       typedef std::unique_ptr<SimpleDataBuilder> Ptr;
-      
+
       virtual SimpleModuleData::Ptr CaptureResult() = 0;
-      
-      static Ptr Create(DAC::PropertiesHelper& props, PatternsBuilder builder, uint_t channels);//TODO: rework external dependency from builder
+
+      static Ptr Create(DAC::PropertiesHelper& props, PatternsBuilder builder,
+                        uint_t channels);  // TODO: rework external dependency from builder
     };
 
     template<uint_t Channels>
@@ -74,7 +74,7 @@ namespace Module
     {
       return SimpleDataBuilder::Create(props, PatternsBuilder::Create<Channels>(), Channels);
     }
-    
+
     DAC::Chiptune::Ptr CreateSimpleChiptune(SimpleModuleData::Ptr data, Parameters::Accessor::Ptr properties);
-  }
-}
+  }  // namespace DAC
+}  // namespace Module

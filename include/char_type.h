@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  Characters type definition
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Characters type definition
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 

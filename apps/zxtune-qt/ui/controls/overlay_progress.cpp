@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief Overlay progress widget implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Overlay progress widget implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "overlay_progress.h"
-//library includes
+// library includes
 #include <time/elapsed.h>
-//std includes
+// std includes
 #include <array>
 #include <cmath>
 #include <utility>
-//qt includes
+// qt includes
 #include <QtGui/QMouseEvent>
 #include <QtGui/QPainter>
 
@@ -53,7 +53,7 @@ namespace
       }
     }
 
-    //QWidget virtuals
+    // QWidget virtuals
     void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
@@ -82,8 +82,8 @@ namespace
       painter.setPen(mask.color());
       painter.drawEllipse(QPoint(0, 0), maxRadius, maxRadius);
       painter.setBrush(QBrush());
-      painter.drawText(-smallRadius, -smallRadius, smallRadius * 2, smallRadius * 2, Qt::AlignHCenter | Qt::AlignVCenter | Qt::TextSingleLine,
-        QString::fromAscii("%1%").arg(Value));
+      painter.drawText(-smallRadius, -smallRadius, smallRadius * 2, smallRadius * 2,
+                       Qt::AlignHCenter | Qt::AlignVCenter | Qt::TextSingleLine, QString::fromAscii("%1%").arg(Value));
 
       const int totalSteps = std::min(STEPS_MAX, Value * STEPS_MAX / 100 + 1);
       painter.drawLines(Lines.data(), totalSteps);
@@ -96,6 +96,7 @@ namespace
         Canceled();
       }
     }
+
   private:
     void SetToolTip()
     {
@@ -104,7 +105,7 @@ namespace
 
     void DoRepaint()
     {
-      //update graph if visible
+      // update graph if visible
       if (isVisible() && RefreshTimeout())
       {
         repaint(rect());
@@ -133,6 +134,7 @@ namespace
         Lines[idx] = QLineF(begin, end);
       }
     }
+
   private:
     const QPalette Palette;
     QPoint Center;
@@ -140,11 +142,11 @@ namespace
     int Value;
     Time::Elapsed RefreshTimeout;
   };
-}
+}  // namespace
 
-OverlayProgress::OverlayProgress(QWidget& parent) : QWidget(&parent)
-{
-}
+OverlayProgress::OverlayProgress(QWidget& parent)
+  : QWidget(&parent)
+{}
 
 OverlayProgress* OverlayProgress::Create(QWidget& parent)
 {

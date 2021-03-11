@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Module renderer interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Module renderer interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <module/analyzer.h>
 #include <module/state.h>
 #include <sound/chunk.h>
@@ -50,4 +50,4 @@ namespace Module
     //! @note It produces only the flush
     virtual void SetPosition(Time::AtMillisecond position) = 0;
   };
-}
+}  // namespace Module

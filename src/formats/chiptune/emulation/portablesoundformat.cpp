@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  Portable Sound Format family support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Portable Sound Format family support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/emulation/portablesoundformat.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/crc.h>
 #include <binary/data_builder.h>
 #include <binary/input_stream.h>
@@ -23,25 +23,21 @@
 #include <strings/prefixed_index.h>
 #include <strings/trim.h>
 #include <time/duration.h>
-//std includes
+// std includes
 #include <cctype>
 #include <set>
 
-namespace Formats
-{
-namespace Chiptune
-{
-namespace PortableSoundFormat
+namespace Formats::Chiptune::PortableSoundFormat
 {
   const Debug::Stream Dbg("Formats::Chiptune::PortableSoundFormat");
 
   const uint8_t SIGNATURE[] = {'P', 'S', 'F'};
-  
+
   namespace Tags
   {
     const uint8_t SIGNATURE[] = {'[', 'T', 'A', 'G', ']'};
     const String LIB_PREFIX = "_lib";
-    
+
     const char UTF8[] = "utf8";
     const char TITLE[] = "title";
     const char ARTIST[] = "artist";
@@ -54,7 +50,7 @@ namespace PortableSoundFormat
     const char LENGTH[] = "length";
     const char FADE[] = "fade";
     const char VOLUME[] = "volume";
-    
+
     static String MakeName(StringView str)
     {
       String res;
@@ -65,16 +61,15 @@ namespace PortableSoundFormat
       }
       return res;
     }
-  }
-  
+  }  // namespace Tags
+
   class Format
   {
   public:
     explicit Format(const Binary::Container& data)
       : Stream(data)
-    {
-    }
-    
+    {}
+
     Container::Ptr Parse(Builder& target)
     {
       ParseSignature(target);
@@ -84,6 +79,7 @@ namespace PortableSoundFormat
       ParseTags(target);
       return CreateCalculatingCrcContainer(Stream.GetReadContainer(), dataStart, dataEnd - dataStart);
     }
+
   private:
     void ParseSignature(Builder& target)
     {
@@ -93,7 +89,7 @@ namespace PortableSoundFormat
       target.SetVersion(version);
       Dbg("Version %1%", version);
     }
-    
+
     void ParseData(Builder& target)
     {
       const auto reservedSize = Stream.ReadLE<uint32_t>();
@@ -112,7 +108,7 @@ namespace PortableSoundFormat
         target.SetPackedProgramSection(std::move(programPacked));
       }
     }
-    
+
     void ParseTags(Builder& target)
     {
       if (!ReadTagSignature())
@@ -127,7 +123,7 @@ namespace PortableSoundFormat
         StringView valueView;
         if (!ReadTagVariable(name, valueView))
         {
-          //Blank lines, or lines not of the form "variable=value", are ignored.
+          // Blank lines, or lines not of the form "variable=value", are ignored.
           continue;
         }
         Dbg("tags[%1%]=%2%", name, valueView);
@@ -141,9 +137,7 @@ namespace PortableSoundFormat
           utf8 = true;
           continue;
         }
-        const auto value = utf8
-          ? valueView.to_string()
-          : Strings::ToAutoUtf8(valueView);
+        const auto value = utf8 ? valueView.to_string() : Strings::ToAutoUtf8(valueView);
         if (name == Tags::TITLE)
         {
           target.SetTitle(value);
@@ -206,7 +200,7 @@ namespace PortableSoundFormat
         target.SetComment(std::move(comment));
       }
     }
-    
+
     bool ReadTagSignature()
     {
       if (Stream.GetRestSize() < sizeof(Tags::SIGNATURE))
@@ -222,7 +216,7 @@ namespace PortableSoundFormat
       Stream.Seek(currentPosition);
       return false;
     }
-    
+
     bool ReadTagVariable(String& name, StringView& value)
     {
       const auto line = Stream.ReadString();
@@ -238,7 +232,7 @@ namespace PortableSoundFormat
         return false;
       }
     }
-    
+
     static uint_t FindLibraryNumber(StringView tagName)
     {
       if (tagName == Tags::LIB_PREFIX)
@@ -263,20 +257,21 @@ namespace PortableSoundFormat
       while (end != String::npos)
       {
         val[end] = 0;
-        result = result * 60 + 1000 * std::atoi(val.c_str()  + start);
+        result = result * 60 + 1000 * std::atoi(val.c_str() + start);
         end = val.find_first_of(':', start = end + 1);
       }
       return Time::Milliseconds(result * 60 + 1000 * std::atof(val.c_str() + start));
     }
-    
+
     static float ParseVolume(String val)
     {
       return std::atof(val.c_str());
     }
+
   private:
     Binary::InputStream Stream;
   };
-  
+
   Container::Ptr Parse(const Binary::Container& data, Builder& target)
   {
     try
@@ -288,7 +283,4 @@ namespace PortableSoundFormat
       return Container::Ptr();
     }
   }
-
-}
-}
-}
+}  // namespace Formats::Chiptune::PortableSoundFormat

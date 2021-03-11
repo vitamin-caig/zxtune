@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM device implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM device implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "generators.h"
-//library includes
+// library includes
 #include <devices/aym/chip.h>
 
 namespace Devices
@@ -26,8 +26,7 @@ namespace Devices
         : Levels()
         , NoiseMask(HIGH_LEVEL)
         , EnvelopeMask(LOW_LEVEL)
-      {
-      }
+      {}
 
       void SetDutyCycle(uint_t value, uint_t mask)
       {
@@ -127,6 +126,7 @@ namespace Devices
 
         return level & toneA & toneB & toneC & noise;
       }
+
     private:
       void SetLevel(uint_t chan, uint_t reg)
       {
@@ -140,6 +140,7 @@ namespace Devices
           Levels |= ((reg << 1) + 1) << shift;
         }
       }
+
     private:
       ToneGenerator GenA;
       ToneGenerator GenB;
@@ -150,5 +151,5 @@ namespace Devices
       uint_t NoiseMask;
       uint_t EnvelopeMask;
     };
-  }
-}
+  }  // namespace AYM
+}  // namespace Devices

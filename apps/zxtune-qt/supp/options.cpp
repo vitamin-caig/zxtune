@@ -1,32 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief Options access implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Options access implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "options.h"
 #include "ui/utils.h"
-//common includes
+// common includes
 #include <contract.h>
-#include <pointers.h>
 #include <make_ptr.h>
-//library includes
+#include <pointers.h>
+// library includes
 #include <parameters/convert.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/tools.h>
 #include <parameters/tracking.h>
-//std includes
+// std includes
 #include <functional>
 #include <mutex>
 #include <set>
-//qt includes
+// qt includes
 #include <QtCore/QSettings>
-//text includes
+// text includes
 #include <text/text.h>
 
 namespace
@@ -40,8 +40,7 @@ namespace
   public:
     SettingsContainer()
       : VersionValue()
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -103,7 +102,7 @@ namespace
 
     void Process(Visitor& /*visitor*/) const override
     {
-      //TODO: implement later
+      // TODO: implement later
     }
 
     void SetValue(const NameType& name, IntType val) override
@@ -134,6 +133,7 @@ namespace
       val.Remove();
       ++VersionValue;
     }
+
   private:
     typedef std::shared_ptr<QSettings> SettingsPtr;
     typedef std::map<QString, SettingsPtr> SettingsStorage;
@@ -144,8 +144,7 @@ namespace
       Value(SettingsStorage& storage, const NameType& name)
         : Storage(storage)
         , FullName(name)
-      {
-      }
+      {}
 
       bool IsValid() const
       {
@@ -169,6 +168,7 @@ namespace
         const QString& name = GetName();
         return Setup->remove(name);
       }
+
     private:
       static QString GetKeyName(const NameType& name)
       {
@@ -204,12 +204,14 @@ namespace
           Storage.insert(SettingsStorage::value_type(rootNamespace, Setup));
         }
       }
+
     private:
       SettingsStorage& Storage;
       const NameType FullName;
       mutable SettingsPtr Setup;
       mutable QString ParamName;
     };
+
   private:
     uint_t VersionValue;
     mutable SettingsStorage Storage;
@@ -221,8 +223,7 @@ namespace
     explicit CachedSettingsContainer(Container::Ptr delegate)
       : Persistent(std::move(delegate))
       , Temporary(Container::Create())
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -315,6 +316,7 @@ namespace
       Temporary->RemoveValue(name);
       Persistent->RemoveValue(name);
     }
+
   private:
     const Container::Ptr Persistent;
     const Container::Ptr Temporary;
@@ -371,12 +373,14 @@ namespace
         delegate->RemoveValue(name);
       }
     }
+
   private:
     void Unsubscribe(Modifier::Ptr delegate)
     {
       const std::lock_guard<std::mutex> lock(Guard);
       Delegates.erase(delegate);
     }
+
   private:
     mutable std::mutex Guard;
     typedef std::set<Modifier::Ptr> ModifiersSet;
@@ -389,8 +393,7 @@ namespace
     CopyOnWrite(Accessor::Ptr stored, Container::Ptr changed)
       : Stored(std::move(stored))
       , Changed(std::move(changed))
-    {
-    }
+    {}
 
     void SetValue(const NameType& name, IntType /*val*/) override
     {
@@ -407,9 +410,8 @@ namespace
       CopyExistingValue<DataType>(*Stored, *Changed, name);
     }
 
-    void RemoveValue(const NameType& /*name*/) override
-    {
-    }
+    void RemoveValue(const NameType& /*name*/) override {}
+
   private:
     const Accessor::Ptr Stored;
     const Container::Ptr Changed;
@@ -421,8 +423,7 @@ namespace
     SettingsSnapshot(Accessor::Ptr delegate, CompositeModifier::Subscription subscription)
       : Delegate(std::move(delegate))
       , Subscription(std::move(subscription))
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -456,6 +457,7 @@ namespace
       const Modifier::Ptr callback = MakePtr<CopyOnWrite>(stored, changed);
       return MakePtr<SettingsSnapshot>(delegate, modifiers.Subscribe(callback));
     }
+
   public:
     const Accessor::Ptr Delegate;
     const CompositeModifier::Subscription Subscription;
@@ -479,12 +481,13 @@ namespace
     {
       return SettingsSnapshot::Create(Options, Modifiers);
     }
+
   private:
     mutable Container::Ptr Options;
     mutable Container::Ptr TrackedOptions;
     mutable CompositeModifier Modifiers;
   };
-}
+}  // namespace
 
 GlobalOptions& GlobalOptions::Instance()
 {

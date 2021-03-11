@@ -1,23 +1,23 @@
 /**
-*
-* @file
-*
-* @brief  Localization support API
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Localization support API
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "library.h"
 
 namespace L10n
 {
   /*
     @brief Simple function-like helper
-    @code 
+    @code
       //implicit ctor to avoid adding domain to strings if specified by constant
       const L10n::TranslateFunctor translate = L10n::TranslateFunctor(currentDomain);
       //simple message
@@ -36,29 +36,29 @@ namespace L10n
   public:
     explicit TranslateFunctor(const String& domain)
       : Delegate(Library::Instance().GetVocabulary(domain))
-    {
-    }
+    {}
 
-    String operator() (const char* text) const
+    String operator()(const char* text) const
     {
       return Delegate->GetText(text);
     }
 
-    String operator() (const char* single, const char* plural, int count) const
+    String operator()(const char* single, const char* plural, int count) const
     {
       return Delegate->GetText(single, plural, count);
     }
 
-    String operator() (const char* context, const char* text) const
+    String operator()(const char* context, const char* text) const
     {
       return Delegate->GetText(context, text);
     }
 
-    String operator() (const char* context, const char* single, const char* plural, int count) const
+    String operator()(const char* context, const char* single, const char* plural, int count) const
     {
       return Delegate->GetText(context, single, plural, count);
     }
+
   private:
     const Vocabulary::Ptr Delegate;
   };
-}
+}  // namespace L10n

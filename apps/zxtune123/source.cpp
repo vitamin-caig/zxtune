@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief Source data provider implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Source data provider implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
+#include "source.h"
 #include "config.h"
 #include "console.h"
-#include "source.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <progress_callback.h>
-//library includes
+// library includes
 #include <core/additional_files_resolve.h>
 #include <core/core_parameters.h>
 #include <core/module_detect.h>
@@ -30,15 +30,15 @@
 #include <platform/application.h>
 #include <strings/array.h>
 #include <time/elapsed.h>
-//std includes
+// std includes
 #include <iomanip>
 #include <iostream>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
-//text includes
+// text includes
 #include "text/text.h"
 
 #define FILE_TAG 9EDFE3AF
@@ -67,8 +67,7 @@ namespace
     ProgressCallbackImpl()
       : Cons(Console::Self())
       , ReportTimeout(Time::Milliseconds(1000))
-    {
-    }
+    {}
 
     void OnProgress(uint_t current) override
     {
@@ -89,6 +88,7 @@ namespace
         }
       }
     }
+
   private:
     void CheckForExit() const
     {
@@ -104,24 +104,25 @@ namespace
       const int_t width = Cons.GetSize().first;
       return width >= 0 ? static_cast<uint_t>(width) : 0;
     }
+
   private:
     const Console& Cons;
     Time::Elapsed ReportTimeout;
   };
-  
+
   class RealFilesSource : public Module::AdditionalFilesSource
   {
   public:
     RealFilesSource(const Parameters::Accessor& params, const IO::Identifier& id)
       : Params(params)
       , Dir(ExtractDir(id))
-    {
-    }
-    
+    {}
+
     Binary::Container::Ptr Get(const String& name) const override
     {
       return IO::OpenData(Dir + name, Params, Log::ProgressCallback::Stub());
     }
+
   private:
     static String ExtractDir(const IO::Identifier& id)
     {
@@ -131,6 +132,7 @@ namespace
       Require(id.Subpath().empty());
       return full.substr(0, full.size() - filename.size());
     }
+
   private:
     const Parameters::Accessor& Params;
     const String Dir;
@@ -144,8 +146,7 @@ namespace
       , Id(std::move(id))
       , Callback(callback)
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : nullptr)
-    {
-    }
+    {}
 
     Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const
     {
@@ -154,7 +155,8 @@ namespace
       return Parameters::CreateMergedContainer(std::move(moduleProperties), Parameters::Container::Create());
     }
 
-    void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& /*decoder*/, Module::Holder::Ptr holder) override
+    void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& /*decoder*/,
+                       Module::Holder::Ptr holder) override
     {
       if (location.GetPath()->Empty())
       {
@@ -171,6 +173,7 @@ namespace
     {
       return ProgressCallback.get();
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
     const IO::Identifier::Ptr Id;
@@ -187,13 +190,13 @@ namespace
       , ShowProgress(false)
       , YM(false)
     {
-      OptionsDescription.add_options()
-        (Text::INPUT_FILE_KEY, boost::program_options::value<Strings::Array>(&Files), Text::INPUT_FILE_DESC)
-        (Text::IO_PROVIDERS_OPTS_KEY, boost::program_options::value<String>(&ProvidersOptions), Text::IO_PROVIDERS_OPTS_DESC)
-        (Text::INPUT_PROGRESS_KEY, boost::program_options::bool_switch(&ShowProgress), Text::INPUT_PROGRESS_DESC)
-        (Text::CORE_OPTS_KEY, boost::program_options::value<String>(&CoreOptions), Text::CORE_OPTS_DESC)
-        (Text::YM_KEY, boost::program_options::bool_switch(&YM), Text::YM_DESC)
-      ;
+      OptionsDescription.add_options()(Text::INPUT_FILE_KEY, boost::program_options::value<Strings::Array>(&Files),
+                                       Text::INPUT_FILE_DESC)(Text::IO_PROVIDERS_OPTS_KEY,
+                                                              boost::program_options::value<String>(&ProvidersOptions),
+                                                              Text::IO_PROVIDERS_OPTS_DESC)(
+          Text::INPUT_PROGRESS_KEY, boost::program_options::bool_switch(&ShowProgress), Text::INPUT_PROGRESS_DESC)(
+          Text::CORE_OPTS_KEY, boost::program_options::value<String>(&CoreOptions),
+          Text::CORE_OPTS_DESC)(Text::YM_KEY, boost::program_options::bool_switch(&YM), Text::YM_DESC);
     }
 
     const boost::program_options::options_description& GetOptionsDescription() const override
@@ -206,8 +209,7 @@ namespace
       if (!ProvidersOptions.empty())
       {
         const Parameters::Container::Ptr ioParams = Parameters::Container::Create();
-        ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX,
-          ProvidersOptions, *ioParams);
+        ParseParametersString(Parameters::ZXTune::IO::Providers::PREFIX, ProvidersOptions, *ioParams);
         ioParams->Process(*Params);
       }
 
@@ -216,8 +218,7 @@ namespace
         const Parameters::Container::Ptr coreParams = Parameters::Container::Create();
         if (!CoreOptions.empty())
         {
-          ParseParametersString(Parameters::ZXTune::Core::PREFIX,
-            CoreOptions, *coreParams);
+          ParseParametersString(Parameters::ZXTune::Core::PREFIX, CoreOptions, *coreParams);
         }
         if (YM)
         {
@@ -243,6 +244,7 @@ namespace
         ProcessItem(*it, callback);
       }
     }
+
   private:
     void ProcessItem(const String& uri, OnItemCallback& callback) const
     {
@@ -268,6 +270,7 @@ namespace
         Console::Self().Write(e.ToString());
       }
     }
+
   private:
     const Parameters::Container::Ptr Params;
     boost::program_options::options_description OptionsDescription;
@@ -277,7 +280,7 @@ namespace
     String CoreOptions;
     bool YM;
   };
-}
+}  // namespace
 
 std::unique_ptr<SourceComponent> SourceComponent::Create(Parameters::Container::Ptr configParams)
 {

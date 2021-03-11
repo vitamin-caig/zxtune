@@ -1,27 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief  FSB Vorbis images support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FSB Vorbis images support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/fsb_formats.h"
-//library includes
+// library includes
 #include <binary/input_stream.h>
 #include <formats/chiptune/music/oggvorbis.h>
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
 
-namespace Formats
-{
-namespace Archived
-{
-namespace FSB
+namespace Formats::Archived::FSB
 {
   namespace Vorbis
   {
@@ -40,7 +36,7 @@ namespace FSB
 #include "formats/archived/fsb_vorbis_headers.inc"
       };
       const auto it = std::lower_bound(SECTIONS, std::end(SECTIONS), crc,
-        [](const SetupSection& s, uint32_t crc) {return s.Crc32 < crc;});
+                                       [](const SetupSection& s, uint32_t crc) { return s.Crc32 < crc; });
       Require(it != std::end(SECTIONS) && it->Crc32 == crc);
       return it;
     }
@@ -60,8 +56,7 @@ namespace FSB
         LookupEntry(std::size_t offset, uint_t position) noexcept
           : Offset(offset)
           , Position(position)
-        {
-        }
+        {}
 
         // From start of Data in bytes
         std::size_t Offset = 0;
@@ -76,8 +71,7 @@ namespace FSB
     public:
       explicit LazyContainer(SampleProperties&& props) noexcept
         : Properties(std::move(props))
-      {
-      }
+      {}
 
       const void* Start() const override
       {
@@ -96,7 +90,7 @@ namespace FSB
         }
         return Delegate->Size();
       }
-      
+
       Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         if (!Delegate)
@@ -105,6 +99,7 @@ namespace FSB
         }
         return Delegate->GetSubcontainer(offset, size);
       }
+
     private:
       void Build() const
       {
@@ -112,8 +107,8 @@ namespace FSB
         // use 12.5% overhead
         const auto builder = Chiptune::OggVorbis::CreateDumpBuilder(vorbisDataSize + vorbisDataSize / 8);
         builder->SetStreamId(Properties.Setup->Crc32);
-        builder->SetProperties(Properties.Channels, Properties.Frequency,
-          Properties.Setup->BlocksizeShort, Properties.Setup->BlocksizeLong);
+        builder->SetProperties(Properties.Channels, Properties.Frequency, Properties.Setup->BlocksizeShort,
+                               Properties.Setup->BlocksizeLong);
         builder->SetSetup(Binary::View(Properties.Setup->Data, Properties.Setup->Size));
         DumpFrames(*builder);
         Properties.Data = {};
@@ -150,11 +145,12 @@ namespace FSB
           }
         }
       }
+
     private:
       mutable SampleProperties Properties;
       mutable Ptr Delegate;
     };
-    
+
     class Builder : public FormatBuilder
     {
     public:
@@ -163,27 +159,27 @@ namespace FSB
         Require(format == Fmod::Format::VORBIS);
         Samples.resize(samplesCount);
       }
-      
+
       void StartSample(uint_t idx) override
       {
         CurSample = idx;
       }
-      
+
       void SetFrequency(uint_t frequency) override
       {
         Samples[CurSample].Frequency = frequency;
       }
-      
+
       void SetChannels(uint_t channels) override
       {
         Samples[CurSample].Channels = channels;
       }
-      
+
       void SetName(String name) override
       {
         Samples[CurSample].Name = std::move(name);
       }
-      
+
       void AddMetaChunk(uint_t type, Binary::View chunk) override
       {
         if (type != Fmod::ChunkType::VORBISDATA)
@@ -201,7 +197,7 @@ namespace FSB
           dst.Lookup.emplace_back(offset, position);
         }
       }
-      
+
       void SetData(uint_t samplesCount, Binary::Container::Ptr blob) override
       {
         auto& dst = Samples[CurSample];
@@ -209,7 +205,7 @@ namespace FSB
         dst.Data = std::move(blob);
         dst.Lookup.emplace_back(dst.Data->Size(), samplesCount);
       }
-      
+
       NamedDataMap CaptureResult() override
       {
         NamedDataMap result;
@@ -223,16 +219,15 @@ namespace FSB
         }
         return result;
       }
+
     private:
       uint_t CurSample = 0;
       std::vector<SampleProperties> Samples;
     };
-  }
+  }  // namespace Vorbis
 
   FormatBuilder::Ptr CreateOggVorbisBuilder()
   {
     return MakePtr<Vorbis::Builder>();
   }
-}
-}
-}
+}  // namespace Formats::Archived::FSB

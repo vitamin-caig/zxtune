@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  Analyzer implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Analyzer implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/analyzer.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <sound/chunk.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <array>
 #include <complex>
@@ -41,13 +41,13 @@ namespace Module
   public:
     explicit DevicesAnalyzer(Devices::StateSource::Ptr delegate)
       : Delegate(std::move(delegate))
-    {
-    }
+    {}
 
     SpectrumState GetState() const override
     {
       return Delegate->GetState();
     }
+
   private:
     const Devices::StateSource::Ptr Delegate;
   };
@@ -65,7 +65,7 @@ namespace Module
 
   public:
     using Ptr = std::shared_ptr<FFTAnalyzer>;
-    
+
     void AddSoundData(const Sound::Chunk& data) override
     {
       const uint_t MAX_PRODUCED_DELTA = 10;
@@ -84,12 +84,13 @@ namespace Module
         }
       }
     }
-    
+
     SpectrumState GetState() const override
     {
       Produced = 0;
       return FFT();
     }
+
   private:
     using Complex = std::complex<float>;
 
@@ -109,13 +110,13 @@ namespace Module
         }
         HammingWindow();
       }
-      
+
       static float GetAngle(std::size_t idx)
       {
         return 2.0f * 3.14159265358f * idx / WindowSize;
       }
-      
-      //http://dspsystem.narod.ru/add/win/win.html
+
+      // http://dspsystem.narod.ru/add/win/win.html
       void HammingWindow()
       {
         const auto a0 = 0.54f;
@@ -126,7 +127,7 @@ namespace Module
           Window[idx] = a0 - a1 * std::cos(angle);
         }
       }
-      
+
       static const Lookup& Instance()
       {
         static const Lookup INSTANCE;
@@ -144,6 +145,7 @@ namespace Module
         }
         return reversed;
       }
+
     public:
       static std::array<Complex, WindowSize> ToComplex(const std::array<int_t, WindowSize>& input, std::size_t offset)
       {
@@ -155,18 +157,19 @@ namespace Module
         }
         return result;
       }
-      
+
       static Complex Polar(uint_t val)
       {
         const auto& sinus = Instance().Sinus;
         return Complex(sinus[(val + WindowSize / 4) % WindowSize], sinus[val]);
       }
+
     private:
       std::array<uint_t, WindowSize> BitRev;
       std::array<float, WindowSize> Sinus;
       std::array<float, WindowSize> Window;
     };
-  
+
     SpectrumState FFT() const
     {
       auto cplx = Lookup::ToComplex(Input, Cursor);
@@ -186,7 +189,7 @@ namespace Module
           }
         }
       }
-      
+
       SpectrumState result;
       for (std::size_t i = 0; i < result.Data.size(); ++i)
       {
@@ -196,6 +199,7 @@ namespace Module
       }
       return result;
     }
+
   private:
     mutable uint_t Produced = 0;
     std::array<int_t, WindowSize> Input;
@@ -206,4 +210,4 @@ namespace Module
   {
     return MakePtr<FFTAnalyzer>();
   }
-}
+}  // namespace Module

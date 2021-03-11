@@ -1,37 +1,35 @@
 /**
-* 
-* @file
-*
-* @brief  ExtremeTracker v1.xx support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ExtremeTracker v1.xx support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/digital/extremetracker1.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace ExtremeTracker1
   {
@@ -48,11 +46,11 @@ namespace Chiptune
     const uint_t TICKS_PER_CYCLE_31 = 450;
     const uint_t C_1_STEP_31 = 0x5f;
     const uint_t SAMPLES_FREQ_31 = Z80_FREQ * C_1_STEP_31 / TICKS_PER_CYCLE_31 / 256;
-    
+
     const uint_t TICKS_PER_CYCLE_32 = 374;
     const uint_t C_1_STEP_32 = 0x50;
     const uint_t SAMPLES_FREQ_32 = Z80_FREQ * C_1_STEP_32 / TICKS_PER_CYCLE_32 / 256;
-    
+
     /*
       Module memory map (as in original editor)
       0x0200 -> 0x7e00@50 (hdr)
@@ -62,19 +60,19 @@ namespace Chiptune
       0x4000 -> 0xc000@54
       0x4000 -> 0xc000@56
       0x7c00 -> 0x8400@57
-      
+
       Known versions:
         v1.31 - .m files (0xfc+0xbc=0x1b8 sectors)
-      
+
         v1.32 - VOLUME cmd changed to GLISS, added REST cmd, .D files (same sizes)
-       
+
         v1.41 -
-        
+
         ??? - empty sample changed from 7ebc to 4000
     */
-  
+
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct SampleInfo
     {
@@ -86,7 +84,7 @@ namespace Chiptune
       uint8_t Padding;
       std::array<char, 8> Name;
     } PACK_POST;
-    
+
     PACK_PRE struct MemoryDescr
     {
       uint8_t RestBlocks;
@@ -94,15 +92,15 @@ namespace Chiptune
       uint8_t FreeStartBlock;
       uint8_t Samples;
     } PACK_POST;
-    
+
     enum Command
     {
-      //real
+      // real
       NONE,
       VOLUME_OR_GLISS,
       TEMPO,
       REST,
-      //synthetic
+      // synthetic
       VOLUME,
       GLISS
     };
@@ -115,43 +113,43 @@ namespace Chiptune
         {
           uint8_t NoteCmd;
           uint8_t SampleParam;
-          
+
           uint_t GetNote() const
           {
             return NoteCmd & 0x3f;
           }
-          
+
           uint_t GetCmd() const
           {
             return NoteCmd >> 6;
           }
-          
+
           uint_t GetSample() const
           {
             return SampleParam & 0x0f;
           }
-          
+
           uint_t GetRawCmdParam() const
           {
             return SampleParam >> 4;
           }
-          
+
           uint_t GetTempo() const
           {
             return GetRawCmdParam();
           }
-          
+
           uint_t GetVolume() const
           {
             return GetRawCmdParam();
           }
-          
+
           int_t GetGliss() const
           {
             const int_t val = SampleParam >> 4;
             return 2 * (val > 8 ? 8 - val : val);
           }
-          
+
           bool IsEmpty() const
           {
             return NoteCmd + SampleParam == 0;
@@ -160,19 +158,15 @@ namespace Chiptune
 
         bool IsEmpty() const
         {
-          return Channels[0].IsEmpty()
-              && Channels[1].IsEmpty()
-              && Channels[2].IsEmpty()
-              && Channels[3].IsEmpty()
-          ;
+          return Channels[0].IsEmpty() && Channels[1].IsEmpty() && Channels[2].IsEmpty() && Channels[3].IsEmpty();
         }
-        
+
         Channel Channels[CHANNELS_COUNT];
       } PACK_POST;
 
       Line Lines[MAX_PATTERN_SIZE];
     } PACK_POST;
-    
+
     PACK_PRE struct Header
     {
       uint8_t LoopPosition;
@@ -205,7 +199,7 @@ namespace Chiptune
 
     static_assert(sizeof(Pattern) == 0x200, "Invalid layout");
     static_assert(sizeof(Header) == 0x4200, "Invalid layout");
-    
+
     const std::size_t MODULE_SIZE = 0x1b800;
 
     class StubBuilder : public Builder
@@ -241,8 +235,7 @@ namespace Chiptune
         : Delegate(delegate)
         , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
         , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
-      {
-      }
+      {}
 
       MetaBuilder& GetMetaBuilder() override
       {
@@ -258,7 +251,7 @@ namespace Chiptune
       {
         return Delegate.SetSamplesFrequency(freq);
       }
-      
+
       void SetSample(uint_t index, std::size_t loop, Binary::View data) override
       {
         return Delegate.SetSample(index, loop, data);
@@ -306,7 +299,7 @@ namespace Chiptune
       {
         return Delegate.SetGliss(gliss);
       }
-      
+
       const Indices& GetUsedPatterns() const
       {
         return UsedPatterns;
@@ -317,12 +310,13 @@ namespace Chiptune
         Require(!UsedSamples.Empty());
         return UsedSamples;
       }
+
     private:
       Builder& Delegate;
       Indices UsedPatterns;
       Indices UsedSamples;
     };
-    
+
     class VersionTraits
     {
     public:
@@ -332,34 +326,29 @@ namespace Chiptune
       {
         Analyze(hdr);
       }
-      
+
       String GetEditorString() const
       {
-        return IsNewVersion()
-          ? Text::EXTREMETRACKER132
-          : Text::EXTREMETRACKER131;
+        return IsNewVersion() ? Text::EXTREMETRACKER132 : Text::EXTREMETRACKER131;
       }
-      
+
       uint_t GetSamplesFrequency() const
       {
-        return IsNewVersion()
-          ? SAMPLES_FREQ_32
-          : SAMPLES_FREQ_31;
+        return IsNewVersion() ? SAMPLES_FREQ_32 : SAMPLES_FREQ_31;
       }
-      
+
       Command DecodeCommand(uint_t cmd) const
       {
         if (cmd == VOLUME_OR_GLISS)
         {
-          return IsNewVersion()
-            ? GLISS
-            : VOLUME;
+          return IsNewVersion() ? GLISS : VOLUME;
         }
         else
         {
           return static_cast<Command>(cmd);
         }
       }
+
     private:
       void Analyze(const Header& hdr)
       {
@@ -376,7 +365,7 @@ namespace Chiptune
           Analyze(pat.Lines[line]);
         }
       }
-      
+
       void Analyze(const Pattern::Line& line)
       {
         for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
@@ -384,7 +373,7 @@ namespace Chiptune
           Analyze(line.Channels[chan]);
         }
       }
-      
+
       void Analyze(const Pattern::Line::Channel& chan)
       {
         switch (chan.GetCmd())
@@ -397,7 +386,7 @@ namespace Chiptune
           break;
         }
       }
-      
+
       bool IsNewVersion() const
       {
         // Only newer versions has R-- command
@@ -405,6 +394,7 @@ namespace Chiptune
         // VOL-0 is used
         return HasRestCmd;
       }
+
     private:
       bool HasRestCmd;
       uint_t GlissVolParamsMask;
@@ -419,7 +409,7 @@ namespace Chiptune
         , Version(Source)
         , Ranges(RangeChecker::Create(RawData.Size()))
       {
-        //info
+        // info
         AddRange(0, sizeof(Source));
       }
 
@@ -466,18 +456,15 @@ namespace Chiptune
           std::size_t End;
         };
 
-        static const BankLayout LAYOUTS[8] =
-        {
-          {0, 0, 0},
-          {0x4200, 0xc000, 0xfa00},
-          {0, 0, 0},
-          {0x7c00, 0xc000, 0x10000},
-          {0xbc00, 0xc000, 0x10000},
-          {0, 0, 0},
-          {0xfc00, 0xc000, 0x10000},
-          {0x13c00, 0x8400, 0x10000}
-        };
-        
+        static const BankLayout LAYOUTS[8] = {{0, 0, 0},
+                                              {0x4200, 0xc000, 0xfa00},
+                                              {0, 0, 0},
+                                              {0x7c00, 0xc000, 0x10000},
+                                              {0xbc00, 0xc000, 0x10000},
+                                              {0, 0, 0},
+                                              {0xfc00, 0xc000, 0x10000},
+                                              {0x13c00, 0x8400, 0x10000}};
+
         target.SetSamplesFrequency(Version.GetSamplesFrequency());
         Dbg("Parse %1% samples", sams.Count());
         for (Indices::Iterator it = sams.Items(); it; ++it)
@@ -488,9 +475,8 @@ namespace Chiptune
           const std::size_t rawLoop = fromLE(info.Loop);
           const std::size_t rawEnd = rawAddr + 256 * info.Blocks;
           const BankLayout bank = LAYOUTS[info.Page & 7];
-          if (0 == bank.FileOffset || 0 == info.Blocks
-           || rawAddr < bank.Addr || rawEnd > bank.End
-           || rawLoop < rawAddr || rawLoop > rawEnd)
+          if (0 == bank.FileOffset || 0 == info.Blocks || rawAddr < bank.Addr || rawEnd > bank.End || rawLoop < rawAddr
+              || rawLoop > rawEnd)
           {
             Dbg("Skip sample %1%", samIdx);
             continue;
@@ -499,8 +485,8 @@ namespace Chiptune
           const std::size_t offset = bank.FileOffset + (rawAddr - bank.Addr);
           if (const auto sample = GetSample(offset, size))
           {
-            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", 
-              samIdx, rawAddr, rawLoop, sample.Size(), uint_t(info.Page));
+            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", samIdx, rawAddr, rawLoop, sample.Size(),
+                uint_t(info.Page));
             const std::size_t loop = rawLoop - bank.Addr;
             target.SetSample(samIdx, loop, sample);
           }
@@ -510,7 +496,7 @@ namespace Chiptune
           }
         }
       }
-      
+
       std::size_t GetSize() const
       {
         return MODULE_SIZE;
@@ -520,6 +506,7 @@ namespace Chiptune
       {
         return RangeChecker::Range(offsetof(Header, Patterns), sizeof(Source.Patterns));
       }
+
     private:
       void ParsePattern(const Pattern& src, uint_t patIndex, Builder& target) const
       {
@@ -591,6 +578,7 @@ namespace Chiptune
         const uint8_t* const end = std::find(start, start + size, 0);
         return RawData.SubView(offset, end - start);
       }
+
     private:
       const Binary::View RawData;
       const Header& Source;
@@ -599,33 +587,33 @@ namespace Chiptune
     };
 
     const StringView FORMAT(
-      //loop
-      "00-63"
-      //tempo
-      "03-0f"
-      //length
-      "00-64"
-      //title
-      "20-7f{30}"
-      //unknown
-      "?"
-      //positions
-      "00-1f{100}"
-      //pattern sizes
-      "04-40{32}"
-      //unknown
-      "??"
-      //memory
-      "(00-7c 51|53|54|56|57 00|84-ff 00-10){5}"
-      //unknown
-      "?{15}"
-      //signature
-      "?{44}"
-      //zeroes
-      "?{9}"
-      //samples. Hi addr is usually 7e-ff, but some tracks has another values (40)
-      "(?? ?? 51|53|54|56|57 00-10 00-7c ? ?{8}){16}"
-      //patterns
+        // loop
+        "00-63"
+        // tempo
+        "03-0f"
+        // length
+        "00-64"
+        // title
+        "20-7f{30}"
+        // unknown
+        "?"
+        // positions
+        "00-1f{100}"
+        // pattern sizes
+        "04-40{32}"
+        // unknown
+        "??"
+        // memory
+        "(00-7c 51|53|54|56|57 00|84-ff 00-10){5}"
+        // unknown
+        "?{15}"
+        // signature
+        "?{44}"
+        // zeroes
+        "?{9}"
+        // samples. Hi addr is usually 7e-ff, but some tracks has another values (40)
+        "(?? ?? 51|53|54|56|57 00-10 00-7c ? ?{8}){16}"
+        // patterns
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -633,8 +621,7 @@ namespace Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -660,6 +647,7 @@ namespace Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -681,7 +669,8 @@ namespace Chiptune
 
         auto subData = data.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -695,11 +684,10 @@ namespace Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace ExtremeTracker1
+  }  // namespace ExtremeTracker1
 
   Decoder::Ptr CreateExtremeTracker1Decoder()
   {
     return MakePtr<ExtremeTracker1::Decoder>();
   }
-}
-}
+}  // namespace Formats::Chiptune

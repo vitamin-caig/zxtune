@@ -1,23 +1,23 @@
 /**
-*
-* @file
-*
-* @brief  Types conversion utilities
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Types conversion utilities
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <limits>
 #include <type_traits>
 
-//gcc4.8 for android toolchain does not have std::to_string/std::stoi/etc
+// gcc4.8 for android toolchain does not have std::to_string/std::stoi/etc
 namespace Strings
 {
   namespace Details
@@ -51,7 +51,7 @@ namespace Strings
             const auto sym = *it;
             if (sym >= '0' && sym <= '9')
             {
-              //TODO: handle overflow
+              // TODO: handle overflow
               result = result * 10 + static_cast<T>(sym - '0');
             }
             else
@@ -88,7 +88,7 @@ namespace Strings
         }
       }
     };
-  }
+  }  // namespace Details
 
   template<class T>
   inline T ParsePartial(StringView& str)
@@ -130,4 +130,4 @@ namespace Strings
   {
     return Details::ConversionTraits<T>::Unparse(val);
   }
-}
+}  // namespace Strings

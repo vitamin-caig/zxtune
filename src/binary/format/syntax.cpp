@@ -1,29 +1,27 @@
 /**
-*
-* @file
-*
-* @brief  Format syntax implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Format syntax implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "binary/format/grammar.h"
+// local includes
 #include "binary/format/syntax.h"
-//common includes
+#include "binary/format/grammar.h"
+// common includes
 #include <contract.h>
 #include <iterator.h>
 #include <locale_helpers.h>
 #include <make_ptr.h>
-//std includes
+// std includes
 #include <cctype>
 #include <stack>
 #include <utility>
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   inline uint_t ParseDecimalValue(StringView num)
   {
@@ -45,14 +43,12 @@ namespace FormatDSL
     Token()
       : Type(DELIMITER)
       , Value(" ")
-    {
-    }
+    {}
 
     Token(LexicalAnalysis::TokenType type, StringView lexeme)
       : Type(type)
       , Value(std::move(lexeme))
-    {
-    }
+    {}
   };
 
   class State
@@ -73,8 +69,7 @@ namespace FormatDSL
   public:
     InitialStateType()
       : State()
-    {
-    }
+    {}
 
     const State* Transition(const Token& tok, FormatTokensVisitor& visitor) const override
     {
@@ -91,6 +86,7 @@ namespace FormatDSL
         return State::Error();
       }
     }
+
   private:
     const State* ParseOperation(const Token& tok, FormatTokensVisitor& visitor) const
     {
@@ -117,10 +113,8 @@ namespace FormatDSL
 
     const State* ParseValue(const Token& tok, FormatTokensVisitor& visitor) const
     {
-      if (tok.Value[0] == BINARY_MASK_TEXT ||
-          tok.Value[0] == MULTIPLICITY_TEXT ||
-          tok.Value[0] == ANY_BYTE_TEXT ||
-          tok.Value[0] == SYMBOL_TEXT)
+      if (tok.Value[0] == BINARY_MASK_TEXT || tok.Value[0] == MULTIPLICITY_TEXT || tok.Value[0] == ANY_BYTE_TEXT
+          || tok.Value[0] == SYMBOL_TEXT)
       {
         visitor.Match(tok.Value);
         return this;
@@ -144,8 +138,7 @@ namespace FormatDSL
   public:
     QuantorStateType()
       : State()
-    {
-    }
+    {}
 
     const State* Transition(const Token& tok, FormatTokensVisitor& visitor) const override
     {
@@ -167,8 +160,7 @@ namespace FormatDSL
   public:
     QuantorEndType()
       : State()
-    {
-    }
+    {}
 
     const State* Transition(const Token& tok, FormatTokensVisitor& /*visitor*/) const override
     {
@@ -183,8 +175,7 @@ namespace FormatDSL
   public:
     ErrorStateType()
       : State()
-    {
-    }
+    {}
 
     const State* Transition(const Token& /*token*/, FormatTokensVisitor& /*visitor*/) const override
     {
@@ -222,8 +213,7 @@ namespace FormatDSL
     explicit ParseFSM(FormatTokensVisitor& visitor)
       : CurState(State::Initial())
       , Visitor(visitor)
-    {
-    }
+    {}
 
     void TokenMatched(StringView lexeme, LexicalAnalysis::TokenType type) override
     {
@@ -240,6 +230,7 @@ namespace FormatDSL
     {
       Require(false);
     }
+
   private:
     const State* CurState;
     FormatTokensVisitor& Visitor;
@@ -253,8 +244,7 @@ namespace FormatDSL
     Operator()
       : Val()
       , Prec(0)
-    {
-    }
+    {}
 
     explicit Operator(StringView op)
       : Val(std::move(op))
@@ -299,6 +289,7 @@ namespace FormatDSL
     {
       return true;
     }
+
   private:
     const StringView Val;
     std::size_t Prec;
@@ -310,8 +301,7 @@ namespace FormatDSL
     RPNTranslation(FormatTokensVisitor& delegate)
       : Delegate(delegate)
       , LastIsMatch(false)
-    {
-    }
+    {}
 
     void Match(StringView val) override
     {
@@ -363,6 +353,7 @@ namespace FormatDSL
         FlushOperations();
       }
     }
+
   private:
     void FlushOperations()
     {
@@ -387,7 +378,7 @@ namespace FormatDSL
           break;
         }
         if ((newOp.LeftAssoc() && newOp.Precedence() <= topOp.Precedence())
-          || (newOp.Precedence() < topOp.Precedence()))
+            || (newOp.Precedence() < topOp.Precedence()))
         {
           Delegate.Operation(topOp.Value());
           Ops.pop();
@@ -398,6 +389,7 @@ namespace FormatDSL
         }
       }
     }
+
   private:
     FormatTokensVisitor& Delegate;
     std::stack<Operator> Ops;
@@ -410,8 +402,7 @@ namespace FormatDSL
     explicit SyntaxCheck(FormatTokensVisitor& delegate)
       : Delegate(delegate)
       , Position(0)
-    {
-    }
+    {}
 
     void Match(StringView val) override
     {
@@ -448,6 +439,7 @@ namespace FormatDSL
       Position = Position - usedVals + 1;
       Delegate.Operation(op);
     }
+
   private:
     void CheckAvailableParameters(std::size_t parameters, std::size_t position)
     {
@@ -478,20 +470,19 @@ namespace FormatDSL
         }
       }
     }
+
   private:
     struct Group
     {
       Group(std::size_t begin, std::size_t end)
         : Begin(begin)
         , End(end)
-      {
-      }
+      {}
 
       Group()
         : Begin()
         , End()
-      {
-      }
+      {}
 
       std::size_t Size() const
       {
@@ -501,18 +492,16 @@ namespace FormatDSL
       std::size_t Begin;
       std::size_t End;
     };
+
   private:
     FormatTokensVisitor& Delegate;
     std::size_t Position;
     std::stack<std::size_t> GroupStarts;
     std::stack<Group> Groups;
   };
-}
-}
+}  // namespace Binary::FormatDSL
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   void ParseFormatNotation(StringView notation, FormatTokensVisitor& visitor)
   {
@@ -531,5 +520,4 @@ namespace FormatDSL
   {
     return MakePtr<SyntaxCheck>(visitor);
   }
-}
-}
+}  // namespace Binary::FormatDSL

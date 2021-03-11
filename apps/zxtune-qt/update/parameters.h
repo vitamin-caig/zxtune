@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Update parameters definition
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Update parameters definition
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "app_parameters.h"
 
 namespace Parameters
@@ -43,6 +43,6 @@ namespace Parameters
       //! Parameter name
       const NameType LAST_CHECK = PREFIX + "LastCheck";
       //@}
-    }
-  }
-}
+    }  // namespace Update
+  }    // namespace ZXTuneQT
+}  // namespace Parameters

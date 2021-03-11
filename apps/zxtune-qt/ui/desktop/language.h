@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief i18n support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief i18n support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
-//qt includes
+// qt includes
 #include <QtCore/QStringList>
 
 namespace UI
@@ -29,4 +29,4 @@ namespace UI
 
     static Ptr Create();
   };
-}
+}  // namespace UI

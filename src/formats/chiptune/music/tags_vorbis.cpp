@@ -1,27 +1,25 @@
 /**
-*
-* @file
-*
-* @brief  Vorbis tags parser implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Vorbis tags parser implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/music/tags_vorbis.h"
-//common includes
+// common includes
 #include <byteorder.h>
-//library includes
+// library includes
 #include <strings/encoding.h>
 #include <strings/trim.h>
-//std includes
+// std includes
 #include <array>
 #include <cctype>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace Vorbis
   {
@@ -34,7 +32,7 @@ namespace Chiptune
 
     String Decode(StringView str)
     {
-      //do not trim before- it may break some encodings
+      // do not trim before- it may break some encodings
       auto decoded = Strings::ToAutoUtf8(str);
       auto trimmed = Strings::TrimSpaces(decoded);
       return decoded.size() == trimmed.size() ? decoded : trimmed.to_string();
@@ -75,7 +73,7 @@ namespace Chiptune
       {
         strings.emplace_back(Decode(value));
       }
-      //TODO: meta.SetComment
+      // TODO: meta.SetComment
       if (!strings.empty())
       {
         target.SetStrings(strings);
@@ -86,7 +84,7 @@ namespace Chiptune
     {
       try
       {
-        /*const auto vendor = */ReadString(payload);
+        /*const auto vendor = */ ReadString(payload);
         if (auto items = payload.ReadLE<uint32_t>())
         {
           while (items--)
@@ -97,9 +95,7 @@ namespace Chiptune
         Require(1 == payload.ReadByte());
       }
       catch (const std::exception&)
-      {
-      }
+      {}
     }
-  } //namespace Vorbis
-}
-}
+  }  // namespace Vorbis
+}  // namespace Formats::Chiptune

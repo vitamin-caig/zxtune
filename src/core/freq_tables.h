@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Frequency tables for AY-trackers
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Frequency tables for AY-trackers
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <array>
 
 namespace Module
@@ -20,6 +20,7 @@ namespace Module
   //! @brief Frequency table type- 96 words
   typedef std::array<uint16_t, 96> FrequencyTable;
 
+  // clang-format off
   //! %Sound Tracker frequency table
   const Char TABLE_SOUNDTRACKER[] = {'S','o','u','n','d','T','r','a','c','k','e','r','\0'};
   //! Pro Tracker v2.x frequency table
@@ -52,4 +53,5 @@ namespace Module
   const Char TABLE_FUXOFT[] = {'F','u','x','o','f','t','\0'};
   //! FastTracker frequency table
   const Char TABLE_FASTTRACKER[] = {'F','a','s','t','T','r','a','c','k','e','r','\0'};
-}
+  // clang-format on
+}  // namespace Module

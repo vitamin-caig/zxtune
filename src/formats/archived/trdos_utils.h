@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  TR-DOS utilities
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TR-DOS utilities
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 namespace TRDos

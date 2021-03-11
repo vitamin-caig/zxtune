@@ -1,21 +1,21 @@
 /**
-*
-* @file
-*
-* @brief  Linux implementation of tools
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Linux implementation of tools
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
+// library includes
 #include <debug/log.h>
 #include <platform/tools.h>
-//platform includes
+// platform includes
 #include <dlfcn.h>
 #include <errno.h>
-#include <unistd.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 namespace
 {
@@ -27,8 +27,7 @@ namespace
   String GetSharedLibraryName()
   {
     Dl_info info;
-    if (::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info) &&
-        info.dli_sname && info.dli_saddr)
+    if (::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info) && info.dli_sname && info.dli_saddr)
     {
       const String result(info.dli_fname);
       Dbg("Shared library name: %1%", result);
@@ -39,7 +38,7 @@ namespace
       return String();
     }
   }
-  
+
   String GetExecutableName()
   {
     const String selfPath = "/proc/self/exe";
@@ -54,7 +53,7 @@ namespace
       Dbg("%1% is not a symlink", selfPath);
       return String();
     }
-    
+
     std::vector<char> filename(1024);
     for (;;)
     {
@@ -78,7 +77,7 @@ namespace
     Dbg("Executable name: %1%", result);
     return result;
   }
-}
+}  // namespace
 
 namespace Platform
 {
@@ -93,4 +92,4 @@ namespace Platform
     static const String binName = GetExecutableName();
     return binName;
   }
-}
+}  // namespace Platform

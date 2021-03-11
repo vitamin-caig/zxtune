@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  DAC-related Module properties helper interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC-related Module properties helper interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include <module/players/properties_helper.h>
 
 namespace Module
@@ -22,10 +22,9 @@ namespace Module
     public:
       explicit PropertiesHelper(Parameters::Modifier& delegate)
         : Module::PropertiesHelper(delegate)
-      {
-      }
-      
+      {}
+
       void SetSamplesFrequency(uint_t freq);
     };
-  }
-}
+  }  // namespace DAC
+}  // namespace Module

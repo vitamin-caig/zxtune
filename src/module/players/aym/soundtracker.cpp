@@ -1,33 +1,31 @@
 /**
-* 
-* @file
-*
-* @brief  SoundTracker-based chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SoundTracker-based chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/soundtracker.h"
-#include "module/players/aym/aym_properties_helper.h"
 #include "module/players/aym/aym_base_track.h"
-//common includes
+#include "module/players/aym/aym_properties_helper.h"
+// common includes
 #include <make_ptr.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace SoundTracker
+namespace Module::SoundTracker
 {
   enum CmdType
   {
     EMPTY,
-    ENVELOPE,     //2p
-    NOENVELOPE,   //0p
+    ENVELOPE,    // 2p
+    NOENVELOPE,  // 0p
   };
 
   using Formats::Chiptune::SoundTracker::Sample;
@@ -121,6 +119,7 @@ namespace SoundTracker
       Data->Patterns = Patterns.CaptureResult();
       return std::move(Data);
     }
+
   private:
     AYM::PropertiesHelper& Properties;
     MetaProperties Meta;
@@ -135,8 +134,7 @@ namespace SoundTracker
       : Transposition(transposition)
       , Track(track)
       , Channel(Track.GetChannel(chanNum))
-    {
-    }
+    {}
 
     void SetLevel(uint_t level)
     {
@@ -167,6 +165,7 @@ namespace SoundTracker
     {
       Channel.DisableNoise();
     }
+
   private:
     const int_t Transposition;
     AYM::TrackBuilder& Track;
@@ -179,8 +178,7 @@ namespace SoundTracker
       : Type(type)
       , Tone(tone)
       , Enabled(0)
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -214,7 +212,8 @@ namespace SoundTracker
       {
         channel.EnableEnvelope();
       }
-    } 
+    }
+
   private:
     void ApplyCommand(const Command& command)
     {
@@ -229,6 +228,7 @@ namespace SoundTracker
         Enabled = 0;
       }
     }
+
   private:
     uint_t& Type;
     uint_t& Tone;
@@ -243,8 +243,7 @@ namespace SoundTracker
     StateCursor()
       : CountDown(-1)
       , Position(0)
-    {
-    }
+    {}
 
     void Next(const Sample& sample)
     {
@@ -282,8 +281,7 @@ namespace SoundTracker
       , CurSample(GetStubSample())
       , CurOrnament(GetStubOrnament())
       , EnvState(envType, envTone)
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -328,16 +326,16 @@ namespace SoundTracker
 
       const uint_t nextPosition = (nextState.Position - 1) & 0x1f;
       const Sample::Line& curSampleLine = CurSample->GetLine(nextPosition);
-      //apply level
+      // apply level
       channel.SetLevel(curSampleLine.Level);
-      //apply tone
+      // apply tone
       const int_t halftones = int_t(Note) + CurOrnament->GetLine(nextPosition);
       channel.SetTone(halftones, curSampleLine.Effect);
       if (curSampleLine.EnvelopeMask)
       {
         channel.DisableTone();
       }
-      //apply noise
+      // apply noise
       if (!curSampleLine.NoiseMask)
       {
         channel.SetNoise(curSampleLine.Noise);
@@ -357,6 +355,7 @@ namespace SoundTracker
         EnvState.Iterate();
       }
     }
+
   private:
     static const Sample* GetStubSample()
     {
@@ -369,6 +368,7 @@ namespace SoundTracker
       static const Ornament stubOrnament;
       return &stubOrnament;
     }
+
   private:
     const ModuleData::Ptr Data;
     uint_t Note;
@@ -388,8 +388,7 @@ namespace SoundTracker
       , StateC(Data, EnvType, EnvTone)
       , EnvType()
       , EnvTone()
-    {
-    }
+    {}
 
     void Reset() override
     {
@@ -408,6 +407,7 @@ namespace SoundTracker
       SynthesizeChannelsData(state, track);
       IterateState();
     }
+
   private:
     void SwitchToNewLine(const TrackModelState& state)
     {
@@ -457,6 +457,7 @@ namespace SoundTracker
       StateB.Iterate();
       StateC.Iterate();
     }
+
   private:
     const ModuleData::Ptr Data;
     ChannelState StateA;
@@ -470,10 +471,10 @@ namespace SoundTracker
   public:
     explicit Factory(Formats::Chiptune::SoundTracker::Decoder::Ptr decoder)
       : Decoder(std::move(decoder))
-    {
-    }
+    {}
 
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -481,13 +482,15 @@ namespace SoundTracker
       {
         props.SetSource(*container);
         props.SetPlatform(Platforms::ZX_SPECTRUM);
-        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(), std::move(properties));
+        return MakePtr<AYM::TrackingChiptune<ModuleData, DataRenderer>>(dataBuilder.CaptureResult(),
+                                                                        std::move(properties));
       }
       else
       {
         return {};
       }
     }
+
   private:
     const Formats::Chiptune::SoundTracker::Decoder::Ptr Decoder;
   };
@@ -496,5 +499,4 @@ namespace SoundTracker
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
-}
+}  // namespace Module::SoundTracker

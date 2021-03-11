@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <time/instant.h>
-//std includes
+// std includes
 #include <array>
 #include <memory>
 
-//supporting for AY/YM-based modules
+// supporting for AY/YM-based modules
 namespace Devices
 {
   namespace AYM
@@ -31,7 +31,7 @@ namespace Devices
     class Registers
     {
     public:
-      //registers offsets in data
+      // registers offsets in data
       enum Index
       {
         TONEA_L,
@@ -48,17 +48,17 @@ namespace Devices
         TONEE_L,
         TONEE_H,
         ENV,
-        //limiter
+        // limiter
         TOTAL
       };
 
-      //masks
+      // masks
       enum
       {
-        //bits in REG_VOL*
+        // bits in REG_VOL*
         MASK_VOL = 0x0f,
         MASK_ENV = 0x10,
-        //bits in REG_MIXER
+        // bits in REG_MIXER
         MASK_TONEA = 0x01,
         MASK_NOISEA = 0x08,
         MASK_TONEB = 0x02,
@@ -66,12 +66,11 @@ namespace Devices
         MASK_TONEC = 0x04,
         MASK_NOISEC = 0x20,
       };
-      
+
       Registers()
         : Mask()
         , Data()
-      {
-      }
+      {}
 
       bool Empty() const
       {
@@ -83,7 +82,7 @@ namespace Devices
         return 0 != (Mask & (1 << reg));
       }
 
-      uint8_t& operator [] (Index reg)
+      uint8_t& operator[](Index reg)
       {
         Mask |= 1 << reg;
         return Data[reg];
@@ -94,7 +93,7 @@ namespace Devices
         Mask &= ~(1 << reg);
       }
 
-      uint8_t operator [] (Index reg) const
+      uint8_t operator[](Index reg) const
       {
         return Data[reg];
       }
@@ -111,21 +110,22 @@ namespace Devices
 
         typedef bool (IndicesIterator::*BoolType)() const;
 
-        operator BoolType () const
+        operator BoolType() const
         {
           return IsValid() ? &IndicesIterator::IsValid : nullptr;
         }
 
-        Index operator * () const
+        Index operator*() const
         {
           return static_cast<Index>(Idx);
         }
 
-        void operator ++ ()
+        void operator++()
         {
           Next();
           SkipUnset();
         }
+
       private:
         bool IsValid() const
         {
@@ -150,10 +150,12 @@ namespace Devices
             Next();
           }
         }
+
       private:
         uint_t Mask;
         uint_t Idx;
       };
+
     private:
       uint16_t Mask;
       std::array<uint8_t, TOTAL> Data;
@@ -161,9 +163,10 @@ namespace Devices
 
     struct DataChunk
     {
-      DataChunk() : TimeStamp(), Data()
-      {
-      }
+      DataChunk()
+        : TimeStamp()
+        , Data()
+      {}
 
       Stamp TimeStamp;
       Registers Data;
@@ -184,5 +187,5 @@ namespace Devices
       /// reset internal state to initial
       virtual void Reset() = 0;
     };
-  }
-}
+  }  // namespace AYM
+}  // namespace Devices

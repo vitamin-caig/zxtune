@@ -1,31 +1,31 @@
 /**
-* 
-* @file
-*
-* @brief Components dialog implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Components dialog implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "componentsdialog.h"
 #include "componentsdialog.ui.h"
-#include "ui/utils.h"
 #include "supp/options.h"
-//library includes
+#include "ui/utils.h"
+// library includes
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <io/provider.h>
 #include <sound/backend_attrs.h>
 #include <sound/service.h>
 #include <strings/format.h>
-//std includes
+// std includes
 #include <utility>
-//qt includes
+// qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QDialog>
-//text includes
+// text includes
 #include "text/text.h"
 
 namespace
@@ -77,11 +77,13 @@ namespace
         break;
       }
     }
+
   private:
     void FillPlayersByDevices()
     {
       using namespace ZXTune::Capabilities::Module::Device;
-      PlayersByDeviceType[AY38910] = PlayersByDeviceType[TURBOSOUND] = CreateTreeWidgetItem(Players, "AY-3-8910/YM2149F/Turbosound");
+      PlayersByDeviceType[AY38910] = PlayersByDeviceType[TURBOSOUND] =
+          CreateTreeWidgetItem(Players, "AY-3-8910/YM2149F/Turbosound");
       PlayersByDeviceType[DAC] = CreateTreeWidgetItem(Players, "DAC");
       PlayersByDeviceType[YM2203] = PlayersByDeviceType[TURBOFM] = CreateTreeWidgetItem(Players, "YM2203/TurboFM");
       PlayersByDeviceType[SAA1099] = CreateTreeWidgetItem(Players, "SAA1099");
@@ -93,24 +95,31 @@ namespace
       PlayersByDeviceType[HUC6270] = CreateTreeWidgetItem(Players, "HuC6270");
       PlayersByDeviceType[MULTI] = CreateTreeWidgetItem(Players, QT_TRANSLATE_NOOP("ComponentsDialog", "Multidevice"));
     }
-    
+
     void FillContainersByTypes()
     {
       using namespace ZXTune::Capabilities::Container::Type;
       ContainersByType.resize(MASK);
       ContainersByType[ARCHIVE] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Archive"));
-      ContainersByType[COMPRESSOR] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Compressor"));
+      ContainersByType[COMPRESSOR] =
+          CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Compressor"));
       ContainersByType[SNAPSHOT] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Snapshot"));
-      ContainersByType[DISKIMAGE] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Disk image"));
-      ContainersByType[DECOMPILER] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Decompiler"));
-      ContainersByType[MULTITRACK] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Multitrack"));
-      ContainersByType[SCANER] = CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Data scanner"));
+      ContainersByType[DISKIMAGE] =
+          CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Disk image"));
+      ContainersByType[DECOMPILER] =
+          CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Decompiler"));
+      ContainersByType[MULTITRACK] =
+          CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Multitrack"));
+      ContainersByType[SCANER] =
+          CreateTreeWidgetItem(Containers, QT_TRANSLATE_NOOP("ComponentsDialog", "Data scanner"));
     }
-    
+
     void AddPlayerPlugin(const ZXTune::Plugin& plugin)
     {
       const uint_t deviceType = plugin.Capabilities() & ZXTune::Capabilities::Module::Device::MASK;
-      for (std::map<uint_t, QTreeWidgetItem*>::const_iterator it = PlayersByDeviceType.begin(), lim = PlayersByDeviceType.end(); it != lim; ++it)
+      for (std::map<uint_t, QTreeWidgetItem*>::const_iterator it = PlayersByDeviceType.begin(),
+                                                              lim = PlayersByDeviceType.end();
+           it != lim; ++it)
       {
         if (0 != (deviceType & it->first))
         {
@@ -124,24 +133,25 @@ namespace
     void AddPlayerPluginItem(const ZXTune::Plugin& plugin, QTreeWidgetItem& root)
     {
       using namespace ZXTune::Capabilities::Module;
-      //root
+      // root
       const uint_t caps = plugin.Capabilities();
       const String& title = Strings::Format("[%s] %s", plugin.Id(), plugin.Description());
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(title)));
       FillModuleType(caps & Type::MASK, *pluginItem);
-      //conversion
+      // conversion
       if (const uint_t convCaps = caps & Conversion::MASK)
       {
-        QTreeWidgetItem* const conversionItem = CreateTreeWidgetItem(pluginItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Conversion targets"));
+        QTreeWidgetItem* const conversionItem =
+            CreateTreeWidgetItem(pluginItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Conversion targets"));
         FillConversionCapabilities(convCaps, *conversionItem);
       }
-      //traits
+      // traits
       if (const uint_t traits = caps & Traits::MASK)
       {
         FillModuleTraits(traits, *pluginItem);
       }
     }
-    
+
     void FillModuleType(uint_t type, QTreeWidgetItem& root)
     {
       using namespace ZXTune::Capabilities::Module::Type;
@@ -162,7 +172,7 @@ namespace
       AddCapability(caps, AYDUMP, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Raw aydump format"));
       AddCapability(caps, FYM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Compressed .fym format"));
     }
-    
+
     void FillModuleTraits(uint_t traits, QTreeWidgetItem& root)
     {
       using namespace ZXTune::Capabilities::Module::Traits;
@@ -187,9 +197,9 @@ namespace
       const uint_t caps = plugin.Capabilities();
       const String& description = plugin.Description();
 
-      //root
+      // root
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
-      //capabilities
+      // capabilities
       FillContainerTraits(caps, *pluginItem);
     }
 
@@ -200,14 +210,15 @@ namespace
       AddCapability(caps, PLAIN, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Plain data structure format"));
       AddCapability(caps, ONCEAPPLIED, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Not recursive"));
     }
+
   private:
     QTreeWidget& Widget;
-    //1st level
+    // 1st level
     QTreeWidgetItem* const Players;
     QTreeWidgetItem* const Containers;
-    //2nd level of Players
+    // 2nd level of Players
     std::map<uint_t, QTreeWidgetItem*> PlayersByDeviceType;
-    //2nd level of Containers
+    // 2nd level of Containers
     std::vector<QTreeWidgetItem*> ContainersByType;
   };
 
@@ -252,8 +263,7 @@ namespace
       , Filesaves(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "File backends")))
       , Hardwares(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "Hardware backends")))
       , Others(CreateTreeWidgetItem(&Widget, QT_TRANSLATE_NOOP("ComponentsDialog", "Other backends")))
-    {
-    }
+    {}
 
     void AddBackend(const Sound::BackendInformation& backend)
     {
@@ -277,26 +287,30 @@ namespace
         AddBackend(*Others, backend);
       }
     }
+
   private:
     void AddBackend(QTreeWidgetItem& root, const Sound::BackendInformation& backend)
     {
-      //root
+      // root
       QTreeWidgetItem* const backendItem = CreateRootItem(root, backend.Description(), backend.Status());
-      //features
+      // features
       if (uint_t features = backend.Capabilities() & Sound::CAP_FEAT_MASK)
       {
-        QTreeWidgetItem* const featuresItem = CreateTreeWidgetItem(backendItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Features"));
+        QTreeWidgetItem* const featuresItem =
+            CreateTreeWidgetItem(backendItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Features"));
         FillBackendFeatures(features, *featuresItem);
       }
     }
 
     void FillBackendFeatures(uint_t feats, QTreeWidgetItem& root)
     {
-      AddCapability(feats, Sound::CAP_FEAT_HWVOLUME, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Hardware volume control"));
+      AddCapability(feats, Sound::CAP_FEAT_HWVOLUME, root,
+                    QT_TRANSLATE_NOOP("ComponentsDialog", "Hardware volume control"));
     }
+
   private:
     QTreeWidget& Widget;
-    //1st level
+    // 1st level
     QTreeWidgetItem* const Playbacks;
     QTreeWidgetItem* const Filesaves;
     QTreeWidgetItem* const Hardwares;
@@ -308,20 +322,21 @@ namespace
   public:
     explicit ProvidersTreeHelper(QTreeWidget& widget)
       : Widget(widget)
-    {
-    }
+    {}
 
     void AddProvider(const IO::Provider& provider)
     {
-      //root
+      // root
       CreateRootItem(Widget, provider.Description(), provider.Status());
     }
+
   private:
     QTreeWidget& Widget;
   };
 
-  class ComponentsDialog : public QDialog
-                         , private Ui::ComponentsDialog
+  class ComponentsDialog
+    : public QDialog
+    , private Ui::ComponentsDialog
   {
   public:
     explicit ComponentsDialog(QWidget& parent)
@@ -332,6 +347,7 @@ namespace
       FillBackendsTree();
       FillProvidersTree();
     }
+
   private:
     void FillPluginsTree()
     {
@@ -348,7 +364,8 @@ namespace
     {
       BackendsTreeHelper tree(*backendsTree);
       const Sound::Service::Ptr svc = Sound::CreateGlobalService(GlobalOptions::Instance().Get());
-      for (Sound::BackendInformation::Iterator::Ptr backends = svc->EnumerateBackends(); backends->IsValid(); backends->Next())
+      for (Sound::BackendInformation::Iterator::Ptr backends = svc->EnumerateBackends(); backends->IsValid();
+           backends->Next())
       {
         const Sound::BackendInformation::Ptr backend = backends->Get();
         tree.AddBackend(*backend);
@@ -366,7 +383,7 @@ namespace
       }
     }
   };
-}
+}  // namespace
 
 namespace UI
 {
@@ -375,4 +392,4 @@ namespace UI
     ComponentsDialog dialog(parent);
     dialog.exec();
   }
-}
+}  // namespace UI

@@ -1,37 +1,36 @@
 /**
-* 
-* @file
-*
-* @brief  multidevice-based chiptunes support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  multidevice-based chiptunes support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/players/multi/multi_base.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <parameters/merged_accessor.h>
 #include <parameters/visitor.h>
 #include <sound/loop.h>
-//std includes
+// std includes
 #include <algorithm>
 
 namespace Module
 {
   typedef std::vector<Analyzer::Ptr> AnalyzersArray;
   typedef std::vector<Renderer::Ptr> RenderersArray;
-  
+
   class MultiAnalyzer : public Module::Analyzer
   {
   public:
     explicit MultiAnalyzer(AnalyzersArray delegates)
       : Delegates(std::move(delegates))
-    {
-    }
+    {}
 
     SpectrumState GetState() const override
     {
@@ -39,55 +38,56 @@ namespace Module
       for (const auto& delegate : Delegates)
       {
         const auto& portion = delegate->GetState();
-        std::transform(portion.Data.begin(), portion.Data.end(), result.Data.begin(), result.Data.begin(), &SpectrumState::AccumulateLevel);
+        std::transform(portion.Data.begin(), portion.Data.end(), result.Data.begin(), result.Data.begin(),
+                       &SpectrumState::AccumulateLevel);
       }
       return result;
     }
-    
+
     static Ptr Create(const RenderersArray& renderers)
     {
       const auto count = renderers.size();
       Require(count > 1);
       AnalyzersArray delegates(count);
       std::transform(renderers.begin(), renderers.end(), delegates.begin(),
-          [](const Renderer::Ptr& renderer) {return renderer->GetAnalyzer();});
+                     [](const Renderer::Ptr& renderer) { return renderer->GetAnalyzer(); });
       return MakePtr<MultiAnalyzer>(std::move(delegates));
     }
+
   private:
     const AnalyzersArray Delegates;
   };
- 
+
   class WideSample
   {
   public:
     WideSample()
       : Left()
       , Right()
-    {
-    }
-    
+    {}
+
     explicit WideSample(const Sound::Sample& rh)
       : Left(rh.Left())
       , Right(rh.Right())
-    {
-    }
-    
+    {}
+
     void Add(const Sound::Sample& rh)
     {
       Left += rh.Left();
       Right += rh.Right();
     }
-    
+
     Sound::Sample Convert(int_t divisor) const
     {
       static_assert(Sound::Sample::MID == 0, "Sound samples should be signed");
       return Sound::Sample(Left / divisor, Right / divisor);
     }
+
   private:
     Sound::Sample::WideType Left;
     Sound::Sample::WideType Right;
   };
-  
+
   class CumulativeChunk
   {
   public:
@@ -127,7 +127,7 @@ namespace Module
       }
       Portions[idx] = offset;
     }
-    
+
     Sound::Chunk Convert()
     {
       if (const auto avail = *std::min_element(Portions.begin(), Portions.end()))
@@ -136,7 +136,7 @@ namespace Module
         if (const uint_t divisor = DoneStreams)
         {
           std::transform(Buffer.begin(), Buffer.begin() + avail, result.begin(),
-             [divisor](WideSample in) {return in.Convert(divisor);});
+                         [divisor](WideSample in) { return in.Convert(divisor); });
         }
         Consume(avail);
         DoneStreams = 0;
@@ -144,6 +144,7 @@ namespace Module
       }
       return {};
     }
+
   private:
     void Consume(std::size_t size)
     {
@@ -161,12 +162,13 @@ namespace Module
         Buffer.resize(Buffer.size() - size);
       }
     }
+
   private:
     std::vector<WideSample> Buffer;
     std::vector<std::size_t> Portions;
     uint_t DoneStreams = 0;
   };
-  
+
   class MultiRenderer : public Renderer
   {
   public:
@@ -174,8 +176,7 @@ namespace Module
       : Delegates(std::move(delegates))
       , Analysis(MultiAnalyzer::Create(Delegates))
       , Target(Delegates.size())
-    {
-    }
+    {}
 
     State::Ptr GetState() const override
     {
@@ -218,7 +219,7 @@ namespace Module
       }
       Target.Reset();
     }
-    
+
     static Ptr Create(uint_t samplerate, Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders)
     {
       const auto count = holders.size();
@@ -227,24 +228,25 @@ namespace Module
       for (std::size_t idx = 0; idx != count; ++idx)
       {
         const auto& holder = holders[idx];
-        delegates[idx] = holder->CreateRenderer(samplerate, Parameters::CreateMergedAccessor(holder->GetModuleProperties(), params));
+        delegates[idx] =
+            holder->CreateRenderer(samplerate, Parameters::CreateMergedAccessor(holder->GetModuleProperties(), params));
       }
       return MakePtr<MultiRenderer>(std::move(delegates));
     }
+
   private:
     const RenderersArray Delegates;
     const Analyzer::Ptr Analysis;
     CumulativeChunk Target;
   };
-  
+
   class MultiHolder : public Holder
   {
   public:
     MultiHolder(Parameters::Accessor::Ptr props, Multi::HoldersArray delegates)
       : Properties(std::move(props))
       , Delegates(std::move(delegates))
-    {
-    }
+    {}
 
     Information::Ptr GetModuleInformation() const override
     {
@@ -260,23 +262,23 @@ namespace Module
     {
       return MultiRenderer::Create(samplerate, std::move(params), Delegates);
     }
+
   private:
     const Parameters::Accessor::Ptr Properties;
     const Multi::HoldersArray Delegates;
     const Information::Ptr Info;
   };
-}
+}  // namespace Module
 
 namespace Module
 {
   namespace Multi
-  { 
+  {
     Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr tuneProperties, HoldersArray holders)
     {
       Require(!holders.empty());
-      return holders.size() == 1
-           ? std::move(holders.front())
-           : MakePtr<MultiHolder>(std::move(tuneProperties), std::move(holders));
+      return holders.size() == 1 ? std::move(holders.front())
+                                 : MakePtr<MultiHolder>(std::move(tuneProperties), std::move(holders));
     }
-  }
-}
+  }  // namespace Multi
+}  // namespace Module

@@ -1,17 +1,17 @@
 /**
-*
-* @file
-*
-* @brief  Base64 functions implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Base64 functions implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <contract.h>
 #include <iterator.h>
-//library includes
+// library includes
 #include <binary/base64.h>
 
 namespace Binary
@@ -28,6 +28,7 @@ namespace Binary
     const uint8_t SKIPPED = 0x41;
     const uint8_t PADDING = 0x42;
 
+    // clang-format off
     const uint8_t DECODE_TABLE[128] =
     {
       INVALID, INVALID, INVALID, INVALID, INVALID, INVALID, INVALID, INVALID,
@@ -47,22 +48,23 @@ namespace Binary
       0x29,    0x2a,    0x2b,    0x2c,    0x2d,    0x2e,    0x2f,    0x30,
       0x31,    0x32,    0x33,    INVALID, INVALID, INVALID, INVALID, INVALID
     };
+    // clang-format on
 
     inline void Encode3Bytes(const uint8_t* in, char* out)
     {
       const uint_t buf = (uint_t(in[0]) << 16) | (uint_t(in[1]) << 8) | in[2];
       out[0] = ENCODE_TABLE[(buf >> 18) & 63];
       out[1] = ENCODE_TABLE[(buf >> 12) & 63];
-      out[2] = ENCODE_TABLE[(buf >> 6)  & 63];
-      out[3] = ENCODE_TABLE[(buf >> 0)  & 63];
+      out[2] = ENCODE_TABLE[(buf >> 6) & 63];
+      out[3] = ENCODE_TABLE[(buf >> 0) & 63];
     }
 
     inline void Encode2Bytes(const uint8_t* in, char* out)
     {
       const uint_t buf = (uint_t(in[0]) << 8) | in[1];
       out[0] = ENCODE_TABLE[(buf >> 10) & 63];
-      out[1] = ENCODE_TABLE[(buf >> 4)  & 63];
-      out[2] = ENCODE_TABLE[(buf << 2)  & 63];
+      out[1] = ENCODE_TABLE[(buf >> 4) & 63];
+      out[2] = ENCODE_TABLE[(buf << 2) & 63];
       out[3] = STUB_SYMBOL;
     }
 
@@ -135,8 +137,8 @@ namespace Binary
       Require(PADDING == ReadAcceptableChar(in));
       out[0] = static_cast<uint8_t>(buf >> 4);
     }
-  }
-}
+  }  // namespace Base64
+}  // namespace Binary
 
 namespace Binary
 {
@@ -201,12 +203,13 @@ namespace Binary
       const std::size_t inSize = input.size();
       Require(0 == inSize % TXT_GROUP_SIZE);
       const std::size_t padPos = input.find(STUB_SYMBOL);
-      const std::size_t outSize = BIN_GROUP_SIZE * (inSize / TXT_GROUP_SIZE) - (padPos == inSize - 1) - 2 * (padPos == inSize - 2);
+      const std::size_t outSize =
+          BIN_GROUP_SIZE * (inSize / TXT_GROUP_SIZE) - (padPos == inSize - 1) - 2 * (padPos == inSize - 2);
       const char* in = input.data();
       Dump result(outSize);
       uint8_t* out = result.data();
       Decode(in, in + inSize, out, out + outSize);
       return result;
     }
-  }
-}
+  }  // namespace Base64
+}  // namespace Binary

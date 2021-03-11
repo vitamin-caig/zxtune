@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  JNI gate to benchmark library
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  JNI gate to benchmark library
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "apps/benchmark/core/benchmark.h"
-//std includes
-#include <sstream>
+// std includes
 #include <cmath>
-//system includes
-#include <jni.h>
+#include <sstream>
+// system includes
 #include <android/log.h>
+#include <jni.h>
 
 namespace
 {
@@ -35,7 +35,7 @@ namespace
   {
     __android_log_print(ANDROID_LOG_DEBUG, "zxtune.benchmark.so", msg, arg1, arg2);
   }
-}
+}  // namespace
 
 namespace
 {
@@ -50,7 +50,7 @@ namespace
     {
       Debug("JavaVisitorAdapter(Check=%p, Pass=%p)", Check, Pass);
     }
-    
+
     void OnPerformanceTest(const Benchmark::PerformanceTest& test) override
     {
       const std::string category = test.Category();
@@ -66,15 +66,17 @@ namespace
         Env->CallVoidMethod(Visitor, Pass, jcategory, jname, res);
       }
     }
+
   private:
     JNIEnv* const Env;
     const jobject Visitor;
     const jmethodID Check;
     const jmethodID Pass;
   };
-}
+}  // namespace
 
-extern "C" JNIEXPORT void JNICALL Java_app_zxtune_benchmark_Benchmark_ForAllTests(JNIEnv* env, jobject /*self*/, jclass visitor)
+extern "C" JNIEXPORT void JNICALL Java_app_zxtune_benchmark_Benchmark_ForAllTests(JNIEnv* env, jobject /*self*/,
+                                                                                  jclass visitor)
 {
   Debug("ForAllTests called");
   JavaVisitorAdapter adapter(env, visitor);

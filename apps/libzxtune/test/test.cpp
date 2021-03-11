@@ -1,20 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Simple test for libzxtune
-*
-* @author vitamin.caig@gmail.com
-*
-**/
-
+ *
+ * @file
+ *
+ * @brief Simple test for libzxtune
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "zxtune.h"
 #include <contract.h>
+#include <fstream>
+#include <iostream>
 #include <pointers.h>
 #include <types.h>
-#include <iostream>
-#include <fstream>
 
 namespace
 {
@@ -31,9 +30,9 @@ namespace
     Dump tmp(size);
     stream.read(safe_ptr_cast<char*>(&tmp[0]), tmp.size());
     result.swap(tmp);
-    //std::cout << "Read " << size << " bytes from " << name << std::endl;
+    // std::cout << "Read " << size << " bytes from " << name << std::endl;
   }
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

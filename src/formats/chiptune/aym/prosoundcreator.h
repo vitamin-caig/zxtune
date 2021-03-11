@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  ProSoundCreator support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ProSoundCreator support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -26,41 +26,46 @@ namespace Formats
       struct SampleLine
       {
         SampleLine()
-          : Level(), Tone(), ToneMask(true), NoiseMask(true), Adding()
-          , EnableEnvelope(), VolumeDelta()
+          : Level()
+          , Tone()
+          , ToneMask(true)
+          , NoiseMask(true)
+          , Adding()
+          , EnableEnvelope()
+          , VolumeDelta()
           , LoopBegin()
           , LoopEnd()
-        {
-        }
+        {}
 
-        uint_t Level;//0-15
+        uint_t Level;  // 0-15
         uint_t Tone;
         bool ToneMask;
         bool NoiseMask;
         int_t Adding;
         bool EnableEnvelope;
-        int_t VolumeDelta;//0/+1/-1
+        int_t VolumeDelta;  // 0/+1/-1
         bool LoopBegin;
         bool LoopEnd;
       };
-      
+
       typedef LinesObject<SampleLine> Sample;
 
       struct OrnamentLine
       {
         OrnamentLine()
-          : NoteAddon(), NoiseAddon()
-          , LoopBegin(), LoopEnd()
-        {
-        }
+          : NoteAddon()
+          , NoiseAddon()
+          , LoopBegin()
+          , LoopEnd()
+        {}
         int_t NoteAddon;
         int_t NoiseAddon;
         bool LoopBegin;
         bool LoopEnd;
       };
-      
+
       typedef LinesObject<OrnamentLine> Ornament;
-      
+
       typedef LinesObject<uint_t> Positions;
 
       class Builder
@@ -69,12 +74,12 @@ namespace Formats
         virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
-        //common properties
+        // common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
-        //samples+ornaments
+        // samples+ornaments
         virtual void SetSample(uint_t index, Sample sample) = 0;
         virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
-        //patterns
+        // patterns
         virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
@@ -86,7 +91,7 @@ namespace Formats
         virtual void SetSample(uint_t sample) = 0;
         virtual void SetOrnament(uint_t ornament) = 0;
         virtual void SetVolume(uint_t vol) = 0;
-        //cmds
+        // cmds
         virtual void SetEnvelope(uint_t type, uint_t tone) = 0;
         virtual void SetEnvelope() = 0;
         virtual void SetNoEnvelope() = 0;
@@ -101,8 +106,8 @@ namespace Formats
 
       Builder& GetStubBuilder();
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-    }
+    }  // namespace ProSoundCreator
 
     Decoder::Ptr CreateProSoundCreatorDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

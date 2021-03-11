@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  PSF related stuff. Vfs
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  PSF related stuff. Vfs
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <binary/container.h>
-//std includes
+// std includes
 #include <map>
 #include <memory>
 
@@ -27,12 +27,12 @@ namespace Module
     public:
       using Ptr = std::shared_ptr<const PsxVfs>;
       using RWPtr = std::shared_ptr<PsxVfs>;
-      
+
       void Add(const String& name, Binary::Container::Ptr data)
       {
         Files[ToUpper(name.c_str())] = std::move(data);
       }
-      
+
       bool Find(const char* name, Binary::Container::Ptr& data) const
       {
         const auto it = Files.find(ToUpper(name));
@@ -43,12 +43,14 @@ namespace Module
         data = it->second;
         return true;
       }
-      
+
       static void Parse(const Binary::Container& data, PsxVfs& vfs);
+
     private:
       static String ToUpper(const char* str);
+
     private:
       std::map<String, Binary::Container::Ptr> Files;
     };
-  }
-}
+  }  // namespace PSF
+}  // namespace Module

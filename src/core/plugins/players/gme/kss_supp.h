@@ -1,22 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  KSS format support tools
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  KSS format support tools
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/view.h>
 
-namespace Module
+namespace Module::KSS
 {
-  namespace KSS
-  {
-    String DetectPlatform(Binary::View blob);
-  }
+  String DetectPlatform(Binary::View blob);
 }

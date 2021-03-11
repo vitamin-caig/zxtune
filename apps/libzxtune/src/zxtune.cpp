@@ -1,23 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief LibZXTune implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief LibZXTune implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #define ZXTUNE_API ZXTUNE_API_EXPORT
 #include "../zxtune.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <cycle_buffer.h>
 #include <error_tools.h>
-#include <progress_callback.h>
 #include <make_ptr.h>
-//library includes
+#include <progress_callback.h>
+// library includes
 #include <binary/container.h>
 #include <binary/container_factories.h>
 #include <core/core_parameters.h>
@@ -26,7 +26,7 @@
 #include <parameters/container.h>
 #include <platform/version/api.h>
 #include <sound/sound_parameters.h>
-//std includes
+// std includes
 #include <map>
 
 namespace Text
@@ -74,6 +74,7 @@ namespace
       static HandlesCache<PtrType> self;
       return self;
     }
+
   private:
     typedef std::map<ZXTuneHandle, PtrType> Handle2Object;
     Handle2Object Handles;
@@ -94,17 +95,14 @@ namespace
     BufferRender()
       : Buffer(32768)
       , DoneSamples()
-    {
-    }
+    {}
 
     void ApplyData(Sound::Chunk data) override
     {
       Buffer.Put(data.begin(), data.size());
     }
 
-    void Flush() override
-    {
-    }
+    void Flush() override {}
 
     std::size_t GetCurrentSample() const
     {
@@ -143,6 +141,7 @@ namespace
       Buffer.Reset();
       DoneSamples = 0;
     }
+
   private:
     CycleBuffer<Sound::Sample> Buffer;
     std::size_t DoneSamples;
@@ -157,8 +156,7 @@ namespace
       : Params(params)
       , Renderer(renderer)
       , Buffer(buffer)
-    {
-    }
+    {}
 
     std::size_t RenderSound(Sound::Sample* target, std::size_t samples)
     {
@@ -212,12 +210,13 @@ namespace
     static Ptr Create(Module::Holder::Ptr holder)
     {
       const Parameters::Container::Ptr params = Parameters::Container::Create();
-      //copy initial properties
+      // copy initial properties
       holder->GetModuleProperties()->Process(*params);
       const BufferRender::Ptr buffer = MakePtr<BufferRender>();
       const Module::Renderer::Ptr renderer = holder->CreateRenderer(params, buffer);
       return MakePtr<PlayerWrapper>(params, renderer, buffer);
     }
+
   private:
     const Parameters::Container::Ptr Params;
     const Module::Renderer::Ptr Renderer;
@@ -229,11 +228,10 @@ namespace
   bool FindDefaultValue(const Parameters::NameType& name, Parameters::IntType& value)
   {
     typedef std::pair<Parameters::NameType, Parameters::IntType> Name2Val;
-    static const Name2Val DEFAULTS[] =
-    {
-      Name2Val(Parameters::ZXTune::Sound::FREQUENCY, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT),
-      Name2Val(Parameters::ZXTune::Core::AYM::CLOCKRATE, Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
-      Name2Val(Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT),
+    static const Name2Val DEFAULTS[] = {
+        Name2Val(Parameters::ZXTune::Sound::FREQUENCY, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT),
+        Name2Val(Parameters::ZXTune::Core::AYM::CLOCKRATE, Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
+        Name2Val(Parameters::ZXTune::Sound::FRAMEDURATION, Parameters::ZXTune::Sound::FRAMEDURATION_DEFAULT),
     };
     for (const auto& def : DEFAULTS)
     {
@@ -245,7 +243,7 @@ namespace
     }
     return false;
   }
-}
+}  // namespace
 
 const char* ZXTune_GetVersion()
 {
@@ -318,7 +316,6 @@ bool ZXTune_GetModuleInfo(ZXTuneHandle module, ZXTuneModuleInfo* info)
     return false;
   }
 }
-
 
 ZXTuneHandle ZXTune_CreatePlayer(ZXTuneHandle module)
 {

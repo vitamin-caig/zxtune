@@ -1,33 +1,31 @@
 /**
-* 
-* @file
-*
-* @brief  SID support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SID support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/emulation/sid.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <math/numeric.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace SID
   {
@@ -40,7 +38,7 @@ namespace Chiptune
     const uint_t VERSION_MAX = 3;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -55,30 +53,29 @@ namespace Chiptune
       uint32_t SpeedFlags;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 22, "Invalid layout");
 
     const StringView FORMAT =
-        "'R|'P 'S'I'D" //signature
-        "00 01-03"     //BE version
-        "00 76|7c"     //BE data offset
-        "??"           //BE load address
-        "??"           //BE init address
-        "??"           //BE play address
-        "00|01 ?"      //BE songs count 1-256
-        "??"           //BE start song
-        "????"         //BE speed flag
-     ;
+        "'R|'P 'S'I'D"  // signature
+        "00 01-03"      // BE version
+        "00 76|7c"      // BE data offset
+        "??"            // BE load address
+        "??"            // BE init address
+        "??"            // BE play address
+        "00|01 ?"       // BE songs count 1-256
+        "??"            // BE start song
+        "????"          // BE speed flag
+        ;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -97,8 +94,9 @@ namespace Chiptune
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
       {
-        return Formats::Chiptune::Container::Ptr();//TODO
+        return Formats::Chiptune::Container::Ptr();  // TODO
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -142,11 +140,10 @@ namespace Chiptune
       hdr.StartSong = fromBE<uint16_t>(idx);
       return Binary::CreateContainer(std::move(content));
     }
-  }
+  }  // namespace SID
 
   Decoder::Ptr CreateSIDDecoder()
   {
     return MakePtr<SID::Decoder>();
   }
-}
-}
+}  // namespace Formats::Chiptune

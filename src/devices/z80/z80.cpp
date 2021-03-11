@@ -1,25 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief  Z80 implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Z80 implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include <devices/z80.h>
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <parameters/tracking_helper.h>
-//3rdparty includes
+// 3rdparty includes
 #include <3rdparty/z80ex/include/z80ex.h>
 
-namespace Devices
-{
-namespace Z80
+namespace Devices::Z80
 {
   class IOBus
   {
@@ -28,7 +26,7 @@ namespace Z80
 
     virtual std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const = 0;
   };
-  
+
   class ExtendedIOBus : public IOBus
   {
   public:
@@ -36,17 +34,16 @@ namespace Z80
       : Clock(clock)
       , Memory(std::move(memory))
       , Ports(std::move(ports))
-    {
-    }
+    {}
 
     std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const override
     {
       ExtendedIOBus* const self = const_cast<ExtendedIOBus*>(this);
       return std::shared_ptr<Z80EX_CONTEXT>(
-        z80ex_create(&ReadByte, self, &WriteByte, self,
-                     &InByte, self, &OutByte, self,
-                     &IntRead, self), &z80ex_destroy);
+          z80ex_create(&ReadByte, self, &WriteByte, self, &InByte, self, &OutByte, self, &IntRead, self),
+          &z80ex_destroy);
     }
+
   private:
     static Z80EX_BYTE ReadByte(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
     {
@@ -86,6 +83,7 @@ namespace Z80
     {
       return io.Write(Clock, addr, value);
     }
+
   private:
     const Oscillator& Clock;
     const ChipIO::Ptr Memory;
@@ -100,8 +98,7 @@ namespace Z80
       , Memory(std::move(memory))
       , RawMemory(Memory.data())
       , Ports(std::move(ports))
-    {
-    }
+    {}
 
     std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const override
     {
@@ -110,10 +107,9 @@ namespace Z80
       const z80ex_mread_cb read = isLimited ? &ReadByteLimited : &ReadByteUnlimited;
       const z80ex_mwrite_cb write = isLimited ? &WriteByteLimited : &WriteByteUnlimited;
       return std::shared_ptr<Z80EX_CONTEXT>(
-        z80ex_create(read, self, write, self,
-                     &InByte, self, &OutByte, self,
-                     &IntRead, self), &z80ex_destroy);
+          z80ex_create(read, self, write, self, &InByte, self, &OutByte, self, &IntRead, self), &z80ex_destroy);
     }
+
   private:
     static Z80EX_BYTE ReadByteUnlimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
     {
@@ -124,9 +120,7 @@ namespace Z80
     static Z80EX_BYTE ReadByteLimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, int /*m1_state*/, void* userData)
     {
       const SimpleIOBus* const self = static_cast<const SimpleIOBus*>(userData);
-      return addr < self->Memory.size()
-        ? self->RawMemory[addr]
-        : 0xff;
+      return addr < self->Memory.size() ? self->RawMemory[addr] : 0xff;
     }
 
     static void WriteByteUnlimited(Z80EX_CONTEXT* /*cpu*/, Z80EX_WORD addr, Z80EX_BYTE value, void* userData)
@@ -160,6 +154,7 @@ namespace Z80
     {
       return 0xff;
     }
+
   private:
     const Oscillator& Clock;
     Dump Memory;
@@ -173,8 +168,7 @@ namespace Z80
     ClockSource()
       : ClockFreq()
       , IntDuration()
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -230,6 +224,7 @@ namespace Z80
     {
       return Clock.GetCurrentTick() + IntDuration;
     }
+
   private:
     uint64_t ClockFreq;
     uint_t IntDuration;
@@ -357,9 +352,9 @@ namespace Z80
       tmp[Registers::REG_HL_] = z80ex_get_reg(Context.get(), regHL_);
       tmp[Registers::REG_IX] = z80ex_get_reg(Context.get(), regIX);
       tmp[Registers::REG_IY] = z80ex_get_reg(Context.get(), regIY);
-      tmp[Registers::REG_IR] = 256 * z80ex_get_reg(Context.get(), regI) +
-        ((z80ex_get_reg(Context.get(), regR) & 127) |
-         (z80ex_get_reg(Context.get(), regR7) & 128));
+      tmp[Registers::REG_IR] =
+          256 * z80ex_get_reg(Context.get(), regI)
+          + ((z80ex_get_reg(Context.get(), regR) & 127) | (z80ex_get_reg(Context.get(), regR7) & 128));
       tmp[Registers::REG_PC] = z80ex_get_reg(Context.get(), regPC);
       tmp[Registers::REG_SP] = z80ex_get_reg(Context.get(), regSP);
       regs.swap(tmp);
@@ -380,6 +375,7 @@ namespace Z80
       SynchronizeParameters();
       Clock.Seek(time);
     }
+
   private:
     void SynchronizeParameters()
     {
@@ -388,14 +384,14 @@ namespace Z80
         Clock.SetParameters(Params->ClockFreq(), Params->IntTicks());
       }
     }
+
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
     ClockSource Clock;
     const std::unique_ptr<IOBus> Bus;
     const std::shared_ptr<Z80EX_CONTEXT> Context;
   };
-}
-}
+}  // namespace Devices::Z80
 
 namespace Devices
 {
@@ -410,5 +406,5 @@ namespace Devices
     {
       return MakePtr<Z80Chip>(params, memory, ports);
     }
-  }
-}
+  }  // namespace Z80
+}  // namespace Devices

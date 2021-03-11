@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Sound pipeline support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Sound pipeline support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <module/renderer.h>
 #include <parameters/accessor.h>
 
@@ -28,5 +28,6 @@ namespace Module
   */
   Renderer::Ptr CreatePipelinedRenderer(const Holder& holder, Parameters::Accessor::Ptr globalParams);
 
-  Renderer::Ptr CreatePipelinedRenderer(const Holder& holder, uint_t samplerate, Parameters::Accessor::Ptr globalParams);
-}
+  Renderer::Ptr CreatePipelinedRenderer(const Holder& holder, uint_t samplerate,
+                                        Parameters::Accessor::Ptr globalParams);
+}  // namespace Module

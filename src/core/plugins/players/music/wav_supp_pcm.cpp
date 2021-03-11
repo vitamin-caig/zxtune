@@ -1,21 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  WAV PCM player code
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  WAV PCM player code
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "core/plugins/players/music/wav_supp.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
 
-namespace Module
-{
-namespace Wav
+namespace Module::Wav
 {
   namespace Pcm
   {
@@ -25,7 +23,7 @@ namespace Wav
 
     template<class Type>
     struct SampleTraits;
-    
+
     template<>
     struct SampleTraits<uint8_t>
     {
@@ -34,7 +32,7 @@ namespace Wav
         return Sound::Sample::MAX * v / 255;
       }
     };
-    
+
     template<>
     struct SampleTraits<int16_t>
     {
@@ -45,12 +43,12 @@ namespace Wav
     };
 
     using Sample24 = std::array<uint8_t, 3>;
-    
+
     template<>
     struct SampleTraits<Sample24>
     {
       static_assert(sizeof(Sample24) == 3, "Wrong layout");
-      
+
       static Sound::Sample::Type ConvertChannel(Sample24 v)
       {
         return static_cast<int16_t>(256 * v[2] + v[1]);
@@ -65,7 +63,7 @@ namespace Wav
         return v / 65536;
       }
     };
-    
+
     template<>
     struct SampleTraits<float>
     {
@@ -76,18 +74,19 @@ namespace Wav
         return v * 32767;
       }
     };
-    
+
     template<class Type, uint_t Channels>
     struct MultichannelSampleTraits
     {
       using UnderlyingType = std::array<Type, Channels>;
       static_assert(sizeof(UnderlyingType) == Channels * sizeof(Type), "Wrong layout");
-      
+
       static Sound::Sample ConvertSample(UnderlyingType data)
       {
         if (Channels == 2)
         {
-          return Sound::Sample(SampleTraits<Type>::ConvertChannel(data[0]), SampleTraits<Type>::ConvertChannel(data[1]));
+          return Sound::Sample(SampleTraits<Type>::ConvertChannel(data[0]),
+                               SampleTraits<Type>::ConvertChannel(data[1]));
         }
         else
         {
@@ -106,9 +105,9 @@ namespace Wav
       std::transform(typedData, typedData + countHint, result.data(), &Traits::ConvertSample);
       return result;
     }
-    
-    using ConvertFunction = Sound::Chunk(*)(const void*, std::size_t);
-    
+
+    using ConvertFunction = Sound::Chunk (*)(const void*, std::size_t);
+
     ConvertFunction FindConvertFunction(uint_t channels, uint_t bits)
     {
       switch (channels * 256 + bits)
@@ -133,7 +132,7 @@ namespace Wav
         return nullptr;
       }
     }
-    
+
     ConvertFunction FindConvertFunction(uint_t channels, uint_t bits, uint_t blocksize)
     {
       if (channels * bits / 8 == blocksize)
@@ -149,7 +148,7 @@ namespace Wav
         return nullptr;
       }
     }
-  }
+  }  // namespace Pcm
 
   class PcmModel : public BlockingModel
   {
@@ -157,8 +156,7 @@ namespace Wav
     PcmModel(Properties props, Pcm::ConvertFunction func)
       : BlockingModel(std::move(props))
       , Convert(func)
-    {
-    }
+    {}
 
     Sound::Chunk RenderNextFrame() override
     {
@@ -172,22 +170,22 @@ namespace Wav
         return {};
       }
     }
+
   private:
     const Pcm::ConvertFunction Convert;
   };
-  
+
   Model::Ptr CreatePcmModel(Properties props)
   {
     const auto func = Pcm::FindConvertFunction(props.Channels, props.Bits, props.BlockSize);
     Require(func);
     return MakePtr<PcmModel>(std::move(props), func);
   }
-  
+
   Model::Ptr CreateFloatPcmModel(Properties props)
   {
     const auto func = props.Channels == 1 ? &Pcm::ConvertChunk<float, 1> : &Pcm::ConvertChunk<float, 2>;
     Require(func);
     return MakePtr<PcmModel>(std::move(props), func);
   }
-}
-}
+}  // namespace Module::Wav

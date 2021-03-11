@@ -1,30 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief  DAC support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include <devices/dac.h>
 #include <devices/details/freq_table.h>
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
-//std includes
+// std includes
 #include <array>
 #include <cmath>
 
-namespace Devices
-{
-namespace DAC
+namespace Devices::DAC
 {
   const uint_t NO_INDEX = uint_t(-1);
 
@@ -33,7 +31,7 @@ namespace DAC
   public:
     typedef std::shared_ptr<const FastSample> Ptr;
 
-    //use additional sample for interpolation
+    // use additional sample for interpolation
     explicit FastSample(std::size_t idx, Sample::Ptr in)
       : Index(static_cast<uint_t>(idx))
       , Rms(in->Rms())
@@ -79,8 +77,7 @@ namespace DAC
         , Limit()
         , Loop()
         , Pos()
-      {
-      }
+      {}
 
       bool IsValid() const
       {
@@ -146,12 +143,14 @@ namespace DAC
         Loop = sample.Loop;
         Pos = std::min(Pos, Limit);
       }
+
     private:
       Position GetNextPos() const
       {
         const Position res = Pos + Step;
         return res < Limit ? res : Loop;
       }
+
     private:
       const Sound::Sample::Type* Data;
       Position Step;
@@ -159,6 +158,7 @@ namespace DAC
       Position Loop;
       Position Pos;
     };
+
   private:
     friend class Iterator;
     const uint_t Index;
@@ -193,8 +193,9 @@ namespace DAC
     {
       const int_t halftonesLim = Math::Clamp<int_t>(halftones, 0, Details::FreqTable::SIZE - 1);
       const Details::Frequency baseFreq = Details::FreqTable::GetHalftoneFrequency(0);
-      const Details::Frequency freq = Details::FreqTable::GetHalftoneFrequency(halftonesLim) + Details::Frequency(slideHz);
-      //step 1 is for first note
+      const Details::Frequency freq =
+          Details::FreqTable::GetHalftoneFrequency(halftonesLim) + Details::Frequency(slideHz);
+      // step 1 is for first note
       return FastSample::Position(int64_t((freq * SampleFreq).Integer()), (baseFreq * SoundFreq).Integer());
     }
 
@@ -209,6 +210,7 @@ namespace DAC
       CurrentTime = nextTime;
       return static_cast<uint_t>(uint64_t(nextTime.Get() - now.Get()) * SoundFreq / CurrentTime.PER_SECOND);
     }
+
   private:
     uint_t SampleFreq;
     uint_t SoundFreq;
@@ -220,8 +222,7 @@ namespace DAC
   public:
     SamplesStorage()
       : MaxRms()
-    {
-    }
+    {}
 
     void Add(std::size_t idx, Sample::Ptr sample)
     {
@@ -248,6 +249,7 @@ namespace DAC
     {
       return MaxRms;
     }
+
   private:
     uint_t MaxRms;
     std::vector<FastSample::Ptr> Content;
@@ -255,7 +257,7 @@ namespace DAC
 
   typedef Math::FixedPoint<int, LevelType::PRECISION> SignedLevelType;
 
-  //channel state type
+  // channel state type
   struct ChannelState
   {
     ChannelState()
@@ -264,8 +266,7 @@ namespace DAC
       , NoteSlide()
       , FreqSlide()
       , Level(1)
-    {
-    }
+    {}
 
     explicit ChannelState(FastSample::Ptr sample)
       : Enabled()
@@ -274,16 +275,15 @@ namespace DAC
       , FreqSlide()
       , Source(std::move(sample))
       , Level(1)
-    {
-    }
+    {}
 
     bool Enabled;
     uint_t Note;
-    //current slide in halftones
+    // current slide in halftones
     int_t NoteSlide;
-    //current slide in Hz
+    // current slide in Hz
     int_t FreqSlide;
-    //sample
+    // sample
     FastSample::Ptr Source;
     FastSample::Iterator Iterator;
     SignedLevelType Level;
@@ -295,34 +295,34 @@ namespace DAC
       {
         Enabled = *enabled;
       }
-      //note changed
+      // note changed
       if (const uint_t* note = state.GetNote())
       {
         Note = *note;
       }
-      //note slide changed
+      // note slide changed
       if (const int_t* noteSlide = state.GetNoteSlide())
       {
         NoteSlide = *noteSlide;
       }
-      //frequency slide changed
+      // frequency slide changed
       if (const int_t* freqSlideHz = state.GetFreqSlideHz())
       {
         FreqSlide = *freqSlideHz;
       }
-      //sample changed
+      // sample changed
       if (const uint_t* sampleNum = state.GetSampleNum())
       {
         Source = samples.Get(*sampleNum);
         Iterator.SetSample(*Source);
       }
-      //position in sample changed
+      // position in sample changed
       if (const uint_t* posInSample = state.GetPosInSample())
       {
         assert(Source);
         Iterator.SetPosition(*posInSample);
       }
-      //level changed
+      // level changed
       if (const LevelType* level = state.GetLevel())
       {
         Level = *level;
@@ -335,16 +335,12 @@ namespace DAC
 
     Sound::Sample::Type GetNearest() const
     {
-      return Enabled
-        ? Amplify(Iterator.GetNearest())
-        : Sound::Sample::MID;
+      return Enabled ? Amplify(Iterator.GetNearest()) : Sound::Sample::MID;
     }
 
     Sound::Sample::Type GetInterpolated(const uint_t* lookup) const
     {
-      return Enabled
-        ? Amplify(Iterator.GetInterpolated(lookup))
-        : Sound::Sample::MID;
+      return Enabled ? Amplify(Iterator.GetInterpolated(lookup)) : Sound::Sample::MID;
     }
 
     void Next()
@@ -362,6 +358,7 @@ namespace DAC
       const uint_t rms = Source->GetRms();
       out.Set(Note + NoteSlide, Level * rms / maxRms);
     }
+
   private:
     Sound::Sample::Type Amplify(Sound::Sample::Type val) const
     {
@@ -384,8 +381,7 @@ namespace DAC
     LQRenderer(const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
       : Mixer(mixer)
       , State(state)
-    {
-    }
+    {}
 
     Sound::Chunk RenderData(uint_t samples) override
     {
@@ -404,6 +400,7 @@ namespace DAC
       }
       return chunk;
     }
+
   private:
     const Sound::FixedChannelsMixer<Channels>& Mixer;
     ChannelState* const State;
@@ -416,8 +413,7 @@ namespace DAC
     MQRenderer(const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
       : Mixer(mixer)
       , State(state)
-    {
-    }
+    {}
 
     Sound::Chunk RenderData(uint_t samples) override
     {
@@ -437,6 +433,7 @@ namespace DAC
       }
       return chunk;
     }
+
   private:
     class CosineTable
     {
@@ -454,9 +451,11 @@ namespace DAC
       {
         return Table.data();
       }
+
     private:
       std::array<uint_t, FastSample::Position::PRECISION> Table;
     };
+
   private:
     const Sound::FixedChannelsMixer<Channels>& Mixer;
     ChannelState* const State;
@@ -471,8 +470,7 @@ namespace DAC
       , MQ(mixer, state)
       , Current()
       , State(state)
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -506,6 +504,7 @@ namespace DAC
         }
       }
     }
+
   private:
     LQRenderer<Channels> LQ;
     MQRenderer<Channels> MQ;
@@ -595,7 +594,7 @@ namespace DAC
       const uint_t samples = Clock.Advance(stamp);
       Renderers.DropData(samples);
     }
-    
+
     void UpdateChannelState(const DataChunk& chunk)
     {
       for (const auto& state : chunk.Data)
@@ -604,6 +603,7 @@ namespace DAC
         State[state.Channel].Update(Samples, Clock, state);
       }
     }
+
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
     const typename Sound::FixedChannelsMixer<Channels>::Ptr Mixer;
@@ -622,5 +622,4 @@ namespace DAC
   {
     return MakePtr<FixedChannelsChip<4> >(std::move(params), std::move(mixer));
   }
-}
-}
+}  // namespace Devices::DAC

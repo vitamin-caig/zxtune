@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  ESVCruncher test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ESVCruncher test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../utils.h"
 

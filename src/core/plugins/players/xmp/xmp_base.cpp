@@ -1,51 +1,48 @@
 /**
-* 
-* @file
-*
-* @brief  XMP support plugin
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  XMP support plugin
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/container.h>
+#include <module/players/properties_helper.h>
 #include <module/track_information.h>
 #include <module/track_state.h>
-#include <module/players/properties_helper.h>
 #include <parameters/tracking_helper.h>
 #include <sound/loop.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
 #include <time/duration.h>
-//std includes
+// std includes
 #include <utility>
-//3rdparty includes
+// 3rdparty includes
 #define BUILDING_STATIC
 #include <3rdparty/xmp/include/xmp.h>
 #include <3rdparty/xmp/src/xmp_private.h>
 
-namespace Module
-{
-namespace Xmp
+namespace Module::Xmp
 {
   class BaseContext
   {
   public:
     BaseContext()
       : Data(::xmp_create_context())
-    {
-    }
-    
+    {}
+
     ~BaseContext()
     {
       ::xmp_free_context(Data);
@@ -84,15 +81,17 @@ namespace Xmp
     {
       CheckError(func(Data, p1, p2, p3));
     }
+
   private:
     BaseContext(const BaseContext& rh);
-    void operator = (const BaseContext& rh);
+    void operator=(const BaseContext& rh);
 
     static void CheckError(int code)
     {
-      //TODO
+      // TODO
       Require(code >= 0);
     }
+
   protected:
     xmp_context Data;
   };
@@ -104,7 +103,8 @@ namespace Xmp
 
     Context(const Binary::Container& rawData, const struct format_loader* loader)
     {
-      Call(&::xmp_load_typed_module_from_memory, const_cast<void*>(rawData.Start()), static_cast<long>(rawData.Size()), loader);
+      Call(&::xmp_load_typed_module_from_memory, const_cast<void*>(rawData.Start()), static_cast<long>(rawData.Size()),
+           loader);
     }
 
     ~Context()
@@ -123,8 +123,7 @@ namespace Xmp
     Information(xmp_module module, DurationType duration)
       : Info(std::move(module))
       , TotalDuration(duration)
-    {
-    }
+    {}
 
     Time::Milliseconds Duration() const override
     {
@@ -133,7 +132,7 @@ namespace Xmp
 
     Time::Milliseconds LoopDuration() const override
     {
-      return Duration();//TODO
+      return Duration();  // TODO
     }
 
     uint_t PositionsCount() const override
@@ -150,6 +149,7 @@ namespace Xmp
     {
       return Info.chn;
     }
+
   private:
     const xmp_module Info;
     const DurationType TotalDuration;
@@ -164,8 +164,7 @@ namespace Xmp
 
     TrackState(StatePtr state)
       : State(std::move(state))
-    {
-    }
+    {}
 
     Time::AtMillisecond At() const override
     {
@@ -204,12 +203,12 @@ namespace Xmp
 
     uint_t Quirk() const override
     {
-      return State->frame;//???
+      return State->frame;  //???
     }
 
     uint_t Channels() const override
     {
-      return State->virt_used;//????
+      return State->virt_used;  //????
     }
 
     void Add(Time::Microseconds played)
@@ -221,6 +220,7 @@ namespace Xmp
     {
       TotalDuration = {};
     }
+
   private:
     const StatePtr State;
     Time::Microseconds TotalDuration;
@@ -232,12 +232,11 @@ namespace Xmp
     Analyzer(uint_t channels, StatePtr state)
       : Channels(channels)
       , State(std::move(state))
-    {
-    }
+    {}
 
     SpectrumState GetState() const override
     {
-      //difference between libxmp and regular spectrum formats is 2 octaves
+      // difference between libxmp and regular spectrum formats is 2 octaves
       const int C2OFFSET = 24;
       SpectrumState result;
       for (uint_t idx = 0; idx != Channels; ++idx)
@@ -245,14 +244,15 @@ namespace Xmp
         const xmp_frame_info::xmp_channel_info& info = State->channel_info[idx];
         if (info.note != uint8_t(-1) && info.volume != 0)
         {
-          //TODO: use period as precise playback speed
+          // TODO: use period as precise playback speed
           const auto band = std::max<int>(0, info.note - C2OFFSET);
-          //TODO: also take into account sample's RMS
+          // TODO: also take into account sample's RMS
           result.Set(band, LevelType(info.volume, 100));
         }
       }
       return result;
     }
+
   private:
     const uint_t Channels;
     const StatePtr State;
@@ -269,7 +269,7 @@ namespace Xmp
       , Analysis(MakePtr<Analyzer>(channels, State))
       , SoundFreq(samplerate)
     {
-      //Required in order to perform initial seeking
+      // Required in order to perform initial seeking
       Ctx->Call(&::xmp_start_player, static_cast<int>(samplerate), 0);
     }
 
@@ -324,6 +324,7 @@ namespace Xmp
       static_assert(request.PER_SECOND == DurationType::PER_SECOND, "Fail");
       Ctx->Call(&::xmp_seek_time, int(request.Get()));
     }
+
   private:
     void ApplyParameters()
     {
@@ -331,10 +332,12 @@ namespace Xmp
       {
         Parameters::IntType val = Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT;
         Params->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val);
-        const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? XMP_INTERP_SPLINE : XMP_INTERP_LINEAR;
+        const int interpolation = val != Parameters::ZXTune::Core::DAC::INTERPOLATION_NO ? XMP_INTERP_SPLINE
+                                                                                         : XMP_INTERP_LINEAR;
         Ctx->Call(&::xmp_set_player, int(XMP_PLAYER_INTERP), interpolation);
       }
     }
+
   private:
     const Context::Ptr Ctx;
     const StatePtr State;
@@ -351,8 +354,7 @@ namespace Xmp
       : Ctx(std::move(ctx))
       , Info(std::move(info))
       , Properties(std::move(props))
-    {
-    }
+    {}
 
     Module::Information::Ptr GetModuleInformation() const override
     {
@@ -368,6 +370,7 @@ namespace Xmp
     {
       return MakePtr<Renderer>(Info->ChannelsCount(), Ctx, samplerate, std::move(params));
     }
+
   private:
     const Context::Ptr Ctx;
     const Information::Ptr Info;
@@ -387,14 +390,12 @@ namespace Xmp
     explicit Decoder(const PluginDescription& desc)
       : Desc(desc)
       , Fmt(Binary::CreateMatchOnlyFormat(Desc.Format))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
       return xmp_get_loader_name(Desc.Loader);
     }
-
 
     Binary::Format::Ptr GetFormat() const override
     {
@@ -408,18 +409,19 @@ namespace Xmp
 
     Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
     {
-      return Formats::Chiptune::Container::Ptr();//TODO
+      return Formats::Chiptune::Container::Ptr();  // TODO
     }
+
   private:
     const PluginDescription& Desc;
     const Binary::Format::Ptr Fmt;
   };
-  
+
   String DecodeString(StringView str)
   {
     return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
   }
-  
+
   void ParseStrings(const xmp_module& mod, PropertiesHelper& props)
   {
     Strings::Array strings;
@@ -439,10 +441,10 @@ namespace Xmp
   public:
     explicit Factory(const PluginDescription& desc)
       : Desc(desc)
-    {
-    }
+    {}
 
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
+                                     Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -471,14 +473,15 @@ namespace Xmp
         }
       }
       catch (const std::exception&)
-      {
-      }
+      {}
       return {};
     }
+
   private:
     const PluginDescription& Desc;
   };
 
+  // clang-format off
   const PluginDescription PLUGINS[] =
   {
     //{"ARCH", &arch_loader},
@@ -643,8 +646,8 @@ namespace Xmp
       &tcb_loader
     },
   };
-}
-}
+  // clang-format on
+}  // namespace Module::Xmp
 
 namespace ZXTune
 {
@@ -659,4 +662,4 @@ namespace ZXTune
       registrator.RegisterPlugin(plugin);
     }
   }
-}
+}  // namespace ZXTune

@@ -1,39 +1,37 @@
 /**
-* 
-* @file
-*
-* @brief  GlobalTracker support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  GlobalTracker support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/globaltracker.h"
 #include "formats/chiptune/container.h"
 #include "formats/chiptune/metainfo.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
 #include <iterator.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace GlobalTracker
   {
@@ -57,7 +55,7 @@ namespace Chiptune
     */
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawPattern
     {
@@ -183,7 +181,7 @@ namespace Chiptune
       }
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 296, "Invalid layout");
@@ -340,6 +338,7 @@ namespace Chiptune
       {
         return NonEmptySamples;
       }
+
     private:
       static bool IsSampleSounds(const Sample& smp)
       {
@@ -352,11 +351,12 @@ namespace Chiptune
           const Sample::Line& line = smp.Lines[idx];
           if ((!line.ToneMask && line.Level) || !line.NoiseMask)
           {
-            return true;//has envelope or tone with volume
+            return true;  // has envelope or tone with volume
           }
         }
         return false;
       }
+
     private:
       Builder& Delegate;
       Indices UsedPatterns;
@@ -373,8 +373,7 @@ namespace Chiptune
         : ServiceRanges(RangeChecker::CreateShared(limit))
         , TotalRanges(RangeChecker::CreateSimple(limit))
         , FixedRanges(RangeChecker::CreateSimple(limit))
-      {
-      }
+      {}
 
       void AddService(std::size_t offset, std::size_t size) const
       {
@@ -403,6 +402,7 @@ namespace Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       const RangeChecker::Ptr ServiceRanges;
       const RangeChecker::Ptr TotalRanges;
@@ -412,7 +412,7 @@ namespace Chiptune
     bool IsInvalidPosEntry(uint8_t entry)
     {
       return entry % sizeof(RawPattern) != 0
-          || !Math::InRange<uint_t>(entry / sizeof(RawPattern) + 1, 1, MAX_PATTERNS_COUNT);
+             || !Math::InRange<uint_t>(entry / sizeof(RawPattern) + 1, 1, MAX_PATTERNS_COUNT);
     }
 
     class Format
@@ -445,7 +445,7 @@ namespace Chiptune
         Require(posEnd == std::find_if(posStart, posEnd, &IsInvalidPosEntry));
         Positions positions;
         positions.Lines.resize(posEnd - posStart);
-        std::transform(posStart, posEnd, positions.Lines.begin(), [](auto b) {return b / sizeof(RawPattern);});
+        std::transform(posStart, posEnd, positions.Lines.begin(), [](auto b) { return b / sizeof(RawPattern); });
         positions.Loop = std::min<uint_t>(Source.Loop, positions.Lines.size());
         Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
         builder.SetPositions(std::move(positions));
@@ -556,6 +556,7 @@ namespace Chiptune
       {
         return Ranges.GetFixedArea();
       }
+
     private:
       std::size_t GetSampleOffset(uint_t index) const
       {
@@ -621,8 +622,7 @@ namespace Chiptune
             : Offset()
             , Period()
             , Counter()
-          {
-          }
+          {}
 
           void Skip(uint_t toSkip)
           {
@@ -660,7 +660,6 @@ namespace Chiptune
         }
       };
 
-
       bool ParsePattern(uint_t patIndex, Builder& builder) const
       {
         const RawPattern& src = Source.Patterns[patIndex];
@@ -670,7 +669,7 @@ namespace Chiptune
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
-          //skip lines if required
+          // skip lines if required
           if (const uint_t linesToSkip = state.GetMinCounter())
           {
             state.SkipLines(linesToSkip);
@@ -743,16 +742,16 @@ namespace Chiptune
         while (state.Offset < Data.Size())
         {
           const uint_t cmd = PeekByte(state.Offset++);
-          if (cmd <= 0x5f)//set note
+          if (cmd <= 0x5f)  // set note
           {
             builder.SetNote(cmd);
             break;
           }
-          else if (cmd <= 0x6f)//set sample
+          else if (cmd <= 0x6f)  // set sample
           {
             builder.SetSample(cmd - 0x60);
           }
-          else if (cmd <= 0x7f) //set ornament
+          else if (cmd <= 0x7f)  // set ornament
           {
             builder.SetOrnament(cmd - 0x70);
             if (NewVersion())
@@ -827,6 +826,7 @@ namespace Chiptune
         }
         dst.Loop = std::min<int_t>(src.Loop, size);
       }
+
     private:
       const Binary::View Data;
       RangesMap Ranges;
@@ -880,8 +880,7 @@ namespace Chiptune
       {
         ++it;
       }
-      return it != offsets.end() && *it >= start
-        ? *it - start : 0;
+      return it != offsets.end() && *it >= start ? *it - start : 0;
     }
 
     struct Areas : public AreaController
@@ -898,9 +897,7 @@ namespace Chiptune
 
       bool CheckHeader(std::size_t headerSize) const
       {
-        return headerSize + StartAddr < 0x10000
-            && GetAreaSize(HEADER) >= headerSize
-            && Undefined == GetAreaSize(END);
+        return headerSize + StartAddr < 0x10000 && GetAreaSize(HEADER) >= headerSize && Undefined == GetAreaSize(END);
       }
 
       bool CheckPatterns() const
@@ -917,6 +914,7 @@ namespace Chiptune
       {
         return GetAreaSize(ORNAMENTS) != 0;
       }
+
     private:
       const std::size_t StartAddr;
     };
@@ -950,17 +948,17 @@ namespace Chiptune
     }
 
     const StringView FORMAT(
-      "03-0f"          //uint8_t Tempo;
-      "???"            //uint8_t ID[3];
-      "10-12"          //uint8_t Version; who knows?
-      "??"             //uint16_t Address;
-      "?{32}"          //char Title[32];
-      "?{30}"          //std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      "?{32}"          //std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      "?{192}"         //std::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
-      "01-ff"          //uint8_t Length;
-      "00-fe"          //uint8_t Loop;
-      "*6&00-ba"       //uint8_t Positions[1];
+        "03-0f"     // uint8_t Tempo;
+        "???"       // uint8_t ID[3];
+        "10-12"     // uint8_t Version; who knows?
+        "??"        // uint16_t Address;
+        "?{32}"     // char Title[32];
+        "?{30}"     // std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+        "?{32}"     // std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+        "?{192}"    // std::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
+        "01-ff"     // uint8_t Length;
+        "00-fe"     // uint8_t Loop;
+        "*6&00-ba"  // uint8_t Positions[1];
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -968,8 +966,7 @@ namespace Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -996,6 +993,7 @@ namespace Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -1029,7 +1027,8 @@ namespace Chiptune
         Require(format.GetSize() >= MIN_SIZE);
         auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -1043,11 +1042,10 @@ namespace Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }// namespace GlobalTracker
+  }  // namespace GlobalTracker
 
   Decoder::Ptr CreateGlobalTrackerDecoder()
   {
     return MakePtr<GlobalTracker::Decoder>();
   }
-}// namespace Chiptune
-}// namespace Formats
+}  // namespace Formats::Chiptune

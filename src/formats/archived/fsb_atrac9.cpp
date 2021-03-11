@@ -1,26 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  FSB ATRAC9 images support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FSB ATRAC9 images support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/fsb_formats.h"
-//library includes
+// library includes
 #include <formats/chiptune/music/wav.h>
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
 
-namespace Formats
-{
-namespace Archived
-{
-namespace FSB
+namespace Formats::Archived::FSB
 {
   namespace Atrac9
   {
@@ -43,17 +39,14 @@ namespace FSB
         std::memcpy(&Data[4], sign, CONFIG_SIZE);
         // check data here
         Require(GetChannelsCount() <= 2);
-        //verification bit
+        // verification bit
         Require((Data[5] & 1) == 0);
       }
 
       uint_t GetSamplerate() const
       {
-        static const uint_t SAMPLERATES[16] =
-        {
-          11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000,
-          44100, 48000, 64000, 88200, 96000, 128000, 176400, 192000
-        };
+        static const uint_t SAMPLERATES[16] = {11025, 12000, 16000, 22050, 24000, 32000,  44100,  48000,
+                                               44100, 48000, 64000, 88200, 96000, 128000, 176400, 192000};
         return SAMPLERATES[Data[5] >> 4];
       }
 
@@ -61,10 +54,10 @@ namespace FSB
       {
         switch ((Data[5] >> 1) & 7)
         {
-        case 0://mono
+        case 0:  // mono
           return 1;
-        case 1://dual mono
-        case 2://stereo
+        case 1:  // dual mono
+        case 2:  // stereo
           return 2;
         default:
           return 6;
@@ -80,11 +73,12 @@ namespace FSB
 
       Binary::View Get() const
       {
-        //marker
+        // marker
         Require(Data[4] == 0xfe);
         return Data;
       }
-   private:
+
+    private:
       // Standard extra part for ATRAC9 streams
       std::array<uint8_t, 12> Data;
     };
@@ -96,14 +90,13 @@ namespace FSB
       uint_t SamplesCount = 0;
       Binary::Container::Ptr Data;
     };
-    
+
     class LazyContainer : public Binary::Container
     {
     public:
       explicit LazyContainer(SampleProperties&& props) noexcept
         : Properties(std::move(props))
-      {
-      }
+      {}
 
       const void* Start() const override
       {
@@ -122,7 +115,7 @@ namespace FSB
         }
         return Delegate->Size();
       }
-      
+
       Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         if (!Delegate)
@@ -131,6 +124,7 @@ namespace FSB
         }
         return Delegate->GetSubcontainer(offset, size);
       }
+
     private:
       void Build() const
       {
@@ -146,11 +140,12 @@ namespace FSB
         builder->SetSamplesData(std::move(Properties.Data));
         Delegate = builder->GetDump();
       }
+
     private:
       mutable SampleProperties Properties;
       mutable Ptr Delegate;
     };
-    
+
     class Builder : public FormatBuilder
     {
     public:
@@ -159,25 +154,21 @@ namespace FSB
         Require(format == Fmod::Format::AT9);
         Samples.resize(samplesCount);
       }
-      
+
       void StartSample(uint_t idx) override
       {
         CurSample = idx;
       }
-      
-      void SetFrequency(uint_t /*frequency*/) override
-      {
-      }
-      
-      void SetChannels(uint_t /*channels*/) override
-      {
-      }
-      
+
+      void SetFrequency(uint_t /*frequency*/) override {}
+
+      void SetChannels(uint_t /*channels*/) override {}
+
       void SetName(String name) override
       {
         Samples[CurSample].Name = std::move(name);
       }
-      
+
       void AddMetaChunk(uint_t type, Binary::View chunk) override
       {
         if (type == Fmod::ChunkType::ATRAC9DATA)
@@ -185,7 +176,7 @@ namespace FSB
           Samples[CurSample].Config.Set(chunk);
         }
       }
-      
+
       void SetData(uint_t samplesCount, Binary::Container::Ptr blob) override
       {
         auto& dst = Samples[CurSample];
@@ -193,7 +184,7 @@ namespace FSB
         dst.SamplesCount = samplesCount;
         dst.Data = std::move(blob);
       }
-      
+
       NamedDataMap CaptureResult() override
       {
         NamedDataMap result;
@@ -207,16 +198,15 @@ namespace FSB
         }
         return result;
       }
+
     private:
       uint_t CurSample = 0;
       std::vector<SampleProperties> Samples;
     };
-  }
+  }  // namespace Atrac9
 
   FormatBuilder::Ptr CreateAtrac9Builder()
   {
     return MakePtr<Atrac9::Builder>();
   }
-}
-}
-}
+}  // namespace Formats::Archived::FSB

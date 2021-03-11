@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  TurboSound container support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TurboSound container support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -42,8 +42,8 @@ namespace Formats
       };
 
       Decoder::Ptr CreateDecoder();
-    }
+    }  // namespace TurboSound
 
     Decoder::Ptr CreateTurboSoundDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

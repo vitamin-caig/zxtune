@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief Playlist item capabilities helper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist item capabilities helper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <core/plugin_attrs.h>
 
 namespace Playlist
@@ -24,8 +24,7 @@ namespace Playlist
     public:
       explicit Capabilities(uint_t pluginCaps)
         : PluginCaps(pluginCaps)
-      {
-      }
+      {}
 
       bool IsAYM() const
       {
@@ -38,8 +37,9 @@ namespace Playlist
         using namespace ZXTune::Capabilities::Module::Device;
         return 0 != (PluginCaps & DAC);
       }
+
     private:
       const uint_t PluginCaps;
     };
-  }
-}
+  }  // namespace Item
+}  // namespace Playlist

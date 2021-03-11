@@ -1,35 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief  PSG chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  PSG chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/psg.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <formats/chiptune/aym/psg.h>
 #include <module/players/properties_helper.h>
 
-namespace Module
-{
-namespace PSG
+namespace Module::PSG
 {
   class DataBuilder : public Formats::Chiptune::PSG::Builder
   {
   public:
     DataBuilder()
       : Data(MakePtr<AYM::MutableStreamModel>())
-    {
-    }
-    
+    {}
+
     void AddChunks(std::size_t count) override
     {
       Data->Append(count);
@@ -48,10 +45,9 @@ namespace PSG
 
     AYM::StreamModel::Ptr CaptureResult() const
     {
-      return Data->IsEmpty()
-        ? AYM::StreamModel::Ptr()
-        : AYM::StreamModel::Ptr(std::move(Data));
+      return Data->IsEmpty() ? AYM::StreamModel::Ptr() : AYM::StreamModel::Ptr(std::move(Data));
     }
+
   private:
     AYM::MutableStreamModel::Ptr Data;
   };
@@ -59,7 +55,8 @@ namespace PSG
   class Factory : public AYM::Factory
   {
   public:
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       DataBuilder dataBuilder;
       if (const auto container = Formats::Chiptune::PSG::Parse(rawData, dataBuilder))
@@ -79,5 +76,4 @@ namespace PSG
   {
     return MakePtr<Factory>();
   }
-}
-}
+}  // namespace Module::PSG

@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  Module properties builder implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Module properties builder implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/properties_helper.h"
-//library includes
+// library includes
 #include <module/attributes.h>
 #include <sound/sound_parameters.h>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/trim_all.hpp>
 
@@ -53,7 +53,7 @@ namespace Module
   {
     SetNonEmptyProperty(ATTR_TITLE, title);
   }
-  
+
   void PropertiesHelper::SetComment(const String& comment)
   {
     SetNonEmptyProperty(ATTR_COMMENT, comment);
@@ -68,14 +68,14 @@ namespace Module
   {
     SetNonEmptyProperty(ATTR_COMPUTER, computer);
   }
-  
+
   void PropertiesHelper::SetStrings(const Strings::Array& strings)
   {
     String joined = boost::algorithm::join(strings, "\n");
     boost::algorithm::trim_all_if(joined, boost::algorithm::is_any_of("\n"));
     SetNonEmptyProperty(ATTR_STRINGS, joined);
   }
-  
+
   void PropertiesHelper::SetVersion(uint_t major, uint_t minor)
   {
     assert(minor < 10);
@@ -109,4 +109,4 @@ namespace Module
     using namespace Parameters::ZXTune::Sound;
     Delegate.SetValue(FADEOUT, FADEOUT_PRECISION * fadeout.Get() / fadeout.PER_SECOND);
   }
-}
+}  // namespace Module

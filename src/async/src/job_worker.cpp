@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Worker-based Job factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Worker-based Job factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <async/coroutine.h>
 #include <async/worker.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Async
@@ -23,8 +23,7 @@ namespace Async
   public:
     explicit WorkerCoroutine(Worker::Ptr worker)
       : Delegate(std::move(worker))
-    {
-    }
+    {}
 
     void Initialize() override
     {
@@ -54,10 +53,11 @@ namespace Async
         sch.Yield();
       }
     }
+
   private:
     const Worker::Ptr Delegate;
   };
-}
+}  // namespace Async
 
 namespace Async
 {
@@ -66,4 +66,4 @@ namespace Async
     const Coroutine::Ptr routine = MakePtr<WorkerCoroutine>(worker);
     return CreateJob(routine);
   }
-}
+}  // namespace Async

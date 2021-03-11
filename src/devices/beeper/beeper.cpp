@@ -1,25 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief  Beeper support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Beeper support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//local includes
+// local includes
 #include <devices/beeper.h>
 #include <devices/details/renderers.h>
 #include <parameters/tracking_helper.h>
-//std includes
+// std includes
 #include <utility>
 
-namespace Devices
-{
-namespace Beeper
+namespace Devices::Beeper
 {
   class BeeperPSG
   {
@@ -28,20 +26,19 @@ namespace Beeper
     {
       Levels = level ? Sound::Sample(Sound::Sample::MAX / 4, Sound::Sample::MAX / 4) : Sound::Sample();
     }
-    
-    void Tick(uint_t /*ticks*/)
-    {
-    }
+
+    void Tick(uint_t /*ticks*/) {}
 
     Sound::Sample GetLevels() const
     {
       return Levels;
     }
-    
+
     void Reset()
     {
       Levels = Sound::Sample();
     }
+
   private:
     Sound::Sample Levels;
   };
@@ -57,7 +54,7 @@ namespace Beeper
     {
       SynchronizeParameters();
     }
-    
+
     void RenderData(const std::vector<DataChunk>& src) override
     {
       if (src.empty())
@@ -98,7 +95,7 @@ namespace Beeper
       Sound::Chunk result;
       if (RenderedData.empty())
       {
-        result = Renderer.Render(stamp, Clock.SamplesTill(stamp)); 
+        result = Renderer.Render(stamp, Clock.SamplesTill(stamp));
       }
       else
       {
@@ -109,6 +106,7 @@ namespace Beeper
       SynchronizeParameters();
       return result;
     }
+
   private:
     void SynchronizeParameters()
     {
@@ -123,6 +121,7 @@ namespace Beeper
         }
       }
     }
+
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
     BeeperPSG PSG;
@@ -137,5 +136,4 @@ namespace Beeper
   {
     return MakePtr<ChipImpl>(std::move(params));
   }
-}
-}
+}  // namespace Devices::Beeper

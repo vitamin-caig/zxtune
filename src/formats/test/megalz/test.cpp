@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  MegaLZ test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  MegaLZ test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../utils.h"
 

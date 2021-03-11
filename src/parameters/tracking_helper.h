@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Parameters version tracking helper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters version tracking helper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 namespace Parameters
@@ -22,8 +22,7 @@ namespace Parameters
     explicit TrackingHelper(typename ParamsType::Ptr params)
       : Params(std::move(params))
       , Version(~uint_t(0))
-    {
-    }
+    {}
 
     bool IsChanged() const
     {
@@ -44,17 +43,18 @@ namespace Parameters
       Version = ~uint_t(0);
     }
 
-    const ParamsType* operator -> () const
+    const ParamsType* operator->() const
     {
       return Params.get();
     }
 
-    const ParamsType& operator * () const
+    const ParamsType& operator*() const
     {
       return *Params;
     }
+
   private:
     const typename ParamsType::Ptr Params;
     mutable uint_t Version;
   };
-}
+}  // namespace Parameters

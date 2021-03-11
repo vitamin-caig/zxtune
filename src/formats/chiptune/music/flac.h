@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  FLAC parser interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FLAC parser interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -21,7 +21,7 @@ namespace Formats
   {
     namespace Flac
     {
-      //Use simplified parsing due to thirdparty library used
+      // Use simplified parsing due to thirdparty library used
       class Builder
       {
       public:
@@ -39,8 +39,8 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
-    }
+    }  // namespace Flac
 
     Decoder::Ptr CreateFlacDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM dump builder interface and factories
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM dump builder interface and factories
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <devices/aym/dumper.h>
 
 namespace Devices
@@ -37,7 +37,7 @@ namespace Devices
 
     Dumper::Ptr CreateDumper(DumperParameters::Ptr params, FramedDumpBuilder::Ptr builder);
 
-    //internal factories
+    // internal factories
     FramedDumpBuilder::Ptr CreateRawDumpBuilder();
-  }
-}
+  }  // namespace AYM
+}  // namespace Devices

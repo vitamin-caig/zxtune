@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  SPC support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SPC support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <binary/view.h>
 #include <formats/chiptune.h>
 #include <time/duration.h>
@@ -39,7 +39,7 @@ namespace Formats
         virtual void SetLoop(Time::Milliseconds duration) = 0;
         virtual void SetFade(Time::Milliseconds duration) = 0;
         virtual void SetArtist(String artist) = 0;
-        
+
         virtual void SetRAM(Binary::View data) = 0;
         virtual void SetDSPRegisters(Binary::View data) = 0;
         virtual void SetExtraRAM(Binary::View data) = 0;
@@ -47,8 +47,8 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
-    }
+    }  // namespace SPC
 
     Decoder::Ptr CreateSPCDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

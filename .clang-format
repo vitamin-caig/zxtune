@@ -1,0 +1,67 @@
+---
+# 11.1.0
+Language: Cpp
+Standard: Auto
+
+# identation
+AccessModifierOffset: -2
+UseTab: Never
+ColumnLimit: 120
+IndentWidth: 2
+CommentPragmas: '^!'
+IndentPPDirectives: AfterHash
+IndentWrappedFunctionNames: true
+NamespaceIndentation: All
+IndentCaseLabels: false
+
+# breaks
+AlignOperands: true
+AlwaysBreakTemplateDeclarations: Yes
+AlwaysBreakBeforeMultilineStrings: true
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeTernaryOperators: true
+PenaltyBreakAssignment: 10
+
+# ctors
+BreakConstructorInitializers: BeforeComma
+ConstructorInitializerIndentWidth: 2
+BreakInheritanceList: BeforeComma
+
+# braces
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: true
+  AfterClass: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
+  SplitEmptyFunction: false
+  SplitEmptyRecord: false
+  SplitEmptyNamespace: false
+
+# spaces
+PointerAlignment: Left
+SpaceAfterTemplateKeyword: false
+SpacesBeforeTrailingComments: 2
+SpaceBeforeInheritanceColon: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeInheritanceColon: true
+SpaceBeforeParens: ControlStatements
+SpaceBeforeRangeBasedForLoopColon: true
+
+# other
+SortIncludes: true
+SortUsingDeclarations: false
+FixNamespaceComments: true

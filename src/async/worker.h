@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Interface of quanted worker used to create asynchronous job
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Interface of quanted worker used to create asynchronous job
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <async/job.h>
 
 namespace Async
@@ -39,4 +39,4 @@ namespace Async
   };
 
   Job::Ptr CreateJob(Worker::Ptr worker);
-}
+}  // namespace Async

@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Static predicates helpers
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Static predicates helpers
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "expression.h"
-//common includes
+// common includes
 #include <contract.h>
-//std includes
+// std includes
 #include <array>
 #include <vector>
 
@@ -46,7 +46,7 @@ namespace Binary
       {
         Set(val);
       }
-      
+
       bool Match(uint_t val) const
       {
         return Get(val);
@@ -59,9 +59,7 @@ namespace Binary
 
       const uint_t* GetSingle() const
       {
-        return Count == 1
-          ? &Last
-          : nullptr;
+        return Count == 1 ? &Last : nullptr;
       }
 
       static bool AreIntersected(const StaticPredicate& lh, const StaticPredicate& rh)
@@ -82,6 +80,7 @@ namespace Binary
           return false;
         }
       }
+
     private:
       void Set(uint_t idx)
       {
@@ -101,6 +100,7 @@ namespace Binary
         const ElementType mask = ElementType(1) << bit;
         return 0 != (Mask[offset] & mask);
       }
+
     private:
       typedef uint_t ElementType;
       static const std::size_t BitsPerElement = 8 * sizeof(ElementType);
@@ -121,15 +121,14 @@ namespace Binary
           Data.push_back(StaticPredicate(*pred));
         }
       }
-      
+
       StaticPattern(const StaticPattern&) = delete;
-      StaticPattern& operator = (const StaticPattern&) = delete;
-      
-      StaticPattern(StaticPattern&& rh) noexcept// = default;
+      StaticPattern& operator=(const StaticPattern&) = delete;
+
+      StaticPattern(StaticPattern&& rh) noexcept  // = default;
         : Data(std::move(rh.Data))
-      {
-      }
-      
+      {}
+
       std::size_t GetSize() const
       {
         return Data.size();
@@ -140,10 +139,11 @@ namespace Binary
         return Data[idx];
       }
 
-      //return back offsets of suffixes
+      // return back offsets of suffixes
       std::vector<std::size_t> GetSuffixOffsets() const;
-      //return forward offset
+      // return forward offset
       std::size_t FindPrefix(std::size_t prefixSize) const;
+
     private:
       const StaticPredicate* Begin() const
       {
@@ -156,8 +156,9 @@ namespace Binary
       }
 
       std::size_t FindMaxSuffixMatchSize(std::size_t offset) const;
+
     private:
       std::vector<StaticPredicate> Data;
     };
-  }
-}
+  }  // namespace FormatDSL
+}  // namespace Binary

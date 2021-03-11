@@ -1,40 +1,32 @@
 /**
-* 
-* @file
-*
-* @brief Coroutine-based Job implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Coroutine-based Job implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "async/src/event.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <async/activity.h>
 #include <async/coroutine.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Async
 {
-  void PausePaused()
-  {
-  }
+  void PausePaused() {}
 
-  void PauseStopped()
-  {
-  }
+  void PauseStopped() {}
 
-  void StopStopped()
-  {
-  }
+  void StopStopped() {}
 
-  void StartStarted()
-  {
-  }
+  void StartStarted() {}
 
   enum class JobState
   {
@@ -46,23 +38,24 @@ namespace Async
     PAUSING,
   };
 
-  struct StoppingEvent {};
+  struct StoppingEvent
+  {};
 
-  class CoroutineOperation : public Operation
-                           , private Scheduler
+  class CoroutineOperation
+    : public Operation
+    , private Scheduler
   {
   public:
     CoroutineOperation(Coroutine::Ptr routine, Event<JobState>& state)
       : Routine(std::move(routine))
       , State(state)
-    {
-    }
+    {}
 
     void Prepare() override
     {
       return Routine->Initialize();
     }
-    
+
     void Execute() override
     {
       try
@@ -80,6 +73,7 @@ namespace Async
         throw;
       }
     }
+
   private:
     void Finalize()
     {
@@ -92,39 +86,39 @@ namespace Async
       switch (State.WaitForAny(JobState::STOPPING, JobState::PAUSING, JobState::STARTED))
       {
       case JobState::PAUSING:
+      {
+        Routine->Suspend();
+        State.Set(JobState::PAUSED);
+        const JobState nextState = State.WaitForAny(JobState::STOPPING, JobState::STARTING);
+        Routine->Resume();
+        if (JobState::STARTING == nextState)
         {
-          Routine->Suspend();
-          State.Set(JobState::PAUSED);
-          const JobState nextState = State.WaitForAny(JobState::STOPPING, JobState::STARTING);
-          Routine->Resume();
-          if (JobState::STARTING == nextState)
-          {
-            State.Set(JobState::STARTED);
-            break;
-          }
-          else
-          {
-            throw StoppingEvent();
-          }
+          State.Set(JobState::STARTED);
+          break;
         }
+        else
+        {
+          throw StoppingEvent();
+        }
+      }
       case JobState::STOPPING:
         throw StoppingEvent();
       default:
         break;
       }
     }
+
   private:
     const Coroutine::Ptr Routine;
     Event<JobState>& State;
   };
-  
+
   class CoroutineJob : public Job
   {
   public:
     explicit CoroutineJob(Coroutine::Ptr routine)
       : Routine(std::move(routine))
-    {
-    }
+    {}
 
     ~CoroutineJob() override
     {
@@ -149,7 +143,7 @@ namespace Async
       Act = Activity::Create(jobOper);
       State.Set(JobState::STARTED);
     }
-    
+
     void Pause() override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
@@ -163,13 +157,13 @@ namespace Async
       }
       return PauseStopped();
     }
-    
+
     void Stop() override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       if (Act)
       {
-        return FinishAction();//TODO: wrap error
+        return FinishAction();  // TODO: wrap error
       }
       return StopStopped();
     }
@@ -179,12 +173,13 @@ namespace Async
       const std::lock_guard<std::mutex> lock(Mutex);
       return Act && Act->IsExecuted();
     }
-    
+
     bool IsPaused() const override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       return Act && Act->IsExecuted() && State.Check(JobState::PAUSED);
     }
+
   private:
     void StartExecutingAction()
     {
@@ -217,7 +212,7 @@ namespace Async
         return PausePaused();
       }
     }
-    
+
     void FinishAction()
     {
       State.Set(JobState::STOPPING);
@@ -233,13 +228,14 @@ namespace Async
         State.Reset();
       }
     }
+
   private:
     const Coroutine::Ptr Routine;
     mutable std::mutex Mutex;
     Event<JobState> State;
     Activity::Ptr Act;
   };
-}
+}  // namespace Async
 
 namespace Async
 {
@@ -247,4 +243,4 @@ namespace Async
   {
     return MakePtr<CoroutineJob>(routine);
   }
-}
+}  // namespace Async

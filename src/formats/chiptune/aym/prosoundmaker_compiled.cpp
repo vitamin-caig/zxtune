@@ -1,36 +1,34 @@
 /**
-* 
-* @file
-*
-* @brief  ProSoundMaker compiled modules support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ProSoundMaker compiled modules support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/prosoundmaker.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
 #include <make_ptr.h>
 #include <pointers.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace ProSoundMakerCompiled
   {
@@ -46,8 +44,8 @@ namespace Chiptune
     const std::size_t MAX_PATTERNS_COUNT = 32;
     const std::size_t MAX_SAMPLES_COUNT = 15;
     const std::size_t MAX_ORNAMENTS_COUNT = 32;
-    //speed=2..50
-    //modulate=-36..+36
+    // speed=2..50
+    // modulate=-36..+36
 
     /*
       Typical module structure
@@ -64,7 +62,7 @@ namespace Chiptune
     */
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -88,16 +86,16 @@ namespace Chiptune
     {
       PACK_PRE struct Line
       {
-        //NxxTaaaa
-        //nnnnnSHH
-        //LLLLLLLL
+        // NxxTaaaa
+        // nnnnnSHH
+        // LLLLLLLL
 
-        //SHHLLLLLLLL - shift
-        //S - shift sign
-        //a - level
-        //N - noise off
-        //T - tone off
-        //n - noise value
+        // SHHLLLLLLLL - shift
+        // S - shift sign
+        // a - level
+        // N - noise off
+        // T - tone off
+        // n - noise value
         uint8_t LevelAndFlags;
         uint8_t NoiseHiShift;
         uint8_t LoShift;
@@ -159,7 +157,7 @@ namespace Chiptune
       Line GetLine(uint_t idx) const
       {
         const uint8_t* const src = safe_ptr_cast<const uint8_t*>(this + 1);
-        //using 8-bit offsets
+        // using 8-bit offsets
         uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
         Line res;
         res.LevelAndFlags = src[offset++];
@@ -197,7 +195,7 @@ namespace Chiptune
       Line GetLine(uint_t idx) const
       {
         const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
-        //using 8-bit offsets
+        // using 8-bit offsets
         uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
@@ -215,7 +213,7 @@ namespace Chiptune
       std::array<uint16_t, 3> Offsets;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 8, "Invalid layout");
@@ -384,6 +382,7 @@ namespace Chiptune
       {
         return NonEmptySamples;
       }
+
     private:
       static bool IsSampleSounds(const Sample& smp)
       {
@@ -396,11 +395,12 @@ namespace Chiptune
           const Sample::Line& line = smp.Lines[idx];
           if ((!line.ToneMask && line.Level) || !line.NoiseMask)
           {
-            return true;//has envelope or tone with volume
+            return true;  // has envelope or tone with volume
           }
         }
         return false;
       }
+
     private:
       Builder& Delegate;
       Indices UsedPatterns;
@@ -417,8 +417,7 @@ namespace Chiptune
         : ServiceRanges(RangeChecker::CreateShared(limit))
         , TotalRanges(RangeChecker::CreateSimple(limit))
         , FixedRanges(RangeChecker::CreateSimple(limit))
-      {
-      }
+      {}
 
       void AddService(std::size_t offset, std::size_t size) const
       {
@@ -447,6 +446,7 @@ namespace Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       const RangeChecker::Ptr ServiceRanges;
       const RangeChecker::Ptr TotalRanges;
@@ -490,7 +490,7 @@ namespace Chiptune
       void ParsePositions(Builder& builder) const
       {
         Positions positions;
-        for (uint_t entryIdx = 0; ; ++entryIdx)
+        for (uint_t entryIdx = 0;; ++entryIdx)
         {
           const RawPosition& pos = GetPosition(entryIdx);
           const uint_t patNum = pos.PatternIndex;
@@ -612,6 +612,7 @@ namespace Chiptune
       {
         return Ranges.GetFixedArea();
       }
+
     private:
       const RawPosition& GetPosition(uint_t entryIdx) const
       {
@@ -669,8 +670,7 @@ namespace Chiptune
           , Period()
           , Counter()
           , Note()
-        {
-        }
+        {}
 
         void UpdateNote(uint_t delta)
         {
@@ -706,8 +706,10 @@ namespace Chiptune
 
         uint_t GetMinCounter() const
         {
-          return std::min_element(Channels.begin(), Channels.end(),
-            [](const ChannelState& lh, const ChannelState& rh) {return lh.Counter < rh.Counter;})->Counter;
+          return std::min_element(
+                     Channels.begin(), Channels.end(),
+                     [](const ChannelState& lh, const ChannelState& rh) { return lh.Counter < rh.Counter; })
+              ->Counter;
         }
 
         void SkipLines(uint_t toSkip)
@@ -725,8 +727,8 @@ namespace Chiptune
         Require(Math::InRange<uint_t>(pat.Tempo, 2, 50));
         const DataCursors rangesStarts(pat);
         ParserState state(rangesStarts);
-        //check only lower bound due to possible detection lack
-        Require(std::all_of(rangesStarts.begin(), rangesStarts.end(), [minOffset](auto b) {return b >= minOffset;}));
+        // check only lower bound due to possible detection lack
+        Require(std::all_of(rangesStarts.begin(), rangesStarts.end(), [minOffset](auto b) { return b >= minOffset; }));
 
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         patBuilder.StartLine(0);
@@ -734,7 +736,7 @@ namespace Chiptune
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
-          //skip lines if required
+          // skip lines if required
           if (const uint_t linesToSkip = state.GetMinCounter())
           {
             state.SkipLines(linesToSkip);
@@ -830,7 +832,7 @@ namespace Chiptune
           }
           else if (cmd <= 0x8f)
           {
-            //0x00-0x1f
+            // 0x00-0x1f
             builder.SetOrnament(cmd - 0x70);
           }
           else if (cmd == 0x90)
@@ -839,7 +841,7 @@ namespace Chiptune
           }
           else if (cmd <= 0x9f)
           {
-            //1..f
+            // 1..f
             builder.SetVolume(cmd - 0x90);
           }
           else if (cmd == 0xa0)
@@ -848,7 +850,7 @@ namespace Chiptune
           }
           else if (cmd <= 0xb0)
           {
-            //0..f
+            // 0..f
             const uint_t packedEnvelope = cmd - 0xa1;
             const uint_t envelopeType = 8 + ((packedEnvelope & 3) << 1);
             const uint_t envelopeNote = 3 * (packedEnvelope & 12);
@@ -856,7 +858,7 @@ namespace Chiptune
           }
           else if (cmd <= 0xb7)
           {
-            //8...e
+            // 8...e
             const uint_t envelopeType = cmd - 0xA9;
             const uint_t packedTone = PeekByte(state.Offset++);
             const uint_t envelopeTone = packedTone >= 0xf1 ? 256 * (packedTone & 15) : packedTone;
@@ -876,7 +878,7 @@ namespace Chiptune
           }
           else
           {
-            break;//end of pattern
+            break;  // end of pattern
           }
         }
       }
@@ -928,6 +930,7 @@ namespace Chiptune
           dst.Loop = dst.Lines.size();
         }
       }
+
     private:
       const Binary::View Data;
       RangesMap Ranges;
@@ -965,8 +968,8 @@ namespace Chiptune
       {
         const std::size_t positionsSize = GetAreaSize(POSITIONS);
         return Undefined != positionsSize && positionsSize > 0 && 0 == positionsSize % sizeof(RawPosition)
-          ? positionsSize / sizeof(RawPosition) - 1
-          : 0;
+                   ? positionsSize / sizeof(RawPosition) - 1
+                   : 0;
       }
 
       bool CheckSamples() const
@@ -991,13 +994,13 @@ namespace Chiptune
       }
       if (const std::size_t posCount = areas.GetPositionsCount())
       {
-        const auto& lastPos = *data.SubView(areas.GetAreaAddress(POSITIONS) + posCount * sizeof(RawPosition)).As<RawPosition>();
+        const auto& lastPos =
+            *data.SubView(areas.GetAreaAddress(POSITIONS) + posCount * sizeof(RawPosition)).As<RawPosition>();
         if (lastPos.PatternIndex != POS_END_MARKER)
         {
           return false;
         }
-        if (lastPos.TranspositionOrLoop != POS_END_MARKER &&
-            lastPos.TranspositionOrLoop >= posCount)
+        if (lastPos.TranspositionOrLoop != POS_END_MARKER && lastPos.TranspositionOrLoop >= posCount)
         {
           return false;
         }
@@ -1013,15 +1016,15 @@ namespace Chiptune
       return true;
     }
 
-    //Statistic-based format description (~55 modules)
+    // Statistic-based format description (~55 modules)
     const StringView FORMAT(
-      "(08-88)&%x0xxxxxx 00"  //uint16_t PositionsOffset;
-      //0x9d + 2 * MAX_POSITIONS_COUNT(0x64) = 0x165
-      "? 00-01"   //uint16_t SamplesOffset;
-      //0x165 + MAX_SAMPLES_COUNT(0xf) * (2 + 2 + 3 * MAX_SAMPLE_SIZE(0x22)) = 0x79b
-      "? 00-04"   //uint16_t OrnamentsOffset;
-      //0x79b + MAX_ORNAMENTS_COUNT(0x20) * (2 + 2 + MAX_ORNAMENT_SIZE(0x22)) = 0xc1b
-      "? 00-05"   //uint16_t PatternsOffset;
+        "(08-88)&%x0xxxxxx 00"  // uint16_t PositionsOffset;
+        // 0x9d + 2 * MAX_POSITIONS_COUNT(0x64) = 0x165
+        "? 00-01"  // uint16_t SamplesOffset;
+        // 0x165 + MAX_SAMPLES_COUNT(0xf) * (2 + 2 + 3 * MAX_SAMPLE_SIZE(0x22)) = 0x79b
+        "? 00-04"  // uint16_t OrnamentsOffset;
+        // 0x79b + MAX_ORNAMENTS_COUNT(0x20) * (2 + 2 + MAX_ORNAMENT_SIZE(0x22)) = 0xc1b
+        "? 00-05"  // uint16_t PatternsOffset;
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -1029,8 +1032,7 @@ namespace Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -1057,11 +1059,12 @@ namespace Chiptune
         Builder& stub = GetStubBuilder();
         return ParseCompiled(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
 
-  }//ProSoundMakerCompiled
+  }  // namespace ProSoundMakerCompiled
 
   namespace ProSoundMaker
   {
@@ -1095,7 +1098,8 @@ namespace Chiptune
         Require(format.GetSize() >= MIN_SIZE);
         auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -1109,11 +1113,10 @@ namespace Chiptune
       static ProSoundMakerCompiled::StubBuilder stub;
       return stub;
     }
-  }// namespace ProSoundMakerCompiled
+  }  // namespace ProSoundMaker
 
   Decoder::Ptr CreateProSoundMakerCompiledDecoder()
   {
     return MakePtr<ProSoundMakerCompiled::Decoder>();
   }
-}// namespace Chiptune
-}// namespace Formats
+}  // namespace Formats::Chiptune

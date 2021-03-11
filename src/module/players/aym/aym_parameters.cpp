@@ -1,55 +1,51 @@
 /**
-* 
-* @file
-*
-* @brief  AYM parameters helpers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AYM parameters helpers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/aym_parameters.h"
 #include "core/plugins/players/ay/freq_tables_internal.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/core_parameters.h>
 #include <devices/aym/chip.h>
 #include <l10n/api.h>
 #include <math/numeric.h>
-//std includes
+// std includes
 #include <cstring>
 #include <numeric>
-//text includes
+// text includes
 #include <core/text/core.h>
 
 #define FILE_TAG 6972CAAF
 
-namespace Module
-{
-namespace AYM
+namespace Module::AYM
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module_players");
 
-  //duty-cycle related parameter: accumulate letters to bitmask functor
+  // duty-cycle related parameter: accumulate letters to bitmask functor
   inline uint_t LetterToMask(uint_t val, const Char letter)
   {
     static const Char LETTERS[] = {'A', 'B', 'C'};
-    static const uint_t MASKS[] =
-    {
-      Devices::AYM::CHANNEL_MASK_A,
-      Devices::AYM::CHANNEL_MASK_B,
-      Devices::AYM::CHANNEL_MASK_C,
+    static const uint_t MASKS[] = {
+        Devices::AYM::CHANNEL_MASK_A,
+        Devices::AYM::CHANNEL_MASK_B,
+        Devices::AYM::CHANNEL_MASK_C,
     };
     static_assert(sizeof(LETTERS) / sizeof(*LETTERS) == sizeof(MASKS) / sizeof(*MASKS), "Invalid layout");
     const Char* const pos = std::find(LETTERS, std::end(LETTERS), letter);
     if (pos == std::end(LETTERS))
     {
-      throw MakeFormattedError(THIS_LINE,
-        translate("Invalid duty cycle mask item: '%1%'."), String(1, letter));
+      throw MakeFormattedError(THIS_LINE, translate("Invalid duty cycle mask item: '%1%'."), String(1, letter));
     }
     return val | MASKS[pos - LETTERS];
   }
@@ -91,8 +87,7 @@ namespace AYM
     }
     else
     {
-      throw MakeFormattedError(THIS_LINE,
-        translate("Invalid layout value (%1%)."), str);
+      throw MakeFormattedError(THIS_LINE, translate("Invalid layout value (%1%)."), str);
     }
   }
 
@@ -102,8 +97,7 @@ namespace AYM
     ChipParametersImpl(uint_t samplerate, Parameters::Accessor::Ptr params)
       : Samplerate(samplerate)
       , Params(params)
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -113,11 +107,11 @@ namespace AYM
     uint64_t ClockFreq() const override
     {
       Parameters::IntType val = Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT;
-      if (Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val) &&
-          !Math::InRange(val, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN, Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX))
+      if (Params->FindValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val)
+          && !Math::InRange(val, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN,
+                            Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX))
       {
-        throw MakeFormattedError(THIS_LINE,
-          translate("Invalid clock frequency (%1%)."), val);
+        throw MakeFormattedError(THIS_LINE, translate("Invalid clock frequency (%1%)."), val);
       }
       return val;
     }
@@ -145,11 +139,12 @@ namespace AYM
     {
       Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT;
       const bool found = Params->FindValue(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, intVal);
-      //duty cycle in percents should be in range 1..99 inc
-      if (found && (intVal < Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MIN || intVal > Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MAX))
+      // duty cycle in percents should be in range 1..99 inc
+      if (found
+          && (intVal < Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MIN
+              || intVal > Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MAX))
       {
-        throw MakeFormattedError(THIS_LINE,
-          translate("Invalid duty cycle value (%1%)."), intVal);
+        throw MakeFormattedError(THIS_LINE, translate("Invalid duty cycle value (%1%)."), intVal);
       }
       return static_cast<uint_t>(intVal);
     }
@@ -174,11 +169,10 @@ namespace AYM
       Parameters::IntType intVal = Parameters::ZXTune::Core::AYM::LAYOUT_DEFAULT;
       if (Params->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, intVal))
       {
-        if (intVal < static_cast<int_t>(Devices::AYM::LAYOUT_ABC) ||
-            intVal >= static_cast<int_t>(Devices::AYM::LAYOUT_LAST))
+        if (intVal < static_cast<int_t>(Devices::AYM::LAYOUT_ABC)
+            || intVal >= static_cast<int_t>(Devices::AYM::LAYOUT_LAST))
         {
-          throw MakeFormattedError(THIS_LINE,
-            translate("Invalid layout value (%1%)."), intVal);
+          throw MakeFormattedError(THIS_LINE, translate("Invalid layout value (%1%)."), intVal);
         }
         return static_cast<Devices::AYM::LayoutType>(intVal);
       }
@@ -189,6 +183,7 @@ namespace AYM
       }
       return Devices::AYM::LAYOUT_ABC;
     }
+
   private:
     const uint_t Samplerate;
     const Parameters::Accessor::Ptr Params;
@@ -199,8 +194,7 @@ namespace AYM
   public:
     explicit AYTrackParameters(Parameters::Accessor::Ptr params)
       : Params(std::move(params))
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -222,12 +216,12 @@ namespace AYM
         // as dump
         if (newData.size() != table.size() * sizeof(table.front()))
         {
-          throw MakeFormattedError(THIS_LINE,
-            translate("Invalid frequency table size (%1%)."), newData.size());
+          throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table size (%1%)."), newData.size());
         }
         std::memcpy(table.data(), newData.data(), newData.size());
       }
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
   };
@@ -256,6 +250,7 @@ namespace AYM
         GetFreqTable(subName, table);
       }
     }
+
   private:
     /*
       ('a', 0) => 'a'
@@ -276,6 +271,7 @@ namespace AYM
         return val;
       }
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
     const uint_t Index;
@@ -295,7 +291,6 @@ namespace AYM
   {
     return MakePtr<TSTrackParameters>(std::move(params), idx);
   }
-}
-}
+}  // namespace Module::AYM
 
 #undef FILE_TAG

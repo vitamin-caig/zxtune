@@ -1,12 +1,12 @@
 /**
-* 
-* @file
-*
-* @brief  Plugins registrator interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Plugins registrator interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
@@ -20,4 +20,4 @@ namespace ZXTune
 
     virtual void RegisterPlugin(typename PluginType::Ptr plugin) = 0;
   };
-}
+}  // namespace ZXTune

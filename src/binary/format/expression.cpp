@@ -1,42 +1,38 @@
 /**
-*
-* @file
-*
-* @brief  Binary expression compiler
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Binary expression compiler
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "binary/format/expression.h"
 #include "binary/format/grammar.h"
 #include "binary/format/syntax.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <iterator.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <math/numeric.h>
-//std includes
+// std includes
 #include <cctype>
 #include <functional>
 #include <stack>
 #include <vector>
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   typedef RangeIterator<StringView::const_iterator> PatternIterator;
 
   class AnyValuePredicate : public Predicate
   {
   public:
-    AnyValuePredicate()
-    {
-    }
+    AnyValuePredicate() {}
 
     bool Match(uint_t /*val*/) const override
     {
@@ -55,8 +51,7 @@ namespace FormatDSL
   public:
     explicit MatchValuePredicate(uint_t value)
       : Value(value)
-    {
-    }
+    {}
 
     bool Match(uint_t val) const override
     {
@@ -70,6 +65,7 @@ namespace FormatDSL
       ++it;
       return MakePtr<MatchValuePredicate>(val);
     }
+
   private:
     const uint_t Value;
   };
@@ -133,20 +129,20 @@ namespace FormatDSL
         return MakePtr<MatchMaskPredicate>(mask, value);
       }
     }
+
   private:
     inline static uint_t NibbleToMask(char c)
     {
       Require(std::isxdigit(c) || ANY_NIBBLE_TEXT == c);
-      return ANY_NIBBLE_TEXT == c
-        ? 0 : 0xf;
+      return ANY_NIBBLE_TEXT == c ? 0 : 0xf;
     }
 
     inline static uint_t NibbleToValue(char c)
     {
       Require(std::isxdigit(c) || ANY_NIBBLE_TEXT == c);
-      return ANY_NIBBLE_TEXT == c
-        ? 0 : (std::isdigit(c) ? c - '0' : std::toupper(c) - 'A' + 10);
+      return ANY_NIBBLE_TEXT == c ? 0 : (std::isdigit(c) ? c - '0' : std::toupper(c) - 'A' + 10);
     }
+
   private:
     const uint_t Mask;
     const uint_t Value;
@@ -183,6 +179,7 @@ namespace FormatDSL
       const uint_t val = ParseNumber(it);
       return MakePtr<MatchMultiplicityPredicate>(val);
     }
+
   private:
     const uint_t Mult;
   };
@@ -226,7 +223,7 @@ namespace FormatDSL
     }
     return true;
   }
-  
+
   bool NotAnyByte(const Predicate::Ptr& p)
   {
     return !IsAnyByte(*p);
@@ -238,8 +235,7 @@ namespace FormatDSL
     MatchRangePredicate(uint_t from, uint_t to)
       : From(from)
       , To(to)
-    {
-    }
+    {}
 
     bool Match(uint_t val) const override
     {
@@ -253,6 +249,7 @@ namespace FormatDSL
       Require(left < right);
       return MakePtr<MatchRangePredicate>(left, right);
     }
+
   private:
     const uint_t From;
     const uint_t To;
@@ -281,8 +278,7 @@ namespace FormatDSL
     BinaryOperationPredicate(Ptr lh, Ptr rh)
       : Lh(std::move(lh))
       , Rh(std::move(rh))
-    {
-    }
+    {}
 
     bool Match(uint_t val) const override
     {
@@ -293,6 +289,7 @@ namespace FormatDSL
     {
       return MakePtr<BinaryOperationPredicate>(std::move(lh), std::move(rh));
     }
+
   private:
     const Ptr Lh;
     const Ptr Rh;
@@ -329,9 +326,7 @@ namespace FormatDSL
   Predicate::Ptr ParseOperation(StringView txt, Pattern& pat)
   {
     Require(!txt.empty());
-    if (txt[0] == RANGE_TEXT ||
-        txt[0] == CONJUNCTION_TEXT ||
-        txt[0] == DISJUNCTION_TEXT)
+    if (txt[0] == RANGE_TEXT || txt[0] == CONJUNCTION_TEXT || txt[0] == DISJUNCTION_TEXT)
     {
       Require(pat.size() >= 2);
       auto rh = std::move(pat.back());
@@ -410,6 +405,7 @@ namespace FormatDSL
       Require(GroupBegins.empty());
       return std::move(Result);
     }
+
   private:
     Pattern Result;
     std::stack<std::size_t> GroupBegins;
@@ -430,8 +426,7 @@ namespace FormatDSL
     LinearExpression(std::size_t offset, Pattern pat)
       : Offset(offset)
       , Pat(std::move(pat))
-    {
-    }
+    {}
 
     std::size_t StartOffset() const override
     {
@@ -442,16 +437,14 @@ namespace FormatDSL
     {
       return Pat;
     }
+
   private:
     const std::size_t Offset;
     const Pattern Pat;
   };
-}
-}
+}  // namespace Binary::FormatDSL
 
-namespace Binary
-{
-namespace FormatDSL
+namespace Binary::FormatDSL
 {
   Expression::Ptr Expression::Parse(StringView notation)
   {
@@ -466,5 +459,4 @@ namespace FormatDSL
     pat.erase(pat.begin(), firstNotAny);
     return MakePtr<LinearExpression>(offset, std::move(pat));
   }
-}
-}
+}  // namespace Binary::FormatDSL

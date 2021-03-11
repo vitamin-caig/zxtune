@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  Streamed modules support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Streamed modules support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/streaming.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <sound/loop.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Module
@@ -39,7 +39,7 @@ namespace Module
       Reset();
     }
 
-    //status functions
+    // status functions
     Time::AtMillisecond At() const override
     {
       return Time::AtMillisecond() + (Stream.FrameDuration * CurFrame).CastTo<Time::Millisecond>();
@@ -60,7 +60,7 @@ namespace Module
       return CurFrame;
     }
 
-    //navigation
+    // navigation
     bool IsValid() const
     {
       return CurFrame < Stream.TotalFrames;
@@ -87,6 +87,7 @@ namespace Module
         ++CurFrame;
       }
     }
+
   private:
     const FramedStream Stream;
     uint_t CurFrame;
@@ -99,8 +100,7 @@ namespace Module
   public:
     FramedStreamInfo(FramedStream stream)
       : Stream(std::move(stream))
-    {
-    }
+    {}
 
     Time::Milliseconds Duration() const override
     {
@@ -111,6 +111,7 @@ namespace Module
     {
       return (Stream.FrameDuration * (Stream.TotalFrames - Stream.LoopFrame)).CastTo<Time::Millisecond>();
     }
+
   private:
     const FramedStream Stream;
   };
@@ -120,10 +121,9 @@ namespace Module
   public:
     explicit FramedStreamStateIterator(FramedStream stream)
       : Cursor(MakePtr<FramedStreamStateCursor>(std::move(stream)))
-    {
-    }
+    {}
 
-    //iterator functions
+    // iterator functions
     void Reset() override
     {
       Cursor->Reset();
@@ -152,6 +152,7 @@ namespace Module
     {
       return Cursor;
     }
+
   private:
     const FramedStreamStateCursor::Ptr Cursor;
   };
@@ -180,8 +181,7 @@ namespace Module
     TimedInfo(Time::Milliseconds duration, Time::Milliseconds loopDuration)
       : DurationValue(duration)
       , LoopDurationValue(loopDuration)
-    {
-    }
+    {}
 
     Time::Milliseconds Duration() const override
     {
@@ -192,6 +192,7 @@ namespace Module
     {
       return LoopDurationValue;
     }
+
   private:
     const Time::Milliseconds DurationValue;
     const Time::Milliseconds LoopDurationValue;
@@ -245,4 +246,4 @@ namespace Module
       DoneSamples = TotalSamples;
     }
   }
-}
+}  // namespace Module

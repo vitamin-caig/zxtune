@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Backend settings base widget interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Backend settings base widget interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
-#include <types.h>
+// common includes
 #include <parameters/container.h>
-//qt includes
+#include <types.h>
+// qt includes
 #include <QtGui/QWidget>
 
 namespace UI
@@ -23,10 +23,11 @@ namespace UI
     Q_OBJECT
   protected:
     explicit BackendSettingsWidget(QWidget& parent);
+
   public:
     virtual String GetBackendId() const = 0;
     virtual QString GetDescription() const = 0;
   signals:
     void SettingsChanged();
   };
-}
+}  // namespace UI

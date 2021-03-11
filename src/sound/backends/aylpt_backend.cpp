@@ -1,41 +1,39 @@
 /**
-*
-* @file
-*
-* @brief  AYLPT backend implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AYLPT backend implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
-#include <module/conversion/api.h>
-#include <module/conversion/types.h>
+// library includes
 #include <debug/log.h>
 #include <devices/aym.h>
+#include <module/conversion/api.h>
+#include <module/conversion/types.h>
 #include <platform/shared_library.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <cstring>
 #include <thread>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 #define FILE_TAG F1936398
 
-namespace Sound
-{
-namespace AyLpt
+namespace Sound::AyLpt
 {
   const Debug::Stream Dbg("Sound::Backend::Aylpt");
 
@@ -43,20 +41,20 @@ namespace AyLpt
   const char* const DESCRIPTION = L10n::translate("Real AY via LPT backend");
   const uint_t CAPABILITIES = CAP_TYPE_HARDWARE;
 
-  //http://logix4u.net/component/content/article/14-parallel-port/15-a-tutorial-on-parallel-port-interfacing
-  //http://bulba.untergrund.net/LPT-YM.7z
+  // http://logix4u.net/component/content/article/14-parallel-port/15-a-tutorial-on-parallel-port-interfacing
+  // http://bulba.untergrund.net/LPT-YM.7z
   enum
   {
     DATA_PORT = 0x378,
     CONTROL_PORT = DATA_PORT + 2,
 
-    //pin14 (Control-1) -> ~BDIR
+    // pin14 (Control-1) -> ~BDIR
     PIN_NOWRITE = 0x2,
-    //pin16 (Control-2) -> BC1
+    // pin16 (Control-2) -> BC1
     PIN_ADDR = 0x4,
-    //pin17 (Control-3) -> ~RESET
+    // pin17 (Control-3) -> ~RESET
     PIN_NORESET = 0x8,
-    //other unused pins
+    // other unused pins
     PIN_UNUSED = 0xf1,
 
     CMD_SELECT_ADDR = PIN_ADDR | PIN_NORESET | PIN_UNUSED,
@@ -88,12 +86,9 @@ namespace AyLpt
     BackendWorker(Binary::Data::Ptr data, LptPort::Ptr port)
       : Data(data)
       , Port(port)
-    {
-    }
+    {}
 
-    virtual ~BackendWorker()
-    {
-    }
+    virtual ~BackendWorker() {}
 
     virtual VolumeControl::Ptr GetVolumeControl() const
     {
@@ -105,7 +100,7 @@ namespace AyLpt
       Reset();
       Dbg("Successfull start");
       NextFrameTime = std::chrono::steady_clock::now();
-      FrameDuration = std::chrono::microseconds(20000);//TODO
+      FrameDuration = std::chrono::microseconds(20000);  // TODO
     }
 
     virtual void Shutdown()
@@ -119,9 +114,7 @@ namespace AyLpt
       Reset();
     }
 
-    virtual void Resume()
-    {
-    }
+    virtual void Resume() {}
 
     virtual void FrameStart(const Module::State& state)
     {
@@ -135,6 +128,7 @@ namespace AyLpt
     {
       NextFrameTime += FrameDuration;
     }
+
   private:
     void Reset()
     {
@@ -165,10 +159,10 @@ namespace AyLpt
 
     static void Delay()
     {
-      //according to datasheets, maximal timing is reset pulse width 5uS
+      // according to datasheets, maximal timing is reset pulse width 5uS
       std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
-   
+
     void WriteRegisters(const uint8_t* data)
     {
       for (uint_t idx = 0; idx <= Devices::AYM::Registers::ENV; ++idx)
@@ -181,6 +175,7 @@ namespace AyLpt
         }
       }
     }
+
   private:
     const Binary::Data::Ptr Data;
     const LptPort::Ptr Port;
@@ -194,8 +189,7 @@ namespace AyLpt
     explicit DlPortIO(Platform::SharedLibrary::Ptr lib)
       : Lib(lib)
       , WriteByte(reinterpret_cast<WriteFunctionType>(Lib->GetSymbol("DlPortWritePortUchar")))
-    {
-    }
+    {}
 
     virtual void Control(uint_t val)
     {
@@ -206,9 +200,10 @@ namespace AyLpt
     {
       WriteByte(DATA_PORT, val);
     }
+
   private:
     const Platform::SharedLibrary::Ptr Lib;
-    typedef void (__stdcall *WriteFunctionType)(unsigned short port, unsigned char val);
+    typedef void(__stdcall* WriteFunctionType)(unsigned short port, unsigned char val);
     const WriteFunctionType WriteByte;
   };
 
@@ -219,19 +214,15 @@ namespace AyLpt
     {
       return "dlportio";
     }
-    
+
     virtual std::vector<String> PosixAlternatives() const
     {
       return std::vector<String>();
     }
-    
+
     virtual std::vector<String> WindowsAlternatives() const
     {
-      static const String ALTERNATIVES[] =
-      {
-        "inpout32.dll",
-        "inpoutx64.dll"
-      };
+      static const String ALTERNATIVES[] = {"inpout32.dll", "inpoutx64.dll"};
       return std::vector<String>(ALTERNATIVES, std::end(ALTERNATIVES));
     }
   };
@@ -248,8 +239,7 @@ namespace AyLpt
   public:
     explicit BackendWorkerFactory(LptPort::Ptr port)
       : Port(port)
-    {
-    }
+    {}
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const
     {
@@ -260,11 +250,11 @@ namespace AyLpt
       }
       throw Error(THIS_LINE, translate("Real AY via LPT is not supported for this module."));
     }
+
   private:
     const LptPort::Ptr Port;
   };
-}//AyLpt
-}//Sound
+}  // namespace Sound::AyLpt
 
 namespace Sound
 {
@@ -281,6 +271,6 @@ namespace Sound
       storage.Register(AyLpt::ID, AyLpt::DESCRIPTION, AyLpt::CAPABILITIES, e);
     }
   }
-}
+}  // namespace Sound
 
 #undef FILE_TAG

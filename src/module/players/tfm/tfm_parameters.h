@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  TFM parameters helpers
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TFM parameters helpers
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <devices/tfm.h>
 #include <parameters/accessor.h>
 
@@ -20,4 +20,4 @@ namespace Module
   {
     Devices::TFM::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params);
   }
-}
+}  // namespace Module

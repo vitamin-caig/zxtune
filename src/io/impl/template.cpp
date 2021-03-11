@@ -1,24 +1,24 @@
 /**
-*
-* @file
-*
-* @brief  Filename template implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Filename template implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "io/impl/boost_filesystem_path.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <io/template.h>
 #include <strings/array.h>
 #include <strings/fields.h>
-//boost includes
-#include <boost/filesystem/path.hpp>
+// boost includes
 #include <boost/algorithm/string/join.hpp>
+#include <boost/filesystem/path.hpp>
 
 namespace IO
 {
@@ -27,16 +27,14 @@ namespace IO
   public:
     explicit FilenameFieldsFilter(const Strings::FieldsSource& delegate)
       : Delegate(delegate)
-    {
-    }
+    {}
 
     String GetFieldValue(const String& fieldName) const override
     {
       const String res = Delegate.GetFieldValue(fieldName);
-      return res.empty()
-        ? res
-        : FilterPath(res);
+      return res.empty() ? res : FilterPath(res);
     }
+
   private:
     static String FilterPath(const String& val)
     {
@@ -49,7 +47,8 @@ namespace IO
       Strings::Array res;
       for (boost::filesystem::path::const_iterator it = path.begin(), lim = path.end(); it != lim; ++it)
       {
-        //root directory is usually mentioned while iterations. For windows-based platforms it can be placed not on the first position
+        // root directory is usually mentioned while iterations. For windows-based platforms it can be placed not on the
+        // first position
         if (*it != root && *it != thisDir && *it != parentDir)
         {
           res.push_back(Details::ToString(*it));
@@ -57,6 +56,7 @@ namespace IO
       }
       return boost::algorithm::join(res, DELIMITER);
     }
+
   private:
     const Strings::FieldsSource& Delegate;
   };
@@ -66,14 +66,14 @@ namespace IO
   public:
     explicit FilenameTemplate(Strings::Template::Ptr delegate)
       : Delegate(std::move(delegate))
-    {
-    }
+    {}
 
     String Instantiate(const Strings::FieldsSource& source) const override
     {
       const FilenameFieldsFilter filter(source);
       return Delegate->Instantiate(filter);
     }
+
   private:
     const Strings::Template::Ptr Delegate;
   };
@@ -83,4 +83,4 @@ namespace IO
     Strings::Template::Ptr delegate = Strings::Template::Create(notation);
     return MakePtr<FilenameTemplate>(std::move(delegate));
   }
-}
+}  // namespace IO

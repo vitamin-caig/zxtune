@@ -1,23 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief  TR-DOS utilities
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TR-DOS utilities
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/trdos_utils.h"
-//common includes
+// common includes
 #include <locale_helpers.h>
-//library includes
+// library includes
 #include <strings/encoding.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <algorithm>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/classification.hpp>
 
 namespace TRDos
@@ -31,9 +31,10 @@ namespace TRDos
     if (IsAlNum(type[0]))
     {
       fname += '.';
-      const char* const invalidSym = std::find_if_not(type, std::end(type), &IsAlNum);;
+      const char* const invalidSym = std::find_if_not(type, std::end(type), &IsAlNum);
+      ;
       fname += String(type, invalidSym);
     }
     return Strings::ToAutoUtf8(fname);
   }
-}
+}  // namespace TRDos

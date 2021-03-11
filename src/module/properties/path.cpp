@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  Path properties support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Path properties support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "path.h"
-//common includes
+// common includes
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <io/api.h>
 #include <module/attributes.h>
 #include <parameters/visitor.h>
@@ -25,8 +25,7 @@ namespace Module
   public:
     explicit UnresolvedPathPropertiesAccessor(String uri)
       : Uri(std::move(uri))
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -57,6 +56,7 @@ namespace Module
     {
       visitor.SetValue(ATTR_FULLPATH, Uri);
     }
+
   private:
     const String Uri;
   };
@@ -66,8 +66,7 @@ namespace Module
   public:
     explicit PathPropertiesAccessor(IO::Identifier::Ptr id)
       : Id(std::move(id))
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -122,10 +121,11 @@ namespace Module
       visitor.SetValue(ATTR_PATH, Id->Path());
       visitor.SetValue(ATTR_FULLPATH, Id->Full());
     }
+
   private:
     const IO::Identifier::Ptr Id;
   };
-}
+}  // namespace Module
 
 namespace Module
 {
@@ -146,4 +146,4 @@ namespace Module
   {
     return MakePtr<PathPropertiesAccessor>(id);
   }
-}
+}  // namespace Module

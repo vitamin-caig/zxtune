@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief Playlist import implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist import implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "import.h"
 #include "container_impl.h"
 #include "ui/utils.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//qt includes
+// qt includes
 #include <QtCore/QStringList>
 
 namespace
@@ -26,7 +26,7 @@ namespace
     res.AdjustedParameters = Parameters::Container::Create();
     return res;
   }
-}
+}  // namespace
 
 namespace Playlist
 {
@@ -53,5 +53,5 @@ namespace Playlist
       props->SetValue(ATTRIBUTE_ITEMS, items->size());
       return CreateContainer(provider, props, items);
     }
-  }
-}
+  }  // namespace IO
+}  // namespace Playlist

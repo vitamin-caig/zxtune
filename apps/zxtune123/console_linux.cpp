@@ -1,27 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief Console implementation for linux
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Console implementation for linux
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "console.h"
-//common includes
+// common includes
 #include <error.h>
-//library includes
+// library includes
 #include <platform/application.h>
-//platform-dependent includes
+// platform-dependent includes
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
-//std includes
+// std includes
 #include <iostream>
 
 #define FILE_TAG D037A662
@@ -35,7 +35,7 @@ namespace
       throw Error(loc, ::strerror(errno));
     }
   }
-  
+
   class LinuxConsole : public Console
   {
   public:
@@ -54,16 +54,16 @@ namespace
         ThrowIfError(::tcsetattr(STDIN_FILENO, TCSANOW, &newProps), THIS_LINE);
       }
     }
-    
+
     ~LinuxConsole() override
     {
-      //not throw
+      // not throw
       if (IsConsoleIn)
       {
         ::tcsetattr(STDIN_FILENO, TCSANOW, &OldProps);
       }
     }
-    
+
     SizeType GetSize() const override
     {
       if (!IsConsoleOut)
@@ -82,7 +82,7 @@ namespace
       return SizeType(-1, -1);
 #endif
     }
-    
+
     void MoveCursorUp(uint_t lines) override
     {
       if (IsConsoleOut)
@@ -97,45 +97,44 @@ namespace
       {
         return INPUT_KEY_NONE;
       }
-       
+
       switch (const int code = ::getchar())
       {
       case -1:
         return INPUT_KEY_NONE;
       case 27:
+      {
+        if (::getchar() != '[')
         {
-          if (::getchar() != '[')
-          {
-            return INPUT_KEY_NONE;
-          }
-          switch (::getchar())
-          {
-          case 65:
-            return INPUT_KEY_UP;
-          case 66:
-            return INPUT_KEY_DOWN;
-          case 67:
-            return INPUT_KEY_RIGHT;
-          case 68:
-            return INPUT_KEY_LEFT;
-          default:
-            return INPUT_KEY_NONE;
-          }
+          return INPUT_KEY_NONE;
         }
+        switch (::getchar())
+        {
+        case 65:
+          return INPUT_KEY_UP;
+        case 66:
+          return INPUT_KEY_DOWN;
+        case 67:
+          return INPUT_KEY_RIGHT;
+        case 68:
+          return INPUT_KEY_LEFT;
+        default:
+          return INPUT_KEY_NONE;
+        }
+      }
       case 10:
         return INPUT_KEY_ENTER;
       default:
         return std::toupper(code);
       };
     }
-    
+
     void WaitForKeyRelease() const override
     {
       if (IsConsoleIn)
       {
-        for (int key = ::getchar(); -1 != key; key = ::getchar())
-        {
-        }
+        for (int key = ::getchar(); - 1 != key; key = ::getchar())
+        {}
       }
     }
 
@@ -143,12 +142,13 @@ namespace
     {
       StdOut << str;
     }
+
   private:
     struct termios OldProps;
     const bool IsConsoleIn;
     const bool IsConsoleOut;
   };
-}
+}  // namespace
 
 Console& Console::Self()
 {

@@ -1,31 +1,31 @@
 /**
-* 
-* @file
-*
-* @brief  Main program function
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Main program function
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <error.h>
-//library includes
+// library includes
 #include <platform/application.h>
-//std includes
+// std includes
 #include <locale>
 
 #ifdef UNICODE
 std::basic_ostream<Char>& StdOut = std::wcout;
-#else 
+#else
 std::basic_ostream<Char>& StdOut = std::cout;
 #endif
 
-//TODO: extract to different sources
+// TODO: extract to different sources
 #ifdef _WIN32
-#include <pointers.h>
-#include <strings/encoding.h>
-#include <windows.h>
+#  include <pointers.h>
+#  include <strings/encoding.h>
+#  include <windows.h>
 
 Strings::Array ParseArgv(int, const char**)
 {

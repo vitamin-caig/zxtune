@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Styles delegates
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Styles delegates
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "styles.h"
-//qt includes
+// qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QProxyStyle>
-//std includes
+// std includes
 #include <utility>
 
 namespace UI
@@ -23,10 +23,10 @@ namespace UI
   public:
     Style()
       : QProxyStyle(QApplication::style())
-    {
-    }
+    {}
 
-    int styleHint(QStyle::StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const override
+    int styleHint(QStyle::StyleHint hint, const QStyleOption* option, const QWidget* widget,
+                  QStyleHintReturn* returnData) const override
     {
       if (hint == QStyle::SH_Slider_AbsoluteSetButtons)
       {
@@ -41,4 +41,4 @@ namespace UI
     static Style INSTANCE;
     return &INSTANCE;
   }
-}
+}  // namespace UI

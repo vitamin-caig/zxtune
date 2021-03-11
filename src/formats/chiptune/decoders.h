@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Chiptune decoders factories
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Chiptune decoders factories
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -72,5 +72,5 @@ namespace Formats
     Decoder::Ptr CreateFLACDecoder();
     Decoder::Ptr CreateV2MDecoder();
     Decoder::Ptr CreateSound98Decoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  WAV support plugin
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  WAV support plugin
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/players/music/wav_supp.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
@@ -29,9 +29,7 @@
 
 #define FILE_TAG 72CE1906
 
-namespace Module
-{
-namespace Wav
+namespace Module::Wav
 {
   const Debug::Stream Dbg("Core::WavSupp");
 
@@ -43,8 +41,7 @@ namespace Wav
       , State(MakePtr<SampledState>(Tune->GetTotalSamples(), Tune->GetSamplerate()))
       , Analyzer(Module::CreateSoundAnalyzer())
       , Target(std::move(target))
-    {
-    }
+    {}
 
     Module::State::Ptr GetState() const override
     {
@@ -86,21 +83,21 @@ namespace Wav
       const auto aligned = Tune->Seek(State->AtSample());
       State->SeekAtSample(aligned);
     }
+
   private:
     const Model::Ptr Tune;
     const SampledState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
     const Sound::Converter::Ptr Target;
   };
-  
+
   class Holder : public Module::Holder
   {
   public:
     Holder(Model::Ptr data, Parameters::Accessor::Ptr props)
       : Data(std::move(data))
       , Properties(std::move(props))
-    {
-    }
+    {}
 
     Module::Information::Ptr GetModuleInformation() const override
     {
@@ -116,19 +113,19 @@ namespace Wav
     {
       return MakePtr<Renderer>(Data, Sound::CreateResampler(Data->GetSamplerate(), samplerate));
     }
+
   private:
     const Model::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
   };
-  
+
   class DataBuilder : public Formats::Chiptune::Wav::Builder
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Properties(props)
       , Meta(props)
-    {
-    }
+    {}
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
@@ -145,7 +142,7 @@ namespace Wav
     }
 
     void SetExtendedProperties(uint_t validBitsOrBlockSize, uint_t /*channelsMask*/,
-      const Formats::Chiptune::Wav::Guid& formatId, Binary::View restData) override
+                               const Formats::Chiptune::Wav::Guid& formatId, Binary::View restData) override
     {
       FormatId = formatId;
       WavProperties.BlockSizeSamples = validBitsOrBlockSize;
@@ -158,12 +155,12 @@ namespace Wav
       ExtraData.resize(data.Size());
       std::memcpy(ExtraData.data(), data.Start(), data.Size());
     }
-    
+
     void SetSamplesData(Binary::Container::Ptr data) override
     {
       WavProperties.Data = std::move(data);
     }
-    
+
     void SetSamplesCountHint(uint_t count) override
     {
       WavProperties.SamplesCountHint = count;
@@ -211,6 +208,7 @@ namespace Wav
         return {};
       }
     }
+
   private:
     PropertiesHelper& Properties;
     MetaProperties Meta;
@@ -219,11 +217,12 @@ namespace Wav
     Wav::Properties WavProperties;
     Dump ExtraData;
   };
-  
+
   class Factory : public Module::Factory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
+                                     Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -245,8 +244,7 @@ namespace Wav
       return {};
     }
   };
-}
-}
+}  // namespace Module::Wav
 
 namespace ZXTune
 {
@@ -260,6 +258,6 @@ namespace ZXTune
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
-}
+}  // namespace ZXTune
 
 #undef FILE_TAG

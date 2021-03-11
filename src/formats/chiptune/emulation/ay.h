@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  AY/EMUL support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/EMUL support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <binary/view.h>
 #include <formats/chiptune.h>
 
@@ -50,8 +50,8 @@ namespace Formats
 
       BlobBuilder::Ptr CreateMemoryDumpBuilder();
       BlobBuilder::Ptr CreateFileBuilder();
-    }
+    }  // namespace AY
 
     Decoder::Ptr CreateAYEMULDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

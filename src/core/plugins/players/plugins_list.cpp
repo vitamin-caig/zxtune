@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  Player plugins factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Player plugins factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include <core/plugins/players/plugins_list.h>
 
 namespace ZXTune
 {
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator)
   {
-    //try TS & AY first
+    // try TS & AY first
     RegisterTSSupport(registrator);
     RegisterAYSupport(registrator);
     RegisterPT3Support(registrator);
@@ -67,4 +67,4 @@ namespace ZXTune
     RegisterVGMPlugins(registrator);
     RegisterMPTPlugins(registrator);
   }
-}
+}  // namespace ZXTune

@@ -1,11 +1,11 @@
-#include <contract.h>
-#include <error.h>
-#include <progress_callback.h>
 #include <binary/container_factories.h>
+#include <contract.h>
 #include <core/module_detect.h>
+#include <error.h>
 #include <io/api.h>
 #include <module/attributes.h>
 #include <parameters/container.h>
+#include <progress_callback.h>
 
 #include <iostream>
 #include <list>
@@ -20,7 +20,7 @@ namespace
     {
       Modules.push_back(module);
     }
-    
+
     void Report()
     {
       std::cout << Modules.size() << " modules total\n";
@@ -46,19 +46,20 @@ namespace
       }
       std::cout << std::flush;
     }
+
   private:
     std::list<Module::Holder::Ptr> Modules;
   };
-  
+
   class DetectCallbackAdapter : public Module::DetectCallback
   {
   public:
     explicit DetectCallbackAdapter(ModulesList& modules)
       : Modules(modules)
-    {
-    }
-    
-    void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, ZXTune::Plugin::Ptr /*decoder*/, Module::Holder::Ptr holder) const override
+    {}
+
+    void ProcessModule(ZXTune::DataLocation::Ptr /*location*/, ZXTune::Plugin::Ptr /*decoder*/,
+                       Module::Holder::Ptr holder) const override
     {
       Modules.Add(holder);
     }
@@ -67,10 +68,11 @@ namespace
     {
       return nullptr;
     }
+
   private:
     ModulesList& Modules;
   };
-  
+
   void Analyze(const String& path, ModulesList& modules)
   {
     const auto emptyParams = Parameters::Container::Create();
@@ -79,7 +81,7 @@ namespace
     DetectCallbackAdapter cb(modules);
     Module::Detect(*emptyParams, nocopyData, cb);
   }
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

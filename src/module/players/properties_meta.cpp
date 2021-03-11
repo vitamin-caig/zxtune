@@ -1,14 +1,14 @@
 /**
-* 
-* @file
-*
-* @brief  Formats::Chiptune::MetaBuilder adapter implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Formats::Chiptune::MetaBuilder adapter implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/properties_meta.h"
 
 namespace Module
@@ -27,9 +27,9 @@ namespace Module
   {
     Delegate.SetAuthor(author);
   }
-  
+
   void MetaProperties::SetStrings(const Strings::Array& strings)
   {
     Delegate.SetStrings(strings);
   }
-}
+}  // namespace Module

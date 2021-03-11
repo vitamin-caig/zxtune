@@ -1,70 +1,68 @@
 /**
-* 
-* @file
-*
-* @brief  Trush packer support
-*
-* @author vitamin.caig@gmail.com
-*
-* @note   Based on XLook sources by HalfElf
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Trush packer support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ * @note   Based on XLook sources by HalfElf
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/hrust1_bitstream.h"
 #include "formats/packed/pack_utils.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-//std includes
+// std includes
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Trush
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    //Head and tail are delimited by optional signature (some versions store additional code there)
+    // Head and tail are delimited by optional signature (some versions store additional code there)
 
-    //At least two different prefixes
-    //using ix/iy
-    //Depacker beginning may be corrupted
+    // At least two different prefixes
+    // using ix/iy
+    // Depacker beginning may be corrupted
     const StringView DEPACKER_HEAD(
-      "???"   //di/ei      | jp xxxx
-              //ld b,0x10
-      "?"     //exx
-      "?"     //push hl
-      "???"   //ld hl,xxxx
-      "???"   //ld de,xxxx
-      "01??"  //ld bc,xxxx ;packed block size
-      "d5"    //push de
-      "ed(b0|b8)"//ldir/lddr
-      "eb"    //ex de,hl
-      "23"    //inc hl
-      "(dd|fd)21??" //ld ix/y,xxxxx
-      "(dd|fd)39"   //add ix/y,sp
-      "f9"    //ld sp,hl
-      "21??"  //ld hl,xxxx ;addr of body
-      "11??"  //ld de,xxxx
-      "01??"  //ld bc,xxxx ;size of body
-      "d5"    //push de
-      "c3??"  //jp xxxx
+        "???"          // di/ei      | jp xxxx
+                       // ld b,0x10
+        "?"            // exx
+        "?"            // push hl
+        "???"          // ld hl,xxxx
+        "???"          // ld de,xxxx
+        "01??"         // ld bc,xxxx ;packed block size
+        "d5"           // push de
+        "ed(b0|b8)"    // ldir/lddr
+        "eb"           // ex de,hl
+        "23"           // inc hl
+        "(dd|fd)21??"  // ld ix/y,xxxxx
+        "(dd|fd)39"    // add ix/y,sp
+        "f9"           // ld sp,hl
+        "21??"         // ld hl,xxxx ;addr of body
+        "11??"         // ld de,xxxx
+        "01??"         // ld bc,xxxx ;size of body
+        "d5"           // push de
+        "c3??"         // jp xxxx
     );
 
     const std::size_t HEAD_SIZE = 0x27;
 
-    //There's some screen compressor with the almost same depacker:
+    // There's some screen compressor with the almost same depacker:
     /*
       +c0
          ld sp,ix
@@ -74,41 +72,41 @@ namespace Packed
          ret
     */
     const StringView DEPACKER_BODY(
-      "d9"    //exx
-      "e1"    //pop hl
-      "1806"  //jr xx
-      "3b"    //dec sp
-      "f1"    //pop af
-      "d9"    //exx
-      "12"    //ld (de),a
-      "13"    //inc de
-      "d9"    //exx
-      "29"    //add hl,hl
-      "1003"  //djnz xx
-      "e1"    //pop hl
-      "0610"  //ld b,xx
-      /*
-      //+0x10
-      "?{176}"
-      //+0xc0
-      "?f9"   //ld sp,ix/y
-      "1b"     //dec de
-      "eb"     //ex de,hl
-      "d1"     //pop de
-      "01??"   //ld bc,xxxx
-      "ed?"    //lddr
-      //several variants
-      "?"      //pop hl | pop hl  | jp xxxx | di
-      "?"      //exx    | jp xxxx |         | jp xxxx
-      "?"      //ei/nop |         |
-      "?"      //ret    |         | nop
-      */
+        "d9"    // exx
+        "e1"    // pop hl
+        "1806"  // jr xx
+        "3b"    // dec sp
+        "f1"    // pop af
+        "d9"    // exx
+        "12"    // ld (de),a
+        "13"    // inc de
+        "d9"    // exx
+        "29"    // add hl,hl
+        "1003"  // djnz xx
+        "e1"    // pop hl
+        "0610"  // ld b,xx
+                /*
+                //+0x10
+                "?{176}"
+                //+0xc0
+                "?f9"   //ld sp,ix/y
+                "1b"     //dec de
+                "eb"     //ex de,hl
+                "d1"     //pop de
+                "01??"   //ld bc,xxxx
+                "ed?"    //lddr
+                //several variants
+                "?"      //pop hl | pop hl  | jp xxxx | di
+                "?"      //exx    | jp xxxx |         | jp xxxx
+                "?"      //ei/nop |         |
+                "?"      //ret    |         | nop
+                */
     );
 
     const std::size_t BODY_SIZE = 0xce;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -122,11 +120,11 @@ namespace Packed
       uint16_t DepackerBodySize;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     const std::size_t MIN_DATA_SIZE = 2;
-    const std::size_t MAX_HEAD_SIZE = HEAD_SIZE + 36;//typical signature
+    const std::size_t MAX_HEAD_SIZE = HEAD_SIZE + 36;  // typical signature
     const std::size_t MIN_BODY_SIZE = BODY_SIZE + MIN_DATA_SIZE;
 
     class Container
@@ -136,8 +134,7 @@ namespace Packed
         : Data(static_cast<const uint8_t*>(data))
         , Size(size)
         , DepackerSize(bodyOffset + GetBodySize())
-      {
-      }
+      {}
 
       bool FastCheck() const
       {
@@ -163,6 +160,7 @@ namespace Packed
       {
         return fromLE(GetHeader().SizeOfPacked);
       }
+
     private:
       const RawHeader& GetHeader() const
       {
@@ -174,6 +172,7 @@ namespace Packed
       {
         return fromLE(GetHeader().DepackerBodySize);
       }
+
     private:
       const uint8_t* const Data;
       const std::size_t Size;
@@ -197,10 +196,9 @@ namespace Packed
 
       std::unique_ptr<Dump> GetResult()
       {
-        return IsValid
-          ? std::move(Result)
-          : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
       }
+
     private:
       bool DecodeData()
       {
@@ -291,26 +289,23 @@ namespace Packed
         const uint_t lodisp = Stream.GetByte();
         return 256 * code4 + lodisp + 1;
       }
+
     private:
       bool IsValid;
       Hrust1Bitstream Stream;
       std::unique_ptr<Dump> Result;
       Dump& Decoded;
     };
-  }//namespace Trush
+  }  // namespace Trush
 
   class TrushDecoder : public Decoder
   {
   public:
     TrushDecoder()
       : DepackerBody(Binary::CreateFormat(Trush::DEPACKER_BODY, Trush::MIN_BODY_SIZE))
-      , Depacker(Binary::CreateCompositeFormat(
-        Binary::CreateFormat(Trush::DEPACKER_HEAD),
-        DepackerBody,
-        Trush::HEAD_SIZE,
-        Trush::MAX_HEAD_SIZE))
-    {
-    }
+      , Depacker(Binary::CreateCompositeFormat(Binary::CreateFormat(Trush::DEPACKER_HEAD), DepackerBody,
+                                               Trush::HEAD_SIZE, Trush::MAX_HEAD_SIZE))
+    {}
 
     String GetDescription() const override
     {
@@ -336,6 +331,7 @@ namespace Packed
       Trush::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSize());
     }
+
   private:
     const Binary::Format::Ptr DepackerBody;
     const Binary::Format::Ptr Depacker;
@@ -345,5 +341,4 @@ namespace Packed
   {
     return MakePtr<TrushDecoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}  // namespace Formats::Packed

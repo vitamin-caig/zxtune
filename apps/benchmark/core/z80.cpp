@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  Z80 test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Z80 test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "z80.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <time/timer.h>
 
 namespace
@@ -23,8 +23,7 @@ namespace
     Z80Parameters(uint64_t clockFreq, uint_t intTicks)
       : Clock(clockFreq)
       , Int(intTicks)
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -40,17 +39,19 @@ namespace
     {
       return Clock;
     }
+
   private:
     const uint64_t Clock;
     const uint_t Int;
   };
-}
+}  // namespace
 
 namespace Benchmark
 {
   namespace Z80
   {
-    Devices::Z80::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t intTicks, const Dump& memory, Devices::Z80::ChipIO::Ptr io)
+    Devices::Z80::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t intTicks, const Dump& memory,
+                                         Devices::Z80::ChipIO::Ptr io)
     {
       const Devices::Z80::ChipParameters::Ptr params = MakePtr<Z80Parameters>(clockFreq, intTicks);
       return Devices::Z80::CreateChip(params, memory, io);
@@ -71,5 +72,5 @@ namespace Benchmark
       const auto elapsed = timer.Elapsed();
       return (frameDuration * frames).Divide<double>(elapsed);
     }
-  }
-}
+  }  // namespace Z80
+}  // namespace Benchmark

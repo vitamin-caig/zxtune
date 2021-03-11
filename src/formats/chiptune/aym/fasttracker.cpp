@@ -1,36 +1,34 @@
 /**
-* 
-* @file
-*
-* @brief  FastTracker support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FastTracker support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/fasttracker.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace FastTracker
   {
@@ -70,13 +68,10 @@ namespace Chiptune
     */
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
-    const uint8_t MODULE_ID[] = 
-    {
-      'M', 'o', 'd', 'u', 'l', 'e', ':', ' '
-    };
-    
+    const uint8_t MODULE_ID[] = {'M', 'o', 'd', 'u', 'l', 'e', ':', ' '};
+
     enum NoteTableCode : uint8_t
     {
       PROTRACKER2 = ';',
@@ -86,9 +81,9 @@ namespace Chiptune
 
     PACK_PRE struct RawId
     {
-      uint8_t Identifier[8];//"Module: "
+      uint8_t Identifier[8];  //"Module: "
       std::array<char, 42> Title;
-      uint8_t NoteTableSign;//";"
+      uint8_t NoteTableSign;  //";"
       std::array<char, 18> Editor;
 
       bool HasTitle() const
@@ -99,12 +94,10 @@ namespace Chiptune
 
       bool HasProgram() const
       {
-        return NoteTableSign == NoteTableCode::PROTRACKER2
-            || NoteTableSign == NoteTableCode::SOUNDTRACKER
-            || NoteTableSign == NoteTableCode::FASTTRACKER
-        ;
+        return NoteTableSign == NoteTableCode::PROTRACKER2 || NoteTableSign == NoteTableCode::SOUNDTRACKER
+               || NoteTableSign == NoteTableCode::FASTTRACKER;
       }
-      
+
       NoteTable GetNoteTable() const
       {
         switch (NoteTableSign)
@@ -169,12 +162,12 @@ namespace Chiptune
       RawObject Obj;
       PACK_PRE struct Line
       {
-        //nNxooooo
-        //OOOOOOOO
-        //o - noise offset
-        //O - note offset (signed)
-        //N - keep note offset
-        //n - keep noise offset
+        // nNxooooo
+        // OOOOOOOO
+        // o - noise offset
+        // O - note offset (signed)
+        // N - keep note offset
+        // n - keep noise offset
         uint8_t FlagsAndNoiseAddon;
         int8_t NoteAddon;
 
@@ -201,7 +194,7 @@ namespace Chiptune
 
       std::size_t GetUsedSize() const
       {
-        //8-bit offsets
+        // 8-bit offsets
         return sizeof(RawObject) + Obj.GetSize() * sizeof(Line);
       }
 
@@ -209,7 +202,7 @@ namespace Chiptune
       {
         return Lines[idx];
       }
-      
+
       Line Lines[1];
     } PACK_POST;
 
@@ -218,23 +211,23 @@ namespace Chiptune
       RawObject Obj;
       PACK_PRE struct Line
       {
-        //KMxnnnnn
-        //K - keep noise offset
-        //M - noise mask
-        //n - noise offset
+        // KMxnnnnn
+        // K - keep noise offset
+        // M - noise mask
+        // n - noise offset
         uint8_t Noise;
         uint8_t ToneLo;
-        //KMxxtttt
-        //K - keep tone offset
-        //M - tone mask
+        // KMxxtttt
+        // K - keep tone offset
+        // M - tone mask
         uint8_t ToneHi;
-        //KMvvaaaa
-        //vv = 0x - no slide
+        // KMvvaaaa
+        // vv = 0x - no slide
         //     10 - +1
         //     11 - -1
-        //a - level
-        //K - keep envelope offset
-        //M - envelope mask
+        // a - level
+        // K - keep envelope offset
+        // M - envelope mask
         uint8_t Level;
         int8_t EnvelopeAddon;
 
@@ -301,7 +294,7 @@ namespace Chiptune
 
       std::size_t GetUsedSize() const
       {
-        //16-bit offsets
+        // 16-bit offsets
         return sizeof(RawObject) + Obj.GetSize() * sizeof(Line);
       }
 
@@ -313,7 +306,7 @@ namespace Chiptune
       Line Lines[1];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawId) == 69, "Invalid layout");
@@ -376,7 +369,7 @@ namespace Chiptune
       {
         return Delegate.SetNoteTable(table);
       }
-      
+
       void SetInitialTempo(uint_t tempo) override
       {
         return Delegate.SetInitialTempo(tempo);
@@ -482,6 +475,7 @@ namespace Chiptune
       {
         return UsedOrnaments;
       }
+
     private:
       Builder& Delegate;
       Indices UsedPatterns;
@@ -496,8 +490,7 @@ namespace Chiptune
         : ServiceRanges(RangeChecker::CreateSimple(limit))
         , TotalRanges(RangeChecker::CreateSimple(limit))
         , FixedRanges(RangeChecker::CreateSimple(limit))
-      {
-      }
+      {}
 
       void AddService(std::size_t offset, std::size_t size) const
       {
@@ -526,6 +519,7 @@ namespace Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       const RangeChecker::Ptr ServiceRanges;
       const RangeChecker::Ptr TotalRanges;
@@ -569,7 +563,7 @@ namespace Chiptune
       {
         Positions positions;
         const std::size_t positionsStart = sizeof(Source);
-        for (uint_t posIdx = 0; ; ++posIdx)
+        for (uint_t posIdx = 0;; ++posIdx)
         {
           const RawPosition& pos = GetServiceObject<RawPosition>(positionsStart + sizeof(RawPosition) * posIdx);
           const uint_t patIdx = pos.PatternIndex;
@@ -674,6 +668,7 @@ namespace Chiptune
       {
         return Ranges.GetFixedArea();
       }
+
     private:
       template<class T>
       const T* PeekObject(std::size_t offset) const
@@ -729,14 +724,12 @@ namespace Chiptune
             : Offset()
             , Period()
             , Counter()
-          {
-          }
+          {}
 
           void Skip(uint_t toSkip)
           {
             Counter -= toSkip;
           }
-
 
           static bool CompareByCounter(const ChannelState& lh, const ChannelState& rh)
           {
@@ -774,14 +767,15 @@ namespace Chiptune
         const RawPattern& pat = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         const DataCursors rangesStarts(pat, BaseAddr);
-        Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(),
-          Math::NotInRange(minOffset, Data.Size() - 1)));
+        Require(
+            rangesStarts.end()
+            == std::find_if(rangesStarts.begin(), rangesStarts.end(), Math::NotInRange(minOffset, Data.Size() - 1)));
 
         ParserState state(rangesStarts);
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
-          //skip lines if required
+          // skip lines if required
           if (const uint_t linesToSkip = state.GetMinCounter())
           {
             state.SkipLines(linesToSkip);
@@ -973,6 +967,7 @@ namespace Chiptune
         result.KeepNoiseAddon = src.GetKeepNoiseAddon();
         return result;
       }
+
     private:
       const Binary::View Data;
       RangesMap Ranges;
@@ -1014,7 +1009,7 @@ namespace Chiptune
           return;
         }
         std::size_t patternDataAddr = 0;
-        for (std::size_t pos = firstPatternOffset; ; pos += sizeof(RawPattern))
+        for (std::size_t pos = firstPatternOffset;; pos += sizeof(RawPattern))
         {
           if (const auto* pat = data.SubView(pos).As<RawPattern>())
           {
@@ -1097,6 +1092,7 @@ namespace Chiptune
       {
         return BaseAddr;
       }
+
     private:
       std::size_t BaseAddr;
     };
@@ -1134,19 +1130,19 @@ namespace Chiptune
     }
 
     const StringView FORMAT(
-      "?{8}"         //identifier
-      "?{42}"        //title
-      "?"            //semicolon
-      "?{18}"        //editor
-      "03-ff"        //tempo
-      "00-fe"        //loop
-      "?{4}"         //padding1
-      "?00-02"       //patterns offset
-      "?{5}"         //padding2
-      "(?03-2c|64-ff){32}" //samples
-      "(?05-2d|66-ff){33}" //ornaments
-      "00-1f?"       //at least one position
-      "ff|00-1f"     //next position or end
+        "?{8}"                // identifier
+        "?{42}"               // title
+        "?"                   // semicolon
+        "?{18}"               // editor
+        "03-ff"               // tempo
+        "00-fe"               // loop
+        "?{4}"                // padding1
+        "?00-02"              // patterns offset
+        "?{5}"                // padding2
+        "(?03-2c|64-ff){32}"  // samples
+        "(?05-2d|66-ff){33}"  // ornaments
+        "00-1f?"              // at least one position
+        "ff|00-1f"            // next position or end
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -1154,8 +1150,7 @@ namespace Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_MODULE_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -1182,6 +1177,7 @@ namespace Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -1212,7 +1208,8 @@ namespace Chiptune
         Require(format.GetSize() >= MIN_MODULE_SIZE);
         auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -1226,11 +1223,10 @@ namespace Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace FastTracker
+  }  // namespace FastTracker
 
   Decoder::Ptr CreateFastTrackerDecoder()
   {
     return MakePtr<FastTracker::Decoder>();
   }
-}//namespace Chiptune
-}//namespace Formats
+}  // namespace Formats::Chiptune

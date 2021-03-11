@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  ProTracker v3.x format details
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ProTracker v3.x format details
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/protracker3.h"
-//common includes
+// common includes
 #include <indices.h>
-//library includes
+// library includes
 #include <strings/encoding.h>
 #include <strings/trim.h>
 
@@ -27,7 +27,7 @@ namespace Formats
       const std::size_t MAX_PATTERNS_COUNT = 85;
       const std::size_t MAX_POSITIONS_COUNT = 255;
       const std::size_t MIN_PATTERN_SIZE = 1;
-      const std::size_t MAX_PATTERN_SIZE = 256;//really no limit for PT3.58+
+      const std::size_t MAX_PATTERN_SIZE = 256;  // really no limit for PT3.58+
       const std::size_t MAX_SAMPLES_COUNT = 32;
       const std::size_t MAX_ORNAMENTS_COUNT = 16;
 
@@ -185,7 +185,7 @@ namespace Formats
         {
           return UsedPatterns;
         }
-        
+
         const Indices& GetAvailablePatterns() const
         {
           return AvailablePatterns;
@@ -195,7 +195,7 @@ namespace Formats
         {
           return UsedSamples;
         }
-        
+
         const Indices& GetAvailableSamples() const
         {
           return AvailableSamples;
@@ -205,11 +205,12 @@ namespace Formats
         {
           return UsedOrnaments;
         }
-        
+
         const Indices& GetAvailableOrnaments() const
         {
           return AvailableOrnaments;
         }
+
       private:
         Builder& Delegate;
         uint_t Mode;
@@ -221,11 +222,11 @@ namespace Formats
         Indices AvailableOrnaments;
       };
 
-      //may contain CP1251 symbols from VortexTracker
+      // may contain CP1251 symbols from VortexTracker
       inline String DecodeString(StringView str)
       {
         return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
       }
-    }
-  }
-}
+    }  // namespace ProTracker3
+  }    // namespace Chiptune
+}  // namespace Formats

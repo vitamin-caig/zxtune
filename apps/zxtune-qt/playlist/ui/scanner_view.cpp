@@ -1,39 +1,41 @@
 /**
-* 
-* @file
-*
-* @brief Scanner view implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Scanner view implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "scanner_view.h"
-#include "scanner_view.ui.h"
 #include "playlist/supp/scanner.h"
-//common includes
+#include "scanner_view.ui.h"
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 #include <debug/log.h>
 
 namespace
 {
   const Debug::Stream Dbg("Playlist::UI::ScannerView");
 
-  class ScannerViewImpl : public Playlist::UI::ScannerView
-                        , private Playlist::UI::Ui_ScannerView
+  class ScannerViewImpl
+    : public Playlist::UI::ScannerView
+    , private Playlist::UI::Ui_ScannerView
   {
   public:
     ScannerViewImpl(QWidget& parent, Playlist::Scanner::Ptr scanner)
       : Playlist::UI::ScannerView(parent)
       , Scanner(scanner)
     {
-      //setup self
+      // setup self
       setupUi(this);
       hide();
-      //make connections with scanner
-      Require(connect(Scanner, SIGNAL(ScanStarted(Playlist::ScanStatus::Ptr)), this, SLOT(ScanStart(Playlist::ScanStatus::Ptr))));
+      // make connections with scanner
+      Require(connect(Scanner, SIGNAL(ScanStarted(Playlist::ScanStatus::Ptr)), this,
+                      SLOT(ScanStart(Playlist::ScanStatus::Ptr))));
       Require(connect(Scanner, SIGNAL(ScanStopped()), this, SLOT(ScanStop())));
       Require(connect(Scanner, SIGNAL(ScanProgressChanged(unsigned)), SLOT(ShowProgress(unsigned))));
       Require(connect(Scanner, SIGNAL(ScanMessageChanged(const QString&)), SLOT(ShowProgressMessage(const QString&))));
@@ -64,10 +66,13 @@ namespace
 
     void ShowProgress(unsigned progress) override
     {
-      //new file started
+      // new file started
       if (progress == 0)
       {
-        const QString itemsProgressText = QString::fromAscii("%1/%2%3").arg(Status->DoneFiles()).arg(Status->FoundFiles()).arg(Status->SearchFinished() ? ' ' : '+');
+        const QString itemsProgressText = QString::fromAscii("%1/%2%3")
+                                              .arg(Status->DoneFiles())
+                                              .arg(Status->FoundFiles())
+                                              .arg(Status->SearchFinished() ? ' ' : '+');
         itemsProgress->setText(itemsProgressText);
         itemsProgress->setToolTip(Status->CurrentFile());
       }
@@ -79,6 +84,7 @@ namespace
     {
       scanProgress->setToolTip(message);
     }
+
   private:
     void CheckedShow()
     {
@@ -87,23 +93,24 @@ namespace
         show();
       }
     }
+
   private:
     const Playlist::Scanner::Ptr Scanner;
     Playlist::ScanStatus::Ptr Status;
   };
-}
+}  // namespace
 
 namespace Playlist
 {
   namespace UI
   {
-    ScannerView::ScannerView(QWidget& parent) : QWidget(&parent)
-    {
-    }
+    ScannerView::ScannerView(QWidget& parent)
+      : QWidget(&parent)
+    {}
 
     ScannerView* ScannerView::Create(QWidget& parent, Playlist::Scanner::Ptr scanner)
     {
       return new ScannerViewImpl(parent, scanner);
     }
-  }
-}
+  }  // namespace UI
+}  // namespace Playlist

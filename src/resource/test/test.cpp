@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Resource test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Resource test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-#include <resource/api.h>
+#include <cstring>
 #include <error.h>
-#include <pointers.h>
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <cstring>
+#include <pointers.h>
+#include <resource/api.h>
 #include <stdexcept>
 
 namespace
@@ -34,12 +34,12 @@ namespace
     std::cout << msg;
     if (ref == res)
     {
-       std::cout << " passed" << std::endl;
+      std::cout << " passed" << std::endl;
     }
     else
     {
-       std::cout << " failed (ref=" << ref << " res=" << res << ")" << std::endl;
-       throw 1;
+      std::cout << " failed (ref=" << ref << " res=" << res << ")" << std::endl;
+      throw 1;
     }
   }
 
@@ -82,15 +82,17 @@ namespace
     {
       Test("All files visited", Etalons.empty());
     }
+
   private:
     void LoadFile(const String& name)
     {
       Etalons[name] = OpenFile(name);
     }
+
   private:
     std::map<String, Dump> Etalons;
   };
-}
+}  // namespace
 
 int main()
 {

@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Data provider interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Data provider interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <iterator.h>
 #include <types.h>
 
-//forward declarations
+// forward declarations
 class Error;
 
 namespace IO
@@ -41,4 +41,4 @@ namespace IO
 
   //! @brief Enumerating supported %IO providers
   Provider::Iterator::Ptr EnumerateProviders();
-}
+}  // namespace IO

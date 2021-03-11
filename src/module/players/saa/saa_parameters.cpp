@@ -1,23 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  SAA parameters helpers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SAA parameters helpers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/saa/saa_parameters.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/core_parameters.h>
 
-namespace Module
-{
-namespace SAA
+namespace Module::SAA
 {
   class ChipParameters : public Devices::SAA::ChipParameters
   {
@@ -25,8 +23,7 @@ namespace SAA
     ChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
       : Samplerate(samplerate)
       , Params(params)
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -51,6 +48,7 @@ namespace SAA
       Params->FindValue(Parameters::ZXTune::Core::SAA::INTERPOLATION, intVal);
       return static_cast<Devices::SAA::InterpolationType>(intVal);
     }
+
   private:
     const uint_t Samplerate;
     const Parameters::Accessor::Ptr Params;
@@ -60,5 +58,4 @@ namespace SAA
   {
     return MakePtr<ChipParameters>(samplerate, std::move(params));
   }
-}
-}
+}  // namespace Module::SAA

@@ -1,17 +1,17 @@
 /**
-* 
-* @file
-*
-* @brief  Internal plugins logic implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Internal plugins logic implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/archives/packed.h"
 #include "core/plugins/archives/plugins.h"
-//library includes
+// library includes
 #include <core/plugin_attrs.h>
 #include <formats/packed/decoders.h>
 
@@ -28,6 +28,7 @@ namespace ZXTune
 
   using namespace Formats::Packed;
 
+  // clang-format off
   const ArchivePluginDescription DEPACKERS[] =
   {
     {"HOBETA",   &CreateHobetaDecoder,                    Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::PLAIN},
@@ -81,6 +82,7 @@ namespace ZXTune
     {"COMPILEDSTP1",  &CreateCompiledSTP1Decoder,  Capabilities::Container::Type::DECOMPILER},
     {"COMPILEDSTP2",  &CreateCompiledSTP2Decoder,  Capabilities::Container::Type::DECOMPILER},
   };
+  // clang-format on
 
   void RegisterPlugin(const ArchivePluginDescription& desc, ArchivePluginsRegistrator& registrator)
   {
@@ -88,7 +90,7 @@ namespace ZXTune
     const ArchivePlugin::Ptr plugin = CreateArchivePlugin(desc.Id, desc.Caps, decoder);
     registrator.RegisterPlugin(plugin);
   }
-}
+}  // namespace ZXTune
 
 namespace ZXTune
 {
@@ -115,4 +117,4 @@ namespace ZXTune
       RegisterPlugin(desc, registrator);
     }
   }
-}
+}  // namespace ZXTune

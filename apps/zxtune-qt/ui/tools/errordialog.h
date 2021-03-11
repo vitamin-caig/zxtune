@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Error dialog interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Error dialog interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <error.h>
 
 class QString;

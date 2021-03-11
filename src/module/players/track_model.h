@@ -1,37 +1,42 @@
 /**
-* 
-* @file
-*
-* @brief  Track model definition
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Track model definition
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <iterator.h>
 #include <types.h>
-//library includes
+// library includes
 #include <module/track_state.h>
-//std includes
+// std includes
 #include <vector>
 
 namespace Module
 {
   struct Command
   {
-    Command() : Type(), Param1(), Param2(), Param3()
-    {
-    }
+    Command()
+      : Type()
+      , Param1()
+      , Param2()
+      , Param3()
+    {}
 
     Command(uint_t type, int_t p1, int_t p2, int_t p3)
-      : Type(type), Param1(p1), Param2(p2), Param3(p3)
-    {
-    }
+      : Type(type)
+      , Param1(p1)
+      , Param2(p2)
+      , Param3(p3)
+    {}
 
-    bool operator == (uint_t type) const
+    bool operator==(uint_t type) const
     {
       return Type == type;
     }
@@ -48,9 +53,15 @@ namespace Module
   class Cell
   {
   public:
-    Cell() : Mask(), Enabled(), Note(), SampleNum(), OrnamentNum(), Volume(), Commands()
-    {
-    }
+    Cell()
+      : Mask()
+      , Enabled()
+      , Note()
+      , SampleNum()
+      , OrnamentNum()
+      , Volume()
+      , Commands()
+    {}
 
     bool HasData() const
     {
@@ -86,6 +97,7 @@ namespace Module
     {
       return CommandsIterator(Commands.begin(), Commands.end());
     }
+
   protected:
     enum Flags
     {
@@ -165,4 +177,4 @@ namespace Module
     virtual const class Pattern* PatternObject() const = 0;
     virtual const class Line* LineObject() const = 0;
   };
-}
+}  // namespace Module

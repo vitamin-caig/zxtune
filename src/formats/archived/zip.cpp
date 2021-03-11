@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  ZIP archives support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ZIP archives support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -18,13 +18,11 @@
 #include <formats/packed/decoders.h>
 #include <formats/packed/zip_supp.h>
 #include <strings/encoding.h>
-//std includes
+// std includes
 #include <map>
 #include <numeric>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace Zip
   {
@@ -38,8 +36,7 @@ namespace Archived
         , Name(std::move(name))
         , Size(size)
         , Data(std::move(data))
-      {
-      }
+      {}
 
       String GetName() const override
       {
@@ -56,6 +53,7 @@ namespace Archived
         Dbg("Decompressing '%1%'", Name);
         return Decoder.Decode(*Data);
       }
+
     private:
       const Formats::Packed::Decoder& Decoder;
       const String Name;
@@ -68,8 +66,7 @@ namespace Archived
     public:
       explicit BlocksIterator(Binary::View data)
         : Stream(data)
-      {
-      }
+      {}
 
       bool IsEof() const
       {
@@ -85,9 +82,7 @@ namespace Archived
       const T* GetBlock() const
       {
         const T* rawBlock = Stream.PeekField<T>();
-        return rawBlock && fromLE(rawBlock->Signature) == T::SIGNATURE
-          ? rawBlock
-          : nullptr;
+        return rawBlock && fromLE(rawBlock->Signature) == T::SIGNATURE ? rawBlock : nullptr;
       }
 
       std::unique_ptr<const Packed::Zip::CompressedFile> GetFile() const
@@ -109,6 +104,7 @@ namespace Archived
       {
         Stream.Skip(GetBlockSize());
       }
+
     private:
       std::size_t GetBlockSize() const
       {
@@ -116,9 +112,7 @@ namespace Archived
         if (const auto* header = GetBlock<LocalFileHeader>())
         {
           const auto file = CompressedFile::Create(*header, Stream.GetRestSize());
-          return file.get()
-            ? file->GetPackedSize()
-            : 0;
+          return file.get() ? file->GetPackedSize() : 0;
         }
         else if (const auto* footer = GetBlock<LocalFileFooter>())
         {
@@ -146,11 +140,12 @@ namespace Archived
           return 0;
         }
       }
+
     private:
       Binary::DataInputStream Stream;
     };
 
-    //TODO: make BlocksIterator
+    // TODO: make BlocksIterator
     class FileIterator
     {
     public:
@@ -184,9 +179,7 @@ namespace Archived
         {
           const StringView rawName(header->Name, fromLE(header->NameSize));
           const bool isUtf8 = 0 != (fromLE(header->Flags) & Packed::Zip::FILE_UTF8);
-          return isUtf8
-            ? rawName.to_string()
-            : Strings::ToAutoUtf8(rawName);
+          return isUtf8 ? rawName.to_string() : Strings::ToAutoUtf8(rawName);
         }
         assert(!"Failed to get name");
         return String();
@@ -216,6 +209,7 @@ namespace Archived
       {
         return Blocks.GetOffset();
       }
+
     private:
       void SkipNonFileHeaders()
       {
@@ -224,6 +218,7 @@ namespace Archived
           Blocks.Next();
         }
       }
+
     private:
       const Packed::Decoder& Decoder;
       const Binary::Container& Data;
@@ -263,6 +258,7 @@ namespace Archived
       {
         return FilesCount;
       }
+
     private:
       void FillCache() const
       {
@@ -313,6 +309,7 @@ namespace Archived
           Iter.reset(new FileIterator(*Decoder, *Delegate));
         }
       }
+
     private:
       const Formats::Packed::Decoder::Ptr Decoder;
       const uint_t FilesCount;
@@ -320,15 +317,14 @@ namespace Archived
       typedef std::map<String, File::Ptr> FilesMap;
       mutable FilesMap Files;
     };
-  }//namespace Zip
+  }  // namespace Zip
 
   class ZipDecoder : public Decoder
   {
   public:
     ZipDecoder()
       : FileDecoder(Formats::Packed::CreateZipDecoder())
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -366,6 +362,7 @@ namespace Archived
         return Container::Ptr();
       }
     }
+
   private:
     const Formats::Packed::Decoder::Ptr FileDecoder;
   };
@@ -374,5 +371,4 @@ namespace Archived
   {
     return MakePtr<ZipDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}  // namespace Formats::Archived

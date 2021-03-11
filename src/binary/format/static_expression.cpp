@@ -1,27 +1,26 @@
 /**
-*
-* @file
-*
-* @brief  Static predicates helpers implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Static predicates helpers implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "binary/format/static_expression.h"
 
-namespace Binary
+namespace Binary::FormatDSL
 {
-namespace FormatDSL
-{
-  //result[x] = backward offset of suffix size x
+  // result[x] = backward offset of suffix size x
   std::vector<std::size_t> StaticPattern::GetSuffixOffsets() const
   {
-    //assume longer suffixes requires longer offsets
+    // assume longer suffixes requires longer offsets
     const auto size = GetSize();
     std::vector<std::size_t> result(size + 1);
-    for (std::size_t offset = size; offset > 0; --offset) {
+    for (std::size_t offset = size; offset > 0; --offset)
+    {
       if (const auto maxSize = FindMaxSuffixMatchSize(offset))
       {
         std::fill_n(result.begin() + 1, maxSize, offset);
@@ -37,14 +36,14 @@ namespace FormatDSL
     const std::size_t patternSize = GetSize();
     const std::size_t startOffset = 1;
     const StaticPredicate* start = prefixBegin + startOffset;
-    for (std::size_t offset = startOffset; ; ++offset, ++start)
+    for (std::size_t offset = startOffset;; ++offset, ++start)
     {
       const std::size_t windowSize = prefixSize + offset;
       if (patternSize >= windowSize)
       {
-        //pattern: ssssss...
-        //prefix:   sssssx
-        //offset=1
+        // pattern: ssssss...
+        // prefix:   sssssx
+        // offset=1
         if (std::equal(prefixBegin, prefixEnd, start, &StaticPredicate::AreIntersected))
         {
           return offset;
@@ -54,12 +53,12 @@ namespace FormatDSL
       {
         if (patternSize == offset)
         {
-          //all prefix is out of patter
+          // all prefix is out of patter
           return offset;
         }
-        //pattern: ....
-        //prefix:    sssx
-        //out of pattern=2
+        // pattern: ....
+        // prefix:    sssx
+        // out of pattern=2
         const std::size_t outOfPattern = windowSize - patternSize;
         if (std::equal(prefixBegin, prefixEnd - outOfPattern, start, &StaticPredicate::AreIntersected))
         {
@@ -68,7 +67,7 @@ namespace FormatDSL
       }
     }
   }
-  
+
   std::size_t StaticPattern::FindMaxSuffixMatchSize(std::size_t offset) const
   {
     const auto begin = Begin();
@@ -81,9 +80,6 @@ namespace FormatDSL
       --suffix;
       ++size;
     }
-    return pattern < begin
-      ? GetSize()
-      : size;
+    return pattern < begin ? GetSize() : size;
   }
-}
-}
+}  // namespace Binary::FormatDSL

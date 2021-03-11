@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  File-based backends implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  File-based backends implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound/backends/file_backend.h"
 #include "sound/backends/l10n.h"
-//common includes
+// common includes
 #include <make_ptr.h>
 #include <progress_callback.h>
-//library includes
+// library includes
 #include <async/data_receiver.h>
 #include <debug/log.h>
 #include <io/api.h>
@@ -25,14 +25,12 @@
 #include <parameters/convert.h>
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 #define FILE_TAG B4CB6B0C
 
-namespace Sound
-{
-namespace File
+namespace Sound::File
 {
   const Debug::Stream Dbg("Sound::Backend::FileBase");
 
@@ -41,8 +39,7 @@ namespace File
   public:
     explicit StateFieldsSource(const Module::TrackState& state)
       : State(state)
-    {
-    }
+    {}
 
     String GetFieldValue(const String& fieldName) const override
     {
@@ -60,6 +57,7 @@ namespace File
       }
       return Strings::SkipFieldsSource::GetFieldValue(fieldName);
     }
+
   private:
     const Module::TrackState& State;
   };
@@ -73,16 +71,14 @@ namespace File
       , CurPattern(HasField(templ, Module::ATTR_CURRENT_PATTERN))
       , CurLine(HasField(templ, Module::ATTR_CURRENT_LINE))
       , Result(Template->Instantiate(Strings::SkipFieldsSource()))
-    {
-    }
+    {}
 
     String Instantiate(const Module::State& state) const
     {
       if (const auto track = dynamic_cast<const Module::TrackState*>(&state))
       {
-        if (CurPosition.Update(track->Position()) ||
-            CurPattern.Update(track->Pattern()) ||
-            CurLine.Update(track->Line()))
+        if (CurPosition.Update(track->Position()) || CurPattern.Update(track->Pattern())
+            || CurLine.Update(track->Line()))
         {
           const StateFieldsSource source(*track);
           Result = Template->Instantiate(source);
@@ -90,12 +86,14 @@ namespace File
       }
       return Result;
     }
+
   private:
     static bool HasField(const String& templ, const String& name)
     {
       const String fullName = '[' + name + ']';
       return String::npos != templ.find(fullName);
     }
+
   private:
     class TrackableValue
     {
@@ -103,8 +101,7 @@ namespace File
       explicit TrackableValue(bool trackable)
         : Trackable(trackable)
         , Value(-1)
-      {
-      }
+      {}
 
       bool Update(int_t newVal)
       {
@@ -115,10 +112,12 @@ namespace File
         }
         return false;
       }
+
     private:
       const bool Trackable;
       int_t Value;
     };
+
   private:
     const Strings::Template::Ptr Template;
     mutable TrackableValue CurPosition;
@@ -133,12 +132,12 @@ namespace File
     FileParameters(Parameters::Accessor::Ptr params, String id)
       : Params(std::move(params))
       , Id(std::move(id))
-    {
-    }
+    {}
 
     String GetFilenameTemplate() const
     {
-      Parameters::StringType nameTemplate = GetProperty<Parameters::StringType>(Parameters::ZXTune::Sound::Backends::File::FILENAME.Name());
+      Parameters::StringType nameTemplate =
+          GetProperty<Parameters::StringType>(Parameters::ZXTune::Sound::Backends::File::FILENAME.Name());
       if (nameTemplate.empty())
       {
         // Filename parameter is required
@@ -156,9 +155,11 @@ namespace File
 
     uint_t GetBuffersCount() const
     {
-      const Parameters::IntType intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::BUFFERS.Name());
+      const Parameters::IntType intParam =
+          GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::BUFFERS.Name());
       return static_cast<uint_t>(intParam);
     }
+
   private:
     template<class T>
     T GetProperty(const String& name) const
@@ -180,6 +181,7 @@ namespace File
     {
       return Parameters::ZXTune::Sound::Backends::File::PREFIX + name;
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
     const String Id;
@@ -203,8 +205,7 @@ namespace File
       , FileParams(params, factory->GetId())
       , Factory(factory)
       , FilenameTemplate(InstantiateModuleFields(FileParams.GetFilenameTemplate(), *Params))
-    {
-    }
+    {}
 
     Receiver::Ptr GetStream(const Module::State& state) const
     {
@@ -226,6 +227,7 @@ namespace File
       }
       return Receiver::Ptr();
     }
+
   private:
     void SetProperties(FileStream& stream) const
     {
@@ -248,6 +250,7 @@ namespace File
       }
       stream.FlushMetadata();
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
     const FileParameters FileParams;
@@ -263,10 +266,9 @@ namespace File
       : Params(std::move(params))
       , Factory(std::move(factory))
       , Stream(Receiver::CreateStub())
-    {
-    }
+    {}
 
-    //BackendWorker
+    // BackendWorker
     void Startup() override
     {
       Source.reset(new StreamSource(Params, Factory));
@@ -278,13 +280,9 @@ namespace File
       Source.reset();
     }
 
-    void Pause() override
-    {
-    }
+    void Pause() override {}
 
-    void Resume() override
-    {
-    }
+    void Resume() override {}
 
     void FrameStart(const Module::State& state) override
     {
@@ -305,20 +303,21 @@ namespace File
       // Does not support volume control
       return VolumeControl::Ptr();
     }
+
   private:
     void SetStream(Receiver::Ptr str)
     {
       Stream->Flush();
       Stream = str;
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
     const FileStreamFactory::Ptr Factory;
     std::unique_ptr<StreamSource> Source;
     Receiver::Ptr Stream;
   };
-}//File
-}//Sound
+}  // namespace Sound::File
 
 namespace Sound
 {
@@ -326,6 +325,6 @@ namespace Sound
   {
     return MakePtr<File::BackendWorker>(params, factory);
   }
-}
+}  // namespace Sound
 
 #undef FILE_TAG

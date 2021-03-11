@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief CLI application implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief CLI application implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "config.h"
 #include "console.h"
 #include "display.h"
 #include "information.h"
 #include "sound.h"
 #include "source.h"
-//common includes
+// common includes
 #include <error_tools.h>
 #include <progress_callback.h>
-//library includes
+// library includes
 #include <async/data_receiver.h>
 #include <async/src/event.h>
 #include <binary/container_factories.h>
@@ -39,15 +39,15 @@
 #include <sound/sound_parameters.h>
 #include <time/duration.h>
 #include <time/timer.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <cctype>
 #include <functional>
 #include <limits>
 #include <numeric>
-//boost includes
+// boost includes
 #include <boost/program_options.hpp>
-//text includes
+// text includes
 #include "text/text.h"
 
 #define FILE_TAG 81C76E7D
@@ -60,7 +60,7 @@ namespace
     props.FindValue(Module::ATTR_FULLPATH, res);
     return res;
   }
-  
+
   String GetFilenameTemplate(const Parameters::Accessor& params)
   {
     String nameTemplate;
@@ -70,12 +70,12 @@ namespace
     }
     return nameTemplate;
   }
-  
+
   struct HolderAndData
   {
     Module::Holder::Ptr Holder;
     Binary::Data::Ptr Data;
-    
+
     typedef DataReceiver<HolderAndData> Receiver;
   };
 
@@ -86,8 +86,7 @@ namespace
       : Display(display)
       , Params(params)
       , FileNameTemplate(IO::CreateFilenameTemplate(GetFilenameTemplate(params)))
-    {
-    }
+    {}
 
     void ApplyData(HolderAndData data) override
     {
@@ -95,7 +94,8 @@ namespace
       {
         const Parameters::Accessor::Ptr props = data.Holder->GetModuleProperties();
         const String& id = GetModuleId(*props);
-        const String& filename = FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
+        const String& filename =
+            FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
         const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
         stream->ApplyData(*data.Data);
         Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
@@ -106,16 +106,16 @@ namespace
       }
     }
 
-    void Flush() override
-    {
-    }
+    void Flush() override {}
+
   private:
     DisplayComponent& Display;
     const Parameters::Accessor& Params;
     const Strings::Template::Ptr FileNameTemplate;
   };
-  
-  std::unique_ptr<Module::Conversion::Parameter> CreateConversionParameters(const String& mode, const Parameters::Accessor& modeParams)
+
+  std::unique_ptr<Module::Conversion::Parameter> CreateConversionParameters(const String& mode,
+                                                                            const Parameters::Accessor& modeParams)
   {
     Parameters::IntType optimization = Module::Conversion::DEFAULT_OPTIMIZATION;
     modeParams.FindValue(String(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
@@ -150,14 +150,13 @@ namespace
     }
     return param;
   }
-  
+
   class TruncateDataEndpoint : public HolderAndData::Receiver
   {
   public:
     explicit TruncateDataEndpoint(Ptr saver)
       : Saver(std::move(saver))
-    {
-    }
+    {}
 
     void ApplyData(HolderAndData data) override
     {
@@ -176,10 +175,11 @@ namespace
     {
       Saver->Flush();
     }
+
   private:
     const Ptr Saver;
   };
-  
+
   class ConvertEndpoint : public HolderAndData::Receiver
   {
   public:
@@ -187,9 +187,8 @@ namespace
       : Display(display)
       , ConversionParameter(CreateConversionParameters(mode, modeParams))
       , Saver(std::move(saver))
-    {
-    }
-    
+    {}
+
     void ApplyData(HolderAndData data) override
     {
       const Module::Holder::Ptr holder = data.Holder;
@@ -206,11 +205,12 @@ namespace
         Display.Message(Strings::Format(Text::CONVERT_SKIPPED, id, type));
       }
     }
-    
+
     void Flush() override
     {
       Saver->Flush();
     }
+
   private:
     DisplayComponent& Display;
     const std::unique_ptr<Module::Conversion::Parameter> ConversionParameter;
@@ -230,8 +230,8 @@ namespace
       }
       const HolderAndData::Receiver::Ptr saver(new SaveEndpoint(display, params));
       const HolderAndData::Receiver::Ptr target = mode == Text::CONVERSION_MODE_RAW
-        ? MakePtr<TruncateDataEndpoint>(saver)
-        : MakePtr<ConvertEndpoint>(display, mode, params, saver);
+                                                      ? MakePtr<TruncateDataEndpoint>(saver)
+                                                      : MakePtr<ConvertEndpoint>(display, mode, params, saver);
       Pipe = Async::DataReceiver<HolderAndData>::Create(1, 1000, target);
     }
 
@@ -244,6 +244,7 @@ namespace
     {
       Pipe->ApplyData({std::move(holder), std::move(data)});
     }
+
   private:
     HolderAndData::Receiver::Ptr Pipe;
   };
@@ -255,8 +256,7 @@ namespace
       : Iterations(iterations)
       , Sounder(sound)
       , Display(display)
-    {
-    }
+    {}
 
     void ProcessItem(Binary::Data::Ptr /*data*/, Module::Holder::Ptr holder) override
     {
@@ -290,8 +290,8 @@ namespace
         }
         const auto real = timer.Elapsed<>();
         const auto relSpeed = total.Divide<double>(real);
-        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed,
-          receiver.GetHash(), receiver.GetMinSample(), receiver.GetMaxSample()));
+        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed, receiver.GetHash(),
+                                        receiver.GetMinSample(), receiver.GetMaxSample()));
       }
       catch (const std::exception& e)
       {
@@ -306,6 +306,7 @@ namespace
         Display.Message(Strings::Format(Text::BENCHMARK_FAIL, path, type, "Unknown error"));
       }
     }
+
   private:
     class BenchmarkSoundReceiver
     {
@@ -334,25 +335,29 @@ namespace
       {
         return MaxSample;
       }
+
     private:
       void MinMax(Sound::Sample::Type val)
       {
         MinSample = std::min(MinSample, val);
         MaxSample = std::max(MaxSample, val);
       }
+
     private:
       uint32_t Crc32 = 0;
       Sound::Sample::Type MinSample = Sound::Sample::MAX;
       Sound::Sample::Type MaxSample = Sound::Sample::MIN;
     };
+
   private:
     const unsigned Iterations;
     SoundComponent& Sounder;
     DisplayComponent& Display;
   };
 
-  class CLIApplication : public Platform::Application
-                       , private OnItemCallback
+  class CLIApplication
+    : public Platform::Application
+    , private OnItemCallback
   {
   public:
     CLIApplication()
@@ -363,15 +368,13 @@ namespace
       , Display(DisplayComponent::Create())
       , SeekStep(10)
       , BenchmarkIterations(0)
-    {
-    }
+    {}
 
     int Run(Strings::Array args) override
     {
       try
       {
-        if (ProcessOptions(std::move(args)) ||
-            Informer->Process(*Sounder))
+        if (ProcessOptions(std::move(args)) || Informer->Process(*Sounder))
         {
           return 0;
         }
@@ -398,10 +401,10 @@ namespace
         }
       }
       catch (const CancelError&)
-      {
-      }
+      {}
       return 0;
     }
+
   private:
     bool ProcessOptions(Strings::Array args)
     {
@@ -411,32 +414,27 @@ namespace
 
         String configFile;
         options_description options(Strings::Format(Text::USAGE_SECTION, args[0]));
-        options.add_options()
-          (Text::HELP_KEY, Text::HELP_DESC)
-          (Text::VERSION_KEY, Text::VERSION_DESC)
-          (Text::ABOUT_KEY, Text::ABOUT_DESC)
-          (Text::CONFIG_KEY, boost::program_options::value<String>(&configFile), Text::CONFIG_DESC)
-          (Text::CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), Text::CONVERT_DESC)
-          (Text::BENCHMARK_KEY, boost::program_options::value<uint_t>(&BenchmarkIterations), Text::BENCHMARK_DESC)
-        ;
+        options.add_options()(Text::HELP_KEY, Text::HELP_DESC)(Text::VERSION_KEY, Text::VERSION_DESC)(
+            Text::ABOUT_KEY, Text::ABOUT_DESC)(Text::CONFIG_KEY, boost::program_options::value<String>(&configFile),
+                                               Text::CONFIG_DESC)(
+            Text::CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), Text::CONVERT_DESC)(
+            Text::BENCHMARK_KEY, boost::program_options::value<uint_t>(&BenchmarkIterations), Text::BENCHMARK_DESC);
 
         options.add(Informer->GetOptionsDescription());
         options.add(Sourcer->GetOptionsDescription());
         options.add(Sounder->GetOptionsDescription());
         options.add(Display->GetOptionsDescription());
-        //add positional parameters for input
+        // add positional parameters for input
         positional_options_description inputPositional;
         inputPositional.add(Text::INPUT_FILE_KEY, -1);
 
-        //cli options
+        // cli options
         options_description cliOptions(Text::CLI_SECTION);
-        cliOptions.add_options()
-          (Text::SEEKSTEP_KEY, value<uint_t>(&SeekStep), Text::SEEKSTEP_DESC)
-        ;
+        cliOptions.add_options()(Text::SEEKSTEP_KEY, value<uint_t>(&SeekStep), Text::SEEKSTEP_DESC);
         options.add(cliOptions);
 
         variables_map vars;
-        //args should not contain program name
+        // args should not contain program name
         args.erase(args.begin());
         store(command_line_parser(args).options(options).positional(inputPositional).run(), vars);
         notify(vars);
@@ -553,6 +551,7 @@ namespace
         Display->EndFrame();
       }
     }
+
   private:
     const Parameters::Container::Ptr ConfigParams;
     String ConvertParams;
@@ -563,7 +562,7 @@ namespace
     uint_t SeekStep;
     uint_t BenchmarkIterations;
   };
-}
+}  // namespace
 
 namespace Platform
 {
@@ -571,4 +570,4 @@ namespace Platform
   {
     return std::unique_ptr<Application>(new CLIApplication());
   }
-}
+}  // namespace Platform

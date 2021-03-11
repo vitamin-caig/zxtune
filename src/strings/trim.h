@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  String trimming
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  String trimming
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 namespace Strings

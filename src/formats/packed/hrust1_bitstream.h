@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Hrust v1.x- compatible bitstream helper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Hrust v1.x- compatible bitstream helper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/packed/pack_utils.h"
 
-//Hrust1-compatible bitstream:
+// Hrust1-compatible bitstream:
 // -16 bit mask MSB->LSB order
 // -mask is taken at the beginning
 class Hrust1Bitstream : public ByteStream
@@ -21,7 +21,8 @@ class Hrust1Bitstream : public ByteStream
 public:
   Hrust1Bitstream(const uint8_t* data, std::size_t size)
     : ByteStream(data, size)
-    , Bits(), Mask()
+    , Bits()
+    , Mask()
   {
     InitMask();
   }
@@ -56,12 +57,14 @@ public:
     }
     return len;
   }
+
 private:
   void InitMask()
   {
     Bits = GetLEWord();
     Mask = 0x8000;
   }
+
 private:
   uint_t Bits;
   uint_t Mask;

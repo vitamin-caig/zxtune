@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  TFMMusicMaker chiptune factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TFMMusicMaker chiptune factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "module/players/tfm/tfm_factory.h"
-//library includes
+// library includes
 #include <formats/chiptune/fm/tfmmusicmaker.h>
 
 namespace Module
@@ -21,4 +21,4 @@ namespace Module
   {
     TFM::Factory::Ptr CreateFactory(Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder);
   }
-}
+}  // namespace Module

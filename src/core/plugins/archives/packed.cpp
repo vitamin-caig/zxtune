@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief  Archive plugin implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Archive plugin implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/archives/packed.h"
+#include "core/plugins/plugins_types.h"
 #include "core/src/callback.h"
 #include "core/src/detect.h"
-#include "core/plugins/plugins_types.h"
 #include <core/plugin_attrs.h>
-//common includes
+// common includes
 #include <make_ptr.h>
-//std includes
+// std includes
 #include <utility>
-//text includes
+// text includes
 #include <core/text/plugins.h>
 
 namespace ZXTune
@@ -41,8 +41,9 @@ namespace ZXTune
     return component.substr(ARCHIVE_PLUGIN_PREFIX.size());
   }
 
-  Analysis::Result::Ptr DetectModulesInArchive(const Parameters::Accessor& params, Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder, 
-    DataLocation::Ptr inputData, Module::DetectCallback& callback)
+  Analysis::Result::Ptr DetectModulesInArchive(const Parameters::Accessor& params, Plugin::Ptr plugin,
+                                               const Formats::Packed::Decoder& decoder, DataLocation::Ptr inputData,
+                                               Module::DetectCallback& callback)
   {
     const Binary::Container::Ptr rawData = inputData->GetData();
     if (Formats::Packed::Container::Ptr subData = decoder.Decode(*rawData))
@@ -59,7 +60,7 @@ namespace ZXTune
   }
 
   DataLocation::Ptr OpenDataFromArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder,
-    DataLocation::Ptr inputData, const Analysis::Path& pathToOpen)
+                                        DataLocation::Ptr inputData, const Analysis::Path& pathToOpen)
   {
     const String pathComponent = pathToOpen.GetIterator()->Get();
     if (!IsArchivePluginPathComponent(pathComponent))
@@ -85,8 +86,7 @@ namespace ZXTune
     CommonArchivePlugin(Plugin::Ptr descr, Formats::Packed::Decoder::Ptr decoder)
       : Description(std::move(descr))
       , Decoder(std::move(decoder))
-    {
-    }
+    {}
 
     Plugin::Ptr GetDescription() const override
     {
@@ -98,28 +98,30 @@ namespace ZXTune
       return Decoder->GetFormat();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData, Module::DetectCallback& callback) const override
+    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                                 Module::DetectCallback& callback) const override
     {
       return DetectModulesInArchive(params, Description, *Decoder, inputData, callback);
     }
 
-    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/,
-                                   DataLocation::Ptr inputData,
-                                   const Analysis::Path& pathToOpen) const override
+    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr inputData,
+                           const Analysis::Path& pathToOpen) const override
     {
       return OpenDataFromArchive(Description, *Decoder, inputData, pathToOpen);
     }
+
   private:
     const Plugin::Ptr Description;
     const Formats::Packed::Decoder::Ptr Decoder;
   };
-}
+}  // namespace ZXTune
 
 namespace ZXTune
 {
   ArchivePlugin::Ptr CreateArchivePlugin(const String& id, uint_t caps, Formats::Packed::Decoder::Ptr decoder)
   {
-    const Plugin::Ptr description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
+    const Plugin::Ptr description =
+        CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
     return MakePtr<CommonArchivePlugin>(description, decoder);
   }
-}
+}  // namespace ZXTune

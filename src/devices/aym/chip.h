@@ -1,27 +1,29 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM sound chip interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM sound chip interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <devices/aym.h>
 #include <devices/state.h>
 #include <sound/mixer.h>
 
-//supporting for AY/YM-based modules
+// supporting for AY/YM-based modules
 namespace Devices
 {
   namespace AYM
   {
     // Describes real device
-    class Chip : public Device, public StateSource
+    class Chip
+      : public Device
+      , public StateSource
     {
     public:
       using Ptr = std::shared_ptr<Chip>;
@@ -85,5 +87,5 @@ namespace Devices
 
     /// Virtual constructors
     Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer);
-  }
-}
+  }  // namespace AYM
+}  // namespace Devices

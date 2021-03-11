@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  File provider functions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  File provider functions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/data.h>
 #include <binary/output_stream.h>
 
@@ -41,4 +41,4 @@ namespace IO
   };
 
   Binary::SeekableOutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params);
-}
+}  // namespace IO

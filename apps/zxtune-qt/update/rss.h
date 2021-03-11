@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief RSS feed parser interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief RSS feed parser interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//qt includes
+// qt includes
 #include <QtCore/QByteArray>
 #include <QtCore/QDate>
 #include <QtCore/QString>
@@ -36,4 +36,4 @@ namespace RSS
   };
 
   bool Parse(const QByteArray& rss, Visitor& visitor);
-}
+}  // namespace RSS

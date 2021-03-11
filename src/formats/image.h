@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Images support interfaces
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Images support interfaces
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/container.h>
 #include <binary/format.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Formats
@@ -52,5 +52,5 @@ namespace Formats
       //! @invariant Result is always rawData's subcontainer
       virtual Container::Ptr Decode(const Binary::Container& rawData) const = 0;
     };
-  }
-}
+  }  // namespace Image
+}  // namespace Formats

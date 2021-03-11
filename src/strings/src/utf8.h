@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  String optimization
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  String optimization
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 namespace Strings
@@ -19,7 +19,7 @@ namespace Strings
   {
   public:
     Utf8Builder() = default;
-    
+
     template<class It>
     Utf8Builder(It begin, It end)
     {
@@ -29,12 +29,12 @@ namespace Strings
         Add(*it);
       }
     }
-    
+
     void Reserve(std::size_t symbols)
     {
       Result.reserve(symbols);
     }
-    
+
     void Add(uint32_t sym)
     {
       if (sym < 0x80)
@@ -43,23 +43,23 @@ namespace Strings
       }
       else if (sym < 0x800)
       {
-        //bbbbbaaaaaa
-        //110bbbbb 10aaaaaa
+        // bbbbbaaaaaa
+        // 110bbbbb 10aaaaaa
         AddRaw(0xc0 | (sym >> 6));
         AddSeq(sym >> 0);
       }
       else if (sym < 0x10000)
       {
-        //aaaabbbbbbcccccc
-        //1110aaaa 10bbbbbb 10cccccc
+        // aaaabbbbbbcccccc
+        // 1110aaaa 10bbbbbb 10cccccc
         AddRaw(0xe0 | (sym >> 12));
         AddSeq(sym >> 6);
         AddSeq(sym >> 0);
       }
       else if (sym < 0x110000)
       {
-        //aaabbbbbbccccccdddddd
-        //11110aaa 10bbbbbb 10cccccc 10dddddd
+        // aaabbbbbbccccccdddddd
+        // 11110aaa 10bbbbbb 10cccccc 10dddddd
         AddRaw(0xf0 | (sym >> 18));
         AddSeq(sym >> 12);
         AddSeq(sym >> 6);
@@ -70,28 +70,30 @@ namespace Strings
         AddRaw('?');
       }
     }
-    
+
     String GetResult()
     {
       return std::move(Result);
     }
+
   private:
     void AddSeq(uint8_t val)
     {
       AddRaw(0x80 | (val & 0x3f));
     }
-    
+
     void AddRaw(uint8_t val)
     {
       Result += static_cast<String::value_type>(val);
     }
+
   private:
     String Result;
   };
-  
+
   inline bool IsUtf8(StringView str)
   {
-    //https://en.wikipedia.org/wiki/UTF-8#Description
+    // https://en.wikipedia.org/wiki/UTF-8#Description
     for (auto it = str.begin(), lim = str.end(); it != lim;)
     {
       //%0xxxxxx
@@ -123,7 +125,7 @@ namespace Strings
     }
     return true;
   }
-  
+
   inline StringView CutUtf8BOM(StringView str)
   {
     if (str.size() >= 3 && str[0] == 0xef && str[1] == 0xbb && str[2] == 0xbf)
@@ -135,9 +137,10 @@ namespace Strings
       return str;
     }
   }
-  
+
   inline bool IsUtf16(StringView str)
   {
-    return str.size() > 2 && str.size() % 2 == 0 && ((str[0] == 0xff && str[1] == 0xfe) || (str[0] == 0xfe && str[1] == 0xff));
+    return str.size() > 2 && str.size() % 2 == 0
+           && ((str[0] == 0xff && str[1] == 0xfe) || (str[0] == 0xfe && str[1] == 0xff));
   }
-}
+}  // namespace Strings

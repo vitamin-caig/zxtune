@@ -1,46 +1,44 @@
 /**
-* 
-* @file
-*
-* @brief  AHX chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AHX chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/dac/abysshighestexperience.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <formats/chiptune/digital/abysshighestexperience.h>
-#include <module/track_information.h>
-#include <module/track_state.h>
 #include <module/players/analyzer.h>
 #include <module/players/properties_meta.h>
+#include <module/track_information.h>
+#include <module/track_state.h>
 #include <sound/loop.h>
-//3rdparty
+// 3rdparty
 #include <3rdparty/hvl/hvl_replay.h>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace AHX
+namespace Module::AHX
 {
   const Debug::Stream Dbg("Core::AHXSupp");
 
   typedef std::shared_ptr<hvl_tune> HvlPtr;
-  
+
   enum StereoSeparation
   {
     MONO = 0,
     STEREO = 4
   };
-  
+
   HvlPtr LoadModule(Binary::View data, uint_t samplerate = 44100)
   {
     static bool initialized = false;
@@ -49,21 +47,21 @@ namespace AHX
       hvl_InitReplayer();
       initialized = true;
     }
-    const HvlPtr result = HvlPtr(hvl_ParseTune(static_cast<const uint8*>(data.Start()), data.Size(), samplerate, MONO), &hvl_FreeTune);
+    const HvlPtr result =
+        HvlPtr(hvl_ParseTune(static_cast<const uint8*>(data.Start()), data.Size(), samplerate, MONO), &hvl_FreeTune);
     Require(result.get() != nullptr);
     return result;
   }
 
   const auto FRAME_DURATION = Time::Milliseconds::FromFrequency(50);
 
-  //TODO: test this
+  // TODO: test this
   class TrackInformation : public Module::TrackInformation
   {
   public:
     explicit TrackInformation(Binary::View data)
       : Hvl(LoadModule(data))
-    {
-    }
+    {}
 
     Time::Milliseconds Duration() const override
     {
@@ -86,7 +84,7 @@ namespace AHX
     {
       return Hvl->ht_PosJump;
     }
-    
+
     uint_t ChannelsCount() const override
     {
       return Hvl->ht_Channels;
@@ -97,6 +95,7 @@ namespace AHX
       Initialize();
       return LoopTime;
     }
+
   private:
     void Initialize() const
     {
@@ -109,24 +108,24 @@ namespace AHX
         }
       }
     }
+
   private:
     const HvlPtr Hvl;
     mutable uint_t LoopTime = 0;
   };
-  
+
   class TrackState : public Module::TrackState
   {
   public:
     TrackState(HvlPtr hvl)
       : Hvl(std::move(hvl))
-    {
-    }
+    {}
 
     Time::AtMillisecond At() const override
     {
       if (Hvl->ht_SongEndReached)
       {
-        //TODO: investigate
+        // TODO: investigate
         return Time::AtMillisecond() + Total();
       }
       else
@@ -152,7 +151,7 @@ namespace AHX
 
     uint_t Pattern() const override
     {
-      return Hvl->ht_PosNr;//TODO
+      return Hvl->ht_PosNr;  // TODO
     }
 
     uint_t Line() const override
@@ -179,17 +178,17 @@ namespace AHX
       }
       return result;
     }
+
   private:
     const HvlPtr Hvl;
   };
-  
+
   class Analyzer : public Module::Analyzer
   {
   public:
     explicit Analyzer(HvlPtr hvl)
       : Hvl(std::move(hvl))
-    {
-    }
+    {}
 
     SpectrumState GetState() const override
     {
@@ -204,6 +203,7 @@ namespace AHX
       }
       return result;
     }
+
   private:
     const HvlPtr Hvl;
   };
@@ -212,19 +212,19 @@ namespace AHX
   {
   public:
     typedef std::shared_ptr<HVL> Ptr;
-    
+
     HVL(Binary::View data, uint_t samplerate)
       : Hvl(LoadModule(data, samplerate))
       , SamplesPerFrame(FRAME_DURATION.Get() * samplerate / FRAME_DURATION.PER_SECOND)
     {
       Reset();
     }
-    
+
     void Reset()
     {
       hvl_InitSubsong(Hvl.get(), 0);
     }
-    
+
     Sound::Chunk RenderFrame()
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
@@ -235,7 +235,7 @@ namespace AHX
       hvl_DecodeFrame(Hvl.get(), buf, buf + sizeof(Sound::Sample) / 2, sizeof(Sound::Sample));
       return result;
     }
-    
+
     void Seek(Time::AtMillisecond request)
     {
       const auto frame = Hvl->ht_SpeedMultiplier * request.Get() / FRAME_DURATION.Get();
@@ -250,12 +250,12 @@ namespace AHX
         hvl_NextFrame(Hvl.get());
       }
     }
-    
+
     uint_t LoopCount() const
     {
       return Hvl->ht_SongEndReached;
     }
-    
+
     TrackState::Ptr MakeTrackState() const
     {
       return MakePtr<TrackState>(Hvl);
@@ -264,7 +264,8 @@ namespace AHX
     Analyzer::Ptr MakeAnalyzer() const
     {
       return MakePtr<Analyzer>(Hvl);
-    } 
+    }
+
   private:
     const HvlPtr Hvl;
     uint_t SamplesPerFrame;
@@ -275,8 +276,7 @@ namespace AHX
   public:
     explicit Renderer(HVL::Ptr tune)
       : Tune(std::move(tune))
-    {
-    }
+    {}
 
     State::Ptr GetState() const override
     {
@@ -310,18 +310,18 @@ namespace AHX
     {
       Tune->Seek(request);
     }
+
   private:
     const HVL::Ptr Tune;
   };
-  
+
   class Holder : public Module::Holder
   {
   public:
     Holder(Dump tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
       , Properties(std::move(props))
-    {
-    }
+    {}
 
     Module::Information::Ptr GetModuleInformation() const override
     {
@@ -341,37 +341,38 @@ namespace AHX
     {
       return MakePtr<Renderer>(MakePtr<HVL>(Tune, samplerate));
     }
+
   private:
     const Dump Tune;
     const Parameters::Accessor::Ptr Properties;
     mutable Information::Ptr Info;
   };
-  
+
   class DataBuilder : public Formats::Chiptune::AbyssHighestExperience::Builder
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Meta(props)
-    {
-    }
+    {}
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
     }
+
   private:
     MetaProperties Meta;
   };
-  
+
   class Factory : public Module::Factory
   {
   public:
     explicit Factory(Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr decoder)
       : Decoder(std::move(decoder))
-    {
-    }
+    {}
 
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
+                                     Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -382,7 +383,7 @@ namespace AHX
           props.SetSource(*container);
           props.SetPlatform(Platforms::AMIGA);
 
-          //TODO: extract
+          // TODO: extract
           const auto rawData = static_cast<const uint8_t*>(container->Start());
           Dump tune(rawData, rawData + container->Size());
           return MakePtr<Holder>(std::move(tune), std::move(properties));
@@ -394,14 +395,13 @@ namespace AHX
       }
       return Module::Holder::Ptr();
     }
-    
+
   private:
     const Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr Decoder;
   };
-  
+
   Factory::Ptr CreateFactory(Formats::Chiptune::AbyssHighestExperience::Decoder::Ptr decoder)
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
-}
+}  // namespace Module::AHX

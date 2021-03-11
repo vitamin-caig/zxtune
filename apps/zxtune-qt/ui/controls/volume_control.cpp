@@ -1,41 +1,43 @@
 /**
-* 
-* @file
-*
-* @brief Volume control widget implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Volume control widget implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "volume_control.h"
-#include "volume_control.ui.h"
 #include "supp/playback_supp.h"
 #include "ui/styles.h"
-//common includes
+#include "volume_control.ui.h"
+// common includes
 #include <contract.h>
 #include <error.h>
-//std includes
+// std includes
 #include <ctime>
 #include <numeric>
 #include <utility>
 
 namespace
 {
-  class VolumeControlImpl : public VolumeControl
-                          , public Ui::VolumeControl
+  class VolumeControlImpl
+    : public VolumeControl
+    , public Ui::VolumeControl
   {
   public:
     VolumeControlImpl(QWidget& parent, PlaybackSupport& supp)
       : ::VolumeControl(parent)
     {
-      //setup self
+      // setup self
       setupUi(this);
       setEnabled(false);
       Require(connect(volumeLevel, SIGNAL(valueChanged(int)), SLOT(SetLevel(int))));
 
-      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)), SLOT(StartPlayback(Sound::Backend::Ptr))));
+      Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
+                      SLOT(StartPlayback(Sound::Backend::Ptr))));
       Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
       Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(StopPlayback())));
       volumeLevel->setStyle(UI::GetStyle());
@@ -70,7 +72,7 @@ namespace
       }
     }
 
-    //QWidget
+    // QWidget
     void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
@@ -79,6 +81,7 @@ namespace
       }
       ::VolumeControl::changeEvent(event);
     }
+
   private:
     void UpdateVolumeSlider()
     {
@@ -89,17 +92,17 @@ namespace
         volumeLevel->setValue(static_cast<int>((gain * volumeLevel->maximum()).Round()));
       }
       catch (const Error&)
-      {
-      }
+      {}
     }
+
   private:
     Sound::VolumeControl::Ptr Controller;
   };
-}
+}  // namespace
 
-VolumeControl::VolumeControl(QWidget& parent) : QWidget(&parent)
-{
-}
+VolumeControl::VolumeControl(QWidget& parent)
+  : QWidget(&parent)
+{}
 
 VolumeControl* VolumeControl::Create(QWidget& parent, PlaybackSupport& supp)
 {

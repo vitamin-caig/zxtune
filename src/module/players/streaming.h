@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  Streamed modules support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Streamed modules support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "module/players/iterator.h"
 #include "module/players/stream_model.h"
-//library includes
+// library includes
 #include <module/information.h>
 #include <time/duration.h>
 
@@ -32,8 +32,7 @@ namespace Module
 
     explicit TimedState(Time::Microseconds duration)
       : Limit(Time::AtMicrosecond() + duration)
-    {
-    }
+    {}
 
     Time::AtMillisecond At() const override
     {
@@ -74,7 +73,7 @@ namespace Module
         const auto newPos = Time::AtMicrosecond(request.Get() % Limit.Get());
         const auto delta = Time::Microseconds(newPos.Get() - Position.Get());
         Position = newPos;
-        return delta; 
+        return delta;
       }
     }
 
@@ -87,6 +86,7 @@ namespace Module
     {
       return Position < Limit;
     }
+
   private:
     const Time::AtMicrosecond Limit;
     Time::AtMicrosecond Position;
@@ -104,8 +104,7 @@ namespace Module
     SampledState(uint64_t totalSamples, uint_t samplerate)
       : TotalSamples(totalSamples)
       , Samplerate(samplerate)
-    {
-    }
+    {}
 
     Time::AtMillisecond At() const override
     {
@@ -149,6 +148,7 @@ namespace Module
     {
       return DoneSamples;
     }
+
   private:
     const uint64_t TotalSamples;
     const uint_t Samplerate;
@@ -156,4 +156,4 @@ namespace Module
     uint64_t DoneSamplesTotal = 0;
     uint_t Loops = 0;
   };
-}
+}  // namespace Module

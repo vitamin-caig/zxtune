@@ -1,47 +1,45 @@
 /**
-*
-* @file
-*
-* @brief  LaserCompact v4.0 support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  LaserCompact v4.0 support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/image/container.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/image.h>
-//text includes
+// text includes
 #include <formats/text/image.h>
 
-namespace Formats
-{
-namespace Image
+namespace Formats::Image
 {
   namespace LaserCompact40
   {
     const StringView DEPACKER_PATTERN(
-     "0ef9"   //ld c,#f9
-     "0d"     //dec c
-     "cdc61f" //call #1fc6
-     "119000" //ld de,#0090
-     "19"     //add hl,de
-     "1100?"  //ld de,xxxx
-     "7e"     //ld a,(hl)
-     "d6c0"   //sub #c0
-     "381a"   //jr c,xx
-     "23"     //inc hl
-     "c8"     //ret z
-     "1f"     //rra
-     "47"     //ld b,a
-     "7e"     //ld a,(hl)
-     "3045"   //jr nc,xx
+        "0ef9"    // ld c,#f9
+        "0d"      // dec c
+        "cdc61f"  // call #1fc6
+        "119000"  // ld de,#0090
+        "19"      // add hl,de
+        "1100?"   // ld de,xxxx
+        "7e"      // ld a,(hl)
+        "d6c0"    // sub #c0
+        "381a"    // jr c,xx
+        "23"      // inc hl
+        "c8"      // ret z
+        "1f"      // rra
+        "47"      // ld b,a
+        "7e"      // ld a,(hl)
+        "3045"    // jr nc,xx
     );
 
     /*
@@ -64,8 +62,7 @@ namespace Image
     public:
       explicit Container(Binary::View data)
         : Data(data.SubView(DEPACKER_SIZE))
-      {
-      }
+      {}
 
       bool FastCheck() const
       {
@@ -74,19 +71,14 @@ namespace Image
           return false;
         }
         const uint_t sizeCode = *Data.As<uint8_t>();
-        return sizeCode == 0
-            || sizeCode == 1
-            || sizeCode == 2
-            || sizeCode == 8
-            || sizeCode == 9
-            || sizeCode == 16
-        ;
+        return sizeCode == 0 || sizeCode == 1 || sizeCode == 2 || sizeCode == 8 || sizeCode == 9 || sizeCode == 16;
       }
 
       Binary::DataInputStream GetStream() const
       {
         return Binary::DataInputStream(Data);
       }
+
     private:
       const Binary::View Data;
     };
@@ -98,21 +90,20 @@ namespace Image
         : AttrBase(256 * sizeCode)
         , ScrStart((AttrBase & 0x0300) << 3)
         , ScrLimit((AttrBase ^ 0x1800) & 0xfc00)
-      {
-      }
+      {}
 
       std::size_t GetStart() const
       {
         return ScrStart;
       }
 
-      std::size_t operator ()(std::size_t virtAddr) const
+      std::size_t operator()(std::size_t virtAddr) const
       {
         if (virtAddr < ScrLimit)
         {
           const std::size_t line = (virtAddr & 0x0007) << 8;
-          const std::size_t row =  (virtAddr & 0x0038) << 2;
-          const std::size_t col =  (virtAddr & 0x07c0) >> 6;
+          const std::size_t row = (virtAddr & 0x0038) << 2;
+          const std::size_t col = (virtAddr & 0x07c0) >> 6;
           return (virtAddr & 0x1800) | line | row | col;
         }
         else
@@ -120,6 +111,7 @@ namespace Image
           return AttrBase + virtAddr;
         }
       }
+
     private:
       const std::size_t AttrBase;
       const std::size_t ScrStart;
@@ -141,15 +133,14 @@ namespace Image
 
       std::unique_ptr<Dump> GetResult()
       {
-        return IsValid
-          ? std::move(Result)
-          : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
       }
 
       std::size_t GetUsedSize() const
       {
         return Stream.GetPosition();
       }
+
     private:
       bool DecodeData()
       {
@@ -183,8 +174,7 @@ namespace Image
               do
               {
                 decoded.at(translate(target++)) = fill;
-              }
-              while (--len);
+              } while (--len);
             }
             else if ((val & 0xc1) == 0xc0)
             {
@@ -192,8 +182,7 @@ namespace Image
               do
               {
                 decoded.at(translate(target++)) = Stream.ReadByte();
-              }
-              while (--len);
+              } while (--len);
             }
             else
             {
@@ -213,8 +202,7 @@ namespace Image
               {
                 decoded.at(translate(target++)) = decoded.at(translate(source));
                 source += step;
-              }
-              while (--len);
+              } while (--len);
             }
           }
           Result.reset(new Dump());
@@ -230,20 +218,20 @@ namespace Image
           return false;
         }
       }
+
     private:
       bool IsValid;
       Binary::DataInputStream Stream;
       std::unique_ptr<Dump> Result;
     };
-  }//namespace LaserCompact40
+  }  // namespace LaserCompact40
 
   class LaserCompact40Decoder : public Decoder
   {
   public:
     LaserCompact40Decoder()
       : Depacker(Binary::CreateFormat(LaserCompact40::DEPACKER_PATTERN, LaserCompact40::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -269,6 +257,7 @@ namespace Image
       LaserCompact40::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
+
   private:
     const Binary::Format::Ptr Depacker;
   };
@@ -277,5 +266,4 @@ namespace Image
   {
     return MakePtr<LaserCompact40Decoder>();
   }
-}//namespace Image
-}//namespace Formats
+}  // namespace Formats::Image

@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief Binary data functions implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Binary data functions implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "binary.h"
 #include "exception.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_factories.h>
 
 namespace Binary
@@ -27,8 +27,7 @@ namespace Binary
       , Length(GetSize(env, object))
       , Vm(GetVm(env))
       , Object(env->NewGlobalRef(object))
-    {
-    }
+    {}
 
     ~ByteBufferData() override
     {
@@ -45,6 +44,7 @@ namespace Binary
     {
       return Length;
     }
+
   private:
     static const uint8_t* GetData(JNIEnv* env, jobject byteBuffer)
     {
@@ -75,6 +75,7 @@ namespace Binary
       Require(vm->GetEnv(reinterpret_cast<void**>(&result), JNI_VERSION_1_6) == JNI_OK);
       return result;
     }
+
   private:
     const uint8_t* const Data;
     const std::size_t Length;
@@ -87,4 +88,4 @@ namespace Binary
     auto data = MakePtr<ByteBufferData>(env, byteBuffer);
     return CreateContainer(std::move(data));
   }
-}
+}  // namespace Binary

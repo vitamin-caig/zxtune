@@ -1,55 +1,53 @@
 /**
-* 
-* @file
-*
-* @brief  ChipTracker chiptune factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ChipTracker chiptune factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/dac/chiptracker.h"
 #include "module/players/dac/dac_properties_helper.h"
 #include "module/players/dac/dac_simple.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <devices/dac/sample_factories.h>
 #include <formats/chiptune/digital/chiptracker.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <module/players/tracking.h>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace ChipTracker
+namespace Module::ChipTracker
 {
   const std::size_t CHANNELS_COUNT = 4;
 
   const uint64_t Z80_FREQ = 3500000;
-  //one cycle is 4 outputs
+  // one cycle is 4 outputs
   const uint_t OUTS_PER_CYCLE = 4;
   const uint_t TICKS_PER_CYCLE = 890;
   const uint_t C_1_STEP = 72;
-  //Z80_FREQ * (C_1_STEP / 256) / (TICKS_PER_CYCLE / OUTS_PER_CYCLE)
+  // Z80_FREQ * (C_1_STEP / 256) / (TICKS_PER_CYCLE / OUTS_PER_CYCLE)
   const uint_t SAMPLES_FREQ = Z80_FREQ * C_1_STEP * OUTS_PER_CYCLE / TICKS_PER_CYCLE / 256;
 
   inline int_t StepToHz(int_t step)
   {
-    //C-1 frequency is 32.7Hz
-    //step * 32.7 / c-1_step
+    // C-1 frequency is 32.7Hz
+    // step * 32.7 / c-1_step
     return step * 3270 / int_t(C_1_STEP * 100);
   }
-  
+
   enum CmdType
   {
     EMPTY,
-    //offset in bytes
+    // offset in bytes
     SAMPLE_OFFSET,
-    //step
+    // step
     SLIDE
   };
 
@@ -134,6 +132,7 @@ namespace ChipTracker
       Data->Patterns = Patterns.CaptureResult();
       return std::move(Data);
     }
+
   private:
     DAC::PropertiesHelper& Properties;
     MetaProperties Meta;
@@ -143,9 +142,10 @@ namespace ChipTracker
 
   struct GlissData
   {
-    GlissData() : Sliding(), Glissade()
-    {
-    }
+    GlissData()
+      : Sliding()
+      , Glissade()
+    {}
     int_t Sliding;
     int_t Glissade;
 
@@ -183,6 +183,7 @@ namespace ChipTracker
         GetNewLineState(state, track);
       }
     }
+
   private:
     void SynthesizeChannelsData(DAC::TrackBuilder& track)
     {
@@ -212,7 +213,7 @@ namespace ChipTracker
         }
       }
     };
-      
+
     void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
     {
       if (const bool* enabled = src.GetEnabled())
@@ -250,6 +251,7 @@ namespace ChipTracker
         }
       }
     }
+
   private:
     const ModuleData::Ptr Data;
     std::array<GlissData, CHANNELS_COUNT> Gliss;
@@ -261,8 +263,7 @@ namespace ChipTracker
     Chiptune(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-    {
-    }
+    {}
 
     TrackModel::Ptr GetTrackModel() const override
     {
@@ -288,6 +289,7 @@ namespace ChipTracker
         chip.SetSample(idx, Data->Samples.Get(idx));
       }
     }
+
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
@@ -296,7 +298,8 @@ namespace ChipTracker
   class Factory : public DAC::Factory
   {
   public:
-    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    DAC::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       DAC::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -309,10 +312,9 @@ namespace ChipTracker
       return DAC::Chiptune::Ptr();
     }
   };
-  
+
   Factory::Ptr CreateFactory()
   {
     return MakePtr<Factory>();
   }
-}
-}
+}  // namespace Module::ChipTracker

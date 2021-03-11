@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Modules holder interface definition
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Modules holder interface definition
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <module/information.h>
 #include <module/renderer.h>
 #include <parameters/accessor.h>
@@ -38,4 +38,4 @@ namespace Module
   };
 
   Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props);
-}
+}  // namespace Module

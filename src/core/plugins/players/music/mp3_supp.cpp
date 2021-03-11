@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  MP3 support plugin
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  MP3 support plugin
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
@@ -25,16 +25,14 @@
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
-//3rdparty
+// 3rdparty
 #define MINIMP3_IMPLEMENTATION
 #define MINIMP3_NONSTANDARD_BUT_LOGICAL
 #include <3rdparty/minimp3/minimp3.h>
 
 #define FILE_TAG 04123EA8
 
-namespace Module
-{
-namespace Mp3
+namespace Module::Mp3
 {
   const Debug::Stream Dbg("Core::Mp3Supp");
 
@@ -49,25 +47,24 @@ namespace Mp3
     SeekPoint(Time::AtMillisecond start, uint_t offset)
       : Start(start)
       , Offset(offset)
-    {
-    }
+    {}
 
-    bool operator < (Time::AtMillisecond pos) const
+    bool operator<(Time::AtMillisecond pos) const
     {
       return Start < pos;
     }
   };
-  
+
   struct Model
   {
     using RWPtr = std::shared_ptr<Model>;
     using Ptr = std::shared_ptr<const Model>;
-    
+
     std::vector<SeekPoint> Lookup;
     Time::Microseconds Duration;
     Binary::Data::Ptr Content;
   };
-  
+
   struct FrameSound
   {
     uint_t Frequency = 0;
@@ -75,19 +72,18 @@ namespace Mp3
 
     FrameSound() = default;
     FrameSound(const FrameSound&) = delete;
-    FrameSound& operator = (const FrameSound&) = delete;
-    FrameSound(FrameSound&& rh) noexcept// = default
+    FrameSound& operator=(const FrameSound&) = delete;
+    FrameSound(FrameSound&& rh) noexcept  // = default
       : Frequency(rh.Frequency)
       , Data(std::move(rh.Data))
-    {
-    }
-    
+    {}
+
     Sound::Sample::Type* GetTarget()
     {
       Data.resize(MINIMP3_MAX_SAMPLES_PER_FRAME);
       return safe_ptr_cast<Sound::Sample::Type*>(Data.data());
     }
-    
+
     void Finalize(uint_t resultSamples, const mp3dec_frame_info_t& info)
     {
       if (1 == info.channels)
@@ -103,7 +99,7 @@ namespace Mp3
       Frequency = info.hz;
     }
   };
-  
+
   class Mp3Tune
   {
   public:
@@ -115,7 +111,7 @@ namespace Mp3
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
     }
-    
+
     void Reset()
     {
       ::mp3dec_init(&Decoder);
@@ -130,7 +126,8 @@ namespace Mp3
       while (Offset < total)
       {
         const auto resultSamples = ::mp3dec_decode_frame(&Decoder,
-          static_cast<const uint8_t*>(Data->Content->Start()) + Offset, int(total - Offset), result.GetTarget(), &info);
+                                                         static_cast<const uint8_t*>(Data->Content->Start()) + Offset,
+                                                         int(total - Offset), result.GetTarget(), &info);
         Offset += info.frame_bytes;
         result.Finalize(resultSamples, info);
         if (resultSamples || !info.frame_bytes)
@@ -158,8 +155,8 @@ namespace Mp3
       while (pos < target)
       {
         mp3dec_frame_info_t info;
-        if (const auto samples = ::mp3dec_decode_frame(&Decoder,
-          static_cast<const uint8_t*>(Data->Content->Start()) + offset, int(size), nullptr, &info))
+        if (const auto samples = ::mp3dec_decode_frame(
+                &Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + offset, int(size), nullptr, &info))
         {
           offset += info.frame_bytes;
           size -= info.frame_bytes;
@@ -174,20 +171,20 @@ namespace Mp3
       Offset = offset;
       return pos;
     }
+
   private:
     const Model::Ptr Data;
     mp3dec_t Decoder;
     std::size_t Offset = 0;
   };
-  
+
   class MultiFreqResampler
   {
   public:
     explicit MultiFreqResampler(uint_t samplerate)
       : TargetFreq(samplerate)
-    {
-    }
-    
+    {}
+
     Sound::Chunk Apply(FrameSound frame)
     {
       if (frame.Data.empty())
@@ -203,7 +200,7 @@ namespace Mp3
         return GetTarget(frame.Frequency).Apply(std::move(frame.Data));
       }
     }
-    
+
   private:
     Sound::Converter& GetTarget(uint_t freq)
     {
@@ -218,6 +215,7 @@ namespace Mp3
       Resamplers.emplace_back(freq, res);
       return *res;
     }
+
   private:
     uint_t TargetFreq;
     std::vector<std::pair<uint_t, Sound::Converter::Ptr> > Resamplers;
@@ -231,8 +229,7 @@ namespace Mp3
       , State(MakePtr<TimedState>(data->Duration))
       , Analyzer(Module::CreateSoundAnalyzer())
       , Target(samplerate)
-    {
-    }
+    {}
 
     Module::State::Ptr GetState() const override
     {
@@ -279,21 +276,21 @@ namespace Mp3
       const auto realPos = Tune.Seek(State->At());
       State->Seek(realPos);
     }
+
   private:
     Mp3Tune Tune;
     const TimedState::Ptr State;
     const Module::SoundAnalyzer::Ptr Analyzer;
     MultiFreqResampler Target;
   };
-  
+
   class Holder : public Module::Holder
   {
   public:
     Holder(Model::Ptr data, Parameters::Accessor::Ptr props)
       : Data(std::move(data))
       , Properties(std::move(props))
-    {
-    }
+    {}
 
     Module::Information::Ptr GetModuleInformation() const override
     {
@@ -309,13 +306,14 @@ namespace Mp3
     {
       return MakePtr<Renderer>(Data, samplerate);
     }
+
   private:
     const Model::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
   };
-  
+
   static const auto MIN_DURATION = Time::Seconds(1);
-  
+
   class DataBuilder : public Formats::Chiptune::Mp3::Builder
   {
   public:
@@ -323,13 +321,12 @@ namespace Mp3
       : Data(MakeRWPtr<Model>())
       , Properties(props)
       , Meta(props)
-    {
-    }
+    {}
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
       return Meta;
-    }                                     
+    }
 
     void AddFrame(const Formats::Chiptune::Mp3::Frame& frame) override
     {
@@ -342,14 +339,15 @@ namespace Mp3
       {
         Data->Lookup.back().Frames++;
       }
-      Data->Duration += Time::Microseconds::FromRatio(frame.Properties.SamplesCount, frame.Properties.Samplerate);;
+      Data->Duration += Time::Microseconds::FromRatio(frame.Properties.SamplesCount, frame.Properties.Samplerate);
+      ;
     }
-    
+
     void SetContent(Binary::Data::Ptr data)
     {
       Data->Content = std::move(data);
     }
-    
+
     Model::Ptr GetResult()
     {
       if (Data->Duration < MIN_DURATION)
@@ -363,16 +361,18 @@ namespace Mp3
         return Data;
       }
     }
+
   private:
     const Model::RWPtr Data;
     PropertiesHelper& Properties;
     MetaProperties Meta;
   };
-  
+
   class Factory : public Module::Factory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
+                                     Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -395,8 +395,7 @@ namespace Mp3
       return {};
     }
   };
-}
-}
+}  // namespace Module::Mp3
 
 namespace ZXTune
 {
@@ -410,6 +409,6 @@ namespace ZXTune
     const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
-}
+}  // namespace ZXTune
 
 #undef FILE_TAG

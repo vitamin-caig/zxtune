@@ -1,38 +1,36 @@
 /**
-* 
-* @file
-*
-* @brief  ProTracker v3.x compiled modules support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ProTracker v3.x compiled modules support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/protracker3_detail.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cctype>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/predicate.hpp>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace ProTracker3
   {
@@ -42,20 +40,17 @@ namespace Chiptune
     const std::size_t MAX_SIZE = 0xc000;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawId
     {
       std::array<char, 32> TrackName;
-      std::array<char, 4> Optional2; //' by '
+      std::array<char, 4> Optional2;  //' by '
       std::array<char, 32> TrackAuthor;
 
       bool HasAuthor() const
       {
-        const Char BY_DELIMITER[] =
-        {
-          'B', 'Y', 0
-        };
+        const Char BY_DELIMITER[] = {'B', 'Y', 0};
 
         const auto trimId = Strings::TrimSpaces(Optional2);
         return boost::algorithm::iequals(trimId, BY_DELIMITER);
@@ -64,9 +59,9 @@ namespace Chiptune
 
     PACK_PRE struct RawHeader
     {
-      std::array<char, 13> Id;        //'ProTracker 3.'
+      std::array<char, 13> Id;  //'ProTracker 3.'
       uint8_t Subversion;
-      std::array<char, 16> Optional1; //' compilation of '
+      std::array<char, 16> Optional1;  //' compilation of '
       RawId Metainfo;
       uint8_t Mode;
       uint8_t FreqTableNum;
@@ -76,7 +71,7 @@ namespace Chiptune
       uint16_t PatternsOffset;
       std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
       std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      uint8_t Positions[1];//finished by marker
+      uint8_t Positions[1];  // finished by marker
     } PACK_POST;
 
     const uint8_t POS_END_MARKER = 0xff;
@@ -96,10 +91,10 @@ namespace Chiptune
     {
       PACK_PRE struct Line
       {
-        //SUoooooE
-        //NkKTLLLL
-        //OOOOOOOO
-        //OOOOOOOO
+        // SUoooooE
+        // NkKTLLLL
+        // OOOOOOOO
+        // OOOOOOOO
         // S - vol slide
         // U - vol slide up
         // o - noise or env offset
@@ -187,7 +182,7 @@ namespace Chiptune
       Line GetLine(uint_t idx) const
       {
         const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
-        //using 8-bit offsets
+        // using 8-bit offsets
         uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
@@ -203,7 +198,7 @@ namespace Chiptune
       }
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 202, "Invalid layout");
@@ -253,8 +248,7 @@ namespace Chiptune
         : ServiceRanges(RangeChecker::CreateShared(limit))
         , TotalRanges(RangeChecker::CreateSimple(limit))
         , FixedRanges(RangeChecker::CreateSimple(limit))
-      {
-      }
+      {}
 
       void AddService(std::size_t offset, std::size_t size) const
       {
@@ -283,6 +277,7 @@ namespace Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       const RangeChecker::Ptr ServiceRanges;
       const RangeChecker::Ptr TotalRanges;
@@ -294,10 +289,10 @@ namespace Chiptune
       if (const auto* hdr = data.As<RawHeader>())
       {
         const auto dataBegin = safe_ptr_cast<const uint8_t*>(hdr->Id.data());
-        const auto dataEnd = dataBegin + std::min(data.Size(), MAX_POSITIONS_COUNT + offsetof(RawHeader, Positions) + 1);
+        const auto dataEnd =
+            dataBegin + std::min(data.Size(), MAX_POSITIONS_COUNT + offsetof(RawHeader, Positions) + 1);
         const auto lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
-        if (lastPosition != dataEnd && 
-            std::all_of(hdr->Positions, lastPosition, [](auto b) {return 0 == b % 3;}))
+        if (lastPosition != dataEnd && std::all_of(hdr->Positions, lastPosition, [](auto b) { return 0 == b % 3; }))
         {
           return lastPosition + 1 - dataBegin;
         }
@@ -309,7 +304,7 @@ namespace Chiptune
     {
       Require(tempo >= 1);
     }
-    
+
     class Format
     {
     public:
@@ -362,7 +357,8 @@ namespace Chiptune
         }
         Require(Math::InRange<std::size_t>(positions.GetSize(), 1, MAX_POSITIONS_COUNT));
         positions.Loop = Source.Loop;
-        Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.GetSize(), positions.GetLoop(), uint_t(Source.Length));
+        Dbg("Positions: %1% entries, loop to %2% (header length is %3%)", positions.GetSize(), positions.GetLoop(),
+            uint_t(Source.Length));
         builder.SetPositions(std::move(positions));
       }
 
@@ -386,7 +382,7 @@ namespace Chiptune
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
         Dbg("Samples: %1% to parse", samples.Count());
-        //samples are mandatory
+        // samples are mandatory
         bool hasValidSamples = false, hasPartialSamples = false;
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
@@ -427,7 +423,7 @@ namespace Chiptune
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
         Dbg("Ornaments: %1% to parse", ornaments.Count());
-        //ornaments are not mandatory
+        // ornaments are not mandatory
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
@@ -470,6 +466,7 @@ namespace Chiptune
       {
         return Ranges.GetFixedArea();
       }
+
     private:
       template<class T>
       const T* PeekObject(std::size_t offset) const
@@ -518,14 +515,12 @@ namespace Chiptune
             : Offset()
             , Period()
             , Counter()
-          {
-          }
+          {}
 
           void Skip(uint_t toSkip)
           {
             Counter -= toSkip;
           }
-
 
           static bool CompareByCounter(const ChannelState& lh, const ChannelState& rh)
           {
@@ -562,15 +557,16 @@ namespace Chiptune
       {
         const RawPattern& pat = GetPattern(patIndex);
         const DataCursors rangesStarts(pat);
-        Require(rangesStarts.end() == std::find_if(rangesStarts.begin(), rangesStarts.end(),
-          Math::NotInRange(minOffset, Data.Size() - 1)));
+        Require(
+            rangesStarts.end()
+            == std::find_if(rangesStarts.begin(), rangesStarts.end(), Math::NotInRange(minOffset, Data.Size() - 1)));
 
         ParserState state(rangesStarts);
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         uint_t lineIdx = 0;
         for (; lineIdx < MAX_PATTERN_SIZE; ++lineIdx)
         {
-          //skip lines if required
+          // skip lines if required
           if (const uint_t linesToSkip = state.GetMinCounter())
           {
             state.SkipLines(linesToSkip);
@@ -621,7 +617,6 @@ namespace Chiptune
         return true;
       }
 
-
       void ParseLine(ParserState& src, PatternBuilder& patBuilder, Builder& builder) const
       {
         for (uint_t chan = 0; chan < 3; ++chan)
@@ -649,15 +644,13 @@ namespace Chiptune
           {
             commands.push_back(cmd);
           }
-          else if ((cmd < 0x20)
-                || (cmd >= 0xb2 && cmd <= 0xbf)
-                || (cmd >= 0xf0))
+          else if ((cmd < 0x20) || (cmd >= 0xb2 && cmd <= 0xbf) || (cmd >= 0xf0))
           {
             const bool hasEnv(cmd >= 0x11 && cmd <= 0xbf);
             const bool hasOrn(cmd >= 0xf0);
             const bool hasSmp(cmd < 0xb2 || cmd > 0xbf);
 
-            if (hasEnv) //has envelope command
+            if (hasEnv)  // has envelope command
             {
               const uint_t type = cmd - (cmd >= 0xb2 ? 0xb1 : 0x10);
               const uint_t tone = fromBE(PeekLEWord(state.Offset));
@@ -668,7 +661,7 @@ namespace Chiptune
             {
               builder.SetNoEnvelope();
             }
-            if (hasOrn) //has ornament command
+            if (hasOrn)  // has ornament command
             {
               const uint_t num = cmd - 0xf0;
               builder.SetOrnament(num);
@@ -716,7 +709,7 @@ namespace Chiptune
           else if (cmd == 0xd0)
           {
             break;
-          }  
+          }
           else if (cmd < 0xf0)
           {
             const uint_t num = cmd - 0xd0;
@@ -727,57 +720,57 @@ namespace Chiptune
         {
           switch (*it)
           {
-          case 1://gliss
-            {
-              const uint_t period = PeekByte(state.Offset++);
-              const int_t step = static_cast<int16_t>(PeekLEWord(state.Offset));
-              state.Offset += 2;
-              builder.SetGlissade(period, step);
-            }
-            break;
-          case 2://glissnote (portamento)
-            {
-              const uint_t period = PeekByte(state.Offset++);
-              const uint_t limit = PeekLEWord(state.Offset);
-              state.Offset += 2;
-              const int_t step = static_cast<int16_t>(PeekLEWord(state.Offset));
-              state.Offset += 2;
-              builder.SetNoteGliss(period, step, limit);
-            }
-            break;
-          case 3://sampleoffset
-            {
-              const uint_t val = PeekByte(state.Offset++);
-              builder.SetSampleOffset(val);
-            }
-            break;
-          case 4://ornamentoffset
-            {
-              const uint_t val = PeekByte(state.Offset++);
-              builder.SetOrnamentOffset(val);
-            }
-            break;
-          case 5://vibrate
-            {
-              const uint_t ontime = PeekByte(state.Offset++);
-              const uint_t offtime = PeekByte(state.Offset++);
-              builder.SetVibrate(ontime, offtime);
-            }
-            break;
-          case 8://slide envelope
-            {
-              const uint_t period = PeekByte(state.Offset++);
-              const int_t step = static_cast<int16_t>(PeekLEWord(state.Offset));
-              state.Offset += 2;
-              builder.SetEnvelopeSlide(period, step);
-            }
-            break;
-          case 9://tempo
-            {
-              const uint_t tempo = PeekByte(state.Offset++);
-              patBuilder.SetTempo(tempo);
-            }
-            break;
+          case 1:  // gliss
+          {
+            const uint_t period = PeekByte(state.Offset++);
+            const int_t step = static_cast<int16_t>(PeekLEWord(state.Offset));
+            state.Offset += 2;
+            builder.SetGlissade(period, step);
+          }
+          break;
+          case 2:  // glissnote (portamento)
+          {
+            const uint_t period = PeekByte(state.Offset++);
+            const uint_t limit = PeekLEWord(state.Offset);
+            state.Offset += 2;
+            const int_t step = static_cast<int16_t>(PeekLEWord(state.Offset));
+            state.Offset += 2;
+            builder.SetNoteGliss(period, step, limit);
+          }
+          break;
+          case 3:  // sampleoffset
+          {
+            const uint_t val = PeekByte(state.Offset++);
+            builder.SetSampleOffset(val);
+          }
+          break;
+          case 4:  // ornamentoffset
+          {
+            const uint_t val = PeekByte(state.Offset++);
+            builder.SetOrnamentOffset(val);
+          }
+          break;
+          case 5:  // vibrate
+          {
+            const uint_t ontime = PeekByte(state.Offset++);
+            const uint_t offtime = PeekByte(state.Offset++);
+            builder.SetVibrate(ontime, offtime);
+          }
+          break;
+          case 8:  // slide envelope
+          {
+            const uint_t period = PeekByte(state.Offset++);
+            const int_t step = static_cast<int16_t>(PeekLEWord(state.Offset));
+            state.Offset += 2;
+            builder.SetEnvelopeSlide(period, step);
+          }
+          break;
+          case 9:  // tempo
+          {
+            const uint_t tempo = PeekByte(state.Offset++);
+            patBuilder.SetTempo(tempo);
+          }
+          break;
           }
         }
         if (-1 != note)
@@ -821,6 +814,7 @@ namespace Chiptune
         }
         dst.Loop = std::min<uint_t>(src.Loop, dst.Lines.size());
       }
+
     private:
       const Binary::View Data;
       RangesMap Ranges;
@@ -897,23 +891,23 @@ namespace Chiptune
     }
 
     const StringView FORMAT(
-      "?{13}"      // uint8_t Id[13];        //'ProTracker 3.'
-      "?"          // uint8_t Subversion;
-      "?{16}"      // uint8_t Optional1[16]; //' compilation of '
-      "?{32}"      // char TrackName[32];
-      "?{4}"       // uint8_t Optional2[4]; //' by '
-      "?{32}"      // char TrackAuthor[32];
-      "?"          // uint8_t Mode;
-      "?"          // uint8_t FreqTableNum;
-      "01-ff"      // uint8_t Tempo;
-      "?"          // uint8_t Length;
-      "?"          // uint8_t Loop;
-      "?00-01"     // uint16_t PatternsOffset;
-      "(?00-bf){32}" //std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      //some of the modules has invalid offsets
-      "(?00-d9){16}" //std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      "*3&00-fe"     // at least one position
-      "*3"      // next position or limiter (255 % 3 == 0)
+        "?{13}"         // uint8_t Id[13];        //'ProTracker 3.'
+        "?"             // uint8_t Subversion;
+        "?{16}"         // uint8_t Optional1[16]; //' compilation of '
+        "?{32}"         // char TrackName[32];
+        "?{4}"          // uint8_t Optional2[4]; //' by '
+        "?{32}"         // char TrackAuthor[32];
+        "?"             // uint8_t Mode;
+        "?"             // uint8_t FreqTableNum;
+        "01-ff"         // uint8_t Tempo;
+        "?"             // uint8_t Length;
+        "?"             // uint8_t Loop;
+        "?00-01"        // uint16_t PatternsOffset;
+        "(?00-bf){32}"  // std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+        // some of the modules has invalid offsets
+        "(?00-d9){16}"  // std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+        "*3&00-fe"      // at least one position
+        "*3"            // next position or limiter (255 % 3 == 0)
     );
 
     class BinaryDecoder : public Decoder
@@ -921,8 +915,7 @@ namespace Chiptune
     public:
       BinaryDecoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -954,6 +947,7 @@ namespace Chiptune
       {
         return Formats::Chiptune::ProTracker3::Parse(data, target);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -976,8 +970,7 @@ namespace Chiptune
         format.ParsePositions(statistic);
         Indices usedPatterns = statistic.GetUsedPatterns();
         const uint_t mode = statistic.GetMode();
-        if (mode != SINGLE_AY_MODE
-         && !AddTSPatterns(mode, usedPatterns))
+        if (mode != SINGLE_AY_MODE && !AddTSPatterns(mode, usedPatterns))
         {
           target.SetMode(SINGLE_AY_MODE);
         }
@@ -990,7 +983,8 @@ namespace Chiptune
         Require(format.GetSize() >= MIN_SIZE);
         auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -1009,11 +1003,10 @@ namespace Chiptune
     {
       return MakePtr<BinaryDecoder>();
     }
-  }// namespace ProTracker3
+  }  // namespace ProTracker3
 
   Decoder::Ptr CreateProTracker3Decoder()
   {
     return ProTracker3::CreateDecoder();
   }
-}// namespace Chiptune
-}// namespace Formats
+}  // namespace Formats::Chiptune

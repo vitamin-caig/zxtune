@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Memory region helper implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Memory region helper implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/xsf/memory_region.h"
-//std includes
+// std includes
 #include <cstring>
 
 namespace Module
@@ -36,4 +36,4 @@ namespace Module
       Start = addr;
     }
   }
-}
+}  // namespace Module

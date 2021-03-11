@@ -1,31 +1,29 @@
 /**
-* 
-* @file
-*
-* @brief  TurboFM Dump support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TurboFM Dump support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/fm/tfd.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
-//std includes
+// std includes
 #include <array>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace TFD
   {
@@ -39,15 +37,15 @@ namespace Chiptune
       LOOP_MARKER = 0xfa
     };
 
-    const std::size_t MIN_SIZE = 4 + 3 + 1;//header + 3 empty strings + finish marker
+    const std::size_t MIN_SIZE = 4 + 3 + 1;  // header + 3 empty strings + finish marker
     const std::size_t MAX_STRING_SIZE = 64;
     const std::size_t MAX_COMMENT_SIZE = 384;
 
-    const std::size_t MIN_FRAMES = 150;//~3sec
+    const std::size_t MIN_FRAMES = 150;  //~3sec
 
     typedef std::array<uint8_t, 4> SignatureType;
 
-    const SignatureType SIGNATURE = { {'T', 'F', 'M', 'D'} };
+    const SignatureType SIGNATURE = {{'T', 'F', 'M', 'D'}};
 
     class StubBuilder : public Builder
     {
@@ -71,17 +69,14 @@ namespace Chiptune
       return 0 == std::memcmp(rawData.Start(), SIGNATURE.data(), SIGNATURE.size());
     }
 
-    const StringView FORMAT(
-      "'T'F'M'D"
-    );
+    const StringView FORMAT("'T'F'M'D");
 
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -103,6 +98,7 @@ namespace Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -111,7 +107,7 @@ namespace Chiptune
     {
       return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
     }
-    
+
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
     {
       if (!FastCheck(data))
@@ -142,12 +138,12 @@ namespace Chiptune
             target.BeginFrames(1);
             break;
           case SKIP_FRAMES:
-            {
-              const uint_t frames = 3 + stream.ReadByte();
-              totalFrames += frames;
-              target.BeginFrames(frames);
-            }
-            break;
+          {
+            const uint_t frames = 3 + stream.ReadByte();
+            totalFrames += frames;
+            target.BeginFrames(frames);
+          }
+          break;
           case SELECT_SECOND_CHIP:
             target.SelectChip(1);
             break;
@@ -177,11 +173,10 @@ namespace Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace TFD
+  }  // namespace TFD
 
   Decoder::Ptr CreateTFDDecoder()
   {
     return MakePtr<TFD::Decoder>();
   }
-}//namespace Chiptune
-}//namespace Formats
+}  // namespace Formats::Chiptune

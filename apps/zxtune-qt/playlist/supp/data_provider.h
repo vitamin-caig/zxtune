@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief Playlist data provider interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist data provider interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "data.h"
-//common includes
+// common includes
 #include <progress_callback.h>
 
 namespace Playlist
@@ -42,5 +42,5 @@ namespace Playlist
 
       static Ptr Create(Parameters::Accessor::Ptr parameters);
     };
-  }
-}
+  }  // namespace Item
+}  // namespace Playlist

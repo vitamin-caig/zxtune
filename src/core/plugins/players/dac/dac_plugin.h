@@ -1,22 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief  DAC-based player plugin factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC-based player plugin factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "core/plugins/player_plugin.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 #include <module/players/dac/dac_factory.h>
 
 namespace ZXTune
 {
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder, Module::DAC::Factory::Ptr factory);
+  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder,
+                                       Module::DAC::Factory::Ptr factory);
 }

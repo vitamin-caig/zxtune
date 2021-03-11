@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  Gzip test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Gzip test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../utils.h"
 

@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Information interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Information interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <time/duration.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Module
@@ -34,4 +34,4 @@ namespace Module
     //! Loop duration
     virtual Time::Milliseconds LoopDuration() const = 0;
   };
-}
+}  // namespace Module

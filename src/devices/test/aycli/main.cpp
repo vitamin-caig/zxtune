@@ -1,16 +1,16 @@
 #include <api_dynamic.h>
-#include <contract.h>
-#include <make_ptr.h>
 #include <async/worker.h>
-#include <devices/aym/chip.h>
+#include <contract.h>
 #include <core/core_parameters.h>
-#include <parameters/container.h>
-#include <sound/mixer_factory.h>
-#include <sound/backends/storage.h>
-#include <sound/backends/backends_list.h>
-#include <sound/sound_parameters.h>
+#include <devices/aym/chip.h>
 #include <iostream>
+#include <make_ptr.h>
 #include <mutex>
+#include <parameters/container.h>
+#include <sound/backends/backends_list.h>
+#include <sound/backends/storage.h>
+#include <sound/mixer_factory.h>
+#include <sound/sound_parameters.h>
 
 namespace
 {
@@ -128,8 +128,7 @@ namespace
       : Data(std::move(state))
       , Worker(std::move(worker))
       , Chip(Devices::AYM::CreateChip(StubChipParameters::Create(), CreateMixer()))
-    {
-    }
+    {}
 
     void Initialize() override
     {
@@ -155,7 +154,7 @@ namespace
     {
       return false;
     }
-    
+
     void ExecuteCycle() override
     {
       static const StubState STATE;
@@ -166,6 +165,7 @@ namespace
       Chunk.TimeStamp += PERIOD;
       Worker->FrameFinish(Chip->RenderTill(Chunk.TimeStamp));
     }
+
   private:
     const State::Ptr Data;
     const Sound::BackendWorker::Ptr Worker;
@@ -176,18 +176,16 @@ namespace
   class BackendFactoryHandle : public Sound::BackendsStorage
   {
   public:
-    virtual void Register(const String& /*id*/, const char* /*description*/, uint_t /*caps*/, Sound::BackendWorkerFactory::Ptr factory)
+    virtual void Register(const String& /*id*/, const char* /*description*/, uint_t /*caps*/,
+                          Sound::BackendWorkerFactory::Ptr factory)
     {
       Factory = factory;
     }
 
     virtual void Register(const String& /*id*/, const char* /*description*/, uint_t /*caps*/, const Error& /*status*/)
-    {
-    }
+    {}
 
-    virtual void Register(const String& /*id*/, const char* /*description*/, uint_t /*caps*/)
-    {
-    }
+    virtual void Register(const String& /*id*/, const char* /*description*/, uint_t /*caps*/) {}
 
     Async::Job::Ptr CreatePlayer(State::Ptr state)
     {
@@ -195,6 +193,7 @@ namespace
       auto asyncWorker = MakePtr<AsyncWorker>(std::move(state), std::move(backendWorker));
       return Async::CreateJob(std::move(asyncWorker));
     }
+
   private:
     Sound::BackendWorkerFactory::Ptr Factory;
   };
@@ -205,35 +204,35 @@ namespace
     Sound::RegisterDirectSoundBackend(factory);
     return factory.CreatePlayer(std::move(state));
   }
-  
+
   class Gate
   {
   public:
     Gate()
       : Data(MakePtr<State>())
       , Player(CreatePlayer(Data))
-    {
-    }
-    
+    {}
+
     bool IsStarted() const
     {
       return Player->IsActive();
     }
-    
+
     void Start()
     {
       Player->Start();
     }
-    
+
     void Stop()
     {
       Player->Stop();
     }
-    
+
     void WriteReg(uint_t reg, uint_t val)
     {
       Data->Write(reg, val);
     }
+
   private:
     const State::Ptr Data;
     const Async::Job::Ptr Player;
@@ -266,20 +265,21 @@ namespace
       return 1;
     }
   }
-}
+}  // namespace
 
-//dll part
+// dll part
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
-PUBLIC_API_EXPORT int ay_open();
-PUBLIC_API_EXPORT void ay_close();
-PUBLIC_API_EXPORT int ay_start();
-PUBLIC_API_EXPORT int ay_stop();
-PUBLIC_API_EXPORT int ay_writereg(int idx, int val);
+  PUBLIC_API_EXPORT int ay_open();
+  PUBLIC_API_EXPORT void ay_close();
+  PUBLIC_API_EXPORT int ay_start();
+  PUBLIC_API_EXPORT int ay_stop();
+  PUBLIC_API_EXPORT int ay_writereg(int idx, int val);
 
 #ifdef __cplusplus
-} //extern
+}  // extern
 #endif
 
 int ay_open()
@@ -298,7 +298,7 @@ int ay_open()
 
 void ay_close()
 {
-   GateInstance.reset();
+  GateInstance.reset();
 }
 
 int ay_start()
@@ -313,10 +313,10 @@ int ay_stop()
 
 int ay_writereg(int idx, int val)
 {
-  return call([idx, val](Gate* gate) {gate->WriteReg(idx, val);});
+  return call([idx, val](Gate* gate) { gate->WriteReg(idx, val); });
 }
 
-//exe part
+// exe part
 int main(int /*argc*/, char* /*argv*/[])
 {
   Gate gate;
@@ -325,7 +325,8 @@ int main(int /*argc*/, char* /*argv*/[])
   {
     std::cout << (gate.IsStarted() ? "> " : "# ");
     std::string cmd;
-    while (!(std::cin >> cmd));
+    while (!(std::cin >> cmd))
+      ;
     if (cmd == "exit")
     {
       break;

@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  DigitalStudio support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DigitalStudio support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/digital/digital.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -24,8 +24,8 @@ namespace Formats
       typedef Digital::Builder Builder;
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-    }
+    }  // namespace DigitalStudio
 
     Decoder::Ptr CreateDigitalStudioDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Modules detecting functionality
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Modules detecting functionality
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/container.h>
 #include <core/data_location.h>
 #include <core/plugin.h>
@@ -18,7 +18,7 @@
 #include <parameters/accessor.h>
 #include <parameters/container.h>
 
-//forward declarations
+// forward declarations
 namespace Log
 {
   class ProgressCallback;
@@ -34,7 +34,8 @@ namespace Module
 
     virtual Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const = 0;
     //! @brief Process module
-    virtual void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& decoder, Module::Holder::Ptr holder) = 0;
+    virtual void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& decoder,
+                               Module::Holder::Ptr holder) = 0;
     //! @brief Logging callback
     virtual Log::ProgressCallback* GetProgress() const = 0;
   };
@@ -45,5 +46,6 @@ namespace Module
   //! @param callback Detect callback
   void Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, DetectCallback& callback);
 
-  void Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath, DetectCallback& callback);
-}
+  void Open(const Parameters::Accessor& params, Binary::Container::Ptr data, const String& subpath,
+            DetectCallback& callback);
+}  // namespace Module

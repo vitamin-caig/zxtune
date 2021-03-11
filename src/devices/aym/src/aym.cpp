@@ -1,24 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM-based chip implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM-based chip implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "devices/aym/src/psg.h"
 #include "devices/aym/src/soundchip.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//std includes
+// std includes
 #include <utility>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   static_assert(Registers::TOTAL == 14, "Invalid registers count");
   static_assert(sizeof(Registers) == 16, "Invalid layout");
@@ -35,5 +33,4 @@ namespace AYM
   {
     return MakePtr<SoundChip<Traits> >(std::move(params), std::move(mixer));
   }
-}
-}
+}  // namespace Devices::AYM

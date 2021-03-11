@@ -1,23 +1,23 @@
 /**
-*
-* @file
-*
-* @brief  L10n implementation based on boost::locale
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  L10n implementation based on boost::locale
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <l10n/api.h>
-//boost includes
+// boost includes
 #include <boost/locale/gnu_gettext.hpp>
 #include <boost/locale/util.hpp>
-//std includes
+// std includes
 #include <map>
 
 namespace
@@ -31,9 +31,7 @@ namespace
     const V* Find(const K& key) const
     {
       const typename std::map<K, V>::const_iterator it = std::map<K, V>::find(key), limit = std::map<K, V>::end();
-      return it != limit
-        ? &it->second
-        : nullptr;
+      return it != limit ? &it->second : nullptr;
     }
   };
 
@@ -68,16 +66,17 @@ namespace
     {
       return boost::locale::dnpgettext<Char>(Domain.c_str(), context, single, plural, count, *Locale);
     }
+
   private:
     const LocalePtr Locale;
     const String Domain;
   };
-  
-  //language[_COUNTRY][.encoding][@variant]
+
+  // language[_COUNTRY][.encoding][@variant]
   struct LocaleAttributes
   {
     LocaleAttributes()
-      : Name(boost::locale::util::get_system_locale(true/*use_utf8_on_windows*/))
+      : Name(boost::locale::util::get_system_locale(true /*use_utf8_on_windows*/))
     {
       const auto encPos = Name.find_first_of('.');
       if (encPos != Name.npos)
@@ -109,7 +108,8 @@ namespace
       : SystemLocale()
       , CurrentLocale(new std::locale())
     {
-      Dbg("Current locale is %1%. Encoding is %2%. Translation is %3%", SystemLocale.Name, SystemLocale.Encoding, SystemLocale.Translation);
+      Dbg("Current locale is %1%. Encoding is %2%. Translation is %3%", SystemLocale.Name, SystemLocale.Encoding,
+          SystemLocale.Translation);
     }
 
     void AddTranslation(const L10n::Translation& trans) override
@@ -128,7 +128,8 @@ namespace
       info.callback = &LoadMessage;
       info.paths.assign(&EMPTY_PATH, &EMPTY_PATH + 1);
 
-      const String filename = EMPTY_PATH + '/' + trans.Language + '/' + info.locale_category + '/' + trans.Domain + '.' + TYPE_MO;
+      const String filename =
+          EMPTY_PATH + '/' + trans.Language + '/' + info.locale_category + '/' + trans.Domain + '.' + TYPE_MO;
       Translations[filename] = trans.Data;
       Dbg("Added translation %1% in %2% bytes", filename, trans.Data.size());
     }
@@ -165,6 +166,7 @@ namespace
       static BoostLocaleLibrary self;
       return self;
     }
+
   private:
     static std::vector<char> LoadMessage(const String& file, const String& encoding)
     {
@@ -180,13 +182,14 @@ namespace
         return std::vector<char>();
       }
     }
+
   private:
     const LocaleAttributes SystemLocale;
     const LocalePtr CurrentLocale;
     MapAdapter<String, Dump> Translations;
     MapAdapter<String, boost::locale::gnu_gettext::messages_info> Locales;
   };
-}
+}  // namespace
 
 namespace L10n
 {
@@ -194,4 +197,4 @@ namespace L10n
   {
     return BoostLocaleLibrary::Instance();
   }
-}
+}  // namespace L10n

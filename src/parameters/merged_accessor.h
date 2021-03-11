@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Factories for accessor-based adapters
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Factories for accessor-based adapters
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/accessor.h>
 
 namespace Parameters
@@ -18,4 +18,4 @@ namespace Parameters
   // All accessed properties are prioritized by the first one
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second);
   Accessor::Ptr CreateMergedAccessor(Accessor::Ptr first, Accessor::Ptr second, Accessor::Ptr third);
-}
+}  // namespace Parameters

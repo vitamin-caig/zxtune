@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  DirectSound backend stub
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DirectSound backend stub
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "sound/backends/dsound.h"
 #include "sound/backends/storage.h"
-//library includes
+// library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 namespace Sound
@@ -29,6 +29,5 @@ namespace Sound
     {
       return Device::Iterator::CreateStub();
     }
-  }
-}
-
+  }  // namespace DirectSound
+}  // namespace Sound

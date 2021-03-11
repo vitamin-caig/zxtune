@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Merged adapters implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Merged adapters implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <parameters/merged_accessor.h>
 #include <parameters/merged_container.h>
 #include <parameters/visitor.h>
-//std includes
+// std includes
 #include <set>
 #include <utility>
 
@@ -25,8 +25,7 @@ namespace Parameters
   public:
     explicit MergedVisitor(Visitor& delegate)
       : Delegate(delegate)
-    {
-    }
+    {}
 
     void SetValue(const NameType& name, IntType val) override
     {
@@ -51,6 +50,7 @@ namespace Parameters
         return Delegate.SetValue(name, val);
       }
     }
+
   private:
     Visitor& Delegate;
     std::set<NameType> DoneIntegers;
@@ -65,8 +65,7 @@ namespace Parameters
     DoubleAdapter(typename Type1::Ptr first, typename Type2::Ptr second)
       : First(std::move(first))
       , Second(std::move(second))
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -75,20 +74,17 @@ namespace Parameters
 
     bool FindValue(const NameType& name, IntType& val) const override
     {
-      return First->FindValue(name, val) || 
-             Second->FindValue(name, val);
+      return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
     bool FindValue(const NameType& name, StringType& val) const override
     {
-      return First->FindValue(name, val) || 
-             Second->FindValue(name, val);
+      return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
     bool FindValue(const NameType& name, DataType& val) const override
     {
-      return First->FindValue(name, val) || 
-             Second->FindValue(name, val);
+      return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
     void Process(Visitor& visitor) const override
@@ -97,6 +93,7 @@ namespace Parameters
       First->Process(mergedVisitor);
       Second->Process(mergedVisitor);
     }
+
   protected:
     const typename Type1::Ptr First;
     const typename Type2::Ptr Second;
@@ -109,8 +106,7 @@ namespace Parameters
       : First(std::move(first))
       , Second(std::move(second))
       , Third(std::move(third))
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -119,23 +115,17 @@ namespace Parameters
 
     bool FindValue(const NameType& name, IntType& val) const override
     {
-      return First->FindValue(name, val) || 
-             Second->FindValue(name, val) ||
-             Third->FindValue(name, val);
+      return First->FindValue(name, val) || Second->FindValue(name, val) || Third->FindValue(name, val);
     }
 
     bool FindValue(const NameType& name, StringType& val) const override
     {
-      return First->FindValue(name, val) || 
-             Second->FindValue(name, val) ||
-             Third->FindValue(name, val);
+      return First->FindValue(name, val) || Second->FindValue(name, val) || Third->FindValue(name, val);
     }
 
     bool FindValue(const NameType& name, DataType& val) const override
     {
-      return First->FindValue(name, val) || 
-             Second->FindValue(name, val) ||
-             Third->FindValue(name, val);
+      return First->FindValue(name, val) || Second->FindValue(name, val) || Third->FindValue(name, val);
     }
 
     void Process(Visitor& visitor) const override
@@ -145,6 +135,7 @@ namespace Parameters
       Second->Process(mergedVisitor);
       Third->Process(mergedVisitor);
     }
+
   private:
     const Accessor::Ptr First;
     const Accessor::Ptr Second;
@@ -156,8 +147,7 @@ namespace Parameters
   public:
     ShadowingMergedContainer(Accessor::Ptr first, Container::Ptr second)
       : DoubleAdapter<Container, Accessor, Container>(std::move(first), std::move(second))
-    {
-    }
+    {}
 
     void SetValue(const NameType& name, IntType val) override
     {
@@ -194,4 +184,4 @@ namespace Parameters
   {
     return MakePtr<ShadowingMergedContainer>(std::move(first), std::move(second));
   }
-}
+}  // namespace Parameters

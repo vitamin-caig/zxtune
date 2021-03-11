@@ -1,30 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief  AY/EMUL containers support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/EMUL containers support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
 #include <formats/chiptune/emulation/ay.h>
 #include <strings/prefixed_index.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <utility>
-//text includes
+// text includes
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace MultiAY
   {
@@ -34,8 +32,7 @@ namespace Archived
       File(String name, Binary::Container::Ptr data)
         : Name(std::move(name))
         , Data(std::move(data))
-      {
-      }
+      {}
 
       String GetName() const override
       {
@@ -51,6 +48,7 @@ namespace Archived
       {
         return Data;
       }
+
     private:
       const String Name;
       const Binary::Container::Ptr Data;
@@ -61,8 +59,7 @@ namespace Archived
     public:
       explicit Container(Binary::Container::Ptr data)
         : BaseContainer(std::move(data))
-      {
-      }
+      {}
 
       void ExploreFiles(const Container::Walker& walker) const override
       {
@@ -94,8 +91,8 @@ namespace Archived
           return File::Ptr();
         }
         const Formats::Chiptune::AY::BlobBuilder::Ptr builder = rawName.IsValid()
-          ? Formats::Chiptune::AY::CreateMemoryDumpBuilder()
-          : Formats::Chiptune::AY::CreateFileBuilder();
+                                                                    ? Formats::Chiptune::AY::CreateMemoryDumpBuilder()
+                                                                    : Formats::Chiptune::AY::CreateFileBuilder();
         if (!Formats::Chiptune::AY::Parse(*Delegate, index, *builder))
         {
           return File::Ptr();
@@ -111,18 +108,17 @@ namespace Archived
     };
 
     const StringView HEADER_FORMAT(
-      "'Z'X'A'Y" // uint8_t Signature[4];
-      "'E'M'U'L" // only one type is supported now
+        "'Z'X'A'Y"  // uint8_t Signature[4];
+        "'E'M'U'L"  // only one type is supported now
     );
-  }//namespace MultiAY
+  }  // namespace MultiAY
 
   class MultiAYDecoder : public Decoder
   {
   public:
     MultiAYDecoder()
       : Format(Binary::CreateFormat(MultiAY::HEADER_FORMAT))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -160,6 +156,7 @@ namespace Archived
         return Container::Ptr();
       }
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -168,5 +165,4 @@ namespace Archived
   {
     return MakePtr<MultiAYDecoder>();
   }
-}//namespace Archived
-}//namespace Formats
+}  // namespace Formats::Archived

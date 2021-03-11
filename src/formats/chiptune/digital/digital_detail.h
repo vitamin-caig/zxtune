@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  Simple digital trackers format details
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Simple digital trackers format details
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/digital/digital.h"
-//common includes
+// common includes
 #include <indices.h>
 
 namespace Formats
@@ -28,8 +28,7 @@ namespace Formats
           : Delegate(delegate)
           , UsedPatterns(0, maxPatternsCount - 1)
           , UsedSamples(0, maxSamplesCount - 1)
-        {
-        }
+        {}
 
         MetaBuilder& GetMetaBuilder() override
         {
@@ -94,11 +93,12 @@ namespace Formats
           Require(!UsedSamples.Empty());
           return UsedSamples;
         }
+
       private:
         Builder& Delegate;
         Indices UsedPatterns;
         Indices UsedSamples;
       };
-    }
-  }
-}
+    }  // namespace Digital
+  }    // namespace Chiptune
+}  // namespace Formats

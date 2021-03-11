@@ -1,36 +1,34 @@
 /**
-* 
-* @file
-*
-* @brief  ProDigiTracker support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ProDigiTracker support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/digital/prodigitracker.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace ProDigiTracker
   {
@@ -47,7 +45,7 @@ namespace Chiptune
     const std::size_t PAGES_START = 0xc000;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     typedef std::array<int8_t, 16> RawOrnament;
 
@@ -71,27 +69,27 @@ namespace Chiptune
 
     enum
     {
-      CMD_SPECIAL = 0, //see parameter
-      CMD_SPEED = 1,   //parameter- speed
-      CMD_1 = 2,       //????
-      CMD_2 = 3,       //????
+      CMD_SPECIAL = 0,  // see parameter
+      CMD_SPEED = 1,    // parameter- speed
+      CMD_1 = 2,        //????
+      CMD_2 = 3,        //????
 
       COMMAND_NOORNAMENT = 15,
       COMMAND_BLOCKCHANNEL = 14,
       COMMAND_ENDPATTERN = 13,
       COMMAND_CONTSAMPLE = 12,
       COMMAND_NONE = 0
-      //else ornament + 1
+      // else ornament + 1
     };
 
     PACK_PRE struct RawNote
     {
-      //ccnnnnnn
-      //sssspppp
-      //c- command
-      //n- note
-      //p- parameter
-      //s- sample
+      // ccnnnnnn
+      // sssspppp
+      // c- command
+      // n- note
+      // p- parameter
+      // s- sample
       uint_t GetNote() const
       {
         return NoteComm & 63;
@@ -144,7 +142,7 @@ namespace Chiptune
       std::array<RawPattern, PATTERNS_COUNT> Patterns;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawOrnament) == 16, "Invalid layout");
@@ -186,8 +184,7 @@ namespace Chiptune
         , UsedPatterns(0, PATTERNS_COUNT - 1)
         , UsedSamples(0, SAMPLES_COUNT - 1)
         , UsedOrnaments(0, ORNAMENTS_COUNT - 1)
-      {
-      }
+      {}
 
       MetaBuilder& GetMetaBuilder() override
       {
@@ -263,6 +260,7 @@ namespace Chiptune
       {
         return UsedOrnaments;
       }
+
     private:
       Builder& Delegate;
       Indices UsedPatterns;
@@ -277,8 +275,7 @@ namespace Chiptune
         : RawData(rawData)
         , Source(*RawData.As<RawHeader>())
         , FixedRanges(RangeChecker::Create(RawData.Size()))
-      {
-      }
+      {}
 
       void ParseCommonProperties(Builder& target) const
       {
@@ -326,10 +323,11 @@ namespace Chiptune
           std::size_t size = fromLE(descr.Size);
           if (descr.Page < PAGES_COUNT && start >= PAGES_START && size != 0)
           {
-            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x",
-              samIdx, start, loop, size);
-            const uint8_t* const sampleData = samplesStart + ZX_PAGE_SIZE * GetPageOrder(descr.Page) + (start - PAGES_START);
-            while (--size && sampleData[size] == 0) {};
+            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x", samIdx, start, loop, size);
+            const uint8_t* const sampleData =
+                samplesStart + ZX_PAGE_SIZE * GetPageOrder(descr.Page) + (start - PAGES_START);
+            while (--size && sampleData[size] == 0)
+            {};
             ++size;
             if (const auto content = samplesData.SubView(sampleData - samplesStart, size))
             {
@@ -342,7 +340,7 @@ namespace Chiptune
           target.SetSample(samIdx, 0, dummy);
         }
       }
-      
+
       void ParseOrnaments(const Indices& orns, Builder& target) const
       {
         for (Indices::Iterator it = orns.Items(); it; ++it)
@@ -354,7 +352,7 @@ namespace Chiptune
             Ornament res;
             res.Loop = loop.Begin;
             res.Lines.resize(loop.End);
-            std::transform(orn.begin(), orn.begin() + loop.End, res.Lines.begin(), [](auto b) {return b / 2;});
+            std::transform(orn.begin(), orn.begin() + loop.End, res.Lines.begin(), [](auto b) { return b / 2; });
             target.SetOrnament(ornIdx, std::move(res));
           }
           else
@@ -368,10 +366,11 @@ namespace Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       static uint_t GetPageOrder(uint_t page)
       {
-        //1,3,4,6,7
+        // 1,3,4,6,7
         switch (page)
         {
         case 1:
@@ -436,31 +435,31 @@ namespace Chiptune
             patBuilder.SetTempo(note.GetParameter());
             break;
           case CMD_SPECIAL:
+          {
+            switch (uint_t param = note.GetParameter())
             {
-              switch (uint_t param = note.GetParameter())
+            case COMMAND_NONE:
+              if (halftones == NOTE_EMPTY)
               {
-              case COMMAND_NONE:
-                if (halftones == NOTE_EMPTY)
-                {
-                  break;
-                }
-                [[fallthrough]];
-              case COMMAND_NOORNAMENT:
-                target.SetOrnament(0);
-                break;
-              case COMMAND_CONTSAMPLE:
-                sample = -1;
-                break;
-              case COMMAND_ENDPATTERN:
-                break;
-              case COMMAND_BLOCKCHANNEL:
-                target.SetRest();
-                break;
-              default:
-                target.SetOrnament(param);
                 break;
               }
+              [[fallthrough]];
+            case COMMAND_NOORNAMENT:
+              target.SetOrnament(0);
+              break;
+            case COMMAND_CONTSAMPLE:
+              sample = -1;
+              break;
+            case COMMAND_ENDPATTERN:
+              break;
+            case COMMAND_BLOCKCHANNEL:
+              target.SetRest();
+              break;
+            default:
+              target.SetOrnament(param);
+              break;
             }
+          }
           }
 
           if (sample != -1)
@@ -474,6 +473,7 @@ namespace Chiptune
       {
         Require(FixedRanges->AddRange(start, size));
       }
+
     private:
       const Binary::View RawData;
       const RawHeader& Source;
@@ -491,42 +491,42 @@ namespace Chiptune
     }
 
     const StringView FORMAT(
-      //std::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
-      "(%xxxxxxx0{16}){11}"
-      //std::array<PDTOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
-      "?{22}"
-      //uint8_t Padding1[6];
-      "?{6}"
-      //char Title[32];
-      "?{32}"
-      //uint8_t Tempo;
-      "03-63"
-      //uint8_t Start;
-      "00-ef"
-      //uint8_t Loop;
-      "00-ef"
-      //uint8_t Length;
-      "01-f0"
-      //uint8_t Padding2[16];
-      "00{16}"
-      //std::array<PDTSample, SAMPLES_COUNT> Samples;
-      /*
-      uint8_t Name[8];
-      uint16_t Start;
-      uint16_t Size;
-      uint16_t Loop;
-      uint8_t Page;
-      uint8_t Padding;
-      */
-      "(???????? ?5x|3x|c0-ff ?00-40 ?5x|3x|c0-ff 00|01|03|04|06|07 00){16}"
-      //std::array<uint8_t, POSITIONS_COUNT> Positions;
-      "(00-1f){240}"
-      //uint16_t LastDatas[PAGES_COUNT];
-      "(?c0-ff){5}"
-      /*
-      uint8_t FreeRAM;
-      uint8_t Padding3[5];
-      */
+        // std::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
+        "(%xxxxxxx0{16}){11}"
+        // std::array<PDTOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
+        "?{22}"
+        // uint8_t Padding1[6];
+        "?{6}"
+        // char Title[32];
+        "?{32}"
+        // uint8_t Tempo;
+        "03-63"
+        // uint8_t Start;
+        "00-ef"
+        // uint8_t Loop;
+        "00-ef"
+        // uint8_t Length;
+        "01-f0"
+        // uint8_t Padding2[16];
+        "00{16}"
+        // std::array<PDTSample, SAMPLES_COUNT> Samples;
+        /*
+        uint8_t Name[8];
+        uint16_t Start;
+        uint16_t Size;
+        uint16_t Loop;
+        uint8_t Page;
+        uint8_t Padding;
+        */
+        "(???????? ?5x|3x|c0-ff ?00-40 ?5x|3x|c0-ff 00|01|03|04|06|07 00){16}"
+        // std::array<uint8_t, POSITIONS_COUNT> Positions;
+        "(00-1f){240}"
+        // uint16_t LastDatas[PAGES_COUNT];
+        "(?c0-ff){5}"
+        /*
+        uint8_t FreeRAM;
+        uint8_t Padding3[5];
+        */
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -534,8 +534,7 @@ namespace Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MODULE_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -561,6 +560,7 @@ namespace Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -590,7 +590,8 @@ namespace Chiptune
 
         auto subData = rawData.GetSubcontainer(0, MODULE_SIZE);
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -604,11 +605,10 @@ namespace Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace ProDigiTracker
+  }  // namespace ProDigiTracker
 
   Decoder::Ptr CreateProDigiTrackerDecoder()
   {
     return MakePtr<ProDigiTracker::Decoder>();
   }
-} //namespace Chiptune
-} //namespace Formats
+}  // namespace Formats::Chiptune

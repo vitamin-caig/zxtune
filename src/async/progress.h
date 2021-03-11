@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief Asynchronous progress interface and factory
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Asynchronous progress interface and factory
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Async
@@ -29,4 +29,4 @@ namespace Async
 
     static Ptr Create();
   };
-}
+}  // namespace Async

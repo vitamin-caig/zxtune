@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  TrackState interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TrackState interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <module/state.h>
 
 namespace Module
@@ -35,4 +35,4 @@ namespace Module
     //! Current active channels count (up to Information::Channels)
     virtual uint_t Channels() const = 0;
   };
-}
+}  // namespace Module

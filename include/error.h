@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  %Error subsystem definitions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  %Error subsystem definitions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <memory>
 
 //! @class Error
@@ -23,9 +23,8 @@ class Error
   struct Meta;
   typedef std::shared_ptr<Meta> MetaPtr;
 
-  void TrueFunc() const
-  {
-  }
+  void TrueFunc() const {}
+
 public:
   //! @brief Datatype for source text line identification\n
   //! LineTag = FILE_TAG + __LINE__\n
@@ -38,14 +37,19 @@ public:
   struct Location
   {
     //! Default constructor
-    Location() : Tag(0), File(nullptr), Function(nullptr), Line(0)
-    {
-    }
+    Location()
+      : Tag(0)
+      , File(nullptr)
+      , Function(nullptr)
+      , Line(0)
+    {}
     //! Full parameters list constructor
     Location(LineTag tag, const char* file, const char* function, uint_t line)
-      : Tag(tag), File(file), Function(function), Line(line)
-    {
-    }
+      : Tag(tag)
+      , File(file)
+      , Function(function)
+      , Line(line)
+    {}
     //! Tag (same as in release version)
     LineTag Tag;
     //! Filename where exception was created
@@ -55,7 +59,7 @@ public:
     //! Source line
     uint_t Line;
 
-    bool operator == (const Location& rh) const
+    bool operator==(const Location& rh) const
     {
       return Tag == rh.Tag;
     }
@@ -73,7 +77,7 @@ public:
 #endif
   //@{
   //! @name Error initializers
-  Error() = default;//success
+  Error() = default;  // success
 
   //! @code
   //! return Error(THIS_LINE, ERROR_TEXT);
@@ -81,13 +85,12 @@ public:
   Error(LocationRef loc, const String& text);
 
   Error(const Error&) = default;
-  Error(Error&& rh)// = default
+  Error(Error&& rh)  // = default
     : ErrorMeta(std::move(rh.ErrorMeta))
-  {
-  }
-  
-  Error& operator = (const Error&) = default;
-  Error& operator = (Error&& rh)// = default;
+  {}
+
+  Error& operator=(const Error&) = default;
+  Error& operator=(Error&& rh)  // = default;
   {
     ErrorMeta = std::move(rh.ErrorMeta);
     return *this;
@@ -116,10 +119,10 @@ public:
   typedef void (Error::*BoolType)() const;
 
   //! @brief Check if error not empty
-  operator BoolType () const;
+  operator BoolType() const;
 
   //! @brief Checking if error is empty
-  bool operator ! () const;
+  bool operator!() const;
   //@}
 
   //@{
@@ -129,9 +132,10 @@ public:
   String ToString() const throw();
   //@}
 private:
-  explicit Error(MetaPtr ptr) : ErrorMeta(std::move(ptr))
-  {
-  }
+  explicit Error(MetaPtr ptr)
+    : ErrorMeta(std::move(ptr))
+  {}
+
 private:
   MetaPtr ErrorMeta;
 };
@@ -148,11 +152,11 @@ inline void ThrowIfError(const Error& e)
 //! @def THIS_LINE
 //! @brief Macro is used for bind created error with current source line
 
-#define MKTAG1(a) 0x ## a
+#define MKTAG1(a) 0x##a
 #define MKTAG(a) MKTAG1(a)
 #define MAKETAG (MKTAG(FILE_TAG) + __LINE__)
 #ifndef NDEBUG
-  #define THIS_LINE (Error::Location(MAKETAG, __FILE__, __FUNCTION__, __LINE__))
+#  define THIS_LINE (Error::Location(MAKETAG, __FILE__, __FUNCTION__, __LINE__))
 #else
-  #define THIS_LINE (Error::Location(MAKETAG))
+#  define THIS_LINE (Error::Location(MAKETAG))
 #endif

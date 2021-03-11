@@ -1,17 +1,17 @@
 /**
-*
-* @file
-*
-* @brief  Parameters conversion
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters conversion
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
+// library includes
 #include <parameters/convert.h>
 #include <strings/conversion.h>
-//std includes
+// std includes
 #include <cassert>
 #include <cctype>
 
@@ -21,15 +21,15 @@ namespace
 
   static_assert(1 == sizeof(DataType::value_type), "Invalid DataType::value_type");
 
-  inline bool DoTest(const String::const_iterator it, const String::const_iterator lim, int(*fun)(int))
+  inline bool DoTest(const String::const_iterator it, const String::const_iterator lim, int (*fun)(int))
   {
     return std::all_of(it, lim, fun);
   }
 
   inline bool IsData(const String& str)
   {
-    return str.size() >= 3 && DATA_PREFIX == *str.begin() && 0 == (str.size() - 1) % 2 &&
-      DoTest(str.begin() + 1, str.end(), &std::isxdigit);
+    return str.size() >= 3 && DATA_PREFIX == *str.begin() && 0 == (str.size() - 1) % 2
+           && DoTest(str.begin() + 1, str.end(), &std::isxdigit);
   }
 
   inline uint8_t FromHex(Char val)
@@ -70,8 +70,8 @@ namespace
 
   inline bool IsInteger(const String& str)
   {
-    return !str.empty() &&
-      DoTest(str.begin() + (*str.begin() == '-' || *str.begin() == '+' ? 1 : 0), str.end(), &std::isdigit);
+    return !str.empty()
+           && DoTest(str.begin() + (*str.begin() == '-' || *str.begin() == '+' ? 1 : 0), str.end(), &std::isdigit);
   }
 
   inline IntType IntegerFromString(const String& val)
@@ -86,9 +86,9 @@ namespace
 
   inline bool IsQuoted(const String& str)
   {
-    return str.size() >= 2 && STRING_QUOTE == *str.begin()  && STRING_QUOTE == *str.rbegin();
+    return str.size() >= 2 && STRING_QUOTE == *str.begin() && STRING_QUOTE == *str.rbegin();
   }
-                    
+
   inline StringType StringFromString(const String& val)
   {
     if (IsQuoted(val))
@@ -109,7 +109,7 @@ namespace
     }
     return str;
   }
-}
+}  // namespace
 
 namespace Parameters
 {
@@ -157,4 +157,4 @@ namespace Parameters
     }
     return false;
   }
-}
+}  // namespace Parameters

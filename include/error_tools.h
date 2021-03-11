@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  %Error subsystem tools
-*
-* @author vitamin.caig@gmail.com
-*
-* @see #Formatter type for format string specification
-*
-**/
+ *
+ * @file
+ *
+ * @brief  %Error subsystem tools
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ * @see #Formatter type for format string specification
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <error.h>
-//library includes
+// library includes
 #include <strings/format.h>
 
 //! @brief Building error object with formatted text

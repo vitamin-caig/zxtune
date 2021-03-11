@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM chip generators implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM chip generators implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <array>
 #include <cassert>
 
@@ -46,17 +46,18 @@ namespace Devices
         }
       }
 
-      uint_t operator[] (uint_t idx) const
+      uint_t operator[](uint_t idx) const
       {
         return Lookup[idx];
       }
+
     private:
       std::array<uint_t, INDEX_MASK + 1> Lookup;
     };
 
     const NoiseLookup NoiseTable;
 
-    //PSG-related functionality
+    // PSG-related functionality
     class ToneGenerator
     {
     public:
@@ -66,8 +67,7 @@ namespace Devices
         , DutyCycle(NO_DUTYCYCLE)
         , MiddlePeriod(1)
         , Counter()
-      {
-      }
+      {}
 
       void Reset()
       {
@@ -108,6 +108,7 @@ namespace Devices
       {
         return (Masked || GetFlip()) ? Hi : Lo;
       }
+
     private:
       void UpdateMiddle()
       {
@@ -129,10 +130,10 @@ namespace Devices
 
       void WrapCounter() const
       {
-        //Some of the hardware platforms has no native div/mod operations, so it's better to substract.
-        //In any case, it's better than sequental incremental/comparing
+        // Some of the hardware platforms has no native div/mod operations, so it's better to substract.
+        // In any case, it's better than sequental incremental/comparing
         const uint_t mask = DoublePeriod - 1;
-        //if power of two
+        // if power of two
         if (0 == (DoublePeriod & mask))
         {
           Counter &= mask;
@@ -145,6 +146,7 @@ namespace Devices
           }
         }
       }
+
     private:
       bool Masked;
       uint_t DoublePeriod;
@@ -160,8 +162,7 @@ namespace Devices
         : Period(1)
         , Counter(0)
         , Index(0)
-      {
-      }
+      {}
 
       void Reset()
       {
@@ -180,6 +181,7 @@ namespace Devices
       {
         Counter += ticks;
       }
+
     protected:
       void UpdateIndex() const
       {
@@ -204,6 +206,7 @@ namespace Devices
           }
         }
       }
+
     protected:
       uint_t Period;
       mutable uint_t Counter;
@@ -231,7 +234,7 @@ namespace Devices
       12   /|/|/|/|
       13   /
       14   /\/\/\/\
-      15   /|______   
+      15   /|______
     */
     class EnvelopeGenerator : public CountingGenerator
     {
@@ -240,8 +243,7 @@ namespace Devices
         : Type()
         , Level()
         , Decay()
-      {
-      }
+      {}
 
       void Reset()
       {
@@ -255,12 +257,12 @@ namespace Devices
       {
         Type = type;
         Counter = Index = 0;
-        if (Type & 4) //down-up envelopes
+        if (Type & 4)  // down-up envelopes
         {
           Level = 0;
           Decay = 1;
         }
-        else //up-down envelopes
+        else  // up-down envelopes
         {
           Level = 31;
           Decay = -1;
@@ -278,6 +280,7 @@ namespace Devices
         Update();
         return Level;
       }
+
     private:
       void Update() const
       {
@@ -300,8 +303,9 @@ namespace Devices
           return;
         }
         const uint_t envTypeMask = 1 << Type;
-        if (envTypeMask & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
-                           (1 << 5) | (1 << 6) | (1 << 7) | (1 << 9) | (1 << 15)))
+        if (envTypeMask
+            & ((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) | (1 << 5) | (1 << 6) | (1 << 7) | (1 << 9)
+               | (1 << 15)))
         {
           Level = 0;
           Decay = 0;
@@ -318,13 +322,14 @@ namespace Devices
         else
         {
           Level = 31;
-          Decay = 0; //11, 13
+          Decay = 0;  // 11, 13
         }
       }
+
     private:
       uint_t Type;
       mutable uint_t Level;
       mutable int_t Decay;
     };
-  }
-}
+  }  // namespace AYM
+}  // namespace Devices

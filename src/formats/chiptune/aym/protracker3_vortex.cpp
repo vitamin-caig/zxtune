@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  ProTracker v3.x support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ProTracker v3.x support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/protracker3_detail.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -22,25 +22,21 @@
 #include <math/numeric.h>
 #include <strings/conversion.h>
 #include <strings/format.h>
-//std includes
+// std includes
 #include <array>
 #include <cctype>
 #include <sstream>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-namespace Chiptune
-{
-namespace ProTracker3
-{
-  namespace VortexTracker2
+  namespace ProTracker3::VortexTracker2
   {
     const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
 
@@ -74,7 +70,8 @@ namespace ProTracker3
        <sample string>
        <empty string(s)>
 
-      sample string ::= ${toneMask}${noiseMask}${envMask} ${toneOffset}${keepToneOffset} ${noiseEnvOffset}${keepNoiseEnvOffset} ${volume}${volSlideAddon}< L if looped>
+      sample string ::= ${toneMask}${noiseMask}${envMask} ${toneOffset}${keepToneOffset}
+      ${noiseEnvOffset}${keepNoiseEnvOffset} ${volume}${volSlideAddon}< L if looped>
 
         toneMask ::= t<true> T<false>
         noiseMask ::= n<true> N<false>
@@ -108,7 +105,7 @@ namespace ProTracker3
       param1 ::= ${hexdot1}
       param2 ::= ${hexdot2}
     */
-    
+
     /*
       Fundamental types wrappers
     */
@@ -118,8 +115,7 @@ namespace ProTracker3
     public:
       BoolObject()
         : Value(false)
-      {
-      }
+      {}
 
       explicit BoolObject(char val)
         : Value(val)
@@ -129,8 +125,7 @@ namespace ProTracker3
 
       explicit BoolObject(bool val)
         : Value(val ? True : False)
-      {
-      }
+      {}
 
       bool AsBool() const
       {
@@ -141,6 +136,7 @@ namespace ProTracker3
       {
         return Value;
       }
+
     private:
       const char Value;
     };
@@ -153,15 +149,13 @@ namespace ProTracker3
     public:
       NibbleObject()
         : Value(AltZero)
-      {
-      }
+      {}
 
       explicit NibbleObject(char val)
         : Value(std::toupper(val))
       {
-        Require(std::isdigit(val) || val == AltZero ||
-          Math::InRange<char>(val, 'a', std::tolower(Max)) || 
-          Math::InRange<char>(val, 'A', std::toupper(Max)));
+        Require(std::isdigit(val) || val == AltZero || Math::InRange<char>(val, 'a', std::tolower(Max))
+                || Math::InRange<char>(val, 'A', std::toupper(Max)));
       }
 
       explicit NibbleObject(uint_t val)
@@ -172,10 +166,7 @@ namespace ProTracker3
 
       uint_t AsInt() const
       {
-        return std::isdigit(Value)
-          ? (Value - '0')
-          : (Value == AltZero ? 0 : Value - 'A' + 10)
-        ;
+        return std::isdigit(Value) ? (Value - '0') : (Value == AltZero ? 0 : Value - 'A' + 10);
       }
 
       char AsChar() const
@@ -183,10 +174,11 @@ namespace ProTracker3
         return Value;
       }
 
-      NibbleObject<Max, AltZero>& operator = (uint_t val)
+      NibbleObject<Max, AltZero>& operator=(uint_t val)
       {
         return *this = NibbleObject<Max, AltZero>(val);
       }
+
     private:
       char Value;
     };
@@ -200,8 +192,7 @@ namespace ProTracker3
     public:
       UnsignedHexObject()
         : Value(0)
-      {
-      }
+      {}
 
       explicit UnsignedHexObject(StringView val)
         : Value(0)
@@ -215,8 +206,7 @@ namespace ProTracker3
 
       explicit UnsignedHexObject(uint_t val)
         : Value(val)
-      {
-      }
+      {}
 
       uint_t AsInt() const
       {
@@ -231,16 +221,17 @@ namespace ProTracker3
         {
           res[Width - idx - 1] = DottedNibble(val & 15).AsChar();
         }
-        //VT export ignores wide numbers
-        //Require(val == 0);
+        // VT export ignores wide numbers
+        // Require(val == 0);
         return res;
       }
 
-      UnsignedHexObject<Width, AltZero>& operator = (uint_t val)
+      UnsignedHexObject<Width, AltZero>& operator=(uint_t val)
       {
         Value = val;
         return *this;
       }
+
     private:
       uint_t Value;
     };
@@ -251,8 +242,7 @@ namespace ProTracker3
     public:
       SignedHexObject()
         : Value(0)
-      {
-      }
+      {}
 
       explicit SignedHexObject(StringView val)
         : Value(0)
@@ -272,8 +262,7 @@ namespace ProTracker3
 
       explicit SignedHexObject(int_t val)
         : Value(val)
-      {
-      }
+      {}
 
       int_t AsInt() const
       {
@@ -292,6 +281,7 @@ namespace ProTracker3
         Require(val == 0);
         return res;
       }
+
     private:
       int_t Value;
     };
@@ -303,6 +293,7 @@ namespace ProTracker3
     class SectionHeader
     {
       static const uint_t NO_INDEX = ~uint_t(0);
+
     public:
       SectionHeader(const String& category, StringView hdr)
         : Category(category)
@@ -311,8 +302,7 @@ namespace ProTracker3
       {
         const String start = '[' + category;
         const String stop = "]";
-        if (boost::algorithm::istarts_with(hdr, start) &&
-            boost::algorithm::ends_with(hdr, stop))
+        if (boost::algorithm::istarts_with(hdr, start) && boost::algorithm::ends_with(hdr, stop))
         {
           Valid = true;
           const auto numStr = hdr.substr(start.size(), hdr.size() - start.size() - stop.size());
@@ -324,15 +314,13 @@ namespace ProTracker3
         : Category(std::move(category))
         , Index(NO_INDEX)
         , Valid(true)
-      {
-      }
+      {}
 
       SectionHeader(String category, int_t idx)
         : Category(std::move(category))
         , Index(idx)
         , Valid(true)
-      {
-      }
+      {}
 
       void Dump(std::ostream& str) const
       {
@@ -351,10 +339,11 @@ namespace ProTracker3
         return Index;
       }
 
-      operator bool () const
+      operator bool() const
       {
         return Valid;
       }
+
     private:
       const String Category;
       uint_t Index;
@@ -369,8 +358,7 @@ namespace ProTracker3
 
       LoopedList()
         : Loop(0)
-      {
-      }
+      {}
 
       explicit LoopedList(StringView str)
         : Loop(0)
@@ -423,32 +411,33 @@ namespace ProTracker3
           str << Parent::at(idx);
         }
       }
+
     private:
       uint_t Loop;
     };
-    
+
     class StringStream
     {
     public:
       explicit StringStream(Binary::InputStream& delegate)
         : Delegate(delegate)
-      {
-      }
-      
+      {}
+
       StringView ReadString()
       {
         return Strings::TrimSpaces(Delegate.ReadString());
       }
-      
+
       std::size_t GetPosition() const
       {
         return Delegate.GetPosition();
       }
-      
+
       std::size_t GetRestSize() const
       {
         return Delegate.GetRestSize();
       }
+
     private:
       Binary::InputStream& Delegate;
     };
@@ -464,8 +453,7 @@ namespace ProTracker3
         : Version(0)
         , Table(PROTRACKER)
         , Tempo(0)
-      {
-      }
+      {}
 
       explicit ModuleHeader(StringStream& src)
         : Version(0)
@@ -556,14 +544,12 @@ namespace ProTracker3
         Entry(String name, String value)
           : Name(std::move(name))
           , Value(std::move(value))
-        {
-        }
-        
-        Entry(Entry&& rh) noexcept// = default
+        {}
+
+        Entry(Entry&& rh) noexcept  // = default
           : Name(std::move(rh.Name))
           , Value(std::move(rh.Value))
-        {
-        }
+        {}
 
         void Dump(std::ostream& str) const
         {
@@ -597,17 +583,15 @@ namespace ProTracker3
       OrnamentObject(Ornament orn, uint_t index)
         : Ornament(std::move(orn))
         , Index(index)
-      {
-      }
-      
+      {}
+
       OrnamentObject(const OrnamentObject&) = delete;
-      OrnamentObject& operator = (const OrnamentObject&) = delete;
-      
-      OrnamentObject(OrnamentObject&& rh) noexcept// = default
+      OrnamentObject& operator=(const OrnamentObject&) = delete;
+
+      OrnamentObject(OrnamentObject&& rh) noexcept  // = default
         : Ornament(std::move(rh))
         , Index(rh.Index)
-      {
-      }
+      {}
 
       uint_t GetIndex() const
       {
@@ -625,6 +609,7 @@ namespace ProTracker3
       {
         return SectionHeader("Ornament", hdr);
       }
+
     private:
       uint_t Index;
     };
@@ -632,6 +617,7 @@ namespace ProTracker3
     struct SampleObject : Sample
     {
       static const std::size_t NO_LOOP = ~std::size_t(0);
+
     public:
       SampleObject(const SectionHeader& header, StringStream& src)
         : Index(header.GetIndex())
@@ -656,18 +642,16 @@ namespace ProTracker3
       SampleObject(Sample sam, uint_t idx)
         : Sample(std::move(sam))
         , Index(idx)
-      {
-      }
+      {}
 
       SampleObject(const SampleObject&) = delete;
-      SampleObject& operator = (const SampleObject&) = delete;
-      
-      SampleObject(SampleObject&& rh) noexcept// = default
+      SampleObject& operator=(const SampleObject&) = delete;
+
+      SampleObject(SampleObject&& rh) noexcept  // = default
         : Sample(std::move(rh))
         , Index(rh.Index)
-      {
-      }
-      
+      {}
+
       uint_t GetIndex() const
       {
         return Index;
@@ -691,6 +675,7 @@ namespace ProTracker3
       {
         return SectionHeader("Sample", hdr);
       }
+
     private:
       struct LineObject : Line
       {
@@ -720,8 +705,7 @@ namespace ProTracker3
         LineObject(Line src, bool looped)
           : Sample::Line(std::move(src))
           , Looped(looped)
-        {
-        }
+        {}
 
         bool IsLooped() const
         {
@@ -730,19 +714,14 @@ namespace ProTracker3
 
         void Dump(std::ostream& str) const
         {
-          str << UnparseMasks()
-              << ' '
-              << UnparseToneOffset()
-              << ' '
-              << UnparseNoiseOffset()
-              << ' '
-              << UnparseVolume();
+          str << UnparseMasks() << ' ' << UnparseToneOffset() << ' ' << UnparseNoiseOffset() << ' ' << UnparseVolume();
           if (Looped)
           {
             str << " L";
           }
           str << '\n';
         }
+
       private:
         typedef BoolObject<'t', 'T'> ToneFlag;
         typedef BoolObject<'n', 'N'> NoiseFlag;
@@ -790,7 +769,8 @@ namespace ProTracker3
 
         String UnparseNoiseOffset() const
         {
-          return NoiseEnvelopeValue(NoiseOrEnvelopeOffset).AsString() + AccumulatorFlag(KeepNoiseOrEnvelopeOffset).AsChar();
+          return NoiseEnvelopeValue(NoiseOrEnvelopeOffset).AsString()
+                 + AccumulatorFlag(KeepNoiseOrEnvelopeOffset).AsChar();
         }
 
         void ParseVolume(StringView str)
@@ -803,23 +783,19 @@ namespace ProTracker3
         String UnparseVolume() const
         {
           String res(1, VolumeValue(Level).AsChar());
-          res += VolumeSlideAddon == 0
-            ? '_'
-            : SignFlag(VolumeSlideAddon > 0).AsChar()
-          ;
+          res += VolumeSlideAddon == 0 ? '_' : SignFlag(VolumeSlideAddon > 0).AsChar();
           return res;
         }
+
       private:
         bool Looped;
       };
+
     private:
       uint_t Index;
     };
 
-    const std::array<String, 12> NOTES = 
-    { {
-      "C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"
-    } };
+    const std::array<String, 12> NOTES = {{"C-", "C#", "D-", "D#", "E-", "F-", "F#", "G-", "G#", "A-", "A#", "B-"}};
 
     const String EMPTY_NOTE("---");
     const String REST_NOTE("R--");
@@ -829,8 +805,7 @@ namespace ProTracker3
     public:
       NoteObject()
         : Val(EMPTY_NOTE)
-      {
-      }
+      {}
 
       explicit NoteObject(StringView val)
         : Val(val.to_string())
@@ -868,6 +843,7 @@ namespace ProTracker3
       {
         return NoteObject(REST_NOTE);
       }
+
     private:
       uint_t AsInt() const
       {
@@ -878,6 +854,7 @@ namespace ProTracker3
         Require(Math::InRange(octave, '1', '8'));
         return NOTES.size() * (octave - '1') + halftone;
       }
+
     private:
       String Val;
     };
@@ -885,9 +862,7 @@ namespace ProTracker3
     class NoteParametersObject
     {
     public:
-      NoteParametersObject()
-      {
-      }
+      NoteParametersObject() {}
 
       explicit NoteParametersObject(StringView str)
       {
@@ -961,9 +936,7 @@ namespace ProTracker3
       static const uint_t ENVSLIDE_DOWN = 10;
       static const uint_t TEMPO = 11;
 
-      NoteCommandObject()
-      {
-      }
+      NoteCommandObject() {}
 
       explicit NoteCommandObject(StringView str)
       {
@@ -980,7 +953,7 @@ namespace ProTracker3
         switch (Command.AsInt())
         {
         case 0:
-          break;//no cmd
+          break;  // no cmd
         case GLISS_UP:
           builder.SetGlissade(period, param);
           break;
@@ -988,7 +961,7 @@ namespace ProTracker3
           builder.SetGlissade(period, static_cast<int16_t>(0xff00 + ((-param) & 0xff)));
           break;
         case GLISS_NOTE:
-          builder.SetNoteGliss(period, param, 0/*ignored*/);
+          builder.SetNoteGliss(period, param, 0 /*ignored*/);
           break;
         case OFFSET_SAMPLE:
           builder.SetSampleOffset(param);
@@ -1037,9 +1010,7 @@ namespace ProTracker3
     class ChannelObject
     {
     public:
-      ChannelObject()
-      {
-      }
+      ChannelObject() {}
 
       explicit ChannelObject(StringView str)
       {
@@ -1060,11 +1031,7 @@ namespace ProTracker3
 
       void Dump(std::ostream& str) const
       {
-        str << Note.AsString()
-            << ' '
-            << Parameters.AsString()
-            << ' '
-            << Command.AsString();
+        str << Note.AsString() << ' ' << Parameters.AsString() << ' ' << Command.AsString();
       };
 
       NoteObject Note;
@@ -1075,9 +1042,7 @@ namespace ProTracker3
     class PatternLineObject
     {
     public:
-      PatternLineObject()
-      {
-      }
+      PatternLineObject() {}
 
       explicit PatternLineObject(StringView str)
       {
@@ -1104,12 +1069,10 @@ namespace ProTracker3
 
       void Dump(std::ostream& str) const
       {
-        str << Envelope.AsString()
-            << '|'
-            << Noise.AsString();
+        str << Envelope.AsString() << '|' << Noise.AsString();
         for (const auto& chan : Channels)
         {
-          str  << '|';
+          str << '|';
           chan.Dump(str);
         }
         str << '\n';
@@ -1128,8 +1091,7 @@ namespace ProTracker3
     public:
       PatternObject()
         : Index()
-      {
-      }
+      {}
 
       explicit PatternObject(uint_t idx)
         : Index(idx)
@@ -1143,7 +1105,8 @@ namespace ProTracker3
         Require(Math::InRange<uint_t>(Index, 0, MAX_PATTERNS_COUNT - 1));
         Dbg("Parse pattern %1%", Index);
         Lines.reserve(MAX_PATTERN_SIZE);
-        for (auto line = src.ReadString(); !line.empty(); line = 0 != src.GetRestSize() ? src.ReadString() : StringView())
+        for (auto line = src.ReadString(); !line.empty();
+             line = 0 != src.GetRestSize() ? src.ReadString() : StringView())
         {
           Lines.push_back(PatternLineObject(line));
         }
@@ -1190,6 +1153,7 @@ namespace ProTracker3
       {
         return SectionHeader("Pattern", str);
       }
+
     private:
       uint_t Index;
       std::vector<PatternLineObject> Lines;
@@ -1201,8 +1165,7 @@ namespace ProTracker3
       Format(Binary::InputStream& source, Builder& target)
         : Source(source)
         , Target(target)
-      {
-      }
+      {}
 
       void ParseHeader()
       {
@@ -1255,17 +1218,16 @@ namespace ProTracker3
           }
         }
       }
+
     private:
       StringStream Source;
       Builder& Target;
     };
 
-    const StringView FORMAT(
-      "'['M'o'd'u'l'e']"
-    );
+    const StringView FORMAT("'['M'o'd'u'l'e']");
 
     const std::size_t MIN_SIZE = 256;
-    
+
     void CheckIsSubset(const Indices& used, const Indices& available)
     {
       for (Indices::Iterator it(used); it; ++it)
@@ -1303,8 +1265,7 @@ namespace ProTracker3
     public:
       TextDecoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -1335,28 +1296,27 @@ namespace ProTracker3
       {
         return ParseText(data, target);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
 
-    class TextBuilder : public ChiptuneBuilder
-                      , public MetaBuilder
-                      , public PatternBuilder
+    class TextBuilder
+      : public ChiptuneBuilder
+      , public MetaBuilder
+      , public PatternBuilder
     {
     public:
       TextBuilder()
         : Context(Patterns)
-      {
-      }
+      {}
 
       MetaBuilder& GetMetaBuilder() override
       {
         return *this;
       }
 
-      void SetProgram(const String& /*program*/) override
-      {
-      }
+      void SetProgram(const String& /*program*/) override {}
 
       void SetTitle(const String& title) override
       {
@@ -1368,10 +1328,8 @@ namespace ProTracker3
         Header.Author = author;
       }
 
-      void SetStrings(const Strings::Array& /*strings*/) override
-      {
-      }
-      
+      void SetStrings(const Strings::Array& /*strings*/) override {}
+
       void SetVersion(uint_t version) override
       {
         Header.Version = version;
@@ -1382,9 +1340,7 @@ namespace ProTracker3
         Header.Table = table;
       }
 
-      void SetMode(uint_t /*mode*/) override
-      {
-      }
+      void SetMode(uint_t /*mode*/) override {}
 
       void SetInitialTempo(uint_t tempo) override
       {
@@ -1558,6 +1514,7 @@ namespace ProTracker3
         const auto& res = str.str();
         return Binary::CreateContainer(Binary::View(res.data(), res.size()));
       }
+
     private:
       struct BuildContext
       {
@@ -1573,8 +1530,7 @@ namespace ProTracker3
           , CurLine()
           , CurChannel()
           , CurNoiseBase()
-        {
-        }
+        {}
 
         void SetPattern(uint_t idx)
         {
@@ -1602,11 +1558,12 @@ namespace ProTracker3
           CurLine = nullptr;
           CurPattern = nullptr;
         }
-        
+
         void SetNoiseBase(uint_t val)
         {
           CurLine->Noise = CurNoiseBase = val;
         }
+
       private:
         void FitTo(uint_t size)
         {
@@ -1626,7 +1583,7 @@ namespace ProTracker3
             }
           }
         }
-        
+
         void AddLine()
         {
           CurLine = &CurPattern->AddLine();
@@ -1634,7 +1591,7 @@ namespace ProTracker3
           CurChannel = nullptr;
         }
       };
-      
+
       ModuleHeader Header;
       std::vector<OrnamentObject> Ornaments;
       std::vector<SampleObject> Samples;
@@ -1651,12 +1608,10 @@ namespace ProTracker3
     {
       return MakePtr<TextBuilder>();
     }
-  }//VortexTracker2
-  }//ProTracker3
+  }  // namespace ProTracker3::VortexTracker2
 
   Decoder::Ptr CreateVortexTracker2Decoder()
   {
     return ProTracker3::VortexTracker2::CreateDecoder();
   }
-}// namespace Chiptune
-}// namespace Formats
+}  // namespace Formats::Chiptune

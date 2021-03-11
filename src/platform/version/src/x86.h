@@ -1,12 +1,12 @@
 /**
-* 
-* @file
-*
-* @brief x86 architecture detection
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief x86 architecture detection
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
@@ -28,8 +28,8 @@ namespace Platform
 #elif defined(_M_IX86)
       static const char ARCH_VERSION[] = "blend";
 #else
-  #error "Not an x86 architecture"
+#  error "Not an x86 architecture"
 #endif
-    }
-  }
-}
+    }  // namespace Details
+  }    // namespace Version
+}  // namespace Platform

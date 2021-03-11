@@ -1,14 +1,14 @@
 /**
-* 
-* @file
-*
-* @brief  Pattern builder stub implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Pattern builder stub implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_pattern.h"
 
 namespace Formats
@@ -28,5 +28,5 @@ namespace Formats
       static StubPatternBuilder instance;
       return instance;
     }
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

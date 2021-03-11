@@ -1,25 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  FSB MPEG images support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FSB MPEG images support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/fsb_formats.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
 #include <xrange.h>
 
-namespace Formats
-{
-namespace Archived
-{
-namespace FSB
+namespace Formats::Archived::FSB
 {
   namespace Mpeg
   {
@@ -32,34 +28,28 @@ namespace FSB
         Names.resize(samplesCount);
         Blobs.resize(samplesCount);
       }
-      
+
       void StartSample(uint_t idx) override
       {
         CurSample = idx;
       }
-      
-      void SetFrequency(uint_t /*frequency*/) override
-      {
-      }
-      
-      void SetChannels(uint_t /*channels*/) override
-      {
-      }
-      
+
+      void SetFrequency(uint_t /*frequency*/) override {}
+
+      void SetChannels(uint_t /*channels*/) override {}
+
       void SetName(String name) override
       {
         Names[CurSample] = std::move(name);
       }
-      
-      void AddMetaChunk(uint_t /*type*/, Binary::View /*chunk*/) override
-      {
-      }
-      
+
+      void AddMetaChunk(uint_t /*type*/, Binary::View /*chunk*/) override {}
+
       void SetData(uint_t /*samplesCount*/, Binary::Container::Ptr blob) override
       {
         Blobs[CurSample] = std::move(blob);
       }
-      
+
       NamedDataMap CaptureResult() override
       {
         NamedDataMap result;
@@ -72,17 +62,16 @@ namespace FSB
         }
         return result;
       }
+
     private:
       uint_t CurSample = 0;
       std::vector<String> Names;
       std::vector<Binary::Container::Ptr> Blobs;
     };
-  }
+  }  // namespace Mpeg
 
   FormatBuilder::Ptr CreateMpegBuilder()
   {
     return MakePtr<Mpeg::Builder>();
   }
-}
-}
-}
+}  // namespace Formats::Archived::FSB

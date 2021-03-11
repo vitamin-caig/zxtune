@@ -1,52 +1,50 @@
 /**
-* 
-* @file
-*
-* @brief  ChipTracker support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ChipTracker support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/digital/chiptracker.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <indices.h>
 #include <make_ptr.h>
 #include <range_checker.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <strings/format.h>
 #include <strings/optimize.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace ChipTracker
   {
     const Debug::Stream Dbg("Formats::Chiptune::ChipTracker");
 
-    //const std::size_t MAX_MODULE_SIZE = 65536;
+    // const std::size_t MAX_MODULE_SIZE = 65536;
     const std::size_t MAX_PATTERN_SIZE = 64;
     const std::size_t MAX_PATTERNS_COUNT = 31;
     const uint_t CHANNELS_COUNT = 4;
     const uint_t SAMPLES_COUNT = 16;
 
     const uint8_t SIGNATURE[] = {'C', 'H', 'I', 'P', 'v'};
-    
+
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct Header
     {
@@ -72,9 +70,9 @@ namespace Chiptune
     const uint_t PAUSE = 63;
     PACK_PRE struct Note
     {
-      //NNNNNNCC
-      //N - note
-      //C - cmd
+      // NNNNNNCC
+      // N - note
+      // C - cmd
       uint_t GetNote() const
       {
         return GetRawNote() - NOTE_BASE;
@@ -105,7 +103,7 @@ namespace Chiptune
 
     typedef std::array<Note, CHANNELS_COUNT> NoteRow;
 
-    //format commands
+    // format commands
     enum
     {
       SOFFSET = 0,
@@ -117,8 +115,8 @@ namespace Chiptune
     PACK_PRE struct NoteParam
     {
       // SSSSPPPP
-      //S - sample
-      //P - param
+      // S - sample
+      // P - param
       uint_t GetParameter() const
       {
         return SampParam & 15;
@@ -140,13 +138,13 @@ namespace Chiptune
       std::array<NoteParamRow, MAX_PATTERN_SIZE> Params;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(Header) == 512, "Invalid layout");
     static_assert(sizeof(Pattern) == 512, "Invalid layout");
 
-    const std::size_t MIN_SIZE = sizeof(Header) + sizeof(Pattern) + 256;//single pattern and single sample
+    const std::size_t MIN_SIZE = sizeof(Header) + sizeof(Pattern) + 256;  // single pattern and single sample
 
     class StubBuilder : public Builder
     {
@@ -180,8 +178,7 @@ namespace Chiptune
         : Delegate(delegate)
         , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
         , UsedSamples(0, SAMPLES_COUNT - 1)
-      {
-      }
+      {}
 
       MetaBuilder& GetMetaBuilder() override
       {
@@ -251,6 +248,7 @@ namespace Chiptune
         Require(!UsedSamples.Empty());
         return UsedSamples;
       }
+
     private:
       Builder& Delegate;
       Indices UsedPatterns;
@@ -266,7 +264,7 @@ namespace Chiptune
         , Ranges(RangeChecker::Create(RawData.Size()))
         , FixedRanges(RangeChecker::Create(RawData.Size()))
       {
-        //info
+        // info
         AddRange(0, sizeof(Source));
       }
 
@@ -309,7 +307,8 @@ namespace Chiptune
 
       void ParseSamples(const Indices& sams, Builder& target) const
       {
-        const std::size_t patternsCount = 1 + *std::max_element(Source.Positions.begin(), Source.Positions.begin() + Source.Length + 1);
+        const std::size_t patternsCount =
+            1 + *std::max_element(Source.Positions.begin(), Source.Positions.begin() + Source.Length + 1);
         std::size_t sampleStart = sizeof(Header) + patternsCount * sizeof(Pattern);
         std::size_t memLeft = RawData.Size() - sampleStart;
         for (uint_t samIdx = 0; samIdx != Source.Samples.size(); ++samIdx)
@@ -322,8 +321,8 @@ namespace Chiptune
           {
             if (sams.Contain(samIdx))
             {
-              Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x (avail=#%5$04x)", 
-                samIdx, sampleStart, loop, size, availSize);
+              Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x (avail=#%5$04x)", samIdx, sampleStart, loop,
+                  size, availSize);
               AddRange(sampleStart, availSize);
               target.SetSample(samIdx, loop, RawData.SubView(sampleStart, availSize));
             }
@@ -337,7 +336,7 @@ namespace Chiptune
           }
         }
       }
-      
+
       std::size_t GetSize() const
       {
         return Ranges->GetAffectedRange().second;
@@ -347,15 +346,16 @@ namespace Chiptune
       {
         return FixedRanges->GetAffectedRange();
       }
+
     private:
       void ParsePattern(uint_t idx, PatternBuilder& patBuilder, Builder& target) const
       {
         const std::size_t patStart = sizeof(Header) + idx * sizeof(Pattern);
         const auto* src = RawData.SubView(patStart).As<Pattern>();
         Require(src != nullptr);
-        //due to quite complex structure, patter lines are not optimized
+        // due to quite complex structure, patter lines are not optimized
         uint_t lineNum = 0;
-        for (; lineNum < MAX_PATTERN_SIZE ; ++lineNum)
+        for (; lineNum < MAX_PATTERN_SIZE; ++lineNum)
         {
           patBuilder.StartLine(lineNum);
           const NoteRow& notes = src->Notes[lineNum];
@@ -371,7 +371,8 @@ namespace Chiptune
         AddFixedRange(patStart, patSize);
       }
 
-      static bool ParseLine(const NoteRow& notes, const NoteParamRow& params, PatternBuilder& patBuilder, Builder& target)
+      static bool ParseLine(const NoteRow& notes, const NoteParamRow& params, PatternBuilder& patBuilder,
+                            Builder& target)
       {
         bool cont = true;
         for (uint_t chanNum = 0; chanNum != CHANNELS_COUNT; ++chanNum)
@@ -409,12 +410,12 @@ namespace Chiptune
             }
             break;
           case SPECIAL:
-            //first channel- tempo
+            // first channel- tempo
             if (0 == chanNum)
             {
               patBuilder.SetTempo(param.GetParameter());
             }
-            //last channel- stop
+            // last channel- stop
             else if (3 == chanNum)
             {
               cont = false;
@@ -435,6 +436,7 @@ namespace Chiptune
         Require(FixedRanges->AddRange(start, size));
         Require(Ranges->AddRange(start, size));
       }
+
     private:
       const Binary::View RawData;
       const Header& Source;
@@ -449,7 +451,8 @@ namespace Chiptune
       {
         return false;
       }
-      const uint_t patternsCount = 1 + *std::max_element(header->Positions.begin(), header->Positions.begin() + header->Length + 1);
+      const uint_t patternsCount =
+          1 + *std::max_element(header->Positions.begin(), header->Positions.begin() + header->Length + 1);
       if (sizeof(*header) + patternsCount * sizeof(Pattern) > data.Size())
       {
         return false;
@@ -458,14 +461,14 @@ namespace Chiptune
     }
 
     const StringView FORMAT(
-      "'C'H'I'P'v"    // uint8_t Signature[5];
-      "3x2e3x"        // char Version[3];
-      "20-7f{32}"     // char Name[32];
-      "01-0f"         // uint8_t Tempo;
-      "??"            // len,loop
-      "(?00-bb?00-bb){16}"//samples descriptions
-      "?{21}"         // uint8_t Reserved[21];
-      "(20-7f{8}){16}"// sample names
+        "'C'H'I'P'v"          // uint8_t Signature[5];
+        "3x2e3x"              // char Version[3];
+        "20-7f{32}"           // char Name[32];
+        "01-0f"               // uint8_t Tempo;
+        "??"                  // len,loop
+        "(?00-bb?00-bb){16}"  // samples descriptions
+        "?{21}"               // uint8_t Reserved[21];
+        "(20-7f{8}){16}"      // sample names
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -473,8 +476,7 @@ namespace Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -500,6 +502,7 @@ namespace Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -528,7 +531,8 @@ namespace Chiptune
         Require(format.GetSize() >= MIN_SIZE);
         auto subData = rawData.GetSubcontainer(0, format.GetSize());
         const auto fixedRange = format.GetFixedArea();
-        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first, fixedRange.second - fixedRange.first);
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
       }
       catch (const std::exception&)
       {
@@ -542,11 +546,10 @@ namespace Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace ChipTracker
+  }  // namespace ChipTracker
 
   Decoder::Ptr CreateChipTrackerDecoder()
   {
     return MakePtr<ChipTracker::Decoder>();
   }
-} //namespace Chiptune
-} //namespace Formats
+}  // namespace Formats::Chiptune

@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  S98 dumper
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  S98 dumper
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "../../utils.h"
 #include <formats/chiptune/multidevice/sound98.h>
@@ -16,29 +16,31 @@ namespace
 {
   using namespace Formats::Chiptune;
 
-  class S98Builder : public Sound98::Builder, public MetaBuilder
+  class S98Builder
+    : public Sound98::Builder
+    , public MetaBuilder
   {
   public:
     void SetProgram(const String& program) override
     {
       std::cout << "Program: " << program << std::endl;
     }
-    
+
     void SetTitle(const String& title) override
     {
       std::cout << "Title: " << title << std::endl;
     }
-    
+
     void SetAuthor(const String& author) override
     {
       std::cout << "Author: " << author << std::endl;
     }
-    
+
     void SetStrings(const Strings::Array& strings) override
     {
       for (const auto& str : strings)
       {
-        std::cout << "Strings: " <<  str << std::endl;
+        std::cout << "Strings: " << str << std::endl;
       }
     }
 
@@ -52,7 +54,7 @@ namespace
       std::cout << "Duration: " << Time::ToString(total) << "\nLoop: " << Time::ToString(loop) << std::endl;
     }
   };
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

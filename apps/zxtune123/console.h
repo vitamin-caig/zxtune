@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief Console interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Console interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <utility>
 
 class Console
@@ -37,7 +37,7 @@ public:
   virtual uint_t GetPressedKey() const = 0;
 
   virtual void WaitForKeyRelease() const = 0;
-  
+
   virtual void Write(const String& str) const = 0;
 
   static Console& Self();

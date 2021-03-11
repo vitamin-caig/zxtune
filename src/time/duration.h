@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Time duration interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Time duration interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <time/base.h>
 
 namespace Time
@@ -20,6 +20,7 @@ namespace Time
   {
     using Parent = Base<Unit, DurationTag>;
     using Parent::Value;
+
   public:
     using Parent::Parent;
     using Parent::Get;
@@ -30,25 +31,24 @@ namespace Time
 
     Duration(Parent rh)
       : Parent(std::move(rh))
-    {
-    }
+    {}
 
     template<class OtherUnit, class OtherTag>
-    const Duration& operator += (Base<OtherUnit, OtherTag> rh)
+    const Duration& operator+=(Base<OtherUnit, OtherTag> rh)
     {
       Value += Duration(rh).Get();
       return *this;
     }
 
     template<class T>
-    Duration operator * (T mult) const
+    Duration operator*(T mult) const
     {
       return Duration(static_cast<ValueType>(Value * mult));
     }
 
     // Do not use operator / to allow to specify return type
     template<class T, class OtherUnit,
-      class Common = typename std::conditional<Unit::PER_SECOND >= OtherUnit::PER_SECOND, Unit, OtherUnit>::type>
+             class Common = typename std::conditional<Unit::PER_SECOND >= OtherUnit::PER_SECOND, Unit, OtherUnit>::type>
     T Divide(Duration<OtherUnit> rh) const
     {
       using CastType = typename std::common_type<T, typename Common::StorageType>::type;
@@ -63,12 +63,12 @@ namespace Time
       return Get() ? (T(PER_SECOND) / Get()) : T();
     }
 
-    explicit operator bool () const
+    explicit operator bool() const
     {
       return Get() != 0;
     }
 
-    bool operator ! () const
+    bool operator!() const
     {
       return Get() == 0;
     }
@@ -81,15 +81,13 @@ namespace Time
 
     static Duration FromRatio(ValueType count, ValueType rate)
     {
-      return rate
-        ? Duration(Math::Scale(count, rate, PER_SECOND))
-        : Duration();
+      return rate ? Duration(Math::Scale(count, rate, PER_SECOND)) : Duration();
     }
   };
 
   template<class Unit1, class Unit2, class Tag2,
-    class Return = typename std::conditional<Unit1::PER_SECOND >= Unit2::PER_SECOND, Unit1, Unit2>::type>
-  inline Duration<Return> operator + (Duration<Unit1> lh, Base<Unit2, Tag2> rh)
+           class Return = typename std::conditional<Unit1::PER_SECOND >= Unit2::PER_SECOND, Unit1, Unit2>::type>
+  inline Duration<Return> operator+(Duration<Unit1> lh, Base<Unit2, Tag2> rh)
   {
     return Duration<Return>(lh) += rh;
   }
@@ -98,4 +96,4 @@ namespace Time
   using Milliseconds = Duration<Millisecond>;
   using Microseconds = Duration<Microsecond>;
   using Nanoseconds = Duration<Nanosecond>;
-}
+}  // namespace Time

@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Sound-related types and definitions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Sound-related types and definitions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <sound/sample.h>
-//std includes
+// std includes
 #include <array>
 
 namespace Sound
@@ -22,4 +22,4 @@ namespace Sound
   {
     typedef std::array<Sample::Type, Channels> Type;
   };
-}
+}  // namespace Sound

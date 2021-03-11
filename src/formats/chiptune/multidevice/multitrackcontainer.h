@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  Multitrack container support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Multitrack container support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -43,7 +43,7 @@ namespace Formats
         virtual void SetAuthor(const String& author) = 0;
         virtual void SetTitle(const String& title) = 0;
         virtual void SetAnnotation(const String& annotation) = 0;
-        //arbitrary property
+        // arbitrary property
         virtual void SetProperty(const String& name, const String& value) = 0;
 
         virtual void StartTrack(uint_t idx) = 0;
@@ -61,8 +61,8 @@ namespace Formats
 
       ContainerBuilder::Ptr CreateBuilder();
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-    }
+    }  // namespace MultiTrackContainer
 
     Decoder::Ptr CreateMultiTrackContainerDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

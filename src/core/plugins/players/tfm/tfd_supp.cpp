@@ -1,17 +1,17 @@
 /**
-* 
-* @file
-*
-* @brief  TurboFM Dump support plugin
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TurboFM Dump support plugin
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "core/plugins/players/tfm/tfm_plugin.h"
+// local includes
 #include "core/plugins/player_plugins_registrator.h"
-//library includes
+#include "core/plugins/players/tfm/tfm_plugin.h"
+// library includes
 #include <formats/chiptune/fm/tfd.h>
 #include <module/players/tfm/tfd.h>
 
@@ -19,7 +19,7 @@ namespace ZXTune
 {
   void RegisterTFDSupport(PlayerPluginsRegistrator& registrator)
   {
-    //plugin attributes
+    // plugin attributes
     const Char ID[] = {'T', 'F', 'D', 0};
 
     const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFDDecoder();
@@ -27,4 +27,4 @@ namespace ZXTune
     const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
     registrator.RegisterPlugin(plugin);
   }
-}
+}  // namespace ZXTune

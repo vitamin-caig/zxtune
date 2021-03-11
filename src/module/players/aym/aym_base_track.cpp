@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  AYM-based track chiptunes support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AYM-based track chiptunes support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/aym_base_track.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Module
@@ -30,8 +30,7 @@ namespace Module
         , Delegate(std::move(delegate))
         , State(Delegate->GetStateObserver())
         , Render(std::move(renderer))
-      {
-      }
+      {}
 
       void Reset() override
       {
@@ -57,10 +56,9 @@ namespace Module
 
       Devices::AYM::Registers GetData() const override
       {
-        return Delegate->IsValid()
-          ? GetCurrentChunk()
-          : Devices::AYM::Registers();
+        return Delegate->IsValid() ? GetCurrentChunk() : Devices::AYM::Registers();
       }
+
     private:
       Devices::AYM::Registers GetCurrentChunk() const
       {
@@ -77,6 +75,7 @@ namespace Module
           Params->FreqTable(Table);
         }
       }
+
     private:
       Parameters::TrackingHelper<AYM::TrackParameters> Params;
       const TrackStateIterator::Ptr Delegate;
@@ -154,9 +153,10 @@ namespace Module
       return toneTo - toneFrom;
     }
 
-    DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+    DataIterator::Ptr CreateDataIterator(AYM::TrackParameters::Ptr trackParams, TrackStateIterator::Ptr iterator,
+                                         DataRenderer::Ptr renderer)
     {
       return MakePtr<TrackDataIterator>(std::move(trackParams), std::move(iterator), std::move(renderer));
     }
-  }
-}
+  }  // namespace AYM
+}  // namespace Module

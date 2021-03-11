@@ -1,21 +1,21 @@
 /**
-*
-* @file
-*
-* @brief Single instance support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Single instance support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/accessor.h>
 #include <strings/array.h>
-//qt includes
-#include <QtCore/QPointer>
+// qt includes
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 
 class SingleModeDispatcher : public QObject
 {

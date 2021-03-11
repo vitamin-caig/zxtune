@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Declaration of sound chunk
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Declaration of sound chunk
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <sound/sample.h>
-//std includes
+// std includes
 #include <cassert>
 #include <cstring>
 #include <vector>
@@ -22,25 +22,21 @@ namespace Sound
   //! @brief Block of sound data
   struct Chunk : public std::vector<Sample>
   {
-    Chunk()
-    {
-    }
+    Chunk() {}
 
     explicit Chunk(std::size_t size)
       : std::vector<Sample>(size)
-    {
-    }
-    
+    {}
+
     Chunk(const Chunk&) = delete;
-    Chunk& operator = (const Chunk&) = delete;
-    Chunk(Chunk&& rh) noexcept// = default
+    Chunk& operator=(const Chunk&) = delete;
+    Chunk(Chunk&& rh) noexcept  // = default
       : std::vector<Sample>(std::move(rh))
+    {}
+
+    Chunk& operator=(Chunk&& rh) noexcept  // = default
     {
-    }
-    
-    Chunk& operator = (Chunk&& rh) noexcept// = default
-    {
-      std::vector<Sample>::operator = (std::move(rh));
+      std::vector<Sample>::operator=(std::move(rh));
       return *this;
     }
 
@@ -84,4 +80,4 @@ namespace Sound
       assert(!"Should not be called");
     }
   };
-}
+}  // namespace Sound

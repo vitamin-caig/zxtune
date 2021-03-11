@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  OpenAL subsystem access functions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  OpenAL subsystem access functions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <strings/array.h>
 
 namespace Sound
@@ -19,4 +19,4 @@ namespace Sound
   {
     Strings::Array EnumerateDevices();
   }
-}
+}  // namespace Sound

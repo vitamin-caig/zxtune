@@ -1,45 +1,43 @@
 /**
-*
-* @file
-*
-* @brief  ALSA backend implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ALSA backend implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound/backends/alsa.h"
 #include "sound/backends/backend_impl.h"
+#include "sound/backends/gates/alsa_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/volume_control.h"
-#include "sound/backends/gates/alsa_api.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
-//std includes
+// std includes
 #include <functional>
-//boost includes
+// boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 #define FILE_TAG 8B5627E4
 
-namespace Sound
-{
-namespace Alsa
+namespace Sound::Alsa
 {
   const Debug::Stream Dbg("Sound::Backend::Alsa");
 
@@ -54,8 +52,7 @@ namespace Alsa
   {
     if (res < 0)
     {
-      throw MakeFormattedError(loc,
-        translate("Error in ALSA backend: %1%."), api.snd_strerror(res));
+      throw MakeFormattedError(loc, translate("Error in ALSA backend: %1%."), api.snd_strerror(res));
     }
   }
 
@@ -67,8 +64,7 @@ namespace Alsa
       , Negated(GetSoundFormat(Sample::MID != 0))
       , NativeSupported(api.snd_pcm_format_mask_test(mask, Native))
       , NegatedSupported(api.snd_pcm_format_mask_test(mask, Negated))
-    {
-    }
+    {}
 
     bool IsSupported() const
     {
@@ -77,10 +73,9 @@ namespace Alsa
 
     snd_pcm_format_t Get() const
     {
-      return NativeSupported
-        ? Native
-        : (NegatedSupported ? Negated : SND_PCM_FORMAT_UNKNOWN);
+      return NativeSupported ? Native : (NegatedSupported ? Negated : SND_PCM_FORMAT_UNKNOWN);
     }
+
   private:
     static snd_pcm_format_t GetSoundFormat(bool isSigned)
     {
@@ -89,14 +84,14 @@ namespace Alsa
       case 8:
         return isSigned ? SND_PCM_FORMAT_S8 : SND_PCM_FORMAT_U8;
       case 16:
-        return isSigned
-            ? (isLE() ? SND_PCM_FORMAT_S16_LE : SND_PCM_FORMAT_S16_BE)
-            : (isLE() ? SND_PCM_FORMAT_U16_LE : SND_PCM_FORMAT_U16_BE);
+        return isSigned ? (isLE() ? SND_PCM_FORMAT_S16_LE : SND_PCM_FORMAT_S16_BE)
+                        : (isLE() ? SND_PCM_FORMAT_U16_LE : SND_PCM_FORMAT_U16_BE);
       default:
         assert(!"Invalid format");
         return SND_PCM_FORMAT_UNKNOWN;
       }
     }
+
   private:
     const snd_pcm_format_t Native;
     const snd_pcm_format_t Negated;
@@ -112,9 +107,8 @@ namespace Alsa
       : AlsaApi(std::move(api))
       , Name(std::move(name))
       , Handle(nullptr)
-    {
-    }
-    
+    {}
+
     AutoHandle(const AutoHandle&) = delete;
 
     T* Get() const
@@ -146,10 +140,12 @@ namespace Alsa
     }
 
     template<class P1, class P2, class P3, class P4, class P5, class P6>
-    void CheckedCall(int (Api::*func)(T*, P1, P2, P3, P4, P5, P6), P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, Error::LocationRef loc) const
+    void CheckedCall(int (Api::*func)(T*, P1, P2, P3, P4, P5, P6), P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6,
+                     Error::LocationRef loc) const
     {
       CheckResult(((*AlsaApi).*func)(Handle, p1, p2, p3, p4, p5, p6), loc);
     }
+
   protected:
     T* Release()
     {
@@ -163,10 +159,11 @@ namespace Alsa
     {
       if (res < 0)
       {
-        throw MakeFormattedError(loc,
-          translate("Error in ALSA backend while working with device '%1%': %2%."), Name, AlsaApi->snd_strerror(res));
+        throw MakeFormattedError(loc, translate("Error in ALSA backend while working with device '%1%': %2%."), Name,
+                                 AlsaApi->snd_strerror(res));
       }
     }
+
   protected:
     const Api::Ptr AlsaApi;
     String Name;
@@ -213,13 +210,14 @@ namespace Alsa
       }
       return res;
     }
+
   private:
     String Interface;
     String Card;
     String Device;
   };
 
-  //Use the most atomic operations to prevent resources leak in case of error
+  // Use the most atomic operations to prevent resources leak in case of error
   class PCMDevice : public AutoHandle<snd_pcm_t>
   {
   public:
@@ -228,7 +226,7 @@ namespace Alsa
     {
       Open();
     }
-    
+
     ~PCMDevice()
     {
       try
@@ -236,23 +234,21 @@ namespace Alsa
         Close();
       }
       catch (const Error&)
-      {
-      }
+      {}
     }
 
     void Open()
     {
       Require(Handle == nullptr);
       Dbg("Opening PCM device '%1%'", Name);
-      CheckResult(AlsaApi->snd_pcm_open(&Handle, Name.c_str(),
-        SND_PCM_STREAM_PLAYBACK, 0), THIS_LINE);
+      CheckResult(AlsaApi->snd_pcm_open(&Handle, Name.c_str(), SND_PCM_STREAM_PLAYBACK, 0), THIS_LINE);
     }
-    
+
     void Close()
     {
       if (Handle)
       {
-        //do not break if error while drain- we need to close
+        // do not break if error while drain- we need to close
         AlsaApi->snd_pcm_drain(Handle);
         AlsaApi->snd_pcm_hw_free(Handle);
         Dbg("Closing PCM device '%1%'", Name);
@@ -281,15 +277,13 @@ namespace Alsa
       }
     }
   };
-  
+
   template<class T>
   std::shared_ptr<T> Allocate(Api::Ptr api, int (Api::*allocFunc)(T**), void (Api::*freeFunc)(T*))
   {
     T* res = nullptr;
     CheckResult(*api, ((*api).*allocFunc)(&res), THIS_LINE);
-    return res
-      ? std::shared_ptr<T>(res, std::bind(freeFunc, api, std::placeholders::_1))
-      : std::shared_ptr<T>();
+    return res ? std::shared_ptr<T>(res, std::bind(freeFunc, api, std::placeholders::_1)) : std::shared_ptr<T>();
   }
 
   class DeviceWrapper
@@ -302,8 +296,7 @@ namespace Alsa
       , Pcm(api, id)
       , CanPause(false)
       , Format(SND_PCM_FORMAT_UNKNOWN)
-    {
-    }
+    {}
 
     ~DeviceWrapper()
     {
@@ -312,21 +305,20 @@ namespace Alsa
         Close();
       }
       catch (const Error&)
-      {
-      }
+      {}
     }
 
     void SetParameters(Time::Milliseconds lat, const RenderParameters& params)
     {
-      const std::shared_ptr<snd_pcm_hw_params_t> hwParams = Allocate<snd_pcm_hw_params_t>(AlsaApi,
-        &Api::snd_pcm_hw_params_malloc, &Api::snd_pcm_hw_params_free);
+      const std::shared_ptr<snd_pcm_hw_params_t> hwParams =
+          Allocate<snd_pcm_hw_params_t>(AlsaApi, &Api::snd_pcm_hw_params_malloc, &Api::snd_pcm_hw_params_free);
       Pcm.CheckedCall(&Api::snd_pcm_hw_params_any, hwParams.get(), THIS_LINE);
 
       const bool canPause = AlsaApi->snd_pcm_hw_params_can_pause(hwParams.get()) != 0;
       Dbg(canPause ? "Hardware support pause" : "Hardware doesn't support pause");
 
-      const std::shared_ptr<snd_pcm_format_mask_t> fmtMask = Allocate<snd_pcm_format_mask_t>(AlsaApi,
-        &Api::snd_pcm_format_mask_malloc, &Api::snd_pcm_format_mask_free);
+      const std::shared_ptr<snd_pcm_format_mask_t> fmtMask =
+          Allocate<snd_pcm_format_mask_t>(AlsaApi, &Api::snd_pcm_format_mask_malloc, &Api::snd_pcm_format_mask_free);
       AlsaApi->snd_pcm_hw_params_get_format_mask(hwParams.get(), fmtMask.get());
 
       const SoundFormat fmt(*AlsaApi, fmtMask.get());
@@ -338,10 +330,11 @@ namespace Alsa
       const unsigned freq = params.SoundFreq();
       const unsigned latency = Time::Microseconds(lat).Get();
       Dbg("Setting parameters: rate=%1%Hz latency=%2%uS", freq, latency);
-      Pcm.CheckedCall(&Api::snd_pcm_set_params, fmt.Get(), SND_PCM_ACCESS_RW_INTERLEAVED, unsigned(Sample::CHANNELS), freq, 1, latency, THIS_LINE);
-      
+      Pcm.CheckedCall(&Api::snd_pcm_set_params, fmt.Get(), SND_PCM_ACCESS_RW_INTERLEAVED, unsigned(Sample::CHANNELS),
+                      freq, 1, latency, THIS_LINE);
+
       Pcm.CheckedCall(&Api::snd_pcm_prepare, THIS_LINE);
-      
+
       CanPause = canPause;
       Format = fmt.Get();
     }
@@ -370,7 +363,7 @@ namespace Alsa
       }
       Pcm.Write(buffer);
     }
-    
+
     void Pause()
     {
       if (CanPause)
@@ -378,7 +371,7 @@ namespace Alsa
         Pcm.CheckedCall(&Api::snd_pcm_pause, 1, THIS_LINE);
       }
     }
-    
+
     void Resume()
     {
       if (CanPause)
@@ -386,6 +379,7 @@ namespace Alsa
         Pcm.CheckedCall(&Api::snd_pcm_pause, 0, THIS_LINE);
       }
     }
+
   private:
     const Api::Ptr AlsaApi;
     PCMDevice Pcm;
@@ -412,7 +406,7 @@ namespace Alsa
     {
       return Current;
     }
-    
+
     String GetName() const
     {
       return AlsaApi->snd_mixer_selem_get_name(Current);
@@ -423,20 +417,21 @@ namespace Alsa
       Current = AlsaApi->snd_mixer_elem_next(Current);
       SkipNotsupported();
     }
+
   private:
     void SkipNotsupported()
     {
       while (Current)
       {
         const snd_mixer_elem_type_t type = AlsaApi->snd_mixer_elem_get_type(Current);
-        if (type == SND_MIXER_ELEM_SIMPLE &&
-            AlsaApi->snd_mixer_selem_has_playback_volume(Current) != 0)
+        if (type == SND_MIXER_ELEM_SIMPLE && AlsaApi->snd_mixer_selem_has_playback_volume(Current) != 0)
         {
           break;
         }
         Current = AlsaApi->snd_mixer_elem_next(Current);
       }
     }
+
   private:
     const Api::Ptr AlsaApi;
     snd_mixer_elem_t* Current;
@@ -450,7 +445,7 @@ namespace Alsa
     {
       Open();
     }
-    
+
     ~MixerDevice()
     {
       try
@@ -458,16 +453,15 @@ namespace Alsa
         Close();
       }
       catch (const Error&)
-      {
-      }
+      {}
     }
-    
+
     void Open()
     {
       Dbg("Opening mixer device '%1%'", Name);
       CheckResult(AlsaApi->snd_mixer_open(&Handle, 0), THIS_LINE);
     }
-    
+
     void Close()
     {
       if (Handle)
@@ -488,7 +482,7 @@ namespace Alsa
     {
       Open();
     }
-    
+
     ~AttachedMixer()
     {
       try
@@ -496,15 +490,15 @@ namespace Alsa
         Close();
       }
       catch (const Error&)
-      {
-      }
+      {}
     }
 
     void Open()
     {
       Dbg("Attaching to mixer device '%1%'", Name);
       MixDev.CheckedCall(&Api::snd_mixer_attach, Name.c_str(), THIS_LINE);
-      MixDev.CheckedCall(&Api::snd_mixer_selem_register, static_cast<snd_mixer_selem_regopt*>(nullptr), static_cast<snd_mixer_class_t**>(nullptr), THIS_LINE);
+      MixDev.CheckedCall(&Api::snd_mixer_selem_register, static_cast<snd_mixer_selem_regopt*>(nullptr),
+                         static_cast<snd_mixer_class_t**>(nullptr), THIS_LINE);
       MixDev.CheckedCall(&Api::snd_mixer_load, THIS_LINE);
     }
 
@@ -517,12 +511,13 @@ namespace Alsa
         MixDev.Close();
       }
     }
-    
+
     MixerElementsIterator GetElements() const
     {
       Require(MixDev.Get());
       return MixerElementsIterator(AlsaApi, *MixDev.Get());
     }
+
   private:
     const Api::Ptr AlsaApi;
     const String Name;
@@ -533,7 +528,7 @@ namespace Alsa
   {
   public:
     typedef std::shared_ptr<Mixer> Ptr;
-    
+
     Mixer(Api::Ptr api, const Identifier& id, const String& mixer)
       : AlsaApi(api)
       , Attached(api, id.GetCard())
@@ -541,7 +536,7 @@ namespace Alsa
     {
 
       Dbg("Opening mixer '%1%'", mixer);
-      //find mixer element
+      // find mixer element
       for (MixerElementsIterator iter = Attached.GetElements(); iter.IsValid(); iter.Next())
       {
         snd_mixer_elem_t* const elem = iter.Get();
@@ -562,8 +557,7 @@ namespace Alsa
       }
       if (!MixerElement)
       {
-        throw MakeFormattedError(THIS_LINE,
-          translate("Failed to found mixer '%1%' for ALSA backend."), mixer);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to found mixer '%1%' for ALSA backend."), mixer);
       }
     }
 
@@ -574,8 +568,7 @@ namespace Alsa
         Close();
       }
       catch (const Error&)
-      {
-      }
+      {}
     }
 
     void Close()
@@ -594,12 +587,17 @@ namespace Alsa
       {
         static_assert(Gain::CHANNELS == 2, "Invalid channels count");
         long minVol = 0, maxVol = 0;
-        CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol), THIS_LINE);
+        CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol),
+                    THIS_LINE);
         const long volRange = maxVol - minVol;
 
         long leftVol = 0, rightVol = 0;
-        CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, &leftVol), THIS_LINE);
-        CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, &rightVol), THIS_LINE);
+        CheckResult(*AlsaApi,
+                    AlsaApi->snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, &leftVol),
+                    THIS_LINE);
+        CheckResult(*AlsaApi,
+                    AlsaApi->snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, &rightVol),
+                    THIS_LINE);
         return Gain(Gain::Type(leftVol - minVol, volRange), Gain::Type(rightVol - minVol, volRange));
       }
     }
@@ -614,15 +612,21 @@ namespace Alsa
       {
         static_assert(Gain::CHANNELS == 2, "Invalid channels count");
         long minVol = 0, maxVol = 0;
-        CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol), THIS_LINE);
+        CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol),
+                    THIS_LINE);
         const long volRange = maxVol - minVol;
 
         const long leftVol = static_cast<long>((volume.Left() * volRange).Round() + minVol);
         const long rightVol = static_cast<long>((volume.Right() * volRange).Round() + minVol);
-        CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, leftVol), THIS_LINE);
-        CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, rightVol), THIS_LINE);
+        CheckResult(*AlsaApi,
+                    AlsaApi->snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, leftVol),
+                    THIS_LINE);
+        CheckResult(*AlsaApi,
+                    AlsaApi->snd_mixer_selem_set_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, rightVol),
+                    THIS_LINE);
       }
     }
+
   private:
     const Api::Ptr AlsaApi;
     AttachedMixer Attached;
@@ -634,8 +638,7 @@ namespace Alsa
   public:
     explicit VolumeControl(Mixer::Ptr mixer)
       : Mix(mixer)
-    {
-    }
+    {}
 
     Gain GetVolume() const override
     {
@@ -657,6 +660,7 @@ namespace Alsa
       }
       Dbg("Volume control is expired");
     }
+
   private:
     const std::weak_ptr<Mixer> Mix;
   };
@@ -666,8 +670,7 @@ namespace Alsa
   public:
     explicit BackendParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
-    {
-    }
+    {}
 
     String GetDeviceName() const
     {
@@ -682,18 +685,19 @@ namespace Alsa
       Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, strVal);
       return strVal;
     }
-    
+
     Time::Milliseconds GetLatency() const
     {
       Parameters::IntType val = Parameters::ZXTune::Sound::Backends::Alsa::LATENCY_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::LATENCY, val) &&
-          !Math::InRange<Parameters::IntType>(val, LATENCY_MIN, LATENCY_MAX))
+      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::LATENCY, val)
+          && !Math::InRange<Parameters::IntType>(val, LATENCY_MIN, LATENCY_MAX))
       {
-        throw MakeFormattedError(THIS_LINE,
-          translate("ALSA backend error: latency (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(val), LATENCY_MIN, LATENCY_MAX);
+        throw MakeFormattedError(THIS_LINE, translate("ALSA backend error: latency (%1%) is out of range (%2%..%3%)."),
+                                 static_cast<int_t>(val), LATENCY_MIN, LATENCY_MAX);
       }
       return Time::Milliseconds(val);
     }
+
   private:
     const Parameters::Accessor& Accessor;
   };
@@ -704,8 +708,7 @@ namespace Alsa
     BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
       : AlsaApi(std::move(api))
       , Params(std::move(params))
-    {
-    }
+    {}
 
     ~BackendWorker() override
     {
@@ -738,9 +741,7 @@ namespace Alsa
       Objects.Dev->Resume();
     }
 
-    void FrameStart(const Module::State& /*state*/) override
-    {
-    }
+    void FrameStart(const Module::State& /*state*/) override {}
 
     void FrameFinish(Chunk buffer) override
     {
@@ -751,6 +752,7 @@ namespace Alsa
     {
       return CreateVolumeControlDelegate(Objects.Vol);
     }
+
   private:
     struct AlsaObjects
     {
@@ -758,7 +760,7 @@ namespace Alsa
       Mixer::Ptr Mix;
       VolumeControl::Ptr Vol;
     };
-    
+
     AlsaObjects OpenDevices() const
     {
       const RenderParameters::Ptr sound = RenderParameters::Create(Params);
@@ -772,6 +774,7 @@ namespace Alsa
       res.Vol = MakePtr<VolumeControl>(res.Mix);
       return res;
     }
+
   private:
     const Api::Ptr AlsaApi;
     const Parameters::Accessor::Ptr Params;
@@ -783,13 +786,13 @@ namespace Alsa
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
       : AlsaApi(std::move(api))
-    {
-    }
-    
+    {}
+
     BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       return MakePtr<BackendWorker>(AlsaApi, params);
     }
+
   private:
     const Api::Ptr AlsaApi;
   };
@@ -798,8 +801,8 @@ namespace Alsa
   {
     snd_ctl_t* ctl = nullptr;
     return api->snd_ctl_open(&ctl, deviceName.c_str(), 0) >= 0
-      ? std::shared_ptr<snd_ctl_t>(ctl, std::bind(&Api::snd_ctl_close, api, std::placeholders::_1))
-      : std::shared_ptr<snd_ctl_t>();
+               ? std::shared_ptr<snd_ctl_t>(ctl, std::bind(&Api::snd_ctl_close, api, std::placeholders::_1))
+               : std::shared_ptr<snd_ctl_t>();
   }
 
   class CardsIterator
@@ -837,10 +840,10 @@ namespace Alsa
       CurHandle = std::shared_ptr<snd_ctl_t>();
       CurName.clear();
       CurId.clear();
-      const std::shared_ptr<snd_ctl_card_info_t> cardInfo = Allocate<snd_ctl_card_info_t>(AlsaApi,
-        &Api::snd_ctl_card_info_malloc, &Api::snd_ctl_card_info_free);
+      const std::shared_ptr<snd_ctl_card_info_t> cardInfo =
+          Allocate<snd_ctl_card_info_t>(AlsaApi, &Api::snd_ctl_card_info_malloc, &Api::snd_ctl_card_info_free);
 
-      for (; AlsaApi->snd_card_next(&Index) >= 0 && Index >= 0; )
+      for (; AlsaApi->snd_card_next(&Index) >= 0 && Index >= 0;)
       {
         const auto hwId = Strings::Format("hw:%i", Index);
         const auto handle = OpenDevice(AlsaApi, hwId);
@@ -858,6 +861,7 @@ namespace Alsa
         return;
       }
     }
+
   private:
     const Api::Ptr AlsaApi;
     int Index;
@@ -895,9 +899,8 @@ namespace Alsa
     void Next()
     {
       CurName.clear();
-      const auto pcmInfo = Allocate<snd_pcm_info_t>(AlsaApi,
-        &Api::snd_pcm_info_malloc, &Alsa::Api::snd_pcm_info_free);
-      for (; Card.IsValid() && AlsaApi->snd_ctl_pcm_next_device(&Card.Handle(), &Index) >= 0 && Index >= 0; )
+      const auto pcmInfo = Allocate<snd_pcm_info_t>(AlsaApi, &Api::snd_pcm_info_malloc, &Alsa::Api::snd_pcm_info_free);
+      for (; Card.IsValid() && AlsaApi->snd_ctl_pcm_next_device(&Card.Handle(), &Index) >= 0 && Index >= 0;)
       {
         AlsaApi->snd_pcm_info_set_device(pcmInfo.get(), Index);
         AlsaApi->snd_pcm_info_set_subdevice(pcmInfo.get(), 0);
@@ -916,6 +919,7 @@ namespace Alsa
       Index = -1;
       Next();
     }
+
   private:
     const Api::Ptr AlsaApi;
     const CardsIterator& Card;
@@ -931,8 +935,7 @@ namespace Alsa
       , IdValue(std::move(id))
       , NameValue(std::move(name))
       , CardNameValue(std::move(cardName))
-    {
-    }
+    {}
 
     String Id() const override
     {
@@ -971,11 +974,8 @@ namespace Alsa
 
     static Ptr CreateDefault(Api::Ptr api)
     {
-      return MakePtr<DeviceInfo>(api,
-        Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT,
-        Text::ALSA_BACKEND_DEFAULT_DEVICE,
-        Text::ALSA_BACKEND_DEFAULT_DEVICE
-        );
+      return MakePtr<DeviceInfo>(api, Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT,
+                                 Text::ALSA_BACKEND_DEFAULT_DEVICE, Text::ALSA_BACKEND_DEFAULT_DEVICE);
     }
 
     static Ptr Create(Api::Ptr api, const CardsIterator& card, const DevicesIterator& dev)
@@ -998,8 +998,7 @@ namespace Alsa
       , Cards(api)
       , Devices(api, Cards)
       , Current(Cards.IsValid() && Devices.IsValid() ? DeviceInfo::CreateDefault(api) : Device::Ptr())
-    {
-    }
+    {}
 
     bool IsValid() const override
     {
@@ -1029,14 +1028,14 @@ namespace Alsa
         }
       }
     }
+
   private:
     const Api::Ptr AlsaApi;
     CardsIterator Cards;
     DevicesIterator Devices;
     Device::Ptr Current;
   };
-}//Alsa
-}//Sound
+}  // namespace Sound::Alsa
 
 namespace Sound
 {
@@ -1083,7 +1082,7 @@ namespace Sound
         return Device::Iterator::CreateStub();
       }
     }
-  }
-}
+  }  // namespace Alsa
+}  // namespace Sound
 
 #undef FILE_TAG

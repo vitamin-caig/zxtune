@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  DAC-related Module properties helper implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC-related Module properties helper implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/dac/dac_properties_helper.h"
-//core includes
+// core includes
 #include <core/core_parameters.h>
 
 namespace Module
@@ -21,5 +21,5 @@ namespace Module
     {
       Delegate.SetValue(Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY, freq);
     }
-  }
-}
+  }  // namespace DAC
+}  // namespace Module

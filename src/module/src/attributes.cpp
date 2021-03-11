@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  Module attributes names
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Module attributes names
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include <module/attributes.h>
 
@@ -37,4 +37,4 @@ namespace Module
   extern const String ATTR_CURRENT_POSITION("CurPosition");
   extern const String ATTR_CURRENT_PATTERN("CurPattern");
   extern const String ATTR_CURRENT_LINE("CurLine");
-}
+}  // namespace Module

@@ -1,22 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  FM chips implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FM chips implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "chip.h"
 
-namespace Devices
-{
-namespace FM
+namespace Devices::FM
 {
   /*
     No implementation required yet
   */
-}
 }

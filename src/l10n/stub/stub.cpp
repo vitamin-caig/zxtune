@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  L10n stub implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  L10n stub implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <pointers.h>
-//library includes
+// library includes
 #include <l10n/src/library.h>
 
 namespace
@@ -42,13 +42,9 @@ namespace
   class StubLibrary : public L10n::Library
   {
   public:
-    void AddTranslation(const L10n::Translation& /*trans*/) override
-    {
-    }
+    void AddTranslation(const L10n::Translation& /*trans*/) override {}
 
-    void SelectTranslation(const String& /*translation*/) override
-    {
-    }
+    void SelectTranslation(const String& /*translation*/) override {}
 
     L10n::Vocabulary::Ptr GetVocabulary(const String& /*domain*/) const override
     {
@@ -56,7 +52,7 @@ namespace
       return MakeSingletonPointer(voc);
     }
   };
-}
+}  // namespace
 
 namespace L10n
 {
@@ -66,7 +62,5 @@ namespace L10n
     return instance;
   }
 
-  void LoadTranslationsFromResources(Library& /*lib*/)
-  {
-  }
-}
+  void LoadTranslationsFromResources(Library& /*lib*/) {}
+}  // namespace L10n

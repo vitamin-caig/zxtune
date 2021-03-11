@@ -1,12 +1,12 @@
 /**
-* 
-* @file
-*
-* @brief  ZXTune benchmark application
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ZXTune benchmark application
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include "core/benchmark.h"
 #include <iostream>
@@ -26,10 +26,11 @@ namespace
       }
       std::cout << " " << test.Name() << ": " << std::flush << 'x' << test.Execute() << std::endl;
     }
+
   private:
     std::string LastCategory;
   };
-}
+}  // namespace
 
 int main()
 {

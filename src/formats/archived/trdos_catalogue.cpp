@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  TR-DOS catalogue implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TR-DOS catalogue implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/trdos_catalogue.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
 #include <strings/format.h>
-//std includes
+// std includes
 #include <cstring>
 #include <numeric>
 
@@ -25,18 +25,18 @@ namespace TRDos
   bool AreFilesMergeable(const File& lh, const File& rh)
   {
     const std::size_t firstSize = lh.GetSize();
-    //merge if files are sequental
+    // merge if files are sequental
     if (lh.GetOffset() + firstSize != rh.GetOffset())
     {
       return false;
     }
-    //and previous file size is multiplication of 255 sectors
+    // and previous file size is multiplication of 255 sectors
     if (0 == (firstSize % 0xff00))
     {
       return true;
     }
-    //xxx.x and
-    //xxx    '.x should be merged
+    // xxx.x and
+    // xxx    '.x should be merged
     static const Char SATTELITE_SEQ[] = {'\'', '.', '\0'};
     const String::size_type apPos(rh.GetName().find(SATTELITE_SEQ));
     const bool isSatelite = apPos != String::npos;
@@ -45,17 +45,17 @@ namespace TRDos
       return false;
     }
     const std::size_t secondSize = rh.GetSize();
-    //ProDigiTracker
+    // ProDigiTracker
     if (firstSize == 0xc300 && secondSize == 0xc000)
     {
       return true;
     }
-    //DigitalStudio
+    // DigitalStudio
     if (firstSize == 0xf200 && secondSize == 0xc000)
     {
       return true;
     }
-    //ExtremeTracker1
+    // ExtremeTracker1
     if (firstSize == 0xfc00 && secondSize == 0xbc00)
     {
       return true;
@@ -81,8 +81,7 @@ namespace TRDos
     FixedNameFile(String newName, File::Ptr delegate)
       : FixedName(std::move(newName))
       , Delegate(std::move(delegate))
-    {
-    }
+    {}
 
     String GetName() const override
     {
@@ -103,6 +102,7 @@ namespace TRDos
     {
       return Delegate->GetOffset();
     }
+
   private:
     const String FixedName;
     const File::Ptr Delegate;
@@ -114,18 +114,18 @@ namespace TRDos
     explicit NamesGenerator(String name)
       : Name(std::move(name))
       , Idx(1)
-    {
-    }
+    {}
 
     String operator()() const
     {
       return GenerateName();
     }
 
-    void operator ++()
+    void operator++()
     {
       ++Idx;
     }
+
   private:
     String GenerateName() const
     {
@@ -136,6 +136,7 @@ namespace TRDos
       const String ext = dotPos == String::npos ? String() : Name.substr(dotPos);
       return Strings::Format(DISAMBIG_NAME_FORMAT, base, Idx, ext);
     }
+
   private:
     const String Name;
     unsigned Idx;
@@ -148,8 +149,7 @@ namespace TRDos
     CommonCatalogue(Binary::Container::Ptr data, T from, T to)
       : BaseContainer(std::move(data))
       , Files(from, to)
-    {
-    }
+    {}
 
     void ExploreFiles(const Formats::Archived::Container::Walker& walker) const override
     {
@@ -175,6 +175,7 @@ namespace TRDos
     {
       return static_cast<uint_t>(Files.size());
     }
+
   private:
     const FilesList Files;
   };
@@ -212,8 +213,10 @@ namespace TRDos
         return Formats::Archived::Container::Ptr();
       }
     }
+
   protected:
     virtual MultiFile::Ptr CreateMultiFile(File::Ptr inFile) = 0;
+
   private:
     bool Merge(File::Ptr newOne) const
     {
@@ -231,12 +234,11 @@ namespace TRDos
     File::Ptr CreateUniqueNameFile(File::Ptr newOne)
     {
       const String originalName(newOne->GetName());
-      if (!originalName.empty() &&
-          !HasFile(originalName))
+      if (!originalName.empty() && !HasFile(originalName))
       {
         return newOne;
       }
-      for (NamesGenerator gen(originalName); ; ++gen)
+      for (NamesGenerator gen(originalName);; ++gen)
       {
         const String newName = gen();
         if (!HasFile(newName))
@@ -257,6 +259,7 @@ namespace TRDos
       }
       return false;
     }
+
   private:
     Binary::Container::Ptr Data;
     MultiFilesList Files;
@@ -271,8 +274,7 @@ namespace TRDos
       , Name(std::move(name))
       , Offset(off)
       , Size(size)
-    {
-    }
+    {}
 
     String GetName() const override
     {
@@ -293,6 +295,7 @@ namespace TRDos
     {
       return Offset;
     }
+
   private:
     const Binary::Container::Ptr Data;
     const String Name;
@@ -316,9 +319,9 @@ namespace TRDos
     std::size_t GetSize() const override
     {
       return 1 == Subfiles.size()
-        ? Subfiles.front()->GetSize()
-        : std::accumulate(Subfiles.begin(), Subfiles.end(), std::size_t(0), 
-          [](std::size_t sum, const File::Ptr& file) {return sum + file->GetSize();});
+                 ? Subfiles.front()->GetSize()
+                 : std::accumulate(Subfiles.begin(), Subfiles.end(), std::size_t(0),
+                                   [](std::size_t sum, const File::Ptr& file) { return sum + file->GetSize(); });
     }
 
     Binary::Container::Ptr GetData() const override
@@ -359,14 +362,13 @@ namespace TRDos
       return false;
     }
 
-    void SetContainer(Binary::Container::Ptr /*data*/) override
-    {
-    }
+    void SetContainer(Binary::Container::Ptr /*data*/) override {}
+
   private:
     FilesList Subfiles;
   };
 
-  //TODO: remove implementation inheritance
+  // TODO: remove implementation inheritance
   class GenericCatalogueBuilder : public BaseCatalogueBuilder
   {
   public:
@@ -376,7 +378,7 @@ namespace TRDos
     }
   };
 
-  //flat files support
+  // flat files support
   class FlatFile : public File
   {
   public:
@@ -384,8 +386,7 @@ namespace TRDos
       : Name(std::move(name))
       , Offset(off)
       , Size(size)
-    {
-    }
+    {}
 
     String GetName() const override
     {
@@ -407,6 +408,7 @@ namespace TRDos
     {
       return Offset;
     }
+
   private:
     const String Name;
     const std::size_t Offset;
@@ -419,8 +421,7 @@ namespace TRDos
     FlatMultiFile(File::Ptr delegate)
       : Delegate(delegate)
       , Size(delegate->GetSize())
-    {
-    }
+    {}
 
     String GetName() const override
     {
@@ -456,13 +457,14 @@ namespace TRDos
     {
       Data = data;
     }
+
   private:
     const File::Ptr Delegate;
     std::size_t Size;
     Binary::Container::Ptr Data;
   };
 
-  //TODO: remove implementation inheritance
+  // TODO: remove implementation inheritance
   class FlatCatalogueBuilder : public BaseCatalogueBuilder
   {
   public:
@@ -491,4 +493,4 @@ namespace TRDos
   {
     return MakePtr<FlatCatalogueBuilder>();
   }
-}
+}  // namespace TRDos

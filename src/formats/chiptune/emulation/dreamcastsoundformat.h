@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  DSF parser interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DSF parser interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -23,5 +23,5 @@ namespace Formats
     }
 
     Decoder::Ptr CreateDSFDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

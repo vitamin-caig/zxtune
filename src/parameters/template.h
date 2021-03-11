@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Strings::Template adapter for Parameters interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Strings::Template adapter for Parameters interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/accessor.h>
 #include <parameters/convert.h>
 #include <strings/fields.h>
@@ -24,8 +24,7 @@ namespace Parameters
   public:
     explicit FieldsSourceAdapter(const Accessor& params)
       : Params(params)
-    {
-    }
+    {}
 
     String GetFieldValue(const String& fieldName) const override
     {
@@ -41,7 +40,8 @@ namespace Parameters
       }
       return Policy::GetFieldValue(fieldName);
     }
+
   private:
     const Accessor& Params;
   };
-}
+}  // namespace Parameters

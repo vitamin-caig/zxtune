@@ -1,30 +1,30 @@
 /**
-* 
-* @file
-*
-* @brief  SAA1099 support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SAA1099 support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <data_streaming.h>
 #include <types.h>
-//library includes
+// library includes
 #include <devices/state.h>
 #include <sound/chunk.h>
 #include <time/instant.h>
-//std includes
+// std includes
 #include <array>
 
 namespace Devices
 {
   namespace SAA
   {
-    //6 tones + 2 noises + 2 envelopes
+    // 6 tones + 2 noises + 2 envelopes
     const uint_t VOICES = 10;
 
     using TimeUnit = Time::Microsecond;
@@ -32,7 +32,7 @@ namespace Devices
 
     struct Registers
     {
-      //registers offsets in data
+      // registers offsets in data
       enum
       {
         LEVEL0 = 0,
@@ -66,8 +66,7 @@ namespace Devices
       Registers()
         : Mask()
         , Data()
-      {
-      }
+      {}
 
       uint32_t Mask;
       std::array<uint8_t, TOTAL> Data;
@@ -79,8 +78,7 @@ namespace Devices
       DataChunk()
         : TimeStamp()
         , Data()
-      {
-      }
+      {}
 
       Stamp TimeStamp;
       Registers Data;
@@ -100,7 +98,9 @@ namespace Devices
     };
 
     // Describes real device
-    class Chip : public Device, public StateSource
+    class Chip
+      : public Device
+      , public StateSource
     {
     public:
       using Ptr = std::shared_ptr<Chip>;
@@ -130,5 +130,5 @@ namespace Devices
 
     /// Virtual constructors
     Chip::Ptr CreateChip(ChipParameters::Ptr params);
-  }
-}
+  }  // namespace SAA
+}  // namespace Devices

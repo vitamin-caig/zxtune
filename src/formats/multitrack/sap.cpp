@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief  SAP support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SAP support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <binary/crc.h>
 #include <binary/data_builder.h>
@@ -22,40 +22,37 @@
 #include <formats/multitrack.h>
 #include <strings/array.h>
 #include <strings/conversion.h>
-//std includes
+// std includes
 #include <array>
 #include <map>
 #include <utility>
 
-namespace Formats
-{
-namespace Multitrack
+namespace Formats::Multitrack
 {
   namespace SAP
   {
-    //const std::size_t MAX_SIZE = 1048576;
-    
+    // const std::size_t MAX_SIZE = 1048576;
+
     const StringView FORMAT =
-      "'S'A'P"
-      "0d0a"
-      "'A|'N|'D|'S|'D|'S|'N|'T|'F|'I|'M|'P|'C|'T"
-      "'U|'A|'A|'O|'E|'T|'T|'Y|'A|'N|'U|'L|'O|'I"
-      "'T|'M|'T|'N|'F|'E|'S|'P|'S|'I|'S|'A|'V|'M"
-      "'H|'E|'E|'G|'S|'R|'C|'E|'T|'T|'I|'Y|'O|'E"
-      "'O|' |' |'S|'O|'E|' |' |'P|' |'C|'E|'X|' "
-     ;
-     
+        "'S'A'P"
+        "0d0a"
+        "'A|'N|'D|'S|'D|'S|'N|'T|'F|'I|'M|'P|'C|'T"
+        "'U|'A|'A|'O|'E|'T|'T|'Y|'A|'N|'U|'L|'O|'I"
+        "'T|'M|'T|'N|'F|'E|'S|'P|'S|'I|'S|'A|'V|'M"
+        "'H|'E|'E|'G|'S|'R|'C|'E|'T|'T|'I|'Y|'O|'E"
+        "'O|' |' |'S|'O|'E|' |' |'P|' |'C|'E|'X|' ";
+
     typedef std::array<uint8_t, 5> TextSignatureType;
 
     const TextSignatureType TEXT_SIGNATURE = {{'S', 'A', 'P', 0x0d, 0x0a}};
     const StringView SONGS = "SONGS";
     const StringView DEFSONG = "DEFSONG";
-    
+
     typedef std::array<uint8_t, 2> BinarySignatureType;
     const BinarySignatureType BINARY_SIGNATURE = {{0xff, 0xff}};
-     
+
     const std::size_t MIN_SIZE = 256;
-    
+
     class Builder
     {
     public:
@@ -64,19 +61,18 @@ namespace Multitrack
       virtual void SetProperty(StringView name, StringView value) = 0;
       virtual void SetBlock(const uint_t start, Binary::View data) = 0;
     };
-    
+
     class DataBuilder : public Builder
     {
     public:
       typedef std::shared_ptr<const DataBuilder> Ptr;
       typedef std::shared_ptr<DataBuilder> RWPtr;
-      
+
       DataBuilder()
         : TracksCount(1)
         , DefaultTrack(0)
-      {
-      }
-      
+      {}
+
       void SetProperty(StringView name, StringView value) override
       {
         if (name == DEFSONG)
@@ -97,22 +93,22 @@ namespace Multitrack
           Lines.emplace_back(name.to_string() + " " + value.to_string());
         }
       }
-      
+
       void SetBlock(const uint_t start, Binary::View data) override
       {
         Blocks.emplace(start, data);
       }
-      
+
       uint_t GetTracksCount() const
       {
         return TracksCount;
       }
-      
+
       uint_t GetStartTrack() const
       {
         return DefaultTrack;
       }
-      
+
       uint_t GetFixedCrc(uint_t startTrack) const
       {
         uint32_t crc = startTrack;
@@ -122,7 +118,7 @@ namespace Multitrack
         }
         return crc;
       }
-      
+
       Binary::Container::Ptr Rebuild(uint_t startTrack) const
       {
         Require(TracksCount != 1);
@@ -134,6 +130,7 @@ namespace Multitrack
         DumpBinaryPart(builder);
         return builder.CaptureResult();
       }
+
     private:
       void DumpTextPart(Binary::DataBuilder& builder) const
       {
@@ -142,7 +139,7 @@ namespace Multitrack
           AddString(line, builder);
         }
       }
-      
+
       static void AddString(const String& str, Binary::DataBuilder& builder)
       {
         uint8_t* const dst = static_cast<uint8_t*>(builder.Allocate(str.size() + 2));
@@ -150,7 +147,7 @@ namespace Multitrack
         end[0] = 0x0d;
         end[1] = 0x0a;
       }
-      
+
       void DumpBinaryPart(Binary::DataBuilder& builder) const
       {
         for (const auto& blk : Blocks)
@@ -163,13 +160,14 @@ namespace Multitrack
           std::memcpy(dst, blk.second.Start(), size);
         }
       }
+
     private:
       Strings::Array Lines;
       uint_t TracksCount;
       uint_t DefaultTrack;
       std::map<uint_t, Binary::View> Blocks;
     };
-    
+
     class Container : public Binary::BaseContainer<Multitrack::Container>
     {
     public:
@@ -177,9 +175,8 @@ namespace Multitrack
         : BaseContainer(std::move(delegate))
         , Content(std::move(content))
         , StartTrack(startTrack)
-      {
-      }
-      
+      {}
+
       uint_t FixedChecksum() const override
       {
         return Content->GetFixedCrc(StartTrack);
@@ -194,11 +191,12 @@ namespace Multitrack
       {
         return StartTrack;
       }
-      
+
       Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
         return MakePtr<Container>(Content, Content->Rebuild(idx), idx);
       }
+
     private:
       const DataBuilder::Ptr Content;
       const uint_t StartTrack;
@@ -207,11 +205,10 @@ namespace Multitrack
     class Decoder : public Formats::Multitrack::Decoder
     {
     public:
-      //Use match only due to lack of end detection
+      // Use match only due to lack of end detection
       Decoder()
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       Binary::Format::Ptr GetFormat() const override
       {
@@ -233,10 +230,10 @@ namespace Multitrack
           return MakePtr<Container>(std::move(builder), std::move(data), startTrack);
         }
         catch (const std::exception&)
-        {
-        }
+        {}
         return Formats::Multitrack::Container::Ptr();
       }
+
     private:
       static Binary::Container::Ptr Parse(const Binary::Container& rawData, Builder& builder)
       {
@@ -276,16 +273,15 @@ namespace Multitrack
           builder.SetProperty(name.to_string(), value.to_string());
         }
       }
-      
+
       static void ParseBinaryPart(Binary::DataInputStream& stream, Builder& builder)
       {
         while (stream.GetRestSize())
         {
           const uint_t first = stream.ReadLE<uint16_t>();
-          if ((first & 0xff) == BINARY_SIGNATURE[0] &&
-              (first >> 8) == BINARY_SIGNATURE[1])
+          if ((first & 0xff) == BINARY_SIGNATURE[0] && (first >> 8) == BINARY_SIGNATURE[1])
           {
-            //skip possible headers inside
+            // skip possible headers inside
             continue;
           }
           const uint_t last = stream.ReadLE<uint16_t>();
@@ -294,14 +290,14 @@ namespace Multitrack
           builder.SetBlock(first, stream.ReadData(size));
         }
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
-  }//namespace SAP
+  }  // namespace SAP
 
   Decoder::Ptr CreateSAPDecoder()
   {
     return MakePtr<SAP::Decoder>();
   }
-}//namespace Multitrack
-}//namespace Formats
+}  // namespace Formats::Multitrack

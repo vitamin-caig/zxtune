@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Fields source and some basic adapters
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Fields source and some basic adapters
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <strings/template.h>
 
 namespace Strings
@@ -26,7 +26,7 @@ namespace Strings
     virtual String GetFieldValue(const String& fieldName) const = 0;
   };
 
-  //Base implementations
+  // Base implementations
 
   // Skip all the fields
   class SkipFieldsSource : public FieldsSource
@@ -60,4 +60,4 @@ namespace Strings
       return String(fieldName.size() + 2, ' ');
     }
   };
-}
+}  // namespace Strings

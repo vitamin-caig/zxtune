@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Defenition of gain-related functionality
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Defenition of gain-related functionality
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <sound/gain.h>
 #include <sound/receiver.h>
 
@@ -25,4 +25,4 @@ namespace Sound
   };
 
   Gainer::Ptr CreateGainer();
-}
+}  // namespace Sound

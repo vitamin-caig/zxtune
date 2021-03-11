@@ -1,24 +1,24 @@
 /**
-* 
-* @file
-*
-* @brief  Parsing tools implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parsing tools implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "config.h"
-//common includes
+// common includes
 #include <error_tools.h>
-//library includes
+// library includes
 #include <parameters/serialize.h>
 #include <strings/map.h>
-//std includes
+// std includes
 #include <cctype>
 #include <fstream>
-//text includes
+// text includes
 #include "text/text.h"
 
 #define FILE_TAG 0DBA1FA8
@@ -46,7 +46,7 @@ namespace
     return Text::CONFIG_FILENAME;
   }
 
-  //try to search config in homedir, if defined
+  // try to search config in homedir, if defined
   inline String GetDefaultConfigFile()
   {
 #ifdef _WIN32
@@ -59,7 +59,7 @@ namespace
   void ParseParametersString(const Parameters::NameType& prefix, const String& str, Strings::Map& result)
   {
     Strings::Map res;
-  
+
     enum
     {
       IN_NAME,
@@ -74,7 +74,7 @@ namespace
       value ::= \"[^\"]*\"
       value ::= [^,]*
       name is prepended with prefix before insert to result
-    */  
+    */
     String paramName, paramValue;
     for (String::const_iterator it = str.begin(), lim = str.end(); it != lim; ++it)
     {
@@ -178,7 +178,7 @@ namespace
       {
         std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
         auto beginof = std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
-          [](Char c) {return !std::isspace(c);});
+                                                                       [](Char c) { return !std::isspace(c); });
         if (beginof != endof && *beginof != Char('#'))
         {
           if (!lines.empty())
@@ -195,7 +195,7 @@ namespace
     }
     params = lines;
   }
-}
+}  // namespace
 
 void ParseConfigFile(const String& filename, Parameters::Modifier& result)
 {

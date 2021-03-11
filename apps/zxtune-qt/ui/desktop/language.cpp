@@ -1,23 +1,23 @@
 /**
-* 
-* @file
-*
-* @brief i18n support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief i18n support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "language.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <l10n/control.h>
-//std includes
+// std includes
 #include <map>
 #include <set>
-//qt includes
+// qt includes
 #include <QtCore/QCoreApplication>
 #include <QtCore/QLocale>
 #include <QtCore/QTranslator>
@@ -63,6 +63,7 @@ namespace
       }
       return res;
     }
+
   private:
     typedef std::shared_ptr<const Dump> DumpPtr;
     typedef std::set<DumpPtr> DumpsSet;
@@ -91,6 +92,7 @@ namespace
       }
       ActiveTranslators.swap(newTranslators);
     }
+
   private:
     LangToDumpsSetMap Translations;
     TranslatorsSet ActiveTranslators;
@@ -107,7 +109,7 @@ namespace
     QStringList GetAvailable() const override
     {
       QStringList res;
-      res << QLatin1String("en");//by default
+      res << QLatin1String("en");  // by default
       for (const auto& lng : Lib.EnumerateLanguages())
       {
         res << QString::fromStdString(lng);
@@ -118,7 +120,7 @@ namespace
     QString GetSystem() const override
     {
       QString curLang = QLocale::system().name();
-      curLang.truncate(curLang.lastIndexOf(QLatin1Char('_')));//$(lang)_$(country)
+      curLang.truncate(curLang.lastIndexOf(QLatin1Char('_')));  //$(lang)_$(country)
       return curLang;
     }
 
@@ -132,17 +134,18 @@ namespace
         Lang = lang;
       }
     }
+
   private:
     QtTranslationLibrary Lib;
     QString Lang;
   };
-}
+}  // namespace
 
 namespace UI
 {
   Language::Ptr Language::Create()
   {
-    //use slight caching to prevent heavy parsing
+    // use slight caching to prevent heavy parsing
     static std::weak_ptr<Language> instance;
     if (Language::Ptr res = instance.lock())
     {
@@ -152,4 +155,4 @@ namespace UI
     instance = res;
     return res;
   }
-}
+}  // namespace UI

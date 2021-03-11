@@ -1,34 +1,26 @@
 /**
-*
-* @file
-*
-* @brief  Error subsystem test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Error subsystem test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include <error.h>
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #define FILE_TAG 2725FBAF
 
 namespace
 {
-  const Error::Location LOCATIONS[] = {
-    THIS_LINE,
-    THIS_LINE,
-    THIS_LINE
-  };
+  const Error::Location LOCATIONS[] = {THIS_LINE, THIS_LINE, THIS_LINE};
 
-  const String TEXTS[] = {
-    "Error1",
-    "Error2",
-    "Error3"
-  };
-  
+  const String TEXTS[] = {"Error1", "Error2", "Error3"};
+
   void Test(bool res, const String& text, unsigned line)
   {
     std::cout << (res ? "Passed" : "Failed") << " test '" << text << "' at " << line << std::endl;
@@ -54,12 +46,12 @@ namespace
     Test(err.GetLocation() == LOCATIONS[idx], "Errors location test", __LINE__);
     Test(err.GetText() == TEXTS[idx], "Error text test", __LINE__);
   }
- 
+
   void ShowError(const Error& e)
   {
     std::cout << e.ToString();
   }
-}
+}  // namespace
 
 int main()
 {

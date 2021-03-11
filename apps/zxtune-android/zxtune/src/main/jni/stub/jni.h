@@ -19,8 +19,8 @@ using jthrowable = void*;
 using jsize = std::size_t;
 
 #define JNI_VERSION_1_6 0x00010006
-#define JNI_OK          0
-#define JNI_ERR         -1
+#define JNI_OK 0
+#define JNI_ERR -1
 
 struct JavaVM
 {

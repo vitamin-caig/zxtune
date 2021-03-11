@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  ASC Sound Master support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ASC Sound Master support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -26,34 +26,38 @@ namespace Formats
       struct SampleLine
       {
         SampleLine()
-          : Level(), ToneDeviation(), ToneMask(true), NoiseMask(true), Adding()
-          , EnableEnvelope(), VolSlide()
-        {
-        }
+          : Level()
+          , ToneDeviation()
+          , ToneMask(true)
+          , NoiseMask(true)
+          , Adding()
+          , EnableEnvelope()
+          , VolSlide()
+        {}
 
-        uint_t Level;//0-15
+        uint_t Level;  // 0-15
         int_t ToneDeviation;
         bool ToneMask;
         bool NoiseMask;
         int_t Adding;
         bool EnableEnvelope;
-        int_t VolSlide;//0/+1/-1
+        int_t VolSlide;  // 0/+1/-1
       };
-      
+
       typedef LinesObjectWithLoopLimit<SampleLine> Sample;
 
       struct OrnamentLine
       {
         OrnamentLine()
-          : NoteAddon(), NoiseAddon()
-        {
-        }
+          : NoteAddon()
+          , NoiseAddon()
+        {}
         int_t NoteAddon;
         int_t NoiseAddon;
       };
-      
+
       typedef LinesObjectWithLoopLimit<OrnamentLine> Ornament;
-      
+
       typedef LinesObject<uint_t> Positions;
 
       class Builder
@@ -62,12 +66,12 @@ namespace Formats
         virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
-        //common properties
+        // common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
-        //samples+ornaments
+        // samples+ornaments
         virtual void SetSample(uint_t index, Sample sample) = 0;
         virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
-        //patterns
+        // patterns
         virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
@@ -107,7 +111,7 @@ namespace Formats
         Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info);
 
         Decoder::Ptr CreateDecoder();
-      };
+      };  // namespace Ver0
 
       namespace Ver1
       {
@@ -115,10 +119,10 @@ namespace Formats
         Binary::Container::Ptr InsertMetaInformation(const Binary::Container& data, Binary::View info);
 
         Decoder::Ptr CreateDecoder();
-      };
-    }
+      };  // namespace Ver1
+    }     // namespace ASCSoundMaster
 
     Decoder::Ptr CreateASCSoundMaster0xDecoder();
     Decoder::Ptr CreateASCSoundMaster1xDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Low-pass filter
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Low-pass filter
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <math/fixedpoint.h>
 #include <math/numeric.h>
 #include <sound/sample.h>
-//std includes
+// std includes
 #include <cmath>
 
 namespace Sound
@@ -23,12 +23,15 @@ namespace Sound
   {
   public:
     LPFilter()
-      : A(), B(), C()
+      : A()
+      , B()
+      , C()
       , DCShift()
-      , In1(), In2()
-      , Out1(), Out2()
-    {
-    }
+      , In1()
+      , In2()
+      , Out1()
+      , Out2()
+    {}
 
     void SetParameters(uint64_t sampleFreq, uint64_t cutOffFreq)
     {
@@ -62,8 +65,8 @@ namespace Sound
       */
       const float w0 = 3.14159265358f * 2.0f * cutOffFreq / sampleFreq;
       const float q = 1.0f;
-      //specify gain to avoid overload
-      const float gain = 1.0f;//0.98f;
+      // specify gain to avoid overload
+      const float gain = 1.0f;  // 0.98f;
 
       const float sinus = sin(w0);
       const float cosine = cos(w0);
@@ -78,8 +81,8 @@ namespace Sound
       const float b = -a1 / a0;
       const float c = a2 / a0;
 
-      //1 bit- floor rounding
-      //2 bits- scale for A (4)
+      // 1 bit- floor rounding
+      // 2 bits- scale for A (4)
       DCShift = Math::Log2(static_cast<uint_t>(1.0f / a)) - 3;
 
       A = a * (1 << DCShift);
@@ -112,6 +115,7 @@ namespace Sound
     {
       return Out1;
     }
+
   private:
     typedef Math::FixedPoint<int_t, 16384> Coeff;
     Coeff A, B, C;
@@ -119,4 +123,4 @@ namespace Sound
     Sample In1, In2;
     Sample Out1, Out2;
   };
-}
+}  // namespace Sound

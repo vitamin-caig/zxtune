@@ -1,25 +1,25 @@
 /**
-*
-* @file
-*
-* @brief  Win32 backend implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Win32 backend implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "sound/backends/win32.h"
+// local includes
 #include "sound/backends/backend_impl.h"
+#include "sound/backends/gates/win32_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 #include "sound/backends/volume_control.h"
-#include "sound/backends/gates/win32_api.h"
-//common includes
+#include "sound/backends/win32.h"
+// common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
@@ -27,17 +27,15 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <strings/encoding.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <cstring>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 #define FILE_TAG 5E3F141A
 
-namespace Sound
-{
-namespace Win32
+namespace Sound::Win32
 {
   const Debug::Stream Dbg("Sound::Backend::Win32");
 
@@ -54,8 +52,7 @@ namespace Win32
   public:
     SharedEvent()
       : Handle(::CreateEvent(0, FALSE, FALSE, 0), &::CloseHandle)
-    {
-    }
+    {}
 
     void Wait() const
     {
@@ -66,20 +63,22 @@ namespace Win32
     {
       return Handle.get();
     }
+
   private:
     static void CheckPlatformResult(bool val, Error::LocationRef loc)
     {
       if (!val)
       {
-        //TODO: convert code to string
+        // TODO: convert code to string
         throw MakeFormattedError(loc, translate("Error in Win32 backend: code %1%."), ::GetLastError());
       }
     }
+
   private:
     const std::shared_ptr<void> Handle;
   };
 
-  //lightweight wrapper around HWAVEOUT handle
+  // lightweight wrapper around HWAVEOUT handle
   class WaveOutDevice
   {
   public:
@@ -90,8 +89,9 @@ namespace Win32
       , Handle(0)
     {
       Dbg("Opening device %1% (%2% Hz)", device, format.nSamplesPerSec);
-      CheckMMResult(WinApi->waveOutOpen(&Handle, device, &format, DWORD_PTR(Event.Get()), 0,
-        CALLBACK_EVENT | WAVE_FORMAT_DIRECT), THIS_LINE);
+      CheckMMResult(
+          WinApi->waveOutOpen(&Handle, device, &format, DWORD_PTR(Event.Get()), 0, CALLBACK_EVENT | WAVE_FORMAT_DIRECT),
+          THIS_LINE);
     }
 
     ~WaveOutDevice()
@@ -161,6 +161,7 @@ namespace Win32
     {
       CheckMMResult(WinApi->waveOutSetVolume(Handle, val), THIS_LINE);
     }
+
   private:
     void CheckMMResult(::MMRESULT res, Error::LocationRef loc) const
     {
@@ -170,7 +171,7 @@ namespace Win32
         if (MMSYSERR_NOERROR == WinApi->waveOutGetErrorTextA(res, buffer.data(), static_cast<UINT>(buffer.size())))
         {
           throw MakeFormattedError(loc, translate("Error in Win32 backend: %1%."),
-            String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
+                                   String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
         }
         else
         {
@@ -178,6 +179,7 @@ namespace Win32
         }
       }
     }
+
   private:
     const Api::Ptr WinApi;
     const SharedEvent Event;
@@ -199,8 +201,7 @@ namespace Win32
     explicit WaveBuffer(WaveOutDevice::Ptr device)
       : Device(device)
       , Header()
-    {
-    }
+    {}
 
     virtual ~WaveBuffer()
     {
@@ -235,6 +236,7 @@ namespace Win32
       Header.dwFlags &= ~WHDR_DONE;
       Device->Write(Header);
     }
+
   private:
     void PrepareBuffer(std::size_t samples)
     {
@@ -259,7 +261,7 @@ namespace Win32
       Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
       Device->PrepareHeader(Header);
       Require(IsPrepared());
-      //mark as free
+      // mark as free
       Header.dwFlags |= WHDR_DONE;
     }
 
@@ -286,6 +288,7 @@ namespace Win32
     {
       return 0 != (Header.dwFlags & WHDR_PREPARED);
     }
+
   private:
     const WaveOutDevice::Ptr Device;
     Chunk Buffer;
@@ -322,12 +325,14 @@ namespace Win32
       Buffers[Cursor]->Write(buf);
       Cursor = (Cursor + 1) % Buffers.size();
     }
+
   private:
     void Reset()
     {
       BuffersArray().swap(Buffers);
       Cursor = 0;
     }
+
   private:
     typedef std::vector<WaveTarget::Ptr> BuffersArray;
     BuffersArray Buffers;
@@ -360,14 +365,13 @@ namespace Win32
       {
         throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
-      std::array<uint16_t, Sample::CHANNELS> buffer =
-      {{
-        static_cast<uint16_t>((volume.Left() * MAX_WIN32_VOLUME).Round()),
-        static_cast<uint16_t>((volume.Right() * MAX_WIN32_VOLUME).Round())
-      }};
+      std::array<uint16_t, Sample::CHANNELS> buffer = {
+          {static_cast<uint16_t>((volume.Left() * MAX_WIN32_VOLUME).Round()),
+           static_cast<uint16_t>((volume.Right() * MAX_WIN32_VOLUME).Round())}};
       static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
       Device->SetVolume(*safe_ptr_cast<LPDWORD>(buffer.data()));
     }
+
   private:
     const WaveOutDevice::Ptr Device;
   };
@@ -377,8 +381,7 @@ namespace Win32
   public:
     explicit BackendParameters(const Parameters::Accessor& accessor)
       : Accessor(accessor)
-    {
-    }
+    {}
 
     int_t GetDevice() const
     {
@@ -390,14 +393,16 @@ namespace Win32
     std::size_t GetBuffers() const
     {
       Parameters::IntType buffers = Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, buffers) &&
-          !Math::InRange<Parameters::IntType>(buffers, BUFFERS_MIN, BUFFERS_MAX))
+      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, buffers)
+          && !Math::InRange<Parameters::IntType>(buffers, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
-          translate("Win32 backend error: buffers count (%1%) is out of range (%2%..%3%)."), static_cast<int_t>(buffers), BUFFERS_MIN, BUFFERS_MAX);
+                                 translate("Win32 backend error: buffers count (%1%) is out of range (%2%..%3%)."),
+                                 static_cast<int_t>(buffers), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<std::size_t>(buffers);
     }
+
   private:
     const Parameters::Accessor& Accessor;
   };
@@ -409,8 +414,7 @@ namespace Win32
       : WinApi(api)
       , BackendParams(params)
       , RenderingParameters(RenderParameters::Create(BackendParams))
-    {
-    }
+    {}
 
     virtual ~BackendWorker()
     {
@@ -443,9 +447,7 @@ namespace Win32
       Objects.Device->Resume();
     }
 
-    virtual void FrameStart(const Module::State& /*state*/)
-    {
-    }
+    virtual void FrameStart(const Module::State& /*state*/) {}
 
     virtual void FrameFinish(Chunk buffer)
     {
@@ -456,6 +458,7 @@ namespace Win32
     {
       return CreateVolumeControlDelegate(Objects.Volume);
     }
+
   private:
     ::WAVEFORMATEX GetFormat() const
     {
@@ -486,6 +489,7 @@ namespace Win32
       res.Volume = MakePtr<VolumeControl>(res.Device);
       return res;
     }
+
   private:
     const Api::Ptr WinApi;
     const Parameters::Accessor::Ptr BackendParams;
@@ -498,13 +502,13 @@ namespace Win32
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
       : WinApi(api)
-    {
-    }
+    {}
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
     {
       return MakePtr<BackendWorker>(WinApi, params);
     }
+
   private:
     const Api::Ptr WinApi;
   };
@@ -515,8 +519,7 @@ namespace Win32
     WaveDevice(Api::Ptr api, int_t id)
       : WinApi(api)
       , IdValue(id)
-    {
-    }
+    {}
 
     virtual int_t Id() const
     {
@@ -535,6 +538,7 @@ namespace Win32
       static_assert(sizeof(*name) == sizeof(uint16_t), "Wide char size mismatch");
       return Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(name));
     }
+
   private:
     const Api::Ptr WinApi;
     const int_t IdValue;
@@ -551,7 +555,7 @@ namespace Win32
       if (Limit)
       {
         Dbg("Detected %1% devices to output.", Limit);
-        Current = -1;//WAVE_MAPPER
+        Current = -1;  // WAVE_MAPPER
       }
       else
       {
@@ -566,9 +570,7 @@ namespace Win32
 
     virtual Device::Ptr Get() const
     {
-      return IsValid()
-        ? MakePtr<WaveDevice>(WinApi, Current)
-        : Device::Ptr();
+      return IsValid() ? MakePtr<WaveDevice>(WinApi, Current) : Device::Ptr();
     }
 
     virtual void Next()
@@ -578,13 +580,13 @@ namespace Win32
         ++Current;
       }
     }
+
   private:
     const Api::Ptr WinApi;
     const int_t Limit;
     int_t Current;
   };
-}//Win32
-}//Sound
+}  // namespace Sound::Win32
 
 namespace Sound
 {
@@ -624,7 +626,7 @@ namespace Sound
         return Device::Iterator::CreateStub();
       }
     }
-  }
-}
+  }  // namespace Win32
+}  // namespace Sound
 
 #undef FILE_TAG

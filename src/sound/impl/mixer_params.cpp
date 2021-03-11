@@ -1,21 +1,21 @@
 /**
-*
-* @file
-*
-* @brief  Parameters for mixer
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters for mixer
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <parameters/accessor.h>
 #include <sound/matrix_mixer.h>
 #include <sound/mixer_parameters.h>
 #include <sound/sound_parameters.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Sound
@@ -53,7 +53,6 @@ namespace Sound
     mixer.SetMatrix(res);
   }
 
-
   template<class MixerType>
   class MixerNotificationParameters : public Parameters::Accessor
   {
@@ -62,8 +61,7 @@ namespace Sound
       : Params(params)
       , Mixer(std::move(mixer))
       , LastVersion(~params->Version())
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -95,6 +93,7 @@ namespace Sound
     {
       return Params->Process(visitor);
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
     const typename MixerType::Ptr Mixer;
@@ -102,11 +101,13 @@ namespace Sound
   };
 
   template<unsigned Channels>
-  Parameters::Accessor::Ptr CreateMixerNotificationParametersInternal(Parameters::Accessor::Ptr params, typename FixedChannelsMatrixMixer<Channels>::Ptr mixer)
+  Parameters::Accessor::Ptr
+      CreateMixerNotificationParametersInternal(Parameters::Accessor::Ptr params,
+                                                typename FixedChannelsMatrixMixer<Channels>::Ptr mixer)
   {
     return MakePtr<MixerNotificationParameters<FixedChannelsMatrixMixer<Channels> > >(params, mixer);
   }
-}
+}  // namespace Sound
 
 namespace Sound
 {
@@ -120,13 +121,15 @@ namespace Sound
     FillMixerInternal<4>(params, mixer);
   }
 
-  Parameters::Accessor::Ptr CreateMixerNotificationParameters(Parameters::Accessor::Ptr delegate, ThreeChannelsMatrixMixer::Ptr mixer)
+  Parameters::Accessor::Ptr CreateMixerNotificationParameters(Parameters::Accessor::Ptr delegate,
+                                                              ThreeChannelsMatrixMixer::Ptr mixer)
   {
     return CreateMixerNotificationParametersInternal<3>(delegate, mixer);
   }
 
-  Parameters::Accessor::Ptr CreateMixerNotificationParameters(Parameters::Accessor::Ptr delegate, FourChannelsMatrixMixer::Ptr mixer)
+  Parameters::Accessor::Ptr CreateMixerNotificationParameters(Parameters::Accessor::Ptr delegate,
+                                                              FourChannelsMatrixMixer::Ptr mixer)
   {
     return CreateMixerNotificationParametersInternal<4>(delegate, mixer);
   }
-}
+}  // namespace Sound

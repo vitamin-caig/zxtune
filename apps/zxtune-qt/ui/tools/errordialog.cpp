@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Error dialog implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Error dialog implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "errordialog.h"
 #include "ui/utils.h"
-//qt includes
+// qt includes
 #include <QtGui/QMessageBox>
-//std includes
+// std includes
 #include <utility>
 
 void ShowErrorMessage(const QString& title, const Error& err)

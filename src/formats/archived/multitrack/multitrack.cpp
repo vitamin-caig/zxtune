@@ -1,28 +1,26 @@
 /**
-* 
-* @file
-*
-* @brief  Multitrack archives support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Multitrack archives support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/archived/multitrack/multitrack.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_base.h>
 #include <strings/prefixed_index.h>
-//std includes
+// std includes
 #include <utility>
-//text includes
+// text includes
 #include <formats/text/archived.h>
 
-namespace Formats
-{
-namespace Archived
+namespace Formats::Archived
 {
   namespace MultitrackArchives
   {
@@ -32,8 +30,7 @@ namespace Archived
       File(String name, Binary::Container::Ptr data)
         : Name(std::move(name))
         , Data(std::move(data))
-      {
-      }
+      {}
 
       String GetName() const override
       {
@@ -49,6 +46,7 @@ namespace Archived
       {
         return Data;
       }
+
     private:
       const String Name;
       const Binary::Container::Ptr Data;
@@ -59,8 +57,7 @@ namespace Archived
     public:
       explicit Container(Multitrack::Container::Ptr data)
         : BaseContainer(std::move(data))
-      {
-      }
+      {}
 
       void ExploreFiles(const Container::Walker& walker) const override
       {
@@ -103,8 +100,7 @@ namespace Archived
       Decoder(String description, Formats::Multitrack::Decoder::Ptr delegate)
         : Description(std::move(description))
         , Delegate(std::move(delegate))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -127,15 +123,15 @@ namespace Archived
         }
         return Container::Ptr();
       }
+
     private:
       const String Description;
       const Formats::Multitrack::Decoder::Ptr Delegate;
     };
-  }//namespace MultitrackArchives
+  }  // namespace MultitrackArchives
 
   Decoder::Ptr CreateMultitrackArchiveDecoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
   {
     return MakePtr<MultitrackArchives::Decoder>(description, delegate);
   }
-}//namespace Archived
-}//namespace Formats
+}  // namespace Formats::Archived

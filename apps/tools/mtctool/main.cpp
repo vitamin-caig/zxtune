@@ -1,13 +1,13 @@
-//library includes
+// library includes
 #include <binary/data_builder.h>
 #include <formats/chiptune/multidevice/multitrackcontainer.h>
 #include <module/attributes.h>
 #include <platform/version/api.h>
 #include <strings/format.h>
-//std includes
-#include <stdexcept>
-#include <iostream>
+// std includes
 #include <fstream>
+#include <iostream>
+#include <stdexcept>
 
 namespace Text
 {
@@ -31,7 +31,7 @@ namespace
     stream.read(static_cast<char*>(data.Allocate(size)), size);
     return data.CaptureResult();
   }
-  
+
   void WriteFile(Binary::View data, const std::string& name)
   {
     std::ofstream stream(name.c_str(), std::ios::binary);
@@ -41,7 +41,7 @@ namespace
     }
     stream.write(static_cast<const char*>(data.Start()), data.Size());
   }
-  
+
   class CmdlineIterator
   {
   public:
@@ -49,45 +49,45 @@ namespace
       : Argc(argc)
       , Argv(argv)
       , Pos()
-    {
-    }
-    
+    {}
+
     std::string Executable() const
     {
       return *Argv;
     }
-    
-    std::string operator * () const
+
+    std::string operator*() const
     {
       CheckIsValid();
       return Argv[Pos];
     }
-    
-    CmdlineIterator& operator ++ ()
+
+    CmdlineIterator& operator++()
     {
       CheckIsValid();
       ++Pos;
       return *this;
     }
-    
-    CmdlineIterator operator ++ (int)
+
+    CmdlineIterator operator++(int)
     {
       CmdlineIterator copy(*this);
       ++(*this);
       return copy;
     }
-    
+
     typedef void (*BoolType)();
-    operator BoolType () const
+    operator BoolType() const
     {
       return IsValid() ? &std::abort : nullptr;
     }
+
   private:
     bool IsValid() const
     {
       return Pos < Argc;
     }
-    
+
     void CheckIsValid() const
     {
       if (!IsValid())
@@ -95,24 +95,24 @@ namespace
         throw std::runtime_error("Not enough parameters specified");
       }
     }
+
   private:
     const int Argc;
     const char** Argv;
     int Pos;
   };
-  
+
   std::string GetFilename(const std::string& path)
   {
     const std::string::size_type delimPos = path.find_last_of("/\\");
-    return delimPos == std::string::npos
-         ? path
-         : path.substr(delimPos + 1);
+    return delimPos == std::string::npos ? path : path.substr(delimPos + 1);
   }
-  
+
   void Create(CmdlineIterator& arg)
   {
     const std::string& file = *arg++;
-    const Formats::Chiptune::MultiTrackContainer::ContainerBuilder::Ptr builder = Formats::Chiptune::MultiTrackContainer::CreateBuilder();
+    const Formats::Chiptune::MultiTrackContainer::ContainerBuilder::Ptr builder =
+        Formats::Chiptune::MultiTrackContainer::CreateBuilder();
     builder->SetProperty(Module::ATTR_PROGRAM, Platform::Version::GetProgramVersionString());
     uint_t track = 0;
     while (arg)
@@ -149,7 +149,7 @@ namespace
     }
     WriteFile(*builder->GetResult(), file);
   }
-  
+
   class Printer : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
@@ -157,12 +157,12 @@ namespace
     {
       std::cout << Padding << "Author: " << author << std::endl;
     }
-    
+
     void SetTitle(const String& title) override
     {
       std::cout << Padding << "Title: " << title << std::endl;
     }
-    
+
     void SetAnnotation(const String& annotation) override
     {
       std::cout << Padding << "Annotation: " << annotation << std::endl;
@@ -178,15 +178,16 @@ namespace
       std::cout << " Track " << idx << std::endl;
       Padding.assign(2, ' ');
     }
-   
+
     void SetData(Binary::Container::Ptr data) override
     {
       std::cout << Padding << "Data of size " << data->Size() << std::endl;
     }
+
   private:
     String Padding;
   };
-  
+
   void List(CmdlineIterator& arg)
   {
     const std::string& file = *arg;
@@ -194,16 +195,15 @@ namespace
     Printer printer;
     Formats::Chiptune::MultiTrackContainer::Parse(*data, printer);
   }
-  
+
   class Extractor : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
     Extractor()
       : LastTrackIdx()
       , LastDataIdx()
-    {
-    }
-    
+    {}
+
     void SetAuthor(const String& /*author*/) override {}
     void SetTitle(const String& /*title*/) override {}
     void SetAnnotation(const String& /*annotation*/) override {}
@@ -221,34 +221,34 @@ namespace
       LastTrackIdx = idx;
       LastDataIdx = 0;
     }
-   
+
     void SetData(Binary::Container::Ptr data) override
     {
       Flush();
       LastData = data;
       ++LastDataIdx;
     }
-    
+
     void Flush()
     {
       if (LastData)
       {
-        const String& filename = LastDataName.empty()
-                               ? Strings::Format("track%u_data%u", LastTrackIdx, LastDataIdx)
-                               : LastDataName;
+        const String& filename = LastDataName.empty() ? Strings::Format("track%u_data%u", LastTrackIdx, LastDataIdx)
+                                                      : LastDataName;
         std::cout << "Save " << LastData->Size() << " bytes to " << filename << std::endl;
         WriteFile(*LastData, filename);
         LastData.reset();
         LastDataName.clear();
       }
     }
+
   private:
     Binary::Container::Ptr LastData;
     String LastDataName;
     uint_t LastTrackIdx;
     uint_t LastDataIdx;
   };
-  
+
   void Extract(CmdlineIterator& arg)
   {
     const std::string& file = *arg;
@@ -257,16 +257,17 @@ namespace
     Formats::Chiptune::MultiTrackContainer::Parse(*data, extractor);
     extractor.Flush();
   }
-  
+
   typedef void (*ModeFunc)(CmdlineIterator&);
-  
+
   struct ModeEntry
   {
     const char* Name;
     ModeFunc Func;
     const char* Help;
   };
-  
+
+  // clang-format off
   const ModeEntry MODES[] =
   {
     {
@@ -293,17 +294,19 @@ namespace
       " mtctool --extract <file>\n"
     }
   };
-  
+  // clang-format on
+
   void ListModes()
   {
     std::cout << "Use <mode> without other params to get specific information\n"
-                 "Supported modes:" << std::endl;
+                 "Supported modes:"
+              << std::endl;
     for (const auto& mode : MODES)
     {
       std::cout << " " << mode.Name << std::endl;
     }
   }
-}
+}  // namespace
 
 int main(int argc, const char* argv[])
 {

@@ -1,25 +1,25 @@
 /**
-*
-* @file
-*
-* @brief  OSS backend stub
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  OSS backend stub
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound/backends/storage.h"
-//library includes
+// library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 namespace Sound
 {
   void RegisterOssBackend(BackendsStorage& storage)
   {
-    storage.Register(Text::OSS_BACKEND_ID, L10n::translate("OSS sound system backend"), CAP_TYPE_SYSTEM); 
+    storage.Register(Text::OSS_BACKEND_ID, L10n::translate("OSS sound system backend"), CAP_TYPE_SYSTEM);
   }
-}
+}  // namespace Sound

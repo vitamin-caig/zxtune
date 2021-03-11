@@ -1,44 +1,42 @@
 /**
-* 
-* @file
-*
-* @brief  TeleDisk images support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TeleDisk images support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/image_utils.h"
 #include "formats/packed/pack_utils.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/packed.h>
 #include <formats/packed/lha_supp.h>
 #include <math/numeric.h>
-//std includes
+// std includes
 #include <cstring>
 #include <numeric>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace TeleDiskImage
   {
     const Debug::Stream Dbg("Formats::Packed::TeleDiskImage");
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -126,7 +124,7 @@ namespace Packed
       uint8_t Data[2];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(RawHeader) == 12, "Invalid layout");
@@ -160,13 +158,15 @@ namespace Packed
     public:
       virtual ~ImageVisitor() = default;
 
-      virtual void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type, std::size_t targetSize) = 0;
+      virtual void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type,
+                            std::size_t targetSize) = 0;
     };
 
     class StubImageVisitor : public ImageVisitor
     {
     public:
-      void OnSector(const Formats::CHS& /*loc*/, const uint8_t* /*rawData*/, std::size_t rawSize, SectorDataType type, std::size_t targetSize) override
+      void OnSector(const Formats::CHS& /*loc*/, const uint8_t* /*rawData*/, std::size_t rawSize, SectorDataType type,
+                    std::size_t targetSize) override
       {
         switch (type)
         {
@@ -187,7 +187,7 @@ namespace Packed
       Require(size % sizeof(R2PEntry) == 0);
       Dump tmp;
       tmp.reserve(MAX_SECTOR_SIZE);
-      for (const R2PEntry* it = safe_ptr_cast<const R2PEntry*>(data), *lim = it + size / sizeof(*it); it != lim; ++it)
+      for (const R2PEntry *it = safe_ptr_cast<const R2PEntry*>(data), *lim = it + size / sizeof(*it); it != lim; ++it)
       {
         const uint_t count = fromLE(it->Count);
         Require(count != 0);
@@ -230,10 +230,10 @@ namespace Packed
     public:
       explicit ImageVisitorAdapter(Formats::ImageBuilder::Ptr builder)
         : Builder(std::move(builder))
-      {
-      }
+      {}
 
-      void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type, std::size_t targetSize) override
+      void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type,
+                    std::size_t targetSize) override
       {
         Dump result;
         switch (type)
@@ -251,6 +251,7 @@ namespace Packed
         Require(result.size() == targetSize);
         Builder->SetSector(loc, result);
       }
+
     private:
       const Formats::ImageBuilder::Ptr Builder;
     };
@@ -260,8 +261,7 @@ namespace Packed
     public:
       explicit SourceStream(Binary::View rawData)
         : Stream(rawData)
-      {
-      }
+      {}
 
       template<class T>
       const T& Get()
@@ -279,6 +279,7 @@ namespace Packed
       {
         return Stream.GetPosition();
       }
+
     private:
       Binary::DataInputStream Stream;
     };
@@ -306,7 +307,7 @@ namespace Packed
           Require(Math::InRange<uint_t>(srcDataDesc.Method, RAW_SECTOR, RLE_SECTOR));
           const std::size_t dataSize = fromLE(srcDataDesc.Size) - 1;
           const uint8_t* const rawData = stream.GetData(dataSize);
-          //use track parameters for layout
+          // use track parameters for layout
           if (!sector.NoId())
           {
             const Formats::CHS loc(sector.Cylinder, track.Head, sector.Number);
@@ -345,15 +346,15 @@ namespace Packed
           }
           const std::size_t packedSize = rawData.Size() - sizeof(header);
           const Binary::Container::Ptr packed = rawData.GetSubcontainer(sizeof(header), packedSize);
-          if (const Formats::Packed::Container::Ptr fullDecoded = 
-            Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, MAX_IMAGE_SIZE))
+          if (const Formats::Packed::Container::Ptr fullDecoded =
+                  Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, MAX_IMAGE_SIZE))
           {
             SourceStream subStream(*fullDecoded);
             ParseSectors(subStream, visitor);
             const std::size_t usedInPacked = subStream.GetOffset();
             Dbg("Used %1% bytes in packed stream", usedInPacked);
             if (const Formats::Packed::Container::Ptr decoded =
-              Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, usedInPacked))
+                    Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, usedInPacked))
             {
               const std::size_t usedSize = decoded->PackedSize();
               return sizeof(header) + usedSize;
@@ -375,28 +376,27 @@ namespace Packed
     }
 
     const StringView FORMAT_PATTERN(
-      "('T|'t)('D|'d)"        // uint8_t ID[2]
-      "00"          // uint8_t Sequence;
-      "?"           // uint8_t CheckSequence;
-      "?"           // uint8_t Version;
-      "%x00000xx"   // uint8_t DataRate;
-      "00-06"       // uint8_t DriveType;
-      "%x00000xx"   // uint8_t Stepping;
-      /*
-      "?"           // uint8_t DOSAllocation;
-      "?"           // uint8_t Sides;
-      "??"          // uint16_t CRC;
-      */
+        "('T|'t)('D|'d)"  // uint8_t ID[2]
+        "00"              // uint8_t Sequence;
+        "?"               // uint8_t CheckSequence;
+        "?"               // uint8_t Version;
+        "%x00000xx"       // uint8_t DataRate;
+        "00-06"           // uint8_t DriveType;
+        "%x00000xx"       // uint8_t Stepping;
+                          /*
+                          "?"           // uint8_t DOSAllocation;
+                          "?"           // uint8_t Sides;
+                          "??"          // uint16_t CRC;
+                          */
     );
-  }//namespace TeleDiskImage
+  }  // namespace TeleDiskImage
 
   class TeleDiskImageDecoder : public Decoder
   {
   public:
     TeleDiskImageDecoder()
       : Format(Binary::CreateFormat(TeleDiskImage::FORMAT_PATTERN, TeleDiskImage::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -422,6 +422,7 @@ namespace Packed
       }
       return Container::Ptr();
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -430,5 +431,4 @@ namespace Packed
   {
     return MakePtr<TeleDiskImageDecoder>();
   }
-}//namespace TeleDiskImage
-}//namespace Formats
+}  // namespace Formats::Packed

@@ -1,17 +1,17 @@
 /**
-* 
-* @file
-*
-* @brief Plugins operating
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Plugins operating
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "jni_plugin.h"
 #include "properties.h"
-//library includes
+// library includes
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 
@@ -23,10 +23,8 @@ namespace
     static void Init(JNIEnv* env)
     {
       const jclass classType = env->FindClass("app/zxtune/core/jni/Plugins$Visitor");
-      OnPlayerPlugin = env->GetMethodID(classType,
-        "onPlayerPlugin", "(ILjava/lang/String;Ljava/lang/String;)V");
-      OnContainerPlugin = env->GetMethodID(classType,
-        "onContainerPlugin", "(ILjava/lang/String;Ljava/lang/String;)V");
+      OnPlayerPlugin = env->GetMethodID(classType, "onPlayerPlugin", "(ILjava/lang/String;Ljava/lang/String;)V");
+      OnContainerPlugin = env->GetMethodID(classType, "onContainerPlugin", "(ILjava/lang/String;Ljava/lang/String;)V");
     }
 
     static void Cleanup(JNIEnv* /*env*/)
@@ -34,14 +32,16 @@ namespace
       OnPlayerPlugin = OnContainerPlugin = 0;
     }
 
-    static void CallOnPlayerPlugin(JNIEnv* env, jobject delegate, jint type, const String& plugId, const String& plugDescr)
+    static void CallOnPlayerPlugin(JNIEnv* env, jobject delegate, jint type, const String& plugId,
+                                   const String& plugDescr)
     {
       const Jni::TempJString id(env, plugId);
       const Jni::TempJString descr(env, plugDescr);
       env->CallVoidMethod(delegate, OnPlayerPlugin, type, id.Get(), descr.Get());
     }
 
-    static void CallOnContainerPlugin(JNIEnv* env, jobject delegate, jint type, const String& plugId, const String& plugDescr)
+    static void CallOnContainerPlugin(JNIEnv* env, jobject delegate, jint type, const String& plugId,
+                                      const String& plugDescr)
     {
       const Jni::TempJString id(env, plugId);
       const Jni::TempJString descr(env, plugDescr);
@@ -55,7 +55,7 @@ namespace
 
   jmethodID NativePluginJni::OnPlayerPlugin;
   jmethodID NativePluginJni::OnContainerPlugin;
-}
+}  // namespace
 
 namespace Plugin
 {
@@ -68,10 +68,9 @@ namespace Plugin
   {
     NativePluginJni::Cleanup(env);
   }
-}
+}  // namespace Plugin
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_Plugins_enumerate
-  (JNIEnv* env, jclass /*self*/, jobject visitor)
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_Plugins_enumerate(JNIEnv* env, jclass /*self*/, jobject visitor)
 {
   for (const auto iter = ZXTune::EnumeratePlugins(); iter->IsValid(); iter->Next())
   {
@@ -80,7 +79,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_Plugins_enumerate
     const String id = plug->Id();
     const String desc = plug->Description();
 
-    //TODO: remove hardcode
+    // TODO: remove hardcode
     using namespace ZXTune::Capabilities;
     switch (caps & Category::MASK)
     {

@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Mixer test interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Mixer test interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <time/duration.h>
 
 namespace Benchmark
@@ -19,4 +19,4 @@ namespace Benchmark
   {
     double Test(uint_t channels, const Time::Milliseconds& duration, uint_t soundFreq);
   }
-}
+}  // namespace Benchmark

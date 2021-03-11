@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  ProDigiTracker support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ProDigiTracker support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -24,21 +24,21 @@ namespace Formats
     namespace ProDigiTracker
     {
       typedef LinesObject<int_t> Ornament;
-      
+
       typedef LinesObject<uint_t> Positions;
-    
+
       class Builder
       {
       public:
         virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
-        //common properties
+        // common properties
         virtual void SetInitialTempo(uint_t tempo) = 0;
-        //samples
+        // samples
         virtual void SetSample(uint_t index, std::size_t loop, Binary::View sample) = 0;
         virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
-        //patterns
+        // patterns
         virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
@@ -53,8 +53,8 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
-    }
+    }  // namespace ProDigiTracker
 
     Decoder::Ptr CreateProDigiTrackerDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

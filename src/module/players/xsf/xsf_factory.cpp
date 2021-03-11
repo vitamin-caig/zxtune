@@ -1,21 +1,21 @@
 /**
-*
-* @file
-*
-* @brief  Xsf-based files common code implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Xsf-based files common code implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "module/players/xsf/xsf.h"
+// local includes
 #include "module/players/xsf/xsf_factory.h"
-//common includes
+#include "module/players/xsf/xsf.h"
+// common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <module/additional_files.h>
 #include <module/players/duration.h>
@@ -23,14 +23,13 @@
 
 #define FILE_TAG 153C53E0
 
-namespace Module
-{
-namespace XSF
+namespace Module::XSF
 {
   const Debug::Stream Dbg("Module::xSF");
 
-  class MultiFileHolder : public Module::Holder
-                        , public Module::AdditionalFiles
+  class MultiFileHolder
+    : public Module::Holder
+    , public Module::AdditionalFiles
   {
   public:
     MultiFileHolder(XSF::Factory::Ptr factory, File head, Parameters::Container::Ptr properties)
@@ -40,7 +39,7 @@ namespace XSF
     {
       LoadDependenciesFrom(Head);
     }
-    
+
     Module::Information::Ptr GetModuleInformation() const override
     {
       return GetDelegate().GetModuleInformation();
@@ -55,7 +54,7 @@ namespace XSF
     {
       return GetDelegate().CreateRenderer(samplerate, std::move(params));
     }
-    
+
     Strings::Array Enumerate() const override
     {
       Strings::Array result;
@@ -68,7 +67,7 @@ namespace XSF
       }
       return result;
     }
-    
+
     void Resolve(const String& name, Binary::Container::Ptr data) override
     {
       Dbg("Resolving dependency '%1%'", name);
@@ -79,6 +78,7 @@ namespace XSF
         LoadDependenciesFrom(file);
       }
     }
+
   private:
     void LoadDependenciesFrom(const File& file)
     {
@@ -96,7 +96,7 @@ namespace XSF
         }
       }
     }
-    
+
     const Module::Holder& GetDelegate() const
     {
       if (!Delegate)
@@ -109,7 +109,7 @@ namespace XSF
       }
       return *Delegate;
     }
-    
+
     void FillStrings() const
     {
       Strings::Array linear;
@@ -128,15 +128,16 @@ namespace XSF
       }
       PropertiesHelper(*Properties).SetStrings(linear);
     }
+
   private:
     const XSF::Factory::Ptr HolderFactory;
     mutable Parameters::Container::Ptr Properties;
     mutable File Head;
     mutable std::map<String, File> Files;
-    
+
     mutable Holder::Ptr Delegate;
   };
-  
+
   void FillDuration(const Parameters::Accessor& params, File& file)
   {
     const bool hasMeta = !!file.Meta;
@@ -152,16 +153,16 @@ namespace XSF
       file.Meta = newMeta;
     }
   }
-  
+
   class GenericFactory : public Module::Factory
   {
   public:
     explicit GenericFactory(XSF::Factory::Ptr delegate)
       : Delegate(std::move(delegate))
-    {
-    }
+    {}
 
-    Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData,
+                             Parameters::Container::Ptr properties) const override
     {
       try
       {
@@ -191,6 +192,7 @@ namespace XSF
       }
       return Module::Holder::Ptr();
     }
+
   private:
     const XSF::Factory::Ptr Delegate;
   };
@@ -199,7 +201,6 @@ namespace XSF
   {
     return MakePtr<GenericFactory>(std::move(delegate));
   }
-}
-}
+}  // namespace Module::XSF
 
 #undef FILE_TAG

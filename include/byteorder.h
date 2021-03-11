@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Helper functions for byteorder working
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Helper functions for byteorder working
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//boost includes
+// boost includes
 #include <boost/predef/other/endian.h>
 
 template<std::size_t size>
@@ -85,23 +85,21 @@ struct Byteorder<8>
 
   inline static Type Swap(Type a)
   {
-    const Type a1 = ((a & UINT64_C(0x00ff00ff00ff00ff)) << 8) |
-                    ((a & UINT64_C(0xff00ff00ff00ff00)) >> 8);
-    const Type a2 = ((a1 & UINT64_C(0x0000ffff0000ffff)) << 16) |
-                    ((a1 & UINT64_C(0xffff0000ffff0000)) >> 16);
+    const Type a1 = ((a & UINT64_C(0x00ff00ff00ff00ff)) << 8) | ((a & UINT64_C(0xff00ff00ff00ff00)) >> 8);
+    const Type a2 = ((a1 & UINT64_C(0x0000ffff0000ffff)) << 16) | ((a1 & UINT64_C(0xffff0000ffff0000)) >> 16);
     return (a2 << 32) | (a2 >> 32);
   }
 
   inline static Type ReadLE(const uint8_t* in)
   {
-    return (Type(in[7]) << 56) | (Type(in[6]) << 48) | (Type(in[5]) << 40) | (Type(in[4]) << 32) |
-           (Type(in[3]) << 24) | (Type(in[2]) << 16) | (Type(in[1]) << 8) | in[0];
+    return (Type(in[7]) << 56) | (Type(in[6]) << 48) | (Type(in[5]) << 40) | (Type(in[4]) << 32) | (Type(in[3]) << 24)
+           | (Type(in[2]) << 16) | (Type(in[1]) << 8) | in[0];
   }
 
   inline static Type ReadBE(const uint8_t* in)
   {
-    return (Type(in[0]) << 56) | (Type(in[1]) << 48) | (Type(in[2]) << 40) | (Type(in[3]) << 32) |
-           (Type(in[4]) << 24) | (Type(in[5]) << 16) | (Type(in[6]) << 8) | in[7];
+    return (Type(in[0]) << 56) | (Type(in[1]) << 48) | (Type(in[2]) << 40) | (Type(in[3]) << 32) | (Type(in[4]) << 24)
+           | (Type(in[5]) << 16) | (Type(in[6]) << 8) | in[7];
   }
 };
 
@@ -166,5 +164,5 @@ inline T fromBE(T a)
   return a;
 }
 #else
-#error Invalid byte order
+#  error Invalid byte order
 #endif

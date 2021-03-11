@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Backends storage interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Backends storage interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "sound/backends/backend_impl.h"
 
 namespace Sound
@@ -20,11 +20,12 @@ namespace Sound
   public:
     virtual ~BackendsStorage() = default;
 
-    //Functional
-    virtual void Register(const String& id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory) = 0;
-    //Disabled due to error
+    // Functional
+    virtual void Register(const String& id, const char* description, uint_t caps,
+                          BackendWorkerFactory::Ptr factory) = 0;
+    // Disabled due to error
     virtual void Register(const String& id, const char* description, uint_t caps, const Error& status) = 0;
-    //Disabled due to configuration
+    // Disabled due to configuration
     virtual void Register(const String& id, const char* description, uint_t caps) = 0;
   };
-}
+}  // namespace Sound

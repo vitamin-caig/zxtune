@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Progress callback interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Progress callback interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//std includes
+// std includes
 #include <memory>
 
 //! @brief Namespace is used for logging and other informational purposes
@@ -33,4 +33,4 @@ namespace Log
 
   ProgressCallback::Ptr CreatePercentProgressCallback(uint_t total, ProgressCallback& delegate);
   ProgressCallback::Ptr CreateNestedPercentProgressCallback(uint_t total, uint_t current, ProgressCallback& delegate);
-}
+}  // namespace Log

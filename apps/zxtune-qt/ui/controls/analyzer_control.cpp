@@ -1,25 +1,25 @@
 /**
-* 
-* @file
-*
-* @brief Analyzer widget implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Analyzer widget implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "analyzer_control.h"
 #include "supp/playback_supp.h"
-//common includes
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 #include <module/analyzer.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <array>
 #include <limits>
-//qt includes
+// qt includes
 #include <QtCore/QEvent>
 #include <QtCore/QTimer>
 #include <QtGui/QPaintEngine>
@@ -36,9 +36,8 @@ namespace
     BandLevel()
       : Value(0)
       , Changed(false)
-    {
-    }
-    
+    {}
+
     void Fall(uint_t delta)
     {
       if (Value)
@@ -47,7 +46,7 @@ namespace
         Changed = true;
       }
     }
-    
+
     void Set(uint_t newVal)
     {
       if (newVal > Value)
@@ -87,7 +86,7 @@ namespace
       Timer.setInterval(1000 / UPDATE_FPS);
 
       Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(Sound::Backend::Ptr))));
+                      SLOT(InitState(Sound::Backend::Ptr))));
       Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
       Require(connect(&Timer, SIGNAL(timeout()), SLOT(UpdateState())));
     }
@@ -118,12 +117,12 @@ namespace
 
     void CloseState() override
     {
-      std::for_each(Levels.begin(), Levels.end(), [](BandLevel& level) {level.Set(0);});
+      std::for_each(Levels.begin(), Levels.end(), [](BandLevel& level) { level.Set(0); });
       DoRepaint();
       Timer.stop();
     }
 
-    //QWidget
+    // QWidget
     void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
@@ -157,6 +156,7 @@ namespace
         }
       }
     }
+
   private:
     void SetTitle()
     {
@@ -165,23 +165,24 @@ namespace
 
     void DoRepaint()
     {
-      //update graph if visible
+      // update graph if visible
       if (isVisible())
       {
         repaint(rect());
       }
     }
+
   private:
     QTimer Timer;
     const QPalette Palette;
     Module::Analyzer::Ptr Analyzer;
     Analyzed Levels;
   };
-}
+}  // namespace
 
-AnalyzerControl::AnalyzerControl(QWidget& parent) : QWidget(&parent)
-{
-}
+AnalyzerControl::AnalyzerControl(QWidget& parent)
+  : QWidget(&parent)
+{}
 
 AnalyzerControl* AnalyzerControl::Create(QWidget& parent, PlaybackSupport& supp)
 {

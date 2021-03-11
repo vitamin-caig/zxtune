@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Module attributes names
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Module attributes names
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 namespace Module
@@ -26,7 +26,7 @@ namespace Module
   extern const String ATTR_AUTHOR;
   //! %Module program produced at
   extern const String ATTR_PROGRAM;
-  //! %Module computer 
+  //! %Module computer
   extern const String ATTR_COMPUTER;
   //! %Module creating date
   extern const String ATTR_DATE;
@@ -78,4 +78,4 @@ namespace Module
   //! Current module line
   extern const String ATTR_CURRENT_LINE;
   //@}
-}
+}  // namespace Module

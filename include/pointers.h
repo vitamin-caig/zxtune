@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Pointers-related functionality
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Pointers-related functionality
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <cstddef>
 #include <type_traits>
 

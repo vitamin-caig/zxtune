@@ -1,26 +1,26 @@
 /**
-* 
-* @file
-*
-* @brief File dialog implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief File dialog implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "filedialog.h"
 #include "supp/options.h"
 #include "ui/state.h"
 #include "ui/utils.h"
-//qt includes
+// qt includes
 #include <QtGui/QFileDialog>
-//std includes
+// std includes
 #include <utility>
 
 namespace
 {
-  const Char FILEDIALOG_NAMESPACE[] = {'F','i','l','e','D','i','a','l','o','g','\0'};
+  const Char FILEDIALOG_NAMESPACE[] = {'F', 'i', 'l', 'e', 'D', 'i', 'a', 'l', 'o', 'g', '\0'};
 
   int GetFilterIndex(const QStringList& filters, const QString& filter)
   {
@@ -96,7 +96,8 @@ namespace
       return false;
     }
 
-    bool SaveFile(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter)
+    bool SaveFile(const QString& title, const QString& suffix, const QStringList& filters, QString& filename,
+                  int* usedFilter)
     {
       Dialog.setWindowTitle(title);
       Dialog.setDefaultSuffix(suffix);
@@ -119,6 +120,7 @@ namespace
       }
       return false;
     }
+
   private:
     bool ProcessDialog()
     {
@@ -141,11 +143,12 @@ namespace
       Dialog.setOption(QFileDialog::ReadOnly, false);
       Dialog.setAcceptMode(QFileDialog::AcceptSave);
     }
+
   private:
     const UI::State::Ptr State;
     QFileDialog Dialog;
   };
-}
+}  // namespace
 
 namespace UI
 {
@@ -164,8 +167,9 @@ namespace UI
     return FileDialog().OpenFolder(title, folder);
   }
 
-  bool SaveFileDialog(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter)
+  bool SaveFileDialog(const QString& title, const QString& suffix, const QStringList& filters, QString& filename,
+                      int* usedFilter)
   {
     return FileDialog().SaveFile(title, suffix, filters, filename, usedFilter);
   }
-}
+}  // namespace UI

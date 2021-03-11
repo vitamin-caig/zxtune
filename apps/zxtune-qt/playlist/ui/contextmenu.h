@@ -1,12 +1,12 @@
 /**
-* 
-* @file
-*
-* @brief Playlist context menu interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist context menu interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
@@ -19,5 +19,5 @@ namespace Playlist
   {
     class TableView;
     void ExecuteContextMenu(const QPoint& pos, TableView& view, Controller& playlist);
-  }
-}
+  }  // namespace UI
+}  // namespace Playlist

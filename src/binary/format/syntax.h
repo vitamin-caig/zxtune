@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Format syntax helpers
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Format syntax helpers
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 // std includes
 #include <memory>
@@ -35,5 +35,5 @@ namespace Binary
     void ParseFormatNotation(StringView notation, FormatTokensVisitor& visitor);
     void ParseFormatNotationPostfix(StringView notation, FormatTokensVisitor& visitor);
     FormatTokensVisitor::Ptr CreatePostfixSyntaxCheckAdapter(FormatTokensVisitor& visitor);
-  }
-}
+  }  // namespace FormatDSL
+}  // namespace Binary

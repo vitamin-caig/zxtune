@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM dumper interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM dumper interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <devices/aym.h>
 #include <time/duration.h>
 
-//supporting for AY/YM-based modules
+// supporting for AY/YM-based modules
 namespace Devices
 {
   namespace AYM
@@ -61,5 +61,5 @@ namespace Devices
     };
 
     Dumper::Ptr CreateFYMDumper(FYMDumperParameters::Ptr params);
-  }
-}
+  }  // namespace AYM
+}  // namespace Devices

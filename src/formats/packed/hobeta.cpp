@@ -1,37 +1,35 @@
 /**
-* 
-* @file
-*
-* @brief  Hobeta image support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Hobeta image support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-//std includes
+// std includes
 #include <array>
 #include <numeric>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Hobeta
   {
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct Header
     {
@@ -42,7 +40,7 @@ namespace Packed
       uint16_t CRC;
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(Header) == 17, "Invalid layout");
@@ -59,16 +57,14 @@ namespace Packed
       const auto* data = rawData.As<uint8_t>();
       const std::size_t dataSize = fromLE(header->Length);
       const std::size_t fullSize = fromLE(header->FullLength);
-      if (!Math::InRange(dataSize, MIN_SIZE, MAX_SIZE) ||
-          dataSize + sizeof(*header) > rawData.Size() ||
-          fullSize != Math::Align<std::size_t>(dataSize, 256) ||
-          //check for valid name
-          std::any_of(header->Filename.begin(), header->Filename.end(), [](auto b) {return b < ' ';})
-          )
+      if (!Math::InRange(dataSize, MIN_SIZE, MAX_SIZE) || dataSize + sizeof(*header) > rawData.Size()
+          || fullSize != Math::Align<std::size_t>(dataSize, 256) ||
+          // check for valid name
+          std::any_of(header->Filename.begin(), header->Filename.end(), [](auto b) { return b < ' '; }))
       {
         return false;
       }
-      //check for crc
+      // check for crc
       if (fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
       {
         return true;
@@ -77,24 +73,22 @@ namespace Packed
     }
 
     const StringView FORMAT(
-      //Filename
-      "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
-      //Start
-      "??"
-      //Length
-      "?01-ff"
-      //FullLength
-      "0001-ff"
-    );
-  }//namespace Hobeta
+        // Filename
+        "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
+        // Start
+        "??"
+        // Length
+        "?01-ff"
+        // FullLength
+        "0001-ff");
+  }  // namespace Hobeta
 
   class HobetaDecoder : public Decoder
   {
   public:
     HobetaDecoder()
       : Format(Binary::CreateFormat(Hobeta::FORMAT, Hobeta::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -123,6 +117,7 @@ namespace Packed
       auto subdata = rawData.GetSubcontainer(sizeof(*header), dataSize);
       return CreateContainer(std::move(subdata), fullSize + sizeof(*header));
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -131,5 +126,4 @@ namespace Packed
   {
     return MakePtr<HobetaDecoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}  // namespace Formats::Packed

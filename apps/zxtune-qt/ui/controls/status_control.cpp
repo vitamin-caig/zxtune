@@ -1,25 +1,25 @@
 /**
-* 
-* @file
-*
-* @brief Status control widget implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Status control widget implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "status_control.h"
 #include "status_control.ui.h"
 #include "supp/playback_supp.h"
 #include "ui/utils.h"
-//common includes
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 #include <module/track_state.h>
-//std includes
+// std includes
 #include <utility>
-//qt includes
+// qt includes
 #include <QtGui/QGridLayout>
 #include <QtGui/QLabel>
 
@@ -27,18 +27,19 @@ namespace
 {
   const QString EMPTY_TEXT(QLatin1String("-"));
 
-  class StatusControlImpl : public StatusControl
-                          , private Ui::StatusControl
+  class StatusControlImpl
+    : public StatusControl
+    , private Ui::StatusControl
   {
   public:
     StatusControlImpl(QWidget& parent, PlaybackSupport& supp)
       : ::StatusControl(parent)
     {
-      //setup self
+      // setup self
       setupUi(this);
 
       Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
-        SLOT(InitState(Sound::Backend::Ptr))));
+                      SLOT(InitState(Sound::Backend::Ptr))));
       Require(connect(&supp, SIGNAL(OnUpdateState()), SLOT(UpdateState())));
       Require(connect(&supp, SIGNAL(OnStopModule()), SLOT(CloseState())));
     }
@@ -72,7 +73,7 @@ namespace
       textTempo->setText(EMPTY_TEXT);
     }
 
-    //QWidget
+    // QWidget
     void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
@@ -81,14 +82,15 @@ namespace
       }
       ::StatusControl::changeEvent(event);
     }
+
   private:
     Module::TrackState::Ptr TrackState;
   };
-}
+}  // namespace
 
-StatusControl::StatusControl(QWidget& parent) : QWidget(&parent)
-{
-}
+StatusControl::StatusControl(QWidget& parent)
+  : QWidget(&parent)
+{}
 
 StatusControl* StatusControl::Create(QWidget& parent, PlaybackSupport& supp)
 {

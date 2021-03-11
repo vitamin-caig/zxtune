@@ -1,23 +1,23 @@
 /**
-*
-* @file
-*
-* @brief  Format detector implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Format detector implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "binary/format/details.h"
 #include "binary/format/static_expression.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <math/numeric.h>
-//std includes
+// std includes
 #include <array>
 #include <limits>
 #include <vector>
@@ -37,8 +37,7 @@ namespace Binary
       , Pat(std::move(mtx))
       , PatRBegin(&Pat.back())
       , PatREnd(&Pat.front() - 1)
-    {
-    }
+    {}
 
     bool Match(View data) const override
     {
@@ -64,7 +63,7 @@ namespace Binary
       const uint8_t* const scanStop = typedData + size;
       const std::size_t firstMatch = SearchBackward(scanStart);
       const std::size_t initialOffset = firstMatch != 0 ? firstMatch : MinScanStep;
-      for (const uint8_t* scanPos = scanStart + initialOffset; scanPos < scanStop; )
+      for (const uint8_t* scanPos = scanStart + initialOffset; scanPos < scanStop;)
       {
         if (const std::size_t offset = SearchBackward(scanPos))
         {
@@ -118,7 +117,8 @@ namespace Binary
         FuzzyFormat::PatternRow& row = tmp[pos];
         const std::size_t suffixLen = patternSize - pos - 1;
         const std::size_t offset = offsets[suffixLen];
-        const std::size_t availOffset = std::min<std::size_t>(offset, std::numeric_limits<PatternRow::value_type>::max());
+        const std::size_t availOffset =
+            std::min<std::size_t>(offset, std::numeric_limits<PatternRow::value_type>::max());
         for (uint_t sym = 0; sym != 256; ++sym)
         {
           if (uint8_t& curOffset = row[sym])
@@ -127,10 +127,12 @@ namespace Binary
           }
         }
       }
-      //Each matrix element specifies forward movement of reversily matched pattern for specified symbol. =0 means symbol match
+      // Each matrix element specifies forward movement of reversily matched pattern for specified symbol. =0 means
+      // symbol match
       const std::size_t minScanStep = pattern.FindPrefix(patternSize);
       return MakePtr<FuzzyFormat>(std::move(tmp), startOffset, minSize, minScanStep);
     }
+
   private:
     std::size_t SearchBackward(const uint8_t* data) const
     {
@@ -150,6 +152,7 @@ namespace Binary
       }
       return 0;
     }
+
   private:
     const std::size_t Offset;
     const std::size_t MinSize;
@@ -168,8 +171,7 @@ namespace Binary
       : Offset(offset)
       , MinSize(std::max(minSize, mtx.size() + offset))
       , Pattern(std::move(mtx))
-    {
-    }
+    {}
 
     bool Match(View data) const override
     {
@@ -195,9 +197,7 @@ namespace Binary
       const uint8_t* const typedDataStart = static_cast<const uint8_t*>(data.Start());
       const uint8_t* const typedDataEnd = typedDataStart + size;
       const uint8_t* const matched = std::search(typedDataStart + Offset + 1, typedDataEnd, patternStart, patternEnd);
-      return matched != typedDataEnd
-        ? matched - typedDataStart - Offset
-        : size;
+      return matched != typedDataEnd ? matched - typedDataStart - Offset : size;
     }
 
     std::size_t GetMinSize() const override
@@ -223,6 +223,7 @@ namespace Binary
       }
       return MakePtr<ExactFormat>(std::move(tmp), startOffset, minSize);
     }
+
   private:
     const std::size_t Offset;
     const std::size_t MinSize;
@@ -242,7 +243,7 @@ namespace Binary
       return FuzzyFormat::Create(pattern, startOffset, minSize);
     }
   }
-}
+}  // namespace Binary
 
 namespace Binary
 {
@@ -256,4 +257,4 @@ namespace Binary
     const auto expr = FormatDSL::Expression::Parse(pattern);
     return CreateScanningFormatFromPredicates(*expr, minSize);
   }
-}
+}  // namespace Binary

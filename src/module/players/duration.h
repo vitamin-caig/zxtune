@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  Duration info
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Duration info
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <time/duration.h>
 
 namespace Parameters

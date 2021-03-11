@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief  TurboFM support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TurboFM support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <devices/fm.h>
 
 namespace Devices
@@ -28,8 +28,7 @@ namespace Devices
     public:
       Register()
         : FM::Register()
-      {
-      }
+      {}
 
       Register(uint_t chip, FM::Register reg)
         : FM::Register(std::move(reg))
@@ -53,9 +52,9 @@ namespace Devices
 
     struct DataChunk
     {
-      DataChunk() : TimeStamp()
-      {
-      }
+      DataChunk()
+        : TimeStamp()
+      {}
 
       Stamp TimeStamp;
       Registers Data;
@@ -71,7 +70,9 @@ namespace Devices
       virtual void Reset() = 0;
     };
 
-    class Chip : public Device, public StateSource
+    class Chip
+      : public Device
+      , public StateSource
     {
     public:
       using Ptr = std::shared_ptr<Chip>;
@@ -82,5 +83,5 @@ namespace Devices
 
     using FM::ChipParameters;
     Chip::Ptr CreateChip(ChipParameters::Ptr params);
-  }
-}
+  }  // namespace TFM
+}  // namespace Devices

@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Win32 backend stub
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Win32 backend stub
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-#include "sound/backends/win32.h"
 #include "sound/backends/storage.h"
-//library includes
+#include "sound/backends/win32.h"
+// library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
-//text includes
+// text includes
 #include <sound/backends/text/backends.h>
 
 namespace Sound
@@ -29,6 +29,5 @@ namespace Sound
     {
       return Device::Iterator::CreateStub();
     }
-  }
-}
-
+  }  // namespace Win32
+}  // namespace Sound

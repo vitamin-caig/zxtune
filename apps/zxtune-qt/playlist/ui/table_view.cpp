@@ -1,25 +1,25 @@
 /**
-* 
-* @file
-*
-* @brief Playlist table view implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist table view implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "playlist_view.h"
+// local includes
 #include "table_view.h"
 #include "playlist/supp/controller.h"
 #include "playlist/supp/model.h"
+#include "playlist_view.h"
 #include "ui/utils.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
-//qt includes
+// qt includes
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QHeaderView>
 #include <QtGui/QMenu>
@@ -28,7 +28,7 @@ namespace
 {
   const Debug::Stream Dbg("Playlist::UI::TableView");
 
-  //Options
+  // Options
   const QLatin1String TYPE_TEXT("WWWW");
   const int_t DISPLAYNAME_WIDTH = 320;
   const QLatin1String DURATION_TEXT("77:77.77");
@@ -39,7 +39,7 @@ namespace
   const QLatin1String SIZE_TEXT("7777777");
   const QLatin1String CRC_TEXT("AAAAAAAA");
 
-  //WARNING!!! change object name when adding new column
+  // WARNING!!! change object name when adding new column
   class TableHeader : public QHeaderView
   {
   public:
@@ -64,14 +64,14 @@ namespace
       resizeSection(Playlist::Model::COLUMN_CRC, fontMetrics.width(CRC_TEXT));
       resizeSection(Playlist::Model::COLUMN_FIXEDCRC, fontMetrics.width(CRC_TEXT));
 
-      //default view
+      // default view
       for (int idx = Playlist::Model::COLUMN_AUTHOR; idx != Playlist::Model::COLUMNS_COUNT; ++idx)
       {
         hideSection(idx);
       }
     }
 
-    //QWidget's virtuals
+    // QWidget's virtuals
     void contextMenuEvent(QContextMenuEvent* event) override
     {
       const std::unique_ptr<QMenu> menu = CreateMenu();
@@ -83,6 +83,7 @@ namespace
       }
       event->accept();
     }
+
   private:
     std::unique_ptr<QMenu> CreateMenu()
     {
@@ -103,15 +104,14 @@ namespace
   class TableViewImpl : public Playlist::UI::TableView
   {
   public:
-    TableViewImpl(QWidget& parent, const Playlist::Item::StateCallback& callback,
-      QAbstractItemModel& model)
+    TableViewImpl(QWidget& parent, const Playlist::Item::StateCallback& callback, QAbstractItemModel& model)
       : Playlist::UI::TableView(parent)
     {
-      //setup self
+      // setup self
       setSortingEnabled(true);
       setItemDelegate(Playlist::UI::TableViewItem::Create(*this, callback));
       setMinimumSize(256, 128);
-      //setup ui
+      // setup ui
       setAcceptDrops(true);
       setDragEnabled(true);
       setDragDropMode(QAbstractItemView::InternalMove);
@@ -126,7 +126,7 @@ namespace
       setWordWrap(false);
       setCornerButtonEnabled(false);
 
-      //setup dynamic ui
+      // setup dynamic ui
       setHorizontalHeader(new TableHeader(*this));
       if (QHeaderView* const verHeader = verticalHeader())
       {
@@ -134,8 +134,8 @@ namespace
         verHeader->setResizeMode(QHeaderView::Fixed);
       }
       setModel(&model);
-      
-      //signals
+
+      // signals
       Require(connect(this, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&))));
 
       Dbg("Created at %1%", this);
@@ -198,16 +198,16 @@ namespace
         emit TableRowActivated(number);
       }
     }
-    
-    //Qt natives
+
+    // Qt natives
     void keyboardSearch(const QString& search) override
     {
       QAbstractItemView::keyboardSearch(search);
       const QItemSelectionModel* const selection = selectionModel();
       if (selection->hasSelection())
       {
-        //selection->currentIndex() does not work
-        //items are orderen by selection, not by position
+        // selection->currentIndex() does not work
+        // items are orderen by selection, not by position
         QModelIndexList items = selection->selectedRows();
         qSort(items);
         scrollTo(items.first(), QAbstractItemView::EnsureVisible);
@@ -218,13 +218,11 @@ namespace
   class TableViewItemImpl : public Playlist::UI::TableViewItem
   {
   public:
-    TableViewItemImpl(QWidget& parent,
-      const Playlist::Item::StateCallback& callback)
+    TableViewItemImpl(QWidget& parent, const Playlist::Item::StateCallback& callback)
       : Playlist::UI::TableViewItem(parent)
       , Callback(callback)
       , Palette()
-    {
-    }
+    {}
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
     {
@@ -232,10 +230,11 @@ namespace
       FillItemStyle(index, fixedOption);
       Playlist::UI::TableViewItem::paint(painter, fixedOption, index);
     }
+
   private:
     void FillItemStyle(const QModelIndex& index, QStyleOptionViewItem& style) const
     {
-      //disable focus to remove per-cell dotted border
+      // disable focus to remove per-cell dotted border
       style.state &= ~QStyle::State_HasFocus;
       const Playlist::Item::State state = Callback.GetState(index);
       if (state == Playlist::Item::STOPPED)
@@ -249,69 +248,70 @@ namespace
 
       QPalette& palette = style.palette;
       const bool isSelected = 0 != (style.state & QStyle::State_Selected);
-      //force selection to apply only 2 brushes instead of 3
+      // force selection to apply only 2 brushes instead of 3
       style.state |= QStyle::State_Selected;
 
       switch (state)
       {
       case Playlist::Item::PLAYING:
-        {
-          //invert, propagate selection to text
-          const QBrush& itemText = isSelected ? highlightColor : baseColor;
-          const QBrush& itemBack = textColor;
-          palette.setBrush(QPalette::HighlightedText, itemText);
-          palette.setBrush(QPalette::Highlight, itemBack);
-        }
-        break;
+      {
+        // invert, propagate selection to text
+        const QBrush& itemText = isSelected ? highlightColor : baseColor;
+        const QBrush& itemBack = textColor;
+        palette.setBrush(QPalette::HighlightedText, itemText);
+        palette.setBrush(QPalette::Highlight, itemBack);
+      }
+      break;
       case Playlist::Item::PAUSED:
-        {
-          //disable bg, propagate selection to text
-          const QBrush& itemText = isSelected ? highlightColor : baseColor;
-          const QBrush& itemBack = disabledColor;
-          palette.setBrush(QPalette::HighlightedText, itemText);
-          palette.setBrush(QPalette::Highlight, itemBack);
-        }
-        break;
+      {
+        // disable bg, propagate selection to text
+        const QBrush& itemText = isSelected ? highlightColor : baseColor;
+        const QBrush& itemBack = disabledColor;
+        palette.setBrush(QPalette::HighlightedText, itemText);
+        palette.setBrush(QPalette::Highlight, itemBack);
+      }
+      break;
       case Playlist::Item::ERROR:
-        {
-          //disable text
-          const QBrush& itemText = disabledColor;
-          const QBrush& itemBack = isSelected ? highlightColor : baseColor;
-          palette.setBrush(QPalette::HighlightedText, itemText);
-          palette.setBrush(QPalette::Highlight, itemBack);
-        }
-        break;
+      {
+        // disable text
+        const QBrush& itemText = disabledColor;
+        const QBrush& itemBack = isSelected ? highlightColor : baseColor;
+        palette.setBrush(QPalette::HighlightedText, itemText);
+        palette.setBrush(QPalette::Highlight, itemBack);
+      }
+      break;
       default:
         assert(!"Invalid playitem state");
       }
     }
+
   private:
     const Playlist::Item::StateCallback& Callback;
     QPalette Palette;
   };
-}
+}  // namespace
 
 namespace Playlist
 {
   namespace UI
   {
-    TableViewItem::TableViewItem(QWidget& parent) : QItemDelegate(&parent)
-    {
-    }
+    TableViewItem::TableViewItem(QWidget& parent)
+      : QItemDelegate(&parent)
+    {}
 
     TableViewItem* TableViewItem::Create(QWidget& parent, const Item::StateCallback& callback)
     {
       return new TableViewItemImpl(parent, callback);
     }
 
-    TableView::TableView(QWidget& parent) : QTableView(&parent)
-    {
-    }
+    TableView::TableView(QWidget& parent)
+      : QTableView(&parent)
+    {}
 
     TableView* TableView::Create(QWidget& parent, const Item::StateCallback& callback, QAbstractItemModel& model)
     {
       REGISTER_METATYPE(Playlist::Model::IndexSet::Ptr);
       return new TableViewImpl(parent, callback, model);
     }
-  }
-}
+  }  // namespace UI
+}  // namespace Playlist

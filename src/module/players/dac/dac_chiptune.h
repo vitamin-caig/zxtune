@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  DAC-based chiptune interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DAC-based chiptune interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <devices/dac.h>
-#include <parameters/accessor.h>
 #include <module/players/iterator.h>
 #include <module/players/track_model.h>
+#include <parameters/accessor.h>
 
 namespace Module
 {
@@ -48,5 +48,5 @@ namespace Module
       virtual DataIterator::Ptr CreateDataIterator() const = 0;
       virtual void GetSamples(Devices::DAC::Chip& chip) const = 0;
     };
-  }
-}
+  }  // namespace DAC
+}  // namespace Module

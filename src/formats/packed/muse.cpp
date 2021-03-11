@@ -1,55 +1,52 @@
 /**
-* 
-* @file
-*
-* @brief  MUSE compressor support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  MUSE compressor support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
-//common includes
+// common includes
 #include <error.h>
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
-#include <binary/format_factories.h>
+// library includes
 #include <binary/compression/zlib_container.h>
+#include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/packed.h>
-//std includes
+// std includes
 #include <memory>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Muse
   {
     const Debug::Stream Dbg("Formats::Packed::Muse");
 
-    //checkers
+    // checkers
     const StringView HEADER_PATTERN =
-      "'M'U'S'E"
-      "de ad be|ba af|be"
-      "????" //file size
-      "????" //crc
-      "????" //packed size
-      "????" //unpacked size
-    ;
+        "'M'U'S'E"
+        "de ad be|ba af|be"
+        "????"  // file size
+        "????"  // crc
+        "????"  // packed size
+        "????"  // unpacked size
+        ;
 
     class Decoder : public Formats::Packed::Decoder
     {
     public:
       Decoder()
         : Depacker(Binary::CreateFormat(HEADER_PATTERN))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -91,14 +88,14 @@ namespace Packed
         }
         return {};
       }
+
     private:
       const Binary::Format::Ptr Depacker;
     };
-  }
+  }  // namespace Muse
 
   Decoder::Ptr CreateMUSEDecoder()
   {
     return MakePtr<Muse::Decoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}  // namespace Formats::Packed

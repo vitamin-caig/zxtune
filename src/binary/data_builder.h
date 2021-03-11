@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Builder for binary data
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Builder for binary data
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/container_factories.h>
 #include <binary/view.h>
-//std includes
+// std includes
 #include <cstring>
 #include <type_traits>
 
@@ -24,8 +24,7 @@ namespace Binary
   public:
     DataBuilder()
       : Content(new Dump())
-    {
-    }
+    {}
 
     explicit DataBuilder(std::size_t reserve)
       : Content(new Dump())
@@ -44,7 +43,7 @@ namespace Binary
     {
       *static_cast<T*>(Allocate(sizeof(T))) = val;
     }
-    
+
     void Add(View data)
     {
       std::memcpy(Allocate(data.Size()), data.Start(), data.Size());
@@ -96,7 +95,8 @@ namespace Binary
     {
       return CreateContainer(std::move(Content));
     }
+
   private:
     std::unique_ptr<Dump> Content;
   };
-}
+}  // namespace Binary

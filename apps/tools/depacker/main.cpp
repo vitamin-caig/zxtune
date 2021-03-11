@@ -1,8 +1,8 @@
-#include <make_ptr.h>
 #include <binary/data_builder.h>
 #include <formats/packed/decoders.h>
-#include <stdexcept>
 #include <iostream>
+#include <make_ptr.h>
+#include <stdexcept>
 
 #include <fcntl.h>
 #include <io.h>
@@ -16,47 +16,46 @@ namespace
     const char* const Id;
     const CreateDecoderFunc Create;
   };
-  
+
   using namespace Formats::Packed;
 
-  const DecoderTraits DECODERS[] =
-  {
-    //depackers
-    {"HOBETA",   &CreateHobetaDecoder                   },
-    {"HRUST1",   &CreateHrust1Decoder                   },
-    {"HRUST2",   &CreateHrust21Decoder                  },
-    {"HRUST23",  &CreateHrust23Decoder                  },
-    {"FDI",      &CreateFullDiskImageDecoder            },
-    {"DSQ",      &CreateDataSquieezerDecoder            },
-    {"MSP",      &CreateMSPackDecoder                   },
-    {"TRUSH",    &CreateTRUSHDecoder                    },
-    {"LZS",      &CreateLZSDecoder                      },
-    {"PCD61",    &CreatePowerfullCodeDecreaser61Decoder },
-    {"PCD61i",   &CreatePowerfullCodeDecreaser61iDecoder},
-    {"PCD62",    &CreatePowerfullCodeDecreaser62Decoder },
-    {"HRUM",     &CreateHrumDecoder                     },
-    {"CC3",      &CreateCodeCruncher3Decoder            },
-    {"CC4",      &CreateCompressorCode4Decoder          },
-    {"CC4PLUS",  &CreateCompressorCode4PlusDecoder      },
-    {"ESV",      &CreateESVCruncherDecoder              },
-    {"GAM",      &CreateGamePackerDecoder               },
-    {"GAMPLUS",  &CreateGamePackerPlusDecoder           },
-    {"TLZ",      &CreateTurboLZDecoder                  },
-    {"TLZP",     &CreateTurboLZProtectedDecoder         },
-    {"CHARPRES", &CreateCharPresDecoder                 },
-    {"PACK2",    &CreatePack2Decoder                    },
-    {"LZH1",     &CreateLZH1Decoder                     },
-    {"LZH2",     &CreateLZH2Decoder                     },
-    {"SNA128",   &CreateSna128Decoder                   },
-    {"TD0",      &CreateTeleDiskImageDecoder            },
-    {"Z80V145",  &CreateZ80V145Decoder                  },
-    {"Z80V20",   &CreateZ80V20Decoder                   },
-    {"Z80V30",   &CreateZ80V30Decoder                   },
-    {"MEGALZ",   &CreateMegaLZDecoder                   },
-    {"DSK",      &CreateDSKDecoder                      },
-    {"GZIP",     &CreateGzipDecoder                     },
+  const DecoderTraits DECODERS[] = {
+      // depackers
+      {"HOBETA", &CreateHobetaDecoder},
+      {"HRUST1", &CreateHrust1Decoder},
+      {"HRUST2", &CreateHrust21Decoder},
+      {"HRUST23", &CreateHrust23Decoder},
+      {"FDI", &CreateFullDiskImageDecoder},
+      {"DSQ", &CreateDataSquieezerDecoder},
+      {"MSP", &CreateMSPackDecoder},
+      {"TRUSH", &CreateTRUSHDecoder},
+      {"LZS", &CreateLZSDecoder},
+      {"PCD61", &CreatePowerfullCodeDecreaser61Decoder},
+      {"PCD61i", &CreatePowerfullCodeDecreaser61iDecoder},
+      {"PCD62", &CreatePowerfullCodeDecreaser62Decoder},
+      {"HRUM", &CreateHrumDecoder},
+      {"CC3", &CreateCodeCruncher3Decoder},
+      {"CC4", &CreateCompressorCode4Decoder},
+      {"CC4PLUS", &CreateCompressorCode4PlusDecoder},
+      {"ESV", &CreateESVCruncherDecoder},
+      {"GAM", &CreateGamePackerDecoder},
+      {"GAMPLUS", &CreateGamePackerPlusDecoder},
+      {"TLZ", &CreateTurboLZDecoder},
+      {"TLZP", &CreateTurboLZProtectedDecoder},
+      {"CHARPRES", &CreateCharPresDecoder},
+      {"PACK2", &CreatePack2Decoder},
+      {"LZH1", &CreateLZH1Decoder},
+      {"LZH2", &CreateLZH2Decoder},
+      {"SNA128", &CreateSna128Decoder},
+      {"TD0", &CreateTeleDiskImageDecoder},
+      {"Z80V145", &CreateZ80V145Decoder},
+      {"Z80V20", &CreateZ80V20Decoder},
+      {"Z80V30", &CreateZ80V30Decoder},
+      {"MEGALZ", &CreateMegaLZDecoder},
+      {"DSK", &CreateDSKDecoder},
+      {"GZIP", &CreateGzipDecoder},
   };
-  
+
   class AutoDecoder : public Formats::Packed::Decoder
   {
   public:
@@ -84,7 +83,7 @@ namespace
       return Formats::Packed::Container::Ptr();
     }
   };
-  
+
   std::string GetType(int argc, const char* argv[])
   {
     switch (argc)
@@ -97,14 +96,14 @@ namespace
       return "--help";
     }
   }
-  
+
   void ShowHelp()
   {
     std::cerr << "Usage:\n"
                  "  depacker [<type>]\n\n"
                  " to decode data from stdin to stdout\n\n";
   }
-  
+
   void ListAvailableTypes()
   {
     std::cerr << "List of available types to disable detection:\n";
@@ -113,7 +112,7 @@ namespace
       std::cerr << trait.Id << std::endl;
     }
   }
-  
+
   Formats::Packed::Decoder::Ptr CreateDecoder(const std::string& type)
   {
     if (type == "")
@@ -138,7 +137,7 @@ namespace
     ListAvailableTypes();
     throw std::runtime_error("");
   }
-  
+
   Binary::Container::Ptr ReadInput()
   {
     if (_setmode(_fileno(stdin), O_BINARY) == -1)
@@ -161,7 +160,7 @@ namespace
     builder.Resize(total);
     return builder.CaptureResult();
   }
-  
+
   void WriteOutput(Binary::View data)
   {
     if (_setmode(_fileno(stdout), _O_BINARY) == -1)
@@ -170,7 +169,7 @@ namespace
     }
     std::cout.write(static_cast<const char*>(data.Start()), data.Size());
   }
-}
+}  // namespace
 
 int main(int argc, const char* argv[])
 {

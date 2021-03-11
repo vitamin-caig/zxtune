@@ -1,17 +1,17 @@
 /**
-* 
-* @file
-*
-* @brief  AHX support plugin
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AHX support plugin
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
-//library includes
+// library includes
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/digital/abysshighestexperience.h>
 #include <module/players/dac/abysshighestexperience.h>
@@ -40,4 +40,4 @@ namespace ZXTune
       registrator.RegisterPlugin(plugin);
     }
   }
-}
+}  // namespace ZXTune

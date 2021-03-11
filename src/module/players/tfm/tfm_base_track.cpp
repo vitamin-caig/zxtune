@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  TFM-based track chiptunes support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  TFM-based track chiptunes support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/tfm/tfm_base_track.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace
@@ -28,7 +28,7 @@ namespace
       return 4 - in;
     }
   }
-}
+}  // namespace
 
 namespace Module
 {
@@ -72,6 +72,7 @@ namespace Module
       {
         res.assign(CurrentData.begin(), CurrentData.end());
       }
+
     private:
       void FillCurrentData()
       {
@@ -86,6 +87,7 @@ namespace Module
           CurrentData.clear();
         }
       }
+
     private:
       const TrackStateIterator::Ptr Delegate;
       const TrackModelState::Ptr State;
@@ -97,8 +99,7 @@ namespace Module
       : Chip(chan >= TFM::TRACK_CHANNELS / 2)
       , Channel(0 != Chip ? chan - TFM::TRACK_CHANNELS / 2 : chan)
       , Registers(data)
-    {
-    }
+    {}
 
     void ChannelBuilder::SetMode(uint_t mode)
     {
@@ -192,7 +193,7 @@ namespace Module
         WriteChipRegister(0xaa, valLo);
         break;
       case 3:
-        //op1 in doc???
+        // op1 in doc???
         WriteChipRegister(0xad, valHi);
         WriteChipRegister(0xa9, valLo);
         break;
@@ -223,5 +224,5 @@ namespace Module
     {
       return MakePtr<TrackDataIterator>(std::move(iterator), std::move(renderer));
     }
-  }
-}
+  }  // namespace TFM
+}  // namespace Module

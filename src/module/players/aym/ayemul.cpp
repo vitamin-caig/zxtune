@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  AY EMUL chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY EMUL chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/ayemul.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_properties_helper.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/core_parameters.h>
 #include <debug/log.h>
 #include <devices/beeper.h>
@@ -25,12 +25,10 @@
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
-//std includes
+// std includes
 #include <algorithm>
 
-namespace Module
-{
-namespace AYEMUL
+namespace Module::AYEMUL
 {
   const Debug::Stream Dbg("Core::AYSupp");
 
@@ -41,8 +39,7 @@ namespace AYEMUL
       : Chip(std::move(chip))
       , Register()
       , Blocked()
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -103,26 +100,26 @@ namespace AYEMUL
     {
       return Module::CreateAnalyzer(Chip);
     }
+
   private:
     bool IsRegisterSelected() const
     {
       return Register < Devices::AYM::Registers::TOTAL;
     }
-    
+
     Devices::AYM::DataChunk* GetChunk(const Devices::AYM::Stamp& timeStamp)
     {
-      return Blocked
-        ? nullptr
-        : &AllocateChunk(timeStamp);
+      return Blocked ? nullptr : &AllocateChunk(timeStamp);
     }
 
     Devices::AYM::DataChunk& AllocateChunk(const Devices::AYM::Stamp& timeStamp)
     {
-      Chunks.resize(Chunks.size() + 1);          
+      Chunks.resize(Chunks.size() + 1);
       Devices::AYM::DataChunk& res = Chunks.back();
       res.TimeStamp = timeStamp;
       return res;
     }
+
   private:
     const Devices::AYM::Chip::Ptr Chip;
     uint_t Register;
@@ -130,7 +127,7 @@ namespace AYEMUL
     Devices::AYM::DataChunk State;
     bool Blocked;
   };
-  
+
   class BeeperDataChannel
   {
   public:
@@ -138,9 +135,8 @@ namespace AYEMUL
       : Chip(std::move(chip))
       , State(false)
       , Blocked(false)
-    {
-    }
-    
+    {}
+
     void Reset()
     {
       Chip->Reset();
@@ -165,7 +161,7 @@ namespace AYEMUL
         }
       }
     }
-    
+
     Sound::Chunk RenderFrame(const Devices::AYM::Stamp& till)
     {
       if (Chunks.empty())
@@ -177,35 +173,36 @@ namespace AYEMUL
       Chunks.clear();
       return Chip->RenderTill(till);
     }
+
   private:
     void AllocateChunk(Devices::Beeper::Stamp timeStamp)
     {
       Chunks.emplace_back(timeStamp, State);
     }
+
   private:
     const Devices::Beeper::Chip::Ptr Chip;
     std::vector<Devices::Beeper::DataChunk> Chunks;
     bool State;
     bool Blocked;
   };
-  
+
   class DataChannel
   {
   public:
     typedef std::shared_ptr<DataChannel> Ptr;
-    
+
     DataChannel(Devices::AYM::Chip::Ptr ay, Devices::Beeper::Chip::Ptr beep)
       : Ay(std::move(ay))
       , Beeper(std::move(beep))
-    {
-    }
+    {}
 
     void Reset()
     {
       Ay.Reset();
       Beeper.Reset();
     }
-    
+
     void SetBlocked(bool block)
     {
       Ay.SetBlocked(block);
@@ -221,12 +218,12 @@ namespace AYEMUL
     {
       return Ay.SetValue(timeStamp.CastTo<Devices::AYM::TimeUnit>(), val);
     }
-    
+
     uint8_t GetAyValue() const
     {
       return Ay.GetValue();
     }
-    
+
     void SetBeeperValue(const Devices::Z80::Stamp& timeStamp, bool val)
     {
       Beeper.SetLevel(timeStamp.CastTo<Devices::Beeper::TimeUnit>(), val);
@@ -252,11 +249,13 @@ namespace AYEMUL
     {
       return Ay.GetAnalyzer();
     }
+
   private:
     static Sound::Sample MixSamples(Sound::Sample lh, Sound::Sample rh)
     {
       return Sound::Sample((lh.Left() + rh.Left()) / 2, (lh.Right() + rh.Right()) / 2);
     }
+
   private:
     AyDataChannel Ay;
     BeeperDataChannel Beeper;
@@ -267,8 +266,7 @@ namespace AYEMUL
   public:
     explicit ZXAYPort(DataChannel::Ptr chan)
       : Channel(std::move(chan))
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -277,9 +275,7 @@ namespace AYEMUL
 
     uint8_t Read(uint16_t port)
     {
-      return IsSelRegPort(port)
-        ? Channel->GetAyValue()
-        : 0xff;
+      return IsSelRegPort(port) ? Channel->GetAyValue() : 0xff;
     }
 
     void Write(const Devices::Z80::Oscillator& timeStamp, uint16_t port, uint8_t data)
@@ -297,6 +293,7 @@ namespace AYEMUL
         Channel->SetBeeperValue(timeStamp.GetCurrentTime(), 0 != (data & 16));
       }
     }
+
   private:
     static const uint16_t ZX_AY_PORT_MASK = 0xc002;
 
@@ -316,6 +313,7 @@ namespace AYEMUL
     {
       return 0 == (port & 0x0001);
     }
+
   private:
     const DataChannel::Ptr Channel;
   };
@@ -327,8 +325,7 @@ namespace AYEMUL
       : Channel(std::move(channel))
       , Data()
       , Selector()
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -347,7 +344,7 @@ namespace AYEMUL
       if (IsDataPort(port))
       {
         Data = data;
-        //data means nothing
+        // data means nothing
       }
       else if (IsControlPort(port))
       {
@@ -374,6 +371,7 @@ namespace AYEMUL
       }
       return false;
     }
+
   private:
     static bool IsDataPort(uint16_t port)
     {
@@ -382,8 +380,9 @@ namespace AYEMUL
 
     static bool IsControlPort(uint16_t port)
     {
-      return 0xf600 == (port & 0xff00); 
+      return 0xf600 == (port & 0xff00);
     }
+
   private:
     const DataChannel::Ptr Channel;
     uint8_t Data;
@@ -398,8 +397,7 @@ namespace AYEMUL
       , ZX(channel)
       , CPC(channel)
       , Current()
-    {
-    }
+    {}
     typedef std::shared_ptr<PortsPlexer> Ptr;
 
     static Ptr Create(DataChannel::Ptr ayData)
@@ -436,18 +434,19 @@ namespace AYEMUL
       {
         Current->Write(timeStamp, port, data);
       }
-      //check CPC first
+      // check CPC first
       else if (CPC.Write(timeStamp, port, data))
       {
         Dbg("Detected CPC port mapping on write to port #%1$04x", port);
         Current = &CPC;
       }
-      else 
+      else
       {
-        //ZX is fallback that will never become current :(
+        // ZX is fallback that will never become current :(
         ZX.Write(timeStamp, port, data);
       }
     }
+
   private:
     const DataChannel::Ptr Channel;
     ZXAYPort ZX;
@@ -460,14 +459,13 @@ namespace AYEMUL
   public:
     explicit CPUParameters(Parameters::Accessor::Ptr params)
       : Params(std::move(params))
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
       return Params->Version();
     }
-    
+
     uint_t IntTicks() const override
     {
       using namespace Parameters::ZXTune::Core::Z80;
@@ -481,8 +479,9 @@ namespace AYEMUL
       using namespace Parameters::ZXTune::Core;
       Parameters::IntType cpuClock = Z80::CLOCKRATE_DEFAULT;
       Params->FindValue(Z80::CLOCKRATE, cpuClock);
-      return static_cast<uint_t>(cpuClock); 
+      return static_cast<uint_t>(cpuClock);
     }
+
   private:
     const Parameters::Accessor::Ptr Params;
   };
@@ -497,13 +496,13 @@ namespace AYEMUL
       : Frames()
       , Registers()
       , StackPointer()
-    {
-    }
+    {}
 
     Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
     {
       const uint8_t* const rawMemory = static_cast<const uint8_t*>(Memory->Start());
-      const Devices::Z80::Chip::Ptr result = Devices::Z80::CreateChip(params, Dump(rawMemory, rawMemory + Memory->Size()), ports);
+      const Devices::Z80::Chip::Ptr result =
+          Devices::Z80::CreateChip(params, Dump(rawMemory, rawMemory + Memory->Size()), ports);
       Devices::Z80::Registers regs;
       regs.Mask = ~0;
       std::fill(regs.Data.begin(), regs.Data.end(), Registers);
@@ -524,15 +523,14 @@ namespace AYEMUL
   class Computer
   {
   public:
-    typedef std::shared_ptr<Computer> Ptr; 
+    typedef std::shared_ptr<Computer> Ptr;
 
     Computer(ModuleData::Ptr data, Devices::Z80::ChipParameters::Ptr params, PortsPlexer::Ptr cpuPorts)
       : Data(std::move(data))
       , Params(std::move(params))
       , CPUPorts(std::move(cpuPorts))
       , CPU(Data->CreateCPU(Params, CPUPorts))
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -559,6 +557,7 @@ namespace AYEMUL
       CPUPorts->SetBlocked(false);
       CPU->SetTime(curTime);
     }
+
   private:
     const ModuleData::Ptr Data;
     const Devices::Z80::ChipParameters::Ptr Params;
@@ -574,8 +573,7 @@ namespace AYEMUL
       , Comp(std::move(comp))
       , Device(std::move(device))
       , FrameDuration(data.FrameDuration)
-    {
-    }
+    {}
 
     Module::State::Ptr GetState() const override
     {
@@ -625,6 +623,7 @@ namespace AYEMUL
         Comp->SkipFrames(DeviceTime, frames, FrameDuration);
       }
     }
+
   private:
     const TimedState::Ptr State;
     const Computer::Ptr Comp;
@@ -641,8 +640,7 @@ namespace AYEMUL
       : Properties(props)
       , Data(MakeRWPtr<ModuleData>())
       , Delegate(Formats::Chiptune::AY::CreateMemoryDumpBuilder())
-    {
-    }
+    {}
 
     void SetTitle(String title) override
     {
@@ -698,37 +696,33 @@ namespace AYEMUL
       Data->Memory = Delegate->Result();
       return Data;
     }
+
   private:
     PropertiesHelper& Properties;
     const ModuleData::RWPtr Data;
     const Formats::Chiptune::AY::BlobBuilder::Ptr Delegate;
   };
-  
+
   class StubBeeper : public Devices::Beeper::Chip
   {
   public:
-    void RenderData(const std::vector<Devices::Beeper::DataChunk>& /*src*/) override
-    {
-    }
+    void RenderData(const std::vector<Devices::Beeper::DataChunk>& /*src*/) override {}
 
-    void Reset() override
-    {
-    }
+    void Reset() override {}
 
     Sound::Chunk RenderTill(Devices::Beeper::Stamp /*till*/) override
     {
       return {};
     }
   };
-  
+
   class BeeperParams : public Devices::Beeper::ChipParameters
   {
   public:
     BeeperParams(uint_t samplerate, Parameters::Accessor::Ptr params)
       : Samplerate(samplerate)
       , Params(std::move(params))
-    {
-    }
+    {}
 
     uint_t Version() const override
     {
@@ -748,6 +742,7 @@ namespace AYEMUL
     {
       return Samplerate;
     }
+
   private:
     const uint_t Samplerate;
     const Parameters::Accessor::Ptr Params;
@@ -758,15 +753,14 @@ namespace AYEMUL
     auto beeperParams = MakePtr<BeeperParams>(samplerate, std::move(params));
     return Devices::Beeper::CreateChip(std::move(beeperParams));
   }
-  
+
   class Holder : public AYM::Holder
   {
   public:
     Holder(ModuleData::Ptr data, Parameters::Accessor::Ptr properties)
       : Data(std::move(data))
       , Properties(std::move(properties))
-    {
-    }
+    {}
 
     Information::Ptr GetModuleInformation() const override
     {
@@ -794,8 +788,10 @@ namespace AYEMUL
     {
       Require(!"Not implemented");
     }
+
   private:
-    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Chip::Ptr ay, Devices::Beeper::Chip::Ptr beep) const
+    Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Chip::Ptr ay,
+                                 Devices::Beeper::Chip::Ptr beep) const
     {
       auto cpuParams = MakePtr<CPUParameters>(params);
       auto channel = MakePtr<DataChannel>(std::move(ay), std::move(beep));
@@ -803,15 +799,17 @@ namespace AYEMUL
       auto comp = MakePtr<Computer>(Data, std::move(cpuParams), std::move(cpuPorts));
       return MakePtr<Renderer>(*Data, std::move(comp), std::move(channel));
     }
+
   private:
     const ModuleData::Ptr Data;
     const Parameters::Accessor::Ptr Properties;
   };
-  
+
   class Factory : public Module::Factory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData,
+                                     Parameters::Container::Ptr properties) const override
     {
       assert(Formats::Chiptune::AY::GetModulesCount(rawData) == 1);
 
@@ -827,10 +825,9 @@ namespace AYEMUL
       return {};
     }
   };
-  
+
   Factory::Ptr CreateFactory()
   {
     return MakePtr<Factory>();
   }
-}
-}
+}  // namespace Module::AYEMUL

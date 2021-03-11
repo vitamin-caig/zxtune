@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  IO objects identifiers template support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  IO objects identifiers template support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <strings/template.h>
 
 namespace IO

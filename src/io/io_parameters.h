@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  IO parameters names
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  IO parameters names
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
 
 namespace Parameters
@@ -22,7 +22,7 @@ namespace Parameters
     {
       //! @brief Parameters#ZXTune#IO namespace prefix
       extern const NameType PREFIX;
-      //IO-related parameters
-    }
-  }
-}
+      // IO-related parameters
+    }  // namespace IO
+  }    // namespace ZXTune
+}  // namespace Parameters

@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief UI settings pane interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief UI settings pane interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//qt includes
+// qt includes
 #include <QtGui/QWidget>
 
 namespace UI
@@ -20,9 +20,10 @@ namespace UI
     Q_OBJECT
   protected:
     explicit InterfaceSettingsWidget(QWidget& parent);
+
   public:
     static InterfaceSettingsWidget* Create(QWidget& parent);
   private slots:
     virtual void OnLanguageChanged(int idx) = 0;
   };
-}
+}  // namespace UI

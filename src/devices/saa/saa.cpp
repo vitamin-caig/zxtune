@@ -1,26 +1,26 @@
 /**
-* 
-* @file
-*
-* @brief  SAA chips implementation
-*
-* @author vitamin.caig@gmail.com
-*
-* @note Based on sources of PerfectZX emulator
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SAA chips implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ * @note Based on sources of PerfectZX emulator
+ *
+ **/
 
-//local includes
+// local includes
 #include "device.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <devices/details/analysis_map.h>
 #include <devices/details/renderers.h>
 #include <parameters/tracking_helper.h>
 #include <sound/lpfilter.h>
-//std includes
+// std includes
 #include <cassert>
 #include <cmath>
 #include <functional>
@@ -29,9 +29,7 @@
 #include <numeric>
 #include <utility>
 
-namespace Devices
-{
-namespace SAA
+namespace Devices::SAA
 {
   static_assert(Registers::TOTAL <= 8 * sizeof(uint_t), "Too many registers for mask");
   static_assert(sizeof(Registers) == 32, "Invalid layout");
@@ -50,7 +48,7 @@ namespace SAA
       {
         if (0 == (data.Mask & mask))
         {
-          //no new data
+          // no new data
           continue;
         }
         const uint_t val = data.Data[idx];
@@ -115,6 +113,7 @@ namespace SAA
     {
       Device.GetState(analysis, state);
     }
+
   private:
     SAADevice Device;
   };
@@ -127,13 +126,13 @@ namespace SAA
 
   class HQWrapper
   {
-    //minimal period is 512
+    // minimal period is 512
     static const uint_t FREQ_DIVIDER = 8;
+
   public:
     explicit HQWrapper(SAARenderer& delegate)
       : Delegate(delegate)
-    {
-    }
+    {}
 
     void SetClockFrequency(uint64_t clockFreq)
     {
@@ -158,19 +157,20 @@ namespace SAA
     {
       return Filter.Get();
     }
+
   private:
     SAARenderer& Delegate;
     Sound::LPFilter Filter;
-  };   
+  };
 
   class HQRenderer : public Details::BaseRenderer<Stamp, HQWrapper>
   {
     typedef Details::BaseRenderer<Stamp, HQWrapper> Parent;
+
   public:
     HQRenderer(ClockSource& clock, SAARenderer& psg)
       : Parent(clock, psg)
-    {
-    }
+    {}
 
     void SetClockFrequency(uint64_t clockFreq)
     {
@@ -189,8 +189,7 @@ namespace SAA
       , MQ(clock, psg)
       , HQ(clock, psg)
       , Current()
-    {
-    }
+    {}
 
     void Reset()
     {
@@ -231,6 +230,7 @@ namespace SAA
     {
       return Current->Render(tillTime, samples);
     }
+
   private:
     uint64_t ClockFreq;
     uint_t SoundFreq;
@@ -282,6 +282,7 @@ namespace SAA
       PSG.GetState(Analyser, res);
       return res;
     }
+
   private:
     void SynchronizeParameters()
     {
@@ -294,6 +295,7 @@ namespace SAA
         Analyser.SetClockRate(clock);
       }
     }
+
   private:
     Parameters::TrackingHelper<ChipParameters> Params;
     SAARenderer PSG;
@@ -306,5 +308,4 @@ namespace SAA
   {
     return MakePtr<RegularSAAChip>(std::move(params));
   }
-}
-}
+}  // namespace Devices::SAA

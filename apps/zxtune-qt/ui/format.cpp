@@ -1,14 +1,14 @@
 /**
-* 
-* @file
-*
-* @brief Format tools implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Format tools implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
+// library includes
 #include <module/attributes.h>
 #include <parameters/template.h>
 #include <strings/template.h>

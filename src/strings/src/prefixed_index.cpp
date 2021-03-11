@@ -1,14 +1,14 @@
 /**
-*
-* @file
-*
-* @brief  Simple parser for <prefix><index> pairs implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Simple parser for <prefix><index> pairs implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
+// library includes
 #include <strings/conversion.h>
 #include <strings/prefixed_index.h>
 
@@ -29,6 +29,5 @@ namespace Strings
     : Str(prefix.to_string() + ConvertFrom(index))
     , Valid(true)
     , Index(index)
-  {
-  }
-}
+  {}
+}  // namespace Strings

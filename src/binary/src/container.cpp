@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Data container implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Data container implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_factories.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -48,7 +48,7 @@ namespace Binary
     {
       assert(Length);
     }
-    
+
     const void* Start() const override
     {
       return GetPointer(Buffer.get(), Offset);
@@ -71,12 +71,13 @@ namespace Binary
         return Ptr();
       }
     }
+
   private:
     const Value Buffer;
     const std::size_t Offset;
     const std::size_t Length;
   };
-}
+}  // namespace Binary
 
 namespace Binary
 {
@@ -105,7 +106,7 @@ namespace Binary
 
   Container::Ptr CreateContainer(Data::Ptr data)
   {
-    //cover downcasting and special cases
+    // cover downcasting and special cases
     if (auto asContainer = std::dynamic_pointer_cast<const Container>(data))
     {
       return asContainer;
@@ -132,4 +133,4 @@ namespace Binary
       return Container::Ptr();
     }
   }
-}
+}  // namespace Binary

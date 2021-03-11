@@ -1,17 +1,17 @@
 /**
-*
-* @file
-*
-* @brief  Container test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Container test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-#include <contract.h>
 #include <binary/container_factories.h>
-#include <iostream>
+#include <contract.h>
 #include <cstring>
+#include <iostream>
 
 namespace
 {
@@ -20,7 +20,7 @@ namespace
     std::cout << " " << testCase << ": " << (condition ? "ok" : "failed") << std::endl;
     Require(condition);
   }
-  
+
   void TestContainer(const Binary::Data& data, std::size_t size, const void* content)
   {
     Test("size", data.Size() == size);
@@ -36,7 +36,7 @@ namespace
     //                                                   emptySubdata
     //                               <- subsubdata ->
     //                                  <truncsubsub>
-    
+
     std::cout << "Test for CreateContainer" << std::endl;
     const auto data = Binary::CreateContainer(DATA);
     Test("copying", data->Start() != DATA);
@@ -122,7 +122,7 @@ namespace
       }
     }
   }
-}
+}  // namespace
 
 int main()
 {
@@ -135,6 +135,6 @@ int main()
   {
     return 1;
   }
-  
+
   return 0;
 }

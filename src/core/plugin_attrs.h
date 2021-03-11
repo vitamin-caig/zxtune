@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  Plugins attributes
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Plugins attributes
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
@@ -39,43 +39,48 @@ namespace ZXTune
                      |           - Decompiler
                      |           - MultitrackModule
                      |           - Scaner
-                     |           
+                     |
                      - Traits - Plain
                               - OnceApplied
                               - Multifile
                               - Directories
   */
-  
+
   namespace Capabilities
   {
     namespace Category
     {
+      // clang-format off
       enum
       {
         MODULE    = 0x00000000,
         CONTAINER = 0x10000000,
-      
+
         MASK      = 0xf0000000
       };
-    }
-    
+      // clang-format on
+    }  // namespace Category
+
     namespace Module
     {
       namespace Type
       {
+        // clang-format off
         enum
         {
           TRACK      = 0x00000000,
           STREAM     = 0x00000001,
           MEMORYDUMP = 0x00000002,
           MULTI      = 0x00000003,
-          
+
           MASK       = 0x0000000f
         };
-      }
-      
+        // clang-format on
+      }  // namespace Type
+
       namespace Device
       {
+        // clang-format off
         enum
         {
           AY38910    = 0x00000010,
@@ -95,10 +100,12 @@ namespace ZXTune
 
           MASK       = 0x000ffff0
         };
-      }
-      
+        // clang-format on
+      }  // namespace Device
+
       namespace Conversion
       {
+        // clang-format off
         enum
         {
           OUT        = 0x00100000,
@@ -111,10 +118,12 @@ namespace ZXTune
 
           MASK       = 0x07f00000
         };
-      }
-      
+        // clang-format on
+      }  // namespace Conversion
+
       namespace Traits
       {
+        // clang-format off
         enum
         {
           //! Plugin may produce multifile tracks
@@ -122,15 +131,18 @@ namespace ZXTune
 
           MASK       = 0x08000000
         };
-      }
-      
-      static_assert(0 == (Category::MASK & Type::MASK & Device::MASK & Conversion::MASK & Traits::MASK), "Masks conflict");
-    }
-    
+        // clang-format on
+      }  // namespace Traits
+
+      static_assert(0 == (Category::MASK & Type::MASK & Device::MASK & Conversion::MASK & Traits::MASK),
+                    "Masks conflict");
+    }  // namespace Module
+
     namespace Container
     {
       namespace Type
       {
+        // clang-format off
         enum
         {
           ARCHIVE    = 0x00000000,
@@ -140,13 +152,15 @@ namespace ZXTune
           DECOMPILER = 0x00000004,
           MULTITRACK = 0x00000005,
           SCANER     = 0x00000006,
-          
+
           MASK       = 0x0000000f
         };
-      }
-      
+        // clang-format on
+      }  // namespace Type
+
       namespace Traits
       {
+        // clang-format off
         enum
         {
           //! Container may have directory structure
@@ -155,12 +169,13 @@ namespace ZXTune
           PLAIN       = 0x00000020,
           //! Plugin should be applied only once
           ONCEAPPLIED = 0x00000040,
-          
+
           MASK        = 0x000000f0
         };
-      }
+        // clang-format on
+      }  // namespace Traits
 
       static_assert(0 == (Category::MASK & Type::MASK & Traits::MASK), "Masks conflict");
-    }
-  }
-}
+    }  // namespace Container
+  }    // namespace Capabilities
+}  // namespace ZXTune

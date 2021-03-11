@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief Analyzer widget interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Analyzer widget interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <sound/backend.h>
-//qt includes
+// qt includes
 #include <QtGui/QWidget>
 
 class PlaybackSupport;
@@ -22,8 +22,9 @@ class AnalyzerControl : public QWidget
   Q_OBJECT
 protected:
   explicit AnalyzerControl(QWidget& parent);
+
 public:
-  //creator
+  // creator
   static AnalyzerControl* Create(QWidget& parent, PlaybackSupport& supp);
 
 public slots:

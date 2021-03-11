@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Main window interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Main window interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
-#include "ui/mainwindow.h"
+// local includes
 #include "playlist/supp/data.h"
-//library includes
+#include "ui/mainwindow.h"
+// library includes
 #include <sound/backend.h>
 
 class DesktopMainWindow : public MainWindow
@@ -29,9 +29,9 @@ private slots:
   virtual void StartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr) = 0;
   virtual void StopModule() = 0;
 
-  //File menu
+  // File menu
   virtual void ShowPreferences() = 0;
-  //Help menu
+  // Help menu
   virtual void ShowComponentsInformation() = 0;
   virtual void ShowAboutProgram() = 0;
   virtual void ShowAboutQt() = 0;

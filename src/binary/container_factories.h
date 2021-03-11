@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Binary data container factories
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Binary data container factories
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <binary/container.h>
 #include <binary/view.h>
 
@@ -27,4 +27,4 @@ namespace Binary
   Container::Ptr CreateContainer(std::shared_ptr<const Dump> data, std::size_t offset, std::size_t size);
   //! @brief Sharing ownership
   Container::Ptr CreateContainer(Data::Ptr data);
-}
+}  // namespace Binary

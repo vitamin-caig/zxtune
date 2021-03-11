@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief File dialog factories
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief File dialog factories
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//qt includes
+// qt includes
 #include <QtCore/QStringList>
 
 namespace UI
@@ -18,5 +18,6 @@ namespace UI
   bool OpenSingleFileDialog(const QString& title, const QString& filters, QString& file);
   bool OpenMultipleFilesDialog(const QString& title, const QString& filters, QStringList& files);
   bool OpenFolderDialog(const QString& title, QString& folder);
-  bool SaveFileDialog(const QString& title, const QString& suffix, const QStringList& filters, QString& filename, int* usedFilter = nullptr);
-};
+  bool SaveFileDialog(const QString& title, const QString& suffix, const QStringList& filters, QString& filename,
+                      int* usedFilter = nullptr);
+};  // namespace UI

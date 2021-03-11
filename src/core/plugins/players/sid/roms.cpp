@@ -1,54 +1,42 @@
 /**
-* 
-* @file
-*
-* @brief  ROMs access interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ROMs access interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "core/plugins/players/sid/roms.h"
 
-namespace Module
+namespace Module::Sid
 {
-namespace Sid
-{
-  const uint8_t KERNAL[] =
-  {
+  const uint8_t KERNAL[] = {
 #include "core/plugins/players/sid/kernal.inc"
   };
 
-  const uint8_t BASIC[] =
-  {
+  const uint8_t BASIC[] = {
 #include "core/plugins/players/sid/basic.inc"
   };
 
-  const uint8_t CHARGEN[] =
-  {
+  const uint8_t CHARGEN[] = {
 #include "core/plugins/players/sid/chargen.inc"
   };
-}
-}
 
-namespace Module
-{
-namespace Sid
-{
   const uint8_t* GetKernalROM()
   {
     return KERNAL;
   }
-  
+
   const uint8_t* GetBasicROM()
   {
     return BASIC;
   }
-  
+
   const uint8_t* GetChargenROM()
   {
     return CHARGEN;
   }
-}
-}
+}  // namespace Module::Sid

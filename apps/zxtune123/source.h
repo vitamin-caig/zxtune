@@ -1,39 +1,40 @@
 /**
-* 
-* @file
-*
-* @brief Source data provider interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Source data provider interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/data.h>
 #include <module/holder.h>
 #include <parameters/container.h>
-//std includes
+// std includes
 #include <memory>
 #include <stdexcept>
 
-//forward declarations
+// forward declarations
 namespace boost
 {
   namespace program_options
   {
     class options_description;
   }
-}
+}  // namespace boost
 
-class CancelError : public std::exception {};
+class CancelError : public std::exception
+{};
 
 class OnItemCallback
 {
 public:
   virtual ~OnItemCallback() = default;
-  
+
   virtual void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder) = 0;
 };
 

@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Numeric operations
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Numeric operations
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <algorithm>
-//std includes
+// std includes
 #include <type_traits>
 
 namespace Math
@@ -40,13 +40,13 @@ namespace Math
     InRangeFunctor(T min, T max)
       : Min(min)
       , Max(max)
-    {
-    }
+    {}
 
     bool operator()(T val) const
     {
       return InRange(val, Min, Max);
     }
+
   private:
     const T Min;
     const T Max;
@@ -65,13 +65,13 @@ namespace Math
     NotInRangeFunctor(T min, T max)
       : Min(min)
       , Max(max)
-    {
-    }
+    {}
 
     bool operator()(T val) const
     {
       return !InRange(val, Min, Max);
     }
+
   private:
     const T Min;
     const T Max;
@@ -98,4 +98,4 @@ namespace Math
     static_assert(std::is_arithmetic<T>::value, "Should be arithmetic");
     return val >= 0 ? val : -val;
   }
-}
+}  // namespace Math

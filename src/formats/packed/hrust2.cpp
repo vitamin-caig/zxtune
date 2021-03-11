@@ -1,46 +1,44 @@
 /**
-* 
-* @file
-*
-* @brief  Hrust v2.x packer support
-*
-* @author vitamin.caig@gmail.com
-*
-* @note   Based on XLook sources by HalfElf
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Hrust v2.x packer support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ * @note   Based on XLook sources by HalfElf
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/packed/container.h"
 #include "formats/packed/hrust1_bitstream.h"
 #include "formats/packed/pack_utils.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-//std includes
-#include <iterator>
+// std includes
 #include <cstring>
 #include <functional>
+#include <iterator>
 #include <numeric>
-//text includes
+// text includes
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace Hrust2
   {
     const std::size_t MAX_DECODED_SIZE = 0x10000;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawHeader
     {
@@ -52,19 +50,19 @@ namespace Packed
     namespace Version1
     {
       const StringView HEADER_FORMAT(
-        "'h'r'2"    //ID
-        "%x0110001" //Flag
+          "'h'r'2"     // ID
+          "%x0110001"  // Flag
       );
 
       PACK_PRE struct FormatHeader
       {
-        uint8_t ID[3];//'hr2'
-        uint8_t Flag;//'1' | 128
+        uint8_t ID[3];  //'hr2'
+        uint8_t Flag;   //'1' | 128
         uint16_t DataSize;
         uint16_t PackedSize;
         RawHeader Stream;
 
-        //flag bits
+        // flag bits
         enum
         {
           NO_COMPRESSION = 128
@@ -72,23 +70,23 @@ namespace Packed
       } PACK_POST;
 
       const std::size_t MIN_SIZE = sizeof(FormatHeader);
-    }
+    }  // namespace Version1
 
     namespace Version3
     {
       const StringView HEADER_FORMAT(
-        "'H'r's't'2" //ID
-        "%00x00xxx"  //Flag
+          "'H'r's't'2"  // ID
+          "%00x00xxx"   // Flag
       );
 
       PACK_PRE struct FormatHeader
       {
-        uint8_t ID[5];//'Hrst2'
+        uint8_t ID[5];  //'Hrst2'
         uint8_t Flag;
         uint16_t DataSize;
-        uint16_t PackedSize;//without header
+        uint16_t PackedSize;  // without header
         uint8_t AdditionalSize;
-        //additional
+        // additional
         uint16_t PackedCRC;
         uint16_t DataCRC;
         char Name[8];
@@ -98,7 +96,7 @@ namespace Packed
         uint8_t Subdir;
         char Comment[1];
 
-        //flag bits
+        // flag bits
         enum
         {
           STORED_BLOCK = 1,
@@ -130,20 +128,20 @@ namespace Packed
       } PACK_POST;
 
       const std::size_t MIN_SIZE = sizeof(FormatHeader);
-    }
+    }  // namespace Version3
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
-    //hrust2x bitstream decoder
+    // hrust2x bitstream decoder
     class Bitstream : public ByteStream
     {
     public:
       Bitstream(const uint8_t* data, std::size_t size)
         : ByteStream(data, size)
-        , Bits(), Mask(0)
-      {
-      }
+        , Bits()
+        , Mask(0)
+      {}
 
       uint_t GetBit()
       {
@@ -199,6 +197,7 @@ namespace Packed
           return static_cast<int16_t>((res << 8) + GetByte());
         }
       }
+
     private:
       uint_t Bits;
       uint_t Mask;
@@ -223,14 +222,13 @@ namespace Packed
 
       std::unique_ptr<Dump> GetResult()
       {
-        return IsValid
-          ? std::move(Result)
-          : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
       }
+
     private:
       bool DecodeData()
       {
-        //put first byte
+        // put first byte
         Decoded.push_back(Header.FirstByte);
 
         while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
@@ -251,7 +249,7 @@ namespace Packed
               len = Stream.GetByte();
               if (!len)
               {
-                break;//eof
+                break;  // eof
               }
               else if (len < 16)
               {
@@ -263,7 +261,7 @@ namespace Packed
                 return false;
               }
             }
-            else//%011000xxxx
+            else  //%011000xxxx
             {
               for (len = 2 * (Stream.GetBits(4) + 6); len; --len)
               {
@@ -278,8 +276,8 @@ namespace Packed
               --len;
             }
             const int_t offset = 1 == len
-              ? static_cast<int16_t>(0xfff8 + Stream.GetBits(3))
-              : (2 == len ? static_cast<int16_t>(0xff00 + Stream.GetByte()) : Stream.GetDist());
+                                     ? static_cast<int16_t>(0xfff8 + Stream.GetBits(3))
+                                     : (2 == len ? static_cast<int16_t>(0xff00 + Stream.GetByte()) : Stream.GetDist());
             if (!CopyFromBack(-offset, Decoded, len))
             {
               return false;
@@ -289,6 +287,7 @@ namespace Packed
         std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
         return true;
       }
+
     private:
       const RawHeader& Header;
       Bitstream Stream;
@@ -305,8 +304,7 @@ namespace Packed
         Container(const void* data, std::size_t size)
           : Data(static_cast<const uint8_t*>(data))
           , Size(size)
-        {
-        }
+        {}
 
         bool FastCheck() const
         {
@@ -315,8 +313,7 @@ namespace Packed
             return false;
           }
           const FormatHeader& header = GetHeader();
-          if (0 != (header.Flag & FormatHeader::NO_COMPRESSION) &&
-              header.PackedSize != header.DataSize)
+          if (0 != (header.Flag & FormatHeader::NO_COMPRESSION) && header.PackedSize != header.DataSize)
           {
             return false;
           }
@@ -341,32 +338,24 @@ namespace Packed
           {
             return usefulSize;
           }
-          //max padding size is 255 bytes
-          //text is 2+29 bytes
-          static const uint8_t HRUST2_1_PADDING[] =
-          {
-            0xd, 0xa, 'H', 'R', 'U', 'S', 'T', ' ', 'v', '2', '.', '1', ' ', 'b', 'y', ' ',
-            'D', 'm', 'i', 't', 'r', 'y', ' ', 'P', 'y', 'a', 'n', 'k', 'o', 'v', '.', 0,
-            //32
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-          };
+          // max padding size is 255 bytes
+          // text is 2+29 bytes
+          static const uint8_t HRUST2_1_PADDING[] = {
+              0xd, 0xa, 'H', 'R', 'U', 'S', 'T', ' ', 'v', '2', '.', '1', ' ', 'b', 'y', ' ', 'D', 'm', 'i', 't', 'r',
+              'y', ' ', 'P', 'y', 'a', 'n', 'k', 'o', 'v', '.', 0,
+              // 32
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
           static_assert(sizeof(HRUST2_1_PADDING) == 255, "Invalid layout");
           const uint8_t* const paddingStart = Data + usefulSize;
           const uint8_t* const paddingEnd = Data + resultSize;
-          if (const std::size_t pad = MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, std::end(HRUST2_1_PADDING)))
+          if (const std::size_t pad =
+                  MatchedSize(paddingStart, paddingEnd, HRUST2_1_PADDING, std::end(HRUST2_1_PADDING)))
           {
             if (pad >= MIN_SIGNATURE_MATCH)
             {
@@ -381,6 +370,7 @@ namespace Packed
           assert(Size >= sizeof(FormatHeader));
           return *safe_ptr_cast<const FormatHeader*>(Data);
         }
+
       private:
         const uint8_t* const Data;
         const std::size_t Size;
@@ -399,17 +389,16 @@ namespace Packed
 
         std::unique_ptr<Dump> GetResult()
         {
-          return IsValid
-            ? std::move(Result)
-            : std::unique_ptr<Dump>();
+          return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
         }
+
       private:
         bool DecodeData()
         {
           const uint_t size = fromLE(Header.DataSize);
           if (0 != (Header.Flag & Header.NO_COMPRESSION))
           {
-            //just copy
+            // just copy
             Result->resize(size);
             std::memcpy(Result->data(), &Header.Stream, size);
             return true;
@@ -418,12 +407,13 @@ namespace Packed
           Result = decoder.GetResult();
           return nullptr != Result.get();
         }
+
       private:
         bool IsValid;
         const FormatHeader& Header;
         std::unique_ptr<Dump> Result;
       };
-    }
+    }  // namespace Version1
 
     namespace Version3
     {
@@ -433,8 +423,7 @@ namespace Packed
         Container(const void* data, std::size_t size)
           : Data(static_cast<const uint8_t*>(data))
           , Size(size)
-        {
-        }
+        {}
 
         bool FastCheck() const
         {
@@ -442,21 +431,22 @@ namespace Packed
           {
             return false;
           }
-          //at least one block should be available
+          // at least one block should be available
           const FormatHeader& header = GetHeader();
-          if (0 != (header.Flag & FormatHeader::STORED_BLOCK) &&
-              header.PackedSize != header.DataSize)
+          if (0 != (header.Flag & FormatHeader::STORED_BLOCK) && header.PackedSize != header.DataSize)
           {
             return false;
           }
           return Math::InRange(header.GetTotalSize(), sizeof(header), Size);
         }
-     private:
+
+      private:
         const FormatHeader& GetHeader() const
         {
           assert(Size >= sizeof(FormatHeader));
           return *safe_ptr_cast<const FormatHeader*>(Data);
         }
+
       private:
         const uint8_t* const Data;
         const std::size_t Size;
@@ -480,8 +470,9 @@ namespace Packed
           {
             return Blocks.front();
           }
-          const std::size_t totalSize = std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0), 
-            [](std::size_t size, const Binary::Container::Ptr& data) {return size + data->Size();});
+          const std::size_t totalSize =
+              std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0),
+                              [](std::size_t size, const Binary::Container::Ptr& data) { return size + data->Size(); });
           std::unique_ptr<Dump> result(new Dump(totalSize));
           auto* target = result->data();
           for (const auto& block : Blocks)
@@ -491,6 +482,7 @@ namespace Packed
           }
           return Binary::CreateContainer(std::move(result));
         }
+
       private:
         std::vector<Binary::Container::Ptr> Blocks;
       };
@@ -531,6 +523,7 @@ namespace Packed
         {
           return UsedSize;
         }
+
       private:
         void DecodeData()
         {
@@ -581,21 +574,21 @@ namespace Packed
             UsedSize = source.GetPosition();
           }
         }
+
       private:
         const Binary::Container& Data;
         Binary::Container::Ptr Result;
         std::size_t UsedSize;
       };
-    }
-  }//namespace Hrust2
+    }  // namespace Version3
+  }    // namespace Hrust2
 
   class Hrust21Decoder : public Decoder
   {
   public:
     Hrust21Decoder()
       : Format(Binary::CreateFormat(Hrust2::Version1::HEADER_FORMAT, Hrust2::Version1::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -621,6 +614,7 @@ namespace Packed
       Hrust2::Version1::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -630,8 +624,7 @@ namespace Packed
   public:
     Hrust23Decoder()
       : Format(Binary::CreateFormat(Hrust2::Version3::HEADER_FORMAT, Hrust2::Version3::MIN_SIZE))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -657,6 +650,7 @@ namespace Packed
       Hrust2::Version3::DataDecoder decoder(rawData);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());
     }
+
   private:
     const Binary::Format::Ptr Format;
   };
@@ -670,5 +664,4 @@ namespace Packed
   {
     return MakePtr<Hrust23Decoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}  // namespace Formats::Packed

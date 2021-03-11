@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Playlist container internal interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist container internal interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "container.h"
 #include "playlist/supp/data_provider.h"
-//library includes
+// library includes
 #include <parameters/accessor.h>
 
 namespace Playlist
@@ -32,8 +32,7 @@ namespace Playlist
       typedef std::shared_ptr<ContainerItems> RWPtr;
     };
 
-    Container::Ptr CreateContainer(Item::DataProvider::Ptr provider,
-      Parameters::Accessor::Ptr properties,
-      ContainerItems::Ptr items);
-  }
-}
+    Container::Ptr CreateContainer(Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr properties,
+                                   ContainerItems::Ptr items);
+  }  // namespace IO
+}  // namespace Playlist

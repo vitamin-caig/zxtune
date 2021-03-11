@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Scanning utility
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Scanning utility
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-#include <types.h>
-#include <error_tools.h>
-#include <progress_callback.h>
 #include <binary/format_factories.h>
+#include <error_tools.h>
 #include <io/api.h>
-#include <parameters/container.h>
 #include <iostream>
+#include <parameters/container.h>
+#include <progress_callback.h>
+#include <types.h>
 
 namespace
 {
@@ -24,20 +24,21 @@ namespace
     explicit ScanSpeed(std::size_t total)
       : Start(std::clock())
       , Total(total)
-    {
-    }
+    {}
 
     void Report(std::size_t pos) const
     {
       const std::clock_t elapsed = std::clock() - Start;
       const std::size_t speed = pos * CLOCKS_PER_SEC / (elapsed ? elapsed : 1);
-      std::cout << (pos != Total ? "Matched at " : "Finished scanning ") << pos << ". Speed " << double(speed) / 1048576 << "Mb/s" << std::endl;
+      std::cout << (pos != Total ? "Matched at " : "Finished scanning ") << pos << ". Speed " << double(speed) / 1048576
+                << "Mb/s" << std::endl;
     }
+
   private:
     const std::clock_t Start;
     const std::size_t Total;
   };
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Packed data support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Packed data support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <binary/container.h>
 #include <binary/format.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Formats
@@ -52,5 +52,5 @@ namespace Formats
       //! @invariant Exactly Container::PackedSize first bytes is used from rawData
       virtual Container::Ptr Decode(const Binary::Container& rawData) const = 0;
     };
-  }
-}
+  }  // namespace Packed
+}  // namespace Formats

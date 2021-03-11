@@ -1,32 +1,30 @@
 /**
-* 
-* @file
-*
-* @brief  SoundTrackerPro compiled modules support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SoundTrackerPro compiled modules support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "formats/packed/container.h"
+// local includes
 #include "formats/chiptune/aym/soundtrackerpro.h"
-//common includes
+#include "formats/packed/container.h"
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
-//std includes
+// std includes
 #include <array>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace CompiledSTP
   {
@@ -36,7 +34,7 @@ namespace Packed
     const std::size_t MAX_PLAYER_SIZE = 2000;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     struct Version1
     {
@@ -111,7 +109,7 @@ namespace Packed
       } PACK_POST;
     };
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(offsetof(Version1::RawPlayer, Information) == 17, "Invalid layout");
@@ -123,57 +121,57 @@ namespace Packed
     const String Version2::DESCRIPTION = String(Text::SOUNDTRACKERPRO2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
     const StringView Version1::FORMAT =
-      "21??"     //ld hl,ModuleAddr
-      "c3??"     //jp xxxx
-      "c3??"     //jp xxxx
-      "ed4b??"   //ld bc,(xxxx)
-      "c3??"     //jp xxxx
-      "?"        //nop?
-      "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
-      "?{25}"
-      "?{8}"
-      "f3"       //di
-      "22??"     //ld (xxxx),hl
-      "3e?"      //ld a,xx
-      "32??"     //ld (xxxx),a
-      "32??"     //ld (xxxx),a
-      "32??"     //ld (xxxx),a
-      "7e"       //ld a,(hl)
-      "23"       //inc hl
-      "32??"     //ld (xxxx),a
-    ;
+        "21??"    // ld hl,ModuleAddr
+        "c3??"    // jp xxxx
+        "c3??"    // jp xxxx
+        "ed4b??"  // ld bc,(xxxx)
+        "c3??"    // jp xxxx
+        "?"       // nop?
+        "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
+        "?{25}"
+        "?{8}"
+        "f3"    // di
+        "22??"  // ld (xxxx),hl
+        "3e?"   // ld a,xx
+        "32??"  // ld (xxxx),a
+        "32??"  // ld (xxxx),a
+        "32??"  // ld (xxxx),a
+        "7e"    // ld a,(hl)
+        "23"    // inc hl
+        "32??"  // ld (xxxx),a
+        ;
 
     const StringView Version2::FORMAT =
-      "c3??"     //jp InitAddr
-      "c3??"     //jp PlayAddr
-      "??"       //nop,nop
-      "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' ' ' 'O'F' ' ' "
-      "?{24}"
-      "?{8}"
-      //+0x48
-      "f3"       //di
-      "21??"     //ld hl,ModuleAddr
-      "22??"     //ld (xxxx),hl
-      "3e?"      //ld a,xx
-      "32??"     //ld (xxxx),a
-      "32??"     //ld (xxxx),a
-      "32??"     //ld (xxxx),a
-      "7e"       //ld a,(hl)
-      "23"       //inc hl
-      "32??"     //ld (xxxx),a
-    ;
+        "c3??"  // jp InitAddr
+        "c3??"  // jp PlayAddr
+        "??"    // nop,nop
+        "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' ' ' 'O'F' ' ' "
+        "?{24}"
+        "?{8}"
+        //+0x48
+        "f3"    // di
+        "21??"  // ld hl,ModuleAddr
+        "22??"  // ld (xxxx),hl
+        "3e?"   // ld a,xx
+        "32??"  // ld (xxxx),a
+        "32??"  // ld (xxxx),a
+        "32??"  // ld (xxxx),a
+        "7e"    // ld a,(hl)
+        "23"    // inc hl
+        "32??"  // ld (xxxx),a
+        ;
 
     bool IsInfoEmpty(Binary::View info)
     {
       assert(info.Size() == 53);
-      //28 is fixed
-      //25 is title
+      // 28 is fixed
+      // 25 is title
       const auto start = info.As<Char>();
       const auto end = start + info.Size();
       const auto titleStart = start + 28;
-      return std::none_of(titleStart, end, [](auto b) {return b > ' ';});
+      return std::none_of(titleStart, end, [](auto b) { return b > ' '; });
     }
-  }//CompiledSTP
+  }  // namespace CompiledSTP
 
   template<class Version>
   class CompiledSTPDecoder : public Decoder
@@ -181,8 +179,7 @@ namespace Packed
   public:
     CompiledSTPDecoder()
       : Player(Binary::CreateFormat(Version::FORMAT, sizeof(typename Version::RawPlayer)))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -234,6 +231,7 @@ namespace Packed
       Dbg("Failed to find module after player");
       return Container::Ptr();
     }
+
   private:
     const Binary::Format::Ptr Player;
   };
@@ -247,5 +245,4 @@ namespace Packed
   {
     return MakePtr<CompiledSTPDecoder<CompiledSTP::Version2> >();
   }
-}//namespace Packed
-}//namespace Formats
+}  // namespace Formats::Packed

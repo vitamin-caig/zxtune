@@ -1,28 +1,26 @@
 /**
-*
-* @file
-*
-* @brief  Metainfo operating implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Metainfo operating implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/metainfo.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/container_factories.h>
-//std includes
-#include <set>
+// std includes
 #include <map>
+#include <set>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   class Patcher : public PatchedDataBuilder
   {
@@ -30,8 +28,7 @@ namespace Chiptune
     explicit Patcher(Binary::View src)
       : Source(src)
       , SizeAddon(0)
-    {
-    }
+    {}
 
     void InsertData(std::size_t offset, Binary::View data) override
     {
@@ -60,6 +57,7 @@ namespace Chiptune
       ApplyInsertions(*result);
       return Binary::CreateContainer(std::move(result));
     }
+
   private:
     void ApplyFixes(Dump& result) const
     {
@@ -112,6 +110,7 @@ namespace Chiptune
       std::copy(src, srcEnd, dst);
       result.swap(tmp);
     }
+
   private:
     const Binary::View Source;
     typedef std::map<std::size_t, Binary::View> BlobsMap;
@@ -121,8 +120,7 @@ namespace Chiptune
     FixesMap LEWordFixes;
     std::size_t SizeAddon;
   };
-}
-}
+}  // namespace Formats::Chiptune
 
 namespace Formats
 {
@@ -132,5 +130,5 @@ namespace Formats
     {
       return MakePtr<Patcher>(data);
     }
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

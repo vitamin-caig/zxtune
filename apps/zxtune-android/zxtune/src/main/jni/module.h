@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief Module access interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Module access interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "storage.h"
-//library includes
+// library includes
 #include <module/holder.h>
-//platform includes
+// platform includes
 #include <jni.h>
 
 namespace Module
@@ -23,4 +23,4 @@ namespace Module
 
   void InitJni(JNIEnv*);
   void CleanupJni(JNIEnv*);
-}
+}  // namespace Module

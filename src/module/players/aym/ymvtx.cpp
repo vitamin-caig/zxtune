@@ -1,30 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief  YM/VTX chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  YM/VTX chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/ymvtx.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
 #include "module/players/aym/aym_properties_helper.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/core_parameters.h>
-//std includes
+// std includes
 #include <utility>
-//boost includes
+// boost includes
 #include <boost/lexical_cast.hpp>
 
-namespace Module
-{
-namespace YMVTX
+namespace Module::YMVTX
 {
   Devices::AYM::LayoutType VtxMode2AymLayout(uint_t mode)
   {
@@ -57,8 +55,7 @@ namespace YMVTX
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
       , Data(MakePtr<AYM::MutableStreamModel>())
-    {
-    }
+    {}
 
     void SetVersion(const String& version) override
     {
@@ -82,7 +79,7 @@ namespace YMVTX
 
     void SetDigitalSample(uint_t /*idx*/, const Dump& /*data*/) override
     {
-      //TODO:
+      // TODO:
     }
 
     void SetClockrate(uint64_t freq) override
@@ -123,7 +120,7 @@ namespace YMVTX
 
     void SetProgram(const String& /*program*/) override
     {
-      //TODO
+      // TODO
     }
 
     void SetEditor(const String& editor) override
@@ -147,15 +144,14 @@ namespace YMVTX
 
     AYM::StreamModel::Ptr CaptureResult() const
     {
-      return Data->IsEmpty()
-        ? AYM::StreamModel::Ptr()
-        : AYM::StreamModel::Ptr(std::move(Data));
+      return Data->IsEmpty() ? AYM::StreamModel::Ptr() : AYM::StreamModel::Ptr(std::move(Data));
     }
 
     Time::Microseconds GetFrameDuration() const
     {
       return FrameDuration;
     }
+
   private:
     AYM::PropertiesHelper& Properties;
     AYM::MutableStreamModel::Ptr Data;
@@ -167,10 +163,10 @@ namespace YMVTX
   public:
     explicit Factory(Formats::Chiptune::YM::Decoder::Ptr decoder)
       : Decoder(std::move(decoder))
-    {
-    }
+    {}
 
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       AYM::PropertiesHelper props(*properties);
       DataBuilder dataBuilder(props);
@@ -184,6 +180,7 @@ namespace YMVTX
       }
       return {};
     }
+
   private:
     const Formats::Chiptune::YM::Decoder::Ptr Decoder;
   };
@@ -192,5 +189,4 @@ namespace YMVTX
   {
     return MakePtr<Factory>(std::move(decoder));
   }
-}
-}
+}  // namespace Module::YMVTX

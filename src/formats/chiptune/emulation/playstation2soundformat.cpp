@@ -1,46 +1,44 @@
 /**
-* 
-* @file
-*
-* @brief  PSF2 VFS parser implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  PSF2 VFS parser implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/emulation/playstation2soundformat.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/compression/zlib_container.h>
 #include <binary/container_factories.h>
-#include <binary/input_stream.h>
 #include <binary/format_factories.h>
+#include <binary/input_stream.h>
 #include <debug/log.h>
-//std includes
+// std includes
 #include <map>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace Playstation2SoundFormat
   {
     const Debug::Stream Dbg("Formats::Chiptune::PSF2");
-    
+
     struct DirectoryEntry
     {
       static const std::size_t RAW_SIZE = 48;
-    
+
       String Name;
       std::size_t Offset;
       std::size_t Size;
       std::size_t BlockSize;
-      
+
       explicit DirectoryEntry(Binary::InputStream& stream)
       {
         const auto nameBegin = stream.PeekRawData(36);
@@ -51,7 +49,7 @@ namespace Chiptune
         Size = stream.ReadLE<uint32_t>();
         BlockSize = stream.ReadLE<uint32_t>();
       }
-      
+
       bool IsDir() const
       {
         return Offset != 0 && Size == 0 && BlockSize == 0;
@@ -59,7 +57,7 @@ namespace Chiptune
     };
 
     using FileBlocks = std::map<std::size_t, Binary::Container::Ptr>;
-    
+
     class ScatteredContainer : public Binary::Container
     {
     public:
@@ -69,7 +67,7 @@ namespace Chiptune
       {
         Require(Blocks.size() > 1);
       }
-      
+
       const void* Start() const override
       {
         Flatten();
@@ -80,7 +78,7 @@ namespace Chiptune
       {
         return TotalSize;
       }
-      
+
       Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         if (!Flattened)
@@ -105,7 +103,7 @@ namespace Chiptune
         }
         return Binary::CreateContainer(Flattened, offset, size);
       }
-      
+
       static Ptr Create(FileBlocks blocks, std::size_t totalSize)
       {
         Require(!blocks.empty());
@@ -118,6 +116,7 @@ namespace Chiptune
           return MakePtr<ScatteredContainer>(std::move(blocks), totalSize);
         }
       }
+
     private:
       void Flatten() const
       {
@@ -134,6 +133,7 @@ namespace Chiptune
           Blocks.clear();
         }
       }
+
     private:
       const std::size_t TotalSize;
       mutable FileBlocks Blocks;
@@ -145,13 +145,13 @@ namespace Chiptune
     public:
       explicit Format(const Binary::Container& data)
         : Stream(data)
-      {
-      }
-      
+      {}
+
       void Parse(Builder& target)
       {
         ParseDir(0, "/", target);
       }
+
     private:
       void ParseDir(uint_t depth, String path, Builder& target)
       {
@@ -172,7 +172,7 @@ namespace Chiptune
           }
           else if (0 == entry.Size)
           {
-            //empty file may have zero offset
+            // empty file may have zero offset
             target.OnFile(std::move(entryPath), Binary::Container::Ptr());
           }
           else
@@ -184,7 +184,7 @@ namespace Chiptune
           Stream.Seek(entryPos + DirectoryEntry::RAW_SIZE);
         }
       }
-      
+
       FileBlocks ParseFileBlocks(std::size_t fileSize, std::size_t blockSize)
       {
         const auto blocksCount = (fileSize + blockSize - 1) / blockSize;
@@ -207,27 +207,26 @@ namespace Chiptune
         Require(offset == fileSize);
         return result;
       }
+
     private:
       Binary::InputStream Stream;
     };
-    
+
     void ParseVFS(const Binary::Container& data, Builder& target)
     {
       Format(data).Parse(target);
     }
 
     const StringView FORMAT(
-      "'P'S'F"
-      "02"
-    );
-    
+        "'P'S'F"
+        "02");
+
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateMatchOnlyFormat(FORMAT))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -246,16 +245,16 @@ namespace Chiptune
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
       {
-        return Formats::Chiptune::Container::Ptr();//TODO
+        return Formats::Chiptune::Container::Ptr();  // TODO
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
-  }
+  }  // namespace Playstation2SoundFormat
 
   Decoder::Ptr CreatePSF2Decoder()
   {
     return MakePtr<Playstation2SoundFormat::Decoder>();
   }
-}
-}
+}  // namespace Formats::Chiptune

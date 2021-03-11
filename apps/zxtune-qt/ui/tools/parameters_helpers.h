@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief Parameters helpers interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Parameters helpers interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "ui/utils.h"
-//library includes
+// library includes
 #include <parameters/container.h>
-//qt includes
+// qt includes
 #include <QtCore/QObject>
 
 class QAction;
@@ -48,16 +48,14 @@ namespace Parameters
       : Default()
       , Min()
       , Max()
-    {
-    }
+    {}
 
     IntegerTraits(const NameType& name, IntType def, IntType min, IntType max)
       : Name(name)
       , Default(def)
       , Min(min)
       , Max(max)
-    {
-    }
+    {}
   };
 
   class BooleanValue : public Value
@@ -65,10 +63,13 @@ namespace Parameters
     Q_OBJECT
   protected:
     explicit BooleanValue(QObject& parent);
+
   public:
     static Value* Bind(QAction& action, Container& ctr, const NameType& name, bool defValue);
-    static Value* Bind(QAbstractButton& button, Container& ctr, const NameType& name, bool defValue, const Parameters::IntType& oneValue = 1);
-    static Value* Bind(QGroupBox& button, Container& ctr, const NameType& name, bool defValue, const Parameters::IntType& oneValue = 1);
+    static Value* Bind(QAbstractButton& button, Container& ctr, const NameType& name, bool defValue,
+                       const Parameters::IntType& oneValue = 1);
+    static Value* Bind(QGroupBox& button, Container& ctr, const NameType& name, bool defValue,
+                       const Parameters::IntType& oneValue = 1);
   private slots:
     virtual void Set(bool value) = 0;
   };
@@ -78,6 +79,7 @@ namespace Parameters
     Q_OBJECT
   protected:
     explicit ExclusiveValue(QObject& parent);
+
   public:
     static Value* Bind(QAbstractButton& button, Container& ctr, const NameType& name, const StringType& value);
   private slots:
@@ -100,6 +102,7 @@ namespace Parameters
     Q_OBJECT
   protected:
     explicit IntegerValue(QObject& parent);
+
   public:
     static Value* Bind(QComboBox& combo, Container& ctr, const NameType& name, int defValue);
     static Value* Bind(QSlider& slider, Container& ctr, const NameType& name, int defValue);
@@ -108,12 +111,13 @@ namespace Parameters
   private slots:
     virtual void Set(int value) = 0;
   };
-  
+
   class BigIntegerValue : public Value
   {
     Q_OBJECT
   protected:
     explicit BigIntegerValue(QObject& parent);
+
   public:
     static Value* Bind(QLineEdit& line, Container& ctr, const IntegerTraits& traits);
   private slots:
@@ -125,6 +129,7 @@ namespace Parameters
     Q_OBJECT
   protected:
     explicit StringValue(QObject& parent);
+
   public:
     static Value* Bind(QLineEdit& line, Container& ctr, const NameType& name, const StringType& defValue);
   private slots:
@@ -140,15 +145,15 @@ namespace Parameters
     explicit ValueSnapshot(Value& val)
       : Val(val)
       , Blocker(*val.parent())
-    {
-    }
+    {}
 
     ~ValueSnapshot()
     {
       Val.Reload();
     }
+
   private:
     Value& Val;
     const AutoBlockSignal Blocker;
   };
-}
+}  // namespace Parameters

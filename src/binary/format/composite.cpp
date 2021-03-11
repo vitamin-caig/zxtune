@@ -1,22 +1,22 @@
 /**
-*
-* @file
-*
-* @brief  Composite format implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Composite format implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "binary/format/details.h"
-//common includes
+// common includes
 #include <contract.h>
-#include <types.h>
 #include <make_ptr.h>
-//library includes
+#include <types.h>
+// library includes
 #include <binary/format_factories.h>
-//std includes
+// std includes
 #include <algorithm>
 
 namespace Binary
@@ -73,7 +73,7 @@ namespace Binary
         const std::size_t headerOffset = SearchHeader(start + headerCursor, restForHeader);
         if (headerOffset + MinFooterOffset + FooterSize > restForHeader)
         {
-          //no place for footer
+          // no place for footer
           break;
         }
         const std::size_t absoluteHeaderOffset = headerCursor + headerOffset;
@@ -83,7 +83,7 @@ namespace Binary
         const std::size_t footerOffset = SearchFooter(start + footerCursor, restForFooter);
         if (footerOffset == restForFooter)
         {
-          //footer not found
+          // footer not found
           break;
         }
         else if (footerOffset + MinFooterOffset <= MaxFooterOffset)
@@ -95,8 +95,9 @@ namespace Binary
       }
       return limit;
     }
+
   private:
-    //returns absolute offset from start covering case when match happends at start
+    // returns absolute offset from start covering case when match happends at start
     std::size_t SearchHeader(const uint8_t* start, std::size_t rest) const
     {
       return Header->NextMatchOffset(View(start - 1, rest + 1)) - 1;
@@ -106,6 +107,7 @@ namespace Binary
     {
       return Footer->NextMatchOffset(View(start - 1, rest + 1)) - 1;
     }
+
   private:
     const Format::Ptr Header;
     const Format::Ptr Footer;
@@ -113,12 +115,13 @@ namespace Binary
     const std::size_t MaxFooterOffset;
     const std::size_t FooterSize;
   };
-}
+}  // namespace Binary
 
 namespace Binary
 {
-  Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset, std::size_t maxFooterOffset)
+  Format::Ptr CreateCompositeFormat(Format::Ptr header, Format::Ptr footer, std::size_t minFooterOffset,
+                                    std::size_t maxFooterOffset)
   {
     return MakePtr<CompositeFormat>(std::move(header), std::move(footer), minFooterOffset, maxFooterOffset);
   }
-}
+}  // namespace Binary

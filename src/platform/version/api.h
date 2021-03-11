@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Version functions interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Version functions interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
 
 namespace Platform
@@ -24,5 +24,5 @@ namespace Platform
     String GetBuildArchitecture();
     String GetBuildArchitectureVersion();
     String GetProgramVersionString();
-  }
-}
+  }  // namespace Version
+}  // namespace Platform

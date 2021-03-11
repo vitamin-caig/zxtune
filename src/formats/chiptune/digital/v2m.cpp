@@ -1,29 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  V2m parser implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  V2m parser implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/digital/v2m.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
-#include <binary/input_stream.h>
+// library includes
 #include <binary/format_factories.h>
+#include <binary/input_stream.h>
 #include <math/numeric.h>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace V2m
   {
@@ -32,9 +30,8 @@ namespace Chiptune
     public:
       explicit Format(const Binary::Container& data)
         : Stream(data)
-      {
-      }
-      
+      {}
+
       Container::Ptr Parse(Builder& target)
       {
         if (ParseHeader(target) && ParseChannels() && ParseData())
@@ -46,6 +43,7 @@ namespace Chiptune
         }
         return Container::Ptr();
       }
+
     private:
       bool ParseHeader(Builder& target)
       {
@@ -70,7 +68,7 @@ namespace Chiptune
             for (auto j = 0; j < 7; ++j)
             {
               Stream.Skip(4 * Stream.ReadLE<uint32_t>());
-            } 
+            }
           }
         }
         return true;
@@ -92,18 +90,18 @@ namespace Chiptune
         Stream.Skip(patchMapSize);
         if (const auto speech = Stream.PeekRawData(sizeof(uint32_t)))
         {
-           const auto pos = Stream.GetPosition();
-           const auto speechSize = Stream.ReadLE<uint32_t>();
-           if (Math::InRange<uint_t>(speechSize, 4, 8191))
-           {
-              const auto realSpeechSize = std::min<uint_t>(speechSize, Stream.GetRestSize());
-              Binary::DataInputStream payload(Stream.ReadData(realSpeechSize));
-              if (ParseSpeechData(payload))
-              {
-                return true;
-              }
-           }
-           Stream.Seek(pos);
+          const auto pos = Stream.GetPosition();
+          const auto speechSize = Stream.ReadLE<uint32_t>();
+          if (Math::InRange<uint_t>(speechSize, 4, 8191))
+          {
+            const auto realSpeechSize = std::min<uint_t>(speechSize, Stream.GetRestSize());
+            Binary::DataInputStream payload(Stream.ReadData(realSpeechSize));
+            if (ParseSpeechData(payload))
+            {
+              return true;
+            }
+          }
+          Stream.Seek(pos);
         }
         return true;
       }
@@ -127,6 +125,7 @@ namespace Chiptune
         }
         return true;
       }
+
     private:
       Binary::InputStream Stream;
       struct Header
@@ -151,8 +150,8 @@ namespace Chiptune
           GdNum = stream.ReadLE<uint32_t>();
 
           if (Math::InRange<uint_t>(TimeDiv, MIN_TIMEDIV, MAX_TIMEDIV)
-            && Math::InRange<uint_t>(MaxTime, MIN_MAXTIME, MAX_MAXTIME)
-            && Math::InRange<uint_t>(GdNum, MIN_GDNUM, MAX_GDNUM))
+              && Math::InRange<uint_t>(MaxTime, MIN_MAXTIME, MAX_MAXTIME)
+              && Math::InRange<uint_t>(GdNum, MIN_GDNUM, MAX_GDNUM))
           {
             Delays = stream.ReadData(10 * GdNum).As<uint8_t>();
             return true;
@@ -167,9 +166,9 @@ namespace Chiptune
           uint64_t totalTime = 0;
           for (uint_t gdIdx = 0, usecs = 500000, time = 0; gdIdx <= GdNum; ++gdIdx)
           {
-            const auto delta = gdIdx < GdNum
-              ? (uint_t(Delays[2 * GdNum + gdIdx]) << 16) + (uint_t(Delays[GdNum + gdIdx]) << 8) + Delays[gdIdx]
-              : MaxTime - time;
+            const auto delta = gdIdx < GdNum ? (uint_t(Delays[2 * GdNum + gdIdx]) << 16)
+                                                   + (uint_t(Delays[GdNum + gdIdx]) << 8) + Delays[gdIdx]
+                                             : MaxTime - time;
             time += delta;
             const auto rows = delta * 8 / TimeDiv;
             totalTime += TPC * rows * usecs / 8000000;
@@ -194,7 +193,7 @@ namespace Chiptune
         return Formats::Chiptune::Container::Ptr();
       }
     }
-    
+
     class StubBuilder : public Builder
     {
     public:
@@ -205,26 +204,25 @@ namespace Chiptune
 
       void SetTotalDuration(Time::Milliseconds /*duration*/) override {}
     };
-    
+
     Builder& GetStubBuilder()
     {
       static StubBuilder stub;
       return stub;
     }
-    
+
     const StringView FORMAT =
-      "%xxx00000 00-01 0000" // timediv
-      "? 01-ff ? 00"         // maxtime
-      "01-06 000000"         // gdnum
-    ;
-    
+        "%xxx00000 00-01 0000"  // timediv
+        "? 01-ff ? 00"          // maxtime
+        "01-06 000000"          // gdnum
+        ;
+
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -252,14 +250,14 @@ namespace Chiptune
           return Formats::Chiptune::Container::Ptr();
         }
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
-  } //namespace V2m
+  }  // namespace V2m
 
   Decoder::Ptr CreateV2MDecoder()
   {
     return MakePtr<V2m::Decoder>();
   }
-}
-}
+}  // namespace Formats::Chiptune

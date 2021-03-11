@@ -1,21 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  Beeper support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Beeper support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <types.h>
-//library includes
+// library includes
 #include <sound/chunk.h>
 #include <time/instant.h>
-//std includes
+// std includes
 #include <memory>
 
 namespace Devices
@@ -30,8 +30,7 @@ namespace Devices
       DataChunk(Stamp stamp, bool level)
         : TimeStamp(stamp)
         , Level(level)
-      {
-      }
+      {}
 
       Stamp TimeStamp;
       bool Level = false;
@@ -49,8 +48,8 @@ namespace Devices
       /// reset internal state to initial
       virtual void Reset() = 0;
     };
-    
-    //TODO: add StateSource if required
+
+    // TODO: add StateSource if required
     class Chip : public Device
     {
     public:
@@ -73,5 +72,5 @@ namespace Devices
 
     /// Virtual constructors
     Chip::Ptr CreateChip(ChipParameters::Ptr params);
-  }
-}
+  }  // namespace Beeper
+}  // namespace Devices

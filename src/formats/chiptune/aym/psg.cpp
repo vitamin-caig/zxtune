@@ -1,29 +1,27 @@
 /**
-* 
-* @file
-*
-* @brief  PSG support implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  PSG support implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/psg.h"
 #include "formats/chiptune/container.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
-//std includes
+// std includes
 #include <cstddef>
 #include <cstring>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 
-namespace Formats
-{
-namespace Chiptune
+namespace Formats::Chiptune
 {
   namespace PSG
   {
@@ -39,7 +37,7 @@ namespace Chiptune
     const uint8_t SIGNATURE[] = {'P', 'S', 'G'};
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct Header
     {
@@ -50,7 +48,7 @@ namespace Chiptune
       uint8_t Padding[10];
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(sizeof(Header) == 16, "Invalid layout");
@@ -71,13 +69,12 @@ namespace Chiptune
         return false;
       }
       const auto* header = data.As<Header>();
-      return 0 == std::memcmp(header->Sign, SIGNATURE, sizeof(SIGNATURE)) &&
-         MARKER == header->Marker;
+      return 0 == std::memcmp(header->Sign, SIGNATURE, sizeof(SIGNATURE)) && MARKER == header->Marker;
     }
 
     const StringView FORMAT(
-      "'P'S'G" // uint8_t Sign[3];
-      "1a"     // uint8_t Marker;
+        "'P'S'G"  // uint8_t Sign[3];
+        "1a"      // uint8_t Marker;
     );
 
     class Decoder : public Formats::Chiptune::Decoder
@@ -85,8 +82,7 @@ namespace Chiptune
     public:
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
-      {
-      }
+      {}
 
       String GetDescription() const override
       {
@@ -108,6 +104,7 @@ namespace Chiptune
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
       }
+
     private:
       const Binary::Format::Ptr Format;
     };
@@ -121,11 +118,11 @@ namespace Chiptune
       }
 
       const auto& header = *data.As<Header>();
-      //workaround for some emulators
+      // workaround for some emulators
       const std::size_t offset = (header.Version == INT_BEGIN) ? offsetof(Header, Version) : sizeof(header);
       std::size_t restSize = data.Size() - offset;
       const uint8_t* bdata = data.As<uint8_t>() + offset;
-      //detect as much chunks as possible, in despite of real format issues
+      // detect as much chunks as possible, in despite of real format issues
       while (restSize)
       {
         const uint_t reg = *bdata;
@@ -139,7 +136,7 @@ namespace Chiptune
         {
           if (restSize < 1)
           {
-            ++restSize;//put byte back
+            ++restSize;  // put byte back
             break;
           }
           target.AddChunks(4 * *bdata);
@@ -150,11 +147,11 @@ namespace Chiptune
         {
           break;
         }
-        else if (reg <= 15) //register
+        else if (reg <= 15)  // register
         {
           if (restSize < 1)
           {
-            ++restSize;//put byte back
+            ++restSize;  // put byte back
             break;
           }
           target.SetRegister(reg, *bdata);
@@ -163,7 +160,7 @@ namespace Chiptune
         }
         else
         {
-          ++restSize;//put byte back
+          ++restSize;  // put byte back
           break;
         }
       }
@@ -177,11 +174,10 @@ namespace Chiptune
       static StubBuilder stub;
       return stub;
     }
-  }//namespace PSG
+  }  // namespace PSG
 
   Decoder::Ptr CreatePSGDecoder()
   {
     return MakePtr<PSG::Decoder>();
   }
-}//namespace Chiptune
-}//namespace Formats
+}  // namespace Formats::Chiptune

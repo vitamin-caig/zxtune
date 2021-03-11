@@ -1,22 +1,22 @@
 /**
-*
-* @file
-*
-* @brief  SharedLibrary implementation for Windows
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SharedLibrary implementation for Windows
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "platform/src/shared_library_common.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <l10n/api.h>
-//platform includes
+// platform includes
 #include <windows.h>
 
 #define FILE_TAG 326CACD8
@@ -26,9 +26,7 @@ namespace
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("platform");
 }
 
-namespace Platform
-{
-namespace Details
+namespace Platform::Details
 {
   class WindowsSharedLibrary : public SharedLibrary
   {
@@ -53,21 +51,21 @@ namespace Details
       {
         return res;
       }
-      throw MakeFormattedError(THIS_LINE,
-        translate("Failed to find symbol '%1%' in dynamic library."), name);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to find symbol '%1%' in dynamic library."), name);
     }
+
   private:
     const HMODULE Handle;
   };
 
-  //TODO: String GetWindowsError()
+  // TODO: String GetWindowsError()
   uint_t GetWindowsError()
   {
     return ::GetLastError();
   }
 
   const String SUFFIX(".dll");
-  
+
   String BuildLibraryFilename(const String& name)
   {
     return name + SUFFIX;
@@ -80,16 +78,13 @@ namespace Details
       res = MakePtr<WindowsSharedLibrary>(handle);
       return Error();
     }
-    return MakeFormattedError(THIS_LINE,
-      translate("Failed to load dynamic library '%1%' (error code is %2%)."), fileName, GetWindowsError());
+    return MakeFormattedError(THIS_LINE, translate("Failed to load dynamic library '%1%' (error code is %2%)."),
+                              fileName, GetWindowsError());
   }
-
 
   String GetSharedLibraryFilename(const String& name)
   {
-    return name.find(SUFFIX) == name.npos
-      ? BuildLibraryFilename(name)
-      : name;
+    return name.find(SUFFIX) == name.npos ? BuildLibraryFilename(name) : name;
   }
 
   std::vector<String> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
@@ -100,5 +95,4 @@ namespace Details
     std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), &GetSharedLibraryFilename);
     return res;
   }
-}
-}
+}  // namespace Platform::Details

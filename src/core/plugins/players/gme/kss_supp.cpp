@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  KSS format support tools implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  KSS format support tools implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//library includes
+// library includes
 #include <contract.h>
-//local includes
+// local includes
 #include "core/plugins/players/gme/kss_supp.h"
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
 namespace Module
@@ -22,12 +22,12 @@ namespace Module
     String DetectPlatform(Binary::View data)
     {
       Require(data.Size() >= 16);
-      //do not check signatures or other
+      // do not check signatures or other
       const auto deviceFlag = data.As<uint8_t>()[0x0f];
       const bool sn76489 = deviceFlag & 2;
       if (sn76489)
       {
-        //sega-based
+        // sega-based
         const bool gameGearStereo = deviceFlag & 4;
         const bool fmUnit = deviceFlag & 1;
         if (gameGearStereo)
@@ -45,14 +45,14 @@ namespace Module
       }
       else
       {
-        //msx-based
+        // msx-based
         /*
         msxMusic is usually embedded to msx2 machines, but may be shipped as a cartridge for msx1 machines afaik
         majutsushi/scc is just a cartridge extension from konami
-        
+
         so, just mark all of these platforms as MSX
         */
-        
+
         /*
         enum
         {
@@ -70,5 +70,5 @@ namespace Module
         return Platforms::MSX;
       }
     }
-  }
-}
+  }  // namespace KSS
+}  // namespace Module

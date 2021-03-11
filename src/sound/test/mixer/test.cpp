@@ -1,20 +1,20 @@
 /**
-*
-* @file
-*
-* @brief  Mixer test
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Mixer test
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #include <error_tools.h>
 #include <math/numeric.h>
 #include <sound/matrix_mixer.h>
 #include <sound/mixer_parameters.h>
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include <boost/range/size.hpp>
 
@@ -22,67 +22,54 @@
 
 namespace Sound
 {
-  const int_t THRESHOLD = 5 * (Sample::MAX - Sample::MIN) / 1000;//0.5%
+  const int_t THRESHOLD = 5 * (Sample::MAX - Sample::MIN) / 1000;  // 0.5%
 
   Gain CreateGain(double l, double r)
   {
     return Gain(Gain::Type(l), Gain::Type(r));
   }
-  
-  const Gain GAINS[] = {
-    CreateGain(0.0, 0.0),
-    CreateGain(1.0, 1.0),
-    CreateGain(1.0, 0.0),
-    CreateGain(0.0, 1.0),
-    CreateGain(0.5, 0.5),
-    CreateGain(0.1, 0.9)
-  };
-  
-  const String GAIN_NAMES[] = {
-    "empty", "full", "left", "right", "middle", "-10dB,-0.45dB"
-  };
-  
+
+  const Gain GAINS[] = {CreateGain(0.0, 0.0), CreateGain(1.0, 1.0), CreateGain(1.0, 0.0),
+                        CreateGain(0.0, 1.0), CreateGain(0.5, 0.5), CreateGain(0.1, 0.9)};
+
+  const String GAIN_NAMES[] = {"empty", "full", "left", "right", "middle", "-10dB,-0.45dB"};
+
   const Gain INVALID_GAIN = CreateGain(2.0, 3.0);
 
-  const Sample::Type INPUTS[] = {
-    Sample::MIN,
-    Sample::MID,
-    Sample::MAX
-  };
-  
-  const String INPUT_NAMES[] = {
-    "min", "mid", "max"
-  };
+  const Sample::Type INPUTS[] = {Sample::MIN, Sample::MID, Sample::MAX};
 
-  
+  const String INPUT_NAMES[] = {"min", "mid", "max"};
+
   const Sample OUTS[] = {
-  //zero matrix
-     Sample(Sample::MID, Sample::MID),
-     Sample(Sample::MID, Sample::MID),
-     Sample(Sample::MID, Sample::MID),
-  //full matrix
-     Sample(Sample::MIN, Sample::MIN),
-     Sample(Sample::MID, Sample::MID),
-     Sample(Sample::MAX, Sample::MAX),
-  //left matrix
-     Sample(Sample::MIN, Sample::MID),
-     Sample(Sample::MID, Sample::MID),
-     Sample(Sample::MAX, Sample::MID),
-  //right matrix
-     Sample(Sample::MID, Sample::MIN),
-     Sample(Sample::MID, Sample::MID),
-     Sample(Sample::MID, Sample::MAX),
-  //mid matrix
-     Sample((Sample::MID+Sample::MIN)/2, (Sample::MID+Sample::MIN)/2),
-     Sample(Sample::MID, Sample::MID),
-     Sample((Sample::MID+Sample::MAX)/2, (Sample::MID+Sample::MAX)/2),
-  //balanced
-     //left=25 right=230
-     //(25*32768)/256, (230*32768)/256
-     //(25*65535)/256, (230*65535)/256
-     Sample(Sample::MID+(int_t(Sample::MIN)-Sample::MID)/10, Sample::MID+9*(int_t(Sample::MIN)-Sample::MID)/10),
-     Sample(Sample::MID, Sample::MID),
-     Sample(Sample::MID+(int_t(Sample::MAX)-Sample::MID)/10, Sample::MID+9*(int_t(Sample::MAX)-Sample::MID)/10),
+      // zero matrix
+      Sample(Sample::MID, Sample::MID),
+      Sample(Sample::MID, Sample::MID),
+      Sample(Sample::MID, Sample::MID),
+      // full matrix
+      Sample(Sample::MIN, Sample::MIN),
+      Sample(Sample::MID, Sample::MID),
+      Sample(Sample::MAX, Sample::MAX),
+      // left matrix
+      Sample(Sample::MIN, Sample::MID),
+      Sample(Sample::MID, Sample::MID),
+      Sample(Sample::MAX, Sample::MID),
+      // right matrix
+      Sample(Sample::MID, Sample::MIN),
+      Sample(Sample::MID, Sample::MID),
+      Sample(Sample::MID, Sample::MAX),
+      // mid matrix
+      Sample((Sample::MID + Sample::MIN) / 2, (Sample::MID + Sample::MIN) / 2),
+      Sample(Sample::MID, Sample::MID),
+      Sample((Sample::MID + Sample::MAX) / 2, (Sample::MID + Sample::MAX) / 2),
+      // balanced
+      // left=25 right=230
+      //(25*32768)/256, (230*32768)/256
+      //(25*65535)/256, (230*65535)/256
+      Sample(Sample::MID + (int_t(Sample::MIN) - Sample::MID) / 10,
+             Sample::MID + 9 * (int_t(Sample::MIN) - Sample::MID) / 10),
+      Sample(Sample::MID, Sample::MID),
+      Sample(Sample::MID + (int_t(Sample::MAX) - Sample::MID) / 10,
+             Sample::MID + 9 * (int_t(Sample::MAX) - Sample::MID) / 10),
   };
 
   template<class Res>
@@ -124,8 +111,8 @@ namespace Sound
     else
     {
       std::cout << " failed\n";
-      throw MakeFormattedError(THIS_LINE, "Value=<%1%,%2%> while expected=<%3%,%4%>",
-        data.Left(), data.Right(), ref.Left(), ref.Right());
+      throw MakeFormattedError(THIS_LINE, "Value=<%1%,%2%> while expected=<%3%,%4%>", data.Left(), data.Right(),
+                               ref.Left(), ref.Right());
     }
   }
 
@@ -133,9 +120,9 @@ namespace Sound
   void TestMixer()
   {
     std::cout << "**** Testing for " << Channels << " channels ****\n";
- 
+
     const typename FixedChannelsMatrixMixer<Channels>::Ptr mixer = FixedChannelsMatrixMixer<Channels>::Create();
-    
+
     std::cout << "--- Test for invalid matrix---\n";
     try
     {
@@ -155,7 +142,7 @@ namespace Sound
     assert(boost::size(OUTS) == boost::size(GAINS) * boost::size(INPUTS));
     assert(boost::size(GAINS) == boost::size(GAIN_NAMES));
     assert(boost::size(INPUTS) == boost::size(INPUT_NAMES));
-    
+
     const Sample* result(OUTS);
     for (unsigned matrix = 0; matrix != boost::size(GAINS); ++matrix)
     {
@@ -178,7 +165,7 @@ namespace Sound
       }
     }
   }
-}
+}  // namespace Sound
 
 int main()
 {

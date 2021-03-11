@@ -1,19 +1,19 @@
 /**
-* 
-* @file
-*
-* @brief Conversion setup dialog interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Conversion setup dialog interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
-#include "playlist/supp/data.h"
+// local includes
 #include "playlist/supp/conversion.h"
-//qt includes
+#include "playlist/supp/data.h"
+// qt includes
 #include <QtGui/QDialog>
 
 namespace UI
@@ -23,6 +23,7 @@ namespace UI
     Q_OBJECT
   protected:
     explicit SetupConversionDialog(QWidget& parent);
+
   public:
     typedef std::shared_ptr<SetupConversionDialog> Ptr;
 
@@ -33,10 +34,10 @@ namespace UI
     virtual void UpdateDescriptions() = 0;
   };
 
-  //raw format
+  // raw format
   Playlist::Item::Conversion::Options::Ptr GetExportParameters(QWidget& parent);
-  //sound formats (TBD dumps)
+  // sound formats (TBD dumps)
   Playlist::Item::Conversion::Options::Ptr GetConvertParameters(QWidget& parent);
-  //universal for single item
+  // universal for single item
   Playlist::Item::Conversion::Options::Ptr GetSaveAsParameters(Playlist::Item::Data::Ptr item);
-}
+}  // namespace UI

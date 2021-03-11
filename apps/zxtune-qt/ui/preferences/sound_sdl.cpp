@@ -1,36 +1,37 @@
 /**
-* 
-* @file
-*
-* @brief SDL settings pane implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief SDL settings pane implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound_sdl.h"
 #include "sound_sdl.ui.h"
 #include "supp/options.h"
 #include "ui/tools/parameters_helpers.h"
-//common includes
+// common includes
 #include <contract.h>
-//library includes
+// library includes
 #include <sound/backends_parameters.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace
 {
-  class SdlOptionsWidget : public UI::SdlSettingsWidget
-                         , public Ui::SdlOptions
+  class SdlOptionsWidget
+    : public UI::SdlSettingsWidget
+    , public Ui::SdlOptions
   {
   public:
     explicit SdlOptionsWidget(QWidget& parent)
       : UI::SdlSettingsWidget(parent)
       , Options(GlobalOptions::Instance().Get())
     {
-      //setup self
+      // setup self
       setupUi(this);
 
       using namespace Parameters::ZXTune::Sound::Backends::Sdl;
@@ -48,7 +49,7 @@ namespace
       return nameGroup->title();
     }
 
-    //QWidget
+    // QWidget
     void changeEvent(QEvent* event) override
     {
       if (event && QEvent::LanguageChange == event->type())
@@ -57,19 +58,19 @@ namespace
       }
       UI::SdlSettingsWidget::changeEvent(event);
     }
+
   private:
     const Parameters::Container::Ptr Options;
   };
-}
+}  // namespace
 namespace UI
 {
   SdlSettingsWidget::SdlSettingsWidget(QWidget& parent)
     : BackendSettingsWidget(parent)
-  {
-  }
+  {}
 
   BackendSettingsWidget* SdlSettingsWidget::Create(QWidget& parent)
   {
     return new SdlOptionsWidget(parent);
   }
-}
+}  // namespace UI

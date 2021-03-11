@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Interface of asynchronous activity
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Interface of asynchronous activity
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <error.h>
 
 namespace Async
@@ -38,4 +38,4 @@ namespace Async
     static Ptr Create(Operation::Ptr operation);
     static Ptr CreateStub();
   };
-}
+}  // namespace Async

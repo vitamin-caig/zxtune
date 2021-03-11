@@ -1,18 +1,18 @@
 /**
-* 
-* @file
-*
-* @brief  ZIP archives structures
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ZIP archives structures
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//common includes
+// common includes
 #include <byteorder.h>
-//std includes
+// std includes
 #include <cstddef>
 
 namespace Formats
@@ -22,7 +22,7 @@ namespace Formats
     namespace Zip
     {
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
       PACK_PRE struct GenericHeader
       {
@@ -159,7 +159,8 @@ namespace Formats
 
         std::size_t GetSize() const
         {
-          return offsetof(CentralDirectoryFileHeader, Name) + fromLE(NameSize) + fromLE(ExtraSize) + fromLE(CommentSize);
+          return offsetof(CentralDirectoryFileHeader, Name) + fromLE(NameSize) + fromLE(ExtraSize)
+                 + fromLE(CommentSize);
         }
       } PACK_POST;
 
@@ -184,7 +185,7 @@ namespace Formats
         //+12
         uint16_t CommentSize;
         //+14
-        //uint8_t Comment[0];
+        // uint8_t Comment[0];
 
         std::size_t GetSize() const
         {
@@ -220,8 +221,8 @@ namespace Formats
         static std::unique_ptr<const CompressedFile> Create(const LocalFileHeader& hdr, std::size_t availSize);
       };
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
-    }
-  }
-}
+    }  // namespace Zip
+  }    // namespace Packed
+}  // namespace Formats

@@ -1,16 +1,16 @@
 /**
-* 
-* @file
-*
-* @brief Playlist statistic operations interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Playlist statistic operations interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "operations.h"
 
 namespace Playlist
@@ -31,6 +31,7 @@ namespace Playlist
     };
 
     TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result);
-    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSet::Ptr items, StatisticTextNotification::Ptr result);
-  }
-}
+    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSet::Ptr items,
+                                                             StatisticTextNotification::Ptr result);
+  }  // namespace Item
+}  // namespace Playlist

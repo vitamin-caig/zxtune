@@ -1,24 +1,24 @@
 /**
-*
-* @file
-*
-* @brief  Providers enumerator implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Providers enumerator implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "io/impl/l10n.h"
+// local includes
 #include "io/providers/enumerator.h"
+#include "io/impl/l10n.h"
 #include "io/providers/providers_list.h"
-//common includes
+// common includes
 #include <error_tools.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <io/api.h>
-//std includes
+// std includes
 #include <algorithm>
 #include <list>
 #include <map>
@@ -31,7 +31,7 @@ namespace IO
 
   typedef std::vector<DataProvider::Ptr> ProvidersList;
 
-  //implementation of IO providers enumerator
+  // implementation of IO providers enumerator
   class ProvidersEnumeratorImpl : public ProvidersEnumerator
   {
   public:
@@ -62,7 +62,8 @@ namespace IO
       throw MakeFormattedError(THIS_LINE, translate("Failed to resolve uri '%1%'."), uri);
     }
 
-    Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const override
+    Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params,
+                                    Log::ProgressCallback& cb) const override
     {
       Dbg("Opening path '%1%'", path);
       if (Identifier::Ptr id = Resolve(path))
@@ -77,7 +78,8 @@ namespace IO
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
-    Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb) const override
+    Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params,
+                                           Log::ProgressCallback& cb) const override
     {
       Dbg("Creating stream '%1%'", path);
       if (Identifier::Ptr id = Resolve(path))
@@ -85,7 +87,7 @@ namespace IO
         if (const DataProvider* provider = FindProvider(id->Scheme()))
         {
           Dbg(" Used provider '%1%'", provider->Id());
-          //pass nonchanged parameter to lower level
+          // pass nonchanged parameter to lower level
           return provider->Create(path, params, cb);
         }
       }
@@ -95,8 +97,10 @@ namespace IO
 
     Provider::Iterator::Ptr Enumerate() const override
     {
-      return MakePtr<RangedObjectIteratorAdapter<ProvidersList::const_iterator, Provider::Ptr> >(Providers.begin(), Providers.end());
+      return MakePtr<RangedObjectIteratorAdapter<ProvidersList::const_iterator, Provider::Ptr> >(Providers.begin(),
+                                                                                                 Providers.end());
     }
+
   private:
     Identifier::Ptr Resolve(const String& uri) const
     {
@@ -113,10 +117,9 @@ namespace IO
     const DataProvider* FindProvider(const String& scheme) const
     {
       const SchemeToProviderMap::const_iterator it = Schemes.find(scheme);
-      return it != Schemes.end()
-        ? it->second.get()
-        : nullptr;
+      return it != Schemes.end() ? it->second.get() : nullptr;
     }
+
   private:
     ProvidersList Providers;
     typedef std::map<String, DataProvider::Ptr> SchemeToProviderMap;
@@ -130,8 +133,7 @@ namespace IO
       : IdValue(std::move(id))
       , DescrValue(descr)
       , StatusValue(std::move(status))
-    {
-    }
+    {}
 
     String Id() const override
     {
@@ -172,12 +174,13 @@ namespace IO
     {
       return Identifier::Ptr();
     }
+
   private:
     const String IdValue;
     const char* const DescrValue;
     const Error StatusValue;
   };
-}
+}  // namespace IO
 
 namespace IO
 {
@@ -197,7 +200,8 @@ namespace IO
     return ProvidersEnumerator::Instance().OpenData(path, params, cb);
   }
 
-  Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
+  Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params,
+                                         Log::ProgressCallback& cb)
   {
     return ProvidersEnumerator::Instance().CreateStream(path, params, cb);
   }
@@ -209,13 +213,14 @@ namespace IO
 
   DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description)
   {
-    return CreateUnavailableProviderStub(id, description, Error(THIS_LINE, translate("Not supported in current configuration")));
+    return CreateUnavailableProviderStub(id, description,
+                                         Error(THIS_LINE, translate("Not supported in current configuration")));
   }
 
   DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status)
   {
     return MakePtr<UnavailableProvider>(id, description, status);
   }
-}
+}  // namespace IO
 
 #undef FILE_TAG

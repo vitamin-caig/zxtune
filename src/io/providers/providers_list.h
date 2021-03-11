@@ -1,12 +1,12 @@
 /**
-*
-* @file
-*
-* @brief  Supported providers list
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Supported providers list
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
@@ -14,7 +14,7 @@ namespace IO
 {
   class ProvidersEnumerator;
 
-  //forward declarations of supported providers
+  // forward declarations of supported providers
   void RegisterFileProvider(ProvidersEnumerator& enumerator);
   void RegisterNetworkProvider(ProvidersEnumerator& enumerator);
 
@@ -23,4 +23,4 @@ namespace IO
     RegisterFileProvider(enumerator);
     RegisterNetworkProvider(enumerator);
   }
-}
+}  // namespace IO

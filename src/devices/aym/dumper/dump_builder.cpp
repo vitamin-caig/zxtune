@@ -1,23 +1,21 @@
 /**
-* 
-* @file
-*
-* @brief  AY/YM dump builder implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AY/YM dump builder implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "devices/aym/dumper/dump_builder.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//std includes
+// std includes
 #include <utility>
 
-namespace Devices
-{
-namespace AYM
+namespace Devices::AYM
 {
   class RenderState
   {
@@ -35,10 +33,10 @@ namespace AYM
 
   uint8_t GetValueMask(Registers::Index idx)
   {
-    const uint_t REGS_4BIT_SET = (1 << Registers::TONEA_H) | (1 << Registers::TONEB_H) |
-      (1 << Registers::TONEC_H) | (1 << Registers::ENV);
-    const uint_t REGS_5BIT_SET = (1 << Registers::TONEN) | (1 << Registers::VOLA) |
-      (1 << Registers::VOLB) | (1 << Registers::VOLC);
+    const uint_t REGS_4BIT_SET = (1 << Registers::TONEA_H) | (1 << Registers::TONEB_H) | (1 << Registers::TONEC_H)
+                                 | (1 << Registers::ENV);
+    const uint_t REGS_5BIT_SET = (1 << Registers::TONEN) | (1 << Registers::VOLA) | (1 << Registers::VOLB)
+                                 | (1 << Registers::VOLC);
 
     const uint_t mask = 1 << idx;
     if (mask & REGS_4BIT_SET)
@@ -93,6 +91,7 @@ namespace AYM
       ApplyMerge(Base, Delta);
       Delta = Registers();
     }
+
   protected:
     Registers Base;
     Registers Delta;
@@ -171,6 +170,7 @@ namespace AYM
       }
       Builder->GetResult(result);
     }
+
   private:
     void FinishFrame()
     {
@@ -185,6 +185,7 @@ namespace AYM
       }
       NextFrame += FrameDuration;
     }
+
   private:
     const Time::Duration<TimeUnit> FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
@@ -206,5 +207,4 @@ namespace AYM
     }
     return MakePtr<FrameDumper>(params->FrameDuration(), builder, state);
   }
-}
-}
+}  // namespace Devices::AYM

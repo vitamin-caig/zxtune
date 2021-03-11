@@ -1,12 +1,12 @@
 /**
-* 
-* @file
-*
-* @brief Search dialog interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Search dialog interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
@@ -20,4 +20,4 @@ namespace Playlist
   {
     Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent);
   }
-}
+}  // namespace Playlist

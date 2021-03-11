@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Declaration of fast mixer
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Declaration of fast mixer
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <sound/gain.h>
 #include <sound/multichannel_sample.h>
 
@@ -62,6 +62,7 @@ namespace Sound
         out[1] = Coeff(in.Right() / ChannelsCount);
       }
     }
+
   private:
     static const int_t PRECISION = 256;
     typedef Math::FixedPoint<int_t, PRECISION> Coeff;
@@ -69,4 +70,4 @@ namespace Sound
     typedef std::array<CoeffRow, ChannelsCount> CoeffMatrix;
     CoeffMatrix Matrix;
   };
-}
+}  // namespace Sound

@@ -1,17 +1,17 @@
 /**
-* 
-* @file
-*
-* @brief Version fields source
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Version fields source
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include <platform/version/api.h>
 #include <platform/version/fields.h>
-//text includes
+// text includes
 #include <platform/version/text/text.h>
 
 namespace Platform
@@ -54,5 +54,5 @@ namespace Platform
     {
       return std::unique_ptr<Strings::FieldsSource>(new VersionFieldsSource());
     }
-  }
-}
+  }  // namespace Version
+}  // namespace Platform

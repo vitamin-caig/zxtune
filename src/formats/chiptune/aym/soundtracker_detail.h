@@ -1,20 +1,20 @@
 /**
-* 
-* @file
-*
-* @brief  SoundTracker format details
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SoundTracker format details
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/aym/soundtracker.h"
-//common includes
+// common includes
 #include <indices.h>
-//std includes
+// std includes
 #include <cassert>
 
 namespace Formats
@@ -29,7 +29,7 @@ namespace Formats
       const uint_t MAX_PATTERN_SIZE = 64;
       const uint_t MAX_POSITIONS_COUNT = 256;
       const uint_t MAX_PATTERNS_COUNT = 32;
-      //0 usually is empty
+      // 0 usually is empty
       const uint_t MAX_SAMPLES_COUNT = 16;
       const uint_t MAX_ORNAMENTS_COUNT = 16;
 
@@ -159,6 +159,7 @@ namespace Formats
         {
           return NonEmptySamples;
         }
+
       private:
         static bool IsSampleSounds(const Sample& smp)
         {
@@ -171,11 +172,12 @@ namespace Formats
             const Sample::Line& line = smp.Lines[idx];
             if (line.EnvelopeMask || line.Level)
             {
-              return true;//has envelope or tone with volume
+              return true;  // has envelope or tone with volume
             }
           }
           return false;
         }
+
       private:
         Builder& Delegate;
         Indices UsedPatterns;
@@ -184,6 +186,6 @@ namespace Formats
         bool NonEmptyPatterns;
         bool NonEmptySamples;
       };
-    }
-  }
-}
+    }  // namespace SoundTracker
+  }    // namespace Chiptune
+}  // namespace Formats

@@ -1,22 +1,22 @@
 /**
-* 
-* @file
-*
-* @brief  SQTracker support interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SQTracker support interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//local includes
+// local includes
 #include "formats/chiptune/builder_meta.h"
 #include "formats/chiptune/builder_pattern.h"
 #include "formats/chiptune/objects.h"
-//library includes
+// library includes
 #include <formats/chiptune.h>
-//std includes
+// std includes
 #include <array>
 
 namespace Formats
@@ -33,31 +33,33 @@ namespace Formats
           , ToneDeviation()
           , EnableNoise()
           , EnableTone()
-        {
-        }
+        {}
 
-        uint_t Level;//0-15
-        uint_t Noise;//0-31
+        uint_t Level;  // 0-15
+        uint_t Noise;  // 0-31
         int_t ToneDeviation;
         bool EnableNoise;
         bool EnableTone;
       };
-      
+
       typedef LinesObjectWithLoopLimit<SampleLine> Sample;
-      
+
       typedef LinesObjectWithLoopLimit<int_t> Ornament;
 
       struct PositionEntry
       {
-        PositionEntry() : Tempo()
-        {
-        }
+        PositionEntry()
+          : Tempo()
+        {}
 
         struct Channel
         {
-          Channel() : Pattern(), Transposition(), Attenuation(), EnabledEffects(true)
-          {
-          }
+          Channel()
+            : Pattern()
+            , Transposition()
+            , Attenuation()
+            , EnabledEffects(true)
+          {}
 
           uint_t Pattern;
           int_t Transposition;
@@ -68,7 +70,7 @@ namespace Formats
         uint_t Tempo;
         std::array<Channel, 3> Channels;
       };
-      
+
       typedef LinesObject<PositionEntry> Positions;
 
       class Builder
@@ -77,10 +79,10 @@ namespace Formats
         virtual ~Builder() = default;
 
         virtual MetaBuilder& GetMetaBuilder() = 0;
-        //samples+ornaments
+        // samples+ornaments
         virtual void SetSample(uint_t index, Sample sample) = 0;
         virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
-        //patterns
+        // patterns
         virtual void SetPositions(Positions positions) = 0;
 
         virtual PatternBuilder& StartPattern(uint_t index) = 0;
@@ -100,8 +102,8 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
-    }
+    }  // namespace SQTracker
 
     Decoder::Ptr CreateSQTrackerDecoder();
-  }
-}
+  }  // namespace Chiptune
+}  // namespace Formats

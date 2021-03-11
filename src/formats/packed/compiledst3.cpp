@@ -1,31 +1,29 @@
 /**
-* 
-* @file
-*
-* @brief  SoundTracker v3.x compiled modules support
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SoundTracker v3.x compiled modules support
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
-#include "formats/packed/container.h"
+// local includes
 #include "formats/chiptune/aym/soundtracker.h"
-//common includes
+#include "formats/packed/container.h"
+// common includes
 #include <byteorder.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
-//std includes
+// std includes
 #include <array>
-//text includes
+// text includes
 #include <formats/text/chiptune.h>
 #include <formats/text/packed.h>
 
-namespace Formats
-{
-namespace Packed
+namespace Formats::Packed
 {
   namespace CompiledST3
   {
@@ -35,7 +33,7 @@ namespace Packed
     const std::size_t MAX_PLAYER_SIZE = 0xa00;
 
 #ifdef USE_PRAGMA_PACK
-#pragma pack(push,1)
+#  pragma pack(push, 1)
 #endif
     PACK_PRE struct RawPlayer
     {
@@ -69,7 +67,7 @@ namespace Packed
       }
     } PACK_POST;
 #ifdef USE_PRAGMA_PACK
-#pragma pack(pop)
+#  pragma pack(pop)
 #endif
 
     static_assert(offsetof(RawPlayer, Information) == 12, "Invalid layout");
@@ -78,40 +76,39 @@ namespace Packed
     const String DESCRIPTION = String(Text::SOUNDTRACKER3_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
 
     const StringView FORMAT(
-      "21??"     //ld hl,ModuleAddr
-      "c3??"     //jp xxxx
-      "c3??"     //jp xxxx
-      "c3??"     //jp xxx
-      "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
-      "?{27}"
-      //+0x43
-      "f3"       //di
-      "7e"       //ld a,(hl)
-      "32??"     //ld (xxxx),a
-      "22??"     //ld (xxxx),hl
-      "22??"     //ld (xxxx),hl
-      "23"       //inc hl 
+        "21??"  // ld hl,ModuleAddr
+        "c3??"  // jp xxxx
+        "c3??"  // jp xxxx
+        "c3??"  // jp xxx
+        "'K'S'A' 'S'O'F'T'W'A'R'E' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
+        "?{27}"
+        //+0x43
+        "f3"    // di
+        "7e"    // ld a,(hl)
+        "32??"  // ld (xxxx),a
+        "22??"  // ld (xxxx),hl
+        "22??"  // ld (xxxx),hl
+        "23"    // inc hl
     );
 
     bool IsInfoEmpty(Binary::View info)
     {
       assert(info.Size() == 55);
-      //28 is fixed
-      //27 is title
+      // 28 is fixed
+      // 27 is title
       const auto start = info.As<Char>();
       const auto end = start + info.Size();
       const auto titleStart = start + 28;
-      return std::none_of(titleStart, end, [](auto c) {return c > ' ';});
+      return std::none_of(titleStart, end, [](auto c) { return c > ' '; });
     }
-  }//CompiledST3
+  }  // namespace CompiledST3
 
   class CompiledST3Decoder : public Decoder
   {
   public:
     CompiledST3Decoder()
       : Player(Binary::CreateFormat(CompiledST3::FORMAT, sizeof(CompiledST3::RawPlayer)))
-    {
-    }
+    {}
 
     String GetDescription() const override
     {
@@ -165,6 +162,7 @@ namespace Packed
       Dbg("Failed to find module after player");
       return Container::Ptr();
     }
+
   private:
     const Binary::Format::Ptr Player;
   };
@@ -173,5 +171,4 @@ namespace Packed
   {
     return MakePtr<CompiledST3Decoder>();
   }
-}//namespace Packed
-}//namespace Formats
+}  // namespace Formats::Packed

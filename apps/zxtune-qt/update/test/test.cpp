@@ -1,12 +1,12 @@
-#include "apps/zxtune-qt/update/rss.h"
 #include "apps/zxtune-qt/update/downloads.h"
 #include "apps/zxtune-qt/update/product.h"
+#include "apps/zxtune-qt/update/rss.h"
 #include <QtCore/QByteArray>
+#include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtCore/QTextStream>
-#include <QtCore/QCoreApplication>
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 namespace
 {
@@ -29,7 +29,7 @@ namespace
     }
     file.write(data);
   }
-}
+}  // namespace
 
 namespace
 {
@@ -38,24 +38,24 @@ namespace
   public:
     explicit PrintRssVisitor(QByteArray& dump)
       : Stream(&dump)
-    {
-    }
+    {}
 
     virtual void OnEntry(const RSS::Entry& entry)
     {
       Stream << QString(
-        "Entry %1\n"
-        " Updated: %2\n"
-        " DirectLink: %3\n"
-        " AlternateLink: %4\n"
-        " HtmlContent: %5\n"
-        "\n")
-      .arg(entry.Title)
-      .arg(entry.Updated.toString(Qt::ISODate))
-      .arg(entry.DirectLink.toString())
-      .arg(entry.AlternateLink.toString())
-      .arg(entry.HtmlContent);
+                    "Entry %1\n"
+                    " Updated: %2\n"
+                    " DirectLink: %3\n"
+                    " AlternateLink: %4\n"
+                    " HtmlContent: %5\n"
+                    "\n")
+                    .arg(entry.Title)
+                    .arg(entry.Updated.toString(Qt::ISODate))
+                    .arg(entry.DirectLink.toString())
+                    .arg(entry.AlternateLink.toString())
+                    .arg(entry.HtmlContent);
     }
+
   private:
     QTextStream Stream;
   };
@@ -65,22 +65,24 @@ namespace
   public:
     explicit PrintDownloadsVisitor(QByteArray& dump)
       : Stream(&dump)
-    {
-    }
+    {}
 
     virtual void OnDownload(Product::Update::Ptr update)
     {
       Stream << QString(
-        "Download %1\n"
-        " Version: %2 %3\n"
-        " Platform: %4 %5\n"
-        " Description: %6\n"
-        "\n")
-      .arg(update->Package().toString())
-      .arg(update->Version()).arg(update->Date().toString(Qt::ISODate))
-      .arg(update->Platform()).arg(update->Architecture())
-      .arg(update->Description().toString());
+                    "Download %1\n"
+                    " Version: %2 %3\n"
+                    " Platform: %4 %5\n"
+                    " Description: %6\n"
+                    "\n")
+                    .arg(update->Package().toString())
+                    .arg(update->Version())
+                    .arg(update->Date().toString(Qt::ISODate))
+                    .arg(update->Platform())
+                    .arg(update->Architecture())
+                    .arg(update->Description().toString());
     }
+
   private:
     QTextStream Stream;
   };
@@ -125,7 +127,7 @@ namespace
       }
     }
   }
-}
+}  // namespace
 
 int main(int argc, char* argv[])
 {

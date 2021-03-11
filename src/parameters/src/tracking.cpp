@@ -1,19 +1,19 @@
 /**
-*
-* @file
-*
-* @brief  Parameters tracking implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Parameters tracking implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//common includes
+// common includes
 #include <make_ptr.h>
 #include <pointers.h>
-//library includes
+// library includes
 #include <parameters/tracking.h>
-//std includes
+// std includes
 #include <utility>
 
 namespace Parameters
@@ -24,8 +24,7 @@ namespace Parameters
     CompositeModifier(Modifier::Ptr first, Modifier::Ptr second)
       : First(std::move(first))
       , Second(std::move(second))
-    {
-    }
+    {}
 
     void SetValue(const NameType& name, IntType val) override
     {
@@ -50,6 +49,7 @@ namespace Parameters
       First->RemoveValue(name);
       Second->RemoveValue(name);
     }
+
   private:
     const Modifier::Ptr First;
     const Modifier::Ptr Second;
@@ -57,7 +57,7 @@ namespace Parameters
 
   Container::Ptr CreatePreChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback)
   {
-    //TODO: get rid of fake pointers
+    // TODO: get rid of fake pointers
     auto asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
     auto modifier = MakePtr<CompositeModifier>(std::move(asPtr), delegate);
     return Container::CreateAdapter(std::move(delegate), std::move(modifier));
@@ -65,9 +65,9 @@ namespace Parameters
 
   Container::Ptr CreatePostChangePropertyTrackedContainer(Container::Ptr delegate, Modifier& callback)
   {
-    //TODO: get rid of fake pointers
+    // TODO: get rid of fake pointers
     auto asPtr = Modifier::Ptr(&callback, NullDeleter<Modifier>());
     auto modifier = MakePtr<CompositeModifier>(delegate, std::move(asPtr));
     return Container::CreateAdapter(std::move(delegate), std::move(modifier));
   }
-}
+}  // namespace Parameters

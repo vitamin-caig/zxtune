@@ -1,30 +1,30 @@
 /**
-* 
-* @file
-*
-* @brief Display component interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief Display component interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <module/holder.h>
 #include <sound/backend.h>
 #include <time/duration.h>
-//std includes
+// std includes
 #include <memory>
 
-//forward declarations
+// forward declarations
 namespace boost
 {
   namespace program_options
   {
     class options_description;
   }
-}
+}  // namespace boost
 
 class DisplayComponent
 {

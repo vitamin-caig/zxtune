@@ -1,30 +1,28 @@
 /**
-* 
-* @file
-*
-* @brief  AYC chiptune factory implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  AYC chiptune factory implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "module/players/aym/ayc.h"
 #include "module/players/aym/aym_base.h"
 #include "module/players/aym/aym_base_stream.h"
-//common includes
+// common includes
 #include <contract.h>
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <core/core_parameters.h>
 #include <formats/chiptune/aym/ayc.h>
 #include <module/players/properties_helper.h>
-//text includes
+// text includes
 #include <module/text/platforms.h>
 
-namespace Module
-{
-namespace AYC
+namespace Module::AYC
 {
   class DataBuilder : public Formats::Chiptune::AYC::Builder
   {
@@ -33,21 +31,20 @@ namespace AYC
       : Register(Devices::AYM::Registers::TOTAL)
       , Frame(0)
       , Data(MakePtr<AYM::MutableStreamModel>())
-    {
-    }
-    
+    {}
+
     void SetFrames(std::size_t count) override
     {
       Data->Resize(count);
     }
-    
+
     void StartChannel(uint_t idx) override
     {
       Require(idx < Devices::AYM::Registers::TOTAL);
       Register = static_cast<Devices::AYM::Registers::Index>(idx);
       Frame = 0;
     }
-    
+
     void AddValues(const Dump& values) override
     {
       Require(Register < Devices::AYM::Registers::TOTAL);
@@ -63,13 +60,12 @@ namespace AYC
         }
       }
     }
-  
+
     AYM::StreamModel::Ptr CaptureResult() const
     {
-      return Data->IsEmpty()
-        ? AYM::StreamModel::Ptr()
-        : AYM::StreamModel::Ptr(std::move(Data));
+      return Data->IsEmpty() ? AYM::StreamModel::Ptr() : AYM::StreamModel::Ptr(std::move(Data));
     }
+
   private:
     Devices::AYM::Registers::Index Register;
     uint_t Frame;
@@ -79,7 +75,8 @@ namespace AYC
   class Factory : public AYM::Factory
   {
   public:
-    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData, Parameters::Container::Ptr properties) const override
+    AYM::Chiptune::Ptr CreateChiptune(const Binary::Container& rawData,
+                                      Parameters::Container::Ptr properties) const override
     {
       DataBuilder dataBuilder;
       if (const auto container = Formats::Chiptune::AYC::Parse(rawData, dataBuilder))
@@ -96,10 +93,9 @@ namespace AYC
       return {};
     }
   };
-  
+
   Factory::Ptr CreateFactory()
   {
     return MakePtr<Factory>();
   }
-}
-}
+}  // namespace Module::AYC

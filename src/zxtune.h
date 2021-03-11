@@ -1,16 +1,16 @@
 /**
-*
-* @file
-*
-* @brief  Common library definitions
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Common library definitions
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//library includes
+// library includes
 #include <parameters/types.h>
 
 namespace Parameters
@@ -19,5 +19,5 @@ namespace Parameters
   {
     //! @brief Parameters#ZXTune namespace prefix
     const NameType PREFIX("zxtune");
-  }
-}
+  }  // namespace ZXTune
+}  // namespace Parameters
