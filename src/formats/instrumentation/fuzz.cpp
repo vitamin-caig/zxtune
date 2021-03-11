@@ -134,6 +134,7 @@ namespace
       ChiptuneDecoders.push_back(CreateUSFDecoder());
       ChiptuneDecoders.push_back(CreateGSFDecoder());
       ChiptuneDecoders.push_back(Create2SFDecoder());
+      ChiptuneDecoders.push_back(CreateNCSFDecoder());
       ChiptuneDecoders.push_back(CreateSSFDecoder());
       ChiptuneDecoders.push_back(CreateDSFDecoder());
       ChiptuneDecoders.push_back(CreateRasterMusicTrackerDecoder());

@@ -111,6 +111,9 @@ extern const Char MULTITRACK_CONTAINER_DECODER_DESCRIPTION[] = {
 extern const Char NINTENDODSSOUNDFORMAT_DECODER_DESCRIPTION[] = {
   'N','i','n','t','e','n','d','o',' ','D','S',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
 };
+extern const Char NITROCOMPOSERSOUNDFORMAT_DECODER_DESCRIPTION[] = {
+  'N','i','t','r','o',' ','C','o','m','p','o','s','e','r',' ','S','o','u','n','d',' ','F','o','r','m','a','t',0
+};
 extern const Char NSFE_DECODER_DESCRIPTION[] = {
   'E','x','t','e','n','d','e','d',' ','N','i','n','t','e','n','d','o',' ','S','o','u','n','d',' ','F','o','r',
   'm','a','t',0
