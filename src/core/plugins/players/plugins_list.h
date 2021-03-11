@@ -56,6 +56,7 @@ namespace ZXTune
   void RegisterUSFSupport(PlayerPluginsRegistrator& registrator);
   void RegisterGSFSupport(PlayerPluginsRegistrator& registrator);
   void Register2SFSupport(PlayerPluginsRegistrator& registrator);
+  void RegisterNCSFSupport(PlayerPluginsRegistrator& registrator);
   void RegisterSDSFSupport(PlayerPluginsRegistrator& registrator);
   void RegisterASAPPlugins(PlayerPluginsRegistrator& registrator);
   void RegisterMP3Plugin(PlayerPluginsRegistrator& registrator);

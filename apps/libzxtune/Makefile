@@ -15,7 +15,7 @@ libraries.common = analysis \
                    sound strings \
                    tools
 
-libraries.3rdparty = gme he hvl lazyusf2 lhasa mgba sidplayfp snesspc vio2sf xmp z80ex zlib
+libraries.3rdparty = gme he hvl lazyusf2 lhasa mgba sidplayfp snesspc sseqplayer vio2sf xmp z80ex zlib
 
 libraries.windows += oldnames
 

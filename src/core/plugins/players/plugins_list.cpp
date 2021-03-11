@@ -57,6 +57,7 @@ namespace ZXTune
     RegisterUSFSupport(registrator);
     RegisterGSFSupport(registrator);
     Register2SFSupport(registrator);
+    RegisterNCSFSupport(registrator);
     RegisterSDSFSupport(registrator);
     RegisterASAPPlugins(registrator);
     RegisterMP3Plugin(registrator);
