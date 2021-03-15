@@ -471,7 +471,7 @@ namespace
       msg.append(update.Title());
       if (const int ageInDays = update.Date().daysTo(QDate::currentDate()))
       {
-        msg.append(Update::CheckOperation::tr("%1 (%n day(s) ago)", nullptr, ageInDays)
+        msg.append(Update::CheckOperation::tr("%1 (%n day(s) ago)", "", ageInDays)
                        .arg(update.Date().toString(Qt::DefaultLocaleLongDate)));
       }
       msg.append(QString("<a href=\"%1\">%2</a>")

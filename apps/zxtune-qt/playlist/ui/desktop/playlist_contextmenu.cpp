@@ -87,7 +87,7 @@ namespace
 
   QString ModulesCount(uint_t count)
   {
-    return Playlist::UI::ItemsContextMenu::tr("%n item(s)", nullptr, static_cast<int>(count));
+    return Playlist::UI::ItemsContextMenu::tr("%n item(s)", "", static_cast<int>(count));
   }
 
   QString QFileSystemModelTranslate(const char* msg)
@@ -177,8 +177,8 @@ namespace
       result.append(Playlist::UI::ItemsContextMenu::tr("Invalid: %1").arg(ModulesCount(Invalids)));
       result.append(Playlist::UI::ItemsContextMenu::tr("Total duration: %1").arg(ToQString(Time::ToString(Duration))));
       result.append(Playlist::UI::ItemsContextMenu::tr("Total size: %1").arg(MemorySize(Size)));
-      result.append(Playlist::UI::ItemsContextMenu::tr("%n different modules' type(s)", nullptr, Types.size()));
-      result.append(Playlist::UI::ItemsContextMenu::tr("%n files referenced", nullptr, Paths.size()));
+      result.append(Playlist::UI::ItemsContextMenu::tr("%n different modules' type(s)", "", Types.size()));
+      result.append(Playlist::UI::ItemsContextMenu::tr("%n files referenced", "", Paths.size()));
       return result.join(LINE_BREAK);
     }
 
