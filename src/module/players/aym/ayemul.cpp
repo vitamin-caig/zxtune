@@ -811,8 +811,6 @@ namespace Module::AYEMUL
     Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData,
                                      Parameters::Container::Ptr properties) const override
     {
-      assert(Formats::Chiptune::AY::GetModulesCount(rawData) == 1);
-
       PropertiesHelper props(*properties);
       DataBuilder builder(props);
       if (const auto container = Formats::Chiptune::AY::Parse(rawData, 0, builder))

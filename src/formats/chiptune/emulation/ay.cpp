@@ -97,6 +97,11 @@ namespace Formats::Chiptune
 
     static_assert(sizeof(Header) == 0x14, "Invalid layout");
 
+    const std::size_t MIN_STRING_SIZE = 3;
+    const std::size_t MIN_SIZE = sizeof(Header) + 3 * MIN_STRING_SIZE  // author, comment, title
+                                 + sizeof(ModuleDescription) + sizeof(EMUL::ModuleData) + sizeof(EMUL::ModulePointers)
+                                 + sizeof(EMUL::ModuleBlock);
+
     const std::size_t MAX_SIZE = 131072;
 
     class Parser
@@ -214,7 +219,7 @@ namespace Formats::Chiptune
     {
     public:
       Decoder()
-        : Format(Binary::CreateFormat(HEADER_FORMAT))
+        : Format(Binary::CreateFormat(HEADER_FORMAT, MIN_SIZE))
       {}
 
       String GetDescription() const override
@@ -509,46 +514,47 @@ namespace Formats::Chiptune
 
     uint_t GetModulesCount(Binary::View data)
     {
-      if (const auto* header = data.As<Header>())
+      if (data.Size() < MIN_SIZE)
       {
-        if (header->FirstModuleIndex > header->LastModuleIndex)
-        {
-          return 0;
-        }
-        if (0 != std::memcmp(header->Signature, SIGNATURE, sizeof(SIGNATURE)))
-        {
-          return 0;
-        }
-        if (0 != std::memcmp(header->Type, EMUL::SIGNATURE, sizeof(EMUL::SIGNATURE)))
-        {
-          return 0;
-        }
-        const int_t minOffset = sizeof(*header);
-        const int_t maxOffset = data.Size();
-        const int_t authorOffset = int_t(offsetof(Header, AuthorOffset)) + fromBE(header->AuthorOffset);
-        if (!Math::InRange(authorOffset, minOffset, maxOffset))
-        {
-          return 0;
-        }
-        const int_t miscOffset = int_t(offsetof(Header, MiscOffset)) + fromBE(header->MiscOffset);
-        // some of the tunes has improper offset
-        if (miscOffset >= maxOffset)
-        {
-          return 0;
-        }
-        const int_t descrOffset = int_t(offsetof(Header, DescriptionsOffset)) + fromBE(header->DescriptionsOffset);
-        if (descrOffset < minOffset)
-        {
-          return 0;
-        }
-        const std::size_t count = header->LastModuleIndex + 1;
-        if (descrOffset + int_t(count * sizeof(ModuleDescription)) > maxOffset)
-        {
-          return 0;
-        }
-        return count;
+        return 0;
       }
-      return 0;
+      const auto* header = data.As<Header>();
+      if (header->FirstModuleIndex > header->LastModuleIndex)
+      {
+        return 0;
+      }
+      if (0 != std::memcmp(header->Signature, SIGNATURE, sizeof(SIGNATURE)))
+      {
+        return 0;
+      }
+      if (0 != std::memcmp(header->Type, EMUL::SIGNATURE, sizeof(EMUL::SIGNATURE)))
+      {
+        return 0;
+      }
+      const int_t minOffset = sizeof(*header);
+      const int_t maxOffset = data.Size();
+      const int_t authorOffset = int_t(offsetof(Header, AuthorOffset)) + fromBE(header->AuthorOffset);
+      if (!Math::InRange(authorOffset, minOffset, maxOffset))
+      {
+        return 0;
+      }
+      const int_t miscOffset = int_t(offsetof(Header, MiscOffset)) + fromBE(header->MiscOffset);
+      // some of the tunes has improper offset
+      if (miscOffset >= maxOffset)
+      {
+        return 0;
+      }
+      const int_t descrOffset = int_t(offsetof(Header, DescriptionsOffset)) + fromBE(header->DescriptionsOffset);
+      if (descrOffset < minOffset)
+      {
+        return 0;
+      }
+      const std::size_t count = header->LastModuleIndex + 1;
+      if (descrOffset + int_t(count * sizeof(ModuleDescription)) > maxOffset)
+      {
+        return 0;
+      }
+      return count;
     }
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, std::size_t idx, Builder& target)
