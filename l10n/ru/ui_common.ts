@@ -49,6 +49,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://ffmpeg.org/&quot;&gt;FFmpeg&lt;/a&gt; library&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://github.com/ValleyBell/libvgm&quot;&gt;libvgm&lt;/a&gt; library by &lt;b&gt;Valley Bell&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://lib.openmpt.org/libopenmpt/&quot;&gt;libopenmpt&lt;/a&gt; library&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://git.lopez-snowhill.net/chris/sseqplayer/&quot;&gt;sseqplayer&lt;/a&gt; library by &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
@@ -92,6 +93,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://ffmpeg.org/&quot;&gt;FFmpeg&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/ValleyBell/libvgm&quot;&gt;libvgm&lt;/a&gt; от &lt;b&gt;Valley Bell&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://lib.openmpt.org/libopenmpt/&quot;&gt;libopenmpt&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://git.lopez-snowhill.net/chris/sseqplayer/&quot;&gt;sseqplayer&lt;/a&gt; от &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Посвящается &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;

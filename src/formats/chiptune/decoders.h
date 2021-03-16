@@ -63,6 +63,7 @@ namespace Formats
     Decoder::Ptr CreateUSFDecoder();
     Decoder::Ptr CreateGSFDecoder();
     Decoder::Ptr Create2SFDecoder();
+    Decoder::Ptr CreateNCSFDecoder();
     Decoder::Ptr CreateSSFDecoder();
     Decoder::Ptr CreateDSFDecoder();
     Decoder::Ptr CreateRasterMusicTrackerDecoder();
