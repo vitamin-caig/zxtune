@@ -17,8 +17,7 @@
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
-// text includes
-#include <src/core/text/core.h>
+#include <module/attributes.h>
 
 #define FILE_TAG BCCC5654
 
@@ -29,13 +28,13 @@ namespace ZXTune
 
   Analysis::Path::Ptr CreateEmptyPath()
   {
-    static const Analysis::Path::Ptr instance = Analysis::ParsePath(String(), Text::MODULE_SUBPATH_DELIMITER[0]);
+    static const Analysis::Path::Ptr instance = Analysis::ParsePath(String(), Module::SUBPATH_DELIMITER);
     return instance;
   }
 
   Analysis::Path::Ptr CreateEmptyPluginsChain()
   {
-    static const Analysis::Path::Ptr instance = Analysis::ParsePath(String(), Text::MODULE_CONTAINERS_DELIMITER[0]);
+    static const Analysis::Path::Ptr instance = Analysis::ParsePath(String(), Module::CONTAINERS_DELIMITER);
     return instance;
   }
 
@@ -70,8 +69,8 @@ namespace ZXTune
   public:
     GeneratedLocation(Binary::Container::Ptr data, const String& plugin, const String& path)
       : Data(std::move(data))
-      , Path(Analysis::ParsePath(path, Text::MODULE_SUBPATH_DELIMITER[0]))
-      , Plugins(Analysis::ParsePath(plugin, Text::MODULE_CONTAINERS_DELIMITER[0]))
+      , Path(Analysis::ParsePath(path, Module::SUBPATH_DELIMITER))
+      , Plugins(Analysis::ParsePath(plugin, Module::CONTAINERS_DELIMITER))
     {}
 
     Binary::Container::Ptr GetData() const override
@@ -121,7 +120,7 @@ namespace ZXTune
   {
     const ArchivePluginsEnumerator::Ptr usedPlugins = ArchivePluginsEnumerator::Create();
     DataLocation::Ptr resolvedLocation = MakePtr<UnresolvedLocation>(data);
-    const Analysis::Path::Ptr sourcePath = Analysis::ParsePath(subpath, Text::MODULE_SUBPATH_DELIMITER[0]);
+    const Analysis::Path::Ptr sourcePath = Analysis::ParsePath(subpath, Module::SUBPATH_DELIMITER);
     for (Analysis::Path::Ptr unresolved = sourcePath; !unresolved->Empty();
          unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString()))
     {

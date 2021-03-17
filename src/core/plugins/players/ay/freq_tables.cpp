@@ -14,8 +14,6 @@
 #include <error_tools.h>
 // library includes
 #include <l10n/api.h>
-// text includes
-#include <core/text/core.h>
 
 #define FILE_TAG E8071E22
 

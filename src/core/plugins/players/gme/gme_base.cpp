@@ -386,7 +386,7 @@ namespace Module::GME
     {
       Parameters::StringType container;
       Require(params->FindValue(Module::ATTR_CONTAINER, container));
-      return container == type || boost::algorithm::ends_with(container, ">" + type);
+      return container == type || boost::algorithm::ends_with(container, Module::CONTAINERS_DELIMITER + type);
     }
 
   private:

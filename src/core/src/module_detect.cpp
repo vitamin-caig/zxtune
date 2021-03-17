@@ -27,7 +27,6 @@
 // std includes
 #include <map>
 // text includes
-#include <src/core/text/core.h>
 #include <src/core/text/plugins.h>
 
 #define FILE_TAG 006E56AA

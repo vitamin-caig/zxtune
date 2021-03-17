@@ -351,7 +351,7 @@ namespace Module::Sid
   {
     Parameters::StringType container;
     Require(params.FindValue(Module::ATTR_CONTAINER, container));
-    return container == "SID" || boost::algorithm::ends_with(container, ">SID");
+    return container == "SID" || boost::algorithm::ends_with(container, Module::CONTAINERS_DELIMITER + "SID");
   }
 
   String DecodeString(StringView str)
