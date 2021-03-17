@@ -28,12 +28,12 @@
 #include <strings/prefixed_index.h>
 // std includes
 #include <algorithm>
-// text includes
-#include <core/text/plugins.h>
 
 namespace ZXTune::Zdata
 {
   const Debug::Stream Dbg("Core::ZData");
+
+  const String PLUGIN_PREFIX("zdata:");
 
   typedef std::array<uint8_t, 2> SignatureType;
 
@@ -243,7 +243,7 @@ namespace ZXTune::Zdata
 namespace ZXTune::Zdata
 {
   const Char ID[] = {'Z', 'D', 'A', 'T', 'A', 0};
-  const Char* const INFO = Text::ZDATA_PLUGIN_INFO;
+  const Char INFO[] = "Zdata";
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::ARCHIVE;
 }  // namespace ZXTune::Zdata
 
@@ -256,7 +256,7 @@ namespace ZXTune
     const Zdata::Header hdr = Zdata::Compress(input, builder);
     hdr.ToRaw(builder.Get<Zdata::RawHeader>(0));
     const Binary::Container::Ptr data = Zdata::Convert(builder.Get(0), builder.Size());
-    return CreateLocation(data, Zdata::ID, Strings::PrefixedIndex(Text::ZDATA_PLUGIN_PREFIX, hdr.Crc).ToString());
+    return CreateLocation(data, Zdata::ID, Strings::PrefixedIndex(Zdata::PLUGIN_PREFIX, hdr.Crc).ToString());
   }
 }  // namespace ZXTune
 
@@ -289,7 +289,7 @@ namespace ZXTune::Zdata
                            const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
-      const Strings::PrefixedIndex pathIndex(Text::ZDATA_PLUGIN_PREFIX, pathComp);
+      const Strings::PrefixedIndex pathIndex(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {
         const Binary::Data::Ptr rawData = location->GetData();

@@ -18,12 +18,10 @@
 #include <make_ptr.h>
 // std includes
 #include <utility>
-// text includes
-#include <core/text/plugins.h>
 
 namespace ZXTune
 {
-  const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
+  const String ARCHIVE_PLUGIN_PREFIX("+un");
 
   String EncodeArchivePluginToPath(const String& pluginId)
   {

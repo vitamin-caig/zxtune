@@ -18,6 +18,7 @@
 #include <make_ptr.h>
 // library includes
 #include <core/core_parameters.h>
+#include <core/plugins/archives/raw_supp.h>
 #include <core/plugins/utils.h>
 #include <debug/log.h>
 #include <devices/aym/chip.h>
@@ -38,7 +39,6 @@
 #include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
 // text includes
-#include <core/text/plugins.h>
 #include <formats/text/archived.h>
 
 namespace
@@ -450,7 +450,7 @@ namespace
         && !boost::algorithm::iends_with(item.Path, String(".ym")))
     {
       assert(offset);
-      const auto subPath = Strings::PrefixedIndex(Text::RAW_PLUGIN_PREFIX, offset).ToString();
+      const auto subPath = ZXTune::Raw::CreateFilename(offset);
       item.Path = AppendSubpath(item.Path, subPath);
     }
   }

@@ -19,11 +19,12 @@
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 // text includes
-#include <core/text/plugins.h>
 #include <module/text/platforms.h>
 
 namespace Module::TFC
 {
+  const Char PROGRAM_PREFIX[] = "TurboFM Compiler v";
+
   class ChannelData
   {
   public:
@@ -125,7 +126,7 @@ namespace Module::TFC
 
     void SetVersion(const String& version) override
     {
-      Properties.SetProgram(Text::TFC_COMPILER_VERSION + version);
+      Properties.SetProgram(PROGRAM_PREFIX + version);
     }
 
     void SetIntFreq(uint_t freq) override
