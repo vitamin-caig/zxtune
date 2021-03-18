@@ -14,13 +14,12 @@
 #include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
+#include <formats/archived/multitrack/filename.h>
 #include <formats/chiptune/emulation/ay.h>
 #include <strings/prefixed_index.h>
 // std includes
 #include <algorithm>
 #include <utility>
-// text includes
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -68,7 +67,7 @@ namespace Formats::Archived
           const Formats::Chiptune::AY::BlobBuilder::Ptr builder = Formats::Chiptune::AY::CreateFileBuilder();
           if (const Formats::Chiptune::Container::Ptr parsed = Formats::Chiptune::AY::Parse(*Delegate, idx, *builder))
           {
-            const String subPath = Strings::PrefixedIndex(Text::MULTITRACK_FILENAME_PREFIX, idx).ToString();
+            const String subPath = MultitrackArchives::CreateFilename(idx);
             const Binary::Container::Ptr subData = builder->Result();
             const File file(subPath, subData);
             walker.OnFile(file);
@@ -78,13 +77,13 @@ namespace Formats::Archived
 
       File::Ptr FindFile(const String& name) const override
       {
-        const Strings::PrefixedIndex rawName(Text::AY_RAW_FILENAME_PREFIX, name);
-        const Strings::PrefixedIndex ayName(Text::MULTITRACK_FILENAME_PREFIX, name);
-        if (!rawName.IsValid() && !ayName.IsValid())
+        const Strings::PrefixedIndex rawName("@", name);
+        const auto ayIndex = MultitrackArchives::ParseFilename(name);
+        if (!rawName.IsValid() && !ayIndex)
         {
           return File::Ptr();
         }
-        const uint_t index = rawName.IsValid() ? rawName.GetIndex() : ayName.GetIndex();
+        const uint_t index = rawName.IsValid() ? rawName.GetIndex() : *ayIndex;
         const uint_t subModules = Formats::Chiptune::AY::GetModulesCount(*Delegate);
         if (subModules < index)
         {
@@ -107,6 +106,7 @@ namespace Formats::Archived
       }
     };
 
+    const Char DESCRIPTION[] = "Multi-AY/EMUL";
     const StringView HEADER_FORMAT(
         "'Z'X'A'Y"  // uint8_t Signature[4];
         "'E'M'U'L"  // only one type is supported now
@@ -122,7 +122,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::AY_ARCHIVE_DECODER_DESCRIPTION;
+      return MultiAY::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

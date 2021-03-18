@@ -18,8 +18,6 @@
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <formats/archived.h>
-// text include
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -27,6 +25,7 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::FSB");
 
+    const Char DESCRIPTION[] = "FMOD Sample bank";
     const StringView FORMAT(
         "'F'S'B'5"
         "?{20}"
@@ -193,7 +192,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::FSB_DECODER_DESCRIPTION;
+      return FSB::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

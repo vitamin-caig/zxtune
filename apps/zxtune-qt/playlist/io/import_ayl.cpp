@@ -22,12 +22,12 @@
 #include <core/plugins/utils.h>
 #include <debug/log.h>
 #include <devices/aym/chip.h>
+#include <formats/archived/multitrack/filename.h>
 #include <io/api.h>
 #include <module/attributes.h>
 #include <parameters/convert.h>
 #include <parameters/serialize.h>
 #include <sound/sound_parameters.h>
-#include <strings/prefixed_index.h>
 // std includes
 #include <cctype>
 // boost includes
@@ -38,8 +38,6 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QTextCodec>
 #include <QtCore/QTextStream>
-// text includes
-#include <formats/text/archived.h>
 
 namespace
 {
@@ -438,7 +436,7 @@ namespace
     // for AY files FormatSpec is subtune index
     if (boost::algorithm::iends_with(item.Path, String(".ay")))
     {
-      const auto subPath = Strings::PrefixedIndex(Text::MULTITRACK_FILENAME_PREFIX, formatSpec).ToString();
+      const auto subPath = Formats::Archived::MultitrackArchives::CreateFilename(formatSpec);
       item.Path = AppendSubpath(item.Path, subPath);
     }
   }

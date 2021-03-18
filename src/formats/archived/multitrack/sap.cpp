@@ -12,17 +12,13 @@
 #include "formats/archived/multitrack/multitrack.h"
 // library includes
 #include <formats/multitrack/decoders.h>
-// text includes
-#include <formats/text/archived.h>
 
-namespace Formats
+namespace Formats::Archived
 {
-  namespace Archived
+  Decoder::Ptr CreateSAPDecoder()
   {
-    Decoder::Ptr CreateSAPDecoder()
-    {
-      const Formats::Multitrack::Decoder::Ptr decoder = Formats::Multitrack::CreateSAPDecoder();
-      return CreateMultitrackArchiveDecoder(Text::SAP_ARCHIVE_DECODER_DESCRIPTION, decoder);
-    }
-  }  // namespace Archived
-}  // namespace Formats
+    static const Char DESCRIPTION[] = "Multi-SAP";
+    const auto decoder = Formats::Multitrack::CreateSAPDecoder();
+    return CreateMultitrackArchiveDecoder(DESCRIPTION, decoder);
+  }
+}  // namespace Formats::Archived

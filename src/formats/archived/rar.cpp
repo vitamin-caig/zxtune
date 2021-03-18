@@ -22,8 +22,6 @@
 #include <cstring>
 #include <deque>
 #include <numeric>
-// text include
-#include <formats/text/packed.h>
 
 namespace Formats::Archived
 {
@@ -380,6 +378,7 @@ namespace Formats::Archived
       const uint_t FilesCount;
     };
 
+    const Char DESCRIPTION[] = "RAR";
     const StringView FORMAT(
         // file marker
         "5261"  // uint16_t CRC;   "Ra"
@@ -403,7 +402,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::RAR_DECODER_DESCRIPTION;
+      return Rar::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

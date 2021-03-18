@@ -31,8 +31,6 @@
 #include <sstream>
 // boost includes
 #include <boost/range/size.hpp>
-// text include
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -40,6 +38,7 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::ZXState");
 
+    const Char DESCRIPTION[] = "SZX (ZX-State)";
     const StringView FORMAT(
         "'Z'X'S'T"   // signature
         "01"         // major
@@ -711,7 +710,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::ZXSTATE_DECODER_DESCRIPTION;
+      return ZXState::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

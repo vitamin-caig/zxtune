@@ -22,13 +22,12 @@
 #include <cassert>
 #include <cstddef>
 #include <cstring>
-// text include
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
   namespace Hrip
   {
+    const Char DESCRIPTION[] = "Hrip (Hrust RiP archiver)";
     const StringView FORMAT(
         "'H'R'i"     // uint8_t ID[3];//'HRi'
         "01-ff"      // uint8_t FilesCount;
@@ -191,7 +190,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::HRIP_DECODER_DESCRIPTION;
+      return Hrip::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

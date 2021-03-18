@@ -21,8 +21,6 @@
 // std includes
 #include <cstring>
 #include <numeric>
-// text include
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -30,6 +28,7 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::SCL");
 
+    const Char DESCRIPTION[] = "SCL (SINCLAIR)";
     const StringView FORMAT(
         "'S'I'N'C'L'A'I'R"
         "01-ff");
@@ -151,7 +150,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::SCL_DECODER_DESCRIPTION;
+      return SCL::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

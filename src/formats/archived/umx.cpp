@@ -25,8 +25,6 @@
 #include <map>
 // boost includes
 #include <boost/algorithm/string/case_conv.hpp>
-// text includes
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -34,6 +32,7 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::UMX");
 
+    const Char DESCRIPTION[] = "UMX (Unreal Music eXperience)";
     const StringView FORMAT(
         "c1832a9e"     // signature
         "? 00"         // version
@@ -538,7 +537,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::UMX_DECODER_DESCRIPTION;
+      return UMX::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override
