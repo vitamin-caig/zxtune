@@ -17,13 +17,12 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/image.h>
-// text includes
-#include <formats/text/image.h>
 
 namespace Formats::Image
 {
   namespace LaserCompact40
   {
+    const Char DESCRIPTION[] = "LaserCompact 4.0";
     const StringView DEPACKER_PATTERN(
         "0ef9"    // ld c,#f9
         "0d"      // dec c
@@ -235,7 +234,7 @@ namespace Formats::Image
 
     String GetDescription() const override
     {
-      return Text::LASERCOMPACT40_DECODER_DESCRIPTION;
+      return LaserCompact40::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override
