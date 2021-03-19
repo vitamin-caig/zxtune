@@ -26,14 +26,14 @@
 #include <strings/optimize.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace SPC
   {
     const Debug::Stream Dbg("Formats::Chiptune::SPC");
+
+    const Char DESCRIPTION[] = "SNES SPC700";
 
     typedef std::array<uint8_t, 28> SignatureType;
     const SignatureType SIGNATURE = {{'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ', 'S', 'o',
@@ -435,7 +435,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::SPC_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

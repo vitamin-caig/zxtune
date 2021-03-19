@@ -18,8 +18,6 @@
 // std includes
 #include <cstddef>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -72,6 +70,7 @@ namespace Formats::Chiptune
       return 0 == std::memcmp(header->Sign, SIGNATURE, sizeof(SIGNATURE)) && MARKER == header->Marker;
     }
 
+    const Char DESCRIPTION[] = "Programmable Sound Generator";
     const StringView FORMAT(
         "'P'S'G"  // uint8_t Sign[3];
         "1a"      // uint8_t Marker;
@@ -86,7 +85,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PSG_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

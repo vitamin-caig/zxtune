@@ -25,14 +25,14 @@
 #include <strings/optimize.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace ProSoundMakerCompiled
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProSoundMakerCompiled");
+
+    const Char PROGRAM[] = "Pro Sound Maker";
 
     using namespace ProSoundMaker;
 
@@ -467,7 +467,7 @@ namespace Formats::Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Text::PROSOUNDMAKER_DECODER_DESCRIPTION);
+        meta.SetProgram(PROGRAM);
         if (const std::size_t gapSize = fromLE(Source.PositionsOffset) - sizeof(Source))
         {
           const std::size_t gapBegin = sizeof(Source);
@@ -1016,6 +1016,7 @@ namespace Formats::Chiptune
       return true;
     }
 
+    const auto DESCRIPTION = PROGRAM;
     // Statistic-based format description (~55 modules)
     const StringView FORMAT(
         "(08-88)&%x0xxxxxx 00"  // uint16_t PositionsOffset;
@@ -1036,7 +1037,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PROSOUNDMAKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

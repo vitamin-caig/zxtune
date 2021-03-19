@@ -25,8 +25,6 @@
 // std includes
 #include <cctype>
 #include <numeric>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -354,6 +352,8 @@ namespace Formats::Chiptune
 
   namespace OggVorbis
   {
+    const Char DESCRIPTION[] = "OGG Vorbis";
+
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)
     {
       try
@@ -507,7 +507,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::OGGVORBIS_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

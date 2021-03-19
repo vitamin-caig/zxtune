@@ -19,9 +19,6 @@
 #include <debug/log.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -73,7 +70,7 @@ namespace Formats::Packed
     static_assert(offsetof(RawPlayer, Information) == 12, "Invalid layout");
     static_assert(offsetof(RawPlayer, Initialization) == 67, "Invalid layout");
 
-    const String DESCRIPTION = String(Text::SOUNDTRACKER3_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
+    const Char DESCRIPTION[] = "Sound Tracker v3.x Compiled player";
 
     const StringView FORMAT(
         "21??"  // ld hl,ModuleAddr

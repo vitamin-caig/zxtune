@@ -26,8 +26,6 @@
 #include <cassert>
 // boost includes
 #include <boost/algorithm/string/trim.hpp>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -416,7 +414,7 @@ namespace Formats::Chiptune
     };
 
     // ver1 0.1..0.4/0.5..1.2
-    const StringView Version05::DESCRIPTION = Text::TFMMUSICMAKER05_DECODER_DESCRIPTION;
+    const StringView Version05::DESCRIPTION = "TFM Music Maker v0.1-1.2";
     const StringView Version05::FORMAT(
         // use more strict detection due to lack of format
         "11-13|21-25|32-35|42-46|52-57|62-68|76-79|87-89|98-9a|a6-a8"
@@ -428,7 +426,7 @@ namespace Formats::Chiptune
         "06-08|86-88|80"          // save date year is between 2006 and 2008 or saved at 16th (marker,marker)
     );
 
-    const StringView Version13::DESCRIPTION = Text::TFMMUSICMAKER13_DECODER_DESCRIPTION;
+    const StringView Version13::DESCRIPTION = "TFM Music Maker v1.3+";
     const StringView Version13::FORMAT(
         "'T'F'M'f'm't'V'2"  // signature
         "01-0f"             // even speed

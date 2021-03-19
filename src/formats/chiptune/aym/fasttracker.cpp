@@ -25,14 +25,14 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace FastTracker
   {
     const Debug::Stream Dbg("Formats::Chiptune::FastTracker");
+
+    const Char PROGRAM[] = "Fast Tracker v1.x";
 
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x3a00;
@@ -551,7 +551,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          meta.SetProgram(Text::FASTTRACKER_DECODER_DESCRIPTION);
+          meta.SetProgram(PROGRAM);
         }
         if (in.HasTitle())
         {
@@ -1129,6 +1129,7 @@ namespace Formats::Chiptune
       return data.SubView(0, MAX_MODULE_SIZE);
     }
 
+    const auto DESCRIPTION = PROGRAM;
     const StringView FORMAT(
         "?{8}"                // identifier
         "?{42}"               // title
@@ -1154,7 +1155,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::FASTTRACKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

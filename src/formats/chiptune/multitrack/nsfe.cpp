@@ -10,8 +10,6 @@
 
 // local includes
 #include "formats/chiptune/multitrack/multitrack.h"
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats
 {
@@ -19,7 +17,8 @@ namespace Formats
   {
     Decoder::Ptr CreateNSFEDecoder(Formats::Multitrack::Decoder::Ptr decoder)
     {
-      return CreateMultitrackChiptuneDecoder(Text::NSFE_DECODER_DESCRIPTION, decoder);
+      static const Char DESCRIPTION[] = "Extended Nintendo Sound Format";
+      return CreateMultitrackChiptuneDecoder(DESCRIPTION, decoder);
     }
   }  // namespace Chiptune
 }  // namespace Formats

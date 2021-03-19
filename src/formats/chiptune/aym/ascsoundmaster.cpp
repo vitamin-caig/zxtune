@@ -29,8 +29,6 @@
 #include <cstring>
 // boost includes
 #include <boost/algorithm/string/predicate.hpp>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -320,7 +318,7 @@ namespace Formats::Chiptune
     };
 
     const VersionTraits Version0::TRAITS = {255, 0x2400,  //~9k
-                                            Text::ASCSOUNDMASTER0_DECODER_DESCRIPTION,
+                                            "ASC Sound Master v0.x",
                                             "03-32"     // tempo
                                             "09-ab 00"  // patterns
                                             "? 00-21"   // samples
@@ -336,7 +334,8 @@ namespace Formats::Chiptune
       typedef RawHeaderVer1 RawHeader;
     };
 
-    const VersionTraits Version1::TRAITS = {256, 0x3a00, Text::ASCSOUNDMASTER1_DECODER_DESCRIPTION,
+    const VersionTraits Version1::TRAITS = {256, 0x3a00,  //~15k
+                                            "ASC Sound Master v1.x",
                                             "03-32"     // tempo
                                             "00-63"     // loop
                                             "0a-ac 00"  // patterns

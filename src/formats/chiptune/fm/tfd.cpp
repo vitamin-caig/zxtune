@@ -20,13 +20,13 @@
 #include <strings/trim.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace TFD
   {
+    const Char DESCRIPTION[] = "TurboFM Dump";
+
     enum
     {
       BEGIN_FRAME = 0xff,
@@ -80,7 +80,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::TFD_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

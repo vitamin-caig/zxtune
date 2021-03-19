@@ -17,8 +17,6 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 /*
 http://patpend.net/technical/psx/exeheader.txt
@@ -74,6 +72,8 @@ namespace Formats::Chiptune
   namespace PlaystationSoundFormat
   {
     const Debug::Stream Dbg("Formats::Chiptune::PSF");
+
+    const Char DESCRIPTION[] = "Playstation Sound Format";
 
     const std::size_t HEADER_SIZE = 2048;
 
@@ -180,7 +180,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PLAYSTATIONSOUNDFORMAT_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

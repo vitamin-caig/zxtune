@@ -22,13 +22,13 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace SID
   {
+    const Char DESCRIPTION[] = "Commodore64 RSID/PSID";
+
     typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE_RSID = {{'R', 'S', 'I', 'D'}};
@@ -79,7 +79,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::SID_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

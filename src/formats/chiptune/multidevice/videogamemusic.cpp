@@ -21,13 +21,13 @@
 // boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace VideoGameMusic
   {
+    const Char DESCRIPTION[] = "Video Game Music";
+
     const uint32_t SIGNATURE = 0x56676d20;
 
     const uint32_t GD3_SIGNATURE = 0x47643320;
@@ -63,7 +63,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::VGM_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

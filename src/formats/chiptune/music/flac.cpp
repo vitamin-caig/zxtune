@@ -19,13 +19,13 @@
 // library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace Flac
   {
+    const Char DESCRIPTION[] = "Free Lossless Audio Codec";
+
     // https://www.xiph.org/flac/format
     class Format
     {
@@ -241,7 +241,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::FLAC_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

@@ -21,13 +21,13 @@
 #include <strings/trim.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace Mp3
   {
+    const Char DESCRIPTION[] = "MPEG Audio Layer";
+
     // http://wiki.hydrogenaud.io/index.php?title=APEv2_specification
     namespace ApeTag
     {
@@ -492,7 +492,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::MP3_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

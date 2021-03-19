@@ -20,9 +20,6 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -38,7 +35,7 @@ namespace Formats::Packed
 #endif
     struct Version1
     {
-      static const String DESCRIPTION;
+      static const StringView DESCRIPTION;
       static const StringView FORMAT;
 
       PACK_PRE struct RawPlayer
@@ -72,7 +69,7 @@ namespace Formats::Packed
 
     struct Version2
     {
-      static const String DESCRIPTION;
+      static const StringView DESCRIPTION;
       static const StringView FORMAT;
 
       PACK_PRE struct RawPlayer
@@ -117,8 +114,8 @@ namespace Formats::Packed
     static_assert(offsetof(Version2::RawPlayer, Information) == 8, "Invalid layout");
     static_assert(offsetof(Version2::RawPlayer, Initialization) == 72, "Invalid layout");
 
-    const String Version1::DESCRIPTION = String(Text::SOUNDTRACKERPRO_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
-    const String Version2::DESCRIPTION = String(Text::SOUNDTRACKERPRO2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
+    const StringView Version1::DESCRIPTION = "Sound Tracker Pro v1.x player";
+    const StringView Version2::DESCRIPTION = "Sound Tracker Pro v2.x player";
 
     const StringView Version1::FORMAT =
         "21??"    // ld hl,ModuleAddr
@@ -183,7 +180,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Version::DESCRIPTION;
+      return Version::DESCRIPTION.to_string();
     }
 
     Binary::Format::Ptr GetFormat() const override

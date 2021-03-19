@@ -25,8 +25,6 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -369,6 +367,7 @@ namespace Formats::Chiptune
       return {};
     }
 
+    const Char DESCRIPTION[] = "YM (ST-Sound Project)";
     const StringView FORMAT(
         "'Y'M"
         "'2-'6"
@@ -398,6 +397,7 @@ namespace Formats::Chiptune
       return {};
     }
 
+    const Char PACKED_DESCRIPTION[] = "YM (ST-Sound Project) Packed";
     const StringView PACKED_FORMAT(
         "16-ff"       // header size
         "?"           // header sum
@@ -419,7 +419,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::YM_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override
@@ -460,7 +460,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::YM_PACKED_DECODER_DESCRIPTION;
+        return PACKED_DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override
@@ -643,6 +643,7 @@ namespace Formats::Chiptune
       return {};
     }
 
+    const Char DESCRIPTION[] = "VTX (Vortex Project)";
     const StringView FORMAT(
         "('a|'A|'y|'Y)('y|'Y|'m|'M)"  // type
         "00-06"                       // layout
@@ -660,7 +661,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::VTX_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

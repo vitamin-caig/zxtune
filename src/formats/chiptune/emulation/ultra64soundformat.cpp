@@ -16,13 +16,13 @@
 // library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace Ultra64SoundFormat
   {
+    const Char DESCRIPTION[] = "Ultra64 Sound Format";
+
     typedef std::array<uint8_t, 4> SignatureType;
     const SignatureType EMPTY_SIGNATURE = {{0, 0, 0, 0}};
     const SignatureType SR64_SIGNATURE = {{'S', 'R', '6', '4'}};
@@ -109,7 +109,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::ULTRA64SOUNDFORMAT_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

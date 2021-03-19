@@ -23,8 +23,6 @@
 // std includes
 #include <array>
 #include <utility>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace IFF
 {
@@ -249,6 +247,8 @@ namespace Formats::Chiptune
 {
   namespace MultiTrackContainer
   {
+    const Char DESCRIPTION[] = "Multitrack Container";
+
     class StubBuilder : public Builder
     {
     public:
@@ -285,7 +285,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::MULTITRACK_CONTAINER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

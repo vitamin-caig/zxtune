@@ -30,8 +30,6 @@
 #include <cstring>
 #include <list>
 #include <type_traits>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -215,6 +213,8 @@ namespace Formats::Chiptune
         "00"        // last module
     );
 
+    const Char DESCRIPTION[] = "AY/EMUL";
+
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
@@ -224,7 +224,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::AY_EMUL_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

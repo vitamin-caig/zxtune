@@ -22,13 +22,13 @@
 #include <strings/trim.h>
 // std includes
 #include <numeric>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace Wav
   {
+    const Char DESCRIPTION[] = "Waveform Audio File Format";
+
     // http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
     namespace Chunks
     {
@@ -371,7 +371,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::WAV_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

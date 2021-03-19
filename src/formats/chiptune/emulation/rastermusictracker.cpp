@@ -17,13 +17,13 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/chiptune/container.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace RasterMusicTracker
   {
+    const Char DESCRIPTION[] = "Raster Music Tracker";
+
     // as for ASAP limitations
     // Details: http://atariki.krap.pl/index.php/RMT_%28format_pliku%29
     const StringView FORMAT =
@@ -47,7 +47,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::RASTERMUSICTRACKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

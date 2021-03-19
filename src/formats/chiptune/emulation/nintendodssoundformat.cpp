@@ -17,13 +17,13 @@
 #include <binary/compression/zlib_container.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace NintendoDSSoundFormat
   {
+    const Char DESCRIPTION[] = "Nintendo DS Sound Format";
+
     typedef std::array<uint8_t, 4> SignatureType;
     const SignatureType SAVESTATE_SIGNATURE = {{'S', 'A', 'V', 'E'}};
 
@@ -72,7 +72,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::NINTENDODSSOUNDFORMAT_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

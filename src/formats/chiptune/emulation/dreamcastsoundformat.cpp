@@ -14,13 +14,13 @@
 #include <make_ptr.h>
 // library includes
 #include <binary/format_factories.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace DreamcastSoundFormat
   {
+    const Char DESCRIPTION[] = "Dreamcast Sound Format";
+
     const StringView FORMAT(
         "'P'S'F"
         "12");
@@ -34,7 +34,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::DREAMCASTSOUNDFORMAT_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

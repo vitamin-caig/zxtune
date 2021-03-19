@@ -20,13 +20,13 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace GYM
   {
+    const Char DESCRIPTION[] = "Genesis YM2612 (unpacked)";
+
     typedef std::array<uint8_t, 4> SignatureType;
     typedef std::array<uint8_t, 32> StringType;
 
@@ -66,7 +66,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::GYM_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

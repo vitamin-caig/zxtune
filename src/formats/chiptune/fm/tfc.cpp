@@ -21,13 +21,13 @@
 #include <strings/trim.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace TFC
   {
+    const Char DESCRIPTION[] = "TurboFM Compiled Dump";
+
     typedef std::array<uint8_t, 6> SignatureType;
 
     const SignatureType SIGNATURE = {{'T', 'F', 'M', 'c', 'o', 'm'}};
@@ -98,7 +98,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::TFC_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

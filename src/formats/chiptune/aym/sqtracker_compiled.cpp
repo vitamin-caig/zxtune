@@ -23,14 +23,14 @@
 #include <math/numeric.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace SQTracker
   {
     const Debug::Stream Dbg("Formats::Chiptune::SQTracker");
+
+    const Char PROGRAM[] = "SQ-Tracker";
 
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x3600;
@@ -376,7 +376,7 @@ namespace Formats::Chiptune
 
       void ParseCommonProperties(Builder& builder) const
       {
-        builder.GetMetaBuilder().SetProgram(Text::SQTRACKER_DECODER_DESCRIPTION);
+        builder.GetMetaBuilder().SetProgram(PROGRAM);
       }
 
       void ParsePositions(Builder& builder) const
@@ -924,6 +924,7 @@ namespace Formats::Chiptune
       return FastCheck(areas);
     }
 
+    const Char DESCRIPTION[] = "SQ-Tracker Compiled";
     // TODO: size may be <256
     const StringView FORMAT(
         "?01-30"        // uint16_t Size;
@@ -946,7 +947,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::SQTRACKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

@@ -27,8 +27,6 @@
 #include <cctype>
 // boost includes
 #include <boost/algorithm/string/predicate.hpp>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -890,6 +888,7 @@ namespace Formats::Chiptune
       return true;
     }
 
+    const Char DESCRIPTION[] = "Pro Tracker v3.x";
     const StringView FORMAT(
         "?{13}"         // uint8_t Id[13];        //'ProTracker 3.'
         "?"             // uint8_t Subversion;
@@ -919,7 +918,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PROTRACKER3_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

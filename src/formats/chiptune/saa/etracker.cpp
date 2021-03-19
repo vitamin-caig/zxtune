@@ -23,14 +23,14 @@
 #include <math/numeric.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace ETracker
   {
     const Debug::Stream Dbg("Formats::Chiptune::ETracker");
+
+    const Char DESCRIPTION[] = "E-Tracker v1.x";
 
     const std::size_t MIN_SIZE = 96;
     const std::size_t MAX_SIZE = 0x8000;
@@ -319,7 +319,7 @@ namespace Formats::Chiptune
       {
         builder.SetInitialTempo(6);
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Text::ETRACKER_DECODER_DESCRIPTION);
+        meta.SetProgram(DESCRIPTION);
       }
 
       void ParsePositions(Builder& builder) const
@@ -920,7 +920,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::ETRACKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

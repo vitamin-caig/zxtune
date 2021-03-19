@@ -31,14 +31,14 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace ProTracker3::VortexTracker2
   {
     const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
+
+    const Char EDITOR[] = "VortexTracker (Pro Tracker v%1%.%2%)";
 
     /*
       Common module structure:
@@ -1172,7 +1172,7 @@ namespace Formats::Chiptune
         Dbg("Parse header");
         const ModuleHeader hdr(Source);
         MetaBuilder& meta = Target.GetMetaBuilder();
-        meta.SetProgram(Strings::Format(Text::VORTEX_EDITOR, 3, hdr.Version));
+        meta.SetProgram(Strings::Format(EDITOR, 3, hdr.Version));
         Target.SetVersion(hdr.Version);
         meta.SetTitle(DecodeString(hdr.Title));
         meta.SetAuthor(DecodeString(hdr.Author));
@@ -1224,6 +1224,7 @@ namespace Formats::Chiptune
       Builder& Target;
     };
 
+    const Char DESCRIPTION[] = "VortexTracker II";
     const StringView FORMAT("'['M'o'd'u'l'e']");
 
     const std::size_t MIN_SIZE = 256;
@@ -1269,7 +1270,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::VORTEXTRACKER2_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

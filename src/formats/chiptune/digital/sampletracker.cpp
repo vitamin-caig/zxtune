@@ -25,14 +25,14 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace SampleTracker
   {
     const Debug::Stream Dbg("Formats::Chiptune::SampleTracker");
+
+    const Char DESCRIPTION[] = "Sample Tracker v2.x";
 
     // const std::size_t MAX_MODULE_SIZE = 0x87a0;
     const std::size_t MAX_POSITIONS_COUNT = 0x40;
@@ -131,7 +131,7 @@ namespace Formats::Chiptune
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(Strings::OptimizeAscii(Source.Title));
-        meta.SetProgram(Text::SAMPLETRACKER_DECODER_DESCRIPTION);
+        meta.SetProgram(DESCRIPTION);
         Strings::Array names;
         names.reserve(Source.SampleNames.size());
         for (const auto& name : Source.SampleNames)
@@ -329,7 +329,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::SAMPLETRACKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

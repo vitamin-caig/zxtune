@@ -20,9 +20,6 @@
 #include <debug/log.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -114,7 +111,7 @@ namespace Formats::Packed
     struct VersionTraits
     {
       const std::size_t MinSize;
-      const String Description;
+      const Char* Description;
       const String Format;
       const CreatePlayerFunc CreatePlayer;
       const ParseFunc Parse;
@@ -140,7 +137,7 @@ namespace Formats::Packed
 
     const VersionTraits VERSION0 = {
         sizeof(PlayerVer0),
-        String(Text::ASCSOUNDMASTER0_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX,
+        "ASC Sound Master v0.x player",
         BASE_FORMAT +
             //+0x70
             "11??"  // ld de,ModuleAddr
@@ -158,7 +155,7 @@ namespace Formats::Packed
 
     const VersionTraits VERSION1 = {
         sizeof(PlayerVer0),
-        String(Text::ASCSOUNDMASTER1_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX,
+        "ASC Sound Master v1.x player",
         BASE_FORMAT +
             //+0x70
             "11??"  // ld de,ModuleAddr
@@ -178,7 +175,7 @@ namespace Formats::Packed
 
     const VersionTraits VERSION2 = {
         sizeof(PlayerVer2),
-        String(Text::ASCSOUNDMASTER2_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX,
+        "ASC Sound Master v2.x player",
         "?{11}"  // padding
         "184600"
         "c3??"

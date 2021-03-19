@@ -26,14 +26,16 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace ExtremeTracker1
   {
     const Debug::Stream Dbg("Formats::Chiptune::ExtremeTracker1");
+
+    const Char DESCRIPTION[] = "Extreme Tracker v1.x";
+    const Char VERSION131[] = "Extreme Tracker v1.31";
+    const Char VERSION132[] = "Extreme Tracker v1.32-1.41";
 
     const std::size_t CHANNELS_COUNT = 4;
     const std::size_t MAX_POSITIONS_COUNT = 100;
@@ -329,7 +331,7 @@ namespace Formats::Chiptune
 
       String GetEditorString() const
       {
-        return IsNewVersion() ? Text::EXTREMETRACKER132 : Text::EXTREMETRACKER131;
+        return IsNewVersion() ? VERSION132 : VERSION131;
       }
 
       uint_t GetSamplesFrequency() const
@@ -625,7 +627,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::EXTREMETRACKER1_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override
