@@ -26,8 +26,6 @@
 // std includes
 #include <cstring>
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -375,6 +373,7 @@ namespace Formats::Packed
       }
     }
 
+    const Char DESCRIPTION[] = "TD0 (TeleDisk Image)";
     const StringView FORMAT_PATTERN(
         "('T|'t)('D|'d)"  // uint8_t ID[2]
         "00"              // uint8_t Sequence;
@@ -400,7 +399,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::TELEDISKIMAGE_DECODER_DESCRIPTION;
+      return TeleDiskImage::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

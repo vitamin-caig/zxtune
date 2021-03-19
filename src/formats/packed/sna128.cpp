@@ -20,8 +20,6 @@
 // std includes
 #include <array>
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -133,6 +131,7 @@ namespace Formats::Packed
       return CreateContainer(std::move(result), origSize);
     }
 
+    const Char DESCRIPTION[] = "SNA 128k";
     const StringView FORMAT(
         "?{19}"
         "00|01|02|03|04|ff"  // iff. US saves 0x00/0x04/0xff instead of normal 0x00..0x03 flags
@@ -152,7 +151,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::SNA128_DECODER_DESCRIPTION;
+      return Sna128::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

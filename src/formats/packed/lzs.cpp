@@ -23,8 +23,6 @@
 // std includes
 #include <algorithm>
 #include <iterator>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -32,6 +30,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
+    const Char DESCRIPTION[] = "ASC LZS Pack";
     const StringView DEPACKER_PATTERN(
         "cd??"    // call xxxx
         "?"       // di/nop
@@ -298,7 +297,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::LZS_DECODER_DESCRIPTION;
+      return LZS::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

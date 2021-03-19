@@ -26,8 +26,6 @@
 #include <algorithm>
 #include <cstring>
 #include <iterator>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -35,6 +33,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
+    const Char DESCRIPTION[] = "MicroSpace Packer v1.x";
     const StringView DEPACKER_PATTERN("'M's'P'k");
 
 #ifdef USE_PRAGMA_PACK
@@ -246,7 +245,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::MSP_DECODER_DESCRIPTION;
+      return MSPack::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

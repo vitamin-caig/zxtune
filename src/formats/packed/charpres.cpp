@@ -21,8 +21,6 @@
 // std includes
 #include <algorithm>
 #include <iterator>
-// text include
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -31,6 +29,7 @@ namespace Formats::Packed
     const std::size_t MIN_SIZE = 0x20;  // TODO
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
+    const Char DESCRIPTION[] = "CharPres";
     const StringView DEPACKER_PATTERN(
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
@@ -254,7 +253,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::CHARPRES_DECODER_DESCRIPTION;
+      return CharPres::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

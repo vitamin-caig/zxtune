@@ -23,8 +23,6 @@
 // std includes
 #include <functional>
 #include <iterator>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -32,6 +30,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
+    const Char DESCRIPTION[] = "CodeCruncher v3.x";
     const StringView DEPACKER_PATTERN(
         // classic depacker
         "?"       // di/nop
@@ -348,7 +347,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::CC3_DECODER_DESCRIPTION;
+      return CodeCruncher3::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

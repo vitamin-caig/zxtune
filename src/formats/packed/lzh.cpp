@@ -21,8 +21,6 @@
 // std includes
 #include <algorithm>
 #include <iterator>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -164,7 +162,7 @@ namespace Formats::Packed
       }
     };
 
-    const StringView Version1::DESCRIPTION = Text::LZH1_DECODER_DESCRIPTION;
+    const StringView Version1::DESCRIPTION("LZH Compressor v1.4");
     const StringView Version1::DEPACKER_PATTERN(
         "?"     // di/ei
         "21??"  // ld hl,xxxx depacker body src
@@ -197,7 +195,7 @@ namespace Formats::Packed
         "6f"    // ld l,a
     );
 
-    const StringView Version2::DESCRIPTION = Text::LZH2_DECODER_DESCRIPTION;
+    const StringView Version2::DESCRIPTION("LZH Compressor v2.4");
     const StringView Version2::DEPACKER_PATTERN(
         "?"     // di/ei
         "21??"  // ld hl,xxxx depacker body src

@@ -21,8 +21,6 @@
 #include <array>
 #include <numeric>
 #include <utility>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -173,7 +171,7 @@ namespace Formats::Packed
 #  pragma pack(pop)
 #endif
 
-    const StringView Version1_45::DESCRIPTION = Text::Z80V145_DECODER_DESCRIPTION;
+    const StringView Version1_45::DESCRIPTION("Z80 v1.45");
     const StringView Version1_45::HEADER(
         "(\?\?){6}"                      // skip registers
         "%001xxxxx"                      // take into account only compressed data
@@ -188,7 +186,7 @@ namespace Formats::Packed
     const std::size_t Version1_45::MIN_SIZE = sizeof(Version1_45::Header) + 4 * (49152 / 255) + 4;
     const std::size_t Version1_45::MAX_SIZE = sizeof(Version1_45::Header) + 49152 + 4;
 
-    const StringView Version2_0::DESCRIPTION = Text::Z80V20_DECODER_DESCRIPTION;
+    const StringView Version2_0::DESCRIPTION("Z80 v2.x");
     const StringView Version2_0::FORMAT(
         "(\?\?){3}"  // skip registers
         "0000"       // PC is 0
@@ -212,7 +210,7 @@ namespace Formats::Packed
     const std::size_t Version2_0::MIN_SIZE =
         sizeof(Version2_0::Header) + 3 * (sizeof(Version2_0::MemoryPage) + 4 * (16384 / 255));
 
-    const StringView Version3_0::DESCRIPTION = Text::Z80V30_DECODER_DESCRIPTION;
+    const StringView Version3_0::DESCRIPTION("Z80 v3.x");
     const StringView Version3_0::FORMAT(
         "(\?\?){3}"  // skip registers
         "0000"       // PC is 0

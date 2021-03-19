@@ -23,8 +23,6 @@
 #include <algorithm>
 #include <array>
 #include <iterator>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -195,7 +193,7 @@ namespace Formats::Packed
 #endif
     };
 
-    const StringView Simple::DESCRIPTION = Text::TLZ_DECODER_DESCRIPTION;
+    const StringView Simple::DESCRIPTION("Turbo-LZ v1.x");
     const StringView Simple::DEPACKER_PATTERN(
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
@@ -218,7 +216,7 @@ namespace Formats::Packed
         "e60f"  // and 0xf
     );
 
-    const StringView Protected::DESCRIPTION = Text::TLZP_DECODER_DESCRIPTION;
+    const StringView Protected::DESCRIPTION("Turbo#LZ v1.x (internal)");
     const StringView Protected::DEPACKER_PATTERN(
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst

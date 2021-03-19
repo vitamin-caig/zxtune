@@ -24,8 +24,6 @@
 // std includes
 #include <algorithm>
 #include <iterator>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -120,7 +118,7 @@ namespace Formats::Packed
       static_assert(sizeof(RawHeader) == 0x36, "Invalid layout");
     };
 
-    const StringView Version4::DESCRIPTION = Text::CC4_DECODER_DESCRIPTION;
+    const StringView Version4::DESCRIPTION("CompressorCode v.4 by ZYX");
     const StringView Version4::DEPACKER_PATTERN(
         "cd5200"  // call 0x52
         "3b"      // dec sp
@@ -142,7 +140,7 @@ namespace Formats::Packed
         "c5"    // push bc
     );
 
-    const StringView Version4Plus::DESCRIPTION = Text::CC4PLUS_DECODER_DESCRIPTION;
+    const StringView Version4Plus::DESCRIPTION("CompressorCode v.4+ by ZYX");
     const StringView Version4Plus::DEPACKER_PATTERN(
         "cd5200"  // call 0x52
         "3b"      // dec sp

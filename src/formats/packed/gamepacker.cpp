@@ -22,8 +22,6 @@
 #include <formats/packed.h>
 // std includes
 #include <cstring>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -118,7 +116,7 @@ namespace Formats::Packed
 #endif
     };
 
-    const StringView Version1::DESCRIPTION = Text::GAM_DECODER_DESCRIPTION;
+    const StringView Version1::DESCRIPTION("GamePacker");
     const StringView Version1::DEPACKER_PATTERN =
         "21??"    // ld hl,xxxx depacker body src
         "11??"    // ld de,xxxx depacker body dst
@@ -138,7 +136,7 @@ namespace Formats::Packed
         "b5"  // or l
         ;
 
-    const StringView Version2::DESCRIPTION = Text::GAMPLUS_DECODER_DESCRIPTION;
+    const StringView Version2::DESCRIPTION("GamePacker+");
     const StringView Version2::DEPACKER_PATTERN =
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst

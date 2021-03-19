@@ -21,8 +21,6 @@
 // std includes
 #include <array>
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -72,6 +70,7 @@ namespace Formats::Packed
       return false;
     }
 
+    const Char DESCRIPTION[] = "Hobeta";
     const StringView FORMAT(
         // Filename
         "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
@@ -92,7 +91,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::HOBETA_DECODER_DESCRIPTION;
+      return Hobeta::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

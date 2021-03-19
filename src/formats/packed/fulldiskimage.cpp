@@ -22,8 +22,6 @@
 #include <cassert>
 #include <cstring>
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -244,6 +242,7 @@ namespace Formats::Packed
       std::size_t UsedSize;
     };
 
+    const Char DESCRIPTION[] = "FDI (Full Disk Image)";
     const StringView FORMAT_PATTERN(
         "'F'D'I"     // uint8_t ID[3]
         "%0000000x"  // uint8_t ReadOnly;
@@ -261,7 +260,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::FDI_DECODER_DESCRIPTION;
+      return FullDiskImage::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

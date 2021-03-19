@@ -26,8 +26,6 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -35,7 +33,7 @@ namespace Formats::Packed
   {
     const Debug::Stream Dbg("Formats::Packed::Zip");
 
-    // checkers
+    const Char DESCRIPTION[] = "ZIP";
     const StringView HEADER_PATTERN =
         "504b0304"             // uint32_t Signature;
         "?00"                  // uint16_t VersionToExtract;
@@ -311,7 +309,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::ZIP_DECODER_DESCRIPTION;
+      return Zip::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

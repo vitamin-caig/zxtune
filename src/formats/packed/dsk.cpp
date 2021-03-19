@@ -20,8 +20,6 @@
 #include <formats/packed.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -214,6 +212,7 @@ namespace Formats::Packed
       Formats::ImageBuilder& Target;
     };
 
+    const Char DESCRIPTION[] = "DSK Image";
     const StringView FORMAT(
         "'M|'E"
         "'V|'X"
@@ -250,7 +249,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::DSK_DECODER_DESCRIPTION;
+      return DSK::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

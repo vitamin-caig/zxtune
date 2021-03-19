@@ -24,8 +24,6 @@
 #include <math/numeric.h>
 // std includes
 #include <cstring>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -33,6 +31,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
+    const Char DESCRIPTION[] = "Trush Compressor v3.x";
     // Head and tail are delimited by optional signature (some versions store additional code there)
 
     // At least two different prefixes
@@ -309,7 +308,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::TRUSH_DECODER_DESCRIPTION;
+      return Trush::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

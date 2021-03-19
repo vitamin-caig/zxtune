@@ -24,15 +24,14 @@
 #include <math/numeric.h>
 // std includes
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
   namespace Hrum
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
-    // checkers
+
+    const Char DESCRIPTION[] = "Hrum v3.x";
     const StringView DEPACKER_PATTERN =
         "?"       // di/nop
         "ed73??"  // ld (xxxx),sp
@@ -310,7 +309,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::HRUM_DECODER_DESCRIPTION;
+      return Hrum::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

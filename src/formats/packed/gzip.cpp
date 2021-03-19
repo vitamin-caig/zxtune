@@ -22,8 +22,6 @@
 #include <formats/packed.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -98,6 +96,7 @@ namespace Formats::Packed
 
     const std::size_t MIN_SIZE = sizeof(Header) + 2 + sizeof(Footer);
 
+    const Char DESCRIPTION[] = "GZip";
     const StringView FORMAT(
         "1f 8b"      // signature
         "08"         // compression method
@@ -117,7 +116,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::GZIP_DECODER_DESCRIPTION;
+      return Gzip::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override
