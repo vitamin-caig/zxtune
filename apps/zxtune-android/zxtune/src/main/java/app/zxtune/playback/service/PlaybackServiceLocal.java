@@ -54,6 +54,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private static final String PREF_LAST_PLAYED_POSITION = "last_played_position";
 
   private final Context context;
+  private final SharedPreferences prefs;
   private final ExecutorService executor;
   private final CompositeCallback callbacks;
   private final NavigateCommand navigateCmd;
@@ -69,8 +70,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     void execute() throws Exception;
   }
 
-  public PlaybackServiceLocal(Context context) {
+  public PlaybackServiceLocal(Context context, SharedPreferences prefs) {
     this.context = context;
+    this.prefs = prefs;
     this.executor = Executors.newCachedThreadPool();
     this.callbacks = new CompositeCallback();
     this.navigateCmd = new NavigateCommand();
@@ -101,7 +103,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
         final String path = nowPlaying.toString();
         final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
         Log.d(TAG, "Save last played item '%s' at %dms", path, position);
-        final SharedPreferences.Editor editor = Preferences.getDefaultSharedPreferences(context).edit();
+        final SharedPreferences.Editor editor = prefs.edit();
         editor.putString(PREF_LAST_PLAYED_PATH, path);
         editor.putLong(PREF_LAST_PLAYED_POSITION, position);
         editor.apply();
@@ -112,7 +114,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   public final void restoreSession() {
-    final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(context);
     final String path = prefs.getString(PREF_LAST_PLAYED_PATH, null);
     if (path != null) {
       final long position = prefs.getLong(PREF_LAST_PLAYED_POSITION, 0);
@@ -267,7 +268,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   private void saveProperty(String name, long value) {
-    final SharedPreferences prefs = Preferences.getDefaultSharedPreferences(context);
     prefs.edit().putLong(name, value).apply();
   }
 
@@ -372,11 +372,9 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private final class DispatchedPlaybackControl implements PlaybackControl {
 
     private final IteratorFactory.NavigationMode navigation;
-    private final PropertiesContainer options;
 
     DispatchedPlaybackControl() {
-      this.navigation = new IteratorFactory.NavigationMode(context);
-      this.options = JniApi.getOptions();
+      this.navigation = new IteratorFactory.NavigationMode(prefs);
     }
 
     @Override
@@ -401,14 +399,13 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
 
     @Override
     public TrackMode getTrackMode() {
-      final long val = options.getProperty(Properties.Sound.LOOPED, 0);
+      final long val = prefs.getLong(Properties.Sound.LOOPED, 0);
       return val != 0 ? TrackMode.LOOPED : TrackMode.REGULAR;
     }
 
     @Override
     public void setTrackMode(TrackMode mode) {
       final long val = mode == TrackMode.LOOPED ? 1 : 0;
-      options.setProperty(Properties.Sound.LOOPED, val);
       saveProperty(Properties.Sound.LOOPED, val);
     }
 

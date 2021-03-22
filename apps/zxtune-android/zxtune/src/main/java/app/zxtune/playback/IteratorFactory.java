@@ -47,7 +47,11 @@ public final class IteratorFactory {
     private final SharedPreferences prefs;
     
     public NavigationMode(Context context) {
-      this.prefs = Preferences.getDefaultSharedPreferences(context);
+      this(Preferences.getDefaultSharedPreferences(context));
+    }
+
+    public NavigationMode(SharedPreferences prefs) {
+      this.prefs = prefs;
     }
     
     public final void set(SequenceMode mode) {
