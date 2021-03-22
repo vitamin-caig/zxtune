@@ -14,10 +14,9 @@
 #include <byteorder.h>
 // library includes
 #include <binary/input_stream.h>
+#include <module/players/platforms.h>
 // std includes
 #include <map>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module
 {

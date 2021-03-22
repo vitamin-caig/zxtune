@@ -18,9 +18,8 @@
 // library includes
 #include <core/core_parameters.h>
 #include <formats/chiptune/aym/ayc.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::AYC
 {

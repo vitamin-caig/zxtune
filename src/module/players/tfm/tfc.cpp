@@ -16,10 +16,9 @@
 #include <make_ptr.h>
 // library includes
 #include <formats/chiptune/fm/tfc.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::TFC
 {

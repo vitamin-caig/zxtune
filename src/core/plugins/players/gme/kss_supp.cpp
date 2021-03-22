@@ -12,8 +12,8 @@
 #include <contract.h>
 // local includes
 #include "core/plugins/players/gme/kss_supp.h"
-// text includes
-#include <module/text/platforms.h>
+// library includes
+#include <module/players/platforms.h>
 
 namespace Module
 {

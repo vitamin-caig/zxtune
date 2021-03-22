@@ -17,11 +17,10 @@
 // library includes
 #include <devices/dac/sample_factories.h>
 #include <formats/chiptune/digital/digitalmusicmaker.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <module/players/tracking.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::DigitalMusicMaker
 {

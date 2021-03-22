@@ -22,6 +22,7 @@
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
+#include <module/players/platforms.h>
 #include <module/players/streaming.h>
 // 3rdparty includes
 #include <3rdparty/mgba/defines.h>
@@ -29,8 +30,6 @@
 #include <mgba/core/blip_buf.h>
 #include <mgba/core/core.h>
 #include <mgba/gba/core.h>
-// text includes
-#include <module/text/platforms.h>
 
 #undef min
 

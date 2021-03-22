@@ -19,12 +19,11 @@
 // library includes
 #include <formats/chiptune/aym/prosoundmaker.h>
 #include <math/numeric.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 // boost includes
 #include <boost/optional.hpp>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::ProSoundMaker
 {

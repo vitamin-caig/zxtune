@@ -28,6 +28,7 @@
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
 #include <module/players/duration.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
@@ -36,8 +37,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 // 3rdparty
 #include <3rdparty/asap/asap.h>
-// text includes
-#include <module/text/platforms.h>
 
 #define FILE_TAG 90B9A91A
 

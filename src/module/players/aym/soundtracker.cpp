@@ -14,10 +14,9 @@
 #include "module/players/aym/aym_properties_helper.h"
 // common includes
 #include <make_ptr.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::SoundTracker
 {

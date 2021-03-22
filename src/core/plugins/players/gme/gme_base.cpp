@@ -30,6 +30,7 @@
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
 #include <module/players/duration.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <strings/optimize.h>
@@ -37,7 +38,7 @@
 #include <map>
 // boost includes
 #include <boost/algorithm/string/predicate.hpp>
-// 3rdparty
+// 3rdparty includes
 #include <3rdparty/gme/gme/Gbs_Emu.h>
 #include <3rdparty/gme/gme/Gym_Emu.h>
 #include <3rdparty/gme/gme/Hes_Emu.h>
@@ -46,8 +47,6 @@
 #include <3rdparty/gme/gme/Nsfe_Emu.h>
 #include <3rdparty/gme/gme/Sap_Emu.h>
 #include <3rdparty/gme/gme/Vgm_Emu.h>
-// text includes
-#include <module/text/platforms.h>
 
 #define FILE_TAG 513E65A8
 

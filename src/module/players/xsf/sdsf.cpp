@@ -21,14 +21,13 @@
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
+#include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 // std includes
 #include <list>
 // 3rdparty includes
 #include <3rdparty/ht/Core/sega.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::SDSF
 {

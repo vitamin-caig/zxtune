@@ -17,10 +17,9 @@
 #include <make_ptr.h>
 // library includes
 #include <formats/chiptune/aym/protracker2.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::ProTracker2
 {

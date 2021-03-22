@@ -18,14 +18,13 @@
 #include <debug/log.h>
 #include <formats/chiptune/digital/abysshighestexperience.h>
 #include <module/players/analyzer.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/track_information.h>
 #include <module/track_state.h>
 #include <sound/loop.h>
-// 3rdparty
+// 3rdparty includes
 #include <3rdparty/hvl/hvl_replay.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::AHX
 {
