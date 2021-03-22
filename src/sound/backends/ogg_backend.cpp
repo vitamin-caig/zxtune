@@ -14,6 +14,7 @@
 #include "sound/backends/gates/vorbis_api.h"
 #include "sound/backends/gates/vorbisenc_api.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/ogg.h"
 #include "sound/backends/storage.h"
 // common includes
 #include <error_tools.h>
@@ -26,8 +27,6 @@
 #include <sound/render_params.h>
 // std includes
 #include <algorithm>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG B01A305D
 
@@ -35,7 +34,6 @@ namespace Sound::Ogg
 {
   const Debug::Stream Dbg("Sound::Backend::Ogg");
 
-  const String ID = Text::OGG_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("OGG support backend");
 
   const uint_t BITRATE_MIN = 48;
@@ -261,17 +259,17 @@ namespace Sound::Ogg
 
     void SetTitle(const String& title) override
     {
-      Meta->AddTag(Text::OGG_BACKEND_TITLE_TAG, title);
+      Meta->AddTag(File::TITLE_TAG, title);
     }
 
     void SetAuthor(const String& author) override
     {
-      Meta->AddTag(Text::OGG_BACKEND_AUTHOR_TAG, author);
+      Meta->AddTag(File::AUTHOR_TAG, author);
     }
 
     void SetComment(const String& comment) override
     {
-      Meta->AddTag(Text::OGG_BACKEND_COMMENT_TAG, comment);
+      Meta->AddTag(File::COMMENT_TAG, comment);
     }
 
     void FlushMetadata() override
@@ -370,7 +368,7 @@ namespace Sound::Ogg
 
     String GetId() const override
     {
-      return ID;
+      return BACKEND_ID;
     }
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
@@ -443,11 +441,11 @@ namespace Sound
       const VorbisEnc::Api::Ptr vorbisEncApi = VorbisEnc::LoadDynamicApi();
       Ogg::Dbg("Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
       const BackendWorkerFactory::Ptr factory = MakePtr<Ogg::BackendWorkerFactory>(oggApi, vorbisApi, vorbisEncApi);
-      storage.Register(Ogg::ID, Ogg::DESCRIPTION, CAP_TYPE_FILE, factory);
+      storage.Register(Ogg::BACKEND_ID, Ogg::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(Ogg::ID, Ogg::DESCRIPTION, CAP_TYPE_FILE, e);
+      storage.Register(Ogg::BACKEND_ID, Ogg::DESCRIPTION, CAP_TYPE_FILE, e);
     }
   }
 }  // namespace Sound

@@ -16,14 +16,12 @@
 #include <make_ptr.h>
 // library includes
 #include <sound/backend_attrs.h>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 9A6FD87F
 
 namespace Sound::Null
 {
-  const String ID = Text::NULL_BACKEND_ID;
+  const Char BACKEND_ID[] = "null";
   const char* const DESCRIPTION = L10n::translate("Null output backend");
 
   class BackendWorker : public Sound::BackendWorker
@@ -62,7 +60,7 @@ namespace Sound
   void RegisterNullBackend(BackendsStorage& storage)
   {
     const BackendWorkerFactory::Ptr factory = MakePtr<Null::BackendWorkerFactory>();
-    storage.Register(Null::ID, Null::DESCRIPTION, CAP_TYPE_STUB, factory);
+    storage.Register(Null::BACKEND_ID, Null::DESCRIPTION, CAP_TYPE_STUB, factory);
   }
 }  // namespace Sound
 

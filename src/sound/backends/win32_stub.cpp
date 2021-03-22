@@ -13,14 +13,12 @@
 // library includes
 #include <l10n/api.h>
 #include <sound/backend_attrs.h>
-// text includes
-#include <sound/backends/text/backends.h>
 
 namespace Sound
 {
   void RegisterWin32Backend(BackendsStorage& storage)
   {
-    storage.Register(Text::WIN32_BACKEND_ID, L10n::translate("Win32 sound system backend"), CAP_TYPE_SYSTEM);
+    storage.Register(Win32::BACKEND_ID, L10n::translate("Win32 sound system backend"), CAP_TYPE_SYSTEM);
   }
 
   namespace Win32

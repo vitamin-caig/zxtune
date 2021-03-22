@@ -19,6 +19,8 @@ namespace Sound
 {
   namespace Alsa
   {
+    constexpr const Char BACKEND_ID[] = "alsa";
+
     class Device
     {
     public:

@@ -32,8 +32,6 @@
 // boost includes
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 8B5627E4
 
@@ -41,7 +39,6 @@ namespace Sound::Alsa
 {
   const Debug::Stream Dbg("Sound::Backend::Alsa");
 
-  const String ID = Text::ALSA_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("ALSA sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
@@ -974,8 +971,9 @@ namespace Sound::Alsa
 
     static Ptr CreateDefault(Api::Ptr api)
     {
-      return MakePtr<DeviceInfo>(api, Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT,
-                                 Text::ALSA_BACKEND_DEFAULT_DEVICE, Text::ALSA_BACKEND_DEFAULT_DEVICE);
+      static const Char DEFAULT_DEVICE_NAME[] = "Default";
+      return MakePtr<DeviceInfo>(api, Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT, DEFAULT_DEVICE_NAME,
+                                 DEFAULT_DEVICE_NAME);
     }
 
     static Ptr Create(Api::Ptr api, const CardsIterator& card, const DevicesIterator& dev)
@@ -1048,7 +1046,7 @@ namespace Sound
       if (Alsa::DeviceInfoIterator(api).IsValid())
       {
         const BackendWorkerFactory::Ptr factory = MakePtr<Alsa::BackendWorkerFactory>(api);
-        storage.Register(Alsa::ID, Alsa::DESCRIPTION, Alsa::CAPABILITIES, factory);
+        storage.Register(Alsa::BACKEND_ID, Alsa::DESCRIPTION, Alsa::CAPABILITIES, factory);
       }
       else
       {
@@ -1057,7 +1055,7 @@ namespace Sound
     }
     catch (const Error& e)
     {
-      storage.Register(Alsa::ID, Alsa::DESCRIPTION, Alsa::CAPABILITIES, e);
+      storage.Register(Alsa::BACKEND_ID, Alsa::DESCRIPTION, Alsa::CAPABILITIES, e);
     }
   }
 

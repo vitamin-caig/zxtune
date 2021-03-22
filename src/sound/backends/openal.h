@@ -17,6 +17,8 @@ namespace Sound
 {
   namespace OpenAl
   {
+    constexpr const Char BACKEND_ID[] = "openal";
+
     Strings::Array EnumerateDevices();
-  }
+  }  // namespace OpenAl
 }  // namespace Sound

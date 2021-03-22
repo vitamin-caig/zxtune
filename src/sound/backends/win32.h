@@ -18,6 +18,8 @@ namespace Sound
 {
   namespace Win32
   {
+    constexpr const Char BACKEND_ID[] = "win32";
+
     class Device
     {
     public:

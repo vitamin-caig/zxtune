@@ -12,6 +12,7 @@
 #include "sound/backends/file_backend.h"
 #include "sound/backends/gates/mp3_api.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/mp3.h"
 #include "sound/backends/storage.h"
 // common includes
 #include <error_tools.h>
@@ -25,8 +26,6 @@
 // std includes
 #include <algorithm>
 #include <functional>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 3B251603
 
@@ -34,7 +33,6 @@ namespace Sound::Mp3
 {
   const Debug::Stream Dbg("Sound::Backend::Mp3");
 
-  const String ID = Text::MP3_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("MP3 support backend");
 
   const uint_t BITRATE_MIN = 32;
@@ -251,7 +249,7 @@ namespace Sound::Mp3
 
     String GetId() const override
     {
-      return ID;
+      return BACKEND_ID;
     }
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
@@ -359,11 +357,11 @@ namespace Sound
       const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
       Mp3::Dbg("Detected LAME library %1%", api->get_lame_version());
       const BackendWorkerFactory::Ptr factory = MakePtr<Mp3::BackendWorkerFactory>(api);
-      storage.Register(Mp3::ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, factory);
+      storage.Register(Mp3::BACKEND_ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(Mp3::ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, e);
+      storage.Register(Mp3::BACKEND_ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, e);
     }
   }
 }  // namespace Sound

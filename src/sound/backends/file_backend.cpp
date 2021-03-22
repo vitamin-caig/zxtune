@@ -25,14 +25,14 @@
 #include <parameters/convert.h>
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG B4CB6B0C
 
 namespace Sound::File
 {
   const Debug::Stream Dbg("Sound::Backend::FileBase");
+
+  const Char DEFAULT_COMMENT[] = "Created using ZXTune toolkit";
 
   class StateFieldsSource : public Strings::SkipFieldsSource
   {
@@ -246,7 +246,7 @@ namespace Sound::File
       }
       else
       {
-        stream.SetComment(Text::FILE_BACKEND_DEFAULT_COMMENT);
+        stream.SetComment(DEFAULT_COMMENT);
       }
       stream.FlushMetadata();
     }

@@ -18,6 +18,13 @@
 
 namespace Sound
 {
+  namespace File
+  {
+    constexpr const Char TITLE_TAG[] = "TITLE";
+    constexpr const Char AUTHOR_TAG[] = "ARTIST";
+    constexpr const Char COMMENT_TAG[] = "COMMENT";
+  }  // namespace File
+
   class FileStream : public Receiver
   {
   public:

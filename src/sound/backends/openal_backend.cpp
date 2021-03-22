@@ -28,8 +28,6 @@
 // std includes
 #include <functional>
 #include <thread>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 07CDA82B
 
@@ -37,7 +35,6 @@ namespace Sound::OpenAl
 {
   const Debug::Stream Dbg("Sound::Backend::OpenAL");
 
-  const String ID = Text::OPENAL_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("OpenAL backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 
@@ -452,11 +449,11 @@ namespace Sound
       OpenAl::Dbg("Detected OpenAL v%1% by '%2%' (renderer '%3%')", version, vendor,
                   renderer);  // usually empty strings...
       const BackendWorkerFactory::Ptr factory = MakePtr<OpenAl::BackendWorkerFactory>(api);
-      storage.Register(OpenAl::ID, OpenAl::DESCRIPTION, OpenAl::CAPABILITIES, factory);
+      storage.Register(OpenAl::BACKEND_ID, OpenAl::DESCRIPTION, OpenAl::CAPABILITIES, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(OpenAl::ID, OpenAl::DESCRIPTION, OpenAl::CAPABILITIES, e);
+      storage.Register(OpenAl::BACKEND_ID, OpenAl::DESCRIPTION, OpenAl::CAPABILITIES, e);
     }
   }
 

@@ -24,14 +24,12 @@
 // std includes
 #include <algorithm>
 #include <cstring>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG EF5CB4C6
 
 namespace Sound::Wav
 {
-  const String ID = Text::WAV_BACKEND_ID;
+  const Char BACKEND_ID[] = "wav";
   const char* const DESCRIPTION = L10n::translate("WAV support backend");
 
 #ifdef USE_PRAGMA_PACK
@@ -251,7 +249,7 @@ namespace Sound::Wav
 
     String GetId() const override
     {
-      return ID;
+      return BACKEND_ID;
     }
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
@@ -284,7 +282,7 @@ namespace Sound
   void RegisterWavBackend(BackendsStorage& storage)
   {
     const BackendWorkerFactory::Ptr factory = MakePtr<Wav::BackendWorkerFactory>();
-    storage.Register(Wav::ID, Wav::DESCRIPTION, CAP_TYPE_FILE, factory);
+    storage.Register(Wav::BACKEND_ID, Wav::DESCRIPTION, CAP_TYPE_FILE, factory);
   }
 }  // namespace Sound
 

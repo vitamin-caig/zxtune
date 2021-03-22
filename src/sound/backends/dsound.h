@@ -18,6 +18,8 @@ namespace Sound
 {
   namespace DirectSound
   {
+    constexpr const Char BACKEND_ID[] = "dsound";
+
     class Device
     {
     public:

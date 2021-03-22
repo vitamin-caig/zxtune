@@ -9,6 +9,7 @@
  **/
 
 // local includes
+#include "sound/backends/aylpt.h"
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
@@ -28,8 +29,6 @@
 #include <algorithm>
 #include <cstring>
 #include <thread>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG F1936398
 
@@ -37,7 +36,6 @@ namespace Sound::AyLpt
 {
   const Debug::Stream Dbg("Sound::Backend::Aylpt");
 
-  const String ID = Text::AYLPT_BACKEND_ID;
   const char* const DESCRIPTION = L10n::translate("Real AY via LPT backend");
   const uint_t CAPABILITIES = CAP_TYPE_HARDWARE;
 
@@ -264,11 +262,11 @@ namespace Sound
     {
       const AyLpt::LptPort::Ptr port = AyLpt::LoadLptLibrary();
       const BackendWorkerFactory::Ptr factory = MakePtr<AyLpt::BackendWorkerFactory>(port);
-      storage.Register(AyLpt::ID, AyLpt::DESCRIPTION, AyLpt::CAPABILITIES, factory);
+      storage.Register(AyLpt::BACKEND_ID, AyLpt::DESCRIPTION, AyLpt::CAPABILITIES, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(AyLpt::ID, AyLpt::DESCRIPTION, AyLpt::CAPABILITIES, e);
+      storage.Register(AyLpt::BACKEND_ID, AyLpt::DESCRIPTION, AyLpt::CAPABILITIES, e);
     }
   }
 }  // namespace Sound
