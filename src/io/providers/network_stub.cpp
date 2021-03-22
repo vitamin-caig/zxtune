@@ -9,16 +9,15 @@
  **/
 
 #include "io/providers/enumerator.h"
+#include "io/providers/network_provider.h"
 // common includes
 #include <l10n/api.h>
-// text includes
-#include <io/text/io.h>
 
 namespace IO
 {
   void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
   {
     enumerator.RegisterProvider(CreateDisabledProviderStub(
-        Text::IO_NETWORK_PROVIDER_ID, L10n::translate("Network files access via different schemes support")));
+        Network::PROVIDER_IDENTIFIER, L10n::translate("Network files access via different schemes support")));
   }
 }  // namespace IO

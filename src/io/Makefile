@@ -3,7 +3,6 @@ dirs.root := ../..
 source_dirs := impl
 source_files = providers/enumerator.cpp
 
-text_files := text/io
 po_files := io
 
 include $(dirs.root)/make/default.mak
@@ -22,7 +21,6 @@ source_files += providers/file_provider.cpp
 
 jumbo.name := $(library_name)
 jumbo.for_generated = 1
-jumbo.excludes := text/io.cpp
 
 include $(dirs.root)/makefile.mak
 include $(dirs.root)/make/shgate.mak
