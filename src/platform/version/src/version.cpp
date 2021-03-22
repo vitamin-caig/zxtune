@@ -16,13 +16,6 @@
 // library includes
 #include <platform/version/api.h>
 #include <strings/format.h>
-// text includes
-#include <platform/version/text/text.h>
-
-namespace Text
-{
-  extern const Char PROGRAM_NAME[];
-}
 
 namespace Platform
 {
@@ -30,7 +23,7 @@ namespace Platform
   {
     String GetProgramTitle()
     {
-      return Text::PROGRAM_NAME;
+      return PROGRAM_NAME;
     }
 
     String GetProgramVersion()
@@ -74,7 +67,9 @@ namespace Platform
 
     String GetProgramVersionString()
     {
-      return Strings::Format(Text::PROGRAM_VERSION_STRING, GetProgramTitle(), GetProgramVersion(), GetBuildDate(),
+      // 1- program name, 2- program version, 3- build date 4- platform, 5- architecture, 6- architecture version
+      constexpr const Char PROGRAM_VERSION_STRING[] = "%1% %2% %3% %4%-%5% %6%";
+      return Strings::Format(PROGRAM_VERSION_STRING, GetProgramTitle(), GetProgramVersion(), GetBuildDate(),
                              GetBuildPlatform(), GetBuildArchitecture(), GetBuildArchitectureVersion());
     }
   }  // namespace Version

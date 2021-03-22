@@ -50,6 +50,11 @@ namespace
   const Debug::Stream Dbg("XTractor");
 }
 
+namespace Platform::Version
+{
+  extern const Char PROGRAM_NAME[] = "xtractor";
+}
+
 namespace Analysis
 {
   class Node

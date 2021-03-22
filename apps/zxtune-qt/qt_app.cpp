@@ -62,6 +62,11 @@ namespace
 
 namespace Platform
 {
+  namespace Version
+  {
+    extern const Char PROGRAM_NAME[] = "zxtune-qt";
+  }
+
   std::unique_ptr<Application> Application::Create()
   {
     return std::unique_ptr<Application>(new QTApplication());

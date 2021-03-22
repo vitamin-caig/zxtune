@@ -9,7 +9,7 @@
 #include <iostream>
 #include <stdexcept>
 
-namespace Text
+namespace Platform::Version
 {
   extern const Char PROGRAM_NAME[] = {'m', 't', 'c', 't', 'o', 'o', 'l', 0};
 }
