@@ -19,13 +19,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import app.zxtune.Log;
-import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.TimeStamp;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.core.Properties;
-import app.zxtune.core.PropertiesContainer;
-import app.zxtune.core.jni.JniApi;
 import app.zxtune.device.sound.SoundOutputSamplesTarget;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.CompositeCallback;

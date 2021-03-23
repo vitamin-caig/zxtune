@@ -10,6 +10,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
@@ -23,7 +25,7 @@ import java.util.List;
 
 import app.zxtune.analytics.Analytics;
 import app.zxtune.core.PropertiesModifier;
-import app.zxtune.core.jni.JniApi;
+import app.zxtune.core.jni.Api;
 import app.zxtune.device.media.MediaSessionControl;
 import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
@@ -57,22 +59,36 @@ public class MainService extends MediaBrowserServiceCompat {
     TRACE.checkpoint("super");
 
     final Context ctx = getApplicationContext();
-    //Should be first call in order to initialize JNI and avoid deadlocks in Runtime
-    PropertiesModifier options = JniApi.getOptions();
+    SharedPreferences prefs = Preferences.getDefaultSharedPreferences(ctx);
+
+    Api.load(() -> runOnMainThread(() -> onJniReady(prefs)));
     TRACE.checkpoint("jni");
 
-    SharedPreferences prefs = Preferences.getDefaultSharedPreferences(ctx);
     service = new PlaybackServiceLocal(ctx, prefs);
     addHandle(service);
     TRACE.checkpoint("svc");
 
-    addHandle(ChangedSettingsReceiver.subscribe(ctx, options));
-    addHandle(SharedPreferencesBridge.subscribe(prefs, options));
     setupCallbacks(ctx);
     TRACE.checkpoint("cbs");
 
     service.restoreSession();
     TRACE.endMethod();
+  }
+
+  // TODO: extract
+  private static void runOnMainThread(Runnable r) {
+    new Handler(Looper.getMainLooper()).post(r);
+  }
+
+  private void onJniReady(SharedPreferences prefs) {
+    try {
+      Log.d(TAG, "JNI is ready");
+      PropertiesModifier options = Api.instance().getOptions();
+      addHandle(ChangedSettingsReceiver.subscribe(getApplicationContext(), options));
+      addHandle(SharedPreferencesBridge.subscribe(prefs, options));
+    } catch (Exception e) {
+      Log.w(TAG, e, "Failed to connect to native options");
+    }
   }
 
   private void addHandle(Releaseable r) {

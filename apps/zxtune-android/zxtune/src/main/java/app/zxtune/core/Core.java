@@ -12,8 +12,8 @@ import java.util.Locale;
 
 import app.zxtune.Log;
 import app.zxtune.analytics.Analytics;
+import app.zxtune.core.jni.Api;
 import app.zxtune.core.jni.DetectCallback;
-import app.zxtune.core.jni.JniApi;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsFile;
@@ -33,7 +33,7 @@ public class Core {
       ResolvingException {
     final ByteBuffer content = Vfs.read(file);
     Analytics.setNativeCallTags(file.getUri(), subpath, content.limit());
-    final Module obj = JniApi.loadModule(makeDirectBuffer(content), subpath);
+    final Module obj = Api.instance().loadModule(makeDirectBuffer(content), subpath);
     final String[] files = obj.getAdditionalFiles();
     if (files == null || files.length == 0) {
       return obj;
@@ -57,7 +57,7 @@ public class Core {
     final DetectCallbackAdapter adapter = new DetectCallbackAdapter(file, callback,
         progress);
     Analytics.setNativeCallTags(file.getUri(), "*", content.limit());
-    JniApi.detectModules(makeDirectBuffer(content), adapter, progress);
+    Api.instance().detectModules(makeDirectBuffer(content), adapter, progress);
     if (0 == adapter.getDetectedModulesCount()) {
       Analytics.sendNoTracksFoundEvent(file.getUri());
     }
