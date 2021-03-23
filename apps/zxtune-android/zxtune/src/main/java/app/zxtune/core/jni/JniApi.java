@@ -5,29 +5,20 @@ import androidx.annotation.Nullable;
 import java.nio.ByteBuffer;
 
 import app.zxtune.Log;
-import app.zxtune.analytics.Analytics;
 import app.zxtune.core.Module;
 import app.zxtune.core.PropertiesContainer;
 import app.zxtune.core.ResolvingException;
+import app.zxtune.utils.NativeLoader;
 import app.zxtune.utils.ProgressCallback;
 
 class JniApi extends Api {
 
   private static final String TAG = JniApi.class.getName();
 
-  /**
-   * TODO: extract native libraries loading+init to separate service and trace per-library timings
-   */
-  private static final Analytics.Trace TRACE = Analytics.Trace.create("JNI");
-
   private final PropertiesContainer loggingOptions;
 
   JniApi() {
-    TRACE.beginMethod("zxtune");
-    System.loadLibrary("zxtune");
-    TRACE.checkpoint("load");
-    forcedInit();
-    TRACE.endMethod();
+    NativeLoader.loadLibrary("zxtune", this::forcedInit);
     loggingOptions = new LoggingOptionsAdapter(JniOptions.instance());
   }
 
