@@ -10,8 +10,6 @@
 
 // common includes
 #include <error_tools.h>
-// text includes
-#include <tools/text/tools.h>
 // std includes
 #include <utility>
 
@@ -22,9 +20,17 @@ namespace
     try
     {
 #ifdef NDEBUG
-      return Strings::Format(Text::ERROR_FORMAT, text, loc);
+      constexpr const Char FORMAT[] =
+          "%1%\n"
+          "@%2$08x\n"
+          "--------\n";
+      return Strings::Format(FORMAT, text, loc);
 #else
-      return Strings::Format(Text::ERROR_FORMAT_DEBUG, text, loc.Tag, loc.File, loc.Line, loc.Function);
+      constexpr const Char FORMAT[] =
+          "%1%\n"
+          "@%2$08x (%3%:%4%, %5%)\n"
+          "--------\n";
+      return Strings::Format(FORMAT, text, loc.Tag, loc.File, loc.Line, loc.Function);
 #endif
     }
     catch (const std::exception& e)
