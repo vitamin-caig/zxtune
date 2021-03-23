@@ -32,8 +32,6 @@ namespace Sound::Flac
 {
   const Debug::Stream Dbg("Sound::Backend::Flac");
 
-  const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
-
   typedef std::shared_ptr<FLAC__StreamEncoder> EncoderPtr;
 
   void CheckFlacCall(FLAC__bool res, Error::LocationRef loc)
@@ -307,11 +305,11 @@ namespace Sound
       const Flac::Api::Ptr api = Flac::LoadDynamicApi();
       Flac::Dbg("Detected Flac library");
       const BackendWorkerFactory::Ptr factory = MakePtr<Flac::BackendWorkerFactory>(api);
-      storage.Register(Flac::BACKEND_ID, Flac::DESCRIPTION, CAP_TYPE_FILE, factory);
+      storage.Register(Flac::BACKEND_ID, Flac::BACKEND_DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(Flac::BACKEND_ID, Flac::DESCRIPTION, CAP_TYPE_FILE, e);
+      storage.Register(Flac::BACKEND_ID, Flac::BACKEND_DESCRIPTION, CAP_TYPE_FILE, e);
     }
   }
 }  // namespace Sound

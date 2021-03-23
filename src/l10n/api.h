@@ -15,11 +15,3 @@
 #else
 #  include "src/api_real.h"
 #endif
-
-namespace L10n
-{
-  inline const char* translate(const char* txt)
-  {
-    return txt;
-  }
-}  // namespace L10n

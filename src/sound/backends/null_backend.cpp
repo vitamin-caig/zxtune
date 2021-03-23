@@ -10,11 +10,11 @@
 
 // local includes
 #include "sound/backends/backend_impl.h"
-#include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
 // common includes
 #include <make_ptr.h>
 // library includes
+#include <l10n/markup.h>
 #include <sound/backend_attrs.h>
 
 #define FILE_TAG 9A6FD87F

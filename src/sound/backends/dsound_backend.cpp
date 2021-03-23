@@ -36,7 +36,6 @@ namespace Sound::DirectSound
 {
   const Debug::Stream Dbg("Sound::Backend::DirectSound");
 
-  const char* const DESCRIPTION = L10n::translate("DirectSound support backend.");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   const uint_t LATENCY_MIN = 20;
@@ -606,7 +605,7 @@ namespace Sound
       if (DirectSound::DevicesIterator(api).IsValid())
       {
         const BackendWorkerFactory::Ptr factory = MakePtr<DirectSound::BackendWorkerFactory>(api);
-        storage.Register(DirectSound::BACKEND_ID, DirectSound::DESCRIPTION, DirectSound::CAPABILITIES, factory);
+        storage.Register(DirectSound::BACKEND_ID, DirectSound::BACKEND_DESCRIPTION, DirectSound::CAPABILITIES, factory);
       }
       else
       {
@@ -615,7 +614,7 @@ namespace Sound
     }
     catch (const Error& e)
     {
-      storage.Register(DirectSound::BACKEND_ID, DirectSound::DESCRIPTION, DirectSound::CAPABILITIES, e);
+      storage.Register(DirectSound::BACKEND_ID, DirectSound::BACKEND_DESCRIPTION, DirectSound::CAPABILITIES, e);
     }
   }
 

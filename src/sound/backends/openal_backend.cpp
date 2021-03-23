@@ -35,7 +35,6 @@ namespace Sound::OpenAl
 {
   const Debug::Stream Dbg("Sound::Backend::OpenAL");
 
-  const char* const DESCRIPTION = L10n::translate("OpenAL backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 
   const uint_t BUFFERS_MIN = 2;
@@ -449,11 +448,11 @@ namespace Sound
       OpenAl::Dbg("Detected OpenAL v%1% by '%2%' (renderer '%3%')", version, vendor,
                   renderer);  // usually empty strings...
       const BackendWorkerFactory::Ptr factory = MakePtr<OpenAl::BackendWorkerFactory>(api);
-      storage.Register(OpenAl::BACKEND_ID, OpenAl::DESCRIPTION, OpenAl::CAPABILITIES, factory);
+      storage.Register(OpenAl::BACKEND_ID, OpenAl::BACKEND_DESCRIPTION, OpenAl::CAPABILITIES, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(OpenAl::BACKEND_ID, OpenAl::DESCRIPTION, OpenAl::CAPABILITIES, e);
+      storage.Register(OpenAl::BACKEND_ID, OpenAl::BACKEND_DESCRIPTION, OpenAl::CAPABILITIES, e);
     }
   }
 

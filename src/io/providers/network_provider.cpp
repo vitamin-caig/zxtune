@@ -290,8 +290,6 @@ namespace IO::Network
     const String FullValue;
   };
 
-  const char* const DESCRIPTION = L10n::translate("Network files access via different schemes support");
-
   class DataProvider : public IO::DataProvider
   {
   public:
@@ -307,7 +305,7 @@ namespace IO::Network
 
     String Description() const override
     {
-      return translate(DESCRIPTION);
+      return translate(PROVIDER_DESCRIPTION);
     }
 
     Error Status() const override
@@ -392,7 +390,8 @@ namespace IO
     }
     catch (const Error& e)
     {
-      enumerator.RegisterProvider(CreateUnavailableProviderStub(Network::PROVIDER_IDENTIFIER, Network::DESCRIPTION, e));
+      enumerator.RegisterProvider(
+          CreateUnavailableProviderStub(Network::PROVIDER_IDENTIFIER, Network::PROVIDER_DESCRIPTION, e));
     }
   }
 }  // namespace IO

@@ -37,7 +37,6 @@ namespace Sound::Win32
 {
   const Debug::Stream Dbg("Sound::Backend::Win32");
 
-  const char* const DESCRIPTION = L10n::translate("Win32 sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   const int_t MAX_WIN32_VOLUME = 0xffff;
@@ -595,7 +594,7 @@ namespace Sound
       if (Win32::DevicesIterator(api).IsValid())
       {
         const BackendWorkerFactory::Ptr factory = MakePtr<Win32::BackendWorkerFactory>(api);
-        storage.Register(Win32::BACKEND_ID, Win32::DESCRIPTION, Win32::CAPABILITIES, factory);
+        storage.Register(Win32::BACKEND_ID, Win32::BACKEND_DESCRIPTION, Win32::CAPABILITIES, factory);
       }
       else
       {
@@ -604,7 +603,7 @@ namespace Sound
     }
     catch (const Error& e)
     {
-      storage.Register(Win32::BACKEND_ID, Win32::DESCRIPTION, Win32::CAPABILITIES, e);
+      storage.Register(Win32::BACKEND_ID, Win32::BACKEND_DESCRIPTION, Win32::CAPABILITIES, e);
     }
   }
 

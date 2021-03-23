@@ -444,7 +444,6 @@ namespace IO::File
 
   ///////////////////////////////////////
   const Char IDENTIFIER[] = "file";
-  const char* const DESCRIPTION = L10n::translate("Local files and file:// scheme support");
 
   class DataProvider : public IO::DataProvider
   {
@@ -456,7 +455,7 @@ namespace IO::File
 
     String Description() const override
     {
-      return translate(DESCRIPTION);
+      return translate("Local files and file:// scheme support");
     }
 
     Error Status() const override

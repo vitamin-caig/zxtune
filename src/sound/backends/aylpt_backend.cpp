@@ -36,7 +36,6 @@ namespace Sound::AyLpt
 {
   const Debug::Stream Dbg("Sound::Backend::Aylpt");
 
-  const char* const DESCRIPTION = L10n::translate("Real AY via LPT backend");
   const uint_t CAPABILITIES = CAP_TYPE_HARDWARE;
 
   // http://logix4u.net/component/content/article/14-parallel-port/15-a-tutorial-on-parallel-port-interfacing
@@ -262,11 +261,11 @@ namespace Sound
     {
       const AyLpt::LptPort::Ptr port = AyLpt::LoadLptLibrary();
       const BackendWorkerFactory::Ptr factory = MakePtr<AyLpt::BackendWorkerFactory>(port);
-      storage.Register(AyLpt::BACKEND_ID, AyLpt::DESCRIPTION, AyLpt::CAPABILITIES, factory);
+      storage.Register(AyLpt::BACKEND_ID, AyLpt::BACKEND_DESCRIPTION, AyLpt::CAPABILITIES, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(AyLpt::BACKEND_ID, AyLpt::DESCRIPTION, AyLpt::CAPABILITIES, e);
+      storage.Register(AyLpt::BACKEND_ID, AyLpt::BACKEND_DESCRIPTION, AyLpt::CAPABILITIES, e);
     }
   }
 }  // namespace Sound

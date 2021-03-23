@@ -16,7 +16,7 @@ ifndef po_source_dirs
 po_source_dirs = $(sort $(dir $(source_files)))
 endif
 #remove trailing slashes
-po_source_files = $(wildcard $(foreach suff,$(suffix.src),$(foreach dir,$(patsubst %/,%,$(po_source_dirs)),$(dir)/*$(suff))))
+po_source_files = $(wildcard $(foreach suff,$(suffix.src) .h,$(foreach dir,$(patsubst %/,%,$(po_source_dirs)),$(dir)/*$(suff))))
 
 $(po_dir)/messages.pot: $(sort $(po_source_files)) | $(po_dir)
 		$(tools.gettext.root)xgettext --c++ --escape --boost --from-code=UTF-8 --omit-header --no-location --width=120 \

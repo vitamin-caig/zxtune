@@ -13,6 +13,7 @@
 // common includes
 #include <iterator.h>
 // library includes
+#include <l10n/markup.h>
 #include <strings/array.h>
 
 namespace Sound
@@ -20,6 +21,7 @@ namespace Sound
   namespace Alsa
   {
     constexpr const Char BACKEND_ID[] = "alsa";
+    constexpr auto BACKEND_DESCRIPTION = L10n::translate("ALSA sound system backend");
 
     class Device
     {

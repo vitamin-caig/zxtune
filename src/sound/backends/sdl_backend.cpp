@@ -36,7 +36,6 @@ namespace Sound::Sdl
 {
   const Debug::Stream Dbg("Sound::Backend::Sdl");
 
-  const char* const DESCRIPTION = L10n::translate("SDL support backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 
   const uint_t BUFFERS_MIN = 2;
@@ -301,11 +300,11 @@ namespace Sound
       const SDL_version* const vers = api->SDL_Linked_Version();
       Sdl::Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
       const BackendWorkerFactory::Ptr factory = MakePtr<Sdl::BackendWorkerFactory>(api);
-      storage.Register(Sdl::BACKEND_ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, factory);
+      storage.Register(Sdl::BACKEND_ID, Sdl::BACKEND_DESCRIPTION, Sdl::CAPABILITIES, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(Sdl::BACKEND_ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, e);
+      storage.Register(Sdl::BACKEND_ID, Sdl::BACKEND_DESCRIPTION, Sdl::CAPABILITIES, e);
     }
   }
 }  // namespace Sound

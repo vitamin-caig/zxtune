@@ -34,7 +34,6 @@ namespace Sound::PulseAudio
 {
   const Debug::Stream Dbg("Sound::Backend::PulseAudio");
 
-  const char* const DESCRIPTION = L10n::translate("PulseAudio support backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 
   class BackendWorker : public Sound::BackendWorker
@@ -177,11 +176,11 @@ namespace Sound
       const char* const version = api->pa_get_library_version();
       PulseAudio::Dbg("Detected PulseAudio v%1%", version);
       const BackendWorkerFactory::Ptr factory = MakePtr<PulseAudio::BackendWorkerFactory>(api);
-      storage.Register(PulseAudio::BACKEND_ID, PulseAudio::DESCRIPTION, PulseAudio::CAPABILITIES, factory);
+      storage.Register(PulseAudio::BACKEND_ID, PulseAudio::BACKEND_DESCRIPTION, PulseAudio::CAPABILITIES, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(PulseAudio::BACKEND_ID, PulseAudio::DESCRIPTION, PulseAudio::CAPABILITIES, e);
+      storage.Register(PulseAudio::BACKEND_ID, PulseAudio::BACKEND_DESCRIPTION, PulseAudio::CAPABILITIES, e);
     }
   }
 }  // namespace Sound

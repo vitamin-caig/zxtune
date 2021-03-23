@@ -34,8 +34,6 @@ namespace Sound::Ogg
 {
   const Debug::Stream Dbg("Sound::Backend::Ogg");
 
-  const char* const DESCRIPTION = L10n::translate("OGG support backend");
-
   const uint_t BITRATE_MIN = 48;
   const uint_t BITRATE_MAX = 500;
   const uint_t QUALITY_MIN = 0;
@@ -441,11 +439,11 @@ namespace Sound
       const VorbisEnc::Api::Ptr vorbisEncApi = VorbisEnc::LoadDynamicApi();
       Ogg::Dbg("Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
       const BackendWorkerFactory::Ptr factory = MakePtr<Ogg::BackendWorkerFactory>(oggApi, vorbisApi, vorbisEncApi);
-      storage.Register(Ogg::BACKEND_ID, Ogg::DESCRIPTION, CAP_TYPE_FILE, factory);
+      storage.Register(Ogg::BACKEND_ID, Ogg::BACKEND_DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(Ogg::BACKEND_ID, Ogg::DESCRIPTION, CAP_TYPE_FILE, e);
+      storage.Register(Ogg::BACKEND_ID, Ogg::BACKEND_DESCRIPTION, CAP_TYPE_FILE, e);
     }
   }
 }  // namespace Sound

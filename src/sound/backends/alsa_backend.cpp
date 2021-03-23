@@ -39,7 +39,6 @@ namespace Sound::Alsa
 {
   const Debug::Stream Dbg("Sound::Backend::Alsa");
 
-  const char* const DESCRIPTION = L10n::translate("ALSA sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   const uint_t LATENCY_MIN = 20;
@@ -1046,7 +1045,7 @@ namespace Sound
       if (Alsa::DeviceInfoIterator(api).IsValid())
       {
         const BackendWorkerFactory::Ptr factory = MakePtr<Alsa::BackendWorkerFactory>(api);
-        storage.Register(Alsa::BACKEND_ID, Alsa::DESCRIPTION, Alsa::CAPABILITIES, factory);
+        storage.Register(Alsa::BACKEND_ID, Alsa::BACKEND_DESCRIPTION, Alsa::CAPABILITIES, factory);
       }
       else
       {
@@ -1055,7 +1054,7 @@ namespace Sound
     }
     catch (const Error& e)
     {
-      storage.Register(Alsa::BACKEND_ID, Alsa::DESCRIPTION, Alsa::CAPABILITIES, e);
+      storage.Register(Alsa::BACKEND_ID, Alsa::BACKEND_DESCRIPTION, Alsa::CAPABILITIES, e);
     }
   }
 

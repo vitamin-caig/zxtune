@@ -33,8 +33,6 @@ namespace Sound::Mp3
 {
   const Debug::Stream Dbg("Sound::Backend::Mp3");
 
-  const char* const DESCRIPTION = L10n::translate("MP3 support backend");
-
   const uint_t BITRATE_MIN = 32;
   const uint_t BITRATE_MAX = 320;
   const uint_t QUALITY_MIN = 0;
@@ -357,11 +355,11 @@ namespace Sound
       const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
       Mp3::Dbg("Detected LAME library %1%", api->get_lame_version());
       const BackendWorkerFactory::Ptr factory = MakePtr<Mp3::BackendWorkerFactory>(api);
-      storage.Register(Mp3::BACKEND_ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, factory);
+      storage.Register(Mp3::BACKEND_ID, Mp3::BACKEND_DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(Mp3::BACKEND_ID, Mp3::DESCRIPTION, CAP_TYPE_FILE, e);
+      storage.Register(Mp3::BACKEND_ID, Mp3::BACKEND_DESCRIPTION, CAP_TYPE_FILE, e);
     }
   }
 }  // namespace Sound

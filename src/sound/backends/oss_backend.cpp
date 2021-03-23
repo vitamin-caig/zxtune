@@ -42,7 +42,6 @@ namespace Sound::Oss
 {
   const Debug::Stream Dbg("Sound::Backend::Oss");
 
-  const char* const DESCRIPTION = L10n::translate("OSS sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   const int_t MAX_OSS_VOLUME = 100;
@@ -386,7 +385,7 @@ namespace Sound
   void RegisterOssBackend(BackendsStorage& storage)
   {
     const BackendWorkerFactory::Ptr factory = MakePtr<Oss::BackendWorkerFactory>();
-    storage.Register(Oss::BACKEND_ID, Oss::DESCRIPTION, Oss::CAPABILITIES, factory);
+    storage.Register(Oss::BACKEND_ID, Oss::BACKEND_DESCRIPTION, Oss::CAPABILITIES, factory);
   }
 }  // namespace Sound
 
