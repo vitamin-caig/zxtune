@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.analytics.Analytics;
-import app.zxtune.fs.ProgressCallback;
+import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.http.HttpObject;
 import app.zxtune.io.Io;
 import app.zxtune.io.TransactionalOutputStream;

@@ -4,11 +4,13 @@ import static org.junit.Assert.*;
 
 import org.junit.*;
 
-public class GlobalOptionsTest {
+import app.zxtune.core.PropertiesContainer;
+
+public class JniOptionsTest {
 
   @Test
   public void testStringProperties() {
-    final GlobalOptions props = GlobalOptions.instance();
+    final PropertiesContainer props = JniApi.getOptions();
 
     final String name = "string_property";
     final String value = "string value";
@@ -22,7 +24,7 @@ public class GlobalOptionsTest {
 
   @Test
   public void testIntegerProperties() {
-    final GlobalOptions props = GlobalOptions.instance();
+    final PropertiesContainer props = JniApi.getOptions();
 
     final String name = "integer_property";
     final long value = 123456;

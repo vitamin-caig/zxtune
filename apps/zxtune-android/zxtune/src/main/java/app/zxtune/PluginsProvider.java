@@ -1,11 +1,11 @@
 /**
- * 
+ *
  * @file
  *
  * @brief
  *
  * @author vitamin.caig@gmail.com
- * 
+ *
  */
 
 package app.zxtune;
@@ -20,15 +20,16 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
+import app.zxtune.core.jni.Api;
 import app.zxtune.core.jni.Plugins;
 
 public final class PluginsProvider extends ContentProvider {
-  
+
   public enum Columns {
     Type,
     Description
   }
-  
+
   //Identifiers describe relative order in UI view, so do not use raw string identifiers
   public enum Types {
     PlayerAymTs(R.string.plugin_player_aym_ts),
@@ -42,28 +43,28 @@ public final class PluginsProvider extends ContentProvider {
     PlayerCo12294(R.string.plugin_player_co12294),
     PlayerHuc6270(R.string.plugin_player_huc6270),
     PlayerMultidevice(R.string.plugin_player_multidevice),
-    
+
     ContainerMultitrack(R.string.plugin_multitrack),
     ContainerArchive(R.string.plugin_archive),
     ContainerCompressor(R.string.plugin_compressor),
     ContainerDecompiler(R.string.plugin_decompiler),
-    
+
     Unknown(R.string.plugin_unknown);
-    
+
     private final int nameId;
-    
+
     Types(int id) {
       this.nameId = id;
     }
-    
+
     public final int nameId() {
       return nameId;
     }
   }
-  
+
   private static final String AUTHORITY = "app.zxtune.plugins";
   private static final String MIME = "vnd.android.cursor.dir/vnd." + AUTHORITY;
-  
+
   @Override
   public boolean onCreate() {
     final Context ctx = getContext();
@@ -74,7 +75,7 @@ public final class PluginsProvider extends ContentProvider {
       return false;
     }
   }
-  
+
   @Override
   public int delete(Uri arg0, @Nullable String arg1, @Nullable String[] arg2) {
     return 0;
@@ -100,9 +101,9 @@ public final class PluginsProvider extends ContentProvider {
   @Override
   public Cursor query(Uri uri, @Nullable String[] projection, @Nullable String selection,
                       @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-    final String[] columns = {Columns.Type.name(), Columns.Description.name()}; 
+    final String[] columns = {Columns.Type.name(), Columns.Description.name()};
     final MatrixCursor res = new MatrixCursor(columns);
-    Plugins.enumerate(new Plugins.Visitor() {
+    Api.instance().enumeratePlugins(new Plugins.Visitor() {
       @Override
       public void onPlayerPlugin(int devices, String id, String description) {
         final int type = getPlayerPluginType(devices).ordinal();
@@ -149,7 +150,7 @@ public final class PluginsProvider extends ContentProvider {
       return Types.Unknown;
     }
   }
-  
+
   private static Types getContainerPluginType(int type) {
     switch (type) {
       case Plugins.ContainerType.ARCHIVE:
@@ -164,7 +165,7 @@ public final class PluginsProvider extends ContentProvider {
         return Types.Unknown;
     }
   }
-  
+
   public static Uri getUri() {
     return new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY).build();
   }

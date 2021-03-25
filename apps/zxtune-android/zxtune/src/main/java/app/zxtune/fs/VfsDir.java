@@ -8,6 +8,8 @@ package app.zxtune.fs;
 
 import java.io.IOException;
 
+import app.zxtune.utils.ProgressCallback;
+
 public interface VfsDir extends VfsObject {
 
   /**

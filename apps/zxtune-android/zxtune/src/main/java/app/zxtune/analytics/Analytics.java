@@ -29,17 +29,12 @@ public class Analytics {
   }
 
   // TODO: replace by annotation
-  public static class Trace {
+  public static abstract class BaseTrace {
     private final String id;
-    private final long start = System.nanoTime();
     private final LongSparseArray<String> points = new LongSparseArray<>();
     private String method = "";
 
-    public static Trace create(String id) {
-      return new Trace(id);
-    }
-
-    private Trace(String id) {
+    protected BaseTrace(String id) {
       this.id = id;
     }
 
@@ -50,7 +45,7 @@ public class Analytics {
     }
 
     public final void checkpoint(String point) {
-      points.append(getElapsed(), point);
+      points.append(getMetric(), point);
     }
 
     public final void endMethod() {
@@ -59,7 +54,22 @@ public class Analytics {
       method = "";
     }
 
-    private long getElapsed() {
+    protected abstract long getMetric();
+  }
+
+  public static class Trace extends BaseTrace {
+    private final long start = System.nanoTime();
+
+    public static Trace create(String id) {
+      return new Trace(id);
+    }
+
+    private Trace(String id) {
+      super(id);
+    }
+
+    @Override
+    protected long getMetric() {
       return ((System.nanoTime() - start) / 1000);
     }
   }
@@ -111,7 +121,7 @@ public class Analytics {
 
   @Retention(SOURCE)
   @IntDef({UI_ACTION_OPEN, UI_ACTION_CLOSE, UI_ACTION_PREFERENCES, UI_ACTION_RATE, UI_ACTION_ABOUT,
-          UI_ACTION_QUIT})
+      UI_ACTION_QUIT})
   @interface UiAction {
   }
 
@@ -130,8 +140,8 @@ public class Analytics {
 
   @Retention(SOURCE)
   @IntDef({PLAYLIST_ACTION_ADD, PLAYLIST_ACTION_DELETE, PLAYLIST_ACTION_MOVE, PLAYLIST_ACTION_SORT,
-          PLAYLIST_ACTION_SAVE,
-          PLAYLIST_ACTION_STATISTICS})
+      PLAYLIST_ACTION_SAVE,
+      PLAYLIST_ACTION_STATISTICS})
   @interface PlaylistAction {
   }
 

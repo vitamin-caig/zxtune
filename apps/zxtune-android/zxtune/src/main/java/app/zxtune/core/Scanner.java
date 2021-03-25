@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import app.zxtune.StubProgressCallback;
+import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsArchive;
@@ -163,9 +163,6 @@ public final class Scanner {
       public void onModule(String subpath, Module obj) {
         cb.onModule(new Identifier(uri, subpath), obj);
       }
-
-      @Override
-      public void onProgress(int done) {}
     });
   }
 

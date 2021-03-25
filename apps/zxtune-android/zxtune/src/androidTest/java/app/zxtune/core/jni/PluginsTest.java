@@ -15,7 +15,7 @@ public class PluginsTest {
     final int[] counts = {0, 0};
     final HashSet<String> players = new HashSet<>();
     final HashSet<String> containers = new HashSet<>();
-    Plugins.enumerate(new Plugins.Visitor() {
+    JniApi.enumeratePlugins(new Plugins.Visitor() {
       @Override
       public void onPlayerPlugin(int devices, @NonNull String id, @NonNull String description) {
         flags[0] |= devices;
@@ -32,8 +32,8 @@ public class PluginsTest {
     });
 
     assertEquals(0b0011_1111_1111_0111, flags[0]);
-    assertEquals(0b0011_0001, flags[1]);
-    assertEquals(105, counts[0]);
-    assertEquals(23, counts[1]);
+    assertEquals(0b0011_0011, flags[1]);
+    assertEquals(115, counts[0]);
+    assertEquals(24, counts[1]);
   }
 }

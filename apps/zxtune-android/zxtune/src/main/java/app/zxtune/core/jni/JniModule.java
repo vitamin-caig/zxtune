@@ -6,15 +6,9 @@ import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
-import app.zxtune.core.ModuleDetectCallback;
 import app.zxtune.core.Player;
-import app.zxtune.core.ResolvingException;
 
-public final class JniModule implements Module {
-
-  static {
-    JniLibrary.load();
-  }
+final class JniModule implements Module {
 
   @Native
   private final int handle;
@@ -23,10 +17,6 @@ public final class JniModule implements Module {
     this.handle = handle;
     JniGC.register(this, handle);
   }
-
-  public static native JniModule load(ByteBuffer data, String subpath) throws ResolvingException;
-
-  public static native void detect(ByteBuffer data, ModuleDetectCallback callback);
 
   @Override
   public final void release() {

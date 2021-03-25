@@ -18,7 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.StubProgressCallback;
+import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.Scanner;

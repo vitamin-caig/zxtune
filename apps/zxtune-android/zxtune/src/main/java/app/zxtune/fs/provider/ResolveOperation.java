@@ -8,7 +8,6 @@ import androidx.collection.LruCache;
 import androidx.core.os.OperationCanceledException;
 
 import app.zxtune.Log;
-import app.zxtune.fs.ProgressCallback;
 import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsObject;
 
