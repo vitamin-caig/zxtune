@@ -5,6 +5,13 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev4990 from 25.03.2021
+
+[+] Added support of NCSF format
+[*] Fixed crackling while GSF playback (GH#2185)
+[*] Fixed found and reported crashes
+[*] zxtune-android: improved startup time
+
 --- Rev4980 from 16.02.2021
 
 [+] Added support of AMS, DSM, MT2, PLM, J2B, FMT, C67 and MO3 formats
