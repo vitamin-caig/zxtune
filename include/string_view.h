@@ -37,7 +37,7 @@ public:
   basic_string_view(const basic_string_view&) = default;
   basic_string_view& operator=(const basic_string_view&) = default;
 
-  basic_string_view(const C* str, size_type size)
+  constexpr basic_string_view(const C* str, size_type size) noexcept
     : start(str)
     , finish(str + size)
   {}
@@ -202,4 +202,9 @@ inline std::basic_ostream<C, Traits>& operator<<(std::basic_ostream<C, Traits>& 
     str.rdbuf()->sputn(view.data(), view.size());
   }
   return str;
+}
+
+constexpr basic_string_view<Char> operator "" _sv (const Char* str, std::size_t size) noexcept
+{
+  return {str, size};
 }
