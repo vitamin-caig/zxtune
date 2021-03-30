@@ -889,7 +889,7 @@ namespace Formats::Chiptune
     }
 
     const Char DESCRIPTION[] = "Pro Tracker v3.x";
-    const StringView FORMAT(
+    const auto FORMAT =
         "?{13}"         // uint8_t Id[13];        //'ProTracker 3.'
         "?"             // uint8_t Subversion;
         "?{16}"         // uint8_t Optional1[16]; //' compilation of '
@@ -907,7 +907,7 @@ namespace Formats::Chiptune
         "(?00-d9){16}"  // std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
         "*3&00-fe"      // at least one position
         "*3"            // next position or limiter (255 % 3 == 0)
-    );
+        ""_sv;
 
     class BinaryDecoder : public Decoder
     {

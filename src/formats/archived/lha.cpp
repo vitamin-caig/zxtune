@@ -35,7 +35,7 @@ namespace Formats::Archived
     const Debug::Stream Dbg("Formats::Archived::Lha");
 
     const Char DESCRIPTION[] = "LHA (LHArc)";
-    const StringView FORMAT(
+    const auto FORMAT =
         "??"                                  // size+sum/size/size len
         "'-('l|'p)('z|'h|'m)('s|'d|'0-'7)'-"  // method, see lha_decoder.c for all available
         "????"                                // packed size
@@ -43,7 +43,7 @@ namespace Formats::Archived
         "????"                                // time
         "%00xxxxxx"                           // attr/0x20
         "00-03"                               // level
-    );
+        ""_sv;
 
     class InputStreamWrapper
     {

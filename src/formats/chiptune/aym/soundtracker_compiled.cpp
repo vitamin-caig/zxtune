@@ -714,14 +714,14 @@ namespace Formats::Chiptune
 
     const Char DESCRIPTION[] = "Sound Tracker v1.x Compiled";
     // Statistic-based format based on 6k+ files
-    const StringView FORMAT(
+    const auto FORMAT =
         "01-20"   // uint8_t Tempo; 1..50
         "?00-07"  // uint16_t PositionsOffset;
         "?00-07"  // uint16_t OrnamentsOffset;
         "?00-08"  // uint16_t PatternsOffset;
         "?{20}"   // Id+Size
         "00-0f"   // first sample index
-    );
+        ""_sv;
 
     Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& rawData, Builder& target)
     {

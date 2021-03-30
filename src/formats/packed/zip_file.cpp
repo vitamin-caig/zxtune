@@ -34,12 +34,12 @@ namespace Formats::Packed
     const Debug::Stream Dbg("Formats::Packed::Zip");
 
     const Char DESCRIPTION[] = "ZIP";
-    const StringView HEADER_PATTERN =
+    const auto HEADER_PATTERN =
         "504b0304"             // uint32_t Signature;
         "?00"                  // uint16_t VersionToExtract;
         "%0000xxx0 %0000x000"  // uint16_t Flags;
         "%0000x00x 00"         // uint16_t CompressionMethod;
-        ;
+        ""_sv;
 
     class Container
     {

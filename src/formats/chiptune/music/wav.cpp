@@ -348,7 +348,7 @@ namespace Formats::Chiptune
       return MakePtr<SimpleDumpBuilder>();
     }
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'R'I'F'F"
         "????"
         "'W'A'V'E"
@@ -360,7 +360,7 @@ namespace Formats::Chiptune
         "????"             // data rate
         "??"               // arbitraty block size
         "00|01-20 00"      // 1-32 bits per sample and 0 for special formats
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

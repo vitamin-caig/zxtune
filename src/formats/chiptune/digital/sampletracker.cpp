@@ -311,14 +311,14 @@ namespace Formats::Chiptune
              && 0 == (header->LastPositionDoubled & 1);
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "01-10"      // tempo
         "01-10{64}"  // positions
         "?73-8b"     // first position ptr
         "?{126}"     // other ptrs
         "20-7f{10}"  // title
         "%xxxxxxx0"  // doubled last position
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

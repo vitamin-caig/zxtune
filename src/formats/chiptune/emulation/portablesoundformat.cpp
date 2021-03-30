@@ -36,7 +36,7 @@ namespace Formats::Chiptune::PortableSoundFormat
   namespace Tags
   {
     const uint8_t SIGNATURE[] = {'[', 'T', 'A', 'G', ']'};
-    const String LIB_PREFIX = "_lib";
+    const auto LIB_PREFIX = "_lib"_sv;
 
     const char UTF8[] = "utf8";
     const char TITLE[] = "title";

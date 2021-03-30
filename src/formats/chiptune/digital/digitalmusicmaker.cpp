@@ -572,7 +572,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         // bank ends
         "(?c0-ff){6}"
         // pat size: 64,48,32,24
@@ -586,7 +586,8 @@ namespace Formats::Chiptune
         // length
         "01-32"
         // base size
-        "02-38");
+        "02-38"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

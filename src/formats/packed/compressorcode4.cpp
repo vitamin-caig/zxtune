@@ -118,8 +118,8 @@ namespace Formats::Packed
       static_assert(sizeof(RawHeader) == 0x36, "Invalid layout");
     };
 
-    const StringView Version4::DESCRIPTION("CompressorCode v.4 by ZYX");
-    const StringView Version4::DEPACKER_PATTERN(
+    const StringView Version4::DESCRIPTION = "CompressorCode v.4 by ZYX"_sv;
+    const StringView Version4::DEPACKER_PATTERN =
         "cd5200"  // call 0x52
         "3b"      // dec sp
         "3b"      // dec sp
@@ -138,10 +138,10 @@ namespace Formats::Packed
         "c5"    // push bc
         "01??"  // ld bc,xxxx
         "c5"    // push bc
-    );
+        ""_sv;
 
-    const StringView Version4Plus::DESCRIPTION("CompressorCode v.4+ by ZYX");
-    const StringView Version4Plus::DEPACKER_PATTERN(
+    const StringView Version4Plus::DESCRIPTION = "CompressorCode v.4+ by ZYX"_sv;
+    const StringView Version4Plus::DEPACKER_PATTERN =
         "cd5200"  // call 0x52
         "3b"      // dec sp
         "3b"      // dec sp
@@ -159,7 +159,7 @@ namespace Formats::Packed
         "dde1"  // pop ix
         "11??"  // ld de,xxxx ;dst addr
         "01??"  // ld bc,xxxx ;huffman packed size +1d
-    );
+        ""_sv;
 
     template<class Version>
     class Container

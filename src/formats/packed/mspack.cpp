@@ -34,7 +34,7 @@ namespace Formats::Packed
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
     const Char DESCRIPTION[] = "MicroSpace Packer v1.x";
-    const StringView DEPACKER_PATTERN("'M's'P'k");
+    const auto DEPACKER_PATTERN = "'M's'P'k"_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)

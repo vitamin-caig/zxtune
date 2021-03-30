@@ -1131,14 +1131,14 @@ namespace Formats::Chiptune
     }
 
     const Char DESCRIPTION[] = "Pro Sound Creator v1.xx";
-    const StringView FORMAT(
+    const auto FORMAT =
         "?{69}"    // Id
         "?00"      // uint16_t SamplesStart;TODO
         "?03-3f"   // uint16_t PositionsOffset;
         "03-1f"    // uint8_t Tempo;
         "50-9000"  // uint16_t OrnamentsTableOffset;
         "08-cf00"  // first sample
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

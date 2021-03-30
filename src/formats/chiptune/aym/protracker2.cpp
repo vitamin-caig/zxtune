@@ -894,7 +894,7 @@ namespace Formats::Chiptune
     }
 
     const auto DESCRIPTION = PROGRAM;
-    const StringView FORMAT(
+    const auto FORMAT =
         "02-ff"  // uint8_t Tempo; 2..15
         "01-ff"  // uint8_t Length;
         "00-fe"  // uint8_t Loop; 0..99
@@ -906,7 +906,7 @@ namespace Formats::Chiptune
         "?{30}"     // char Name[30];
         "00-1f"     // uint8_t Positions[1]; at least one
         "ff|00-1f"  // next position or limit
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

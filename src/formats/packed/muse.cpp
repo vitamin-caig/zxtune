@@ -30,14 +30,14 @@ namespace Formats::Packed
     const Debug::Stream Dbg("Formats::Packed::Muse");
 
     const Char DESCRIPTION[] = "MUSE Compressor";
-    const StringView HEADER_PATTERN =
+    const auto HEADER_PATTERN =
         "'M'U'S'E"
         "de ad be|ba af|be"
         "????"  // file size
         "????"  // crc
         "????"  // packed size
         "????"  // unpacked size
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Packed::Decoder
     {

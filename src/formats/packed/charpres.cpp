@@ -30,7 +30,7 @@ namespace Formats::Packed
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
     const Char DESCRIPTION[] = "CharPres";
-    const StringView DEPACKER_PATTERN(
+    const auto DEPACKER_PATTERN =
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
         "01??"  // ld bc,xxxx depacker body size
@@ -50,7 +50,7 @@ namespace Formats::Packed
         "d6?"   // sub 0x1d
         "20?"   // jr nz,xx
         "2b"    // dec hl
-    );
+        ""_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)

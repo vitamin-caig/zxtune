@@ -273,9 +273,10 @@ namespace Formats::Image
     };
 
     const Char DESCRIPTION[] = "LaserCompact 5.2";
-    const StringView FORMAT(
+    const auto FORMAT =
         // Signature
-        "'L'C'M'P'5");
+        "'L'C'M'P'5"
+        ""_sv;
   }  // namespace LaserCompact52
 
   class LaserCompact52Decoder : public Decoder

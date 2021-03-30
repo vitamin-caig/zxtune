@@ -948,7 +948,7 @@ namespace Formats::Chiptune
     }
 
     const Char DESCRIPTION[] = "Global Tracker v1.x";
-    const StringView FORMAT(
+    const auto FORMAT =
         "03-0f"     // uint8_t Tempo;
         "???"       // uint8_t ID[3];
         "10-12"     // uint8_t Version; who knows?
@@ -960,7 +960,7 @@ namespace Formats::Chiptune
         "01-ff"     // uint8_t Length;
         "00-fe"     // uint8_t Loop;
         "*6&00-ba"  // uint8_t Positions[1];
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

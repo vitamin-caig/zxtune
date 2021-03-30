@@ -273,7 +273,7 @@ namespace Module::USF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_64);
+      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_64.to_string());
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

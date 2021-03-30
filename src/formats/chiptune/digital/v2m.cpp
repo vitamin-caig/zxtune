@@ -211,11 +211,11 @@ namespace Formats::Chiptune
       return stub;
     }
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "%xxx00000 00-01 0000"  // timediv
         "? 01-ff ? 00"          // maxtime
         "01-06 000000"          // gdnum
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

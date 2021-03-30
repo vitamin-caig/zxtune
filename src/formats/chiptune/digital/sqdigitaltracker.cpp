@@ -483,7 +483,7 @@ namespace Formats::Chiptune
       const RangeChecker::Ptr Ranges;
     };
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "?{192}"
         // layouts
         "(0080-c0 58-5f 01-80){8}"
@@ -500,7 +500,8 @@ namespace Formats::Chiptune
         // loop
         "00-63"
         // length
-        "01-64");
+        "01-64"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

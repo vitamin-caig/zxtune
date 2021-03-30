@@ -374,7 +374,7 @@ namespace Formats::Packed
     }
 
     const Char DESCRIPTION[] = "TD0 (TeleDisk Image)";
-    const StringView FORMAT_PATTERN(
+    const auto FORMAT_PATTERN =
         "('T|'t)('D|'d)"  // uint8_t ID[2]
         "00"              // uint8_t Sequence;
         "?"               // uint8_t CheckSequence;
@@ -387,7 +387,7 @@ namespace Formats::Packed
                           "?"           // uint8_t Sides;
                           "??"          // uint16_t CRC;
                           */
-    );
+        ""_sv;
   }  // namespace TeleDiskImage
 
   class TeleDiskImageDecoder : public Decoder

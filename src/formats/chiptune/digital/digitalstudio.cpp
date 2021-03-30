@@ -446,7 +446,7 @@ namespace Formats::Chiptune
       return rawData.Size() >= MODULE_SIZE;
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "00-63"      // loop
         "00-1f{99}"  // positions
         "02-0f"      // tempo
@@ -456,7 +456,8 @@ namespace Formats::Chiptune
         "?{44}"
         "ff{10}"
         "????????"  //"ae7eae7e51000000"
-        "20{8}");
+        "20{8}"
+        ""_sv;
 
     const uint64_t Z80_FREQ = 3500000;
     // step is not changed in AY and SounDrive versions

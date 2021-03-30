@@ -926,7 +926,7 @@ namespace Formats::Chiptune
 
     const Char DESCRIPTION[] = "SQ-Tracker Compiled";
     // TODO: size may be <256
-    const StringView FORMAT(
+    const auto FORMAT =
         "?01-30"        // uint16_t Size;
         "?00|60-fb"     // uint16_t SamplesOffset;
         "?00|60-fb"     // uint16_t OrnamentsOffset;
@@ -936,7 +936,8 @@ namespace Formats::Chiptune
         // sample1 offset
         "?00|60-fb"
         // pattern1 offset minimal
-        "?00-01|60-fc");
+        "?00-01|60-fc"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

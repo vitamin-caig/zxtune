@@ -47,9 +47,10 @@ namespace Formats::Chiptune
       return 0;
     }
 
-    const std::string FORMAT(
+    const auto FORMAT =
         "'P'S'F"
-        "25");
+        "25"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

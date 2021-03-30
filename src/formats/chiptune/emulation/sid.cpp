@@ -58,7 +58,7 @@ namespace Formats::Chiptune
 
     static_assert(sizeof(RawHeader) == 22, "Invalid layout");
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'R|'P 'S'I'D"  // signature
         "00 01-03"      // BE version
         "00 76|7c"      // BE data offset
@@ -68,7 +68,7 @@ namespace Formats::Chiptune
         "00|01 ?"       // BE songs count 1-256
         "??"            // BE start song
         "????"          // BE speed flag
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

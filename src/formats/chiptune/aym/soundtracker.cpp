@@ -417,7 +417,7 @@ namespace Formats::Chiptune
     }
 
     const auto DESCRIPTION = PROGRAM;
-    const StringView FORMAT(
+    const auto FORMAT =
         // samples
         "("
         // levels
@@ -440,7 +440,8 @@ namespace Formats::Chiptune
         "02-0f"
         // patterns size
         // Real pattern size may be from 01 but I don't know any modules with such patterns size
-        "20-40");
+        "20-40"
+        ""_sv;
 
     Formats::Chiptune::Container::Ptr ParseUncompiled(const Binary::Container& rawData, Builder& target)
     {

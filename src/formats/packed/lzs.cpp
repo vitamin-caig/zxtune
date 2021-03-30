@@ -31,7 +31,7 @@ namespace Formats::Packed
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
     const Char DESCRIPTION[] = "ASC LZS Pack";
-    const StringView DEPACKER_PATTERN(
+    const auto DEPACKER_PATTERN =
         "cd??"    // call xxxx
         "?"       // di/nop
         "ed73??"  // ld (xxxx),sp
@@ -106,7 +106,7 @@ namespace Formats::Packed
                   "?"       // di/ei
                   "c3??"    // jp xxxx (0x0052)
                   */
-    );
+        ""_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)

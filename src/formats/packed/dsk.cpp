@@ -213,7 +213,7 @@ namespace Formats::Packed
     };
 
     const Char DESCRIPTION[] = "DSK Image";
-    const StringView FORMAT(
+    const auto FORMAT =
         "'M|'E"
         "'V|'X"
         "' |'T"
@@ -237,7 +237,8 @@ namespace Formats::Packed
         "01-02"                                   // sides
         "?{206}"                                  // skipped
         // first track
-        "'T'r'a'c'k'-'I'n'f'o'\r'\n");
+        "'T'r'a'c'k'-'I'n'f'o'\r'\n"
+        ""_sv;
   }  // namespace DSK
 
   class DSKDecoder : public Decoder

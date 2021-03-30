@@ -277,7 +277,7 @@ namespace ZXTune::Raw
 {
   const Debug::Stream Dbg("Core::RawScaner");
 
-  const Char PLUGIN_PREFIX[] = "+";
+  const auto PLUGIN_PREFIX = "+"_sv;
 
   const Char ID[] = {'R', 'A', 'W', 0};
   const Char* const INFO = ID;

@@ -26,7 +26,7 @@ namespace Formats::Chiptune
 
     // as for ASAP limitations
     // Details: http://atariki.krap.pl/index.php/RMT_%28format_pliku%29
-    const StringView FORMAT =
+    const auto FORMAT =
         "00|ff 00|ff"   // signature
         "??"            // music address
         "??"            // initial data size
@@ -34,7 +34,7 @@ namespace Formats::Chiptune
         "??"            //+a +b
         "01-04"         // tempo
         "01"            //+d
-        ;
+        ""_sv;
 
     const std::size_t MIN_SIZE = 0x30;
 

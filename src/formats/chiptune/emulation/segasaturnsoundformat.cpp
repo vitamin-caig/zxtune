@@ -20,9 +20,10 @@ namespace Formats::Chiptune
   namespace SegaSaturnSoundFormat
   {
     const Char DESCRIPTION[] = "Sega Saturn Sound Format";
-    const StringView FORMAT(
+    const auto FORMAT =
         "'P'S'F"
-        "11");
+        "11"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

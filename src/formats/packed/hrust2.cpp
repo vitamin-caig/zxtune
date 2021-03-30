@@ -48,10 +48,10 @@ namespace Formats::Packed
     namespace Version1
     {
       const Char DESCRIPTION[] = "Hrust v2.1";
-      const StringView HEADER_FORMAT(
+      const auto HEADER_FORMAT =
           "'h'r'2"     // ID
           "%x0110001"  // Flag
-      );
+          ""_sv;
 
       PACK_PRE struct FormatHeader
       {
@@ -74,10 +74,10 @@ namespace Formats::Packed
     namespace Version3
     {
       const Char DESCRIPTION[] = "Hrust v2.3";
-      const StringView HEADER_FORMAT(
+      const auto HEADER_FORMAT =
           "'H'r's't'2"  // ID
           "%00x00xxx"   // Flag
-      );
+          ""_sv;
 
       PACK_PRE struct FormatHeader
       {

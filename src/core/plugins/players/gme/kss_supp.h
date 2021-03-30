@@ -15,5 +15,5 @@
 
 namespace Module::KSS
 {
-  String DetectPlatform(Binary::View blob);
+  StringView DetectPlatform(Binary::View blob);
 }

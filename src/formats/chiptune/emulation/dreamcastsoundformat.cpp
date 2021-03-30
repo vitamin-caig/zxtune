@@ -21,9 +21,10 @@ namespace Formats::Chiptune
   {
     const Char DESCRIPTION[] = "Dreamcast Sound Format";
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'P'S'F"
-        "12");
+        "12"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

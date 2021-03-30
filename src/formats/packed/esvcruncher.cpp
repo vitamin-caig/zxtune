@@ -34,7 +34,7 @@ namespace Formats::Packed
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
     const Char DESCRIPTION[] = "ESV Cruncher";
-    const StringView DEPACKER_PATTERN(
+    const auto DEPACKER_PATTERN =
         //$=6978
         // depack to 9900/61a8
         "?"       // di/nop
@@ -147,7 +147,7 @@ namespace Formats::Packed
                   "d9"      // exx
                   "c9"      // ret
                   */
-    );
+        ""_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)

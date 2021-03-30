@@ -380,7 +380,7 @@ namespace Module::Xmp
   struct PluginDescription
   {
     const char* const Id;
-    const char* const Format;
+    const StringView Format;
     const struct format_loader* const Loader;
   };
 
@@ -490,7 +490,7 @@ namespace Module::Xmp
     {
       "DTT"
       ,
-      "'D's'k'T"
+      "'D's'k'T"_sv
       ,
       &dtt_loader
     },
@@ -501,6 +501,7 @@ namespace Module::Xmp
       "'F'O'R'M"
       "????"
       "'E'M'O'D"
+      ""_sv
       ,
       &emod_loader
     },
@@ -513,6 +514,7 @@ namespace Module::Xmp
       "14-ff"     //(year-1980)*2
       "00-79"     //cpu and card (really separate)
       "?"
+      ""_sv
       ,
       &fnk_loader
     },
@@ -522,6 +524,7 @@ namespace Module::Xmp
       ,
       "'G'T'K"
       "00-03"
+      ""_sv
       ,
       &gtk_loader
     },
@@ -543,6 +546,7 @@ namespace Module::Xmp
       "00-01"   //zero
       "?{128}"  //orders
       "???3c"   //magic
+      ""_sv
       ,
       &ims_loader
     },
@@ -551,6 +555,7 @@ namespace Module::Xmp
       "LIQ"
       ,
       "'L'i'q'u'i'd' 'M'o'd'u'l'e':"
+      ""_sv
       ,
       &liq_loader
     },
@@ -560,6 +565,7 @@ namespace Module::Xmp
       ,
       "'M'E'D"
       "02"
+      ""_sv
       ,
       &med2_loader
     },
@@ -569,6 +575,7 @@ namespace Module::Xmp
       ,
       "'M'E'D"
       "03"
+      ""_sv
       ,
       &med3_loader
     },
@@ -577,6 +584,7 @@ namespace Module::Xmp
       ,
       "'M'E'D"
       "04"
+      ""_sv
       ,
       &med4_loader
     },
@@ -588,6 +596,7 @@ namespace Module::Xmp
       ,
       "'N'O"
       "0000"
+      ""_sv
       ,
       &no_loader
     },
@@ -599,6 +608,7 @@ namespace Module::Xmp
       ,
       "'R'T'M'M"
       "20"
+      ""_sv
       ,
       &rtm_loader
     },
@@ -613,6 +623,7 @@ namespace Module::Xmp
       "00?"              //BE number of samples (assume 255 is enough)
       "0001-80"          //BE count of positions (1-128)
       "0001-80"          //BE count of saved patterns (1-128)
+      ""_sv
       ,
       &stim_loader
     },
@@ -633,6 +644,7 @@ namespace Module::Xmp
       "?{32}"
       //+60
       "'S'C'R'M"
+      ""_sv
       ,
       &stx_loader
     },
@@ -642,6 +654,7 @@ namespace Module::Xmp
       "TCB"
       ,
       "'A'N' 'C'O'O'L('.|'!)"
+      ""_sv
       ,
       &tcb_loader
     },

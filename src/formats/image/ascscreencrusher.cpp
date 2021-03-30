@@ -22,7 +22,7 @@ namespace Formats::Image
   namespace ASCScreenCrusher
   {
     const Char DESCRIPTION[] = "ASC ScreenCrasher";
-    const StringView DEPACKER_PATTERN(
+    const auto DEPACKER_PATTERN =
         "f3"      // di
         "cd5200"  // call #0052
         "3b"      // dec sp
@@ -42,7 +42,7 @@ namespace Formats::Image
         "09"      // add hl,bc
         "1100?"   // ld de,#4000
         "d5"      // push de
-    );
+        ""_sv;
 
     /*
       @0052 48ROM

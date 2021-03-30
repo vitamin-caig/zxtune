@@ -35,7 +35,7 @@ namespace Formats::Packed
     const std::size_t MIN_SIZE = 0x16 + 32;
 
     const Char DESCRIPTION[] = "ZXZip";
-    const StringView HEADER_PATTERN =
+    const auto HEADER_PATTERN =
         // Filename
         "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
         // Type
@@ -51,7 +51,8 @@ namespace Formats::Packed
         // Method
         "00-03"
         // Flags
-        "%0000000x";
+        "%0000000x"
+        ""_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)

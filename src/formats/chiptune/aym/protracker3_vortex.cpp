@@ -688,7 +688,7 @@ namespace Formats::Chiptune
           switch (fields.size())
           {
           case 5:
-            Require(fields[4] == "L");
+            Require(fields[4] == "L"_sv);
             Looped = true;
             [[fallthrough]];
           case 4:
@@ -1225,7 +1225,7 @@ namespace Formats::Chiptune
     };
 
     const Char DESCRIPTION[] = "VortexTracker II";
-    const StringView FORMAT("'['M'o'd'u'l'e']");
+    const auto FORMAT = "'['M'o'd'u'l'e']"_sv;
 
     const std::size_t MIN_SIZE = 256;
 

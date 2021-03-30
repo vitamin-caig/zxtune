@@ -460,7 +460,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'C'H'I'P'v"          // uint8_t Signature[5];
         "3x2e3x"              // char Version[3];
         "20-7f{32}"           // char Name[32];
@@ -469,7 +469,7 @@ namespace Formats::Chiptune
         "(?00-bb?00-bb){16}"  // samples descriptions
         "?{21}"               // uint8_t Reserved[21];
         "(20-7f{8}){16}"      // sample names
-    );
+        ""_sv;
 
     const Char DESCRIPTION[] = "Chip Tracker";
 

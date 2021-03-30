@@ -84,10 +84,11 @@ namespace Formats::Chiptune
                 });
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'T'F'M'c'o'm"
         "???"
-        "32|3c");
+        "32|3c"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

@@ -267,7 +267,7 @@ namespace Formats::Chiptune
 
     struct FormatTraits
     {
-      const char* Format;
+      const StringView Format;
       const Char* Description;
     };
 
@@ -280,7 +280,7 @@ namespace Formats::Chiptune
         "?"             // tracks count
         "00-3f"         // samples count
         "?"             // subsongs count
-        ,
+        ""_sv,
         "Abyss' Highest Experience"};
 
     const FormatTraits HVLTraits = {
@@ -294,7 +294,7 @@ namespace Formats::Chiptune
         "?"             // subsongs count
         "01-ff"         // mixgain, not zero
         "00-04"         // defstereo
-        ,
+        ""_sv,
         "Hively Tracker"};
 
     class VersionedDecoder : public Decoder

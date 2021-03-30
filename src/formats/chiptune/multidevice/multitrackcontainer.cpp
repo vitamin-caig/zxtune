@@ -269,10 +269,10 @@ namespace Formats::Chiptune
 
     const std::size_t MIN_SIZE = sizeof(IFF::ChunkHeader) * 3 + 256;
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'M'T'C'1"
         "00 00-10 ? ?"  // max 1Mb
-    );
+        ""_sv;
 
     const String::value_type PROPERTY_DELIMITER = '=';
 

@@ -19,7 +19,7 @@ namespace Module
 {
   namespace KSS
   {
-    String DetectPlatform(Binary::View data)
+    StringView DetectPlatform(Binary::View data)
     {
       Require(data.Size() >= 16);
       // do not check signatures or other

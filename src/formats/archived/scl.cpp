@@ -29,9 +29,10 @@ namespace Formats::Archived
     const Debug::Stream Dbg("Formats::Archived::SCL");
 
     const Char DESCRIPTION[] = "SCL (SINCLAIR)";
-    const StringView FORMAT(
+    const auto FORMAT =
         "'S'I'N'C'L'A'I'R"
-        "01-ff");
+        "01-ff"
+        ""_sv;
 
     const std::size_t BYTES_PER_SECTOR = 256;
 

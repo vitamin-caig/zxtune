@@ -379,7 +379,7 @@ namespace Formats::Archived
     };
 
     const Char DESCRIPTION[] = "RAR";
-    const StringView FORMAT(
+    const auto FORMAT =
         // file marker
         "5261"  // uint16_t CRC;   "Ra"
         "72"    // uint8_t Type;   "r"
@@ -390,7 +390,7 @@ namespace Formats::Archived
         "73"    // uint8_t Type;
         "??"    // uint16_t Flags;
         "0d00"  // uint16_t Size
-    );
+        ""_sv;
   }  // namespace Rar
 
   class RarDecoder : public Decoder

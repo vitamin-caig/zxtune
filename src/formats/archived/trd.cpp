@@ -29,7 +29,7 @@ namespace Formats::Archived
     const Debug::Stream Dbg("Formats::Archived::TRD");
 
     const Char DESCRIPTION[] = "TRD (TR-DOS)";
-    const StringView FORMAT(
+    const auto FORMAT =
         "(00|01|20-7f??????? ??? ?? ? 0x 00-a0){128}"
         // service sector
         "00"               // zero
@@ -44,7 +44,7 @@ namespace Formats::Archived
         "?"                // deleted files
         "20-7f{8}"         // title
         "000000"           // reserved
-    );
+        ""_sv;
 
     // hints
     const std::size_t MODULE_SIZE = 655360;

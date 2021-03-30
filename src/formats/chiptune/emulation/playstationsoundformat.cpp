@@ -134,9 +134,9 @@ namespace Formats::Chiptune
 
       void ParseRegion(Builder& target)
       {
-        static const char MARKER_NORTH_AMERICA[] = "Sony Computer Entertainment Inc. for North America area";
-        static const char MARKER_JAPAN[] = "Sony Computer Entertainment Inc. for Japan area";
-        static const char MARKER_EUROPE[] = "Sony Computer Entertainment Inc. for Europe area";
+        static const auto MARKER_NORTH_AMERICA = "Sony Computer Entertainment Inc. for North America area"_sv;
+        static const auto MARKER_JAPAN = "Sony Computer Entertainment Inc. for Japan area"_sv;
+        static const auto MARKER_EUROPE = "Sony Computer Entertainment Inc. for Europe area"_sv;
         Stream.Seek(0x4c);
         const auto marker = Stream.ReadCString(60);
         if (marker == MARKER_NORTH_AMERICA)
@@ -167,9 +167,10 @@ namespace Formats::Chiptune
       Format(data).Parse(target);
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'P'S'F"
-        "01");
+        "01"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

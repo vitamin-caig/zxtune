@@ -93,7 +93,7 @@ namespace Formats::Archived
     };
 
     const Char DESCRIPTION[] = "Multi-SID/PSID/RSID";
-    const StringView FORMAT =
+    const auto FORMAT =
         "'R|'P 'S'I'D"  // signature
         "00 01-03"      // BE version
         "00 76|7c"      // BE data offset
@@ -103,7 +103,7 @@ namespace Formats::Archived
         "00|01 ?"       // BE songs count 1-256
         "??"            // BE start song
         "????"          // BE speed flag
-        ;
+        ""_sv;
   }  // namespace MultiSID
 
   class MultiSIDDecoder : public Decoder

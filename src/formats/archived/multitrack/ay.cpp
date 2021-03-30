@@ -77,7 +77,7 @@ namespace Formats::Archived
 
       File::Ptr FindFile(const String& name) const override
       {
-        const Strings::PrefixedIndex rawName("@", name);
+        const Strings::PrefixedIndex rawName("@"_sv, name);
         const auto ayIndex = MultitrackArchives::ParseFilename(name);
         if (!rawName.IsValid() && !ayIndex)
         {
@@ -107,10 +107,10 @@ namespace Formats::Archived
     };
 
     const Char DESCRIPTION[] = "Multi-AY/EMUL";
-    const StringView HEADER_FORMAT(
+    const auto HEADER_FORMAT =
         "'Z'X'A'Y"  // uint8_t Signature[4];
         "'E'M'U'L"  // only one type is supported now
-    );
+        ""_sv;
   }  // namespace MultiAY
 
   class MultiAYDecoder : public Decoder

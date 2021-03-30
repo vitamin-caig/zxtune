@@ -37,7 +37,7 @@ namespace Formats::Packed
     // At least two different prefixes
     // using ix/iy
     // Depacker beginning may be corrupted
-    const StringView DEPACKER_HEAD(
+    const auto DEPACKER_HEAD =
         "???"          // di/ei      | jp xxxx
                        // ld b,0x10
         "?"            // exx
@@ -57,7 +57,7 @@ namespace Formats::Packed
         "01??"         // ld bc,xxxx ;size of body
         "d5"           // push de
         "c3??"         // jp xxxx
-    );
+        ""_sv;
 
     const std::size_t HEAD_SIZE = 0x27;
 
@@ -70,7 +70,7 @@ namespace Formats::Packed
          ei
          ret
     */
-    const StringView DEPACKER_BODY(
+    const auto DEPACKER_BODY =
         "d9"    // exx
         "e1"    // pop hl
         "1806"  // jr xx
@@ -100,7 +100,7 @@ namespace Formats::Packed
                 "?"      //ei/nop |         |
                 "?"      //ret    |         | nop
                 */
-    );
+        ""_sv;
 
     const std::size_t BODY_SIZE = 0xce;
 

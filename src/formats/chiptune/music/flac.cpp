@@ -223,14 +223,14 @@ namespace Formats::Chiptune
       return stub;
     }
 
-    const StringView FORMAT =
+    const auto FORMAT =
         // ID3 tag    flac stream
         "'I         |'f"
         "'D         |'L"
         "'3         |'a"
         "00-04      |'C"
         "00-0a      |00"  // streaminfo metatag
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

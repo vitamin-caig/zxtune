@@ -273,7 +273,7 @@ namespace Module::Mpt
   struct PluginDescription
   {
     const char* const Id;
-    const char* const Format;
+    const StringView Format;
     const char* const Description;
   };
 
@@ -404,7 +404,7 @@ namespace Module::Mpt
     {
       "XM"
       ,
-      "'E'x't'e'n'd'e'd' 'M'o'd'u'l'e':' "
+      "'E'x't'e'n'd'e'd' 'M'o'd'u'l'e':' "_sv
       ,
       "FastTracker II"
       //, "XM"
@@ -416,6 +416,7 @@ namespace Module::Mpt
       "'M | 'p"
       "'P | 'm"
       "'M | '."
+      ""_sv
       ,
       "Impulse Tracker"
       //, "IT"
@@ -430,6 +431,7 @@ namespace Module::Mpt
       "?{10}"    // sizes, flags
       "01|02 00" // version
       "'S'C'R'M"
+      ""_sv
       ,
       "ScreamTracker 3"
       //, "S3M"
@@ -446,6 +448,7 @@ namespace Module::Mpt
       "?"        // tempo
       "01-40"    // num patterns
       "00-40|58" // global volume or placeholder
+      ""_sv
       ,
       "ScreamTracker 2"
       //, STM
@@ -454,6 +457,7 @@ namespace Module::Mpt
       "MED"
       ,
       "'M'M'D '0-'3" // signature
+      ""_sv
       ,
       "OctaMED / MED Soundstudio"
       //, MED
@@ -471,6 +475,7 @@ namespace Module::Mpt
       "? ?"    // numSamples, attribute
       "00-40"  // beatsPerTrack
       "01-20"  // numChannels
+      ""_sv
       ,
       "MultiTracker"
       //, MTM
@@ -480,6 +485,7 @@ namespace Module::Mpt
       ,
       "'D'M'D'L" // signature
       "00-1f"    // version
+      ""_sv
       ,
       "Digitrakker"
       //, "MDL"
@@ -489,6 +495,7 @@ namespace Module::Mpt
       ,
       "'D'B'M'0" // signagure
       "00-03"    // trkVerHi
+      ""_sv
       ,
       "DigiBooster Pro"
       //, "DBM"
@@ -499,6 +506,7 @@ namespace Module::Mpt
       "'F'A'R fe"  // signature
       "?{40}"      // songName
       "0d0a1a"     // eof
+      ""_sv
       ,
       "Farandole Composer"
       //, "FAR"
@@ -509,6 +517,7 @@ namespace Module::Mpt
       "'E'x't'r'e'm'e"
       "?"  // versionLow
       "01" // versionHigh
+      ""_sv
       ,
       "Extreme's Tracker"
       //, "AMS"
@@ -516,7 +525,7 @@ namespace Module::Mpt
     {
       "AMS"
       ,
-      "'A'M'S'h'd'r 1a"
+      "'A'M'S'h'd'r 1a"_sv
       ,
       "Velvet Studio"
       //, "AMS2"
@@ -526,6 +535,7 @@ namespace Module::Mpt
       ,
       "'O'K'T'A'S'O'N'G" // signature
       "(20-7f){4}"  // iff id
+      ""_sv
       ,
       "Oktalyzer"
       //, "OKT"
@@ -543,6 +553,7 @@ namespace Module::Mpt
       "01-20 00" // numChannels 1..32
       "00 00 ??" // flags, reserved
       "'P'T'M'F" // magic
+      ""_sv
       ,
       "PolyTracker"
       //, "PTM"
@@ -552,6 +563,7 @@ namespace Module::Mpt
       ,
       "'M'A'S'_'U'T'r'a'c'k'_'V'0'0"
       "'1-'4"
+      ""_sv
       ,
       "UltraTracker"
       //, "ULT"
@@ -561,6 +573,7 @@ namespace Module::Mpt
       ,
       "'D'D'M'F"  // signature
       "01-0a"     // version
+      ""_sv
       ,
       "X-Tracker"
       //, "DMF"
@@ -583,6 +596,7 @@ namespace Module::Mpt
       "??"       // num samples
       "? 00-01"  // num patterns <= 256
       "00-10 00" // num channels <= 16
+      ""_sv
       ,
       "Digital Sound Interface Kit RIFF"
       //, "DSM"
@@ -593,6 +607,7 @@ namespace Module::Mpt
       "'A'S'Y'L'U'M' 'M'u's'i'c' 'F'o'r'm'a't' 'V'1'.'0 00" // signature
       "? ?"   // speed, tempo
       "01-3f" // numSamples
+      ""_sv
       ,
       "ASYLUM Music Format"
       //, "AMF_Asylum"
@@ -605,6 +620,7 @@ namespace Module::Mpt
       "?{32}"   // title
       "? ? ?"   // samples, orders, tracks
       "00-20"   // channels
+      ""_sv
       ,
       "DSMI / Digital Sound And Music Interface"
       //, "AMF_DSMI"
@@ -615,6 +631,7 @@ namespace Module::Mpt
       "'P'S'M' " // signature
       "????"     // fileSize
       "'F'I'L'E" // fileInfoID
+      ""_sv
       ,
       "Epic MegaGames MASI"
       //, "PSM"
@@ -632,6 +649,7 @@ namespace Module::Mpt
       "?? ?? ?? ??" // length, orders, patterns, samples
       "? 00-01"    // channelsPlay
       "? 00-01"    // channelsReal
+      ""_sv
       ,
       "Epic MegaGames MASI (Old Version)"
       //, "PSM16"
@@ -648,6 +666,7 @@ namespace Module::Mpt
       "??"        // restartPos
       "??"        // numPatterns
       "01-40 00"  // numChannels
+      ""_sv
       ,
       "Mad Tracker 2.xx"
       //, "MT2"
@@ -666,6 +685,7 @@ namespace Module::Mpt
       "?{32}"      // pan map
       "? ? ?"      // master vol, tempo, bpm
       "01-09 00"   // originalFormat
+      ""_sv
       ,
       "BWSB Soundsystem"
       //, "GDM"
@@ -682,6 +702,7 @@ namespace Module::Mpt
       "?{8}"    // unused2
       "'I'M'1'0" // signature
       "(?{15} 00-02){32}"  // channels
+      ""_sv
       ,
       "Imago Orpheus"
       //, "IMF"
@@ -692,6 +713,7 @@ namespace Module::Mpt
       "'D'I'G'I' 'B'o'o's't'e'r' 'm'o'd'u'l'e 00"
       "?{4} ?" // version + int
       "01-08"  // numChannels
+      ""_sv
       ,
       "Digi Booster"
       //, "DIGI"
@@ -702,6 +724,7 @@ namespace Module::Mpt
       "'D'.'T'." // magic
       "00 00 00 0e-ff" // headerSize
       "00"             // type
+      ""_sv
       ,
       "Digital Tracker / Digital Home Studio"
       //, "DTM"
@@ -714,6 +737,7 @@ namespace Module::Mpt
       "10"        // version
       "?{48}"     // song name
       "01-20"     // num channels 1..32
+      ""_sv
       ,
       "Disorder Tracker 2"
       //, "PLM"
@@ -723,6 +747,7 @@ namespace Module::Mpt
       ,
       "'R'I'F'F ????"
       "'A'M 'F|'  'F|' "
+      ""_sv
       ,
       "Galaxy Sound System"
       //, "AM"
@@ -733,6 +758,7 @@ namespace Module::Mpt
       "'F'O'R'M"
       "????"
       "'M'O'D'L"
+      ""_sv
       ,
       "ProTracker 3.6"
       //, "PT36"
@@ -745,6 +771,7 @@ namespace Module::Mpt
       "?{20}" // trackerName
       "?{32}" // songName
       "(?{8} ?{8} %000000xx{3}){8}" // channels
+      ""_sv
       ,
       "Davey W Taylor's FM Tracker"
       //, "FMT"
@@ -754,6 +781,7 @@ namespace Module::Mpt
       ,
       "(00 00-02 ?? ){15}" // samples offsets up to 131072 BE
       "'S 'O 'N 'G" // magic
+      ""_sv
       ,
       "SoundFX 1.x"
       //, "SFX"
@@ -763,6 +791,7 @@ namespace Module::Mpt
       ,
       "(00 00-02 ?? ){31}" // samples offsets up to 131072 BE
       "'S 'O '3 '1" // magic
+      ""_sv
       ,
       "SoundFX 2.0 / MultiMedia Sound"
       //, "SFX"
@@ -778,6 +807,7 @@ namespace Module::Mpt
       "?? ??"    // timer count, flags
       "????"     // reserved
       "00 32"    // midi count == 50
+      ""_sv
       ,
       "Soundtracker Pro II"
       //, "STP"
@@ -790,6 +820,7 @@ namespace Module::Mpt
       "('.|'!|'&|'A|'S|'A|'E|'.|'C|'K|'D   |00   |'A   |'L|'X|'C   |'0-'9|'D)"
       "('K      |'T|'M|'R|'S|'T|'T   |'8|'6|00   |'0   |'T|'O|'H   |'C   |'Z)"
       "('.|'!   |'T|'S|'D|'T|'.|'A   |'1   |00   |'4-'8|'4-'9|'N   |'H|'N|'4-'9)"
+      ""_sv
       ,
       "Generic MOD-compatible"
       //, "MOD"
@@ -798,10 +829,9 @@ namespace Module::Mpt
       "MOD"
       ,
       "?{1464}"
-      "'M"
-      "'T"
-      "'N"
+      "'M'T'N"
       "00"
+      ""_sv
       ,
       "MnemoTroN SoundTracker (MOD-compatible)"
       //, "ICE"
@@ -810,10 +840,8 @@ namespace Module::Mpt
       "MOD"
       ,
       "?{1464}"
-      "'I"
-      "'T"
-      "'1"
-      "'0"
+      "'I'T'1'0"
+      ""_sv
       ,
       "Ice Tracker (MOD-compatible)"
       //, "ICE"
@@ -829,6 +857,7 @@ namespace Module::Mpt
       "(00-7f|fe|ff){128}" // orders
       "?{128}"      // tempoList
       "(00-3f){128}"// breaks
+      ""_sv
       ,
       "669 Composer / UNIS 669"
       //, "669"
@@ -848,6 +877,7 @@ namespace Module::Mpt
       "("
        "0x ? ? ? ? %000000xx ? ? ? ? %000000xx"
       "){32}" // instruments
+      ""_sv
       ,
       "Composer 670"
       //, "C67"
@@ -857,6 +887,7 @@ namespace Module::Mpt
       ,
       "'M'O'3" // signature
       "00-05"  // version
+      ""_sv
       ,
       "Un4seen MO3"
       //, "MO3"
@@ -876,6 +907,7 @@ namespace Module::Mpt
       "00-80"           //len
       "00-dc"           //restart
       "(00-3f){128}"    //order
+      ""_sv
       ,
       "Ultimate Soundtracker / etc (MOD Compatible)"
       //, "M15"

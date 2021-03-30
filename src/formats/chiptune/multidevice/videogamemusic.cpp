@@ -47,12 +47,13 @@ namespace Formats::Chiptune
 
     const std::size_t MIN_SIZE = 256;
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'V'g'm' "  // signature
         "????"      // eof offset
         // version
         "00-09|10-19|20-29|30-39|40-49|50-59|60-69|70-71"
-        "01 00 00";
+        "01 00 00"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

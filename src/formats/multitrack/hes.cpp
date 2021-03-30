@@ -56,7 +56,7 @@ namespace Formats::Multitrack
 
     static_assert(sizeof(RawHeader) == 0x20, "Invalid layout");
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'H'E'S'M"   // signature
         "?"          // version
         "?"          // start song
@@ -65,7 +65,7 @@ namespace Formats::Multitrack
         "'D'A'T'A"   // data signature
         "? ? 0x 00"  // 1MB size limit
         "? ? 0x 00"  // 1MB size limit
-        ;
+        ""_sv;
 
     const std::size_t MIN_SIZE = 256;
 

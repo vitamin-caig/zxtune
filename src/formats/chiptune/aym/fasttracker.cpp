@@ -1130,7 +1130,7 @@ namespace Formats::Chiptune
     }
 
     const auto DESCRIPTION = PROGRAM;
-    const StringView FORMAT(
+    const auto FORMAT =
         "?{8}"                // identifier
         "?{42}"               // title
         "?"                   // semicolon
@@ -1144,7 +1144,7 @@ namespace Formats::Chiptune
         "(?05-2d|66-ff){33}"  // ornaments
         "00-1f?"              // at least one position
         "ff|00-1f"            // next position or end
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

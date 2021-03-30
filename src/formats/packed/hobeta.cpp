@@ -71,7 +71,7 @@ namespace Formats::Packed
     }
 
     const Char DESCRIPTION[] = "Hobeta";
-    const StringView FORMAT(
+    const auto FORMAT =
         // Filename
         "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
         // Start
@@ -79,7 +79,8 @@ namespace Formats::Packed
         // Length
         "?01-ff"
         // FullLength
-        "0001-ff");
+        "0001-ff"
+        ""_sv;
   }  // namespace Hobeta
 
   class HobetaDecoder : public Decoder

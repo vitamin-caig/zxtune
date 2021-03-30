@@ -91,11 +91,12 @@ namespace Formats::Chiptune
     }
 
     const Char DESCRIPTION[] = "CPC AYC";
-    const StringView FORMAT(
+    const auto FORMAT =
         "?00-75"              // 10 min approx
         "01|04 2e00"          // assume first chunk is right after header
         "(01|04 ?00-80){13}"  // no more than 32k
-        "ff{6}");
+        "ff{6}"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

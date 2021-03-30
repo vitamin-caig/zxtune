@@ -93,9 +93,9 @@ namespace Module
     SetNonEmptyProperty(ATTR_DATE, date);
   }
 
-  void PropertiesHelper::SetPlatform(const String& platform)
+  void PropertiesHelper::SetPlatform(StringView platform)
   {
-    Delegate.SetValue(ATTR_PLATFORM, platform);
+    Delegate.SetValue(ATTR_PLATFORM, platform.to_string());
   }
 
   void PropertiesHelper::SetFadein(Time::Milliseconds fadein)

@@ -39,13 +39,13 @@ namespace Formats::Archived
     const Debug::Stream Dbg("Formats::Archived::ZXState");
 
     const Char DESCRIPTION[] = "SZX (ZX-State)";
-    const StringView FORMAT(
+    const auto FORMAT =
         "'Z'X'S'T"   // signature
         "01"         // major
         "00-04"      // minor
         "00-10"      // machineId
         "%0000000x"  // flags
-    );
+        ""_sv;
 
     struct DataBlockDescription
     {

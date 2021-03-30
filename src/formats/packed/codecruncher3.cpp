@@ -31,7 +31,7 @@ namespace Formats::Packed
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
     const Char DESCRIPTION[] = "CodeCruncher v3.x";
-    const StringView DEPACKER_PATTERN(
+    const auto DEPACKER_PATTERN =
         // classic depacker
         "?"       // di/nop
         "???"     // usually 'K','S','A','!'
@@ -140,7 +140,7 @@ namespace Formats::Packed
                     "?"       // ei/nop
                     "c3??"    // jp xxxx
                 */
-    );
+        ""_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)

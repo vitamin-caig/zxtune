@@ -470,7 +470,7 @@ namespace Formats::Chiptune
       return MakePtr<SimpleDumpBuilder>(sizeHint);
     }
 
-    const StringView FORMAT =
+    const auto FORMAT =
         // first page
         "'O'g'g'S"      // signature
         "00"            // version
@@ -496,7 +496,7 @@ namespace Formats::Chiptune
         "01000000"     // page
         "?{4}"         // crc
         "01-ff 01-ff"  // more than one lace
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

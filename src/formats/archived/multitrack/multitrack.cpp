@@ -23,7 +23,7 @@ namespace Formats::Archived
 {
   namespace MultitrackArchives
   {
-    const StringView FILENAME_PREFIX("#");
+    const auto FILENAME_PREFIX = "#"_sv;
 
     String CreateFilename(std::size_t index)
     {

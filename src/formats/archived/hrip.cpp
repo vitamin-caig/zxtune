@@ -28,13 +28,13 @@ namespace Formats::Archived
   namespace Hrip
   {
     const Char DESCRIPTION[] = "Hrip (Hrust RiP archiver)";
-    const StringView FORMAT(
+    const auto FORMAT =
         "'H'R'i"     // uint8_t ID[3];//'HRi'
         "01-ff"      // uint8_t FilesCount;
         "?"          // uint8_t UsedInLastSector;
         "??"         // uint16_t ArchiveSectors;
         "%0000000x"  // uint8_t Catalogue;
-    );
+        ""_sv;
 
     const std::size_t MAX_MODULE_SIZE = 655360;
 

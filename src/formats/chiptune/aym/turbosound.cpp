@@ -44,13 +44,13 @@ namespace Formats::Chiptune
     static_assert(sizeof(Footer) == 16, "Invalid layout");
 
     const Char DESCRIPTION[] = "TurboSound";
-    const StringView FOOTER_FORMAT(
+    const auto FOOTER_FORMAT =
         "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
         "?%0xxxxxxx"                     // uint16_t Size1;
         "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
         "?%0xxxxxxx"                     // uint16_t Size2;
         "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
-    );
+        ""_sv;
 
     class StubBuilder : public Builder
     {

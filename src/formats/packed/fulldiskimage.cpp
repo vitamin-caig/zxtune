@@ -243,12 +243,12 @@ namespace Formats::Packed
     };
 
     const Char DESCRIPTION[] = "FDI (Full Disk Image)";
-    const StringView FORMAT_PATTERN(
+    const auto FORMAT_PATTERN =
         "'F'D'I"     // uint8_t ID[3]
         "%0000000x"  // uint8_t ReadOnly;
         "28-64 00"   // uint16_t Cylinders;
         "01-02 00"   // uint16_t Sides;
-    );
+        ""_sv;
   }  // namespace FullDiskImage
 
   class FullDiskImageDecoder : public Decoder

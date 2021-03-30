@@ -50,7 +50,7 @@ namespace Formats::Chiptune
 
     static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'K'S'C'C"   // signature
         "??"         // load address
         "??"         // initial data size
@@ -60,7 +60,7 @@ namespace Formats::Chiptune
         "?"          // extra banks
         "00"         // reserved
         "%000xxxxx"  // extra chips (some of the tunes has 4th bit set)
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

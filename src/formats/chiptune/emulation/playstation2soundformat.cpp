@@ -217,9 +217,10 @@ namespace Formats::Chiptune
       Format(data).Parse(target);
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'P'S'F"
-        "02");
+        "02"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

@@ -114,8 +114,8 @@ namespace Formats::Packed
     static_assert(offsetof(Version2::RawPlayer, Information) == 8, "Invalid layout");
     static_assert(offsetof(Version2::RawPlayer, Initialization) == 72, "Invalid layout");
 
-    const StringView Version1::DESCRIPTION = "Sound Tracker Pro v1.x player";
-    const StringView Version2::DESCRIPTION = "Sound Tracker Pro v2.x player";
+    const StringView Version1::DESCRIPTION = "Sound Tracker Pro v1.x player"_sv;
+    const StringView Version2::DESCRIPTION = "Sound Tracker Pro v2.x player"_sv;
 
     const StringView Version1::FORMAT =
         "21??"    // ld hl,ModuleAddr
@@ -136,7 +136,7 @@ namespace Formats::Packed
         "7e"    // ld a,(hl)
         "23"    // inc hl
         "32??"  // ld (xxxx),a
-        ;
+        ""_sv;
 
     const StringView Version2::FORMAT =
         "c3??"  // jp InitAddr
@@ -156,7 +156,7 @@ namespace Formats::Packed
         "7e"    // ld a,(hl)
         "23"    // inc hl
         "32??"  // ld (xxxx),a
-        ;
+        ""_sv;
 
     bool IsInfoEmpty(Binary::View info)
     {

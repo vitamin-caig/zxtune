@@ -171,23 +171,23 @@ namespace Formats::Packed
 #  pragma pack(pop)
 #endif
 
-    const StringView Version1_45::DESCRIPTION("Z80 v1.45");
-    const StringView Version1_45::HEADER(
+    const StringView Version1_45::DESCRIPTION = "Z80 v1.45"_sv;
+    const StringView Version1_45::HEADER =
         "(\?\?){6}"                      // skip registers
         "%001xxxxx"                      // take into account only compressed data
         "(\?\?){7}"                      // skip registers
         "00|01|ff"                       // iff1
         "00|01|ff"                       // iff2
         "%xxxxxx00|%xxxxxx01|%xxxxxx10"  // im3 cannot be
-    );
-    const StringView Version1_45::FOOTER("00eded00");
+        ""_sv;
+    const StringView Version1_45::FOOTER = "00eded00"_sv;
 
     // even if all 48kb are compressed, minimal compressed size is 4 bytes for each 255 sequenced bytes + final marker
     const std::size_t Version1_45::MIN_SIZE = sizeof(Version1_45::Header) + 4 * (49152 / 255) + 4;
     const std::size_t Version1_45::MAX_SIZE = sizeof(Version1_45::Header) + 49152 + 4;
 
-    const StringView Version2_0::DESCRIPTION("Z80 v2.x");
-    const StringView Version2_0::FORMAT(
+    const StringView Version2_0::DESCRIPTION = "Z80 v2.x"_sv;
+    const StringView Version2_0::FORMAT =
         "(\?\?){3}"  // skip registers
         "0000"       // PC is 0
         "(\?\?){2}"
@@ -204,14 +204,14 @@ namespace Formats::Packed
         "%000000xx"                      // Flag3
         "\?"                             // fffd
         "\?{16}"                         // AYPorts
-    );
+        ""_sv;
 
     // at least 3 pages by 16384 bytes each
     const std::size_t Version2_0::MIN_SIZE =
         sizeof(Version2_0::Header) + 3 * (sizeof(Version2_0::MemoryPage) + 4 * (16384 / 255));
 
-    const StringView Version3_0::DESCRIPTION("Z80 v3.x");
-    const StringView Version3_0::FORMAT(
+    const StringView Version3_0::DESCRIPTION = "Z80 v3.x"_sv;
+    const StringView Version3_0::FORMAT =
         "(\?\?){3}"  // skip registers
         "0000"       // PC is 0
         "(\?\?){2}"
@@ -236,7 +236,7 @@ namespace Formats::Packed
         "\?{20}"                         // joystick
         "00|01|10"                       // GordonType
         "00|ff{2}"                       // Inhibitstate
-    );
+        ""_sv;
 
     // at least 3 pages by 16384 bytes each
     const std::size_t Version3_0::MIN_SIZE =

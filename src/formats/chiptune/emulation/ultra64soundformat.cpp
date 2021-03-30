@@ -96,9 +96,10 @@ namespace Formats::Chiptune
       }
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'P'S'F"
-        "21");
+        "21"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

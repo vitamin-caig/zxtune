@@ -46,7 +46,7 @@ namespace Formats::Chiptune
 
     const std::size_t MIN_SIZE = 256;
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'S'9'8"    // signature
         "'0-'3"     // version
         "???00"     // mult
@@ -54,7 +54,7 @@ namespace Formats::Chiptune
         "00000000"  // not compressed
         "???00"     // offset to tag
         "??0000"    // offset to data
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

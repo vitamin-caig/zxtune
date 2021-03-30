@@ -368,10 +368,11 @@ namespace Formats::Chiptune
     }
 
     const Char DESCRIPTION[] = "YM (ST-Sound Project)";
-    const StringView FORMAT(
+    const auto FORMAT =
         "'Y'M"
         "'2-'6"
-        "'!|'b");
+        "'!|'b"
+        ""_sv;
 
     Formats::Chiptune::Container::Ptr ParsePacked(const Binary::Container& rawData, Builder& target)
     {
@@ -398,7 +399,7 @@ namespace Formats::Chiptune
     }
 
     const Char PACKED_DESCRIPTION[] = "YM (ST-Sound Project) Packed";
-    const StringView PACKED_FORMAT(
+    const auto PACKED_FORMAT =
         "16-ff"       // header size
         "?"           // header sum
         "'-'l'h'5'-"  // method
@@ -407,7 +408,7 @@ namespace Formats::Chiptune
         "????"        // time+date
         "%00x00xxx"   // attribute
         "00"          // level
-    );
+        ""_sv;
 
     class YMDecoder : public Formats::Chiptune::YM::Decoder
     {
@@ -644,13 +645,13 @@ namespace Formats::Chiptune
     }
 
     const Char DESCRIPTION[] = "VTX (Vortex Project)";
-    const StringView FORMAT(
+    const auto FORMAT =
         "('a|'A|'y|'Y)('y|'Y|'m|'M)"  // type
         "00-06"                       // layout
         "??"                          // loop
         "??01-9800"                   // clockrate
         "19-64"                       // intfreq, 25..100Hz
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::YM::Decoder
     {

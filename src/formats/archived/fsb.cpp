@@ -26,11 +26,11 @@ namespace Formats::Archived
     const Debug::Stream Dbg("Formats::Archived::FSB");
 
     const Char DESCRIPTION[] = "FMOD Sample bank";
-    const StringView FORMAT(
+    const auto FORMAT =
         "'F'S'B'5"
         "?{20}"
         "01-05|07|0b|0d|0f 000000"  // pcm+imaadpcm+mpeg+at9+vorbis
-    );
+        ""_sv;
 
     class File : public Archived::File
     {

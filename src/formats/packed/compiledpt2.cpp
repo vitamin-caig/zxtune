@@ -61,7 +61,7 @@ namespace Formats::Packed
 
     const Char DESCRIPTION[] = "Pro Tracker v2.40 Phantom Family player";
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "21??"  // ld hl,xxxx
         "1803"  // jr xx
         "c3??"  // jp xxxx
@@ -80,7 +80,7 @@ namespace Formats::Packed
         "22??"  // ld (xxxx),hl
         "19"    // add hl,de
         "19"    // add hl,de
-    );
+        ""_sv;
 
     uint_t GetPatternsCount(const RawHeader& hdr, std::size_t maxSize)
     {

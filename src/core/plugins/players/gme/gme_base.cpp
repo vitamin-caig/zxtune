@@ -284,7 +284,7 @@ namespace Module::GME
     return Dump(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size());
   }
 
-  using PlatformDetector = String (*)(Binary::View);
+  using PlatformDetector = StringView (*)(Binary::View);
 
   struct PluginDescription
   {
@@ -453,7 +453,7 @@ namespace Module::GME
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
         &Create< ::Nsf_Emu>,
         &DefaultDataCreator,
-        [](Binary::View) -> String {return Platforms::NINTENDO_ENTERTAINMENT_SYSTEM;}
+        [](Binary::View) -> StringView {return Platforms::NINTENDO_ENTERTAINMENT_SYSTEM;}
       },
       &Formats::Multitrack::CreateNSFDecoder,
       &Formats::Chiptune::CreateNSFDecoder,
@@ -465,7 +465,7 @@ namespace Module::GME
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
         &Create< ::Nsfe_Emu>,
         &DefaultDataCreator,
-        [](Binary::View) -> String {return Platforms::NINTENDO_ENTERTAINMENT_SYSTEM;}
+        [](Binary::View) -> StringView {return Platforms::NINTENDO_ENTERTAINMENT_SYSTEM;}
       },
       &Formats::Multitrack::CreateNSFEDecoder,
       &Formats::Chiptune::CreateNSFEDecoder,
@@ -477,7 +477,7 @@ namespace Module::GME
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::LR35902,
         &Create< ::Gbs_Emu>,
         &DefaultDataCreator,
-        [](Binary::View) -> String {return Platforms::GAME_BOY;}
+        [](Binary::View) -> StringView {return Platforms::GAME_BOY;}
       },
       &Formats::Multitrack::CreateGBSDecoder,
       &Formats::Chiptune::CreateGBSDecoder,
@@ -501,7 +501,7 @@ namespace Module::GME
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::HUC6270,
         &Create< ::Hes_Emu>,
         &DefaultDataCreator,
-        [](Binary::View) -> String {return Platforms::PC_ENGINE;}
+        [](Binary::View) -> StringView {return Platforms::PC_ENGINE;}
       },
       &Formats::Multitrack::CreateHESDecoder,
       &Formats::Chiptune::CreateHESDecoder
@@ -527,7 +527,7 @@ namespace Module::GME
         ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI,
         &Create< ::Gym_Emu>,
         &GYM::CreateData,
-        [](Binary::View) -> String {return Platforms::SEGA_GENESIS;}
+        [](Binary::View) -> StringView {return Platforms::SEGA_GENESIS;}
       },
       &Formats::Chiptune::CreateGYMDecoder
     },

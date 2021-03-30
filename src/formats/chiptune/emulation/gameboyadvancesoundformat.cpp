@@ -40,9 +40,10 @@ namespace Formats::Chiptune
       target.SetRom(addr, stream.ReadData(std::min(size, avail)));
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'P'S'F"
-        "22");
+        "22"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

@@ -202,7 +202,7 @@ namespace Formats::Chiptune
       void AddBlock(uint16_t /*addr*/, Binary::View /*data*/) override {}
     };
 
-    const StringView HEADER_FORMAT(
+    const auto HEADER_FORMAT =
         "'Z'X'A'Y"  // uint8_t Signature[4];
         "'E'M'U'L"  // only one type is supported now
         "??"        // versions
@@ -211,7 +211,7 @@ namespace Formats::Chiptune
         "??"        // misc offset
         "00"        // first module
         "00"        // last module
-    );
+        ""_sv;
 
     const Char DESCRIPTION[] = "AY/EMUL";
 

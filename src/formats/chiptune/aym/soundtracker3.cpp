@@ -709,13 +709,13 @@ namespace Formats::Chiptune
     }
 
     const Char DESCRIPTION[] = "Sound Tracker v3.x Compiled";
-    const StringView FORMAT(
+    const auto FORMAT =
         "03-0f"   // uint8_t Tempo; 1..15
         "?01-08"  // uint16_t PositionsOffset;
         "?01-08"  // uint16_t SamplesOffset;
         "?01-0a"  // uint16_t OrnamentsOffset;
         "?02-16"  // uint16_t PatternsOffset;
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::SoundTracker::Decoder
     {

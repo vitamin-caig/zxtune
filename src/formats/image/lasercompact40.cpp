@@ -23,7 +23,7 @@ namespace Formats::Image
   namespace LaserCompact40
   {
     const Char DESCRIPTION[] = "LaserCompact 4.0";
-    const StringView DEPACKER_PATTERN(
+    const auto DEPACKER_PATTERN =
         "0ef9"    // ld c,#f9
         "0d"      // dec c
         "cdc61f"  // call #1fc6
@@ -39,7 +39,7 @@ namespace Formats::Image
         "47"      // ld b,a
         "7e"      // ld a,(hl)
         "3045"    // jr nc,xx
-    );
+        ""_sv;
 
     /*
       @1fc6 48ROM

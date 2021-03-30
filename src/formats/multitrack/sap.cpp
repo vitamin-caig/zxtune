@@ -33,20 +33,21 @@ namespace Formats::Multitrack
   {
     // const std::size_t MAX_SIZE = 1048576;
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'S'A'P"
         "0d0a"
         "'A|'N|'D|'S|'D|'S|'N|'T|'F|'I|'M|'P|'C|'T"
         "'U|'A|'A|'O|'E|'T|'T|'Y|'A|'N|'U|'L|'O|'I"
         "'T|'M|'T|'N|'F|'E|'S|'P|'S|'I|'S|'A|'V|'M"
         "'H|'E|'E|'G|'S|'R|'C|'E|'T|'T|'I|'Y|'O|'E"
-        "'O|' |' |'S|'O|'E|' |' |'P|' |'C|'E|'X|' ";
+        "'O|' |' |'S|'O|'E|' |' |'P|' |'C|'E|'X|' "
+        ""_sv;
 
     typedef std::array<uint8_t, 5> TextSignatureType;
 
     const TextSignatureType TEXT_SIGNATURE = {{'S', 'A', 'P', 0x0d, 0x0a}};
-    const StringView SONGS = "SONGS";
-    const StringView DEFSONG = "DEFSONG";
+    const auto SONGS = "SONGS"_sv;
+    const auto DEFSONG = "DEFSONG"_sv;
 
     typedef std::array<uint8_t, 2> BinarySignatureType;
     const BinarySignatureType BINARY_SIGNATURE = {{0xff, 0xff}};

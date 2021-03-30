@@ -1018,7 +1018,7 @@ namespace Formats::Chiptune
 
     const auto DESCRIPTION = PROGRAM;
     // Statistic-based format description (~55 modules)
-    const StringView FORMAT(
+    const auto FORMAT =
         "(08-88)&%x0xxxxxx 00"  // uint16_t PositionsOffset;
         // 0x9d + 2 * MAX_POSITIONS_COUNT(0x64) = 0x165
         "? 00-01"  // uint16_t SamplesOffset;
@@ -1026,7 +1026,7 @@ namespace Formats::Chiptune
         "? 00-04"  // uint16_t OrnamentsOffset;
         // 0x79b + MAX_ORNAMENTS_COUNT(0x20) * (2 + 2 + MAX_ORNAMENT_SIZE(0x22)) = 0xc1b
         "? 00-05"  // uint16_t PatternsOffset;
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

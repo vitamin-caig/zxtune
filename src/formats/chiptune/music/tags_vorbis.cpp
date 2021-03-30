@@ -61,15 +61,15 @@ namespace Formats::Chiptune
       const auto name = field.substr(0, eqPos);
       const auto value = field.substr(eqPos + 1);
       Strings::Array strings;
-      if (CompareTag(name, "TITLE"))
+      if (CompareTag(name, "TITLE"_sv))
       {
         target.SetTitle(Decode(value));
       }
-      else if (CompareTag(name, "ARTIST") || CompareTag(name, "PERFORMER"))
+      else if (CompareTag(name, "ARTIST"_sv) || CompareTag(name, "PERFORMER"_sv))
       {
         target.SetAuthor(Decode(value));
       }
-      else if (CompareTag(name, "COPYRIGHT") || CompareTag(name, "DESCRIPTION"))
+      else if (CompareTag(name, "COPYRIGHT"_sv) || CompareTag(name, "DESCRIPTION"_sv))
       {
         strings.emplace_back(Decode(value));
       }

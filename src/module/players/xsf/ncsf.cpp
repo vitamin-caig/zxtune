@@ -263,7 +263,7 @@ namespace Module::NCSF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_DS);
+      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_DS.to_string());
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

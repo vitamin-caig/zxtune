@@ -490,7 +490,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         // std::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
         "(%xxxxxxx0{16}){11}"
         // std::array<PDTOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
@@ -527,7 +527,7 @@ namespace Formats::Chiptune
         uint8_t FreeRAM;
         uint8_t Padding3[5];
         */
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

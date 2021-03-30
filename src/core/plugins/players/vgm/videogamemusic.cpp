@@ -88,7 +88,7 @@ namespace Module
 
     struct PlatformTrait
     {
-      const Char* Id;
+      const StringView Id;
 
       struct DeviceTrait
       {
@@ -331,21 +331,21 @@ namespace Module
         return Value == 0;
       }
 
-      const Char* FindSingleName() const
+      const StringView FindSingleName() const
       {
         uint_t mask = 1;
         for (const auto& plat : PLATFORMS)
         {
           if (Value & mask)
           {
-            return Value == mask ? plat.Id : nullptr;
+            return Value == mask ? plat.Id : StringView();
           }
           mask <<= 1;
         }
-        return nullptr;
+        return {};
       }
 
-      String GetBaseName() const
+      StringView GetBaseName() const
       {
         uint_t mask = 1;
         for (const auto& plat : PLATFORMS)
@@ -356,7 +356,7 @@ namespace Module
           }
           mask <<= 1;
         }
-        return String();
+        return {};
       }
 
       static PlatformsSet All()
@@ -428,16 +428,18 @@ namespace Module
         }
       }
 
-      String GetResult()
+      StringView GetResult()
       {
-        if (const auto fromTags = GetFromTags())
+        const auto fromTags = GetFromTags();
+        if (fromTags.size())
         {
           return fromTags;
         }
         else
         {
           const auto byClocks = GuessByClocks();
-          if (const auto singleName = byClocks.FindSingleName())
+          const auto singleName = byClocks.FindSingleName();
+          if (singleName.size())
           {
             return singleName;
           }
@@ -448,7 +450,8 @@ namespace Module
             {
               return byClocks.GetBaseName();
             }
-            else if (const auto singleName = byCommands.FindSingleName())
+            const auto singleName = byCommands.FindSingleName();
+            if (singleName.size())
             {
               return singleName;
             }
@@ -469,11 +472,11 @@ namespace Module
       }
 
     private:
-      const Char* GetFromTags()
+      StringView GetFromTags()
       {
         if (!TagsOffset)
         {
-          return nullptr;
+          return {};
         }
         try
         {
@@ -489,7 +492,7 @@ namespace Module
         }
         catch (const std::exception&)
         {}
-        return nullptr;
+        return {};
       }
 
       uint8_t ReadByte()
@@ -512,26 +515,26 @@ namespace Module
         return basic_string_view<uint16_t>(begin, end);
       }
 
-      static const Char* ConvertPlatform(const String& str)
+      static StringView ConvertPlatform(StringView str)
       {
         struct PlatformName
         {
-          const String Name;
-          const Char* Id;
+          const StringView Name;
+          const StringView Id;
         };
 
         // clang-format off
         static const PlatformName PLATFORMS[] =
         {
-          {"Sega Master System", Platforms::SEGA_MASTER_SYSTEM},
-          {"Sega Game Gear", Platforms::GAME_GEAR},
-          {"Sega Mega Drive", Platforms::SEGA_GENESIS},
-          {"Sega Genesis", Platforms::SEGA_GENESIS},
-          {"Sega Game 1000", Platforms::SG_1000},
-          {"Sega Computer 3000", Platforms::SEGA_MASTER_SYSTEM},
-          {"Sega System 16", Platforms::SEGA_MASTER_SYSTEM},
-          {"Coleco", Platforms::COLECOVISION},
-          {"BBC M", Platforms::BBC_MICRO},
+          {"Sega Master System"_sv, Platforms::SEGA_MASTER_SYSTEM},
+          {"Sega Game Gear"_sv, Platforms::GAME_GEAR},
+          {"Sega Mega Drive"_sv, Platforms::SEGA_GENESIS},
+          {"Sega Genesis"_sv, Platforms::SEGA_GENESIS},
+          {"Sega Game 1000"_sv, Platforms::SG_1000},
+          {"Sega Computer 3000"_sv, Platforms::SEGA_MASTER_SYSTEM},
+          {"Sega System 16"_sv, Platforms::SEGA_MASTER_SYSTEM},
+          {"Coleco"_sv, Platforms::COLECOVISION},
+          {"BBC M"_sv, Platforms::BBC_MICRO},
         };
         // clang-format on
         for (const auto& pair : PLATFORMS)
@@ -542,7 +545,7 @@ namespace Module
             return pair.Id;
           }
         }
-        return nullptr;
+        return {};
       }
 
       PlatformsSet GuessByClocks()
@@ -954,7 +957,7 @@ namespace Module
       std::map<uint_t, DeviceTraits> Traits;
     };
 
-    String DetectPlatform(Binary::View data)
+    StringView DetectPlatform(Binary::View data)
     {
       PlatformDetector detector(data);
       return detector.GetResult();

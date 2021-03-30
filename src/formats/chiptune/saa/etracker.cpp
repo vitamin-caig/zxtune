@@ -903,13 +903,14 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "(?00-7f)"
         "(?00-7f)"
         "(?00-7f)"
         "(?00-7f)"
         "(?00-7f)"
-        "'E'T'r'a'c'k'e'r' '('C')' 'B'Y' 'E'S'I'.");
+        "'E'T'r'a'c'k'e'r' '('C')' 'B'Y' 'E'S'I'."
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {

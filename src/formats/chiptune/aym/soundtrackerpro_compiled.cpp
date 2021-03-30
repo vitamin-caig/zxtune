@@ -869,13 +869,13 @@ namespace Formats::Chiptune
     }
 
     const Char DESCRIPTION[] = "Sound Tracker Pro Compiled";
-    const StringView FORMAT(
+    const StringView FORMAT =
         "03-0f"   // uint8_t Tempo; 3..15
         "?00-26"  // uint16_t PositionsOffset; 0..MAX_MODULE_SIZE
         "?00-27"  // uint16_t PatternsOffset; 0..MAX_MODULE_SIZE
         "?00-27"  // uint16_t OrnamentsOffset; 0..MAX_MODULE_SIZE
         "?00-27"  // uint16_t SamplesOffset; 0..MAX_MODULE_SIZE
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::SoundTrackerPro::Decoder
     {

@@ -62,13 +62,13 @@ namespace Formats::Multitrack
 
     const std::size_t MAX_SIZE = 1048576;
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'G'B'S"
         "01"     // version
         "01-ff"  // 1 song minimum
         "01-ff"  // first song
         // do not pay attention to addresses
-        ;
+        ""_sv;
 
     const std::size_t MIN_SIZE = 256;
 

@@ -33,7 +33,7 @@ namespace Formats::Packed
     const Char DESCRIPTION[] = "MegaLZ";
     // assume that packed data are located right after depacked
     // prologue is ignored due to standard absense
-    const StringView DEPACKER_PATTERN =
+    const auto DEPACKER_PATTERN =
         "3e80"    // ld a,#80
         "08"      // ex af,af'
         "eda0"    // ldi
@@ -55,7 +55,7 @@ namespace Formats::Packed
         "0c"      // inc c
         "280f"    // jr z,xxxx
         "013f03"  // ld bc,#033f
-        ;
+        ""_sv;
 
     class Bitstream : private ByteStream
     {

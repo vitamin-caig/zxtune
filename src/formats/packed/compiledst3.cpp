@@ -72,7 +72,7 @@ namespace Formats::Packed
 
     const Char DESCRIPTION[] = "Sound Tracker v3.x Compiled player";
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "21??"  // ld hl,ModuleAddr
         "c3??"  // jp xxxx
         "c3??"  // jp xxxx
@@ -86,7 +86,7 @@ namespace Formats::Packed
         "22??"  // ld (xxxx),hl
         "22??"  // ld (xxxx),hl
         "23"    // inc hl
-    );
+        ""_sv;
 
     bool IsInfoEmpty(Binary::View info)
     {

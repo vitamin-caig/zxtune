@@ -56,10 +56,10 @@ namespace Formats::Archived
     const std::size_t MIN_SIZE = sizeof(Header);
 
     const Char DESCRIPTION[] = "7zip";
-    const StringView FORMAT(
+    const auto FORMAT =
         "'7'z bc af 27 1c"  // signature
         "00 ?"              // version
-    );
+        ""_sv;
 
     class LzmaContext : private ISzAlloc
     {

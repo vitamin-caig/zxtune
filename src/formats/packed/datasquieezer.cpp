@@ -48,7 +48,7 @@ namespace Formats::Packed
        %00,offset=0x21+b9
        backcopy len bytes from offset,continue
     */
-    const StringView DEPACKER_PATTERN(
+    const auto DEPACKER_PATTERN =
         "11??"    // ld de,xxxx ;buffer
         "21??"    // ld hl,xxxx ;addr+start depacker
         "d5"      // push de
@@ -155,7 +155,7 @@ namespace Formats::Packed
                       "d9"        // exx
                       "c9"        // ret
                   */
-    );
+        ""_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)

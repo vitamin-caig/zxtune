@@ -67,7 +67,7 @@ namespace Formats::Packed
 
     const Char DESCRIPTION[] = "Pro Tracker Utility v1.3 player";
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "21??"    // ld hl,xxxx +0x665
         "35"      // dec (hl)
         "c2??"    // jp nz,xxxx
@@ -96,7 +96,7 @@ namespace Formats::Packed
         "d1"      // pop de
         "e1"      // pop hl
         "22??"    // ld (xxxx),hl
-    );
+        ""_sv;
 
     uint_t GetPatternsCount(const RawHeader& hdr, std::size_t maxSize)
     {

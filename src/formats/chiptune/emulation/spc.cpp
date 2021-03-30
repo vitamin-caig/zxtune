@@ -39,21 +39,21 @@ namespace Formats::Chiptune
     const SignatureType SIGNATURE = {{'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ', 'S', 'o',
                                       'u', 'n', 'd', ' ', 'F', 'i', 'l', 'e', ' ', 'D', 'a', 't', 'a', ' '}};
 
-    inline String GetString(const char* begin, const char* end)
+    inline StringView GetTrimmed(const char* begin, const char* end)
     {
-      return String(begin, std::find(begin, end, '\0'));
+      return StringView(begin, std::find(begin, end, '\0'));
     }
 
     template<std::size_t D>
-    inline String GetString(const char (&str)[D])
+    inline StringView GetTrimmed(const std::array<char, D>& str)
     {
-      return GetString(str, str + D);
+      return GetTrimmed(str.begin(), str.end());
     }
 
     template<std::size_t D>
-    inline StringView GetStringView(const char (&str)[D])
+    inline StringView GetRaw(const std::array<char, D>& str)
     {
-      return StringView(str, str + D);
+      return {str};
     }
 
     inline bool IsValidString(StringView str)
@@ -90,7 +90,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    inline uint_t ToInt(const String& str)
+    inline uint_t ToInt(StringView str)
     {
       if (str.empty())
       {
@@ -98,7 +98,7 @@ namespace Formats::Chiptune
       }
       else if (IsValidDigitsString(str))
       {
-        return std::stoul(str);
+        return std::stoul(str.to_string());
       }
       else
       {
@@ -128,21 +128,21 @@ namespace Formats::Chiptune
     PACK_PRE struct ID666TextTag
     {
       // +0x00
-      char Song[32];
+      std::array<char, 32> Song;
       // +0x20
-      char Game[32];
+      std::array<char, 32> Game;
       // +0x40
-      char Dumper[16];
+      std::array<char, 16> Dumper;
       // +0x50
-      char Comments[32];
+      std::array<char, 32> Comments;
       // +0x70
-      char DumpDate[11];  // Almost arbitrary format
+      std::array<char, 11> DumpDate;  // Almost arbitrary format
       // +0x7b
-      char FadeTimeSec[3];
+      std::array<char, 3> FadeTimeSec;
       // +0x7e
-      char FadeDurationMs[5];
+      std::array<char, 5> FadeDurationMs;
       // +0x83
-      char Artist[32];
+      std::array<char, 32> Artist;
       // +0xa3
       uint8_t DisableDefaultChannel;  // 1-do
       uint8_t Emulator;
@@ -150,26 +150,26 @@ namespace Formats::Chiptune
 
       bool IsValid() const
       {
-        return IsValidString(GetStringView(DumpDate)) && IsValidDigitsString(GetStringView(FadeTimeSec))
-               && IsValidDigitsString(GetStringView(FadeDurationMs));
+        return IsValidString(GetRaw(DumpDate)) && IsValidDigitsString(GetRaw(FadeTimeSec))
+               && IsValidDigitsString(GetRaw(FadeDurationMs));
       }
 
       String GetDumpDate() const
       {
-        return GetString(DumpDate);
+        return GetTrimmed(DumpDate).to_string();
       }
 
       Time::Seconds GetFadeTime() const
       {
-        const auto& str = GetString(FadeTimeSec);
-        const uint_t val = ToInt(str);
+        const auto str = GetTrimmed(FadeTimeSec);
+        const auto val = ToInt(str);
         return Time::Seconds(val);
       }
 
       Time::Milliseconds GetFadeDuration() const
       {
-        const auto& str = GetString(FadeDurationMs);
-        const uint_t val = ToInt(str);
+        const auto str = GetTrimmed(FadeDurationMs);
+        const auto val = ToInt(str);
         return Time::Milliseconds(val);
       }
     } PACK_POST;
@@ -202,13 +202,13 @@ namespace Formats::Chiptune
     PACK_PRE struct ID666BinTag
     {
       // +0x00
-      char Song[32];
+      std::array<char, 32> Song;
       // +0x20
-      char Game[32];
+      std::array<char, 32> Game;
       // +0x40
-      char Dumper[16];
+      std::array<char, 16> Dumper;
       // +0x50
-      char Comments[32];
+      std::array<char, 32> Comments;
       // +0x70
       BinaryDate DumpDate;
       // +0x74
@@ -218,7 +218,7 @@ namespace Formats::Chiptune
       // +0x7e
       uint32_t FadeDurationMs;
       // +0x82
-      char Artist[32];
+      std::array<char, 32> Artist;
       uint8_t DisableDefaultChannel;  // 1-do
       uint8_t Emulator;
       uint8_t Reserved[46];
@@ -412,7 +412,7 @@ namespace Formats::Chiptune
     };
 
     // used nes_spc library doesn't support another versions
-    const StringView FORMAT(
+    const auto FORMAT =
         "'S'N'E'S'-'S'P'C'7'0'0' 'S'o'u'n'd' 'F'i'l'e' 'D'a't'a' "
         // actual|old
         "'v     |'0"
@@ -424,7 +424,7 @@ namespace Formats::Chiptune
         "1a     |00"
         "1a|1b  |00"  // has ID666
         "0a-1e  |00"  // version minor
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -460,25 +460,25 @@ namespace Formats::Chiptune
 
     struct Tag
     {
-      String Song;
-      String Game;
-      String Dumper;
-      String Comments;
+      StringView Song;
+      StringView Game;
+      StringView Dumper;
+      StringView Comments;
       String DumpDate;
       Time::Seconds FadeTime;
       Time::Milliseconds FadeDuration;
-      String Artist;
+      StringView Artist;
 
       template<class T>
       explicit Tag(const T& tag)
-        : Song(GetString(tag.Song))
-        , Game(GetString(tag.Game))
-        , Dumper(GetString(tag.Dumper))
-        , Comments(GetString(tag.Comments))
+        : Song(GetTrimmed(tag.Song))
+        , Game(GetTrimmed(tag.Game))
+        , Dumper(GetTrimmed(tag.Dumper))
+        , Comments(GetTrimmed(tag.Comments))
         , DumpDate(tag.GetDumpDate())
         , FadeTime(tag.GetFadeTime())
         , FadeDuration(tag.GetFadeDuration())
-        , Artist(GetString(tag.Artist))
+        , Artist(GetTrimmed(tag.Artist))
       {}
 
       uint_t GetScore() const
@@ -557,14 +557,14 @@ namespace Formats::Chiptune
 
       static void ParseID666(Tag& tag, Builder& target)
       {
-        target.SetTitle(std::move(tag.Song));
-        target.SetGame(std::move(tag.Game));
-        target.SetDumper(std::move(tag.Dumper));
-        target.SetComment(std::move(tag.Comments));
+        target.SetTitle(tag.Song.to_string());
+        target.SetGame(tag.Game.to_string());
+        target.SetDumper(tag.Dumper.to_string());
+        target.SetComment(tag.Comments.to_string());
         target.SetDumpDate(std::move(tag.DumpDate));
         target.SetLoop(tag.FadeTime);
         target.SetFade(tag.FadeDuration);
-        target.SetArtist(std::move(tag.Artist));
+        target.SetArtist(tag.Artist.to_string());
       }
 
       static void ParseSubchunks(Binary::View data, Builder& target)

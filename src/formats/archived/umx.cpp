@@ -33,7 +33,7 @@ namespace Formats::Archived
     const Debug::Stream Dbg("Formats::Archived::UMX");
 
     const Char DESCRIPTION[] = "UMX (Unreal Music eXperience)";
-    const StringView FORMAT(
+    const auto FORMAT =
         "c1832a9e"     // signature
         "? 00"         // version
         "??"           // license mode
@@ -41,7 +41,7 @@ namespace Formats::Archived
         "??0000 ????"  // names
         "??0000 ????"  // exports
         "??0000 ????"  // imports
-    );
+        ""_sv;
 
     typedef std::array<uint8_t, 4> SignatureType;
 
