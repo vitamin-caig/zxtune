@@ -19,6 +19,8 @@
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
+// std includes
+#include <algorithm>
 
 namespace Module::TFC
 {

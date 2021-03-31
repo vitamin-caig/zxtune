@@ -82,7 +82,7 @@ namespace Formats::Chiptune
         case 0x54585858:  //'TXXX'
         {
           // http://id3.org/id3v2.3.0#User_defined_text_information_frame
-          const auto zeroPos = encodedString.find(0);
+          const auto zeroPos = encodedString.find('\x00');
           Strings::Array strings;
           if (zeroPos != StringView::npos)
           {
