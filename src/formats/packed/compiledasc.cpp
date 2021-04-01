@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
+#include <static_string.h>
 // library includes
 #include <binary/format_factories.h>
 #include <debug/log.h>
@@ -112,82 +113,86 @@ namespace Formats::Packed
     {
       const std::size_t MinSize;
       const Char* Description;
-      const String Format;
+      const StringView Format;
       const CreatePlayerFunc CreatePlayer;
       const ParseFunc Parse;
       const InsertMetaInfoFunc InsertMetaInformation;
     };
 
-    const String ID_FORMAT =
+    constexpr auto ID_FORMAT =
         "'A'S'M' 'C'O'M'P'I'L'A'T'I'O'N' 'O'F' "
         "?{20}"  // title
         "?{4}"   // any text
         "?{20}"  // author
-        ;
+        ""_ss;
 
-    const String BASE_FORMAT =
+    constexpr auto BASE_FORMAT =
         "?{11}"  // unknown
         "c3??"   // init
         "c3??"   // play
-        "c3??"   // silent
+        "c3??"_ss   // silent
         + ID_FORMAT +
         //+0x53    init
         "af"  // xor a
-        "?{28}";
+        "?{28}"_ss;
 
+    constexpr auto VERSION0_FORMAT = BASE_FORMAT +
+                                     //+0x70
+                                     "11??"  // ld de,ModuleAddr
+                                     "42"    // ld b,d
+                                     "4b"    // ld c,e
+                                     "1a"    // ld a,(de)
+                                     "13"    // inc de
+                                     "32??"  // ld (xxx),a
+                                     "cd??"  // call xxxx
+        ""_ss;
     const VersionTraits VERSION0 = {
         sizeof(PlayerVer0),
         "ASC Sound Master v0.x player",
-        BASE_FORMAT +
-            //+0x70
-            "11??"  // ld de,ModuleAddr
-            "42"    // ld b,d
-            "4b"    // ld c,e
-            "1a"    // ld a,(de)
-            "13"    // inc de
-            "32??"  // ld (xxx),a
-            "cd??"  // call xxxx
-        ,
+        VERSION0_FORMAT,
         &PlayerTraits::Create<PlayerVer0>,
         &Formats::Chiptune::ASCSoundMaster::Ver0::Parse,
         &Formats::Chiptune::ASCSoundMaster::Ver0::InsertMetaInformation,
     };
 
+    constexpr auto VERSION1_FORMAT = BASE_FORMAT +
+                                     //+0x70
+                                     "11??"  // ld de,ModuleAddr
+                                     "42"    // ld b,d
+                                     "4b"    // ld c,e
+                                     "1a"    // ld a,(de)
+                                     "13"    // inc de
+                                     "32??"  // ld (xxx),a
+                                     "1a"    // ld a,(de)
+                                     "13"    // inc de
+                                     "32??"  // ld (xxx),a
+        ""_ss;
     const VersionTraits VERSION1 = {
         sizeof(PlayerVer0),
         "ASC Sound Master v1.x player",
-        BASE_FORMAT +
-            //+0x70
-            "11??"  // ld de,ModuleAddr
-            "42"    // ld b,d
-            "4b"    // ld c,e
-            "1a"    // ld a,(de)
-            "13"    // inc de
-            "32??"  // ld (xxx),a
-            "1a"    // ld a,(de)
-            "13"    // inc de
-            "32??"  // ld (xxx),a
-        ,
+        VERSION1_FORMAT,
         &PlayerTraits::Create<PlayerVer0>,
         &Formats::Chiptune::ASCSoundMaster::Ver1::Parse,
         &Formats::Chiptune::ASCSoundMaster::Ver1::InsertMetaInformation,
     };
 
-    const VersionTraits VERSION2 = {
-        sizeof(PlayerVer2),
-        "ASC Sound Master v2.x player",
+    constexpr auto VERSION2_FORMAT =
         "?{11}"  // padding
         "184600"
         "c3??"
-        "c3??"
-            + ID_FORMAT +
-            //+0x53 init
-            "cd??"
-            "3b3b"
-            "?{35}"
-            //+123
-            "11??"  // data offset
-        ,
+        "c3??"_ss
+        + ID_FORMAT +
+        //+0x53 init
+        "cd??"
+        "3b3b"
+        "?{35}"
+        //+123
+        "11??"  // data offset
+        ""_ss;
+    const VersionTraits VERSION2 = {
+        sizeof(PlayerVer2),
+        "ASC Sound Master v2.x player",
+        VERSION2_FORMAT,
         &PlayerTraits::Create<PlayerVer2>,
         &Formats::Chiptune::ASCSoundMaster::Ver1::Parse,
         &Formats::Chiptune::ASCSoundMaster::Ver1::InsertMetaInformation,
