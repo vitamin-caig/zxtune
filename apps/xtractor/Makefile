@@ -5,8 +5,6 @@ source_dirs := .
 source_files.windows := xtractor.rc
 source_files.mingw := $(source_files.windows)
 
-text_files := text/text
-
 libraries.common = analysis async \
                    binary binary_compression binary_format \
                    debug \

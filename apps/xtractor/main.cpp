@@ -42,8 +42,6 @@
 #include <boost/algorithm/string/join.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-// text includes
-#include "text/text.h"
 
 namespace
 {
@@ -404,7 +402,7 @@ namespace
 
     void Flush() override
     {
-      std::cout << Strings::Format(Text::STATISTIC_OUTPUT, Total, TotalSize) << std::endl;
+      std::cout << Strings::Format("%1% files output. Total size is %2% bytes", Total, TotalSize) << std::endl;
     }
 
   private:
@@ -658,6 +656,15 @@ namespace
 
 namespace
 {
+  const auto TEMPLATE_FIELD_FILENAME = "Filename"_sv;
+  const auto TEMPLATE_FIELD_PATH = "Path"_sv;
+  const auto TEMPLATE_FIELD_FLATPATH = "FlatPath"_sv;
+  const auto TEMPLATE_FIELD_SUBPATH = "Subpath"_sv;
+  const auto TEMPLATE_FIELD_FLATSUBPATH = "FlatSubpath"_sv;
+
+  const auto DEFAULT_TARGET_NAME_TEMPLATE =
+      Strings::Format("XTractor/[%1%]/[%2%]", TEMPLATE_FIELD_FILENAME, TEMPLATE_FIELD_SUBPATH);
+
   typedef DataReceiver<String> StringsReceiver;
 
   typedef DataTransceiver<String, Analysis::Node::Ptr> OpenPoint;
@@ -708,22 +715,23 @@ namespace
       : Node(std::move(node))
     {}
 
-    String GetFieldValue(const String& fieldName) const override
+    String GetFieldValue(const String& name) const override
     {
       static const Char SUBPATH_DELIMITER[] = {'/', 0};
       static const Char FLATPATH_DELIMITER[] = {'_', 0};
 
-      if (fieldName == Text::TEMPLATE_FIELD_FILENAME)
+      const StringView fieldName(name);
+      if (fieldName == TEMPLATE_FIELD_FILENAME)
       {
         const IO::Identifier& id = GetRootIdentifier();
         return id.Filename();
       }
-      else if (fieldName == Text::TEMPLATE_FIELD_PATH)
+      else if (fieldName == TEMPLATE_FIELD_PATH)
       {
         const IO::Identifier& id = GetRootIdentifier();
         return id.Path();
       }
-      else if (fieldName == Text::TEMPLATE_FIELD_FLATPATH)
+      else if (fieldName == TEMPLATE_FIELD_FLATPATH)
       {
         // TODO: use IO::FilenameTemplate
         const IO::Identifier& id = GetRootIdentifier();
@@ -739,12 +747,12 @@ namespace
         }
         return boost::algorithm::join(components, FLATPATH_DELIMITER);
       }
-      else if (fieldName == Text::TEMPLATE_FIELD_SUBPATH)
+      else if (fieldName == TEMPLATE_FIELD_SUBPATH)
       {
         const Strings::Array& subPath = GetSubpath();
         return boost::algorithm::join(subPath, SUBPATH_DELIMITER);
       }
-      else if (fieldName == Text::TEMPLATE_FIELD_FLATSUBPATH)
+      else if (fieldName == TEMPLATE_FIELD_FLATSUBPATH)
       {
         const Strings::Array& subPath = GetSubpath();
         return boost::algorithm::join(subPath, FLATPATH_DELIMITER);
@@ -1011,7 +1019,7 @@ namespace
     Options()
       : AnalysisThreadsValue(1)
       , AnalysisDataQueueSizeValue(10)
-      , TargetNameTemplateValue(Text::DEFAULT_TARGET_NAME_TEMPLATE)
+      , TargetNameTemplateValue(DEFAULT_TARGET_NAME_TEMPLATE)
       , IgnoreEmptyDataValue(false)
       , MinDataSizeValue(0)
       , FormatFilterValue()
@@ -1019,20 +1027,39 @@ namespace
       , SaveDataQueueSizeValue(500)
       , StatisticOutputValue(false)
       // cmdline
-      , OptionsDescription(Text::TARGET_SECTION)
+      , OptionsDescription("Target options")
     {
       using namespace boost::program_options;
-      OptionsDescription.add_options()(Text::ANALYSIS_THREADS_KEY, value<std::size_t>(&AnalysisThreadsValue),
-                                       Text::ANALYSIS_THREADS_DESC)(Text::ANALYSIS_QUEUE_SIZE_KEY,
-                                                                    value<std::size_t>(&AnalysisDataQueueSizeValue),
-                                                                    Text::ANALYSIS_QUEUE_SIZE_DESC)(
-          Text::TARGET_NAME_TEMPLATE_KEY, value<String>(&TargetNameTemplateValue), Text::TARGET_NAME_TEMPLATE_DESC)(
-          Text::IGNORE_EMPTY_KEY, bool_switch(&IgnoreEmptyDataValue), Text::IGNORE_EMPTY_DESC)(
-          Text::MINIMAL_SIZE_KEY, value<std::size_t>(&MinDataSizeValue), Text::MINIMAL_SIZE_DESC)(
-          Text::FORMAT_FILTER_KEY, value<std::string>(&FormatFilterValue), Text::FORMAT_FILTER_DESC)(
-          Text::SAVE_THREADS_KEY, value<std::size_t>(&SaveThreadsCountValue), Text::SAVE_THREADS_DESC)(
-          Text::SAVE_QUEUE_SIZE_KEY, value<std::size_t>(&SaveDataQueueSizeValue), Text::SAVE_QUEUE_SIZE_DESC)(
-          Text::OUTPUT_STATISTIC_KEY, bool_switch(&StatisticOutputValue), Text::OUTPUT_STATISTIC_DESC);
+      auto opt = OptionsDescription.add_options();
+      opt("analysis-threads", value<std::size_t>(&AnalysisThreadsValue),
+          Strings::Format("threads count for parallel analysis. 0 to disable paralleling. Default is %1%",
+                          AnalysisThreadsValue)
+              .c_str());
+      opt("analysis-queue-size", value<std::size_t>(&AnalysisDataQueueSizeValue),
+          Strings::Format("queue size for parallel analysis. Valuable only when analysis threads count is more than 0. "
+                          "Default is %1%",
+                          AnalysisDataQueueSizeValue)
+              .c_str());
+      opt("target-name-template", value<String>(&TargetNameTemplateValue),
+          Strings::Format("target name template. Default is %s. "
+                          "Applicable fields: [%s],[%s],[%s],[%s],[%s]",
+                          DEFAULT_TARGET_NAME_TEMPLATE, TEMPLATE_FIELD_FILENAME, TEMPLATE_FIELD_PATH,
+                          TEMPLATE_FIELD_FLATPATH, TEMPLATE_FIELD_SUBPATH, TEMPLATE_FIELD_FLATSUBPATH)
+              .c_str());
+      opt("ignore-empty", bool_switch(&IgnoreEmptyDataValue), "do not store files filled with single byte");
+      opt("minimal-size", value<std::size_t>(&MinDataSizeValue),
+          Strings::Format("do not store files with lesser size. Default is %1%", MinDataSizeValue).c_str());
+      opt("format", value<std::string>(&FormatFilterValue), "specify fuzzy data format to save");
+      opt("save-threads", value<std::size_t>(&SaveThreadsCountValue),
+          Strings::Format("threads count for parallel data saving. 0 to disable paralleling. Default is %1%",
+                          SaveThreadsCountValue)
+              .c_str());
+      opt("save-queue-size", value<std::size_t>(&SaveDataQueueSizeValue),
+          Strings::Format(
+              "queue size for parallel data saving. Valuable only when save threads is more than 0. Default is %1%",
+              SaveDataQueueSizeValue)
+              .c_str());
+      opt("statistic", bool_switch(&StatisticOutputValue), "do not save any data, just collect summary statistic");
     }
 
     std::size_t AnalysisThreads() const override
@@ -1140,12 +1167,17 @@ private:
   bool ParseCmdline(Strings::Array args, Strings::Array& paths) const
   {
     using namespace boost::program_options;
-    options_description options(Strings::Format(Text::USAGE_SECTION, args[0]));
-    options.add_options()(Text::HELP_KEY, Text::HELP_DESC)(Text::VERSION_KEY, Text::VERSION_DESC);
+    const auto helpKey = "help";
+    const auto inputKey = "input";
+    const auto versionKey = "version";
+    options_description options(Strings::Format("Usage:\n%1% [options] [--%2%] <input paths>", args[0], inputKey));
+    auto opt = options.add_options();
+    opt(helpKey, "show this message");
+    opt(versionKey, "show application version");
     options.add(Opts.GetOptionsDescription());
-    options.add_options()(Text::INPUT_KEY, value<Strings::Array>(&paths), Text::INPUT_DESC);
+    opt(inputKey, value<Strings::Array>(&paths), "source files and directories to be processed");
     positional_options_description inputPositional;
-    inputPositional.add(Text::INPUT_KEY, -1);
+    inputPositional.add(inputKey, -1);
 
     variables_map vars;
     // args should not contain program name
@@ -1153,12 +1185,12 @@ private:
     store(command_line_parser(args).options(options).positional(inputPositional).run(), vars);
     notify(vars);
 
-    if (vars.count(Text::VERSION_KEY))
+    if (vars.count(versionKey))
     {
       std::cout << Platform::Version::GetProgramVersionString() << std::endl;
       return false;
     }
-    else if (vars.count(Text::HELP_KEY) || paths.empty())
+    else if (vars.count(helpKey) || paths.empty())
     {
       std::cout << options << std::endl;
       return false;
