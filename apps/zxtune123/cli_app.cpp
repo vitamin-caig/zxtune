@@ -47,8 +47,6 @@
 #include <numeric>
 // boost includes
 #include <boost/program_options.hpp>
-// text includes
-#include "text/text.h"
 
 #define FILE_TAG 81C76E7D
 
@@ -64,9 +62,9 @@ namespace
   String GetFilenameTemplate(const Parameters::Accessor& params)
   {
     String nameTemplate;
-    if (!params.FindValue(String(Text::CONVERSION_PARAM_FILENAME), nameTemplate))
+    if (!params.FindValue(String("filename"), nameTemplate))
     {
-      throw Error(THIS_LINE, Text::CONVERT_ERROR_NO_FILENAME);
+      throw Error(THIS_LINE, "Output filename template is not specified.");
     }
     return nameTemplate;
   }
@@ -98,7 +96,7 @@ namespace
             FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
         const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
         stream->ApplyData(*data.Data);
-        Display.Message(Strings::Format(Text::CONVERT_DONE, id, filename));
+        Display.Message(Strings::Format("Converted '%1%' => '%2%'", id, filename));
       }
       catch (const Error& e)
       {
@@ -118,35 +116,35 @@ namespace
                                                                             const Parameters::Accessor& modeParams)
   {
     Parameters::IntType optimization = Module::Conversion::DEFAULT_OPTIMIZATION;
-    modeParams.FindValue(String(Text::CONVERSION_PARAM_OPTIMIZATION), optimization);
+    modeParams.FindValue(String("optimization"), optimization);
     std::unique_ptr<Module::Conversion::Parameter> param;
-    if (mode == Text::CONVERSION_MODE_PSG)
+    if (mode == "psg")
     {
       param.reset(new Module::Conversion::PSGConvertParam(optimization));
     }
-    else if (mode == Text::CONVERSION_MODE_ZX50)
+    else if (mode == "zx50")
     {
       param.reset(new Module::Conversion::ZX50ConvertParam(optimization));
     }
-    else if (mode == Text::CONVERSION_MODE_TXT)
+    else if (mode == "txt")
     {
       param.reset(new Module::Conversion::TXTConvertParam());
     }
-    else if (mode == Text::CONVERSION_MODE_DEBUGAY)
+    else if (mode == "debugay")
     {
       param.reset(new Module::Conversion::DebugAYConvertParam(optimization));
     }
-    else if (mode == Text::CONVERSION_MODE_AYDUMP)
+    else if (mode == "aydump")
     {
       param.reset(new Module::Conversion::AYDumpConvertParam(optimization));
     }
-    else if (mode == Text::CONVERSION_MODE_FYM)
+    else if (mode == "fym")
     {
       param.reset(new Module::Conversion::FYMConvertParam(optimization));
     }
     else
     {
-      throw Error(THIS_LINE, Text::CONVERT_ERROR_INVALID_MODE);
+      throw Error(THIS_LINE, "Unknown conversion mode specified.");
     }
     return param;
   }
@@ -202,7 +200,7 @@ namespace
         Parameters::StringType type;
         props->FindValue(Module::ATTR_TYPE, type);
         const String& id = GetModuleId(*props);
-        Display.Message(Strings::Format(Text::CONVERT_SKIPPED, id, type));
+        Display.Message(Strings::Format("Skipping '%1%' (type '%2%') due to convert impossibility.", id, type));
       }
     }
 
@@ -224,14 +222,13 @@ namespace
       : Pipe(HolderAndData::Receiver::CreateStub())
     {
       Parameters::StringType mode;
-      if (!params.FindValue(String(Text::CONVERSION_PARAM_MODE), mode))
+      if (!params.FindValue(String("mode"), mode))
       {
-        throw Error(THIS_LINE, Text::CONVERT_ERROR_NO_MODE);
+        throw Error(THIS_LINE, "Conversion mode is not specified.");
       }
       const HolderAndData::Receiver::Ptr saver(new SaveEndpoint(display, params));
-      const HolderAndData::Receiver::Ptr target = mode == Text::CONVERSION_MODE_RAW
-                                                      ? MakePtr<TruncateDataEndpoint>(saver)
-                                                      : MakePtr<ConvertEndpoint>(display, mode, params, saver);
+      const HolderAndData::Receiver::Ptr target =
+          mode == "raw" ? MakePtr<TruncateDataEndpoint>(saver) : MakePtr<ConvertEndpoint>(display, mode, params, saver);
       Pipe = Async::DataReceiver<HolderAndData>::Create(1, 1000, target);
     }
 
@@ -290,24 +287,29 @@ namespace
         }
         const auto real = timer.Elapsed<>();
         const auto relSpeed = total.Divide<double>(real);
-        Display.Message(Strings::Format(Text::BENCHMARK_RESULT, path, type, relSpeed, receiver.GetHash(),
-                                        receiver.GetMinSample(), receiver.GetMaxSample()));
+        Display.Message(Strings::Format("x%|3$.2f|\t(%2%)\t%1%\t[0x%4$08x]\t{%5%..%6%}", path, type, relSpeed,
+                                        receiver.GetHash(), receiver.GetMinSample(), receiver.GetMaxSample()));
       }
       catch (const std::exception& e)
       {
-        Display.Message(Strings::Format(Text::BENCHMARK_FAIL, path, type, e.what()));
+        BenchmarkFail(path, type, e.what());
       }
       catch (const Error& e)
       {
-        Display.Message(Strings::Format(Text::BENCHMARK_FAIL, path, type, e.ToString()));
+        BenchmarkFail(path, type, e.ToString());
       }
       catch (...)
       {
-        Display.Message(Strings::Format(Text::BENCHMARK_FAIL, path, type, "Unknown error"));
+        BenchmarkFail(path, type, "Unknown error");
       }
     }
 
   private:
+    void BenchmarkFail(const String& path, const String& type, std::string msg) const
+    {
+      Display.Message(Strings::Format("Fail\t(%2%)\t%1%\t[%3%]", path, type, msg));
+    }
+
     class BenchmarkSoundReceiver
     {
     public:
@@ -413,24 +415,39 @@ namespace
         using namespace boost::program_options;
 
         String configFile;
-        options_description options(Strings::Format(Text::USAGE_SECTION, args[0]));
-        options.add_options()(Text::HELP_KEY, Text::HELP_DESC)(Text::VERSION_KEY, Text::VERSION_DESC)(
-            Text::ABOUT_KEY, Text::ABOUT_DESC)(Text::CONFIG_KEY, boost::program_options::value<String>(&configFile),
-                                               Text::CONFIG_DESC)(
-            Text::CONVERT_KEY, boost::program_options::value<String>(&ConvertParams), Text::CONVERT_DESC)(
-            Text::BENCHMARK_KEY, boost::program_options::value<uint_t>(&BenchmarkIterations), Text::BENCHMARK_DESC);
-
+        options_description options(
+            Strings::Format("Usage:\n%1% <Informational keys>\n%1% <Options> <files>...\n\nKeys", args[0]));
+        const Char HELP_KEY[] = "help";
+        const Char VERSION_KEY[] = "version";
+        const Char ABOUT_KEY[] = "about";
+        const Char CONFIG_KEY[] = "config";
+        const Char CONVERT_KEY[] = "convert";
+        {
+          auto opt = options.add_options();
+          opt(HELP_KEY, "show this message");
+          opt(VERSION_KEY, "show version");
+          opt(ABOUT_KEY, "show information about program");
+          opt(CONFIG_KEY, value<String>(&configFile), "configuration file");
+          opt(CONVERT_KEY, value<String>(&ConvertParams),
+              "Perform conversion instead of playback.\n"
+              "Parameter is map with the next mandatory parameters:\n"
+              " mode - specify conversion mode. Currently supported are: raw,psg,zx50,txt,aydump,fym\n"
+              " filename - filename template with any module's attributes\n"
+              ".");
+          opt("benchmark", value<uint_t>(&BenchmarkIterations),
+              "Switch on benchmark mode with specified iterations count.\n");
+        }
         options.add(Informer->GetOptionsDescription());
         options.add(Sourcer->GetOptionsDescription());
         options.add(Sounder->GetOptionsDescription());
         options.add(Display->GetOptionsDescription());
         // add positional parameters for input
         positional_options_description inputPositional;
-        inputPositional.add(Text::INPUT_FILE_KEY, -1);
+        inputPositional.add("file", -1);
 
         // cli options
-        options_description cliOptions(Text::CLI_SECTION);
-        cliOptions.add_options()(Text::SEEKSTEP_KEY, value<uint_t>(&SeekStep), Text::SEEKSTEP_DESC);
+        options_description cliOptions("Other options");
+        cliOptions.add_options()("seekstep", value<uint_t>(&SeekStep), "seeking step in percents");
         options.add(cliOptions);
 
         variables_map vars;
@@ -438,19 +455,23 @@ namespace
         args.erase(args.begin());
         store(command_line_parser(args).options(options).positional(inputPositional).run(), vars);
         notify(vars);
-        if (vars.count(Text::HELP_KEY))
+        if (vars.count(HELP_KEY))
         {
           StdOut << options << std::endl;
           return true;
         }
-        else if (vars.count(Text::VERSION_KEY))
+        else if (vars.count(VERSION_KEY))
         {
           StdOut << Platform::Version::GetProgramVersionString() << std::endl;
           return true;
         }
-        else if (vars.count(Text::ABOUT_KEY))
+        else if (vars.count(ABOUT_KEY))
         {
-          StdOut << Text::ABOUT_SECTION << std::endl;
+          StdOut << "This program is the part of ZXTune project.\n"
+                    "Visit https://zxtune.bitbucket.io/ for support or new versions\n"
+                    "For additional information contact vitamin.caig@gmail.com\n"
+                    "(C) Vitamin/CAIG\n"
+                 << std::endl;
           return true;
         }
         ParseConfigFile(configFile, *ConfigParams);
@@ -460,7 +481,7 @@ namespace
       }
       catch (const std::exception& e)
       {
-        throw MakeFormattedError(THIS_LINE, Text::COMMON_ERROR, e.what());
+        throw MakeFormattedError(THIS_LINE, "Error: %1%", e.what());
       }
     }
 

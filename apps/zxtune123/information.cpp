@@ -11,6 +11,8 @@
 // local includes
 #include "information.h"
 #include "sound.h"
+// common includes
+#include <static_string.h>
 // library includes
 #include <core/core_parameters.h>
 #include <core/freq_tables.h>
@@ -37,12 +39,10 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/variant/get.hpp>
 #include <boost/variant/variant.hpp>
-// text includes
-#include "text/text.h"
 
 namespace
 {
-  typedef std::pair<uint_t, String> CapsPair;
+  typedef std::pair<uint_t, StringView> CapsPair;
   String SerializeBitmask(uint_t caps, const CapsPair* from)
   {
     String result;
@@ -68,69 +68,107 @@ namespace
     {
       if (cap->first == caps)
       {
-        return Char(' ') + cap->second;
+        return Char(' ') + cap->second.to_string();
       }
     }
     return " unknown";
   }
 
+  template<class C, C... Chars>
+  constexpr auto operator"" _cat()
+  {
+    return "cat_"_ss + basic_static_string<C, Chars...>{};
+  }
+
+  template<class C, C... Chars>
+  constexpr auto operator"" _mod()
+  {
+    return "mod_"_ss + basic_static_string<C, Chars...>{};
+  }
+
+  template<class C, C... Chars>
+  constexpr auto operator"" _dev()
+  {
+    return "dev_"_ss + basic_static_string<C, Chars...>{};
+  }
+
+  template<class C, C... Chars>
+  constexpr auto operator"" _conv()
+  {
+    return "conv_"_ss + basic_static_string<C, Chars...>{};
+  }
+
+  template<class C, C... Chars>
+  constexpr auto operator"" _cap()
+  {
+    return "cap_"_ss + basic_static_string<C, Chars...>{};
+  }
+
+  template<class C, C... Chars>
+  constexpr auto operator"" _cont()
+  {
+    return "cont_"_ss + basic_static_string<C, Chars...>{};
+  }
+
+  template<class C, C... Chars>
+  constexpr auto operator"" _type()
+  {
+    return "type_"_ss + basic_static_string<C, Chars...>{};
+  }
+
   String PluginCaps(uint_t caps)
   {
     using namespace ZXTune;
-    static const CapsPair PLUGIN_TYPES[] = {CapsPair(Capabilities::Category::MODULE, Text::INFO_CAT_MODULE),
-                                            CapsPair(Capabilities::Category::CONTAINER, Text::INFO_CAT_CONTAINER),
+    static const CapsPair PLUGIN_TYPES[] = {
+        {Capabilities::Category::MODULE, "module"_cat}, {Capabilities::Category::CONTAINER, "container"_cat}, {}};
+
+    static const CapsPair MODULE_TYPES[] = {{Capabilities::Module::Type::TRACK, "track"_mod},
+                                            {Capabilities::Module::Type::STREAM, "stream"_mod},
+                                            {Capabilities::Module::Type::MEMORYDUMP, "memorydump"_mod},
+                                            {Capabilities::Module::Type::MULTI, "multi"_mod},
                                             CapsPair()};
 
-    static const CapsPair MODULE_TYPES[] = {CapsPair(Capabilities::Module::Type::TRACK, Text::INFO_MOD_TRACK),
-                                            CapsPair(Capabilities::Module::Type::STREAM, Text::INFO_MOD_STREAM),
-                                            CapsPair(Capabilities::Module::Type::MEMORYDUMP, Text::INFO_MOD_MEMORYDUMP),
-                                            CapsPair(Capabilities::Module::Type::MULTI, Text::INFO_MOD_MULTI),
-                                            CapsPair()};
+    static const CapsPair MODULE_CAPS[] = {// device caps
+                                           {Capabilities::Module::Device::AY38910, "ay38910"_dev},
+                                           {Capabilities::Module::Device::TURBOSOUND, "turbosound"_dev},
+                                           {Capabilities::Module::Device::BEEPER, "beeper"_dev},
+                                           {Capabilities::Module::Device::YM2203, "ym2203"_dev},
+                                           {Capabilities::Module::Device::TURBOFM, "turbofm"_dev},
+                                           {Capabilities::Module::Device::DAC, "dac"_dev},
+                                           {Capabilities::Module::Device::SAA1099, "saa1099"_dev},
+                                           {Capabilities::Module::Device::MOS6581, "mos6581"_dev},
+                                           {Capabilities::Module::Device::SPC700, "spc700"_dev},
+                                           {Capabilities::Module::Device::MULTI, "multi"_dev},
+                                           {Capabilities::Module::Device::RP2A0X, "rp2a0x"_dev},
+                                           {Capabilities::Module::Device::LR35902, "lr35902"_dev},
+                                           {Capabilities::Module::Device::CO12294, "co12294"_dev},
+                                           {Capabilities::Module::Device::HUC6270, "huc6270"_dev},
+                                           // conversion caps
+                                           {Capabilities::Module::Conversion::PSG, "psg"_conv},
+                                           {Capabilities::Module::Conversion::ZX50, "zx50"_conv},
+                                           {Capabilities::Module::Conversion::TXT, "txt"_conv},
+                                           {Capabilities::Module::Conversion::AYDUMP, "aydump"_conv},
+                                           {Capabilities::Module::Conversion::FYM, "fym"_conv},
+                                           // traits caps
+                                           {Capabilities::Module::Traits::MULTIFILE, "multifile"_cap},
+                                           // limiter
+                                           {}};
 
-    static const CapsPair MODULE_CAPS[] = {
-        // device caps
-        CapsPair(Capabilities::Module::Device::AY38910, Text::INFO_DEV_AY38910),
-        CapsPair(Capabilities::Module::Device::TURBOSOUND, Text::INFO_DEV_TURBOSOUND),
-        CapsPair(Capabilities::Module::Device::BEEPER, Text::INFO_DEV_BEEPER),
-        CapsPair(Capabilities::Module::Device::YM2203, Text::INFO_DEV_YM2203),
-        CapsPair(Capabilities::Module::Device::TURBOFM, Text::INFO_DEV_TURBOFM),
-        CapsPair(Capabilities::Module::Device::DAC, Text::INFO_DEV_DAC),
-        CapsPair(Capabilities::Module::Device::SAA1099, Text::INFO_DEV_SAA1099),
-        CapsPair(Capabilities::Module::Device::MOS6581, Text::INFO_DEV_MOS6581),
-        CapsPair(Capabilities::Module::Device::SPC700, Text::INFO_DEV_SPC700),
-        CapsPair(Capabilities::Module::Device::MULTI, Text::INFO_DEV_MULTI),
-        CapsPair(Capabilities::Module::Device::RP2A0X, Text::INFO_DEV_RP2A0X),
-        CapsPair(Capabilities::Module::Device::LR35902, Text::INFO_DEV_LR35902),
-        CapsPair(Capabilities::Module::Device::CO12294, Text::INFO_DEV_CO12294),
-        CapsPair(Capabilities::Module::Device::HUC6270, Text::INFO_DEV_HUC6270),
-        // conversion caps
-        CapsPair(Capabilities::Module::Conversion::PSG, Text::INFO_CONV_PSG),
-        CapsPair(Capabilities::Module::Conversion::ZX50, Text::INFO_CONV_ZX50),
-        CapsPair(Capabilities::Module::Conversion::TXT, Text::INFO_CONV_TXT),
-        CapsPair(Capabilities::Module::Conversion::AYDUMP, Text::INFO_CONV_AYDUMP),
-        CapsPair(Capabilities::Module::Conversion::FYM, Text::INFO_CONV_FYM),
-        // traits caps
-        CapsPair(Capabilities::Module::Traits::MULTIFILE, Text::INFO_CAP_MULTIFILE),
-        // limiter
-        CapsPair()};
+    static const CapsPair CONTAINER_TYPES[] = {{Capabilities::Container::Type::ARCHIVE, "archive"_cont},
+                                               {Capabilities::Container::Type::COMPRESSOR, "compressor"_cont},
+                                               {Capabilities::Container::Type::SNAPSHOT, "snapshot"_cont},
+                                               {Capabilities::Container::Type::DISKIMAGE, "diskimage"_cont},
+                                               {Capabilities::Container::Type::DECOMPILER, "decompiler"_cont},
+                                               {Capabilities::Container::Type::MULTITRACK, "multitrack"_cont},
+                                               {Capabilities::Container::Type::SCANER, "scaner"_cont},
+                                               // limiter
+                                               {}};
 
-    static const CapsPair CONTAINER_TYPES[] = {
-        CapsPair(Capabilities::Container::Type::ARCHIVE, Text::INFO_CONT_ARCHIVE),
-        CapsPair(Capabilities::Container::Type::COMPRESSOR, Text::INFO_CONT_COMPRESSOR),
-        CapsPair(Capabilities::Container::Type::SNAPSHOT, Text::INFO_CONT_SNAPSHOT),
-        CapsPair(Capabilities::Container::Type::DISKIMAGE, Text::INFO_CONT_DISKIMAGE),
-        CapsPair(Capabilities::Container::Type::DECOMPILER, Text::INFO_CONT_DECOMPILER),
-        CapsPair(Capabilities::Container::Type::MULTITRACK, Text::INFO_CONT_MULTITRACK),
-        CapsPair(Capabilities::Container::Type::SCANER, Text::INFO_CONT_SCANER),
-        // limiter
-        CapsPair()};
-
-    static const CapsPair CONTAINER_CAPS[] = {
-        CapsPair(Capabilities::Container::Traits::DIRECTORIES, Text::INFO_CAP_DIRS),
-        CapsPair(Capabilities::Container::Traits::PLAIN, Text::INFO_CAP_PLAIN),
-        CapsPair(Capabilities::Container::Traits::ONCEAPPLIED, Text::INFO_CAP_ONCEAPPLIED),
-        // limiter
-        CapsPair()};
+    static const CapsPair CONTAINER_CAPS[] = {{Capabilities::Container::Traits::DIRECTORIES, "dirs"_cap},
+                                              {Capabilities::Container::Traits::PLAIN, "plain"_cap},
+                                              {Capabilities::Container::Traits::ONCEAPPLIED, "onceapplied"_cap},
+                                              // limiter
+                                              {}};
     String result = SerializeEnum(caps & Capabilities::Category::MASK, PLUGIN_TYPES);
     switch (caps & Capabilities::Category::MASK)
     {
@@ -151,60 +189,74 @@ namespace
   String BackendCaps(uint_t caps)
   {
     static const CapsPair BACKENDS_CAPS[] = {// Type-related capabilities
-                                             CapsPair(Sound::CAP_TYPE_STUB, Text::INFO_CAP_STUB),
-                                             CapsPair(Sound::CAP_TYPE_SYSTEM, Text::INFO_CAP_SYSTEM),
-                                             CapsPair(Sound::CAP_TYPE_FILE, Text::INFO_CAP_FILE),
-                                             CapsPair(Sound::CAP_TYPE_HARDWARE, Text::INFO_CAP_HARDWARE),
+                                             {Sound::CAP_TYPE_STUB, "stub"_type},
+                                             {Sound::CAP_TYPE_SYSTEM, "system"_type},
+                                             {Sound::CAP_TYPE_FILE, "file"_type},
+                                             {Sound::CAP_TYPE_HARDWARE, "hardware"_type},
                                              // Features-related capabilities
-                                             CapsPair(Sound::CAP_FEAT_HWVOLUME, Text::INFO_CAP_HWVOLUME),
+                                             {Sound::CAP_FEAT_HWVOLUME, "feat_hwvolume"},
                                              // limiter
-                                             CapsPair()};
+                                             {}};
     return SerializeBitmask(caps, BACKENDS_CAPS);
   }
 
-  inline void ShowPlugin(const ZXTune::Plugin& plugin)
+  inline String DescribePlugin(const ZXTune::Plugin& plugin)
   {
-    StdOut << Strings::Format(Text::INFO_PLUGIN_INFO, plugin.Id(), plugin.Description(),
-                              PluginCaps(plugin.Capabilities()));
+    return Strings::Format(
+        "Plugin:       %1%\n"
+        "Description:  %2%\n"
+        "Capabilities: %3%\n"
+        "\n",
+        plugin.Id(), plugin.Description(), PluginCaps(plugin.Capabilities()));
   }
 
   inline void ShowPlugins()
   {
-    StdOut << Text::INFO_LIST_PLUGINS_TITLE << std::endl;
+    StdOut << "Supported plugins:" << std::endl;
     for (ZXTune::Plugin::Iterator::Ptr plugins = ZXTune::EnumeratePlugins(); plugins->IsValid(); plugins->Next())
     {
-      ShowPlugin(*plugins->Get());
+      StdOut << DescribePlugin(*plugins->Get());
     }
   }
 
-  inline void ShowBackend(const Sound::BackendInformation& info)
+  inline String DescribeBackend(const Sound::BackendInformation& info)
   {
     const Error& status = info.Status();
-    StdOut << Strings::Format(Text::INFO_BACKEND_INFO, info.Id(), info.Description(), BackendCaps(info.Capabilities()),
-                              status ? status.GetText() : Text::INFO_STATUS_OK);
+    return Strings::Format(
+        "Backend:      %1%\n"
+        "Description:  %2%\n"
+        "Capabilities: %3%\n"
+        "Status:       %4%\n"
+        "\n",
+        info.Id(), info.Description(), BackendCaps(info.Capabilities()), status ? status.GetText() : "Available");
   }
 
   inline void ShowBackends(Sound::BackendInformation::Iterator::Ptr backends)
   {
+    StdOut << "Supported backends:" << std::endl;
     for (; backends->IsValid(); backends->Next())
     {
-      ShowBackend(*backends->Get());
+      StdOut << DescribeBackend(*backends->Get());
     }
   }
 
-  inline void ShowProvider(const IO::Provider& provider)
+  inline String DescribeProvider(const IO::Provider& provider)
   {
     const Error& status = provider.Status();
-    StdOut << Strings::Format(Text::INFO_PROVIDER_INFO, provider.Id(), provider.Description(),
-                              status ? status.GetText() : Text::INFO_STATUS_OK);
+    return Strings::Format(
+        "Provider:    %1%\n"
+        "Description: %2%\n"
+        "Status:      %3%\n"
+        "\n",
+        provider.Id(), provider.Description(), status ? status.GetText() : "Available");
   }
 
   inline void ShowProviders()
   {
-    StdOut << Text::INFO_LIST_PROVIDERS_TITLE << std::endl;
+    StdOut << "Supported IO providers:" << std::endl;
     for (IO::Provider::Iterator::Ptr providers = IO::EnumerateProviders(); providers->IsValid(); providers->Next())
     {
-      ShowProvider(*providers->Get());
+      StdOut << DescribeProvider(*providers->Get());
     }
   }
 
@@ -212,43 +264,44 @@ namespace
 
   struct OptionDesc
   {
-    OptionDesc(const Parameters::NameType& name, String descr, ValueType def)
+    OptionDesc(const Parameters::NameType& name, StringView descr, ValueType def)
       : Name(name.FullPath())
       , Desc(std::move(descr))
       , Default(std::move(def))
     {}
 
-    OptionDesc(String name, String descr, ValueType def)
+    OptionDesc(String name, StringView descr, ValueType def)
       : Name(std::move(name))
       , Desc(std::move(descr))
       , Default(std::move(def))
     {}
 
+    // TODO: StringView when Parameters::Name type reworking
     String Name;
-    String Desc;
+    StringView Desc;
     ValueType Default;
-  };
 
-  void ShowOption(const OptionDesc& opt)
-  {
-    // section
-    if (opt.Desc.empty())
+    String Describe() const
     {
-      StdOut << opt.Name << std::endl;
-    }
-    else
-    {
-      const Parameters::StringType* defValString = boost::get<const Parameters::StringType>(&opt.Default);
-      if (defValString && defValString->empty())
+      // section
+      if (Desc.empty())
       {
-        StdOut << Strings::Format(Text::INFO_OPTION_INFO, opt.Name, opt.Desc);
+        return Name;
       }
       else
       {
-        StdOut << Strings::Format(Text::INFO_OPTION_INFO_DEFAULTS, opt.Name, opt.Desc, opt.Default);
+        const Parameters::StringType* defValString = boost::get<const Parameters::StringType>(&Default);
+        if (defValString && defValString->empty())
+        {
+          return Strings::Format("  %1%\n  - %2%.", Name, Desc);
+        }
+        else
+        {
+          return Strings::Format("  %1%\n  - %2% (default value is '%3%').", Name, Desc, Default);
+        }
       }
     }
-  }
+  };
 
   void ShowOptions()
   {
@@ -256,143 +309,157 @@ namespace
 
     static const OptionDesc OPTIONS[] = {
         // IO parameters
-        OptionDesc(Text::INFO_OPTIONS_IO_PROVIDERS_TITLE, EMPTY, 0),
-        OptionDesc(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD,
-                   Text::INFO_OPTIONS_IO_PROVIDERS_FILE_MMAP_THRESHOLD,
-                   Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT),
-        OptionDesc(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES,
-                   Text::INFO_OPTIONS_IO_PROVIDERS_FILE_CREATE_DIRECTORIES,
-                   Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT),
-        OptionDesc(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING,
-                   Text::INFO_OPTIONS_IO_PROVIDERS_FILE_OVERWRITE_EXISTING,
-                   Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT),
+        {" IO providers options:", EMPTY, 0},
+        {Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, "minimal size for use memory mapping",
+         Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT},
+        {Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES,
+         "create all intermediate directories (applicable for for file-based backends)",
+         Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT},
+        {Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING,
+         "overwrite target file if already exists (applicable for for file-based backends)",
+         Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT},
         // Sound parameters
-        OptionDesc(Text::INFO_OPTIONS_SOUND_TITLE, EMPTY, 0),
-        OptionDesc(Parameters::ZXTune::Sound::FREQUENCY, Text::INFO_OPTIONS_SOUND_FREQUENCY,
-                   Parameters::ZXTune::Sound::FREQUENCY_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::LOOPED, Text::INFO_OPTIONS_SOUND_LOOPED, EMPTY),
+        {" Sound options:", EMPTY, 0},
+        {Parameters::ZXTune::Sound::FREQUENCY, "sound frequency in Hz", Parameters::ZXTune::Sound::FREQUENCY_DEFAULT},
+        {Parameters::ZXTune::Sound::LOOPED, "loop playback", EMPTY},
         // Mixer parameters
-        OptionDesc(Text::INFO_OPTIONS_SOUND_MIXER_TITLE, EMPTY, 0),
-        OptionDesc(Parameters::ZXTune::Sound::Mixer::PREFIX + Text::INFO_OPTIONS_SOUND_MIXER_TEMPLATE,
-                   Text::INFO_OPTIONS_SOUND_MIXER, EMPTY),
+        {" Mixer options:", EMPTY, 0},
+        {Parameters::ZXTune::Sound::Mixer::PREFIX + "A.B_C",
+         "specify level in percent (A- total channels count, B- input channel, C- output channel). E.g. when A=3, "
+         "B=0, C=1 will specify A channel level of AY/YM-like chiptunes to right stereochannel",
+         EMPTY},
         // Sound backend parameters
-        OptionDesc(Text::INFO_OPTIONS_SOUND_BACKENDS_TITLE, EMPTY, 0),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::File::FILENAME, Text::INFO_OPTIONS_SOUND_BACKENDS_FILE_FILENAME,
-                   EMPTY),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::File::BUFFERS, Text::INFO_OPTIONS_SOUND_BACKENDS_FILE_BUFFERS,
-                   0),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Win32::DEVICE, Text::INFO_OPTIONS_SOUND_BACKENDS_WIN32_DEVICE,
-                   Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, Text::INFO_OPTIONS_SOUND_BACKENDS_WIN32_BUFFERS,
-                   Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Oss::DEVICE, Text::INFO_OPTIONS_SOUND_BACKENDS_OSS_DEVICE,
-                   Parameters::ZXTune::Sound::Backends::Oss::DEVICE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Oss::MIXER, Text::INFO_OPTIONS_SOUND_BACKENDS_OSS_MIXER,
-                   Parameters::ZXTune::Sound::Backends::Oss::MIXER_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Alsa::DEVICE, Text::INFO_OPTIONS_SOUND_BACKENDS_ALSA_DEVICE,
-                   Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, Text::INFO_OPTIONS_SOUND_BACKENDS_ALSA_MIXER,
-                   EMPTY),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Alsa::LATENCY, Text::INFO_OPTIONS_SOUND_BACKENDS_ALSA_LATENCY,
-                   Parameters::ZXTune::Sound::Backends::Alsa::LATENCY_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS, Text::INFO_OPTIONS_SOUND_BACKENDS_SDL_BUFFERS,
-                   Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY,
-                   Text::INFO_OPTIONS_SOUND_BACKENDS_DIRECTSOUND_LATENCY,
-                   Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT),
+        {" Sound backends options:", EMPTY, 0},
+        {Parameters::ZXTune::Sound::Backends::File::FILENAME,
+         "filename template for file-based backends (see --list-attributes command). Also duplicated in "
+         "backend-specific namespace",
+         EMPTY},
+        {Parameters::ZXTune::Sound::Backends::File::BUFFERS,
+         "use asynchronous conversing with specified queue size for file-based backends. Also duplicated in "
+         "backend-specific namespace",
+         0},
+        {Parameters::ZXTune::Sound::Backends::Win32::DEVICE, "device index for win32 backend",
+         Parameters::ZXTune::Sound::Backends::Win32::DEVICE_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Win32::BUFFERS, "playback buffers count",
+         Parameters::ZXTune::Sound::Backends::Win32::BUFFERS_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Oss::DEVICE, "playback device for OSS backend",
+         Parameters::ZXTune::Sound::Backends::Oss::DEVICE_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Oss::MIXER, "mixer device for OSS backend",
+         Parameters::ZXTune::Sound::Backends::Oss::MIXER_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Alsa::DEVICE, "playback device for ALSA backend",
+         Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Alsa::MIXER,
+         "mixer for ALSA backend (taking the first one if not specified)", EMPTY},
+        {Parameters::ZXTune::Sound::Backends::Alsa::LATENCY, "latency in ms for ALSA backend",
+         Parameters::ZXTune::Sound::Backends::Alsa::LATENCY_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS, "buffers count for SDL backend",
+         Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY, "latency in ms for DirectSound backend",
+         Parameters::ZXTune::Sound::Backends::DirectSound::LATENCY_DEFAULT},
         // Mp3
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Mp3::MODE, Text::INFO_OPTIONS_SOUND_BACKENDS_MP3_MODE,
-                   Parameters::ZXTune::Sound::Backends::Mp3::MODE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Mp3::BITRATE, Text::INFO_OPTIONS_SOUND_BACKENDS_MP3_BITRATE,
-                   Parameters::ZXTune::Sound::Backends::Mp3::BITRATE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Mp3::QUALITY, Text::INFO_OPTIONS_SOUND_BACKENDS_MP3_QUALITY,
-                   Parameters::ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS, Text::INFO_OPTIONS_SOUND_BACKENDS_MP3_CHANNELS,
-                   Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT),
+        {Parameters::ZXTune::Sound::Backends::Mp3::MODE, "specify mode for Mp3 backend (cbr/abr/vbr)",
+         Parameters::ZXTune::Sound::Backends::Mp3::MODE_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Mp3::BITRATE,
+         "specify bitrate in kbps for Mp3 backend in mode=cbr or mode=abr",
+         Parameters::ZXTune::Sound::Backends::Mp3::BITRATE_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Mp3::QUALITY,
+         "specify quality for Mp3 backend (0- highest, 9- lowest) in mode=vbr",
+         Parameters::ZXTune::Sound::Backends::Mp3::QUALITY_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS,
+         "specify channels encoding mode (default/stereo/jointstereo/mode)",
+         Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT},
         // Ogg
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Ogg::MODE, Text::INFO_OPTIONS_SOUND_BACKENDS_OGG_MODE,
-                   Parameters::ZXTune::Sound::Backends::Ogg::MODE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Ogg::QUALITY, Text::INFO_OPTIONS_SOUND_BACKENDS_OGG_QUALITY,
-                   Parameters::ZXTune::Sound::Backends::Ogg::QUALITY_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Ogg::BITRATE, Text::INFO_OPTIONS_SOUND_BACKENDS_MP3_BITRATE,
-                   Parameters::ZXTune::Sound::Backends::Ogg::BITRATE_DEFAULT),
+        {Parameters::ZXTune::Sound::Backends::Ogg::MODE, "specify mode for Ogg backend (quality/abr)",
+         Parameters::ZXTune::Sound::Backends::Ogg::MODE_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Ogg::QUALITY,
+         "specify quality for Ogg backend (0- lowest, 10- highest) in mode=quality",
+         Parameters::ZXTune::Sound::Backends::Ogg::QUALITY_DEFAULT},
+        {Parameters::ZXTune::Sound::Backends::Ogg::BITRATE,
+         "specify averate bitrate in kbps for Ogg backend in mode=abr",
+         Parameters::ZXTune::Sound::Backends::Ogg::BITRATE_DEFAULT},
         // flac
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Flac::COMPRESSION,
-                   Text::INFO_OPTIONS_SOUND_BACKENDS_FLAC_COMPRESSION, EMPTY),
-        OptionDesc(Parameters::ZXTune::Sound::Backends::Flac::BLOCKSIZE,
-                   Text::INFO_OPTIONS_SOUND_BACKENDS_FLAC_BLOCKSIZE, EMPTY),
+        {Parameters::ZXTune::Sound::Backends::Flac::COMPRESSION,
+         "specify compression level for Flac backend (0- lowest, 8- highest)", EMPTY},
+        {Parameters::ZXTune::Sound::Backends::Flac::BLOCKSIZE, "specyfy blocksize in samples for Flac backend", EMPTY},
         // Core options
-        OptionDesc(Text::INFO_OPTIONS_CORE_TITLE, EMPTY, 0),
-        OptionDesc(Parameters::ZXTune::Core::AYM::CLOCKRATE, Text::INFO_OPTIONS_CORE_AYM_CLOCKRATE,
-                   Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::AYM::TYPE, Text::INFO_OPTIONS_CORE_AYM_TYPE,
-                   Parameters::ZXTune::Core::AYM::TYPE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::AYM::INTERPOLATION, Text::INFO_OPTIONS_CORE_AYM_INTERPOLATION,
-                   Parameters::ZXTune::Core::AYM::INTERPOLATION_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::AYM::TABLE, Text::INFO_OPTIONS_CORE_AYM_TABLE, EMPTY),
-        OptionDesc(Parameters::ZXTune::Core::AYM::DUTY_CYCLE, Text::INFO_OPTIONS_CORE_AYM_DUTY_CYCLE,
-                   Parameters::ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK, Text::INFO_OPTIONS_CORE_AYM_DUTY_CYCLE_MASK,
-                   Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::AYM::LAYOUT, Text::INFO_OPTIONS_CORE_AYM_LAYOUT, EMPTY),
-        OptionDesc(Parameters::ZXTune::Core::DAC::INTERPOLATION, Text::INFO_OPTIONS_CORE_DAC_INTERPOLATION,
-                   Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::Z80::INT_TICKS, Text::INFO_OPTIONS_CORE_Z80_INT_TICKS,
-                   Parameters::ZXTune::Core::Z80::INT_TICKS_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::Z80::CLOCKRATE, Text::INFO_OPTIONS_CORE_Z80_CLOCKRATE,
-                   Parameters::ZXTune::Core::Z80::CLOCKRATE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::FM::CLOCKRATE, Text::INFO_OPTIONS_CORE_FM_CLOCKRATE,
-                   Parameters::ZXTune::Core::FM::CLOCKRATE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::SAA::CLOCKRATE, Text::INFO_OPTIONS_CORE_SAA_CLOCKRATE,
-                   Parameters::ZXTune::Core::SAA::CLOCKRATE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::SAA::INTERPOLATION, Text::INFO_OPTIONS_CORE_SAA_INTERPOLATION,
-                   Parameters::ZXTune::Core::SAA::INTERPOLATION_DEFAULT),
+        {" Core options:", EMPTY, 0},
+        {Parameters::ZXTune::Core::AYM::CLOCKRATE, "clock rate for AYM in Hz",
+         Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT},
+        {Parameters::ZXTune::Core::AYM::TYPE, "use YM chip type for AYM rendering",
+         Parameters::ZXTune::Core::AYM::TYPE_DEFAULT},
+        {Parameters::ZXTune::Core::AYM::INTERPOLATION, "use interpolation for AYM rendering",
+         Parameters::ZXTune::Core::AYM::INTERPOLATION_DEFAULT},
+        {Parameters::ZXTune::Core::AYM::TABLE,
+         "frequency table name to use in AY-based players. Can be name (--list-freqtables) or dump (#..). Use '~' to "
+         "revert",
+         EMPTY},
+        {Parameters::ZXTune::Core::AYM::DUTY_CYCLE, "chip duty cycle value in percent. Should be in range 1..99",
+         Parameters::ZXTune::Core::AYM::DUTY_CYCLE_DEFAULT},
+        {Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK,
+         "chip channels mask where duty cycle will be applied. Can be set of letters (A,B,C) or numeric mask",
+         Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MASK_DEFAULT},
+        {Parameters::ZXTune::Core::AYM::LAYOUT,
+         "chip channels layout. Set of letters or numeric (0-ABC, 1-ACB, 2-BAC, 3-BCA, 4-CBA, 5-CAB)",
+         Parameters::ZXTune::Core::AYM::LAYOUT_DEFAULT},
+        {Parameters::ZXTune::Core::DAC::INTERPOLATION, "use interpolation for DAC rendering",
+         Parameters::ZXTune::Core::DAC::INTERPOLATION_DEFAULT},
+        {Parameters::ZXTune::Core::Z80::INT_TICKS, "Z80 processor INT signal duration in ticks",
+         Parameters::ZXTune::Core::Z80::INT_TICKS_DEFAULT},
+        {Parameters::ZXTune::Core::Z80::CLOCKRATE, "Z80 processor clockrate",
+         Parameters::ZXTune::Core::Z80::CLOCKRATE_DEFAULT},
+        {Parameters::ZXTune::Core::FM::CLOCKRATE, "clock rate for FM in Hz",
+         Parameters::ZXTune::Core::FM::CLOCKRATE_DEFAULT},
+        {Parameters::ZXTune::Core::SAA::CLOCKRATE, "clock rate for SAA in Hz",
+         Parameters::ZXTune::Core::SAA::CLOCKRATE_DEFAULT},
+        {Parameters::ZXTune::Core::SAA::INTERPOLATION, "use interpolation for SAA rendering",
+         Parameters::ZXTune::Core::SAA::INTERPOLATION_DEFAULT},
         // Core plugins options
-        OptionDesc(Text::INFO_OPTIONS_CORE_PLUGINS_TITLE, EMPTY, 0),
-        OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS,
-                   Text::INFO_OPTIONS_CORE_PLUGINS_RAW_PLAIN_DOUBLE_ANALYSIS, EMPTY),
-        OptionDesc(Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE, Text::INFO_OPTIONS_CORE_PLUGINS_RAW_MIN_SIZE,
-                   Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT),
-        OptionDesc(Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED,
-                   Text::INFO_OPTIONS_CORE_PLUGINS_HRIP_IGNORE_CORRUPTED, EMPTY),
-        OptionDesc(Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB,
-                   Text::INFO_OPTIONS_CORE_PLUGINS_ZIP_MAX_DEPACKED_FILE_SIZE_MB,
-                   Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB_DEFAULT),
-    };
-    StdOut << Text::INFO_LIST_OPTIONS_TITLE << std::endl;
-    std::for_each(OPTIONS, std::end(OPTIONS), ShowOption);
+        {" Core plugins options:", EMPTY, 0},
+        {Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS, "analyze cap_plain plugins twice", EMPTY},
+        {Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE, "minimum data size to use raw scaner",
+         Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT},
+        {Parameters::ZXTune::Core::Plugins::Hrip::IGNORE_CORRUPTED, "ignore corrupted blocks in HRiP archive", EMPTY},
+        {Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB,
+         "maximal file size to be depacked from .zip archive",
+         Parameters::ZXTune::Core::Plugins::Zip::MAX_DEPACKED_FILE_SIZE_MB_DEFAULT}};
+    StdOut << "Supported zxtune options:" << std::endl;
+    for (const auto& opt : OPTIONS)
+    {
+      StdOut << opt.Describe() << std::endl;
+    }
   }
 
-  typedef std::pair<String, String> AttrType;
+  typedef std::pair<String, StringView> AttrType;
   void ShowAttribute(const AttrType& arg)
   {
-    StdOut << Strings::Format(Text::INFO_ATTRIBUTE_INFO, arg.first, arg.second);
+    StdOut << Strings::Format(" %|1$-20|- %2%", arg.first, arg.second) << std::endl;
   }
 
   void ShowAttributes()
   {
     static const AttrType ATTRIBUTES[] = {
         // external
-        AttrType(Module::ATTR_EXTENSION, Text::INFO_ATTRIBUTES_EXTENSION),
-        AttrType(Module::ATTR_FILENAME, Text::INFO_ATTRIBUTES_FILENAME),
-        AttrType(Module::ATTR_PATH, Text::INFO_ATTRIBUTES_PATH),
-        AttrType(Module::ATTR_FULLPATH, Text::INFO_ATTRIBUTES_FULLPATH),
+        {Module::ATTR_EXTENSION, "source file extension"},
+        {Module::ATTR_FILENAME, "source file name"},
+        {Module::ATTR_PATH, "full source file path"},
+        {Module::ATTR_FULLPATH, "full source data identifier including full filename and subpath"},
         // internal
-        AttrType(Module::ATTR_TYPE, Text::INFO_ATTRIBUTES_TYPE),
-        AttrType(Module::ATTR_CONTAINER, Text::INFO_ATTRIBUTES_CONTAINER),
-        AttrType(Module::ATTR_SUBPATH, Text::INFO_ATTRIBUTES_SUBPATH),
-        AttrType(Module::ATTR_AUTHOR, Text::INFO_ATTRIBUTES_AUTHOR),
-        AttrType(Module::ATTR_TITLE, Text::INFO_ATTRIBUTES_TITLE),
-        AttrType(Module::ATTR_PROGRAM, Text::INFO_ATTRIBUTES_PROGRAM),
-        AttrType(Module::ATTR_COMPUTER, Text::INFO_ATTRIBUTES_COMPUTER),
-        AttrType(Module::ATTR_DATE, Text::INFO_ATTRIBUTES_DATE),
-        AttrType(Module::ATTR_COMMENT, Text::INFO_ATTRIBUTES_COMMENT),
-        AttrType(Module::ATTR_CRC, Text::INFO_ATTRIBUTES_CRC), AttrType(Module::ATTR_SIZE, Text::INFO_ATTRIBUTES_SIZE),
+        {Module::ATTR_TYPE, "module type (plugin id)"},
+        {Module::ATTR_CONTAINER, "nested containers chain"},
+        {Module::ATTR_SUBPATH, "module subpath in top-level data container"},
+        {Module::ATTR_AUTHOR, "module author"},
+        {Module::ATTR_TITLE, "module title"},
+        {Module::ATTR_PROGRAM, "program module was created in"},
+        {Module::ATTR_COMPUTER, "computer-specific information about module"},
+        {Module::ATTR_DATE, "module date information"},
+        {Module::ATTR_COMMENT, "embedded module comment"},
+        {Module::ATTR_CRC, "original module data crc32 checksum"},
+        {Module::ATTR_SIZE, "original module data size"},
         // runtime
-        AttrType(Module::ATTR_CURRENT_POSITION, Text::INFO_ATTRIBUTES_CURRENT_POSITION),
-        AttrType(Module::ATTR_CURRENT_PATTERN, Text::INFO_ATTRIBUTES_CURRENT_PATTERN),
-        AttrType(Module::ATTR_CURRENT_LINE, Text::INFO_ATTRIBUTES_CURRENT_LINE)};
-    StdOut << Text::INFO_LIST_ATTRIBUTES_TITLE << std::endl;
+        {Module::ATTR_CURRENT_POSITION, "currently played position"},
+        {Module::ATTR_CURRENT_PATTERN, "currently played pattern number"},
+        {Module::ATTR_CURRENT_LINE, "currently played pattern line"}};
+    StdOut << "Supported module attributes:" << std::endl;
     std::for_each(ATTRIBUTES, std::end(ATTRIBUTES), ShowAttribute);
   }
 
@@ -403,7 +470,7 @@ namespace
         Module::TABLE_PROTRACKER3_4,      Module::TABLE_PROTRACKER3_3_ASM,  Module::TABLE_PROTRACKER3_4_ASM,
         Module::TABLE_PROTRACKER3_3_REAL, Module::TABLE_PROTRACKER3_4_REAL, Module::TABLE_ASM,
         Module::TABLE_SOUNDTRACKER_PRO,   Module::TABLE_NATURAL_SCALED};
-    StdOut << Text::INFO_LIST_FREQTABLES_TITLE;
+    StdOut << "Supported frequency tables: ";
     std::copy(FREQTABLES, std::end(FREQTABLES), std::ostream_iterator<String>(StdOut, " "));
     StdOut << std::endl;
   }
@@ -412,7 +479,7 @@ namespace
   {
   public:
     Information()
-      : OptionsDescription(Text::INFORMATIONAL_SECTION)
+      : OptionsDescription("Information keys")
       , EnumPlugins()
       , EnumBackends()
       , EnumProviders()
@@ -420,17 +487,14 @@ namespace
       , EnumAttributes()
       , EnumFreqtables()
     {
-      OptionsDescription.add_options()(Text::INFO_LIST_PLUGINS_KEY, boost::program_options::bool_switch(&EnumPlugins),
-                                       Text::INFO_LIST_PLUGINS_DESC)(Text::INFO_LIST_BACKENDS_KEY,
-                                                                     boost::program_options::bool_switch(&EnumBackends),
-                                                                     Text::INFO_LIST_BACKENDS_DESC)(
-          Text::INFO_LIST_PROVIDERS_KEY, boost::program_options::bool_switch(&EnumProviders),
-          Text::INFO_LIST_PROVIDERS_DESC)(
-          Text::INFO_LIST_OPTIONS_KEY, boost::program_options::bool_switch(&EnumOptions), Text::INFO_LIST_OPTIONS_DESC)(
-          Text::INFO_LIST_ATTRIBUTES_KEY, boost::program_options::bool_switch(&EnumAttributes),
-          Text::INFO_LIST_ATTRIBUTES_DESC)(Text::INFO_LIST_FREQTABLES_KEY,
-                                           boost::program_options::bool_switch(&EnumFreqtables),
-                                           Text::INFO_LIST_FREQTABLES_DESC);
+      using namespace boost::program_options;
+      auto opt = OptionsDescription.add_options();
+      opt("list-plugins", bool_switch(&EnumPlugins), "show list of supported plugins");
+      opt("list-backends", bool_switch(&EnumBackends), "show list of supported backends");
+      opt("list-providers", bool_switch(&EnumProviders), "show list of supported IO providers");
+      opt("list-options", bool_switch(&EnumOptions), "show list of supported options");
+      opt("list-attributes", bool_switch(&EnumAttributes), "show list of supported attributes");
+      opt("list-freqtables", bool_switch(&EnumFreqtables), "show list of supported frequency tables");
     }
 
     const boost::program_options::options_description& GetOptionsDescription() const override
