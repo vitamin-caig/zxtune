@@ -35,7 +35,7 @@ namespace
     static const Char PATH[] = "\\zxtune\\";
 #else
     static const Char ENV_HOMEDIR[] = "HOME";
-    static const Char PATH[] = "/.zxtune/"
+    static const Char PATH[] = "/.zxtune/";
 #endif
     String dir;
     if (const auto* homeDir = ::getenv(ENV_HOMEDIR))
