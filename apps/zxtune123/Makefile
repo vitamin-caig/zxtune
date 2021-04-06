@@ -53,8 +53,3 @@ install_mingw: install_samples install_3rdparty
 
 include $(dirs.root)/samples/samples.mak
 include $(dirs.root)/3rdparty/install.mak
-
-ifdef tools.textator
-dist/$(manual_file): dist/$(binary_name).txt
-	$(tools.textator) --process --keys $(pkg_lang),$(manual_format) --asm --output $@ $<
-endif
