@@ -25,8 +25,6 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -369,10 +367,12 @@ namespace Formats::Chiptune
       return {};
     }
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "YM (ST-Sound Project)";
+    const auto FORMAT =
         "'Y'M"
         "'2-'6"
-        "'!|'b");
+        "'!|'b"
+        ""_sv;
 
     Formats::Chiptune::Container::Ptr ParsePacked(const Binary::Container& rawData, Builder& target)
     {
@@ -398,7 +398,8 @@ namespace Formats::Chiptune
       return {};
     }
 
-    const StringView PACKED_FORMAT(
+    const Char PACKED_DESCRIPTION[] = "YM (ST-Sound Project) Packed";
+    const auto PACKED_FORMAT =
         "16-ff"       // header size
         "?"           // header sum
         "'-'l'h'5'-"  // method
@@ -407,7 +408,7 @@ namespace Formats::Chiptune
         "????"        // time+date
         "%00x00xxx"   // attribute
         "00"          // level
-    );
+        ""_sv;
 
     class YMDecoder : public Formats::Chiptune::YM::Decoder
     {
@@ -419,7 +420,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::YM_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override
@@ -460,7 +461,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::YM_PACKED_DECODER_DESCRIPTION;
+        return PACKED_DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override
@@ -643,13 +644,14 @@ namespace Formats::Chiptune
       return {};
     }
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "VTX (Vortex Project)";
+    const auto FORMAT =
         "('a|'A|'y|'Y)('y|'Y|'m|'M)"  // type
         "00-06"                       // layout
         "??"                          // loop
         "??01-9800"                   // clockrate
         "19-64"                       // intfreq, 25..100Hz
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::YM::Decoder
     {
@@ -660,7 +662,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::VTX_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

@@ -23,6 +23,7 @@
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
+#include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 // 3rdparty includes
@@ -31,8 +32,6 @@
 #include <3rdparty/he/Core/psx.h>
 #include <3rdparty/he/Core/r3000.h>
 #include <3rdparty/he/Core/spu.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::PSF
 {
@@ -391,7 +390,8 @@ namespace Module::PSF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, tune->Version == 1 ? Platforms::PLAYSTATION : Platforms::PLAYSTATION_2);
+      properties->SetValue(ATTR_PLATFORM, tune->Version == 1 ? Platforms::PLAYSTATION.to_string()
+                                                             : Platforms::PLAYSTATION_2.to_string());
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

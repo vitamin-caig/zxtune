@@ -65,14 +65,15 @@ namespace Formats::Multitrack
 
     const std::size_t MAX_SIZE = 1048576;
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'N'E'S'M"
         "1a"
         "?"      // version
         "01-ff"  // 1 song minimum
         "01-ff"
         // gme supports nfs load/init address starting from 0x8000 or zero
-        "(? 80-ff){2}";
+        "(? 80-ff){2}"
+        ""_sv;
 
     const std::size_t MIN_SIZE = 256;
 

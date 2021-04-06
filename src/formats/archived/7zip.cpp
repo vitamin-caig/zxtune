@@ -27,8 +27,6 @@
 #include <list>
 #include <map>
 #include <numeric>
-// text include
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -57,10 +55,11 @@ namespace Formats::Archived
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "7zip";
+    const auto FORMAT =
         "'7'z bc af 27 1c"  // signature
         "00 ?"              // version
-    );
+        ""_sv;
 
     class LzmaContext : private ISzAlloc
     {
@@ -331,7 +330,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::SEVENZIP_DECODER_DESCRIPTION;
+      return SevenZip::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

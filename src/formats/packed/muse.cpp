@@ -22,8 +22,6 @@
 #include <formats/packed.h>
 // std includes
 #include <memory>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -31,15 +29,15 @@ namespace Formats::Packed
   {
     const Debug::Stream Dbg("Formats::Packed::Muse");
 
-    // checkers
-    const StringView HEADER_PATTERN =
+    const Char DESCRIPTION[] = "MUSE Compressor";
+    const auto HEADER_PATTERN =
         "'M'U'S'E"
         "de ad be|ba af|be"
         "????"  // file size
         "????"  // crc
         "????"  // packed size
         "????"  // unpacked size
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Packed::Decoder
     {
@@ -50,7 +48,7 @@ namespace Formats::Packed
 
       String GetDescription() const override
       {
-        return Text::MUSE_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

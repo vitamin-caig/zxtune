@@ -12,17 +12,13 @@
 #include "formats/archived/multitrack/multitrack.h"
 // library includes
 #include <formats/multitrack/decoders.h>
-// text includes
-#include <formats/text/archived.h>
 
-namespace Formats
+namespace Formats::Archived
 {
-  namespace Archived
+  Decoder::Ptr CreateKSSXDecoder()
   {
-    Decoder::Ptr CreateKSSXDecoder()
-    {
-      const Formats::Multitrack::Decoder::Ptr decoder = Formats::Multitrack::CreateKSSXDecoder();
-      return CreateMultitrackArchiveDecoder(Text::KSSX_ARCHIVE_DECODER_DESCRIPTION, decoder);
-    }
-  }  // namespace Archived
-}  // namespace Formats
+    static const Char DESCRIPTION[] = "Multi-KSSX";
+    const auto decoder = Formats::Multitrack::CreateKSSXDecoder();
+    return CreateMultitrackArchiveDecoder(DESCRIPTION, decoder);
+  }
+}  // namespace Formats::Archived

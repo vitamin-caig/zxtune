@@ -25,14 +25,14 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace ProDigiTracker
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProDigiTracker");
+
+    const Char DESCRIPTION[] = "ProDigi Tracker v0.0x";
 
     const uint_t ORNAMENTS_COUNT = 11;
     const uint_t SAMPLES_COUNT = 16;
@@ -282,7 +282,7 @@ namespace Formats::Chiptune
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(Strings::OptimizeAscii(Source.Title));
-        meta.SetProgram(Text::PRODIGITRACKER_DECODER_DESCRIPTION);
+        meta.SetProgram(DESCRIPTION);
         Strings::Array names(Source.Samples.size());
         for (uint_t idx = 0; idx != Source.Samples.size(); ++idx)
         {
@@ -490,7 +490,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         // std::array<PDTOrnament, ORNAMENTS_COUNT> Ornaments;
         "(%xxxxxxx0{16}){11}"
         // std::array<PDTOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
@@ -527,7 +527,7 @@ namespace Formats::Chiptune
         uint8_t FreeRAM;
         uint8_t Padding3[5];
         */
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -538,7 +538,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PRODIGITRACKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

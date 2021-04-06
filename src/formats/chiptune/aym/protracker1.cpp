@@ -25,14 +25,14 @@
 #include <strings/optimize.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace ProTracker1
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProTracker1");
+
+    const Char PROGRAM[] = "Pro Tracker v1.x";
 
     const std::size_t MIN_SIZE = 256;
     const std::size_t MAX_SIZE = 0x2800;
@@ -397,7 +397,7 @@ namespace Formats::Chiptune
         CheckTempo(tempo);
         builder.SetInitialTempo(tempo);
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Text::PROTRACKER1_DECODER_DESCRIPTION);
+        meta.SetProgram(PROGRAM);
         meta.SetTitle(Strings::OptimizeAscii(Source.Name));
       }
 
@@ -831,7 +831,8 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const auto DESCRIPTION = PROGRAM;
+    const auto FORMAT =
         "02-0f"  // uint8_t Tempo; 2..15
         "01-ff"  // uint8_t Length;
         "00-fe"  // uint8_t Loop;
@@ -843,7 +844,7 @@ namespace Formats::Chiptune
         "?{30}"     // char Name[30];
         "00-1f"     // uint8_t Positions[1]; at least one
         "ff|00-1f"  // next position or limit
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -854,7 +855,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PROTRACKER1_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

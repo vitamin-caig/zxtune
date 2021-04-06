@@ -8,9 +8,6 @@ source_files.mingw = $(source_files.windows)
 source_files.linux = console_linux.cpp
 source_files.darwin = $(source_files.linux)
 
-text_files := text/text
-other_text_files := text/configfile text/cmdline text/messages text/conversion text/cmd_keys_local
-
 libraries.common = analysis async \
                   binary binary_compression binary_format \
                   core core_plugins_players core_plugins_archives \
@@ -56,8 +53,3 @@ install_mingw: install_samples install_3rdparty
 
 include $(dirs.root)/samples/samples.mak
 include $(dirs.root)/3rdparty/install.mak
-
-ifdef tools.textator
-dist/$(manual_file): dist/$(binary_name).txt
-	$(tools.textator) --process --keys $(pkg_lang),$(manual_format) --asm --output $@ $<
-endif

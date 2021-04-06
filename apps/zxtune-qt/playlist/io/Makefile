@@ -9,8 +9,6 @@ use_qt := 1
 
 source_dirs := .
 
-text_files := tags/xspf tags/ayl
-
 includes.dirs += ../..
 
 include $(dirs.root)/makefile.mak

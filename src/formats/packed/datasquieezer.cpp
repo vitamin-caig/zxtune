@@ -27,8 +27,6 @@
 #include <functional>
 #include <iterator>
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -36,6 +34,7 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
+    const Char DESCRIPTION[] = "DataSqueezer v4.x";
     /*
        classic depacker
        bitstream:
@@ -49,7 +48,7 @@ namespace Formats::Packed
        %00,offset=0x21+b9
        backcopy len bytes from offset,continue
     */
-    const StringView DEPACKER_PATTERN(
+    const auto DEPACKER_PATTERN =
         "11??"    // ld de,xxxx ;buffer
         "21??"    // ld hl,xxxx ;addr+start depacker
         "d5"      // push de
@@ -156,7 +155,7 @@ namespace Formats::Packed
                       "d9"        // exx
                       "c9"        // ret
                   */
-    );
+        ""_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)
@@ -448,7 +447,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::DSQ_DECODER_DESCRIPTION;
+      return DataSquieezer::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

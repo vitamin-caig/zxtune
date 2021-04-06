@@ -17,8 +17,6 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/image.h>
-// text includes
-#include <formats/text/image.h>
 
 namespace Formats::Image
 {
@@ -274,9 +272,11 @@ namespace Formats::Image
       std::unique_ptr<Dump> Result;
     };
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "LaserCompact 5.2";
+    const auto FORMAT =
         // Signature
-        "'L'C'M'P'5");
+        "'L'C'M'P'5"
+        ""_sv;
   }  // namespace LaserCompact52
 
   class LaserCompact52Decoder : public Decoder
@@ -288,7 +288,7 @@ namespace Formats::Image
 
     String GetDescription() const override
     {
-      return Text::LASERCOMPACT52_DECODER_DESCRIPTION;
+      return LaserCompact52::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

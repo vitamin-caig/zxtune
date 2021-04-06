@@ -18,8 +18,6 @@
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <formats/archived.h>
-// text include
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -27,11 +25,12 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::FSB");
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "FMOD Sample bank";
+    const auto FORMAT =
         "'F'S'B'5"
         "?{20}"
         "01-05|07|0b|0d|0f 000000"  // pcm+imaadpcm+mpeg+at9+vorbis
-    );
+        ""_sv;
 
     class File : public Archived::File
     {
@@ -193,7 +192,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::FSB_DECODER_DESCRIPTION;
+      return FSB::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

@@ -10,8 +10,6 @@
 
 // local includes
 #include "formats/chiptune/multitrack/multitrack.h"
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats
 {
@@ -19,7 +17,8 @@ namespace Formats
   {
     Decoder::Ptr CreateGBSDecoder(Formats::Multitrack::Decoder::Ptr decoder)
     {
-      return CreateMultitrackChiptuneDecoder(Text::GBS_DECODER_DESCRIPTION, decoder);
+      static const Char DESCRIPTION[] = "GameBoy Sound";
+      return CreateMultitrackChiptuneDecoder(DESCRIPTION, decoder);
     }
   }  // namespace Chiptune
 }  // namespace Formats

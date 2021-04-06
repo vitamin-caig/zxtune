@@ -20,13 +20,13 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace KSS
   {
+    const Char DESCRIPTION[] = "KSS Music Format";
+
     typedef std::array<uint8_t, 4> SignatureType;
 
 #ifdef USE_PRAGMA_PACK
@@ -50,7 +50,7 @@ namespace Formats::Chiptune
 
     static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'K'S'C'C"   // signature
         "??"         // load address
         "??"         // initial data size
@@ -60,7 +60,7 @@ namespace Formats::Chiptune
         "?"          // extra banks
         "00"         // reserved
         "%000xxxxx"  // extra chips (some of the tunes has 4th bit set)
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -71,7 +71,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::KSS_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

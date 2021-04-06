@@ -12,14 +12,14 @@
 #include <contract.h>
 // local includes
 #include "core/plugins/players/gme/kss_supp.h"
-// text includes
-#include <module/text/platforms.h>
+// library includes
+#include <module/players/platforms.h>
 
 namespace Module
 {
   namespace KSS
   {
-    String DetectPlatform(Binary::View data)
+    StringView DetectPlatform(Binary::View data)
     {
       Require(data.Size() >= 16);
       // do not check signatures or other

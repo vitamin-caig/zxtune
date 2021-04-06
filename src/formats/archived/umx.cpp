@@ -25,8 +25,6 @@
 #include <map>
 // boost includes
 #include <boost/algorithm/string/case_conv.hpp>
-// text includes
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -34,7 +32,8 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::UMX");
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "UMX (Unreal Music eXperience)";
+    const auto FORMAT =
         "c1832a9e"     // signature
         "? 00"         // version
         "??"           // license mode
@@ -42,7 +41,7 @@ namespace Formats::Archived
         "??0000 ????"  // names
         "??0000 ????"  // exports
         "??0000 ????"  // imports
-    );
+        ""_sv;
 
     typedef std::array<uint8_t, 4> SignatureType;
 
@@ -538,7 +537,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::UMX_DECODER_DESCRIPTION;
+      return UMX::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

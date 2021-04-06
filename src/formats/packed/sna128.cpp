@@ -20,8 +20,6 @@
 // std includes
 #include <array>
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -133,14 +131,15 @@ namespace Formats::Packed
       return CreateContainer(std::move(result), origSize);
     }
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "SNA 128k";
+    const auto FORMAT =
         "?{19}"
         "00|01|02|03|04|ff"  // iff. US saves 0x00/0x04/0xff instead of normal 0x00..0x03 flags
         "?{3}"
         "? 40-ff"  // sp
         "00-02"    // im mode
         "00-07"    // border
-    );
+        ""_sv;
   }  // namespace Sna128
 
   class Sna128Decoder : public Decoder
@@ -152,7 +151,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::SNA128_DECODER_DESCRIPTION;
+      return Sna128::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

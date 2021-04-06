@@ -21,13 +21,13 @@
 #include <math/numeric.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace Sound98
   {
+    const Char DESCRIPTION[] = "Sound 98";
+
     const uint32_t VER0 = 0x53393830;
     const uint32_t VER1 = 0x53393831;
     const uint32_t VER2 = 0x53393832;
@@ -46,7 +46,7 @@ namespace Formats::Chiptune
 
     const std::size_t MIN_SIZE = 256;
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'S'9'8"    // signature
         "'0-'3"     // version
         "???00"     // mult
@@ -54,7 +54,7 @@ namespace Formats::Chiptune
         "00000000"  // not compressed
         "???00"     // offset to tag
         "??0000"    // offset to data
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -65,7 +65,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::SOUND98_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

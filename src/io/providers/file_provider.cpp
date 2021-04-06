@@ -33,8 +33,6 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-// text includes
-#include <io/text/io.h>
 
 #define FILE_TAG 0D4CB3DA
 
@@ -445,12 +443,14 @@ namespace IO::File
   }
 
   ///////////////////////////////////////
+  const Char IDENTIFIER[] = "file";
+
   class DataProvider : public IO::DataProvider
   {
   public:
     String Id() const override
     {
-      return Text::IO_FILE_PROVIDER_ID;
+      return IDENTIFIER;
     }
 
     String Description() const override

@@ -26,6 +26,7 @@
 #include <formats/chiptune/emulation/sid.h>
 #include <module/attributes.h>
 #include <module/players/duration.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
 #include <parameters/tracking_helper.h>
@@ -39,8 +40,6 @@
 #include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
 // boost includes
 #include <boost/algorithm/string/predicate.hpp>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::Sid
 {
@@ -351,7 +350,7 @@ namespace Module::Sid
   {
     Parameters::StringType container;
     Require(params.FindValue(Module::ATTR_CONTAINER, container));
-    return container == "SID" || boost::algorithm::ends_with(container, ">SID");
+    return container == "SID" || boost::algorithm::ends_with(container, Module::CONTAINERS_DELIMITER + "SID");
   }
 
   String DecodeString(StringView str)

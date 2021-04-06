@@ -17,8 +17,6 @@
 // library includes
 #include <binary/format_factories.h>
 #include <math/numeric.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -45,13 +43,14 @@ namespace Formats::Chiptune
 
     static_assert(sizeof(Footer) == 16, "Invalid layout");
 
-    const StringView FOOTER_FORMAT(
+    const Char DESCRIPTION[] = "TurboSound";
+    const auto FOOTER_FORMAT =
         "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID1[4];//'PT3!' or other type
         "?%0xxxxxxx"                     // uint16_t Size1;
         "%0xxxxxxx%0xxxxxxx%0xxxxxxx21"  // uint8_t ID2[4];//same
         "?%0xxxxxxx"                     // uint16_t Size2;
         "'0'2'T'S"                       // uint8_t ID3[4];//'02TS'
-    );
+        ""_sv;
 
     class StubBuilder : public Builder
     {
@@ -154,7 +153,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::TURBOSOUND_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

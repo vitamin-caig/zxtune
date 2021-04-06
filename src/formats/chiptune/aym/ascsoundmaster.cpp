@@ -29,8 +29,6 @@
 #include <cstring>
 // boost includes
 #include <boost/algorithm/string/predicate.hpp>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -303,8 +301,8 @@ namespace Formats::Chiptune
     {
       const std::size_t MinSize;
       const std::size_t MaxSize;
-      const Char* const Description;
-      const char* const Format;
+      const StringView Description;
+      const StringView Format;
       const CreateHeaderFunc CreateHeader;
 
       Binary::View CreateContainer(Binary::View rawData) const
@@ -320,14 +318,14 @@ namespace Formats::Chiptune
     };
 
     const VersionTraits Version0::TRAITS = {255, 0x2400,  //~9k
-                                            Text::ASCSOUNDMASTER0_DECODER_DESCRIPTION,
+                                            "ASC Sound Master v0.x"_sv,
                                             "03-32"     // tempo
                                             "09-ab 00"  // patterns
                                             "? 00-21"   // samples
                                             "? 00-22"   // ornaments
                                             "01-64"     // length
                                             "00-1f"     // first position
-                                            ,
+                                            ""_sv,
                                             &HeaderTraits::Create<RawHeaderVer0>};
 
     struct Version1
@@ -336,7 +334,8 @@ namespace Formats::Chiptune
       typedef RawHeaderVer1 RawHeader;
     };
 
-    const VersionTraits Version1::TRAITS = {256, 0x3a00, Text::ASCSOUNDMASTER1_DECODER_DESCRIPTION,
+    const VersionTraits Version1::TRAITS = {256, 0x3a00,  //~15k
+                                            "ASC Sound Master v1.x"_sv,
                                             "03-32"     // tempo
                                             "00-63"     // loop
                                             "0a-ac 00"  // patterns
@@ -344,7 +343,7 @@ namespace Formats::Chiptune
                                             "? 00-37"   // ornaments
                                             "01-64"     // length
                                             "00-1f"     // first position
-                                            ,
+                                            ""_sv,
                                             &HeaderTraits::Create<RawHeaderVer1>};
 
     class StubBuilder : public Builder
@@ -610,7 +609,7 @@ namespace Formats::Chiptune
       {
         builder.SetInitialTempo(Header.Tempo);
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(version.Description);
+        meta.SetProgram(version.Description.to_string());
         if (Id.Check())
         {
           if (Id.HasAuthor())
@@ -1268,7 +1267,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Version.Description;
+        return Version.Description.to_string();
       }
 
       Binary::Format::Ptr GetFormat() const override

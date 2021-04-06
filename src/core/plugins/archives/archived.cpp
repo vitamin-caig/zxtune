@@ -20,9 +20,8 @@
 // library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
+#include <module/attributes.h>
 #include <strings/format.h>
-// text includes
-#include <core/text/core.h>
 
 namespace ZXTune
 {
@@ -183,7 +182,7 @@ namespace ZXTune
     Formats::Archived::File::Ptr FindFile(const Formats::Archived::Container& container,
                                           const Analysis::Path& path) const
     {
-      Analysis::Path::Ptr resolved = Analysis::ParsePath(String(), Text::MODULE_SUBPATH_DELIMITER[0]);
+      Analysis::Path::Ptr resolved = Analysis::ParsePath(String(), Module::SUBPATH_DELIMITER);
       for (const Analysis::Path::Iterator::Ptr components = path.GetIterator(); components->IsValid();
            components->Next())
       {

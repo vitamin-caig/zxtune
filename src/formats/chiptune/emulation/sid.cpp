@@ -22,13 +22,13 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace SID
   {
+    const Char DESCRIPTION[] = "Commodore64 RSID/PSID";
+
     typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE_RSID = {{'R', 'S', 'I', 'D'}};
@@ -58,7 +58,7 @@ namespace Formats::Chiptune
 
     static_assert(sizeof(RawHeader) == 22, "Invalid layout");
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'R|'P 'S'I'D"  // signature
         "00 01-03"      // BE version
         "00 76|7c"      // BE data offset
@@ -68,7 +68,7 @@ namespace Formats::Chiptune
         "00|01 ?"       // BE songs count 1-256
         "??"            // BE start song
         "????"          // BE speed flag
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -79,7 +79,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::SID_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

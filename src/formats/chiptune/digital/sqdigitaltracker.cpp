@@ -26,14 +26,14 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace SQDigitalTracker
   {
     const Debug::Stream Dbg("Formats::Chiptune::SQDigitalTracker");
+
+    const Char DESCRIPTION[] = "SQ Digital Tracker";
 
     // const std::size_t MAX_MODULE_SIZE = 0x4400 + 8 * 0x4000;
     const std::size_t MAX_POSITIONS_COUNT = 100;
@@ -320,7 +320,7 @@ namespace Formats::Chiptune
                                ? StringView(Source.Title.data() + 1, &Source.Title.back())
                                : StringView(Source.Title);
         meta.SetTitle(Strings::OptimizeAscii(title));
-        meta.SetProgram(Text::SQDIGITALTRACKER_DECODER_DESCRIPTION);
+        meta.SetProgram(DESCRIPTION);
         Strings::Array names;
         names.reserve(SAMPLES_COUNT);
         for (const auto& name : Source.SampleNames)
@@ -483,7 +483,7 @@ namespace Formats::Chiptune
       const RangeChecker::Ptr Ranges;
     };
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "?{192}"
         // layouts
         "(0080-c0 58-5f 01-80){8}"
@@ -500,7 +500,8 @@ namespace Formats::Chiptune
         // loop
         "00-63"
         // length
-        "01-64");
+        "01-64"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -511,7 +512,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::SQDIGITALTRACKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

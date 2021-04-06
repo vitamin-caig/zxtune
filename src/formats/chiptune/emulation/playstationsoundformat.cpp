@@ -17,8 +17,6 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 /*
 http://patpend.net/technical/psx/exeheader.txt
@@ -74,6 +72,8 @@ namespace Formats::Chiptune
   namespace PlaystationSoundFormat
   {
     const Debug::Stream Dbg("Formats::Chiptune::PSF");
+
+    const Char DESCRIPTION[] = "Playstation Sound Format";
 
     const std::size_t HEADER_SIZE = 2048;
 
@@ -134,9 +134,9 @@ namespace Formats::Chiptune
 
       void ParseRegion(Builder& target)
       {
-        static const char MARKER_NORTH_AMERICA[] = "Sony Computer Entertainment Inc. for North America area";
-        static const char MARKER_JAPAN[] = "Sony Computer Entertainment Inc. for Japan area";
-        static const char MARKER_EUROPE[] = "Sony Computer Entertainment Inc. for Europe area";
+        static const auto MARKER_NORTH_AMERICA = "Sony Computer Entertainment Inc. for North America area"_sv;
+        static const auto MARKER_JAPAN = "Sony Computer Entertainment Inc. for Japan area"_sv;
+        static const auto MARKER_EUROPE = "Sony Computer Entertainment Inc. for Europe area"_sv;
         Stream.Seek(0x4c);
         const auto marker = Stream.ReadCString(60);
         if (marker == MARKER_NORTH_AMERICA)
@@ -167,9 +167,10 @@ namespace Formats::Chiptune
       Format(data).Parse(target);
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'P'S'F"
-        "01");
+        "01"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -180,7 +181,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PLAYSTATIONSOUNDFORMAT_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

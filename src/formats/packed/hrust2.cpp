@@ -28,8 +28,6 @@
 #include <functional>
 #include <iterator>
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -49,10 +47,11 @@ namespace Formats::Packed
 
     namespace Version1
     {
-      const StringView HEADER_FORMAT(
+      const Char DESCRIPTION[] = "Hrust v2.1";
+      const auto HEADER_FORMAT =
           "'h'r'2"     // ID
           "%x0110001"  // Flag
-      );
+          ""_sv;
 
       PACK_PRE struct FormatHeader
       {
@@ -74,10 +73,11 @@ namespace Formats::Packed
 
     namespace Version3
     {
-      const StringView HEADER_FORMAT(
+      const Char DESCRIPTION[] = "Hrust v2.3";
+      const auto HEADER_FORMAT =
           "'H'r's't'2"  // ID
           "%00x00xxx"   // Flag
-      );
+          ""_sv;
 
       PACK_PRE struct FormatHeader
       {
@@ -592,7 +592,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::HRUST21_DECODER_DESCRIPTION;
+      return Hrust2::Version1::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override
@@ -628,7 +628,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::HRUST23_DECODER_DESCRIPTION;
+      return Hrust2::Version3::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

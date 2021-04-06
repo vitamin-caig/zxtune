@@ -23,6 +23,7 @@
 #include <math/bitops.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
+#include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 // std includes
@@ -30,8 +31,6 @@
 // 3rdparty includes
 #include <3rdparty/sseqplayer/Player.h>
 #include <3rdparty/sseqplayer/SDAT.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::NCSF
 {
@@ -264,7 +263,7 @@ namespace Module::NCSF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_DS);
+      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_DS.to_string());
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

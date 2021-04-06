@@ -21,14 +21,14 @@
 #include <math/numeric.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace SoundTrackerUncompiled
   {
     const Debug::Stream Dbg("Formats::Chiptune::SoundTracker");
+
+    const Char PROGRAM[] = "Sound Tracker v1.x";
 
     using namespace SoundTracker;
 #ifdef USE_PRAGMA_PACK
@@ -154,7 +154,7 @@ namespace Formats::Chiptune
       {
         builder.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Text::SOUNDTRACKER_DECODER_DESCRIPTION);
+        meta.SetProgram(PROGRAM);
       }
 
       void ParsePositions(Builder& builder) const
@@ -416,7 +416,8 @@ namespace Formats::Chiptune
       return rawData.Size() >= sizeof(RawHeader);
     }
 
-    const StringView FORMAT(
+    const auto DESCRIPTION = PROGRAM;
+    const auto FORMAT =
         // samples
         "("
         // levels
@@ -439,7 +440,8 @@ namespace Formats::Chiptune
         "02-0f"
         // patterns size
         // Real pattern size may be from 01 but I don't know any modules with such patterns size
-        "20-40");
+        "20-40"
+        ""_sv;
 
     Formats::Chiptune::Container::Ptr ParseUncompiled(const Binary::Container& rawData, Builder& target)
     {
@@ -488,7 +490,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::SOUNDTRACKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

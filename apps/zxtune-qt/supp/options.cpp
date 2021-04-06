@@ -25,9 +25,8 @@
 #include <mutex>
 #include <set>
 // qt includes
+#include <QtCore/QCoreApplication>
 #include <QtCore/QSettings>
-// text includes
-#include <text/text.h>
 
 namespace
 {
@@ -200,7 +199,7 @@ namespace
         }
         else
         {
-          Setup = std::make_shared<QSettings>(QLatin1String(Text::PROJECT_NAME), rootNamespace);
+          Setup = std::make_shared<QSettings>(QCoreApplication::applicationName(), rootNamespace);
           Storage.insert(SettingsStorage::value_type(rootNamespace, Setup));
         }
       }

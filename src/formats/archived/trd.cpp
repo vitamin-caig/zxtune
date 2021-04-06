@@ -21,8 +21,6 @@
 // std includes
 #include <cstring>
 #include <numeric>
-// text include
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -30,7 +28,8 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::TRD");
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "TRD (TR-DOS)";
+    const auto FORMAT =
         "(00|01|20-7f??????? ??? ?? ? 0x 00-a0){128}"
         // service sector
         "00"               // zero
@@ -45,7 +44,7 @@ namespace Formats::Archived
         "?"                // deleted files
         "20-7f{8}"         // title
         "000000"           // reserved
-    );
+        ""_sv;
 
     // hints
     const std::size_t MODULE_SIZE = 655360;
@@ -243,7 +242,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::TRD_DECODER_DESCRIPTION;
+      return TRD::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

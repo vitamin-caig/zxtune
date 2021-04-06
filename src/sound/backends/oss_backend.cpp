@@ -11,6 +11,7 @@
 // local includes
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/oss.h"
 #include "sound/backends/storage.h"
 // common includes
 #include <byteorder.h>
@@ -34,8 +35,6 @@
 #include <algorithm>
 #include <cstring>
 #include <mutex>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 69200152
 
@@ -43,8 +42,6 @@ namespace Sound::Oss
 {
   const Debug::Stream Dbg("Sound::Backend::Oss");
 
-  const String ID = Text::OSS_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("OSS sound system backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM | CAP_FEAT_HWVOLUME;
 
   const int_t MAX_OSS_VOLUME = 100;
@@ -388,7 +385,7 @@ namespace Sound
   void RegisterOssBackend(BackendsStorage& storage)
   {
     const BackendWorkerFactory::Ptr factory = MakePtr<Oss::BackendWorkerFactory>();
-    storage.Register(Oss::ID, Oss::DESCRIPTION, Oss::CAPABILITIES, factory);
+    storage.Register(Oss::BACKEND_ID, Oss::BACKEND_DESCRIPTION, Oss::CAPABILITIES, factory);
   }
 }  // namespace Sound
 

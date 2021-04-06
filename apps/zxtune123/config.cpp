@@ -18,8 +18,6 @@
 // std includes
 #include <cctype>
 #include <fstream>
-// text includes
-#include "text/text.h"
 
 #define FILE_TAG 0DBA1FA8
 
@@ -27,33 +25,24 @@ namespace
 {
   static const Char PARAMETERS_DELIMITER = ',';
 
-  String GetDefaultConfigFileWindows()
-  {
-    if (const char* homeDir = ::getenv(Text::ENV_HOMEDIR_WIN))
-    {
-      return String(homeDir) + '\\' + Text::CONFIG_PATH_WIN;
-    }
-    return Text::CONFIG_FILENAME;
-  }
-
-  String GetDefaultConfigFileNix()
-  {
-    const String configPath(Text::CONFIG_PATH_NIX);
-    if (const char* homeDir = ::getenv(Text::ENV_HOMEDIR_NIX))
-    {
-      return String(homeDir) + '/' + Text::CONFIG_PATH_NIX;
-    }
-    return Text::CONFIG_FILENAME;
-  }
+  static const Char CONFIG_FILENAME[] = "zxtune.conf";
 
   // try to search config in homedir, if defined
-  inline String GetDefaultConfigFile()
+  String GetDefaultConfigFile()
   {
 #ifdef _WIN32
-    return GetDefaultConfigFileWindows();
+    static const Char ENV_HOMEDIR[] = "APPDATA";
+    static const Char PATH[] = "\\zxtune\\";
 #else
-    return GetDefaultConfigFileNix();
+    static const Char ENV_HOMEDIR[] = "HOME";
+    static const Char PATH[] = "/.zxtune/";
 #endif
+    String dir;
+    if (const auto* homeDir = ::getenv(ENV_HOMEDIR))
+    {
+      dir = String(homeDir) + PATH;
+    }
+    return dir + CONFIG_FILENAME;
   }
 
   void ParseParametersString(const Parameters::NameType& prefix, const String& str, Strings::Map& result)
@@ -99,7 +88,7 @@ namespace
         }
         else
         {
-          throw MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
+          throw MakeFormattedError(THIS_LINE, "Invalid parameter format '%1%'.", str);
         }
         break;
       case IN_VALUE:
@@ -144,14 +133,14 @@ namespace
     }
     else if (IN_NOWHERE != mode)
     {
-      throw MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
+      throw MakeFormattedError(THIS_LINE, "Invalid parameter format '%1%'.", str);
     }
     result.swap(res);
   }
 
   void ParseConfigFile(const String& filename, String& params)
   {
-    const String configName(filename.empty() ? Text::CONFIG_FILENAME : filename);
+    const String configName(filename.empty() ? CONFIG_FILENAME : filename);
 
     typedef std::basic_ifstream<Char> FileStream;
     std::unique_ptr<FileStream> configFile(new FileStream(configName.c_str()));
@@ -159,7 +148,7 @@ namespace
     {
       if (!filename.empty())
       {
-        throw Error(THIS_LINE, Text::ERROR_CONFIG_FILE);
+        throw Error(THIS_LINE, "Failed to open configuration file " + configName);
       }
       configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
     }

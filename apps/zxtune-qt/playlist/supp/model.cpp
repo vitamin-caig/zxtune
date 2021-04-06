@@ -27,8 +27,6 @@
 #include <QtCore/QMimeData>
 #include <QtCore/QSet>
 #include <QtCore/QStringList>
-// text includes
-#include "text/text.h"
 
 namespace
 {

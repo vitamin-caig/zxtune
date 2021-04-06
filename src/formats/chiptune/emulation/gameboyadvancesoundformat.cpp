@@ -16,13 +16,13 @@
 // library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace GameBoyAdvanceSoundFormat
   {
+    const Char DESCRIPTION[] = "GameBoy Advance Sound Format";
+
     /*
     Offset         Size    Description
     0x0000000      4       GSF_Entry_Point
@@ -40,9 +40,10 @@ namespace Formats::Chiptune
       target.SetRom(addr, stream.ReadData(std::min(size, avail)));
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'P'S'F"
-        "22");
+        "22"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -53,7 +54,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::GAMEBOYADVANCESOUNDFORMAT_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

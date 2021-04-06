@@ -20,13 +20,13 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace GYM
   {
+    const Char DESCRIPTION[] = "Genesis YM2612 (unpacked)";
+
     typedef std::array<uint8_t, 4> SignatureType;
     typedef std::array<uint8_t, 32> StringType;
 
@@ -54,8 +54,9 @@ namespace Formats::Chiptune
     const std::size_t MIN_SIZE = sizeof(RawHeader) + 256;
     const std::size_t MAX_SIZE = 16 * 1024 * 1024;
 
-    const StringView FORMAT = "'G'Y'M'X"  // signature
-        ;
+    const auto FORMAT =
+        "'G'Y'M'X"  // signature
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -66,7 +67,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::GYM_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

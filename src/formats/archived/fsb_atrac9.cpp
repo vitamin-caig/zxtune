@@ -15,6 +15,8 @@
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
+// std includes
+#include <algorithm>
 
 namespace Formats::Archived::FSB
 {

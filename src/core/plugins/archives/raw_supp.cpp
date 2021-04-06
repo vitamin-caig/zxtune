@@ -9,6 +9,7 @@
  **/
 
 // local includes
+#include "core/plugins/archives/raw_supp.h"
 #include "core/plugins/archives/archived.h"
 #include <core/plugins/archive_plugins_enumerator.h>
 #include <core/plugins/archive_plugins_registrator.h>
@@ -34,8 +35,6 @@
 #include <array>
 #include <list>
 #include <map>
-// text includes
-#include <core/text/plugins.h>
 
 #define FILE_TAG 7E0CBD98
 
@@ -278,12 +277,20 @@ namespace ZXTune::Raw
 {
   const Debug::Stream Dbg("Core::RawScaner");
 
+  const auto PLUGIN_PREFIX = "+"_sv;
+
   const Char ID[] = {'R', 'A', 'W', 0};
-  const Char* const INFO = Text::RAW_PLUGIN_INFO;
+  const Char* const INFO = ID;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::SCANER;
 
   const std::size_t SCAN_STEP = 1;
   const std::size_t MIN_MINIMAL_RAW_SIZE = 128;
+
+  String CreateFilename(std::size_t offset)
+  {
+    assert(offset);
+    return Strings::PrefixedIndex(PLUGIN_PREFIX, offset).ToString();
+  }
 
   class PluginParameters
   {
@@ -411,7 +418,7 @@ namespace ZXTune::Raw
       const Analysis::Path::Ptr parentPath = Parent->GetPath();
       if (std::size_t offset = Subdata->GetOffset())
       {
-        const auto subPath = Strings::PrefixedIndex(Text::RAW_PLUGIN_PREFIX, offset).ToString();
+        const auto subPath = CreateFilename(offset);
         return parentPath->Append(subPath);
       }
       return parentPath;
@@ -796,7 +803,7 @@ namespace ZXTune::Raw
                            const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
-      const Strings::PrefixedIndex pathIndex(Text::RAW_PLUGIN_PREFIX, pathComp);
+      const Strings::PrefixedIndex pathIndex(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {
         const auto offset = pathIndex.GetIndex();

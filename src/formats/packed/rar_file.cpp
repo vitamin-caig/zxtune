@@ -28,8 +28,6 @@
 #include <memory>
 // thirdparty
 #include <3rdparty/unrar/rar.hpp>
-// text includes
-#include <formats/text/packed.h>
 
 #undef min
 #undef max
@@ -40,11 +38,12 @@ namespace Formats::Packed
   {
     const Debug::Stream Dbg("Formats::Packed::Rar");
 
-    const StringView HEADER_PATTERN =
+    const Char DESCRIPTION[] = "RAR";
+    const auto HEADER_PATTERN =
         "??"          // uint16_t CRC;
         "74"          // uint8_t Type;
         "?%1xxxxxxx"  // uint16_t Flags;
-        ;
+        ""_sv;
 
     class Container
     {
@@ -283,7 +282,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::RAR_DECODER_DESCRIPTION;
+      return Rar::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

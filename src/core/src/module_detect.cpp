@@ -26,22 +26,12 @@
 #include <parameters/merged_accessor.h>
 // std includes
 #include <map>
-// text includes
-#include <src/core/text/core.h>
-#include <src/core/text/plugins.h>
 
 #define FILE_TAG 006E56AA
 
 namespace Module
 {
   const Debug::Stream DetectDbg("Core::Detection");
-
-  const String ARCHIVE_PLUGIN_PREFIX(Text::ARCHIVE_PLUGIN_PREFIX);
-
-  String EncodeArchivePluginToPath(const String& pluginId)
-  {
-    return ARCHIVE_PLUGIN_PREFIX + pluginId;
-  }
 
   template<class T>
   std::size_t DetectByPlugins(const Parameters::Accessor& params, typename T::Iterator::Ptr plugins,

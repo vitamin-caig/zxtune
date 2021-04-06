@@ -29,8 +29,6 @@
 #include <QtCore/QString>
 #include <QtCore/QUrl>
 #include <QtCore/QXmlStreamWriter>
-// text includes
-#include "text/text.h"
 
 #define FILE_TAG A016CAAF
 
@@ -110,7 +108,7 @@ namespace
       explicit StringPropertySaver(QXmlStreamWriter& xml)
         : Extension(xml, XSPF::EXTENSION_TAG)
       {
-        Extension.Attribute(XSPF::APPLICATION_ATTR, QLatin1String(Text::PLAYLIST_APPLICATION_ID));
+        Extension.Attribute(XSPF::APPLICATION_ATTR, Playlist::APPLICATION_ID);
       }
 
       void SaveProperty(const Parameters::NameType& name, const String& strVal)

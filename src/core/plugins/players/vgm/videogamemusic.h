@@ -17,6 +17,6 @@ namespace Module
 {
   namespace VideoGameMusic
   {
-    String DetectPlatform(Binary::View blob);
+    StringView DetectPlatform(Binary::View blob);
   }
 }  // namespace Module

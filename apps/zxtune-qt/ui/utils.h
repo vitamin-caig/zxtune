@@ -25,6 +25,11 @@ inline QString ToQString(const String& str)
 #endif
 }
 
+inline QString ToQString(StringView str)
+{
+  return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
+}
+
 inline String FromQString(const QString& str)
 {
 #ifdef UNICODE

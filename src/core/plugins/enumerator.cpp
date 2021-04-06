@@ -29,8 +29,6 @@
 // std includes
 #include <list>
 #include <map>
-// text includes
-#include <core/text/core.h>
 
 #define FILE_TAG 04EDD719
 

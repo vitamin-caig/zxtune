@@ -25,14 +25,14 @@
 #include <strings/optimize.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace ProSoundMakerCompiled
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProSoundMakerCompiled");
+
+    const Char PROGRAM[] = "Pro Sound Maker";
 
     using namespace ProSoundMaker;
 
@@ -467,7 +467,7 @@ namespace Formats::Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Text::PROSOUNDMAKER_DECODER_DESCRIPTION);
+        meta.SetProgram(PROGRAM);
         if (const std::size_t gapSize = fromLE(Source.PositionsOffset) - sizeof(Source))
         {
           const std::size_t gapBegin = sizeof(Source);
@@ -1016,8 +1016,9 @@ namespace Formats::Chiptune
       return true;
     }
 
+    const auto DESCRIPTION = PROGRAM;
     // Statistic-based format description (~55 modules)
-    const StringView FORMAT(
+    const auto FORMAT =
         "(08-88)&%x0xxxxxx 00"  // uint16_t PositionsOffset;
         // 0x9d + 2 * MAX_POSITIONS_COUNT(0x64) = 0x165
         "? 00-01"  // uint16_t SamplesOffset;
@@ -1025,7 +1026,7 @@ namespace Formats::Chiptune
         "? 00-04"  // uint16_t OrnamentsOffset;
         // 0x79b + MAX_ORNAMENTS_COUNT(0x20) * (2 + 2 + MAX_ORNAMENT_SIZE(0x22)) = 0xc1b
         "? 00-05"  // uint16_t PatternsOffset;
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -1036,7 +1037,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PROSOUNDMAKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

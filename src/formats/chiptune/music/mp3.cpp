@@ -21,13 +21,13 @@
 #include <strings/trim.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace Mp3
   {
+    const Char DESCRIPTION[] = "MPEG Audio Layer";
+
     // http://wiki.hydrogenaud.io/index.php?title=APEv2_specification
     namespace ApeTag
     {
@@ -43,15 +43,15 @@ namespace Formats::Chiptune
 
       void ParseKey(StringView key, StringView value, MetaBuilder& target)
       {
-        if (key == "Artist")
+        if (key == "Artist"_sv)
         {
           target.SetAuthor(MakeString(value));
         }
-        else if (key == "Title")
+        else if (key == "Title"_sv)
         {
           target.SetTitle(MakeString(value));
         }
-        else if (key == "Comment")
+        else if (key == "Comment"_sv)
         {
           // TODO: SetComment
           target.SetStrings({MakeString(value)});
@@ -467,7 +467,7 @@ namespace Formats::Chiptune
       return stub;
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         // ID3 tag    frame header
         "'I         |ff"
         "'D         |%111xxxxx"
@@ -481,7 +481,7 @@ namespace Formats::Chiptune
                                            "%0xxxxxxx"
                                            "%0xxxxxxx"
                                            */
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -492,7 +492,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::MP3_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

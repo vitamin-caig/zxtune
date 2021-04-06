@@ -21,8 +21,6 @@
 // std includes
 #include <algorithm>
 #include <iterator>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -164,8 +162,8 @@ namespace Formats::Packed
       }
     };
 
-    const StringView Version1::DESCRIPTION = Text::LZH1_DECODER_DESCRIPTION;
-    const StringView Version1::DEPACKER_PATTERN(
+    const StringView Version1::DESCRIPTION = "LZH Compressor v1.4"_sv;
+    const StringView Version1::DEPACKER_PATTERN =
         "?"     // di/ei
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
@@ -195,10 +193,10 @@ namespace Formats::Packed
         "7b"    // ld a,e
         "96"    // sub (hl)
         "6f"    // ld l,a
-    );
+        ""_sv;
 
-    const StringView Version2::DESCRIPTION = Text::LZH2_DECODER_DESCRIPTION;
-    const StringView Version2::DEPACKER_PATTERN(
+    const StringView Version2::DESCRIPTION = "LZH Compressor v2.4"_sv;
+    const StringView Version2::DEPACKER_PATTERN =
         "?"     // di/ei
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
@@ -227,7 +225,7 @@ namespace Formats::Packed
         "7b"    // ld a,e
         "96"    // sub (hl)
         "6f"    // ld l,a
-    );
+        ""_sv;
 
     static_assert(sizeof(Version1::RawHeader) == 0x58, "Invalid layout");
     static_assert(offsetof(Version1::RawHeader, DepackerBody) == 0x17, "Invalid layout");

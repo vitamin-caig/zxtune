@@ -10,6 +10,7 @@
 
 // local includes
 #include "formats/archived/multitrack/multitrack.h"
+#include "formats/archived/multitrack/filename.h"
 // common includes
 #include <make_ptr.h>
 // library includes
@@ -17,13 +18,29 @@
 #include <strings/prefixed_index.h>
 // std includes
 #include <utility>
-// text includes
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
   namespace MultitrackArchives
   {
+    const auto FILENAME_PREFIX = "#"_sv;
+
+    String CreateFilename(std::size_t index)
+    {
+      return Strings::PrefixedIndex(FILENAME_PREFIX, index).ToString();
+    }
+
+    std::optional<std::size_t> ParseFilename(StringView str)
+    {
+      const auto parsed = Strings::PrefixedIndex(FILENAME_PREFIX, str);
+      std::optional<std::size_t> result;
+      if (parsed.IsValid())
+      {
+        result = parsed.GetIndex();
+      }
+      return result;
+    }
+
     class File : public Archived::File
     {
     public:
@@ -64,7 +81,7 @@ namespace Formats::Archived
         for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
         {
           const uint_t song = idx + 1;
-          const String subPath = Strings::PrefixedIndex(Text::MULTITRACK_FILENAME_PREFIX, song).ToString();
+          const String subPath = CreateFilename(song);
           const Binary::Container::Ptr subData = Delegate->WithStartTrackIndex(idx);
           const File file(subPath, subData);
           walker.OnFile(file);
@@ -73,12 +90,12 @@ namespace Formats::Archived
 
       File::Ptr FindFile(const String& name) const override
       {
-        const Strings::PrefixedIndex filename(Text::MULTITRACK_FILENAME_PREFIX, name);
-        if (!filename.IsValid())
+        const auto filename = ParseFilename(name);
+        if (!filename)
         {
           return File::Ptr();
         }
-        const uint_t song = filename.GetIndex();
+        const uint_t song = *filename;
         if (song < 1 || song > CountFiles())
         {
           return File::Ptr();
@@ -93,45 +110,45 @@ namespace Formats::Archived
         return Delegate->TracksCount();
       }
     };
-
-    class Decoder : public Archived::Decoder
-    {
-    public:
-      Decoder(String description, Formats::Multitrack::Decoder::Ptr delegate)
-        : Description(std::move(description))
-        , Delegate(std::move(delegate))
-      {}
-
-      String GetDescription() const override
-      {
-        return Description;
-      }
-
-      Binary::Format::Ptr GetFormat() const override
-      {
-        return Delegate->GetFormat();
-      }
-
-      Container::Ptr Decode(const Binary::Container& rawData) const override
-      {
-        if (const Formats::Multitrack::Container::Ptr data = Delegate->Decode(rawData))
-        {
-          if (data->TracksCount() > 1)
-          {
-            return MakePtr<Container>(data);
-          }
-        }
-        return Container::Ptr();
-      }
-
-    private:
-      const String Description;
-      const Formats::Multitrack::Decoder::Ptr Delegate;
-    };
   }  // namespace MultitrackArchives
 
-  Decoder::Ptr CreateMultitrackArchiveDecoder(const String& description, Formats::Multitrack::Decoder::Ptr delegate)
+  class MultitrackArchiveDecoder : public Decoder
   {
-    return MakePtr<MultitrackArchives::Decoder>(description, delegate);
+  public:
+    MultitrackArchiveDecoder(String description, Formats::Multitrack::Decoder::Ptr delegate)
+      : Description(std::move(description))
+      , Delegate(std::move(delegate))
+    {}
+
+    String GetDescription() const override
+    {
+      return Description;
+    }
+
+    Binary::Format::Ptr GetFormat() const override
+    {
+      return Delegate->GetFormat();
+    }
+
+    Container::Ptr Decode(const Binary::Container& rawData) const override
+    {
+      if (const Formats::Multitrack::Container::Ptr data = Delegate->Decode(rawData))
+      {
+        if (data->TracksCount() > 1)
+        {
+          return MakePtr<MultitrackArchives::Container>(data);
+        }
+      }
+      return Container::Ptr();
+    }
+
+  private:
+    const String Description;
+    const Formats::Multitrack::Decoder::Ptr Delegate;
+  };
+
+  Decoder::Ptr CreateMultitrackArchiveDecoder(String description, Formats::Multitrack::Decoder::Ptr delegate)
+  {
+    return MakePtr<MultitrackArchiveDecoder>(std::move(description), std::move(delegate));
   }
 }  // namespace Formats::Archived

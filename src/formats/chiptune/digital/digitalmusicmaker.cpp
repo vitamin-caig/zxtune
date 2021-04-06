@@ -26,14 +26,14 @@
 #include <array>
 #include <cstring>
 #include <map>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace DigitalMusicMaker
   {
     const Debug::Stream Dbg("Formats::Chiptune::DigitalMusicMaker");
+
+    const Char DESCRIPTION[] = "Digital Music Maker v1.x";
 
     // const std::size_t MAX_POSITIONS_COUNT = 0x32;
     // const std::size_t MAX_PATTERN_SIZE = 64;
@@ -269,7 +269,7 @@ namespace Formats::Chiptune
       {
         target.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = target.GetMetaBuilder();
-        meta.SetProgram(Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION);
+        meta.SetProgram(DESCRIPTION);
         Strings::Array names(SAMPLES_COUNT);
         for (uint_t samIdx = 1; samIdx < SAMPLES_COUNT; ++samIdx)
         {
@@ -572,7 +572,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         // bank ends
         "(?c0-ff){6}"
         // pat size: 64,48,32,24
@@ -586,7 +586,8 @@ namespace Formats::Chiptune
         // length
         "01-32"
         // base size
-        "02-38");
+        "02-38"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -597,7 +598,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::DIGITALMUSICMAKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

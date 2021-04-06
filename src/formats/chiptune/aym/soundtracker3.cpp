@@ -26,14 +26,14 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace SoundTracker3
   {
     const Debug::Stream Dbg("Formats::Chiptune::SoundTracker3");
+
+    const Char PROGRAM[] = "Sound Tracker v3.x";
 
     using namespace SoundTracker;
 
@@ -191,7 +191,7 @@ namespace Formats::Chiptune
       {
         builder.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Text::SOUNDTRACKER3_DECODER_DESCRIPTION);
+        meta.SetProgram(PROGRAM);
         if (Id.Check())
         {
           meta.SetTitle(Strings::OptimizeAscii(Id.Title));
@@ -708,13 +708,14 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "Sound Tracker v3.x Compiled";
+    const auto FORMAT =
         "03-0f"   // uint8_t Tempo; 1..15
         "?01-08"  // uint16_t PositionsOffset;
         "?01-08"  // uint16_t SamplesOffset;
         "?01-0a"  // uint16_t OrnamentsOffset;
         "?02-16"  // uint16_t PatternsOffset;
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::SoundTracker::Decoder
     {
@@ -725,7 +726,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::SOUNDTRACKER3_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

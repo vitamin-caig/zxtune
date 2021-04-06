@@ -27,8 +27,6 @@
 #include <list>
 #include <map>
 #include <numeric>
-// text include
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -36,7 +34,8 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::Lha");
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "LHA (LHArc)";
+    const auto FORMAT =
         "??"                                  // size+sum/size/size len
         "'-('l|'p)('z|'h|'m)('s|'d|'0-'7)'-"  // method, see lha_decoder.c for all available
         "????"                                // packed size
@@ -44,7 +43,7 @@ namespace Formats::Archived
         "????"                                // time
         "%00xxxxxx"                           // attr/0x20
         "00-03"                               // level
-    );
+        ""_sv;
 
     class InputStreamWrapper
     {
@@ -242,7 +241,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::LHA_DECODER_DESCRIPTION;
+      return Lha::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

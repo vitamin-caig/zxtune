@@ -21,8 +21,6 @@
 #include <strings/trim.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -32,6 +30,11 @@ namespace Formats::Chiptune
 
     const IdentifierType ID_AHX = {{'T', 'H', 'X'}};
     const IdentifierType ID_HVL = {{'H', 'V', 'L'}};
+
+    const Char ABYSS_EDITOR_OLD[] = "Abyss' Highest Experience v1.00-1.27";
+    const Char ABYSS_EDITOR_NEW[] = "Abyss' Highest Experience v2.00+";
+    const Char HIVELY_EDITOR_OLD[] = "Hively Tracker v1.0-1.4";
+    const Char HIVELY_EDITOR_NEW[] = "Hively Tracker v1.5+";
 
     /*
         struct Header
@@ -224,22 +227,22 @@ namespace Formats::Chiptune
         {
           if (Source.Version == 0)
           {
-            meta.SetProgram(Text::ABYSSHIGHESTEXPERIENCE_EDITOR_OLD);
+            meta.SetProgram(ABYSS_EDITOR_OLD);
           }
           else
           {
-            meta.SetProgram(Text::ABYSSHIGHESTEXPERIENCE_EDITOR_NEW);
+            meta.SetProgram(ABYSS_EDITOR_NEW);
           }
         }
         else if (Source.IsHVL())
         {
           if (Source.Version == 0)
           {
-            meta.SetProgram(Text::HIVELYTRACKER_EDITOR_OLD);
+            meta.SetProgram(HIVELY_EDITOR_OLD);
           }
           else
           {
-            meta.SetProgram(Text::HIVELYTRACKER_EDITOR_NEW);
+            meta.SetProgram(HIVELY_EDITOR_NEW);
           }
         }
       }
@@ -264,7 +267,7 @@ namespace Formats::Chiptune
 
     struct FormatTraits
     {
-      const char* Format;
+      const StringView Format;
       const Char* Description;
     };
 
@@ -277,8 +280,8 @@ namespace Formats::Chiptune
         "?"             // tracks count
         "00-3f"         // samples count
         "?"             // subsongs count
-        ,
-        Text::ABYSSHIGHESTEXPERIENCE_DECODER_DESCRIPTION};
+        ""_sv,
+        "Abyss' Highest Experience"};
 
     const FormatTraits HVLTraits = {
         "'H'V'L 00-01"  // signature
@@ -291,8 +294,8 @@ namespace Formats::Chiptune
         "?"             // subsongs count
         "01-ff"         // mixgain, not zero
         "00-04"         // defstereo
-        ,
-        Text::HIVELYTRACKER_DECODER_DESCRIPTION};
+        ""_sv,
+        "Hively Tracker"};
 
     class VersionedDecoder : public Decoder
     {
@@ -305,7 +308,6 @@ namespace Formats::Chiptune
       String GetDescription() const override
       {
         return Traits.Description;
-        ;
       }
 
       Binary::Format::Ptr GetFormat() const override

@@ -13,6 +13,7 @@
 #include "supp/options.h"
 #include "ui/factory.h"
 #include "ui/utils.h"
+#include "urls.h"
 // common includes
 #include <contract.h>
 // library includes
@@ -22,8 +23,6 @@
 #include <QtGui/QApplication>
 // std includes
 #include <utility>
-// text includes
-#include "text/text.h"
 
 namespace
 {
@@ -40,9 +39,9 @@ namespace
       // storageLocation(DataLocation) is ${profile}/[${organizationName}/][${applicationName}/]
       // applicationName cannot be empty since qt4.8.7 (binary name is used instead)
       // So, do not set  organization name and override application name
-      qapp.setApplicationName(QLatin1String(Text::PROJECT_NAME));
+      qapp.setApplicationName("ZXTune");
       qapp.setApplicationVersion(ToQString(Platform::Version::GetProgramVersionString()));
-      qapp.setOrganizationDomain(QLatin1String(Text::PROGRAM_SITE));
+      qapp.setOrganizationDomain(ToQString(Urls::Site()));
       const Parameters::Container::Ptr params = GlobalOptions::Instance().Get();
       const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(params, std::move(argv));
       if (mode->StartMaster())
@@ -62,6 +61,11 @@ namespace
 
 namespace Platform
 {
+  namespace Version
+  {
+    extern const Char PROGRAM_NAME[] = "zxtune-qt";
+  }
+
   std::unique_ptr<Application> Application::Create()
   {
     return std::unique_ptr<Application>(new QTApplication());

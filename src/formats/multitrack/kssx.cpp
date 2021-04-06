@@ -66,7 +66,7 @@ namespace Formats::Multitrack
     static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
     static_assert(sizeof(ExtraHeader) == 0x0c, "Invalid layout");
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'K'S'S'X"   // signature
         "??"         // load address
         "??"         // initial data size
@@ -76,7 +76,7 @@ namespace Formats::Multitrack
         "?"          // extra banks
         "00|0c-10"   // extra header size
         "%0x0xxxxx"  // extra chips
-        ;
+        ""_sv;
     const ExtraHeader STUB_EXTRA_HEADER = {~uint32_t(0), 0, 0, 0};
 
     const std::size_t MIN_SIZE = sizeof(RawHeader) + sizeof(ExtraHeader);

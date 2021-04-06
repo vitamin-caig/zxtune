@@ -37,8 +37,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
-// text includes
-#include "text/text.h"
 
 #define FILE_TAG DAEDAE2A
 
@@ -47,18 +45,6 @@ namespace
   const Debug::Stream Dbg("zxtune123::Sound");
 
   static const String NOTUSED_MARK("\x01\x02");
-
-  template<class T>
-  inline T FromString(const String& str)
-  {
-    std::basic_istringstream<Char> stream(str);
-    T res = 0;
-    if (stream >> res)
-    {
-      return res;
-    }
-    throw MakeFormattedError(THIS_LINE, Text::ERROR_INVALID_FORMAT, str);
-  }
 
   class CommonBackendParameters
   {
@@ -114,10 +100,11 @@ namespace
     explicit Component(Parameters::Container::Ptr configParams)
       : Service(Sound::CreateGlobalService(configParams))
       , Params(new CommonBackendParameters(configParams))
-      , OptionsDescription(Text::SOUND_SECTION)
+      , OptionsDescription("Sound options")
       , Looped(false)
     {
       using namespace boost::program_options;
+      auto opt = OptionsDescription.add_options();
       for (Sound::BackendInformation::Iterator::Ptr backends = Service->EnumerateBackends(); backends->IsValid();
            backends->Next())
       {
@@ -129,16 +116,14 @@ namespace
         const String id = info->Id();
         String& opts = BackendOptions[id];
         opts = NOTUSED_MARK;
-        OptionsDescription.add_options()(id.c_str(),
-                                         value<String>(&opts)->implicit_value(String(), Text::SOUND_BACKEND_PARAMS),
-                                         info->Description().c_str());
+        opt(id.c_str(), value<String>(&opts)->implicit_value(String(), "parameters"), info->Description().c_str());
       }
 
-      OptionsDescription.add_options()(Text::FREQUENCY_KEY,
-                                       value<String>(&SoundOptions[Parameters::ZXTune::Sound::FREQUENCY.FullPath()]),
-                                       Text::FREQUENCY_DESC)(
-          Text::FREQTABLE_KEY, value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE.FullPath()]),
-          Text::FREQTABLE_DESC)(Text::LOOP_KEY, bool_switch(&Looped), Text::LOOP_DESC);
+      opt("frequency", value<String>(&SoundOptions[Parameters::ZXTune::Sound::FREQUENCY.FullPath()]),
+          "specify sound frequency in Hz");
+      opt("freqtable", value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE.FullPath()]),
+          "specify frequency table");
+      opt("loop", bool_switch(&Looped), "loop playback");
     }
 
     const boost::program_options::options_description& GetOptionsDescription() const override
@@ -211,7 +196,7 @@ namespace
           }
         }
       }
-      throw Error(THIS_LINE, Text::SOUND_ERROR_NO_BACKEND);
+      throw Error(THIS_LINE, "Failed to create any backend.");
     }
 
     Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const override

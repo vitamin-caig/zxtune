@@ -27,8 +27,6 @@
 #include <cctype>
 // boost includes
 #include <boost/algorithm/string/predicate.hpp>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -890,7 +888,8 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "Pro Tracker v3.x";
+    const auto FORMAT =
         "?{13}"         // uint8_t Id[13];        //'ProTracker 3.'
         "?"             // uint8_t Subversion;
         "?{16}"         // uint8_t Optional1[16]; //' compilation of '
@@ -908,7 +907,7 @@ namespace Formats::Chiptune
         "(?00-d9){16}"  // std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
         "*3&00-fe"      // at least one position
         "*3"            // next position or limiter (255 % 3 == 0)
-    );
+        ""_sv;
 
     class BinaryDecoder : public Decoder
     {
@@ -919,7 +918,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PROTRACKER3_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

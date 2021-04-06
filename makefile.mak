@@ -93,11 +93,6 @@ ifdef source_dirs
 source_files += $(foreach suffix,$(suffix.src),$(foreach dir,$(source_dirs),$(wildcard $(dir)/*$(suffix))))
 endif
 
-#process texts if required
-ifdef text_files
-include $(dirs.root)/make/textator.mak
-endif
-
 #process qt if required
 ifdef use_qt
 include $(dirs.root)/make/qt.mak

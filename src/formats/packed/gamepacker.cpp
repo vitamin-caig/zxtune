@@ -22,8 +22,6 @@
 #include <formats/packed.h>
 // std includes
 #include <cstring>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -118,7 +116,7 @@ namespace Formats::Packed
 #endif
     };
 
-    const StringView Version1::DESCRIPTION = Text::GAM_DECODER_DESCRIPTION;
+    const StringView Version1::DESCRIPTION = "GamePacker"_sv;
     const StringView Version1::DEPACKER_PATTERN =
         "21??"    // ld hl,xxxx depacker body src
         "11??"    // ld de,xxxx depacker body dst
@@ -136,9 +134,9 @@ namespace Formats::Packed
         //+29 (0x1d) DepackerBody starts here
         "7c"  // ld a,h
         "b5"  // or l
-        ;
+        ""_sv;
 
-    const StringView Version2::DESCRIPTION = Text::GAMPLUS_DECODER_DESCRIPTION;
+    const StringView Version2::DESCRIPTION = "GamePacker+"_sv;
     const StringView Version2::DEPACKER_PATTERN =
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
@@ -162,7 +160,7 @@ namespace Formats::Packed
         "96"
         // 23 e5 6f 7a 98 67 0600 edb0 e1 18e3 e67f ca7181 23 cb77 2007 4f 0600 edb0 18d2 e6 3f c603 48 7e 23 12
         // 1310fc18c5
-        ;
+        ""_sv;
 
     static_assert(sizeof(Version1::RawHeader) == 0x15, "Invalid layout");
     static_assert(sizeof(Version2::RawHeader) == 0x10, "Invalid layout");

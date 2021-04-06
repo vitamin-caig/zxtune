@@ -22,20 +22,19 @@
 #include <cassert>
 #include <cstddef>
 #include <cstring>
-// text include
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
   namespace Hrip
   {
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "Hrip (Hrust RiP archiver)";
+    const auto FORMAT =
         "'H'R'i"     // uint8_t ID[3];//'HRi'
         "01-ff"      // uint8_t FilesCount;
         "?"          // uint8_t UsedInLastSector;
         "??"         // uint16_t ArchiveSectors;
         "%0000000x"  // uint8_t Catalogue;
-    );
+        ""_sv;
 
     const std::size_t MAX_MODULE_SIZE = 655360;
 
@@ -191,7 +190,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::HRIP_DECODER_DESCRIPTION;
+      return Hrip::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

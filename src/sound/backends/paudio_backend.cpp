@@ -12,6 +12,7 @@
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/gates/paudio_api.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/paudio.h"
 #include "sound/backends/storage.h"
 // common includes
 #include <byteorder.h>
@@ -26,8 +27,6 @@
 #include <sound/render_params.h>
 // std includes
 #include <functional>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 181AC911
 
@@ -35,8 +34,6 @@ namespace Sound::PulseAudio
 {
   const Debug::Stream Dbg("Sound::Backend::PulseAudio");
 
-  const String ID = Text::PAUDIO_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("PulseAudio support backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 
   class BackendWorker : public Sound::BackendWorker
@@ -179,11 +176,11 @@ namespace Sound
       const char* const version = api->pa_get_library_version();
       PulseAudio::Dbg("Detected PulseAudio v%1%", version);
       const BackendWorkerFactory::Ptr factory = MakePtr<PulseAudio::BackendWorkerFactory>(api);
-      storage.Register(PulseAudio::ID, PulseAudio::DESCRIPTION, PulseAudio::CAPABILITIES, factory);
+      storage.Register(PulseAudio::BACKEND_ID, PulseAudio::BACKEND_DESCRIPTION, PulseAudio::CAPABILITIES, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(PulseAudio::ID, PulseAudio::DESCRIPTION, PulseAudio::CAPABILITIES, e);
+      storage.Register(PulseAudio::BACKEND_ID, PulseAudio::BACKEND_DESCRIPTION, PulseAudio::CAPABILITIES, e);
     }
   }
 }  // namespace Sound

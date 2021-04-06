@@ -18,6 +18,7 @@
 // library includes
 #include <debug/log.h>
 #include <formats/chiptune/aym/sqtracker.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 // std includes
@@ -25,8 +26,6 @@
 #include <unordered_set>
 // boost includes
 #include <boost/functional/hash.hpp>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::SQTracker
 {

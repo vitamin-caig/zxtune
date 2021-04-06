@@ -17,6 +17,9 @@ namespace Platform
 {
   namespace Version
   {
+    // Should be defined in app
+    extern const Char PROGRAM_NAME[];
+
     String GetProgramTitle();
     String GetProgramVersion();
     String GetBuildDate();

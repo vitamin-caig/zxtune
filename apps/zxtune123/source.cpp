@@ -38,8 +38,6 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
-// text includes
-#include "text/text.h"
 
 #define FILE_TAG 9EDFE3AF
 
@@ -83,7 +81,7 @@ namespace
         if (const uint_t currentWidth = GetCurrentWidth())
         {
           String text = message;
-          text += Strings::Format(Text::PROGRESS_FORMAT, current);
+          text += Strings::Format(" [%1%%%]", current);
           OutputString(currentWidth, text);
         }
       }
@@ -186,17 +184,19 @@ namespace
   public:
     Source(Parameters::Container::Ptr configParams)
       : Params(std::move(configParams))
-      , OptionsDescription(Text::INPUT_SECTION)
+      , OptionsDescription("Input options")
       , ShowProgress(false)
       , YM(false)
     {
-      OptionsDescription.add_options()(Text::INPUT_FILE_KEY, boost::program_options::value<Strings::Array>(&Files),
-                                       Text::INPUT_FILE_DESC)(Text::IO_PROVIDERS_OPTS_KEY,
-                                                              boost::program_options::value<String>(&ProvidersOptions),
-                                                              Text::IO_PROVIDERS_OPTS_DESC)(
-          Text::INPUT_PROGRESS_KEY, boost::program_options::bool_switch(&ShowProgress), Text::INPUT_PROGRESS_DESC)(
-          Text::CORE_OPTS_KEY, boost::program_options::value<String>(&CoreOptions),
-          Text::CORE_OPTS_DESC)(Text::YM_KEY, boost::program_options::bool_switch(&YM), Text::YM_DESC);
+      using namespace boost::program_options;
+      auto opt = OptionsDescription.add_options();
+      opt("file", value<Strings::Array>(&Files), "file to process");
+      opt("providers-options", value<String>(&ProvidersOptions),
+          "options for i/o providers. Implies 'zxtune.io.providers.' prefix to all options in map.");
+      opt("progress", bool_switch(&ShowProgress), "show progress while processing input files.");
+      opt("core-options", value<String>(&CoreOptions),
+          "options for core. Implies 'zxtune.core.' prefix to all options in map.");
+      opt("ym", bool_switch(&YM), "use YM chip for playback");
     }
 
     const boost::program_options::options_description& GetOptionsDescription() const override
@@ -233,7 +233,7 @@ namespace
     {
       if (Files.empty())
       {
-        throw Error(THIS_LINE, Text::INPUT_ERROR_NO_FILES);
+        throw Error(THIS_LINE, "No files to process.");
       }
     }
 

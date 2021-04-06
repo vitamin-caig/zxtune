@@ -14,12 +14,10 @@
 #include <binary/container_base.h>
 #include <binary/format_factories.h>
 #include <formats/archived/decoders.h>
+#include <formats/archived/multitrack/filename.h>
 #include <formats/chiptune/emulation/sid.h>
-#include <strings/prefixed_index.h>
 // std includes
 #include <utility>
-// text includes
-#include <formats/text/archived.h>
 
 namespace Formats::Archived
 {
@@ -65,7 +63,7 @@ namespace Formats::Archived
         for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
         {
           const uint_t song = idx + 1;
-          const String subPath = Strings::PrefixedIndex(Text::MULTITRACK_FILENAME_PREFIX, song).ToString();
+          const String subPath = MultitrackArchives::CreateFilename(song);
           const Binary::Container::Ptr subData = Formats::Chiptune::SID::FixStartSong(*Delegate, song);
           const File file(subPath, subData);
           walker.OnFile(file);
@@ -74,12 +72,12 @@ namespace Formats::Archived
 
       File::Ptr FindFile(const String& name) const override
       {
-        const Strings::PrefixedIndex filename(Text::MULTITRACK_FILENAME_PREFIX, name);
-        if (!filename.IsValid())
+        const auto filename = MultitrackArchives::ParseFilename(name);
+        if (!filename)
         {
           return File::Ptr();
         }
-        const uint_t song = filename.GetIndex();
+        const uint_t song = *filename;
         if (song < 1 || song > CountFiles())
         {
           return File::Ptr();
@@ -94,7 +92,8 @@ namespace Formats::Archived
       }
     };
 
-    const StringView FORMAT =
+    const Char DESCRIPTION[] = "Multi-SID/PSID/RSID";
+    const auto FORMAT =
         "'R|'P 'S'I'D"  // signature
         "00 01-03"      // BE version
         "00 76|7c"      // BE data offset
@@ -104,7 +103,7 @@ namespace Formats::Archived
         "00|01 ?"       // BE songs count 1-256
         "??"            // BE start song
         "????"          // BE speed flag
-        ;
+        ""_sv;
   }  // namespace MultiSID
 
   class MultiSIDDecoder : public Decoder
@@ -116,7 +115,7 @@ namespace Formats::Archived
 
     String GetDescription() const override
     {
-      return Text::SID_ARCHIVE_DECODER_DESCRIPTION;
+      return MultiSID::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

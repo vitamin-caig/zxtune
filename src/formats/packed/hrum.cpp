@@ -24,16 +24,15 @@
 #include <math/numeric.h>
 // std includes
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
   namespace Hrum
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
-    // checkers
-    const StringView DEPACKER_PATTERN =
+
+    const Char DESCRIPTION[] = "Hrum v3.x";
+    const auto DEPACKER_PATTERN =
         "?"       // di/nop
         "ed73??"  // ld (xxxx),sp
         "21??"    // ld hl,xxxx   start+0x1f
@@ -51,7 +50,7 @@ namespace Formats::Packed
         "16?"     // ld d,xx
         "31??"    // ld sp,xxxx   ;start of moved packed (data = +0x24)
         "c1"      // pop bc
-        ;
+        ""_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)
@@ -310,7 +309,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::HRUM_DECODER_DESCRIPTION;
+      return Hrum::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

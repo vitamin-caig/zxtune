@@ -43,7 +43,7 @@ namespace Module
     void SetVersion(uint_t major, uint_t minor);
     void SetVersion(const String& version);
     void SetDate(const String& date);
-    void SetPlatform(const String& platform);
+    void SetPlatform(StringView platform);
 
     // Sound
     void SetFadein(Time::Milliseconds fadein);

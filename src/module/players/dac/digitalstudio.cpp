@@ -15,8 +15,7 @@
 #include <make_ptr.h>
 // library includes
 #include <formats/chiptune/digital/digitalstudio.h>
-// text includes
-#include <module/text/platforms.h>
+#include <module/players/platforms.h>
 
 namespace Module::DigitalStudio
 {

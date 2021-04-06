@@ -28,14 +28,14 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace GlobalTracker
   {
     const Debug::Stream Dbg("Formats::Chiptune::GlobalTracker");
+
+    const Char EDITOR[] = "Global Tracker v1.%1%";
 
     const std::size_t MIN_SIZE = 1500;
     const std::size_t MAX_SIZE = 0x2800;
@@ -432,7 +432,7 @@ namespace Formats::Chiptune
       {
         builder.SetInitialTempo(Source.Tempo);
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Strings::Format(Text::GLOBALTRACKER1_EDITOR, Source.Version & 15));
+        meta.SetProgram(Strings::Format(EDITOR, Source.Version & 15));
         meta.SetTitle(Strings::OptimizeAscii(Source.Title));
       }
 
@@ -947,7 +947,8 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "Global Tracker v1.x";
+    const auto FORMAT =
         "03-0f"     // uint8_t Tempo;
         "???"       // uint8_t ID[3];
         "10-12"     // uint8_t Version; who knows?
@@ -959,7 +960,7 @@ namespace Formats::Chiptune
         "01-ff"     // uint8_t Length;
         "00-fe"     // uint8_t Loop;
         "*6&00-ba"  // uint8_t Positions[1];
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -970,7 +971,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::GLOBALTRACKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

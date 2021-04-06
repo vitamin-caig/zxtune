@@ -26,14 +26,14 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace ChipTracker
   {
     const Debug::Stream Dbg("Formats::Chiptune::ChipTracker");
+
+    const Char EDITOR[] = "Chip Tracker v%1%";
 
     // const std::size_t MAX_MODULE_SIZE = 65536;
     const std::size_t MAX_PATTERN_SIZE = 64;
@@ -274,7 +274,7 @@ namespace Formats::Chiptune
         MetaBuilder& meta = target.GetMetaBuilder();
         meta.SetTitle(Strings::OptimizeAscii(Source.Title));
         const StringView version(Source.Version.data(), Source.Version.size());
-        meta.SetProgram(Strings::Format(Text::CHIPTRACKER_EDITOR, version));
+        meta.SetProgram(Strings::Format(EDITOR, version));
 
         Strings::Array names;
         names.reserve(Source.SampleNames.size());
@@ -460,7 +460,7 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'C'H'I'P'v"          // uint8_t Signature[5];
         "3x2e3x"              // char Version[3];
         "20-7f{32}"           // char Name[32];
@@ -469,7 +469,9 @@ namespace Formats::Chiptune
         "(?00-bb?00-bb){16}"  // samples descriptions
         "?{21}"               // uint8_t Reserved[21];
         "(20-7f{8}){16}"      // sample names
-    );
+        ""_sv;
+
+    const Char DESCRIPTION[] = "Chip Tracker";
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -480,7 +482,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::CHIPTRACKER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

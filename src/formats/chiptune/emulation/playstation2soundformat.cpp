@@ -21,14 +21,14 @@
 #include <debug/log.h>
 // std includes
 #include <map>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace Playstation2SoundFormat
   {
     const Debug::Stream Dbg("Formats::Chiptune::PSF2");
+
+    const Char DESCRIPTION[] = "Playstation2 Sound Format";
 
     struct DirectoryEntry
     {
@@ -217,9 +217,10 @@ namespace Formats::Chiptune
       Format(data).Parse(target);
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'P'S'F"
-        "02");
+        "02"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -230,7 +231,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PLAYSTATION2SOUNDFORMAT_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

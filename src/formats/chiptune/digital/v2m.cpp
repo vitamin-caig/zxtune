@@ -18,13 +18,13 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <math/numeric.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace V2m
   {
+    const Char DESCRIPTION[] = "Farbrausch V2 Synthesizer System";
+
     class Format
     {
     public:
@@ -211,11 +211,11 @@ namespace Formats::Chiptune
       return stub;
     }
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "%xxx00000 00-01 0000"  // timediv
         "? 01-ff ? 00"          // maxtime
         "01-06 000000"          // gdnum
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -226,7 +226,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::V2M_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

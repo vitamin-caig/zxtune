@@ -27,17 +27,15 @@
 #include <array>
 #include <cstring>
 #include <iterator>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
   namespace ZXZip
   {
     const std::size_t MIN_SIZE = 0x16 + 32;
-    // const std::size_t MAX_DECODED_SIZE = 0xff00;
-    // checkers
-    const StringView HEADER_PATTERN =
+
+    const Char DESCRIPTION[] = "ZXZip";
+    const auto HEADER_PATTERN =
         // Filename
         "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
         // Type
@@ -53,7 +51,8 @@ namespace Formats::Packed
         // Method
         "00-03"
         // Flags
-        "%0000000x";
+        "%0000000x"
+        ""_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)
@@ -612,7 +611,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::ZXZIP_DECODER_DESCRIPTION;
+      return ZXZip::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

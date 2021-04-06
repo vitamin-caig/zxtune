@@ -9,6 +9,7 @@
  **/
 
 // local includes
+#include "io/providers/network_provider.h"
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
 #include "io/providers/gates/curl_api.h"
@@ -24,8 +25,6 @@
 #include <parameters/accessor.h>
 // std includes
 #include <cstring>
-// text includes
-#include <io/text/io.h>
 
 #define FILE_TAG 18F46494
 
@@ -291,9 +290,6 @@ namespace IO::Network
     const String FullValue;
   };
 
-  const String ID = Text::IO_NETWORK_PROVIDER_ID;
-  const char* const DESCRIPTION = L10n::translate("Network files access via different schemes support");
-
   class DataProvider : public IO::DataProvider
   {
   public:
@@ -304,12 +300,12 @@ namespace IO::Network
 
     String Id() const override
     {
-      return ID;
+      return PROVIDER_IDENTIFIER;
     }
 
     String Description() const override
     {
-      return translate(DESCRIPTION);
+      return translate(PROVIDER_DESCRIPTION);
     }
 
     Error Status() const override
@@ -394,7 +390,8 @@ namespace IO
     }
     catch (const Error& e)
     {
-      enumerator.RegisterProvider(CreateUnavailableProviderStub(Network::ID, Network::DESCRIPTION, e));
+      enumerator.RegisterProvider(
+          CreateUnavailableProviderStub(Network::PROVIDER_IDENTIFIER, Network::PROVIDER_DESCRIPTION, e));
     }
   }
 }  // namespace IO

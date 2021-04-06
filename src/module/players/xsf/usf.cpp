@@ -20,14 +20,13 @@
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
+#include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 // std includes
 #include <list>
 // 3rdparty includes
 #include <3rdparty/lazyusf2/usf/usf.h>
-// text includes
-#include <module/text/platforms.h>
 
 #define FILE_TAG 59F6FD73
 
@@ -274,7 +273,7 @@ namespace Module::USF
       {
         tune->Meta->Dump(*properties);
       }
-      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_64);
+      properties->SetValue(ATTR_PLATFORM, Platforms::NINTENDO_64.to_string());
       return MakePtr<Holder>(std::move(tune), std::move(properties));
     }
 

@@ -21,8 +21,6 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -92,11 +90,13 @@ namespace Formats::Chiptune
       return true;
     }
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "CPC AYC";
+    const auto FORMAT =
         "?00-75"              // 10 min approx
         "01|04 2e00"          // assume first chunk is right after header
         "(01|04 ?00-80){13}"  // no more than 32k
-        "ff{6}");
+        "ff{6}"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -107,7 +107,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::AYC_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

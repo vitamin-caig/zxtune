@@ -12,6 +12,7 @@
 #include "aboutdialog.h"
 #include "aboutdialog.ui.h"
 #include "ui/utils.h"
+#include "urls.h"
 // library includes
 #include <platform/version/api.h>
 // std includes
@@ -19,8 +20,6 @@
 // qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QDialog>
-// text includes
-#include "text/text.h"
 
 namespace
 {
@@ -41,7 +40,7 @@ namespace
       buildLabel->setText(appVersion);
       const QString feedbackFormat(
           QApplication::translate("AboutDialog", FEEDBACK_FORMAT, nullptr, QApplication::UnicodeUTF8));
-      feedbackLabel->setText(feedbackFormat.arg(QLatin1String(Text::FEEDBACK_EMAIL)).arg(appVersion));
+      feedbackLabel->setText(feedbackFormat.arg(ToQString(Urls::Email())).arg(appVersion));
     }
   };
 }  // namespace

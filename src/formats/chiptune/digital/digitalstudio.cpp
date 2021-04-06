@@ -25,14 +25,16 @@
 // std includes
 #include <array>
 #include <cstring>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace DigitalStudio
   {
     const Debug::Stream Dbg("Formats::Chiptune::DigitalStudio");
+
+    const Char DESCRIPTION[] = "Digital Studio";
+    const Char VERSION_AY[] = " (AY)";
+    const Char VERSION_DAC[] = " (Covox/SD)";
 
     const std::size_t COMPILED_MODULE_SIZE = 0x1c200;
     const std::size_t MODULE_SIZE = 0x1b200;
@@ -444,7 +446,7 @@ namespace Formats::Chiptune
       return rawData.Size() >= MODULE_SIZE;
     }
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "00-63"      // loop
         "00-1f{99}"  // positions
         "02-0f"      // tempo
@@ -454,7 +456,8 @@ namespace Formats::Chiptune
         "?{44}"
         "ff{10}"
         "????????"  //"ae7eae7e51000000"
-        "20{8}");
+        "20{8}"
+        ""_sv;
 
     const uint64_t Z80_FREQ = 3500000;
     // step is not changed in AY and SounDrive versions
@@ -471,7 +474,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::DIGITALSTUDIO_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override
@@ -523,8 +526,7 @@ namespace Formats::Chiptune
         const uint_t cycleTicks = samples.Is4Bit() ? AY_TICKS_PER_CYCLE : SD_TICKS_PER_CYCLE;
         target.SetSamplesFrequency(Z80_FREQ * C_1_STEP / cycleTicks / 256);
 
-        const String program = String(Text::DIGITALSTUDIO_DECODER_DESCRIPTION)
-                               + (samples.Is4Bit() ? Text::DIGITALSTUDIO_VERSION_AY : Text::DIGITALSTUDIO_VERSION_DAC);
+        const String program = String(DESCRIPTION) + (samples.Is4Bit() ? VERSION_AY : VERSION_DAC);
         target.GetMetaBuilder().SetProgram(program);
         samples.Apply(target);
         auto subData = rawData.GetSubcontainer(0, format.GetSize());

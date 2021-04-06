@@ -26,8 +26,6 @@
 #include <functional>
 #include <iterator>
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -35,7 +33,8 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const StringView DEPACKER_PATTERN(
+    const Char DESCRIPTION[] = "ESV Cruncher";
+    const auto DEPACKER_PATTERN =
         //$=6978
         // depack to 9900/61a8
         "?"       // di/nop
@@ -148,7 +147,7 @@ namespace Formats::Packed
                   "d9"      // exx
                   "c9"      // ret
                   */
-    );
+        ""_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)
@@ -428,7 +427,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::ESV_DECODER_DESCRIPTION;
+      return ESVCruncher::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

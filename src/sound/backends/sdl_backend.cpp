@@ -14,6 +14,7 @@
 #include "sound/backends/backend_impl.h"
 #include "sound/backends/gates/sdl_api.h"
 #include "sound/backends/l10n.h"
+#include "sound/backends/sdl.h"
 #include "sound/backends/storage.h"
 // common includes
 #include <byteorder.h>
@@ -28,8 +29,6 @@
 #include <sound/sound_parameters.h>
 // std includes
 #include <condition_variable>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 608CF986
 
@@ -37,8 +36,6 @@ namespace Sound::Sdl
 {
   const Debug::Stream Dbg("Sound::Backend::Sdl");
 
-  const String ID = Text::SDL_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("SDL support backend");
   const uint_t CAPABILITIES = CAP_TYPE_SYSTEM;
 
   const uint_t BUFFERS_MIN = 2;
@@ -303,11 +300,11 @@ namespace Sound
       const SDL_version* const vers = api->SDL_Linked_Version();
       Sdl::Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
       const BackendWorkerFactory::Ptr factory = MakePtr<Sdl::BackendWorkerFactory>(api);
-      storage.Register(Sdl::ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, factory);
+      storage.Register(Sdl::BACKEND_ID, Sdl::BACKEND_DESCRIPTION, Sdl::CAPABILITIES, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(Sdl::ID, Sdl::DESCRIPTION, Sdl::CAPABILITIES, e);
+      storage.Register(Sdl::BACKEND_ID, Sdl::BACKEND_DESCRIPTION, Sdl::CAPABILITIES, e);
     }
   }
 }  // namespace Sound

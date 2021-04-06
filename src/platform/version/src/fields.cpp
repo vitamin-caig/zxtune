@@ -11,8 +11,6 @@
 // local includes
 #include <platform/version/api.h>
 #include <platform/version/fields.h>
-// text includes
-#include <platform/version/text/text.h>
 
 namespace Platform
 {
@@ -23,23 +21,23 @@ namespace Platform
     public:
       String GetFieldValue(const String& fieldName) const override
       {
-        if (fieldName == Text::FIELD_PROGRAM_NAME)
+        if (fieldName == "Program")
         {
           return GetProgramTitle();
         }
-        else if (fieldName == Text::FIELD_PROGRAM_VERSION)
+        else if (fieldName == "Version")
         {
           return GetProgramVersion();
         }
-        else if (fieldName == Text::FIELD_BUILD_DATE)
+        else if (fieldName == "Date")
         {
           return GetBuildDate();
         }
-        else if (fieldName == Text::FIELD_BUILD_PLATFORM)
+        else if (fieldName == "Platform")
         {
           return GetBuildPlatform();
         }
-        else if (fieldName == Text::FIELD_BUILD_ARCH)
+        else if (fieldName == "Arch")
         {
           return GetBuildArchitecture();
         }

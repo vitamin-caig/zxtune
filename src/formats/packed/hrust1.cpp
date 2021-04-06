@@ -24,8 +24,6 @@
 #include <math/numeric.h>
 // std includes
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -33,7 +31,8 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0xc000;
 
-    const StringView FORMAT("'H'R");
+    const Char DESCRIPTION[] = "Hrust v1.x";
+    const auto FORMAT = "'H'R"_sv;
 
 #ifdef USE_PRAGMA_PACK
 #  pragma pack(push, 1)
@@ -426,7 +425,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::HRUST1_DECODER_DESCRIPTION;
+      return Hrust1::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

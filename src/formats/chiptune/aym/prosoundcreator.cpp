@@ -30,14 +30,16 @@
 #include <cstring>
 // boost includes
 #include <boost/algorithm/string/predicate.hpp>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace ProSoundCreator
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProSoundCreator");
+
+    const Char EDITOR[] = "Pro Sound Creator v%1%";
+    const Char EDITOR_OLD[] = "Pro Sound Creator v1.00-1.03";
+    const Char EDITOR_NEW[] = "Pro Sound Creator v1.04-1.07";
 
     const std::size_t MIN_MODULE_SIZE = 256;
     const std::size_t MAX_MODULE_SIZE = 0x4200;
@@ -512,18 +514,14 @@ namespace Formats::Chiptune
 
     Traits GetOldVersionTraits(const RawHeader& hdr)
     {
-      const String programName = hdr.Id.Check()
-                                     ? Strings::Format(Text::PROSOUNDCREATOR_EDITOR, StringView(hdr.Id.Version))
-                                     : Text::PROSOUNDCREATOR_EDITOR_OLD;
+      const String programName = hdr.Id.Check() ? Strings::Format(EDITOR, StringView(hdr.Id.Version)) : EDITOR_OLD;
       const Traits res = {programName, 0, 0};
       return res;
     }
 
     Traits GetNewVersionTraits(const RawHeader& hdr)
     {
-      const String programName = hdr.Id.Check()
-                                     ? Strings::Format(Text::PROSOUNDCREATOR_EDITOR, StringView(hdr.Id.Version))
-                                     : Text::PROSOUNDCREATOR_EDITOR_NEW;
+      const String programName = hdr.Id.Check() ? Strings::Format(EDITOR, StringView(hdr.Id.Version)) : EDITOR_NEW;
       const Traits res = {programName, fromLE(hdr.OrnamentsTableOffset), sizeof(hdr)};
       return res;
     }
@@ -1132,14 +1130,15 @@ namespace Formats::Chiptune
       return data.SubView(0, MAX_MODULE_SIZE);
     }
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "Pro Sound Creator v1.xx";
+    const auto FORMAT =
         "?{69}"    // Id
         "?00"      // uint16_t SamplesStart;TODO
         "?03-3f"   // uint16_t PositionsOffset;
         "03-1f"    // uint8_t Tempo;
         "50-9000"  // uint16_t OrnamentsTableOffset;
         "08-cf00"  // first sample
-    );
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -1150,7 +1149,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::PROSOUNDCREATOR_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

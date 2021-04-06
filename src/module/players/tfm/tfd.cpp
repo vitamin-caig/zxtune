@@ -13,12 +13,11 @@
 #include "module/players/tfm/tfm_base_stream.h"
 // common includes
 #include <make_ptr.h>
-#include <module/players/properties_helper.h>
-#include <module/players/streaming.h>
 // library includes
 #include <formats/chiptune/fm/tfd.h>
-// text includes
-#include <module/text/platforms.h>
+#include <module/players/platforms.h>
+#include <module/players/properties_helper.h>
+#include <module/players/streaming.h>
 
 namespace Module::TFD
 {

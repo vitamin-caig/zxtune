@@ -4,8 +4,6 @@ include $(dirs.root)/make/default.mak
 
 source_dirs := src
 
-text_files := text/text
-
 defines += BUILD_VERSION=$(root.version)
 
 jumbo.name := $(library_name)

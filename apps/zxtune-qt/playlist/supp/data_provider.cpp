@@ -39,8 +39,6 @@
 // std includes
 #include <deque>
 #include <mutex>
-// text includes
-#include "text/text.h"
 
 #define FILE_TAG 0C9BBC6E
 
@@ -423,7 +421,7 @@ namespace
     typedef std::shared_ptr<const DynamicAttributesProvider> Ptr;
 
     DynamicAttributesProvider()
-      : DisplayNameTemplate(Strings::Template::Create(Text::MODULE_PLAYLIST_FORMAT))
+      : DisplayNameTemplate(Strings::Template::Create("[Author] - [Title]"))
       , DummyDisplayName(DisplayNameTemplate->Instantiate(Strings::SkipFieldsSource()))
     {}
 

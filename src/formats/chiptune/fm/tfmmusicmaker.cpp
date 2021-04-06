@@ -26,8 +26,6 @@
 #include <cassert>
 // boost includes
 #include <boost/algorithm/string/trim.hpp>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
@@ -378,9 +376,9 @@ namespace Formats::Chiptune
         PackedDate CreationDate;
         PackedDate SaveDate;
         uint16_t SavesCount;
-        char Author[64];
-        char Title[64];
-        char Comment[384];
+        std::array<char, 64> Author;
+        std::array<char, 64> Title;
+        std::array<char, 384> Comment;
         std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
         std::array<InstrumentName, MAX_INSTRUMENTS_COUNT> InstrumentNames;
         std::array<RawInstrument, MAX_INSTRUMENTS_COUNT> Instruments;
@@ -416,8 +414,8 @@ namespace Formats::Chiptune
     };
 
     // ver1 0.1..0.4/0.5..1.2
-    const StringView Version05::DESCRIPTION = Text::TFMMUSICMAKER05_DECODER_DESCRIPTION;
-    const StringView Version05::FORMAT(
+    const StringView Version05::DESCRIPTION = "TFM Music Maker v0.1-1.2"_sv;
+    const StringView Version05::FORMAT =
         // use more strict detection due to lack of format
         "11-13|21-25|32-35|42-46|52-57|62-68|76-79|87-89|98-9a|a6-a8"
         "01-06"                   // interleave
@@ -426,15 +424,15 @@ namespace Formats::Chiptune
         "06-08|86-88"             // creation date year is between 2006 and 2008
         "%00001000-%11111101|80"  // month/2 between 0 and 5, day between 1 and 31
         "06-08|86-88|80"          // save date year is between 2006 and 2008 or saved at 16th (marker,marker)
-    );
+        ""_sv;
 
-    const StringView Version13::DESCRIPTION = Text::TFMMUSICMAKER13_DECODER_DESCRIPTION;
-    const StringView Version13::FORMAT(
+    const StringView Version13::DESCRIPTION = "TFM Music Maker v1.3+"_sv;
+    const StringView Version13::FORMAT =
         "'T'F'M'f'm't'V'2"  // signature
         "01-0f"             // even speed
         "01-0f|80"          // odd speed or marker
         "01-0f|81-8f"       // interleave or repeat
-    );
+        ""_sv;
 
     static_assert(sizeof(PackedDate) == 2, "Invalid layout");
     static_assert(sizeof(RawInstrument) == 42, "Invalid layout");

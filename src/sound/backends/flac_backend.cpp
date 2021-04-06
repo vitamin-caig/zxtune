@@ -10,6 +10,7 @@
 
 // local includes
 #include "sound/backends/file_backend.h"
+#include "sound/backends/flac.h"
 #include "sound/backends/gates/flac_api.h"
 #include "sound/backends/l10n.h"
 #include "sound/backends/storage.h"
@@ -24,17 +25,12 @@
 // std includes
 #include <algorithm>
 #include <functional>
-// text includes
-#include <sound/backends/text/backends.h>
 
 #define FILE_TAG 6575CD3F
 
 namespace Sound::Flac
 {
   const Debug::Stream Dbg("Sound::Backend::Flac");
-
-  const String ID = Text::FLAC_BACKEND_ID;
-  const char* const DESCRIPTION = L10n::translate("FLAC support backend.");
 
   typedef std::shared_ptr<FLAC__StreamEncoder> EncoderPtr;
 
@@ -104,17 +100,17 @@ namespace Sound::Flac
 
     void SetTitle(const String& title) override
     {
-      Meta.AddTag(Text::OGG_BACKEND_TITLE_TAG, title);
+      Meta.AddTag(File::TITLE_TAG, title);
     }
 
     void SetAuthor(const String& author) override
     {
-      Meta.AddTag(Text::OGG_BACKEND_AUTHOR_TAG, author);
+      Meta.AddTag(File::AUTHOR_TAG, author);
     }
 
     void SetComment(const String& comment) override
     {
-      Meta.AddTag(Text::OGG_BACKEND_COMMENT_TAG, comment);
+      Meta.AddTag(File::COMMENT_TAG, comment);
     }
 
     void FlushMetadata() override
@@ -243,7 +239,7 @@ namespace Sound::Flac
 
     String GetId() const override
     {
-      return ID;
+      return BACKEND_ID;
     }
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
@@ -309,11 +305,11 @@ namespace Sound
       const Flac::Api::Ptr api = Flac::LoadDynamicApi();
       Flac::Dbg("Detected Flac library");
       const BackendWorkerFactory::Ptr factory = MakePtr<Flac::BackendWorkerFactory>(api);
-      storage.Register(Flac::ID, Flac::DESCRIPTION, CAP_TYPE_FILE, factory);
+      storage.Register(Flac::BACKEND_ID, Flac::BACKEND_DESCRIPTION, CAP_TYPE_FILE, factory);
     }
     catch (const Error& e)
     {
-      storage.Register(Flac::ID, Flac::DESCRIPTION, CAP_TYPE_FILE, e);
+      storage.Register(Flac::BACKEND_ID, Flac::BACKEND_DESCRIPTION, CAP_TYPE_FILE, e);
     }
   }
 }  // namespace Sound

@@ -18,16 +18,16 @@
 // common includes
 #include <pointers.h>
 // library includes
+#include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
 #include <parameters/tracking_helper.h>
-// text includes
-#include <core/text/plugins.h>
-#include <module/text/platforms.h>
 
 namespace Module::ProTracker3
 {
   typedef Vortex::ModuleData ModuleData;
+
+  const Char TURBOSOUND_COMMENT[] = "TurboSound module";
 
   class DataBuilder : public Formats::Chiptune::ProTracker3::Builder
   {
@@ -501,7 +501,7 @@ namespace Module::ProTracker3
         if (patOffset != Formats::Chiptune::ProTracker3::SINGLE_AY_MODE)
         {
           // TurboSound modules
-          props.SetComment(Text::PT3_TURBOSOUND_MODULE);
+          props.SetComment(TURBOSOUND_COMMENT);
           modData->Patterns = TS::CreatePatterns(patOffset, std::move(modData->Patterns));
           auto chiptune = MakePtr<TS::Chiptune>(std::move(modData), std::move(properties));
           return TurboSound::CreateHolder(std::move(chiptune));

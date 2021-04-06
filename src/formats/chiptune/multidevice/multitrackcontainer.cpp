@@ -23,8 +23,6 @@
 // std includes
 #include <array>
 #include <utility>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace IFF
 {
@@ -249,6 +247,8 @@ namespace Formats::Chiptune
 {
   namespace MultiTrackContainer
   {
+    const Char DESCRIPTION[] = "Multitrack Container";
+
     class StubBuilder : public Builder
     {
     public:
@@ -269,10 +269,10 @@ namespace Formats::Chiptune
 
     const std::size_t MIN_SIZE = sizeof(IFF::ChunkHeader) * 3 + 256;
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "'M'T'C'1"
         "00 00-10 ? ?"  // max 1Mb
-    );
+        ""_sv;
 
     const String::value_type PROPERTY_DELIMITER = '=';
 
@@ -285,7 +285,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::MULTITRACK_CONTAINER_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

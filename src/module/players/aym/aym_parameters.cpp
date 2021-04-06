@@ -23,8 +23,6 @@
 // std includes
 #include <cstring>
 #include <numeric>
-// text includes
-#include <core/text/core.h>
 
 #define FILE_TAG 6972CAAF
 
@@ -57,31 +55,31 @@ namespace Module::AYM
 
   Devices::AYM::LayoutType String2Layout(const String& str)
   {
-    if (str == Text::MODULE_LAYOUT_ABC)
+    if (str == "ABC")
     {
       return Devices::AYM::LAYOUT_ABC;
     }
-    else if (str == Text::MODULE_LAYOUT_ACB)
+    else if (str == "ACB")
     {
       return Devices::AYM::LAYOUT_ACB;
     }
-    else if (str == Text::MODULE_LAYOUT_BAC)
+    else if (str == "BAC")
     {
       return Devices::AYM::LAYOUT_BAC;
     }
-    else if (str == Text::MODULE_LAYOUT_BCA)
+    else if (str == "BCA")
     {
       return Devices::AYM::LAYOUT_BCA;
     }
-    else if (str == Text::MODULE_LAYOUT_CBA)
+    else if (str == "CBA")
     {
       return Devices::AYM::LAYOUT_CBA;
     }
-    else if (str == Text::MODULE_LAYOUT_CAB)
+    else if (str == "CAB")
     {
       return Devices::AYM::LAYOUT_CAB;
     }
-    else if (str == Text::MODULE_LAYOUT_MONO)
+    else if (str == "MONO")
     {
       return Devices::AYM::LAYOUT_MONO;
     }

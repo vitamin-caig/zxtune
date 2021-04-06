@@ -23,14 +23,13 @@
 #include <math/numeric.h>
 #include <module/players/analyzer.h>
 #include <module/players/duration.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
-// 3rdparty
+// 3rdparty includes
 #include <3rdparty/snesspc/snes_spc/SNES_SPC.h>
 #include <3rdparty/snesspc/snes_spc/SPC_Filter.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::SPC
 {

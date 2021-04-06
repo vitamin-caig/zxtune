@@ -25,8 +25,6 @@
 #include <thread>
 // boost includes
 #include <boost/program_options.hpp>
-// text includes
-#include "text/text.h"
 
 namespace
 {
@@ -38,8 +36,13 @@ namespace
 
   inline void ShowTrackingStatus(const Module::TrackState& state)
   {
-    const String& dump = Strings::Format(Text::TRACKING_STATUS, state.Position(), state.Pattern(), state.Line(),
-                                         state.Quirk(), state.Channels(), state.Tempo());
+    static const Char FORMAT[] =
+        "Position: %|1$-6|Line:     %|3$-6|Channels: %|5$-6|\n"
+        "Pattern:  %|2$-6|Frame:    %|4$-6|Tempo:    %|6$-6|\n"
+        "\n";
+
+    const String& dump = Strings::Format(FORMAT, state.Position(), state.Pattern(), state.Line(), state.Quirk(),
+                                         state.Channels(), state.Tempo());
     assert(TRACKING_HEIGHT == static_cast<std::size_t>(std::count(dump.begin(), dump.end(), '\n')));
     StdOut << dump;
   }
@@ -57,23 +60,36 @@ namespace
     }
   }
 
+  // clang-format off
+  const Char ITEM_INFO[] =
+      "Playing: [Fullpath]\n"
+      "Type:    [Type]\tContainer: [Container]\tProgram: [Program]\n"
+      "Title:   [Title]\n"
+      "Author:  [Author]";
+
+  const Char ITEM_INFO_ADDON[] = "\nTime:    %1%\tLoop duration:  %2%\n";
+
+  const Char PLAYBACK_STATUS[] = "[%1%] [%2%]\n\n";
+  // clang-format on
+
   class DisplayComponentImpl : public DisplayComponent
   {
   public:
     DisplayComponentImpl()
-      : Options(Text::DISPLAY_SECTION)
+      : Options("Display-related options")
       , Silent(false)
       , Quiet(false)
       , ShowAnalyze(false)
       , Updatefps(10)
-      , InformationTemplate(Strings::Template::Create(Text::ITEM_INFO))
+      , InformationTemplate(Strings::Template::Create(ITEM_INFO))
       , ScrSize(Console::Self().GetSize())
     {
       using namespace boost::program_options;
-      Options.add_options()(Text::SILENT_KEY, bool_switch(&Silent),
-                            Text::SILENT_DESC)(Text::QUIET_KEY, bool_switch(&Quiet), Text::QUIET_DESC)(
-          Text::ANALYZER_KEY, bool_switch(&ShowAnalyze),
-          Text::ANALYZER_DESC)(Text::UPDATEFPS_KEY, value<uint_t>(&Updatefps), Text::UPDATEFPS_DESC);
+      auto opt = Options.add_options();
+      opt("silent", bool_switch(&Silent), "disable all output");
+      opt("quiet", bool_switch(&Quiet), "disable dynamic output");
+      opt("analyzer", bool_switch(&ShowAnalyze), "enable spectrum analyzer");
+      opt("updatefps", value<uint_t>(&Updatefps), "update rate");
     }
 
     const boost::program_options::options_description& GetOptionsDescription() const override
@@ -111,8 +127,7 @@ namespace
         return;
       }
       Message(InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
-      Message(
-          Strings::Format(Text::ITEM_INFO_ADDON, Time::ToString(TotalDuration), Time::ToString(info->LoopDuration())));
+      Message(Strings::Format(ITEM_INFO_ADDON, Time::ToString(TotalDuration), Time::ToString(info->LoopDuration())));
       // TODO: also dump track information
     }
 
@@ -173,7 +188,7 @@ namespace
     void ShowPlaybackStatus(Time::Milliseconds played, Sound::PlaybackControl::State state) const
     {
       const Char MARKER = '\x1';
-      String data = Strings::Format(Text::PLAYBACK_STATUS, Time::ToString(played), MARKER);
+      String data = Strings::Format(PLAYBACK_STATUS, Time::ToString(played), MARKER);
       const String::size_type totalSize = data.size() - 1 - PLAYING_HEIGHT;
       const String::size_type markerPos = data.find(MARKER);
 

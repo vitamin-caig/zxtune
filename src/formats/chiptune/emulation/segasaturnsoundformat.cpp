@@ -14,16 +14,16 @@
 #include <make_ptr.h>
 // library includes
 #include <binary/format_factories.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace SegaSaturnSoundFormat
   {
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "Sega Saturn Sound Format";
+    const auto FORMAT =
         "'P'S'F"
-        "11");
+        "11"
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -34,7 +34,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::SEGASATURNSOUNDFORMAT_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

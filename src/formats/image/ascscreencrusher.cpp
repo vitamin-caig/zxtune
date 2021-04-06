@@ -16,14 +16,13 @@
 // library includes
 #include <binary/format_factories.h>
 #include <formats/image.h>
-// text includes
-#include <formats/text/image.h>
 
 namespace Formats::Image
 {
   namespace ASCScreenCrusher
   {
-    const StringView DEPACKER_PATTERN(
+    const Char DESCRIPTION[] = "ASC ScreenCrasher";
+    const auto DEPACKER_PATTERN =
         "f3"      // di
         "cd5200"  // call #0052
         "3b"      // dec sp
@@ -43,7 +42,7 @@ namespace Formats::Image
         "09"      // add hl,bc
         "1100?"   // ld de,#4000
         "d5"      // push de
-    );
+        ""_sv;
 
     /*
       @0052 48ROM
@@ -206,7 +205,7 @@ namespace Formats::Image
 
     String GetDescription() const override
     {
-      return Text::ASCSCREENCRUSHER_DECODER_DESCRIPTION;
+      return ASCScreenCrusher::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override

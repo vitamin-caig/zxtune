@@ -29,6 +29,7 @@
 #include "ui/tools/errordialog.h"
 #include "ui/utils.h"
 #include "update/check.h"
+#include "urls.h"
 // common includes
 #include <contract.h>
 // library includes
@@ -44,8 +45,6 @@
 #include <QtGui/QDesktopServices>
 #include <QtGui/QMessageBox>
 #include <QtGui/QToolBar>
-// text includes
-#include "text/text.h"
 
 namespace
 {
@@ -159,7 +158,7 @@ namespace
     void StartModule(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item) override
     {
       setWindowTitle(
-          ToQString(Strings::Format(Text::TITLE_FORMAT, Platform::Version::GetProgramTitle(), item->GetDisplayName())));
+          ToQString(Strings::Format("%2% [%1%]", Platform::Version::GetProgramTitle(), item->GetDisplayName())));
       Playing = true;
     }
 
@@ -191,26 +190,22 @@ namespace
 
     void VisitHelp() override
     {
-      const QLatin1String siteUrl(Text::HELP_URL);
-      QDesktopServices::openUrl(QUrl(siteUrl));
+      QDesktopServices::openUrl(ToQString(Urls::Help()));
     }
 
     void VisitSite() override
     {
-      const QLatin1String siteUrl(Text::PROGRAM_SITE);
-      QDesktopServices::openUrl(QUrl(siteUrl));
+      QDesktopServices::openUrl(ToQString(Urls::Site()));
     }
 
     void VisitFAQ() override
     {
-      const QLatin1String faqUrl(Text::FAQ_URL);
-      QDesktopServices::openUrl(QUrl(faqUrl));
+      QDesktopServices::openUrl(ToQString(Urls::Faq()));
     }
 
     void ReportIssue() override
     {
-      const QLatin1String faqUrl(Text::REPORT_BUG_URL);
-      QDesktopServices::openUrl(QUrl(faqUrl));
+      QDesktopServices::openUrl(ToQString(Urls::Bugreport()));
     }
 
     void ShowError(const Error& err) override

@@ -20,8 +20,6 @@
 #include <debug/log.h>
 #include <sound/backends/alsa.h>
 #include <sound/backends_parameters.h>
-// text includes
-#include "text/text.h"
 
 namespace
 {

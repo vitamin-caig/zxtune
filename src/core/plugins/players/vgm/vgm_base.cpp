@@ -25,6 +25,7 @@
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
 #include <module/players/duration.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -35,8 +36,6 @@
 #include <3rdparty/vgm/utils/DataLoader.h>
 // std includes
 #include <map>
-// text includes
-#include <module/text/platforms.h>
 
 #define FILE_TAG 975CF2F9
 

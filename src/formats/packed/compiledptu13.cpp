@@ -20,9 +20,6 @@
 #include <debug/log.h>
 // std includes
 #include <array>
-// text includes
-#include <formats/text/chiptune.h>
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -68,9 +65,9 @@ namespace Formats::Packed
 
     static_assert(sizeof(RawHeader) == 202, "Invalid layout");
 
-    const String DESCRIPTION = String(Text::PROTRACKERUTILITY13_DECODER_DESCRIPTION) + Text::PLAYER_SUFFIX;
+    const Char DESCRIPTION[] = "Pro Tracker Utility v1.3 player";
 
-    const StringView FORMAT(
+    const auto FORMAT =
         "21??"    // ld hl,xxxx +0x665
         "35"      // dec (hl)
         "c2??"    // jp nz,xxxx
@@ -99,7 +96,7 @@ namespace Formats::Packed
         "d1"      // pop de
         "e1"      // pop hl
         "22??"    // ld (xxxx),hl
-    );
+        ""_sv;
 
     uint_t GetPatternsCount(const RawHeader& hdr, std::size_t maxSize)
     {

@@ -19,13 +19,13 @@
 // library includes
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace Flac
   {
+    const Char DESCRIPTION[] = "Free Lossless Audio Codec";
+
     // https://www.xiph.org/flac/format
     class Format
     {
@@ -223,14 +223,14 @@ namespace Formats::Chiptune
       return stub;
     }
 
-    const StringView FORMAT =
+    const auto FORMAT =
         // ID3 tag    flac stream
         "'I         |'f"
         "'D         |'L"
         "'3         |'a"
         "00-04      |'C"
         "00-0a      |00"  // streaminfo metatag
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -241,7 +241,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::FLAC_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

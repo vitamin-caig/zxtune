@@ -17,15 +17,14 @@
 #include <debug/log.h>
 #include <formats/chiptune/digital/v2m.h>
 #include <module/players/analyzer.h>
+#include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
-// 3rdparty
+// 3rdparty includes
 #include <3rdparty/v2m/src/sounddef.h>
 #include <3rdparty/v2m/src/v2mconv.h>
 #include <3rdparty/v2m/src/v2mplayer.h>
-// text includes
-#include <module/text/platforms.h>
 
 namespace Module::V2M
 {

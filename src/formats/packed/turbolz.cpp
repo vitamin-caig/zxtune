@@ -23,8 +23,6 @@
 #include <algorithm>
 #include <array>
 #include <iterator>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -195,8 +193,8 @@ namespace Formats::Packed
 #endif
     };
 
-    const StringView Simple::DESCRIPTION = Text::TLZ_DECODER_DESCRIPTION;
-    const StringView Simple::DEPACKER_PATTERN(
+    const StringView Simple::DESCRIPTION = "Turbo-LZ v1.x"_sv;
+    const StringView Simple::DEPACKER_PATTERN =
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
         "01??"  // ld bc,xxxx depacker body size
@@ -216,10 +214,10 @@ namespace Formats::Packed
         "30?"   // jr nc,xxx
         "77"    // ld (hl),a
         "e60f"  // and 0xf
-    );
+        ""_sv;
 
-    const StringView Protected::DESCRIPTION = Text::TLZP_DECODER_DESCRIPTION;
-    const StringView Protected::DEPACKER_PATTERN(
+    const StringView Protected::DESCRIPTION = "Turbo#LZ v1.x (internal)"_sv;
+    const StringView Protected::DEPACKER_PATTERN =
         "21??"  // ld hl,xxxx depacker body src
         "11??"  // ld de,xxxx depacker body dst
         "01??"  // ld bc,xxxx depacker body size
@@ -240,7 +238,7 @@ namespace Formats::Packed
         "d2??"  // jp nc,xxx
         "77"    // ld (hl),a
         "e60f"  // and 0xf
-    );
+        ""_sv;
 
     static_assert(sizeof(Simple::RawHeader) == 0x44, "Invalid layout");
     static_assert(sizeof(Protected::RawHeader) == 0x88, "Invalid layout");

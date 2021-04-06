@@ -12,17 +12,13 @@
 #include "formats/archived/multitrack/multitrack.h"
 // library includes
 #include <formats/multitrack/decoders.h>
-// text includes
-#include <formats/text/archived.h>
 
-namespace Formats
+namespace Formats::Archived
 {
-  namespace Archived
+  Decoder::Ptr CreateGBSDecoder()
   {
-    Decoder::Ptr CreateGBSDecoder()
-    {
-      const Formats::Multitrack::Decoder::Ptr decoder = Formats::Multitrack::CreateGBSDecoder();
-      return CreateMultitrackArchiveDecoder(Text::GBS_ARCHIVE_DECODER_DESCRIPTION, decoder);
-    }
-  }  // namespace Archived
-}  // namespace Formats
+    static const Char DESCRIPTION[] = "Multi-GBS";
+    const auto decoder = Formats::Multitrack::CreateGBSDecoder();
+    return CreateMultitrackArchiveDecoder(DESCRIPTION, decoder);
+  }
+}  // namespace Formats::Archived

@@ -16,6 +16,16 @@
 namespace Module
 {
   //@{
+  //! @name Base constants
+
+  //! Delimiter for subpath components
+  const Char SUBPATH_DELIMITER = '/';
+
+  //! Delimiter for 'Container' attribute components
+  const Char CONTAINERS_DELIMITER = '>';
+  //@}
+
+  //@{
   //! @name Built-in attributes
 
   //! %Module type attribute @see PluginInformation#Id

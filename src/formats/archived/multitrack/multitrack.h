@@ -14,11 +14,7 @@
 #include <formats/archived.h>
 #include <formats/multitrack.h>
 
-namespace Formats
+namespace Formats::Archived
 {
-  namespace Archived
-  {
-    Formats::Archived::Decoder::Ptr CreateMultitrackArchiveDecoder(const String& description,
-                                                                   Formats::Multitrack::Decoder::Ptr delegate);
-  }
-}  // namespace Formats
+  Decoder::Ptr CreateMultitrackArchiveDecoder(String description, Formats::Multitrack::Decoder::Ptr delegate);
+}  // namespace Formats::Archived

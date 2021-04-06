@@ -22,13 +22,13 @@
 #include <strings/trim.h>
 // std includes
 #include <numeric>
-// text includes
-#include <formats/text/chiptune.h>
 
 namespace Formats::Chiptune
 {
   namespace Wav
   {
+    const Char DESCRIPTION[] = "Waveform Audio File Format";
+
     // http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
     namespace Chunks
     {
@@ -348,7 +348,7 @@ namespace Formats::Chiptune
       return MakePtr<SimpleDumpBuilder>();
     }
 
-    const StringView FORMAT =
+    const auto FORMAT =
         "'R'I'F'F"
         "????"
         "'W'A'V'E"
@@ -360,7 +360,7 @@ namespace Formats::Chiptune
         "????"             // data rate
         "??"               // arbitraty block size
         "00|01-20 00"      // 1-32 bits per sample and 0 for special formats
-        ;
+        ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -371,7 +371,7 @@ namespace Formats::Chiptune
 
       String GetDescription() const override
       {
-        return Text::WAV_DECODER_DESCRIPTION;
+        return DESCRIPTION;
       }
 
       Binary::Format::Ptr GetFormat() const override

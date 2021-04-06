@@ -21,8 +21,6 @@
 // std includes
 #include <array>
 #include <numeric>
-// text includes
-#include <formats/text/packed.h>
 
 namespace Formats::Packed
 {
@@ -72,7 +70,8 @@ namespace Formats::Packed
       return false;
     }
 
-    const StringView FORMAT(
+    const Char DESCRIPTION[] = "Hobeta";
+    const auto FORMAT =
         // Filename
         "20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a 20-7a"
         // Start
@@ -80,7 +79,8 @@ namespace Formats::Packed
         // Length
         "?01-ff"
         // FullLength
-        "0001-ff");
+        "0001-ff"
+        ""_sv;
   }  // namespace Hobeta
 
   class HobetaDecoder : public Decoder
@@ -92,7 +92,7 @@ namespace Formats::Packed
 
     String GetDescription() const override
     {
-      return Text::HOBETA_DECODER_DESCRIPTION;
+      return Hobeta::DESCRIPTION;
     }
 
     Binary::Format::Ptr GetFormat() const override
