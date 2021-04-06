@@ -14,10 +14,14 @@
 #include "playlist/supp/data.h"
 // library includes
 #include <parameters/accessor.h>
+// qt includes
+#include <QtCore/QLatin1String>
 
 namespace Playlist
 {
   const Parameters::NameType ATTRIBUTES_PREFIX("zxtune.app.playlist");
+  // Should not be changed!!!
+  const QLatin1String APPLICATION_ID("http://zxtune.googlecode.com");
 
   const Parameters::NameType ATTRIBUTE_NAME = ATTRIBUTES_PREFIX + "name";
   const Parameters::NameType ATTRIBUTE_VERSION = ATTRIBUTES_PREFIX + "version";

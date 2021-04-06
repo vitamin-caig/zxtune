@@ -25,8 +25,6 @@
 // qt includes
 #include <QtGui/QApplication>
 #include <QtGui/QDialog>
-// text includes
-#include "text/text.h"
 
 namespace
 {

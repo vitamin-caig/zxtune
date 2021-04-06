@@ -16,8 +16,6 @@ have_gui = 1
 #other
 moc_files += supp/playback_supp singlemode
 
-text_files := text/text
-
 #base
 libraries.common = analysis async \
                   binary binary_compression binary_format \

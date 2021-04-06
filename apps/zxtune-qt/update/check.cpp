@@ -11,8 +11,8 @@
 // local includes
 #include "check.h"
 #include "apps/zxtune-qt/supp/options.h"
-#include "apps/zxtune-qt/text/text.h"
 #include "apps/zxtune-qt/ui/utils.h"
+#include "apps/zxtune-qt/urls.h"
 #include "downloads.h"
 #include "parameters.h"
 #include "product.h"
@@ -136,7 +136,7 @@ namespace
   String GetUserAgent()
   {
     const std::unique_ptr<Strings::FieldsSource> fields = Platform::Version::CreateVersionFieldsSource();
-    return Strings::Template::Instantiate(Text::HTTP_USERAGENT, *fields);
+    return Strings::Template::Instantiate("[Program]/[Version] ([Platform]-[Arch])", *fields);
   }
 
   Binary::Data::Ptr Download(const QUrl& url, Log::ProgressCallback& cb)
@@ -347,7 +347,7 @@ namespace
 
     String GetFeedUrl() const
     {
-      Parameters::StringType url = Text::DOWNLOADS_XML_URL;
+      Parameters::StringType url = Urls::DownloadsFeed();
       Params->FindValue(Parameters::ZXTuneQT::Update::FEED, url);
       return url;
     }
@@ -452,7 +452,7 @@ namespace
       const QUrl feedUrl(ToQString(Params.GetFeedUrl()));
       const Binary::Data::Ptr feedData = Download(feedUrl, cb);
       UpdateState state;
-      const std::unique_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor(Text::DOWNLOADS_PROJECT_NAME, state);
+      const std::unique_ptr<RSS::Visitor> rss = Downloads::CreateFeedVisitor("ZXTune", state);
       RSS::Parse(QByteArray(static_cast<const char*>(feedData->Start()), feedData->Size()), *rss);
       StoreLastCheckTime();
       return state.GetUpdate();

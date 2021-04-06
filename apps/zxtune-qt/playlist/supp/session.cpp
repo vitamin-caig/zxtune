@@ -21,11 +21,10 @@
 #include <algorithm>
 #include <list>
 // qt includes
+#include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
 #include <QtCore/QStringList>
 #include <QtGui/QDesktopServices>
-// text includes
-#include "text/text.h"
 
 namespace
 {
@@ -71,7 +70,7 @@ namespace
     FiledSession()
       : Directory(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
     {
-      const QLatin1String dirPath(Text::PLAYLISTS_DIR);
+      const auto dirPath = QCoreApplication::applicationName() + "/Playlists";
       Require(Directory.mkpath(dirPath));
       Require(Directory.cd(dirPath));
       Files = Directory.entryList(QStringList(BuildPlaylistFileName('*')), QDir::Files | QDir::Readable, QDir::Name);

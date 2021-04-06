@@ -31,8 +31,6 @@
 #include <QtCore/QString>
 #include <QtCore/QUrl>
 #include <QtCore/QXmlStreamReader>
-// text includes
-#include "text/text.h"
 
 namespace
 {
@@ -312,7 +310,7 @@ namespace
     bool CheckForZXTuneExtension()
     {
       const QXmlStreamAttributes attributes = XML.attributes();
-      return attributes.value(QLatin1String(XSPF::APPLICATION_ATTR)) == Text::PLAYLIST_APPLICATION_ID;
+      return attributes.value(QLatin1String(XSPF::APPLICATION_ATTR)) == Playlist::APPLICATION_ID;
     }
 
     String ConvertString(const QString& input) const
@@ -358,8 +356,7 @@ namespace
 
   bool CheckXSPFByName(const QString& filename)
   {
-    static const QLatin1String XSPF_SUFFIX(XSPF::SUFFIX);
-    return filename.endsWith(XSPF_SUFFIX, Qt::CaseInsensitive);
+    return filename.endsWith(XSPF::SUFFIX, Qt::CaseInsensitive);
   }
 }  // namespace
 

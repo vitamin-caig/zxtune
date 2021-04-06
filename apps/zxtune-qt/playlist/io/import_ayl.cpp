@@ -485,7 +485,7 @@ namespace
 
   bool CheckAYLByName(const QString& filename)
   {
-    static const QLatin1String AYL_SUFFIX(AYL::SUFFIX);
+    static const auto AYL_SUFFIX = ToQString(AYL::SUFFIX);
     return filename.endsWith(AYL_SUFFIX, Qt::CaseInsensitive);
   }
 }  // namespace

@@ -16,12 +16,11 @@
 #include <contract.h>
 // library includes
 #include <debug/log.h>
+#include <platform/version/api.h>
 // qt includes
 #include <QtCore/QDir>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
-// text includes
-#include "text/text.h"
 
 namespace
 {
@@ -30,7 +29,7 @@ namespace
 
 namespace
 {
-  const QString SERVER_NAME(Text::PROGRAM_NAME);
+  const QString SERVER_NAME(Platform::Version::PROGRAM_NAME);
 
   const QDataStream::Version STREAM_VERSION = QDataStream::Qt_4_6;  // compatible with up to 4.9
 
