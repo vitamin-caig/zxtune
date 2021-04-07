@@ -127,10 +127,10 @@ namespace Formats::Packed
         ""_ss;
 
     constexpr auto BASE_FORMAT =
-        "?{11}"  // unknown
-        "c3??"   // init
-        "c3??"   // play
-        "c3??"_ss   // silent
+        "?{11}"    // unknown
+        "c3??"     // init
+        "c3??"     // play
+        "c3??"_ss  // silent
         + ID_FORMAT +
         //+0x53    init
         "af"  // xor a
@@ -145,7 +145,7 @@ namespace Formats::Packed
                                      "13"    // inc de
                                      "32??"  // ld (xxx),a
                                      "cd??"  // call xxxx
-        ""_ss;
+                                     ""_ss;
     const VersionTraits VERSION0 = {
         sizeof(PlayerVer0),
         "ASC Sound Master v0.x player",
@@ -166,7 +166,7 @@ namespace Formats::Packed
                                      "1a"    // ld a,(de)
                                      "13"    // inc de
                                      "32??"  // ld (xxx),a
-        ""_ss;
+                                     ""_ss;
     const VersionTraits VERSION1 = {
         sizeof(PlayerVer0),
         "ASC Sound Master v1.x player",
