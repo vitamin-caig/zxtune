@@ -203,6 +203,10 @@ namespace Module::Wav
       {
         return CreateAtrac9Model(WavProperties, ExtraData);
       }
+      else if (FormatId == Formats::Chiptune::Wav::FADPCM)
+      {
+        return CreateFmodAdpcmModel(WavProperties);
+      }
       else
       {
         return {};

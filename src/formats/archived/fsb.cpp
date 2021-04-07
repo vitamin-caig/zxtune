@@ -29,7 +29,7 @@ namespace Formats::Archived
     const auto FORMAT =
         "'F'S'B'5"
         "?{20}"
-        "01-05|07|0b|0d|0f 000000"  // pcm+imaadpcm+mpeg+at9+vorbis
+        "01-05|07|0b|0d|0f|10 000000"  // pcm+imaadpcm+mpeg+at9+vorbis+fadpcm
         ""_sv;
 
     class File : public Archived::File
@@ -120,6 +120,9 @@ namespace Formats::Archived
           break;
         case Fmod::Format::AT9:
           Delegate = CreateAtrac9Builder();
+          break;
+        case Fmod::Format::FADPCM:
+          Delegate = CreateFadpcmBuilder();
           break;
         default:
           Require(false);

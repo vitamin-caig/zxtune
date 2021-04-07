@@ -148,6 +148,8 @@ namespace
         return "xwma";
       case Format::VORBIS:
         return "vorbis";
+      case Format::FADPCM:
+        return "fadpcm";
       default:
         return "unknown";
       }

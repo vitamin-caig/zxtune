@@ -33,5 +33,6 @@ namespace Formats::Archived
     FormatBuilder::Ptr CreatePcmBuilder();
     FormatBuilder::Ptr CreateOggVorbisBuilder();
     FormatBuilder::Ptr CreateAtrac9Builder();
+    FormatBuilder::Ptr CreateFadpcmBuilder();
   }  // namespace FSB
 }  // namespace Formats::Archived
