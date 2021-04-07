@@ -38,6 +38,7 @@ namespace Formats::Archived
       AT9,
       XWMA,
       VORBIS,
+      FADPCM,
     };
 
     enum ChunkType : uint_t
