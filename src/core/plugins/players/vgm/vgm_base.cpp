@@ -63,7 +63,7 @@ namespace Module::LibVGM
     {}
 
     PlayerCreator CreatePlayer;
-    Dump Data;
+    Binary::Dump Data;
   };
 
   class LoaderAdapter

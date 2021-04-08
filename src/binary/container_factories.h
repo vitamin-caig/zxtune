@@ -14,6 +14,7 @@
 #include <types.h>
 // library includes
 #include <binary/container.h>
+#include <binary/dump.h>
 #include <binary/view.h>
 
 namespace Binary

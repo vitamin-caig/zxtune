@@ -122,7 +122,7 @@ namespace Formats::Chiptune
       {
         if (!Flattened)
         {
-          Flattened.reset(new Dump(TotalSize));
+          Flattened.reset(new Binary::Dump(TotalSize));
           uint8_t* dst = Flattened->data();
           for (const auto& blk : Blocks)
           {
@@ -137,7 +137,7 @@ namespace Formats::Chiptune
     private:
       const std::size_t TotalSize;
       mutable FileBlocks Blocks;
-      mutable std::shared_ptr<Dump> Flattened;
+      mutable std::shared_ptr<Binary::Dump> Flattened;
     };
 
     class Format

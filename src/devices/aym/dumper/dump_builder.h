@@ -24,7 +24,7 @@ namespace Devices
 
       virtual void Initialize() = 0;
 
-      virtual void GetResult(Dump& result) const = 0;
+      virtual void GetResult(Binary::Dump& result) const = 0;
     };
 
     class FramedDumpBuilder : public DumpBuilder

@@ -46,11 +46,11 @@ namespace
     return false;
   }
 
-  Dump LoadResource(const String& name)
+  Binary::Dump LoadResource(const String& name)
   {
     const Binary::Container::Ptr data = Resource::Load(name);
     const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
-    return Dump(begin, begin + data->Size());
+    return Binary::Dump(begin, begin + data->Size());
   }
 
   class ResourceFilesVisitor : public Resource::Visitor

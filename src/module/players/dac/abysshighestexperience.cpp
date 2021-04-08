@@ -317,7 +317,7 @@ namespace Module::AHX
   class Holder : public Module::Holder
   {
   public:
-    Holder(Dump tune, Parameters::Accessor::Ptr props)
+    Holder(Binary::Dump tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
       , Properties(std::move(props))
     {}
@@ -342,7 +342,7 @@ namespace Module::AHX
     }
 
   private:
-    const Dump Tune;
+    const Binary::Dump Tune;
     const Parameters::Accessor::Ptr Properties;
     mutable Information::Ptr Info;
   };
@@ -384,7 +384,7 @@ namespace Module::AHX
 
           // TODO: extract
           const auto rawData = static_cast<const uint8_t*>(container->Start());
-          Dump tune(rawData, rawData + container->Size());
+          Binary::Dump tune(rawData, rawData + container->Size());
           return MakePtr<Holder>(std::move(tune), std::move(properties));
         }
       }

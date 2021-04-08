@@ -224,7 +224,7 @@ namespace IO::File
 
   Binary::Data::Ptr ReadFileToMemory(std::ifstream& stream, std::size_t size)
   {
-    std::unique_ptr<Dump> res(new Dump(size));
+    std::unique_ptr<Binary::Dump> res(new Binary::Dump(size));
     const std::streampos read = stream.read(safe_ptr_cast<char*>(res->data()), size).tellg();
     if (static_cast<std::size_t>(read) != size)
     {

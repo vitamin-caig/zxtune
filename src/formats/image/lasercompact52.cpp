@@ -199,9 +199,9 @@ namespace Formats::Image
         }
       }
 
-      std::unique_ptr<Dump> GetResult()
+      std::unique_ptr<Binary::Dump> GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -214,7 +214,7 @@ namespace Formats::Image
       {
         try
         {
-          Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
+          Binary::Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
           std::fill_n(&decoded[PIXELS_SIZE], ATTRS_SIZE, 7);
 
           const AddrTranslator translate(Stream.GetByte());
@@ -252,7 +252,7 @@ namespace Formats::Image
               } while (--len > 0);
             }
           }
-          Result.reset(new Dump());
+          Result.reset(new Binary::Dump());
           if (target <= PIXELS_SIZE)
           {
             decoded.resize(PIXELS_SIZE);
@@ -269,7 +269,7 @@ namespace Formats::Image
     private:
       bool IsValid;
       BitStream Stream;
-      std::unique_ptr<Dump> Result;
+      std::unique_ptr<Binary::Dump> Result;
     };
 
     const Char DESCRIPTION[] = "LaserCompact 5.2";

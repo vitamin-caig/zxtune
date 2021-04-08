@@ -16,6 +16,7 @@
 #include <make_ptr.h>
 // library includes
 #include <binary/crc.h>
+#include <binary/dump.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -779,7 +780,7 @@ namespace Formats::Chiptune
 
     private:
       ByteStream Stream;
-      Dump Decoded;
+      Binary::Dump Decoded;
     };
 
     StringView Trim(StringView str)

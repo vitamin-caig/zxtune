@@ -12,6 +12,8 @@
 
 // common includes
 #include <types.h>
+// library includes
+#include <binary/dump.h>
 // std includes
 #include <algorithm>
 #include <cassert>
@@ -78,7 +80,7 @@ void RecursiveCopy(ConstIterator srcBegin, ConstIterator srcEnd, Iterator dstBeg
 }
 
 // offset to back
-inline bool CopyFromBack(std::size_t offset, Dump& dst, std::size_t count)
+inline bool CopyFromBack(std::size_t offset, Binary::Dump& dst, std::size_t count)
 {
   const std::size_t size = dst.size();
   if (offset > size)
@@ -86,9 +88,9 @@ inline bool CopyFromBack(std::size_t offset, Dump& dst, std::size_t count)
     return false;  // invalid backref
   }
   dst.resize(size + count);
-  const Dump::iterator dstStart = dst.begin() + size;
-  const Dump::const_iterator srcStart = dstStart - offset;
-  const Dump::const_iterator srcEnd = srcStart + count;
+  const Binary::Dump::iterator dstStart = dst.begin() + size;
+  const Binary::Dump::const_iterator srcStart = dstStart - offset;
+  const Binary::Dump::const_iterator srcEnd = srcStart + count;
   RecursiveCopy(srcStart, srcEnd, dstStart);
   return true;
 }

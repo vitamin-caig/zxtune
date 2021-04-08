@@ -35,7 +35,7 @@ namespace
       {
         return L10n::Library::Instance().AddTranslation(trans);
       }
-      Translations[trans.Language].insert(DumpPtr(new Dump(trans.Data)));
+      Translations[trans.Language].insert(DumpPtr(new Binary::Dump(trans.Data)));
     }
 
     void SelectTranslation(const std::string& translation) override
@@ -65,7 +65,7 @@ namespace
     }
 
   private:
-    typedef std::shared_ptr<const Dump> DumpPtr;
+    typedef std::shared_ptr<const Binary::Dump> DumpPtr;
     typedef std::set<DumpPtr> DumpsSet;
     typedef std::map<std::string, DumpsSet> LangToDumpsSetMap;
     typedef std::shared_ptr<QTranslator> TranslatorPtr;

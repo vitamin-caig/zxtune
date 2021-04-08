@@ -20,7 +20,7 @@ namespace
 {
   const std::string Domain("test");
 
-  Dump OpenFile(const std::string& name)
+  Binary::Dump OpenFile(const std::string& name)
   {
     std::ifstream stream(name.c_str(), std::ios::binary);
     if (!stream)
@@ -30,7 +30,7 @@ namespace
     stream.seekg(0, std::ios_base::end);
     const std::size_t size = stream.tellg();
     stream.seekg(0);
-    Dump tmp(size);
+    Binary::Dump tmp(size);
     stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
     return tmp;
   }
@@ -52,7 +52,7 @@ namespace
     return str.str();
   }
 
-  void Test(const Dump& ref)
+  void Test(const Binary::Dump& ref)
   {
     const std::string val = Test(Domain);
     const std::string refStr(ref.begin(), ref.end());

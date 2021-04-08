@@ -171,7 +171,7 @@ namespace
     static std::vector<char> LoadMessage(const String& file, const String& encoding)
     {
       const BoostLocaleLibrary& self = Instance();
-      if (const Dump* data = self.Translations.Find(file))
+      if (const auto* data = self.Translations.Find(file))
       {
         Dbg("Loading message %1% with encoding %2%", file, encoding);
         return std::vector<char>(data->begin(), data->end());
@@ -186,7 +186,7 @@ namespace
   private:
     const LocaleAttributes SystemLocale;
     const LocalePtr CurrentLocale;
-    MapAdapter<String, Dump> Translations;
+    MapAdapter<String, Binary::Dump> Translations;
     MapAdapter<String, boost::locale::gnu_gettext::messages_info> Locales;
   };
 }  // namespace

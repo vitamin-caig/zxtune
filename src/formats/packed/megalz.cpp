@@ -128,7 +128,7 @@ namespace Formats::Packed
       explicit DataDecoder(Binary::View data)
         : IsValid(data.Size() >= MIN_SIZE)
         , Stream(data.SubView(DEPACKER_SIZE))
-        , Result(new Dump())
+        , Result(new Binary::Dump())
         , Decoded(*Result)
       {
         if (IsValid)
@@ -138,9 +138,9 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Dump> GetResult()
+      std::unique_ptr<Binary::Dump> GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -202,8 +202,8 @@ namespace Formats::Packed
     private:
       bool IsValid;
       Bitstream Stream;
-      std::unique_ptr<Dump> Result;
-      Dump& Decoded;
+      std::unique_ptr<Binary::Dump> Result;
+      Binary::Dump& Decoded;
     };
   }  // namespace MegaLZ
 

@@ -196,9 +196,9 @@ namespace ZXTune::Zdata
       const Layout layout = FindLayout(raw, marker);
       const Header hdr = Header::Decode(layout.GetHeader());
       Dbg("Found container id=%1%", hdr.Crc);
-      Dump decoded(hdr.Packed);
+      Binary::Dump decoded(hdr.Packed);
       Binary::Base64::Decode(layout.GetBody(), layout.GetBodyEnd(), decoded.data(), decoded.data() + hdr.Packed);
-      std::unique_ptr<Dump> unpacked(new Dump(hdr.Original));
+      std::unique_ptr<Binary::Dump> unpacked(new Binary::Dump(hdr.Original));
       Dbg("Unpack %1% => %2%", hdr.Packed, hdr.Original);
       // TODO: use another function
       Require(hdr.Original == Binary::Compression::Zlib::Decompress(decoded, unpacked->data(), unpacked->size()));
@@ -232,7 +232,7 @@ namespace ZXTune::Zdata
   Binary::Container::Ptr Convert(const void* input, std::size_t inputSize)
   {
     const std::size_t outSize = Binary::Base64::CalculateConvertedSize(inputSize);
-    std::unique_ptr<Dump> result(new Dump(outSize));
+    std::unique_ptr<Binary::Dump> result(new Binary::Dump(outSize));
     const uint8_t* const in = static_cast<const uint8_t*>(input);
     char* const out = safe_ptr_cast<char*>(result->data());
     Binary::Base64::Encode(in, in + inputSize, out, out + outSize);

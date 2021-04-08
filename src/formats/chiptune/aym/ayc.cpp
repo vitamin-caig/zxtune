@@ -62,7 +62,7 @@ namespace Formats::Chiptune
     public:
       void SetFrames(std::size_t /*count*/) override {}
       void StartChannel(uint_t /*idx*/) override {}
-      void AddValues(const Dump& /*values*/) override {}
+      void AddValues(const Binary::Dump& /*values*/) override {}
     };
 
     bool FastCheck(Binary::View rawData)
@@ -176,7 +176,7 @@ namespace Formats::Chiptune
     void ParseBuffer(uint_t count, Stream& source, Builder& target)
     {
       const std::size_t bufSize = source.GetBufferSize();
-      Dump buf(bufSize);
+      Binary::Dump buf(bufSize);
       std::size_t cursor = 0;
       uint_t flag = 0x40;
       // dX_flag

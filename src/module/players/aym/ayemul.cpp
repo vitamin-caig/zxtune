@@ -502,7 +502,7 @@ namespace Module::AYEMUL
     {
       const uint8_t* const rawMemory = static_cast<const uint8_t*>(Memory->Start());
       const Devices::Z80::Chip::Ptr result =
-          Devices::Z80::CreateChip(params, Dump(rawMemory, rawMemory + Memory->Size()), ports);
+          Devices::Z80::CreateChip(params, Binary::Dump(rawMemory, rawMemory + Memory->Size()), ports);
       Devices::Z80::Registers regs;
       regs.Mask = ~0;
       std::fill(regs.Data.begin(), regs.Data.end(), Registers);

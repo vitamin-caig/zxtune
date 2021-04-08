@@ -236,7 +236,7 @@ namespace Formats::Packed
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
         , Stream(Header.Data, container.GetSize() - offsetof(RawHeader, Data))
-        , Result(new Dump())
+        , Result(new Binary::Dump())
         , Decoded(*Result)
       {
         if (IsValid && !Stream.Eof())
@@ -245,9 +245,9 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Dump> GetResult()
+      std::unique_ptr<Binary::Dump> GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -299,7 +299,7 @@ namespace Formats::Packed
         const uint_t loNibble = data & 0x0f;
         const uint_t hiNibble = (data & 0xf0) >> 4;
 
-        std::back_insert_iterator<Dump> dst(Decoded);
+        std::back_insert_iterator<Binary::Dump> dst(Decoded);
         switch (loNibble)
         {
         case 0x01:  // long RLE
@@ -333,8 +333,8 @@ namespace Formats::Packed
       bool IsValid;
       const RawHeader& Header;
       ByteStream Stream;
-      std::unique_ptr<Dump> Result;
-      Dump& Decoded;
+      std::unique_ptr<Binary::Dump> Result;
+      Binary::Dump& Decoded;
     };
   }  // namespace CodeCruncher3
 

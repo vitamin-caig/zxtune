@@ -12,6 +12,8 @@
 
 // common includes
 #include <types.h>
+// library includes
+#include <binary/dump.h>
 
 //! @brief Namespace is used to keep parameters-working related types and functions
 namespace Parameters
@@ -24,7 +26,7 @@ namespace Parameters
   //! @brief String parameters type
   typedef String StringType;
   //! @brief Data parameters type
-  typedef Dump DataType;
+  typedef Binary::Dump DataType;
   //@}
 
   //@{

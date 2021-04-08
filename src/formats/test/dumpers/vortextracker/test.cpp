@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
     {
       return 0;
     }
-    std::unique_ptr<Dump> rawData(new Dump());
+    std::unique_ptr<Binary::Dump> rawData(new Binary::Dump());
     Test::OpenFile(argv[2], *rawData);
     const Binary::Container::Ptr data = Binary::CreateContainer(std::move(rawData));
     const Formats::Chiptune::ProTracker3::ChiptuneBuilder::Ptr builder =

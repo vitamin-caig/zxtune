@@ -219,7 +219,7 @@ namespace Module::Wav
     uint_t FormatCode = ~0;
     Formats::Chiptune::Wav::Guid FormatId;
     Wav::Properties WavProperties;
-    Dump ExtraData;
+    Binary::Dump ExtraData;
   };
 
   class Factory : public Module::Factory

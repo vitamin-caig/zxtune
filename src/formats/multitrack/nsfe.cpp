@@ -111,7 +111,7 @@ namespace Formats::Multitrack
         Require(Info != nullptr);
         const Binary::View data(*Delegate);
         const std::size_t infoOffset = safe_ptr_cast<const uint8_t*>(Info) - data.As<uint8_t>();
-        std::unique_ptr<Dump> content(new Dump(data.Size()));
+        std::unique_ptr<Binary::Dump> content(new Binary::Dump(data.Size()));
         std::memcpy(content->data(), data.Start(), data.Size());
         InfoChunkFull* const info = safe_ptr_cast<InfoChunkFull*>(content->data() + infoOffset);
         Require(idx < info->TracksCount);

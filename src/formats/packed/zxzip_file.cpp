@@ -150,7 +150,7 @@ namespace Formats::Packed
     public:
       virtual ~DataDecoder() = default;
 
-      virtual std::unique_ptr<Dump> GetDecodedData() = 0;
+      virtual std::unique_ptr<Binary::Dump> GetDecodedData() = 0;
     };
 
     class StoreDataDecoder : public DataDecoder
@@ -162,13 +162,11 @@ namespace Formats::Packed
         assert(STORE == Header.Method);
       }
 
-      std::unique_ptr<Dump> GetDecodedData() override
+      std::unique_ptr<Binary::Dump> GetDecodedData() override
       {
         const uint_t packedSize = fromLE(Header.PackedSize);
         const uint8_t* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
-        std::unique_ptr<Dump> res(new Dump(packedSize));
-        std::memcpy(res->data(), sourceData, packedSize);
-        return res;
+        return std::unique_ptr<Binary::Dump>(new Binary::Dump(sourceData, sourceData + packedSize));
       }
 
     private:
@@ -288,7 +286,7 @@ namespace Formats::Packed
         assert(IMPLODE == Header.Method);
       }
 
-      std::unique_ptr<Dump> GetDecodedData() override
+      std::unique_ptr<Binary::Dump> GetDecodedData() override
       {
         const std::size_t dataSize = GetSourceFileSize(Header);
         const bool isBigFile = dataSize >= 0x1600;
@@ -323,7 +321,7 @@ namespace Formats::Packed
           const uint_t minMatchLen = isBigTextFile ? 3 : 2;
 
           Bitstream stream(safe_ptr_cast<const uint8_t*>(&Header + 1), fromLE(Header.PackedSize));
-          Dump result;
+          Binary::Dump result;
           while (!stream.Eof())
           {
             if (stream.GetBit())
@@ -355,13 +353,13 @@ namespace Formats::Packed
               }
             }
           }
-          std::unique_ptr<Dump> res(new Dump());
+          std::unique_ptr<Binary::Dump> res(new Binary::Dump());
           res->swap(result);
           return res;
         }
         catch (const std::exception&)
         {
-          return std::unique_ptr<Dump>();
+          return {};
         }
       }
 
@@ -442,12 +440,12 @@ namespace Formats::Packed
         assert(SHRINK == Header.Method);
       }
 
-      std::unique_ptr<Dump> GetDecodedData() override
+      std::unique_ptr<Binary::Dump> GetDecodedData() override
       {
         try
         {
           Bitstream stream(safe_ptr_cast<const uint8_t*>(&Header + 1), fromLE(Header.PackedSize));
-          Dump result;
+          Binary::Dump result;
 
           LZWTree tree;
           ResetTree(tree);
@@ -476,7 +474,7 @@ namespace Formats::Packed
             else
             {
               const bool isFree = tree.at(code).IsFree;
-              Dump substring(isFree ? 1 : 0);
+              Binary::Dump substring(isFree ? 1 : 0);
               for (uint_t curCode = isFree ? oldCode : code; curCode != LZWEntry::LIMITER;)
               {
                 const LZWEntry& curEntry = tree.at(curCode);
@@ -500,13 +498,13 @@ namespace Formats::Packed
               oldCode = code;
             }
           }
-          std::unique_ptr<Dump> res(new Dump());
+          std::unique_ptr<Binary::Dump> res(new Binary::Dump());
           res->swap(result);
           return res;
         }
         catch (const std::exception&)
         {
-          return std::unique_ptr<Dump>();
+          return {};
         }
       }
 
@@ -569,13 +567,13 @@ namespace Formats::Packed
         , IsValid(container.FastCheck() && Delegate.get())
       {}
 
-      std::unique_ptr<Dump> GetDecodedData() override
+      std::unique_ptr<Binary::Dump> GetDecodedData() override
       {
         if (!IsValid)
         {
-          return std::unique_ptr<Dump>();
+          return {};
         }
-        std::unique_ptr<Dump> result = Delegate->GetDecodedData();
+        std::unique_ptr<Binary::Dump> result = Delegate->GetDecodedData();
         while (result.get())
         {
           const std::size_t dataSize = GetSourceFileSize(Header);
@@ -592,7 +590,7 @@ namespace Formats::Packed
           return result;
         }
         IsValid = false;
-        return std::unique_ptr<Dump>();
+        return {};
       }
 
     private:

@@ -232,7 +232,7 @@ namespace Formats::Packed
         : IsValid(true)
         , Stream(data, size)
         , ChunksCount(chunksCount)
-        , Result(new Dump())
+        , Result(new Binary::Dump())
         , Decoded(*Result)
       {
         if (IsValid && !Stream.Eof())
@@ -241,9 +241,9 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Dump> GetResult()
+      std::unique_ptr<Binary::Dump> GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -259,7 +259,7 @@ namespace Formats::Packed
           uint_t chunksCount = ChunksCount;
           Decoded.reserve(2 * chunksCount);
           StreamAdapter& source(Stream);
-          std::back_insert_iterator<Dump> target(Decoded);
+          std::back_insert_iterator<Binary::Dump> target(Decoded);
           // assume that first byte always exists due to header format
           while (chunksCount-- && Decoded.size() < MAX_DECODED_SIZE)
           {
@@ -396,8 +396,8 @@ namespace Formats::Packed
       bool IsValid;
       StreamAdapter Stream;
       const uint_t ChunksCount;
-      std::unique_ptr<Dump> Result;
-      Dump& Decoded;
+      std::unique_ptr<Binary::Dump> Result;
+      Binary::Dump& Decoded;
     };
 
     template<class Version>
@@ -416,9 +416,9 @@ namespace Formats::Packed
                        : nullptr)
       {}
 
-      std::unique_ptr<Dump> GetResult()
+      std::unique_ptr<Binary::Dump> GetResult()
       {
-        return Delegate.get() ? Delegate->GetResult() : std::unique_ptr<Dump>();
+        return Delegate.get() ? Delegate->GetResult() : std::unique_ptr<Binary::Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -499,9 +499,9 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Dump> GetResult()
+      std::unique_ptr<Binary::Dump> GetResult()
       {
-        return Delegate.get() ? Delegate->GetResult() : std::unique_ptr<Dump>();
+        return Delegate.get() ? Delegate->GetResult() : std::unique_ptr<Binary::Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -534,7 +534,7 @@ namespace Formats::Packed
       const Version4Plus::RawHeader& Header;
       const uint_t DataOffset;
       std::size_t DataSize;
-      Dump UnhuffmanData;
+      Binary::Dump UnhuffmanData;
       std::unique_ptr<RawDataDecoder> Delegate;
     };
   }  // namespace CompressorCode

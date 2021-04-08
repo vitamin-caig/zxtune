@@ -134,7 +134,7 @@ namespace Formats::Chiptune
     Binary::Container::Ptr FixStartSong(Binary::View data, uint_t idx)
     {
       Require(GetHeader(data));
-      std::unique_ptr<Dump> content(new Dump(data.Size()));
+      std::unique_ptr<Binary::Dump> content(new Binary::Dump(data.Size()));
       std::memcpy(content->data(), data.Start(), content->size());
       RawHeader& hdr = *safe_ptr_cast<RawHeader*>(content->data());
       hdr.StartSong = fromBE<uint16_t>(idx);

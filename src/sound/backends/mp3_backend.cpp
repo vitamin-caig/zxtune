@@ -18,6 +18,7 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 // library includes
+#include <binary/dump.h>
 #include <debug/log.h>
 #include <math/numeric.h>
 #include <sound/backend_attrs.h>
@@ -136,7 +137,7 @@ namespace Sound::Mp3
     const Api::Ptr LameApi;
     const Binary::OutputStream::Ptr Stream;
     const LameContextPtr Context;
-    Dump Encoded;
+    Binary::Dump Encoded;
   };
 
   enum BitrateMode

@@ -17,6 +17,7 @@
 // std includes
 #include <array>
 #include <memory>
+#include <vector>
 
 // supporting for AY/YM-based modules
 namespace Devices

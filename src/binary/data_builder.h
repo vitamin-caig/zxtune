@@ -12,6 +12,7 @@
 
 // library includes
 #include <binary/container_factories.h>
+#include <binary/dump.h>
 #include <binary/view.h>
 // std includes
 #include <cstring>

@@ -39,7 +39,7 @@ namespace Devices::AYM
       FrameNumber = 0;
     }
 
-    void GetResult(Dump& data) const override
+    void GetResult(Binary::Dump& data) const override
     {
       data = Data;
     }
@@ -51,7 +51,7 @@ namespace Devices::AYM
       {
         AddNochangesMessage();
       }
-      Dump str(Registers::TOTAL * 2, ' ');
+      Binary::Dump str(Registers::TOTAL * 2, ' ');
       for (Registers::IndicesIterator it(update); it; ++it)
       {
         const uint8_t val = update[*it];
@@ -69,7 +69,7 @@ namespace Devices::AYM
       AddEndOfFrame();
     }
 
-    void AddData(const Dump& str)
+    void AddData(const Binary::Dump& str)
     {
       std::copy(str.begin(), str.end(), std::back_inserter(Data));
     }
@@ -81,7 +81,7 @@ namespace Devices::AYM
     }
 
   private:
-    Dump Data;
+    Binary::Dump Data;
     uint_t FrameNumber;
   };
 

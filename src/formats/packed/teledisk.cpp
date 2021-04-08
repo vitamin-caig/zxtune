@@ -180,10 +180,10 @@ namespace Formats::Packed
       }
     };
 
-    void DecodeR2P(const uint8_t* data, std::size_t size, Dump& result)
+    void DecodeR2P(const uint8_t* data, std::size_t size, Binary::Dump& result)
     {
       Require(size % sizeof(R2PEntry) == 0);
-      Dump tmp;
+      Binary::Dump tmp;
       tmp.reserve(MAX_SECTOR_SIZE);
       for (const R2PEntry *it = safe_ptr_cast<const R2PEntry*>(data), *lim = it + size / sizeof(*it); it != lim; ++it)
       {
@@ -196,9 +196,9 @@ namespace Formats::Packed
       result.swap(tmp);
     }
 
-    void DecodeRLE(const uint8_t* data, std::size_t size, Dump& result)
+    void DecodeRLE(const uint8_t* data, std::size_t size, Binary::Dump& result)
     {
-      Dump tmp;
+      Binary::Dump tmp;
       tmp.reserve(MAX_SECTOR_SIZE);
       ByteStream stream(data, size);
       while (!stream.Eof())
@@ -233,7 +233,7 @@ namespace Formats::Packed
       void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type,
                     std::size_t targetSize) override
       {
-        Dump result;
+        Binary::Dump result;
         switch (type)
         {
         case RAW_SECTOR:

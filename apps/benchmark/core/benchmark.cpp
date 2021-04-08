@@ -101,7 +101,7 @@ namespace Benchmark
             0x13,       // inc de
             0x18, 0xfa  // jr loop
         };
-        Dump mem(Z80_TEST_MEM, std::end(Z80_TEST_MEM));
+        Binary::Dump mem(Z80_TEST_MEM, std::end(Z80_TEST_MEM));
         mem.resize(65536);
         const Devices::Z80::Chip::Ptr dev = CreateDevice(UINT64_C(3500000), 24, mem, Devices::Z80::ChipIO::Ptr());
         return Test(*dev, TEST_DURATION, FRAME_DURATION);
@@ -131,7 +131,7 @@ namespace Benchmark
             0xd3, 0x00,  // out (0),a
             0x18, 0xfa   // jr loop
         };
-        Dump mem(Z80_TEST_IO, std::end(Z80_TEST_IO));
+        Binary::Dump mem(Z80_TEST_IO, std::end(Z80_TEST_IO));
         mem.resize(65536);
         const Devices::Z80::Chip::Ptr dev = CreateDevice(UINT64_C(3500000), 24, mem, MakePtr<Z80Ports>());
         return Test(*dev, TEST_DURATION, FRAME_DURATION);

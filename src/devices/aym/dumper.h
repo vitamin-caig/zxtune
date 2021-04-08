@@ -11,6 +11,7 @@
 #pragma once
 
 // library includes
+#include <binary/dump.h>
 #include <devices/aym.h>
 #include <time/duration.h>
 
@@ -25,7 +26,7 @@ namespace Devices
     public:
       typedef std::shared_ptr<Dumper> Ptr;
 
-      virtual void GetDump(Dump& result) const = 0;
+      virtual void GetDump(Binary::Dump& result) const = 0;
     };
 
     class DumperParameters

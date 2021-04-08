@@ -126,9 +126,9 @@ namespace Formats::Image
         IsValid = DecodeData();
       }
 
-      std::unique_ptr<Dump> GetResult()
+      std::unique_ptr<Binary::Dump> GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
       }
 
       std::size_t GetUsedSize() const
@@ -141,7 +141,7 @@ namespace Formats::Image
       {
         try
         {
-          Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
+          Binary::Dump decoded(PIXELS_SIZE + ATTRS_SIZE);
           std::fill_n(&decoded[PIXELS_SIZE], ATTRS_SIZE, 7);
 
           const AddrTranslator translate(0);
@@ -179,7 +179,7 @@ namespace Formats::Image
             }
           }
           Require(target == decoded.size());
-          Result.reset(new Dump());
+          Result.reset(new Binary::Dump());
           Result->swap(decoded);
           return true;
         }
@@ -192,7 +192,7 @@ namespace Formats::Image
     private:
       bool IsValid;
       ByteStream Stream;
-      std::unique_ptr<Dump> Result;
+      std::unique_ptr<Binary::Dump> Result;
     };
   }  // namespace ASCScreenCrusher
 

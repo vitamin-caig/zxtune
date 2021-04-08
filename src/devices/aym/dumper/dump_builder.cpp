@@ -159,7 +159,7 @@ namespace Devices::AYM
       NextFrame += FrameDuration;
     }
 
-    void GetDump(Dump& result) const override
+    void GetDump(Binary::Dump& result) const override
     {
       if (FramesToSkip)
       {

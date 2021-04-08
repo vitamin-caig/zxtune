@@ -17,6 +17,7 @@
 // std includes
 #include <set>
 #include <type_traits>
+#include <vector>
 
 namespace Strings
 {

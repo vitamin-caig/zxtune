@@ -51,9 +51,9 @@ namespace Devices::AYM
       return Delegate->Initialize();
     }
 
-    void GetResult(Dump& data) const override
+    void GetResult(Binary::Dump& data) const override
     {
-      Dump unpacked;
+      Binary::Dump unpacked;
       GetUnpackedResult(unpacked);
       Binary::DataBuilder output;
       {
@@ -69,9 +69,9 @@ namespace Devices::AYM
     }
 
   private:
-    void GetUnpackedResult(Dump& result) const
+    void GetUnpackedResult(Binary::Dump& result) const
     {
-      Dump rawDump;
+      Binary::Dump rawDump;
       Delegate->GetResult(rawDump);
       Require(0 == rawDump.size() % Registers::TOTAL);
       const uint32_t framesCount = rawDump.size() / Registers::TOTAL;

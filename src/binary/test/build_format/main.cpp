@@ -173,7 +173,7 @@ namespace
       , Bitmasks()
     {}
 
-    bool Add(const Dump& data)
+    bool Add(const Binary::Dump& data)
     {
       const std::size_t newSize = data.size();
       Resize(newSize);

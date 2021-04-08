@@ -13,6 +13,7 @@
 // common includes
 #include <types.h>
 // library includes
+#include <binary/dump.h>
 #include <binary/view.h>
 
 namespace Module
@@ -37,6 +38,6 @@ namespace Module
     void Update(uint_t addr, Binary::View data);
 
     uint_t Start = 0;
-    Dump Data;
+    Binary::Dump Data;
   };
 }  // namespace Module

@@ -97,7 +97,7 @@ namespace Sound::Wav
    - RIFF stands for Resource Interchange File Format.
   */
 
-  class ListMetadata : public Dump
+  class ListMetadata : public Binary::Dump
   {
   public:
     ListMetadata()

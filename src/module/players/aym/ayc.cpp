@@ -44,7 +44,7 @@ namespace Module::AYC
       Frame = 0;
     }
 
-    void AddValues(const Dump& values) override
+    void AddValues(const Binary::Dump& values) override
     {
       Require(Register < Devices::AYM::Registers::TOTAL);
       for (auto val : values)

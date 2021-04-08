@@ -52,7 +52,8 @@ namespace
 
     Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
     {
-      std::unique_ptr<Dump> copy(new Dump(RawData + offset, RawData + std::min(RawSize, offset + size)));
+      std::unique_ptr<Binary::Dump> copy(
+          new Binary::Dump(RawData + offset, RawData + std::min(RawSize, offset + size)));
       return Binary::CreateContainer(std::move(copy));
     }
 
@@ -137,7 +138,7 @@ namespace
     file.seekg(0, std::ios_base::end);
     const std::size_t size = static_cast<std::size_t>(file.tellg());
     file.seekg(0);
-    std::unique_ptr<Dump> tmp(new Dump(size));
+    std::unique_ptr<Binary::Dump> tmp(new Binary::Dump(size));
     file.read(safe_ptr_cast<char*>(tmp->data()), size);
     return Binary::CreateContainer(std::move(tmp));
   }

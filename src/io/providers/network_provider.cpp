@@ -143,7 +143,7 @@ namespace IO::Network
     // TODO: pass callback to handle progress and other
     Binary::Container::Ptr Download()
     {
-      std::unique_ptr<Dump> result(new Dump());
+      std::unique_ptr<Binary::Dump> result(new Binary::Dump());
       result->reserve(INITIAL_SIZE);
       Object.SetOption<void*>(CURLOPT_WRITEDATA, result.get(), THIS_LINE);
       Object.Perform(THIS_LINE);
@@ -184,7 +184,7 @@ namespace IO::Network
       return 0;
     }
 
-    static size_t WriteCallback(const char* ptr, size_t size, size_t nmemb, Dump* result)
+    static size_t WriteCallback(const char* ptr, size_t size, size_t nmemb, Binary::Dump* result)
     {
       const std::size_t toSave = size * nmemb;
       const std::size_t prevSize = result->size();

@@ -537,7 +537,7 @@ namespace Formats::Archived
           const std::size_t unpacked = GetSize();
           Require(unpacked != 0);
           Dbg("Decompressing '%1%' (%2% blocks, %3% butes result)", Name, Blocks.size(), unpacked);
-          std::unique_ptr<Dump> result(new Dump(unpacked));
+          std::unique_ptr<Binary::Dump> result(new Binary::Dump(unpacked));
           auto* target = result->data();
           for (const auto& block : Blocks)
           {

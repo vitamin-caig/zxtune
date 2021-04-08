@@ -236,7 +236,7 @@ namespace Formats::Chiptune
       void SetChipType(bool /*ym*/) override {}
       void SetStereoMode(uint_t /*mode*/) override {}
       void SetLoop(uint_t /*loop*/) override {}
-      void SetDigitalSample(uint_t /*idx*/, const Dump& /*data*/) override {}
+      void SetDigitalSample(uint_t /*idx*/, const Binary::Dump& /*data*/) override {}
       void SetClockrate(uint64_t /*freq*/) override {}
       void SetIntFreq(uint_t /*freq*/) override {}
       void SetTitle(const String& /*title*/) override {}
@@ -246,7 +246,7 @@ namespace Formats::Chiptune
       void SetProgram(const String& /*program*/) override {}
       void SetEditor(const String& /*editor*/) override {}
 
-      void AddData(const Dump& /*registers*/) override {}
+      void AddData(const Binary::Dump& /*registers*/) override {}
     };
 
     bool FastCheck(const Binary::Container& rawData)
@@ -263,7 +263,7 @@ namespace Formats::Chiptune
       const auto data = input.As<uint8_t>();
       for (std::size_t row = 0; row != rows; ++row)
       {
-        Dump registers(columns);
+        Binary::Dump registers(columns);
         for (std::size_t col = 0, cursor = row; col != columns && cursor < input.Size(); ++col, cursor += rows)
         {
           registers[col] = data[cursor];
@@ -281,12 +281,12 @@ namespace Formats::Chiptune
         const uint8_t* const nextCursor = cursor + columns;
         if (nextCursor <= limit)
         {
-          const Dump registers(cursor, nextCursor);
+          const Binary::Dump registers(cursor, nextCursor);
           target.AddData(registers);
         }
         else
         {
-          Dump registers = cursor < limit ? Dump(cursor, limit) : Dump();
+          Binary::Dump registers = cursor < limit ? Binary::Dump(cursor, limit) : Binary::Dump();
           registers.resize(columns);
           target.AddData(registers);
         }

@@ -21,6 +21,7 @@
 #include <windows.h>
 // std includes
 #include <cctype>
+#include <vector>
 
 namespace
 {

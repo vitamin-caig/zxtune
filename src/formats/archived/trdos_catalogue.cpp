@@ -330,7 +330,7 @@ namespace TRDos
       {
         return Subfiles.front()->GetData();
       }
-      std::unique_ptr<Dump> res(new Dump(GetSize()));
+      std::unique_ptr<Binary::Dump> res(new Binary::Dump(GetSize()));
       auto* dst = res->data();
       for (const auto& file : Subfiles)
       {

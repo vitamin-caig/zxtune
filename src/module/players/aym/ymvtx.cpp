@@ -77,7 +77,7 @@ namespace Module::YMVTX
       Data->SetLoop(loop);
     }
 
-    void SetDigitalSample(uint_t /*idx*/, const Dump& /*data*/) override
+    void SetDigitalSample(uint_t /*idx*/, const Binary::Dump& /*data*/) override
     {
       // TODO:
     }
@@ -128,7 +128,7 @@ namespace Module::YMVTX
       Properties.SetProgram(editor);
     }
 
-    void AddData(const Dump& registers) override
+    void AddData(const Binary::Dump& registers) override
     {
       auto& data = Data->AddFrame();
       const uint_t availRegs = std::min<uint_t>(registers.size(), Devices::AYM::Registers::ENV + 1);

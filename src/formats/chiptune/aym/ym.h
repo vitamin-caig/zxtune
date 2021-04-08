@@ -13,6 +13,7 @@
 // common includes
 #include <types.h>
 // library includes
+#include <binary/dump.h>
 #include <formats/chiptune.h>
 
 namespace Formats
@@ -36,7 +37,7 @@ namespace Formats
         virtual void SetStereoMode(uint_t mode) = 0;
         // Default: 0
         virtual void SetLoop(uint_t loop) = 0;
-        virtual void SetDigitalSample(uint_t idx, const Dump& data) = 0;
+        virtual void SetDigitalSample(uint_t idx, const Binary::Dump& data) = 0;
         virtual void SetClockrate(uint64_t freq) = 0;
         // Default: 50
         virtual void SetIntFreq(uint_t freq) = 0;
@@ -47,7 +48,7 @@ namespace Formats
         virtual void SetProgram(const String& program) = 0;
         virtual void SetEditor(const String& editor) = 0;
 
-        virtual void AddData(const Dump& registers) = 0;
+        virtual void AddData(const Binary::Dump& registers) = 0;
       };
 
       Builder& GetStubBuilder();

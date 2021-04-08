@@ -12,6 +12,9 @@
 
 // common includes
 #include <types.h>
+// library includes
+#include <binary/dump.h>
+#include <binary/view.h>
 
 namespace Binary
 {
@@ -28,12 +31,12 @@ namespace Binary
     uint8_t* Decode(const char* inBegin, const char* inEnd, uint8_t* outBegin, uint8_t* outEnd);
 
     // easy-to-use wrappers
-    inline String Encode(const Dump& input)
+    inline String Encode(View input)
     {
-      String result(CalculateConvertedSize(input.size()), ' ');
-      const uint8_t* const in = input.data();
+      String result(CalculateConvertedSize(input.Size()), ' ');
+      const uint8_t* const in = input.As<uint8_t>();
       char* const out = &result[0];
-      Encode(in, in + input.size(), out, out + result.size());
+      Encode(in, in + input.Size(), out, out + result.size());
       return result;
     }
 

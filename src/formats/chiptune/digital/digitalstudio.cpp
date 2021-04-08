@@ -18,6 +18,7 @@
 #include <make_ptr.h>
 #include <range_checker.h>
 // library includes
+#include <binary/dump.h>
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
@@ -125,13 +126,13 @@ namespace Formats::Chiptune
       {
         const std::size_t size1 = data1.Size();
         const std::size_t size2 = data2.Size();
-        Dump res(size1 + size2);
+        Binary::Dump res(size1 + size2);
         std::memcpy(res.data(), data1.Start(), size1);
         std::memcpy(res.data() + size1, data2.Start(), size2);
         Add(idx, loop, res);
       }
 
-      void Add(uint_t idx, std::size_t loop, Dump data)
+      void Add(uint_t idx, std::size_t loop, Binary::Dump data)
       {
         Description& desc = Samples[idx];
         desc = Description(loop, std::move(data));
@@ -174,7 +175,7 @@ namespace Formats::Chiptune
       struct Description
       {
         std::size_t Loop;
-        Dump Content;
+        Binary::Dump Content;
         bool Is4Bit;
 
         Description()
@@ -183,7 +184,7 @@ namespace Formats::Chiptune
           , Is4Bit()
         {}
 
-        Description(std::size_t loop, Dump content)
+        Description(std::size_t loop, Binary::Dump content)
           : Loop(loop)
           , Content(std::move(content))
           , Is4Bit(CheckIfSample4Bit(Content.data(), Content.size()))

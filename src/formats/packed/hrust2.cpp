@@ -210,7 +210,7 @@ namespace Formats::Packed
         : Header(header)
         , Stream(Header.BitStream, rawSize - offsetof(RawHeader, BitStream))
         , IsValid(!Stream.Eof())
-        , Result(new Dump())
+        , Result(new Binary::Dump())
         , Decoded(*Result)
       {
         if (IsValid)
@@ -220,9 +220,9 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Dump> GetResult()
+      std::unique_ptr<Binary::Dump> GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
       }
 
     private:
@@ -292,8 +292,8 @@ namespace Formats::Packed
       const RawHeader& Header;
       Bitstream Stream;
       bool IsValid;
-      std::unique_ptr<Dump> Result;
-      Dump& Decoded;
+      std::unique_ptr<Binary::Dump> Result;
+      Binary::Dump& Decoded;
     };
 
     namespace Version1
@@ -382,14 +382,14 @@ namespace Formats::Packed
         explicit DataDecoder(const Container& container)
           : IsValid(container.FastCheck())
           , Header(container.GetHeader())
-          , Result(new Dump())
+          , Result(new Binary::Dump())
         {
           IsValid = IsValid && DecodeData();
         }
 
-        std::unique_ptr<Dump> GetResult()
+        std::unique_ptr<Binary::Dump> GetResult()
         {
-          return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
+          return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
         }
 
       private:
@@ -411,7 +411,7 @@ namespace Formats::Packed
       private:
         bool IsValid;
         const FormatHeader& Header;
-        std::unique_ptr<Dump> Result;
+        std::unique_ptr<Binary::Dump> Result;
       };
     }  // namespace Version1
 
@@ -473,7 +473,7 @@ namespace Formats::Packed
           const std::size_t totalSize =
               std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0),
                               [](std::size_t size, const Binary::Container::Ptr& data) { return size + data->Size(); });
-          std::unique_ptr<Dump> result(new Dump(totalSize));
+          std::unique_ptr<Binary::Dump> result(new Binary::Dump(totalSize));
           auto* target = result->data();
           for (const auto& block : Blocks)
           {

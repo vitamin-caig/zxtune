@@ -60,9 +60,9 @@ namespace Formats::Packed
           return fromLE(DataAddr) - compileAddr;
         }
 
-        Dump GetInfo() const
+        Binary::Dump GetInfo() const
         {
-          return Dump(Information.begin(), Information.end());
+          return Binary::Dump(Information.begin(), Information.end());
         }
       } PACK_POST;
     };
@@ -93,9 +93,9 @@ namespace Formats::Packed
           return fromLE(DataAddr) - compileAddr;
         }
 
-        Dump GetInfo() const
+        Binary::Dump GetInfo() const
         {
-          Dump result(53);
+          Binary::Dump result(53);
           const uint8_t* const src = Information;
           uint8_t* const dst = result.data();
           std::memcpy(dst, src, 24);

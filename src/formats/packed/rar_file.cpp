@@ -175,7 +175,7 @@ namespace Formats::Packed
       {
         try
         {
-          std::unique_ptr<Dump> result(new Dump(outSize));
+          std::unique_ptr<Binary::Dump> result(new Binary::Dump(outSize));
           Stream.SetUnpackToMemory(result->data(), outSize);
           Decoder.SetDestSize(outSize);
           Decoder.DoUnpack(method, isSolid);

@@ -112,7 +112,7 @@ namespace Formats::Multitrack
       Container::Ptr WithStartTrackIndex(uint_t idx) const override
       {
         Require(Hdr != &STUB_EXTRA_HEADER);
-        std::unique_ptr<Dump> content(new Dump(Delegate->Size()));
+        std::unique_ptr<Binary::Dump> content(new Binary::Dump(Delegate->Size()));
         std::memcpy(content->data(), Delegate->Start(), content->size());
         ExtraHeader* const hdr = safe_ptr_cast<ExtraHeader*>(content->data() + sizeof(RawHeader));
         Require(idx <= hdr->LastTrack);

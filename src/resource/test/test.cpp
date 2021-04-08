@@ -8,6 +8,7 @@
  *
  **/
 
+#include <binary/dump.h>
 #include <cstring>
 #include <error.h>
 #include <fstream>
@@ -43,7 +44,7 @@ namespace
     }
   }
 
-  Dump OpenFile(const std::string& name)
+  Binary::Dump OpenFile(const std::string& name)
   {
     std::ifstream stream(name.c_str(), std::ios::binary);
     if (!stream)
@@ -53,7 +54,7 @@ namespace
     stream.seekg(0, std::ios_base::end);
     const std::size_t size = stream.tellg();
     stream.seekg(0);
-    Dump tmp(size);
+    Binary::Dump tmp(size);
     stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
     return tmp;
   }
@@ -72,7 +73,7 @@ namespace
       std::cout << "Found resource file " << name << std::endl;
       Test("Test file exists", 1 == Etalons.count(name));
       const Binary::Container::Ptr data = Resource::Load(name);
-      const Dump& ref = Etalons[name];
+      const auto& ref = Etalons[name];
       TestEq("Test file is expected size", ref.size(), data->Size());
       Test("Test file is expected content", 0 == std::memcmp(ref.data(), data->Start(), ref.size()));
       Etalons.erase(name);
@@ -90,7 +91,7 @@ namespace
     }
 
   private:
-    std::map<String, Dump> Etalons;
+    std::map<String, Binary::Dump> Etalons;
   };
 }  // namespace
 

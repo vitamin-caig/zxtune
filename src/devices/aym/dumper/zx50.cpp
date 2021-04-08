@@ -23,11 +23,11 @@ namespace Devices::AYM
   public:
     void Initialize() override
     {
-      static const Dump::value_type HEADER[] = {'Z', 'X', '5', '0'};
+      static const Binary::Dump::value_type HEADER[] = {'Z', 'X', '5', '0'};
       Data.assign(HEADER, std::end(HEADER));
     }
 
-    void GetResult(Dump& data) const override
+    void GetResult(Binary::Dump& data) const override
     {
       data = Data;
     }
@@ -36,9 +36,9 @@ namespace Devices::AYM
     {
       assert(framesPassed);
 
-      Dump frame;
+      Binary::Dump frame;
       frame.reserve(Registers::TOTAL);
-      std::back_insert_iterator<Dump> inserter(frame);
+      std::back_insert_iterator<Binary::Dump> inserter(frame);
       uint_t mask = 0;
       for (Registers::IndicesIterator it(update); it; ++it)
       {
@@ -47,16 +47,16 @@ namespace Devices::AYM
       }
       // commit
       Data.reserve(Data.size() + framesPassed * sizeof(uint16_t) + Registers::TOTAL);
-      std::back_insert_iterator<Dump> data(Data);
+      std::back_insert_iterator<Binary::Dump> data(Data);
       // skipped frames
       std::fill_n(data, sizeof(uint16_t) * (framesPassed - 1), 0);
-      *data = static_cast<Dump::value_type>(mask & 0xff);
-      *data = static_cast<Dump::value_type>(mask >> 8);
+      *data = static_cast<Binary::Dump::value_type>(mask & 0xff);
+      *data = static_cast<Binary::Dump::value_type>(mask >> 8);
       std::copy(frame.begin(), frame.end(), data);
     }
 
   private:
-    Dump Data;
+    Binary::Dump Data;
   };
 
   Dumper::Ptr CreateZX50Dumper(DumperParameters::Ptr params)

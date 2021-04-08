@@ -31,7 +31,7 @@ namespace Devices::AYM
       Data.clear();
     }
 
-    void GetResult(Dump& data) const override
+    void GetResult(Binary::Dump& data) const override
     {
       data = Data;
     }
@@ -39,10 +39,10 @@ namespace Devices::AYM
     void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) override
     {
       assert(framesPassed);
-      std::back_insert_iterator<Dump> inserter(Data);
+      std::back_insert_iterator<Binary::Dump> inserter(Data);
       if (const uint_t toSkip = framesPassed - 1)
       {
-        Dump dup;
+        Binary::Dump dup;
         if (Data.empty())
         {
           dup.resize(Registers::TOTAL);
@@ -66,7 +66,7 @@ namespace Devices::AYM
     }
 
   private:
-    Dump Data;
+    Binary::Dump Data;
   };
 
   FramedDumpBuilder::Ptr CreateRawDumpBuilder()

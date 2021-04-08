@@ -16,6 +16,7 @@
 #include <make_ptr.h>
 // library includes
 #include <binary/container_factories.h>
+#include <binary/dump.h>
 // std includes
 #include <map>
 #include <set>
@@ -51,7 +52,7 @@ namespace Formats::Chiptune
     Binary::Container::Ptr GetResult() const override
     {
       const auto* srcData = Source.As<uint8_t>();
-      std::unique_ptr<Dump> result(new Dump(srcData, srcData + Source.Size()));
+      std::unique_ptr<Binary::Dump> result(new Binary::Dump(srcData, srcData + Source.Size()));
       ApplyFixes(*result);
       ApplyOverwrites(*result);
       ApplyInsertions(*result);
@@ -59,7 +60,7 @@ namespace Formats::Chiptune
     }
 
   private:
-    void ApplyFixes(Dump& result) const
+    void ApplyFixes(Binary::Dump& result) const
     {
       for (const auto& fix : LEWordFixes)
       {
@@ -76,7 +77,7 @@ namespace Formats::Chiptune
       *ptr = fromLE(fixedVal);
     }
 
-    void ApplyOverwrites(Dump& result) const
+    void ApplyOverwrites(Binary::Dump& result) const
     {
       for (const auto& over : Overwrites)
       {
@@ -84,13 +85,13 @@ namespace Formats::Chiptune
       }
     }
 
-    void ApplyInsertions(Dump& result) const
+    void ApplyInsertions(Binary::Dump& result) const
     {
       if (0 == SizeAddon)
       {
         return;
       }
-      Dump tmp(result.size() + SizeAddon);
+      Binary::Dump tmp(result.size() + SizeAddon);
       auto src = result.begin();
       const auto srcEnd = result.end();
       auto dst = tmp.begin();

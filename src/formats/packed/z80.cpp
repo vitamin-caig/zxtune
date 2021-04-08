@@ -276,7 +276,7 @@ namespace Formats::Packed
       return srcSize - restIn;
     }
 
-    void DecodeBlock(Binary::InputStream& stream, std::size_t srcSize, Dump& dst)
+    void DecodeBlock(Binary::InputStream& stream, std::size_t srcSize, Binary::Dump& dst)
     {
       const auto src = stream.PeekRawData(srcSize);
       const auto used = DecodeBlock(src, srcSize, dst.data(), dst.size());
@@ -296,7 +296,7 @@ namespace Formats::Packed
         return CreateContainer(rest->GetSubcontainer(0, TARGET_SIZE), sizeof(hdr) + TARGET_SIZE);
       }
       Require(restSize > sizeof(FOOTER));
-      std::unique_ptr<Dump> res(new Dump(TARGET_SIZE));
+      std::unique_ptr<Binary::Dump> res(new Binary::Dump(TARGET_SIZE));
       DecodeBlock(stream, restSize - sizeof(FOOTER), *res);
       const auto footer = stream.ReadLE<uint32_t>();
       Require(footer == FOOTER);
@@ -481,8 +481,8 @@ namespace Formats::Packed
       Require(additionalSize >= readAdditionalSize);
       stream.Skip(additionalSize - readAdditionalSize);
       const PlatformTraits traits(additionalSize, hdr.HardwareMode, hdr.Port7ffd);
-      std::unique_ptr<Dump> res(new Dump(ZX_PAGE_SIZE * traits.PagesCount()));
-      Dump curPage(ZX_PAGE_SIZE);
+      std::unique_ptr<Binary::Dump> res(new Binary::Dump(ZX_PAGE_SIZE * traits.PagesCount()));
+      Binary::Dump curPage(ZX_PAGE_SIZE);
       for (uint_t idx = 0; idx != traits.PagesCount(); ++idx)
       {
         const bool isPageRequired = idx < traits.MinimalPagesCount();

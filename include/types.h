@@ -17,7 +17,6 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
-#include <vector>
 
 //@{
 //! @brief Integer types
@@ -74,9 +73,6 @@ typedef basic_string_view<Char> StringView;
 #  define PACK_POST
 #endif
 //@}
-
-//! @brief Plain data type
-typedef std::vector<uint8_t> Dump;
 
 // assertions
 static_assert(sizeof(uint_t) >= sizeof(uint32_t), "Invalid uint_t type");

@@ -155,16 +155,16 @@ namespace Formats::Packed
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
         , Limit(container.GetSize())
-        , Result(new Dump())
+        , Result(new Binary::Dump())
         , Decoded(*Result)
         , UsedSize(0)
       {
         IsValid = DecodeData();
       }
 
-      std::unique_ptr<Dump> GetResult()
+      std::unique_ptr<Binary::Dump> GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
       }
 
       std::size_t GetUsedSize()
@@ -180,7 +180,7 @@ namespace Formats::Packed
         const uint_t cylinders = fromLE(Header.Cylinders);
         const uint_t sides = fromLE(Header.Sides);
 
-        Dump result;
+        Binary::Dump result;
         result.reserve(FDI_MAX_SIZE);
         std::size_t trackInfoOffset = sizeof(Header) + fromLE(Header.InfoSize);
         std::size_t rawSize = dataOffset;
@@ -237,8 +237,8 @@ namespace Formats::Packed
       bool IsValid;
       const RawHeader& Header;
       const std::size_t Limit;
-      std::unique_ptr<Dump> Result;
-      Dump& Decoded;
+      std::unique_ptr<Binary::Dump> Result;
+      Binary::Dump& Decoded;
       std::size_t UsedSize;
     };
 

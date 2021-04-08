@@ -12,6 +12,8 @@
 
 // common includes
 #include <types.h>
+// library includes
+#include <binary/dump.h>
 // std includes
 #include <memory>
 
@@ -49,7 +51,7 @@ namespace L10n
     String Domain;
     String Language;
     String Type;
-    Dump Data;
+    Binary::Dump Data;
   };
 
   class Library

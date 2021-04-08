@@ -159,7 +159,7 @@ namespace Module
     try
     {
       holder.Dump(*dumper);
-      std::unique_ptr<Dump> dst(new Dump());
+      std::unique_ptr<Binary::Dump> dst(new Binary::Dump());
       dumper->GetDump(*dst);
       return Binary::CreateContainer(std::move(dst));
     }

@@ -39,7 +39,7 @@ namespace Module::SPC
   {
     using Ptr = std::shared_ptr<const Model>;
 
-    const Dump Data;
+    const Binary::Dump Data;
     const Time::Milliseconds Duration;
 
     Model(const Binary::Data& data, Time::Milliseconds duration)

@@ -38,7 +38,7 @@ namespace Devices::AYM
       Data.assign(HEADER, std::end(HEADER));
     }
 
-    void GetResult(Dump& data) const override
+    void GetResult(Binary::Dump& data) const override
     {
       data = Data;
     }
@@ -47,23 +47,23 @@ namespace Devices::AYM
     {
       assert(framesPassed);
 
-      Dump frame;
+      Binary::Dump frame;
       // SKIP_INTS code groups 4 skipped interrupts
       const uint_t SKIP_GROUP_SIZE = 4;
       const uint_t groupsSkipped = framesPassed / SKIP_GROUP_SIZE;
       const uint_t remainInts = framesPassed % SKIP_GROUP_SIZE;
       frame.reserve(groupsSkipped + remainInts + 2 * Registers::TOTAL + 1);
-      std::back_insert_iterator<Dump> inserter(frame);
+      std::back_insert_iterator<Binary::Dump> inserter(frame);
       if (groupsSkipped)
       {
         *inserter = SKIP_INTS;
-        *inserter = static_cast<Dump::value_type>(groupsSkipped);
+        *inserter = static_cast<Binary::Dump::value_type>(groupsSkipped);
       }
       std::fill_n(inserter, remainInts, INTERRUPT);
       // store data
       for (Registers::IndicesIterator it(update); it; ++it)
       {
-        *inserter = static_cast<Dump::value_type>(*it);
+        *inserter = static_cast<Binary::Dump::value_type>(*it);
         *inserter = update[*it];
       }
       *inserter = END_MUS;
@@ -74,7 +74,7 @@ namespace Devices::AYM
     }
 
   private:
-    Dump Data;
+    Binary::Dump Data;
   };
 
   Dumper::Ptr CreatePSGDumper(DumperParameters::Ptr params)

@@ -93,7 +93,7 @@ namespace Devices::Z80
   class SimpleIOBus : public IOBus
   {
   public:
-    SimpleIOBus(const Oscillator& clock, Dump memory, ChipIO::Ptr ports)
+    SimpleIOBus(const Oscillator& clock, Binary::Dump memory, ChipIO::Ptr ports)
       : Clock(clock)
       , Memory(std::move(memory))
       , RawMemory(Memory.data())
@@ -157,7 +157,7 @@ namespace Devices::Z80
 
   private:
     const Oscillator& Clock;
-    Dump Memory;
+    Binary::Dump Memory;
     uint8_t* const RawMemory;
     const ChipIO::Ptr Ports;
   };
@@ -242,7 +242,7 @@ namespace Devices::Z80
       Z80Chip::Reset();
     }
 
-    Z80Chip(ChipParameters::Ptr params, const Dump& memory, ChipIO::Ptr ports)
+    Z80Chip(ChipParameters::Ptr params, const Binary::Dump& memory, ChipIO::Ptr ports)
       : Params(params)
       , Bus(new SimpleIOBus(Clock.GetOscillator(), memory, ports))
       , Context(Bus->ConnectCPU())
@@ -402,7 +402,7 @@ namespace Devices
       return MakePtr<Z80Chip>(params, memory, ports);
     }
 
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, const Dump& memory, ChipIO::Ptr ports)
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, const Binary::Dump& memory, ChipIO::Ptr ports)
     {
       return MakePtr<Z80Chip>(params, memory, ports);
     }

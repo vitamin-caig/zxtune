@@ -324,7 +324,7 @@ namespace Formats::Chiptune
 
       void AddBlock(uint16_t addr, Binary::View block) override
       {
-        Dump& data = AllocateData();
+        auto& data = AllocateData();
         const std::size_t toCopy = std::min(block.Size(), data.size() - addr);
         std::memcpy(&data[addr], block.Start(), toCopy);
       }
@@ -335,11 +335,11 @@ namespace Formats::Chiptune
       }
 
     private:
-      Dump& AllocateData()
+      Binary::Dump& AllocateData()
       {
         if (!Data)
         {
-          Data.reset(new Dump(65536));
+          Data.reset(new Binary::Dump(65536));
           InitializeBlock(0xc9, 0, 0x100);
           InitializeBlock(0xff, 0x100, 0x3f00);
           InitializeBlock(uint8_t(0x00), 0x4000, 0xc000);
@@ -350,19 +350,19 @@ namespace Formats::Chiptune
 
       void InitializeBlock(uint8_t src, std::size_t offset, std::size_t size)
       {
-        Dump& data = *Data;
+        auto& data = *Data;
         const std::size_t toFill = std::min(size, data.size() - offset);
         std::memset(&data[offset], src, toFill);
       }
 
     private:
-      std::shared_ptr<Dump> Data;
+      std::shared_ptr<Binary::Dump> Data;
     };
 
     class FileBuilder : public BlobBuilder
     {
       // as a container
-      class VariableDump : public Dump
+      class VariableDump : public Binary::Dump
       {
       public:
         VariableDump()
@@ -448,7 +448,7 @@ namespace Formats::Chiptune
       {
         const auto* fromCopy = block.As<uint8_t>();
         const std::size_t toCopy = std::min(block.Size(), std::size_t(0x10000 - addr));
-        Blocks.push_back(BlocksList::value_type(addr, Dump(fromCopy, fromCopy + toCopy)));
+        Blocks.push_back(BlocksList::value_type(addr, Binary::Dump(fromCopy, fromCopy + toCopy)));
       }
 
       Binary::Container::Ptr Result() const override
@@ -495,7 +495,7 @@ namespace Formats::Chiptune
           Dbg("Stored block %1% bytes at %2% stored at %3%", fromBE(dst->Size), fromBE(dst->Address),
               fromBE(dst->Offset));
         }
-        return Binary::CreateContainer(std::unique_ptr<Dump>(std::move(result)));
+        return Binary::CreateContainer(std::unique_ptr<Binary::Dump>(std::move(result)));
       }
 
     private:
@@ -508,7 +508,7 @@ namespace Formats::Chiptune
       uint16_t StackPointer;
       uint16_t InitRoutine;
       uint16_t PlayRoutine;
-      typedef std::list<std::pair<uint16_t, Dump> > BlocksList;
+      typedef std::list<std::pair<uint16_t, Binary::Dump> > BlocksList;
       BlocksList Blocks;
     };
 

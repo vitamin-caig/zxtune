@@ -325,7 +325,7 @@ namespace Formats::Packed
     public:
       BitstreamDecoder(const uint8_t* data, std::size_t size)
         : Stream(data, size)
-        , Result(new Dump())
+        , Result(new Binary::Dump())
         , Decoded(*Result)
       {
         assert(!Stream.Eof());
@@ -428,8 +428,8 @@ namespace Formats::Packed
 
     protected:
       Bitstream Stream;
-      std::unique_ptr<Dump> Result;
-      Dump& Decoded;
+      std::unique_ptr<Binary::Dump> Result;
+      Binary::Dump& Decoded;
     };
 
     template<class Version>
@@ -448,9 +448,9 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Dump> GetResult()
+      std::unique_ptr<Binary::Dump> GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Dump>();
+        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
       }
 
       std::size_t GetUsedSize() const

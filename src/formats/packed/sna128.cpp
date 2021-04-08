@@ -107,7 +107,7 @@ namespace Formats::Packed
     {
       static const uint_t PAGE_NUM_TO_INDEX[] = {2, 3, 1, 4, 5, 0, 6, 7};
 
-      std::unique_ptr<Dump> result(new Dump(sizeof(ResultData)));
+      std::unique_ptr<Binary::Dump> result(new Binary::Dump(sizeof(ResultData)));
       const Header& src = *data.As<Header>();
       ResultData& dst = *safe_ptr_cast<ResultData*>(result->data());
       const uint_t curPage = src.Port7FFD & 7;

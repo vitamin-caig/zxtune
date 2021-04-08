@@ -160,7 +160,7 @@ namespace
 
   QByteArray LoadBlob(const Parameters::Accessor& options, const Parameters::NameType& name)
   {
-    Dump val;
+    Binary::Dump val;
     if (options.FindValue(name, val) && !val.empty())
     {
       return QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size());

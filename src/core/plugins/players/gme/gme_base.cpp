@@ -78,14 +78,14 @@ namespace Module::GME
   {
     using Ptr = std::shared_ptr<GMETune>;
 
-    GMETune(EmuCreator create, Dump data, uint_t track)
+    GMETune(EmuCreator create, Binary::Dump data, uint_t track)
       : CreateEmu(create)
       , Data(std::move(data))
       , Track(track)
     {}
 
     EmuCreator CreateEmu;
-    Dump Data;
+    Binary::Dump Data;
     uint_t Track;
     Time::Milliseconds Duration;
 
@@ -279,9 +279,10 @@ namespace Module::GME
   };
 
   // TODO: rework, extract GYM parsing code to Formats library
-  Dump DefaultDataCreator(Binary::View data)
+  Binary::Dump DefaultDataCreator(Binary::View data)
   {
-    return Dump(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size());
+    return Binary::Dump(static_cast<const uint8_t*>(data.Start()),
+                        static_cast<const uint8_t*>(data.Start()) + data.Size());
   }
 
   using PlatformDetector = StringView (*)(Binary::View);
@@ -297,7 +298,7 @@ namespace Module::GME
 
   namespace GYM
   {
-    Dump CreateData(Binary::View data)
+    Binary::Dump CreateData(Binary::View data)
     {
       Binary::DataInputStream input(data);
       Binary::DataBuilder output(data.Size());
@@ -313,7 +314,7 @@ namespace Module::GME
         output.Add(packedSize);
         output.Add(input.ReadRestData());
       }
-      Dump result;
+      Binary::Dump result;
       output.CaptureResult(result);
       return result;
     }
