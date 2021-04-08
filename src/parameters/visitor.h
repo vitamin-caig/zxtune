@@ -29,7 +29,7 @@ namespace Parameters
     //! Add/modify integer parameter
     virtual void SetValue(const NameType& name, IntType val) = 0;
     //! Add/modify string parameter
-    virtual void SetValue(const NameType& name, const StringType& val) = 0;
+    virtual void SetValue(const NameType& name, StringView val) = 0;
     //! Add/modify data parameter
     virtual void SetValue(const NameType& name, const DataType& val) = 0;
   };

@@ -47,7 +47,7 @@ namespace
     return QString::fromAscii(data.data(), data.size());
   }
 
-  QString ConvertString(const String& str)
+  QString ConvertString(StringView str)
   {
     const QByteArray data = QUrl::toPercentEncoding(ToQString(str));
     return DataToQString(data);
@@ -111,7 +111,7 @@ namespace
         Extension.Attribute(XSPF::APPLICATION_ATTR, Playlist::APPLICATION_ID);
       }
 
-      void SaveProperty(const Parameters::NameType& name, const String& strVal)
+      void SaveProperty(const Parameters::NameType& name, StringView strVal)
       {
         Extension.Subtag(XSPF::EXTENDED_PROPERTY_TAG)
             .Attribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name.FullPath()))
@@ -138,7 +138,7 @@ namespace
       SaveProperty(name, val);
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    void SetValue(const Parameters::NameType& name, StringView val) override
     {
       if (Filter && !Filter(name))
       {
@@ -184,13 +184,13 @@ namespace
       , Element(xml, XSPF::ITEM_TAG)
     {}
 
-    void SaveModuleLocation(const String& location)
+    void SaveModuleLocation(StringView location)
     {
       Dbg("  saving absolute item location %1%", location);
       SaveModuleLocation(ToQString(location));
     }
 
-    void SaveModuleLocation(const String& location, const QDir& root)
+    void SaveModuleLocation(StringView location, const QDir& root)
     {
       Dbg("  saving relative item location %1%", location);
       const QString path = ToQString(location);
@@ -246,7 +246,7 @@ namespace
 
     void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/) override {}
 
-    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    void SetValue(const Parameters::NameType& name, StringView val) override
     {
       const String value = Parameters::ConvertToString(val);
       const QString valStr = ConvertString(value);

@@ -32,7 +32,7 @@ namespace Parameters
       Second->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(const NameType& name, StringView val) override
     {
       First->SetValue(name, val);
       Second->SetValue(name, val);

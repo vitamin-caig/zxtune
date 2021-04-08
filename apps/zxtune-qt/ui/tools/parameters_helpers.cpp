@@ -86,12 +86,12 @@ namespace
   {
   public:
     StringSetValue(QAbstractButton& parent, Parameters::Container& ctr, const Parameters::NameType& name,
-                   Parameters::StringType value)
+                   StringView value)
       : ExclusiveValue(parent)
       , Parent(parent)
       , Container(ctr)
       , Name(name)
-      , Value(std::move(value))
+      , Value(value.to_string())
     {
       StringSetValue::Reload();
       Require(connect(&parent, SIGNAL(toggled(bool)), SLOT(Set(bool))));
@@ -300,12 +300,12 @@ namespace
   {
   public:
     StringValueImpl(QLineEdit& parent, Parameters::Container& ctr, const Parameters::NameType& name,
-                    Parameters::StringType defValue)
+                    StringView defValue)
       : StringValue(parent)
       , Parent(parent)
       , Container(ctr)
       , Name(name)
-      , Default(std::move(defValue))
+      , Default(defValue.to_string())
     {
       StringValueImpl::Reload();
       Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));
@@ -313,7 +313,7 @@ namespace
 
     void Set(const QString& value) override
     {
-      const Parameters::StringType& val = FromQString(value);
+      const auto val = FromQString(value);
       Dbg("%1%=%2%", Name.FullPath(), val);
       Container.SetValue(Name, val);
     }
@@ -391,7 +391,7 @@ namespace Parameters
   }
 
   Value* ExclusiveValue::Bind(QAbstractButton& button, Parameters::Container& ctr, const Parameters::NameType& name,
-                              const Parameters::StringType& value)
+                              StringView value)
   {
     return new StringSetValue(button, ctr, name, value);
   }
@@ -424,7 +424,7 @@ namespace Parameters
   }
 
   Value* StringValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const Parameters::NameType& name,
-                           const Parameters::StringType& defValue)
+                           StringView defValue)
   {
     return new StringValueImpl(edit, ctr, name, defValue);
   }

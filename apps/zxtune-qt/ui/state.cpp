@@ -63,7 +63,7 @@ namespace
       Delegate->SetValue(Prefix + name, val);
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    void SetValue(const Parameters::NameType& name, StringView val) override
     {
       Delegate->SetValue(Prefix + name, val);
     }
@@ -113,7 +113,7 @@ namespace
         FilterValue(name, val);
       }
 
-      void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+      void SetValue(const Parameters::NameType& name, StringView val) override
       {
         FilterValue(name, val);
       }

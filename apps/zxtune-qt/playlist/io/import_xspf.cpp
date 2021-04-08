@@ -74,7 +74,7 @@ namespace
       }
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    void SetValue(const Parameters::NameType& name, StringView val) override
     {
       if (Pass(name))
       {

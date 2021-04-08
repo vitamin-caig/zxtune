@@ -48,7 +48,7 @@ namespace
       Write(name, Parameters::ConvertToString(val));
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    virtual void SetValue(const Parameters::NameType& name, StringView val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }

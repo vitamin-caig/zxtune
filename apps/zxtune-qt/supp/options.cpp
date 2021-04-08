@@ -111,7 +111,7 @@ namespace
       ++VersionValue;
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(const NameType& name, StringView val) override
     {
       Value value(Storage, name);
       value.Set(QVariant(ToQString(ConvertToString(val))));
@@ -295,7 +295,7 @@ namespace
       Persistent->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(const NameType& name, StringView val) override
     {
       Removed.erase(name);
       Temporary->SetValue(name, val);
@@ -346,7 +346,7 @@ namespace
       }
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(const NameType& name, StringView val) override
     {
       const std::lock_guard<std::mutex> lock(Guard);
       for (const auto& delegate : Delegates)
@@ -399,7 +399,7 @@ namespace
       CopyExistingValue<IntType>(*Stored, *Changed, name);
     }
 
-    void SetValue(const NameType& name, const StringType& /*val*/) override
+    void SetValue(const NameType& name, StringView /*val*/) override
     {
       CopyExistingValue<StringType>(*Stored, *Changed, name);
     }

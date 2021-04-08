@@ -315,7 +315,7 @@ namespace
       // ignore "Loop", "Length", "Time"
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    void SetValue(const Parameters::NameType& name, StringView val) override
     {
       const auto nameStr = name.FullPath();
       Dbg("  property %1%='%2%'", nameStr, val);
@@ -364,12 +364,12 @@ namespace
     }
 
   private:
-    static Parameters::IntType DecodeChipType(const String& value)
+    static Parameters::IntType DecodeChipType(StringView value)
     {
       return value == AYL::YM ? Parameters::ZXTune::Core::AYM::TYPE_YM : Parameters::ZXTune::Core::AYM::TYPE_AY;
     }
 
-    static Parameters::IntType DecodeChipLayout(const String& value)
+    static Parameters::IntType DecodeChipLayout(StringView value)
     {
       if (value == AYL::ACB)
       {

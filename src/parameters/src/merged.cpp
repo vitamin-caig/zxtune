@@ -35,7 +35,7 @@ namespace Parameters
       }
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(const NameType& name, StringView val) override
     {
       if (DoneStrings.insert(name).second)
       {
@@ -154,7 +154,7 @@ namespace Parameters
       Second->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(const NameType& name, StringView val) override
     {
       Second->SetValue(name, val);
     }

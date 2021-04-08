@@ -81,7 +81,7 @@ namespace Parameters
     explicit ExclusiveValue(QObject& parent);
 
   public:
-    static Value* Bind(QAbstractButton& button, Container& ctr, const NameType& name, const StringType& value);
+    static Value* Bind(QAbstractButton& button, Container& ctr, const NameType& name, StringView value);
   private slots:
     virtual void Set(bool value) = 0;
   };
@@ -131,7 +131,7 @@ namespace Parameters
     explicit StringValue(QObject& parent);
 
   public:
-    static Value* Bind(QLineEdit& line, Container& ctr, const NameType& name, const StringType& defValue);
+    static Value* Bind(QLineEdit& line, Container& ctr, const NameType& name, StringView defValue);
   private slots:
     virtual void Set(const QString& value) = 0;
   };

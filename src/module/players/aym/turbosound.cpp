@@ -30,7 +30,7 @@ namespace Module::TurboSound
 {
   class MergedModuleProperties : public Parameters::Accessor
   {
-    static void MergeStringProperty(const Parameters::NameType& /*propName*/, String& lh, const String& rh)
+    static void MergeStringProperty(const Parameters::NameType& /*propName*/, String& lh, StringView rh)
     {
       if (lh != rh)
       {
@@ -54,12 +54,12 @@ namespace Module::TurboSound
         }
       }
 
-      void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+      void SetValue(const Parameters::NameType& name, StringView val) override
       {
-        const StringsValuesMap::iterator it = Strings.find(name);
+        const auto it = Strings.find(name);
         if (it == Strings.end())
         {
-          Strings.insert(StringsValuesMap::value_type(name, val));
+          Strings.emplace(name, val.to_string());
         }
         else
         {

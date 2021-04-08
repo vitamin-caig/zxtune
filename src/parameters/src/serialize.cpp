@@ -30,7 +30,7 @@ namespace
       insert(value_type(name.FullPath(), ConvertToString(val)));
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(const NameType& name, StringView val) override
     {
       insert(value_type(name.FullPath(), ConvertToString(val)));
     }

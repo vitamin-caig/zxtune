@@ -14,6 +14,7 @@
 #include <types.h>
 // library includes
 #include <binary/dump.h>
+#include <binary/view.h>
 
 //! @brief Namespace is used to keep parameters-working related types and functions
 namespace Parameters

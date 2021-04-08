@@ -85,9 +85,9 @@ namespace Parameters
       }
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(const NameType& name, StringView val) override
     {
-      if (Integers.erase(name) | Set(Strings[name], val) | Datas.erase(name))
+      if (Integers.erase(name) | Set(Strings[name], val.to_string()) | Datas.erase(name))
       {
         ++VersionValue;
       }
@@ -181,7 +181,7 @@ namespace Parameters
       return ModifyDelegate->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(const NameType& name, StringView val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }
