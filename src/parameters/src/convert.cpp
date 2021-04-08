@@ -57,12 +57,13 @@ namespace
     return static_cast<Char>(val >= 10 ? val + 'A' - 10 : val + '0');
   }
 
-  inline String DataToString(const DataType& dmp)
+  inline String DataToString(Binary::View dmp)
   {
-    String res(dmp.size() * 2 + 1, DATA_PREFIX);
+    String res(dmp.Size() * 2 + 1, DATA_PREFIX);
     String::iterator dstit = res.begin();
-    for (auto val : dmp)
+    for (const auto* it = dmp.As<uint8_t>(), *lim = it + dmp.Size(); it != lim; ++it)
     {
+      const auto val = *it;
       *++dstit = ToHex(val >> 4);
       *++dstit = ToHex(val & 15);
     }
@@ -124,7 +125,7 @@ namespace Parameters
     return StringToString(val);
   }
 
-  String ConvertToString(const DataType& val)
+  String ConvertToString(Binary::View val)
   {
     return DataToString(val);
   }

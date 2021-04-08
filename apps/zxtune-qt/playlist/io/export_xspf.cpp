@@ -148,19 +148,19 @@ namespace
       SaveProperty(name, val);
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+    void SetValue(const Parameters::NameType& name, Binary::View val) override
     {
       if (Filter && !Filter(name))
       {
         return;
       }
-      Dbg("  saving extended attribute %1%=data(%2%)", name.FullPath(), val.size());
+      Dbg("  saving extended attribute %1%=data(%2%)", name.FullPath(), val.Size());
       SaveProperty(name, val);
     }
 
   private:
     template<class T>
-    void SaveProperty(const Parameters::NameType& name, const T& value)
+    void SaveProperty(const Parameters::NameType& name, T value)
     {
       if (!Saver)
       {
@@ -267,7 +267,7 @@ namespace
       }
     }
 
-    void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/) override {}
+    void SetValue(const Parameters::NameType& /*name*/, Binary::View /*val*/) override {}
 
   private:
     void SaveDuration(const Module::Information& info)

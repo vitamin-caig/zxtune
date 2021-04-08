@@ -43,7 +43,7 @@ namespace Parameters
       }
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(const NameType& name, Binary::View val) override
     {
       if (DoneDatas.insert(name).second)
       {
@@ -159,7 +159,7 @@ namespace Parameters
       Second->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(const NameType& name, Binary::View val) override
     {
       Second->SetValue(name, val);
     }

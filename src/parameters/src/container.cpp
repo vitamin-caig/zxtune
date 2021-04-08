@@ -87,13 +87,13 @@ namespace Parameters
 
     void SetValue(const NameType& name, StringView val) override
     {
-      if (Integers.erase(name) | Set(Strings[name], val.to_string()) | Datas.erase(name))
+      if (Integers.erase(name) | Set(Strings[name], val) | Datas.erase(name))
       {
         ++VersionValue;
       }
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(const NameType& name, Binary::View val) override
     {
       if (Integers.erase(name) | Strings.erase(name) | Set(Datas[name], val))
       {
@@ -111,8 +111,7 @@ namespace Parameters
     }
 
   private:
-    template<class Type>
-    static std::size_t Set(Type& dst, const Type& src)
+    static std::size_t Set(IntType& dst, IntType src)
     {
       if (dst != src)
       {
@@ -125,9 +124,23 @@ namespace Parameters
       }
     }
 
-    static std::size_t Set(DataType& dst, const DataType& src)
+    static std::size_t Set(StringType& dst, StringView src)
     {
-      dst = src;
+      if (dst != src)
+      {
+        dst = src.to_string();
+        return 1;
+      }
+      else
+      {
+        return 0;
+      }
+    }
+
+    static std::size_t Set(DataType& dst, Binary::View src)
+    {
+      const auto* start = src.As<uint8_t>();
+      dst.assign(start, start + src.Size());
       return 1;
     }
 
@@ -186,7 +199,7 @@ namespace Parameters
       return ModifyDelegate->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(const NameType& name, Binary::View val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }

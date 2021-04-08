@@ -38,7 +38,7 @@ namespace Parameters
       Second->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(const NameType& name, Binary::View val) override
     {
       First->SetValue(name, val);
       Second->SetValue(name, val);

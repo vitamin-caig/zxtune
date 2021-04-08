@@ -77,7 +77,7 @@ namespace
       return Adjusted->SetValue(name, val);
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+    void SetValue(const Parameters::NameType& name, Binary::View val) override
     {
       return Adjusted->SetValue(name, val);
     }

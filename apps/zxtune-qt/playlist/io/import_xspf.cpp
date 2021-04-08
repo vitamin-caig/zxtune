@@ -82,7 +82,7 @@ namespace
       }
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+    void SetValue(const Parameters::NameType& name, Binary::View val) override
     {
       if (Pass(name))
       {

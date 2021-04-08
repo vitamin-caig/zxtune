@@ -31,6 +31,6 @@ namespace Parameters
     //! Add/modify string parameter
     virtual void SetValue(const NameType& name, StringView val) = 0;
     //! Add/modify data parameter
-    virtual void SetValue(const NameType& name, const DataType& val) = 0;
+    virtual void SetValue(const NameType& name, Binary::View val) = 0;
   };
 }  // namespace Parameters

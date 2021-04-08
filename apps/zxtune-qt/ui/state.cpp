@@ -68,7 +68,7 @@ namespace
       Delegate->SetValue(Prefix + name, val);
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+    void SetValue(const Parameters::NameType& name, Binary::View val) override
     {
       Delegate->SetValue(Prefix + name, val);
     }
@@ -118,7 +118,7 @@ namespace
         FilterValue(name, val);
       }
 
-      void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+      void SetValue(const Parameters::NameType& name, Binary::View val) override
       {
         FilterValue(name, val);
       }

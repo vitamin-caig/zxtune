@@ -35,7 +35,7 @@ namespace
       insert(value_type(name.FullPath(), ConvertToString(val)));
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(const NameType& name, Binary::View val) override
     {
       insert(value_type(name.FullPath(), ConvertToString(val)));
     }

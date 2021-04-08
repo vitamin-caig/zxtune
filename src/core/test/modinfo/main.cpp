@@ -53,7 +53,7 @@ namespace
       Write(name, Parameters::ConvertToString(val));
     }
 
-    virtual void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+    virtual void SetValue(const Parameters::NameType& name, Binary::View val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }

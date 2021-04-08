@@ -18,7 +18,7 @@ namespace Parameters
   //! @brief Converting parameter value to string
   String ConvertToString(const IntType& val);
   String ConvertToString(StringView val);
-  String ConvertToString(const DataType& val);
+  String ConvertToString(Binary::View val);
 
   //! @brief Converting parameter value from string
   bool ConvertFromString(const String& str, IntType& res);

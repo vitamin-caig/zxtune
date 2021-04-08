@@ -118,10 +118,11 @@ namespace
       ++VersionValue;
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(const NameType& name, Binary::View val) override
     {
       Value value(Storage, name);
-      const QByteArray arr(val.empty() ? QByteArray() : QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size()));
+      const auto size = val.Size();
+      const QByteArray arr(size == 0 ? QByteArray() : QByteArray(val.As<char>(), size));
       value.Set(QVariant(arr));
       ++VersionValue;
     }
@@ -302,7 +303,7 @@ namespace
       Persistent->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(const NameType& name, Binary::View val) override
     {
       Removed.erase(name);
       Temporary->SetValue(name, val);
@@ -355,7 +356,7 @@ namespace
       }
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(const NameType& name, Binary::View val) override
     {
       const std::lock_guard<std::mutex> lock(Guard);
       for (const auto& delegate : Delegates)
@@ -404,7 +405,7 @@ namespace
       CopyExistingValue<StringType>(*Stored, *Changed, name);
     }
 
-    void SetValue(const NameType& name, const DataType& /*val*/) override
+    void SetValue(const NameType& name, Binary::View /*val*/) override
     {
       CopyExistingValue<DataType>(*Stored, *Changed, name);
     }
