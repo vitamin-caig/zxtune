@@ -292,64 +292,62 @@ namespace
       return Offset;
     }
 
-    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
+    void SetValue(StringView name, Parameters::IntType val) override
     {
-      const auto nameStr = name.FullPath();
-      Dbg("  property %1%=%2%", nameStr, val);
-      if (nameStr == AYL::CHIP_FREQUENCY)
+      Dbg("  property %1%=%2%", name, val);
+      if (name == AYL::CHIP_FREQUENCY)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
       }
-      else if (nameStr == AYL::PLAYER_FREQUENCY)
+      else if (name == AYL::PLAYER_FREQUENCY)
       {
         // TODO: think about this...
       }
-      else if (nameStr == AYL::FORMAT_SPECIFIC)
+      else if (name == AYL::FORMAT_SPECIFIC)
       {
         FormatSpec = static_cast<std::size_t>(val);
       }
-      else if (nameStr == AYL::OFFSET)
+      else if (name == AYL::OFFSET)
       {
         Offset = static_cast<std::size_t>(val);
       }
       // ignore "Loop", "Length", "Time"
     }
 
-    void SetValue(const Parameters::NameType& name, StringView val) override
+    void SetValue(StringView name, StringView val) override
     {
-      const auto nameStr = name.FullPath();
-      Dbg("  property %1%='%2%'", nameStr, val);
-      if (nameStr == AYL::CHIP_TYPE)
+      Dbg("  property %1%='%2%'", name, val);
+      if (name == AYL::CHIP_TYPE)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
       }
       // ignore "Channels"
-      else if (nameStr == AYL::CHANNELS_ALLOCATION)
+      else if (name == AYL::CHANNELS_ALLOCATION)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, DecodeChipLayout(val));
       }
       // ignore "Length", "Address", "Loop", "Time", "Original"
-      else if (nameStr == AYL::NAME)
+      else if (name == AYL::NAME)
       {
         Delegate.SetValue(Module::ATTR_TITLE, val);
       }
-      else if (nameStr == AYL::AUTHOR)
+      else if (name == AYL::AUTHOR)
       {
         Delegate.SetValue(Module::ATTR_AUTHOR, val);
       }
-      else if (nameStr == AYL::PROGRAM || nameStr == AYL::TRACKER)
+      else if (name == AYL::PROGRAM || name == AYL::TRACKER)
       {
         Delegate.SetValue(Module::ATTR_PROGRAM, val);
       }
-      else if (nameStr == AYL::COMPUTER)
+      else if (name == AYL::COMPUTER)
       {
         Delegate.SetValue(Module::ATTR_COMPUTER, val);
       }
-      else if (nameStr == AYL::DATE)
+      else if (name == AYL::DATE)
       {
         Delegate.SetValue(Module::ATTR_DATE, val);
       }
-      else if (nameStr == AYL::COMMENT)
+      else if (name == AYL::COMMENT)
       {
         // TODO: process escape sequence
         Delegate.SetValue(Module::ATTR_COMMENT, val);
@@ -357,7 +355,7 @@ namespace
       // ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
     }
 
-    void SetValue(const Parameters::NameType& name, Binary::View val) override
+    void SetValue(StringView name, Binary::View val) override
     {
       // try to process as string
       Delegate.SetValue(name, Parameters::ConvertToString(val));

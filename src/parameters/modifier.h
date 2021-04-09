@@ -22,6 +22,6 @@ namespace Parameters
     typedef std::shared_ptr<Modifier> Ptr;
 
     //! Remove parameter
-    virtual void RemoveValue(const NameType& name) = 0;
+    virtual void RemoveValue(StringView name) = 0;
   };
 }  // namespace Parameters

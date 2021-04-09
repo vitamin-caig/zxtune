@@ -27,10 +27,10 @@ namespace Parameters
     virtual ~Visitor() = default;
 
     //! Add/modify integer parameter
-    virtual void SetValue(const NameType& name, IntType val) = 0;
+    virtual void SetValue(StringView name, IntType val) = 0;
     //! Add/modify string parameter
-    virtual void SetValue(const NameType& name, StringView val) = 0;
+    virtual void SetValue(StringView name, StringView val) = 0;
     //! Add/modify data parameter
-    virtual void SetValue(const NameType& name, Binary::View val) = 0;
+    virtual void SetValue(StringView name, Binary::View val) = 0;
   };
 }  // namespace Parameters

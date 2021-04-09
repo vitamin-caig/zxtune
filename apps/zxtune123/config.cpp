@@ -192,7 +192,7 @@ void ParseConfigFile(const String& filename, Parameters::Modifier& result)
   ParseConfigFile(filename, strVal);
   if (!strVal.empty())
   {
-    ParseParametersString(String(), strVal, result);
+    ParseParametersString({}, strVal, result);
   }
 }
 

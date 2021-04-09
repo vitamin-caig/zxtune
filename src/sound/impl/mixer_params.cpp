@@ -74,17 +74,17 @@ namespace Sound
       return newVers;
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
+    bool FindValue(StringView name, Parameters::IntType& val) const override
     {
       return Params->FindValue(name, val);
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
+    bool FindValue(StringView name, Parameters::StringType& val) const override
     {
       return Params->FindValue(name, val);
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
+    bool FindValue(StringView name, Parameters::DataType& val) const override
     {
       return Params->FindValue(name, val);
     }

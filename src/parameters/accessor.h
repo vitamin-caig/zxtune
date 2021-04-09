@@ -31,11 +31,11 @@ namespace Parameters
     virtual uint_t Version() const = 0;
 
     //! Accessing integer parameters
-    virtual bool FindValue(const NameType& name, IntType& val) const = 0;
+    virtual bool FindValue(StringView name, IntType& val) const = 0;
     //! Accessing string parameters
-    virtual bool FindValue(const NameType& name, StringType& val) const = 0;
+    virtual bool FindValue(StringView name, StringType& val) const = 0;
     //! Accessing data parameters
-    virtual bool FindValue(const NameType& name, DataType& val) const = 0;
+    virtual bool FindValue(StringView name, DataType& val) const = 0;
 
     //! Valk along the stored values
     virtual void Process(class Visitor& visitor) const = 0;

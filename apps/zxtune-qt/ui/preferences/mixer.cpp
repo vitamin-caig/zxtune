@@ -82,7 +82,7 @@ namespace
   class MixerValueImpl : public MixerValue
   {
   public:
-    MixerValueImpl(UI::MixerWidget& parent, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
+    MixerValueImpl(UI::MixerWidget& parent, Parameters::Container& ctr, StringView name, int defValue)
       : MixerValue(parent)
       , Container(ctr)
       , Name(name)
@@ -110,7 +110,7 @@ namespace Parameters
     : QObject(&parent)
   {}
 
-  void MixerValue::Bind(UI::MixerWidget& mix, Container& ctr, const NameType& name, int defValue)
+  void MixerValue::Bind(UI::MixerWidget& mix, Container& ctr, StringView name, int defValue)
   {
     new MixerValueImpl(mix, ctr, name, defValue);
   }

@@ -32,12 +32,12 @@ namespace Module
       return 1;
     }
 
-    bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const override
+    bool FindValue(StringView /*name*/, Parameters::IntType& /*val*/) const override
     {
       return false;
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
+    bool FindValue(StringView name, Parameters::StringType& val) const override
     {
       if (name == ATTR_FULLPATH)
       {
@@ -47,7 +47,7 @@ namespace Module
       return false;
     }
 
-    bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const override
+    bool FindValue(StringView /*name*/, Parameters::DataType& /*val*/) const override
     {
       return false;
     }
@@ -73,12 +73,12 @@ namespace Module
       return 1;
     }
 
-    bool FindValue(const Parameters::NameType& /*name*/, Parameters::IntType& /*val*/) const override
+    bool FindValue(StringView /*name*/, Parameters::IntType& /*val*/) const override
     {
       return false;
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
+    bool FindValue(StringView name, Parameters::StringType& val) const override
     {
       if (name == ATTR_SUBPATH)
       {
@@ -108,7 +108,7 @@ namespace Module
       return false;
     }
 
-    bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const override
+    bool FindValue(StringView /*name*/, Parameters::DataType& /*val*/) const override
     {
       return false;
     }

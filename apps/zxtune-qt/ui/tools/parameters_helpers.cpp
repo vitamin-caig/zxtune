@@ -34,7 +34,7 @@ namespace
   class BooleanValueImpl : public BooleanValue
   {
   public:
-    BooleanValueImpl(Holder& parent, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue,
+    BooleanValueImpl(Holder& parent, Parameters::Container& ctr, StringView name, bool defValue,
                      const Parameters::IntType& oneValue)
       : BooleanValue(parent)
       , Parent(parent)
@@ -85,8 +85,7 @@ namespace
   class StringSetValue : public ExclusiveValue
   {
   public:
-    StringSetValue(QAbstractButton& parent, Parameters::Container& ctr, const Parameters::NameType& name,
-                   StringView value)
+    StringSetValue(QAbstractButton& parent, Parameters::Container& ctr, StringView name, StringView value)
       : ExclusiveValue(parent)
       , Parent(parent)
       , Container(ctr)
@@ -159,7 +158,7 @@ namespace
   class IntegerValueImpl : public IntegerValue
   {
   public:
-    IntegerValueImpl(Holder& parent, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
+    IntegerValueImpl(Holder& parent, Parameters::Container& ctr, StringView name, int defValue)
       : IntegerValue(parent)
       , Parent(parent)
       , Container(ctr)
@@ -299,8 +298,7 @@ namespace
   class StringValueImpl : public StringValue
   {
   public:
-    StringValueImpl(QLineEdit& parent, Parameters::Container& ctr, const Parameters::NameType& name,
-                    StringView defValue)
+    StringValueImpl(QLineEdit& parent, Parameters::Container& ctr, StringView name, StringView defValue)
       : StringValue(parent)
       , Parent(parent)
       , Container(ctr)
@@ -372,43 +370,39 @@ namespace Parameters
     : Value(parent)
   {}
 
-  Value* BooleanValue::Bind(QAction& action, Parameters::Container& ctr, const Parameters::NameType& name,
-                            bool defValue)
+  Value* BooleanValue::Bind(QAction& action, Parameters::Container& ctr, StringView name, bool defValue)
   {
     return new BooleanValueImpl<QAction>(action, ctr, name, defValue, 1);
   }
 
-  Value* BooleanValue::Bind(QAbstractButton& button, Parameters::Container& ctr, const Parameters::NameType& name,
-                            bool defValue, const Parameters::IntType& oneValue)
+  Value* BooleanValue::Bind(QAbstractButton& button, Parameters::Container& ctr, StringView name, bool defValue,
+                            const Parameters::IntType& oneValue)
   {
     return new BooleanValueImpl<QAbstractButton>(button, ctr, name, defValue, oneValue);
   }
 
-  Value* BooleanValue::Bind(QGroupBox& box, Parameters::Container& ctr, const Parameters::NameType& name, bool defValue,
+  Value* BooleanValue::Bind(QGroupBox& box, Parameters::Container& ctr, StringView name, bool defValue,
                             const Parameters::IntType& oneValue)
   {
     return new BooleanValueImpl<QGroupBox>(box, ctr, name, defValue, oneValue);
   }
 
-  Value* ExclusiveValue::Bind(QAbstractButton& button, Parameters::Container& ctr, const Parameters::NameType& name,
-                              StringView value)
+  Value* ExclusiveValue::Bind(QAbstractButton& button, Parameters::Container& ctr, StringView name, StringView value)
   {
     return new StringSetValue(button, ctr, name, value);
   }
 
-  Value* IntegerValue::Bind(QComboBox& combo, Parameters::Container& ctr, const Parameters::NameType& name,
-                            int defValue)
+  Value* IntegerValue::Bind(QComboBox& combo, Parameters::Container& ctr, StringView name, int defValue)
   {
     return new IntegerValueImpl<QComboBox>(combo, ctr, name, defValue);
   }
 
-  Value* IntegerValue::Bind(QSlider& slider, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
+  Value* IntegerValue::Bind(QSlider& slider, Parameters::Container& ctr, StringView name, int defValue)
   {
     return new IntegerValueImpl<QSlider>(slider, ctr, name, defValue);
   }
 
-  Value* IntegerValue::Bind(QSpinBox& spinbox, Parameters::Container& ctr, const Parameters::NameType& name,
-                            int defValue)
+  Value* IntegerValue::Bind(QSpinBox& spinbox, Parameters::Container& ctr, StringView name, int defValue)
   {
     return new IntegerValueImpl<QSpinBox>(spinbox, ctr, name, defValue);
   }
@@ -423,8 +417,7 @@ namespace Parameters
     return new BigIntegerValueImpl(edit, ctr, traits);
   }
 
-  Value* StringValue::Bind(QLineEdit& edit, Parameters::Container& ctr, const Parameters::NameType& name,
-                           StringView defValue)
+  Value* StringValue::Bind(QLineEdit& edit, Parameters::Container& ctr, StringView name, StringView defValue)
   {
     return new StringValueImpl(edit, ctr, name, defValue);
   }

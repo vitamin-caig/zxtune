@@ -61,7 +61,7 @@ namespace
   {
     String res(dmp.Size() * 2 + 1, DATA_PREFIX);
     String::iterator dstit = res.begin();
-    for (const auto* it = dmp.As<uint8_t>(), *lim = it + dmp.Size(); it != lim; ++it)
+    for (const auto *it = dmp.As<uint8_t>(), *lim = it + dmp.Size(); it != lim; ++it)
     {
       const auto val = *it;
       *++dstit = ToHex(val >> 4);
@@ -115,7 +115,7 @@ namespace
 
 namespace Parameters
 {
-  String ConvertToString(const IntType& val)
+  String ConvertToString(IntType val)
   {
     return IntegerToString(val);
   }
@@ -130,7 +130,7 @@ namespace Parameters
     return DataToString(val);
   }
 
-  bool ConvertFromString(const String& str, IntType& res)
+  bool ConvertFromString(StringView str, IntType& res)
   {
     if (IsInteger(str))
     {
@@ -140,7 +140,7 @@ namespace Parameters
     return false;
   }
 
-  bool ConvertFromString(const String& str, StringType& res)
+  bool ConvertFromString(StringView str, StringType& res)
   {
     if (!IsInteger(str) && !IsData(str))
     {
@@ -150,7 +150,7 @@ namespace Parameters
     return false;
   }
 
-  bool ConvertFromString(const String& str, DataType& res)
+  bool ConvertFromString(StringView str, DataType& res)
   {
     if (IsData(str))
     {

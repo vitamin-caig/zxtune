@@ -43,25 +43,25 @@ namespace
   class PrintValuesVisitor : public Parameters::Visitor
   {
   public:
-    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
+    void SetValue(StringView name, Parameters::IntType val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }
 
-    virtual void SetValue(const Parameters::NameType& name, StringView val) override
+    virtual void SetValue(StringView name, StringView val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }
 
-    virtual void SetValue(const Parameters::NameType& name, Binary::View val) override
+    virtual void SetValue(StringView name, Binary::View val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }
 
   private:
-    static void Write(const Parameters::NameType& name, const String& value)
+    static void Write(StringView name, const String& value)
     {
-      std::cout << name.Name() << ": " << value << std::endl;
+      std::cout << name << ": " << value << std::endl;
     }
   };
 

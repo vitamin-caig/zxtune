@@ -47,8 +47,8 @@ namespace Parameters
   public:
     NameType() = default;
 
-    /*explicit*/ NameType(String path)
-      : Path(std::move(path))
+    /*explicit*/ NameType(StringView path)
+      : Path(path.to_string())
     {}
 
     bool operator<(const NameType& rh) const
@@ -118,6 +118,11 @@ namespace Parameters
     {
       const auto lastDelim = Path.find_last_of(NAMESPACE_DELIMITER);
       return lastDelim != Path.npos ? Path.substr(lastDelim + 1) : Path;
+    }
+
+    operator StringView() const
+    {
+      return Path;
     }
 
   private:

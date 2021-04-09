@@ -48,7 +48,7 @@ namespace
   class NamespaceContainer : public Parameters::Container
   {
   public:
-    NamespaceContainer(Parameters::Container::Ptr delegate, const Parameters::NameType& prefix)
+    NamespaceContainer(Parameters::Container::Ptr delegate, StringView prefix)
       : Delegate(std::move(delegate))
       , Prefix(prefix)
     {}
@@ -58,37 +58,37 @@ namespace
       return Delegate->Version();
     }
 
-    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
+    void SetValue(StringView name, Parameters::IntType val) override
     {
       Delegate->SetValue(Prefix + name, val);
     }
 
-    void SetValue(const Parameters::NameType& name, StringView val) override
+    void SetValue(StringView name, StringView val) override
     {
       Delegate->SetValue(Prefix + name, val);
     }
 
-    void SetValue(const Parameters::NameType& name, Binary::View val) override
+    void SetValue(StringView name, Binary::View val) override
     {
       Delegate->SetValue(Prefix + name, val);
     }
 
-    void RemoveValue(const Parameters::NameType& name) override
+    void RemoveValue(StringView name) override
     {
       Delegate->RemoveValue(Prefix + name);
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
+    bool FindValue(StringView name, Parameters::IntType& val) const override
     {
       return Delegate->FindValue(Prefix + name, val);
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
+    bool FindValue(StringView name, Parameters::StringType& val) const override
     {
       return Delegate->FindValue(Prefix + name, val);
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
+    bool FindValue(StringView name, Parameters::DataType& val) const override
     {
       return Delegate->FindValue(Prefix + name, val);
     }
@@ -103,29 +103,30 @@ namespace
     class NamespacedVisitor : public Parameters::Visitor
     {
     public:
-      NamespacedVisitor(const Parameters::NameType& prefix, Parameters::Visitor& delegate)
+      NamespacedVisitor(StringView prefix, Parameters::Visitor& delegate)
         : Prefix(prefix)
         , Delegate(delegate)
       {}
 
-      void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
+      void SetValue(StringView name, Parameters::IntType val) override
       {
         FilterValue(name, val);
       }
 
-      void SetValue(const Parameters::NameType& name, StringView val) override
+      void SetValue(StringView name, StringView val) override
       {
         FilterValue(name, val);
       }
 
-      void SetValue(const Parameters::NameType& name, Binary::View val) override
+      void SetValue(StringView name, Binary::View val) override
       {
         FilterValue(name, val);
       }
 
     private:
+      //TODO:
       template<class T>
-      void FilterValue(const Parameters::NameType& name, const T& val)
+      void FilterValue(Parameters::NameType name, const T& val)
       {
         if (name.IsSubpathOf(Prefix))
         {
@@ -135,7 +136,7 @@ namespace
       }
 
     private:
-      const Parameters::NameType& Prefix;
+      Parameters::NameType Prefix;
       Parameters::Visitor& Delegate;
     };
 
@@ -144,7 +145,7 @@ namespace
     const Parameters::NameType Prefix;
   };
 
-  void SaveBlob(Parameters::Modifier& options, const Parameters::NameType& name, const QByteArray& blob)
+  void SaveBlob(Parameters::Modifier& options, StringView name, const QByteArray& blob)
   {
     if (const int size = blob.size())
     {
@@ -158,7 +159,7 @@ namespace
     }
   }
 
-  QByteArray LoadBlob(const Parameters::Accessor& options, const Parameters::NameType& name)
+  QByteArray LoadBlob(const Parameters::Accessor& options, StringView name)
   {
     Binary::Dump val;
     if (options.FindValue(name, val) && !val.empty())
@@ -311,7 +312,7 @@ namespace
       // remove rest
       for (;; ++idx)
       {
-        const Parameters::NameType name = Parameters::ConvertToString(idx);
+        const auto name = Parameters::ConvertToString(idx);
         Parameters::StringType str;
         if (Container->FindValue(name, str))
         {
