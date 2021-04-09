@@ -88,9 +88,9 @@ namespace Sound::File
     }
 
   private:
-    static bool HasField(const String& templ, const String& name)
+    static bool HasField(const String& templ, StringView name)
     {
-      const String fullName = '[' + name + ']';
+      const String fullName = Strings::Template::FIELD_START + name.to_string() + Strings::Template::FIELD_END;
       return String::npos != templ.find(fullName);
     }
 

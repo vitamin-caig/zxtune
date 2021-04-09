@@ -23,9 +23,9 @@
 #include <formats/chiptune/multidevice/multitrackcontainer.h>
 #include <module/attributes.h>
 #include <module/players/properties_helper.h>
+#include <parameters/convert.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/merged_container.h>
-#include <parameters/serialize.h>
 #include <parameters/tools.h>
 // std includes
 #include <algorithm>
@@ -59,26 +59,39 @@ namespace Module::MTC
       , CurEntity(&Module)
     {}
 
-    void SetAuthor(const String& author) override
+    void SetAuthor(StringView author) override
     {
       PropertiesHelper(GetCurrentProperties()).SetAuthor(author);
     }
 
-    void SetTitle(const String& title) override
+    void SetTitle(StringView title) override
     {
       PropertiesHelper(GetCurrentProperties()).SetTitle(title);
     }
 
-    void SetAnnotation(const String& annotation) override
+    void SetAnnotation(StringView annotation) override
     {
       PropertiesHelper(GetCurrentProperties()).SetComment(annotation);
     }
 
-    void SetProperty(const String& name, const String& value) override
+    void SetProperty(StringView name, StringView value) override
     {
-      Strings::Map props;
-      props[name] = value;
-      Parameters::Convert(props, GetCurrentProperties());
+      Parameters::IntType asInt = 0;
+      Parameters::DataType asData;
+      Parameters::StringType asString;
+      auto& out = GetCurrentProperties();
+      if (Parameters::ConvertFromString(value, asInt))
+      {
+        out.SetValue(name, asInt);
+      }
+      else if (Parameters::ConvertFromString(value, asData))
+      {
+        out.SetValue(name, asData);
+      }
+      else if (Parameters::ConvertFromString(value, asString))
+      {
+        out.SetValue(name, asString);
+      }
     }
 
     void StartTrack(uint_t idx) override

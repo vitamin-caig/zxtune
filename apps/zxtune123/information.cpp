@@ -270,14 +270,14 @@ namespace
       , Default(std::move(def))
     {}
 
-    OptionDesc(String name, StringView descr, ValueType def)
+    OptionDesc(StringView name, StringView descr, ValueType def)
       : Name(std::move(name))
       , Desc(std::move(descr))
       , Default(std::move(def))
     {}
 
     // TODO: StringView when Parameters::Name type reworking
-    String Name;
+    StringView Name;
     StringView Desc;
     ValueType Default;
 
@@ -286,7 +286,7 @@ namespace
       // section
       if (Desc.empty())
       {
-        return Name;
+        return Name.to_string();
       }
       else
       {
@@ -429,7 +429,7 @@ namespace
     }
   }
 
-  typedef std::pair<String, StringView> AttrType;
+  typedef std::pair<StringView, StringView> AttrType;
   void ShowAttribute(const AttrType& arg)
   {
     StdOut << Strings::Format(" %|1$-20|- %2%", arg.first, arg.second) << std::endl;

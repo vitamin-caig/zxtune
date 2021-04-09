@@ -153,22 +153,22 @@ namespace
   class Printer : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
-    void SetAuthor(const String& author) override
+    void SetAuthor(StringView author) override
     {
       std::cout << Padding << "Author: " << author << std::endl;
     }
 
-    void SetTitle(const String& title) override
+    void SetTitle(StringView title) override
     {
       std::cout << Padding << "Title: " << title << std::endl;
     }
 
-    void SetAnnotation(const String& annotation) override
+    void SetAnnotation(StringView annotation) override
     {
       std::cout << Padding << "Annotation: " << annotation << std::endl;
     }
 
-    void SetProperty(const String& name, const String& value) override
+    void SetProperty(StringView name, StringView value) override
     {
       std::cout << Padding << name << "=" << value << std::endl;
     }
@@ -204,10 +204,10 @@ namespace
       , LastDataIdx()
     {}
 
-    void SetAuthor(const String& /*author*/) override {}
-    void SetTitle(const String& /*title*/) override {}
-    void SetAnnotation(const String& /*annotation*/) override {}
-    void SetProperty(const String& name, const String& value) override
+    void SetAuthor(StringView /*author*/) override {}
+    void SetTitle(StringView /*title*/) override {}
+    void SetAnnotation(StringView /*annotation*/) override {}
+    void SetProperty(StringView name, StringView value) override
     {
       if (name == Module::ATTR_FILENAME)
       {

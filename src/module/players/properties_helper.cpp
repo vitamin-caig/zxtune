@@ -19,7 +19,7 @@
 
 namespace Module
 {
-  void PropertiesHelper::SetNonEmptyProperty(const String& name, const String& value)
+  void PropertiesHelper::SetNonEmptyProperty(StringView name, StringView value)
   {
     if (!value.empty())
     {
@@ -27,12 +27,12 @@ namespace Module
     }
   }
 
-  void PropertiesHelper::SetType(const String& type)
+  void PropertiesHelper::SetType(StringView type)
   {
     Delegate.SetValue(ATTR_TYPE, type);
   }
 
-  void PropertiesHelper::SetContainer(const String& container)
+  void PropertiesHelper::SetContainer(StringView container)
   {
     SetNonEmptyProperty(ATTR_CONTAINER, container);
   }
@@ -44,27 +44,27 @@ namespace Module
     Delegate.SetValue(ATTR_FIXEDCRC, source.FixedChecksum());
   }
 
-  void PropertiesHelper::SetAuthor(const String& author)
+  void PropertiesHelper::SetAuthor(StringView author)
   {
     SetNonEmptyProperty(ATTR_AUTHOR, author);
   }
 
-  void PropertiesHelper::SetTitle(const String& title)
+  void PropertiesHelper::SetTitle(StringView title)
   {
     SetNonEmptyProperty(ATTR_TITLE, title);
   }
 
-  void PropertiesHelper::SetComment(const String& comment)
+  void PropertiesHelper::SetComment(StringView comment)
   {
     SetNonEmptyProperty(ATTR_COMMENT, comment);
   }
 
-  void PropertiesHelper::SetProgram(const String& program)
+  void PropertiesHelper::SetProgram(StringView program)
   {
     SetNonEmptyProperty(ATTR_PROGRAM, program);
   }
 
-  void PropertiesHelper::SetComputer(const String& computer)
+  void PropertiesHelper::SetComputer(StringView computer)
   {
     SetNonEmptyProperty(ATTR_COMPUTER, computer);
   }
@@ -83,12 +83,12 @@ namespace Module
     Delegate.SetValue(ATTR_VERSION, version);
   }
 
-  void PropertiesHelper::SetVersion(const String& version)
+  void PropertiesHelper::SetVersion(StringView version)
   {
     SetNonEmptyProperty(ATTR_VERSION, version);
   }
 
-  void PropertiesHelper::SetDate(const String& date)
+  void PropertiesHelper::SetDate(StringView date)
   {
     SetNonEmptyProperty(ATTR_DATE, date);
   }

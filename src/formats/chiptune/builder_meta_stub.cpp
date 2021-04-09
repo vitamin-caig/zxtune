@@ -18,9 +18,9 @@ namespace Formats
     class StubMetaBuilder : public MetaBuilder
     {
     public:
-      void SetProgram(const String& /*program*/) override {}
-      void SetTitle(const String& /*title*/) override {}
-      void SetAuthor(const String& /*author*/) override {}
+      void SetProgram(StringView /*program*/) override {}
+      void SetTitle(StringView /*title*/) override {}
+      void SetAuthor(StringView /*author*/) override {}
       void SetStrings(const Strings::Array& /*strings*/) override {}
     };
 

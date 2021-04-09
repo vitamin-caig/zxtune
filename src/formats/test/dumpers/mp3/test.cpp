@@ -21,17 +21,17 @@ namespace
     , public MetaBuilder
   {
   public:
-    void SetProgram(const String& program) override
+    void SetProgram(StringView program) override
     {
       std::cout << "Program: " << program << std::endl;
     }
 
-    void SetTitle(const String& title) override
+    void SetTitle(StringView title) override
     {
       std::cout << "Title: " << title << std::endl;
     }
 
-    void SetAuthor(const String& author) override
+    void SetAuthor(StringView author) override
     {
       std::cout << "Author: " << author << std::endl;
     }

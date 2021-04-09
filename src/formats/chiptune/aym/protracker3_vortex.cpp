@@ -1317,16 +1317,16 @@ namespace Formats::Chiptune
         return *this;
       }
 
-      void SetProgram(const String& /*program*/) override {}
+      void SetProgram(StringView /*program*/) override {}
 
-      void SetTitle(const String& title) override
+      void SetTitle(StringView title) override
       {
-        Header.Title = title;
+        Header.Title = title.to_string();
       }
 
-      void SetAuthor(const String& author) override
+      void SetAuthor(StringView author) override
       {
-        Header.Author = author;
+        Header.Author = author.to_string();
       }
 
       void SetStrings(const Strings::Array& /*strings*/) override {}
