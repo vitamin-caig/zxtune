@@ -215,7 +215,7 @@ namespace Sound::Flac
     }
 
   private:
-    boost::optional<uint_t> GetOptionalParameter(StringView name) const
+    boost::optional<uint_t> GetOptionalParameter(Parameters::Identifier name) const
     {
       Parameters::IntType val = 0;
       if (Params->FindValue(name, val))

@@ -9,7 +9,6 @@
  **/
 
 #include <parameters/container.h>
-#include <parameters/identifier.h>
 #include <parameters/types.h>
 
 #include <iostream>
@@ -40,172 +39,91 @@ namespace
     }
   }
 
-  void TestNameType()
+  void Test(const String& msg, Parameters::Identifier id, StringView ref)
   {
-    std::cout << "---- Test for Parameters::NameType" << std::endl;
-    using namespace Parameters;
-    const NameType zero{};
-    const NameType one("one");
-    const NameType two("one.two");
-    const NameType three("one.two.three");
-    Test("zero.IsEmpty", zero.IsEmpty(), true);
-    Test("zero.IsPath", zero.IsPath(), false);
-    Test("zero.IsSubpathOf(zero)", zero.IsSubpathOf(zero), false);
-    Test("zero.IsSubpathOf(one)", zero.IsSubpathOf(one), false);
-    Test("zero.IsSubpathOf(two)", zero.IsSubpathOf(two), false);
-    Test("zero.IsSubpathOf(three)", zero.IsSubpathOf(three), false);
-    Test("zero + zero", (zero + zero).FullPath(), String());
-    Test("zero + one", (zero + one).FullPath(), String("one"));
-    Test("zero + two", (zero + two).FullPath(), String("one.two"));
-    Test("zero + three", (zero + three).FullPath(), String("one.two.three"));
-    Test("zero - zero", (zero - zero).FullPath(), String());
-    Test("zero - one", (zero - one).FullPath(), String());
-    Test("zero - two", (zero - two).FullPath(), String());
-    Test("zero - three", (zero - three).FullPath(), String());
-    Test("zero.Name", zero.Name(), String());
-
-    Test("one.IsEmpty", one.IsEmpty(), false);
-    Test("one.IsPath", one.IsPath(), false);
-    Test("one.IsSubpathOf(zero)", one.IsSubpathOf(zero), false);
-    Test("one.IsSubpathOf(one)", one.IsSubpathOf(one), false);
-    Test("one.IsSubpathOf(two)", one.IsSubpathOf(two), false);
-    Test("one.IsSubpathOf(three)", one.IsSubpathOf(three), false);
-    Test("one + zero", (one + zero).FullPath(), String("one"));
-    Test("one + one", (one + one).FullPath(), String("one.one"));
-    Test("one + two", (one + two).FullPath(), String("one.one.two"));
-    Test("one + three", (one + three).FullPath(), String("one.one.two.three"));
-    Test("one - zero", (one - zero).FullPath(), String());
-    Test("one - one", (one - one).FullPath(), String());
-    Test("one - two", (one - two).FullPath(), String());
-    Test("one - three", (one - three).FullPath(), String());
-    Test("one.Name", one.Name(), String("one"));
-
-    Test("two.IsEmpty", two.IsEmpty(), false);
-    Test("two.IsPath", two.IsPath(), true);
-    Test("two.IsSubpathOf(zero)", two.IsSubpathOf(zero), false);
-    Test("two.IsSubpathOf(one)", two.IsSubpathOf(one), true);
-    Test("two.IsSubpathOf(two)", two.IsSubpathOf(two), false);
-    Test("two.IsSubpathOf(three)", two.IsSubpathOf(three), false);
-    Test("two + zero", (two + zero).FullPath(), String("one.two"));
-    Test("two + one", (two + one).FullPath(), String("one.two.one"));
-    Test("two + two", (two + two).FullPath(), String("one.two.one.two"));
-    Test("two + three", (two + three).FullPath(), String("one.two.one.two.three"));
-    Test("two - zero", (two - zero).FullPath(), String());
-    Test("two - one", (two - one).FullPath(), String("two"));
-    Test("two - two", (two - two).FullPath(), String());
-    Test("two - three", (two - three).FullPath(), String());
-    Test("two.Name", two.Name(), String("two"));
-
-    Test("three.IsEmpty", three.IsEmpty(), false);
-    Test("three.IsPath", three.IsPath(), true);
-    Test("three.IsSubpathOf(zero)", three.IsSubpathOf(zero), false);
-    Test("three.IsSubpathOf(one)", three.IsSubpathOf(one), true);
-    Test("three.IsSubpathOf(two)", three.IsSubpathOf(two), true);
-    Test("three.IsSubpathOf(three)", three.IsSubpathOf(three), false);
-    Test("three + zero", (three + zero).FullPath(), String("one.two.three"));
-    Test("three + one", (three + one).FullPath(), String("one.two.three.one"));
-    Test("three + two", (three + two).FullPath(), String("one.two.three.one.two"));
-    Test("three + three", (three + three).FullPath(), String("one.two.three.one.two.three"));
-    Test("three - zero", (three - zero).FullPath(), String());
-    Test("three - one", (three - one).FullPath(), String("two.three"));
-    Test("three - two", (three - two).FullPath(), String("three"));
-    Test("three - three", (three - three).FullPath(), String());
-    Test("three.Name", three.Name(), String("three"));
+    Test<StringView>(msg, id, ref);
   }
 
-  void TestStaticIdentifier()
+  void TestIdentifier()
   {
-    std::cout << "---- Test for Parameters::Identifier" << std::endl;
+    std::cout << "---- Test for Parameters::StaticIdentifier" << std::endl;
     using namespace Parameters;
     const auto zero = ""_id;
     const auto one = "one"_id;
     const auto two = "one.two"_id;
     const auto three = "one.two.three"_id;
-    Test("zero.IsEmpty", zero.IsEmpty(), true);
-    Test("zero.IsPath", zero.IsPath(), false);
-    /*
-    Test("zero.IsSubpathOf(zero)", zero.IsSubpathOf(zero), false);
-    Test("zero.IsSubpathOf(one)", zero.IsSubpathOf(one), false);
-    Test("zero.IsSubpathOf(two)", zero.IsSubpathOf(two), false);
-    Test("zero.IsSubpathOf(three)", zero.IsSubpathOf(three), false);
-    Test("zero + zero", zero + zero).FullPath(), String());
-    Test("zero + one", (zero + one).FullPath(), String("one"));
-    Test("zero + two", (zero + two).FullPath(), String("one.two"));
-    Test("zero + three", (zero + three).FullPath(), String("one.two.three"));
-    Test("zero - zero", (zero - zero).FullPath(), String());
-    Test("zero - one", (zero - one).FullPath(), String());
-    Test("zero - two", (zero - two).FullPath(), String());
-    Test("zero - three", (zero - three).FullPath(), String());
-    */
-    Test("zero.Name", zero.Name(), ""_sv);
+    {
+      const Identifier zeroId = zero;
+      Test("zero.IsEmpty", zeroId.IsEmpty(), true);
+      Test("zero.IsPath", zeroId.IsPath(), false);
+      Test("zero.Name()", zeroId.Name(), ""_sv);
+      Test("zero.RelativeTo(zero)", zeroId.RelativeTo(zero), ""_sv);
+      Test("zero.RelativeTo(one)", zeroId.RelativeTo(one), ""_sv);
+      Test("zero.RelativeTo(two)", zeroId.RelativeTo(two), ""_sv);
+      Test("zero.RelativeTo(three)", zeroId.RelativeTo(three), ""_sv);
+    }
 
-    Test("one.IsEmpty", one.IsEmpty(), false);
-    Test("one.IsPath", one.IsPath(), false);
-    // Test("one.IsSubpathOf(zero)", one.IsSubpathOf(zero), false);
-    // Test("one.IsSubpathOf(one)", one.IsSubpathOf(one), false);
-    // Test("one.IsSubpathOf(two)", one.IsSubpathOf(two), false);
-    // Test("one.IsSubpathOf(three)", one.IsSubpathOf(three), false);
-    // Test("one + zero", (one + zero).FullPath(), String("one"));
-    Test<StringView>("one + one", one + one, "one.one"_sv);
-    Test<StringView>("one + two", one + two, "one.one.two"_sv);
-    Test<StringView>("one + three", one + three, "one.one.two.three"_sv);
-    // Test("one - zero", (one - zero).FullPath(), String());
-    // Test("one - one", (one - one).FullPath(), String());
-    // Test("one - two", (one - two).FullPath(), String());
-    // Test("one - three", (one - three).FullPath(), String());
-    Test("one.Name", one.Name(), "one"_sv);
+    {
+      const Identifier oneId = one;
+      Test("one.IsEmpty", oneId.IsEmpty(), false);
+      Test("one.IsPath", oneId.IsPath(), false);
+      Test("one.Name()", oneId.Name(), "one"_sv);
+      Test("one.RelativeTo(zero)", oneId.RelativeTo(zero), ""_sv);
+      Test("one.RelativeTo(one)", oneId.RelativeTo(one), ""_sv);
+      Test("one.RelativeTo(two)", oneId.RelativeTo(two), ""_sv);
+      Test("one.RelativeTo(three)", oneId.RelativeTo(three), ""_sv);
+      Test("one + one", one + one, "one.one"_sv);
+      Test("one + two", one + two, "one.one.two"_sv);
+      Test("one + three", one + three, "one.one.two.three"_sv);
+    }
 
-    Test("two.IsEmpty", two.IsEmpty(), false);
-    Test("two.IsPath", two.IsPath(), true);
-    // Test("two.IsSubpathOf(zero)", two.IsSubpathOf(zero), false);
-    // Test("two.IsSubpathOf(one)", two.IsSubpathOf(one), true);
-    // Test("two.IsSubpathOf(two)", two.IsSubpathOf(two), false);
-    // Test("two.IsSubpathOf(three)", two.IsSubpathOf(three), false);
-    // Test("two + zero", (two + zero).FullPath(), String("one.two"));
-    Test<StringView>("two + one", two + one, "one.two.one"_sv);
-    Test<StringView>("two + two", two + two, "one.two.one.two"_sv);
-    Test<StringView>("two + three", two + three, "one.two.one.two.three"_sv);
-    // Test("two - zero", (two - zero).FullPath(), String());
-    // Test("two - one", (two - one).FullPath(), String("two"));
-    // Test("two - two", (two - two).FullPath(), String());
-    // Test("two - three", (two - three).FullPath(), String());
-    Test("two.Name", two.Name(), "two"_sv);
+    {
+      const Identifier twoId = two;
+      Test("two.IsEmpty", twoId.IsEmpty(), false);
+      Test("two.IsPath", twoId.IsPath(), true);
+      Test("two.Name()", twoId.Name(), "two"_sv);
+      Test("two.RelativeTo(zero)", twoId.RelativeTo(zero), ""_sv);
+      Test("two.RelativeTo(one)", twoId.RelativeTo(one), "two"_sv);
+      Test("two.RelativeTo(two)", twoId.RelativeTo(two), ""_sv);
+      Test("two.RelativeTo(three)", twoId.RelativeTo(three), ""_sv);
+      Test("two + one", two + one, "one.two.one"_sv);
+      Test("two + two", two + two, "one.two.one.two"_sv);
+      Test("two + three", two + three, "one.two.one.two.three"_sv);
+    }
 
-    Test("three.IsEmpty", three.IsEmpty(), false);
-    Test("three.IsPath", three.IsPath(), true);
-    // Test("three.IsSubpathOf(zero)", three.IsSubpathOf(zero), false);
-    // Test("three.IsSubpathOf(one)", three.IsSubpathOf(one), true);
-    // Test("three.IsSubpathOf(two)", three.IsSubpathOf(two), true);
-    // Test("three.IsSubpathOf(three)", three.IsSubpathOf(three), false);
-    // Test<StringView>("three + zero", three + zero, "one.two.three"_sv);
-    Test<StringView>("three + one", three + one, "one.two.three.one"_sv);
-    Test<StringView>("three + two", three + two, "one.two.three.one.two"_sv);
-    Test<StringView>("three + three", three + three, "one.two.three.one.two.three"_sv);
-    // Test("three - zero", (three - zero).FullPath(), String());
-    // Test("three - one", (three - one).FullPath(), String("two.three"));
-    // Test("three - two", (three - two).FullPath(), String("three"));
-    // Test("three - three", (three - three).FullPath(), String());
-    Test("three.Name", three.Name(), "three"_sv);
+    {
+      const Identifier threeId = three;
+      Test("three.IsEmpty", threeId.IsEmpty(), false);
+      Test("three.IsPath", threeId.IsPath(), true);
+      Test("three.Name()", threeId.Name(), "three"_sv);
+      Test("three.RelativeTo(zero)", threeId.RelativeTo(zero), ""_sv);
+      Test("three.IsSubpathOf(one)", threeId.RelativeTo(one), "two.three"_sv);
+      Test("three.IsSubpathOf(two)", threeId.RelativeTo(two), "three"_sv);
+      Test("three.IsSubpathOf(three)", threeId.RelativeTo(three), ""_sv);
+      Test("three + one", three + one, "one.two.three.one"_sv);
+      Test("three + two", three + two, "one.two.three.one.two"_sv);
+      Test("three + three", three + three, "one.two.three.one.two.three"_sv);
+    }
   }
 
   class CountingVisitor : public Parameters::Visitor
   {
   public:
-    void SetValue(StringView name, Parameters::IntType val)
+    void SetValue(Parameters::Identifier name, Parameters::IntType val)
     {
-      Names.emplace_back(name.to_string());
+      Names.emplace_back(name.AsString());
       Integers.push_back(val);
     }
 
-    void SetValue(StringView name, StringView val)
+    void SetValue(Parameters::Identifier name, StringView val)
     {
-      Names.emplace_back(name.to_string());
+      Names.emplace_back(name.AsString());
       Strings.emplace_back(val.to_string());
     }
 
-    void SetValue(StringView name, Binary::View val)
+    void SetValue(Parameters::Identifier name, Binary::View val)
     {
-      Names.emplace_back(name.to_string());
+      Names.emplace_back(name.AsString());
       const auto* raw = val.As<uint8_t>();
       Datas.emplace_back(Binary::Dump(raw, raw + val.Size()));
     }
@@ -374,8 +292,7 @@ int main()
 {
   try
   {
-    TestNameType();
-    TestStaticIdentifier();
+    TestIdentifier();
     TestContainer();
   }
   catch (int code)

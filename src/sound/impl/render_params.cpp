@@ -18,7 +18,8 @@
 
 namespace Sound
 {
-  Parameters::IntType GetProperty(const Parameters::Accessor& params, StringView name, Parameters::IntType defVal = 0)
+  Parameters::IntType GetProperty(const Parameters::Accessor& params, Parameters::Identifier name,
+                                  Parameters::IntType defVal = 0)
   {
     Parameters::IntType ret = defVal;
     params.FindValue(name, ret);
@@ -50,7 +51,7 @@ namespace Sound
     }
 
   private:
-    Parameters::IntType FoundProperty(StringView name, Parameters::IntType defVal) const
+    Parameters::IntType FoundProperty(Parameters::Identifier name, Parameters::IntType defVal) const
     {
       return GetProperty(*Params, name, defVal);
     }

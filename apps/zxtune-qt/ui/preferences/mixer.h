@@ -47,7 +47,7 @@ namespace Parameters
     explicit MixerValue(QObject& parent);
 
   public:
-    static void Bind(UI::MixerWidget& mix, Container& ctr, StringView name, int defValue);
+    static void Bind(UI::MixerWidget& mix, Container& ctr, Identifier name, int defValue);
   private slots:
     virtual void SetValue(int value) = 0;
   };

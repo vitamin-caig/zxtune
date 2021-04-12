@@ -48,9 +48,10 @@ namespace
   class NamespaceContainer : public Parameters::Container
   {
   public:
-    NamespaceContainer(Parameters::Container::Ptr delegate, Parameters::NameType prefix)
+    NamespaceContainer(Parameters::Container::Ptr delegate, String prefix)
       : Delegate(std::move(delegate))
-      , Prefix(std::move(prefix))
+      , PrefixValue(std::move(prefix))
+      , Prefix(PrefixValue)
     {}
 
     uint_t Version() const override
@@ -58,39 +59,39 @@ namespace
       return Delegate->Version();
     }
 
-    void SetValue(StringView name, Parameters::IntType val) override
+    void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
-      Delegate->SetValue(Prefix + name, val);
+      Delegate->SetValue(Prefix.Append(name), val);
     }
 
-    void SetValue(StringView name, StringView val) override
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
-      Delegate->SetValue(Prefix + name, val);
+      Delegate->SetValue(Prefix.Append(name), val);
     }
 
-    void SetValue(StringView name, Binary::View val) override
+    void SetValue(Parameters::Identifier name, Binary::View val) override
     {
-      Delegate->SetValue(Prefix + name, val);
+      Delegate->SetValue(Prefix.Append(name), val);
     }
 
-    void RemoveValue(StringView name) override
+    void RemoveValue(Parameters::Identifier name) override
     {
-      Delegate->RemoveValue(Prefix + name);
+      Delegate->RemoveValue(Prefix.Append(name));
     }
 
-    bool FindValue(StringView name, Parameters::IntType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
     {
-      return Delegate->FindValue(Prefix + name, val);
+      return Delegate->FindValue(Prefix.Append(name), val);
     }
 
-    bool FindValue(StringView name, Parameters::StringType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
     {
-      return Delegate->FindValue(Prefix + name, val);
+      return Delegate->FindValue(Prefix.Append(name), val);
     }
 
-    bool FindValue(StringView name, Parameters::DataType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::DataType& val) const override
     {
-      return Delegate->FindValue(Prefix + name, val);
+      return Delegate->FindValue(Prefix.Append(name), val);
     }
 
     void Process(Parameters::Visitor& visitor) const override
@@ -103,46 +104,46 @@ namespace
     class NamespacedVisitor : public Parameters::Visitor
     {
     public:
-      NamespacedVisitor(StringView prefix, Parameters::Visitor& delegate)
+      NamespacedVisitor(Parameters::Identifier prefix, Parameters::Visitor& delegate)
         : Prefix(prefix)
         , Delegate(delegate)
       {}
 
-      void SetValue(StringView name, Parameters::IntType val) override
+      void SetValue(Parameters::Identifier name, Parameters::IntType val) override
       {
         FilterValue(name, val);
       }
 
-      void SetValue(StringView name, StringView val) override
+      void SetValue(Parameters::Identifier name, StringView val) override
       {
         FilterValue(name, val);
       }
 
-      void SetValue(StringView name, Binary::View val) override
+      void SetValue(Parameters::Identifier name, Binary::View val) override
       {
         FilterValue(name, val);
       }
 
     private:
-      // TODO:
       template<class T>
-      void FilterValue(Parameters::NameType name, const T& val)
+      void FilterValue(Parameters::Identifier name, const T& val)
       {
-        if (name.IsSubpathOf(Prefix))
+        const auto subName = name.RelativeTo(Prefix);
+        if (!subName.IsEmpty())
         {
-          const Parameters::NameType subName = name - Prefix;
           Delegate.SetValue(subName, val);
         }
       }
 
     private:
-      Parameters::NameType Prefix;
+      const Parameters::Identifier Prefix;
       Parameters::Visitor& Delegate;
     };
 
   private:
     const Parameters::Container::Ptr Delegate;
-    const Parameters::NameType Prefix;
+    const String PrefixValue;
+    const Parameters::Identifier Prefix;
   };
 
   void SaveBlob(Parameters::Modifier& options, StringView name, const QByteArray& blob)
@@ -172,7 +173,7 @@ namespace
   Parameters::Container::Ptr CreateSubcontainer(Parameters::Container::Ptr parent, QObject& obj)
   {
     const QString name = obj.objectName();
-    return name.size() == 0 ? parent : MakePtr<NamespaceContainer>(parent, Parameters::NameType(name.toStdString()));
+    return name.size() == 0 ? parent : MakePtr<NamespaceContainer>(parent, name.toStdString());
   }
 
   class MainWindowState : public WidgetState
@@ -408,7 +409,7 @@ namespace
   private:
     QAbstractButton& Wid;
     const Parameters::Container::Ptr Container;
-    const Parameters::NameType Name;
+    const String Name;
   };
 
   class AnyWidgetState : public WidgetState
@@ -513,8 +514,8 @@ namespace UI
   State::Ptr State::Create(StringView category)
   {
     using namespace Parameters;
-    auto container =
-        MakePtr<NamespaceContainer>(GlobalOptions::Instance().Get(), NameType(ZXTuneQT::UI::PREFIX) + category);
+    auto container = MakePtr<NamespaceContainer>(GlobalOptions::Instance().Get(),
+                                                 static_cast<Identifier>(ZXTuneQT::UI::PREFIX).Append(category));
     return MakePtr<PersistentState>(container);
   }
 
@@ -522,7 +523,8 @@ namespace UI
   {
     using namespace Parameters;
     auto container = MakePtr<NamespaceContainer>(
-        GlobalOptions::Instance().Get(), NameType(Parameters::ZXTuneQT::UI::PREFIX) + root.objectName().toStdString());
+        GlobalOptions::Instance().Get(),
+        static_cast<Identifier>(ZXTuneQT::UI::PREFIX).Append(root.objectName().toStdString()));
     State::Ptr res = MakePtr<PersistentState>(container);
     res->AddWidget(root);
     return res;

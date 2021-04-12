@@ -559,22 +559,22 @@ namespace
     }
 
   private:
-    void SetValue(StringView /*name*/, Parameters::IntType /*val*/) override
+    void SetValue(Parameters::Identifier /*name*/, Parameters::IntType /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    void SetValue(StringView /*name*/, StringView /*val*/) override
+    void SetValue(Parameters::Identifier /*name*/, StringView /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    void SetValue(StringView /*name*/, Binary::View /*val*/) override
+    void SetValue(Parameters::Identifier /*name*/, Binary::View /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    void RemoveValue(StringView /*name*/) override
+    void RemoveValue(Parameters::Identifier /*name*/) override
     {
       OnPropertyChanged();
     }

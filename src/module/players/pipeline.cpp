@@ -28,7 +28,7 @@ namespace Module
 
   using TimeUnit = Time::Millisecond;
 
-  Time::Duration<TimeUnit> GetDurationValue(const Parameters::Accessor& params, StringView name,
+  Time::Duration<TimeUnit> GetDurationValue(const Parameters::Accessor& params, Parameters::Identifier name,
                                             Parameters::IntType def, Parameters::IntType precision)
   {
     auto value = def;

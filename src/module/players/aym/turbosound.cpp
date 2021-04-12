@@ -47,7 +47,7 @@ namespace Module::TurboSound
         : Delegate(delegate)
       {}
 
-      void SetValue(StringView name, Parameters::IntType val) override
+      void SetValue(Parameters::Identifier name, Parameters::IntType val) override
       {
         if (DoneIntegers.Insert(name))
         {
@@ -55,12 +55,12 @@ namespace Module::TurboSound
         }
       }
 
-      void SetValue(StringView name, StringView val) override
+      void SetValue(Parameters::Identifier name, StringView val) override
       {
-        const auto it = Strings.find(name);
+        const auto it = Strings.find(static_cast<StringView>(name));
         if (it == Strings.end())
         {
-          Strings.emplace(name.to_string(), val.to_string());
+          Strings.emplace(name.AsString(), val.to_string());
         }
         else
         {
@@ -68,7 +68,7 @@ namespace Module::TurboSound
         }
       }
 
-      void SetValue(StringView name, Binary::View val) override
+      void SetValue(Parameters::Identifier name, Binary::View val) override
       {
         if (DoneDatas.Insert(name))
         {
@@ -103,12 +103,12 @@ namespace Module::TurboSound
       return 1;
     }
 
-    bool FindValue(StringView name, Parameters::IntType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
-    bool FindValue(StringView name, Parameters::StringType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
     {
       String val1, val2;
       const bool res1 = First->FindValue(name, val1);
@@ -125,7 +125,7 @@ namespace Module::TurboSound
       return res1 || res2;
     }
 
-    bool FindValue(StringView name, Parameters::DataType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::DataType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }

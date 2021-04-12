@@ -386,7 +386,7 @@ namespace
         if (!ConvertParams.empty())
         {
           const Parameters::Container::Ptr cnvParams = Parameters::Container::Create();
-          ParseParametersString(Parameters::NameType(), ConvertParams, *cnvParams);
+          ParseParametersString("", ConvertParams, *cnvParams);
           const Parameters::Accessor::Ptr mergedParams = Parameters::CreateMergedAccessor(cnvParams, ConfigParams);
           Convertor cnv(*mergedParams, *Display);
           Sourcer->ProcessItems(cnv);

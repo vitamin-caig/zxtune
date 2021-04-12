@@ -40,7 +40,7 @@ namespace
 
   const unsigned XSPF_VERSION = 1;
 
-  typedef bool (*AttributesFilter)(StringView);
+  typedef bool (*AttributesFilter)(Parameters::Identifier);
 
   QString DataToQString(const QByteArray& data)
   {
@@ -128,39 +128,39 @@ namespace
       , Filter(filter)
     {}
 
-    void SetValue(StringView name, Parameters::IntType val) override
+    void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
       if (Filter && !Filter(name))
       {
         return;
       }
-      Dbg("  saving extended attribute %1%=%2%", name, val);
+      Dbg("  saving extended attribute %1%=%2%", static_cast<StringView>(name), val);
       SaveProperty(name, val);
     }
 
-    void SetValue(StringView name, StringView val) override
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
       if (Filter && !Filter(name))
       {
         return;
       }
-      Dbg("  saving extended attribute %1%='%2%'", name, val);
+      Dbg("  saving extended attribute %1%='%2%'", static_cast<StringView>(name), val);
       SaveProperty(name, val);
     }
 
-    void SetValue(StringView name, Binary::View val) override
+    void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       if (Filter && !Filter(name))
       {
         return;
       }
-      Dbg("  saving extended attribute %1%=data(%2%)", name, val.Size());
+      Dbg("  saving extended attribute %1%=data(%2%)", static_cast<StringView>(name), val.Size());
       SaveProperty(name, val);
     }
 
   private:
     template<class T>
-    void SaveProperty(StringView name, T value)
+    void SaveProperty(Parameters::Identifier name, T value)
     {
       if (!Saver)
       {
@@ -244,30 +244,30 @@ namespace
       Element.Text(XSPF::ITEM_LOCATION_TAG, DataToQString(QUrl(location).toEncoded()));
     }
 
-    void SetValue(StringView /*name*/, Parameters::IntType /*val*/) override {}
+    void SetValue(Parameters::Identifier /*name*/, Parameters::IntType /*val*/) override {}
 
-    void SetValue(StringView name, StringView val) override
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
       const String value = Parameters::ConvertToString(val);
       const QString valStr = ConvertString(value);
       if (name == Module::ATTR_TITLE)
       {
-        Dbg("  saving item attribute %1%='%2%'", name, val);
+        Dbg("  saving item attribute %1%='%2%'", static_cast<StringView>(name), val);
         Element.Text(XSPF::ITEM_TITLE_TAG, valStr);
       }
       else if (name == Module::ATTR_AUTHOR)
       {
-        Dbg("  saving item attribute %1%='%2%'", name, val);
+        Dbg("  saving item attribute %1%='%2%'", static_cast<StringView>(name), val);
         Element.Text(XSPF::ITEM_CREATOR_TAG, valStr);
       }
       else if (name == Module::ATTR_COMMENT)
       {
-        Dbg("  saving item attribute %1%='%2%'", name, val);
+        Dbg("  saving item attribute %1%='%2%'", static_cast<StringView>(name), val);
         Element.Text(XSPF::ITEM_ANNOTATION_TAG, valStr);
       }
     }
 
-    void SetValue(StringView /*name*/, Binary::View /*val*/) override {}
+    void SetValue(Parameters::Identifier /*name*/, Binary::View /*val*/) override {}
 
   private:
     void SaveDuration(const Module::Information& info)
@@ -277,7 +277,7 @@ namespace
       Element.Text(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
     }
 
-    static bool KeepExtendedProperties(StringView name)
+    static bool KeepExtendedProperties(Parameters::Identifier name)
     {
       return
           // skip path-related properties
@@ -288,18 +288,13 @@ namespace
           // skip redundand properties
           name != Module::ATTR_STRINGS &&
           // skip all the parameters
-          !IsParameter(name);
+          !name.IsPath();
     }
 
-    // TODO
-    static bool IsParameter(StringView attrName)
+    static bool KeepOnlyParameters(Parameters::Identifier attrName)
     {
-      return Parameters::NameType(attrName).IsPath();
-    }
-
-    static bool KeepOnlyParameters(StringView attrName)
-    {
-      return attrName.starts_with(Parameters::ZXTune::PREFIX) && !attrName.starts_with(Playlist::ATTRIBUTES_PREFIX);
+      return !attrName.RelativeTo(Parameters::ZXTune::PREFIX).IsEmpty()
+             && attrName.RelativeTo(Playlist::ATTRIBUTES_PREFIX).IsEmpty();
     }
 
     void SaveExtendedProperties(const Parameters::Accessor& props)

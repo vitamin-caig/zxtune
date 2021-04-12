@@ -159,9 +159,9 @@ namespace Sound
     {
       for (uint_t outChan = 0; outChan != Sample::CHANNELS; ++outChan)
       {
-        const Parameters::NameType name = Parameters::ZXTune::Sound::Mixer::LEVEL(Channels, inChan, outChan);
-        const Parameters::IntType val = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(Channels, inChan, outChan);
-        std::cout << name.FullPath() << ": " << val << std::endl;
+        const auto name = Parameters::ZXTune::Sound::Mixer::LEVEL(Channels, inChan, outChan);
+        const auto val = Parameters::ZXTune::Sound::Mixer::LEVEL_DEFAULT(Channels, inChan, outChan);
+        std::cout << name.AsString() << ": " << val << std::endl;
       }
     }
   }

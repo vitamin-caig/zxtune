@@ -28,7 +28,7 @@ namespace Parameters
 
         //@{
         //! @brief Function to create parameter name
-        StringView LEVEL(uint_t totalChannels, uint_t inChannel, uint_t outChannel);
+        Identifier LEVEL(uint_t totalChannels, uint_t inChannel, uint_t outChannel);
 
         //! @brief Function to get defaul percent-based level
         //! @see Parameters#ZXTune#Sound#GAIN_PRECISION

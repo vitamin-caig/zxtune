@@ -21,8 +21,8 @@ namespace Parameters
     {
       namespace Export
       {
-        const auto NAMESPACE_NAME = "Export"_id;
-        const auto PREFIX = UI::PREFIX + NAMESPACE_NAME;
+        const auto PREFIX = UI::PREFIX + "Export"_id;
+        const auto NAMESPACE_NAME = static_cast<Identifier>(PREFIX).Name();
 
         const auto TYPE = PREFIX + "Type"_id;
       }  // namespace Export

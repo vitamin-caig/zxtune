@@ -25,19 +25,19 @@ namespace
     , public Visitor
   {
   public:
-    void SetValue(StringView name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
-      emplace(name.to_string(), ConvertToString(val));
+      emplace(name.AsString(), ConvertToString(val));
     }
 
-    void SetValue(StringView name, StringView val) override
+    void SetValue(Identifier name, StringView val) override
     {
-      emplace(name.to_string(), ConvertToString(val));
+      emplace(name.AsString(), ConvertToString(val));
     }
 
-    void SetValue(StringView name, Binary::View val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
-      emplace(name.to_string(), ConvertToString(val));
+      emplace(name.AsString(), ConvertToString(val));
     }
   };
 

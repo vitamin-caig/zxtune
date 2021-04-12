@@ -18,14 +18,14 @@ namespace
 {
   static_assert(Sound::Gain::CHANNELS == 2, "Incompatible sound channels count");
 
-  struct MixerValue
-  {
-    const StringView Name = {};
-    const Parameters::IntType DefVal = 0;
-  };
-
   using Parameters::ZXTune::Sound::Mixer::PREFIX;
   using Parameters::operator""_id;
+
+  struct MixerValue
+  {
+    const Parameters::Identifier Name = ""_id;
+    const Parameters::IntType DefVal = 0;
+  };
 
   const MixerValue MIXERS[4][4][2] = {
       // 1-channel
@@ -61,7 +61,7 @@ namespace Parameters
     {
       namespace Mixer
       {
-        StringView LEVEL(uint_t totalChannels, uint_t inChannel, uint_t outChannel)
+        Identifier LEVEL(uint_t totalChannels, uint_t inChannel, uint_t outChannel)
         {
           return MIXERS[totalChannels - 1][inChannel][outChannel].Name;
         }

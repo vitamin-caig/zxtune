@@ -47,17 +47,17 @@ namespace
       return Merged->Version();
     }
 
-    bool FindValue(StringView name, Parameters::IntType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
     {
       return Merged->FindValue(name, val);
     }
 
-    bool FindValue(StringView name, Parameters::StringType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
     {
       return Merged->FindValue(name, val);
     }
 
-    bool FindValue(StringView name, Parameters::DataType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::DataType& val) const override
     {
       return Merged->FindValue(name, val);
     }
@@ -67,22 +67,22 @@ namespace
       return Merged->Process(visitor);
     }
 
-    void SetValue(StringView name, Parameters::IntType val) override
+    void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
       return Adjusted->SetValue(name, val);
     }
 
-    void SetValue(StringView name, StringView val) override
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
       return Adjusted->SetValue(name, val);
     }
 
-    void SetValue(StringView name, Binary::View val) override
+    void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       return Adjusted->SetValue(name, val);
     }
 
-    void RemoveValue(StringView name) override
+    void RemoveValue(Parameters::Identifier name) override
     {
       return Adjusted->RemoveValue(name);
     }
@@ -182,14 +182,14 @@ namespace
                      interpolations);
     }
 
-    void AddStringProperty(const QString& title, StringView name)
+    void AddStringProperty(const QString& title, Parameters::Identifier name)
     {
       const auto wid = new QLineEdit(this);
       Parameters::Value* const value = Parameters::StringValue::Bind(*wid, *Properties, name, Parameters::StringType());
       AddProperty(title, wid, value);
     }
 
-    void AddSetProperty(const QString& title, StringView name, const QStringList& values)
+    void AddSetProperty(const QString& title, Parameters::Identifier name, const QStringList& values)
     {
       const auto wid = new QComboBox(this);
       wid->addItems(values);
@@ -217,7 +217,7 @@ namespace
       Require(value->connect(resetButton, SIGNAL(clicked()), SLOT(Reset())));
     }
 
-    void AddStrings(StringView name)
+    void AddStrings(Parameters::Identifier name)
     {
       Parameters::StringType value;
       if (Properties->FindValue(name, value))

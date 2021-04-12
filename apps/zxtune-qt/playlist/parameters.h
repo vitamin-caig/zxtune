@@ -19,8 +19,8 @@ namespace Parameters
   {
     namespace Playlist
     {
-      const auto NAMESPACE_NAME = "Playlist"_id;
-      const auto PREFIX = ZXTuneQT::PREFIX + NAMESPACE_NAME;
+      const auto PREFIX = ZXTuneQT::PREFIX + "Playlist"_id;
+      const auto NAMESPACE_NAME = static_cast<Identifier>(PREFIX).Name();
 
       //@{
       //! @name Loop playlist playback

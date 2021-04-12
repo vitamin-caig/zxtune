@@ -39,7 +39,7 @@ namespace Parameters
 
   struct IntegerTraits
   {
-    NameType Name;
+    Identifier Name = ""_id;
     IntType Default;
     IntType Min;
     IntType Max;
@@ -50,8 +50,8 @@ namespace Parameters
       , Max()
     {}
 
-    IntegerTraits(StringView name, IntType def, IntType min, IntType max)
-      : Name(name)
+    IntegerTraits(Identifier name, IntType def, IntType min, IntType max)
+      : Name(std::move(name))
       , Default(def)
       , Min(min)
       , Max(max)
@@ -65,11 +65,9 @@ namespace Parameters
     explicit BooleanValue(QObject& parent);
 
   public:
-    static Value* Bind(QAction& action, Container& ctr, StringView name, bool defValue);
-    static Value* Bind(QAbstractButton& button, Container& ctr, StringView name, bool defValue,
-                       const Parameters::IntType& oneValue = 1);
-    static Value* Bind(QGroupBox& button, Container& ctr, StringView name, bool defValue,
-                       const Parameters::IntType& oneValue = 1);
+    static Value* Bind(QAction& action, Container& ctr, Identifier name, bool defValue);
+    static Value* Bind(QAbstractButton& button, Container& ctr, Identifier name, bool defValue, IntType oneValue = 1);
+    static Value* Bind(QGroupBox& button, Container& ctr, Identifier name, bool defValue, IntType oneValue = 1);
   private slots:
     virtual void Set(bool value) = 0;
   };
@@ -81,7 +79,7 @@ namespace Parameters
     explicit ExclusiveValue(QObject& parent);
 
   public:
-    static Value* Bind(QAbstractButton& button, Container& ctr, StringView name, StringView value);
+    static Value* Bind(QAbstractButton& button, Container& ctr, Identifier name, StringView value);
   private slots:
     virtual void Set(bool value) = 0;
   };
@@ -104,9 +102,9 @@ namespace Parameters
     explicit IntegerValue(QObject& parent);
 
   public:
-    static Value* Bind(QComboBox& combo, Container& ctr, StringView name, int defValue);
-    static Value* Bind(QSlider& slider, Container& ctr, StringView name, int defValue);
-    static Value* Bind(QSpinBox& spinbox, Container& ctr, StringView name, int defValue);
+    static Value* Bind(QComboBox& combo, Container& ctr, Identifier name, int defValue);
+    static Value* Bind(QSlider& slider, Container& ctr, Identifier name, int defValue);
+    static Value* Bind(QSpinBox& spinbox, Container& ctr, Identifier name, int defValue);
     static Value* Bind(QComboBox& combo, Integer::Ptr val);
   private slots:
     virtual void Set(int value) = 0;
@@ -131,7 +129,7 @@ namespace Parameters
     explicit StringValue(QObject& parent);
 
   public:
-    static Value* Bind(QLineEdit& line, Container& ctr, StringView name, StringView defValue);
+    static Value* Bind(QLineEdit& line, Container& ctr, Identifier name, StringView defValue);
   private slots:
     virtual void Set(const QString& value) = 0;
   };

@@ -264,14 +264,18 @@ namespace
 
   struct OptionDesc
   {
-    OptionDesc(StringView name, const Char* descr = nullptr, ValueType def = ValueType())
+    OptionDesc(StringView name)
       : Name(std::move(name))
-      , Desc(std::move(descr))
+    {}
+
+    OptionDesc(Parameters::Identifier name, const Char* descr, ValueType def)
+      : Name(name)
+      , Desc(descr)
       , Default(std::move(def))
     {}
 
     StringView Name;
-    const Char* const Desc;
+    const Char* const Desc = nullptr;
     ValueType Default;
 
     String Describe() const

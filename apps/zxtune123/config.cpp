@@ -45,7 +45,7 @@ namespace
     return dir + CONFIG_FILENAME;
   }
 
-  void ParseParametersString(const Parameters::NameType& prefix, const String& str, Strings::Map& result)
+  void ParseParametersString(Parameters::Identifier prefix, const String& str, Strings::Map& result)
   {
     Strings::Map res;
 
@@ -122,14 +122,14 @@ namespace
 
       if (doApply)
       {
-        res.insert(Strings::Map::value_type((prefix + paramName).FullPath(), paramValue));
+        res.emplace(prefix.Append(paramName), paramValue);
         paramName.clear();
         paramValue.clear();
       }
     }
     if (IN_VALUE == mode)
     {
-      res.insert(Strings::Map::value_type((prefix + paramName).FullPath(), paramValue));
+      res.emplace(prefix.Append(paramName), paramValue);
     }
     else if (IN_NOWHERE != mode)
     {
@@ -192,11 +192,11 @@ void ParseConfigFile(const String& filename, Parameters::Modifier& result)
   ParseConfigFile(filename, strVal);
   if (!strVal.empty())
   {
-    ParseParametersString({}, strVal, result);
+    ParseParametersString("", strVal, result);
   }
 }
 
-void ParseParametersString(StringView pfx, const String& str, Parameters::Modifier& result)
+void ParseParametersString(Parameters::Identifier pfx, const String& str, Parameters::Modifier& result)
 {
   Strings::Map strMap;
   ParseParametersString(pfx, str, strMap);

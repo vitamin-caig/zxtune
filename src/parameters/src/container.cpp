@@ -38,17 +38,17 @@ namespace Parameters
       return VersionValue;
     }
 
-    bool FindValue(StringView name, IntType& val) const override
+    bool FindValue(Identifier name, IntType& val) const override
     {
       return Integers.Find(name, val);
     }
 
-    bool FindValue(StringView name, StringType& val) const override
+    bool FindValue(Identifier name, StringType& val) const override
     {
       return Strings.Find(name, val);
     }
 
-    bool FindValue(StringView name, DataType& val) const override
+    bool FindValue(Identifier name, DataType& val) const override
     {
       return Datas.Find(name, val);
     }
@@ -61,7 +61,7 @@ namespace Parameters
     }
 
     // visitor virtuals
-    void SetValue(StringView name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
       if (Integers.Update(name, val) | Strings.Erase(name) | Datas.Erase(name))
       {
@@ -69,7 +69,7 @@ namespace Parameters
       }
     }
 
-    void SetValue(StringView name, StringView val) override
+    void SetValue(Identifier name, StringView val) override
     {
       if (Integers.Erase(name) | Strings.Update(name, val) | Datas.Erase(name))
       {
@@ -77,7 +77,7 @@ namespace Parameters
       }
     }
 
-    void SetValue(StringView name, Binary::View val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
       if (Integers.Erase(name) | Strings.Erase(name) | Datas.Update(name, val))
       {
@@ -86,7 +86,7 @@ namespace Parameters
     }
 
     // modifier virtuals
-    void RemoveValue(StringView name) override
+    void RemoveValue(Identifier name) override
     {
       if (Integers.Erase(name) | Strings.Erase(name) | Datas.Erase(name))
       {
@@ -179,17 +179,17 @@ namespace Parameters
       return AccessDelegate->Version();
     }
 
-    bool FindValue(StringView name, IntType& val) const override
+    bool FindValue(Identifier name, IntType& val) const override
     {
       return AccessDelegate->FindValue(name, val);
     }
 
-    bool FindValue(StringView name, StringType& val) const override
+    bool FindValue(Identifier name, StringType& val) const override
     {
       return AccessDelegate->FindValue(name, val);
     }
 
-    bool FindValue(StringView name, DataType& val) const override
+    bool FindValue(Identifier name, DataType& val) const override
     {
       return AccessDelegate->FindValue(name, val);
     }
@@ -200,23 +200,23 @@ namespace Parameters
     }
 
     // visitor virtuals
-    void SetValue(StringView name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }
 
-    void SetValue(StringView name, StringView val) override
+    void SetValue(Identifier name, StringView val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }
 
-    void SetValue(StringView name, Binary::View val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }
 
     // modifier virtuals
-    void RemoveValue(StringView name) override
+    void RemoveValue(Identifier name) override
     {
       return ModifyDelegate->RemoveValue(name);
     }

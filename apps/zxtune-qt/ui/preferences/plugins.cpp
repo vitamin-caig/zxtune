@@ -58,7 +58,6 @@ namespace
 
   private:
     const Parameters::Container::Ptr Options;
-    Parameters::NameType DurationParameter;
   };
 }  // namespace
 

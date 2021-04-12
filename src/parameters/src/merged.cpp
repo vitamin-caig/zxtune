@@ -28,7 +28,7 @@ namespace Parameters
       : Delegate(delegate)
     {}
 
-    void SetValue(StringView name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
       if (DoneIntegers.Insert(name))
       {
@@ -36,7 +36,7 @@ namespace Parameters
       }
     }
 
-    void SetValue(StringView name, StringView val) override
+    void SetValue(Identifier name, StringView val) override
     {
       if (DoneStrings.Insert(name))
       {
@@ -44,7 +44,7 @@ namespace Parameters
       }
     }
 
-    void SetValue(StringView name, Binary::View val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
       if (DoneDatas.Insert(name))
       {
@@ -52,7 +52,6 @@ namespace Parameters
       }
     }
 
-  private:
   private:
     Visitor& Delegate;
     NamesSet DoneIntegers;
@@ -74,17 +73,17 @@ namespace Parameters
       return First->Version() + Second->Version();
     }
 
-    bool FindValue(StringView name, IntType& val) const override
+    bool FindValue(Identifier name, IntType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
-    bool FindValue(StringView name, StringType& val) const override
+    bool FindValue(Identifier name, StringType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
-    bool FindValue(StringView name, DataType& val) const override
+    bool FindValue(Identifier name, DataType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
@@ -115,17 +114,17 @@ namespace Parameters
       return First->Version() + Second->Version() + Third->Version();
     }
 
-    bool FindValue(StringView name, IntType& val) const override
+    bool FindValue(Identifier name, IntType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val) || Third->FindValue(name, val);
     }
 
-    bool FindValue(StringView name, StringType& val) const override
+    bool FindValue(Identifier name, StringType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val) || Third->FindValue(name, val);
     }
 
-    bool FindValue(StringView name, DataType& val) const override
+    bool FindValue(Identifier name, DataType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val) || Third->FindValue(name, val);
     }
@@ -151,22 +150,22 @@ namespace Parameters
       : DoubleAdapter<Container, Accessor, Container>(std::move(first), std::move(second))
     {}
 
-    void SetValue(StringView name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
       Second->SetValue(name, val);
     }
 
-    void SetValue(StringView name, StringView val) override
+    void SetValue(Identifier name, StringView val) override
     {
       Second->SetValue(name, val);
     }
 
-    void SetValue(StringView name, Binary::View val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
       Second->SetValue(name, val);
     }
 
-    void RemoveValue(StringView name) override
+    void RemoveValue(Identifier name) override
     {
       Second->RemoveValue(name);
     }

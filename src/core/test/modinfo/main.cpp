@@ -43,17 +43,17 @@ namespace
   class PrintValuesVisitor : public Parameters::Visitor
   {
   public:
-    void SetValue(StringView name, Parameters::IntType val) override
+    void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }
 
-    virtual void SetValue(StringView name, StringView val) override
+    virtual void SetValue(Parameters::Identifier name, StringView val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }
 
-    virtual void SetValue(StringView name, Binary::View val) override
+    virtual void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }

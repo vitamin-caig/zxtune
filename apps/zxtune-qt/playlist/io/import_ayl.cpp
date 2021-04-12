@@ -292,9 +292,9 @@ namespace
       return Offset;
     }
 
-    void SetValue(StringView name, Parameters::IntType val) override
+    void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
-      Dbg("  property %1%=%2%", name, val);
+      Dbg("  property %1%=%2%", static_cast<StringView>(name), val);
       if (name == AYL::CHIP_FREQUENCY)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
@@ -314,9 +314,9 @@ namespace
       // ignore "Loop", "Length", "Time"
     }
 
-    void SetValue(StringView name, StringView val) override
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
-      Dbg("  property %1%='%2%'", name, val);
+      Dbg("  property %1%='%2%'", static_cast<StringView>(name), val);
       if (name == AYL::CHIP_TYPE)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
@@ -355,7 +355,7 @@ namespace
       // ignore "Tracker", "Type", "ams_andsix", "FormatSpec"
     }
 
-    void SetValue(StringView name, Binary::View val) override
+    void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       // try to process as string
       Delegate.SetValue(name, Parameters::ConvertToString(val));
