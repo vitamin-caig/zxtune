@@ -291,7 +291,7 @@ namespace
           !IsParameter(name);
     }
 
-    //TODO
+    // TODO
     static bool IsParameter(StringView attrName)
     {
       return Parameters::NameType(attrName).IsPath();
@@ -299,8 +299,7 @@ namespace
 
     static bool KeepOnlyParameters(StringView attrName)
     {
-      const Parameters::NameType name(attrName);
-      return name.IsSubpathOf(Parameters::ZXTune::PREFIX) && !name.IsSubpathOf(Playlist::ATTRIBUTES_PREFIX);
+      return attrName.starts_with(Parameters::ZXTune::PREFIX) && !attrName.starts_with(Playlist::ATTRIBUTES_PREFIX);
     }
 
     void SaveExtendedProperties(const Parameters::Accessor& props)

@@ -196,7 +196,7 @@ void ParseConfigFile(const String& filename, Parameters::Modifier& result)
   }
 }
 
-void ParseParametersString(const Parameters::NameType& pfx, const String& str, Parameters::Modifier& result)
+void ParseParametersString(StringView pfx, const String& str, Parameters::Modifier& result)
 {
   Strings::Map strMap;
   ParseParametersString(pfx, str, strMap);

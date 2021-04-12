@@ -19,15 +19,14 @@ namespace Parameters
   {
     namespace Playlist
     {
-      const std::string NAMESPACE_NAME("Playlist");
-
-      const NameType PREFIX = ZXTuneQT::PREFIX + NAMESPACE_NAME;
+      const auto NAMESPACE_NAME = "Playlist"_id;
+      const auto PREFIX = ZXTuneQT::PREFIX + NAMESPACE_NAME;
 
       //@{
       //! @name Loop playlist playback
 
       //! Parameter name
-      const NameType LOOPED = PREFIX + "Loop";
+      const auto LOOPED = PREFIX + "Loop"_id;
       //! Default value
       const IntType LOOPED_DEFAULT = 0;
       //@}
@@ -36,20 +35,20 @@ namespace Parameters
       //! @name Randomize playlist playback
 
       //! Parameter name
-      const NameType RANDOMIZED = PREFIX + "Random";
+      const auto RANDOMIZED = PREFIX + "Random"_id;
       //! Default value
       const IntType RANDOMIZED_DEFAULT = 0;
       //@}
 
       //@}
       //! @name Index of last played tab
-      const NameType INDEX = PREFIX + "Index";
+      const auto INDEX = PREFIX + "Index"_id;
 
       //! @name Index of last played track
-      const NameType TRACK = PREFIX + "Track";
+      const auto TRACK = PREFIX + "Track"_id;
       //@}
 
-      const NameType CMDLINE_TARGET = PREFIX + "CmdlineTarget";
+      const auto CMDLINE_TARGET = PREFIX + "CmdlineTarget"_id;
 
       const IntType CMDLINE_TARGET_NEW = 0;
       const IntType CMDLINE_TARGET_ACTIVE = 1;
@@ -59,15 +58,13 @@ namespace Parameters
 
       namespace Cache
       {
-        const std::string NAMESPACE_NAME("Cache");
-
-        const NameType PREFIX = Playlist::PREFIX + NAMESPACE_NAME;
+        const auto PREFIX = Playlist::PREFIX + "Cache"_id;
 
         //@{
         //! @name Cache size limit in bytes
 
         //! Parameter name
-        const NameType MEMORY_LIMIT_MB = PREFIX + "Memory";
+        const auto MEMORY_LIMIT_MB = PREFIX + "Memory"_id;
         //! Default value
         const IntType MEMORY_LIMIT_MB_DEFAULT = 10;
         //@}
@@ -76,7 +73,7 @@ namespace Parameters
         //! @name Cache size limit in files
 
         //! Parameter name
-        const NameType FILES_LIMIT = PREFIX + "Files";
+        const auto FILES_LIMIT = PREFIX + "Files"_id;
         //! Default value
         const IntType FILES_LIMIT_DEFAULT = 1000;
         //@}
@@ -84,16 +81,14 @@ namespace Parameters
 
       namespace Store
       {
-        const std::string NAMESPACE_NAME("Store");
-
-        const NameType PREFIX = Playlist::PREFIX + NAMESPACE_NAME;
+        const auto PREFIX = Playlist::PREFIX + "Store"_id;
 
         //@{
 
         //! @name Store full properties set instead of only changed
 
         //! Parameter name
-        const NameType PROPERTIES = PREFIX + "Properties";
+        const auto PROPERTIES = PREFIX + "Properties"_id;
         //! Default value
         const IntType PROPERTIES_DEFAULT = 0;
         //@}

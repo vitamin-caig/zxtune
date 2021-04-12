@@ -54,6 +54,12 @@ public:
     return basic_string_view<C>(parent::substr(pos, count));
   }
 
+  // not in all compilers
+  constexpr bool starts_with(std::basic_string_view<C> sv) const noexcept
+  {
+    return parent::size() >= sv.size() && 0 == parent::compare(0, sv.size(), sv);
+  }
+
   // non-standard - ctor is explicit
   constexpr std::basic_string<C> to_string() const
   {
@@ -61,7 +67,7 @@ public:
   }
 };
 
-constexpr basic_string_view<Char> operator"" _sv(const Char* str, std::size_t size) noexcept
+constexpr auto operator"" _sv(const char* str, std::size_t size) noexcept
 {
-  return {str, size};
+  return basic_string_view<char>{str, size};
 }

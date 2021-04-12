@@ -55,7 +55,8 @@ namespace
 
     void SetBackendParameters(const String& id, const String& options)
     {
-      ParseParametersString(Parameters::ZXTune::Sound::Backends::PREFIX + id, options, *Params);
+      using namespace Parameters;
+      ParseParametersString(NameType(ZXTune::Sound::Backends::PREFIX) + id, options, *Params);
     }
 
     void SetSoundParameters(const Strings::Map& options)
@@ -119,10 +120,9 @@ namespace
         opt(id.c_str(), value<String>(&opts)->implicit_value(String(), "parameters"), info->Description().c_str());
       }
 
-      opt("frequency", value<String>(&SoundOptions[Parameters::ZXTune::Sound::FREQUENCY.FullPath()]),
+      opt("frequency", value<String>(GetSoundOption(Parameters::ZXTune::Sound::FREQUENCY)),
           "specify sound frequency in Hz");
-      opt("freqtable", value<String>(&SoundOptions[Parameters::ZXTune::Core::AYM::TABLE.FullPath()]),
-          "specify frequency table");
+      opt("freqtable", value<String>(GetSoundOption(Parameters::ZXTune::Core::AYM::TABLE)), "specify frequency table");
       opt("loop", bool_switch(&Looped), "loop playback");
     }
 
@@ -207,6 +207,12 @@ namespace
     uint_t GetSamplerate() const
     {
       return Sound::GetSoundFrequency(*Params->GetDefaultParameters());
+    }
+
+  private:
+    String* GetSoundOption(StringView name)
+    {
+      return &SoundOptions[name.to_string()];
     }
 
   private:

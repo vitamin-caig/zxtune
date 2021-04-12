@@ -19,9 +19,9 @@ namespace Parameters
   {
     namespace UI
     {
-      const NameType PREFIX = ZXTuneQT::PREFIX + "UI";
+      const auto PREFIX = ZXTuneQT::PREFIX + "UI"_id;
 
-      const NameType LANGUAGE = PREFIX + "Language";
+      const auto LANGUAGE = PREFIX + "Language"_id;
 
       const std::string PARAM_GEOMETRY("Geometry");
       const std::string PARAM_LAYOUT("Layout");

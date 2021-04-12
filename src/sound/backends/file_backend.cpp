@@ -162,7 +162,7 @@ namespace Sound::File
 
   private:
     template<class T>
-    T GetProperty(const String& name) const
+    T GetProperty(StringView name) const
     {
       T result = T();
       if (!Params->FindValue(GetBackendPropertyName(name), result))
@@ -172,14 +172,14 @@ namespace Sound::File
       return result;
     }
 
-    Parameters::NameType GetBackendPropertyName(const String& name) const
+    Parameters::NameType GetBackendPropertyName(StringView name) const
     {
-      return Parameters::ZXTune::Sound::Backends::PREFIX + Id + name;
+      return Parameters::NameType(Parameters::ZXTune::Sound::Backends::PREFIX) + Id + name;
     }
 
-    Parameters::NameType GetComonPropertyName(const String& name) const
+    Parameters::NameType GetComonPropertyName(StringView name) const
     {
-      return Parameters::ZXTune::Sound::Backends::File::PREFIX + name;
+      return Parameters::NameType(Parameters::ZXTune::Sound::Backends::File::PREFIX) + name;
     }
 
   private:

@@ -11,7 +11,7 @@
 #pragma once
 
 // library includes
-#include <parameters/types.h>
+#include <sound/sound_parameters.h>
 
 namespace Parameters
 {
@@ -23,27 +23,27 @@ namespace Parameters
       namespace Backends
       {
         //! @brief Parameters#ZXTune#Sound#Backends namespace prefix
-        extern const NameType PREFIX;
+        const auto PREFIX = Sound::PREFIX + "backends"_id;
 
         //! @brief Semicolon-delimited backends identifiers order
-        extern const NameType ORDER;
+        const auto ORDER = PREFIX + "order"_id;
 
         //! @brief Any file-based backend parameters namespace
         namespace File
         {
           //! @brief Parameters#ZXTune#Sound#Backends#File namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Backends::PREFIX + "file"_id;
 
           //@{
           //! @name Any file-based backend basic parameters
 
           //! @brief Output filename template
           //! @see core/module_attrs.h for possibly supported field names
-          extern const NameType FILENAME;
+          const auto FILENAME = PREFIX + "filename"_id;
 
           //! @brief Buffers count to asynchronous saving
           //! @note Not zero if use asynchronous saving
-          extern const NameType BUFFERS;
+          const auto BUFFERS = PREFIX + "buffers"_id;
           //@}
         }  // namespace File
 
@@ -51,7 +51,7 @@ namespace Parameters
         namespace Win32
         {
           //! @brief Parameters#ZXTune#Sound#Backends#Win32 namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Backends::PREFIX + "win32"_id;
 
           //@{
           //! @name Win32 backend parameters
@@ -59,12 +59,12 @@ namespace Parameters
           //! Default value
           const IntType DEVICE_DEFAULT = -1;
           //! 0-based output device index
-          extern const NameType DEVICE;
+          const auto DEVICE = PREFIX + "device"_id;
 
           //! Default value
           const IntType BUFFERS_DEFAULT = 3;
           //! Buffers count
-          extern const NameType BUFFERS;
+          const auto BUFFERS = PREFIX + "buffers"_id;
           //@}
         }  // namespace Win32
 
@@ -72,20 +72,20 @@ namespace Parameters
         namespace Oss
         {
           //! @brief Parameters#ZXTune#Sound#Backends#Oss namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Backends::PREFIX + "oss"_id;
 
           //@{
           //! @name OSS backend parameters
 
           //! Default value
-          const Char DEVICE_DEFAULT[] = {'/', 'd', 'e', 'v', '/', 'd', 's', 'p', '\0'};
+          const auto DEVICE_DEFAULT = "/dev/dsp";
           //! Device filename
-          extern const NameType DEVICE;
+          const auto DEVICE = PREFIX + "device"_id;
 
           //! Default value
-          const Char MIXER_DEFAULT[] = {'/', 'd', 'e', 'v', '/', 'm', 'i', 'x', 'e', 'r', '\0'};
+          const auto MIXER_DEFAULT = "/dev/mixer";
           //! Mixer filename
-          extern const NameType MIXER;
+          const auto MIXER = PREFIX + "mixer"_id;
           //@}
         }  // namespace Oss
 
@@ -93,23 +93,23 @@ namespace Parameters
         namespace Alsa
         {
           //! @brief Parameters#ZXTune#Sound#Backends#Alsa namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Backends::PREFIX + "alsa"_id;
 
           //@{
           //! @name ALSA backend parameters
 
           //! Default value
-          const Char DEVICE_DEFAULT[] = {'d', 'e', 'f', 'a', 'u', 'l', 't', '\0'};
+          const auto DEVICE_DEFAULT = "default";
           //! Device name
-          extern const NameType DEVICE;
+          const auto DEVICE = PREFIX + "device"_id;
 
           //! Mixer name
-          extern const NameType MIXER;
+          const auto MIXER = PREFIX + "mixer"_id;
 
           //! Default value
           const IntType LATENCY_DEFAULT = 100;
           //! Latency in mS
-          extern const NameType LATENCY;
+          const auto LATENCY = PREFIX + "latency"_id;
           //@}
         }  // namespace Alsa
 
@@ -117,7 +117,7 @@ namespace Parameters
         namespace Sdl
         {
           //! @brief Parameters#ZXTune#Sound#Backends#Sdl namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Backends::PREFIX + "sdl"_id;
 
           //@{
           //! @name SDL backend parameters
@@ -125,7 +125,7 @@ namespace Parameters
           //! Default value
           const IntType BUFFERS_DEFAULT = 5;
           //! Buffers count
-          extern const NameType BUFFERS;
+          const auto BUFFERS = PREFIX + "buffers"_id;
           //@}
         }  // namespace Sdl
 
@@ -133,18 +133,18 @@ namespace Parameters
         namespace DirectSound
         {
           //! @brief Parameters#ZXTune#Sound#Backends#DirectSound namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Backends::PREFIX + "dsound"_id;
 
           //@{
           //! @name DirectSound backend parameters
 
           //! Device uuid (empty for primary)
-          extern const NameType DEVICE;
+          const auto DEVICE = PREFIX + "device"_id;
 
           //! Default value
           const IntType LATENCY_DEFAULT = 100;
           //! Latency in mS
-          extern const NameType LATENCY;
+          const auto LATENCY = PREFIX + "latency"_id;
           //@}
         }  // namespace DirectSound
 
@@ -152,35 +152,35 @@ namespace Parameters
         namespace Mp3
         {
           //! @brief Parameters#ZXTune#Sound#Backends#Mp3 namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Backends::PREFIX + "mp3"_id;
 
           //@{
           //! @name Mp3 backend parameters
 
-          const Char MODE_CBR[] = {'c', 'b', 'r', 0};
-          const Char MODE_VBR[] = {'v', 'b', 'r', 0};
-          const Char MODE_ABR[] = {'a', 'b', 'r', 0};
+          const auto MODE_CBR = "cbr";
+          const auto MODE_VBR = "vbr";
+          const auto MODE_ABR = "abr";
           //! Default
-          const Char MODE_DEFAULT[] = {'c', 'b', 'r', 0};
+          const auto MODE_DEFAULT = MODE_CBR;
           //! Operational mode
-          extern const NameType MODE;
+          const auto MODE = PREFIX + "mode"_id;
 
           //! Default value
           const IntType BITRATE_DEFAULT = 128;
           //! Bitrate in kbps
-          extern const NameType BITRATE;
+          const auto BITRATE = PREFIX + "bitrate"_id;
 
           //! Default value
           const IntType QUALITY_DEFAULT = 5;
           //! VBR quality 9..0
-          extern const NameType QUALITY;
+          const auto QUALITY = PREFIX + "quality"_id;
 
-          const Char CHANNELS_DEFAULT[] = {'d', 'e', 'f', 'a', 'u', 'l', 't', 0};
-          const Char CHANNELS_STEREO[] = {'s', 't', 'e', 'r', 'e', 'o', 0};
-          const Char CHANNELS_JOINTSTEREO[] = {'j', 'o', 'i', 'n', 't', 's', 't', 'e', 'r', 'e', 'o', 0};
-          const Char CHANNELS_MONO[] = {'m', 'o', 'n', 'o', 0};
+          const auto CHANNELS_DEFAULT = "default";
+          const auto CHANNELS_STEREO = "stereo";
+          const auto CHANNELS_JOINTSTEREO = "jointstereo";
+          const auto CHANNELS_MONO = "mono";
           //! Channels encoding mode
-          extern const NameType CHANNELS;
+          const auto CHANNELS = PREFIX + "channels"_id;
           //@}
         }  // namespace Mp3
 
@@ -188,28 +188,28 @@ namespace Parameters
         namespace Ogg
         {
           //! @brief Parameters#ZXTune#Sound#Backends#Ogg namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Backends::PREFIX + "ogg"_id;
 
           //@{
           //! @name Ogg backend parameters
 
-          const Char MODE_QUALITY[] = {'q', 'u', 'a', 'l', 'i', 't', 'y', 0};
-          const Char MODE_ABR[] = {'a', 'b', 'r', 0};
+          const auto MODE_QUALITY = "quality";
+          const auto MODE_ABR = "abr";
           //! Default value
-          const Char MODE_DEFAULT[] = {'q', 'u', 'a', 'l', 'i', 't', 'y', 0};
-          ;
+          const auto MODE_DEFAULT = MODE_QUALITY;
+
           // Working mode
-          extern const NameType MODE;
+          const auto MODE = PREFIX + "mode"_id;
 
           //! Default value
           const IntType QUALITY_DEFAULT = 6;
           //! VBR quality 1..10
-          extern const NameType QUALITY;
+          const auto QUALITY = PREFIX + "quality"_id;
 
           //! Default value
           const IntType BITRATE_DEFAULT = 128;
           //! ABR bitrate in kbps
-          extern const NameType BITRATE;
+          const auto BITRATE = PREFIX + "bitrate"_id;
           //@}
         }  // namespace Ogg
 
@@ -217,7 +217,7 @@ namespace Parameters
         namespace Flac
         {
           //! @brief Parameters#ZXTune#Sound#Backends#Flac namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Backends::PREFIX + "flac"_id;
 
           //@{
           //! @name Flac backend parameters
@@ -225,10 +225,10 @@ namespace Parameters
           //! Default value
           const IntType COMPRESSION_DEFAULT = 5;
           //! Compression level 0..8
-          extern const NameType COMPRESSION;
+          const auto COMPRESSION = PREFIX + "compression"_id;
 
           //! Block size in samples
-          extern const NameType BLOCKSIZE;
+          const auto BLOCKSIZE = PREFIX + "blocksize"_id;
           //@}
         }  // namespace Flac
 
@@ -236,20 +236,20 @@ namespace Parameters
         namespace OpenAl
         {
           //! @brief Parameters#ZXTune#Sound#Backends#OpenAl namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Backends::PREFIX + "openal"_id;
 
           //@{
           //! @name OpenAl backend parameters
 
           //! Default value
-          const Char DEVICE_DEFAULT[] = {0};
+          const auto DEVICE_DEFAULT = "";
           //! Device name
-          extern const NameType DEVICE;
+          const auto DEVICE = PREFIX + "device"_id;
 
           //! Default value
           const IntType BUFFERS_DEFAULT = 5;
           //! Buffers count
-          extern const NameType BUFFERS;
+          const auto BUFFERS = PREFIX + "buffers"_id;
           //@}
         }  // namespace OpenAl
       }    // namespace Backends

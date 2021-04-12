@@ -21,11 +21,10 @@ namespace Parameters
     {
       namespace Export
       {
-        const std::string NAMESPACE_NAME("Export");
+        const auto NAMESPACE_NAME = "Export"_id;
+        const auto PREFIX = UI::PREFIX + NAMESPACE_NAME;
 
-        const NameType PREFIX = UI::PREFIX + NAMESPACE_NAME;
-
-        const NameType TYPE = PREFIX + "Type";
+        const auto TYPE = PREFIX + "Type"_id;
       }  // namespace Export
     }    // namespace UI
   }      // namespace ZXTuneQT

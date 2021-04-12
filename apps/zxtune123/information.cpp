@@ -264,27 +264,20 @@ namespace
 
   struct OptionDesc
   {
-    OptionDesc(const Parameters::NameType& name, StringView descr, ValueType def)
-      : Name(name.FullPath())
-      , Desc(std::move(descr))
-      , Default(std::move(def))
-    {}
-
-    OptionDesc(StringView name, StringView descr, ValueType def)
+    OptionDesc(StringView name, const Char* descr = nullptr, ValueType def = ValueType())
       : Name(std::move(name))
       , Desc(std::move(descr))
       , Default(std::move(def))
     {}
 
-    // TODO: StringView when Parameters::Name type reworking
     StringView Name;
-    StringView Desc;
+    const Char* const Desc;
     ValueType Default;
 
     String Describe() const
     {
       // section
-      if (Desc.empty())
+      if (!Desc)
       {
         return Name.to_string();
       }
@@ -307,9 +300,11 @@ namespace
   {
     static const String EMPTY;
 
+    using Parameters::operator""_id;
+
     static const OptionDesc OPTIONS[] = {
         // IO parameters
-        {" IO providers options:", EMPTY, 0},
+        {" IO providers options:"},
         {Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, "minimal size for use memory mapping",
          Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT},
         {Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES,
@@ -319,17 +314,17 @@ namespace
          "overwrite target file if already exists (applicable for for file-based backends)",
          Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT},
         // Sound parameters
-        {" Sound options:", EMPTY, 0},
+        {" Sound options:"},
         {Parameters::ZXTune::Sound::FREQUENCY, "sound frequency in Hz", Parameters::ZXTune::Sound::FREQUENCY_DEFAULT},
         {Parameters::ZXTune::Sound::LOOPED, "loop playback", EMPTY},
         // Mixer parameters
-        {" Mixer options:", EMPTY, 0},
-        {Parameters::ZXTune::Sound::Mixer::PREFIX + "A.B_C",
+        {" Mixer options:"},
+        {Parameters::ZXTune::Sound::Mixer::PREFIX + "A.B_C"_id,
          "specify level in percent (A- total channels count, B- input channel, C- output channel). E.g. when A=3, "
          "B=0, C=1 will specify A channel level of AY/YM-like chiptunes to right stereochannel",
          EMPTY},
         // Sound backend parameters
-        {" Sound backends options:", EMPTY, 0},
+        {" Sound backends options:"},
         {Parameters::ZXTune::Sound::Backends::File::FILENAME,
          "filename template for file-based backends (see --list-attributes command). Also duplicated in "
          "backend-specific namespace",
@@ -382,7 +377,7 @@ namespace
          "specify compression level for Flac backend (0- lowest, 8- highest)", EMPTY},
         {Parameters::ZXTune::Sound::Backends::Flac::BLOCKSIZE, "specyfy blocksize in samples for Flac backend", EMPTY},
         // Core options
-        {" Core options:", EMPTY, 0},
+        {" Core options:"},
         {Parameters::ZXTune::Core::AYM::CLOCKRATE, "clock rate for AYM in Hz",
          Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT},
         {Parameters::ZXTune::Core::AYM::TYPE, "use YM chip type for AYM rendering",
@@ -414,7 +409,7 @@ namespace
         {Parameters::ZXTune::Core::SAA::INTERPOLATION, "use interpolation for SAA rendering",
          Parameters::ZXTune::Core::SAA::INTERPOLATION_DEFAULT},
         // Core plugins options
-        {" Core plugins options:", EMPTY, 0},
+        {" Core plugins options:"},
         {Parameters::ZXTune::Core::Plugins::Raw::PLAIN_DOUBLE_ANALYSIS, "analyze cap_plain plugins twice", EMPTY},
         {Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE, "minimum data size to use raw scaner",
          Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE_DEFAULT},
@@ -429,7 +424,7 @@ namespace
     }
   }
 
-  typedef std::pair<StringView, StringView> AttrType;
+  typedef std::pair<StringView, const Char*> AttrType;
   void ShowAttribute(const AttrType& arg)
   {
     StdOut << Strings::Format(" %|1$-20|- %2%", arg.first, arg.second) << std::endl;

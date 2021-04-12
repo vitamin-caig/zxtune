@@ -48,9 +48,9 @@ namespace
   class NamespaceContainer : public Parameters::Container
   {
   public:
-    NamespaceContainer(Parameters::Container::Ptr delegate, StringView prefix)
+    NamespaceContainer(Parameters::Container::Ptr delegate, Parameters::NameType prefix)
       : Delegate(std::move(delegate))
-      , Prefix(prefix)
+      , Prefix(std::move(prefix))
     {}
 
     uint_t Version() const override
@@ -124,7 +124,7 @@ namespace
       }
 
     private:
-      //TODO:
+      // TODO:
       template<class T>
       void FilterValue(Parameters::NameType name, const T& val)
       {
@@ -172,7 +172,7 @@ namespace
   Parameters::Container::Ptr CreateSubcontainer(Parameters::Container::Ptr parent, QObject& obj)
   {
     const QString name = obj.objectName();
-    return name.size() == 0 ? parent : MakePtr<NamespaceContainer>(parent, name.toStdString());
+    return name.size() == 0 ? parent : MakePtr<NamespaceContainer>(parent, Parameters::NameType(name.toStdString()));
   }
 
   class MainWindowState : public WidgetState
@@ -510,17 +510,19 @@ namespace
 
 namespace UI
 {
-  State::Ptr State::Create(const String& category)
+  State::Ptr State::Create(StringView category)
   {
-    const Parameters::Container::Ptr container =
-        MakePtr<NamespaceContainer>(GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + category);
+    using namespace Parameters;
+    auto container =
+        MakePtr<NamespaceContainer>(GlobalOptions::Instance().Get(), NameType(ZXTuneQT::UI::PREFIX) + category);
     return MakePtr<PersistentState>(container);
   }
 
   State::Ptr State::Create(QWidget& root)
   {
-    const Parameters::Container::Ptr container = MakePtr<NamespaceContainer>(
-        GlobalOptions::Instance().Get(), Parameters::ZXTuneQT::UI::PREFIX + root.objectName().toStdString());
+    using namespace Parameters;
+    auto container = MakePtr<NamespaceContainer>(
+        GlobalOptions::Instance().Get(), NameType(Parameters::ZXTuneQT::UI::PREFIX) + root.objectName().toStdString());
     State::Ptr res = MakePtr<PersistentState>(container);
     res->AddWidget(root);
     return res;

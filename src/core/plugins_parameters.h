@@ -11,7 +11,7 @@
 #pragma once
 
 // library includes
-#include <parameters/types.h>
+#include <core/core_parameters.h>
 
 namespace Parameters
 {
@@ -23,7 +23,7 @@ namespace Parameters
       namespace Plugins
       {
         //! @brief Parameters#ZXTune#Core#Plugins namespace prefix
-        extern const NameType PREFIX;
+        const auto PREFIX = Core::PREFIX + "plugins"_id;
 
         //@{
         //! @name Default song duration in seconds (if not specified exactly) for all types (can be overriden)
@@ -31,20 +31,20 @@ namespace Parameters
         //! Default value (3min)
         const IntType DEFAULT_DURATION_DEFAULT = 3 * 60;
         //! Parameter name for type
-        extern const NameType DEFAULT_DURATION;
+        const auto DEFAULT_DURATION = PREFIX + "default_duration"_id;
         //@}
 
         //! @brief RAW scaner parameters namespace
         namespace Raw
         {
           //! @brief Parameters#ZXTune#Core#Plugins#Raw namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Plugins::PREFIX + "raw"_id;
 
           //@{
           //! @name Perform double analysis of plain data containers
 
           //! Parameter name
-          extern const NameType PLAIN_DOUBLE_ANALYSIS;
+          const auto PLAIN_DOUBLE_ANALYSIS = PREFIX + "plain_double_analysis"_id;
           //@}
 
           //@{
@@ -53,7 +53,7 @@ namespace Parameters
           //! Default value
           const IntType MIN_SIZE_DEFAULT = 128;
           //! Parameter name
-          extern const NameType MIN_SIZE;
+          const auto MIN_SIZE = PREFIX + "min_size"_id;
           //@}
         }  // namespace Raw
 
@@ -61,28 +61,28 @@ namespace Parameters
         namespace Hrip
         {
           //! @brief Parameters#ZXTune#Core#Plugins#Hrip namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Plugins::PREFIX + "hrip"_id;
 
           //! @brief Ignore corrupted blocks
           //! @details 1 if do so
-          extern const NameType IGNORE_CORRUPTED;
+          const auto IGNORE_CORRUPTED = PREFIX + "ignore_corrupted"_id;
         }  // namespace Hrip
 
         //! @brief SID container/player parameters namespace
         namespace SID
         {
           //! @brief Parameters#ZXTune#Core#Plugins#SID namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Plugins::PREFIX + "sid"_id;
 
           //@{
           //! @name ROMs content
 
           //! 8192 bytes
-          extern const NameType KERNAL;
+          const auto KERNAL = PREFIX + "kernal"_id;
           //! 8192 bytes
-          extern const NameType BASIC;
+          const auto BASIC = PREFIX + "basic"_id;
           //! 4096 bytes
-          extern const NameType CHARGEN;
+          const auto CHARGEN = PREFIX + "chargen"_id;
           //@}
         }  // namespace SID
 
@@ -90,7 +90,7 @@ namespace Parameters
         namespace Zip
         {
           //! @brief Parameters#ZXTune#Core#Plugins#Zip namespace prefix
-          extern const NameType PREFIX;
+          const auto PREFIX = Plugins::PREFIX + "zip"_id;
 
           //@{
           //! @name Maximal file size to be depacked in Mb
@@ -98,7 +98,7 @@ namespace Parameters
           //! Default value
           const IntType MAX_DEPACKED_FILE_SIZE_MB_DEFAULT = 32;
           //! Parameter name
-          extern const NameType MAX_DEPACKED_FILE_SIZE_MB;
+          const auto MAX_DEPACKED_FILE_SIZE_MB = PREFIX + "max_depacked_size_mb"_id;
           //@}
         }  // namespace Zip
       }    // namespace Plugins

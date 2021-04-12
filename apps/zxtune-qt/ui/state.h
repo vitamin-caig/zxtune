@@ -30,7 +30,7 @@ namespace UI
     virtual void Load() const = 0;
     virtual void Save() const = 0;
 
-    static Ptr Create(const String& category);
+    static Ptr Create(StringView category);
     static Ptr Create(QWidget& root);
   };
 }  // namespace UI

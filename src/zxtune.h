@@ -11,13 +11,13 @@
 #pragma once
 
 // library includes
-#include <parameters/types.h>
+#include <parameters/identifier.h>
 
 namespace Parameters
 {
   namespace ZXTune
   {
     //! @brief Parameters#ZXTune namespace prefix
-    const NameType PREFIX("zxtune");
+    const auto PREFIX = "zxtune"_id;
   }  // namespace ZXTune
 }  // namespace Parameters

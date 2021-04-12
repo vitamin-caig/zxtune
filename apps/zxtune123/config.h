@@ -15,4 +15,4 @@
 
 void ParseConfigFile(const String& filename, Parameters::Modifier& result);
 // result will be overwritten
-void ParseParametersString(const Parameters::NameType& prefix, const String& str, Parameters::Modifier& result);
+void ParseParametersString(StringView prefix, const String& str, Parameters::Modifier& result);

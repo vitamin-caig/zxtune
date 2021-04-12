@@ -9,6 +9,7 @@
  **/
 
 #include <parameters/container.h>
+#include <parameters/identifier.h>
 #include <parameters/types.h>
 
 #include <iostream>
@@ -110,6 +111,81 @@ namespace
     Test("three - two", (three - two).FullPath(), String("three"));
     Test("three - three", (three - three).FullPath(), String());
     Test("three.Name", three.Name(), String("three"));
+  }
+
+  void TestStaticIdentifier()
+  {
+    std::cout << "---- Test for Parameters::Identifier" << std::endl;
+    using namespace Parameters;
+    const auto zero = ""_id;
+    const auto one = "one"_id;
+    const auto two = "one.two"_id;
+    const auto three = "one.two.three"_id;
+    Test("zero.IsEmpty", zero.IsEmpty(), true);
+    Test("zero.IsPath", zero.IsPath(), false);
+    /*
+    Test("zero.IsSubpathOf(zero)", zero.IsSubpathOf(zero), false);
+    Test("zero.IsSubpathOf(one)", zero.IsSubpathOf(one), false);
+    Test("zero.IsSubpathOf(two)", zero.IsSubpathOf(two), false);
+    Test("zero.IsSubpathOf(three)", zero.IsSubpathOf(three), false);
+    Test("zero + zero", zero + zero).FullPath(), String());
+    Test("zero + one", (zero + one).FullPath(), String("one"));
+    Test("zero + two", (zero + two).FullPath(), String("one.two"));
+    Test("zero + three", (zero + three).FullPath(), String("one.two.three"));
+    Test("zero - zero", (zero - zero).FullPath(), String());
+    Test("zero - one", (zero - one).FullPath(), String());
+    Test("zero - two", (zero - two).FullPath(), String());
+    Test("zero - three", (zero - three).FullPath(), String());
+    */
+    Test("zero.Name", zero.Name(), ""_sv);
+
+    Test("one.IsEmpty", one.IsEmpty(), false);
+    Test("one.IsPath", one.IsPath(), false);
+    // Test("one.IsSubpathOf(zero)", one.IsSubpathOf(zero), false);
+    // Test("one.IsSubpathOf(one)", one.IsSubpathOf(one), false);
+    // Test("one.IsSubpathOf(two)", one.IsSubpathOf(two), false);
+    // Test("one.IsSubpathOf(three)", one.IsSubpathOf(three), false);
+    // Test("one + zero", (one + zero).FullPath(), String("one"));
+    Test<StringView>("one + one", one + one, "one.one"_sv);
+    Test<StringView>("one + two", one + two, "one.one.two"_sv);
+    Test<StringView>("one + three", one + three, "one.one.two.three"_sv);
+    // Test("one - zero", (one - zero).FullPath(), String());
+    // Test("one - one", (one - one).FullPath(), String());
+    // Test("one - two", (one - two).FullPath(), String());
+    // Test("one - three", (one - three).FullPath(), String());
+    Test("one.Name", one.Name(), "one"_sv);
+
+    Test("two.IsEmpty", two.IsEmpty(), false);
+    Test("two.IsPath", two.IsPath(), true);
+    // Test("two.IsSubpathOf(zero)", two.IsSubpathOf(zero), false);
+    // Test("two.IsSubpathOf(one)", two.IsSubpathOf(one), true);
+    // Test("two.IsSubpathOf(two)", two.IsSubpathOf(two), false);
+    // Test("two.IsSubpathOf(three)", two.IsSubpathOf(three), false);
+    // Test("two + zero", (two + zero).FullPath(), String("one.two"));
+    Test<StringView>("two + one", two + one, "one.two.one"_sv);
+    Test<StringView>("two + two", two + two, "one.two.one.two"_sv);
+    Test<StringView>("two + three", two + three, "one.two.one.two.three"_sv);
+    // Test("two - zero", (two - zero).FullPath(), String());
+    // Test("two - one", (two - one).FullPath(), String("two"));
+    // Test("two - two", (two - two).FullPath(), String());
+    // Test("two - three", (two - three).FullPath(), String());
+    Test("two.Name", two.Name(), "two"_sv);
+
+    Test("three.IsEmpty", three.IsEmpty(), false);
+    Test("three.IsPath", three.IsPath(), true);
+    // Test("three.IsSubpathOf(zero)", three.IsSubpathOf(zero), false);
+    // Test("three.IsSubpathOf(one)", three.IsSubpathOf(one), true);
+    // Test("three.IsSubpathOf(two)", three.IsSubpathOf(two), true);
+    // Test("three.IsSubpathOf(three)", three.IsSubpathOf(three), false);
+    // Test<StringView>("three + zero", three + zero, "one.two.three"_sv);
+    Test<StringView>("three + one", three + one, "one.two.three.one"_sv);
+    Test<StringView>("three + two", three + two, "one.two.three.one.two"_sv);
+    Test<StringView>("three + three", three + three, "one.two.three.one.two.three"_sv);
+    // Test("three - zero", (three - zero).FullPath(), String());
+    // Test("three - one", (three - one).FullPath(), String("two.three"));
+    // Test("three - two", (three - two).FullPath(), String("three"));
+    // Test("three - three", (three - three).FullPath(), String());
+    Test("three.Name", three.Name(), "three"_sv);
   }
 
   class CountingVisitor : public Parameters::Visitor
@@ -299,6 +375,7 @@ int main()
   try
   {
     TestNameType();
+    TestStaticIdentifier();
     TestContainer();
   }
   catch (int code)
