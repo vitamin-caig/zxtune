@@ -46,5 +46,6 @@ namespace Sound
     virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const = 0;
   };
 
-  BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory);
+  BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, Parameters::Accessor::Ptr properties,
+                                             FileStreamFactory::Ptr factory);
 }  // namespace Sound

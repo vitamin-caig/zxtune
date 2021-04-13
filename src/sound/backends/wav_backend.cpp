@@ -244,8 +244,8 @@ namespace Sound::Wav
   class FileStreamFactory : public Sound::FileStreamFactory
   {
   public:
-    explicit FileStreamFactory(Parameters::Accessor::Ptr params)
-      : RenderingParameters(RenderParameters::Create(params))
+    explicit FileStreamFactory(uint_t frequency)
+      : Frequency(frequency)
     {}
 
     String GetId() const override
@@ -255,25 +255,24 @@ namespace Sound::Wav
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
-      if (const Binary::SeekableOutputStream::Ptr seekable =
-              std::dynamic_pointer_cast<Binary::SeekableOutputStream>(stream))
+      if (auto seekable = std::dynamic_pointer_cast<Binary::SeekableOutputStream>(stream))
       {
-        return MakePtr<FileStream>(RenderingParameters->SoundFreq(), seekable);
+        return MakePtr<FileStream>(Frequency, std::move(seekable));
       }
       throw Error(THIS_LINE, translate("WAV conversion is not supported on non-seekable streams."));
     }
 
   private:
-    const RenderParameters::Ptr RenderingParameters;
+    const uint_t Frequency;
   };
 
   class BackendWorkerFactory : public Sound::BackendWorkerFactory
   {
   public:
-    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const override
     {
-      const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(params);
-      return CreateFileBackendWorker(params, factory);
+      auto factory = MakePtr<FileStreamFactory>(GetSoundFrequency(*params));
+      return CreateFileBackendWorker(std::move(params), holder->GetModuleProperties(), std::move(factory));
     }
   };
 }  // namespace Sound::Wav

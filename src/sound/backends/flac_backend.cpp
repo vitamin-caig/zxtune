@@ -254,19 +254,18 @@ namespace Sound::Flac
     void SetupEncoder(FLAC__StreamEncoder& encoder) const
     {
       const StreamParameters stream(Params);
-      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
       CheckFlacCall(FlacApi->FLAC__stream_encoder_set_verify(&encoder, true), THIS_LINE);
       CheckFlacCall(FlacApi->FLAC__stream_encoder_set_channels(&encoder, Sample::CHANNELS), THIS_LINE);
       CheckFlacCall(FlacApi->FLAC__stream_encoder_set_bits_per_sample(&encoder, Sample::BITS), THIS_LINE);
-      const uint_t samplerate = sound->SoundFreq();
+      const uint_t samplerate = GetSoundFrequency(*Params);
       Dbg("Setting samplerate to %1%Hz", samplerate);
       CheckFlacCall(FlacApi->FLAC__stream_encoder_set_sample_rate(&encoder, samplerate), THIS_LINE);
-      if (const boost::optional<uint_t> compression = stream.GetCompressionLevel())
+      if (const auto compression = stream.GetCompressionLevel())
       {
         Dbg("Setting compression level to %1%", *compression);
         CheckFlacCall(FlacApi->FLAC__stream_encoder_set_compression_level(&encoder, *compression), THIS_LINE);
       }
-      if (const boost::optional<uint_t> blocksize = stream.GetBlockSize())
+      if (const auto blocksize = stream.GetBlockSize())
       {
         Dbg("Setting block size to %1%", *blocksize);
         CheckFlacCall(FlacApi->FLAC__stream_encoder_set_blocksize(&encoder, *blocksize), THIS_LINE);
@@ -285,10 +284,10 @@ namespace Sound::Flac
       : FlacApi(std::move(api))
     {}
 
-    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const override
     {
-      const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(FlacApi, params);
-      return CreateFileBackendWorker(params, factory);
+      auto factory = MakePtr<FileStreamFactory>(FlacApi, params);
+      return CreateFileBackendWorker(std::move(params), holder->GetModuleProperties(), std::move(factory));
     }
 
   private:

@@ -263,9 +263,8 @@ namespace Sound::Mp3
     void SetupContext(lame_global_flags& ctx) const
     {
       const StreamParameters stream(Params);
-      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
 
-      const uint_t samplerate = sound->SoundFreq();
+      const uint_t samplerate = GetSoundFrequency(*Params);
       Dbg("Setting samplerate to %1%Hz", samplerate);
       CheckLameCall(LameApi->lame_set_in_samplerate(&ctx, samplerate), THIS_LINE);
       CheckLameCall(LameApi->lame_set_out_samplerate(&ctx, samplerate), THIS_LINE);
@@ -333,17 +332,17 @@ namespace Sound::Mp3
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : FlacApi(std::move(api))
+      : LameApi(std::move(api))
     {}
 
-    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const override
     {
-      const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(FlacApi, params);
-      return CreateFileBackendWorker(params, factory);
+      auto factory = MakePtr<FileStreamFactory>(LameApi, params);
+      return CreateFileBackendWorker(std::move(params), holder->GetModuleProperties(), std::move(factory));
     }
 
   private:
-    const Api::Ptr FlacApi;
+    const Api::Ptr LameApi;
   };
 }  // namespace Sound::Mp3
 

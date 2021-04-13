@@ -381,9 +381,8 @@ namespace Sound::Ogg
     void SetupInfo(VorbisInfo& info) const
     {
       const StreamParameters stream(Params);
-      const RenderParameters::Ptr sound = RenderParameters::Create(Params);
 
-      const uint_t samplerate = sound->SoundFreq();
+      const uint_t samplerate = GetSoundFrequency(*Params);
       Dbg("Samplerate is %1%", samplerate);
       if (stream.IsABRMode())
       {
@@ -415,10 +414,10 @@ namespace Sound::Ogg
       , VorbisEncApi(std::move(vorbisEncApi))
     {}
 
-    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const override
     {
-      const FileStreamFactory::Ptr factory = MakePtr<FileStreamFactory>(OggApi, VorbisApi, VorbisEncApi, params);
-      return CreateFileBackendWorker(params, factory);
+      auto factory = MakePtr<FileStreamFactory>(OggApi, VorbisApi, VorbisEncApi, params);
+      return CreateFileBackendWorker(std::move(params), holder->GetModuleProperties(), std::move(factory));
     }
 
   private:

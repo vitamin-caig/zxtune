@@ -200,11 +200,12 @@ namespace Sound::File
   class StreamSource
   {
   public:
-    StreamSource(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
-      : Params(params)
-      , FileParams(params, factory->GetId())
-      , Factory(factory)
-      , FilenameTemplate(InstantiateModuleFields(FileParams.GetFilenameTemplate(), *Params))
+    StreamSource(Parameters::Accessor::Ptr params, Parameters::Accessor::Ptr properties, FileStreamFactory::Ptr factory)
+      : Params(std::move(params))
+      , Properties(std::move(properties))
+      , Factory(std::move(factory))
+      , FileParams(Params, Factory->GetId())
+      , FilenameTemplate(InstantiateModuleFields(FileParams.GetFilenameTemplate(), *Properties))
     {}
 
     Receiver::Ptr GetStream(const Module::State& state) const
@@ -232,15 +233,15 @@ namespace Sound::File
     void SetProperties(FileStream& stream) const
     {
       Parameters::StringType str;
-      if (Params->FindValue(Module::ATTR_TITLE, str) && !str.empty())
+      if (Properties->FindValue(Module::ATTR_TITLE, str) && !str.empty())
       {
         stream.SetTitle(str);
       }
-      if (Params->FindValue(Module::ATTR_AUTHOR, str) && !str.empty())
+      if (Properties->FindValue(Module::ATTR_AUTHOR, str) && !str.empty())
       {
         stream.SetAuthor(str);
       }
-      if (Params->FindValue(Module::ATTR_COMMENT, str) && !str.empty())
+      if (Properties->FindValue(Module::ATTR_COMMENT, str) && !str.empty())
       {
         stream.SetComment(str);
       }
@@ -253,8 +254,9 @@ namespace Sound::File
 
   private:
     const Parameters::Accessor::Ptr Params;
-    const FileParameters FileParams;
+    const Parameters::Accessor::Ptr Properties;
     const FileStreamFactory::Ptr Factory;
+    const FileParameters FileParams;
     const TrackStateTemplate FilenameTemplate;
     mutable String Filename;
   };
@@ -262,8 +264,10 @@ namespace Sound::File
   class BackendWorker : public Sound::BackendWorker
   {
   public:
-    BackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
+    BackendWorker(Parameters::Accessor::Ptr params, Parameters::Accessor::Ptr properties,
+                  FileStreamFactory::Ptr factory)
       : Params(std::move(params))
+      , Properties(std::move(properties))
       , Factory(std::move(factory))
       , Stream(Receiver::CreateStub())
     {}
@@ -271,7 +275,7 @@ namespace Sound::File
     // BackendWorker
     void Startup() override
     {
-      Source.reset(new StreamSource(Params, Factory));
+      Source.reset(new StreamSource(Params, Properties, Factory));
     }
 
     void Shutdown() override
@@ -313,6 +317,7 @@ namespace Sound::File
 
   private:
     const Parameters::Accessor::Ptr Params;
+    const Parameters::Accessor::Ptr Properties;
     const FileStreamFactory::Ptr Factory;
     std::unique_ptr<StreamSource> Source;
     Receiver::Ptr Stream;
@@ -321,9 +326,10 @@ namespace Sound::File
 
 namespace Sound
 {
-  BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, FileStreamFactory::Ptr factory)
+  BackendWorker::Ptr CreateFileBackendWorker(Parameters::Accessor::Ptr params, Parameters::Accessor::Ptr properties,
+                                             FileStreamFactory::Ptr factory)
   {
-    return MakePtr<File::BackendWorker>(params, factory);
+    return MakePtr<File::BackendWorker>(std::move(params), std::move(properties), std::move(factory));
   }
 }  // namespace Sound
 
