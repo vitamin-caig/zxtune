@@ -45,14 +45,15 @@ namespace Formats::Chiptune
             return CreateCalculatingCrcContainer(subData, 0, subData->Size());
           }
         }
-        return Container::Ptr();
+        return {};
       }
 
     private:
       bool ParseSignature()
       {
         static const uint8_t SIGNATURE[] = {'f', 'L', 'a', 'C'};
-        if (0 == std::memcmp(Stream.PeekRawData(sizeof(SIGNATURE)), SIGNATURE, sizeof(SIGNATURE)))
+        const auto* sign = Stream.PeekRawData(sizeof(SIGNATURE));
+        if (sign && 0 == std::memcmp(sign, SIGNATURE, sizeof(SIGNATURE)))
         {
           Stream.Skip(sizeof(SIGNATURE));
           return true;
@@ -170,14 +171,19 @@ namespace Formats::Chiptune
         {
           return 0;
         }
-        uint8_t crc = 0;
+        uint_t crc = 0;
         for (std::size_t idx = 0; idx < MAX_HEADER_SIZE; ++idx)
         {
           crc ^= hdr[idx];
           for (uint_t bit = 0; bit < 8; ++bit)
           {
-            crc = crc & 0x80 ? (crc << 1) ^ 0x7 : crc << 1;
+            crc <<= 1;
+            if (crc & 0x100)
+            {
+              crc ^= 0x7;
+            }
           }
+          crc &= 0xff;
           if (crc == 0)
           {
             return idx;

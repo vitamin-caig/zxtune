@@ -112,7 +112,8 @@ namespace Formats::Packed
         {
           return false;
         }
-        return *(header.Padding1 + depackerSize - 256 - 1) == 0xc9;
+        const auto retPos = static_cast<const uint8_t*>(header.Padding1) + depackerSize - 256 - 1;
+        return *retPos == 0xc9;
       }
 
       static_assert(sizeof(RawHeader) == 0x36, "Invalid layout");
@@ -354,8 +355,8 @@ namespace Formats::Packed
               for (const uint8_t base = *source; len; --len)
               {
                 const uint8_t data = *source;
-                *target = base + (data >> 4);
-                *target = base + (data & 0x0f);
+                *target = static_cast<uint8_t>(base + (data >> 4));
+                *target = static_cast<uint8_t>(base + (data & 0x0f));
               }
               break;
             case 0x14:
@@ -411,7 +412,7 @@ namespace Formats::Packed
         : Header(container.GetHeader())
         , DataOffset(0x14 + fromLE(Header.RestDepackerSize))
         , Delegate(container.FastCheck()
-                       ? new RawDataDecoder(Header.Padding1 + DataOffset, container.GetAvailableData() - DataOffset,
+                       ? new RawDataDecoder(static_cast<const uint8_t*>(Header.Padding1) + DataOffset, container.GetAvailableData() - DataOffset,
                                             fromLE(Header.ChunksCount))
                        : nullptr)
       {}
@@ -514,8 +515,9 @@ namespace Formats::Packed
       {
         try
         {
-          Bitstream stream(Header.Padding1 + DataOffset, availableSize);
-          const uint8_t* const table = Header.Padding1 + DataOffset - 256;
+          const auto* data = static_cast<const uint8_t*>(Header.Padding1) + DataOffset;
+          Bitstream stream(data, availableSize);
+          const auto* table = data - 256;
           for (uint_t packedBytes = fromLE(Header.PackedDataSize); packedBytes; --packedBytes)
           {
             const uint_t idx = stream.GetIndex();

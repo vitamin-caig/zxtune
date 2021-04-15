@@ -191,7 +191,8 @@ namespace Formats::Packed
           }
         }
         // last bytes are always copied from exact address
-        const uint8_t* const lastBytes = Header.BitStream + fromLE(Header.SizeOfPacked) - sizeof(Header.DstAddress);
+        const auto* lastBytes =
+            static_cast<const uint8_t*>(Header.BitStream) + fromLE(Header.SizeOfPacked) - sizeof(Header.DstAddress);
         std::copy(lastBytes, lastBytes + LAST_BYTES_COUNT, std::back_inserter(Decoded));
         return true;
       }

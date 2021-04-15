@@ -25,7 +25,7 @@ struct Byteorder<2>
 
   inline static Type Swap(Type a)
   {
-    return (a << 8) | (a >> 8);
+    return Type(a << 8) | Type(a >> 8);
   }
 
   inline static Type ReadLE(const uint8_t* in)
