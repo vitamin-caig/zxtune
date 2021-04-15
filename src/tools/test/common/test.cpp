@@ -55,6 +55,35 @@ namespace
       Test(type + " LE", ReadLE<T>(buf), result);
       Test(type + " BE", ReadBE<T>(buf), orig);
     }
+
+    WriteLE(orig, buf);
+    Test(type + " LE -> LE", ReadLE<T>(buf), orig);
+    Test(type + " LE -> BE", ReadBE<T>(buf), result);
+    WriteBE(orig, buf);
+    Test(type + " BE -> LE", ReadLE<T>(buf), result);
+    Test(type + " BE -> BE", ReadBE<T>(buf), orig);
+
+    Test<T>(type + " BE<>(0)", BE<T>(), 0);
+    Test<T>(type + " BE<>()", BE<T>(orig), orig);
+
+    Test<T>(type + " LE<>(0)", LE<T>(), 0);
+    Test<T>(type + " LE<>()", LE<T>(orig), orig);
+
+    union {
+      LE<T> le;
+      BE<T> be;
+    } united;
+    std::memcpy(&united, &orig, sizeof(orig));
+    if (isLE())
+    {
+      Test<T>(type + " LE<>", united.le, orig);
+      Test<T>(type + " BE<>", united.be, result);
+    }
+    else
+    {
+      Test<T>(type + " LE<>", united.le, result);
+      Test<T>(type + " BE<>", united.be, orig);
+    }
   }
 
   void Test(const String& msg, bool val)
