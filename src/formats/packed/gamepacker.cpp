@@ -35,44 +35,38 @@ namespace Formats::Packed
       static const std::size_t MIN_SIZE = 0x20;  // TODO
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         //+0
         char Padding1;
         //+1
-        uint16_t DepackerBodyAddr;
+        le_uint16_t DepackerBodyAddr;
         //+3
         char Padding2[5];
         //+8
-        uint16_t DepackerBodySize;
+        le_uint16_t DepackerBodySize;
         //+a
         char Padding3[3];
         //+d
-        uint16_t EndOfPackedSource;
+        le_uint16_t EndOfPackedSource;
         //+f
         char Padding4[4];
         //+13
-        uint16_t PackedSize;
+        le_uint16_t PackedSize;
         //+15
 
         uint_t GetPackedDataOffset() const
         {
-          const uint_t selfAddr = fromLE(DepackerBodyAddr) - 0x1d;
-          const uint_t packedDataStart = fromLE(EndOfPackedSource) - fromLE(PackedSize) + 1;
+          const uint_t selfAddr = DepackerBodyAddr - 0x1d;
+          const uint_t packedDataStart = EndOfPackedSource - PackedSize + 1;
           return packedDataStart - selfAddr;
         }
 
         uint_t GetPackedDataSize() const
         {
-          return fromLE(PackedSize);
+          return PackedSize;
         }
-      } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      };
     };
 
     struct Version2
@@ -81,39 +75,33 @@ namespace Formats::Packed
       static const std::size_t MIN_SIZE = 0x20;  // TODO
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         //+0
         char Padding1;
         //+1
-        uint16_t DepackerBodyAddr;
+        le_uint16_t DepackerBodyAddr;
         //+3
         char Padding2[4];
         //+7
-        uint16_t DepackerBodySize;
+        le_uint16_t DepackerBodySize;
         //+9
         char Padding3[5];
         //+e
-        uint16_t PackedSource;
+        le_uint16_t PackedSource;
         //+10
 
         uint_t GetPackedDataOffset() const
         {
-          const uint_t selfAddr = fromLE(DepackerBodyAddr) - 0x0d;
-          return fromLE(PackedSource) - selfAddr;
+          const uint_t selfAddr = DepackerBodyAddr - 0x0d;
+          return PackedSource - selfAddr;
         }
 
         uint_t GetPackedDataSize() const
         {
           return 0;
         }
-      } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      };
     };
 
     const StringView Version1::DESCRIPTION = "GamePacker"_sv;
@@ -162,8 +150,8 @@ namespace Formats::Packed
         // 1310fc18c5
         ""_sv;
 
-    static_assert(sizeof(Version1::RawHeader) == 0x15, "Invalid layout");
-    static_assert(sizeof(Version2::RawHeader) == 0x10, "Invalid layout");
+    static_assert(sizeof(Version1::RawHeader) * alignof(Version1::RawHeader) == 0x15, "Invalid layout");
+    static_assert(sizeof(Version2::RawHeader) * alignof(Version2::RawHeader) == 0x10, "Invalid layout");
 
     template<class Version>
     class Container

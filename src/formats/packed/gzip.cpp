@@ -45,15 +45,12 @@ namespace Formats::Packed
       HAS_COMMENT = 16
     };
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Header
+    struct Header
     {
       SignatureType Signature;
       uint8_t CompressionMethod;
       uint8_t Flags;
-      uint32_t ModTime;
+      le_uint32_t ModTime;
       uint8_t ExtraFlags;
       uint8_t OSType;
 
@@ -81,18 +78,15 @@ namespace Formats::Packed
       {
         return 0 != (Flags & HAS_COMMENT);
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct Footer
+    struct Footer
     {
-      uint32_t Crc32;
-      uint32_t OriginalSize;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      le_uint32_t Crc32;
+      le_uint32_t OriginalSize;
+    };
 
-    static_assert(sizeof(Header) == 10, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 10, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header) + 2 + sizeof(Footer);
 
@@ -157,7 +151,7 @@ namespace Formats::Packed
         if (auto result = output.CaptureResult())
         {
           const Gzip::Footer footer = input.ReadField<Gzip::Footer>();
-          Require(result->Size() == fromLE(footer.OriginalSize));
+          Require(result->Size() == footer.OriginalSize);
           // TODO: check CRC
           return CreateContainer(std::move(result), input.GetPosition());
         }

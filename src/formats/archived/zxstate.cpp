@@ -322,8 +322,8 @@ namespace Formats::Archived
       {
         DataBlockDescription romBlk;
         romBlk.Content = ch.Data;
-        romBlk.Size = fromLE(ch.FlashSize);
-        romBlk.IsCompressed = 0 != (fromLE(ch.Flags) & ch.COMPRESSED);
+        romBlk.Size = ch.FlashSize;
+        romBlk.IsCompressed = 0 != (ch.Flags & ch.COMPRESSED);
         romBlk.UncompressedSize = ch.DUMPSIZE;
         if (!visitor.Visit(ch, ROM_SUFFIX, romBlk))
         {
@@ -333,7 +333,7 @@ namespace Formats::Archived
         DataBlockDescription ramBlk;
         ramBlk.Content = romDescr + 1;
         ramBlk.Size = *romDescr;
-        ramBlk.IsCompressed = 0 != (fromLE(ch.Flags) & ch.COMPRESSED_RAM);
+        ramBlk.IsCompressed = 0 != (ch.Flags & ch.COMPRESSED_RAM);
         ramBlk.UncompressedSize = ch.DUMPSIZE;
         return visitor.Visit(ch, RAM_SUFFIX, ramBlk);
       }
@@ -344,18 +344,18 @@ namespace Formats::Archived
         typedef ChunkTraits<ChunkType> Traits;
         DataBlockDescription ramBlk;
         ramBlk.Content = Traits::GetData(ch);
-        ramBlk.Size = fromLE(ch.RamDataSize);
+        ramBlk.Size = ch.RamDataSize;
         ramBlk.IsCompressed = Traits::IsDataCompressed(ch);
         ramBlk.UncompressedSize = ch.RAMSIZE;
         if (!visitor.Visit(ch, RAM_SUFFIX, ramBlk))
         {
           return false;
         }
-        if (0 != (fromLE(ch.Flags) & ch.CUSTOMROM))
+        if (0 != (ch.Flags & ch.CUSTOMROM))
         {
           DataBlockDescription romBlk;
           romBlk.Content = Traits::GetData(ch) + ramBlk.Size;
-          romBlk.Size = fromLE(ch.RomDataSize);
+          romBlk.Size = ch.RomDataSize;
           romBlk.IsCompressed = Traits::IsDataCompressed(ch);
           romBlk.UncompressedSize = ch.ROMSIZE;
           if (!visitor.Visit(ch, ROM_SUFFIX, romBlk))
@@ -405,7 +405,7 @@ namespace Formats::Archived
             return nullptr;
           }
           const Chunk& chunk = Stream.ReadField<Chunk>();
-          const std::size_t chunkSize = fromLE(chunk.Size);
+          const std::size_t chunkSize = chunk.Size;
           if (rest < sizeof(Chunk) + chunkSize)
           {
             return nullptr;
@@ -627,7 +627,7 @@ namespace Formats::Archived
       class DataBlocksAdapter
       {
       public:
-        DataBlocksAdapter(DataBlocks& delegate, uint32_t type)
+        DataBlocksAdapter(DataBlocks& delegate, const Identifier& type)
           : Delegate(delegate)
           , Rampages(type == ChunkRAMPAGE::SIGNATURE)
         {}

@@ -21,23 +21,20 @@ namespace Formats
   {
     namespace Zip
     {
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct GenericHeader
+      struct GenericHeader
       {
         static const uint16_t SIGNATURE = 0x4b50;
 
         //+0
-        uint16_t Signature;
-      } PACK_POST;
+        le_uint16_t Signature;
+      };
 
-      PACK_PRE struct FileAttributes
+      struct FileAttributes
       {
-        uint32_t CRC;
-        uint32_t CompressedSize;
-        uint32_t UncompressedSize;
-      } PACK_POST;
+        le_uint32_t CRC;
+        le_uint32_t CompressedSize;
+        le_uint32_t UncompressedSize;
+      };
 
       enum
       {
@@ -51,164 +48,162 @@ namespace Formats
         FILE_UTF8 = 0x800
       };
 
-      PACK_PRE struct LocalFileHeader
+      struct LocalFileHeader
       {
         static const uint32_t SIGNATURE = 0x04034b50;
 
         //+0
-        uint32_t Signature;
+        le_uint32_t Signature;
         //+4
-        uint16_t VersionToExtract;
+        le_uint16_t VersionToExtract;
         //+6
-        uint16_t Flags;
+        le_uint16_t Flags;
         //+8
-        uint16_t CompressionMethod;
+        le_uint16_t CompressionMethod;
         //+a
-        uint16_t ModificationTime;
+        le_uint16_t ModificationTime;
         //+c
-        uint16_t ModificationDate;
+        le_uint16_t ModificationDate;
         //+e
         FileAttributes Attributes;
         //+1a
-        uint16_t NameSize;
+        le_uint16_t NameSize;
         //+1c
-        uint16_t ExtraSize;
+        le_uint16_t ExtraSize;
         //+1e
         char Name[1];
 
         bool IsValid() const
         {
-          return fromLE(Signature) == SIGNATURE;
+          return Signature == SIGNATURE;
         }
 
         std::size_t GetSize() const
         {
-          return offsetof(LocalFileHeader, Name) + fromLE(NameSize) + fromLE(ExtraSize);
+          return offsetof(LocalFileHeader, Name) + NameSize + ExtraSize;
         }
 
         bool IsSupported() const
         {
-          const uint_t flags = fromLE(Flags);
-          return 0 == (flags & FILE_CRYPTED);
+          return 0 == (Flags & FILE_CRYPTED);
         }
-      } PACK_POST;
+      };
 
-      PACK_PRE struct LocalFileFooter
+      struct LocalFileFooter
       {
         static const uint32_t SIGNATURE = 0x08074b50;
 
         //+0
-        uint32_t Signature;
+        le_uint32_t Signature;
         //+4
         FileAttributes Attributes;
-      } PACK_POST;
+      };
 
-      PACK_PRE struct ExtraDataRecord
+      struct ExtraDataRecord
       {
         static const uint32_t SIGNATURE = 0x08064b50;
 
         //+0
-        uint32_t Signature;
+        le_uint32_t Signature;
         //+4
-        uint32_t DataSize;
+        le_uint32_t DataSize;
         //+8
         uint8_t Data[1];
 
         std::size_t GetSize() const
         {
-          return sizeof(*this) - 1 + fromLE(DataSize);
+          return sizeof(*this) - 1 + DataSize;
         }
-      } PACK_POST;
+      };
 
-      PACK_PRE struct CentralDirectoryFileHeader
+      struct CentralDirectoryFileHeader
       {
         static const uint32_t SIGNATURE = 0x02014b50;
 
         //+0
-        uint32_t Signature;
+        le_uint32_t Signature;
         //+4
-        uint16_t VersionMadeBy;
+        le_uint16_t VersionMadeBy;
         //+6
-        uint16_t VersionToExtract;
+        le_uint16_t VersionToExtract;
         //+8
-        uint16_t Flags;
+        le_uint16_t Flags;
         //+a
-        uint16_t CompressionMethod;
+        le_uint16_t CompressionMethod;
         //+c
-        uint16_t ModificationTime;
+        le_uint16_t ModificationTime;
         //+e
-        uint16_t ModificationDate;
+        le_uint16_t ModificationDate;
         //+10
         FileAttributes Attributes;
         //+1c
-        uint16_t NameSize;
+        le_uint16_t NameSize;
         //+1e
-        uint16_t ExtraSize;
+        le_uint16_t ExtraSize;
         //+20
-        uint16_t CommentSize;
+        le_uint16_t CommentSize;
         //+22
-        uint16_t StartDiskNumber;
+        le_uint16_t StartDiskNumber;
         //+24
-        uint16_t InternalFileAttributes;
+        le_uint16_t InternalFileAttributes;
         //+26
-        uint32_t ExternalFileAttributes;
+        le_uint32_t ExternalFileAttributes;
         //+2a
-        uint32_t LocalHeaderRelOffset;
+        le_uint32_t LocalHeaderRelOffset;
         //+2e
         char Name[1];
 
         std::size_t GetSize() const
         {
-          return offsetof(CentralDirectoryFileHeader, Name) + fromLE(NameSize) + fromLE(ExtraSize)
-                 + fromLE(CommentSize);
+          return offsetof(CentralDirectoryFileHeader, Name) + NameSize + ExtraSize + CommentSize;
         }
-      } PACK_POST;
+      };
 
-      PACK_PRE struct CentralDirectoryEnd
+      struct CentralDirectoryEnd
       {
         static const uint32_t SIGNATURE = 0x06054b50;
 
         //+0
-        uint32_t Signature;
+        le_uint32_t Signature;
         //+4
-        uint16_t ThisDiskNumber;
+        le_uint16_t ThisDiskNumber;
         //+6
-        uint16_t StartDiskNumber;
+        le_uint16_t StartDiskNumber;
         //+8
-        uint16_t ThisDiskCentralDirectoriesCount;
+        le_uint16_t ThisDiskCentralDirectoriesCount;
         //+a
-        uint16_t TotalDirectoriesCount;
+        le_uint16_t TotalDirectoriesCount;
         //+c
-        uint32_t CentralDirectorySize;
+        le_uint32_t CentralDirectorySize;
         //+10
-        uint32_t CentralDirectoryOffset;
-        //+12
-        uint16_t CommentSize;
+        le_uint32_t CentralDirectoryOffset;
         //+14
+        le_uint16_t CommentSize;
+        //+16
         // uint8_t Comment[0];
 
         std::size_t GetSize() const
         {
-          return sizeof(*this) + fromLE(CommentSize);
+          return sizeof(*this) + CommentSize;
         }
-      } PACK_POST;
+      };
 
-      PACK_PRE struct DigitalSignature
+      struct DigitalSignature
       {
         static const uint32_t SIGNATURE = 0x05054b50;
 
         //+0
-        uint32_t Signature;
+        le_uint32_t Signature;
         //+4
-        uint16_t DataSize;
+        le_uint16_t DataSize;
         //+6
         uint8_t Data[1];
 
         std::size_t GetSize() const
         {
-          return sizeof(*this) - 1 + fromLE(DataSize);
+          return sizeof(*this) - 1 + DataSize;
         }
-      } PACK_POST;
+      };
 
       class CompressedFile
       {
@@ -220,9 +215,15 @@ namespace Formats
 
         static std::unique_ptr<const CompressedFile> Create(const LocalFileHeader& hdr, std::size_t availSize);
       };
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+
+      static_assert(sizeof(GenericHeader) * alignof(GenericHeader) == 2, "Wrong layout");
+      static_assert(sizeof(FileAttributes) * alignof(FileAttributes) == 12, "Wrong layout");
+      static_assert(sizeof(LocalFileHeader) * alignof(LocalFileHeader) == 0x1f, "Wrong layout");
+      static_assert(sizeof(LocalFileFooter) * alignof(LocalFileFooter) == 16, "Wrong layout");
+      static_assert(sizeof(ExtraDataRecord) * alignof(ExtraDataRecord) == 9, "Wrong layout");
+      static_assert(sizeof(CentralDirectoryFileHeader) * alignof(CentralDirectoryFileHeader) == 0x2f, "Wrong layout");
+      static_assert(sizeof(CentralDirectoryEnd) * alignof(CentralDirectoryEnd) == 0x16, "Wrong layout");
+      static_assert(sizeof(DigitalSignature) * alignof(DigitalSignature) == 7, "Wrong layout");
     }  // namespace Zip
   }    // namespace Packed
 }  // namespace Formats

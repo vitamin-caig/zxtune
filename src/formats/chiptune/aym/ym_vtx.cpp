@@ -32,9 +32,6 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::YM");
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
     typedef std::array<uint8_t, 14> RegistersDump;
     typedef std::array<uint8_t, 4> IdentifierType;
 
@@ -54,11 +51,11 @@ namespace Formats::Chiptune
     {
       const uint8_t ID[] = {'Y', 'M', '2', '!'};
 
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         IdentifierType Signature;
         RegistersDump Row;
-      } PACK_POST;
+      };
 
       const std::size_t MIN_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MIN;
       const std::size_t MAX_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MAX;
@@ -78,11 +75,11 @@ namespace Formats::Chiptune
     {
       const uint8_t ID[] = {'Y', 'M', '3', '!'};
 
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         IdentifierType Signature;
         RegistersDump Row;
-      } PACK_POST;
+      };
 
       const std::size_t MIN_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MIN;
       const std::size_t MAX_SIZE = sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MAX;
@@ -102,11 +99,11 @@ namespace Formats::Chiptune
     {
       const uint8_t ID[] = {'Y', 'M', '3', 'b'};
 
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         IdentifierType Signature;
         RegistersDump Row;
-      } PACK_POST;
+      };
 
       const std::size_t MIN_SIZE =
           sizeof(IdentifierType) + sizeof(RegistersDump) * INTFREQ_DEFAULT * DURATION_MIN + sizeof(uint32_t);
@@ -131,32 +128,32 @@ namespace Formats::Chiptune
       typedef std::array<uint8_t, 16> RegistersDump;
       typedef std::array<uint8_t, 4> Footer;
 
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         uint8_t Signature[12];
-        uint32_t Frames;
-        uint32_t Attrs;
-        uint16_t SamplesCount;
-        uint32_t Clockrate;
-        uint16_t IntFreq;
-        uint32_t Loop;
-        uint16_t ExtraSize;
+        be_uint32_t Frames;
+        be_uint32_t Attrs;
+        be_uint16_t SamplesCount;
+        be_uint32_t Clockrate;
+        be_uint16_t IntFreq;
+        be_uint32_t Loop;
+        be_uint16_t ExtraSize;
 
         bool Interleaved() const
         {
-          return 0 != (fromLE(Attrs) & 0x01000000);
+          return 0 != (Attrs & 0x01);
         }
 
         bool DrumsSigned() const
         {
-          return 0 != (fromLE(Attrs) & 0x02000000);
+          return 0 != (Attrs & 0x02);
         }
 
         bool Drums4Bit() const
         {
-          return 0 != (fromLE(Attrs) & 0x04000000);
+          return 0 != (Attrs & 0x04);
         }
-      } PACK_POST;
+      };
 
       const std::size_t MIN_SIZE = sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MIN * DURATION_MIN;
       const std::size_t MAX_SIZE = sizeof(RawHeader) + sizeof(RegistersDump) * INTFREQ_MAX * DURATION_MAX;
@@ -184,14 +181,14 @@ namespace Formats::Chiptune
 
     namespace Compressed
     {
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         uint8_t HeaderSize;
         uint8_t HeaderSum;
         std::array<char, 5> Method;
-        uint32_t PackedSize;
-        uint32_t OriginalSize;
-        uint32_t Time;
+        le_uint32_t PackedSize;
+        le_uint32_t OriginalSize;
+        le_uint32_t Time;
         uint8_t Attribute;
         uint8_t Level;
         uint8_t NameLen;
@@ -200,7 +197,7 @@ namespace Formats::Chiptune
         {
           return offsetof(RawHeader, Method) + HeaderSize;
         }
-      } PACK_POST;
+      };
 
       const std::size_t FOOTER_SIZE = 1;
 
@@ -209,11 +206,11 @@ namespace Formats::Chiptune
         if (const auto hdr = data.As<RawHeader>())
         {
           const std::size_t hdrLen = hdr->GetDataOffset();
-          if (hdrLen + fromLE(hdr->PackedSize) + FOOTER_SIZE > data.Size())
+          if (hdrLen + hdr->PackedSize + FOOTER_SIZE > data.Size())
           {
             return false;
           }
-          const std::size_t origSize = fromLE(hdr->OriginalSize);
+          const std::size_t origSize = hdr->OriginalSize;
           return Math::InRange(origSize, Ver2::MIN_SIZE, Ver2::MAX_SIZE)
                  || Math::InRange(origSize, Ver3::MIN_SIZE, Ver3::MAX_SIZE)
                  || Math::InRange(origSize, Ver3b::MIN_SIZE, Ver3b::MAX_SIZE)
@@ -225,9 +222,12 @@ namespace Formats::Chiptune
         }
       }
     }  // namespace Compressed
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+
+    static_assert(sizeof(Ver2::RawHeader) * alignof(Ver2::RawHeader) == 18, "Invalid layout");
+    static_assert(sizeof(Ver3::RawHeader) * alignof(Ver3::RawHeader) == 18, "Invalid layout");
+    static_assert(sizeof(Ver3b::RawHeader) * alignof(Ver3b::RawHeader) == 18, "Invalid layout");
+    static_assert(sizeof(Ver5::RawHeader) * alignof(Ver5::RawHeader) == 34, "Invalid layout");
+    static_assert(sizeof(Compressed::RawHeader) * alignof(Compressed::RawHeader) == 22, "Invalid layout");
 
     class StubBuilder : public Builder
     {
@@ -330,16 +330,16 @@ namespace Formats::Chiptune
             return {};
           }
           target.SetVersion(String(header.Signature, header.Signature + sizeof(IdentifierType)));
-          target.SetClockrate(fromBE(header.Clockrate));
-          target.SetIntFreq(fromBE(header.IntFreq));
-          target.SetLoop(fromBE(header.Loop));
+          target.SetClockrate(header.Clockrate);
+          target.SetIntFreq(header.IntFreq);
+          target.SetLoop(header.Loop);
           target.SetTitle(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
           target.SetAuthor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
           target.SetComment(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
 
           const std::size_t dumpOffset = stream.GetPosition();
           const std::size_t dumpSize = size - sizeof(Ver5::Footer) - dumpOffset;
-          const std::size_t lines = fromBE(header.Frames);
+          const std::size_t lines = header.Frames;
           Dbg("ymver5: dump started at %1%, size %2%, vtbls %3%", dumpOffset, dumpSize, lines);
           const std::size_t columns = sizeof(Ver5::RegistersDump);
           const std::size_t matrixSize = dumpSize;
@@ -383,9 +383,9 @@ namespace Formats::Chiptune
       }
       const Compressed::RawHeader& hdr = *data.As<Compressed::RawHeader>();
       const std::size_t packedOffset = hdr.GetDataOffset();
-      const std::size_t packedSize = fromLE(hdr.PackedSize);
+      const std::size_t packedSize = hdr.PackedSize;
       const auto packed = rawData.GetSubcontainer(packedOffset, packedSize);
-      const std::size_t unpackedSize = fromLE(hdr.OriginalSize);
+      const std::size_t unpackedSize = hdr.OriginalSize;
       const String method(hdr.Method.data(), hdr.Method.size());
       if (const auto unpacked = Formats::Packed::Lha::DecodeRawData(*packed, method, unpackedSize))
       {
@@ -510,38 +510,32 @@ namespace Formats::Chiptune
     const uint_t UNPACKED_MIN = sizeof(RegistersDump) * INTFREQ_MIN * 1;        // 1 sec
     const uint_t UNPACKED_MAX = sizeof(RegistersDump) * INTFREQ_MAX * 30 * 60;  // 30 min
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawBasicHeader
+    struct RawBasicHeader
     {
-      uint16_t ChipType;
+      le_uint16_t ChipType;
       uint8_t LayoutMode;
-      uint16_t Loop;
-      uint32_t Clockrate;
+      le_uint16_t Loop;
+      le_uint32_t Clockrate;
       uint8_t IntFreq;
-    } PACK_POST;
+    };
 
     // Use aggregation over inheritance to keep type POD
-    PACK_PRE struct RawNewHeader
+    struct RawNewHeader
     {
       RawBasicHeader Basic;
-      uint16_t Year;
-      uint32_t UnpackedSize;
-    } PACK_POST;
+      le_uint16_t Year;
+      le_uint32_t UnpackedSize;
+    };
 
-    PACK_PRE struct RawOldHeader
+    struct RawOldHeader
     {
       RawBasicHeader Basic;
-      uint32_t UnpackedSize;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      le_uint32_t UnpackedSize;
+    };
 
-    static_assert(sizeof(RawBasicHeader) == 10, "Invalid layout");
-    static_assert(sizeof(RawNewHeader) == 16, "Invalid layout");
-    static_assert(sizeof(RawOldHeader) == 14, "Invalid layout");
+    static_assert(sizeof(RawBasicHeader) * alignof(RawBasicHeader) == 10, "Invalid layout");
+    static_assert(sizeof(RawNewHeader) * alignof(RawNewHeader) == 16, "Invalid layout");
+    static_assert(sizeof(RawOldHeader) * alignof(RawOldHeader) == 14, "Invalid layout");
 
     template<class HeaderType>
     bool FastCheck(const HeaderType& hdr)
@@ -554,11 +548,11 @@ namespace Formats::Chiptune
       {
         return false;
       }
-      if (!Math::InRange<uint_t>(fromLE(hdr.Basic.Clockrate), CLOCKRATE_MIN, CLOCKRATE_MAX))
+      if (!Math::InRange<uint_t>(hdr.Basic.Clockrate, CLOCKRATE_MIN, CLOCKRATE_MAX))
       {
         return false;
       }
-      if (!Math::InRange<uint_t>(fromLE(hdr.UnpackedSize), UNPACKED_MIN, UNPACKED_MAX))
+      if (!Math::InRange<uint_t>(hdr.UnpackedSize, UNPACKED_MIN, UNPACKED_MAX))
       {
         return false;
       }
@@ -569,7 +563,7 @@ namespace Formats::Chiptune
     {
       if (const auto* basic = data.As<RawBasicHeader>())
       {
-        const uint16_t type = fromLE(basic->ChipType);
+        const uint16_t type = basic->ChipType;
         if (type == CHIP_AY || type == CHIP_YM)
         {
           if (const auto* hdr = data.As<RawNewHeader>())
@@ -599,13 +593,13 @@ namespace Formats::Chiptune
       {
         Binary::InputStream stream(rawData);
         const RawBasicHeader& hdr = stream.ReadField<VTX::RawBasicHeader>();
-        const uint_t chipType = fromLE(hdr.ChipType);
+        const uint_t chipType = hdr.ChipType;
         const bool ym = chipType == CHIP_YM || chipType == CHIP_YM_OLD;
         const bool newVersion = chipType == CHIP_YM || chipType == CHIP_AY;
         target.SetChipType(ym);
         target.SetStereoMode(hdr.LayoutMode);
-        target.SetLoop(fromLE(hdr.Loop));
-        target.SetClockrate(fromLE(hdr.Clockrate));
+        target.SetLoop(hdr.Loop);
+        target.SetClockrate(hdr.Clockrate);
         target.SetIntFreq(hdr.IntFreq);
         if (newVersion)
         {

@@ -31,35 +31,32 @@ namespace Formats::Packed
     const std::size_t MAX_MODULE_SIZE = 0x3a00;
     const std::size_t MAX_PLAYER_SIZE = 1700;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
     typedef std::array<uint8_t, 63> InfoData;
 
-    PACK_PRE struct PlayerVer0
+    struct PlayerVer0
     {
       uint8_t Padding1[12];
-      uint16_t InitAddr;
+      le_uint16_t InitAddr;
       uint8_t Padding2;
-      uint16_t PlayAddr;
+      le_uint16_t PlayAddr;
       uint8_t Padding3;
-      uint16_t ShutAddr;
+      le_uint16_t ShutAddr;
       //+20
       InfoData Information;
       //+83
       uint8_t Initialization;
       uint8_t Padding4[29];
-      uint16_t DataAddr;
+      le_uint16_t DataAddr;
 
       std::size_t GetSize() const
       {
-        const uint_t initAddr = fromLE(InitAddr);
+        const uint_t initAddr = InitAddr;
         const uint_t compileAddr = initAddr - offsetof(PlayerVer0, Initialization);
-        return fromLE(DataAddr) - compileAddr;
+        return DataAddr - compileAddr;
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct PlayerVer2
+    struct PlayerVer2
     {
       uint8_t Padding1[20];
       //+20
@@ -68,16 +65,13 @@ namespace Formats::Packed
       uint8_t Initialization;
       uint8_t Padding2[40];
       //+124
-      uint16_t DataOffset;
+      le_uint16_t DataOffset;
 
       std::size_t GetSize() const
       {
         return DataOffset;
       }
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
     static_assert(offsetof(PlayerVer0, Information) == 20, "Invalid layout");
     static_assert(offsetof(PlayerVer0, Initialization) == 83, "Invalid layout");

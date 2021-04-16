@@ -43,10 +43,7 @@ namespace Formats::Chiptune
 
     const uint8_t SIGNATURE[] = {'C', 'H', 'I', 'P', 'v'};
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Header
+    struct Header
     {
       uint8_t Signature[5];
       std::array<char, 3> Version;
@@ -54,21 +51,21 @@ namespace Formats::Chiptune
       uint8_t Tempo;
       uint8_t Length;
       uint8_t Loop;
-      PACK_PRE struct SampleDescr
+      struct SampleDescr
       {
-        uint16_t Loop;
-        uint16_t Length;
-      } PACK_POST;
+        le_uint16_t Loop;
+        le_uint16_t Length;
+      };
       std::array<SampleDescr, SAMPLES_COUNT> Samples;
       uint8_t Reserved[21];
       std::array<std::array<char, 8>, SAMPLES_COUNT> SampleNames;
       std::array<uint8_t, 256> Positions;
-    } PACK_POST;
+    };
 
     const uint_t NOTE_EMPTY = 0;
     const uint_t NOTE_BASE = 1;
     const uint_t PAUSE = 63;
-    PACK_PRE struct Note
+    struct Note
     {
       // NNNNNNCC
       // N - note
@@ -99,7 +96,7 @@ namespace Formats::Chiptune
       }
 
       uint8_t NoteCmd;
-    } PACK_POST;
+    };
 
     typedef std::array<Note, CHANNELS_COUNT> NoteRow;
 
@@ -112,7 +109,7 @@ namespace Formats::Chiptune
       SPECIAL = 3
     };
 
-    PACK_PRE struct NoteParam
+    struct NoteParam
     {
       // SSSSPPPP
       // S - sample
@@ -128,21 +125,18 @@ namespace Formats::Chiptune
       }
 
       uint8_t SampParam;
-    } PACK_POST;
+    };
 
     typedef std::array<NoteParam, CHANNELS_COUNT> NoteParamRow;
 
-    PACK_PRE struct Pattern
+    struct Pattern
     {
       std::array<NoteRow, MAX_PATTERN_SIZE> Notes;
       std::array<NoteParamRow, MAX_PATTERN_SIZE> Params;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(Header) == 512, "Invalid layout");
-    static_assert(sizeof(Pattern) == 512, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 512, "Invalid layout");
+    static_assert(sizeof(Pattern) * alignof(Pattern) == 512, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header) + sizeof(Pattern) + 256;  // single pattern and single sample
 
@@ -314,8 +308,8 @@ namespace Formats::Chiptune
         for (uint_t samIdx = 0; samIdx != Source.Samples.size(); ++samIdx)
         {
           const Header::SampleDescr& descr = Source.Samples[samIdx];
-          const std::size_t loop = fromLE(descr.Loop);
-          const std::size_t size = fromLE(descr.Length);
+          const std::size_t loop = descr.Loop;
+          const std::size_t size = descr.Length;
           const std::size_t availSize = std::min(memLeft, size);
           if (availSize)
           {

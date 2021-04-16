@@ -33,35 +33,32 @@ namespace Formats::Packed
       static const StringView DESCRIPTION;
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         //+0
         char Padding1[2];
         //+2
-        uint16_t DepackerBodySrc;
+        le_uint16_t DepackerBodySrc;
         //+4
         char Padding2;
         //+5
-        uint16_t DepackerBodyDst;
+        le_uint16_t DepackerBodyDst;
         //+7
         char Padding3;
         //+8
-        uint16_t DepackerBodySize;
+        le_uint16_t DepackerBodySize;
         //+0xa
         char Padding4[4];
         //+0xe
-        uint16_t PackedDataSrc;
+        le_uint16_t PackedDataSrc;
         //+0x10
         char Padding5;
         //+0x11
-        uint16_t PackedDataDst;
+        le_uint16_t PackedDataDst;
         //+0x13
         char Padding6;
         //+0x14
-        uint16_t PackedDataSize;
+        le_uint16_t PackedDataSize;
         //+0x16
         char Padding7;
         //+0x17
@@ -71,16 +68,13 @@ namespace Formats::Packed
         //+0x19
         char Padding8[2];
         //+0x1b
-        uint16_t DepackingDst;
+        le_uint16_t DepackingDst;
         //+0x1d
         char Padding9[0x3a];
         //+0x57
         uint8_t LastDepackedByte;
         //+0x58
-      } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      };
 
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
 
@@ -100,35 +94,32 @@ namespace Formats::Packed
       static const StringView DESCRIPTION;
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         //+0
         char Padding1[2];
         //+2
-        uint16_t DepackerBodySrc;
+        le_uint16_t DepackerBodySrc;
         //+4
         char Padding2;
         //+5
-        uint16_t DepackerBodyDst;
+        le_uint16_t DepackerBodyDst;
         //+7
         char Padding3;
         //+8
-        uint16_t DepackerBodySize;
+        le_uint16_t DepackerBodySize;
         //+0xa
         char Padding4[4];
         //+0xe
-        uint16_t PackedDataSrc;
+        le_uint16_t PackedDataSrc;
         //+0x10
         char Padding5;
         //+0x11
-        uint16_t PackedDataDst;
+        le_uint16_t PackedDataDst;
         //+0x13
         char Padding6;
         //+0x14
-        uint16_t PackedDataSize;
+        le_uint16_t PackedDataSize;
         //+0x16
         char Padding7;
         //+0x17
@@ -138,16 +129,13 @@ namespace Formats::Packed
         //+0x19
         char Padding8[2];
         //+0x1b
-        uint16_t DepackingDst;
+        le_uint16_t DepackingDst;
         //+0x1d
         char Padding9[0x38];
         //+0x55
         uint8_t LastDepackedByte;
         //+0x56
-      } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      };
 
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
 
@@ -227,9 +215,9 @@ namespace Formats::Packed
         "6f"    // ld l,a
         ""_sv;
 
-    static_assert(sizeof(Version1::RawHeader) == 0x58, "Invalid layout");
+    static_assert(sizeof(Version1::RawHeader) * alignof(Version1::RawHeader) == 0x58, "Invalid layout");
     static_assert(offsetof(Version1::RawHeader, DepackerBody) == 0x17, "Invalid layout");
-    static_assert(sizeof(Version2::RawHeader) == 0x56, "Invalid layout");
+    static_assert(sizeof(Version2::RawHeader) * alignof(Version2::RawHeader) == 0x56, "Invalid layout");
     static_assert(offsetof(Version2::RawHeader, DepackerBody) == 0x17, "Invalid layout");
 
     template<class Version>
@@ -248,8 +236,8 @@ namespace Formats::Packed
           return false;
         }
         const typename Version::RawHeader& header = GetHeader();
-        const DataMovementChecker checker(fromLE(header.PackedDataSrc), fromLE(header.PackedDataDst),
-                                          fromLE(header.PackedDataSize), header.PackedDataCopyDirection);
+        const DataMovementChecker checker(header.PackedDataSrc, header.PackedDataDst, header.PackedDataSize,
+                                          header.PackedDataCopyDirection);
         if (!checker.IsValid())
         {
           return false;
@@ -265,22 +253,20 @@ namespace Formats::Packed
       uint_t GetUsedSize() const
       {
         const typename Version::RawHeader& header = GetHeader();
-        return offsetof(typename Version::RawHeader, DepackerBody) + fromLE(header.DepackerBodySize)
-               + fromLE(header.PackedDataSize);
+        return offsetof(typename Version::RawHeader, DepackerBody) + header.DepackerBodySize + header.PackedDataSize;
       }
 
       const uint8_t* GetPackedData() const
       {
         const typename Version::RawHeader& header = GetHeader();
-        const std::size_t fixedSize =
-            offsetof(typename Version::RawHeader, DepackerBody) + fromLE(header.DepackerBodySize);
+        const std::size_t fixedSize = offsetof(typename Version::RawHeader, DepackerBody) + header.DepackerBodySize;
         return Data + fixedSize;
       }
 
       std::size_t GetPackedSize() const
       {
         const typename Version::RawHeader& header = GetHeader();
-        return fromLE(header.PackedDataSize);
+        return header.PackedDataSize;
       }
 
       const typename Version::RawHeader& GetHeader() const

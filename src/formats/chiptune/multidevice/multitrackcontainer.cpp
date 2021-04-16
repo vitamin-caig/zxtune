@@ -42,19 +42,15 @@ namespace IFF
     const Type PROPERTY = {{'P', 'R', 'O', 'P'}};
   }  // namespace Identifier
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-  PACK_PRE struct ChunkHeader
+  struct ChunkHeader
   {
     Identifier::Type Id;
-    uint32_t DataSize;
-  } PACK_POST;
+    be_uint32_t DataSize;
+  };
+
+  static_assert(sizeof(ChunkHeader) * alignof(ChunkHeader) == 8, "Invalid layout");
 
   const std::size_t ALIGNMENT = 2;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
 
   class Visitor
   {
@@ -75,7 +71,7 @@ namespace IFF
         break;
       }
       const ChunkHeader& header = stream.ReadField<ChunkHeader>();
-      const std::size_t dataSize = fromBE(header.DataSize);
+      const std::size_t dataSize = header.DataSize;
       if (stream.GetRestSize() < dataSize)
       {
         break;
@@ -121,7 +117,7 @@ namespace IFF
       const std::size_t size = Size();
       ChunkHeader& hdr = builder.Add<ChunkHeader>();
       hdr.Id = Id;
-      hdr.DataSize = fromBE<uint32_t>(size);
+      hdr.DataSize = size;
       if (size)
       {
         std::memcpy(builder.Allocate(Math::Align(size, ALIGNMENT)), Start(), size);
@@ -207,7 +203,7 @@ namespace IFF
     {
       ChunkHeader& hdr = builder.Add<ChunkHeader>();
       hdr.Id = Id;
-      hdr.DataSize = fromBE<uint32_t>(TotalSize);
+      hdr.DataSize = TotalSize;
       for (const auto& src : Sources)
       {
         src->GetResult(builder);

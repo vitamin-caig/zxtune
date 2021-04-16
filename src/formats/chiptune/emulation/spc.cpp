@@ -111,21 +111,18 @@ namespace Formats::Chiptune
     const auto MAX_FADE_TIME = Time::Seconds(999);
     const auto MAX_FADE_DURATION = Time::Milliseconds(99999);
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Registers
+    struct Registers
     {
-      uint16_t PC;
+      le_uint16_t PC;
       uint8_t A;
       uint8_t X;
       uint8_t Y;
       uint8_t PSW;
       uint8_t SP;
-      uint16_t Reserved;
-    } PACK_POST;
+      le_uint16_t Reserved;
+    };
 
-    PACK_PRE struct ID666TextTag
+    struct ID666TextTag
     {
       // +0x00
       std::array<char, 32> Song;
@@ -172,13 +169,13 @@ namespace Formats::Chiptune
         const auto val = ToInt(str);
         return Time::Milliseconds(val);
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct BinaryDate
+    struct BinaryDate
     {
       uint8_t Day;
       uint8_t Month;
-      uint16_t Year;
+      le_uint16_t Year;
 
       bool IsEmpty() const
       {
@@ -188,18 +185,17 @@ namespace Formats::Chiptune
       bool IsValid() const
       {
         return Math::InRange<uint_t>(Day, 1, 31) && Math::InRange<uint_t>(Month, 1, 12)
-               && Math::InRange<uint_t>(fromLE(Year), 1980, 2100);
+               && Math::InRange<uint_t>(Year, 1980, 2100);
       }
 
       String ToString() const
       {
-        return (IsEmpty() || !IsValid())
-                   ? String()
-                   : Strings::Format("%02u/%02u/%04u", uint_t(Month), uint_t(Day), uint_t(fromLE(Year)));
+        return (IsEmpty() || !IsValid()) ? String()
+                                         : Strings::Format("%02u/%02u/%04u", uint_t(Month), uint_t(Day), uint_t(Year));
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct ID666BinTag
+    struct ID666BinTag
     {
       // +0x00
       std::array<char, 32> Song;
@@ -216,7 +212,7 @@ namespace Formats::Chiptune
       // +0x7b
       uint8_t FadeTimeSec[3];
       // +0x7e
-      uint32_t FadeDurationMs;
+      le_uint32_t FadeDurationMs;
       // +0x82
       std::array<char, 32> Artist;
       uint8_t DisableDefaultChannel;  // 1-do
@@ -241,18 +237,18 @@ namespace Formats::Chiptune
 
       Time::Milliseconds GetFadeDuration() const
       {
-        return Time::Milliseconds(fromLE(FadeDurationMs));
+        return Time::Milliseconds(FadeDurationMs);
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct ExtraRAM
+    struct ExtraRAM
     {
       // usually at +0x10180
       uint8_t Unused[64];
       uint8_t Data[64];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       SignatureType Signature;
       uint8_t VersionString[5];  // vX.XX or 0.10\00
@@ -270,22 +266,22 @@ namespace Formats::Chiptune
       uint8_t RAM[65536];
       //+0x10100
       uint8_t DSPRegisters[128];
-    } PACK_POST;
+    };
 
     typedef std::array<uint8_t, 4> IFFId;
     const IFFId XID6 = {{'x', 'i', 'd', '6'}};
 
-    PACK_PRE struct IFFChunkHeader
+    struct IFFChunkHeader
     {
       IFFId ID;  // xid6
-      uint32_t DataSize;
-    } PACK_POST;
+      le_uint32_t DataSize;
+    };
 
-    PACK_PRE struct SubChunkHeader
+    struct SubChunkHeader
     {
       uint8_t ID;
       uint8_t Type;
-      uint16_t DataSize;
+      le_uint16_t DataSize;
 
       enum Types
       {
@@ -329,7 +325,7 @@ namespace Formats::Chiptune
 
       uint_t GetDataSize() const
       {
-        return Type != Length ? fromLE(DataSize) : 0;
+        return Type != Length ? uint_t(DataSize) : 0;
       }
 
       BinaryDate GetDate() const
@@ -344,11 +340,11 @@ namespace Formats::Chiptune
       {
         if (Type == Length)
         {
-          return fromLE(DataSize);
+          return DataSize;
         }
         else if (Type == Integer)
         {
-          return fromLE(*safe_ptr_cast<const uint32_t*>(this + 1));
+          return *safe_ptr_cast<const le_uint32_t*>(this + 1);
         }
         else
         {
@@ -367,7 +363,7 @@ namespace Formats::Chiptune
         if (Type == Asciiz)
         {
           const char* const start = safe_ptr_cast<const char*>(this + 1);
-          const char* const end = start + fromLE(DataSize);
+          const char* const end = start + DataSize;
           const StringView val = end[-1] ? StringView(start, end) : StringView(start);
           return Strings::OptimizeAscii(val);
         }
@@ -377,18 +373,15 @@ namespace Formats::Chiptune
           return String();
         }
       }
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(Registers) == 9, "Invalid layout");
-    static_assert(sizeof(ID666TextTag) == 0xd2, "Invalid layout");
-    static_assert(sizeof(ID666BinTag) == 0xd2, "Invalid layout");
-    static_assert(sizeof(RawHeader) == 0x10180, "Invalid layout");
-    static_assert(sizeof(ExtraRAM) == 0x80, "Invalid layout");
-    static_assert(sizeof(IFFChunkHeader) == 8, "Invalid layout");
-    static_assert(sizeof(SubChunkHeader) == 4, "Invalid layout");
+    static_assert(sizeof(Registers) * alignof(Registers) == 9, "Invalid layout");
+    static_assert(sizeof(ID666TextTag) * alignof(ID666TextTag) == 0xd2, "Invalid layout");
+    static_assert(sizeof(ID666BinTag) * alignof(ID666BinTag) == 0xd2, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x10180, "Invalid layout");
+    static_assert(sizeof(ExtraRAM) * alignof(ExtraRAM) == 0x80, "Invalid layout");
+    static_assert(sizeof(IFFChunkHeader) * alignof(IFFChunkHeader) == 8, "Invalid layout");
+    static_assert(sizeof(SubChunkHeader) * alignof(SubChunkHeader) == 4, "Invalid layout");
 
     class StubBuilder : public Builder
     {
@@ -499,7 +492,7 @@ namespace Formats::Chiptune
         const RawHeader& hdr = Stream.ReadField<RawHeader>();
         Require(hdr.Signature == SIGNATURE);
         ParseID666(hdr.ID666, target);
-        target.SetRegisters(fromLE(hdr.Regs.PC), hdr.Regs.A, hdr.Regs.X, hdr.Regs.Y, hdr.Regs.PSW, hdr.Regs.SP);
+        target.SetRegisters(hdr.Regs.PC, hdr.Regs.A, hdr.Regs.X, hdr.Regs.Y, hdr.Regs.PSW, hdr.Regs.SP);
         target.SetRAM(hdr.RAM);
         target.SetDSPRegisters(hdr.DSPRegisters);
         if (Stream.GetRestSize() >= sizeof(ExtraRAM))
@@ -515,7 +508,7 @@ namespace Formats::Chiptune
             && Stream.GetRestSize() >= sizeof(IFFChunkHeader))
         {
           const IFFChunkHeader& hdr = Stream.ReadField<IFFChunkHeader>();
-          const std::size_t size = fromLE(hdr.DataSize);
+          const std::size_t size = hdr.DataSize;
           if (hdr.ID == XID6 && Stream.GetRestSize() >= size)
           {
             const auto chunks = Stream.ReadData(size);
@@ -582,7 +575,7 @@ namespace Formats::Chiptune
             }
             else
             {
-              Dbg("ParseSubchunk id=%u, type=%u, size=%u", uint_t(hdr->ID), uint_t(hdr->Type), fromLE(hdr->DataSize));
+              Dbg("ParseSubchunk id=%u, type=%u, size=%u", uint_t(hdr->ID), uint_t(hdr->Type), uint_t(hdr->DataSize));
               stream.Skip(sizeof(*hdr) + hdr->GetDataSize());
               ParseSubchunk(*hdr, target);
             }

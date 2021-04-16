@@ -25,45 +25,42 @@ namespace Formats::Packed
 {
   namespace DSK
   {
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
     typedef std::array<uint8_t, 34> DiskSignatureType;
 
     const DiskSignatureType DISK_SIGNATURE = {{'M', 'V', ' ', '-', ' ', 'C', 'P', 'C', 'E',  'M',  'U',  ' ',
                                                'D', 'i', 's', 'k', '-', 'F', 'i', 'l', 'e',  '\r', '\n', 'D',
                                                'i', 's', 'k', '-', 'I', 'n', 'f', 'o', '\r', '\n'}};
 
-    PACK_PRE struct DiskInformationBlock
+    struct DiskInformationBlock
     {
       DiskSignatureType Signature;
       uint8_t Creator[14];
       uint8_t Tracks;
       uint8_t Sides;
-      uint16_t TrackSize;
+      le_uint16_t TrackSize;
       uint8_t Unused[204];
 
       uint_t GetTrackSize() const
       {
-        return fromLE(TrackSize);
+        return TrackSize;
       }
-    } PACK_POST;
+    };
 
     typedef std::array<uint8_t, 12> TrackSignatureType;
 
     const TrackSignatureType TRACK_SIGNATURE = {{'T', 'r', 'a', 'c', 'k', '-', 'I', 'n', 'f', 'o', '\r', '\n'}};
 
-    PACK_PRE struct TrackInformationBlock
+    struct TrackInformationBlock
     {
-      PACK_PRE struct SectorInfo
+      struct SectorInfo
       {
         uint8_t Track;
         uint8_t Side;
         uint8_t Sector;
         uint8_t Size;
         uint8_t FDCStatus[2];
-        uint16_t ActualDataSize;
-      } PACK_POST;
+        le_uint16_t ActualDataSize;
+      };
 
       TrackSignatureType Signature;
       uint8_t Unused[4];
@@ -75,13 +72,13 @@ namespace Formats::Packed
       uint8_t GAPLength;
       uint8_t Filler;
       std::array<SectorInfo, 29> Sectors;
-    } PACK_POST;
+    };
 
     const DiskSignatureType EXTENDED_DISK_SIGNATURE = {{'E', 'X', 'T', 'E', 'N', 'D', 'E', 'D', ' ',  'C',  'P',  'C',
                                                         ' ', 'D', 'S', 'K', ' ', 'F', 'i', 'l', 'e',  '\r', '\n', 'D',
                                                         'i', 's', 'k', '-', 'I', 'n', 'f', 'o', '\r', '\n'}};
 
-    PACK_PRE struct ExtendedDiskInformationBlock
+    struct ExtendedDiskInformationBlock
     {
       DiskSignatureType Signature;
       uint8_t Creator[14];
@@ -94,15 +91,14 @@ namespace Formats::Packed
       {
         return 256 * TrackSizes[trackIdx];
       }
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(DiskInformationBlock) == 256, "Invalid layout");
-    static_assert(sizeof(TrackInformationBlock::SectorInfo) == 8, "Invalid layout");
-    static_assert(sizeof(TrackInformationBlock) == 256, "Invalid layout");
-    static_assert(sizeof(ExtendedDiskInformationBlock) == 256, "Invalid layout");
+    static_assert(sizeof(DiskInformationBlock) * alignof(DiskInformationBlock) == 256, "Invalid layout");
+    static_assert(sizeof(TrackInformationBlock::SectorInfo) * alignof(TrackInformationBlock::SectorInfo) == 8,
+                  "Invalid layout");
+    static_assert(sizeof(TrackInformationBlock) * alignof(TrackInformationBlock) == 256, "Invalid layout");
+    static_assert(sizeof(ExtendedDiskInformationBlock) * alignof(ExtendedDiskInformationBlock) == 256,
+                  "Invalid layout");
 
     inline std::size_t GetSectorDataSize(uint_t sectorSize)
     {
@@ -199,7 +195,7 @@ namespace Formats::Packed
         for (uint_t sector = 0; sector != trackInfo.SectorsCount; ++sector)
         {
           const TrackInformationBlock::SectorInfo& sectorInfo = trackInfo.Sectors[sector];
-          if (const std::size_t sectorSize = fromLE(sectorInfo.ActualDataSize))
+          if (const std::size_t sectorSize = sectorInfo.ActualDataSize)
           {
             const auto sectorData = trackStream.ReadData(sectorSize).As<uint8_t>();
             Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector),

@@ -28,32 +28,26 @@ namespace Formats::Chiptune
   {
     const std::size_t MAX_REGISTERS = 14;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct BufferDescription
+    struct BufferDescription
     {
       uint8_t SizeHi;
-      uint16_t Offset;
+      le_uint16_t Offset;
 
       std::size_t GetAbsoluteOffset(uint_t idx) const
       {
-        return fromLE(Offset) + idx * sizeof(*this) + 4;
+        return Offset + idx * sizeof(*this) + 4;
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct Header
+    struct Header
     {
-      uint16_t Duration;
+      le_uint16_t Duration;
       std::array<BufferDescription, MAX_REGISTERS> Buffers;
       uint8_t Reserved[6];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(BufferDescription) == 3, "Invalid layout");
-    static_assert(sizeof(Header) == 50, "Invalid layout");
+    static_assert(sizeof(BufferDescription) * alignof(BufferDescription) == 3, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 50, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header) + 14;
 
@@ -152,7 +146,7 @@ namespace Formats::Chiptune
 
       uint_t ReadCounter()
       {
-        const uint8_t val = -ReadByte();
+        const uint8_t val = static_cast<uint8_t>(-ReadByte());
         return val ? val : 256;
       }
 
@@ -243,7 +237,7 @@ namespace Formats::Chiptune
         const auto* begin = data.As<uint8_t>();
         const uint8_t* const end = begin + size;
         const auto& header = *data.As<Header>();
-        const uint_t frames = fromLE(header.Duration);
+        const uint_t frames = header.Duration;
         target.SetFrames(frames);
         std::size_t usedBegin = size;
         std::size_t usedEnd = 0;

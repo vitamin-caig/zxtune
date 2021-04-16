@@ -43,14 +43,11 @@ namespace Formats::Chiptune
     const std::size_t SAMPLE_SIZE = 32;
     const std::size_t ORNAMENT_SIZE = 32;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawSample
+    struct RawSample
     {
       uint8_t Loop;
       uint8_t LoopSize;
-      PACK_PRE struct Line
+      struct Line
       {
         // nnnnvvvv
         uint8_t VolumeAndNoise;
@@ -89,13 +86,13 @@ namespace Formats::Chiptune
           const int delta = int_t(Delta) | ((Flags & 15) << 8);
           return 0 != (Flags & 16) ? delta : -delta;
         }
-      } PACK_POST;
+      };
       Line Data[SAMPLE_SIZE];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPosEntry
+    struct RawPosEntry
     {
-      PACK_PRE struct Channel
+      struct Channel
       {
         // 0 is end
         // Eppppppp
@@ -126,33 +123,36 @@ namespace Formats::Chiptune
         {
           return 0 != (Pattern & 128);
         }
-      } PACK_POST;
+      };
 
       Channel ChannelC;
       Channel ChannelB;
       Channel ChannelA;
       uint8_t Tempo;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawOrnament
+    struct RawOrnament
     {
       uint8_t Loop;
       uint8_t LoopSize;
       std::array<int8_t, ORNAMENT_SIZE> Lines;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
-      uint16_t Size;
-      uint16_t SamplesOffset;
-      uint16_t OrnamentsOffset;
-      uint16_t PatternsOffset;
-      uint16_t PositionsOffset;
-      uint16_t LoopPositionOffset;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      le_uint16_t Size;
+      le_uint16_t SamplesOffset;
+      le_uint16_t OrnamentsOffset;
+      le_uint16_t PatternsOffset;
+      le_uint16_t PositionsOffset;
+      le_uint16_t LoopPositionOffset;
+    };
+
+    static_assert(sizeof(RawSample::Line) * alignof(RawSample::Line) == 3, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 98, "Invalid layout");
+    static_assert(sizeof(RawPosEntry) * alignof(RawPosEntry) == 7, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 34, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 12, "Invalid layout");
 
     class StubBuilder : public Builder
     {
@@ -355,7 +355,7 @@ namespace Formats::Chiptune
 
     std::size_t GetFixDelta(const RawHeader& hdr)
     {
-      const uint_t samplesAddr = fromLE(hdr.SamplesOffset);
+      const uint_t samplesAddr = hdr.SamplesOffset;
       // since ornaments,samples and patterns tables are 1-based, real delta is 2 bytes shorter
       const uint_t delta = offsetof(RawHeader, LoopPositionOffset);
       Require(samplesAddr >= delta);
@@ -381,8 +381,8 @@ namespace Formats::Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        const std::size_t loopPositionOffset = fromLE(Source.LoopPositionOffset) - Delta;
-        std::size_t posOffset = fromLE(Source.PositionsOffset) - Delta;
+        const std::size_t loopPositionOffset = Source.LoopPositionOffset - Delta;
+        std::size_t posOffset = Source.PositionsOffset - Delta;
         Positions result;
         for (uint_t pos = 0;; ++pos)
         {
@@ -500,27 +500,27 @@ namespace Formats::Chiptune
 
       std::size_t GetPatternOffset(uint_t index) const
       {
-        const std::size_t entryAddr = fromLE(Source.PatternsOffset) + index * sizeof(uint16_t);
+        const std::size_t entryAddr = Source.PatternsOffset + index * sizeof(uint16_t);
         Require(entryAddr >= Delta);
-        const std::size_t patternAddr = fromLE(GetServiceObject<uint16_t>(entryAddr - Delta));
+        const std::size_t patternAddr = GetServiceObject<le_uint16_t>(entryAddr - Delta);
         Require(patternAddr >= Delta);
         return patternAddr - Delta;
       }
 
       const RawSample& GetSample(uint_t index) const
       {
-        const std::size_t entryAddr = fromLE(Source.SamplesOffset) + index * sizeof(uint16_t);
+        const std::size_t entryAddr = Source.SamplesOffset + index * sizeof(uint16_t);
         Require(entryAddr >= Delta);
-        const std::size_t sampleAddr = fromLE(GetServiceObject<uint16_t>(entryAddr - Delta));
+        const std::size_t sampleAddr = GetServiceObject<le_uint16_t>(entryAddr - Delta);
         Require(sampleAddr >= Delta);
         return GetObject<RawSample>(sampleAddr - Delta);
       }
 
       const RawOrnament& GetOrnament(uint_t index) const
       {
-        const std::size_t entryAddr = fromLE(Source.OrnamentsOffset) + index * sizeof(uint16_t);
+        const std::size_t entryAddr = Source.OrnamentsOffset + index * sizeof(uint16_t);
         Require(entryAddr >= Delta);
-        const std::size_t ornamentAddr = fromLE(GetServiceObject<uint16_t>(entryAddr - Delta));
+        const std::size_t ornamentAddr = GetServiceObject<le_uint16_t>(entryAddr - Delta);
         Require(ornamentAddr >= Delta);
         return GetObject<RawOrnament>(ornamentAddr - Delta);
       }
@@ -776,19 +776,19 @@ namespace Formats::Chiptune
       {
         const auto& hdr = *data.As<RawHeader>();
         AddArea(HEADER, 0);
-        const std::size_t sample1AddrOffset = fromLE(hdr.SamplesOffset) + sizeof(uint16_t) - unfixDelta;
+        const std::size_t sample1AddrOffset = hdr.SamplesOffset + sizeof(uint16_t) - unfixDelta;
         AddArea(SAMPLES_OFFSETS, sample1AddrOffset);
-        const std::size_t ornament1AddrOffset = fromLE(hdr.OrnamentsOffset) + sizeof(uint16_t) - unfixDelta;
+        const std::size_t ornament1AddrOffset = hdr.OrnamentsOffset + sizeof(uint16_t) - unfixDelta;
         if (hdr.OrnamentsOffset != hdr.PatternsOffset)
         {
           AddArea(ORNAMENTS_OFFSETS, ornament1AddrOffset);
         }
-        const std::size_t pattern1AddOffset = fromLE(hdr.PatternsOffset) + sizeof(uint16_t) - unfixDelta;
+        const std::size_t pattern1AddOffset = hdr.PatternsOffset + sizeof(uint16_t) - unfixDelta;
         AddArea(PATTERNS_OFFSETS, pattern1AddOffset);
-        AddArea(POSITIONS, fromLE(hdr.PositionsOffset) - unfixDelta);
+        AddArea(POSITIONS, hdr.PositionsOffset - unfixDelta);
         if (hdr.PositionsOffset != hdr.LoopPositionOffset)
         {
-          AddArea(LOOPED_POSITION, fromLE(hdr.LoopPositionOffset) - unfixDelta);
+          AddArea(LOOPED_POSITION, hdr.LoopPositionOffset - unfixDelta);
         }
         AddArea(END, size);
         if (!CheckHeader())
@@ -797,12 +797,12 @@ namespace Formats::Chiptune
         }
         if (CheckSamplesOffsets())
         {
-          const std::size_t sample1Addr = fromLE(*data.SubView(sample1AddrOffset).As<uint16_t>()) - unfixDelta;
+          const std::size_t sample1Addr = *data.SubView(sample1AddrOffset).As<le_uint16_t>() - unfixDelta;
           AddArea(SAMPLES, sample1Addr);
         }
         if (CheckOrnamentsOffsets())
         {
-          const std::size_t ornament1Addr = fromLE(*data.SubView(ornament1AddrOffset).As<uint16_t>()) - unfixDelta;
+          const std::size_t ornament1Addr = *data.SubView(ornament1AddrOffset).As<le_uint16_t>() - unfixDelta;
           AddArea(ORNAMENTS, ornament1Addr);
         }
       }
@@ -909,11 +909,11 @@ namespace Formats::Chiptune
         return false;
       }
       const std::size_t minSamplesAddr = offsetof(RawHeader, LoopPositionOffset);
-      const std::size_t samplesAddr = fromLE(hdr->SamplesOffset);
-      const std::size_t ornamentAddr = fromLE(hdr->OrnamentsOffset);
-      const std::size_t patternAddr = fromLE(hdr->PatternsOffset);
-      const std::size_t positionAddr = fromLE(hdr->PositionsOffset);
-      const std::size_t loopPosAddr = fromLE(hdr->LoopPositionOffset);
+      const std::size_t samplesAddr = hdr->SamplesOffset;
+      const std::size_t ornamentAddr = hdr->OrnamentsOffset;
+      const std::size_t patternAddr = hdr->PatternsOffset;
+      const std::size_t positionAddr = hdr->PositionsOffset;
+      const std::size_t loopPosAddr = hdr->LoopPositionOffset;
       if (samplesAddr < minSamplesAddr || samplesAddr >= ornamentAddr || ornamentAddr > patternAddr
           || patternAddr >= positionAddr || positionAddr > loopPosAddr)
       {

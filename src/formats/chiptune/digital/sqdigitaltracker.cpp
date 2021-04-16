@@ -46,14 +46,11 @@ namespace Formats::Chiptune
     const std::size_t SAMPLES_ADDR = 0xc000;
     const std::size_t SAMPLES_LIMIT = 0x10000;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Pattern
+    struct Pattern
     {
-      PACK_PRE struct Line
+      struct Line
       {
-        PACK_PRE struct Channel
+        struct Channel
         {
           uint8_t NoteCmd;
           uint8_t SampleEffect;
@@ -112,7 +109,7 @@ namespace Formats::Chiptune
           {
             return SampleEffect >> 4;
           }
-        } PACK_POST;
+        };
 
         Channel Channels[CHANNELS_COUNT];
 
@@ -120,28 +117,28 @@ namespace Formats::Chiptune
         {
           return Channels[0].IsEmpty() && Channels[1].IsEmpty() && Channels[2].IsEmpty() && Channels[3].IsEmpty();
         }
-      } PACK_POST;
+      };
 
       Line Lines[MAX_PATTERN_SIZE];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct SampleInfo
+    struct SampleInfo
     {
-      uint16_t Start;
-      uint16_t Loop;
+      le_uint16_t Start;
+      le_uint16_t Loop;
       uint8_t IsLooped;
       uint8_t Bank;
       uint8_t Padding[2];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct LayoutInfo
+    struct LayoutInfo
     {
-      uint16_t Address;
+      le_uint16_t Address;
       uint8_t Bank;
       uint8_t Sectors;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct Header
+    struct Header
     {
       //+0
       uint8_t SamplesData[0x80];
@@ -176,12 +173,9 @@ namespace Formats::Chiptune
       //+0x400
       std::array<Pattern, PATTERNS_COUNT> Patterns;
       //+0x4400
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(Header) == 0x4400, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 0x4400, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
@@ -359,7 +353,7 @@ namespace Formats::Chiptune
         for (std::size_t layIdx = 0, cursor = sizeof(Source); layIdx != Source.Layouts.size(); ++layIdx)
         {
           const LayoutInfo& layout = Source.Layouts[layIdx];
-          const std::size_t addr = fromLE(layout.Address);
+          const std::size_t addr = layout.Address;
           const std::size_t size = 256 * layout.Sectors;
           if (addr >= BIG_SAMPLE_ADDR && addr + size <= SAMPLES_LIMIT)
           {
@@ -373,8 +367,8 @@ namespace Formats::Chiptune
         {
           const uint_t samIdx = *it;
           const SampleInfo& info = Source.Samples[samIdx];
-          const std::size_t rawAddr = fromLE(info.Start);
-          const std::size_t rawLoop = fromLE(info.Loop);
+          const std::size_t rawAddr = info.Start;
+          const std::size_t rawLoop = info.Loop;
           if (rawAddr < BIG_SAMPLE_ADDR || rawLoop < rawAddr)
           {
             Dbg("Skip sample %1%", samIdx);

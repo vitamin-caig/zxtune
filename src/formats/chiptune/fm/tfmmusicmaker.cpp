@@ -41,10 +41,7 @@ namespace Formats::Chiptune
     const std::size_t CHANNELS_COUNT = 6;
     const std::size_t EFFECTS_COUNT = 4;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct PackedDate
+    struct PackedDate
     {
       uint8_t YearMonth;
       uint8_t MonthDay;
@@ -63,16 +60,16 @@ namespace Formats::Chiptune
       {
         return MonthDay >> 3;
       }
-    } PACK_POST;
+    };
 
     using InstrumentName = std::array<char, 16>;
 
-    PACK_PRE struct RawInstrument
+    struct RawInstrument
     {
       uint8_t Algorithm;
       uint8_t Feedback;
 
-      PACK_PRE struct Operator
+      struct Operator
       {
         uint8_t Multiple;
         int8_t Detune;
@@ -84,10 +81,10 @@ namespace Formats::Chiptune
         uint8_t ReleaseRate;
         uint8_t SustainLevel;
         uint8_t Envelope;
-      } PACK_POST;
+      };
 
       std::array<Operator, 4> Operators;
-    } PACK_POST;
+    };
 
     enum Effects
     {
@@ -232,7 +229,7 @@ namespace Formats::Chiptune
     };
 
     template<class CellType>
-    PACK_PRE struct RawPatternType
+    struct RawPatternType
     {
       std::array<CellType, CHANNELS_COUNT> Channels;
 
@@ -243,7 +240,7 @@ namespace Formats::Chiptune
           Channels[chan].GetCell(idx, result.Channels[chan]);
         }
       }
-    } PACK_POST;
+    };
 
     struct Version05
     {
@@ -253,7 +250,7 @@ namespace Formats::Chiptune
       static const StringView DESCRIPTION;
       static const StringView FORMAT;
 
-      PACK_PRE struct RawCell
+      struct RawCell
       {
         std::array<uint8_t, MAX_PATTERN_SIZE> Notes;
         std::array<uint8_t, MAX_PATTERN_SIZE> Volumes;
@@ -280,11 +277,11 @@ namespace Formats::Chiptune
             result.Effects[0] = Effect(code, param);
           }
         }
-      } PACK_POST;
+      };
 
       typedef RawPatternType<RawCell> RawPattern;
 
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         uint8_t Speeds;
         uint8_t SpeedInterleave;
@@ -292,7 +289,7 @@ namespace Formats::Chiptune
         uint8_t LoopPosition;
         PackedDate CreationDate;
         PackedDate SaveDate;
-        uint16_t SavesCount;
+        le_uint16_t SavesCount;
         std::array<char, 64> Author;
         std::array<char, 64> Title;
         std::array<char, 384> Comment;
@@ -311,7 +308,7 @@ namespace Formats::Chiptune
         {
           return Speeds & 15;
         }
-      } PACK_POST;
+      };
 
       static Instrument::Operator ParseInstrumentOperator(const RawInstrument::Operator& in)
       {
@@ -338,7 +335,7 @@ namespace Formats::Chiptune
       static const StringView DESCRIPTION;
       static const StringView FORMAT;
 
-      PACK_PRE struct RawCell
+      struct RawCell
       {
         struct RawEffect
         {
@@ -362,11 +359,11 @@ namespace Formats::Chiptune
             result.Effects[eff] = Effect(in.Code[line], in.Parameter[line]);
           }
         }
-      } PACK_POST;
+      };
 
       typedef RawPatternType<RawCell> RawPattern;
 
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         uint8_t Signature[8];
         uint8_t EvenSpeed;
@@ -376,7 +373,7 @@ namespace Formats::Chiptune
         uint8_t LoopPosition;
         PackedDate CreationDate;
         PackedDate SaveDate;
-        uint16_t SavesCount;
+        le_uint16_t SavesCount;
         std::array<char, 64> Author;
         std::array<char, 64> Title;
         std::array<char, 384> Comment;
@@ -395,7 +392,7 @@ namespace Formats::Chiptune
         {
           return OddSpeed;
         }
-      } PACK_POST;
+      };
 
       static Instrument::Operator ParseInstrumentOperator(const RawInstrument::Operator& in)
       {
@@ -435,12 +432,12 @@ namespace Formats::Chiptune
         "01-0f|81-8f"       // interleave or repeat
         ""_sv;
 
-    static_assert(sizeof(PackedDate) == 2, "Invalid layout");
-    static_assert(sizeof(RawInstrument) == 42, "Invalid layout");
-    static_assert(sizeof(Version05::RawPattern) == 7680, "Invalid layout");
-    static_assert(sizeof(Version05::RawHeader) == 1981904, "Invalid layout");
-    static_assert(sizeof(Version13::RawPattern) == 16896, "Invalid layout");
-    static_assert(sizeof(Version13::RawHeader) == 4341209, "Invalid layout");
+    static_assert(sizeof(PackedDate) * alignof(PackedDate) == 2, "Invalid layout");
+    static_assert(sizeof(RawInstrument) * alignof(RawInstrument) == 42, "Invalid layout");
+    static_assert(sizeof(Version05::RawPattern) * alignof(Version05::RawPattern) == 7680, "Invalid layout");
+    static_assert(sizeof(Version05::RawHeader) * alignof(Version05::RawHeader) == 1981904, "Invalid layout");
+    static_assert(sizeof(Version13::RawPattern) * alignof(Version13::RawPattern) == 16896, "Invalid layout");
+    static_assert(sizeof(Version13::RawHeader) * alignof(Version13::RawHeader) == 4341209, "Invalid layout");
 
     class StubBuilder : public Builder
     {

@@ -40,31 +40,28 @@ namespace Formats::Archived
 
     const uint8_t HRIP_ID[] = {'H', 'R', 'i'};
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Header
+    struct Header
     {
       uint8_t ID[3];  //'HRi'
       uint8_t FilesCount;
       uint8_t UsedInLastSector;
-      uint16_t ArchiveSectors;
+      le_uint16_t ArchiveSectors;
       uint8_t Catalogue;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct BlockHeader
+    struct BlockHeader
     {
       uint8_t ID[5];  //'Hrst2'
       uint8_t Flag;
-      uint16_t DataSize;
-      uint16_t PackedSize;  // without header
+      le_uint16_t DataSize;
+      le_uint16_t PackedSize;  // without header
       uint8_t AdditionalSize;
       // additional
-      uint16_t PackedCRC;
-      uint16_t DataCRC;
+      le_uint16_t PackedCRC;
+      le_uint16_t DataCRC;
       char Name[8];
       char Type[3];
-      uint16_t Filesize;
+      le_uint16_t Filesize;
       uint8_t Filesectors;
       uint8_t Subdir;
       char Comment[1];
@@ -76,12 +73,9 @@ namespace Formats::Archived
         LAST_BLOCK = 2,
         DELETED = 32
       };
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(Header) == 8, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 8, "Invalid layout");
     static_assert(offsetof(BlockHeader, PackedCRC) == 11, "Invalid layout");
 
     // crc16 calculating routine
@@ -121,11 +115,11 @@ namespace Formats::Archived
       files = hripHeader->FilesCount;
       if (hripHeader->Catalogue)
       {
-        archiveSize = 256 * fromLE(hripHeader->ArchiveSectors) + files * 16 + 6;
+        archiveSize = 256 * hripHeader->ArchiveSectors + files * 16 + 6;
       }
       else
       {
-        archiveSize = 256 * (fromLE(hripHeader->ArchiveSectors) - 1) + hripHeader->UsedInLastSector;
+        archiveSize = 256 * (hripHeader->ArchiveSectors - 1) + hripHeader->UsedInLastSector;
       }
       return true;
     }

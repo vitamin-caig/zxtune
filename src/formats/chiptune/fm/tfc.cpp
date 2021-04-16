@@ -32,20 +32,17 @@ namespace Formats::Chiptune
 
     const SignatureType SIGNATURE = {{'T', 'F', 'M', 'c', 'o', 'm'}};
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       SignatureType Sign;
       std::array<char, 3> Version;
       uint8_t IntFreq;
-      std::array<uint16_t, 6> Offsets;
+      std::array<le_uint16_t, 6> Offsets;
       uint8_t Reserved[12];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
+
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 34, "Invalid layout");
+
     const std::size_t MIN_SIZE = sizeof(RawHeader) + 3 + 6;  // header + 3 empty strings + 6 finish markers
     const std::size_t MAX_STRING_SIZE = 64;
     const std::size_t MAX_COMMENT_SIZE = 384;
@@ -79,9 +76,8 @@ namespace Formats::Chiptune
       }
       const auto& hdr = *rawData.As<RawHeader>();
       return hdr.Sign == SIGNATURE
-             && hdr.Offsets.end() == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(), [size](uint16_t o) {
-                  return fromLE(o) >= size;
-                });
+             && hdr.Offsets.end()
+                    == std::find_if(hdr.Offsets.begin(), hdr.Offsets.end(), [size](auto o) { return o >= size; });
     }
 
     const auto FORMAT =
@@ -166,7 +162,7 @@ namespace Formats::Chiptune
             Require(context.RepeatFrames == 0);
             Require(context.RetAddr == 0);
             context.RepeatFrames = Get<uint8_t>(cursor++);
-            const int_t offset = fromBE(Get<int16_t>(cursor));
+            const int_t offset = Get<be_int16_t>(cursor);
             context.RetAddr = cursor += 2;
             return AdvanceCursor(cursor, offset);
           }
@@ -182,7 +178,7 @@ namespace Formats::Chiptune
         const uint_t cmd = Get<uint8_t>(cursor++);
         if (0xbf == cmd)  //%10111111
         {
-          const int_t offset = fromBE(Get<int16_t>(cursor));
+          const int_t offset = Get<be_int16_t>(cursor);
           cursor += 2;
           ParseFrameData(AdvanceCursor(cursor, offset), target);
         }
@@ -241,7 +237,7 @@ namespace Formats::Chiptune
         }
         if (0 != (data & 0x01))
         {
-          const uint_t freq = fromBE(Get<uint16_t>(cursor));
+          const uint_t freq = Get<be_uint16_t>(cursor);
           cursor += 2;
           target.SetFreq(freq);
         }
@@ -305,7 +301,7 @@ namespace Formats::Chiptune
         {
           target.StartChannel(chan);
           Context context;
-          for (std::size_t cursor = fromLE(header.Offsets[chan]); cursor != 0;)
+          for (std::size_t cursor = header.Offsets[chan]; cursor != 0;)
           {
             if ((cursor = container.ParseFrameControl(cursor, target, context)))
             {

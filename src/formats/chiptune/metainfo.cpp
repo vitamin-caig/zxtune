@@ -71,10 +71,8 @@ namespace Formats::Chiptune
     template<class T>
     static void Fix(void* data, int_t delta)
     {
-      T* const ptr = static_cast<T*>(data);
-      const T val = fromLE(*ptr);
-      const T fixedVal = static_cast<T>(val + delta);
-      *ptr = fromLE(fixedVal);
+      auto* ptr = safe_ptr_cast<LE<T>*>(data);
+      *ptr = static_cast<T>(*ptr + delta);
     }
 
     void ApplyOverwrites(Binary::Dump& result) const

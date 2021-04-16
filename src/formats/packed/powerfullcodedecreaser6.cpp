@@ -36,34 +36,28 @@ namespace Formats::Packed
       static const StringView DESCRIPTION;
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         //+0
         uint8_t Padding1[0xe];
         //+0xe
-        uint16_t LastOfSrcPacked;
+        le_uint16_t LastOfSrcPacked;
         //+0x10
         uint8_t Padding2;
         //+0x11
-        uint16_t LastOfDstPacked;
+        le_uint16_t LastOfDstPacked;
         //+0x13
         uint8_t Padding3;
         //+0x14
-        uint16_t SizeOfPacked;
+        le_uint16_t SizeOfPacked;
         //+0x16
         uint8_t Padding4[0xb3];
         //+0xc9
         uint8_t LastBytes[3];
         uint8_t Bitstream[2];
-      } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      };
 
-      static_assert(sizeof(RawHeader) == 0xc9 + 3 + 2, "Invalid layout");
+      static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0xc9 + 3 + 2, "Invalid layout");
 
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
     };
@@ -73,34 +67,28 @@ namespace Formats::Packed
       static const StringView DESCRIPTION;
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         //+0
         uint8_t Padding1[0xe];
         //+0xe
-        uint16_t LastOfSrcPacked;
+        le_uint16_t LastOfSrcPacked;
         //+0x10
         uint8_t Padding2;
         //+0x11
-        uint16_t LastOfDstPacked;
+        le_uint16_t LastOfDstPacked;
         //+0x13
         uint8_t Padding3;
         //+0x14
-        uint16_t SizeOfPacked;
+        le_uint16_t SizeOfPacked;
         //+0x16
         uint8_t Padding4[0xab];
         //+0xc1
         uint8_t LastBytes[3];
         uint8_t Bitstream[2];
-      } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      };
 
-      static_assert(sizeof(RawHeader) == 0xc1 + 3 + 2, "Invalid layout");
+      static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0xc1 + 3 + 2, "Invalid layout");
 
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
     };
@@ -110,34 +98,28 @@ namespace Formats::Packed
       static const StringView DESCRIPTION;
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         //+0
         uint8_t Padding1[0x14];
         //+0x14
-        uint16_t LastOfSrcPacked;
+        le_uint16_t LastOfSrcPacked;
         //+0x16
         uint8_t Padding2;
         //+0x17
-        uint16_t LastOfDstPacked;
+        le_uint16_t LastOfDstPacked;
         //+0x19
         uint8_t Padding3;
         //+0x1a
-        uint16_t SizeOfPacked;
+        le_uint16_t SizeOfPacked;
         //+0x1c
         uint8_t Padding4[0xa8];
         //+0xc4
         uint8_t LastBytes[5];
         uint8_t Bitstream[2];
-      } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      };
 
-      static_assert(sizeof(RawHeader) == 0xc4 + 5 + 2, "Invalid layout");
+      static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0xc4 + 5 + 2, "Invalid layout");
 
       static const std::size_t MIN_SIZE = sizeof(RawHeader);
     };
@@ -263,7 +245,7 @@ namespace Formats::Packed
           return false;
         }
         const typename Version::RawHeader& header = GetHeader();
-        if (fromLE(header.SizeOfPacked) <= sizeof(header.LastBytes))
+        if (header.SizeOfPacked <= sizeof(header.LastBytes))
         {
           return false;
         }
@@ -461,7 +443,7 @@ namespace Formats::Packed
     private:
       bool DecodeData()
       {
-        Decoded.reserve(2 * fromLE(Header.SizeOfPacked));
+        Decoded.reserve(2 * Header.SizeOfPacked);
 
         if (!DecodeMainData())
         {

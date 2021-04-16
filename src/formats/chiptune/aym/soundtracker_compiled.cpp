@@ -49,43 +49,40 @@ namespace Formats::Chiptune
       Patterns data     max offset = 2348 (0x92c) max size ~32pat*64lin*3chan*2byte=0x3000
     */
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       uint8_t Tempo;
-      uint16_t PositionsOffset;
-      uint16_t OrnamentsOffset;
-      uint16_t PatternsOffset;
+      le_uint16_t PositionsOffset;
+      le_uint16_t OrnamentsOffset;
+      le_uint16_t PatternsOffset;
       std::array<char, 18> Identifier;
-      uint16_t Size;
-    } PACK_POST;
+      le_uint16_t Size;
+    };
 
-    PACK_PRE struct RawPositions
+    struct RawPositions
     {
       uint8_t Length;
-      PACK_PRE struct PosEntry
+      struct PosEntry
       {
         uint8_t PatternNum;
         int8_t Transposition;
-      } PACK_POST;
+      };
       PosEntry Data[1];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPattern
+    struct RawPattern
     {
       uint8_t Number;
-      std::array<uint16_t, 3> Offsets;
-    } PACK_POST;
+      std::array<le_uint16_t, 3> Offsets;
+    };
 
-    PACK_PRE struct RawOrnament
+    struct RawOrnament
     {
       uint8_t Number;
       std::array<int8_t, ORNAMENT_SIZE> Data;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawSample
+    struct RawSample
     {
       uint8_t Number;
       // EEEEaaaa
@@ -96,7 +93,7 @@ namespace Formats::Chiptune
       // N - noise mask, n- noise value
       // E - envelope mask
       // S - effect sign
-      PACK_PRE struct Line
+      struct Line
       {
         uint8_t EffHiAndLevel;
         uint8_t NoiseAndMasks;
@@ -127,20 +124,17 @@ namespace Formats::Chiptune
         {
           return 0 != (NoiseAndMasks & 64);
         }
-      } PACK_POST;
+      };
       Line Data[SAMPLE_SIZE];
       uint8_t Loop;
       uint8_t LoopSize;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 27, "Invalid layout");
-    static_assert(sizeof(RawPositions) == 3, "Invalid layout");
-    static_assert(sizeof(RawPattern) == 7, "Invalid layout");
-    static_assert(sizeof(RawOrnament) == 33, "Invalid layout");
-    static_assert(sizeof(RawSample) == 99, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 27, "Invalid layout");
+    static_assert(sizeof(RawPositions) * alignof(RawPositions) == 3, "Invalid layout");
+    static_assert(sizeof(RawPattern) * alignof(RawPattern) == 7, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 33, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 99, "Invalid layout");
 
     bool Starts(const StringView& str, const char* pat)
     {
@@ -327,7 +321,7 @@ namespace Formats::Chiptune
     private:
       RangeIterator<const RawPositions::PosEntry*> GetPositions() const
       {
-        const std::size_t offset = fromLE(Source.PositionsOffset);
+        const std::size_t offset = Source.PositionsOffset;
         const auto* positions = PeekObject<RawPositions>(offset);
         Require(positions != nullptr);
         const uint_t length = positions->Length + 1;
@@ -339,7 +333,7 @@ namespace Formats::Chiptune
 
       const RawPattern& GetPattern(uint_t index) const
       {
-        return GetObject<RawPattern>(index, fromLE(Source.PatternsOffset));
+        return GetObject<RawPattern>(index, Source.PatternsOffset);
       }
 
       const RawSample& GetSample(uint_t index) const
@@ -349,7 +343,7 @@ namespace Formats::Chiptune
 
       const RawOrnament& GetOrnament(uint_t index) const
       {
-        return GetObject<RawOrnament>(index, fromLE(Source.OrnamentsOffset));
+        return GetObject<RawOrnament>(index, Source.OrnamentsOffset);
       }
 
       template<class T>
@@ -379,7 +373,7 @@ namespace Formats::Chiptune
       {
         explicit DataCursors(const RawPattern& src)
         {
-          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), &fromLE<uint16_t>);
+          std::copy(src.Offsets.begin(), src.Offsets.end(), begin());
         }
       };
 
@@ -615,10 +609,10 @@ namespace Formats::Chiptune
       {
         AddArea(HEADER, 0);
         AddArea(SAMPLES, sizeof(header));
-        AddArea(POSITIONS, fromLE(header.PositionsOffset));
+        AddArea(POSITIONS, header.PositionsOffset);
         // first ornament can be overlapped by the other structures
-        AddArea(ORNAMENTS, fromLE(header.OrnamentsOffset));
-        AddArea(PATTERNS, fromLE(header.PatternsOffset));
+        AddArea(ORNAMENTS, header.OrnamentsOffset);
+        AddArea(PATTERNS, header.PatternsOffset);
         AddArea(END, size);
       }
 

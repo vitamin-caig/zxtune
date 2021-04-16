@@ -27,26 +27,23 @@ namespace Formats::Packed
   {
     typedef std::array<uint8_t, 16384> PageData;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Header
+    struct Header
     {
       uint8_t RegI;
-      uint16_t RegHL_;
-      uint16_t RegDE_;
-      uint16_t RegBC_;
-      uint16_t RegAF_;
-      uint16_t RegHL;
-      uint16_t RegDE;
-      uint16_t RegBC;
-      uint16_t RegIY;
-      uint16_t RegIX;
+      le_uint16_t RegHL_;
+      le_uint16_t RegDE_;
+      le_uint16_t RegBC_;
+      le_uint16_t RegAF_;
+      le_uint16_t RegHL;
+      le_uint16_t RegDE;
+      le_uint16_t RegBC;
+      le_uint16_t RegIY;
+      le_uint16_t RegIX;
       //+0x13 %000000xx
       uint8_t IFF;
       uint8_t RegR;
-      uint16_t RegAF;
-      uint16_t RegSP;
+      le_uint16_t RegAF;
+      le_uint16_t RegSP;
       //+0x19 0/1/2
       uint8_t ImMode;
       //+0x1a 0..7
@@ -54,21 +51,18 @@ namespace Formats::Packed
       PageData Page5;
       PageData Page2;
       PageData ActivePage;
-      uint16_t RegPC;
+      le_uint16_t RegPC;
       uint8_t Port7FFD;
       //+0xc01e 0/1
       uint8_t TRDosROM;
       PageData Pages[5];
       // optional page starts here
-    } PACK_POST;
+    };
 
     // 5,2,0,1,3,4,6,7
     typedef std::array<PageData, 8> ResultData;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
 
-    static_assert(sizeof(Header) == 131103, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 131103, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header);
 

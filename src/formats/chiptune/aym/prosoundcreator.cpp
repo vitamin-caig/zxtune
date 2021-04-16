@@ -82,15 +82,12 @@ namespace Formats::Chiptune
       * for ver > 3.xx, each sample/ornament offset is relative to offsets' table start
     */
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
     const uint8_t PSC_ID_0[] = {'P', 'S', 'C', ' ', 'V'};
     const uint8_t PSC_ID_1[] = {' ', 'C', 'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '};
 
     const Char BY_DELIMITER[] = {'B', 'Y', 0};
 
-    PACK_PRE struct RawId
+    struct RawId
     {
       uint8_t Identifier1[5];       //'PSC V'
       std::array<char, 4> Version;  // x.xx
@@ -124,36 +121,36 @@ namespace Formats::Chiptune
           return 0;
         }
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       RawId Id;
-      uint16_t SamplesStart;
-      uint16_t PositionsOffset;
+      le_uint16_t SamplesStart;
+      le_uint16_t PositionsOffset;
       uint8_t Tempo;
-      uint16_t OrnamentsTableOffset;
-    } PACK_POST;
+      le_uint16_t OrnamentsTableOffset;
+    };
 
     const uint8_t END_POSITION_MARKER = 0xff;
 
-    PACK_PRE struct RawPattern
+    struct RawPattern
     {
       uint8_t Index;
       uint8_t Size;
-      std::array<uint16_t, 3> Offsets;  // from start of patterns
-    } PACK_POST;
+      std::array<le_uint16_t, 3> Offsets;  // from start of patterns
+    };
 
-    PACK_PRE struct LastRawPattern
+    struct LastRawPattern
     {
       uint8_t LoopPositionIndex;
       uint8_t Marker;
-      uint16_t LoopPatternPtr;
-    } PACK_POST;
+      le_uint16_t LoopPatternPtr;
+    };
 
-    PACK_PRE struct RawOrnament
+    struct RawOrnament
     {
-      PACK_PRE struct Line
+      struct Line
       {
         // BEFooooo
         uint8_t LoopAndNoiseOffset;
@@ -190,15 +187,15 @@ namespace Formats::Chiptune
         {
           return NoteOffset;
         }
-      } PACK_POST;
+      };
       Line Data[1];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawSample
+    struct RawSample
     {
-      PACK_PRE struct Line
+      struct Line
       {
-        uint16_t Tone;
+        le_uint16_t Tone;
         // signed
         int8_t Adding;
         // xxxxLLLL
@@ -232,7 +229,7 @@ namespace Formats::Chiptune
 
         uint_t GetTone() const
         {
-          return fromLE(Tone);
+          return Tone;
         }
 
         int_t GetAdding() const
@@ -264,18 +261,15 @@ namespace Formats::Chiptune
         {
           return int_t(0 != (Flags & 2)) - int_t(0 != (Flags & 4));
         }
-      } PACK_POST;
+      };
       Line Data[1];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawId) == 69, "Invalid layout");
-    static_assert(sizeof(RawHeader) == sizeof(RawId) + 7, "Invalid layout");
-    static_assert(sizeof(RawPattern) == 8, "Invalid layout");
-    static_assert(sizeof(RawOrnament) == 2, "Invalid layout");
-    static_assert(sizeof(RawSample) == 6, "Invalid layout");
+    static_assert(sizeof(RawId) * alignof(RawId) == 69, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == sizeof(RawId) + 7, "Invalid layout");
+    static_assert(sizeof(RawPattern) * alignof(RawPattern) == 8, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 6, "Invalid layout");
 
     class StubBuilder : public Builder
     {
@@ -521,9 +515,8 @@ namespace Formats::Chiptune
 
     Traits GetNewVersionTraits(const RawHeader& hdr)
     {
-      const String programName = hdr.Id.Check() ? Strings::Format(EDITOR, StringView(hdr.Id.Version)) : EDITOR_NEW;
-      const Traits res = {programName, fromLE(hdr.OrnamentsTableOffset), sizeof(hdr)};
-      return res;
+      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, StringView(hdr.Id.Version)) : EDITOR_NEW;
+      return {std::move(programName), hdr.OrnamentsTableOffset, sizeof(hdr)};
     }
 
     Traits GetTraits(const RawHeader& hdr)
@@ -605,7 +598,7 @@ namespace Formats::Chiptune
       {
         PatternsSet patterns;
         Positions positions;
-        for (std::size_t offset = fromLE(Source.PositionsOffset);; offset += sizeof(RawPattern))
+        for (std::size_t offset = Source.PositionsOffset;; offset += sizeof(RawPattern))
         {
           const auto* last = PeekObject<LastRawPattern>(offset);
           Require(last != nullptr);
@@ -649,7 +642,7 @@ namespace Formats::Chiptune
           const uint_t samIdx = *it;
           Dbg("Parse sample %1%", samIdx);
           const std::size_t offsetAddr = samplesTableStart + samIdx * sizeof(uint16_t);
-          const std::size_t sampleAddr = Trait.SamplesBase + fromLE(GetServiceObject<uint16_t>(offsetAddr));
+          const std::size_t sampleAddr = Trait.SamplesBase + GetServiceObject<le_uint16_t>(offsetAddr);
           builder.SetSample(samIdx, ParseSample(sampleAddr));
         }
       }
@@ -658,8 +651,8 @@ namespace Formats::Chiptune
       {
         Dbg("Ornaments: %1% to parse", ornaments.Count());
         // Some of the modules (e.g. Story Map.psc) references more ornaments than really stored
-        const std::size_t ornamentsTableStart = fromLE(Source.OrnamentsTableOffset);
-        const std::size_t ornamentsTableEnd = fromLE(Source.SamplesStart);
+        const std::size_t ornamentsTableStart = Source.OrnamentsTableOffset;
+        const std::size_t ornamentsTableEnd = Source.SamplesStart;
         const std::size_t maxOrnaments = (ornamentsTableEnd - ornamentsTableStart) / sizeof(uint16_t);
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
@@ -668,7 +661,7 @@ namespace Formats::Chiptune
           {
             Dbg("Parse ornament %1%", ornIdx);
             const std::size_t offsetAddr = ornamentsTableStart + ornIdx * sizeof(uint16_t);
-            const std::size_t ornamentAddr = Trait.OrnamentsBase + fromLE(GetServiceObject<uint16_t>(offsetAddr));
+            const std::size_t ornamentAddr = Trait.OrnamentsBase + GetServiceObject<le_uint16_t>(offsetAddr);
             builder.SetOrnament(ornIdx, ParseOrnament(ornamentAddr));
           }
           else
@@ -725,7 +718,7 @@ namespace Formats::Chiptune
       {
         explicit DataCursors(const RawPattern& pat)
         {
-          std::transform(pat.Offsets.begin(), pat.Offsets.end(), begin(), &fromLE<uint16_t>);
+          std::copy(pat.Offsets.begin(), pat.Offsets.end(), begin());
         }
       };
 
@@ -1018,29 +1011,29 @@ namespace Formats::Chiptune
         const auto& header = *data.As<RawHeader>();
         const Traits traits = GetTraits(header);
         const std::size_t samplesOffsets = sizeof(header);
-        const std::size_t ornamentsOffsets = fromLE(header.OrnamentsTableOffset);
-        const std::size_t positionsOffset = fromLE(header.PositionsOffset);
+        const std::size_t ornamentsOffsets = header.OrnamentsTableOffset;
+        const std::size_t positionsOffset = header.PositionsOffset;
         AddArea(HEADER, 0);
         AddArea(SAMPLES_OFFSETS, samplesOffsets);
         AddArea(ORNAMENTS_OFFSETS, ornamentsOffsets);
         AddArea(POSITIONS, positionsOffset);
         AddArea(END, data.Size());
-        if (const auto* firstSample = data.SubView(samplesOffsets).As<uint16_t>())
+        if (const auto* firstSample = data.SubView(samplesOffsets).As<le_uint16_t>())
         {
-          const std::size_t firstSampleStart = fromLE(*firstSample) + traits.SamplesBase;
-          if (firstSampleStart == std::size_t(fromLE(header.SamplesStart) + 1))
+          const std::size_t firstSampleStart = *firstSample + traits.SamplesBase;
+          if (firstSampleStart == std::size_t(header.SamplesStart + 1))
           {
             AddArea(SAMPLES, firstSampleStart);
           }
         }
-        if (const auto* firstOrnament = data.SubView(ornamentsOffsets).As<uint16_t>())
+        if (const auto* firstOrnament = data.SubView(ornamentsOffsets).As<le_uint16_t>())
         {
-          AddArea(ORNAMENTS, fromLE(*firstOrnament) + traits.OrnamentsBase);
+          AddArea(ORNAMENTS, *firstOrnament + traits.OrnamentsBase);
         }
         if (const auto* firstPosition = data.SubView(positionsOffset).As<RawPattern>())
         {
-          AddArea(PATTERNS, std::min(fromLE(firstPosition->Offsets[0]),
-                                     std::min(fromLE(firstPosition->Offsets[1]), fromLE(firstPosition->Offsets[2]))));
+          AddArea(PATTERNS, std::min<std::size_t>(
+                                {firstPosition->Offsets[0], firstPosition->Offsets[1], firstPosition->Offsets[2]}));
         }
       }
 

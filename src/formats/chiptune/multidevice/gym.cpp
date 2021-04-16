@@ -30,10 +30,7 @@ namespace Formats::Chiptune
     typedef std::array<uint8_t, 4> SignatureType;
     typedef std::array<uint8_t, 32> StringType;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       SignatureType Signature;
       StringType Song;
@@ -42,14 +39,11 @@ namespace Formats::Chiptune
       StringType Emulator;
       StringType Dumper;
       std::array<uint8_t, 256> Comment;
-      uint32_t LoopStart;
-      uint32_t PackedSize;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      le_uint32_t LoopStart;
+      le_uint32_t PackedSize;
+    };
 
-    static_assert(sizeof(RawHeader) == 428, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 428, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader) + 256;
     const std::size_t MAX_SIZE = 16 * 1024 * 1024;

@@ -36,37 +36,34 @@ namespace Formats::Packed
       static const std::size_t MIN_SIZE = 0x44;  // TODO
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         static const std::size_t FIXED_PART_SIZE = 0x16;
 
         //+0
         char Padding1;
         //+1
-        uint16_t DepackerBodySrc;
+        le_uint16_t DepackerBodySrc;
         //+3
         char Padding2;
         //+4
-        uint16_t DepackerBodyDst;
+        le_uint16_t DepackerBodyDst;
         //+6
         char Padding3;
         //+7
-        uint16_t DepackerBodySize;
+        le_uint16_t DepackerBodySize;
         //+0x9
         char Padding4[4];
         //+0xd
-        uint16_t PackedDataSrc;
+        le_uint16_t PackedDataSrc;
         //+0x0f
         char Padding5;
         //+0x10
-        uint16_t PackedDataDst;
+        le_uint16_t PackedDataDst;
         //+0x12
         char Padding6;
         //+0x13
-        uint16_t PackedDataSize;
+        le_uint16_t PackedDataSize;
         //+0x15
         char Padding7;
         //+0x16
@@ -76,17 +73,17 @@ namespace Formats::Packed
         //+0x18
         char Padding8;
         //+0x19
-        uint16_t DepackTarget;
+        le_uint16_t DepackTarget;
         //+0x1b
         char Padding9;
         //+0x1c
-        uint16_t DepackPreSource;
+        le_uint16_t DepackPreSource;
         //+0x1e
         char Padding10[0x25];
         //+0x43
         uint8_t LastByte;
         //+0x44
-      } PACK_POST;
+      };
 
       struct KeyFunc : public std::unary_function<void, uint8_t>
       {
@@ -99,9 +96,6 @@ namespace Formats::Packed
           return 0;
         }
       };
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
     };
 
     struct Protected
@@ -110,37 +104,34 @@ namespace Formats::Packed
       static const std::size_t MIN_SIZE = 0x88;  // TODO
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         static const std::size_t FIXED_PART_SIZE = 0x19;
 
         //+0
         char Padding1;
         //+1
-        uint16_t DepackerBodySrc;
+        le_uint16_t DepackerBodySrc;
         //+3
         char Padding2;
         //+4
-        uint16_t DepackerBodyDst;
+        le_uint16_t DepackerBodyDst;
         //+6
         char Padding3;
         //+7
-        uint16_t DepackerBodySize;
+        le_uint16_t DepackerBodySize;
         //+0x9
         char Padding4[4];
         //+0xd
-        uint16_t PackedDataSrc;
+        le_uint16_t PackedDataSrc;
         //+0x0f
         char Padding5;
         //+0x10
-        uint16_t PackedDataDst;
+        le_uint16_t PackedDataDst;
         //+0x12
         char Padding6;
         //+0x13
-        uint16_t PackedDataSize;
+        le_uint16_t PackedDataSize;
         //+0x15
         char Padding7[4];
         //+0x19
@@ -150,11 +141,11 @@ namespace Formats::Packed
         //+0x1b
         char Padding8;
         //+0x1c
-        uint16_t DepackTarget;
+        le_uint16_t DepackTarget;
         //+0x1e
         char Padding9;
         //+0x1f
-        uint16_t DepackPreSource;
+        le_uint16_t DepackPreSource;
         //+0x21
         char Padding10[0x2b];
         //+0x4c
@@ -164,7 +155,7 @@ namespace Formats::Packed
         //+0x87
         uint8_t InitialCryptoKeyIndex;
         //+0x88
-      } PACK_POST;
+      };
 
       static const std::size_t KeyOffset = offsetof(RawHeader, DepackerBody);
 
@@ -188,9 +179,6 @@ namespace Formats::Packed
         std::array<uint8_t, 128> Key;
         uint8_t& Index;
       };
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
     };
 
     const StringView Simple::DESCRIPTION = "Turbo-LZ v1.x"_sv;
@@ -240,8 +228,8 @@ namespace Formats::Packed
         "e60f"  // and 0xf
         ""_sv;
 
-    static_assert(sizeof(Simple::RawHeader) == 0x44, "Invalid layout");
-    static_assert(sizeof(Protected::RawHeader) == 0x88, "Invalid layout");
+    static_assert(sizeof(Simple::RawHeader) * alignof(Simple::RawHeader) == 0x44, "Invalid layout");
+    static_assert(sizeof(Protected::RawHeader) * alignof(Protected::RawHeader) == 0x88, "Invalid layout");
 
     template<class Version>
     class Container
@@ -259,13 +247,13 @@ namespace Formats::Packed
           return false;
         }
         const typename Version::RawHeader& header = GetHeader();
-        const DataMovementChecker checker(fromLE(header.PackedDataSrc), fromLE(header.PackedDataDst),
-                                          fromLE(header.PackedDataSize), header.PackedDataCopyDirection);
+        const DataMovementChecker checker(header.PackedDataSrc, header.PackedDataDst, header.PackedDataSize,
+                                          header.PackedDataCopyDirection);
         if (!checker.IsValid())
         {
           return false;
         }
-        if (checker.FirstOfMovedData() != std::size_t(fromLE(header.DepackPreSource) + 1))
+        if (checker.FirstOfMovedData() != std::size_t(header.DepackPreSource + 1))
         {
           return false;
         }
@@ -279,7 +267,7 @@ namespace Formats::Packed
       std::size_t GetPackedDataOffset() const
       {
         const typename Version::RawHeader& header = GetHeader();
-        return header.FIXED_PART_SIZE + fromLE(header.DepackerBodySize);
+        return header.FIXED_PART_SIZE + header.DepackerBodySize;
       }
 
       std::size_t GetPackedDataSize() const
@@ -287,7 +275,7 @@ namespace Formats::Packed
         const typename Version::RawHeader& header = GetHeader();
         // some versions contains invalid PackedDataSize values
         const std::size_t depackerSize = GetPackedDataOffset();
-        const std::size_t totalSize = depackerSize + fromLE(header.PackedDataSize);
+        const std::size_t totalSize = depackerSize + header.PackedDataSize;
         return std::min(totalSize, Size) - depackerSize;
       }
 
@@ -338,7 +326,7 @@ namespace Formats::Packed
 
       std::size_t GetUsedSize() const
       {
-        return IsValid ? Header.FIXED_PART_SIZE + fromLE(Header.DepackerBodySize) + Stream.GetProcessedBytes() : 0;
+        return IsValid ? Header.FIXED_PART_SIZE + Header.DepackerBodySize + Stream.GetProcessedBytes() : 0;
       }
 
     private:

@@ -37,10 +37,7 @@ namespace ZXTune::Zdata
 
   typedef std::array<uint8_t, 2> SignatureType;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-  PACK_PRE struct UInt24LE
+  struct UInt24LE
   {
   public:
     UInt24LE()
@@ -62,23 +59,23 @@ namespace ZXTune::Zdata
 
   private:
     std::array<uint8_t, 3> Data;
-  } PACK_POST;
+  };
 
   // 4 LSBs of signature may be version
   const SignatureType SIGNATURE = {{0x64, 0x30}};
 
-  PACK_PRE struct RawMarker
+  struct RawMarker
   {
     SignatureType Signature;
-    uint32_t Crc;
-  } PACK_POST;
+    le_uint32_t Crc;
+  };
 
   // size of data block, without header
-  PACK_PRE struct RawHeader : RawMarker
+  struct RawHeader : RawMarker
   {
     UInt24LE OriginalSize;
     UInt24LE PackedSize;
-  } PACK_POST;
+  };
 
   typedef std::array<char, 8> TxtMarker;
   typedef std::array<char, 16> TxtHeader;
@@ -91,7 +88,7 @@ namespace ZXTune::Zdata
 
     TxtMarker Encode() const
     {
-      const RawMarker in = {SIGNATURE, fromLE(Value)};
+      const RawMarker in = {SIGNATURE, Value};
       const auto inData = in.Signature.data();
       TxtMarker out;
       const auto outData = out.data();
@@ -99,7 +96,7 @@ namespace ZXTune::Zdata
       return out;
     }
 
-    const uint32_t Value;
+    const le_uint32_t Value;
   };
 
   struct Header
@@ -117,13 +114,13 @@ namespace ZXTune::Zdata
       const auto outData = out.Signature.data();
       Binary::Base64::Decode(inData, inData + in.size(), outData, outData + sizeof(out));
       Require(out.Signature == SIGNATURE);
-      return Header(fromLE(out.Crc), out.OriginalSize, out.PackedSize);
+      return Header(out.Crc, out.OriginalSize, out.PackedSize);
     }
 
     void ToRaw(RawHeader& res) const
     {
       res.Signature = SIGNATURE;
-      res.Crc = fromLE(Crc);
+      res.Crc = Crc;
       res.OriginalSize = Original;
       res.PackedSize = Packed;
     }
@@ -132,9 +129,6 @@ namespace ZXTune::Zdata
     const std::size_t Original;
     const std::size_t Packed;
   };
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
 
   // clang-format off
 
@@ -149,8 +143,8 @@ namespace ZXTune::Zdata
 
   // clang-format on
 
-  static_assert(sizeof(RawMarker) == 6, "Invalid layout of RawMarker");
-  static_assert(sizeof(RawHeader) == 12, "Invalid layout of RawHeader");
+  static_assert(sizeof(RawMarker) * alignof(RawMarker) == 6, "Invalid layout of RawMarker");
+  static_assert(sizeof(RawHeader) * alignof(RawHeader) == 12, "Invalid layout of RawHeader");
 
   struct Layout
   {

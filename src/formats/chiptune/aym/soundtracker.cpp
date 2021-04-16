@@ -31,34 +31,32 @@ namespace Formats::Chiptune
     const Char PROGRAM[] = "Sound Tracker v1.x";
 
     using namespace SoundTracker;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawSample
+
+    struct RawSample
     {
       uint8_t Volume[SAMPLE_SIZE];
       uint8_t Noise[SAMPLE_SIZE];
-      uint16_t Effect[SAMPLE_SIZE];
+      le_uint16_t Effect[SAMPLE_SIZE];
       uint8_t Loop;
       uint8_t LoopSize;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPosEntry
+    struct RawPosEntry
     {
       uint8_t Pattern;
       int8_t Transposition;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawOrnament
+    struct RawOrnament
     {
       std::array<int8_t, ORNAMENT_SIZE> Offsets;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPattern
+    struct RawPattern
     {
-      PACK_PRE struct Line
+      struct Line
       {
-        PACK_PRE struct Channel
+        struct Channel
         {
           // RNNN#OOO
           uint8_t Note;
@@ -101,7 +99,7 @@ namespace Formats::Chiptune
           {
             return EffectOrnament & 15;
           }
-        } PACK_POST;
+        };
 
         Channel Channels[3];
 
@@ -109,12 +107,12 @@ namespace Formats::Chiptune
         {
           return Channels[0].IsEmpty() && Channels[1].IsEmpty() && Channels[2].IsEmpty();
         }
-      } PACK_POST;
+      };
 
       Line Lines[MAX_PATTERN_SIZE];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       RawSample Samples[MAX_SAMPLES_COUNT - 1];
       RawPosEntry Positions[MAX_POSITIONS_COUNT];
@@ -124,16 +122,13 @@ namespace Formats::Chiptune
       uint8_t PatternsSize;
       // at least one pattern
       RawPattern Patterns[1];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawSample) == 130, "Invalid layout");
-    static_assert(sizeof(RawPosEntry) == 2, "Invalid layout");
-    static_assert(sizeof(RawOrnament) == 32, "Invalid layout");
-    static_assert(sizeof(RawPattern) == 576, "Invalid layout");
-    static_assert(sizeof(RawHeader) == 3009 + 576, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 130, "Invalid layout");
+    static_assert(sizeof(RawPosEntry) * alignof(RawPosEntry) == 2, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 32, "Invalid layout");
+    static_assert(sizeof(RawPattern) * alignof(RawPattern) == 576, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 3009 + 576, "Invalid layout");
     static_assert(offsetof(RawHeader, Positions) == 1950, "Invalid layout");
     static_assert(offsetof(RawHeader, Length) == 2462, "Invalid layout");
     static_assert(offsetof(RawHeader, Tempo) == 3007, "Invalid layout");
@@ -389,7 +384,7 @@ namespace Formats::Chiptune
           res.Noise = src.Noise[idx] & 31;
           res.NoiseMask = 0 != (src.Noise[idx] & 128);
           res.EnvelopeMask = 0 != (src.Noise[idx] & 64);
-          const int16_t eff = fromLE(src.Effect[idx]);
+          const int16_t eff = src.Effect[idx];
           res.Effect = 0 != (eff & 0x1000) ? (eff & 0xfff) : -(eff & 0xfff);
         }
         dst.Loop = std::min<uint_t>(src.Loop, SAMPLE_SIZE);

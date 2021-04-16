@@ -56,23 +56,20 @@ namespace Formats::Chiptune
       SamplesOffsets (may be trunkated)
     */
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       uint8_t Tempo;
-      uint16_t PositionsOffset;
-      uint16_t PatternsOffset;
-      uint16_t OrnamentsOffset;
-      uint16_t SamplesOffset;
+      le_uint16_t PositionsOffset;
+      le_uint16_t PatternsOffset;
+      le_uint16_t OrnamentsOffset;
+      le_uint16_t SamplesOffset;
       uint8_t FixesCount;
-    } PACK_POST;
+    };
 
     const uint8_t ID[] = {'K', 'S', 'A', ' ', 'S', 'O', 'F', 'T', 'W', 'A', 'R', 'E', ' ', 'C',
                           'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '};
 
-    PACK_PRE struct RawId
+    struct RawId
     {
       uint8_t Id[sizeof(ID)];
       std::array<char, 25> Title;
@@ -81,26 +78,26 @@ namespace Formats::Chiptune
       {
         return 0 == std::memcmp(Id, ID, sizeof(Id));
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPositions
+    struct RawPositions
     {
       uint8_t Length;
       uint8_t Loop;
-      PACK_PRE struct PosEntry
+      struct PosEntry
       {
         uint8_t PatternOffset;  //*6
         int8_t Transposition;
-      } PACK_POST;
+      };
       PosEntry Data[1];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPattern
+    struct RawPattern
     {
-      std::array<uint16_t, 3> Offsets;
-    } PACK_POST;
+      std::array<le_uint16_t, 3> Offsets;
+    };
 
-    PACK_PRE struct RawObject
+    struct RawObject
     {
       int8_t Loop;
       int8_t Size;
@@ -114,9 +111,9 @@ namespace Formats::Chiptune
       {
         return Loop < 0 ? GetSize() : Loop;
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawOrnament : RawObject
+    struct RawOrnament : RawObject
     {
       typedef int8_t Line;
 
@@ -131,16 +128,16 @@ namespace Formats::Chiptune
       {
         return sizeof(RawObject) + std::min<std::size_t>(GetSize() * sizeof(Line), 256);
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawOrnaments
+    struct RawOrnaments
     {
-      std::array<uint16_t, MAX_ORNAMENTS_COUNT> Offsets;
-    } PACK_POST;
+      std::array<le_uint16_t, MAX_ORNAMENTS_COUNT> Offsets;
+    };
 
-    PACK_PRE struct RawSample : RawObject
+    struct RawSample : RawObject
     {
-      PACK_PRE struct Line
+      struct Line
       {
         // NxxTaaaa
         // xxnnnnnE
@@ -155,7 +152,7 @@ namespace Formats::Chiptune
         // v - signed vibrato
         uint8_t LevelAndFlags;
         uint8_t NoiseAndFlag;
-        int16_t Vibrato;
+        le_int16_t Vibrato;
 
         uint_t GetLevel() const
         {
@@ -184,9 +181,9 @@ namespace Formats::Chiptune
 
         int_t GetVibrato() const
         {
-          return fromLE(Vibrato);
+          return Vibrato;
         }
-      } PACK_POST;
+      };
 
       Line GetLine(uint_t idx) const
       {
@@ -200,24 +197,21 @@ namespace Formats::Chiptune
       {
         return sizeof(RawObject) + std::min<std::size_t>(GetSize() * sizeof(Line), 256);
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawSamples
+    struct RawSamples
     {
-      std::array<uint16_t, MAX_SAMPLES_COUNT> Offsets;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      std::array<le_uint16_t, MAX_SAMPLES_COUNT> Offsets;
+    };
 
-    static_assert(sizeof(RawHeader) == 10, "Invalid layout");
-    static_assert(sizeof(RawId) == 53, "Invalid layout");
-    static_assert(sizeof(RawPositions) == 4, "Invalid layout");
-    static_assert(sizeof(RawPattern) == 6, "Invalid layout");
-    static_assert(sizeof(RawOrnament) == 2, "Invalid layout");
-    static_assert(sizeof(RawOrnaments) == 32, "Invalid layout");
-    static_assert(sizeof(RawSample) == 2, "Invalid layout");
-    static_assert(sizeof(RawSamples) == 30, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 10, "Invalid layout");
+    static_assert(sizeof(RawId) * alignof(RawId) == 53, "Invalid layout");
+    static_assert(sizeof(RawPositions) * alignof(RawPositions) == 4, "Invalid layout");
+    static_assert(sizeof(RawPattern) * alignof(RawPattern) == 6, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 2, "Invalid layout");
+    static_assert(sizeof(RawOrnaments) * alignof(RawOrnaments) == 32, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 2, "Invalid layout");
+    static_assert(sizeof(RawSamples) * alignof(RawSamples) == 30, "Invalid layout");
 
     class StubBuilder : public Builder
     {
@@ -249,7 +243,7 @@ namespace Formats::Chiptune
     {
       // first pattern is always placed after the header (and optional id);
       const std::size_t hdrSize = sizeof(hdr) + (id.Check() ? sizeof(id) : 0);
-      const std::size_t firstData = fromLE(firstPattern.Offsets[0]);
+      const std::size_t firstData = firstPattern.Offsets[0];
       if (0 != hdr.FixesCount)
       {
         Require(firstData == hdrSize);
@@ -263,7 +257,7 @@ namespace Formats::Chiptune
 
     std::size_t GetMaxSize(const RawHeader& hdr)
     {
-      return fromLE(hdr.SamplesOffset) + sizeof(RawSamples);
+      return hdr.SamplesOffset + sizeof(RawSamples);
     }
 
     class RangesMap
@@ -353,7 +347,7 @@ namespace Formats::Chiptune
           dst.Transposition = src.Transposition;
           positions.Lines.push_back(dst);
         }
-        positions.Loop = PeekByte(fromLE(Source.PositionsOffset) + offsetof(RawPositions, Loop));
+        positions.Loop = PeekByte(Source.PositionsOffset + offsetof(RawPositions, Loop));
         Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
         builder.SetPositions(std::move(positions));
       }
@@ -386,7 +380,7 @@ namespace Formats::Chiptune
           builder.SetSample(samIdx, ParseSample(src));
         }
         // mark possible samples offsets as used
-        const std::size_t samplesOffsets = fromLE(Source.SamplesOffset);
+        const std::size_t samplesOffsets = Source.SamplesOffset;
         Ranges.Add(samplesOffsets, std::min(sizeof(RawSamples), Data.Size() - samplesOffsets));
       }
 
@@ -417,7 +411,7 @@ namespace Formats::Chiptune
     private:
       RangeIterator<const RawPositions::PosEntry*> GetPositions() const
       {
-        const std::size_t offset = fromLE(Source.PositionsOffset);
+        const std::size_t offset = Source.PositionsOffset;
         const auto* positions = PeekObject<RawPositions>(offset);
         Require(positions != nullptr);
         const uint_t length = positions->Length;
@@ -430,12 +424,12 @@ namespace Formats::Chiptune
 
       const RawPattern& GetPattern(uint_t index) const
       {
-        return GetServiceObject<RawPattern>(index, fromLE(Source.PatternsOffset));
+        return GetServiceObject<RawPattern>(index, Source.PatternsOffset);
       }
 
       const RawSample& GetSample(uint_t index) const
       {
-        const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.SamplesOffset))) - UnfixDelta;
+        const uint16_t offset = GetServiceObject<le_uint16_t>(index, Source.SamplesOffset) - UnfixDelta;
         const auto* obj = PeekObject<RawObject>(offset);
         Require(obj != nullptr);
         const auto* res = safe_ptr_cast<const RawSample*>(obj);
@@ -445,7 +439,7 @@ namespace Formats::Chiptune
 
       const RawOrnament& GetOrnament(uint_t index) const
       {
-        const uint16_t offset = fromLE(GetServiceObject<uint16_t>(index, fromLE(Source.OrnamentsOffset))) - UnfixDelta;
+        const uint16_t offset = GetServiceObject<le_uint16_t>(index, Source.OrnamentsOffset) - UnfixDelta;
         const auto* obj = PeekObject<RawObject>(offset);
         Require(obj != nullptr);
         const auto* res = safe_ptr_cast<const RawOrnament*>(obj);
@@ -491,7 +485,7 @@ namespace Formats::Chiptune
         {
           for (std::size_t idx = 0; idx != size(); ++idx)
           {
-            const std::size_t offset = fromLE(src.Offsets[idx]);
+            const std::size_t offset = src.Offsets[idx];
             Require(offset >= minOffset + unfixDelta);
             at(idx) = offset - unfixDelta;
           }
@@ -751,10 +745,10 @@ namespace Formats::Chiptune
             AddArea(IDENTIFIER, sizeof(header));
           }
         }
-        AddArea(POSITIONS, fromLE(header.PositionsOffset));
-        AddArea(PATTERNS, fromLE(header.PatternsOffset));
-        AddArea(ORNAMENTS, fromLE(header.OrnamentsOffset));
-        AddArea(SAMPLES, fromLE(header.SamplesOffset));
+        AddArea(POSITIONS, header.PositionsOffset);
+        AddArea(PATTERNS, header.PatternsOffset);
+        AddArea(ORNAMENTS, header.OrnamentsOffset);
+        AddArea(SAMPLES, header.SamplesOffset);
         AddArea(END, size);
       }
 
@@ -823,11 +817,10 @@ namespace Formats::Chiptune
 
     bool CheckHeader(const RawHeader& hdr)
     {
-      return Math::InRange<uint_t>(hdr.Tempo, 3, 15)
-             && Math::InRange<uint_t>(fromLE(hdr.PositionsOffset), sizeof(hdr), 0x2600)
-             && Math::InRange<uint_t>(fromLE(hdr.PatternsOffset), sizeof(hdr), 0x2700)
-             && Math::InRange<uint_t>(fromLE(hdr.OrnamentsOffset), sizeof(hdr), 0x2700)
-             && Math::InRange<uint_t>(fromLE(hdr.SamplesOffset), sizeof(hdr), 0x2700);
+      return Math::InRange<uint_t>(hdr.Tempo, 3, 15) && Math::InRange<uint_t>(hdr.PositionsOffset, sizeof(hdr), 0x2600)
+             && Math::InRange<uint_t>(hdr.PatternsOffset, sizeof(hdr), 0x2700)
+             && Math::InRange<uint_t>(hdr.OrnamentsOffset, sizeof(hdr), 0x2700)
+             && Math::InRange<uint_t>(hdr.SamplesOffset, sizeof(hdr), 0x2700);
     }
 
     bool Check(Binary::View data)
@@ -990,7 +983,7 @@ namespace Formats::Chiptune
           patch->FixLEWord(offsetof(RawHeader, PatternsOffset), delta);
           patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);
           patch->FixLEWord(offsetof(RawHeader, SamplesOffset), delta);
-          const std::size_t patternsStart = fromLE(header.PatternsOffset);
+          const std::size_t patternsStart = header.PatternsOffset;
           Indices usedPatterns = statistic.GetUsedPatterns();
           // first pattern is used to detect fixdelta
           usedPatterns.Insert(0);
@@ -1001,14 +994,14 @@ namespace Formats::Chiptune
             patch->FixLEWord(patOffsets + 2, delta);
             patch->FixLEWord(patOffsets + 4, delta);
           }
-          const std::size_t ornamentsStart = fromLE(header.OrnamentsOffset);
+          const std::size_t ornamentsStart = header.OrnamentsOffset;
           const Indices& usedOrnaments = statistic.GetUsedOrnaments();
           for (Indices::Iterator it = usedOrnaments.Items(); it; ++it)
           {
             const std::size_t ornOffset = ornamentsStart + *it * sizeof(uint16_t);
             patch->FixLEWord(ornOffset, delta);
           }
-          const std::size_t samplesStart = fromLE(header.SamplesOffset);
+          const std::size_t samplesStart = header.SamplesOffset;
           const Indices& usedSamples = statistic.GetUsedSamples();
           for (Indices::Iterator it = usedSamples.Items(); it; ++it)
           {

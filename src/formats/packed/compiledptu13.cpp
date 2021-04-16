@@ -32,16 +32,13 @@ namespace Formats::Packed
 
     namespace ProTracker3 = Formats::Chiptune::ProTracker3;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawPlayer
+    struct RawPlayer
     {
       uint8_t Padding1[0x1b];
-      uint16_t PositionsAddr;
-    } PACK_POST;
+      le_uint16_t PositionsAddr;
+    };
 
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       uint8_t Id[13];  //'ProTracker 3.'
       uint8_t Subversion;
@@ -52,18 +49,15 @@ namespace Formats::Packed
       uint8_t Tempo;
       uint8_t Length;
       uint8_t Loop;
-      uint16_t PatternsOffset;
-      std::array<uint16_t, ProTracker3::MAX_SAMPLES_COUNT> SamplesOffsets;
-      std::array<uint16_t, ProTracker3::MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      le_uint16_t PatternsOffset;
+      std::array<le_uint16_t, ProTracker3::MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<le_uint16_t, ProTracker3::MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       uint8_t Positions[1];  // finished by marker
-    } PACK_POST;
+    };
 
     const uint8_t POS_END_MARKER = 0xff;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
 
-    static_assert(sizeof(RawHeader) == 202, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 202, "Invalid layout");
 
     const Char DESCRIPTION[] = "Pro Tracker Utility v1.3 player";
 
@@ -141,7 +135,7 @@ namespace Formats::Packed
       }
       const std::size_t playerSize = CompiledPTU13::PLAYER_SIZE;
       const auto& rawPlayer = *data.As<CompiledPTU13::RawPlayer>();
-      const uint_t positionsAddr = fromLE(rawPlayer.PositionsAddr);
+      const uint_t positionsAddr = rawPlayer.PositionsAddr;
       if (positionsAddr < playerSize + offsetof(CompiledPTU13::RawHeader, Positions))
       {
         Dbg("Invalid compile addr");
@@ -166,8 +160,7 @@ namespace Formats::Packed
         builder->FixLEWord(idx, -int_t(dataAddr));
       }
       // fix patterns offsets
-      for (uint_t idx = fromLE(rawHeader.PatternsOffset) - dataAddr, lim = idx + 6 * patternsCount; idx != lim;
-           idx += 2)
+      for (uint_t idx = rawHeader.PatternsOffset - dataAddr, lim = idx + 6 * patternsCount; idx != lim; idx += 2)
       {
         builder->FixLEWord(idx, -int_t(dataAddr));
       }

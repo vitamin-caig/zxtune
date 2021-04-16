@@ -39,36 +39,30 @@ namespace Formats::Multitrack
 
     typedef std::array<char, 32> StringType;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct ChunkHeader
+    struct ChunkHeader
     {
-      uint32_t Size;
+      le_uint32_t Size;
       ChunkIdType Id;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct InfoChunk
+    struct InfoChunk
     {
-      uint16_t LoadAddr;
-      uint16_t InitAddr;
-      uint16_t PlayAddr;
+      le_uint16_t LoadAddr;
+      le_uint16_t InitAddr;
+      le_uint16_t PlayAddr;
       uint8_t Mode;
       uint8_t ExtraDevices;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct InfoChunkFull : InfoChunk
+    struct InfoChunkFull : InfoChunk
     {
       uint8_t TracksCount;
       uint8_t StartTrack;  // 0-based
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(ChunkHeader) == 8, "Invalid layout");
-    static_assert(sizeof(InfoChunk) == 8, "Invalid layout");
-    static_assert(sizeof(InfoChunkFull) == 10, "Invalid layout");
+    static_assert(sizeof(ChunkHeader) * alignof(ChunkHeader) == 8, "Invalid layout");
+    static_assert(sizeof(InfoChunk) * alignof(InfoChunk) == 8, "Invalid layout");
+    static_assert(sizeof(InfoChunkFull) * alignof(InfoChunkFull) == 10, "Invalid layout");
 
     // const std::size_t MAX_SIZE = 1048576;
 
@@ -156,7 +150,7 @@ namespace Formats::Multitrack
           for (;;)
           {
             const ChunkHeader& hdr = input.ReadField<ChunkHeader>();
-            const std::size_t size = fromLE(hdr.Size);
+            const std::size_t size = hdr.Size;
             if (hdr.Id == NEND)
             {
               Require(size == 0);

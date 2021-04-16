@@ -33,12 +33,9 @@ namespace Formats::Packed
   {
     const Debug::Stream Dbg("Formats::Packed::TeleDiskImage");
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
-      uint16_t ID;
+      le_uint16_t ID;
       uint8_t Sequence;
       uint8_t CheckSequence;
       uint8_t Version;
@@ -47,27 +44,27 @@ namespace Formats::Packed
       uint8_t Stepping;
       uint8_t DOSAllocation;
       uint8_t Sides;
-      uint16_t CRC;
+      le_uint16_t CRC;
 
       bool HasComment() const
       {
         return 0 != (Stepping & 0x80);
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawComment
+    struct RawComment
     {
-      uint16_t CRC;
-      uint16_t Size;
+      le_uint16_t CRC;
+      le_uint16_t Size;
       uint8_t Year;
       uint8_t Month;
       uint8_t Day;
       uint8_t Hour;
       uint8_t Minute;
       uint8_t Second;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawTrack
+    struct RawTrack
     {
       uint8_t Sectors;
       uint8_t Cylinder;
@@ -78,9 +75,9 @@ namespace Formats::Packed
       {
         return Sectors == 0xff;
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawSector
+    struct RawSector
     {
       uint8_t Cylinder;
       uint8_t Head;
@@ -108,29 +105,26 @@ namespace Formats::Packed
       {
         return 0 != (Flags & NO_ID);
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawData
+    struct RawData
     {
-      uint16_t Size;
+      le_uint16_t Size;
       uint8_t Method;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct R2PEntry
+    struct R2PEntry
     {
-      uint16_t Count;
+      le_uint16_t Count;
       uint8_t Data[2];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 12, "Invalid layout");
-    static_assert(sizeof(RawComment) == 10, "Invalid layout");
-    static_assert(sizeof(RawTrack) == 4, "Invalid layout");
-    static_assert(sizeof(RawSector) == 6, "Invalid layout");
-    static_assert(sizeof(RawData) == 3, "Invalid layout");
-    static_assert(sizeof(R2PEntry) == 4, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 12, "Invalid layout");
+    static_assert(sizeof(RawComment) * alignof(RawComment) == 10, "Invalid layout");
+    static_assert(sizeof(RawTrack) * alignof(RawTrack) == 4, "Invalid layout");
+    static_assert(sizeof(RawSector) * alignof(RawSector) == 6, "Invalid layout");
+    static_assert(sizeof(RawData) * alignof(RawData) == 3, "Invalid layout");
+    static_assert(sizeof(R2PEntry) * alignof(R2PEntry) == 4, "Invalid layout");
 
     const uint_t MAX_CYLINDERS_COUNT = 100;
     const uint_t MIN_SIDES_COUNT = 1;
@@ -187,7 +181,7 @@ namespace Formats::Packed
       tmp.reserve(MAX_SECTOR_SIZE);
       for (const R2PEntry *it = safe_ptr_cast<const R2PEntry*>(data), *lim = it + size / sizeof(*it); it != lim; ++it)
       {
-        const uint_t count = fromLE(it->Count);
+        const uint_t count = it->Count;
         Require(count != 0);
         tmp.push_back(it->Data[0]);
         tmp.push_back(it->Data[1]);
@@ -303,7 +297,7 @@ namespace Formats::Packed
           const std::size_t sectorSize = std::size_t(128) << sector.Size;
           const RawData& srcDataDesc = stream.Get<RawData>();
           Require(Math::InRange<uint_t>(srcDataDesc.Method, RAW_SECTOR, RLE_SECTOR));
-          const std::size_t dataSize = fromLE(srcDataDesc.Size) - 1;
+          const std::size_t dataSize = srcDataDesc.Size - 1;
           const uint8_t* const rawData = stream.GetData(dataSize);
           // use track parameters for layout
           if (!sector.NoId())
@@ -321,14 +315,14 @@ namespace Formats::Packed
       try
       {
         const RawHeader& header = stream.Get<RawHeader>();
-        const uint_t id = fromLE(header.ID);
+        const uint_t id = header.ID;
         Require(id == ID_OLD || id == ID_NEW);
         Require(header.Sequence == 0);
         Require(Math::InRange<uint_t>(header.Sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT));
         if (header.HasComment())
         {
           const RawComment& comment = stream.Get<RawComment>();
-          if (const std::size_t size = fromLE(comment.Size))
+          if (const std::size_t size = comment.Size)
           {
             stream.GetData(size);
           }

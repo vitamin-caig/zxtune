@@ -29,17 +29,14 @@ namespace Formats::Packed
     const std::size_t MAX_MODULE_SIZE = 0x4000;
     const std::size_t MAX_PLAYER_SIZE = 0xa00;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawPlayer
+    struct RawPlayer
     {
       uint8_t Padding1;
-      uint16_t DataAddr;
+      le_uint16_t DataAddr;
       uint8_t Padding2;
-      uint16_t InitAddr;
+      le_uint16_t InitAddr;
       uint8_t Padding3;
-      uint16_t PlayAddr;
+      le_uint16_t PlayAddr;
       uint8_t Padding4[3];
       //+12
       uint8_t Information[55];
@@ -48,24 +45,21 @@ namespace Formats::Packed
 
       uint_t GetCompileAddr() const
       {
-        const uint_t initAddr = fromLE(InitAddr);
+        const uint_t initAddr = InitAddr;
         return initAddr - offsetof(RawPlayer, Initialization);
       }
 
       std::size_t GetSize() const
       {
         const uint_t compileAddr = GetCompileAddr();
-        return fromLE(DataAddr) - compileAddr;
+        return DataAddr - compileAddr;
       }
 
       Binary::View GetInfo() const
       {
         return Binary::View(Information, 55);
       }
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
     static_assert(offsetof(RawPlayer, Information) == 12, "Invalid layout");
     static_assert(offsetof(RawPlayer, Initialization) == 67, "Invalid layout");

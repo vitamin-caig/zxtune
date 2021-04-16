@@ -170,7 +170,7 @@ namespace Formats::Packed
         return {};
       }
       const std::size_t outSize = file.GetUnpackedSize();
-      switch (fromLE(header.CompressionMethod))
+      switch (header.CompressionMethod)
       {
       case 0:
         return std::unique_ptr<DataDecoder>(new StoreDataDecoder(std::move(input), outSize));
@@ -216,12 +216,12 @@ namespace Formats::Packed
 
       std::size_t GetPackedSize() const override
       {
-        return Header.GetSize() + fromLE(Header.Attributes.CompressedSize);
+        return Header.GetSize() + Header.Attributes.CompressedSize;
       }
 
       std::size_t GetUnpackedSize() const override
       {
-        return fromLE(Header.Attributes.UncompressedSize);
+        return Header.Attributes.UncompressedSize;
       }
 
     private:
@@ -238,12 +238,12 @@ namespace Formats::Packed
 
       std::size_t GetPackedSize() const override
       {
-        return Header.GetSize() + fromLE(Footer.Attributes.CompressedSize) + sizeof(Footer);
+        return Header.GetSize() + Footer.Attributes.CompressedSize + sizeof(Footer);
       }
 
       std::size_t GetUnpackedSize() const override
       {
-        return fromLE(Footer.Attributes.UncompressedSize);
+        return Footer.Attributes.UncompressedSize;
       }
 
     private:
@@ -253,7 +253,7 @@ namespace Formats::Packed
 
     const LocalFileFooter* FindFooter(const LocalFileHeader& header, std::size_t size)
     {
-      assert(0 != (fromLE(header.Flags) & FILE_ATTRIBUTES_IN_FOOTER));
+      assert(0 != (header.Flags & FILE_ATTRIBUTES_IN_FOOTER));
 
       const uint32_t signature = LocalFileFooter::SIGNATURE;
       const uint8_t* const rawSignature = safe_ptr_cast<const uint8_t*>(&signature);
@@ -273,7 +273,7 @@ namespace Formats::Packed
           return nullptr;
         }
         const LocalFileFooter& result = *safe_ptr_cast<const LocalFileFooter*>(found);
-        if (fromLE(result.Attributes.CompressedSize) + header.GetSize() == offset)
+        if (result.Attributes.CompressedSize + header.GetSize() == offset)
         {
           return &result;
         }
@@ -285,7 +285,7 @@ namespace Formats::Packed
     std::unique_ptr<const CompressedFile> CompressedFile::Create(const LocalFileHeader& hdr, std::size_t availSize)
     {
       assert(availSize > sizeof(hdr));
-      if (0 != (fromLE(hdr.Flags) & FILE_ATTRIBUTES_IN_FOOTER))
+      if (0 != (hdr.Flags & FILE_ATTRIBUTES_IN_FOOTER))
       {
         if (const LocalFileFooter* footer = FindFooter(hdr, availSize))
         {

@@ -149,23 +149,20 @@ namespace Formats::Packed
                   */
         ""_sv;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       //+0x00
       uint8_t Padding1[0x0e];
       //+0x0e
-      uint16_t PackedSource;
+      le_uint16_t PackedSource;
       //+0x10
       uint8_t Padding2;
       //+0x11
-      uint16_t PackedTarget;
+      le_uint16_t PackedTarget;
       //+0x13
       uint8_t Padding3;
       //+0x14
-      uint16_t SizeOfPacked;
+      le_uint16_t SizeOfPacked;
       //+0x16
       uint8_t Padding4[2];
       //+0x18
@@ -173,11 +170,11 @@ namespace Formats::Packed
       //+0x19
       uint8_t Padding5;
       //+0x1a
-      uint16_t LastOfPacked;
+      le_uint16_t LastOfPacked;
       //+0x1c
       uint8_t Padding6[0x6];
       //+0x22
-      uint16_t LastOfDepacked;
+      le_uint16_t LastOfDepacked;
       //+0x24
       uint8_t Padding7[0x68];
       //+0x8c
@@ -185,17 +182,14 @@ namespace Formats::Packed
       //+0x8d
       uint8_t Padding8[9];
       //+0x96
-      uint16_t DepackedLimit;  // depacked - 1
+      le_uint16_t DepackedLimit;  // depacked - 1
       //+0x98
       uint8_t Padding9[0x22];
       //+0xba
       uint8_t Data[1];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 0xba + 1, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0xba + 1, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
 
@@ -266,17 +260,17 @@ namespace Formats::Packed
         {
           return false;
         }
-        if (fromLE(header.LastOfDepacked) <= ((fromLE(header.DepackedLimit) + 1) & 0xffff))
+        if (header.LastOfDepacked <= ((header.DepackedLimit + 1) & 0xffff))
         {
           return false;
         }
-        const DataMovementChecker checker(fromLE(header.PackedSource), fromLE(header.PackedTarget),
-                                          fromLE(header.SizeOfPacked), header.PackedDataCopyDirection);
+        const DataMovementChecker checker(header.PackedSource, header.PackedTarget, header.SizeOfPacked,
+                                          header.PackedDataCopyDirection);
         if (!checker.IsValid())
         {
           return false;
         }
-        if (checker.LastOfMovedData() != fromLE(header.LastOfPacked))
+        if (checker.LastOfMovedData() != header.LastOfPacked)
         {
           return false;
         }
@@ -291,7 +285,7 @@ namespace Formats::Packed
       uint_t GetUsedSize() const
       {
         const RawHeader& header = GetHeader();
-        return sizeof(header) + fromLE(header.SizeOfPacked) - sizeof(header.Data);
+        return sizeof(header) + header.SizeOfPacked - sizeof(header.Data);
       }
 
       const RawHeader& GetHeader() const
@@ -311,7 +305,7 @@ namespace Formats::Packed
       explicit DataDecoder(const Container& container)
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
-        , Stream(Header.Data, fromLE(Header.SizeOfPacked))
+        , Stream(Header.Data, Header.SizeOfPacked)
         , Result(new Binary::Dump())
         , Decoded(*Result)
       {
@@ -329,7 +323,7 @@ namespace Formats::Packed
     private:
       bool DecodeData()
       {
-        const uint_t unpackedSize = 1 + fromLE(Header.LastOfDepacked) - ((fromLE(Header.DepackedLimit) + 1) & 0xffff);
+        const uint_t unpackedSize = 1 + Header.LastOfDepacked - ((Header.DepackedLimit + 1) & 0xffff);
         Decoded.reserve(unpackedSize);
         while (!Stream.Eof() && Decoded.size() < unpackedSize)
         {

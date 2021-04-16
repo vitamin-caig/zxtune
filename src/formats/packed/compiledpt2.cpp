@@ -33,31 +33,27 @@ namespace Formats::Packed
     const std::size_t MAX_SAMPLES_COUNT = 32;
     const std::size_t MAX_ORNAMENTS_COUNT = 16;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawPlayer
+    struct RawPlayer
     {
       uint8_t Padding1;
-      uint16_t DataAddr;
-    } PACK_POST;
+      le_uint16_t DataAddr;
+    };
 
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       uint8_t Tempo;
       uint8_t Length;
       uint8_t Loop;
-      std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      uint16_t PatternsOffset;
+      std::array<le_uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<le_uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      le_uint16_t PatternsOffset;
       char Name[30];
       uint8_t Positions[1];
-    } PACK_POST;
+    };
+
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 132, "Wrong layout");
 
     const uint8_t POS_END_MARKER = 0xff;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
 
     const Char DESCRIPTION[] = "Pro Tracker v2.40 Phantom Family player";
 
@@ -123,7 +119,7 @@ namespace Formats::Packed
         return Container::Ptr();
       }
       const auto& rawPlayer = *data.As<RawPlayer>();
-      const uint_t dataAddr = fromLE(rawPlayer.DataAddr);
+      const uint_t dataAddr = rawPlayer.DataAddr;
       if (dataAddr < PLAYER_SIZE)
       {
         Dbg("Invalid compile addr");
@@ -146,7 +142,7 @@ namespace Formats::Packed
         builder->FixLEWord(idx, -int_t(dataAddr));
       }
       // fix patterns offsets
-      for (uint_t idx = fromLE(rawHeader.PatternsOffset), lim = idx + 6 * patternsCount; idx != lim; idx += 2)
+      for (uint_t idx = rawHeader.PatternsOffset, lim = idx + 6 * patternsCount; idx != lim; idx += 2)
       {
         builder->FixLEWord(idx, -int_t(dataAddr));
       }

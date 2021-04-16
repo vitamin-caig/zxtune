@@ -41,37 +41,34 @@ namespace Formats::Chiptune
     const std::size_t CHANNELS_COUNT = 3;
     const std::size_t SAMPLES_COUNT = 16;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Pattern
+    struct Pattern
     {
       static const uint8_t LIMIT = 0xff;
 
-      PACK_PRE struct Line
+      struct Line
       {
         uint8_t Note[CHANNELS_COUNT];
         uint8_t Sample[CHANNELS_COUNT];
-      } PACK_POST;
+      };
 
       Line Lines[MAX_PATTERN_SIZE];
       uint8_t Limit;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct SampleInfo
+    struct SampleInfo
     {
       uint8_t AddrHi;
       uint8_t SizeHiDoubled;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct Header
+    struct Header
     {
       //+0
       uint8_t Tempo;
       //+1
       std::array<uint8_t, MAX_POSITIONS_COUNT> Positions;
       //+0x41
-      std::array<uint16_t, MAX_POSITIONS_COUNT> PositionsPtrs;
+      std::array<le_uint16_t, MAX_POSITIONS_COUNT> PositionsPtrs;
       //+0xc1
       std::array<char, 10> Title;
       //+0xcb
@@ -86,12 +83,9 @@ namespace Formats::Chiptune
       std::array<std::array<char, 10>, SAMPLES_COUNT> SampleNames;
       //+0x19a0
       uint8_t Samples[1];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(Header) == 0x19a1, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 0x19a1, "Invalid layout");
 
     const uint_t NOTE_EMPTY = 0;
     const uint_t NOTE_BASE = 1;

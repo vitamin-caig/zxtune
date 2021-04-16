@@ -29,26 +29,20 @@ namespace Formats::Chiptune
 
     typedef std::array<uint8_t, 4> SignatureType;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       SignatureType Signature;
-      uint16_t LoadAddress;
-      uint16_t InitialDataSize;
-      uint16_t InitAddress;
-      uint16_t PlayAddress;
+      le_uint16_t LoadAddress;
+      le_uint16_t InitialDataSize;
+      le_uint16_t InitAddress;
+      le_uint16_t PlayAddress;
       uint8_t StartBank;
       uint8_t ExtraBanks;
       uint8_t ExtraHeaderSize;
       uint8_t ExtraChips;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x10, "Invalid layout");
 
     const auto FORMAT =
         "'K'S'C'C"   // signature
@@ -93,7 +87,7 @@ namespace Formats::Chiptune
         const RawHeader& hdr = *safe_ptr_cast<const RawHeader*>(rawData.Start());
         const std::size_t bankSize = 0 != (hdr.ExtraBanks & 0x80) ? 8192 : 16384;
         const uint_t banksCount = hdr.ExtraBanks & 0x7f;
-        const std::size_t totalSize = sizeof(hdr) + fromLE(hdr.InitialDataSize) + bankSize * banksCount;
+        const std::size_t totalSize = sizeof(hdr) + hdr.InitialDataSize + bankSize * banksCount;
         // GME support truncated files
         const std::size_t realSize = std::min(rawData.Size(), totalSize);
         const Binary::Container::Ptr data = rawData.GetSubcontainer(0, realSize);

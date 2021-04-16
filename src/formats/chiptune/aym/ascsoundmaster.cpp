@@ -59,39 +59,36 @@ namespace Formats::Chiptune
       Ornaments data
     */
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeaderVer0
+    struct RawHeaderVer0
     {
       uint8_t Tempo;
-      uint16_t PatternsOffset;
-      uint16_t SamplesOffset;
-      uint16_t OrnamentsOffset;
+      le_uint16_t PatternsOffset;
+      le_uint16_t SamplesOffset;
+      le_uint16_t OrnamentsOffset;
       uint8_t Length;
       uint8_t Positions[1];
 
       // for same static interface
       static const std::size_t Loop = 0;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawHeaderVer1
+    struct RawHeaderVer1
     {
       uint8_t Tempo;
       uint8_t Loop;
-      uint16_t PatternsOffset;
-      uint16_t SamplesOffset;
-      uint16_t OrnamentsOffset;
+      le_uint16_t PatternsOffset;
+      le_uint16_t SamplesOffset;
+      le_uint16_t OrnamentsOffset;
       uint8_t Length;
       uint8_t Positions[1];
-    } PACK_POST;
+    };
 
     const uint8_t ASC_ID_1[] = {'A', 'S', 'M', ' ', 'C', 'O', 'M', 'P', 'I', 'L',
                                 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '};
 
     const Char BY_DELIMITER[] = {'B', 'Y', 0};
 
-    PACK_PRE struct RawId
+    struct RawId
     {
       uint8_t Identifier1[19];  //'ASM COMPILATION OF '
       std::array<char, 20> Title;
@@ -109,21 +106,21 @@ namespace Formats::Chiptune
         const auto trimId = Strings::TrimSpaces(Identifier2);
         return boost::algorithm::iequals(trimId, BY_DELIMITER);
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPattern
+    struct RawPattern
     {
-      std::array<uint16_t, 3> Offsets;  // from start of patterns
-    } PACK_POST;
+      std::array<le_uint16_t, 3> Offsets;  // from start of patterns
+    };
 
-    PACK_PRE struct RawOrnamentsList
+    struct RawOrnamentsList
     {
-      std::array<uint16_t, ORNAMENTS_COUNT> Offsets;
-    } PACK_POST;
+      std::array<le_uint16_t, ORNAMENTS_COUNT> Offsets;
+    };
 
-    PACK_PRE struct RawOrnament
+    struct RawOrnament
     {
-      PACK_PRE struct Line
+      struct Line
       {
         // BEFooooo
         // OOOOOOOO
@@ -155,18 +152,18 @@ namespace Formats::Chiptune
         {
           return static_cast<int8_t>(LoopAndNoiseOffset * 8) / 8;
         }
-      } PACK_POST;
+      };
       Line Data[1];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawSamplesList
+    struct RawSamplesList
     {
-      std::array<uint16_t, SAMPLES_COUNT> Offsets;
-    } PACK_POST;
+      std::array<le_uint16_t, SAMPLES_COUNT> Offsets;
+    };
 
-    PACK_PRE struct RawSample
+    struct RawSample
     {
-      PACK_PRE struct Line
+      struct Line
       {
         // BEFaaaaa
         // TTTTTTTT
@@ -224,7 +221,7 @@ namespace Formats::Chiptune
         {
           return 0 != (LevelAndMasks & 1);
         }
-      } PACK_POST;
+      };
 
       enum
       {
@@ -234,19 +231,16 @@ namespace Formats::Chiptune
         INCVOLADD
       };
       Line Data[1];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeaderVer0) == 9, "Invalid layout");
-    static_assert(sizeof(RawHeaderVer1) == 10, "Invalid layout");
-    static_assert(sizeof(RawId) == 63, "Invalid layout");
-    static_assert(sizeof(RawPattern) == 6, "Invalid layout");
-    static_assert(sizeof(RawOrnamentsList) == 64, "Invalid layout");
-    static_assert(sizeof(RawOrnament) == 2, "Invalid layout");
-    static_assert(sizeof(RawSamplesList) == 64, "Invalid layout");
-    static_assert(sizeof(RawSample) == 3, "Invalid layout");
+    static_assert(sizeof(RawHeaderVer0) * alignof(RawHeaderVer0) == 9, "Invalid layout");
+    static_assert(sizeof(RawHeaderVer1) * alignof(RawHeaderVer1) == 10, "Invalid layout");
+    static_assert(sizeof(RawId) * alignof(RawId) == 63, "Invalid layout");
+    static_assert(sizeof(RawPattern) * alignof(RawPattern) == 6, "Invalid layout");
+    static_assert(sizeof(RawOrnamentsList) * alignof(RawOrnamentsList) == 64, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 2, "Invalid layout");
+    static_assert(sizeof(RawSamplesList) * alignof(RawSamplesList) == 64, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 3, "Invalid layout");
 
     template<class RawHeader>
     std::size_t GetHeaderSize(const RawHeader& hdr)
@@ -268,9 +262,9 @@ namespace Formats::Chiptune
       template<class RawHeader>
       explicit HeaderTraits(const RawHeader& hdr)
         : Size(GetHeaderSize(hdr))
-        , PatternsOffset(fromLE(hdr.PatternsOffset))
-        , SamplesOffset(fromLE(hdr.SamplesOffset))
-        , OrnamentsOffset(fromLE(hdr.OrnamentsOffset))
+        , PatternsOffset(hdr.PatternsOffset)
+        , SamplesOffset(hdr.SamplesOffset)
+        , OrnamentsOffset(hdr.OrnamentsOffset)
         , Tempo(hdr.Tempo)
         , Loop(hdr.Loop)
         , Positions(hdr.Positions)
@@ -660,7 +654,7 @@ namespace Formats::Chiptune
         {
           const uint_t samIdx = *it;
           Dbg("Parse sample %1%", samIdx);
-          const std::size_t curOffset = fromLE(list.Offsets[samIdx]);
+          const std::size_t curOffset = list.Offsets[samIdx];
           Require(curOffset > prevOffset);
           Require(0 == (curOffset - prevOffset) % sizeof(RawSample::Line));
           builder.SetSample(samIdx, ParseSample(baseOffset + curOffset));
@@ -678,7 +672,7 @@ namespace Formats::Chiptune
         {
           const uint_t ornIdx = *it;
           Dbg("Parse ornament %1%", ornIdx);
-          const std::size_t curOffset = fromLE(list.Offsets[ornIdx]);
+          const std::size_t curOffset = list.Offsets[ornIdx];
           Require(curOffset > prevOffset);
           Require(0 == (curOffset - prevOffset) % sizeof(RawOrnament::Line));
           builder.SetOrnament(ornIdx, ParseOrnament(baseOffset + curOffset));
@@ -733,7 +727,7 @@ namespace Formats::Chiptune
         DataCursors(const RawPattern& src, std::size_t baseOffset)
         {
           std::transform(src.Offsets.begin(), src.Offsets.end(), begin(),
-                         [baseOffset](uint16_t o) { return baseOffset + fromLE(o); });
+                         [baseOffset](auto o) { return baseOffset + o; });
         }
       };
 
@@ -1157,7 +1151,7 @@ namespace Formats::Chiptune
       }
       if (const auto* samplesList = data.SubView(areas.GetAreaAddress(SAMPLES)).As<RawSamplesList>())
       {
-        if (fromLE(samplesList->Offsets[0]) != sizeof(*samplesList))
+        if (samplesList->Offsets[0] != sizeof(*samplesList))
         {
           return false;
         }
@@ -1172,7 +1166,7 @@ namespace Formats::Chiptune
       }
       if (const auto* ornamentsList = data.SubView(areas.GetAreaAddress(ORNAMENTS)).As<RawOrnamentsList>())
       {
-        if (fromLE(ornamentsList->Offsets[0]) < sizeof(*ornamentsList))
+        if (ornamentsList->Offsets[0] < sizeof(*ornamentsList))
         {
           return false;
         }

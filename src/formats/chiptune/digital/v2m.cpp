@@ -174,7 +174,7 @@ namespace Formats::Chiptune
             totalTime += TPC * rows * usecs / 8000000;
             if (gdIdx < GdNum)
             {
-              usecs = fromLE(safe_ptr_cast<const uint32_t*>(Delays + 3 * GdNum)[gdIdx]);
+              usecs = safe_ptr_cast<const le_uint32_t*>(Delays + 3 * GdNum)[gdIdx];
             }
           }
           return Time::Milliseconds(totalTime);

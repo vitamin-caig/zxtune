@@ -104,23 +104,17 @@ namespace Formats::Packed
 
     const std::size_t BODY_SIZE = 0xce;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       //+0
       char Padding1[0x0c];
       //+c
-      uint16_t SizeOfPacked;
+      le_uint16_t SizeOfPacked;
       //+e
       char Padding2[0x13];
       //+21
-      uint16_t DepackerBodySize;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      le_uint16_t DepackerBodySize;
+    };
 
     const std::size_t MIN_DATA_SIZE = 2;
     const std::size_t MAX_HEAD_SIZE = HEAD_SIZE + 36;  // typical signature
@@ -157,7 +151,7 @@ namespace Formats::Packed
 
       std::size_t GetPackedSize() const
       {
-        return fromLE(GetHeader().SizeOfPacked);
+        return GetHeader().SizeOfPacked;
       }
 
     private:
@@ -169,7 +163,7 @@ namespace Formats::Packed
 
       std::size_t GetBodySize() const
       {
-        return fromLE(GetHeader().DepackerBodySize);
+        return GetHeader().DepackerBodySize;
       }
 
     private:

@@ -35,30 +35,24 @@ namespace Formats::Multitrack
 
     const SignatureType SIGNATURE = {{'G', 'B', 'S'}};
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       SignatureType Signature;
       uint8_t Version;
       uint8_t SongsCount;
       uint8_t StartSong;  // 1-based
-      uint16_t LoadAddr;
-      uint16_t InitAddr;
-      uint16_t PlayAddr;
-      uint16_t StackPointer;
+      le_uint16_t LoadAddr;
+      le_uint16_t InitAddr;
+      le_uint16_t PlayAddr;
+      le_uint16_t StackPointer;
       uint8_t TimerModulo;
       uint8_t TimerControl;
       StringType Title;
       StringType Artist;
       StringType Copyright;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 112, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 112, "Invalid layout");
 
     const std::size_t MAX_SIZE = 1048576;
 

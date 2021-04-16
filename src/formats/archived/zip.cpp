@@ -82,7 +82,7 @@ namespace Formats::Archived
       const T* GetBlock() const
       {
         const T* rawBlock = Stream.PeekField<T>();
-        return rawBlock && fromLE(rawBlock->Signature) == T::SIGNATURE ? rawBlock : nullptr;
+        return rawBlock && rawBlock->Signature == T::SIGNATURE ? rawBlock : nullptr;
       }
 
       std::unique_ptr<const Packed::Zip::CompressedFile> GetFile() const
@@ -177,8 +177,8 @@ namespace Formats::Archived
         assert(!IsEof());
         if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
         {
-          const StringView rawName(header->Name, fromLE(header->NameSize));
-          const bool isUtf8 = 0 != (fromLE(header->Flags) & Packed::Zip::FILE_UTF8);
+          const StringView rawName(header->Name, header->NameSize);
+          const bool isUtf8 = 0 != (header->Flags & Packed::Zip::FILE_UTF8);
           return isUtf8 ? rawName.to_string() : Strings::ToAutoUtf8(rawName);
         }
         assert(!"Failed to get name");
