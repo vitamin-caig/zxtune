@@ -309,14 +309,14 @@ namespace Formats::Chiptune
         Storage.Add(fromLE<uint32_t>(channelsMask));
         Storage.Add(formatId);
         Storage.Add(restData);
-        Storage.Get<uint32_t>(16) = fromLE<uint32_t>(Storage.Size() - 20);
+        Storage.Get<le_uint32_t>(16) = Storage.Size() - 20;
       }
 
       void SetExtraData(Binary::View data) override
       {
         Storage.Add(fromLE<uint16_t>(data.Size()));
         Storage.Add(data);
-        Storage.Get<uint32_t>(16) = fromLE<uint32_t>(Storage.Size() - 20);
+        Storage.Get<le_uint32_t>(16) = Storage.Size() - 20;
       }
 
       void SetSamplesData(Binary::Container::Ptr data) override
@@ -335,7 +335,7 @@ namespace Formats::Chiptune
 
       Binary::Container::Ptr GetDump() override
       {
-        Storage.Get<uint32_t>(4) = fromLE<uint32_t>(Storage.Size() - 8);
+        Storage.Get<le_uint32_t>(4) = Storage.Size() - 8;
         return Storage.CaptureResult();
       }
 

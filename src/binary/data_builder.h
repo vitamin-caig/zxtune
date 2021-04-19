@@ -36,13 +36,13 @@ namespace Binary
     template<class T, typename std::enable_if<!std::is_pointer<T>::value, int>::type = 0>
     T& Add()
     {
-      return *static_cast<T*>(Allocate(sizeof(T)));
+      return *safe_ptr_cast<T*>(Allocate(sizeof(T)));
     }
 
     template<class T, typename std::enable_if<std::is_trivial<T>::value && !std::is_pointer<T>::value, int>::type = 0>
     void Add(T val)
     {
-      *static_cast<T*>(Allocate(sizeof(T))) = val;
+      std::memcpy(Allocate(sizeof(T)), &val, sizeof(val));
     }
 
     void Add(View data)
@@ -78,7 +78,7 @@ namespace Binary
     template<class T>
     T& Get(std::size_t offset) const
     {
-      return *static_cast<T*>(Get(offset));
+      return *safe_ptr_cast<T*>(Get(offset));
     }
 
     void Resize(std::size_t size)

@@ -285,7 +285,7 @@ namespace Formats::Archived
     public:
       explicit Format(const Binary::Container& data)
         : Data(data)
-        , Header(*static_cast<const RawHeader*>(data.Start()))
+        , Header(*safe_ptr_cast<const RawHeader*>(data.Start()))
         , UsedSize(sizeof(Header))
       {
         Require(Header.Signature == SIGNATURE);

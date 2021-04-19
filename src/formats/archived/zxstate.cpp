@@ -329,7 +329,7 @@ namespace Formats::Archived
         {
           return false;
         }
-        const uint32_t* const romDescr = safe_ptr_cast<const uint32_t*>(ch.Data + romBlk.Size);
+        const auto* const romDescr = safe_ptr_cast<const le_uint32_t*>(ch.Data + romBlk.Size);
         DataBlockDescription ramBlk;
         ramBlk.Content = romDescr + 1;
         ramBlk.Size = *romDescr;

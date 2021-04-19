@@ -105,7 +105,7 @@ namespace Formats::Archived
       {
         return false;
       }
-      const Header* const hripHeader = static_cast<const Header*>(data);
+      const auto* const hripHeader = safe_ptr_cast<const Header*>(data);
       if (0 != std::memcmp(hripHeader->ID, HRIP_ID, sizeof(HRIP_ID))
           || !(0 == hripHeader->Catalogue || 1 == hripHeader->Catalogue) || !hripHeader->ArchiveSectors
           || !hripHeader->FilesCount)
@@ -126,7 +126,7 @@ namespace Formats::Archived
 
     String ExtractFileName(const void* data)
     {
-      const BlockHeader* const header = static_cast<const BlockHeader*>(data);
+      const auto* const header = safe_ptr_cast<const BlockHeader*>(data);
       if (header->AdditionalSize >= 18)
       {
         return TRDos::GetEntryName(header->Name, header->Type);

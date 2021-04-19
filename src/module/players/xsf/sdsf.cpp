@@ -154,18 +154,19 @@ namespace Module::SDSF
       {
         const auto unpackedSection = Binary::Compression::Zlib::Decompress(*packed);
         const auto rawSize = unpackedSection->Size();
-        Require(rawSize > sizeof(uint32_t));
-        const auto rawStart = static_cast<uint32_t*>(const_cast<void*>(unpackedSection->Start()));
+        Require(rawSize > sizeof(le_uint32_t));
+        const auto rawStart = static_cast<le_uint32_t*>(const_cast<void*>(unpackedSection->Start()));
         const auto toCopy = FixupSection(rawStart, rawSize);
         // TODO: make input const
-        Dbg("Section %1% -> %2%  @ 0x%3$08x", packed->Size(), toCopy, fromLE(*rawStart));
+        Dbg("Section %1% -> %2%  @ 0x%3$08x", packed->Size(), toCopy, *rawStart);
         Require(0 == ::sega_upload_program(Emu.get(), rawStart, toCopy));
       }
     }
 
-    std::size_t FixupSection(uint32_t* data, std::size_t size) const
+    std::size_t FixupSection(le_uint32_t* data, std::size_t size) const
     {
-      const auto start = fromLE(*data &= fromLE<uint32_t>(0x7fffff));
+      const uint32_t start = *data & 0x7fffff;
+      *data = start;
       const uint32_t end = start + (size - sizeof(start));
       const uint32_t realEnd = std::min(end, HTLibrary::GetMemoryEnd(Vers));
       return sizeof(start) + (realEnd - start);

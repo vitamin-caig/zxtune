@@ -11,6 +11,7 @@
 #pragma once
 
 // common includes
+#include <pointers.h>
 #include <types.h>
 // std includes
 #include <type_traits>
@@ -82,7 +83,7 @@ namespace Binary
     template<typename T, typename std::enable_if<std::is_pod<T>::value && !std::is_pointer<T>::value, int>::type = 0>
     const T* As() const
     {
-      return sizeof(T) <= Length ? static_cast<const T*>(Begin) : nullptr;
+      return sizeof(T) <= Length ? safe_ptr_cast<const T*>(Begin) : nullptr;
     }
 
   private:

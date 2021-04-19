@@ -903,9 +903,10 @@ namespace Strings
     }
     else if (IsUtf16(str))
     {
-      const auto begin = safe_ptr_cast<const uint16_t*>(str.begin());
-      const auto end = safe_ptr_cast<const uint16_t*>(str.end());
-      return Utf16ToUtf8({begin, end});
+      std::vector<uint16_t> aligned(str.size() / 2);
+      auto* target = aligned.data();
+      std::memcpy(target, str.data(), aligned.size() * sizeof(*target));
+      return Utf16ToUtf8({target, target + aligned.size()});
     }
     else
     {

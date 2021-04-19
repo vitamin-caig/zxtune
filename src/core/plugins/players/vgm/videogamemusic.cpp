@@ -505,14 +505,15 @@ namespace Module
         return Input.ReadLE<uint32_t>();
       }
 
-      basic_string_view<uint16_t> ReadUtf16()
+      basic_string_view<le_uint16_t> ReadUtf16()
       {
-        const auto symbolsAvailable = Input.GetRestSize() / sizeof(uint16_t);
-        const auto begin = safe_ptr_cast<const uint16_t*>(Input.PeekRawData(symbolsAvailable * sizeof(uint16_t)));
+        const auto symbolsAvailable = Input.GetRestSize() / sizeof(le_uint16_t);
+        const auto* begin =
+            safe_ptr_cast<const le_uint16_t*>(Input.PeekRawData(symbolsAvailable * sizeof(le_uint16_t)));
         auto end = std::find(begin, begin + symbolsAvailable, 0);
         Require(end != begin + symbolsAvailable);
-        Input.Skip((end + 1 - begin) * sizeof(uint16_t));
-        return basic_string_view<uint16_t>(begin, end);
+        Input.Skip((end + 1 - begin) * sizeof(*begin));
+        return basic_string_view<le_uint16_t>(begin, end);
       }
 
       static StringView ConvertPlatform(StringView str)

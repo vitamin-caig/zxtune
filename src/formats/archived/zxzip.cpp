@@ -32,7 +32,7 @@ namespace Formats::Archived
 
     String ExtractFileName(const void* data)
     {
-      const ZXZipHeader* const header = static_cast<const ZXZipHeader*>(data);
+      const auto* const header = safe_ptr_cast<const ZXZipHeader*>(data);
       return TRDos::GetEntryName(header->Name, header->Type);
     }
 

@@ -374,7 +374,7 @@ namespace Formats::Chiptune
         template<class T>
         T* Add(const T& obj)
         {
-          return static_cast<T*>(Add(&obj, sizeof(obj)));
+          return safe_ptr_cast<T*>(Add(&obj, sizeof(obj)));
         }
 
         char* Add(const String& str)
