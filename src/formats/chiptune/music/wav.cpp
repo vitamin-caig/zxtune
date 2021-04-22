@@ -283,7 +283,7 @@ namespace Formats::Chiptune
         Storage.Add<uint32_t>(0);
         Storage.Add(Headers::WAVE);
         Storage.Add(Chunks::FMT);
-        Storage.Add(fromLE<uint32_t>(16));
+        Storage.Add<le_uint32_t>(16);
       }
 
       MetaBuilder& GetMetaBuilder() override
@@ -293,20 +293,20 @@ namespace Formats::Chiptune
 
       void SetProperties(uint_t format, uint_t frequency, uint_t channels, uint_t bits, uint_t blockSize) override
       {
-        Storage.Add(fromLE<uint16_t>(format));
-        Storage.Add(fromLE<uint16_t>(channels));
-        Storage.Add(fromLE<uint32_t>(frequency));
-        Storage.Add(fromLE<uint32_t>(frequency * blockSize));
-        Storage.Add(fromLE<uint16_t>(blockSize));
-        Storage.Add(fromLE<uint16_t>(bits));
+        Storage.Add<le_uint16_t>(format);
+        Storage.Add<le_uint16_t>(channels);
+        Storage.Add<le_uint32_t>(frequency);
+        Storage.Add<le_uint32_t>(frequency * blockSize);
+        Storage.Add<le_uint16_t>(blockSize);
+        Storage.Add<le_uint16_t>(bits);
       }
 
       void SetExtendedProperties(uint_t validBitsOrBlockSize, uint_t channelsMask, const Guid& formatId,
                                  Binary::View restData) override
       {
-        Storage.Add(fromLE<uint16_t>(6 + sizeof(formatId) + restData.Size()));
-        Storage.Add(fromLE<uint16_t>(validBitsOrBlockSize));
-        Storage.Add(fromLE<uint32_t>(channelsMask));
+        Storage.Add<le_uint16_t>(6 + sizeof(formatId) + restData.Size());
+        Storage.Add<le_uint16_t>(validBitsOrBlockSize);
+        Storage.Add<le_uint32_t>(channelsMask);
         Storage.Add(formatId);
         Storage.Add(restData);
         Storage.Get<le_uint32_t>(16) = Storage.Size() - 20;
@@ -314,7 +314,7 @@ namespace Formats::Chiptune
 
       void SetExtraData(Binary::View data) override
       {
-        Storage.Add(fromLE<uint16_t>(data.Size()));
+        Storage.Add<le_uint16_t>(data.Size());
         Storage.Add(data);
         Storage.Get<le_uint32_t>(16) = Storage.Size() - 20;
       }
@@ -322,15 +322,15 @@ namespace Formats::Chiptune
       void SetSamplesData(Binary::Container::Ptr data) override
       {
         Storage.Add(Chunks::DATA);
-        Storage.Add(fromLE<uint32_t>(data->Size()));
+        Storage.Add<le_uint32_t>(data->Size());
         Storage.Add(*data);
       }
 
       void SetSamplesCountHint(uint_t count) override
       {
         Storage.Add(Chunks::FACT);
-        Storage.Add(fromLE<uint32_t>(4));
-        Storage.Add(fromLE<uint32_t>(count));
+        Storage.Add<le_uint32_t>(4);
+        Storage.Add<le_uint32_t>(count);
       }
 
       Binary::Container::Ptr GetDump() override

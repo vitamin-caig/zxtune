@@ -164,9 +164,9 @@ namespace Formats::Chiptune
         // assume single stream, so first page is always first
         const uint8_t flag = PagesDone == 0 ? FIRST_PAGE : (continued ? CONTINUED_PACKET : 0);
         Storage.Add(flag);
-        Storage.Add(fromLE(position));
-        Storage.Add(fromLE(StreamId));
-        Storage.Add(fromLE(PagesDone++));
+        Storage.Add<le_uint64_t>(position);
+        Storage.Add<le_uint32_t>(StreamId);
+        Storage.Add<le_uint32_t>(PagesDone++);
         const uint32_t EMPTY_CRC = 0;
         Storage.Add(EMPTY_CRC);
         Storage.Add(segmentsCount);
@@ -195,10 +195,9 @@ namespace Formats::Chiptune
       void CalculateCrc()
       {
         auto* const page = static_cast<uint8_t*>(Storage.Get(LastPageOffset));
-        auto* const rawCrc = page + 22;
-        std::memset(rawCrc, 0, sizeof(uint32_t));
-        const auto crc = fromLE(Crc32::Calculate(page, LastPageSize));
-        std::memcpy(rawCrc, &crc, sizeof(uint32_t));
+        auto* const rawCrc = safe_ptr_cast<le_uint32_t*>(page + 22);
+        *rawCrc = 0;
+        *rawCrc = Crc32::Calculate(page, LastPageSize);
       }
 
       class Crc32
@@ -445,7 +444,7 @@ namespace Formats::Chiptune
         builder.Add(Vorbis::SIGNATURE);
         builder.Add(Vorbis::VERSION);
         builder.Add(channels);
-        builder.Add(fromLE(frequency));
+        builder.Add<le_uint32_t>(frequency);
         builder.Allocate(3 * sizeof(uint32_t));
         builder.Add(blockSizes);
         builder.Add(uint8_t(1));

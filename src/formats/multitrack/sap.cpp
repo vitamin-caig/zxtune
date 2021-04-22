@@ -155,8 +155,8 @@ namespace Formats::Multitrack
         {
           const uint_t addr = blk.first;
           const std::size_t size = blk.second.Size();
-          builder.Add(fromLE<uint16_t>(addr));
-          builder.Add(fromLE<uint16_t>(addr + size - 1));
+          builder.Add<le_uint16_t>(addr);
+          builder.Add<le_uint16_t>(addr + size - 1);
           auto* dst = builder.Allocate(size);
           std::memcpy(dst, blk.second.Start(), size);
         }

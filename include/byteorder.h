@@ -306,33 +306,3 @@ using be_uint64_t = BE<uint64_t>;
 using be_int16_t = BE<int16_t>;
 using be_int32_t = BE<int32_t>;
 using be_int64_t = BE<int64_t>;
-
-//! @brief Converting input data from Little-Endian byteorder
-template<typename T>
-inline T fromLE(T a)
-{
-  static_assert(std::is_integral<T>::value, "Not an integral");
-  if constexpr (isLE())
-  {
-    return a;
-  }
-  else
-  {
-    return swapBytes(a);
-  }
-}
-
-//! @brief Converting input data from Big-Endian byteorder
-template<typename T>
-inline T fromBE(T a)
-{
-  static_assert(std::is_integral<T>::value, "Not an integral");
-  if constexpr (isLE())
-  {
-    return swapBytes(a);
-  }
-  else
-  {
-    return a;
-  }
-}
