@@ -306,12 +306,12 @@ namespace Module::GME
       output.Add(input.ReadData(packedSizeOffset));
       if (const auto packedSize = input.ReadLE<uint32_t>())
       {
-        output.Add(uint32_t(0));
+        output.Add<le_uint32_t>(0);
         Binary::Compression::Zlib::Decompress(input, output);
       }
       else
       {
-        output.Add(packedSize);
+        output.Add<le_uint32_t>(0);
         output.Add(input.ReadRestData());
       }
       Binary::Dump result;

@@ -280,7 +280,7 @@ namespace Formats::Chiptune
         : Storage(60)
       {
         Storage.Add(Chunks::RIFF);
-        Storage.Add<uint32_t>(0);
+        Storage.Add<le_uint32_t>(0);
         Storage.Add(Headers::WAVE);
         Storage.Add(Chunks::FMT);
         Storage.Add<le_uint32_t>(16);

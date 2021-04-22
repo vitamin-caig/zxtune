@@ -167,7 +167,7 @@ namespace Formats::Chiptune
         Storage.Add<le_uint64_t>(position);
         Storage.Add<le_uint32_t>(StreamId);
         Storage.Add<le_uint32_t>(PagesDone++);
-        const uint32_t EMPTY_CRC = 0;
+        const le_uint32_t EMPTY_CRC = 0;
         Storage.Add(EMPTY_CRC);
         Storage.Add(segmentsCount);
         WriteSegments(data.Size(), static_cast<uint8_t*>(Storage.Allocate(segmentsCount)));
@@ -440,14 +440,14 @@ namespace Formats::Chiptune
       void WriteIdentification(uint8_t channels, uint32_t frequency, uint8_t blockSizes)
       {
         Binary::DataBuilder builder(30);
-        builder.Add(uint8_t(Vorbis::Identification));
+        builder.Add<uint8_t>(Vorbis::Identification);
         builder.Add(Vorbis::SIGNATURE);
-        builder.Add(Vorbis::VERSION);
+        builder.Add<le_uint32_t>(Vorbis::VERSION);
         builder.Add(channels);
         builder.Add<le_uint32_t>(frequency);
         builder.Allocate(3 * sizeof(uint32_t));
         builder.Add(blockSizes);
-        builder.Add(uint8_t(1));
+        builder.Add<uint8_t>(1);
         assert(builder.Size() == 30);
         Storage.AddData(0, static_cast<const uint8_t*>(builder.Get(0)), builder.Size());
       }
