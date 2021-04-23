@@ -27,100 +27,29 @@ constexpr bool isLE()
 #endif
 }
 
-template<std::size_t size>
-struct Byteorder;
-
-template<>
-struct Byteorder<2>
+constexpr uint16_t swapBytes(uint16_t a)
 {
-  typedef uint16_t Type;
+  return uint16_t(a << 8) | uint16_t(a >> 8);
+}
 
-  constexpr static Type Swap(Type a)
-  {
-    return Type(a << 8) | Type(a >> 8);
-  }
-
-  inline static Type ReadLE(const uint8_t* in)
-  {
-    return (Type(in[1]) << 8) | in[0];
-  }
-
-  inline static Type ReadBE(const uint8_t* in)
-  {
-    return (Type(in[0]) << 8) | in[1];
-  }
-};
-
-// Artificial
-template<>
-struct Byteorder<3>
+constexpr uint32_t swapBytes(uint32_t a)
 {
-  typedef uint_t Type;
+  const uint32_t tmp((((a >> 8) ^ (a << 8)) & 0xff00ff) ^ (a << 8));
+  return (tmp << 16) | (tmp >> 16);
+}
 
-  inline static Type ReadLE(const uint8_t* in)
-  {
-    return (Type(in[2]) << 16) | (Type(in[1]) << 8) | in[0];
-  }
-
-  inline static Type ReadBE(const uint8_t* in)
-  {
-    return (Type(in[0]) << 16) | (Type(in[1]) << 8) | in[2];
-  }
-};
-
-template<>
-struct Byteorder<4>
+constexpr uint64_t swapBytes(uint64_t a)
 {
-  typedef uint32_t Type;
+  const uint64_t a1 = ((a & 0x00ff00ff00ff00ffull) << 8) | ((a & 0xff00ff00ff00ff00ull) >> 8);
+  const uint64_t a2 = ((a1 & 0x0000ffff0000ffffull) << 16) | ((a1 & 0xffff0000ffff0000ull) >> 16);
+  return (a2 << 32) | (a2 >> 32);
+}
 
-  constexpr static Type Swap(Type a)
-  {
-    const Type tmp((((a >> 8) ^ (a << 8)) & 0xff00ff) ^ (a << 8));
-    return (tmp << 16) | (tmp >> 16);
-  }
-
-  inline static Type ReadLE(const uint8_t* in)
-  {
-    return (Type(in[3]) << 24) | (Type(in[2]) << 16) | (Type(in[1]) << 8) | in[0];
-  }
-
-  inline static Type ReadBE(const uint8_t* in)
-  {
-    return (Type(in[0]) << 24) | (Type(in[1]) << 16) | (Type(in[2]) << 8) | in[3];
-  }
-};
-
-template<>
-struct Byteorder<8>
-{
-  typedef uint64_t Type;
-
-  constexpr static Type Swap(Type a)
-  {
-    const Type a1 = ((a & UINT64_C(0x00ff00ff00ff00ff)) << 8) | ((a & UINT64_C(0xff00ff00ff00ff00)) >> 8);
-    const Type a2 = ((a1 & UINT64_C(0x0000ffff0000ffff)) << 16) | ((a1 & UINT64_C(0xffff0000ffff0000)) >> 16);
-    return (a2 << 32) | (a2 >> 32);
-  }
-
-  inline static Type ReadLE(const uint8_t* in)
-  {
-    return (Type(in[7]) << 56) | (Type(in[6]) << 48) | (Type(in[5]) << 40) | (Type(in[4]) << 32) | (Type(in[3]) << 24)
-           | (Type(in[2]) << 16) | (Type(in[1]) << 8) | in[0];
-  }
-
-  inline static Type ReadBE(const uint8_t* in)
-  {
-    return (Type(in[0]) << 56) | (Type(in[1]) << 48) | (Type(in[2]) << 40) | (Type(in[3]) << 32) | (Type(in[4]) << 24)
-           | (Type(in[5]) << 16) | (Type(in[6]) << 8) | in[7];
-  }
-};
-
-//! @brief Swapping byteorder of integer type value
-template<class T>
+template<class T, std::enable_if_t<std::is_signed_v<T>, bool> = true>
 constexpr T swapBytes(T a)
 {
-  typedef Byteorder<sizeof(T)> Bytes;
-  return static_cast<T>(Bytes::Swap(static_cast<typename Bytes::Type>(a)));
+  using Base = std::make_unsigned_t<T>;
+  return static_cast<T>(swapBytes(static_cast<Base>(a)));
 }
 
 namespace Details
@@ -171,78 +100,80 @@ namespace Details
     static void WriteBE(T, uint8_t*) {}
   };
 
-  template<class T>
+  template<class T, std::size_t Size>
   constexpr inline T ReadRaw(const void* data)
   {
     T ret{};
-    std::memcpy(&ret, data, sizeof(ret));
+    std::memcpy(&ret, data, Size);
     return ret;
   }
 
-  template<class T>
+  template<class T, std::size_t Size>
   inline void WriteRaw(T val, void* data)
   {
-    std::memcpy(data, &val, sizeof(val));
+    std::memcpy(data, &val, Size);
   }
 }  // namespace Details
 
-template<class T>
+template<class T, std::size_t Size = sizeof(T)>
 constexpr inline T ReadLE(const void* data)
 {
   if constexpr (isLE())
   {
-    return Details::ReadRaw<T>(data);
+    return Details::ReadRaw<T, Size>(data);
   }
   else
   {
     using Base = typename std::make_unsigned<T>::type;
-    return static_cast<T>(Details::Endian<Base, sizeof(Base)>::ReadLE(static_cast<const uint8_t*>(data)));
+    return static_cast<T>(Details::Endian<Base, Size>::ReadLE(static_cast<const uint8_t*>(data)));
   }
 }
 
-template<class T>
+template<class T, std::size_t Size = sizeof(T)>
 constexpr inline T ReadBE(const void* data)
 {
   if constexpr (isLE())
   {
     using Base = typename std::make_unsigned<T>::type;
-    return static_cast<T>(Details::Endian<Base, sizeof(Base)>::ReadBE(static_cast<const uint8_t*>(data)));
+    return static_cast<T>(Details::Endian<Base, Size>::ReadBE(static_cast<const uint8_t*>(data)));
   }
   else
   {
-    return Details::ReadRaw<T>(data);
+    // zero high bytes
+    return Details::ReadRaw<T, Size>(data) >> 8 * (sizeof(T) - Size);
   }
 }
 
-template<class T>
+template<class T, std::size_t Size = sizeof(T)>
 inline void WriteLE(T val, void* data)
 {
   if constexpr (isLE())
   {
-    Details::WriteRaw(val, data);
+    Details::WriteRaw<T, Size>(val, data);
   }
   else
   {
     using Base = typename std::make_unsigned<T>::type;
-    Details::Endian<Base, sizeof(Base)>::WriteLE(static_cast<Base>(val), static_cast<uint8_t*>(data));
+    Details::Endian<Base, Size>::WriteLE(static_cast<Base>(val), static_cast<uint8_t*>(data));
   }
 }
 
-template<class T>
+template<class T, std::size_t Size = sizeof(T)>
 inline void WriteBE(T val, void* data)
 {
   if constexpr (isLE())
   {
     using Base = typename std::make_unsigned<T>::type;
-    Details::Endian<Base, sizeof(Base)>::WriteBE(static_cast<Base>(val), static_cast<uint8_t*>(data));
+    Details::Endian<Base, Size>::WriteBE(static_cast<Base>(val), static_cast<uint8_t*>(data));
   }
   else
   {
-    Details::WriteRaw(val, data);
+    // drop high bytes
+    Details::WriteRaw<T, Size>(val << 8 * (sizeof(T) - Size), data);
   }
 }
 
-template<class T>
+template<class T, std::size_t Size = sizeof(T)>
 class BE
 {
 public:
@@ -250,25 +181,25 @@ public:
 
   BE(T val)
   {
-    WriteBE(val, Storage);
+    WriteBE<T, Size>(val, Storage);
   }
 
   constexpr operator T() const
   {
-    return ReadBE<T>(Storage);
+    return ReadBE<T, Size>(Storage);
   }
 
   BE& operator=(T val)
   {
-    WriteBE(val, Storage);
+    WriteBE<T, Size>(val, Storage);
     return *this;
   }
 
 private:
-  uint8_t Storage[sizeof(T)];
+  uint8_t Storage[Size];
 };
 
-template<class T>
+template<class T, std::size_t Size = sizeof(T)>
 class LE
 {
 public:
@@ -276,22 +207,22 @@ public:
 
   LE(T val)
   {
-    WriteLE(val, Storage);
+    WriteLE<T, Size>(val, Storage);
   }
 
   constexpr operator T() const
   {
-    return ReadLE<T>(Storage);
+    return ReadLE<T, Size>(Storage);
   }
 
   LE& operator=(T val)
   {
-    WriteLE(val, Storage);
+    WriteLE<T, Size>(val, Storage);
     return *this;
   }
 
 private:
-  uint8_t Storage[sizeof(T)];
+  uint8_t Storage[Size];
 };
 
 using le_uint16_t = LE<uint16_t>;
@@ -306,3 +237,7 @@ using be_uint64_t = BE<uint64_t>;
 using be_int16_t = BE<int16_t>;
 using be_int32_t = BE<int32_t>;
 using be_int64_t = BE<int64_t>;
+
+// additional
+using le_uint24_t = LE<uint32_t, 3>;
+using be_uint24_t = BE<uint32_t, 3>;
