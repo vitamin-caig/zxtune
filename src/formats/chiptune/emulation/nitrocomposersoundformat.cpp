@@ -31,7 +31,7 @@ namespace Formats::Chiptune
     {
       Binary::DataInputStream stream(data);
       stream.Seek(8);
-      const auto size = stream.ReadLE<uint32_t>();
+      const std::size_t size = stream.Read<le_uint32_t>();
       stream.Seek(0);
       target.SetChunk(0, stream.ReadData(size));
       Require(0 == stream.GetRestSize());
@@ -40,9 +40,9 @@ namespace Formats::Chiptune
     uint32_t ParseState(Binary::View data)
     {
       Binary::DataInputStream stream(data);
-      if (data.Size() >= 4)
+      if (data.Size() >= sizeof(uint32_t))
       {
-        return stream.ReadLE<uint32_t>();
+        return stream.Read<le_uint32_t>();
       }
       return 0;
     }

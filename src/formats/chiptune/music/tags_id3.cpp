@@ -48,9 +48,9 @@ namespace Formats::Chiptune
         static const size_t HEADER_SIZE = 10;
         while (Stream.GetRestSize() >= HEADER_SIZE)
         {
-          const auto id = Stream.ReadBE<uint32_t>();
-          const std::size_t chunkize = Stream.ReadBE<uint32_t>();
-          const auto flags = Stream.ReadBE<uint16_t>();
+          const uint_t id = Stream.Read<be_uint32_t>();
+          const std::size_t chunkize = Stream.Read<be_uint32_t>();
+          const uint_t flags = Stream.Read<be_uint16_t>();
           const bool compressed = flags & 0x80;
           const bool encrypted = flags & 0x40;
           const auto body = Stream.ReadData(chunkize);
@@ -212,7 +212,7 @@ namespace Formats::Chiptune
 
     bool ParseV2(Binary::DataInputStream& stream, MetaBuilder& target)
     {
-      const auto& header = stream.ReadField<Header>();
+      const auto& header = stream.Read<Header>();
       const uint_t tagSize = ((header.Size[0] & 0x7f) << 21) | ((header.Size[1] & 0x7f) << 14)
                              | ((header.Size[2] & 0x7f) << 7) | (header.Size[3] & 0x7f);
       const auto content = stream.ReadData(tagSize);

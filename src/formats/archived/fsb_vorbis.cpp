@@ -129,7 +129,7 @@ namespace Formats::Archived::FSB
             ++lookupIt;
             delta = {lookupIt->Offset - cursor.Offset, lookupIt->Position - cursor.Position};
           }
-          const auto size = stream.ReadLE<uint16_t>();
+          const std::size_t size = stream.Read<le_uint16_t>();
           if (const auto data = size ? stream.PeekRawData(size) : nullptr)
           {
             const auto totalSize = size + sizeof(uint16_t);
@@ -188,12 +188,12 @@ namespace Formats::Archived::FSB
         }
         Binary::DataInputStream stream(chunk);
         auto& dst = Samples[CurSample];
-        dst.Setup = GetSetup(stream.ReadLE<uint32_t>());
+        dst.Setup = GetSetup(stream.Read<le_uint32_t>());
         dst.Lookup.emplace_back(0, 0);
-        for (uint_t entries = stream.ReadLE<uint32_t>() / 8; entries != 0; --entries)
+        for (uint_t entries = stream.Read<le_uint32_t>() / 8; entries != 0; --entries)
         {
-          const auto position = stream.ReadLE<uint32_t>();
-          const auto offset = stream.ReadLE<uint32_t>();
+          const auto position = stream.Read<le_uint32_t>();
+          const auto offset = stream.Read<le_uint32_t>();
           dst.Lookup.emplace_back(offset, position);
         }
       }

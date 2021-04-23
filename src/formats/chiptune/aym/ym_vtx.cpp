@@ -303,7 +303,7 @@ namespace Formats::Chiptune
         if (Ver2::FastCheck(data, size) || Ver3::FastCheck(data, size) || Ver3b::FastCheck(data, size))
         {
           Binary::InputStream stream(rawData);
-          const IdentifierType& type = stream.ReadField<IdentifierType>();
+          const auto& type = stream.Read<IdentifierType>();
           target.SetVersion(String(type.begin(), type.end()));
 
           const std::size_t dumpOffset = sizeof(IdentifierType);
@@ -315,7 +315,7 @@ namespace Formats::Chiptune
           ParseTransponedMatrix(src, lines, columns, target);
           if (Ver3b::FastCheck(data, size))
           {
-            const uint_t loop = stream.ReadBE<uint32_t>();
+            const uint_t loop = stream.Read<be_uint32_t>();
             target.SetLoop(loop);
           }
           return CreateCalculatingCrcContainer(stream.GetReadContainer(), dumpOffset, matrixSize);
@@ -323,7 +323,7 @@ namespace Formats::Chiptune
         else if (Ver5::FastCheck(data, size) || Ver6::FastCheck(data, size))
         {
           Binary::InputStream stream(rawData);
-          const Ver5::RawHeader& header = stream.ReadField<Ver5::RawHeader>();
+          const auto& header = stream.Read<Ver5::RawHeader>();
           if (0 != header.SamplesCount)
           {
             Dbg("Digital samples are not supported");
@@ -592,7 +592,7 @@ namespace Formats::Chiptune
       try
       {
         Binary::InputStream stream(rawData);
-        const RawBasicHeader& hdr = stream.ReadField<VTX::RawBasicHeader>();
+        const auto& hdr = stream.Read<VTX::RawBasicHeader>();
         const uint_t chipType = hdr.ChipType;
         const bool ym = chipType == CHIP_YM || chipType == CHIP_YM_OLD;
         const bool newVersion = chipType == CHIP_YM || chipType == CHIP_AY;
@@ -603,9 +603,9 @@ namespace Formats::Chiptune
         target.SetIntFreq(hdr.IntFreq);
         if (newVersion)
         {
-          target.SetYear(stream.ReadLE<uint16_t>());
+          target.SetYear(stream.Read<le_uint16_t>());
         }
-        const uint_t unpackedSize = stream.ReadLE<uint32_t>();
+        const uint_t unpackedSize = stream.Read<le_uint32_t>();
         target.SetTitle(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
         target.SetAuthor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
         if (newVersion)

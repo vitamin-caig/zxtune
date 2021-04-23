@@ -70,7 +70,7 @@ namespace IFF
       {
         break;
       }
-      const ChunkHeader& header = stream.ReadField<ChunkHeader>();
+      const auto& header = stream.Read<ChunkHeader>();
       const std::size_t dataSize = header.DataSize;
       if (stream.GetRestSize() < dataSize)
       {

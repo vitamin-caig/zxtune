@@ -127,11 +127,11 @@ namespace Formats::Packed
       try
       {
         Binary::InputStream input(rawData);
-        const Gzip::Header header = input.ReadField<Gzip::Header>();
+        const auto& header = input.Read<Gzip::Header>();
         Require(header.Check());
         if (header.HasExtraData())
         {
-          const auto extraSize = input.ReadLE<uint16_t>();
+          const std::size_t extraSize = input.Read<le_uint16_t>();
           input.Skip(extraSize);
         }
         if (header.HasFilename())
@@ -150,7 +150,7 @@ namespace Formats::Packed
         Binary::Compression::Zlib::DecompressRaw(input, output);
         if (auto result = output.CaptureResult())
         {
-          const Gzip::Footer footer = input.ReadField<Gzip::Footer>();
+          const auto& footer = input.Read<Gzip::Footer>();
           Require(result->Size() == footer.OriginalSize);
           // TODO: check CRC
           return CreateContainer(std::move(result), input.GetPosition());

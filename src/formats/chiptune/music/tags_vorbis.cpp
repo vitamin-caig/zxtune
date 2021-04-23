@@ -25,7 +25,7 @@ namespace Formats::Chiptune
   {
     StringView ReadString(Binary::DataInputStream& payload)
     {
-      const auto size = payload.ReadLE<uint32_t>();
+      const std::size_t size = payload.Read<le_uint32_t>();
       const auto utf8 = safe_ptr_cast<const char*>(payload.ReadData(size).Start());
       return StringView(utf8, size);
     }
@@ -85,7 +85,7 @@ namespace Formats::Chiptune
       try
       {
         /*const auto vendor = */ ReadString(payload);
-        if (auto items = payload.ReadLE<uint32_t>())
+        if (uint_t items = payload.Read<le_uint32_t>())
         {
           while (items--)
           {

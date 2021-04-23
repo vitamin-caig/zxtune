@@ -144,12 +144,12 @@ namespace Formats::Multitrack
         try
         {
           Binary::InputStream input(rawData);
-          Require(input.ReadField<ChunkIdType>() == NSFE);
+          Require(input.Read<ChunkIdType>() == NSFE);
           const InfoChunkFull* info = nullptr;
           uint32_t fixedCrc = 0;
           for (;;)
           {
-            const ChunkHeader& hdr = input.ReadField<ChunkHeader>();
+            const auto& hdr = input.Read<ChunkHeader>();
             const std::size_t size = hdr.Size;
             if (hdr.Id == NEND)
             {

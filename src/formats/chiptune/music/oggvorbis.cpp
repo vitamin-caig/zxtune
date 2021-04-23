@@ -70,9 +70,9 @@ namespace Formats::Chiptune
           Stream.Skip(sizeof(SIGNATURE));
           Require(VERSION == Stream.ReadByte());
           /*const auto flags = */ Stream.ReadByte();
-          const auto nextPosition = Stream.ReadLE<uint64_t>();
+          const uint64_t nextPosition = Stream.Read<le_uint64_t>();
           const auto hasNextPosition = nextPosition != UNFINISHED_PAGE_POSITION;
-          if (const auto stream = Stream.ReadLE<uint32_t>())
+          if (const uint_t stream = Stream.Read<le_uint32_t>())
           {
             if (!streamId)
             {
@@ -85,8 +85,8 @@ namespace Formats::Chiptune
               Require(streamId == stream);
             }
           }
-          Require(nextPageNumber++ == Stream.ReadLE<uint32_t>());
-          /*const auto crc = */ Stream.ReadLE<uint32_t>();
+          Require(nextPageNumber++ == Stream.Read<le_uint32_t>());
+          /*const auto crc = */ Stream.Read<le_uint32_t>();
           const auto segmentsCount = Stream.ReadByte();
           const auto segmentsSizes = Stream.PeekRawData(segmentsCount);
           const auto payloadSize = std::accumulate(segmentsSizes, segmentsSizes + segmentsCount, std::size_t(0));
@@ -325,9 +325,9 @@ namespace Formats::Chiptune
 
       void ReadIdentification(Binary::DataInputStream& payload)
       {
-        const auto version = payload.ReadLE<uint32_t>();
+        const uint_t version = payload.Read<le_uint32_t>();
         const auto channels = payload.ReadByte();
-        const auto frequency = payload.ReadLE<uint32_t>();
+        const uint_t frequency = payload.Read<le_uint32_t>();
         payload.Skip(4 * 3);
         const auto blocksize = payload.ReadByte();
         const auto framing = payload.ReadByte();

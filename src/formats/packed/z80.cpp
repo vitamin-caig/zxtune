@@ -279,7 +279,7 @@ namespace Formats::Packed
 
     Formats::Packed::Container::Ptr Version1_45::Decode(Binary::InputStream& stream)
     {
-      const Version1_45::Header hdr = stream.ReadField<Version1_45::Header>();
+      const auto& hdr = stream.Read<Version1_45::Header>();
       const std::size_t restSize = stream.GetRestSize();
       const std::size_t TARGET_SIZE = 49152;
       const uint32_t FOOTER = 0x00eded00;
@@ -292,7 +292,7 @@ namespace Formats::Packed
       Require(restSize > sizeof(FOOTER));
       std::unique_ptr<Binary::Dump> res(new Binary::Dump(TARGET_SIZE));
       DecodeBlock(stream, restSize - sizeof(FOOTER), *res);
-      const auto footer = stream.ReadLE<uint32_t>();
+      const uint32_t footer = stream.Read<le_uint32_t>();
       Require(footer == FOOTER);
       return CreateContainer(std::move(res), stream.GetPosition());
     }
@@ -469,7 +469,7 @@ namespace Formats::Packed
     Formats::Packed::Container::Ptr DecodeNew(Binary::InputStream& stream)
     {
       const std::size_t ZX_PAGE_SIZE = 16384;
-      const Version2_0::Header hdr = stream.ReadField<Version2_0::Header>();
+      const auto& hdr = stream.Read<Version2_0::Header>();
       const std::size_t additionalSize = hdr.AdditionalSize;
       const std::size_t readAdditionalSize = sizeof(hdr) - sizeof(Version1_45::Header) - sizeof(hdr.AdditionalSize);
       Require(additionalSize >= readAdditionalSize);
@@ -484,7 +484,7 @@ namespace Formats::Packed
         {
           break;
         }
-        const Version2_0::MemoryPage page = stream.ReadField<Version2_0::MemoryPage>();
+        const auto& page = stream.Read<Version2_0::MemoryPage>();
         const int_t pageNumber = traits.PageNumber(page.Number);
         const bool isPageValid = pageNumber != PlatformTraits::NO_PAGE;
         if (!isPageRequired && !isPageValid)

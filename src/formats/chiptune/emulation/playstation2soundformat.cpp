@@ -45,9 +45,9 @@ namespace Formats::Chiptune
         const auto nameEnd = std::find(nameBegin, nameBegin + 36, 0);
         Name.assign(nameBegin, nameEnd);
         stream.Skip(36);
-        Offset = stream.ReadLE<uint32_t>();
-        Size = stream.ReadLE<uint32_t>();
-        BlockSize = stream.ReadLE<uint32_t>();
+        Offset = stream.Read<le_uint32_t>();
+        Size = stream.Read<le_uint32_t>();
+        BlockSize = stream.Read<le_uint32_t>();
       }
 
       bool IsDir() const
@@ -156,7 +156,7 @@ namespace Formats::Chiptune
       void ParseDir(uint_t depth, String path, Builder& target)
       {
         Require(depth < 10);
-        const uint_t entries = Stream.ReadLE<uint32_t>();
+        const uint_t entries = Stream.Read<le_uint32_t>();
         Dbg("%2% entries at '%1%'", path, entries);
         for (uint_t idx = 0; idx < entries; ++idx)
         {
@@ -191,7 +191,7 @@ namespace Formats::Chiptune
         std::vector<std::size_t> blocksSizes(blocksCount);
         for (auto& size : blocksSizes)
         {
-          size = Stream.ReadLE<uint32_t>();
+          size = Stream.Read<le_uint32_t>();
         }
         FileBlocks result;
         std::size_t offset = 0;

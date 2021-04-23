@@ -66,12 +66,12 @@ namespace Formats::Packed
         {
           Binary::DataInputStream input(rawData);
           input.Skip(4);
-          const auto sign = input.ReadBE<uint32_t>();
+          const uint_t sign = input.Read<be_uint32_t>();
           Require(sign == 0xdeadbabe || sign == 0xdeadbeaf);
-          const auto fileSize = input.ReadLE<uint32_t>();
-          const auto crc = input.ReadLE<uint32_t>();
-          const auto packedSize = input.ReadLE<uint32_t>();
-          const auto unpackedSize = input.ReadLE<uint32_t>();
+          const std::size_t fileSize = input.Read<le_uint32_t>();
+          const uint32_t crc = input.Read<le_uint32_t>();
+          const std::size_t packedSize = input.Read<le_uint32_t>();
+          const std::size_t unpackedSize = input.Read<le_uint32_t>();
           const auto packedData = input.ReadData(packedSize);
           auto unpackedData = Binary::Compression::Zlib::Decompress(packedData, unpackedSize);
           return CreateContainer(std::move(unpackedData), std::min<std::size_t>(fileSize, input.GetPosition()));

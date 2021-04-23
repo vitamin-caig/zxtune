@@ -33,9 +33,9 @@ namespace Formats::Chiptune
     void ParseRom(Binary::View data, Builder& target)
     {
       Binary::DataInputStream stream(data);
-      target.SetEntryPoint(stream.ReadLE<uint32_t>());
-      const auto addr = stream.ReadLE<uint32_t>();
-      const std::size_t size = stream.ReadLE<uint32_t>();
+      target.SetEntryPoint(stream.Read<le_uint32_t>());
+      const auto addr = stream.Read<le_uint32_t>();
+      const std::size_t size = stream.Read<le_uint32_t>();
       const std::size_t avail = stream.GetRestSize();
       target.SetRom(addr, stream.ReadData(std::min(size, avail)));
     }

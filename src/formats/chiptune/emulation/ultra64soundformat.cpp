@@ -36,7 +36,7 @@ namespace Formats::Chiptune
 
       bool HasSection()
       {
-        const auto& sign = Stream.ReadField<SignatureType>();
+        const auto& sign = Stream.Read<SignatureType>();
         if (sign == SR64_SIGNATURE)
         {
           return true;
@@ -54,24 +54,24 @@ namespace Formats::Chiptune
 
       void ParseROM(Builder& target)
       {
-        while (const auto size = Stream.ReadLE<uint32_t>())
+        while (const std::size_t size = Stream.Read<le_uint32_t>())
         {
-          const auto offset = Stream.ReadLE<uint32_t>();
+          const std::size_t offset = Stream.Read<le_uint32_t>();
           target.SetRom(offset, Stream.ReadData(size));
         }
       }
 
       void ParseSavestate(Builder& target)
       {
-        while (const auto size = Stream.ReadLE<uint32_t>())
+        while (const std::size_t size = Stream.Read<le_uint32_t>())
         {
-          const auto offset = Stream.ReadLE<uint32_t>();
+          const std::size_t offset = Stream.Read<le_uint32_t>();
           target.SetSaveState(offset, Stream.ReadData(size));
         }
         /*
         const auto offset = Stream.GetPosition();
-        Require(SAVESTATE_SIGNATURE == Stream.ReadField<SignatureType>());
-        const auto rdramSize = Stream.ReadLE<uint32_t>();
+        Require(SAVESTATE_SIGNATURE == Stream.Read<SignatureType>());
+        const uint_t rdramSize = Stream.Read<le_uint32_t>();
         const auto romHeader = Stream.ReadData(0x40);
         Stream.Seek(offset);
         target.SetSaveState(*Stream.ReadData(0x175c + rdramSize));

@@ -289,7 +289,7 @@ namespace Formats::Chiptune
       try
       {
         Binary::DataInputStream stream(data);
-        const RawHeader& header = stream.ReadField<RawHeader>();
+        const auto& header = stream.Read<RawHeader>();
         target.SetVersion({header.Version.data(), header.Version.size()});
         target.SetIntFreq(header.IntFreq);
         target.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));

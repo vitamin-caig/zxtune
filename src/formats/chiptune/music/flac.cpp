@@ -93,8 +93,8 @@ namespace Formats::Chiptune
 
       static void ParseStreamInfo(Binary::DataInputStream& input, Builder& target)
       {
-        const auto minBlockSize = input.ReadBE<uint16_t>();
-        const auto maxBlockSize = input.ReadBE<uint16_t>();
+        const uint_t minBlockSize = input.Read<be_uint16_t>();
+        const uint_t maxBlockSize = input.Read<be_uint16_t>();
         target.SetBlockSize(minBlockSize, maxBlockSize);
         const auto minFrameSize = fromBE24(input.ReadData(3));
         const auto maxFrameSize = fromBE24(input.ReadData(3));

@@ -392,7 +392,7 @@ namespace Formats::Archived
         explicit ChunksIterator(const Binary::Container& container)
           : Stream(container)
         {
-          const Header& hdr = Stream.ReadField<Header>();
+          const auto& hdr = Stream.Read<Header>();
           Require(hdr.Id == Header::SIGNATURE);
           Dbg("ZXState container ver %1%.%2%", uint_t(hdr.Major), uint_t(hdr.Minor));
         }
@@ -404,7 +404,7 @@ namespace Formats::Archived
           {
             return nullptr;
           }
-          const Chunk& chunk = Stream.ReadField<Chunk>();
+          const auto& chunk = Stream.Read<Chunk>();
           const std::size_t chunkSize = chunk.Size;
           if (rest < sizeof(Chunk) + chunkSize)
           {

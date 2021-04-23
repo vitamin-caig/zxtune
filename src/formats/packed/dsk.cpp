@@ -134,7 +134,7 @@ namespace Formats::Packed
       std::size_t ParseBase(Binary::View diskData)
       {
         Binary::DataInputStream diskStream(diskData);
-        const DiskInformationBlock& diskInfo = diskStream.ReadField<DiskInformationBlock>();
+        const auto& diskInfo = diskStream.Read<DiskInformationBlock>();
         Require(diskInfo.Signature == DISK_SIGNATURE);
         for (uint_t track = 0; track != diskInfo.Tracks; ++track)
         {
@@ -151,7 +151,7 @@ namespace Formats::Packed
       std::size_t ParseExtended(Binary::View diskData)
       {
         Binary::DataInputStream diskStream(diskData);
-        const ExtendedDiskInformationBlock& diskInfo = diskStream.ReadField<ExtendedDiskInformationBlock>();
+        const auto& diskInfo = diskStream.Read<ExtendedDiskInformationBlock>();
         Require(diskInfo.Signature == EXTENDED_DISK_SIGNATURE);
         for (uint_t track = 0, cylinder = 0; track != diskInfo.Tracks; ++track)
         {
@@ -171,7 +171,7 @@ namespace Formats::Packed
       void ParseTrack(Binary::View trackData)
       {
         Binary::DataInputStream trackStream(trackData);
-        const TrackInformationBlock& trackInfo = trackStream.ReadField<TrackInformationBlock>();
+        const auto& trackInfo = trackStream.Read<TrackInformationBlock>();
         Require(trackInfo.Signature == TRACK_SIGNATURE);
         Require(trackInfo.SectorsCount <= trackInfo.Sectors.size());
         for (uint_t sector = 0; sector != trackInfo.SectorsCount; ++sector)
@@ -189,7 +189,7 @@ namespace Formats::Packed
       void ParseExtendedTrack(Binary::View trackData)
       {
         Binary::DataInputStream trackStream(trackData);
-        const TrackInformationBlock& trackInfo = trackStream.ReadField<TrackInformationBlock>();
+        const auto& trackInfo = trackStream.Read<TrackInformationBlock>();
         Require(trackInfo.Signature == TRACK_SIGNATURE);
         Require(trackInfo.SectorsCount <= trackInfo.Sectors.size());
         for (uint_t sector = 0; sector != trackInfo.SectorsCount; ++sector)

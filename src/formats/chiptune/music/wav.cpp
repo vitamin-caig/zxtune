@@ -140,26 +140,26 @@ namespace Formats::Chiptune
       void ParseFormatChunk(Binary::View data)
       {
         Binary::DataInputStream stream(data);
-        auto formatTag = stream.ReadLE<uint16_t>();
-        const auto channels = stream.ReadLE<uint16_t>();
-        const auto frequency = stream.ReadLE<uint32_t>();
-        /*const auto dataRate = */ stream.ReadLE<uint32_t>();
-        const auto blockSize = stream.ReadLE<uint16_t>();
-        const auto bits = stream.ReadLE<uint16_t>();
+        const uint_t formatTag = stream.Read<le_uint16_t>();
+        const uint_t channels = stream.Read<le_uint16_t>();
+        const uint_t frequency = stream.Read<le_uint32_t>();
+        /*const auto dataRate = */ stream.Read<le_uint32_t>();
+        const uint_t blockSize = stream.Read<le_uint16_t>();
+        const uint_t bits = stream.Read<le_uint16_t>();
         Target.SetProperties(formatTag, frequency, channels, bits, blockSize);
         if (formatTag == Format::EXTENDED && stream.GetRestSize() >= 22)
         {
-          const auto extensionSize = stream.ReadLE<uint16_t>();
+          const std::size_t extensionSize = stream.Read<le_uint16_t>();
           Require(extensionSize == stream.GetRestSize());
-          const auto bitsOrBlockSize = stream.ReadLE<uint16_t>();
-          const auto channelsMask = stream.ReadLE<uint32_t>();
-          const auto formatId = stream.ReadField<Guid>();
+          const uint_t bitsOrBlockSize = stream.Read<le_uint16_t>();
+          const uint_t channelsMask = stream.Read<le_uint32_t>();
+          const auto formatId = stream.Read<Guid>();
           const auto rest = stream.ReadRestData();
           Target.SetExtendedProperties(bitsOrBlockSize, channelsMask, formatId, rest);
         }
         else if (stream.GetRestSize() > 2)
         {
-          const auto extensionSize = stream.ReadLE<uint16_t>();
+          const std::size_t extensionSize = stream.Read<le_uint16_t>();
           Require(extensionSize == stream.GetRestSize());
           const auto rest = stream.ReadRestData();
           Target.SetExtraData(rest);

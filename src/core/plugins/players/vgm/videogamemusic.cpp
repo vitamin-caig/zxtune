@@ -502,7 +502,7 @@ namespace Module
 
       uint32_t ReadDword()
       {
-        return Input.ReadLE<uint32_t>();
+        return Input.Read<le_uint32_t>();
       }
 
       basic_string_view<le_uint16_t> ReadUtf16()

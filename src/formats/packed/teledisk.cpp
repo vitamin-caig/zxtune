@@ -258,7 +258,7 @@ namespace Formats::Packed
       template<class T>
       const T& Get()
       {
-        return Stream.ReadField<T>();
+        return Stream.Read<T>();
       }
 
       const uint8_t* GetData(std::size_t size)

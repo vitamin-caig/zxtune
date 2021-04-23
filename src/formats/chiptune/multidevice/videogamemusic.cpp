@@ -103,16 +103,16 @@ namespace Formats::Chiptune
       Formats::Chiptune::Container::Ptr Parse(Builder& target)
       {
         const auto limit = Stream.GetRestSize();
-        Require(Stream.ReadBE<uint32_t>() == SIGNATURE);
+        Require(Stream.Read<be_uint32_t>() == SIGNATURE);
         // Support truncated files
         const auto eof = std::min(ReadOffset(), limit);
-        const auto ver = ReadVersion(Stream.ReadLE<uint32_t>());
+        const auto ver = ReadVersion(Stream.Read<le_uint32_t>());
         Require(Math::InRange(ver, VERSION_MIN, VERSION_MAX));
         Stream.Skip(8);
         const auto gd3Offset = ReadOffset();
-        const auto totalSamples = Stream.ReadLE<uint32_t>();
+        const uint_t totalSamples = Stream.Read<le_uint32_t>();
         Stream.Skip(4);
-        const auto loopSamples = Stream.ReadLE<uint32_t>();
+        const uint_t loopSamples = Stream.Read<le_uint32_t>();
         target.SetTimings(SamplesToTime(totalSamples),
                           SamplesToTime(loopSamples && totalSamples >= loopSamples ? totalSamples - loopSamples : 0));
         const auto dataStart = GetDataOffset(ver);
@@ -157,7 +157,7 @@ namespace Formats::Chiptune
 
       std::size_t ReadOffset()
       {
-        return Stream.GetPosition() + Stream.ReadLE<uint32_t>();
+        return Stream.GetPosition() + Stream.Read<le_uint32_t>();
       }
 
       uint_t GetDataOffset(uint_t ver)
@@ -178,10 +178,10 @@ namespace Formats::Chiptune
       {
         try
         {
-          if (Stream.ReadBE<uint32_t>() == GD3_SIGNATURE)
+          if (Stream.Read<be_uint32_t>() == GD3_SIGNATURE)
           {
             Stream.Skip(4);  // version
-            const auto size = Stream.ReadLE<uint32_t>();
+            const std::size_t size = Stream.Read<le_uint32_t>();
             ParseTags(Stream.ReadData(size), target);
             return true;
           }
@@ -220,7 +220,7 @@ namespace Formats::Chiptune
       static String ReadUTF16(Binary::DataInputStream& input)
       {
         String value;
-        while (const uint16_t utf = input.ReadLE<uint16_t>())
+        while (const uint16_t utf = input.Read<le_uint16_t>())
         {
           if (utf <= 0x7f)
           {

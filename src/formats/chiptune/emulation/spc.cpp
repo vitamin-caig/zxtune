@@ -489,7 +489,7 @@ namespace Formats::Chiptune
 
       void ParseMainPart(Builder& target)
       {
-        const RawHeader& hdr = Stream.ReadField<RawHeader>();
+        const auto& hdr = Stream.Read<RawHeader>();
         Require(hdr.Signature == SIGNATURE);
         ParseID666(hdr.ID666, target);
         target.SetRegisters(hdr.Regs.PC, hdr.Regs.A, hdr.Regs.X, hdr.Regs.Y, hdr.Regs.PSW, hdr.Regs.SP);
@@ -497,7 +497,7 @@ namespace Formats::Chiptune
         target.SetDSPRegisters(hdr.DSPRegisters);
         if (Stream.GetRestSize() >= sizeof(ExtraRAM))
         {
-          const ExtraRAM& extra = Stream.ReadField<ExtraRAM>();
+          const auto& extra = Stream.Read<ExtraRAM>();
           target.SetExtraRAM(extra.Data);
         }
       }
@@ -507,7 +507,7 @@ namespace Formats::Chiptune
         if (Stream.GetPosition() == sizeof(RawHeader) + sizeof(ExtraRAM)
             && Stream.GetRestSize() >= sizeof(IFFChunkHeader))
         {
-          const IFFChunkHeader& hdr = Stream.ReadField<IFFChunkHeader>();
+          const auto& hdr = Stream.Read<IFFChunkHeader>();
           const std::size_t size = hdr.DataSize;
           if (hdr.ID == XID6 && Stream.GetRestSize() >= size)
           {
