@@ -43,12 +43,12 @@ namespace
     LAST_VERSION = 1
   };
 
-  bool IsPlaylistEnabledProperty(const Parameters::NameType& name)
+  bool IsPlaylistEnabledProperty(Parameters::Identifier name)
   {
     return name == Playlist::ATTRIBUTE_VERSION || name == Playlist::ATTRIBUTE_NAME;
   };
 
-  bool IsItemDisabledProperty(const Parameters::NameType& name)
+  bool IsItemDisabledProperty(Parameters::Identifier name)
   {
     return name == Module::ATTR_CRC || name == Module::ATTR_FIXEDCRC || name == Module::ATTR_SIZE
            || name == Module::ATTR_CONTAINER || name == Module::ATTR_TYPE || name == Module::ATTR_VERSION
@@ -58,7 +58,7 @@ namespace
   class PropertiesFilter : public Parameters::Visitor
   {
   public:
-    typedef bool (*PropertyFilter)(const Parameters::NameType&);
+    typedef bool (*PropertyFilter)(Parameters::Identifier);
 
     PropertiesFilter(Parameters::Visitor& delegate, PropertyFilter filter, bool match)
       : Delegate(delegate)
@@ -66,7 +66,7 @@ namespace
       , Match(match)
     {}
 
-    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
+    void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
       if (Pass(name))
       {
@@ -74,7 +74,7 @@ namespace
       }
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
       if (Pass(name))
       {
@@ -82,7 +82,7 @@ namespace
       }
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+    void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       if (Pass(name))
       {
@@ -91,7 +91,7 @@ namespace
     }
 
   private:
-    bool Pass(const Parameters::NameType& name) const
+    bool Pass(Parameters::Identifier name) const
     {
       return Match == Filter(name);
     }

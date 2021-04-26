@@ -17,7 +17,7 @@
 namespace Parameters
 {
   template<class T>
-  void CopyExistingValue(const Accessor& src, Visitor& dst, const NameType& name)
+  void CopyExistingValue(const Accessor& src, Visitor& dst, StringView name)
   {
     T val = T();
     if (src.FindValue(name, val))

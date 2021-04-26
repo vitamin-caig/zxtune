@@ -40,11 +40,11 @@ namespace Formats
             SetProperty() <- track1 props
             ...
         */
-        virtual void SetAuthor(const String& author) = 0;
-        virtual void SetTitle(const String& title) = 0;
-        virtual void SetAnnotation(const String& annotation) = 0;
+        virtual void SetAuthor(StringView author) = 0;
+        virtual void SetTitle(StringView title) = 0;
+        virtual void SetAnnotation(StringView annotation) = 0;
         // arbitrary property
-        virtual void SetProperty(const String& name, const String& value) = 0;
+        virtual void SetProperty(StringView name, StringView value) = 0;
 
         virtual void StartTrack(uint_t idx) = 0;
         virtual void SetData(Binary::Container::Ptr data) = 0;

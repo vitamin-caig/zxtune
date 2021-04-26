@@ -12,6 +12,7 @@
 
 // library includes
 #include <parameters/types.h>
+#include <zxtune.h>
 
 namespace Parameters
 {
@@ -21,7 +22,7 @@ namespace Parameters
     namespace Sound
     {
       //! @brief Parameters#ZXTune#Sound namespace prefix
-      extern const NameType PREFIX;
+      const auto PREFIX = ZXTune::PREFIX + "sound"_id;
 
       //@{
       //! @name %Sound frequency in Hz
@@ -29,15 +30,15 @@ namespace Parameters
       //! Default value- 44.1kHz
       const IntType FREQUENCY_DEFAULT = 44100;
       //! Parameter name
-      extern const NameType FREQUENCY;
+      const auto FREQUENCY = PREFIX + "frequency"_id;
       //@}
 
       //@{
       //! @name Looped playback
 
       //! Parameter name
-      extern const NameType LOOPED;
-      extern const NameType LOOP_LIMIT;
+      const auto LOOPED = PREFIX + "looped"_id;
+      const auto LOOP_LIMIT = PREFIX + "looplimit"_id;
       //@}
 
       //@{
@@ -47,7 +48,7 @@ namespace Parameters
       //! Default value- no fading
       const IntType FADEIN_DEFAULT = 0;
       //! Parameter name
-      extern const NameType FADEIN;
+      const auto FADEIN = PREFIX + "fadein"_id;
       //@}
 
       //@{
@@ -57,7 +58,7 @@ namespace Parameters
       //! Default value- no fading
       const IntType FADEOUT_DEFAULT = 0;
       //! Parameter name
-      extern const NameType FADEOUT;
+      const auto FADEOUT = PREFIX + "fadeout"_id;
       //@}
 
       //@{
@@ -67,7 +68,7 @@ namespace Parameters
       //! Default value - no gain
       const IntType GAIN_DEFAULT = GAIN_PRECISION;
       //! Parameter name
-      extern const NameType GAIN;
+      const auto GAIN = PREFIX + "gain"_id;
       //@}
 
       //@{
@@ -76,7 +77,7 @@ namespace Parameters
       //! Default value - no silence detection
       const IntType SILENCE_LIMIT_DEFAULT = 0;
       //! Parameter name
-      extern const NameType SILENCE_LIMIT;
+      const auto SILENCE_LIMIT = PREFIX + "silencelimit"_id;
       //@}
     }  // namespace Sound
   }    // namespace ZXTune

@@ -13,17 +13,17 @@
 
 namespace Module
 {
-  void MetaProperties::SetProgram(const String& program)
+  void MetaProperties::SetProgram(StringView program)
   {
     Delegate.SetProgram(program);
   }
 
-  void MetaProperties::SetTitle(const String& title)
+  void MetaProperties::SetTitle(StringView title)
   {
     Delegate.SetTitle(title);
   }
 
-  void MetaProperties::SetAuthor(const String& author)
+  void MetaProperties::SetAuthor(StringView author)
   {
     Delegate.SetAuthor(author);
   }

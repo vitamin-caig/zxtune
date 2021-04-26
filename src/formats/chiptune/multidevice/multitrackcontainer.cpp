@@ -227,9 +227,9 @@ namespace IFF
       : CompositeChunkSource(id)
     {}
 
-    void OnString(const Identifier::Type& id, const String& str)
+    void OnString(const Identifier::Type& id, StringView str)
     {
-      AddSubSource(MakePtr<StringChunkSource>(id, str));
+      AddSubSource(MakePtr<StringChunkSource>(id, str.to_string()));
     }
 
     void OnChunk(const Identifier::Type& id, Binary::Container::Ptr content) override
@@ -248,10 +248,10 @@ namespace Formats::Chiptune
     class StubBuilder : public Builder
     {
     public:
-      void SetAuthor(const String& /*author*/) override {}
-      void SetTitle(const String& /*title*/) override {}
-      void SetAnnotation(const String& /*annotation*/) override {}
-      void SetProperty(const String& /*name*/, const String& /*value*/) override {}
+      void SetAuthor(StringView /*author*/) override {}
+      void SetTitle(StringView /*title*/) override {}
+      void SetAnnotation(StringView /*annotation*/) override {}
+      void SetProperty(StringView /*name*/, StringView /*value*/) override {}
 
       void StartTrack(uint_t /*idx*/) override {}
       void SetData(Binary::Container::Ptr /*data*/) override {}
@@ -312,7 +312,7 @@ namespace Formats::Chiptune
         , Context(Tune)
       {}
 
-      void SetAuthor(const String& author) override
+      void SetAuthor(StringView author) override
       {
         if (!author.empty())
         {
@@ -320,7 +320,7 @@ namespace Formats::Chiptune
         }
       }
 
-      void SetTitle(const String& title) override
+      void SetTitle(StringView title) override
       {
         if (!title.empty())
         {
@@ -328,7 +328,7 @@ namespace Formats::Chiptune
         }
       }
 
-      void SetAnnotation(const String& annotation) override
+      void SetAnnotation(StringView annotation) override
       {
         if (!annotation.empty())
         {
@@ -336,12 +336,12 @@ namespace Formats::Chiptune
         }
       }
 
-      void SetProperty(const String& name, const String& value) override
+      void SetProperty(StringView name, StringView value) override
       {
-        Require(String::npos == name.find_first_of(PROPERTY_DELIMITER));
+        Require(name.npos == name.find_first_of(PROPERTY_DELIMITER));
         if (!value.empty())
         {
-          Context->OnString(IFF::Identifier::PROPERTY, name + PROPERTY_DELIMITER + value);
+          Context->OnString(IFF::Identifier::PROPERTY, name.to_string() + PROPERTY_DELIMITER + value.to_string());
         }
         else
         {
@@ -419,10 +419,11 @@ namespace Formats::Chiptune
         }
         else if (id == IFF::Identifier::PROPERTY)
         {
-          const String& property = IFF::GetString(*content);
-          const String::size_type eqPos = property.find_first_of(PROPERTY_DELIMITER);
-          const String& name = property.substr(0, eqPos);
-          const String& value = eqPos != String::npos ? property.substr(eqPos + 1) : String();
+          const auto propertyStr = IFF::GetString(*content);
+          const auto property = StringView(propertyStr);
+          const auto eqPos = property.find_first_of(PROPERTY_DELIMITER);
+          const auto name = property.substr(0, eqPos);
+          const auto value = eqPos != String::npos ? property.substr(eqPos + 1) : StringView();
           Delegate.SetProperty(name, value);
         }
       }

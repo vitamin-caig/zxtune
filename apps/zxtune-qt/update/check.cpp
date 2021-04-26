@@ -55,7 +55,7 @@ namespace
       return 1;
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
     {
       if (name == Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING)
       {
@@ -68,7 +68,7 @@ namespace
       }
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
     {
       if (!UserAgent.empty() && name == Parameters::ZXTune::IO::Providers::Network::Http::USERAGENT)
       {
@@ -81,7 +81,7 @@ namespace
       }
     }
 
-    bool FindValue(const Parameters::NameType& /*name*/, Parameters::DataType& /*val*/) const override
+    bool FindValue(Parameters::Identifier /*name*/, Parameters::DataType& /*val*/) const override
     {
       return false;
     }

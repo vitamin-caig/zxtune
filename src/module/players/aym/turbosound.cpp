@@ -19,6 +19,7 @@
 #include <module/attributes.h>
 #include <module/players/analyzer.h>
 #include <parameters/merged_accessor.h>
+#include <parameters/src/names_set.h>
 #include <parameters/visitor.h>
 #include <sound/loop.h>
 #include <sound/mixer_factory.h>
@@ -30,7 +31,7 @@ namespace Module::TurboSound
 {
   class MergedModuleProperties : public Parameters::Accessor
   {
-    static void MergeStringProperty(const Parameters::NameType& /*propName*/, String& lh, const String& rh)
+    static void MergeStringProperty(StringView /*propName*/, String& lh, StringView rh)
     {
       if (lh != rh)
       {
@@ -46,20 +47,20 @@ namespace Module::TurboSound
         : Delegate(delegate)
       {}
 
-      void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
+      void SetValue(Parameters::Identifier name, Parameters::IntType val) override
       {
-        if (DoneIntegers.insert(name).second)
+        if (DoneIntegers.Insert(name))
         {
           return Delegate.SetValue(name, val);
         }
       }
 
-      void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+      void SetValue(Parameters::Identifier name, StringView val) override
       {
-        const StringsValuesMap::iterator it = Strings.find(name);
+        const auto it = Strings.find(static_cast<StringView>(name));
         if (it == Strings.end())
         {
-          Strings.insert(StringsValuesMap::value_type(name, val));
+          Strings.emplace(name.AsString(), val.to_string());
         }
         else
         {
@@ -67,9 +68,9 @@ namespace Module::TurboSound
         }
       }
 
-      void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+      void SetValue(Parameters::Identifier name, Binary::View val) override
       {
-        if (DoneDatas.insert(name).second)
+        if (DoneDatas.Insert(name))
         {
           return Delegate.SetValue(name, val);
         }
@@ -85,10 +86,10 @@ namespace Module::TurboSound
 
     private:
       Parameters::Visitor& Delegate;
-      typedef std::map<Parameters::NameType, Parameters::StringType> StringsValuesMap;
+      typedef std::map<String, Parameters::StringType, std::less<>> StringsValuesMap;
       StringsValuesMap Strings;
-      std::set<Parameters::NameType> DoneIntegers;
-      std::set<Parameters::NameType> DoneDatas;
+      Parameters::NamesSet DoneIntegers;
+      Parameters::NamesSet DoneDatas;
     };
 
   public:
@@ -102,12 +103,12 @@ namespace Module::TurboSound
       return 1;
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::IntType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::IntType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::StringType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
     {
       String val1, val2;
       const bool res1 = First->FindValue(name, val1);
@@ -124,7 +125,7 @@ namespace Module::TurboSound
       return res1 || res2;
     }
 
-    bool FindValue(const Parameters::NameType& name, Parameters::DataType& val) const override
+    bool FindValue(Parameters::Identifier name, Parameters::DataType& val) const override
     {
       return First->FindValue(name, val) || Second->FindValue(name, val);
     }

@@ -40,14 +40,14 @@ namespace
 
   const unsigned XSPF_VERSION = 1;
 
-  typedef bool (*AttributesFilter)(const Parameters::NameType&);
+  typedef bool (*AttributesFilter)(Parameters::Identifier);
 
   QString DataToQString(const QByteArray& data)
   {
     return QString::fromAscii(data.data(), data.size());
   }
 
-  QString ConvertString(const String& str)
+  QString ConvertString(StringView str)
   {
     const QByteArray data = QUrl::toPercentEncoding(ToQString(str));
     return DataToQString(data);
@@ -111,10 +111,10 @@ namespace
         Extension.Attribute(XSPF::APPLICATION_ATTR, Playlist::APPLICATION_ID);
       }
 
-      void SaveProperty(const Parameters::NameType& name, const String& strVal)
+      void SaveProperty(StringView name, StringView strVal)
       {
         Extension.Subtag(XSPF::EXTENDED_PROPERTY_TAG)
-            .Attribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name.FullPath()))
+            .Attribute(XSPF::EXTENDED_PROPERTY_NAME_ATTR, ToQString(name))
             .Text(ConvertString(strVal));
       }
 
@@ -128,39 +128,39 @@ namespace
       , Filter(filter)
     {}
 
-    void SetValue(const Parameters::NameType& name, Parameters::IntType val) override
+    void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
       if (Filter && !Filter(name))
       {
         return;
       }
-      Dbg("  saving extended attribute %1%=%2%", name.FullPath(), val);
+      Dbg("  saving extended attribute %1%=%2%", static_cast<StringView>(name), val);
       SaveProperty(name, val);
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
       if (Filter && !Filter(name))
       {
         return;
       }
-      Dbg("  saving extended attribute %1%='%2%'", name.FullPath(), val);
+      Dbg("  saving extended attribute %1%='%2%'", static_cast<StringView>(name), val);
       SaveProperty(name, val);
     }
 
-    void SetValue(const Parameters::NameType& name, const Parameters::DataType& val) override
+    void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       if (Filter && !Filter(name))
       {
         return;
       }
-      Dbg("  saving extended attribute %1%=data(%2%)", name.FullPath(), val.size());
+      Dbg("  saving extended attribute %1%=data(%2%)", static_cast<StringView>(name), val.Size());
       SaveProperty(name, val);
     }
 
   private:
     template<class T>
-    void SaveProperty(const Parameters::NameType& name, const T& value)
+    void SaveProperty(Parameters::Identifier name, T value)
     {
       if (!Saver)
       {
@@ -184,13 +184,13 @@ namespace
       , Element(xml, XSPF::ITEM_TAG)
     {}
 
-    void SaveModuleLocation(const String& location)
+    void SaveModuleLocation(StringView location)
     {
       Dbg("  saving absolute item location %1%", location);
       SaveModuleLocation(ToQString(location));
     }
 
-    void SaveModuleLocation(const String& location, const QDir& root)
+    void SaveModuleLocation(StringView location, const QDir& root)
     {
       Dbg("  saving relative item location %1%", location);
       const QString path = ToQString(location);
@@ -244,30 +244,30 @@ namespace
       Element.Text(XSPF::ITEM_LOCATION_TAG, DataToQString(QUrl(location).toEncoded()));
     }
 
-    void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/) override {}
+    void SetValue(Parameters::Identifier /*name*/, Parameters::IntType /*val*/) override {}
 
-    void SetValue(const Parameters::NameType& name, const Parameters::StringType& val) override
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
       const String value = Parameters::ConvertToString(val);
       const QString valStr = ConvertString(value);
       if (name == Module::ATTR_TITLE)
       {
-        Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
+        Dbg("  saving item attribute %1%='%2%'", static_cast<StringView>(name), val);
         Element.Text(XSPF::ITEM_TITLE_TAG, valStr);
       }
       else if (name == Module::ATTR_AUTHOR)
       {
-        Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
+        Dbg("  saving item attribute %1%='%2%'", static_cast<StringView>(name), val);
         Element.Text(XSPF::ITEM_CREATOR_TAG, valStr);
       }
       else if (name == Module::ATTR_COMMENT)
       {
-        Dbg("  saving item attribute %1%='%2%'", name.FullPath(), val);
+        Dbg("  saving item attribute %1%='%2%'", static_cast<StringView>(name), val);
         Element.Text(XSPF::ITEM_ANNOTATION_TAG, valStr);
       }
     }
 
-    void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/) override {}
+    void SetValue(Parameters::Identifier /*name*/, Binary::View /*val*/) override {}
 
   private:
     void SaveDuration(const Module::Information& info)
@@ -277,7 +277,7 @@ namespace
       Element.Text(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
     }
 
-    static bool KeepExtendedProperties(const Parameters::NameType& name)
+    static bool KeepExtendedProperties(Parameters::Identifier name)
     {
       return
           // skip path-related properties
@@ -288,17 +288,13 @@ namespace
           // skip redundand properties
           name != Module::ATTR_STRINGS &&
           // skip all the parameters
-          !IsParameter(name);
+          !name.IsPath();
     }
 
-    static bool IsParameter(const Parameters::NameType& name)
+    static bool KeepOnlyParameters(Parameters::Identifier attrName)
     {
-      return name.IsPath();
-    }
-
-    static bool KeepOnlyParameters(const Parameters::NameType& name)
-    {
-      return name.IsSubpathOf(Parameters::ZXTune::PREFIX) && !name.IsSubpathOf(Playlist::ATTRIBUTES_PREFIX);
+      return !attrName.RelativeTo(Parameters::ZXTune::PREFIX).IsEmpty()
+             && attrName.RelativeTo(Playlist::ATTRIBUTES_PREFIX).IsEmpty();
     }
 
     void SaveExtendedProperties(const Parameters::Accessor& props)

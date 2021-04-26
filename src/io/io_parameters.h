@@ -11,7 +11,7 @@
 #pragma once
 
 // library includes
-#include <parameters/types.h>
+#include <zxtune.h>
 
 namespace Parameters
 {
@@ -21,7 +21,7 @@ namespace Parameters
     namespace IO
     {
       //! @brief Parameters#ZXTune#IO namespace prefix
-      extern const NameType PREFIX;
+      const auto PREFIX = ZXTune::PREFIX + "io"_id;
       // IO-related parameters
     }  // namespace IO
   }    // namespace ZXTune

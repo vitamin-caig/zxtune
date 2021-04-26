@@ -26,23 +26,23 @@ namespace Module
     {}
 
     // Generic
-    void SetNonEmptyProperty(const String& name, const String& value);
+    void SetNonEmptyProperty(StringView name, StringView value);
 
     // Common
-    void SetType(const String& type);
-    void SetContainer(const String& container);
+    void SetType(StringView type);
+    void SetContainer(StringView container);
     void SetSource(const Formats::Chiptune::Container& source);
 
     // Meta
-    void SetAuthor(const String& author);
-    void SetTitle(const String& title);
-    void SetComment(const String& comment);
-    void SetProgram(const String& program);
-    void SetComputer(const String& computer);
+    void SetAuthor(StringView author);
+    void SetTitle(StringView title);
+    void SetComment(StringView comment);
+    void SetProgram(StringView program);
+    void SetComputer(StringView computer);
     void SetStrings(const Strings::Array& strings);
     void SetVersion(uint_t major, uint_t minor);
-    void SetVersion(const String& version);
-    void SetDate(const String& date);
+    void SetVersion(StringView version);
+    void SetDate(StringView date);
     void SetPlatform(StringView platform);
 
     // Sound

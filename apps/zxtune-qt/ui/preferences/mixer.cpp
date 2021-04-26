@@ -82,25 +82,25 @@ namespace
   class MixerValueImpl : public MixerValue
   {
   public:
-    MixerValueImpl(UI::MixerWidget& parent, Parameters::Container& ctr, const Parameters::NameType& name, int defValue)
+    MixerValueImpl(UI::MixerWidget& parent, Container& ctr, Identifier name, int defValue)
       : MixerValue(parent)
-      , Container(ctr)
+      , Storage(ctr)
       , Name(name)
     {
-      Parameters::IntType value = defValue;
-      Container.FindValue(Name, value);
+      IntType value = defValue;
+      Storage.FindValue(Name, value);
       parent.setValue(value);
       Require(connect(&parent, SIGNAL(valueChanged(int)), SLOT(SetValue(int))));
     }
 
     void SetValue(int value) override
     {
-      Container.SetValue(Name, value);
+      Storage.SetValue(Name, value);
     }
 
   private:
-    Parameters::Container& Container;
-    const Parameters::NameType Name;
+    Container& Storage;
+    const Identifier Name;
   };
 }  // namespace
 
@@ -110,7 +110,7 @@ namespace Parameters
     : QObject(&parent)
   {}
 
-  void MixerValue::Bind(UI::MixerWidget& mix, Container& ctr, const NameType& name, int defValue)
+  void MixerValue::Bind(UI::MixerWidget& mix, Container& ctr, Identifier name, int defValue)
   {
     new MixerValueImpl(mix, ctr, name, defValue);
   }

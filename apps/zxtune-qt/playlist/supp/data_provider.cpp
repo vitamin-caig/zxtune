@@ -397,7 +397,7 @@ namespace
     const IO::Identifier::Ptr ModuleId;
   };
 
-  String GetStringProperty(const Parameters::Accessor& props, const Parameters::NameType& propName)
+  String GetStringProperty(const Parameters::Accessor& props, StringView propName)
   {
     Parameters::StringType val;
     if (props.FindValue(propName, val))
@@ -407,7 +407,7 @@ namespace
     return String();
   }
 
-  Parameters::IntType GetIntProperty(const Parameters::Accessor& props, const Parameters::NameType& propName,
+  Parameters::IntType GetIntProperty(const Parameters::Accessor& props, StringView propName,
                                      Parameters::IntType defVal = 0)
   {
     Parameters::IntType val = defVal;
@@ -559,22 +559,22 @@ namespace
     }
 
   private:
-    void SetValue(const Parameters::NameType& /*name*/, Parameters::IntType /*val*/) override
+    void SetValue(Parameters::Identifier /*name*/, Parameters::IntType /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    void SetValue(const Parameters::NameType& /*name*/, const Parameters::StringType& /*val*/) override
+    void SetValue(Parameters::Identifier /*name*/, StringView /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    void SetValue(const Parameters::NameType& /*name*/, const Parameters::DataType& /*val*/) override
+    void SetValue(Parameters::Identifier /*name*/, Binary::View /*val*/) override
     {
       OnPropertyChanged();
     }
 
-    void RemoveValue(const Parameters::NameType& /*name*/) override
+    void RemoveValue(Parameters::Identifier /*name*/) override
     {
       OnPropertyChanged();
     }

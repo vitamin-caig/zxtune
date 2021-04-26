@@ -26,25 +26,25 @@ namespace Parameters
       , Second(std::move(second))
     {}
 
-    void SetValue(const NameType& name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
       First->SetValue(name, val);
       Second->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(Identifier name, StringView val) override
     {
       First->SetValue(name, val);
       Second->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
       First->SetValue(name, val);
       Second->SetValue(name, val);
     }
 
-    void RemoveValue(const NameType& name) override
+    void RemoveValue(Identifier name) override
     {
       First->RemoveValue(name);
       Second->RemoveValue(name);

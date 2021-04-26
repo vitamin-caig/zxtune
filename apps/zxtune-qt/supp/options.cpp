@@ -18,6 +18,7 @@
 // library includes
 #include <parameters/convert.h>
 #include <parameters/merged_accessor.h>
+#include <parameters/src/names_set.h>
 #include <parameters/tools.h>
 #include <parameters/tracking.h>
 // std includes
@@ -46,7 +47,7 @@ namespace
       return VersionValue;
     }
 
-    bool FindValue(const NameType& name, IntType& val) const override
+    bool FindValue(Identifier name, IntType& val) const override
     {
       const Value value(Storage, name);
       if (!value.IsValid())
@@ -67,7 +68,7 @@ namespace
       return false;
     }
 
-    bool FindValue(const NameType& name, StringType& val) const override
+    bool FindValue(Identifier name, StringType& val) const override
     {
       const Value value(Storage, name);
       if (!value.IsValid())
@@ -82,7 +83,7 @@ namespace
       return false;
     }
 
-    bool FindValue(const NameType& name, DataType& val) const override
+    bool FindValue(Identifier name, DataType& val) const override
     {
       const Value value(Storage, name);
       if (!value.IsValid())
@@ -104,29 +105,30 @@ namespace
       // TODO: implement later
     }
 
-    void SetValue(const NameType& name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
       Value value(Storage, name);
       value.Set(QVariant(qlonglong(val)));
       ++VersionValue;
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(Identifier name, StringView val) override
     {
       Value value(Storage, name);
       value.Set(QVariant(ToQString(ConvertToString(val))));
       ++VersionValue;
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
       Value value(Storage, name);
-      const QByteArray arr(val.empty() ? QByteArray() : QByteArray(safe_ptr_cast<const char*>(&val[0]), val.size()));
+      const auto size = val.Size();
+      const QByteArray arr(size == 0 ? QByteArray() : QByteArray(val.As<char>(), size));
       value.Set(QVariant(arr));
       ++VersionValue;
     }
 
-    void RemoveValue(const NameType& name) override
+    void RemoveValue(Identifier name) override
     {
       Value val(Storage, name);
       val.Remove();
@@ -140,7 +142,7 @@ namespace
     class Value
     {
     public:
-      Value(SettingsStorage& storage, const NameType& name)
+      Value(SettingsStorage& storage, Identifier name)
         : Storage(storage)
         , FullName(name)
       {}
@@ -169,9 +171,9 @@ namespace
       }
 
     private:
-      static QString GetKeyName(const NameType& name)
+      static QString GetKeyName(StringView name)
       {
-        QString res = QString::fromStdString(name.FullPath());
+        auto res = ToQString(name);
         res.replace(QLatin1Char('.'), PATH_SEPARATOR);
         return res;
       }
@@ -206,7 +208,7 @@ namespace
 
     private:
       SettingsStorage& Storage;
-      const NameType FullName;
+      const Identifier FullName;
       mutable SettingsPtr Setup;
       mutable QString ParamName;
     };
@@ -229,13 +231,13 @@ namespace
       return Temporary->Version();
     }
 
-    bool FindValue(const NameType& name, IntType& val) const override
+    bool FindValue(Identifier name, IntType& val) const override
     {
       if (Temporary->FindValue(name, val))
       {
         return true;
       }
-      else if (Removed.count(name))
+      else if (Removed.Has(name))
       {
         return false;
       }
@@ -247,13 +249,13 @@ namespace
       return false;
     }
 
-    bool FindValue(const NameType& name, StringType& val) const override
+    bool FindValue(Identifier name, StringType& val) const override
     {
       if (Temporary->FindValue(name, val))
       {
         return true;
       }
-      else if (Removed.count(name))
+      else if (Removed.Has(name))
       {
         return false;
       }
@@ -265,13 +267,13 @@ namespace
       return false;
     }
 
-    bool FindValue(const NameType& name, DataType& val) const override
+    bool FindValue(Identifier name, DataType& val) const override
     {
       if (Temporary->FindValue(name, val))
       {
         return true;
       }
-      else if (Removed.count(name))
+      else if (Removed.Has(name))
       {
         return false;
       }
@@ -288,30 +290,30 @@ namespace
       Persistent->Process(visitor);
     }
 
-    void SetValue(const NameType& name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
-      Removed.erase(name);
+      Removed.Erase(name);
       Temporary->SetValue(name, val);
       Persistent->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(Identifier name, StringView val) override
     {
-      Removed.erase(name);
+      Removed.Erase(name);
       Temporary->SetValue(name, val);
       Persistent->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
-      Removed.erase(name);
+      Removed.Erase(name);
       Temporary->SetValue(name, val);
       Persistent->SetValue(name, val);
     }
 
-    void RemoveValue(const NameType& name) override
+    void RemoveValue(Identifier name) override
     {
-      Removed.insert(name);
+      Removed.Insert(name);
       Temporary->RemoveValue(name);
       Persistent->RemoveValue(name);
     }
@@ -319,7 +321,7 @@ namespace
   private:
     const Container::Ptr Persistent;
     const Container::Ptr Temporary;
-    std::set<NameType> Removed;
+    Parameters::NamesSet Removed;
   };
 
   /*
@@ -337,7 +339,7 @@ namespace
       return Subscription(this, std::bind(&CompositeModifier::Unsubscribe, std::placeholders::_1, delegate));
     }
 
-    void SetValue(const NameType& name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
       const std::lock_guard<std::mutex> lock(Guard);
       for (const auto& delegate : Delegates)
@@ -346,7 +348,7 @@ namespace
       }
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(Identifier name, StringView val) override
     {
       const std::lock_guard<std::mutex> lock(Guard);
       for (const auto& delegate : Delegates)
@@ -355,7 +357,7 @@ namespace
       }
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
       const std::lock_guard<std::mutex> lock(Guard);
       for (const auto& delegate : Delegates)
@@ -364,7 +366,7 @@ namespace
       }
     }
 
-    void RemoveValue(const NameType& name) override
+    void RemoveValue(Identifier name) override
     {
       const std::lock_guard<std::mutex> lock(Guard);
       for (const auto& delegate : Delegates)
@@ -394,22 +396,22 @@ namespace
       , Changed(std::move(changed))
     {}
 
-    void SetValue(const NameType& name, IntType /*val*/) override
+    void SetValue(Identifier name, IntType /*val*/) override
     {
       CopyExistingValue<IntType>(*Stored, *Changed, name);
     }
 
-    void SetValue(const NameType& name, const StringType& /*val*/) override
+    void SetValue(Identifier name, StringView /*val*/) override
     {
       CopyExistingValue<StringType>(*Stored, *Changed, name);
     }
 
-    void SetValue(const NameType& name, const DataType& /*val*/) override
+    void SetValue(Identifier name, Binary::View /*val*/) override
     {
       CopyExistingValue<DataType>(*Stored, *Changed, name);
     }
 
-    void RemoveValue(const NameType& /*name*/) override {}
+    void RemoveValue(Identifier /*name*/) override {}
 
   private:
     const Accessor::Ptr Stored;
@@ -429,17 +431,17 @@ namespace
       return Delegate->Version();
     }
 
-    bool FindValue(const NameType& name, IntType& val) const override
+    bool FindValue(Identifier name, IntType& val) const override
     {
       return Delegate->FindValue(name, val);
     }
 
-    bool FindValue(const NameType& name, StringType& val) const override
+    bool FindValue(Identifier name, StringType& val) const override
     {
       return Delegate->FindValue(name, val);
     }
 
-    bool FindValue(const NameType& name, DataType& val) const override
+    bool FindValue(Identifier name, DataType& val) const override
     {
       return Delegate->FindValue(name, val);
     }

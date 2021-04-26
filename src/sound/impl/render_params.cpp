@@ -18,6 +18,14 @@
 
 namespace Sound
 {
+  Parameters::IntType GetProperty(const Parameters::Accessor& params, Parameters::Identifier name,
+                                  Parameters::IntType defVal = 0)
+  {
+    Parameters::IntType ret = defVal;
+    params.FindValue(name, ret);
+    return ret;
+  }
+
   class RenderParametersImpl : public RenderParameters
   {
   public:
@@ -43,24 +51,14 @@ namespace Sound
     }
 
   private:
-    Parameters::IntType FoundProperty(const Parameters::NameType& name, Parameters::IntType defVal) const
+    Parameters::IntType FoundProperty(Parameters::Identifier name, Parameters::IntType defVal) const
     {
-      Parameters::IntType ret = defVal;
-      Params->FindValue(name, ret);
-      return ret;
+      return GetProperty(*Params, name, defVal);
     }
 
   private:
     const Parameters::Accessor::Ptr Params;
   };
-
-  Parameters::IntType GetProperty(const Parameters::Accessor& params, const Parameters::NameType& name,
-                                  Parameters::IntType defVal = 0)
-  {
-    Parameters::IntType ret = defVal;
-    params.FindValue(name, ret);
-    return ret;
-  }
 }  // namespace Sound
 
 namespace Sound

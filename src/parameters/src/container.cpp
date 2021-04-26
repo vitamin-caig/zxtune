@@ -18,13 +18,6 @@
 
 namespace Parameters
 {
-  template<class T>
-  bool FindByName(const std::map<NameType, T>& map, const NameType& name, T& res)
-  {
-    const typename std::map<NameType, T>::const_iterator it = map.find(name);
-    return it != map.end() ? (res = it->second, true) : false;
-  }
-
   class StorageContainer : public Container
   {
   public:
@@ -45,100 +38,131 @@ namespace Parameters
       return VersionValue;
     }
 
-    bool FindValue(const NameType& name, IntType& val) const override
+    bool FindValue(Identifier name, IntType& val) const override
     {
-      return FindByName(Integers, name, val);
+      return Integers.Find(name, val);
     }
 
-    bool FindValue(const NameType& name, StringType& val) const override
+    bool FindValue(Identifier name, StringType& val) const override
     {
-      return FindByName(Strings, name, val);
+      return Strings.Find(name, val);
     }
 
-    bool FindValue(const NameType& name, DataType& val) const override
+    bool FindValue(Identifier name, DataType& val) const override
     {
-      return FindByName(Datas, name, val);
+      return Datas.Find(name, val);
     }
 
     void Process(Visitor& visitor) const override
     {
-      for (const auto& i : Integers)
-      {
-        visitor.SetValue(i.first, i.second);
-      }
-      for (const auto& s : Strings)
-      {
-        visitor.SetValue(s.first, s.second);
-      }
-      for (const auto& d : Datas)
-      {
-        visitor.SetValue(d.first, d.second);
-      }
+      Integers.Visit(visitor);
+      Strings.Visit(visitor);
+      Datas.Visit(visitor);
     }
 
     // visitor virtuals
-    void SetValue(const NameType& name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
-      if (Set(Integers[name], val) | Strings.erase(name) | Datas.erase(name))
+      if (Integers.Update(name, val) | Strings.Erase(name) | Datas.Erase(name))
       {
         ++VersionValue;
       }
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(Identifier name, StringView val) override
     {
-      if (Integers.erase(name) | Set(Strings[name], val) | Datas.erase(name))
+      if (Integers.Erase(name) | Strings.Update(name, val) | Datas.Erase(name))
       {
         ++VersionValue;
       }
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
-      if (Integers.erase(name) | Strings.erase(name) | Set(Datas[name], val))
+      if (Integers.Erase(name) | Strings.Erase(name) | Datas.Update(name, val))
       {
         ++VersionValue;
       }
     }
 
     // modifier virtuals
-    void RemoveValue(const NameType& name) override
+    void RemoveValue(Identifier name) override
     {
-      if (Integers.erase(name) | Strings.erase(name) | Datas.erase(name))
+      if (Integers.Erase(name) | Strings.Erase(name) | Datas.Erase(name))
       {
         ++VersionValue;
       }
     }
 
   private:
-    template<class Type>
-    static std::size_t Set(Type& dst, const Type& src)
+    template<class T>
+    class TransientMap
     {
-      if (dst != src)
-      {
-        dst = src;
-        return 1;
-      }
-      else
-      {
-        return 0;
-      }
-    }
+    public:
+      TransientMap() = default;
+      TransientMap(const TransientMap<T>& rh)
+        : Storage(rh.Storage)
+      {}
 
-    static std::size_t Set(DataType& dst, const DataType& src)
-    {
-      dst = src;
-      return 1;
-    }
+      bool Find(StringView name, T& res) const
+      {
+        const auto it = Storage.find(name);
+        return it != Storage.end() ? (res = it->second, true) : false;
+      }
+
+      void Visit(Visitor& visitor) const
+      {
+        for (const auto& entry : Storage)
+        {
+          visitor.SetValue(entry.first, entry.second);
+        }
+      }
+
+      bool Erase(StringView name)
+      {
+        const auto it = Storage.find(name);
+        return it != Storage.end() ? (Storage.erase(it), true) : false;
+      }
+
+      template<class Ref>
+      bool Update(StringView name, Ref value)
+      {
+        const auto lower = Storage.lower_bound(name);
+        if (lower != Storage.end() && lower->first == name)
+        {
+          return Update(lower->second, value);
+        }
+        const auto it = Storage.insert(lower, {name.to_string(), {}});
+        return Update(it->second, value);
+      }
+
+    private:
+      static bool Update(IntType& ref, IntType update)
+      {
+        return ref != update ? (ref = update, true) : false;
+      }
+
+      static bool Update(StringType& ref, StringView update)
+      {
+        return ref != update ? (ref = update.to_string(), true) : false;
+      }
+
+      static bool Update(DataType& ref, Binary::View update)
+      {
+        const auto* raw = update.As<uint8_t>();
+        ref.assign(raw, raw + update.Size());
+        return true;
+      }
+
+    private:
+      std::map<String, T, std::less<>> Storage;
+    };
 
   private:
     uint_t VersionValue;
-    typedef std::map<NameType, IntType> IntegerMap;
-    typedef std::map<NameType, StringType> StringMap;
-    typedef std::map<NameType, DataType> DataMap;
-    IntegerMap Integers;
-    StringMap Strings;
-    DataMap Datas;
+    TransientMap<IntType> Integers;
+    TransientMap<StringType> Strings;
+    TransientMap<DataType> Datas;
   };
 
   class CompositeContainer : public Container
@@ -155,17 +179,17 @@ namespace Parameters
       return AccessDelegate->Version();
     }
 
-    bool FindValue(const NameType& name, IntType& val) const override
+    bool FindValue(Identifier name, IntType& val) const override
     {
       return AccessDelegate->FindValue(name, val);
     }
 
-    bool FindValue(const NameType& name, StringType& val) const override
+    bool FindValue(Identifier name, StringType& val) const override
     {
       return AccessDelegate->FindValue(name, val);
     }
 
-    bool FindValue(const NameType& name, DataType& val) const override
+    bool FindValue(Identifier name, DataType& val) const override
     {
       return AccessDelegate->FindValue(name, val);
     }
@@ -176,23 +200,23 @@ namespace Parameters
     }
 
     // visitor virtuals
-    void SetValue(const NameType& name, IntType val) override
+    void SetValue(Identifier name, IntType val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const StringType& val) override
+    void SetValue(Identifier name, StringView val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }
 
-    void SetValue(const NameType& name, const DataType& val) override
+    void SetValue(Identifier name, Binary::View val) override
     {
       return ModifyDelegate->SetValue(name, val);
     }
 
     // modifier virtuals
-    void RemoveValue(const NameType& name) override
+    void RemoveValue(Identifier name) override
     {
       return ModifyDelegate->RemoveValue(name);
     }

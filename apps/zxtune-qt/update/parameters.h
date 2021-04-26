@@ -19,20 +19,18 @@ namespace Parameters
   {
     namespace Update
     {
-      const std::string NAMESPACE_NAME("Update");
-
-      const NameType PREFIX = ZXTuneQT::PREFIX + NAMESPACE_NAME;
+      const auto PREFIX = ZXTuneQT::PREFIX + "Update"_id;
 
       //@{
       //! @name Feed URL
-      const NameType FEED = PREFIX + "Feed";
+      const auto FEED = PREFIX + "Feed"_id;
       //@}
 
       //@{
       //! @name Check period
 
       //! Parameter name
-      const NameType CHECK_PERIOD = PREFIX + "CheckPeriod";
+      const auto CHECK_PERIOD = PREFIX + "CheckPeriod"_id;
       //! Default value- once a day
       const IntType CHECK_PERIOD_DEFAULT = 86400;
       //@}
@@ -41,7 +39,7 @@ namespace Parameters
       //! @name Last check time
 
       //! Parameter name
-      const NameType LAST_CHECK = PREFIX + "LastCheck";
+      const auto LAST_CHECK = PREFIX + "LastCheck"_id;
       //@}
     }  // namespace Update
   }    // namespace ZXTuneQT

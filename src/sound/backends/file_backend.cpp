@@ -88,9 +88,9 @@ namespace Sound::File
     }
 
   private:
-    static bool HasField(const String& templ, const String& name)
+    static bool HasField(const String& templ, StringView name)
     {
-      const String fullName = '[' + name + ']';
+      const String fullName = Strings::Template::FIELD_START + name.to_string() + Strings::Template::FIELD_END;
       return String::npos != templ.find(fullName);
     }
 
@@ -136,8 +136,7 @@ namespace Sound::File
 
     String GetFilenameTemplate() const
     {
-      Parameters::StringType nameTemplate =
-          GetProperty<Parameters::StringType>(Parameters::ZXTune::Sound::Backends::File::FILENAME.Name());
+      auto nameTemplate = GetProperty<Parameters::StringType>(Parameters::ZXTune::Sound::Backends::File::FILENAME);
       if (nameTemplate.empty())
       {
         // Filename parameter is required
@@ -155,31 +154,31 @@ namespace Sound::File
 
     uint_t GetBuffersCount() const
     {
-      const Parameters::IntType intParam =
-          GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::BUFFERS.Name());
+      const auto intParam = GetProperty<Parameters::IntType>(Parameters::ZXTune::Sound::Backends::File::BUFFERS);
       return static_cast<uint_t>(intParam);
     }
 
   private:
     template<class T>
-    T GetProperty(const String& name) const
+    T GetProperty(Parameters::Identifier property) const
     {
       T result = T();
-      if (!Params->FindValue(GetBackendPropertyName(name), result))
+      if (!Params->FindValue(ReplaceBackendId(property), result))
       {
-        Params->FindValue(GetComonPropertyName(name), result);
+        Params->FindValue(property, result);
       }
       return result;
     }
 
-    Parameters::NameType GetBackendPropertyName(const String& name) const
+    String ReplaceBackendId(StringView property) const
     {
-      return Parameters::ZXTune::Sound::Backends::PREFIX + Id + name;
-    }
-
-    Parameters::NameType GetComonPropertyName(const String& name) const
-    {
-      return Parameters::ZXTune::Sound::Backends::File::PREFIX + name;
+      // TODO: think about better solution
+      static const auto GENERIC_ID = ".file."_sv;
+      const auto pos = property.find(GENERIC_ID);
+      Require(pos != property.npos);
+      auto result = property.to_string();
+      result.replace(pos + 1, GENERIC_ID.size() - 2, Id);
+      return result;
     }
 
   private:
