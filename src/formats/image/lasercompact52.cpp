@@ -22,25 +22,22 @@ namespace Formats::Image
 {
   namespace LaserCompact52
   {
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Header
+    struct Header
     {
       uint8_t Signature[5];
-      uint16_t PackedSize;  // starting from SizeCode, may be invalid
+      le_uint16_t PackedSize;  // starting from SizeCode, may be invalid
       uint8_t AdditionalSize;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct SubHeader
+    struct SubHeader
     {
       uint8_t SizeCode;  // 0,1,2,8,9,16
       uint8_t ByteStream;
       uint8_t Bitstream;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
+
+    static_assert(sizeof(Header) * alignof(Header) == 8, "Invalid layout");
+    static_assert(sizeof(SubHeader) * alignof(SubHeader) == 3, "Invalid layout");
 
     const std::size_t MIN_SIZE = 16;
 

@@ -42,38 +42,6 @@ typedef std::basic_string<Char> String;
 
 typedef basic_string_view<Char> StringView;
 
-//@{
-//! Structure packing macros
-//! @code
-//! #ifdef USE_PRAGMA_PACK
-//! #pragma pack(push,1)
-//! #endif
-//! PACK_PRE struct Foo
-//! {
-//! ...
-//! } PACK_POST;
-//!
-//! PACK_PRE struct Bar
-//! {
-//! ...
-//! } PACK_POST;
-//! #ifdef USE_PRAGMA_PACK
-//! #pragma pack(pop)
-//! #endif
-//! @endcode
-#if defined __GNUC__
-#  define PACK_PRE
-#  define PACK_POST __attribute__((packed))
-#elif defined _MSC_VER
-#  define PACK_PRE
-#  define PACK_POST
-#  define USE_PRAGMA_PACK
-#else
-#  define PACK_PRE
-#  define PACK_POST
-#endif
-//@}
-
 // assertions
 static_assert(sizeof(uint_t) >= sizeof(uint32_t), "Invalid uint_t type");
 static_assert(sizeof(int_t) >= sizeof(int32_t), "Invalid int_t type");

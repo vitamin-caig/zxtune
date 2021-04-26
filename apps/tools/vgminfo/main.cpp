@@ -30,12 +30,12 @@ namespace
 
     uint32_t ReadDword()
     {
-      return ReadData<uint32_t>();
+      return ReadData<le_uint32_t>();
     }
 
     uint16_t ReadWord()
     {
-      return ReadData<uint16_t>();
+      return ReadData<le_uint16_t>();
     }
 
     uint8_t ReadByte()
@@ -92,7 +92,7 @@ namespace
     void Parse(Stream& stream)
     {
       const uint32_t signature = stream.ReadDword();
-      if (signature != fromLE<uint32_t>(0x206d6756))
+      if (signature != 0x206d6756)
       {
         throw std::runtime_error("Invalid signature");
       }
@@ -289,7 +289,7 @@ namespace
     void ParseGD3Tags(Stream& stream)
     {
       const uint32_t tag = stream.ReadDword();
-      if (tag != fromLE<uint32_t>(0x20336447))
+      if (tag != 0x20336447)
       {
         return;
       }

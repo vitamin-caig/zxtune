@@ -64,8 +64,8 @@ namespace Formats::Chiptune
         {
           for (uint_t idx = 0; idx < count; ++idx)
           {
-            const auto dataSize = stream.ReadLE<uint32_t>();
-            /*const auto flags = */ stream.ReadLE<uint32_t>();
+            const std::size_t dataSize = stream.Read<le_uint32_t>();
+            /*const auto flags = */ stream.Read<le_uint32_t>();
             const auto avail = stream.GetRestSize();
             Require(avail >= dataSize);
             const auto key = stream.ReadCString(avail - dataSize);

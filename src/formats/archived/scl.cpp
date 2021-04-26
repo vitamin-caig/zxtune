@@ -36,14 +36,11 @@ namespace Formats::Archived
 
     const std::size_t BYTES_PER_SECTOR = 256;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Entry
+    struct Entry
     {
       char Name[8];
       char Type[3];
-      uint16_t Length;
+      le_uint16_t Length;
       uint8_t SizeInSectors;
 
       uint_t Size() const
@@ -51,25 +48,22 @@ namespace Formats::Archived
         // use rounded file size for better compatibility
         return BYTES_PER_SECTOR * SizeInSectors;
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct Header
+    struct Header
     {
       uint8_t ID[8];  //'SINCLAIR'
       uint8_t BlocksCount;
       Entry Blocks[1];
     };
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
 
     const uint8_t SIGNATURE[] = {'S', 'I', 'N', 'C', 'L', 'A', 'I', 'R'};
 
     // header with one entry + one sector + CRC
     const std::size_t MIN_SIZE = sizeof(Header) + BYTES_PER_SECTOR + 4;
 
-    static_assert(sizeof(Entry) == 14, "Invalid layout");
-    static_assert(sizeof(Header) == 23, "Invalid layout");
+    static_assert(sizeof(Entry) * alignof(Entry) == 14, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 23, "Invalid layout");
 
     uint_t SumDataSize(uint_t prevSize, const Entry& entry)
     {
@@ -103,7 +97,7 @@ namespace Formats::Archived
       }
       const std::size_t checksumOffset = descriptionsSize + dataSize;
       const auto* dump = data.As<uint8_t>();
-      const uint32_t storedChecksum = fromLE(*safe_ptr_cast<const uint32_t*>(dump + checksumOffset));
+      const uint32_t storedChecksum = ReadLE<uint32_t>(dump + checksumOffset);
       const uint32_t checksum = std::accumulate(dump, dump + checksumOffset, uint32_t(0));
       if (storedChecksum != checksum)
       {

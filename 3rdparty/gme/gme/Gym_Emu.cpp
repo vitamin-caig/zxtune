@@ -324,7 +324,7 @@ void Gym_Emu::parse_frame()
 		loop_begin = pos; // find loop on first time through sequence
 	
 	int cmd;
-	while ( (cmd = *pos++) != 0 )
+	while ( pos < file_end() && (cmd = *pos++) != 0 )
 	{
 		int data = *pos++;
 		if ( cmd == 1 )

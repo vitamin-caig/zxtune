@@ -34,22 +34,16 @@ namespace Formats::Chiptune
 
     const uint8_t SIGNATURE[] = {'P', 'S', 'G'};
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Header
+    struct Header
     {
       uint8_t Sign[3];
       uint8_t Marker;
       uint8_t Version;
       uint8_t Interrupt;
       uint8_t Padding[10];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(Header) == 16, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 16, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header);
 

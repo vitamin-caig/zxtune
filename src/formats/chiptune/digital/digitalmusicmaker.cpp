@@ -43,45 +43,42 @@ namespace Formats::Chiptune
 
     const std::size_t SAMPLES_ADDR = 0xc000;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Pattern
+    struct Pattern
     {
-      PACK_PRE struct Line
+      struct Line
       {
-        PACK_PRE struct Channel
+        struct Channel
         {
           uint8_t NoteCommand;
           uint8_t SampleParam;
           uint8_t Effect;
-        } PACK_POST;
+        };
 
         Channel Channels[CHANNELS_COUNT];
-      } PACK_POST;
+      };
 
       Line Lines[1];  // at least 1
-    } PACK_POST;
+    };
 
-    PACK_PRE struct SampleInfo
+    struct SampleInfo
     {
       std::array<char, 9> Name;
-      uint16_t Start;
+      le_uint16_t Start;
       uint8_t Bank;
-      uint16_t Limit;
-      uint16_t Loop;
-    } PACK_POST;
+      le_uint16_t Limit;
+      le_uint16_t Loop;
+    };
 
-    PACK_PRE struct MixedLine
+    struct MixedLine
     {
       Pattern::Line::Channel Mixin;
       uint8_t Period;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct Header
+    struct Header
     {
       //+0
-      std::array<uint16_t, 6> EndOfBanks;
+      std::array<le_uint16_t, 6> EndOfBanks;
       //+0x0c
       uint8_t PatternSize;
       //+0x0d
@@ -108,15 +105,12 @@ namespace Formats::Chiptune
       uint8_t Padding4[4];
       //+0x15e
       // patterns starts here
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(MixedLine) == 4, "Invalid layout");
-    static_assert(sizeof(SampleInfo) == 16, "Invalid layout");
-    static_assert(sizeof(Header) == 0x15e, "Invalid layout");
-    static_assert(sizeof(Pattern::Line) == 9, "Invalid layout");
+    static_assert(sizeof(MixedLine) * alignof(MixedLine) == 4, "Invalid layout");
+    static_assert(sizeof(SampleInfo) * alignof(SampleInfo) == 16, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 0x15e, "Invalid layout");
+    static_assert(sizeof(Pattern::Line) * alignof(Pattern::Line) == 9, "Invalid layout");
 
     const std::size_t MODULE_SIZE = sizeof(Header);
 
@@ -328,7 +322,7 @@ namespace Formats::Chiptune
           static const uint_t BANKS[] = {0, 1, 3, 4, 6, 7};
 
           const uint_t bankNum = BANKS[layIdx];
-          const std::size_t bankEnd = fromLE(Source.EndOfBanks[layIdx]);
+          const std::size_t bankEnd = Source.EndOfBanks[layIdx];
           Require(bankEnd >= SAMPLES_ADDR);
           if (bankEnd == SAMPLES_ADDR)
           {
@@ -366,9 +360,9 @@ namespace Formats::Chiptune
             Dbg("No sample %1%", samIdx);
             continue;
           }
-          const std::size_t sampleStart = fromLE(srcSample.Start);
-          const std::size_t sampleEnd = fromLE(srcSample.Limit);
-          std::size_t sampleLoop = fromLE(srcSample.Loop);
+          const std::size_t sampleStart = srcSample.Start;
+          const std::size_t sampleEnd = srcSample.Limit;
+          std::size_t sampleLoop = srcSample.Loop;
           Dbg("Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank),
               sampleStart, sampleEnd, sampleLoop);
           Require(sampleStart >= SAMPLES_ADDR && sampleStart <= sampleEnd);

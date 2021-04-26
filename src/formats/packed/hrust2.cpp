@@ -35,15 +35,12 @@ namespace Formats::Packed
   {
     const std::size_t MAX_DECODED_SIZE = 0x10000;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       uint8_t LastBytes[6];
       uint8_t FirstByte;
       uint8_t BitStream[1];
-    } PACK_POST;
+    };
 
     namespace Version1
     {
@@ -53,12 +50,12 @@ namespace Formats::Packed
           "%x0110001"  // Flag
           ""_sv;
 
-      PACK_PRE struct FormatHeader
+      struct FormatHeader
       {
         uint8_t ID[3];  //'hr2'
         uint8_t Flag;   //'1' | 128
-        uint16_t DataSize;
-        uint16_t PackedSize;
+        le_uint16_t DataSize;
+        le_uint16_t PackedSize;
         RawHeader Stream;
 
         // flag bits
@@ -66,7 +63,7 @@ namespace Formats::Packed
         {
           NO_COMPRESSION = 128
         };
-      } PACK_POST;
+      };
 
       const std::size_t MIN_SIZE = sizeof(FormatHeader);
     }  // namespace Version1
@@ -79,19 +76,19 @@ namespace Formats::Packed
           "%00x00xxx"   // Flag
           ""_sv;
 
-      PACK_PRE struct FormatHeader
+      struct FormatHeader
       {
         uint8_t ID[5];  //'Hrst2'
         uint8_t Flag;
-        uint16_t DataSize;
-        uint16_t PackedSize;  // without header
+        le_uint16_t DataSize;
+        le_uint16_t PackedSize;  // without header
         uint8_t AdditionalSize;
         // additional
-        uint16_t PackedCRC;
-        uint16_t DataCRC;
+        le_uint16_t PackedCRC;
+        le_uint16_t DataCRC;
         char Name[8];
         char Type[3];
-        uint16_t Filesize;
+        le_uint16_t Filesize;
         uint8_t Filesectors;
         uint8_t Subdir;
         char Comment[1];
@@ -122,16 +119,16 @@ namespace Formats::Packed
 
         std::size_t GetTotalSize() const
         {
-          return GetSize() + fromLE(PackedSize);
+          return GetSize() + PackedSize;
         }
-
-      } PACK_POST;
+      };
 
       const std::size_t MIN_SIZE = sizeof(FormatHeader);
     }  // namespace Version3
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 8, "Invalid layout");
+    static_assert(sizeof(Version1::FormatHeader) * alignof(Version1::FormatHeader) == 16, "Invalid layout");
+    static_assert(sizeof(Version3::FormatHeader) * alignof(Version3::FormatHeader) == 31, "Invalid layout");
 
     // hrust2x bitstream decoder
     class Bitstream : public ByteStream
@@ -324,7 +321,7 @@ namespace Formats::Packed
         uint_t GetUsedSize() const
         {
           const FormatHeader& header = GetHeader();
-          return sizeof(header) + fromLE(header.PackedSize) - sizeof(header.Stream);
+          return sizeof(header) + header.PackedSize - sizeof(header.Stream);
         }
 
         std::size_t GetUsedSizeWithPadding() const
@@ -395,7 +392,7 @@ namespace Formats::Packed
       private:
         bool DecodeData()
         {
-          const uint_t size = fromLE(Header.DataSize);
+          const uint_t size = Header.DataSize;
           if (0 != (Header.Flag & Header.NO_COMPRESSION))
           {
             // just copy
@@ -403,7 +400,7 @@ namespace Formats::Packed
             std::memcpy(Result->data(), &Header.Stream, size);
             return true;
           }
-          RawDataDecoder decoder(Header.Stream, fromLE(Header.PackedSize));
+          RawDataDecoder decoder(Header.Stream, Header.PackedSize);
           Result = decoder.GetResult();
           return nullptr != Result.get();
         }

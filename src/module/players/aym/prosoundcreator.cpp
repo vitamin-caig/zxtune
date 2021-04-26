@@ -445,7 +445,7 @@ namespace Module::ProSoundCreator
     void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       const uint16_t oldTone =
-          static_cast<uint_t>(track.GetFrequency(dst.Note) + dst.ToneAccumulator + dst.ToneSlide.GetSliding());
+          static_cast<uint16_t>(track.GetFrequency(dst.Note) + dst.ToneAccumulator + dst.ToneSlide.GetSliding());
       if (const bool* enabled = src.GetEnabled())
       {
         if (*enabled)

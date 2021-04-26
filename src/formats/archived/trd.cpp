@@ -53,24 +53,21 @@ namespace Formats::Archived
     const uint_t MAX_FILES_COUNT = 128;
     const std::size_t MIN_SIZE = (SECTORS_IN_TRACK + 1) * BYTES_PER_SECTOR;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-
     enum
     {
       NOENTRY = 0,
       DELETED = 1
     };
-    PACK_PRE struct CatEntry
+
+    struct CatEntry
     {
       char Name[8];
       char Type[3];
-      uint16_t Length;
+      le_uint16_t Length;
       uint8_t SizeInSectors;
       uint8_t Sector;
       uint8_t Track;
-    } PACK_POST;
+    };
 
     enum
     {
@@ -82,7 +79,7 @@ namespace Formats::Archived
       SS_SD = 0x19
     };
 
-    PACK_PRE struct ServiceSector
+    struct ServiceSector
     {
       uint8_t Zero;
       uint8_t Reserved1[224];
@@ -90,13 +87,13 @@ namespace Formats::Archived
       uint8_t FreeSpaceTrack;
       uint8_t Type;
       uint8_t Files;
-      uint16_t FreeSectors;
+      le_uint16_t FreeSectors;
       uint8_t ID;  // 0x10
       uint8_t Reserved2[12];
       uint8_t DeletedFiles;
       uint8_t Title[8];
       uint8_t Reserved3[3];
-    } PACK_POST;
+    };
 
     struct Sector
     {
@@ -108,7 +105,7 @@ namespace Formats::Archived
       }
     };
 
-    PACK_PRE struct Catalog
+    struct Catalog
     {
       CatEntry Entries[MAX_FILES_COUNT];
       // 8
@@ -119,16 +116,12 @@ namespace Formats::Archived
       Sector CorruptedByMagic[2];
       // 12..15
       Sector Empty1[4];
-    } PACK_POST;
+    };
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
-
-    static_assert(sizeof(CatEntry) == 16, "Invalid layout");
-    static_assert(sizeof(ServiceSector) == BYTES_PER_SECTOR, "Invalid layout");
-    static_assert(sizeof(Sector) == BYTES_PER_SECTOR, "Invalid layout");
-    static_assert(sizeof(Catalog) == BYTES_PER_SECTOR * SECTORS_IN_TRACK, "Invalid layout");
+    static_assert(sizeof(CatEntry) * alignof(CatEntry) == 16, "Invalid layout");
+    static_assert(sizeof(ServiceSector) * alignof(ServiceSector) == BYTES_PER_SECTOR, "Invalid layout");
+    static_assert(sizeof(Sector) * alignof(Sector) == BYTES_PER_SECTOR, "Invalid layout");
+    static_assert(sizeof(Catalog) * alignof(Catalog) == BYTES_PER_SECTOR * SECTORS_IN_TRACK, "Invalid layout");
 
     const Char UNALLOCATED_FILENAME[] = {'$', 'U', 'n', 'a', 'l', 'l', 'o', 'c', 'a', 't', 'e', 'd', 0};
 

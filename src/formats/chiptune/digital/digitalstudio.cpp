@@ -46,39 +46,36 @@ namespace Formats::Chiptune
     const std::size_t CHANNELS_COUNT = 3;
     const std::size_t SAMPLES_COUNT = 16;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Pattern
+    struct Pattern
     {
-      PACK_PRE struct Line
+      struct Line
       {
-        PACK_PRE struct Channel
+        struct Channel
         {
           uint8_t Note;
           uint8_t Sample;
-        } PACK_POST;
+        };
 
         Channel Channels[CHANNELS_COUNT];
-      } PACK_POST;
+      };
 
       Line Lines[MAX_PATTERN_SIZE];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct SampleInfo
+    struct SampleInfo
     {
-      uint16_t Start;
-      uint16_t Loop;
+      le_uint16_t Start;
+      le_uint16_t Loop;
       uint8_t Page;
       uint8_t NumberInBank;
-      uint16_t Size;
+      le_uint16_t Size;
       std::array<char, 8> Name;
-    } PACK_POST;
+    };
 
     typedef std::array<uint8_t, 0x38> ZeroesArray;
 
     // Usually located at #7e00
-    PACK_PRE struct Header
+    struct Header
     {
       //+0
       uint8_t Loop;
@@ -101,12 +98,9 @@ namespace Formats::Chiptune
       //+0x4200
       Pattern Patterns[PATTERNS_COUNT];
       // 0x7200
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(Header) == 0x7200, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 0x7200, "Invalid layout");
 
     const uint_t NOTE_EMPTY = 0;
     const uint_t NOTE_BASE = 1;
@@ -128,7 +122,10 @@ namespace Formats::Chiptune
         const std::size_t size2 = data2.Size();
         Binary::Dump res(size1 + size2);
         std::memcpy(res.data(), data1.Start(), size1);
-        std::memcpy(res.data() + size1, data2.Start(), size2);
+        if (data2.Size())
+        {
+          std::memcpy(res.data() + size1, data2.Start(), size2);
+        }
         Add(idx, loop, res);
       }
 
@@ -250,8 +247,8 @@ namespace Formats::Chiptune
         {
           const uint_t samIdx = *it;
           const SampleInfo& info = Source.Samples[samIdx];
-          Dbg("Sample %1%: start=#%2$04x loop=#%3$04x page=#%4$02x size=#%5$04x", samIdx, fromLE(info.Start),
-              fromLE(info.Loop), unsigned(info.Page), fromLE(info.Size));
+          Dbg("Sample %1%: start=#%2$04x loop=#%3$04x page=#%4$02x size=#%5$04x", samIdx, info.Start, info.Loop,
+              unsigned(info.Page), info.Size);
           if (!ParseSample(samIdx, info, samples))
           {
             Dbg(" Stub sample");
@@ -369,9 +366,9 @@ namespace Formats::Chiptune
         const std::size_t pageNumber = info.Page & 0x7;
         Require(0 != offsets[pageNumber]);
 
-        const std::size_t sampleStart = fromLE(info.Start);
-        const std::size_t sampleSize = fromLE(info.Size);
-        const std::size_t sampleLoop = fromLE(info.Loop);
+        const std::size_t sampleStart = info.Start;
+        const std::size_t sampleSize = info.Size;
+        const std::size_t sampleLoop = info.Loop;
 
         const bool isLoMemSample = sampleStart < HI_MEM_ADDR;
         const std::size_t BASE_ADDR = isLoMemSample ? LO_MEM_ADDR : HI_MEM_ADDR;

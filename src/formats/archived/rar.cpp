@@ -49,7 +49,7 @@ namespace Formats::Archived
 
       std::size_t GetUnpackedSize() const
       {
-        return fromLE(Header->UnpackedSize);
+        return Header->UnpackedSize;
       }
 
       bool HasParent() const
@@ -101,19 +101,19 @@ namespace Formats::Archived
       {
         if (const auto* block = Stream.PeekField<Packed::Rar::BlockHeader>())
         {
-          uint64_t res = fromLE(block->Size);
+          uint64_t res = block->Size;
           if (block->IsExtended())
           {
             if (const auto* extBlock = Stream.PeekField<Packed::Rar::ExtendedBlockHeader>())
             {
-              res += fromLE(extBlock->AdditionalSize);
+              res += extBlock->AdditionalSize;
               // Even if big files are not supported, we should properly skip them in stream
               if (Packed::Rar::FileBlockHeader::TYPE == extBlock->Block.Type
-                  && Packed::Rar::FileBlockHeader::FLAG_BIG_FILE & fromLE(extBlock->Block.Flags))
+                  && Packed::Rar::FileBlockHeader::FLAG_BIG_FILE & extBlock->Block.Flags)
               {
                 if (const auto* bigFile = Stream.PeekField<Packed::Rar::BigFileBlockHeader>())
                 {
-                  res += uint64_t(fromLE(bigFile->PackedSizeHi)) << (8 * sizeof(uint32_t));
+                  res += uint64_t(bigFile->PackedSizeHi) << (8 * sizeof(uint32_t));
                 }
                 else
                 {
@@ -141,7 +141,7 @@ namespace Formats::Archived
         if (const auto* block = Stream.PeekField<Packed::Rar::BlockHeader>())
         {
           // finish block
-          if (block->Type == 0x7b && 7 == fromLE(block->Size))
+          if (block->Type == 0x7b && 7 == block->Size)
           {
             Stream.Skip(sizeof(*block));
           }

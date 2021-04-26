@@ -54,41 +54,35 @@ namespace Formats::Packed
         "%0000000x"
         ""_sv;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       //+0x0
       char Name[8];
       //+0x8
       char Type;
       //+0x9
-      uint16_t StartOrSize;
+      le_uint16_t StartOrSize;
       //+0xb
-      uint16_t SourceSize;
+      le_uint16_t SourceSize;
       //+0xd
       uint8_t SourceSectors;
       //+0xe
-      uint16_t PackedSize;
+      le_uint16_t PackedSize;
       //+0x10
-      uint32_t SourceCRC;
+      le_uint32_t SourceCRC;
       //+0x14
       uint8_t Method;
       //+0x15
       uint8_t Flags;
       //+0x16
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 0x16, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x16, "Invalid layout");
 
     std::size_t GetSourceFileSize(const RawHeader& header)
     {
-      const uint_t calcSize = header.Type == 'B' || header.Type == 'b' ? 4 + fromLE(header.StartOrSize)
-                                                                       : fromLE(header.SourceSize);
+      const uint_t calcSize = header.Type == 'B' || header.Type == 'b' ? uint_t(4 + header.StartOrSize)
+                                                                       : uint_t(header.SourceSize);
       const std::size_t calcSectors = Math::Align(calcSize, uint_t(256)) / 256;
       return calcSectors == header.SourceSectors ? calcSize : 256 * header.SourceSectors;
     }
@@ -108,7 +102,7 @@ namespace Formats::Packed
           return false;
         }
         const RawHeader& header = GetHeader();
-        const std::size_t packedSize = fromLE(header.PackedSize);
+        const std::size_t packedSize = header.PackedSize;
         if (!packedSize)
         {
           return false;
@@ -123,7 +117,7 @@ namespace Formats::Packed
       std::size_t GetUsedSize() const
       {
         const RawHeader& header = GetHeader();
-        return sizeof(header) + fromLE(header.PackedSize);
+        return sizeof(header) + header.PackedSize;
       }
 
       const RawHeader& GetHeader() const
@@ -164,7 +158,7 @@ namespace Formats::Packed
 
       std::unique_ptr<Binary::Dump> GetDecodedData() override
       {
-        const uint_t packedSize = fromLE(Header.PackedSize);
+        const uint_t packedSize = Header.PackedSize;
         const uint8_t* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
         return std::unique_ptr<Binary::Dump>(new Binary::Dump(sourceData, sourceData + packedSize));
       }
@@ -320,7 +314,7 @@ namespace Formats::Packed
           const uint_t distBits = isBigTextFile ? 7 : 6;
           const uint_t minMatchLen = isBigTextFile ? 3 : 2;
 
-          Bitstream stream(safe_ptr_cast<const uint8_t*>(&Header + 1), fromLE(Header.PackedSize));
+          Bitstream stream(safe_ptr_cast<const uint8_t*>(&Header + 1), Header.PackedSize);
           Binary::Dump result;
           while (!stream.Eof())
           {
@@ -444,7 +438,7 @@ namespace Formats::Packed
       {
         try
         {
-          Bitstream stream(safe_ptr_cast<const uint8_t*>(&Header + 1), fromLE(Header.PackedSize));
+          Bitstream stream(safe_ptr_cast<const uint8_t*>(&Header + 1), Header.PackedSize);
           Binary::Dump result;
 
           LZWTree tree;
@@ -583,7 +577,7 @@ namespace Formats::Packed
           }
           const uint32_t realCRC = Binary::Crc32(*result);
           // ZXZip CRC32 calculation does not invert result
-          if (realCRC != ~fromLE(Header.SourceCRC))
+          if (realCRC != ~Header.SourceCRC)
           {
             break;
           }

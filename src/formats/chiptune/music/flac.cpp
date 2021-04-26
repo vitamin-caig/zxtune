@@ -45,14 +45,15 @@ namespace Formats::Chiptune
             return CreateCalculatingCrcContainer(subData, 0, subData->Size());
           }
         }
-        return Container::Ptr();
+        return {};
       }
 
     private:
       bool ParseSignature()
       {
         static const uint8_t SIGNATURE[] = {'f', 'L', 'a', 'C'};
-        if (0 == std::memcmp(Stream.PeekRawData(sizeof(SIGNATURE)), SIGNATURE, sizeof(SIGNATURE)))
+        const auto* sign = Stream.PeekRawData(sizeof(SIGNATURE));
+        if (sign && 0 == std::memcmp(sign, SIGNATURE, sizeof(SIGNATURE)))
         {
           Stream.Skip(sizeof(SIGNATURE));
           return true;
@@ -62,17 +63,18 @@ namespace Formats::Chiptune
 
       bool ParseMetadata(Builder& target)
       {
-        static const std::size_t HEADER_SIZE = 4;
-        while (const auto* hdr = Stream.PeekRawData(HEADER_SIZE))
+        const auto pos = Stream.GetPosition();
+        while (Stream.PeekRawData(1 + sizeof(be_uint24_t)))
         {
-          const bool isLast = hdr[0] & 128;
-          const auto type = hdr[0] & 127;
-          const auto payloadSize = Byteorder<3>::ReadBE(hdr + 1);
-          if (type == 127 || Stream.GetRestSize() < HEADER_SIZE + payloadSize)
+          const auto flag = Stream.ReadByte();
+          const bool isLast = flag & 128;
+          const auto type = flag & 127;
+          const uint_t payloadSize = Stream.Read<be_uint24_t>();
+          if (type == 127 || Stream.GetRestSize() < payloadSize)
           {
+            Stream.Seek(pos);
             break;
           }
-          Stream.Skip(HEADER_SIZE);
           Binary::DataInputStream payload(Stream.ReadData(payloadSize));
           if (type == 0)
           {
@@ -92,27 +94,22 @@ namespace Formats::Chiptune
 
       static void ParseStreamInfo(Binary::DataInputStream& input, Builder& target)
       {
-        const auto minBlockSize = input.ReadBE<uint16_t>();
-        const auto maxBlockSize = input.ReadBE<uint16_t>();
+        const uint_t minBlockSize = input.Read<be_uint16_t>();
+        const uint_t maxBlockSize = input.Read<be_uint16_t>();
         target.SetBlockSize(minBlockSize, maxBlockSize);
-        const auto minFrameSize = fromBE24(input.ReadData(3));
-        const auto maxFrameSize = fromBE24(input.ReadData(3));
+        const auto minFrameSize = input.Read<be_uint24_t>();
+        const auto maxFrameSize = input.Read<be_uint24_t>();
         target.SetFrameSize(minFrameSize, maxFrameSize);
-        // TODO: operate with uint64_t
-        const auto params = input.ReadData(8).As<uint8_t>();
-        const auto sampleRate = (uint_t(params[0]) << 12) | (uint_t(params[1]) << 4) | (params[2] >> 4);
+        // big endian:
+        // ffffffff ffffffff ffffcccb bbbbssss ssssssss ssssssss ssssssss ssssssss
+        const uint64_t params = input.Read<be_uint64_t>();
+        const auto totalSamples = params & 0xfffffffffull;
+        const auto bitsPerSample = 1 + uint_t((params >> 36) & 0x1f);
+        const auto channels = 1 + uint_t((params >> 41) & 7);
+        const auto sampleRate = uint_t(params >> 44);
         Require(sampleRate != 0);
-        const auto channels = 1 + ((params[2] >> 1) & 7);
-        const auto bitsPerSample = 1 + (((params[2] & 1) << 4) | (params[3] >> 4));
         target.SetStreamParameters(sampleRate, channels, bitsPerSample);
-        const auto totalSamples = (uint64_t(params[3] & 15) << 32) | (uint64_t(params[4]) << 24)
-                                  | Byteorder<3>::ReadBE(params + 5);
         target.SetTotalSamples(totalSamples);
-      }
-
-      static inline uint_t fromBE24(Binary::View data)
-      {
-        return Byteorder<3>::ReadBE(data.As<uint8_t>());
       }
 
       bool ParseFrames(Builder& target)
@@ -170,14 +167,19 @@ namespace Formats::Chiptune
         {
           return 0;
         }
-        uint8_t crc = 0;
+        uint_t crc = 0;
         for (std::size_t idx = 0; idx < MAX_HEADER_SIZE; ++idx)
         {
           crc ^= hdr[idx];
           for (uint_t bit = 0; bit < 8; ++bit)
           {
-            crc = crc & 0x80 ? (crc << 1) ^ 0x7 : crc << 1;
+            crc <<= 1;
+            if (crc & 0x100)
+            {
+              crc ^= 0x7;
+            }
           }
+          crc &= 0xff;
           if (crc == 0)
           {
             return idx;

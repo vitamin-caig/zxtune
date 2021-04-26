@@ -60,14 +60,14 @@ namespace Formats::Chiptune
       {
         for (auto i = 0; i < 16; ++i)
         {
-          if (const auto notes = Stream.ReadLE<uint32_t>())
+          if (const uint_t notes = Stream.Read<le_uint32_t>())
           {
             Stream.Skip(5 * notes);
-            Stream.Skip(4 * Stream.ReadLE<uint32_t>());
-            Stream.Skip(5 * Stream.ReadLE<uint32_t>());
+            Stream.Skip(4 * Stream.Read<le_uint32_t>());
+            Stream.Skip(5 * Stream.Read<le_uint32_t>());
             for (auto j = 0; j < 7; ++j)
             {
-              Stream.Skip(4 * Stream.ReadLE<uint32_t>());
+              Stream.Skip(4 * Stream.Read<le_uint32_t>());
             }
           }
         }
@@ -76,13 +76,13 @@ namespace Formats::Chiptune
 
       bool ParseData()
       {
-        const auto globalsSize = Stream.ReadLE<uint32_t>();
+        const std::size_t globalsSize = Stream.Read<le_uint32_t>();
         if (globalsSize > 131072)
         {
           return false;
         }
         Stream.Skip(globalsSize);
-        const auto patchMapSize = Stream.ReadLE<uint32_t>();
+        const std::size_t patchMapSize = Stream.Read<le_uint32_t>();
         if (patchMapSize > 1048576)
         {
           return false;
@@ -91,7 +91,7 @@ namespace Formats::Chiptune
         if (const auto speech = Stream.PeekRawData(sizeof(uint32_t)))
         {
           const auto pos = Stream.GetPosition();
-          const auto speechSize = Stream.ReadLE<uint32_t>();
+          const uint_t speechSize = Stream.Read<le_uint32_t>();
           if (Math::InRange<uint_t>(speechSize, 4, 8191))
           {
             const auto realSpeechSize = std::min<uint_t>(speechSize, Stream.GetRestSize());
@@ -109,7 +109,7 @@ namespace Formats::Chiptune
       static bool ParseSpeechData(Binary::DataInputStream& stream)
       {
         const auto maxOffset = stream.GetRestSize() - 1;
-        const auto count = stream.ReadLE<uint32_t>();
+        const uint_t count = stream.Read<le_uint32_t>();
         const auto minOffset = (count + 1) * sizeof(uint32_t);
         if (minOffset >= maxOffset)
         {
@@ -117,7 +117,7 @@ namespace Formats::Chiptune
         }
         for (uint_t idx = 0; idx < count; ++idx)
         {
-          const auto offset = stream.ReadLE<uint32_t>();
+          const uint_t offset = stream.Read<le_uint32_t>();
           if (!Math::InRange<uint_t>(offset, minOffset, maxOffset))
           {
             return false;
@@ -145,9 +145,9 @@ namespace Formats::Chiptune
           static const uint_t MIN_GDNUM = 1;
           static const uint_t MAX_GDNUM = 6;
 
-          TimeDiv = stream.ReadLE<uint32_t>();
-          MaxTime = stream.ReadLE<uint32_t>();
-          GdNum = stream.ReadLE<uint32_t>();
+          TimeDiv = stream.Read<le_uint32_t>();
+          MaxTime = stream.Read<le_uint32_t>();
+          GdNum = stream.Read<le_uint32_t>();
 
           if (Math::InRange<uint_t>(TimeDiv, MIN_TIMEDIV, MAX_TIMEDIV)
               && Math::InRange<uint_t>(MaxTime, MIN_MAXTIME, MAX_MAXTIME)
@@ -174,7 +174,7 @@ namespace Formats::Chiptune
             totalTime += TPC * rows * usecs / 8000000;
             if (gdIdx < GdNum)
             {
-              usecs = fromLE(safe_ptr_cast<const uint32_t*>(Delays + 3 * GdNum)[gdIdx]);
+              usecs = safe_ptr_cast<const le_uint32_t*>(Delays + 3 * GdNum)[gdIdx];
             }
           }
           return Time::Milliseconds(totalTime);

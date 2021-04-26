@@ -34,21 +34,17 @@ namespace Formats::Packed
     const Char DESCRIPTION[] = "Hrust v1.x";
     const auto FORMAT = "'H'R"_sv;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       uint8_t ID[2];  //'HR'
-      uint16_t DataSize;
-      uint16_t PackedSize;
+      le_uint16_t DataSize;
+      le_uint16_t PackedSize;
       uint8_t LastBytes[6];
       uint8_t BitStream[2];
       uint8_t ByteStream[1];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
+
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 15, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
 
@@ -74,7 +70,7 @@ namespace Formats::Packed
       uint_t GetUsedSize() const
       {
         const RawHeader& header = GetHeader();
-        return fromLE(header.PackedSize);
+        return header.PackedSize;
       }
 
       std::size_t GetUsedSizeWithPadding() const
@@ -227,7 +223,7 @@ namespace Formats::Packed
     private:
       bool DecodeData()
       {
-        Decoded.reserve(fromLE(Header.DataSize));
+        Decoded.reserve(Header.DataSize);
 
         // put first byte
         Decoded.push_back(Stream.GetByte());

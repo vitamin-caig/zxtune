@@ -55,24 +55,21 @@ namespace Formats::Chiptune
       Ornaments
     */
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       uint8_t Tempo;
       uint8_t Length;
       uint8_t Loop;
-      std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
-      uint16_t PatternsOffset;
+      std::array<le_uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<le_uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      le_uint16_t PatternsOffset;
       std::array<char, 30> Name;
       uint8_t Positions[1];
-    } PACK_POST;
+    };
 
     const uint8_t POS_END_MARKER = 0xff;
 
-    PACK_PRE struct RawObject
+    struct RawObject
     {
       uint8_t Size;
       uint8_t Loop;
@@ -81,11 +78,11 @@ namespace Formats::Chiptune
       {
         return Size;
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawSample : RawObject
+    struct RawSample : RawObject
     {
-      PACK_PRE struct Line
+      struct Line
       {
         // HHHHaaaa
         // NTsnnnnn
@@ -126,7 +123,7 @@ namespace Formats::Chiptune
           const int_t val((int_t(LevelHiVibrato & 0xf0) << 4) | LoVibrato);
           return (NoiseAndFlags & 32) ? val : -val;
         }
-      } PACK_POST;
+      };
 
       std::size_t GetUsedSize() const
       {
@@ -144,9 +141,9 @@ namespace Formats::Chiptune
         res.LoVibrato = src[offset++];
         return res;
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawOrnament
+    struct RawOrnament
     {
       typedef int8_t Line;
       Line Data[1];
@@ -165,19 +162,16 @@ namespace Formats::Chiptune
       {
         return Data[idx];
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPattern
+    struct RawPattern
     {
-      std::array<uint16_t, 3> Offsets;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      std::array<le_uint16_t, 3> Offsets;
+    };
 
-    static_assert(sizeof(RawHeader) == 100, "Invalid layout");
-    static_assert(sizeof(RawSample) == 2, "Invalid layout");
-    static_assert(sizeof(RawOrnament) == 1, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 100, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 2, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 1, "Invalid layout");
 
     class StubBuilder : public Builder
     {
@@ -419,7 +413,7 @@ namespace Formats::Chiptune
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
         Dbg("Patterns: %1% to parse", pats.Count());
-        const std::size_t minOffset = fromLE(Source.PatternsOffset) + pats.Maximum() * sizeof(RawPattern);
+        const std::size_t minOffset = Source.PatternsOffset + pats.Maximum() * sizeof(RawPattern);
         bool hasValidPatterns = false;
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
@@ -441,7 +435,7 @@ namespace Formats::Chiptune
         {
           const uint_t samIdx = *it;
           Sample result;
-          if (const std::size_t samOffset = fromLE(Source.SamplesOffsets[samIdx]))
+          if (const std::size_t samOffset = Source.SamplesOffsets[samIdx])
           {
             const std::size_t availSize = Data.Size() - samOffset;
             if (const auto* src = PeekObject<RawSample>(samOffset))
@@ -486,7 +480,7 @@ namespace Formats::Chiptune
         {
           const uint_t ornIdx = *it;
           Ornament result;
-          if (const std::size_t ornOffset = fromLE(Source.OrnamentsOffsets[ornIdx]))
+          if (const std::size_t ornOffset = Source.OrnamentsOffsets[ornIdx])
           {
             const std::size_t availSize = Data.Size() - ornOffset;
             if (const auto* src = PeekObject<RawOrnament>(ornOffset))
@@ -539,7 +533,7 @@ namespace Formats::Chiptune
 
       const RawPattern& GetPattern(uint_t patIdx) const
       {
-        const std::size_t patOffset = fromLE(Source.PatternsOffset) + patIdx * sizeof(RawPattern);
+        const std::size_t patOffset = Source.PatternsOffset + patIdx * sizeof(RawPattern);
         Ranges.AddService(patOffset, sizeof(RawPattern));
         return *PeekObject<RawPattern>(patOffset);
       }
@@ -555,7 +549,7 @@ namespace Formats::Chiptune
       {
         explicit DataCursors(const RawPattern& src)
         {
-          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), &fromLE<uint16_t>);
+          std::copy(src.Offsets.begin(), src.Offsets.end(), begin());
         }
       };
 
@@ -791,7 +785,7 @@ namespace Formats::Chiptune
       Areas(const RawHeader& header, std::size_t size)
       {
         AddArea(HEADER, 0);
-        AddArea(PATTERNS, fromLE(header.PatternsOffset));
+        AddArea(PATTERNS, header.PatternsOffset);
         AddArea(END, size);
       }
 

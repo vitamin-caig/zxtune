@@ -33,46 +33,39 @@ namespace Sound::Wav
   const Char BACKEND_ID[] = "wav";
   const char* const DESCRIPTION = L10n::translate("WAV support backend");
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
   // Standard .wav header
-  PACK_PRE struct WaveFormat
+  struct WaveFormat
   {
-    uint8_t Id[4];         //'RIFF'
-    uint32_t Size;         // file size - 8
-    uint8_t Type[4];       //'WAVE'
-    uint8_t ChunkId[4];    //'fmt '
-    uint32_t ChunkSize;    // 16
-    uint16_t Compression;  // 1
-    uint16_t Channels;
-    uint32_t Samplerate;
-    uint32_t BytesPerSec;
-    uint16_t Align;
-    uint16_t BitsPerSample;
+    uint8_t Id[4];            //'RIFF'
+    le_uint32_t Size;         // file size - 8
+    uint8_t Type[4];          //'WAVE'
+    uint8_t ChunkId[4];       //'fmt '
+    le_uint32_t ChunkSize;    // 16
+    le_uint16_t Compression;  // 1
+    le_uint16_t Channels;
+    le_uint32_t Samplerate;
+    le_uint32_t BytesPerSec;
+    le_uint16_t Align;
+    le_uint16_t BitsPerSample;
     uint8_t DataId[4];  //'data'
-    uint32_t DataSize;
-  } PACK_POST;
+    le_uint32_t DataSize;
+  };
 
-  PACK_PRE struct ListHeader
+  struct ListHeader
   {
-    uint8_t Id[4];    // LIST
-    uint32_t Size;    // next content size
-    uint8_t Type[4];  // INFO
-  } PACK_POST;
+    uint8_t Id[4];     // LIST
+    le_uint32_t Size;  // next content size
+    uint8_t Type[4];   // INFO
+  };
 
-  PACK_PRE struct InfoElement
+  struct InfoElement
   {
     uint8_t Id[4];
-    uint32_t Size;  // next content size - 1
+    le_uint32_t Size;  // next content size - 1
     uint8_t Content[1];
-  } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+  };
 
   const uint8_t RIFF[] = {'R', 'I', 'F', 'F'};
-  const uint8_t RIFX[] = {'R', 'I', 'F', 'X'};
   const uint8_t WAVE[] = {'W', 'A', 'V', 'E'};
   const uint8_t FORMAT[] = {'f', 'm', 't', ' '};
   const uint8_t DATA[] = {'d', 'a', 't', 'a'};
@@ -129,10 +122,10 @@ namespace Sound::Wav
       const std::size_t strSize = str.size() + 1;
       InfoElement* const elem = AddElement(strSize);
       std::memcpy(elem->Id, id, sizeof(elem->Id));
-      elem->Size = fromLE(strSize);
+      elem->Size = strSize;
       std::memcpy(elem->Content, str.c_str(), strSize);
       elem->Content[strSize] = 0;
-      hdr->Size = fromLE(size() - offsetof(ListHeader, Type));
+      hdr->Size = size() - offsetof(ListHeader, Type);
     }
 
     ListHeader* GetHeader()
@@ -166,24 +159,17 @@ namespace Sound::Wav
       , DoneBytes(0)
     {
       // init struct
-      if (isLE())
-      {
-        std::memcpy(Format.Id, RIFF, sizeof(RIFF));
-      }
-      else
-      {
-        std::memcpy(Format.Id, RIFX, sizeof(RIFX));
-      }
+      std::memcpy(Format.Id, RIFF, sizeof(RIFF));
       std::memcpy(Format.Type, WAVE, sizeof(WAVE));
       std::memcpy(Format.ChunkId, FORMAT, sizeof(FORMAT));
-      Format.ChunkSize = fromLE<uint32_t>(16);
-      Format.Compression = fromLE<uint16_t>(1);  // PCM
-      Format.Channels = fromLE<uint16_t>(Sample::CHANNELS);
+      Format.ChunkSize = 16;
+      Format.Compression = 1;  // PCM
+      Format.Channels = Sample::CHANNELS;
       std::memcpy(Format.DataId, DATA, sizeof(DATA));
-      Format.Samplerate = fromLE(static_cast<uint32_t>(soundFreq));
-      Format.BytesPerSec = fromLE(static_cast<uint32_t>(soundFreq * sizeof(Sample)));
-      Format.Align = fromLE<uint16_t>(sizeof(Sample));
-      Format.BitsPerSample = fromLE<uint16_t>(Sample::BITS);
+      Format.Samplerate = soundFreq;
+      Format.BytesPerSec = soundFreq * sizeof(Sample);
+      Format.Align = sizeof(Sample);
+      Format.BitsPerSample = Sample::BITS;
       Flush();
     }
 
@@ -228,8 +214,8 @@ namespace Sound::Wav
       Stream->Flush();
       // write header
       Stream->Seek(0);
-      Format.Size = fromLE<uint32_t>(sizeof(Format) - offsetof(WaveFormat, Type) + DoneBytes + Meta.size());
-      Format.DataSize = fromLE<uint32_t>(DoneBytes);
+      Format.Size = sizeof(Format) - offsetof(WaveFormat, Type) + DoneBytes + Meta.size();
+      Format.DataSize = DoneBytes;
       Stream->ApplyData(Format);
       Stream->Seek(DoneBytes + sizeof(Format));
     }

@@ -30,8 +30,8 @@ namespace Formats::Chiptune
     void ParseRom(Binary::View data, Builder& target)
     {
       Binary::DataInputStream stream(data);
-      const auto offset = stream.ReadLE<uint32_t>();
-      const auto size = stream.ReadLE<uint32_t>();
+      const uint32_t offset = stream.Read<le_uint32_t>();
+      const std::size_t size = stream.Read<le_uint32_t>();
       target.SetChunk(offset, stream.ReadData(size));
       Require(0 == stream.GetRestSize());
     }
@@ -41,9 +41,9 @@ namespace Formats::Chiptune
       Binary::DataInputStream stream(data);
       while (stream.GetRestSize() >= sizeof(SignatureType) + sizeof(uint32_t) + sizeof(uint32_t))
       {
-        const auto signature = stream.ReadField<SignatureType>();
-        const auto packedSize = stream.ReadLE<uint32_t>();
-        /*const auto unpackedCrc = */ stream.ReadLE<uint32_t>();
+        const auto signature = stream.Read<SignatureType>();
+        const std::size_t packedSize = stream.Read<le_uint32_t>();
+        /*const auto unpackedCrc = */ stream.Read<le_uint32_t>();
         if (signature == SAVESTATE_SIGNATURE)
         {
           auto packedData = stream.ReadData(packedSize);

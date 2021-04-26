@@ -54,22 +54,19 @@ namespace Formats::Chiptune
       PatternsInfo      6 .. 252 (multiply by 6)
     */
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       uint8_t Tempo;
-      uint16_t PositionsOffset;
-      uint16_t SamplesOffset;
-      uint16_t OrnamentsOffset;
-      uint16_t PatternsOffset;
-    } PACK_POST;
+      le_uint16_t PositionsOffset;
+      le_uint16_t SamplesOffset;
+      le_uint16_t OrnamentsOffset;
+      le_uint16_t PatternsOffset;
+    };
 
     const uint8_t ID[] = {'K', 'S', 'A', ' ', 'S', 'O', 'F', 'T', 'W', 'A', 'R', 'E', ' ', 'C',
                           'O', 'M', 'P', 'I', 'L', 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '};
 
-    PACK_PRE struct RawId
+    struct RawId
     {
       uint8_t Id[sizeof(ID)];
       std::array<char, 27> Title;
@@ -78,42 +75,42 @@ namespace Formats::Chiptune
       {
         return 0 == std::memcmp(Id, ID, sizeof(Id));
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPositions
+    struct RawPositions
     {
       uint8_t Length;
-      PACK_PRE struct PosEntry
+      struct PosEntry
       {
         int8_t Transposition;
         uint8_t PatternOffset;  //*6
-      } PACK_POST;
+      };
       PosEntry Data[1];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPattern
+    struct RawPattern
     {
-      std::array<uint16_t, 3> Offsets;
-    } PACK_POST;
+      std::array<le_uint16_t, 3> Offsets;
+    };
 
-    PACK_PRE struct RawSamples
-    {
-      uint8_t Count;
-      uint16_t Offsets[1];
-    } PACK_POST;
-
-    PACK_PRE struct RawOrnaments
+    struct RawSamples
     {
       uint8_t Count;
-      uint16_t Offsets[1];
-    } PACK_POST;
+      le_uint16_t Offsets[1];
+    };
 
-    PACK_PRE struct RawOrnament
+    struct RawOrnaments
+    {
+      uint8_t Count;
+      le_uint16_t Offsets[1];
+    };
+
+    struct RawOrnament
     {
       std::array<int8_t, ORNAMENT_SIZE> Data;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawSample
+    struct RawSample
     {
       uint8_t Loop;
       uint8_t LoopLimit;
@@ -124,9 +121,9 @@ namespace Formats::Chiptune
       // T - tone mask
       // A - Level
       // n - noise
-      PACK_PRE struct Line
+      struct Line
       {
-        int16_t Vibrato;
+        le_int16_t Vibrato;
         uint8_t LevelAndMask;
         uint8_t Noise;
 
@@ -137,7 +134,7 @@ namespace Formats::Chiptune
 
         int_t GetEffect() const
         {
-          return fromLE(Vibrato);
+          return Vibrato;
         }
 
         uint_t GetNoise() const
@@ -154,21 +151,18 @@ namespace Formats::Chiptune
         {
           return 0 != (LevelAndMask & 16);
         }
-      } PACK_POST;
+      };
       Line Data[SAMPLE_SIZE];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 9, "Invalid layout");
-    static_assert(sizeof(RawId) == 55, "Invalid layout");
-    static_assert(sizeof(RawPositions) == 3, "Invalid layout");
-    static_assert(sizeof(RawPattern) == 6, "Invalid layout");
-    static_assert(sizeof(RawSamples) == 3, "Invalid layout");
-    static_assert(sizeof(RawOrnaments) == 3, "Invalid layout");
-    static_assert(sizeof(RawOrnament) == 32, "Invalid layout");
-    static_assert(sizeof(RawSample) == 130, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 9, "Invalid layout");
+    static_assert(sizeof(RawId) * alignof(RawId) == 55, "Invalid layout");
+    static_assert(sizeof(RawPositions) * alignof(RawPositions) == 3, "Invalid layout");
+    static_assert(sizeof(RawPattern) * alignof(RawPattern) == 6, "Invalid layout");
+    static_assert(sizeof(RawSamples) * alignof(RawSamples) == 3, "Invalid layout");
+    static_assert(sizeof(RawOrnaments) * alignof(RawOrnaments) == 3, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 32, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 130, "Invalid layout");
 
     class Format
     {
@@ -226,13 +220,13 @@ namespace Formats::Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        const RawSamples& table = GetObject<RawSamples>(fromLE(Source.SamplesOffset));
+        const RawSamples& table = GetObject<RawSamples>(Source.SamplesOffset);
         const uint_t availSamples = table.Count;
         Require(samples.Maximum() < availSamples);
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          const std::size_t samOffset = fromLE(table.Offsets[samIdx]);
+          const std::size_t samOffset = table.Offsets[samIdx];
           Dbg("Parse sample %1% at %2%", samIdx, samOffset);
           const RawSample& src = GetObject<RawSample>(samOffset);
           builder.SetSample(samIdx, ParseSample(src));
@@ -241,13 +235,13 @@ namespace Formats::Chiptune
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
-        const RawOrnaments& table = GetObject<RawOrnaments>(fromLE(Source.OrnamentsOffset));
+        const RawOrnaments& table = GetObject<RawOrnaments>(Source.OrnamentsOffset);
         const uint_t availOrnaments = table.Count;
         Require(ornaments.Maximum() < availOrnaments);
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
-          const std::size_t ornOffset = fromLE(table.Offsets[ornIdx]);
+          const std::size_t ornOffset = table.Offsets[ornIdx];
           Dbg("Parse ornament %1% at %2%", ornIdx, ornOffset);
           const RawOrnament& src = GetObject<RawOrnament>(ornOffset);
           builder.SetOrnament(ornIdx, ParseOrnament(src));
@@ -273,7 +267,7 @@ namespace Formats::Chiptune
 
       RangeIterator<const RawPositions::PosEntry*> GetPositions() const
       {
-        const std::size_t offset = fromLE(Source.PositionsOffset);
+        const std::size_t offset = Source.PositionsOffset;
         const auto* positions = PeekObject<RawPositions>(offset);
         Require(positions != nullptr);
         const uint_t length = positions->Length;
@@ -294,7 +288,7 @@ namespace Formats::Chiptune
 
       const RawPattern& GetPattern(uint_t idx) const
       {
-        const std::size_t patOffset = fromLE(Source.PatternsOffset) + idx * sizeof(RawPattern);
+        const std::size_t patOffset = Source.PatternsOffset + idx * sizeof(RawPattern);
         return GetObject<RawPattern>(patOffset);
       }
 
@@ -309,7 +303,7 @@ namespace Formats::Chiptune
       {
         explicit DataCursors(const RawPattern& src)
         {
-          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), &fromLE<uint16_t>);
+          std::copy(src.Offsets.begin(), src.Offsets.end(), begin());
         }
       };
 
@@ -557,10 +551,10 @@ namespace Formats::Chiptune
             AddArea(IDENTIFIER, sizeof(header));
           }
         }
-        AddArea(POSITIONS_INFO, fromLE(header.PositionsOffset));
-        AddArea(SAMPLES_INFO, fromLE(header.SamplesOffset));
-        AddArea(ORNAMENTS_INFO, fromLE(header.OrnamentsOffset));
-        AddArea(PATTERNS_INFO, fromLE(header.PatternsOffset));
+        AddArea(POSITIONS_INFO, header.PositionsOffset);
+        AddArea(SAMPLES_INFO, header.SamplesOffset);
+        AddArea(ORNAMENTS_INFO, header.OrnamentsOffset);
+        AddArea(PATTERNS_INFO, header.PatternsOffset);
         AddArea(END, size);
       }
 
@@ -633,10 +627,10 @@ namespace Formats::Chiptune
       return 0 != entry.PatternOffset % sizeof(RawPattern);
     }
 
-    bool AreSequenced(uint16_t lh, uint16_t rh, std::size_t multiply)
+    bool AreSequenced(le_uint16_t lh, le_uint16_t rh, std::size_t multiply)
     {
-      const std::size_t lhNorm = fromLE(lh);
-      const std::size_t rhNorm = fromLE(rh);
+      const std::size_t lhNorm = lh;
+      const std::size_t rhNorm = rh;
       if (lhNorm > rhNorm)
       {
         return false;
@@ -662,8 +656,8 @@ namespace Formats::Chiptune
       {
         return false;
       }
-      areas.AddArea(SAMPLES, fromLE(samples->Offsets[0]));
-      areas.AddArea(ORNAMENTS, fromLE(ornaments->Offsets[0]));
+      areas.AddArea(SAMPLES, samples->Offsets[0]);
+      areas.AddArea(ORNAMENTS, ornaments->Offsets[0]);
 
       if (!areas.CheckHeader())
       {
@@ -834,7 +828,7 @@ namespace Formats::Chiptune
             patch->FixLEWord(offsetof(RawHeader, SamplesOffset), delta);
             patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);
             patch->FixLEWord(offsetof(RawHeader, PatternsOffset), delta);
-            const std::size_t patternsStart = fromLE(header.PatternsOffset);
+            const std::size_t patternsStart = header.PatternsOffset;
             const Indices& usedPatterns = statistic.GetUsedPatterns();
             for (Indices::Iterator it = usedPatterns.Items(); it; ++it)
             {
@@ -844,14 +838,14 @@ namespace Formats::Chiptune
               patch->FixLEWord(patOffsets + 4, delta);
             }
             // fix all samples and ornaments
-            const std::size_t ornamentsStart = fromLE(header.OrnamentsOffset);
+            const std::size_t ornamentsStart = header.OrnamentsOffset;
             const auto& orns = *parsedData.SubView(ornamentsStart).As<RawOrnaments>();
             for (uint_t idx = 0; idx != orns.Count; ++idx)
             {
               const std::size_t ornOffset = ornamentsStart + offsetof(RawOrnaments, Offsets) + idx * sizeof(uint16_t);
               patch->FixLEWord(ornOffset, delta);
             }
-            const std::size_t samplesStart = fromLE(header.SamplesOffset);
+            const std::size_t samplesStart = header.SamplesOffset;
             const auto& sams = *parsedData.SubView(samplesStart).As<RawSamples>();
             for (uint_t idx = 0; idx != sams.Count; ++idx)
             {

@@ -77,7 +77,7 @@ namespace Strings
     }
 
   private:
-    void AddSeq(uint8_t val)
+    void AddSeq(uint32_t val)
     {
       AddRaw(0x80 | (val & 0x3f));
     }

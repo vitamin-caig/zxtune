@@ -37,26 +37,20 @@ namespace Formats::Chiptune
     const uint_t VERSION_MIN = 1;
     const uint_t VERSION_MAX = 3;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       SignatureType Signature;
-      uint16_t Version;
-      uint16_t DataOffset;
-      uint16_t LoadAddr;
-      uint16_t InitAddr;
-      uint16_t PlayAddr;
-      uint16_t SoungsCount;
-      uint16_t StartSong;
-      uint32_t SpeedFlags;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      be_uint16_t Version;
+      be_uint16_t DataOffset;
+      be_uint16_t LoadAddr;
+      be_uint16_t InitAddr;
+      be_uint16_t PlayAddr;
+      be_uint16_t SoungsCount;
+      be_uint16_t StartSong;
+      be_uint32_t SpeedFlags;
+    };
 
-    static_assert(sizeof(RawHeader) == 22, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 22, "Invalid layout");
 
     const auto FORMAT =
         "'R|'P 'S'I'D"  // signature
@@ -112,7 +106,7 @@ namespace Formats::Chiptune
       {
         return nullptr;
       }
-      if (!Math::InRange<uint_t>(fromBE(hdr->Version), VERSION_MIN, VERSION_MAX))
+      if (!Math::InRange<uint_t>(hdr->Version, VERSION_MIN, VERSION_MAX))
       {
         return nullptr;
       }
@@ -123,7 +117,7 @@ namespace Formats::Chiptune
     {
       if (const RawHeader* hdr = GetHeader(rawData))
       {
-        return fromBE(hdr->SoungsCount);
+        return hdr->SoungsCount;
       }
       else
       {
@@ -137,7 +131,7 @@ namespace Formats::Chiptune
       std::unique_ptr<Binary::Dump> content(new Binary::Dump(data.Size()));
       std::memcpy(content->data(), data.Start(), content->size());
       RawHeader& hdr = *safe_ptr_cast<RawHeader*>(content->data());
-      hdr.StartSong = fromBE<uint16_t>(idx);
+      hdr.StartSong = static_cast<uint16_t>(idx);
       return Binary::CreateContainer(std::move(content));
     }
   }  // namespace SID

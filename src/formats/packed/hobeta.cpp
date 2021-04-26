@@ -26,22 +26,16 @@ namespace Formats::Packed
 {
   namespace Hobeta
   {
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Header
+    struct Header
     {
       std::array<uint8_t, 9> Filename;
-      uint16_t Start;
-      uint16_t Length;
-      uint16_t FullLength;
-      uint16_t CRC;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      le_uint16_t Start;
+      le_uint16_t Length;
+      le_uint16_t FullLength;
+      le_uint16_t CRC;
+    };
 
-    static_assert(sizeof(Header) == 17, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 17, "Invalid layout");
     const std::size_t MIN_SIZE = 0x100;
     const std::size_t MAX_SIZE = 0xff00;
 
@@ -53,8 +47,8 @@ namespace Formats::Packed
         return false;
       }
       const auto* data = rawData.As<uint8_t>();
-      const std::size_t dataSize = fromLE(header->Length);
-      const std::size_t fullSize = fromLE(header->FullLength);
+      const std::size_t dataSize = header->Length;
+      const std::size_t fullSize = header->FullLength;
       if (!Math::InRange(dataSize, MIN_SIZE, MAX_SIZE) || dataSize + sizeof(*header) > rawData.Size()
           || fullSize != Math::Align<std::size_t>(dataSize, 256) ||
           // check for valid name
@@ -63,7 +57,7 @@ namespace Formats::Packed
         return false;
       }
       // check for crc
-      if (fromLE(header->CRC) == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
+      if (header->CRC == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
       {
         return true;
       }
@@ -112,8 +106,8 @@ namespace Formats::Packed
         return Formats::Packed::Container::Ptr();
       }
       const auto* header = data.As<Hobeta::Header>();
-      const std::size_t dataSize = fromLE(header->Length);
-      const std::size_t fullSize = fromLE(header->FullLength);
+      const std::size_t dataSize = header->Length;
+      const std::size_t fullSize = header->FullLength;
       auto subdata = rawData.GetSubcontainer(sizeof(*header), dataSize);
       return CreateContainer(std::move(subdata), fullSize + sizeof(*header));
     }

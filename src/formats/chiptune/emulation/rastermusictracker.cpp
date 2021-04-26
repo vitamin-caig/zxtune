@@ -69,10 +69,10 @@ namespace Formats::Chiptune
         try
         {
           Binary::InputStream stream(rawData);
-          const auto sign = stream.ReadLE<uint16_t>();
+          const uint_t sign = stream.Read<le_uint16_t>();
           Require(sign == 0xffff || sign == 0x0000);
-          const auto musicFirst = stream.ReadLE<uint16_t>();
-          const auto musicLast = stream.ReadLE<uint16_t>();
+          const uint_t musicFirst = stream.Read<le_uint16_t>();
+          const uint_t musicLast = stream.Read<le_uint16_t>();
           Require(musicFirst < musicLast);
           Require(musicFirst > 0xd800 || musicLast < 0xd000);
           const auto musicSize = musicLast + 1 - musicFirst;
@@ -80,9 +80,9 @@ namespace Formats::Chiptune
           const auto fixedSize = stream.GetPosition();
           if (stream.GetRestSize())
           {
-            const auto infoFirst = stream.ReadLE<uint16_t>();
+            const uint_t infoFirst = stream.Read<le_uint16_t>();
             Require(infoFirst == musicLast + 1);
-            const auto infoLast = stream.ReadLE<uint16_t>();
+            const uint_t infoLast = stream.Read<le_uint16_t>();
             const auto infoSize = infoLast + 1 - infoFirst;
             stream.Skip(infoSize);
           }

@@ -73,27 +73,24 @@ namespace Formats::Chiptune
         ??? - empty sample changed from 7ebc to 4000
     */
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct SampleInfo
+    struct SampleInfo
     {
-      uint16_t Start;
-      uint16_t Loop;
+      le_uint16_t Start;
+      le_uint16_t Loop;
       uint8_t Page;
       uint8_t IndexInPage;
       uint8_t Blocks;
       uint8_t Padding;
       std::array<char, 8> Name;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct MemoryDescr
+    struct MemoryDescr
     {
       uint8_t RestBlocks;
       uint8_t Page;
       uint8_t FreeStartBlock;
       uint8_t Samples;
-    } PACK_POST;
+    };
 
     enum Command
     {
@@ -107,11 +104,11 @@ namespace Formats::Chiptune
       GLISS
     };
 
-    PACK_PRE struct Pattern
+    struct Pattern
     {
-      PACK_PRE struct Line
+      struct Line
       {
-        PACK_PRE struct Channel
+        struct Channel
         {
           uint8_t NoteCmd;
           uint8_t SampleParam;
@@ -156,7 +153,7 @@ namespace Formats::Chiptune
           {
             return NoteCmd + SampleParam == 0;
           }
-        } PACK_POST;
+        };
 
         bool IsEmpty() const
         {
@@ -164,12 +161,12 @@ namespace Formats::Chiptune
         }
 
         Channel Channels[CHANNELS_COUNT];
-      } PACK_POST;
+      };
 
       Line Lines[MAX_PATTERN_SIZE];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct Header
+    struct Header
     {
       uint8_t LoopPosition;
       uint8_t Tempo;
@@ -197,10 +194,10 @@ namespace Formats::Chiptune
       //+0x200
       std::array<Pattern, MAX_PATTERNS_COUNT> Patterns;
       //+0x4200
-    } PACK_POST;
+    };
 
-    static_assert(sizeof(Pattern) == 0x200, "Invalid layout");
-    static_assert(sizeof(Header) == 0x4200, "Invalid layout");
+    static_assert(sizeof(Pattern) * alignof(Pattern) == 0x200, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 0x4200, "Invalid layout");
 
     const std::size_t MODULE_SIZE = 0x1b800;
 
@@ -473,8 +470,8 @@ namespace Formats::Chiptune
         {
           const uint_t samIdx = *it;
           const SampleInfo& info = Source.Samples[samIdx];
-          const std::size_t rawAddr = fromLE(info.Start);
-          const std::size_t rawLoop = fromLE(info.Loop);
+          const std::size_t rawAddr = info.Start;
+          const std::size_t rawLoop = info.Loop;
           const std::size_t rawEnd = rawAddr + 256 * info.Blocks;
           const BankLayout bank = LAYOUTS[info.Page & 7];
           if (0 == bank.FileOffset || 0 == info.Blocks || rawAddr < bank.Addr || rawEnd > bank.End || rawLoop < rawAddr

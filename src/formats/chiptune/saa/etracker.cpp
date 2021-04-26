@@ -57,36 +57,29 @@ namespace Formats::Chiptune
       PatternsTable
     */
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
-      uint16_t PositionsOffset;
-      uint16_t PatternsOffset;
-      uint16_t SamplesOffset;
-      uint16_t OrnamentsOffset;
-      uint16_t SamplesVolumeDecodeTable;
+      le_uint16_t PositionsOffset;
+      le_uint16_t PatternsOffset;
+      le_uint16_t SamplesOffset;
+      le_uint16_t OrnamentsOffset;
+      le_uint16_t SamplesVolumeDecodeTable;
       uint8_t Signature[0x14];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPattern
+    struct RawPattern
     {
-      std::array<uint16_t, 6> Offsets;
-    } PACK_POST;
+      std::array<le_uint16_t, 6> Offsets;
+    };
 
-    PACK_PRE struct RawSamplesVolumeDecodeTable
+    struct RawSamplesVolumeDecodeTable
     {
       uint8_t Marker;
       uint8_t Table[1];
-    } PACK_POST;
+    };
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
-
-    static_assert(sizeof(RawHeader) == 0x1e, "Invalid layout");
-    static_assert(sizeof(RawPattern) == 12, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x1e, "Invalid layout");
+    static_assert(sizeof(RawPattern) * alignof(RawPattern) == 12, "Invalid layout");
 
     class StubBuilder : public Builder
     {
@@ -326,7 +319,7 @@ namespace Formats::Chiptune
       {
         Positions positions;
         PositionEntry entry;
-        for (std::size_t posCursor = fromLE(Source.PositionsOffset);; ++posCursor)
+        for (std::size_t posCursor = Source.PositionsOffset;; ++posCursor)
         {
           Require(positions.GetSize() <= MAX_POSITIONS_COUNT);
           const uint_t val = PeekByte(posCursor);
@@ -368,7 +361,7 @@ namespace Formats::Chiptune
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
         Dbg("Samples: %1% to parse", samples.Count());
-        const std::size_t samplesTable = fromLE(Source.SamplesOffset);
+        const std::size_t samplesTable = Source.SamplesOffset;
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
@@ -381,7 +374,7 @@ namespace Formats::Chiptune
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
         Dbg("Ornaments: %1% to parse", ornaments.Count());
-        const std::size_t ornamentsTable = fromLE(Source.OrnamentsOffset);
+        const std::size_t ornamentsTable = Source.OrnamentsOffset;
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
@@ -410,7 +403,7 @@ namespace Formats::Chiptune
 
       const RawPattern& GetPattern(uint_t patIdx) const
       {
-        const std::size_t patOffset = fromLE(Source.PatternsOffset) + patIdx * sizeof(RawPattern);
+        const std::size_t patOffset = Source.PatternsOffset + patIdx * sizeof(RawPattern);
         Ranges.AddService(patOffset, sizeof(RawPattern));
         return *PeekObject<RawPattern>(patOffset);
       }
@@ -426,17 +419,17 @@ namespace Formats::Chiptune
       {
         const std::size_t size = sizeof(uint16_t);
         const std::size_t offset = base + idx * size;
-        const auto* data = PeekObject<uint16_t>(offset);
+        const auto* data = PeekObject<le_uint16_t>(offset);
         Require(data != nullptr);
         Ranges.AddService(offset, size);
-        return fromLE(*data);
+        return *data;
       }
 
       struct DataCursors : public std::array<std::size_t, 6>
       {
         explicit DataCursors(const RawPattern& src)
         {
-          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), &fromLE<uint16_t>);
+          std::copy(src.Offsets.begin(), src.Offsets.end(), begin());
         }
       };
 
@@ -623,7 +616,7 @@ namespace Formats::Chiptune
 
       void ReadSampleDecodeTable()
       {
-        const std::size_t start = fromLE(Source.SamplesVolumeDecodeTable);
+        const std::size_t start = Source.SamplesVolumeDecodeTable;
         std::size_t cursor = start;
         SampleDecodeTable.Marker = PeekByte(cursor++);
         SampleDecodeTable.Lenghts.clear();
@@ -820,17 +813,17 @@ namespace Formats::Chiptune
       Areas(const RawHeader& header, std::size_t size)
       {
         AddArea(HEADER, 0);
-        const std::size_t samples = fromLE(header.SamplesOffset);
-        const std::size_t ornaments = fromLE(header.OrnamentsOffset);
-        const std::size_t samplesDecode = fromLE(header.SamplesVolumeDecodeTable);
+        const std::size_t samples = header.SamplesOffset;
+        const std::size_t ornaments = header.OrnamentsOffset;
+        const std::size_t samplesDecode = header.SamplesVolumeDecodeTable;
         AddArea(SAMPLES_TABLE, samples);
         AddArea(SAMPLESDECODE_TABLE, samplesDecode);
         if (samples != ornaments && samplesDecode != ornaments)
         {
           AddArea(ORNAMENTS_TABLE, ornaments);
         }
-        AddArea(POSITIONS_TABLE, fromLE(header.PositionsOffset));
-        AddArea(PATTERNS_TABLE, fromLE(header.PatternsOffset));
+        AddArea(POSITIONS_TABLE, header.PositionsOffset);
+        AddArea(PATTERNS_TABLE, header.PatternsOffset);
         AddArea(END, size);
       }
 

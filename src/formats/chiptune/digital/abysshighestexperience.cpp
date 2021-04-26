@@ -134,11 +134,11 @@ namespace Formats::Chiptune
       const uint_t SubsongsCount;
 
       explicit Header(Binary::DataInputStream& stream)
-        : Id(stream.ReadField<IdentifierType>())
+        : Id(stream.Read<IdentifierType>())
         , Version(stream.ReadByte())
-        , NamesOffset(stream.ReadBE<uint16_t>())
-        , PositionsCount(stream.ReadBE<uint16_t>() & 0xfff)
-        , ChannelsCount(4 + (stream.ReadBE<uint16_t>() >> 10))
+        , NamesOffset(stream.Read<be_uint16_t>())
+        , PositionsCount(stream.Read<be_uint16_t>() & 0xfff)
+        , ChannelsCount(4 + (stream.Read<be_uint16_t>() >> 10))
         , TrackSize(stream.ReadByte())
         , TracksCount(stream.ReadByte())
         , SamplesCount(stream.ReadByte())

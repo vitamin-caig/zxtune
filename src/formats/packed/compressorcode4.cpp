@@ -37,29 +37,23 @@ namespace Formats::Packed
       static const std::size_t MIN_SIZE = 256;  // TODO
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         //+0
         uint8_t Padding1[0x0e];
         //+0x0e
-        uint16_t RestDepackerSize;
+        le_uint16_t RestDepackerSize;
         //+0x10
         uint8_t Padding2[0x0a];
         //+0x1a
-        uint16_t ChunksCount;
+        le_uint16_t ChunksCount;
         //+0x1c
-      } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      };
 
       static bool FastCheck(const RawHeader& header, std::size_t size)
       {
-        const uint_t depackerSize = 0x14 + fromLE(header.RestDepackerSize);
-        const uint_t chunksCount = fromLE(header.ChunksCount);
+        const uint_t depackerSize = 0x14 + header.RestDepackerSize;
+        const uint_t chunksCount = header.ChunksCount;
         // at least one byte per chunk
         if (chunksCount > MAX_DECODED_SIZE || depackerSize + chunksCount > size)
         {
@@ -70,7 +64,7 @@ namespace Formats::Packed
         return depacker[depackerSize - 1] == RET_CODE;
       }
 
-      static_assert(sizeof(RawHeader) == 0x1c, "Invalid layout");
+      static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x1c, "Invalid layout");
     };
 
     struct Version4Plus
@@ -79,43 +73,37 @@ namespace Formats::Packed
       static const std::size_t MIN_SIZE = 256;  // TODO
       static const StringView DEPACKER_PATTERN;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct RawHeader
+      struct RawHeader
       {
         //+0
         uint8_t Padding1[0x0e];
         //+0x0e
-        uint16_t RestDepackerSize;
+        le_uint16_t RestDepackerSize;
         //+0x10
         uint8_t Padding2[0x0d];
         //+0x1d
-        uint16_t PackedDataSize;
+        le_uint16_t PackedDataSize;
         //+0x1f
         uint8_t Padding3[0x15];
         //+0x34
-        uint16_t ChunksCount;
+        le_uint16_t ChunksCount;
         //+0x36
-      } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      };
 
       static bool FastCheck(const RawHeader& header, std::size_t size)
       {
-        const uint_t depackerSize = 0x14 + fromLE(header.RestDepackerSize);
-        const uint_t chunksCount = fromLE(header.ChunksCount);
+        const uint_t depackerSize = 0x14 + header.RestDepackerSize;
+        const uint_t chunksCount = header.ChunksCount;
         // at least one byte per chunk
-        if (chunksCount > MAX_DECODED_SIZE || depackerSize > size || !fromLE(header.PackedDataSize)
-            || depackerSize < 257)
+        if (chunksCount > MAX_DECODED_SIZE || depackerSize > size || !header.PackedDataSize || depackerSize < 257)
         {
           return false;
         }
-        return *(header.Padding1 + depackerSize - 256 - 1) == 0xc9;
+        const auto retPos = static_cast<const uint8_t*>(header.Padding1) + depackerSize - 256 - 1;
+        return *retPos == 0xc9;
       }
 
-      static_assert(sizeof(RawHeader) == 0x36, "Invalid layout");
+      static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x36, "Invalid layout");
     };
 
     const StringView Version4::DESCRIPTION = "CompressorCode v.4 by ZYX"_sv;
@@ -354,8 +342,8 @@ namespace Formats::Packed
               for (const uint8_t base = *source; len; --len)
               {
                 const uint8_t data = *source;
-                *target = base + (data >> 4);
-                *target = base + (data & 0x0f);
+                *target = static_cast<uint8_t>(base + (data >> 4));
+                *target = static_cast<uint8_t>(base + (data & 0x0f));
               }
               break;
             case 0x14:
@@ -409,10 +397,10 @@ namespace Formats::Packed
     public:
       explicit DataDecoder(const Container<Version4>& container)
         : Header(container.GetHeader())
-        , DataOffset(0x14 + fromLE(Header.RestDepackerSize))
+        , DataOffset(0x14 + Header.RestDepackerSize)
         , Delegate(container.FastCheck()
-                       ? new RawDataDecoder(Header.Padding1 + DataOffset, container.GetAvailableData() - DataOffset,
-                                            fromLE(Header.ChunksCount))
+                       ? new RawDataDecoder(static_cast<const uint8_t*>(Header.Padding1) + DataOffset,
+                                            container.GetAvailableData() - DataOffset, Header.ChunksCount)
                        : nullptr)
       {}
 
@@ -490,12 +478,12 @@ namespace Formats::Packed
     public:
       explicit DataDecoder(const Container<Version4Plus>& container)
         : Header(container.GetHeader())
-        , DataOffset(0x14 + fromLE(Header.RestDepackerSize))
+        , DataOffset(0x14 + Header.RestDepackerSize)
         , DataSize(0)
       {
         if (container.FastCheck() && DecodeHuffman(container.GetAvailableData() - DataOffset))
         {
-          Delegate.reset(new RawDataDecoder(UnhuffmanData.data(), UnhuffmanData.size(), fromLE(Header.ChunksCount)));
+          Delegate.reset(new RawDataDecoder(UnhuffmanData.data(), UnhuffmanData.size(), Header.ChunksCount));
         }
       }
 
@@ -514,9 +502,10 @@ namespace Formats::Packed
       {
         try
         {
-          Bitstream stream(Header.Padding1 + DataOffset, availableSize);
-          const uint8_t* const table = Header.Padding1 + DataOffset - 256;
-          for (uint_t packedBytes = fromLE(Header.PackedDataSize); packedBytes; --packedBytes)
+          const auto* data = static_cast<const uint8_t*>(Header.Padding1) + DataOffset;
+          Bitstream stream(data, availableSize);
+          const auto* table = data - 256;
+          for (uint_t packedBytes = Header.PackedDataSize; packedBytes; --packedBytes)
           {
             const uint_t idx = stream.GetIndex();
             UnhuffmanData.push_back(table[idx]);

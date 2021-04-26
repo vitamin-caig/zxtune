@@ -33,28 +33,22 @@ namespace Formats::Multitrack
 
     const SignatureType SIGNATURE = {{'H', 'E', 'S', 'M'}};
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       SignatureType Signature;
       uint8_t Version;
       uint8_t StartSong;
-      uint16_t RequestAddress;
+      le_uint16_t RequestAddress;
       uint8_t InitialMPR[8];
       SignatureType DataSignature;
-      uint32_t DataSize;
-      uint32_t DataAddress;
-      uint32_t Unused;
+      le_uint32_t DataSize;
+      le_uint32_t DataAddress;
+      le_uint32_t Unused;
       // uint8_t Unused2[0x20];
       // uint8_t Fields[0x90];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 0x20, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x20, "Invalid layout");
 
     const auto FORMAT =
         "'H'E'S'M"   // signature
@@ -144,7 +138,7 @@ namespace Formats::Multitrack
       {
         if (const RawHeader* hdr = GetHeader(rawData))
         {
-          const std::size_t totalSize = sizeof(*hdr) + fromLE(hdr->DataSize);
+          const std::size_t totalSize = sizeof(*hdr) + hdr->DataSize;
           // GME support truncated files
           const std::size_t realSize = std::min(rawData.Size(), totalSize);
           const Binary::Container::Ptr used = rawData.GetSubcontainer(0, realSize);

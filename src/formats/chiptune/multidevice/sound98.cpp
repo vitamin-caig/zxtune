@@ -136,19 +136,19 @@ namespace Formats::Chiptune
         AreaController areas;
         areas.AddArea(END, Stream.GetRestSize());
         areas.AddArea(HEADER, 0);
-        const auto sign = Stream.ReadBE<uint32_t>();
+        const uint_t sign = Stream.Read<be_uint32_t>();
         Require(Math::InRange(sign, VER0, VER3));
-        const auto mult = Stream.ReadLE<uint32_t>();
-        const auto div = Stream.ReadLE<uint32_t>();
-        const auto compressed = Stream.ReadLE<uint32_t>();
+        const uint_t mult = Stream.Read<le_uint32_t>();
+        const uint_t div = Stream.Read<le_uint32_t>();
+        const uint_t compressed = Stream.Read<le_uint32_t>();
         // libvgm does not support compressed dumps
         Require(compressed == 0);
-        if (const auto tags = Stream.ReadLE<uint32_t>())
+        if (const std::size_t tags = Stream.Read<le_uint32_t>())
         {
           areas.AddArea(TAG, tags);
         }
-        areas.AddArea(DATA, Stream.ReadLE<uint32_t>());
-        const auto loopPoint = Stream.ReadLE<uint32_t>();
+        areas.AddArea(DATA, Stream.Read<le_uint32_t>());
+        const uint_t loopPoint = Stream.Read<le_uint32_t>();
 
         if (ParseTags(areas, sign, target.GetMetaBuilder()))
         {

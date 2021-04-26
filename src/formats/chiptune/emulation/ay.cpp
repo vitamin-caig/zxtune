@@ -38,62 +38,61 @@ namespace Formats::Chiptune
     const Debug::Stream Dbg("Formats::Chiptune::AY");
 
     const uint8_t SIGNATURE[] = {'Z', 'X', 'A', 'Y'};
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Header
+
+    struct Header
     {
       uint8_t Signature[4];  // ZXAY
       uint8_t Type[4];
       uint8_t FileVersion;
       uint8_t PlayerVersion;
-      int16_t SpecialPlayerOffset;
-      int16_t AuthorOffset;
-      int16_t MiscOffset;
+      be_int16_t SpecialPlayerOffset;
+      be_int16_t AuthorOffset;
+      be_int16_t MiscOffset;
       uint8_t LastModuleIndex;
       uint8_t FirstModuleIndex;
-      int16_t DescriptionsOffset;
-    } PACK_POST;
+      be_int16_t DescriptionsOffset;
+    };
 
-    PACK_PRE struct ModuleDescription
+    struct ModuleDescription
     {
-      int16_t TitleOffset;
-      int16_t DataOffset;
-    } PACK_POST;
+      be_int16_t TitleOffset;
+      be_int16_t DataOffset;
+    };
 
     namespace EMUL
     {
       const uint8_t SIGNATURE[] = {'E', 'M', 'U', 'L'};
 
-      PACK_PRE struct ModuleData
+      struct ModuleData
       {
         uint8_t AmigaChannelsMapping[4];
-        uint16_t TotalLength;
-        uint16_t FadeLength;
-        uint16_t RegValue;
-        int16_t PointersOffset;
-        int16_t BlocksOffset;
-      } PACK_POST;
+        be_uint16_t TotalLength;
+        be_uint16_t FadeLength;
+        be_uint16_t RegValue;
+        be_int16_t PointersOffset;
+        be_int16_t BlocksOffset;
+      };
 
-      PACK_PRE struct ModulePointers
+      struct ModulePointers
       {
-        uint16_t SP;
-        uint16_t InitAddr;
-        uint16_t PlayAddr;
-      } PACK_POST;
+        be_uint16_t SP;
+        be_uint16_t InitAddr;
+        be_uint16_t PlayAddr;
+      };
 
-      PACK_PRE struct ModuleBlock
+      struct ModuleBlock
       {
-        uint16_t Address;
-        uint16_t Size;
-        int16_t Offset;
-      } PACK_POST;
+        be_uint16_t Address;
+        be_uint16_t Size;
+        be_int16_t Offset;
+      };
     }  // namespace EMUL
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
 
-    static_assert(sizeof(Header) == 0x14, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 0x14, "Invalid layout");
+    static_assert(sizeof(ModuleDescription) * alignof(ModuleDescription) == 4, "Invalid layout");
+    static_assert(sizeof(EMUL::ModuleData) * alignof(EMUL::ModuleData) == 14, "Invalid layout");
+    static_assert(sizeof(EMUL::ModulePointers) * alignof(EMUL::ModulePointers) == 6, "Invalid layout");
+    static_assert(sizeof(EMUL::ModuleBlock) * alignof(EMUL::ModuleBlock) == 6, "Invalid layout");
 
     const std::size_t MIN_STRING_SIZE = 3;
     const std::size_t MIN_SIZE = sizeof(Header) + 3 * MIN_STRING_SIZE  // author, comment, title
@@ -122,7 +121,7 @@ namespace Formats::Chiptune
       }
 
       template<class T>
-      const T& PeekField(const int16_t* beField, std::size_t idx = 0) const
+      const T& PeekField(const be_int16_t* beField, std::size_t idx = 0) const
       {
         const uint8_t* const result = GetPointer(beField) + sizeof(T) * idx;
         Require(result + sizeof(T) <= Finish);
@@ -130,7 +129,7 @@ namespace Formats::Chiptune
       }
 
       template<class T>
-      const T& GetField(const int16_t* beField, std::size_t idx = 0) const
+      const T& GetField(const be_int16_t* beField, std::size_t idx = 0) const
       {
         const uint8_t* const result = GetPointer(beField) + sizeof(T) * idx;
         const std::size_t offset = result - Start;
@@ -138,7 +137,7 @@ namespace Formats::Chiptune
         return *safe_ptr_cast<const T*>(result);
       }
 
-      String GetString(const int16_t* beOffset) const
+      String GetString(const be_int16_t* beOffset) const
       {
         const uint8_t* const strStart = GetPointer(beOffset);
         Require(strStart < Finish);
@@ -148,7 +147,7 @@ namespace Formats::Chiptune
         return Strings::OptimizeAscii(str);
       }
 
-      Binary::View GetBlob(const int16_t* beOffset, std::size_t size) const
+      Binary::View GetBlob(const be_int16_t* beOffset, std::size_t size) const
       {
         const uint8_t* const ptr = GetPointerNocheck(beOffset);
         if (ptr < Start || ptr >= Finish)
@@ -170,13 +169,13 @@ namespace Formats::Chiptune
       }
 
     private:
-      const uint8_t* GetPointerNocheck(const int16_t* beField) const
+      const uint8_t* GetPointerNocheck(const be_int16_t* beField) const
       {
-        const int16_t relOffset = fromBE(*beField);
+        const int16_t relOffset = *beField;
         return safe_ptr_cast<const uint8_t*>(beField) + relOffset;
       }
 
-      const uint8_t* GetPointer(const int16_t* beField) const
+      const uint8_t* GetPointer(const be_int16_t* beField) const
       {
         const uint8_t* const result = GetPointerNocheck(beField);
         Require(result >= Start);
@@ -263,7 +262,8 @@ namespace Formats::Chiptune
               0xcd, 0,    0,  // call routine (+9)
               0x18, 0xf7      // jr loop
           };
-          static_assert(sizeof(Im1Player) == sizeof(PLAYER_TEMPLATE), "Invalid layout");
+          static_assert(sizeof(Im1Player) * alignof(Im1Player) * alignof(Im1Player) == sizeof(PLAYER_TEMPLATE),
+                        "Invalid layout");
           std::copy(PLAYER_TEMPLATE, std::end(PLAYER_TEMPLATE), Data.begin());
           Data[0x2] = init & 0xff;
           Data[0x3] = init >> 8;
@@ -287,7 +287,8 @@ namespace Formats::Chiptune
               0x76,           // halt
               0x18, 0xfa      // jr loop
           };
-          static_assert(sizeof(Im2Player) == sizeof(PLAYER_TEMPLATE), "Invalid layout");
+          static_assert(sizeof(Im2Player) * alignof(Im2Player) * alignof(Im2Player) == sizeof(PLAYER_TEMPLATE),
+                        "Invalid layout");
           std::copy(PLAYER_TEMPLATE, std::end(PLAYER_TEMPLATE), Data.begin());
           Data[0x2] = init & 0xff;
           Data[0x3] = init >> 8;
@@ -373,7 +374,7 @@ namespace Formats::Chiptune
         template<class T>
         T* Add(const T& obj)
         {
-          return static_cast<T*>(Add(&obj, sizeof(obj)));
+          return safe_ptr_cast<T*>(Add(&obj, sizeof(obj)));
         }
 
         char* Add(const String& str)
@@ -393,12 +394,12 @@ namespace Formats::Chiptune
       };
 
       template<class T>
-      static void SetPointer(int16_t* ptr, const T obj)
+      static void SetPointer(be_int16_t* ptr, const T obj)
       {
         static_assert(std::is_pointer<T>::value, "Should be pointer");
         const std::ptrdiff_t offset = safe_ptr_cast<const uint8_t*>(obj) - safe_ptr_cast<const uint8_t*>(ptr);
         assert(offset > 0);  // layout data sequentally
-        *ptr = fromBE<int16_t>(static_cast<uint16_t>(offset));
+        *ptr = static_cast<int16_t>(offset);
       }
 
     public:
@@ -468,15 +469,15 @@ namespace Formats::Chiptune
         // init data
         EMUL::ModuleData* const data = result->Add(EMUL::ModuleData());
         SetPointer(&descr->DataOffset, data);
-        data->TotalLength = fromBE(Duration);
-        data->FadeLength = fromBE(Fadeout);
-        data->RegValue = fromBE(Register);
+        data->TotalLength = Duration;
+        data->FadeLength = Fadeout;
+        data->RegValue = Register;
         // init pointers
         EMUL::ModulePointers* const pointers = result->Add(EMUL::ModulePointers());
         SetPointer(&data->PointersOffset, pointers);
-        pointers->SP = fromBE(StackPointer);
-        pointers->InitAddr = fromBE(InitRoutine);
-        pointers->PlayAddr = fromBE(PlayRoutine);
+        pointers->SP = StackPointer;
+        pointers->InitAddr = InitRoutine;
+        pointers->PlayAddr = PlayRoutine;
         // init blocks
         std::list<EMUL::ModuleBlock*> blockPtrs;
         // all blocks + limiter
@@ -489,11 +490,10 @@ namespace Formats::Chiptune
         for (auto it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it, blockPtrs.pop_front())
         {
           EMUL::ModuleBlock* const dst = blockPtrs.front();
-          dst->Address = fromBE<uint16_t>(it->first);
-          dst->Size = fromBE<uint16_t>(static_cast<uint16_t>(it->second.size()));
+          dst->Address = it->first;
+          dst->Size = static_cast<uint16_t>(it->second.size());
           SetPointer(&dst->Offset, result->Add(it->second.data(), it->second.size()));
-          Dbg("Stored block %1% bytes at %2% stored at %3%", fromBE(dst->Size), fromBE(dst->Address),
-              fromBE(dst->Offset));
+          Dbg("Stored block %1% bytes at %2% stored at %3%", dst->Size, dst->Address, dst->Offset);
         }
         return Binary::CreateContainer(std::unique_ptr<Binary::Dump>(std::move(result)));
       }
@@ -533,18 +533,18 @@ namespace Formats::Chiptune
       }
       const int_t minOffset = sizeof(*header);
       const int_t maxOffset = data.Size();
-      const int_t authorOffset = int_t(offsetof(Header, AuthorOffset)) + fromBE(header->AuthorOffset);
+      const int_t authorOffset = int_t(offsetof(Header, AuthorOffset)) + header->AuthorOffset;
       if (!Math::InRange(authorOffset, minOffset, maxOffset))
       {
         return 0;
       }
-      const int_t miscOffset = int_t(offsetof(Header, MiscOffset)) + fromBE(header->MiscOffset);
+      const int_t miscOffset = int_t(offsetof(Header, MiscOffset)) + header->MiscOffset;
       // some of the tunes has improper offset
       if (miscOffset >= maxOffset)
       {
         return 0;
       }
-      const int_t descrOffset = int_t(offsetof(Header, DescriptionsOffset)) + fromBE(header->DescriptionsOffset);
+      const int_t descrOffset = int_t(offsetof(Header, DescriptionsOffset)) + header->DescriptionsOffset;
       if (descrOffset < minOffset)
       {
         return 0;
@@ -575,27 +575,26 @@ namespace Formats::Chiptune
         target.SetTitle(data.GetString(&description.TitleOffset));
 
         const auto& moddata = data.GetField<EMUL::ModuleData>(&description.DataOffset);
-        if (const uint_t duration = fromBE(moddata.TotalLength))
+        if (const uint_t duration = moddata.TotalLength)
         {
-          target.SetDuration(duration, fromBE(moddata.FadeLength));
+          target.SetDuration(duration, moddata.FadeLength);
         }
         const auto& modpointers = data.GetField<EMUL::ModulePointers>(&moddata.PointersOffset);
-        target.SetRegisters(fromBE(moddata.RegValue), fromBE(modpointers.SP));
+        target.SetRegisters(moddata.RegValue, modpointers.SP);
         const auto& firstBlock = data.GetField<EMUL::ModuleBlock>(&moddata.BlocksOffset);
-        target.SetRoutines(fromBE(modpointers.InitAddr ? modpointers.InitAddr : firstBlock.Address),
-                           fromBE(modpointers.PlayAddr));
+        target.SetRoutines(modpointers.InitAddr ? modpointers.InitAddr : firstBlock.Address, modpointers.PlayAddr);
         uint32_t crc = 0;
         std::size_t blocksSize = 0;
         for (std::size_t blockIdx = 0;; ++blockIdx)
         {
-          if (!data.PeekField<uint16_t>(&moddata.BlocksOffset, 3 * blockIdx))
+          if (!data.PeekField<be_uint16_t>(&moddata.BlocksOffset, 3 * blockIdx))
           {
             break;
           }
           const auto& block = data.GetField<EMUL::ModuleBlock>(&moddata.BlocksOffset, blockIdx);
-          const uint16_t blockAddr = fromBE(block.Address);
-          const std::size_t blockSize = fromBE(block.Size);
-          Dbg("Block %1% bytes at %2% located at %3%", blockSize, blockAddr, fromBE(block.Offset));
+          const uint16_t blockAddr = block.Address;
+          const std::size_t blockSize = block.Size;
+          Dbg("Block %1% bytes at %2% located at %3%", blockSize, blockAddr, block.Offset);
           if (const auto blockData = data.GetBlob(&block.Offset, blockSize))
           {
             target.AddBlock(blockAddr, blockData);

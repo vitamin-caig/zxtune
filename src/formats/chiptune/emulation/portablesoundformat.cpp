@@ -92,9 +92,9 @@ namespace Formats::Chiptune::PortableSoundFormat
 
     void ParseData(Builder& target)
     {
-      const auto reservedSize = Stream.ReadLE<uint32_t>();
-      const auto compressedSize = Stream.ReadLE<uint32_t>();
-      const auto compressedCrc = Stream.ReadLE<uint32_t>();
+      const std::size_t reservedSize = Stream.Read<le_uint32_t>();
+      const std::size_t compressedSize = Stream.Read<le_uint32_t>();
+      const uint32_t compressedCrc = Stream.Read<le_uint32_t>();
       if (auto reserved = Stream.ReadContainer(reservedSize))
       {
         Dbg("Reserved section %1% bytes", reservedSize);

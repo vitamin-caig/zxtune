@@ -65,23 +65,20 @@ namespace Formats::Packed
         "18cf"  // jr xx
         ""_sv;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       //+0
       char Padding1;
       //+1
-      uint16_t EndOfPacked;
+      le_uint16_t EndOfPacked;
       //+3
       char Padding2;
       //+4
-      uint16_t EndOfUnpacked;
+      le_uint16_t EndOfUnpacked;
       //+6
       char Padding3[2];
       //+8
-      uint16_t FirstOfUnpacked;
+      le_uint16_t FirstOfUnpacked;
       //+0xa
       char Padding4[7];
       //+0x11
@@ -103,12 +100,9 @@ namespace Formats::Packed
       //+0x37
 
       uint8_t PackedData[1];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 0x38, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x38, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
 
@@ -127,11 +121,11 @@ namespace Formats::Packed
           return false;
         }
         const RawHeader& header = GetHeader();
-        if (fromLE(header.EndOfPacked) < fromLE(header.FirstOfUnpacked))
+        if (header.EndOfPacked < header.FirstOfUnpacked)
         {
           return false;
         }
-        if (fromLE(header.EndOfUnpacked) < fromLE(header.EndOfPacked))
+        if (header.EndOfUnpacked < header.EndOfPacked)
         {
           return false;
         }
@@ -146,14 +140,14 @@ namespace Formats::Packed
       std::size_t GetUsedSize() const
       {
         const RawHeader& header = GetHeader();
-        const std::size_t selfAddr = fromLE(header.FirstOfUnpacked) - (sizeof(header) - 1);
-        return fromLE(header.EndOfPacked) - selfAddr + 1;
+        const std::size_t selfAddr = header.FirstOfUnpacked - (sizeof(header) - 1);
+        return header.EndOfPacked - selfAddr + 1;
       }
 
       std::size_t GetPackedSize() const
       {
         const RawHeader& header = GetHeader();
-        return fromLE(header.EndOfPacked) - fromLE(header.FirstOfUnpacked);
+        return header.EndOfPacked - header.FirstOfUnpacked;
       }
 
       const RawHeader& GetHeader() const

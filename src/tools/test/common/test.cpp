@@ -55,6 +55,35 @@ namespace
       Test(type + " LE", ReadLE<T>(buf), result);
       Test(type + " BE", ReadBE<T>(buf), orig);
     }
+
+    WriteLE(orig, buf);
+    Test(type + " LE -> LE", ReadLE<T>(buf), orig);
+    Test(type + " LE -> BE", ReadBE<T>(buf), result);
+    WriteBE(orig, buf);
+    Test(type + " BE -> LE", ReadLE<T>(buf), result);
+    Test(type + " BE -> BE", ReadBE<T>(buf), orig);
+
+    Test<T>(type + " BE<>(0)", BE<T>(), 0);
+    Test<T>(type + " BE<>()", BE<T>(orig), orig);
+
+    Test<T>(type + " LE<>(0)", LE<T>(), 0);
+    Test<T>(type + " LE<>()", LE<T>(orig), orig);
+
+    union {
+      LE<T> le;
+      BE<T> be;
+    } united;
+    std::memcpy(&united, &orig, sizeof(orig));
+    if (isLE())
+    {
+      Test<T>(type + " LE<>", united.le, orig);
+      Test<T>(type + " BE<>", united.be, result);
+    }
+    else
+    {
+      Test<T>(type + " LE<>", united.le, result);
+      Test<T>(type + " BE<>", united.be, orig);
+    }
   }
 
   void Test(const String& msg, bool val)
@@ -116,6 +145,26 @@ int main()
     // 0xfedcab9876543210
     TestOrder<int64_t>(-INT64_C(81985529216486896), UINT64_C(0x1032547698badcfe));
     TestOrder<uint64_t>(UINT64_C(0x123456789abcdef0), UINT64_C(0xf0debc9a78563412));
+    {
+      union {
+        le_uint24_t le;
+        be_uint24_t be;
+      } value;
+      static_assert(sizeof(value) == 3, "Invalid layout");
+      value.le = 0x123456;
+      Test<uint_t>("24 bit LE->LE", value.le, 0x123456);
+      Test<uint_t>("24 bit LE->BE", value.be, 0x563412);
+      value.be = 0x234567;
+      Test<uint_t>("24 bit BE->BE", value.be, 0x234567);
+      Test<uint_t>("24 bit BE->LE", value.le, 0x674523);
+      // overflow
+      value.le = 0x2345678;
+      Test<uint_t>("24 bit LE->LE overflow", value.le, 0x345678);
+      Test<uint_t>("24 bit LE->BE overflow", value.be, 0x785634);
+      value.be = 0x3456789;
+      Test<uint_t>("24 bit BE->BE overflow", value.be, 0x456789);
+      Test<uint_t>("24 bit BE->LE overflow", value.le, 0x896745);
+    }
 
     std::cout << "---- Test for ranges map ----" << std::endl;
     {

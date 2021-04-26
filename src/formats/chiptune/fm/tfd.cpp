@@ -117,7 +117,7 @@ namespace Formats::Chiptune
       try
       {
         Binary::InputStream stream(data);
-        stream.ReadField<SignatureType>();
+        stream.Read<SignatureType>();
         target.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
         target.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
         target.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));

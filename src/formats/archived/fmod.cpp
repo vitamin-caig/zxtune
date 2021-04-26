@@ -72,15 +72,15 @@ namespace Formats::Archived
             static const uint8_t SIGNATURE[] = {'F', 'S', 'B', '5'};
             const auto sign = stream.ReadData(sizeof(SIGNATURE));
             Require(0 == std::memcmp(sign.Start(), SIGNATURE, sizeof(SIGNATURE)));
-            const auto version = stream.ReadLE<uint32_t>();
+            const auto version = stream.Read<le_uint32_t>();
             HeaderType result;
-            result.SamplesCount = stream.ReadLE<uint32_t>();
-            result.SamplesHeadersSize = stream.ReadLE<uint32_t>();
-            result.SamplesNamesSize = stream.ReadLE<uint32_t>();
-            result.SamplesDataSize = stream.ReadLE<uint32_t>();
-            result.Mode = stream.ReadLE<uint32_t>();
+            result.SamplesCount = stream.Read<le_uint32_t>();
+            result.SamplesHeadersSize = stream.Read<le_uint32_t>();
+            result.SamplesNamesSize = stream.Read<le_uint32_t>();
+            result.SamplesDataSize = stream.Read<le_uint32_t>();
+            result.Mode = stream.Read<le_uint32_t>();
             stream.Skip(version == 0 ? 8 : 4);
-            result.Flags = stream.ReadLE<uint32_t>();
+            result.Flags = stream.Read<le_uint32_t>();
             stream.Skip(16 + 8);  // hash + dummy
             result.Size = stream.GetPosition();
             return result;
@@ -102,7 +102,7 @@ namespace Formats::Archived
 
           SampleLocation Read(Builder& target)
           {
-            const auto header = Stream.ReadLE<uint64_t>();
+            const uint64_t header = Stream.Read<le_uint64_t>();
             auto hasNextChunk = 0 != (header & 1);
             target.SetFrequency(DecodeSampleFrequency(header));
             target.SetChannels(DecodeChannelsCount(header));
@@ -111,7 +111,7 @@ namespace Formats::Archived
             result.SamplesCount = DecodeSamplesCount(header);
             while (hasNextChunk)
             {
-              const auto raw = Stream.ReadLE<uint32_t>();
+              const uint32_t raw = Stream.Read<le_uint32_t>();
               hasNextChunk = 0 != (raw & 1);
               const auto chunkSize = (raw >> 1) & 0xffffff;
               const auto chunkType = (raw >> 25) & 0x7f;
@@ -204,7 +204,7 @@ namespace Formats::Archived
             if (HasNames)
             {
               Stream.Seek(idx * sizeof(uint32_t));
-              Stream.Seek(Stream.ReadLE<uint32_t>());
+              Stream.Seek(Stream.Read<le_uint32_t>());
               return Stream.ReadCString(Stream.GetRestSize()).to_string();
             }
             else

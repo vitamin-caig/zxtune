@@ -30,41 +30,35 @@ namespace Formats::Multitrack
   {
     typedef std::array<uint8_t, 4> SignatureType;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       SignatureType Signature;
-      uint16_t LoadAddress;
-      uint16_t InitialDataSize;
-      uint16_t InitAddress;
-      uint16_t PlayAddress;
+      le_uint16_t LoadAddress;
+      le_uint16_t InitialDataSize;
+      le_uint16_t InitAddress;
+      le_uint16_t PlayAddress;
       uint8_t StartBank;
       uint8_t ExtraBanks;
       uint8_t ExtraHeaderSize;
       uint8_t ExtraChips;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct ExtraHeader
+    struct ExtraHeader
     {
-      uint32_t DataSize;
-      uint32_t Reserved;
-      uint16_t FirstTrack;
-      uint16_t LastTrack;
+      le_uint32_t DataSize;
+      le_uint32_t Reserved;
+      le_uint16_t FirstTrack;
+      le_uint16_t LastTrack;
       /* Optional part
       uint8_t PsgVolume;
       uint8_t SccVolume;
       uint8_t MsxMusVolume;
       uint8_t MsxAudVolume;
       */
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
-    static_assert(sizeof(ExtraHeader) == 0x0c, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x10, "Invalid layout");
+    static_assert(sizeof(ExtraHeader) * alignof(ExtraHeader) == 0x0c, "Invalid layout");
 
     const auto FORMAT =
         "'K'S'S'X"   // signature
@@ -101,12 +95,12 @@ namespace Formats::Multitrack
 
       uint_t TracksCount() const override
       {
-        return fromLE(Hdr->LastTrack) + 1;
+        return Hdr->LastTrack + 1;
       }
 
       uint_t StartTrackIndex() const override
       {
-        return fromLE(Hdr->FirstTrack);
+        return Hdr->FirstTrack;
       }
 
       Container::Ptr WithStartTrackIndex(uint_t idx) const override
@@ -151,14 +145,14 @@ namespace Formats::Multitrack
         const RawHeader* const hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
         const ExtraHeader* const extraHdr = hdr->ExtraHeaderSize != 0 ? safe_ptr_cast<const ExtraHeader*>(hdr + 1)
                                                                       : &STUB_EXTRA_HEADER;
-        if (fromLE(extraHdr->LastTrack) > MAX_TRACKS_COUNT - 1 || extraHdr->Reserved != 0)
+        if (extraHdr->LastTrack > MAX_TRACKS_COUNT - 1 || extraHdr->Reserved != 0)
         {
-          return Formats::Multitrack::Container::Ptr();
+          return {};
         }
         const std::size_t headersSize = sizeof(*hdr) + hdr->ExtraHeaderSize;
         const std::size_t bankSize = 0 != (hdr->ExtraBanks & 0x80) ? 8192 : 16384;
         const uint_t banksCount = hdr->ExtraBanks & 0x7f;
-        const std::size_t totalSize = headersSize + fromLE(hdr->InitialDataSize) + bankSize * banksCount;
+        const std::size_t totalSize = headersSize + hdr->InitialDataSize + bankSize * banksCount;
         // GME support truncated files
         const Binary::Container::Ptr used = rawData.GetSubcontainer(0, std::min(availSize, totalSize));
         return MakePtr<Container>(extraHdr, used);

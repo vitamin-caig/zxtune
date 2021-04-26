@@ -37,10 +37,7 @@ namespace Formats::Chiptune
     const std::size_t MIN_SIZE = 200;
     const std::size_t MAX_SIZE = 0xc000;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawId
+    struct RawId
     {
       std::array<char, 32> TrackName;
       std::array<char, 4> Optional2;  //' by '
@@ -53,9 +50,9 @@ namespace Formats::Chiptune
         const auto trimId = Strings::TrimSpaces(Optional2);
         return boost::algorithm::iequals(trimId, BY_DELIMITER);
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       std::array<char, 13> Id;  //'ProTracker 3.'
       uint8_t Subversion;
@@ -66,15 +63,15 @@ namespace Formats::Chiptune
       uint8_t Tempo;
       uint8_t Length;
       uint8_t Loop;
-      uint16_t PatternsOffset;
-      std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      le_uint16_t PatternsOffset;
+      std::array<le_uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<le_uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       uint8_t Positions[1];  // finished by marker
-    } PACK_POST;
+    };
 
     const uint8_t POS_END_MARKER = 0xff;
 
-    PACK_PRE struct RawObject
+    struct RawObject
     {
       uint8_t Loop;
       uint8_t Size;
@@ -83,11 +80,11 @@ namespace Formats::Chiptune
       {
         return Size;
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawSample : RawObject
+    struct RawSample : RawObject
     {
-      PACK_PRE struct Line
+      struct Line
       {
         // SUoooooE
         // NkKTLLLL
@@ -105,7 +102,7 @@ namespace Formats::Chiptune
         // O - tone offset
         uint8_t VolSlideEnv;
         uint8_t LevelKeepers;
-        int16_t ToneOffset;
+        le_int16_t ToneOffset;
 
         bool GetEnvelopeMask() const
         {
@@ -150,9 +147,9 @@ namespace Formats::Chiptune
 
         int_t GetToneOffset() const
         {
-          return fromLE(ToneOffset);
+          return ToneOffset;
         }
-      } PACK_POST;
+      };
 
       std::size_t GetUsedSize() const
       {
@@ -166,9 +163,9 @@ namespace Formats::Chiptune
         const Line* const src = safe_ptr_cast<const Line*>(this + 1);
         return src[idx % maxLines];
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawOrnament : RawObject
+    struct RawOrnament : RawObject
     {
       typedef int8_t Line;
 
@@ -184,25 +181,22 @@ namespace Formats::Chiptune
         uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawPattern
+    struct RawPattern
     {
-      std::array<uint16_t, 3> Offsets;
+      std::array<le_uint16_t, 3> Offsets;
 
       bool Check() const
       {
         return Offsets[0] && Offsets[1] && Offsets[2];
       }
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 202, "Invalid layout");
-    static_assert(sizeof(RawSample) == 2, "Invalid layout");
-    static_assert(sizeof(RawSample::Line) == 4, "Invalid layout");
-    static_assert(sizeof(RawOrnament) == 2, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 202, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample::Line) * alignof(RawSample::Line) == 4, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 2, "Invalid layout");
 
     class StubBuilder : public Builder
     {
@@ -363,7 +357,7 @@ namespace Formats::Chiptune
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
         Dbg("Patterns: %1% to parse", pats.Count());
-        const std::size_t minOffset = fromLE(Source.PatternsOffset) + pats.Maximum() * sizeof(RawPattern);
+        const std::size_t minOffset = Source.PatternsOffset + pats.Maximum() * sizeof(RawPattern);
         bool hasValidPatterns = false;
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
@@ -386,7 +380,7 @@ namespace Formats::Chiptune
         {
           const uint_t samIdx = *it;
           Sample result;
-          if (const std::size_t samOffset = fromLE(Source.SamplesOffsets[samIdx]))
+          if (const std::size_t samOffset = Source.SamplesOffsets[samIdx])
           {
             const std::size_t availSize = Data.Size() - samOffset;
             if (const auto* src = PeekObject<RawSample>(samOffset))
@@ -426,7 +420,7 @@ namespace Formats::Chiptune
         {
           const uint_t ornIdx = *it;
           Ornament result;
-          if (const std::size_t ornOffset = fromLE(Source.OrnamentsOffsets[ornIdx]))
+          if (const std::size_t ornOffset = Source.OrnamentsOffsets[ornIdx])
           {
             const std::size_t availSize = Data.Size() - ornOffset;
             if (const auto* src = PeekObject<RawOrnament>(ornOffset))
@@ -474,7 +468,7 @@ namespace Formats::Chiptune
 
       const RawPattern& GetPattern(uint_t patIdx) const
       {
-        const std::size_t patOffset = fromLE(Source.PatternsOffset) + patIdx * sizeof(RawPattern);
+        const std::size_t patOffset = Source.PatternsOffset + patIdx * sizeof(RawPattern);
         Ranges.AddService(patOffset, sizeof(RawPattern));
         return *PeekObject<RawPattern>(patOffset);
       }
@@ -486,18 +480,19 @@ namespace Formats::Chiptune
         return *data;
       }
 
-      uint16_t PeekLEWord(std::size_t offset) const
+      template<class T>
+      T Peek(std::size_t offset) const
       {
-        const auto* data = PeekObject<uint16_t>(offset);
+        const auto* data = PeekObject<T>(offset);
         Require(data != nullptr);
-        return fromLE(*data);
+        return *data;
       }
 
       struct DataCursors : public std::array<std::size_t, 3>
       {
         explicit DataCursors(const RawPattern& src)
         {
-          std::transform(src.Offsets.begin(), src.Offsets.end(), begin(), &fromLE<uint16_t>);
+          std::copy(src.Offsets.begin(), src.Offsets.end(), begin());
         }
       };
 
@@ -651,7 +646,7 @@ namespace Formats::Chiptune
             if (hasEnv)  // has envelope command
             {
               const uint_t type = cmd - (cmd >= 0xb2 ? 0xb1 : 0x10);
-              const uint_t tone = fromBE(PeekLEWord(state.Offset));
+              const uint_t tone = Peek<be_uint16_t>(state.Offset);
               state.Offset += 2;
               builder.SetEnvelope(type, tone);
             }
@@ -721,7 +716,7 @@ namespace Formats::Chiptune
           case 1:  // gliss
           {
             const uint_t period = PeekByte(state.Offset++);
-            const int_t step = static_cast<int16_t>(PeekLEWord(state.Offset));
+            const int_t step = Peek<le_int16_t>(state.Offset);
             state.Offset += 2;
             builder.SetGlissade(period, step);
           }
@@ -729,9 +724,9 @@ namespace Formats::Chiptune
           case 2:  // glissnote (portamento)
           {
             const uint_t period = PeekByte(state.Offset++);
-            const uint_t limit = PeekLEWord(state.Offset);
+            const uint_t limit = Peek<le_uint16_t>(state.Offset);
             state.Offset += 2;
-            const int_t step = static_cast<int16_t>(PeekLEWord(state.Offset));
+            const int_t step = Peek<le_int16_t>(state.Offset);
             state.Offset += 2;
             builder.SetNoteGliss(period, step, limit);
           }
@@ -758,7 +753,7 @@ namespace Formats::Chiptune
           case 8:  // slide envelope
           {
             const uint_t period = PeekByte(state.Offset++);
-            const int_t step = static_cast<int16_t>(PeekLEWord(state.Offset));
+            const int_t step = Peek<le_int16_t>(state.Offset);
             state.Offset += 2;
             builder.SetEnvelopeSlide(period, step);
           }
@@ -848,7 +843,7 @@ namespace Formats::Chiptune
       Areas(const RawHeader& header, std::size_t size)
       {
         AddArea(HEADER, 0);
-        AddArea(PATTERNS, fromLE(header.PatternsOffset));
+        AddArea(PATTERNS, header.PatternsOffset);
         AddArea(END, size);
       }
 

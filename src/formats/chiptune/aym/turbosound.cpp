@@ -26,22 +26,16 @@ namespace Formats::Chiptune
     const std::size_t MAX_MODULE_SIZE = 32767;
     const std::size_t MAX_SIZE = MAX_MODULE_SIZE * 2;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Footer
+    struct Footer
     {
       uint8_t ID1[4];  //'PT3!' or other type
-      uint16_t Size1;
+      le_uint16_t Size1;
       uint8_t ID2[4];  // same
-      uint16_t Size2;
+      le_uint16_t Size2;
       uint8_t ID3[4];  //'02TS'
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(Footer) == 16, "Invalid layout");
+    static_assert(sizeof(Footer) * alignof(Footer) == 16, "Invalid layout");
 
     const Char DESCRIPTION[] = "TurboSound";
     const auto FOOTER_FORMAT =
@@ -65,8 +59,8 @@ namespace Formats::Chiptune
       ModuleTraits(Binary::View data, std::size_t footerOffset)
         : FooterOffset(footerOffset)
         , Foot(data.SubView(footerOffset).As<Footer>())
-        , FirstSize(Foot ? fromLE(Foot->Size1) : 0)
-        , SecondSize(Foot ? fromLE(Foot->Size2) : 0)
+        , FirstSize(Foot ? std::size_t(Foot->Size1) : 0)
+        , SecondSize(Foot ? std::size_t(Foot->Size2) : 0)
       {}
 
       bool Matched() const

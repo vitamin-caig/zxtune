@@ -140,26 +140,26 @@ namespace Formats::Chiptune
       void ParseFormatChunk(Binary::View data)
       {
         Binary::DataInputStream stream(data);
-        auto formatTag = stream.ReadLE<uint16_t>();
-        const auto channels = stream.ReadLE<uint16_t>();
-        const auto frequency = stream.ReadLE<uint32_t>();
-        /*const auto dataRate = */ stream.ReadLE<uint32_t>();
-        const auto blockSize = stream.ReadLE<uint16_t>();
-        const auto bits = stream.ReadLE<uint16_t>();
+        const uint_t formatTag = stream.Read<le_uint16_t>();
+        const uint_t channels = stream.Read<le_uint16_t>();
+        const uint_t frequency = stream.Read<le_uint32_t>();
+        /*const auto dataRate = */ stream.Read<le_uint32_t>();
+        const uint_t blockSize = stream.Read<le_uint16_t>();
+        const uint_t bits = stream.Read<le_uint16_t>();
         Target.SetProperties(formatTag, frequency, channels, bits, blockSize);
         if (formatTag == Format::EXTENDED && stream.GetRestSize() >= 22)
         {
-          const auto extensionSize = stream.ReadLE<uint16_t>();
+          const std::size_t extensionSize = stream.Read<le_uint16_t>();
           Require(extensionSize == stream.GetRestSize());
-          const auto bitsOrBlockSize = stream.ReadLE<uint16_t>();
-          const auto channelsMask = stream.ReadLE<uint32_t>();
-          const auto formatId = stream.ReadField<Guid>();
+          const uint_t bitsOrBlockSize = stream.Read<le_uint16_t>();
+          const uint_t channelsMask = stream.Read<le_uint32_t>();
+          const auto formatId = stream.Read<Guid>();
           const auto rest = stream.ReadRestData();
           Target.SetExtendedProperties(bitsOrBlockSize, channelsMask, formatId, rest);
         }
         else if (stream.GetRestSize() > 2)
         {
-          const auto extensionSize = stream.ReadLE<uint16_t>();
+          const std::size_t extensionSize = stream.Read<le_uint16_t>();
           Require(extensionSize == stream.GetRestSize());
           const auto rest = stream.ReadRestData();
           Target.SetExtraData(rest);
@@ -280,10 +280,10 @@ namespace Formats::Chiptune
         : Storage(60)
       {
         Storage.Add(Chunks::RIFF);
-        Storage.Add<uint32_t>(0);
+        Storage.Add<le_uint32_t>(0);
         Storage.Add(Headers::WAVE);
         Storage.Add(Chunks::FMT);
-        Storage.Add(fromLE<uint32_t>(16));
+        Storage.Add<le_uint32_t>(16);
       }
 
       MetaBuilder& GetMetaBuilder() override
@@ -293,49 +293,49 @@ namespace Formats::Chiptune
 
       void SetProperties(uint_t format, uint_t frequency, uint_t channels, uint_t bits, uint_t blockSize) override
       {
-        Storage.Add(fromLE<uint16_t>(format));
-        Storage.Add(fromLE<uint16_t>(channels));
-        Storage.Add(fromLE<uint32_t>(frequency));
-        Storage.Add(fromLE<uint32_t>(frequency * blockSize));
-        Storage.Add(fromLE<uint16_t>(blockSize));
-        Storage.Add(fromLE<uint16_t>(bits));
+        Storage.Add<le_uint16_t>(format);
+        Storage.Add<le_uint16_t>(channels);
+        Storage.Add<le_uint32_t>(frequency);
+        Storage.Add<le_uint32_t>(frequency * blockSize);
+        Storage.Add<le_uint16_t>(blockSize);
+        Storage.Add<le_uint16_t>(bits);
       }
 
       void SetExtendedProperties(uint_t validBitsOrBlockSize, uint_t channelsMask, const Guid& formatId,
                                  Binary::View restData) override
       {
-        Storage.Add(fromLE<uint16_t>(6 + sizeof(formatId) + restData.Size()));
-        Storage.Add(fromLE<uint16_t>(validBitsOrBlockSize));
-        Storage.Add(fromLE<uint32_t>(channelsMask));
+        Storage.Add<le_uint16_t>(6 + sizeof(formatId) + restData.Size());
+        Storage.Add<le_uint16_t>(validBitsOrBlockSize);
+        Storage.Add<le_uint32_t>(channelsMask);
         Storage.Add(formatId);
         Storage.Add(restData);
-        Storage.Get<uint32_t>(16) = fromLE<uint32_t>(Storage.Size() - 20);
+        Storage.Get<le_uint32_t>(16) = Storage.Size() - 20;
       }
 
       void SetExtraData(Binary::View data) override
       {
-        Storage.Add(fromLE<uint16_t>(data.Size()));
+        Storage.Add<le_uint16_t>(data.Size());
         Storage.Add(data);
-        Storage.Get<uint32_t>(16) = fromLE<uint32_t>(Storage.Size() - 20);
+        Storage.Get<le_uint32_t>(16) = Storage.Size() - 20;
       }
 
       void SetSamplesData(Binary::Container::Ptr data) override
       {
         Storage.Add(Chunks::DATA);
-        Storage.Add(fromLE<uint32_t>(data->Size()));
+        Storage.Add<le_uint32_t>(data->Size());
         Storage.Add(*data);
       }
 
       void SetSamplesCountHint(uint_t count) override
       {
         Storage.Add(Chunks::FACT);
-        Storage.Add(fromLE<uint32_t>(4));
-        Storage.Add(fromLE<uint32_t>(count));
+        Storage.Add<le_uint32_t>(4);
+        Storage.Add<le_uint32_t>(count);
       }
 
       Binary::Container::Ptr GetDump() override
       {
-        Storage.Get<uint32_t>(4) = fromLE<uint32_t>(Storage.Size() - 8);
+        Storage.Get<le_uint32_t>(4) = Storage.Size() - 8;
         return Storage.CaptureResult();
       }
 

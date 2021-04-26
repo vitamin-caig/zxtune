@@ -35,33 +35,27 @@ namespace Formats::Multitrack
 
     const SignatureType SIGNATURE = {{'N', 'E', 'S', 'M', '\x1a'}};
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       SignatureType Signature;
       uint8_t Version;
       uint8_t SongsCount;
       uint8_t StartSong;  // 1-based
-      uint16_t LoadAddr;
-      uint16_t InitAddr;
-      uint16_t PlayAddr;
+      le_uint16_t LoadAddr;
+      le_uint16_t InitAddr;
+      le_uint16_t PlayAddr;
       StringType Title;
       StringType Artist;
       StringType Copyright;
-      uint16_t NTSCSpeedUs;
+      le_uint16_t NTSCSpeedUs;
       uint8_t Bankswitch[8];
-      uint16_t PALSpeedUs;
+      le_uint16_t PALSpeedUs;
       uint8_t Mode;
       uint8_t ExtraDevices;
       uint8_t Expansion[4];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 128, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 128, "Invalid layout");
 
     const std::size_t MAX_SIZE = 1048576;
 
@@ -92,7 +86,7 @@ namespace Formats::Multitrack
       {
         return nullptr;
       }
-      if (fromLE(hdr->LoadAddr) < 0x8000 || fromLE(hdr->InitAddr) < 0x8000)
+      if (hdr->LoadAddr < 0x8000 || hdr->InitAddr < 0x8000)
       {
         return nullptr;
       }

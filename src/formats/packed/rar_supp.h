@@ -19,15 +19,12 @@ namespace Formats
   {
     namespace Rar
     {
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-      PACK_PRE struct BlockHeader
+      struct BlockHeader
       {
-        uint16_t CRC;
+        le_uint16_t CRC;
         uint8_t Type;
-        uint16_t Flags;
-        uint16_t Size;
+        le_uint16_t Flags;
+        le_uint16_t Size;
 
         enum
         {
@@ -39,25 +36,25 @@ namespace Formats
 
         bool IsExtended() const
         {
-          return 0 != (fromLE(Flags) & FLAG_HAS_TAIL);
+          return 0 != (Flags & FLAG_HAS_TAIL);
         }
-      } PACK_POST;
+      };
 
-      PACK_PRE struct ExtendedBlockHeader
+      struct ExtendedBlockHeader
       {
         BlockHeader Block;
-        uint32_t AdditionalSize;
-      } PACK_POST;
+        le_uint32_t AdditionalSize;
+      };
 
       // ArchiveBlockHeader is always BlockHeader
-      PACK_PRE struct ArchiveBlockHeader
+      struct ArchiveBlockHeader
       {
         static const uint8_t TYPE = 0x73;
 
         BlockHeader Block;
         // CRC from Type till Reserved2
-        uint16_t Reserved1;
-        uint32_t Reserved2;
+        le_uint16_t Reserved1;
+        le_uint32_t Reserved2;
 
         enum
         {
@@ -67,23 +64,23 @@ namespace Formats
           FLAG_SOLID = 8,
           FLAG_SIGNATURE = 0x20,
         };
-      } PACK_POST;
+      };
 
       // File header is always ExtendedBlockHeader
-      PACK_PRE struct FileBlockHeader
+      struct FileBlockHeader
       {
         static const uint8_t TYPE = 0x74;
 
         ExtendedBlockHeader Extended;
         // CRC from Type to Attributes+
-        uint32_t UnpackedSize;
+        le_uint32_t UnpackedSize;
         uint8_t HostOS;
-        uint32_t UnpackedCRC;
-        uint32_t TimeStamp;
+        le_uint32_t UnpackedCRC;
+        le_uint32_t TimeStamp;
         uint8_t DepackerVersion;
         uint8_t Method;
-        uint16_t NameSize;
-        uint32_t Attributes;
+        le_uint16_t NameSize;
+        le_uint32_t Attributes;
 
         enum
         {
@@ -101,12 +98,12 @@ namespace Formats
 
         bool IsBigFile() const
         {
-          return 0 != (fromLE(Extended.Block.Flags) & FLAG_BIG_FILE);
+          return 0 != (Extended.Block.Flags & FLAG_BIG_FILE);
         }
 
         bool IsSolid() const
         {
-          return 0 != (fromLE(Extended.Block.Flags) & FLAG_SOLID);
+          return 0 != (Extended.Block.Flags & FLAG_SOLID);
         }
 
         bool IsStored() const
@@ -119,17 +116,20 @@ namespace Formats
         bool IsSupported() const;
 
         String GetName() const;
-      } PACK_POST;
+      };
 
-      PACK_PRE struct BigFileBlockHeader
+      struct BigFileBlockHeader
       {
         FileBlockHeader File;
-        uint32_t PackedSizeHi;
-        uint32_t UnpackedSizeHi;
-      } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+        le_uint32_t PackedSizeHi;
+        le_uint32_t UnpackedSizeHi;
+      };
+
+      static_assert(sizeof(BlockHeader) * alignof(BlockHeader) == 7, "Wrong layout");
+      static_assert(sizeof(ExtendedBlockHeader) * alignof(ExtendedBlockHeader) == 11, "Wrong layout");
+      static_assert(sizeof(ArchiveBlockHeader) * alignof(ArchiveBlockHeader) == 13, "Wrong layout");
+      static_assert(sizeof(FileBlockHeader) * alignof(FileBlockHeader) == 32, "Wrong layout");
+      static_assert(sizeof(BigFileBlockHeader) * alignof(BigFileBlockHeader) == 40, "Wrong layout");
     }  // namespace Rar
   }    // namespace Packed
 }  // namespace Formats

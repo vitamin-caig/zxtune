@@ -34,24 +34,18 @@ namespace Formats::Archived
   {
     const Debug::Stream Dbg("Formats::Archived::7zip");
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct Header
+    struct Header
     {
       uint8_t Signature[6];
       uint8_t MajorVersion;
       uint8_t MinorVersion;
-      uint32_t StartHeaderCRC;
-      uint64_t NextHeaderOffset;
-      uint64_t NextHeaderSize;
-      uint32_t NextHeaderCRC;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+      le_uint32_t StartHeaderCRC;
+      le_uint64_t NextHeaderOffset;
+      le_uint64_t NextHeaderSize;
+      le_uint32_t NextHeaderCRC;
+    };
 
-    static_assert(sizeof(Header) == 0x20, "Invalid layout");
+    static_assert(sizeof(Header) * alignof(Header) == 0x20, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(Header);
 
@@ -346,7 +340,7 @@ namespace Formats::Archived
         return Container::Ptr();
       }
       const auto& hdr = *data.As<SevenZip::Header>();
-      const std::size_t totalSize = sizeof(hdr) + fromLE(hdr.NextHeaderOffset) + fromLE(hdr.NextHeaderSize);
+      const std::size_t totalSize = sizeof(hdr) + hdr.NextHeaderOffset + hdr.NextHeaderSize;
       auto archiveData = rawData.GetSubcontainer(0, totalSize);
 
       const SevenZip::Archive::Ptr archive = MakePtr<SevenZip::Archive>(archiveData);

@@ -23,20 +23,16 @@
 
 namespace Devices::AYM
 {
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-  PACK_PRE struct FYMHeader
+  struct FYMHeader
   {
-    uint32_t HeaderSize;
-    uint32_t FramesCount;
-    uint32_t LoopFrame;
-    uint32_t PSGFreq;
-    uint32_t IntFreq;
-  } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    le_uint32_t HeaderSize;
+    le_uint32_t FramesCount;
+    le_uint32_t LoopFrame;
+    le_uint32_t PSGFreq;
+    le_uint32_t IntFreq;
+  };
+
+  static_assert(sizeof(FYMHeader) * alignof(FYMHeader) == 20, "Invalid layout");
 
   class FYMBuilder : public FramedDumpBuilder
   {
@@ -84,11 +80,11 @@ namespace Devices::AYM
 
       Binary::DataBuilder builder(headerSize + contentSize);
       FYMHeader& header = builder.Add<FYMHeader>();
-      header.HeaderSize = fromLE(headerSize);
-      header.FramesCount = fromLE(framesCount);
-      header.LoopFrame = fromLE(static_cast<uint32_t>(Params->LoopFrame()));
-      header.PSGFreq = fromLE(static_cast<uint32_t>(Params->ClockFreq()));
-      header.IntFreq = fromLE(static_cast<uint32_t>(Params->FrameDuration().ToFrequency()));
+      header.HeaderSize = headerSize;
+      header.FramesCount = framesCount;
+      header.LoopFrame = Params->LoopFrame();
+      header.PSGFreq = Params->ClockFreq();
+      header.IntFreq = Params->FrameDuration().ToFrequency();
       builder.AddCString(title);
       builder.AddCString(author);
 

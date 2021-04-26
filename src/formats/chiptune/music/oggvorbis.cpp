@@ -70,9 +70,9 @@ namespace Formats::Chiptune
           Stream.Skip(sizeof(SIGNATURE));
           Require(VERSION == Stream.ReadByte());
           /*const auto flags = */ Stream.ReadByte();
-          const auto nextPosition = Stream.ReadLE<uint64_t>();
+          const uint64_t nextPosition = Stream.Read<le_uint64_t>();
           const auto hasNextPosition = nextPosition != UNFINISHED_PAGE_POSITION;
-          if (const auto stream = Stream.ReadLE<uint32_t>())
+          if (const uint_t stream = Stream.Read<le_uint32_t>())
           {
             if (!streamId)
             {
@@ -85,8 +85,8 @@ namespace Formats::Chiptune
               Require(streamId == stream);
             }
           }
-          Require(nextPageNumber++ == Stream.ReadLE<uint32_t>());
-          /*const auto crc = */ Stream.ReadLE<uint32_t>();
+          Require(nextPageNumber++ == Stream.Read<le_uint32_t>());
+          /*const auto crc = */ Stream.Read<le_uint32_t>();
           const auto segmentsCount = Stream.ReadByte();
           const auto segmentsSizes = Stream.PeekRawData(segmentsCount);
           const auto payloadSize = std::accumulate(segmentsSizes, segmentsSizes + segmentsCount, std::size_t(0));
@@ -164,10 +164,10 @@ namespace Formats::Chiptune
         // assume single stream, so first page is always first
         const uint8_t flag = PagesDone == 0 ? FIRST_PAGE : (continued ? CONTINUED_PACKET : 0);
         Storage.Add(flag);
-        Storage.Add(fromLE(position));
-        Storage.Add(fromLE(StreamId));
-        Storage.Add(fromLE(PagesDone++));
-        const uint32_t EMPTY_CRC = 0;
+        Storage.Add<le_uint64_t>(position);
+        Storage.Add<le_uint32_t>(StreamId);
+        Storage.Add<le_uint32_t>(PagesDone++);
+        const le_uint32_t EMPTY_CRC = 0;
         Storage.Add(EMPTY_CRC);
         Storage.Add(segmentsCount);
         WriteSegments(data.Size(), static_cast<uint8_t*>(Storage.Allocate(segmentsCount)));
@@ -195,10 +195,9 @@ namespace Formats::Chiptune
       void CalculateCrc()
       {
         auto* const page = static_cast<uint8_t*>(Storage.Get(LastPageOffset));
-        auto* const rawCrc = page + 22;
-        std::memset(rawCrc, 0, sizeof(uint32_t));
-        const auto crc = fromLE(Crc32::Calculate(page, LastPageSize));
-        std::memcpy(rawCrc, &crc, sizeof(uint32_t));
+        auto* const rawCrc = safe_ptr_cast<le_uint32_t*>(page + 22);
+        *rawCrc = 0;
+        *rawCrc = Crc32::Calculate(page, LastPageSize);
       }
 
       class Crc32
@@ -326,9 +325,9 @@ namespace Formats::Chiptune
 
       void ReadIdentification(Binary::DataInputStream& payload)
       {
-        const auto version = payload.ReadLE<uint32_t>();
+        const uint_t version = payload.Read<le_uint32_t>();
         const auto channels = payload.ReadByte();
-        const auto frequency = payload.ReadLE<uint32_t>();
+        const uint_t frequency = payload.Read<le_uint32_t>();
         payload.Skip(4 * 3);
         const auto blocksize = payload.ReadByte();
         const auto framing = payload.ReadByte();
@@ -441,14 +440,14 @@ namespace Formats::Chiptune
       void WriteIdentification(uint8_t channels, uint32_t frequency, uint8_t blockSizes)
       {
         Binary::DataBuilder builder(30);
-        builder.Add(uint8_t(Vorbis::Identification));
+        builder.Add<uint8_t>(Vorbis::Identification);
         builder.Add(Vorbis::SIGNATURE);
-        builder.Add(Vorbis::VERSION);
+        builder.Add<le_uint32_t>(Vorbis::VERSION);
         builder.Add(channels);
-        builder.Add(fromLE(frequency));
+        builder.Add<le_uint32_t>(frequency);
         builder.Allocate(3 * sizeof(uint32_t));
         builder.Add(blockSizes);
-        builder.Add(uint8_t(1));
+        builder.Add<uint8_t>(1);
         assert(builder.Size() == 30);
         Storage.AddData(0, static_cast<const uint8_t*>(builder.Get(0)), builder.Size());
       }

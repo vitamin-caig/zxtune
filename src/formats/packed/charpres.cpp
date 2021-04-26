@@ -52,33 +52,30 @@ namespace Formats::Packed
         "2b"    // dec hl
         ""_sv;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       //+0
       char Padding1;
       //+1
-      uint16_t DepackerBodySrc;
+      le_uint16_t DepackerBodySrc;
       //+3
       char Padding2;
       //+4
-      uint16_t DepackerBodyDst;
+      le_uint16_t DepackerBodyDst;
       //+6
       char Padding3;
       //+7
-      uint16_t DepackerBodySize;
+      le_uint16_t DepackerBodySize;
       //+0x9
       char Padding4[4];
       //+0xd
       char DepackerBody[1];
       //+0xe
-      uint16_t PackedDataDst;
+      le_uint16_t PackedDataDst;
       //+0x10
       char Padding5;
       //+0x11
-      uint16_t PackedDataSize;
+      le_uint16_t PackedDataSize;
       //+0x13
       char Padding6;
       //+0x14
@@ -86,18 +83,15 @@ namespace Formats::Packed
       //+0x15
       char Padding7;
       //+0x16
-      uint16_t EndOfDepacked;
+      le_uint16_t EndOfDepacked;
       //+0x18
       char Padding8[6];
       //+0x1e
       uint8_t Marker;
       //+0x1f
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 0x1f, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x1f, "Invalid layout");
 
     class Container
     {
@@ -114,9 +108,8 @@ namespace Formats::Packed
           return false;
         }
         const RawHeader& header = GetHeader();
-        const DataMovementChecker checker(fromLE(header.DepackerBodySrc) + fromLE(header.DepackerBodySize),
-                                          fromLE(header.PackedDataDst), fromLE(header.PackedDataSize),
-                                          header.PackedDataCopyDirection);
+        const DataMovementChecker checker(header.DepackerBodySrc + header.DepackerBodySize, header.PackedDataDst,
+                                          header.PackedDataSize, header.PackedDataCopyDirection);
         if (!checker.IsValid())
         {
           return false;
@@ -132,20 +125,20 @@ namespace Formats::Packed
       uint_t GetUsedSize() const
       {
         const RawHeader& header = GetHeader();
-        return offsetof(RawHeader, DepackerBody) + fromLE(header.DepackerBodySize) + fromLE(header.PackedDataSize);
+        return offsetof(RawHeader, DepackerBody) + header.DepackerBodySize + header.PackedDataSize;
       }
 
       const uint8_t* GetPackedData() const
       {
         const RawHeader& header = GetHeader();
-        const std::size_t fixedSize = offsetof(RawHeader, DepackerBody) + fromLE(header.DepackerBodySize);
+        const std::size_t fixedSize = offsetof(RawHeader, DepackerBody) + header.DepackerBodySize;
         return Data + fixedSize;
       }
 
       std::size_t GetPackedSize() const
       {
         const RawHeader& header = GetHeader();
-        return fromLE(header.PackedDataSize);
+        return header.PackedDataSize;
       }
 
       const RawHeader& GetHeader() const

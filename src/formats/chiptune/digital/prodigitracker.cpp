@@ -44,26 +44,23 @@ namespace Formats::Chiptune
     const std::size_t ZX_PAGE_SIZE = 0x4000;
     const std::size_t PAGES_START = 0xc000;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
     typedef std::array<int8_t, 16> RawOrnament;
 
-    PACK_PRE struct RawOrnamentLoop
+    struct RawOrnamentLoop
     {
       uint8_t Begin;
       uint8_t End;
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawSample
+    struct RawSample
     {
       std::array<char, 8> Name;
-      uint16_t Start;
-      uint16_t Size;
-      uint16_t Loop;
+      le_uint16_t Start;
+      le_uint16_t Size;
+      le_uint16_t Loop;
       uint8_t Page;
       uint8_t Padding;
-    } PACK_POST;
+    };
 
     const uint_t NOTE_EMPTY = 0;
 
@@ -82,7 +79,7 @@ namespace Formats::Chiptune
       // else ornament + 1
     };
 
-    PACK_PRE struct RawNote
+    struct RawNote
     {
       // ccnnnnnn
       // sssspppp
@@ -117,13 +114,13 @@ namespace Formats::Chiptune
 
       uint8_t NoteComm;
       uint8_t ParamSample;
-    } PACK_POST;
+    };
 
     typedef std::array<RawNote, CHANNELS_COUNT> RawLine;
 
     typedef std::array<RawLine, PATTERN_SIZE> RawPattern;
 
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       std::array<RawOrnament, ORNAMENTS_COUNT> Ornaments;
       std::array<RawOrnamentLoop, ORNAMENTS_COUNT> OrnLoops;
@@ -136,21 +133,18 @@ namespace Formats::Chiptune
       uint8_t Padding2[16];
       std::array<RawSample, SAMPLES_COUNT> Samples;
       std::array<uint8_t, POSITIONS_COUNT> Positions;
-      uint16_t LastDatas[PAGES_COUNT];
+      le_uint16_t LastDatas[PAGES_COUNT];
       uint8_t FreeRAM;
       uint8_t Padding3[5];
       std::array<RawPattern, PATTERNS_COUNT> Patterns;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawOrnament) == 16, "Invalid layout");
-    static_assert(sizeof(RawOrnamentLoop) == 2, "Invalid layout");
-    static_assert(sizeof(RawSample) == 16, "Invalid layout");
-    static_assert(sizeof(RawNote) == 2, "Invalid layout");
-    static_assert(sizeof(RawPattern) == 512, "Invalid layout");
-    static_assert(sizeof(RawHeader) == 0x4300, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 16, "Invalid layout");
+    static_assert(sizeof(RawOrnamentLoop) * alignof(RawOrnamentLoop) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 16, "Invalid layout");
+    static_assert(sizeof(RawNote) * alignof(RawNote) == 2, "Invalid layout");
+    static_assert(sizeof(RawPattern) * alignof(RawPattern) == 512, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x4300, "Invalid layout");
 
     const std::size_t MODULE_SIZE = sizeof(RawHeader) + PAGES_COUNT * ZX_PAGE_SIZE;
 
@@ -318,9 +312,9 @@ namespace Formats::Chiptune
         {
           const uint_t samIdx = *it;
           const auto& descr = Source.Samples[samIdx];
-          const std::size_t start = fromLE(descr.Start);
-          const std::size_t loop = fromLE(descr.Loop);
-          std::size_t size = fromLE(descr.Size);
+          const std::size_t start = descr.Start;
+          const std::size_t loop = descr.Loop;
+          std::size_t size = descr.Size;
           if (descr.Page < PAGES_COUNT && start >= PAGES_START && size != 0)
           {
             Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x", samIdx, start, loop, size);

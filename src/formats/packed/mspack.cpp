@@ -36,31 +36,25 @@ namespace Formats::Packed
     const Char DESCRIPTION[] = "MicroSpace Packer v1.x";
     const auto DEPACKER_PATTERN = "'M's'P'k"_sv;
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       //+0
       char Signature[4];  //'M','s','P','k'
       //+4
-      uint16_t LastSrcRestBytes;
+      le_uint16_t LastSrcRestBytes;
       //+6
-      uint16_t SrcPacked;
+      le_uint16_t SrcPacked;
       //+8
-      uint16_t DstPacked;
+      le_uint16_t DstPacked;
       //+a
-      uint16_t SizeOfPacked;  // full data size starting from next field excluding last 5 bytes
+      le_uint16_t SizeOfPacked;  // full data size starting from next field excluding last 5 bytes
       //+c
-      uint16_t DstAddress;
+      le_uint16_t DstAddress;
       //+e
       uint8_t BitStream[2];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 0x10, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 0x10, "Invalid layout");
 
     const std::size_t MIN_SIZE = sizeof(RawHeader);
 
@@ -81,11 +75,11 @@ namespace Formats::Packed
           return false;
         }
         const RawHeader& header = GetHeader();
-        const uint_t endOfBlock = fromLE(header.LastSrcRestBytes) + 1;
+        const uint_t endOfBlock = header.LastSrcRestBytes + 1;
         const uint_t lastBytesAddr = endOfBlock - LAST_BYTES_COUNT;
-        const uint_t bitStreamAddr = lastBytesAddr - fromLE(header.SizeOfPacked);
+        const uint_t bitStreamAddr = lastBytesAddr - header.SizeOfPacked;
 
-        const uint_t srcPacked = fromLE(header.SrcPacked);
+        const uint_t srcPacked = header.SrcPacked;
         if (bitStreamAddr == srcPacked)
         {
           // move forward
@@ -105,7 +99,7 @@ namespace Formats::Packed
       uint_t GetUsedSize() const
       {
         const RawHeader& header = GetHeader();
-        return offsetof(RawHeader, DstAddress) + fromLE(header.SizeOfPacked) + LAST_BYTES_COUNT;
+        return offsetof(RawHeader, DstAddress) + header.SizeOfPacked + LAST_BYTES_COUNT;
       }
 
       const RawHeader& GetHeader() const
@@ -125,7 +119,7 @@ namespace Formats::Packed
       explicit DataDecoder(const Container& container)
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
-        , Stream(Header.BitStream, fromLE(Header.SizeOfPacked) - sizeof(Header.DstAddress))
+        , Stream(Header.BitStream, Header.SizeOfPacked - sizeof(Header.DstAddress))
         , Result(new Binary::Dump())
         , Decoded(*Result)
       {
@@ -191,7 +185,8 @@ namespace Formats::Packed
           }
         }
         // last bytes are always copied from exact address
-        const uint8_t* const lastBytes = Header.BitStream + fromLE(Header.SizeOfPacked) - sizeof(Header.DstAddress);
+        const auto* lastBytes =
+            static_cast<const uint8_t*>(Header.BitStream) + Header.SizeOfPacked - sizeof(Header.DstAddress);
         std::copy(lastBytes, lastBytes + LAST_BYTES_COUNT, std::back_inserter(Decoded));
         return true;
       }

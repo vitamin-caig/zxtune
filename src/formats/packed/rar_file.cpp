@@ -69,13 +69,13 @@ namespace Formats::Packed
           {
             return 0;
           }
-          uint64_t res = fromLE(header->Extended.Block.Size);
-          res += fromLE(header->Extended.AdditionalSize);
+          uint64_t res = header->Extended.Block.Size;
+          res += header->Extended.AdditionalSize;
           if (header->IsBigFile())
           {
             if (const auto* bigHeader = GetHeader<BigFileBlockHeader>())
             {
-              res += uint64_t(fromLE(bigHeader->PackedSizeHi)) << (8 * sizeof(uint32_t));
+              res += uint64_t(bigHeader->PackedSizeHi) << (8 * sizeof(uint32_t));
             }
             else
             {
@@ -96,8 +96,8 @@ namespace Formats::Packed
       Binary::Container::Ptr GetData() const
       {
         const auto& header = GetHeader();
-        const std::size_t offset = fromLE(header.Extended.Block.Size);
-        const std::size_t size = fromLE(header.Extended.AdditionalSize);
+        const std::size_t offset = header.Extended.Block.Size;
+        const std::size_t size = header.Extended.AdditionalSize;
         return Data.GetSubcontainer(offset, size);
       }
 
@@ -128,7 +128,7 @@ namespace Formats::Packed
       {
         const auto& header = container.GetHeader();
         assert(0x30 == header.Method);
-        const std::size_t outSize = fromLE(header.UnpackedSize);
+        const std::size_t outSize = header.UnpackedSize;
         auto data = container.GetData();
         if (data->Size() != outSize)
         {
@@ -157,7 +157,7 @@ namespace Formats::Packed
       {
         const auto& header = container.GetHeader();
         assert(0x30 != header.Method);
-        const std::size_t outSize = fromLE(header.UnpackedSize);
+        const std::size_t outSize = header.UnpackedSize;
         const bool isSolid = header.IsSolid();
         const auto data = container.GetData();
         const auto size = data->Size();
@@ -167,7 +167,7 @@ namespace Formats::Packed
         Stream.SetUnpackFromMemory(static_cast<const uint8_t*>(data->Start()), size, oldFormat);
         Stream.SetPackedSizeToRead(size);
         const int method = std::max<int>(header.DepackerVersion, 15);
-        return Decompress(method, outSize, isSolid, fromLE(header.UnpackedCRC));
+        return Decompress(method, outSize, isSolid, header.UnpackedCRC);
       }
 
     private:
@@ -227,7 +227,7 @@ namespace Formats::Packed
     {
       const uint8_t* const self = safe_ptr_cast<const uint8_t*>(this);
       const uint8_t* const filename = self + (IsBigFile() ? sizeof(BigFileBlockHeader) : sizeof(FileBlockHeader));
-      return String(filename, filename + fromLE(NameSize));
+      return String(filename, filename + NameSize);
     }
 
     bool FileBlockHeader::IsValid() const
@@ -237,7 +237,7 @@ namespace Formats::Packed
 
     bool FileBlockHeader::IsSupported() const
     {
-      const uint_t flags = fromLE(Extended.Block.Flags);
+      const uint_t flags = Extended.Block.Flags;
       // multivolume files are not suported
       if (0 != (flags & (FileBlockHeader::FLAG_SPLIT_BEFORE | FileBlockHeader::FLAG_SPLIT_AFTER)))
       {

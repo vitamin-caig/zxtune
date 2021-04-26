@@ -20,23 +20,19 @@ namespace Formats::Archived
 {
   namespace ZXZip
   {
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct ZXZipHeader
+    struct ZXZipHeader
     {
       //+0x0
       char Name[8];
       //+0x8
       char Type[3];
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
+
+    static_assert(sizeof(ZXZipHeader) * alignof(ZXZipHeader) == 11, "Invalid layout");
 
     String ExtractFileName(const void* data)
     {
-      const ZXZipHeader* const header = static_cast<const ZXZipHeader*>(data);
+      const auto* const header = safe_ptr_cast<const ZXZipHeader*>(data);
       return TRDos::GetEntryName(header->Name, header->Type);
     }
 

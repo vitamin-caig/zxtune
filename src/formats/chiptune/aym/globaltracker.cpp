@@ -54,30 +54,27 @@ namespace Formats::Chiptune
       Ornaments
     */
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct RawPattern
+    struct RawPattern
     {
-      std::array<uint16_t, 3> Offsets;
-    } PACK_POST;
+      std::array<le_uint16_t, 3> Offsets;
+    };
 
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       uint8_t Tempo;
       uint8_t ID[3];
       uint8_t Version;
-      uint16_t Address;
+      le_uint16_t Address;
       std::array<char, 32> Title;
-      std::array<uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
-      std::array<uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
+      std::array<le_uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
+      std::array<le_uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       std::array<RawPattern, MAX_PATTERNS_COUNT> Patterns;
       uint8_t Length;
       uint8_t Loop;
       uint8_t Positions[1];
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawObject
+    struct RawObject
     {
       uint8_t Loop;
       uint8_t Size;
@@ -86,9 +83,9 @@ namespace Formats::Chiptune
       {
         return Size;
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawOrnament : RawObject
+    struct RawOrnament : RawObject
     {
       typedef int8_t Line;
 
@@ -103,11 +100,11 @@ namespace Formats::Chiptune
       {
         return sizeof(RawObject) + std::min<std::size_t>(GetSize() * sizeof(Line), 256);
       }
-    } PACK_POST;
+    };
 
-    PACK_PRE struct RawSample : RawObject
+    struct RawSample : RawObject
     {
-      PACK_PRE struct Line
+      struct Line
       {
         // aaaaaaaa
         // ENTnnnnn
@@ -122,7 +119,7 @@ namespace Formats::Chiptune
         // v - signed vibrato
         uint8_t Level;
         uint8_t NoiseAndFlag;
-        uint16_t Vibrato;
+        le_uint16_t Vibrato;
 
         uint_t GetLevel() const
         {
@@ -151,9 +148,9 @@ namespace Formats::Chiptune
 
         uint_t GetVibrato() const
         {
-          return fromLE(Vibrato);
+          return Vibrato;
         }
-      } PACK_POST;
+      };
 
       Line GetLine(uint_t idx) const
       {
@@ -179,16 +176,13 @@ namespace Formats::Chiptune
       {
         return sizeof(RawObject) + std::min<std::size_t>(GetSize() * sizeof(Line), 256);
       }
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 296, "Invalid layout");
-    static_assert(sizeof(RawPattern) == 6, "Invalid layout");
-    static_assert(sizeof(RawOrnament) == 2, "Invalid layout");
-    static_assert(sizeof(RawSample) == 2, "Invalid layout");
-    static_assert(sizeof(RawSample::Line) == 4, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 296, "Invalid layout");
+    static_assert(sizeof(RawPattern) * alignof(RawPattern) == 6, "Invalid layout");
+    static_assert(sizeof(RawOrnament) * alignof(RawOrnament) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample) * alignof(RawSample) == 2, "Invalid layout");
+    static_assert(sizeof(RawSample::Line) * alignof(RawSample::Line) == 4, "Invalid layout");
 
     class StubBuilder : public Builder
     {
@@ -423,7 +417,7 @@ namespace Formats::Chiptune
         , Ranges(Data.Size())
         , Source(*Data.As<RawHeader>())
         , HeaderSize(sizeof(Source) - 1 + Source.Length)
-        , UnfixDelta(fromLE(Source.Address))
+        , UnfixDelta(Source.Address)
       {
         Ranges.AddService(0, sizeof(Source) - sizeof(Source.Positions));
       }
@@ -560,7 +554,7 @@ namespace Formats::Chiptune
     private:
       std::size_t GetSampleOffset(uint_t index) const
       {
-        if (const uint16_t offset = fromLE(Source.SamplesOffsets[index]))
+        if (const uint16_t offset = Source.SamplesOffsets[index])
         {
           Require(offset >= UnfixDelta);
           return offset - UnfixDelta;
@@ -573,7 +567,7 @@ namespace Formats::Chiptune
 
       std::size_t GetOrnamentOffset(uint_t index) const
       {
-        if (const uint16_t offset = fromLE(Source.OrnamentsOffsets[index]))
+        if (const uint16_t offset = Source.OrnamentsOffsets[index])
         {
           Require(offset >= UnfixDelta);
           return offset - UnfixDelta;
@@ -603,7 +597,7 @@ namespace Formats::Chiptune
         {
           for (std::size_t idx = 0; idx != size(); ++idx)
           {
-            const std::size_t offset = fromLE(src.Offsets[idx]);
+            const std::size_t offset = src.Offsets[idx];
             Require(offset >= minOffset + unfixDelta);
             at(idx) = offset - unfixDelta;
           }
@@ -872,10 +866,9 @@ namespace Formats::Chiptune
     template<class It>
     std::size_t GetStart(It begin, It end, std::size_t start)
     {
-      std::vector<std::size_t> offsets;
-      std::transform(begin, end, std::back_inserter(offsets), &fromLE<uint16_t>);
+      std::vector<std::size_t> offsets{begin, end};
       std::sort(offsets.begin(), offsets.end());
-      std::vector<std::size_t>::const_iterator it = offsets.begin();
+      auto it = offsets.begin();
       if (it != offsets.end() && *it == 0)
       {
         ++it;
@@ -886,7 +879,7 @@ namespace Formats::Chiptune
     struct Areas : public AreaController
     {
       Areas(const RawHeader& hdr, std::size_t size)
-        : StartAddr(fromLE(hdr.Address))
+        : StartAddr(hdr.Address)
       {
         AddArea(HEADER, 0);
         AddArea(PATTERNS, GetStart(hdr.Patterns.front().Offsets.begin(), hdr.Patterns.back().Offsets.end(), StartAddr));

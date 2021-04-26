@@ -21,7 +21,17 @@ inline T safe_ptr_cast(F from)
   using namespace std;
   static_assert(is_pointer<F>::value, "Source type should be pointer");
   static_assert(is_pointer<T>::value, "Target type should be pointer");
-  typedef typename conditional<is_const<typename remove_pointer<T>::type>::value, const void*, void*>::type MidType;
+  using InType = remove_pointer_t<F>;
+  using RetType = remove_pointer_t<T>;
+  if constexpr (is_same<remove_const_t<InType>, void>::value)
+  {
+    static_assert(alignof(RetType) == 1, "Unaligned access");
+  }
+  else
+  {
+    static_assert(alignof(InType) % alignof(RetType) == 0, "Unaligned access");
+  }
+  using MidType = conditional_t<is_const<RetType>::value, const void*, void*>;
   return static_cast<T>(static_cast<MidType>(from));
 }
 

@@ -47,30 +47,24 @@ namespace Formats::Archived
 
     const SignatureType SIGNATURE = {{0xc1, 0x83, 0x2a, 0x9e}};
 
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(push, 1)
-#endif
-    PACK_PRE struct TableDescription
+    struct TableDescription
     {
-      uint32_t Count;
-      uint32_t Offset;
-    } PACK_POST;
+      le_uint32_t Count;
+      le_uint32_t Offset;
+    };
 
-    PACK_PRE struct RawHeader
+    struct RawHeader
     {
       SignatureType Signature;
-      uint16_t PackageVersion;
-      uint16_t LicenseMode;
-      uint32_t PackageFlags;
+      le_uint16_t PackageVersion;
+      le_uint16_t LicenseMode;
+      le_uint32_t PackageFlags;
       TableDescription Names;
       TableDescription Exports;
       TableDescription Imports;
-    } PACK_POST;
-#ifdef USE_PRAGMA_PACK
-#  pragma pack(pop)
-#endif
+    };
 
-    static_assert(sizeof(RawHeader) == 36, "Invalid layout");
+    static_assert(sizeof(RawHeader) * alignof(RawHeader) == 36, "Invalid layout");
 
     struct Index
     {
@@ -164,7 +158,7 @@ namespace Formats::Archived
       void Read(T& res)
       {
         Require(Cursor + sizeof(T) <= Limit);
-        res = fromLE(*safe_ptr_cast<const T*>(Cursor));
+        res = ReadLE<T>(Cursor);
         Cursor += sizeof(T);
       }
 
@@ -291,11 +285,11 @@ namespace Formats::Archived
     public:
       explicit Format(const Binary::Container& data)
         : Data(data)
-        , Header(*static_cast<const RawHeader*>(data.Start()))
+        , Header(*safe_ptr_cast<const RawHeader*>(data.Start()))
         , UsedSize(sizeof(Header))
       {
         Require(Header.Signature == SIGNATURE);
-        InputStream stream(fromLE(Header.PackageVersion), Data);
+        InputStream stream(Header.PackageVersion, Data);
         ReadNames(stream);
         ReadExports(stream);
         ReadImports(stream);
@@ -327,7 +321,7 @@ namespace Formats::Archived
           const std::size_t size = exp.SerialSize.Value;
           const Binary::Container::Ptr entryData = Data.GetSubcontainer(offset, size);
           Require(entryData.get() != nullptr);
-          InputStream stream(fromLE(Header.PackageVersion), *entryData);
+          InputStream stream(Header.PackageVersion, *entryData);
           ReadProperties(stream);
           const ClassName& cls = GetClass(exp.Class);
           Dbg("Entry[%1%] data at %2% size=%3% class=%4%", idx, offset, size, cls.Name);
@@ -344,8 +338,8 @@ namespace Formats::Archived
     private:
       void ReadNames(InputStream& stream)
       {
-        stream.Seek(fromLE(Header.Names.Offset));
-        const uint_t count = fromLE(Header.Names.Count);
+        stream.Seek(Header.Names.Offset);
+        const uint_t count = Header.Names.Count;
         Names.resize(count);
         for (uint_t idx = 0; idx != count; ++idx)
         {
@@ -357,8 +351,8 @@ namespace Formats::Archived
 
       void ReadExports(InputStream& stream)
       {
-        stream.Seek(fromLE(Header.Exports.Offset));
-        const uint_t count = fromLE(Header.Exports.Count);
+        stream.Seek(Header.Exports.Offset);
+        const uint_t count = Header.Exports.Count;
         Exports.resize(count);
         for (uint_t idx = 0; idx != count; ++idx)
         {
@@ -371,8 +365,8 @@ namespace Formats::Archived
 
       void ReadImports(InputStream& stream)
       {
-        stream.Seek(fromLE(Header.Imports.Offset));
-        const uint_t count = fromLE(Header.Imports.Count);
+        stream.Seek(Header.Imports.Offset);
+        const uint_t count = Header.Imports.Count;
         Imports.resize(count);
         for (uint_t idx = 0; idx != count; ++idx)
         {
@@ -425,7 +419,7 @@ namespace Formats::Archived
       {
         Index format;
         format.Value = -1000;
-        const uint_t version = fromLE(Header.PackageVersion);
+        const uint_t version = Header.PackageVersion;
         if (version >= 120)
         {
           uint32_t flags, aux;

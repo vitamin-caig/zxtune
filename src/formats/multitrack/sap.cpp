@@ -155,8 +155,8 @@ namespace Formats::Multitrack
         {
           const uint_t addr = blk.first;
           const std::size_t size = blk.second.Size();
-          builder.Add(fromLE<uint16_t>(addr));
-          builder.Add(fromLE<uint16_t>(addr + size - 1));
+          builder.Add<le_uint16_t>(addr);
+          builder.Add<le_uint16_t>(addr + size - 1);
           auto* dst = builder.Allocate(size);
           std::memcpy(dst, blk.second.Start(), size);
         }
@@ -239,7 +239,7 @@ namespace Formats::Multitrack
       static Binary::Container::Ptr Parse(const Binary::Container& rawData, Builder& builder)
       {
         Binary::InputStream stream(rawData);
-        Require(stream.ReadField<TextSignatureType>() == TEXT_SIGNATURE);
+        Require(stream.Read<TextSignatureType>() == TEXT_SIGNATURE);
         ParseTextPart(stream, builder);
         ParseBinaryPart(stream, builder);
         return stream.GetReadContainer();
@@ -250,7 +250,7 @@ namespace Formats::Multitrack
         for (;;)
         {
           const auto pos = stream.GetPosition();
-          if (stream.ReadField<BinarySignatureType>() == BINARY_SIGNATURE)
+          if (stream.Read<BinarySignatureType>() == BINARY_SIGNATURE)
           {
             break;
           }
@@ -279,13 +279,13 @@ namespace Formats::Multitrack
       {
         while (stream.GetRestSize())
         {
-          const uint_t first = stream.ReadLE<uint16_t>();
+          const uint_t first = stream.Read<le_uint16_t>();
           if ((first & 0xff) == BINARY_SIGNATURE[0] && (first >> 8) == BINARY_SIGNATURE[1])
           {
             // skip possible headers inside
             continue;
           }
-          const uint_t last = stream.ReadLE<uint16_t>();
+          const uint_t last = stream.Read<le_uint16_t>();
           Require(first <= last);
           const std::size_t size = last + 1 - first;
           builder.SetBlock(first, stream.ReadData(size));

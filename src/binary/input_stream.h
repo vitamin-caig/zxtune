@@ -36,27 +36,15 @@ namespace Binary
 
     //! @brief Simple adapter to read specified type data
     template<class T>
-    const T& ReadField()
+    const T& Read()
     {
-      static_assert(!std::is_integral<T>::value, "Use ReadByte/ReadLE/ReadBE");
+      static_assert(sizeof(T) > 1, "Use ReadByte for bytes");
       return *safe_ptr_cast<const T*>(ReadRawData(sizeof(T)));
     }
 
     uint8_t ReadByte()
     {
       return *ReadRawData(1);
-    }
-
-    template<class T>
-    T ReadLE()
-    {
-      return ::ReadLE<T>(ReadRawData(sizeof(T)));
-    }
-
-    template<class T>
-    T ReadBE()
-    {
-      return ::ReadBE<T>(ReadRawData(sizeof(T)));
     }
 
     //! @brief Read ASCIIZ string with specified maximal size

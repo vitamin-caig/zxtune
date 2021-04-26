@@ -18,13 +18,13 @@ source_files += $(addprefix soundlib/,\
                   SoundFilePlayConfig Sndfile Sndmix Snd_flt Snd_fx Tables \
                   $(addprefix Load_,669 amf ams c67 dbm digi dmf dsm dtm far fmt gdm imf it itp mdl med mo3 mod mt2 mtm mus_km okt plm psm ptm s3m sfx stm stp ult xm) \
                   load_j2b \
-                  TinyFFT WindowedFIR \
+                  TinyFFT WindowedFIR WAVTools Tagging \
                   )
 
 source_files += $(addprefix sounddsp/,Reverb)
 
 source_files += $(addprefix common/,\
-                  Logging mptIO mptPathString mptRandom mptString mptStringBuffer mptStringFormat mptStringParse mptTime \
+                  Logging mptIO mptPathString mptRandom mptString mptStringBuffer mptStringFormat mptStringParse mptTime mptUUID \
                   serialization_utils version)
 
 source_files := $(addsuffix .cpp,$(source_files))
