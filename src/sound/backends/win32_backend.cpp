@@ -347,12 +347,9 @@ namespace Sound::Win32
 
     virtual Gain GetVolume() const
     {
-      std::array<uint16_t, Sample::CHANNELS> buffer;
-      static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
-      Device->GetVolume(safe_ptr_cast<LPDWORD>(buffer.data()));
-      const Gain::Type l(int_t(buffer[0]), MAX_WIN32_VOLUME);
-      const Gain::Type r(int_t(buffer[1]), MAX_WIN32_VOLUME);
-      return Gain(l, r);
+      DWORD buffer = 0;
+      Device->GetVolume(&buffer);
+      return Gain(DecodeVolume(uint16_t(buffer & 0xffff)), DecodeVolume(uint16_t(buffer >> 16)));
     }
 
     virtual void SetVolume(const Gain& volume)
@@ -361,11 +358,19 @@ namespace Sound::Win32
       {
         throw Error(THIS_LINE, translate("Failed to set volume: gain is out of range."));
       }
-      std::array<uint16_t, Sample::CHANNELS> buffer = {
-          {static_cast<uint16_t>((volume.Left() * MAX_WIN32_VOLUME).Round()),
-           static_cast<uint16_t>((volume.Right() * MAX_WIN32_VOLUME).Round())}};
-      static_assert(sizeof(buffer) == sizeof(DWORD), "Incompatible sound sample type");
-      Device->SetVolume(*safe_ptr_cast<LPDWORD>(buffer.data()));
+      const DWORD buffer = EncodeVolume(volume.Left()) | (DWORD(EncodeVolume(volume.Right())) << 16);
+      Device->SetVolume(buffer);
+    }
+
+  private:
+    static Gain::Type DecodeVolume(uint16_t t)
+    {
+      return {int_t(t), MAX_WIN32_VOLUME};
+    }
+
+    static uint16_t EncodeVolume(Gain::Type t)
+    {
+      return static_cast<uint16_t>((t * MAX_WIN32_VOLUME).Round());
     }
 
   private:
