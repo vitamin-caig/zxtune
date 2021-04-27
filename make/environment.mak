@@ -11,8 +11,8 @@ endif
 defines += HAVE_STDINT_H
 
 #android
-android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector-strong -fomit-frame-pointer -fno-addrsig -Wa,--noexecstack
-android.ld.flags = -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -static-libstdc++ -fuse-ld=lld
+android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector-strong -fomit-frame-pointer -fno-addrsig -Wa,--noexecstack -flto
+android.ld.flags = -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -static-libstdc++ -fuse-ld=lld -flto
 #assume that all the platforms are little-endian
 #this required to use boost which doesn't know anything about __armel__ or __mipsel__
 defines.android += ANDROID __ANDROID__ __LITTLE_ENDIAN__ NO_DEBUG_LOGS NO_L10N LITTLE_ENDIAN
