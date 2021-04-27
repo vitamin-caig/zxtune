@@ -24,6 +24,7 @@
 #include <module/players/pipeline.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/tracking_helper.h>
+#include <sound/impl/fft_analyzer.h>
 #include <sound/mixer_factory.h>
 #include <sound/render_params.h>
 // std includes
@@ -166,47 +167,6 @@ namespace
     uint_t Frames = 0;
   };
 
-  class AnalyzerWithHistory
-  {
-  public:
-    explicit AnalyzerWithHistory(Module::Analyzer::Ptr delegate)
-      : Delegate(std::move(delegate))
-    {}
-
-    void FrameDone()
-    {
-      const auto nextPos = (WritePos + 1) % History.size();
-      if (nextPos != ReadPos)
-      {
-        History[WritePos].Data = Delegate->GetState().Data;
-        WritePos = nextPos;
-      }
-    }
-
-    uint_t Analyze(uint_t maxEntries, uint8_t* levels)
-    {
-      if (ReadPos != WritePos)
-      {
-        const auto& out = History[ReadPos];
-        const auto doneEntries = std::min<uint_t>(maxEntries, out.Data.size());
-        std::transform(out.Data.begin(), out.Data.begin() + doneEntries, levels,
-                       [](Module::Analyzer::LevelType level) { return level.Raw(); });
-        ReadPos = (ReadPos + 1) % History.size();
-        return doneEntries;
-      }
-      else
-      {
-        return 0;
-      }
-    }
-
-  private:
-    const Module::Analyzer::Ptr Delegate;
-    std::array<Module::Analyzer::SpectrumState, 8> History;
-    uint_t WritePos = 0;
-    uint_t ReadPos = 0;
-  };
-
   class PlayerControl : public Player::Control
   {
   public:
@@ -217,7 +177,7 @@ namespace
       , Props(Parameters::CreateMergedAccessor(LocalParameters, std::move(globalParams)))
       , Renderer(Module::CreatePipelinedRenderer(holder, samplerate, MakeSingletonPointer(*Props)))
       , State(Renderer->GetState())
-      , Analyser(Renderer->GetAnalyzer())
+      , Analyzer(Sound::FFTAnalyzer::Create())
     {
       Require(Duration.Get() != 0);
     }
@@ -234,17 +194,19 @@ namespace
 
     uint_t Analyze(uint_t maxEntries, uint8_t* levels) const override
     {
-      return Analyser.Analyze(maxEntries, levels);
+      Analyzer->GetSpectrum(safe_ptr_cast<Sound::Analyzer::LevelType*>(levels), maxEntries);
+      return maxEntries;
     }
 
     bool Render(uint_t samples, int16_t* buffer) override
     {
       auto rest = samples;
+      auto* target = buffer;
       for (;;)
       {
-        if (const auto got = Buffer.GetSamples(rest, buffer))
+        if (const auto got = Buffer.GetSamples(rest, target))
         {
-          buffer += got;
+          target += got;
           rest -= got;
           if (!rest)
           {
@@ -258,7 +220,8 @@ namespace
         }
         Buffer.Add(std::move(chunk));
       }
-      std::fill_n(buffer, rest, 0);
+      std::fill_n(target, rest, 0);
+      Analyzer->FeedSound(static_cast<const Sound::Sample*>(static_cast<const void*>(buffer)), samples);
       return rest == 0;
     }
 
@@ -286,7 +249,6 @@ namespace
       RenderingPerformance.StartAccounting();
       auto chunk = Renderer->Render(Looped);
       RenderingPerformance.StopAccounting();
-      Analyser.FrameDone();
       return chunk;
     }
 
@@ -306,7 +268,7 @@ namespace
     Parameters::TrackingHelper<Parameters::Accessor> Props;
     const Module::Renderer::Ptr Renderer;
     const Module::State::Ptr State;
-    mutable AnalyzerWithHistory Analyser;
+    const Sound::FFTAnalyzer::Ptr Analyzer;
     BufferTarget Buffer;
     Sound::LoopParameters Looped;
     RenderingPerformanceAccountant RenderingPerformance;
