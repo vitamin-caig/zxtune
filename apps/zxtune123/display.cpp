@@ -163,9 +163,10 @@ namespace
         ShowPlaybackStatus(Time::Milliseconds(curPos.CastTo<Time::Millisecond>().Get()), state);
         if (Analyzer)
         {
-          const auto& curAnalyze = Analyzer->GetState();
+          Sound::Analyzer::LevelType spectrum[ScrSize.first];
+          Analyzer->GetSpectrum(spectrum, ScrSize.first);
           AnalyzerData.resize(ScrSize.first);
-          UpdateAnalyzer(curAnalyze, 10);
+          UpdateAnalyzer(spectrum, 10);
           ShowAnalyzer(spectrumHeight);
         }
       }
@@ -214,11 +215,11 @@ namespace
       StdOut << std::flush;
     }
 
-    void UpdateAnalyzer(const Module::Analyzer::SpectrumState& inState, int_t fallspeed)
+    void UpdateAnalyzer(const Sound::Analyzer::LevelType* inState, int_t fallspeed)
     {
-      for (uint_t band = 0, lim = std::min(AnalyzerData.size(), inState.Data.size()); band < lim; ++band)
+      for (uint_t band = 0, lim = AnalyzerData.size(); band < lim; ++band)
       {
-        AnalyzerData[band] = std::max(AnalyzerData[band] - fallspeed, int_t(inState.Data[band].Raw()));
+        AnalyzerData[band] = std::max(AnalyzerData[band] - fallspeed, int_t(inState[band].Raw()));
       }
     }
 
@@ -234,7 +235,7 @@ namespace
     Time::Milliseconds TotalDuration;
     Module::State::Ptr State;
     const Module::TrackState* TrackState;
-    Module::Analyzer::Ptr Analyzer;
+    Sound::Analyzer::Ptr Analyzer;
     std::vector<int_t> AnalyzerData;
   };
 }  // namespace
