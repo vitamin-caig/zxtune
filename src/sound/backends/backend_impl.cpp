@@ -20,6 +20,7 @@
 #include <debug/log.h>
 #include <module/players/pipeline.h>
 #include <parameters/tracking_helper.h>
+#include <sound/impl/fft_analyzer.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 // std includes
@@ -82,11 +83,14 @@ namespace Sound::BackendBase
   class RendererWrapper : public Module::Renderer
   {
   public:
+    using Ptr = std::shared_ptr<RendererWrapper>;
+
     RendererWrapper(Module::Renderer::Ptr delegate, BackendCallback::Ptr callback)
       : Delegate(std::move(delegate))
       , Callback(std::move(callback))
       , State(Delegate->GetState())
       , SeekRequest(NO_SEEK)
+      , Analyzer(FFTAnalyzer::Create())
     {}
 
     Module::State::Ptr GetState() const override
@@ -94,9 +98,14 @@ namespace Sound::BackendBase
       return State;
     }
 
+    Sound::Analyzer::Ptr GetFftAnalyzer() const
+    {
+      return Analyzer;
+    }
+
     Module::Analyzer::Ptr GetAnalyzer() const override
     {
-      return Delegate->GetAnalyzer();
+      return {};
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -107,7 +116,9 @@ namespace Sound::BackendBase
         Delegate->SetPosition(Time::AtMillisecond(request));
       }
       Callback->OnFrame(*State);
-      return Delegate->Render(looped);
+      auto result = Delegate->Render(looped);
+      Analyzer->FeedSound(result.data(), result.size());
+      return result;
     }
 
     void Reset() override
@@ -127,6 +138,7 @@ namespace Sound::BackendBase
     const BackendCallback::Ptr Callback;
     const Module::State::Ptr State;
     std::atomic<uint_t> SeekRequest;
+    const FFTAnalyzer::Ptr Analyzer;
   };
 
   class LoopParameterAdapter
@@ -359,10 +371,10 @@ namespace Sound::BackendBase
   class BackendInternal : public Backend
   {
   public:
-    BackendInternal(BackendWorker::Ptr worker, Module::Renderer::Ptr renderer, Async::Job::Ptr job)
+    BackendInternal(BackendWorker::Ptr worker, RendererWrapper::Ptr renderer, Async::Job::Ptr job)
       : Worker(std::move(worker))
-      , Renderer(renderer)
-      , Control(MakePtr<ControlInternal>(job, renderer))
+      , Renderer(std::move(renderer))
+      , Control(MakePtr<ControlInternal>(std::move(job), Renderer))
     {}
 
     Module::State::Ptr GetState() const override
@@ -370,9 +382,9 @@ namespace Sound::BackendBase
       return Renderer->GetState();
     }
 
-    Module::Analyzer::Ptr GetAnalyzer() const override
+    Analyzer::Ptr GetAnalyzer() const override
     {
-      return Renderer->GetAnalyzer();
+      return Renderer->GetFftAnalyzer();
     }
 
     PlaybackControl::Ptr GetPlaybackControl() const override
@@ -387,7 +399,7 @@ namespace Sound::BackendBase
 
   private:
     const BackendWorker::Ptr Worker;
-    const Module::Renderer::Ptr Renderer;
+    const RendererWrapper::Ptr Renderer;
     const PlaybackControl::Ptr Control;
   };
 }  // namespace Sound::BackendBase

@@ -14,8 +14,8 @@
 #include <error.h>
 #include <iterator.h>
 // library includes
-#include <module/analyzer.h>
 #include <module/state.h>
+#include <sound/analyzer.h>
 #include <sound/gain.h>
 
 namespace Sound
@@ -119,7 +119,7 @@ namespace Sound
     virtual Module::State::Ptr GetState() const = 0;
 
     //! @brief Getting analyzer interface
-    virtual Module::Analyzer::Ptr GetAnalyzer() const = 0;
+    virtual Analyzer::Ptr GetAnalyzer() const = 0;
 
     //! @brief Gettint playback controller
     virtual PlaybackControl::Ptr GetPlaybackControl() const = 0;
