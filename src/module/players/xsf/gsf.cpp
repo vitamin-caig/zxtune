@@ -21,7 +21,6 @@
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <module/attributes.h>
-#include <module/players/analyzer.h>
 #include <module/players/platforms.h>
 #include <module/players/streaming.h>
 // 3rdparty includes
@@ -272,7 +271,6 @@ namespace Module::GSF
     Renderer(const ModuleData& data, uint_t samplerate)
       : Engine(MakePtr<GbaEngine>(data))
       , State(MakePtr<TimedState>(data.Meta->Duration))
-      , Analyzer(CreateSoundAnalyzer())
       , SoundFrequency(samplerate)
     {
       Engine->SetFrequency(samplerate);
@@ -283,11 +281,6 @@ namespace Module::GSF
       return State;
     }
 
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
-    }
-
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
       if (!State->IsValid())
@@ -295,9 +288,7 @@ namespace Module::GSF
         return {};
       }
       const auto avail = State->Consume(FRAME_DURATION, looped);
-      auto data = Engine->Render(GetSamples(avail));
-      Analyzer->AddSoundData(data);
-      return data;
+      return Engine->Render(GetSamples(avail));
     }
 
     void Reset() override
@@ -327,7 +318,6 @@ namespace Module::GSF
   private:
     const GbaEngine::Ptr Engine;
     const TimedState::Ptr State;
-    const Module::SoundAnalyzer::Ptr Analyzer;
     uint_t SoundFrequency = 0;
   };
 

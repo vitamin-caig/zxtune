@@ -21,7 +21,6 @@
 #include <devices/beeper.h>
 #include <devices/z80.h>
 #include <formats/chiptune/emulation/ay.h>
-#include <module/players/analyzer.h>
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
@@ -94,11 +93,6 @@ namespace Module::AYEMUL
       Chip->RenderData(Chunks);
       Chunks.clear();
       return Chip->RenderTill(till);
-    }
-
-    Analyzer::Ptr GetAnalyzer() const
-    {
-      return Module::CreateAnalyzer(Chip);
     }
 
   private:
@@ -243,11 +237,6 @@ namespace Module::AYEMUL
         std::transform(beepSound.begin(), beepSound.end(), aySound.begin(), aySound.begin(), &MixSamples);
       }
       return aySound;
-    }
-
-    Analyzer::Ptr GetAnalyzer() const
-    {
-      return Ay.GetAnalyzer();
     }
 
   private:
@@ -578,11 +567,6 @@ namespace Module::AYEMUL
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Device->GetAnalyzer();
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override

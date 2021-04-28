@@ -20,7 +20,6 @@
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/mp3.h>
-#include <module/players/analyzer.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -227,18 +226,12 @@ namespace Module::Mp3
     Renderer(Model::Ptr data, uint_t samplerate)
       : Tune(data)
       , State(MakePtr<TimedState>(data->Duration))
-      , Analyzer(Module::CreateSoundAnalyzer())
       , Target(samplerate)
     {}
 
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -259,9 +252,7 @@ namespace Module::Mp3
       {
         Tune.Reset();
       }
-      auto result = Target.Apply(std::move(frame));
-      Analyzer->AddSoundData(result);
-      return result;
+      return Target.Apply(std::move(frame));
     }
 
     void Reset() override
@@ -280,7 +271,6 @@ namespace Module::Mp3
   private:
     Mp3Tune Tune;
     const TimedState::Ptr State;
-    const Module::SoundAnalyzer::Ptr Analyzer;
     MultiFreqResampler Target;
   };
 

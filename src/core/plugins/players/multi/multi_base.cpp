@@ -22,41 +22,7 @@
 
 namespace Module
 {
-  typedef std::vector<Analyzer::Ptr> AnalyzersArray;
   typedef std::vector<Renderer::Ptr> RenderersArray;
-
-  class MultiAnalyzer : public Module::Analyzer
-  {
-  public:
-    explicit MultiAnalyzer(AnalyzersArray delegates)
-      : Delegates(std::move(delegates))
-    {}
-
-    SpectrumState GetState() const override
-    {
-      SpectrumState result;
-      for (const auto& delegate : Delegates)
-      {
-        const auto& portion = delegate->GetState();
-        std::transform(portion.Data.begin(), portion.Data.end(), result.Data.begin(), result.Data.begin(),
-                       &SpectrumState::AccumulateLevel);
-      }
-      return result;
-    }
-
-    static Ptr Create(const RenderersArray& renderers)
-    {
-      const auto count = renderers.size();
-      Require(count > 1);
-      AnalyzersArray delegates(count);
-      std::transform(renderers.begin(), renderers.end(), delegates.begin(),
-                     [](const Renderer::Ptr& renderer) { return renderer->GetAnalyzer(); });
-      return MakePtr<MultiAnalyzer>(std::move(delegates));
-    }
-
-  private:
-    const AnalyzersArray Delegates;
-  };
 
   class WideSample
   {
@@ -174,18 +140,12 @@ namespace Module
   public:
     explicit MultiRenderer(RenderersArray delegates)
       : Delegates(std::move(delegates))
-      , Analysis(MultiAnalyzer::Create(Delegates))
       , Target(Delegates.size())
     {}
 
     State::Ptr GetState() const override
     {
       return Delegates.front()->GetState();
-    }
-
-    Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analysis;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -236,7 +196,6 @@ namespace Module
 
   private:
     const RenderersArray Delegates;
-    const Analyzer::Ptr Analysis;
     CumulativeChunk Target;
   };
 

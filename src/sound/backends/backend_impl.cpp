@@ -103,11 +103,6 @@ namespace Sound::BackendBase
       return Analyzer;
     }
 
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return {};
-    }
-
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
       const auto request = SeekRequest.exchange(NO_SEEK);

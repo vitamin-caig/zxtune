@@ -28,7 +28,6 @@
 #include <formats/multitrack/decoders.h>
 #include <math/numeric.h>
 #include <module/attributes.h>
-#include <module/players/analyzer.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
@@ -168,18 +167,12 @@ namespace Module::GME
   public:
     Renderer(const GMETune& tune, uint_t samplerate)
       : State(MakePtr<TimedState>(tune.Duration))
-      , Analyzer(CreateSoundAnalyzer())
       , Engine(tune, samplerate)
     {}
 
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -189,9 +182,7 @@ namespace Module::GME
         return {};
       }
       const auto avail = State->Consume(FRAME_DURATION, looped);
-      auto data = Engine.Render(GetSamples(avail));
-      Analyzer->AddSoundData(data);
-      return data;
+      return Engine.Render(GetSamples(avail));
     }
 
     void Reset() override
@@ -239,7 +230,6 @@ namespace Module::GME
 
   private:
     const TimedState::Ptr State;
-    const SoundAnalyzer::Ptr Analyzer;
     GME Engine;
   };
 
