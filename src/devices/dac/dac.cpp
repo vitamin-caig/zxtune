@@ -34,7 +34,6 @@ namespace Devices::DAC
     // use additional sample for interpolation
     explicit FastSample(std::size_t idx, Sample::Ptr in)
       : Index(static_cast<uint_t>(idx))
-      , Rms(in->Rms())
       , Data(new Sound::Sample::Type[in->Size() + 1])
       , Size(in->Size())
       , Loop(std::min(Size, in->Loop()))
@@ -48,7 +47,6 @@ namespace Devices::DAC
 
     FastSample()
       : Index(NO_INDEX)
-      , Rms(0)
       , Data(new Sound::Sample::Type[2])
       , Size(1)
       , Loop(1)
@@ -59,11 +57,6 @@ namespace Devices::DAC
     uint_t GetIndex() const
     {
       return Index;
-    }
-
-    uint_t GetRms() const
-    {
-      return Rms;
     }
 
     typedef Math::FixedPoint<uint_t, 256> Position;
@@ -162,7 +155,6 @@ namespace Devices::DAC
   private:
     friend class Iterator;
     const uint_t Index;
-    const uint_t Rms;
     const std::unique_ptr<Sound::Sample::Type[]> Data;
     const std::size_t Size;
     const std::size_t Loop;
@@ -220,10 +212,6 @@ namespace Devices::DAC
   class SamplesStorage
   {
   public:
-    SamplesStorage()
-      : MaxRms()
-    {}
-
     void Add(std::size_t idx, Sample::Ptr sample)
     {
       if (sample)
@@ -231,7 +219,6 @@ namespace Devices::DAC
         Content.resize(std::max(Content.size(), idx + 1));
         const FastSample::Ptr fast = MakePtr<FastSample>(idx, sample);
         Content[idx] = fast;
-        MaxRms = std::max(MaxRms, fast->GetRms());
       }
     }
 
@@ -245,17 +232,11 @@ namespace Devices::DAC
       return MakeSingletonPointer(STUB);
     }
 
-    uint_t GetMaxRms() const
-    {
-      return MaxRms;
-    }
-
   private:
-    uint_t MaxRms;
     std::vector<FastSample::Ptr> Content;
   };
 
-  typedef Math::FixedPoint<int, LevelType::PRECISION> SignedLevelType;
+  typedef Math::FixedPoint<int, ChannelData::LevelType::PRECISION> SignedLevelType;
 
   // channel state type
   struct ChannelState
@@ -323,7 +304,7 @@ namespace Devices::DAC
         Iterator.SetPosition(*posInSample);
       }
       // level changed
-      if (const LevelType* level = state.GetLevel())
+      if (const auto* level = state.GetLevel())
       {
         Level = *level;
       }
@@ -350,13 +331,6 @@ namespace Devices::DAC
         Iterator.Next();
         Enabled = Iterator.IsValid();
       }
-    }
-
-    void Analyze(uint_t maxRms, DeviceState& out) const
-    {
-      assert(Enabled);
-      const uint_t rms = Source->GetRms();
-      out.Set(Note + NoteSlide, Level * rms / maxRms);
     }
 
   private:
@@ -554,19 +528,6 @@ namespace Devices::DAC
       auto result = Renderers.RenderData(samples);
       SynchronizeParameters();
       return result;
-    }
-
-    DeviceState GetState() const override
-    {
-      DeviceState res;
-      for (const auto& chan : State)
-      {
-        if (chan.Enabled)
-        {
-          chan.Analyze(Samples.GetMaxRms(), res);
-        }
-      }
-      return res;
     }
 
     /// reset internal state to initial

@@ -12,7 +12,7 @@
 
 // library includes
 #include <devices/dac/sample.h>
-#include <devices/state.h>
+#include <math/fixedpoint.h>
 #include <sound/mixer.h>
 #include <time/instant.h>
 
@@ -50,6 +50,8 @@ namespace Devices
 
         ALL_PARAMETERS = 127
       };
+
+      using LevelType = Math::FixedPoint<uint8_t, 100>;
 
       uint_t Channel;
       uint_t Mask;
@@ -105,12 +107,12 @@ namespace Devices
       Channels Data;
     };
 
-    class Chip : public StateSource
+    class Chip
     {
     public:
       typedef std::shared_ptr<Chip> Ptr;
 
-      ~Chip() override = default;
+      virtual ~Chip() = default;
 
       /// Set sample for work
       virtual void SetSample(uint_t idx, Sample::Ptr sample) = 0;

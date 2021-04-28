@@ -60,12 +60,6 @@ namespace Devices::TurboSound
       return Sound::Sample::FastAdd(s0, s1);
     }
 
-    void GetState(const Details::AnalysisMap& analyzer, DeviceState& state) const
-    {
-      Chip0.GetState(analyzer, state);
-      Chip1.GetState(analyzer, state);
-    }
-
   private:
     AYM::PSG Chip0;
     AYM::PSG Chip1;

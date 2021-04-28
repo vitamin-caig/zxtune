@@ -12,8 +12,6 @@
 
 // local includes
 #include "generators.h"
-// library includes
-#include <devices/details/analysis_map.h>
 
 namespace Devices
 {
@@ -116,30 +114,6 @@ namespace Devices
           out.Add(Envelope.GetLevel(Levels[2]));
         }
         return out;
-      }
-
-      void GetState(const Details::AnalysisMap& analyser, DeviceState& state) const
-      {
-        const uint_t MAX_IN_LEVEL = 30;
-        LevelType toneLevels[3];
-        for (uint_t chan = 0; chan != 3; ++chan)
-        {
-          toneLevels[chan] = LevelType(Levels[chan].Left() + Levels[chan].Right(), MAX_IN_LEVEL);
-          if (!Tones[chan].IsMasked())
-          {
-            const auto period = 2 * Tones[chan].GetHalfPeriod();
-            state.Set(analyser.GetBandByPeriod(period), toneLevels[chan]);
-          }
-        }
-        if (Noise.GetMixer())
-        {
-          const LevelType level = (toneLevels[0] + toneLevels[1] + toneLevels[2]) / 3;
-          state.Set(analyser.GetBandByPeriod(Noise.GetPeriod()), level);
-        }
-        if (const uint_t period = Envelope.GetRepetitionPeriod())
-        {
-          state.Set(analyser.GetBandByPeriod(period), toneLevels[2]);
-        }
       }
 
     private:
@@ -245,12 +219,6 @@ namespace Devices
         FastSample out = Subdevices[0].GetLevels();
         out.Add(Subdevices[1].GetLevels());
         return out.Convert();
-      }
-
-      void GetState(const Details::AnalysisMap& analysis, DeviceState& state) const
-      {
-        Subdevices[0].GetState(analysis, state);
-        Subdevices[1].GetState(analysis, state);
       }
 
     private:

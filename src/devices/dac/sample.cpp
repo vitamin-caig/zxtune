@@ -19,8 +19,6 @@
 
 namespace Devices::DAC
 {
-  const uint_t NO_RMS = uint_t(-1);
-
   inline Sound::Sample::Type ToSample(uint_t val)
   {
     return Sound::Sample::MID
@@ -62,7 +60,6 @@ namespace Devices
         , StartValue(Content.get())
         , SizeValue(content.Size())
         , LoopValue(loop)
-        , RmsValue(NO_RMS)
       {
         std::memcpy(Content.get(), content.Start(), SizeValue);
       }
@@ -77,27 +74,11 @@ namespace Devices
         return LoopValue;
       }
 
-      uint_t Rms() const override
-      {
-        if (RmsValue == NO_RMS)
-        {
-          uint64_t sum = 0;
-          for (std::size_t idx = 0, lim = Size(); idx != lim; ++idx)
-          {
-            const int_t val = int_t(Get(idx)) - Sound::Sample::MID;
-            sum += val * val;
-          }
-          RmsValue = static_cast<uint_t>(std::sqrt(float(sum) / Size()));
-        }
-        return RmsValue;
-      }
-
     protected:
       const std::unique_ptr<uint8_t[]> Content;
       const uint8_t* const StartValue;
       const std::size_t SizeValue;
       const std::size_t LoopValue;
-      mutable uint_t RmsValue;
     };
 
     class U8Sample : public BaseSample

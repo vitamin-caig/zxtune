@@ -13,8 +13,6 @@
 // local includes
 #include "device.h"
 #include "volume_table.h"
-// library includes
-#include <devices/details/analysis_map.h>
 
 namespace Devices::AYM
 {
@@ -117,51 +115,6 @@ namespace Devices::AYM
     Sound::Sample GetLevels() const
     {
       return Table.Get(Device.GetLevels());
-    }
-
-    void GetState(const Details::AnalysisMap& analyzer, DeviceState& state) const
-    {
-      const uint_t TONE_VOICES = 3;
-      const LevelType COMMON_LEVEL_DELTA(1, TONE_VOICES);
-      const LevelType EMPTY_LEVEL;
-      LevelType noiseLevel, envLevel;
-      // taking into account only periodic envelope
-      const bool periodicEnv = 0 != ((1 << GetEnvType()) & ((1 << 8) | (1 << 10) | (1 << 12) | (1 << 14)));
-      const uint_t mixer = ~GetMixer();
-      for (uint_t chan = 0; chan != TONE_VOICES; ++chan)
-      {
-        const uint_t volReg = Regs[Registers::VOLA + chan];
-        const bool hasNoise = 0 != (mixer & (uint_t(Registers::MASK_NOISEA) << chan));
-        const bool hasTone = 0 != (mixer & (uint_t(Registers::MASK_TONEA) << chan));
-        const bool hasEnv = 0 != (volReg & Registers::MASK_ENV);
-        // accumulate level in noise channel
-        if (hasNoise)
-        {
-          noiseLevel += COMMON_LEVEL_DELTA;
-        }
-        // accumulate level in envelope channel
-        if (hasEnv)
-        {
-          envLevel += COMMON_LEVEL_DELTA;
-        }
-        // calculate tone channel
-        if (hasTone)
-        {
-          const uint_t MAX_VOL = Registers::MASK_VOL;
-          const uint_t period = 2 * (256 * Regs[Registers::TONEA_H + chan * 2] + Regs[Registers::TONEA_L + chan * 2]);
-          const LevelType level(volReg & Registers::MASK_VOL, MAX_VOL);
-          state.Set(analyzer.GetBandByPeriod(period), level);
-        }
-      }
-      if (noiseLevel != EMPTY_LEVEL)
-      {
-        state.Set(analyzer.GetBandByPeriod(GetToneN()), noiseLevel);
-      }
-      if (periodicEnv && envLevel != EMPTY_LEVEL)
-      {
-        // periodic envelopes has 32 steps, so multiply period to 32
-        state.Set(analyzer.GetBandByPeriod(32 * GetToneE()), envLevel);
-      }
     }
 
   private:

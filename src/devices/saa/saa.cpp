@@ -16,7 +16,6 @@
 #include <contract.h>
 #include <make_ptr.h>
 // library includes
-#include <devices/details/analysis_map.h>
 #include <devices/details/renderers.h>
 #include <parameters/tracking_helper.h>
 #include <sound/lpfilter.h>
@@ -107,11 +106,6 @@ namespace Devices::SAA
     Sound::Sample GetLevels() const
     {
       return Device.GetLevels();
-    }
-
-    void GetState(const Details::AnalysisMap& analysis, DeviceState& state) const
-    {
-      Device.GetState(analysis, state);
     }
 
   private:
@@ -276,13 +270,6 @@ namespace Devices::SAA
       return result;
     }
 
-    DeviceState GetState() const override
-    {
-      DeviceState res;
-      PSG.GetState(Analyser, res);
-      return res;
-    }
-
   private:
     void SynchronizeParameters()
     {
@@ -292,7 +279,6 @@ namespace Devices::SAA
         const uint_t sndFreq = Params->SoundFreq();
         Renderers.SetFrequency(clock, sndFreq);
         Renderers.SetInterpolation(Params->Interpolation());
-        Analyser.SetClockRate(clock);
       }
     }
 
@@ -300,7 +286,6 @@ namespace Devices::SAA
     Parameters::TrackingHelper<ChipParameters> Params;
     SAARenderer PSG;
     ClockSource Clock;
-    Details::AnalysisMap Analyser;
     RenderersSet Renderers;
   };
 

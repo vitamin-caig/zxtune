@@ -59,18 +59,6 @@ namespace Devices::TFM
       return result;
     }
 
-    DeviceState GetState() const
-    {
-      DeviceState res;
-      std::array<uint_t, FM::VOICES> attenuations;
-      std::array<uint_t, FM::VOICES> periods;
-      ::YM2203GetState(Chips[0].get(), attenuations.data(), periods.data());
-      Helper.ConvertState(attenuations.data(), periods.data(), res);
-      ::YM2203GetState(Chips[1].get(), attenuations.data(), periods.data());
-      Helper.ConvertState(attenuations.data(), periods.data(), res);
-      return res;
-    }
-
   private:
     FM::Details::ChipAdapterHelper Helper;
     std::array<FM::Details::ChipPtr, TFM::CHIPS> Chips;
