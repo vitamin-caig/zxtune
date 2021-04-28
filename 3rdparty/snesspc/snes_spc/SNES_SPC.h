@@ -58,9 +58,6 @@ public:
 	// Reduces emulation accuracy.
 	enum { voice_count = 8 };
 	void mute_voices( int mask );
-
-	// Get value of DSP register
-	uint8_t get_dsp_reg( int idx ) const;
 	
 	// If true, prevents channels and global volumes from being phase-negated.
 	// Only supported by fast DSP.
@@ -272,7 +269,6 @@ inline void SNES_SPC::write_port( time_t t, int port, int data )
 }
 
 inline void SNES_SPC::mute_voices( int mask ) { dsp.mute_voices( mask ); }
-inline SNES_SPC::uint8_t SNES_SPC::get_dsp_reg( int idx ) const { return dsp.read( idx ); }
 	
 inline void SNES_SPC::disable_surround( bool disable ) { dsp.disable_surround( disable ); }
 
