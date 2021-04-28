@@ -68,7 +68,6 @@ public:
     void filter6581Curve(double filterCurve);
     void filter8580Curve(double filterCurve);
     void model(SidConfig::sid_model_t model);
-    void analyze(unsigned int tone[3], unsigned int level[3]);
 };
 
 #endif // RESIDFP_EMU_H

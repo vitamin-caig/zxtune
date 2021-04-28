@@ -133,8 +133,6 @@ public:
     // Standard SID functions
     void filter(bool enable);
     void model(SidConfig::sid_model_t model SID_UNUSED) {;}
-    void analyze(unsigned int tone[3] SID_UNUSED, unsigned int level[3] SID_UNUSED) {;}
-
     void voice(unsigned int num, bool mute);
     // HardSID specific
     void flush();

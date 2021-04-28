@@ -77,7 +77,6 @@ public:
 
     void bias(double dac_bias);
     void model(SidConfig::sid_model_t model);
-    void analyze(unsigned int tone[3], unsigned int level[3]);
 };
 
 #endif // RESID_EMU_H

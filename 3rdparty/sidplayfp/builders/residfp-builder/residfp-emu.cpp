@@ -168,8 +168,3 @@ void ReSIDfp::model(SidConfig::sid_model_t model)
     m_sid.setChipModel (chipModel);
     m_status = true;
 }
-
-void ReSIDfp::analyze(unsigned int tone[3], unsigned int level[3])
-{
-    m_sid.readState(tone, level);
-}

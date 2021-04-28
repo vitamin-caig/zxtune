@@ -146,27 +146,6 @@ void Player::mute(unsigned int sidNum, unsigned int voice, bool enable)
         s->voice(voice, enable);
 }
 
-unsigned int Player::getState(unsigned int* freqs, unsigned int* levels) const
-{
-  if (!m_mixer.samplesBuffer())
-  {
-    //seek mode
-    return 0;
-  }
-  for (unsigned s = 0; ; ++s)
-  {
-    const unsigned step = s * 3;
-    if (sidemu* sid = m_mixer.getSid(s))
-    {
-        sid->analyze(freqs + step, levels + step);
-    }
-    else
-    {
-      return step;
-    }
-  }
-}
-
 uint_least32_t Player::play(short *buffer, uint_least32_t count)
 {
     // Make sure a tune is loaded

@@ -211,13 +211,6 @@ public:
     void mute(int channel, bool enable) { muted[channel] = enable; }
 
     /**
-     * Reading voice state
-     * @param freqs array of freq registers to store
-     * @param levels array of sustain registers to store
-     */
-    void readState(unsigned freqs[3], unsigned levels[3]);
-
-    /**
      * Setting of SID sampling parameters.
      * <p>
      * Use a clock freqency of 985248Hz for PAL C64, 1022730Hz for NTSC C64.
