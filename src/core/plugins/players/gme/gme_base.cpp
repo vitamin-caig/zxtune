@@ -166,10 +166,11 @@ namespace Module::GME
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(const GMETune& tune, uint_t samplerate)
-      : State(MakePtr<TimedState>(tune.Duration))
+    Renderer(GMETune::Ptr tune, uint_t samplerate)
+      : Tune(std::move(tune))
+      , State(MakePtr<TimedState>(Tune->Duration))
       , Analyzer(CreateSoundAnalyzer())
-      , Engine(tune, samplerate)
+      , Engine(*Tune, samplerate)
     {}
 
     Module::State::Ptr GetState() const override
@@ -238,6 +239,7 @@ namespace Module::GME
     }
 
   private:
+    const GMETune::Ptr Tune;
     const TimedState::Ptr State;
     const SoundAnalyzer::Ptr Analyzer;
     GME Engine;
@@ -265,7 +267,7 @@ namespace Module::GME
     {
       try
       {
-        return MakePtr<Renderer>(*Tune, samplerate);
+        return MakePtr<Renderer>(Tune, samplerate);
       }
       catch (const std::exception& e)
       {
