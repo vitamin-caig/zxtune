@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- other -->
+    <PreferenceCategory android:title="@string/pref_zxtune_other_title">
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_default_duration_default"
+                android:entries="@array/pref_zxtune_default_duration_entries"
+                android:entryValues="@array/pref_zxtune_default_duration_values"
+                android:key="zxtune.core.plugins.default_duration"
+                android:title="@string/pref_zxtune_default_duration_title"
+                app:useSimpleSummaryProvider="true" />
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_silence_limit_default"
+                android:entries="@array/pref_zxtune_silence_limit_entries"
+                android:entryValues="@array/pref_zxtune_silence_limit_values"
+                android:key="zxtune.sound.silencelimit"
+                android:title="@string/pref_zxtune_silence_limit_title"
+                app:useSimpleSummaryProvider="true" />
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_loop_limit_default"
+                android:entries="@array/pref_zxtune_loop_limit_entries"
+                android:entryValues="@array/pref_zxtune_loop_limit_values"
+                android:key="zxtune.sound.looplimit"
+                android:title="@string/pref_zxtune_loop_limit_title"
+                app:useSimpleSummaryProvider="true" />
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_fade_default"
+                android:entries="@array/pref_zxtune_fade_entries"
+                android:entryValues="@array/pref_zxtune_fade_values"
+                android:key="zxtune.sound.fadein"
+                android:title="@string/pref_zxtune_fadein_title"
+                app:useSimpleSummaryProvider="true" />
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_fade_default"
+                android:entries="@array/pref_zxtune_fade_entries"
+                android:entryValues="@array/pref_zxtune_fade_values"
+                android:key="zxtune.sound.fadeout"
+                android:title="@string/pref_zxtune_fadeout_title"
+                app:useSimpleSummaryProvider="true" />
+        <SeekBarPreference
+                android:defaultValue="@integer/pref_zxtune_gain_default"
+                android:key="zxtune.sound.gain"
+                android:max="200"
+                android:title="@string/pref_zxtune_gain_title"
+                app:min="50"
+                app:seekBarIncrement="5"
+                app:showSeekBarValue="true" />
+    </PreferenceCategory>
+    <!-- ay/ym -->
+    <PreferenceCategory android:title="@string/pref_zxtune_aym_title">
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_aym_clockrate_default"
+                android:entries="@array/pref_zxtune_aym_clockrate_entries"
+                android:entryValues="@array/pref_zxtune_aym_clockrate_values"
+                android:key="zxtune.core.aym.clockrate"
+                android:title="@string/pref_zxtune_aym_clockrate_title"
+                app:useSimpleSummaryProvider="true" />
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_aym_type_default"
+                android:entries="@array/pref_zxtune_aym_type_entries"
+                android:entryValues="@array/pref_zxtune_aym_type_values"
+                android:key="zxtune.core.aym.type"
+                android:title="@string/pref_zxtune_aym_type_title"
+                app:useSimpleSummaryProvider="true" />
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_aym_interpolation_default"
+                android:entries="@array/pref_interpolation_entries"
+                android:entryValues="@array/pref_interpolation_values"
+                android:key="zxtune.core.aym.interpolation"
+                android:title="@string/pref_interpolation"
+                app:useSimpleSummaryProvider="true" />
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_aym_layout_default"
+                android:entries="@array/pref_zxtune_aym_layout_entries"
+                android:entryValues="@array/pref_zxtune_aym_layout_values"
+                android:key="zxtune.core.aym.layout"
+                android:title="@string/pref_zxtune_aym_layout_title"
+                app:useSimpleSummaryProvider="true" />
+        <!-- 3-channel mixer -->
+        <Preference
+                android:fragment="app.zxtune.PreferencesActivity$Fragment"
+                android:key="zxtune.sound.mixer.3"
+                android:title="@string/pref_zxtune_sound_mixer_3_x_x_title" />
+    </PreferenceCategory>
+    <!-- dac -->
+    <PreferenceCategory app:title="@string/pref_zxtune_dac_title">
+        <SwitchPreferenceCompat
+                android:defaultValue="@integer/pref_zxtune_dac_interpolation_default"
+                android:key="zxtune.core.dac.interpolation"
+                android:title="@string/pref_interpolation" />
+    </PreferenceCategory>
+    <!-- saa -->
+    <PreferenceCategory app:title="@string/pref_zxtune_saa_title">
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_saa_interpolation_default"
+                android:entries="@array/pref_interpolation_entries"
+                android:entryValues="@array/pref_interpolation_values"
+                android:key="zxtune.core.saa.interpolation"
+                android:title="@string/pref_interpolation"
+                app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+    <!-- sid -->
+    <PreferenceCategory android:title="@string/pref_zxtune_sid_title">
+        <DropDownPreference
+                android:defaultValue="@integer/pref_zxtune_sid_interpolation_default"
+                android:entries="@array/pref_interpolation_entries"
+                android:entryValues="@array/pref_interpolation_values"
+                android:key="zxtune.core.sid.interpolation"
+                android:title="@string/pref_interpolation"
+                app:useSimpleSummaryProvider="true" />
+        <SwitchPreferenceCompat
+                android:defaultValue="@integer/pref_zxtune_sid_filter_default"
+                android:key="zxtune.core.sid.filter"
+                app:title="@string/pref_zxtune_sid_filter_title" />
+    </PreferenceCategory>
+</PreferenceScreen>

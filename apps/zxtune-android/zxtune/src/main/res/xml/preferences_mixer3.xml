@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory android:title="@string/pref_zxtune_sound_mixer_x_0_x_title">
+        <SeekBarPreference
+                android:defaultValue="@integer/pref_zxtune_sound_mixer_3_0_0_default"
+                android:key="zxtune.sound.mixer.3.0_0"
+                android:max="100"
+                android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+                app:seekBarIncrement="5"
+                app:showSeekBarValue="true" />
+        <SeekBarPreference
+                android:defaultValue="@integer/pref_zxtune_sound_mixer_3_0_1_default"
+                android:key="zxtune.sound.mixer.3.0_1"
+                android:max="100"
+                android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+                app:seekBarIncrement="5"
+                app:showSeekBarValue="true" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_zxtune_sound_mixer_x_1_x_title">
+        <SeekBarPreference
+                android:defaultValue="@integer/pref_zxtune_sound_mixer_3_1_0_default"
+                android:key="zxtune.sound.mixer.3.1_0"
+                android:max="100"
+                android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+                app:seekBarIncrement="5"
+                app:showSeekBarValue="true" />
+        <SeekBarPreference
+                android:defaultValue="@integer/pref_zxtune_sound_mixer_3_1_1_default"
+                android:key="zxtune.sound.mixer.3.1_1"
+                android:max="100"
+                android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+                app:seekBarIncrement="5"
+                app:showSeekBarValue="true" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_zxtune_sound_mixer_x_2_x_title">
+        <SeekBarPreference
+                android:defaultValue="@integer/pref_zxtune_sound_mixer_3_2_0_default"
+                android:key="zxtune.sound.mixer.3.2_0"
+                android:max="100"
+                android:title="@string/pref_zxtune_sound_mixer_x_x_0_title"
+                app:seekBarIncrement="5"
+                app:showSeekBarValue="true" />
+        <SeekBarPreference
+                android:defaultValue="@integer/pref_zxtune_sound_mixer_3_2_1_default"
+                android:key="zxtune.sound.mixer.3.2_1"
+                android:max="100"
+                android:title="@string/pref_zxtune_sound_mixer_x_x_1_title"
+                app:seekBarIncrement="5"
+                app:showSeekBarValue="true" />
+    </PreferenceCategory>
+</PreferenceScreen>
