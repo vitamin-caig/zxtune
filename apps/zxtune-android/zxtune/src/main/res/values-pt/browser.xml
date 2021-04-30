@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="browser">Navegar</string>
+  <string name="browser_empty">Sem arquivos</string>
+  <string name="browser_search_hint">Pesquisar</string>
+</resources>

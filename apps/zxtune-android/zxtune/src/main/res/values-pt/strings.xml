@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- menu-related -->
+    <string name="prefs">Defenições</string>
+    <string name="review">Avaliar</string>
+    <string name="quit">Sair</string>
+    <!-- action-related -->
+    <string name="add">Adicionar</string>
+    <string name="delete">Apagar</string>
+    <string name="clear">Limpar</string>
+    <string name="save">Salvar</string>
+    <string name="overwrite">Substituir</string>
+    <string name="send">Enviar</string>
+    <string name="share">Partilhar</string>
+    <string name="sort">Ordenar</string>
+    <!-- information-related -->
+    <string name="information_title">Título</string>
+    <string name="information_author">Autor</string>
+    <string name="information_program">Programa</string>
+    <string name="information_comment">Comentário</string>
+    <string name="information_location">Localização</string>
+    <string name="scanning_started">Procura iniciada</string>
+    <string name="scanning_stopped">Procura parada</string>
+    <string name="scanning_failed">Falha ao procurar: %s</string>
+    <string name="scanning_title">Procurando.</string>
+    <string name="scanning_text">Clique para cancelar</string>
+    <!-- other -->
+    <string name="main">Principal</string>
+    <plurals name="items">
+      <item quantity="one">%d item</item>
+      <item quantity="other">%d items</item>
+    </plurals>
+    <plurals name="tracks">
+      <item quantity="one">%d faixa</item>
+      <item quantity="other">%d faixas</item>
+    </plurals>
+    <plurals name="packs">
+      <item quantity="one">%d pacote</item>
+      <item quantity="other">%d pacotes</item>
+    </plurals>
+    <string name="no_tracks_found">Nenhuma faixa compatível encontrada</string>
+    <string name="track">Faixa</string>
+    <!-- notifications -->
+    <string name="notification_channel_name_events">Eventos</string>
+    <string name="notification_channel_name_services">Serviços</string>
+</resources>

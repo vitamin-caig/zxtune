@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="send_text">Enviado de ZXTune %s</string>
+    <string name="share_text">Partilhado de #ZXTune %s</string>
+</resources>
