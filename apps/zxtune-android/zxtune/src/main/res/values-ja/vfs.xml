@@ -2,30 +2,30 @@
 <resources>
     <!-- Local -->
     <string name="vfs_local_root_name">ファイルシステム</string>
-    <string name="vfs_local_root_description">内容の内部および外部ストレージ</string>
+    <string name="vfs_local_root_description">ローカルストレージ内のファイル</string>
     <!-- zxtunes.com -->
     <string name="vfs_zxtunes_root_name">ZXTUNES音楽コレクション</string>
     <string name="vfs_zxtunes_authors_name">作者</string>
-    <string name="vfs_zxtunes_authors_description">ZX Spectrum トディレクトリ</string>
+    <string name="vfs_zxtunes_authors_description">ZX Spectrum 作者別カタログ</string>
     <!-- Playlists -->
     <string name="vfs_playlists_root_name">再生リスト</string>
-    <string name="vfs_playlists_root_description">保存したプレイリストの保存</string>
+    <string name="vfs_playlists_root_description">保存したプレイリスト</string>
     <!-- ftp.modland.com -->
-    <string name="vfs_modland_root_name">Modland - 最大のアーカイブモジュール</string>
-    <string name="vfs_modland_root_description">経由 http://www.exotica.org.uk</string>
+    <string name="vfs_modland_root_name">Modland</string>
+    <string name="vfs_modland_root_description">http://www.exotica.org.uk 経由でのアクセス</string>
     <string name="vfs_modland_authors_name">作者</string>
-    <string name="vfs_modland_collections_name">集</string>
-    <string name="vfs_modland_formats_name">形式</string>
+    <string name="vfs_modland_collections_name">コレクション</string>
+    <string name="vfs_modland_formats_name">フォーマット</string>
     <!-- High Voltage Sid Collection (www.hvsc.c64.org) -->
-    <string name="vfs_hvsc_root_description">経由 http://www.prg.dtu.dk</string>
+    <string name="vfs_hvsc_root_description">http://www.prg.dtu.dk 経由でのアクセス</string>
     <!-- zxart.ee -->
-    <string name="vfs_zxart_root_name">ZX-Art - 現代 ZX Spectrum 音楽</string>
+    <string name="vfs_zxart_root_name">ZX-Art</string>
     <string name="vfs_zxart_root_description">http://www.zxart.ee/eng/music</string>
     <string name="vfs_zxart_authors_name">作者</string>
     <string name="vfs_zxart_parties_name">パーティー</string>
     <string name="vfs_zxart_toptracks_name">トップ音声トラック</string>
     <string name="vfs_zxart_toptracks_description">100 オーディオトラック</string>
-    <string name="vfs_zxart_unknown_year_name">年未知</string>
+    <string name="vfs_zxart_unknown_year_name">製作年不明</string>
     <string name="vfs_zxart_compo_unknown">未知の競争</string>
     <string name="vfs_zxart_compo_standard">共通の音楽コンクール</string>
     <string name="vfs_zxart_compo_ay">AY音楽コンクール</string>
@@ -38,14 +38,14 @@
     <string name="vfs_zxart_compo_out">競争から</string>
     <string name="vfs_zxart_compo_wild">競争するすべて</string>
     <string name="vfs_zxart_compo_experimental">実験音楽コンクール</string>
-    <string name="vfs_zxart_compo_oldschool">ﾂつｨﾂ姪"ﾂつ"ﾂ債ﾂづ</string>
+    <string name="vfs_zxart_compo_oldschool"> 音楽コンテスト</string>
     <string name="vfs_zxart_compo_mainstream">主流音楽競争</string>
     <string name="vfs_zxart_compo_progressive">順送音楽コンクール</string>
     <string name="vfs_zxart_compo_related">このイベントの作品からの音楽</string>
     <!-- joshw.info -->
     <string name="vfs_joshw_root_description">各種カタログ</string>
     <!-- amp.dascene.net -->
-    <string name="vfs_amp_handles_name">愛称</string>
+    <string name="vfs_amp_handles_name">作者</string>
     <string name="vfs_amp_countries_name">国</string>
     <string name="vfs_amp_groups_name">グループ</string>
     <string-array name="vfs_amp_countries_list">
@@ -177,12 +177,12 @@
     <!-- modarchive.org -->
     <string name="vfs_modarchive_authors_name">作者</string>
     <string name="vfs_modarchive_genres_name">ジャンル</string>
-    <string name="vfs_modarchive_random_description">ランダム曲</string>
+    <string name="vfs_modarchive_random_description">ランダム選曲</string>
     <!-- network -->
     <string name="vfs_network_root_name">オンラインカタログ</string>
     <!-- radio -->
     <string name="vfs_radio_root_name">ラジオ</string>
-    <string name="vfs_radio_root_description">ランダム曲とコンパイル</string>
+    <string name="vfs_radio_root_description">ランダム曲とコンピレーション</string>
     <!-- vgmrips -->
     <string name="vfs_vgmrips_companies_name">企業</string>
     <string name="vfs_vgmrips_composers_name">作曲家</string>
@@ -190,6 +190,6 @@
     <string name="vfs_vgmrips_systems_name">システム</string>
     <string name="vfs_vgmrips_random_name">ランダム曲</string>
     <!-- errors -->
-    <string name="network_inaccessible">ネットワー</string>
-    <string name="failed_resolve">解決に失敗しました %s</string>
+    <string name="network_inaccessible">ネットワークに接続できませんでした</string>
+    <string name="failed_resolve">%s の解決に失敗しました</string>
 </resources>

@@ -2,8 +2,8 @@
 <resources>
     <!-- menu-related -->
     <string name="prefs">設定</string>
-    <string name="review">レートアプリ</string>
-    <string name="quit">終了アプリ</string>
+    <string name="review">アプリを評価</string>
+    <string name="quit">終了</string>
     <!-- action-related -->
     <string name="add">追加</string>
     <string name="delete">削除</string>
@@ -11,31 +11,31 @@
     <string name="save">を保存</string>
     <string name="overwrite">上書き</string>
     <string name="send">送信</string>
-    <string name="share">シェア</string>
+    <string name="share">共有</string>
     <string name="sort">ソート</string>
     <!-- information-related -->
     <string name="information_title">タイトル</string>
     <string name="information_author">作者</string>
     <string name="information_program">プログラム</string>
     <string name="information_comment">コメント</string>
-    <string name="information_location">所在地</string>
-    <string name="scanning_started">スキャンを開始</string>
-    <string name="scanning_stopped">スキャンが停止中</string>
+    <string name="information_location">パス</string>
+    <string name="scanning_started">スキャン開始</string>
+    <string name="scanning_stopped">スキャン停止</string>
     <string name="scanning_failed">スキャン失敗: %s</string>
     <string name="scanning_title">スキャン</string>
-    <string name="scanning_text">クリック解除</string>
+    <string name="scanning_text">キャンセルする場合はクリックして下さい</string>
     <!-- other -->
     <string name="main">ホームページ</string>
     <plurals name="items">
-      <item quantity="other">%d アイテム</item>
+      <item quantity="other">%d 個のアイテム</item>
     </plurals>
     <plurals name="tracks">
-      <item quantity="other">%d 音声トラック</item>
+      <item quantity="other">%d 個の音声トラック</item>
     </plurals>
     <plurals name="packs">
       <item quantity="other">%d パッケージ</item>
     </plurals>
-    <string name="no_tracks_found">なサポートされるオーディオトラック見つかり</string>
+    <string name="no_tracks_found">再生できる音声トラック見つかりませんでした</string>
     <string name="track">音声トラック</string>
     <!-- notifications -->
     <string name="notification_channel_name_events">イベント</string>

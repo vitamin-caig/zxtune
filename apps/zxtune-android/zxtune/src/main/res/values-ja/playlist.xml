@@ -3,8 +3,8 @@
   <string name="playlist">再生リスト</string>
   <string name="playlist_empty">再生リストは空です</string>
   <string name="saved">保存</string>
-  <string name="save_failed">保存に失敗しました: %s</string>
+  <string name="save_failed">%s の保存に失敗しました</string>
   <string name="statistics">統計</string>
   <string name="statistics_tracks">合計</string>
-  <string name="statistics_duration">期間</string>
+  <string name="statistics_duration">長さ</string>
 </resources>

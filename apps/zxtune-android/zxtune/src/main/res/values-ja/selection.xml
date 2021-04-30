@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="selection">選択</string>
-    <string name="select_all">すべて選択</string>
-    <string name="select_none">何も選択しない</string>
+    <string name="select_all">全て選択</string>
+    <string name="select_none">全て選択解除</string>
     <string name="select_invert">逆選択</string>
 </resources>

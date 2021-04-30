@@ -2,5 +2,5 @@
 <resources>
   <string name="browser">ブラウザ</string>
   <string name="browser_empty">ファイルなし</string>
-    <string name="browser_search_hint">検索</string>
+  <string name="browser_search_hint">検索</string>
 </resources>
