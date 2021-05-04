@@ -8,9 +8,16 @@ import app.zxtune.core.PropertiesContainer;
 
 public class JniOptionsTest {
 
+  private Api api;
+
+  @Before
+  public void setup() {
+    api = Api.instance();
+  }
+
   @Test
   public void testStringProperties() {
-    final PropertiesContainer props = JniApi.getOptions();
+    final PropertiesContainer props = api.getOptions();
 
     final String name = "string_property";
     final String value = "string value";
@@ -24,7 +31,7 @@ public class JniOptionsTest {
 
   @Test
   public void testIntegerProperties() {
-    final PropertiesContainer props = JniApi.getOptions();
+    final PropertiesContainer props = api.getOptions();
 
     final String name = "integer_property";
     final long value = 123456;
