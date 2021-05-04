@@ -30,7 +30,6 @@ import app.zxtune.device.media.MediaSessionControl;
 import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
 import app.zxtune.playback.service.PlaybackServiceLocal;
-import app.zxtune.preferences.ChangedSettingsReceiver;
 import app.zxtune.preferences.SharedPreferencesBridge;
 
 public class MainService extends MediaBrowserServiceCompat {
@@ -84,7 +83,6 @@ public class MainService extends MediaBrowserServiceCompat {
     try {
       Log.d(TAG, "JNI is ready");
       PropertiesModifier options = Api.instance().getOptions();
-      addHandle(ChangedSettingsReceiver.subscribe(getApplicationContext(), options));
       addHandle(SharedPreferencesBridge.subscribe(prefs, options));
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to connect to native options");

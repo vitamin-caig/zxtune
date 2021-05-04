@@ -6,25 +6,22 @@
 
 package app.zxtune;
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.app.Application;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.XmlRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.preference.Preference;
+import androidx.preference.PreferenceDataStore;
 import androidx.preference.PreferenceFragmentCompat;
 
+import app.zxtune.preferences.DataStore;
+
 public class PreferencesActivity extends AppCompatActivity implements PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
-
-  public static final String ACTION_PREFERENCE_CHANGED = PreferencesActivity.class.getName() + ".PREFERENCE_CHANGED";
-  public static final String EXTRA_PREFERENCE_NAME = "name";
-  public static final String EXTRA_PREFERENCE_VALUE = "value";
-
-  private Releaseable broadcast = ReleaseableStub.instance();
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -38,21 +35,6 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
           .disallowAddToBackStack()
           .commit();
     }
-  }
-
-  @Override
-  public void onResume() {
-    super.onResume();
-
-    broadcast = SharedPreferenceBroadcast.subscribe(this, Preferences.getDefaultSharedPreferences(this));
-  }
-
-  @Override
-  public void onPause() {
-    super.onPause();
-
-    broadcast.release();
-    broadcast = ReleaseableStub.instance();
   }
 
   @Override
@@ -91,43 +73,28 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+      getPreferenceManager().setPreferenceDataStore(Model.of(this).getStore());
       setPreferencesFromResource(layout, rootKey);
     }
   }
 
-  private static class SharedPreferenceBroadcast implements SharedPreferences.OnSharedPreferenceChangeListener {
+  // public for provider
+  public static class Model extends AndroidViewModel {
 
-    private final SharedPreferences preferences;
-    private final Context context;
+    private final PreferenceDataStore store;
 
-    static Releaseable subscribe(Context ctx, SharedPreferences prefs) {
-      SharedPreferenceBroadcast self = new SharedPreferenceBroadcast(prefs, ctx);
-      prefs.registerOnSharedPreferenceChangeListener(self);
-      return () -> {
-        prefs.unregisterOnSharedPreferenceChangeListener(self);
-      };
+    static Model of(androidx.fragment.app.Fragment owner) {
+      return new ViewModelProvider(owner.requireActivity(),
+          ViewModelProvider.AndroidViewModelFactory.getInstance(owner.getActivity().getApplication())).get(Model.class);
     }
 
-    private SharedPreferenceBroadcast(SharedPreferences prefs, Context ctx) {
-      preferences = prefs;
-      context = ctx;
+    public Model(Application app) {
+      super(app);
+      store = new DataStore(app);
     }
 
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-      final Intent intent = new Intent(ACTION_PREFERENCE_CHANGED);
-      intent.putExtra(EXTRA_PREFERENCE_NAME, key);
-      final Object val = preferences.getAll().get(key);
-      if (val instanceof String) {
-        intent.putExtra(EXTRA_PREFERENCE_VALUE, (String) val);
-      } else if (val instanceof Integer) {
-        intent.putExtra(EXTRA_PREFERENCE_VALUE, (Integer) val);
-      } else if (val instanceof Long) {
-        intent.putExtra(EXTRA_PREFERENCE_VALUE, (Long) val);
-      } else if (val instanceof Boolean) {
-        intent.putExtra(EXTRA_PREFERENCE_VALUE, (Boolean) val);
-      }
-      context.sendBroadcast(intent);
+    final PreferenceDataStore getStore() {
+      return store;
     }
   }
 }
