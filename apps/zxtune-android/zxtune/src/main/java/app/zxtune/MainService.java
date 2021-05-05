@@ -30,6 +30,7 @@ import app.zxtune.device.media.MediaSessionControl;
 import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
 import app.zxtune.playback.service.PlaybackServiceLocal;
+import app.zxtune.preferences.DataStore;
 import app.zxtune.preferences.SharedPreferencesBridge;
 
 public class MainService extends MediaBrowserServiceCompat {
@@ -63,7 +64,7 @@ public class MainService extends MediaBrowserServiceCompat {
     Api.load(() -> runOnMainThread(() -> onJniReady(prefs)));
     TRACE.checkpoint("jni");
 
-    service = new PlaybackServiceLocal(ctx, prefs);
+    service = new PlaybackServiceLocal(ctx, new DataStore(ctx));
     addHandle(service);
     TRACE.checkpoint("svc");
 

@@ -7,8 +7,8 @@
 package app.zxtune.playback.service;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
+import android.os.Bundle;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,6 +37,7 @@ import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.stubs.IteratorStub;
 import app.zxtune.playback.stubs.PlayableItemStub;
 import app.zxtune.playback.stubs.VisualizerStub;
+import app.zxtune.preferences.DataStore;
 import app.zxtune.sound.AsyncPlayer;
 import app.zxtune.sound.PlayerEventsListener;
 import app.zxtune.sound.SamplesSource;
@@ -51,7 +52,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   private static final String PREF_LAST_PLAYED_POSITION = "last_played_position";
 
   private final Context context;
-  private final SharedPreferences prefs;
+  private final DataStore prefs;
   private final ExecutorService executor;
   private final CompositeCallback callbacks;
   private final NavigateCommand navigateCmd;
@@ -67,7 +68,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     void execute() throws Exception;
   }
 
-  public PlaybackServiceLocal(Context context, SharedPreferences prefs) {
+  public PlaybackServiceLocal(Context context, DataStore prefs) {
     this.context = context;
     this.prefs = prefs;
     this.executor = Executors.newCachedThreadPool();
@@ -100,10 +101,10 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
         final String path = nowPlaying.toString();
         final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
         Log.d(TAG, "Save last played item '%s' at %dms", path, position);
-        final SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PREF_LAST_PLAYED_PATH, path);
-        editor.putLong(PREF_LAST_PLAYED_POSITION, position);
-        editor.apply();
+        final Bundle bundle = new Bundle();
+        bundle.putString(PREF_LAST_PLAYED_PATH, path);
+        bundle.putLong(PREF_LAST_PLAYED_POSITION, position);
+        prefs.putBatch(bundle);
       }
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to store session");
@@ -264,10 +265,6 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     });
   }
 
-  private void saveProperty(String name, long value) {
-    prefs.edit().putLong(name, value).apply();
-  }
-
   private static class Holder {
 
     final PlayableItem item;
@@ -403,7 +400,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     @Override
     public void setTrackMode(TrackMode mode) {
       final long val = mode == TrackMode.LOOPED ? 1 : 0;
-      saveProperty(Properties.Sound.LOOPED, val);
+      prefs.putLong(Properties.Sound.LOOPED, val);
     }
 
     @Override

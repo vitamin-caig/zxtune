@@ -1,7 +1,6 @@
 package app.zxtune.preferences;
 
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.os.Bundle;
 
