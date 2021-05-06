@@ -264,7 +264,7 @@ std_ostream_log::~std_ostream_log() {
 }
 void std_ostream_log::log( const std::string & message ) const {
 	destination.flush();
-	destination << message << std::endl;
+	destination << message << '\n';
 	destination.flush();
 }
 
