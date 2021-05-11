@@ -12,7 +12,6 @@
 
 // library includes
 #include <devices/aym.h>
-#include <devices/state.h>
 #include <sound/mixer.h>
 
 // supporting for AY/YM-based modules
@@ -21,9 +20,7 @@ namespace Devices
   namespace AYM
   {
     // Describes real device
-    class Chip
-      : public Device
-      , public StateSource
+    class Chip : public Device
     {
     public:
       using Ptr = std::shared_ptr<Chip>;

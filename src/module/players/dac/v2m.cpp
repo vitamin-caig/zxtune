@@ -16,7 +16,6 @@
 // library includes
 #include <debug/log.h>
 #include <formats/chiptune/digital/v2m.h>
-#include <module/players/analyzer.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -137,17 +136,11 @@ namespace Module::V2M
       : Engine(std::move(tune))
       , State(MakePtr<TimedState>(duration))
       , Target(std::move(target))
-      , Analyzer(Module::CreateSoundAnalyzer())
     {}
 
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -159,7 +152,6 @@ namespace Module::V2M
       const auto avail = State->Consume(FRAME_DURATION, looped);
 
       auto frame = Target->Apply(Engine.RenderFrame(GetSamples(avail)));
-      Analyzer->AddSoundData(frame);
       if (State->At() < Time::AtMillisecond() + FRAME_DURATION)
       {
         Engine.Reset();
@@ -192,7 +184,6 @@ namespace Module::V2M
     V2mEngine Engine;
     const TimedState::Ptr State;
     const Sound::Converter::Ptr Target;
-    const Module::SoundAnalyzer::Ptr Analyzer;
   };
 
   class Holder : public Module::Holder

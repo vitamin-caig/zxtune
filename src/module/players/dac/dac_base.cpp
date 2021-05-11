@@ -13,7 +13,6 @@
 // common includes
 #include <make_ptr.h>
 // library includes
-#include <module/players/analyzer.h>
 #include <sound/loop.h>
 #include <sound/multichannel_sample.h>
 
@@ -92,11 +91,6 @@ namespace Module
     State::Ptr GetState() const override
     {
       return Iterator->GetStateObserver();
-    }
-
-    Analyzer::Ptr GetAnalyzer() const override
-    {
-      return CreateAnalyzer(Device);
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override

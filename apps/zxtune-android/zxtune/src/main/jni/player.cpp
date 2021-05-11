@@ -24,9 +24,11 @@
 #include <module/players/pipeline.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/tracking_helper.h>
+#include <sound/impl/fft_analyzer.h>
 #include <sound/mixer_factory.h>
 #include <sound/render_params.h>
 // std includes
+#include <atomic>
 #include <ctime>
 #include <deque>
 
@@ -166,45 +168,71 @@ namespace
     uint_t Frames = 0;
   };
 
-  class AnalyzerWithHistory
+  class AnalyzerControl
   {
   public:
-    explicit AnalyzerWithHistory(Module::Analyzer::Ptr delegate)
-      : Delegate(std::move(delegate))
+    AnalyzerControl()
+      : Delegate(Sound::FFTAnalyzer::Create())
     {}
 
-    void FrameDone()
+    void FrameStarted()
     {
-      const auto nextPos = (WritePos + 1) % History.size();
-      if (nextPos != ReadPos)
+      const std::scoped_lock guard(Lock);
+      Current.Buffer.swap(Next.Buffer);
+      Next.Parts = Current.Parts;
+      Current.Parts = 0;
+    }
+
+    void FrameReady(uint_t count, void* buffer)
+    {
+      if (count && ++IdleFrames < 10)
       {
-        History[WritePos].Data = Delegate->GetState().Data;
-        WritePos = nextPos;
+        const std::scoped_lock guard(Lock);
+        const auto samples = count / Sound::Sample::CHANNELS;
+        Next.Buffer.resize(samples);
+        std::memcpy(Next.Buffer.data(), buffer, samples * sizeof(Sound::Sample));
       }
     }
 
-    uint_t Analyze(uint_t maxEntries, uint8_t* levels)
+    uint_t Analyze(uint_t maxEntries, uint8_t* levels) const
     {
-      if (ReadPos != WritePos)
+      IdleFrames = 0;
+      const std::scoped_lock guard(Lock);
+      FeedPart();
+      Delegate->GetSpectrum(safe_ptr_cast<Sound::Analyzer::LevelType*>(levels), maxEntries);
+      return maxEntries;
+    }
+
+  private:
+    struct State
+    {
+      Sound::Chunk Buffer;
+      uint_t Parts = 0;
+    };
+
+    void FeedPart() const
+    {
+      const auto done = Current.Parts++;
+      const auto total = std::max<uint_t>(Next.Parts, done + 1);
+      if (const auto samples = Current.Buffer.size())
       {
-        const auto& out = History[ReadPos];
-        const auto doneEntries = std::min<uint_t>(maxEntries, out.Data.size());
-        std::transform(out.Data.begin(), out.Data.begin() + doneEntries, levels,
-                       [](Module::Analyzer::LevelType level) { return level.Raw(); });
-        ReadPos = (ReadPos + 1) % History.size();
-        return doneEntries;
+        const auto start = samples * done / total;
+        const auto end = samples * (done + 1) / total;
+        Delegate->FeedSound(Current.Buffer.data() + start, end - start);
       }
       else
       {
-        return 0;
+        const Sound::Sample EMPTY[16];
+        Delegate->FeedSound(EMPTY, 16);
       }
     }
 
   private:
-    const Module::Analyzer::Ptr Delegate;
-    std::array<Module::Analyzer::SpectrumState, 8> History;
-    uint_t WritePos = 0;
-    uint_t ReadPos = 0;
+    const Sound::FFTAnalyzer::Ptr Delegate;
+    mutable std::mutex Lock;
+    mutable State Current;
+    State Next;
+    mutable std::atomic<uint_t> IdleFrames = 0;
   };
 
   class PlayerControl : public Player::Control
@@ -217,7 +245,6 @@ namespace
       , Props(Parameters::CreateMergedAccessor(LocalParameters, std::move(globalParams)))
       , Renderer(Module::CreatePipelinedRenderer(holder, samplerate, MakeSingletonPointer(*Props)))
       , State(Renderer->GetState())
-      , Analyser(Renderer->GetAnalyzer())
     {
       Require(Duration.Get() != 0);
     }
@@ -234,17 +261,19 @@ namespace
 
     uint_t Analyze(uint_t maxEntries, uint8_t* levels) const override
     {
-      return Analyser.Analyze(maxEntries, levels);
+      return Analyzer.Analyze(maxEntries, levels);
     }
 
     bool Render(uint_t samples, int16_t* buffer) override
     {
+      Analyzer.FrameStarted();
       auto rest = samples;
+      auto* target = buffer;
       for (;;)
       {
-        if (const auto got = Buffer.GetSamples(rest, buffer))
+        if (const auto got = Buffer.GetSamples(rest, target))
         {
-          buffer += got;
+          target += got;
           rest -= got;
           if (!rest)
           {
@@ -258,7 +287,8 @@ namespace
         }
         Buffer.Add(std::move(chunk));
       }
-      std::fill_n(buffer, rest, 0);
+      std::fill_n(target, rest, 0);
+      Analyzer.FrameReady(samples, buffer);
       return rest == 0;
     }
 
@@ -286,7 +316,6 @@ namespace
       RenderingPerformance.StartAccounting();
       auto chunk = Renderer->Render(Looped);
       RenderingPerformance.StopAccounting();
-      Analyser.FrameDone();
       return chunk;
     }
 
@@ -306,10 +335,10 @@ namespace
     Parameters::TrackingHelper<Parameters::Accessor> Props;
     const Module::Renderer::Ptr Renderer;
     const Module::State::Ptr State;
-    mutable AnalyzerWithHistory Analyser;
     BufferTarget Buffer;
     Sound::LoopParameters Looped;
     RenderingPerformanceAccountant RenderingPerformance;
+    AnalyzerControl Analyzer;
   };
 
   Player::Control::Ptr CreateControl(const Module::Holder& module, uint_t samplerate)

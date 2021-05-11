@@ -20,7 +20,6 @@
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <module/attributes.h>
-#include <module/players/analyzer.h>
 #include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
@@ -190,7 +189,6 @@ namespace Module::SDSF
     Renderer(ModuleData::Ptr data, Sound::Converter::Ptr target)
       : Data(std::move(data))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
-      , Analyzer(CreateSoundAnalyzer())
       , Target(std::move(target))
     {
       Engine.Initialize(*Data);
@@ -201,11 +199,6 @@ namespace Module::SDSF
       return State;
     }
 
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
-    }
-
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
       if (!State->IsValid())
@@ -213,10 +206,7 @@ namespace Module::SDSF
         return {};
       }
       const auto avail = State->Consume(FRAME_DURATION, looped);
-
-      auto data = Target->Apply(Engine.Render(GetSamples(avail)));
-      Analyzer->AddSoundData(data);
-      return data;
+      return Target->Apply(Engine.Render(GetSamples(avail)));
     }
 
     void Reset() override
@@ -240,7 +230,6 @@ namespace Module::SDSF
   private:
     const ModuleData::Ptr Data;
     const TimedState::Ptr State;
-    const SoundAnalyzer::Ptr Analyzer;
     SegaEngine Engine;
     const Sound::Converter::Ptr Target;
   };

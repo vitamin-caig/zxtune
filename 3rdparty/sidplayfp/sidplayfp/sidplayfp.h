@@ -130,14 +130,6 @@ public:
     void mute(unsigned int sidNum, unsigned int voice, bool enable);
 
     /**
-     *  Get state of SID
-     *  @param freqs pointer to frequencies array
-     *  @param levels pointer to levels array
-     *  @return used size of freqs/levels (3 or 6 usually)
-     */
-    unsigned int getState(unsigned int* freqs, unsigned int* levels) const;
-
-    /**
      * Get the current playing time with respect to resolution returned by timebase.
      *
      * @return the current playing time.
@@ -165,11 +157,6 @@ public:
      * Get the CIA 1 Timer A programmed value.
      */
     uint_least16_t getCia1TimerA() const;
-
-    /**
-    * Get CPU clock rate
-    */
-    uint_least32_t getCPUFreq() const;
 };
 
 #endif // SIDPLAYFP_H

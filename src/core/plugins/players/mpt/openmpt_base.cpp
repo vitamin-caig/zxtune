@@ -20,7 +20,6 @@
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/container.h>
-#include <module/players/analyzer.h>
 #include <module/players/properties_helper.h>
 #include <module/track_information.h>
 #include <module/track_state.h>
@@ -165,18 +164,12 @@ namespace Module::Mpt
       : Track(std::move(track))
       , State(MakePtr<TrackState>(Track))
       , Params(std::move(params))
-      , Analyzer(Module::CreateSoundAnalyzer())
       , SoundFreq(samplerate)
     {}
 
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -199,7 +192,6 @@ namespace Module::Mpt
         if (done)
         {
           chunk.resize(done);
-          Analyzer->AddSoundData(chunk);
           return chunk;
         }
       }
@@ -235,7 +227,6 @@ namespace Module::Mpt
     const ModulePtr Track;
     const TrackState::Ptr State;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
-    const Module::SoundAnalyzer::Ptr Analyzer;
     const uint_t SoundFreq;
   };
 

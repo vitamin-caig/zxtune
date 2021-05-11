@@ -195,11 +195,6 @@ public:
      * @return envelope counter
      */
     unsigned char readENV() const { return envelope_counter; }
-
-    /**
-     * Read sustain register current value
-     */
-    int readSUS() const { return sustain; }
 };
 
 } // namespace reSIDfp

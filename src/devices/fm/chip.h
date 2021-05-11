@@ -15,8 +15,8 @@
 // common includes
 #include <contract.h>
 // library includes
-#include <devices/details/analysis_map.h>
 #include <devices/fm.h>
+#include <math/fixedpoint.h>
 #include <math/numeric.h>
 #include <parameters/tracking_helper.h>
 #include <time/duration.h>
@@ -74,7 +74,6 @@ namespace Devices::FM
 
       bool SetNewParams(uint64_t clock, uint_t sndFreq)
       {
-        Analyser.SetClockRate(clock);
         if (clock != LastClockrate || sndFreq != LastSoundFreq)
         {
           LastClockrate = clock;
@@ -94,20 +93,6 @@ namespace Devices::FM
         std::transform(inBegin, inEnd, out, &ConvertToSample);
       }
 
-      void ConvertState(const uint_t* attenuations, const uint_t* periods, DeviceState& res) const
-      {
-        for (uint_t idx = 0; idx != VOICES; ++idx)
-        {
-          const uint_t MAX_ATTENUATION = 1024;
-          if (attenuations[idx] < MAX_ATTENUATION)
-          {
-            const uint_t band = Analyser.GetBandByPeriod(periods[idx]);
-            const LevelType level(MAX_ATTENUATION - attenuations[idx], MAX_ATTENUATION);
-            res.Set(band, level);
-          }
-        }
-      }
-
     private:
       static Sound::Sample ConvertToSample(YM2203SampleType level)
       {
@@ -119,7 +104,6 @@ namespace Devices::FM
     private:
       uint64_t LastClockrate;
       uint_t LastSoundFreq;
-      Devices::Details::AnalysisMap Analyser;
     };
 
     template<class ChipTraits>
@@ -144,11 +128,6 @@ namespace Devices::FM
         Adapter.Reset();
         Clock.Reset();
         SynchronizeParameters();
-      }
-
-      DeviceState GetState() const override
-      {
-        return Adapter.GetState();
       }
 
       Sound::Chunk RenderTill(typename ChipTraits::StampType stamp) override

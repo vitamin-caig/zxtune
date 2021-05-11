@@ -19,7 +19,6 @@
 // library includes
 #include <debug/log.h>
 #include <module/attributes.h>
-#include <module/players/analyzer.h>
 #include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
@@ -187,18 +186,12 @@ namespace Module::USF
     Renderer(const ModuleData& data, uint_t samplerate)
       : Engine(data)
       , State(MakePtr<TimedState>(data.Meta->Duration))
-      , Analyzer(CreateSoundAnalyzer())
       , Target(Sound::CreateResampler(Engine.GetSoundFrequency(), samplerate))
     {}
 
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -208,9 +201,7 @@ namespace Module::USF
         return {};
       }
       const auto avail = State->Consume(FRAME_DURATION, looped);
-      auto data = Target->Apply(Engine.Render(GetSamples(avail)));
-      Analyzer->AddSoundData(data);
-      return data;
+      return Target->Apply(Engine.Render(GetSamples(avail)));
     }
 
     void Reset() override
@@ -240,7 +231,6 @@ namespace Module::USF
   private:
     USFEngine Engine;
     const TimedState::Ptr State;
-    const SoundAnalyzer::Ptr Analyzer;
     const Sound::Converter::Ptr Target;
   };
 

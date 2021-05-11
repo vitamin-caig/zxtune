@@ -22,7 +22,6 @@
 #include <formats/chiptune/emulation/nitrocomposersoundformat.h>
 #include <math/bitops.h>
 #include <module/attributes.h>
-#include <module/players/analyzer.h>
 #include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
@@ -178,17 +177,11 @@ namespace Module::NCSF
       : Data(std::move(data))
       , State(MakePtr<TimedState>(Data->Meta->Duration))
       , Engine(MakePtr<NCSFEngine>(*Data, samplerate))
-      , Analyzer(CreateSoundAnalyzer())
     {}
 
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -198,9 +191,7 @@ namespace Module::NCSF
         return {};
       }
       const auto avail = State->Consume(FRAME_DURATION, looped);
-      auto result = Engine->Render(GetSamples(avail));
-      Analyzer->AddSoundData(result);
-      return result;
+      return Engine->Render(GetSamples(avail));
     }
 
     void Reset() override
@@ -231,7 +222,6 @@ namespace Module::NCSF
     const ModuleData::Ptr Data;
     const TimedState::Ptr State;
     NCSFEngine::Ptr Engine;
-    const Module::SoundAnalyzer::Ptr Analyzer;
   };
 
   class Holder : public Module::Holder

@@ -14,7 +14,6 @@
 #include "renderers.h"
 #include "volume_table.h"
 // library includes
-#include <devices/details/analysis_map.h>
 #include <parameters/tracking_helper.h>
 
 namespace Devices::AYM
@@ -92,13 +91,6 @@ namespace Devices::AYM
       return result;
     }
 
-    DeviceState GetState() const override
-    {
-      DeviceState res;
-      PSG.GetState(Analyser, res);
-      return res;
-    }
-
   private:
     void SynchronizeParameters()
     {
@@ -111,7 +103,6 @@ namespace Devices::AYM
         const uint_t sndFreq = Params->SoundFreq();
         Renderers.SetFrequency(clock, sndFreq);
         Renderers.SetInterpolation(Params->Interpolation());
-        Analyser.SetClockRate(clock);
         VolTable.SetParameters(Params->Type(), Params->Layout(), *Mixer);
       }
     }
@@ -122,7 +113,6 @@ namespace Devices::AYM
     MultiVolumeTable VolTable;
     typename Traits::PSGType PSG;
     ClockSource Clock;
-    Details::AnalysisMap Analyser;
     RenderersSet<typename Traits::PSGType> Renderers;
     Sound::Chunk RenderedData;
   };

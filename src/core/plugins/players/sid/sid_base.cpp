@@ -21,7 +21,6 @@
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
-#include <devices/details/analysis_map.h>
 #include <formats/chiptune/container.h>
 #include <formats/chiptune/emulation/sid.h>
 #include <module/attributes.h>
@@ -139,7 +138,7 @@ namespace Module::Sid
     const Parameters::Accessor::Ptr Params;
   };
 
-  class SidEngine : public Module::Analyzer
+  class SidEngine
   {
   public:
     using Ptr = std::shared_ptr<SidEngine>;
@@ -183,7 +182,6 @@ namespace Module::Sid
 
         Config.sidEmulation = &Builder;
         CheckSidplayError(Player.config(Config));
-        SetClockRate(Player.getCPUFreq());
       }
     }
 
@@ -210,27 +208,6 @@ namespace Module::Sid
       Player.play(nullptr, samples * Sound::Sample::CHANNELS);
     }
 
-    SpectrumState GetState() const override
-    {
-      unsigned freqs[6], levels[6];
-      const auto count = Player.getState(freqs, levels);
-      SpectrumState result;
-      for (uint_t chan = 0; chan != count; ++chan)
-      {
-        const auto band = Analysis.GetBandByScaledFrequency(freqs[chan]);
-        result.Set(band, LevelType(levels[chan], 15));
-      }
-      return result;
-    }
-
-  private:
-    void SetClockRate(uint_t rate)
-    {
-      // Fout = (Fn * Fclk/16777216) Hz
-      // http://www.waitingforfriday.com/index.php/Commodore_SID_6581_Datasheet
-      Analysis.SetClockAndDivisor(rate, 16777216);
-    }
-
   private:
     sidplayfp Player;
     ReSIDBuilder Builder;
@@ -238,7 +215,6 @@ namespace Module::Sid
 
     // cache filter flag
     bool UseFilter;
-    Devices::Details::AnalysisMap Analysis;
   };
 
   const auto FRAME_DURATION = Time::Milliseconds(100);
@@ -260,11 +236,6 @@ namespace Module::Sid
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Engine;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override

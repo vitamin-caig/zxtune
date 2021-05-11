@@ -22,7 +22,6 @@
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <module/attributes.h>
-#include <module/players/analyzer.h>
 #include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
@@ -170,7 +169,7 @@ namespace Module::PSF
   const SpuTrait SPU1 = {0x1f801c00, 0x4, 0xc};  // mirrored at {0x1f900000, 0x4, 0xa} for PS2
   const SpuTrait SPU2 = {0x1f900400, 0x4, 0xa};
 
-  class PSXEngine : public Module::Analyzer
+  class PSXEngine
   {
   public:
     using Ptr = std::shared_ptr<PSXEngine>;
@@ -231,33 +230,6 @@ namespace Module::PSF
       }
     }
 
-    SpectrumState GetState() const override
-    {
-      // http://problemkaputt.de/psx-spx.htm#soundprocessingunitspu
-      const uint_t SPU_VOICES_COUNT = 24;
-      SpectrumState result;
-      const auto iop = ::psx_get_iop_state(Emu.get());
-      const auto spu = ::iop_get_spu_state(iop);
-      for (const auto& trait : Spus)
-      {
-        for (uint_t voice = 0; voice < SPU_VOICES_COUNT; ++voice)
-        {
-          const auto voiceBase = trait.Base + (voice << 4);
-          if (const auto pitch = static_cast<int16_t>(::spu_lh(spu, voiceBase + trait.PitchReg)))
-          {
-            const auto envVol = static_cast<int16_t>(::spu_lh(spu, voiceBase + trait.VolReg));
-            if (envVol > 327)
-            {
-              // 0x1000 is for 44100Hz, assume it's C-8
-              const uint_t band = pitch * 96 / 0x1000;
-              result.Set(band, LevelType(envVol, 32768));
-            }
-          }
-        }
-      }
-      return result;
-    }
-
   private:
     void SetupExe(const PsxExe& exe)
     {
@@ -313,11 +285,6 @@ namespace Module::PSF
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Engine;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override

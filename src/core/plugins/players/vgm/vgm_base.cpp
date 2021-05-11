@@ -23,7 +23,6 @@
 #include <formats/chiptune/multidevice/videogamemusic.h>
 #include <math/numeric.h>
 #include <module/attributes.h>
-#include <module/players/analyzer.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
@@ -252,7 +251,6 @@ namespace Module::LibVGM
   public:
     Renderer(Model::Ptr tune, uint_t samplerate)
       : Engine(MakeRWPtr<VGMEngine>(std::move(tune), samplerate))
-      , Analyzer(CreateSoundAnalyzer())
     {}
 
     State::Ptr GetState() const override
@@ -260,19 +258,12 @@ namespace Module::LibVGM
       return Engine;
     }
 
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
-    }
-
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
     {
       const auto loops = Engine->LoopCount();
       if (loops == 0 || looped(loops))
       {
-        auto data = Engine->Render();
-        Analyzer->AddSoundData(data);
-        return data;
+        return Engine->Render();
       }
       else
       {
@@ -306,7 +297,6 @@ namespace Module::LibVGM
 
   private:
     const VGMEngine::RWPtr Engine;
-    const SoundAnalyzer::Ptr Analyzer;
   };
 
   class Holder : public Module::Holder

@@ -56,7 +56,8 @@ namespace
     void SetBackendParameters(const String& id, const String& options)
     {
       using namespace Parameters;
-      ParseParametersString(static_cast<Parameters::Identifier>(ZXTune::Sound::Backends::PREFIX).Append(id), options, *Params);
+      ParseParametersString(static_cast<Parameters::Identifier>(ZXTune::Sound::Backends::PREFIX).Append(id), options,
+                            *Params);
     }
 
     void SetSoundParameters(const Strings::Map& options)

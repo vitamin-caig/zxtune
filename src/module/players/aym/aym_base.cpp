@@ -17,7 +17,6 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <module/players/analyzer.h>
 #include <sound/loop.h>
 #include <sound/mixer_factory.h>
 
@@ -37,11 +36,6 @@ namespace Module
     State::Ptr GetState() const override
     {
       return Iterator->GetStateObserver();
-    }
-
-    Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Module::CreateAnalyzer(Device);
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override

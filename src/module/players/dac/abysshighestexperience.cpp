@@ -17,7 +17,6 @@
 // library includes
 #include <debug/log.h>
 #include <formats/chiptune/digital/abysshighestexperience.h>
-#include <module/players/analyzer.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/track_information.h>
@@ -182,31 +181,6 @@ namespace Module::AHX
     const HvlPtr Hvl;
   };
 
-  class Analyzer : public Module::Analyzer
-  {
-  public:
-    explicit Analyzer(HvlPtr hvl)
-      : Hvl(std::move(hvl))
-    {}
-
-    SpectrumState GetState() const override
-    {
-      SpectrumState result;
-      for (uint_t idx = 0, lim = Hvl->ht_Channels; idx != lim; ++idx)
-      {
-        const hvl_voice& voice = Hvl->ht_Voices[idx];
-        if (const int_t volume = voice.vc_VoiceVolume)
-        {
-          result.Set(voice.vc_TrackPeriod, LevelType(volume, 64));
-        }
-      }
-      return result;
-    }
-
-  private:
-    const HvlPtr Hvl;
-  };
-
   class HVL
   {
   public:
@@ -260,11 +234,6 @@ namespace Module::AHX
       return MakePtr<TrackState>(Hvl);
     }
 
-    Analyzer::Ptr MakeAnalyzer() const
-    {
-      return MakePtr<Analyzer>(Hvl);
-    }
-
   private:
     const HvlPtr Hvl;
     uint_t SamplesPerFrame;
@@ -280,11 +249,6 @@ namespace Module::AHX
     State::Ptr GetState() const override
     {
       return Tune->MakeTrackState();
-    }
-
-    Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Tune->MakeAnalyzer();
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override

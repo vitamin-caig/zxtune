@@ -20,7 +20,6 @@
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/oggvorbis.h>
-#include <module/players/analyzer.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -109,18 +108,12 @@ namespace Module::Ogg
     Renderer(Model::Ptr data, Sound::Converter::Ptr target)
       : Tune(data)
       , State(MakePtr<SampledState>(data->TotalSamples, data->Frequency))
-      , Analyzer(Module::CreateSoundAnalyzer())
       , Target(std::move(target))
     {}
 
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -136,9 +129,7 @@ namespace Module::Ogg
       {
         Tune.Seek(0);
       }
-      frame = Target->Apply(std::move(frame));
-      Analyzer->AddSoundData(frame);
-      return frame;
+      return Target->Apply(std::move(frame));
     }
 
     void Reset() override
@@ -156,7 +147,6 @@ namespace Module::Ogg
   private:
     OggTune Tune;
     const SampledState::Ptr State;
-    const Module::SoundAnalyzer::Ptr Analyzer;
     const Sound::Converter::Ptr Target;
   };
 

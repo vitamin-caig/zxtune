@@ -19,11 +19,9 @@
 // library includes
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
-#include <devices/details/analysis_map.h>
 #include <formats/chiptune/emulation/nintendodssoundformat.h>
 #include <math/bitops.h>
 #include <module/attributes.h>
-#include <module/players/analyzer.h>
 #include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
@@ -56,27 +54,7 @@ namespace Module::TwoSF
     }
   };
 
-  class AnalysisMap
-  {
-  public:
-    AnalysisMap()
-    {
-      const auto CLOCKRATE = 33513982 / 2;
-      const auto C3_RATE = 130.81f;
-      const auto C3_SAMPLERATE = 8000;
-      Delegate.SetClockRate(CLOCKRATE * C3_RATE / C3_SAMPLERATE);
-    }
-
-    uint_t GetBand(uint_t timer) const
-    {
-      return Delegate.GetBandByPeriod(0x10000 - timer);
-    }
-
-  private:
-    Devices::Details::AnalysisMap Delegate;
-  };
-
-  class DSEngine : public Module::Analyzer
+  class DSEngine
   {
   public:
     using Ptr = std::shared_ptr<DSEngine>;
@@ -103,7 +81,7 @@ namespace Module::TwoSF
       }
     }
 
-    ~DSEngine() override
+    ~DSEngine()
     {
       ::state_deinit(&State);
     }
@@ -122,25 +100,6 @@ namespace Module::TwoSF
     void Skip(uint_t samples)
     {
       ::state_render(&State, nullptr, samples);
-    }
-
-    SpectrumState GetState() const override
-    {
-      static const AnalysisMap ANALYSIS;
-      SpectrumState result;
-      for (const auto& in : State.SPU_core->channels)
-      {
-        if (in.status == CHANSTAT_STOPPED)
-        {
-          continue;
-        }
-        if (const auto level = ::spumuldiv7(100, in.vol) >> in.datashift)
-        {
-          const auto band = ANALYSIS.GetBand(in.timer);
-          result.Set(band, LevelType(level, 100));
-        }
-      }
-      return result;
     }
 
   private:
@@ -265,11 +224,6 @@ namespace Module::TwoSF
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Engine;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override

@@ -26,7 +26,6 @@
 #include <formats/multitrack/decoders.h>
 #include <math/numeric.h>
 #include <module/attributes.h>
-#include <module/players/analyzer.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
@@ -179,18 +178,12 @@ namespace Module::ASAP
     Renderer(AsapTune::Ptr tune, Sound::Converter::Ptr target)
       : Tune(std::move(tune))
       , State(MakePtr<TimedState>(Tune->GetDuration()))
-      , Analyzer(Module::CreateSoundAnalyzer())
       , Target(std::move(target))
     {}
 
     Module::State::Ptr GetState() const override
     {
       return State;
-    }
-
-    Module::Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analyzer;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -201,9 +194,7 @@ namespace Module::ASAP
       }
       const auto avail = State->Consume(FRAME_DURATION, looped);
 
-      auto buf = Target->Apply(Tune->Render(GetSamples(avail)));
-      Analyzer->AddSoundData(buf);
-      return buf;
+      return Target->Apply(Tune->Render(GetSamples(avail)));
     }
 
     void Reset() override
@@ -235,7 +226,6 @@ namespace Module::ASAP
   private:
     const AsapTune::Ptr Tune;
     const TimedState::Ptr State;
-    const Module::SoundAnalyzer::Ptr Analyzer;
     const Sound::Converter::Ptr Target;
   };
 

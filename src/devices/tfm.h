@@ -70,9 +70,7 @@ namespace Devices
       virtual void Reset() = 0;
     };
 
-    class Chip
-      : public Device
-      , public StateSource
+    class Chip : public Device
     {
     public:
       using Ptr = std::shared_ptr<Chip>;

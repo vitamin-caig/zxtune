@@ -150,11 +150,6 @@ namespace Module
       return State;
     }
 
-    Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Delegate->GetAnalyzer();
-    }
-
     Sound::Chunk Render(const Sound::LoopParameters& loop) override
     {
       auto data = Delegate->Render(loop);

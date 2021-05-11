@@ -226,38 +226,6 @@ namespace Module::Xmp
     Time::Microseconds TotalDuration;
   };
 
-  class Analyzer : public Module::Analyzer
-  {
-  public:
-    Analyzer(uint_t channels, StatePtr state)
-      : Channels(channels)
-      , State(std::move(state))
-    {}
-
-    SpectrumState GetState() const override
-    {
-      // difference between libxmp and regular spectrum formats is 2 octaves
-      const int C2OFFSET = 24;
-      SpectrumState result;
-      for (uint_t idx = 0; idx != Channels; ++idx)
-      {
-        const xmp_frame_info::xmp_channel_info& info = State->channel_info[idx];
-        if (info.note != uint8_t(-1) && info.volume != 0)
-        {
-          // TODO: use period as precise playback speed
-          const auto band = std::max<int>(0, info.note - C2OFFSET);
-          // TODO: also take into account sample's RMS
-          result.Set(band, LevelType(info.volume, 100));
-        }
-      }
-      return result;
-    }
-
-  private:
-    const uint_t Channels;
-    const StatePtr State;
-  };
-
   class Renderer : public Module::Renderer
   {
   public:
@@ -266,7 +234,6 @@ namespace Module::Xmp
       , State(new xmp_frame_info())
       , Params(std::move(params))
       , Track(MakePtr<TrackState>(State))
-      , Analysis(MakePtr<Analyzer>(channels, State))
       , SoundFreq(samplerate)
     {
       // Required in order to perform initial seeking
@@ -281,11 +248,6 @@ namespace Module::Xmp
     Module::State::Ptr GetState() const override
     {
       return Track;
-    }
-
-    Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Analysis;
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
@@ -343,7 +305,6 @@ namespace Module::Xmp
     const StatePtr State;
     Parameters::TrackingHelper<Parameters::Accessor> Params;
     const TrackState::Ptr Track;
-    const Analyzer::Ptr Analysis;
     const uint_t SoundFreq;
   };
 

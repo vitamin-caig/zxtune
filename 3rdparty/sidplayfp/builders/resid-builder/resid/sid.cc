@@ -357,15 +357,6 @@ SID::State SID::read_state()
   return state;
 }
 
-void SID::read_state(unsigned freqs[3], unsigned levels[3])
-{
-  int i;
-  for (i = 0; i != 3; ++i) {
-    Voice& v = voice[i];
-    freqs[i] = v.wave.freq;
-    levels[i] = v.envelope.sustain;
-  }
-}
 
 // ----------------------------------------------------------------------------
 // Write state.

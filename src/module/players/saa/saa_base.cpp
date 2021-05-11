@@ -14,7 +14,6 @@
 #include <make_ptr.h>
 // library includes
 #include <math/numeric.h>
-#include <module/players/analyzer.h>
 #include <sound/loop.h>
 // std includes
 #include <utility>
@@ -90,11 +89,6 @@ namespace Module
     State::Ptr GetState() const override
     {
       return Iterator->GetStateObserver();
-    }
-
-    Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Module::CreateAnalyzer(Device);
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override

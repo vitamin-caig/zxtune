@@ -14,7 +14,7 @@
 // common includes
 #include <contract.h>
 // library includes
-#include <module/analyzer.h>
+#include <sound/analyzer.h>
 // std includes
 #include <algorithm>
 #include <array>
@@ -26,9 +26,10 @@
 
 namespace
 {
+  const uint_t UPDATE_FPS = 25;
   const uint_t MAX_BANDS = 12 * 9;
   const uint_t BAR_WIDTH = 3;
-  const uint_t LEVELS_FALLBACK = 20;
+  const uint_t LEVELS_FALLBACK = 8;
 
   struct BandLevel
   {
@@ -82,7 +83,6 @@ namespace
       setObjectName(QLatin1String("AnalyzerControl"));
       SetTitle();
 
-      const unsigned UPDATE_FPS = 10;
       Timer.setInterval(1000 / UPDATE_FPS);
 
       Require(connect(&supp, SIGNAL(OnStartModule(Sound::Backend::Ptr, Playlist::Item::Data::Ptr)),
@@ -106,10 +106,11 @@ namespace
         {
           level.Fall(LEVELS_FALLBACK);
         }
-        const auto& state = Analyzer->GetState();
-        for (uint_t idx = 0, lim = std::min(state.Data.size(), Levels.size()); idx < lim; ++idx)
+        std::array<Sound::Analyzer::LevelType, MAX_BANDS> spectrum;
+        Analyzer->GetSpectrum(spectrum.data(), spectrum.size());
+        for (uint_t idx = 0; idx < spectrum.size(); ++idx)
         {
-          Levels[idx].Set(state.Data[idx].Raw());
+          Levels[idx].Set(spectrum[idx].Raw());
         }
         repaint();
       }
@@ -175,7 +176,7 @@ namespace
   private:
     QTimer Timer;
     const QPalette Palette;
-    Module::Analyzer::Ptr Analyzer;
+    Sound::Analyzer::Ptr Analyzer;
     Analyzed Levels;
   };
 }  // namespace

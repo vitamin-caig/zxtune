@@ -11,7 +11,6 @@
 #pragma once
 
 // library includes
-#include <module/analyzer.h>
 #include <module/state.h>
 #include <sound/chunk.h>
 
@@ -33,9 +32,6 @@ namespace Module
 
     //! @brief Current tracking status
     virtual State::Ptr GetState() const = 0;
-
-    //! @brief Getting analyzer interface
-    virtual Analyzer::Ptr GetAnalyzer() const = 0;
 
     //! @brief Rendering single frame and modifying internal state
     //! @return empty chunk if there's no more data to render

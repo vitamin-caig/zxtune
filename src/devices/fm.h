@@ -14,7 +14,6 @@
 #include <data_streaming.h>
 #include <types.h>
 // library includes
-#include <devices/state.h>
 #include <sound/chunk.h>
 #include <time/instant.h>
 // std includes
@@ -80,9 +79,7 @@ namespace Devices
     };
 
     // Describes real device
-    class Chip
-      : public Device
-      , public StateSource
+    class Chip : public Device
     {
     public:
       using Ptr = std::shared_ptr<Chip>;

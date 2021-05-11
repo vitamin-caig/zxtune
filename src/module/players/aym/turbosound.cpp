@@ -17,7 +17,6 @@
 #include <make_ptr.h>
 // library includes
 #include <module/attributes.h>
-#include <module/players/analyzer.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/src/names_set.h>
 #include <parameters/visitor.h>
@@ -281,11 +280,6 @@ namespace Module::TurboSound
     State::Ptr GetState() const override
     {
       return Iterator->GetStateObserver();
-    }
-
-    Analyzer::Ptr GetAnalyzer() const override
-    {
-      return Module::CreateAnalyzer(Device);
     }
 
     Sound::Chunk Render(const Sound::LoopParameters& looped) override
