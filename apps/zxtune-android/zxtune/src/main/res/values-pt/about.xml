@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="about">Sobre</string>
+  <string name="about_credits">Créditos</string>
+  <string name="about_plugins">Plugins</string>
+  <!-- about-related -->
+  <string name="about_author">
+    Ideia, código: <b>Vitamin/CAIG</b>\n
+    Design: <b>Restorer</b>, <b>Vitamin/CAIG</b>, <b>Nodeus</b>\n\n
+    Fontes usadas:\n
+    \tAYEmul de <b>S.Bulba</b>\n
+    \tAYFly de <b>Ander</b>\n
+    \tPusher de <b>Himik/ZxZ</b>\n
+    Bibliotecas usadas:\n
+    \tboost\n
+    \tzlib de <b>Jean-Loup Gailly</b> e <b>Mark Adler</b>\n
+    \tz80ex de <b>Boo-boo</b>\n
+    \tlhasa de <b>Simon Howard</b>\n
+    \tunrar de <b>Alexander Roshal</b>\n
+    \tlibxmp de <b>Claudio Matsuoka</b>\n
+    \tlibsidplayfp+resid\n
+    \tsnes_spc de <b>Shay Green</b>\n
+    \tGame_Music_Emu de <b>Shay Green</b> e <b>Chris Moeller</b>\n
+    \t7-Zip de <b>Igor Pavlov</b>\n
+    \tHVL2WAV de <b>Peter Gordon</b>\n
+    \tCrashlytics de <b>Twitter</b>\n
+    \tHighly Experimental de <b>Neill Corlett</b>\n
+    \tlazyusf2 de <b>Christopher Snowhill</b>\n
+    \tmGBA de <b>Jeffrey Pfau</b>\n
+    \tvio2sf de <b>Christopher Snowhill</b>\n
+    \tHighly Threoretical de <b>Neill Corlett</b> e <b>Christopher Snowhill</b>\n
+    \tASAP de <b>Piotr Fusik</b>\n
+    \tjsoup de <b>Jonathan Hedley</b>\n
+    \tminimp3 de <b>lieff</b>\n
+    \tstb-vorbis de <b>Sean Barrett</b>\n
+    \tlibFLAC\n
+    \tv2m-player de <b>Farbrausch</b> e <b>Joakim L.Gilje</b>\n
+    \tFFmpeg\n
+    \tlibvgm de <b>Valley Bell</b>\n
+    \tlibopenmpt\n
+    \tsseqplayer de <b>Christopher Snowhill</b>\n
+    \n
+    Dedicado a <b>Lizzi</b>
+  </string>
+  <!-- players -->
+  <string name="plugin_player_dac">Baseado em amostras</string>
+  <string name="plugin_player_multidevice">Multidispositivo</string>
+  <!-- containers -->
+  <string name="plugin_multitrack">Contêineres multitrilha</string>
+  <string name="plugin_archive">Arquivadores</string>
+  <string name="plugin_compressor">Empacotadores de dados</string>
+  <string name="plugin_decompiler">Decompiladores</string>
+</resources>
