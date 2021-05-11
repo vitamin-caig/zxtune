@@ -211,7 +211,7 @@ namespace Module
   Time::Microseconds TimedState::Consume(Time::Microseconds range, const Sound::LoopParameters& looped)
   {
     const auto nextPos = range.Get() ? Position + range : Limit;
-    if (nextPos < Limit || looped(++Loops))
+    if (nextPos < Limit || looped(Loops++))
     {
       Position = Time::AtMicrosecond(nextPos.Get() % Limit.Get());
       TotalPlayback += range;
@@ -236,7 +236,7 @@ namespace Module
   void SampledState::Consume(uint_t samples, const Sound::LoopParameters& looped)
   {
     const auto nextSamples = samples ? DoneSamples + samples : TotalSamples;
-    if (nextSamples < TotalSamples || looped(++Loops))
+    if (nextSamples < TotalSamples || looped(Loops++))
     {
       DoneSamples = nextSamples % TotalSamples;
       DoneSamplesTotal += samples;

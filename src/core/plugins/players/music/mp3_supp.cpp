@@ -118,6 +118,16 @@ namespace Module::Mp3
       Offset = Data->Lookup.front().Offset;
     }
 
+    bool IsEnd() const
+    {
+      return Offset == Data->Content->Size();
+    }
+
+    Time::Microseconds GetEnd() const
+    {
+      return Data->Duration;
+    }
+
     FrameSound RenderNextFrame()
     {
       const auto total = Data->Content->Size();
@@ -148,6 +158,7 @@ namespace Module::Mp3
         --lookup;
         preFrames += lookup->Frames;
       }
+      const auto* raw = static_cast<const uint8_t*>(Data->Content->Start());
       auto offset = lookup->Offset;
       auto size = Data->Content->Size() - offset;
       const Time::AtMicrosecond target = request;
@@ -155,8 +166,7 @@ namespace Module::Mp3
       while (pos < target)
       {
         mp3dec_frame_info_t info;
-        if (const auto samples = ::mp3dec_decode_frame(
-                &Decoder, static_cast<const uint8_t*>(Data->Content->Start()) + offset, int(size), nullptr, &info))
+        if (const auto samples = ::mp3dec_decode_frame(&Decoder, raw + offset, int(size), nullptr, &info))
         {
           offset += info.frame_bytes;
           size -= info.frame_bytes;
@@ -254,6 +264,11 @@ namespace Module::Mp3
         Dbg("Premature end at %1%us", State->PreciseAt().Get());
       }
       const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
+      if (Tune.IsEnd())
+      {
+        // Adjust position
+        State->Seek(Time::AtMicrosecond(Tune.GetEnd().Get() - rendered.Get()));
+      }
       State->Consume(rendered, looped);
       if (loops != State->LoopCount())
       {
@@ -340,7 +355,6 @@ namespace Module::Mp3
         Data->Lookup.back().Frames++;
       }
       Data->Duration += Time::Microseconds::FromRatio(frame.Properties.SamplesCount, frame.Properties.Samplerate);
-      ;
     }
 
     void SetContent(Binary::Data::Ptr data)
