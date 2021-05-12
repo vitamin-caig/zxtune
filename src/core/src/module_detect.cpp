@@ -239,7 +239,8 @@ namespace Module
 
     Parameters::Container::Ptr CreateInitialProperties(const String& /*subpath*/) const override
     {
-      return std::move(Properties);
+      // May be called multiple times, so do not destruct
+      return Properties;
     }
 
     void ProcessModule(const ZXTune::DataLocation& /*location*/, const ZXTune::Plugin& /*decoder*/,
