@@ -9,3 +9,13 @@
 
 # samples
 - samples/
+
+# include blobs
+- \.inc$
+
+# Gradle
+- gradlew(\.bat)$
+- gradle/wrapper/
+
+# dist folders
+- /dist/
