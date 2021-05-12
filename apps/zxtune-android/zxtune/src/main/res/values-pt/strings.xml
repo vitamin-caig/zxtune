@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- menu-related -->
-    <string name="prefs">Defenições</string>
+    <string name="prefs">Definições</string>
     <string name="review">Avaliar</string>
     <string name="quit">Sair</string>
     <!-- action-related -->

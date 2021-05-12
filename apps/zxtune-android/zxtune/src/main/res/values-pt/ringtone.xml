@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="ringtone_create_title">Defenir com toque</string>
+    <string name="ringtone_create_title">Definir com toque</string>
     <string name="ringtone_create_started">Criando toque…</string>
-    <string name="ringtone_changed">Novo toque foi defenido!</string>
+    <string name="ringtone_changed">Novo toque foi definido!</string>
     <string name="ringtone_creating_failed">Falha ao criar toque: %s</string>
 </resources>

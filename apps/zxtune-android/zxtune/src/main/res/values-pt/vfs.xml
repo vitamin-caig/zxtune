@@ -46,7 +46,7 @@
     <string name="vfs_joshw_root_description">Vários arquivos</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_handles_name">Alças</string>
-    <string name="vfs_amp_countries_name">Countries</string>
+    <string name="vfs_amp_countries_name">Países</string>
     <string name="vfs_amp_groups_name">Grupos</string>
     <string-array name="vfs_amp_countries_list">
 <!--0--><item></item>
