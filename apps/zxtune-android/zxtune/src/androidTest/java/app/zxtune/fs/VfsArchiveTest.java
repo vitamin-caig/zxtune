@@ -170,7 +170,7 @@ public class VfsArchiveTest {
       assertEquals(subUri, resolvedFile.getUri());
       assertEquals("+unGZIP", resolvedFile.getName());
       assertEquals("sll3", resolvedFile.getDescription());
-      assertEquals("2:40", resolvedFile.getSize());
+      assertEquals("2:33", resolvedFile.getSize());
 
       // no parent dir really, so just file itself
       final VfsFile resolvedFileParent = (VfsFile) resolvedFile.getParent();
@@ -341,7 +341,7 @@ public class VfsArchiveTest {
         assertEquals(subUri, resolvedFile.getUri());
         assertEquals("+unGZIP", resolvedFile.getName());
         assertEquals("sll3", resolvedFile.getDescription());
-        assertEquals("2:40", resolvedFile.getSize());
+        assertEquals("2:33", resolvedFile.getSize());
 
         // no parent dir really, so just file itself
         final VfsFile resolvedFileParent = (VfsFile) resolvedFile.getParent();

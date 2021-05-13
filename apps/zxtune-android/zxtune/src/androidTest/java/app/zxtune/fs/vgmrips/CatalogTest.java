@@ -2,10 +2,10 @@ package app.zxtune.fs.vgmrips;
 
 import android.content.Context;
 
-import androidx.collection.SparseArrayCompat;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,13 +15,14 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
-import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.HttpProviderFactory;
 import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.utils.ProgressCallback;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public class CatalogTest {
@@ -35,28 +36,94 @@ public class CatalogTest {
     catalog = new RemoteCatalog(new MultisourceHttpProvider(http));
   }
 
+  private static <T> void check(int expectedSize, T[] expectedSubset, ArrayList<T> actual) {
+    assertEquals(expectedSize, actual.size());
+    for (T expected : expectedSubset) {
+      assertTrue("Not found " + expected, contains(actual, expected));
+    }
+  }
+
+  private static <T> boolean contains(ArrayList<T> actual, T expected) {
+    for (T e : actual) {
+      if (matches(expected, e)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static <T> boolean matches(T expected, T actual) {
+    if (expected instanceof Group) {
+      return matches((Group) expected, (Group) actual);
+    } else if (expected instanceof Pack) {
+      return matches((Pack) expected, (Pack) actual);
+    } else if (expected instanceof Track) {
+      return matches((Track) expected, (Track) actual);
+    } else {
+      Assert.fail("Unknown type " + expected.getClass());
+      return false;
+    }
+  }
+
+  // Match only visible in UI attributes
+  private static boolean matches(Group expected, Group actual) {
+    if (expected.id.equals(actual.id)) {
+      Assert.assertEquals(expected.id, expected.title, actual.title);
+      Assert.assertEquals(expected.id, expected.packs, actual.packs);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private static boolean matches(Pack expected, Pack actual) {
+    if (expected.id.equals(actual.id)) {
+      Assert.assertEquals(expected.id, expected.title, actual.title);
+      //Assert.assertEquals(expected.id, expected.ratings, actual.ratings);
+      //Assert.assertEquals(expected.id, expected.score, actual.score);
+      Assert.assertEquals(expected.id, expected.songs, actual.songs);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private static boolean matches(Track expected, Track actual) {
+    if (expected.location.equals(actual.location)) {
+      Assert.assertEquals(expected.location, expected.title, actual.title);
+      Assert.assertEquals(expected.location, expected.number, actual.number);
+      Assert.assertEquals(expected.location, expected.duration, actual.duration);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   @Test
   public void testCompanies() throws IOException {
+    final Group[] checkpoints = {
+        //first
+        new Group("konami", "Konami", 218),
+        new Group("naxat-soft", "Naxat Soft", 5),
+        new Group("c-s-ware", "C's Ware", 4),
+        new Group("crea-tech", "Crea-Tech", 1)
+    };
+
     final GroupsChecker checker = new GroupsChecker();
     catalog.companies().query(checker);
 
-    final SparseArrayCompat<Group> checkpoints = new SparseArrayCompat<>();
-    //first
-    checkpoints.append(0, new Group("konami", "Konami", 202));
-    checkpoints.append(101, new Group("naxat-soft", "Naxat Soft", 4));
-    checkpoints.append(303, new Group("c-s-ware", "C's Ware", 1));
-    checkpoints.append(405, new Group("crea-tech", "Crea-Tech", 1));
-    checker.check(514, checkpoints);
+    checker.check(542, checkpoints);
   }
 
   @Test
   public void testCompanyPacks() throws IOException {
+    final Pack[] checkpoints = {
+        // first
+        makePack("solitaire-nes", "Solitaire", 4, 25, 3)
+    };
+
     final PacksChecker checker = new PacksChecker();
     catalog.companies().queryPacks("odyssey-software", checker, checker);
-
-    final SparseArrayCompat<Pack> checkpoints = new SparseArrayCompat<>();
-    //first
-    checkpoints.append(0, makePack("solitaire-nes", "Solitaire", 4, 25, 3));
 
     checker.check(4, checkpoints);
     checker.checkProgress(4, 4);
@@ -64,54 +131,58 @@ public class CatalogTest {
 
   @Test
   public void testComposers() throws IOException {
+    final Group[] checkpoints = {
+        //first
+        new Group("konami-kukeiha-club", "Konami Kukeiha Club", 61),
+        new Group("mariko-egawa", "Mariko Egawa", 2),
+        //last
+        new Group("zuntata-sound-team", "Zuntata Sound Team", 1)
+    };
+
     final GroupsChecker checker = new GroupsChecker();
     catalog.composers().query(checker);
 
-    final SparseArrayCompat<Group> checkpoints = new SparseArrayCompat<>();
-    //first
-    checkpoints.append(0, new Group("konami-kukeiha-club", "Konami Kukeiha Club", 47));
-    checkpoints.append(502, new Group("mariko-egawa", "Mariko Egawa", 2));
-    //last
-    checkpoints.append(1457, new Group("zuntata-sound-team", "Zuntata Sound Team", 1));
-    checker.check(1458, checkpoints);
+    checker.check(1514, checkpoints);
   }
 
   @Test
   public void testComposerPacks() throws IOException {
+    final Pack[] checkpoints = {
+        // first
+        makePack("street-fighter-ii-champion-edition-cp-system", "Street Fighter II: Champion Edition", 47, 45, 13)
+    };
+
     final PacksChecker checker = new PacksChecker();
     catalog.composers().queryPacks("yoko-shimomura", checker, checker);
 
-    final SparseArrayCompat<Pack> checkpoints = new SparseArrayCompat<>();
-    //first
-    checkpoints.append(0, makePack("street-fighter-ii-champion-edition-cp-system", "Street " +
-        "Fighter II: Champion Edition", 47, 45, 13));
-
-    checker.check(14, checkpoints);
-    checker.checkProgress(14, 14);
+    checker.check(15, checkpoints);
+    checker.checkProgress(15, 15);
   }
 
   @Test
   public void testChips() throws IOException {
+    final Group[] checkpoints = {
+        //first
+        new Group("nes-apu", "NES APU", 436),
+        //last
+        new Group("vrc7", "VRC7", 1)
+    };
+
     final GroupsChecker checker = new GroupsChecker();
     catalog.chips().query(checker);
 
-    final SparseArrayCompat<Group> checkpoints = new SparseArrayCompat<>();
-    //first
-    checkpoints.append(0, new Group("nes-apu", "NES APU", 427));
-    //last
-    checkpoints.append(47, new Group("vrc7", "VRC7", 1));
-    checker.check(48, checkpoints);
+    checker.check(49, checkpoints);
   }
 
   @Test
   public void testChipPacks() throws IOException {
+    final Pack[] checkpoints = {
+        //first
+        makePack("sound-blaster-series-demo-songs-ibm-pc-xt-at", "Sound Blaster Series Demo Songs", 17, 30, 4)
+    };
+
     final PacksChecker checker = new PacksChecker();
     catalog.chips().queryPacks("saa1099", checker, checker);
-
-    final SparseArrayCompat<Pack> checkpoints = new SparseArrayCompat<>();
-    //first
-    checkpoints.append(0, makePack("sound-blaster-series-demo-songs-ibm-pc-xt-at", "Sound Blaster" +
-        " Series Demo Songs", 17, 35, 4));
 
     checker.check(4, checkpoints);
     checker.checkProgress(4, 4);
@@ -120,49 +191,56 @@ public class CatalogTest {
 
   @Test
   public void testSystems() throws IOException {
+    final Group[] checkpoins = {
+        //first
+        new Group("nintendo/family-computer", "Family Computer",
+            333),
+        new Group("ascii/msx", "MSX", 89)
+        //last
+        //checkpoins.append(182, new System("snk/neo-geo-pocket", "Neo Geo Pocket", 1));
+    };
+
     final GroupsChecker checker = new GroupsChecker();
     catalog.systems().query(checker);
 
-    final SparseArrayCompat<Group> checkpoins = new SparseArrayCompat<>();
-    //first
-    checkpoins.append(0, new Group("nintendo/family-computer", "Family Computer",
-        327));
-    checkpoins.append(10, new Group("ascii/msx", "MSX", 76));
-    //last
-    //checkpoins.append(182, new System("snk/neo-geo-pocket", "Neo Geo Pocket", 1));
-    checker.check(183, checkpoins);
+    checker.check(184, checkpoins);
   }
 
   @Test
   public void testSystemPacks() throws IOException {
+    final Pack[] checkpoints = {
+        //first
+        makePack("the-ninja-warriors-zx-spectrum-128", "The Ninja Warriors",
+            1, 45, 8),
+        //last
+        makePack("altered-beast-zx-spectrum-128", "Altered Beast",
+            5, 15, 4)
+    };
+
     final PacksChecker checker = new PacksChecker();
     catalog.systems().queryPacks("sinclair/zx-spectrum-128", checker, checker);
 
-    final SparseArrayCompat<Pack> checkpoints = new SparseArrayCompat<>();
-    //first
-    checkpoints.append(0, makePack("the-ninja-warriors-zx-spectrum-128", "The Ninja Warriors",
-        1, 45, 8));
-    //last
-    checkpoints.append(31, makePack("altered-beast-zx-spectrum-128", "Altered Beast",
-        5, 15, 4));
     checker.check(32, checkpoints);
     checker.checkProgress(32, 32);
   }
 
   @Test
   public void testPackTracks() throws IOException {
+    final Track[] checkpoints = {
+        //first
+        new Track(1, "Into The Lair", TimeStamp.createFrom(54,
+            TimeUnit.SECONDS), "Other/The_Scheme_(NEC_PC-8801,_OPNA)/01 Into The Lair.vgz"),
+        //last
+        new Track(17, "Theme of Gigaikotsu", TimeStamp.createFrom(121,
+            TimeUnit.SECONDS), "Other/The_Scheme_(NEC_PC-8801,_OPNA)/17 Theme of Gigaikotsu.vgz")
+    };
+
     final TracksChecker checker = new TracksChecker();
     final Pack pack = catalog.findPack("the-scheme-nec-pc-8801-opna", checker);
 
-    comparePacks(makePack("the-scheme-nec-pc-8801-opna", "The Scheme", 17, 45, 32), pack);
+    Assert.assertTrue(matches(makePack("the-scheme-nec-pc-8801-opna", "The Scheme", 17, 45, 34),
+        pack));
 
-    final SparseArrayCompat<Track> checkpoints = new SparseArrayCompat<>();
-    //first
-    checkpoints.append(0, new Track(1, "Into The Lair", TimeStamp.createFrom(54,
-        TimeUnit.SECONDS), "Other/The_Scheme_(NEC_PC-8801,_OPNA)/01 Into The Lair.vgz"));
-    //last
-    checkpoints.append(16, new Track(17, "Theme of Gigaikotsu", TimeStamp.createFrom(121,
-        TimeUnit.SECONDS), "Other/The_Scheme_(NEC_PC-8801,_OPNA)/17 Theme of Gigaikotsu.vgz"));
     checker.check(17, checkpoints);
   }
 
@@ -186,25 +264,9 @@ public class CatalogTest {
       result.add(obj);
     }
 
-    final void check(int size, SparseArrayCompat<Group> checkpoints) {
-      assertEquals(size, result.size());
-      for (int i = 0; i < checkpoints.size(); ++i) {
-        final int pos = checkpoints.keyAt(i);
-        final Group ref = checkpoints.valueAt(i);
-        final Group real = result.get(pos);
-        assertEquals(ref.id, real.id);
-        assertEquals(ref.title, real.title);
-        assertEquals(ref.packs, real.packs);
-      }
+    final void check(int size, Group[] checkpoints) {
+      CatalogTest.check(size, checkpoints, result);
     }
-  }
-
-  private static void comparePacks(Pack ref, Pack real) {
-    assertEquals(ref.id, real.id);
-    assertEquals(ref.title, real.title);
-    assertEquals(ref.songs, real.songs);
-    assertEquals(ref.score, real.score);
-    assertEquals(ref.ratings, real.ratings);
   }
 
   private static class PacksChecker implements Catalog.Visitor<Pack>, ProgressCallback {
@@ -219,14 +281,8 @@ public class CatalogTest {
       result.add(obj);
     }
 
-    final void check(int size, SparseArrayCompat<Pack> checkpoints) {
-      assertEquals(size, result.size());
-      for (int i = 0; i < checkpoints.size(); ++i) {
-        final int pos = checkpoints.keyAt(i);
-        final Pack ref = checkpoints.valueAt(i);
-        final Pack real = result.get(pos);
-        comparePacks(ref, real);
-      }
+    final void check(int size, Pack[] checkpoints) {
+      CatalogTest.check(size, checkpoints, result);
     }
 
     @Override
@@ -252,17 +308,8 @@ public class CatalogTest {
       result.add(obj);
     }
 
-    final void check(int size, SparseArrayCompat<Track> checkpoints) {
-      assertEquals(size, result.size());
-      for (int i = 0; i < checkpoints.size(); ++i) {
-        final int pos = checkpoints.keyAt(i);
-        final Track ref = checkpoints.valueAt(i);
-        final Track real = result.get(pos);
-        assertEquals(ref.number, real.number);
-        assertEquals(ref.title, real.title);
-        assertEquals(ref.duration, real.duration);
-        assertEquals(ref.location, real.location);
-      }
+    final void check(int size, Track[] checkpoints) {
+      CatalogTest.check(size, checkpoints, result);
     }
   }
 }

@@ -17,6 +17,7 @@ public class CatalogTest extends RemoteCatalogTest {
     public void testRoot() throws IOException {
         final Path path = Path.create();
         final String[] entries = {
+                "DualCore",     "",
                 "games",        "",
                 "musicians",    "",
                 "scene",        ""

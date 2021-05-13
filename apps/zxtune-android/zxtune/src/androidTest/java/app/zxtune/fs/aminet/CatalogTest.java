@@ -32,7 +32,7 @@ public class CatalogTest extends RemoteCatalogTest {
     //hardcoded entries, filtered in Root
     final String[] entries = {
         "32bit", "@MP3s by 32bit choonz (2 packages)",
-        "xm", "@Multichannel xm mods (412 packages)"
+        "xm", "@Multichannel xm mods (413 packages)"
     };
     test(path, entries, Mode.CHECK_MISSED);
   }
