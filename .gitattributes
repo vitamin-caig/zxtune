@@ -1,0 +1,14 @@
+# linguist-related
+3rdparty/ linguist-vendored
+samples/ linguist-detectable=false
+regression/ linguist-detectable=false
+doc/ linguist-documentation
+make/tools/bloat/** linguist-vendored
+*.inc linguist-generated
+*_api.h linguist-generated
+*_api_dynamic.cpp linguist-generated
+*.templ linguist-detectable=false
+*.dat linguist-detectable=false
+*.bin linguist-detectable=false
+*.h linguist-language=C++
+Dockerfile.* linguist-language=Dockerfile
