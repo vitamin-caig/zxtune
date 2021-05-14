@@ -57,11 +57,11 @@ public final class Path extends app.zxtune.fs.httpdir.PathBase {
   }
 
   public final boolean isCatalogue() {
-    return elements.size() == 1;
+    return getElements().size() == 1;
   }
 
   public final String getCatalogue() {
-    return elements.isEmpty() ? EMPTY_CATALOGUE : elements.get(0);
+    return getElements().isEmpty() ? EMPTY_CATALOGUE : getElements().get(0);
   }
 
   @Nullable
