@@ -29,7 +29,7 @@ import app.zxtune.utils.StubProgressCallback;
  * http://www.exotica.org.uk/mediawiki/extensions/ExoticASearch/Modland_xbmc.php
  * but it seems to be not working and has no such wide catalogue as http gate does.
  */
-public class RemoteCatalog extends Catalog {
+public class RemoteCatalog implements Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 
@@ -155,6 +155,10 @@ public class RemoteCatalog extends Catalog {
       Log.d(TAG, "getGroupTrack(type=%s, id=%d, filename=%s)", tag, id, filename);
       final Track[] resultRef = {null};
       queryTracks(id, new TracksVisitor() {
+        // TODO: remove
+        @Override
+        public void setCountHint(int size) {}
+
         @Override
         public boolean accept(Track obj) {
           if (obj.filename.equals(filename)) {

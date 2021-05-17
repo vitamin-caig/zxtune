@@ -17,7 +17,7 @@ import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.utils.ProgressCallback;
 import app.zxtune.utils.StubProgressCallback;
 
-final public class CachingCatalog extends Catalog {
+final public class CachingCatalog implements Catalog {
 
   private final TimeStamp GROUPS_TTL = TimeStamp.fromDays(30);
   private final TimeStamp GROUP_TRACKS_TTL = TimeStamp.fromDays(14);
@@ -77,6 +77,10 @@ final public class CachingCatalog extends Catalog {
         public void updateCache() throws IOException {
           db.runInTransaction(() -> {
             remote.queryGroups(filter, new GroupsVisitor() {
+              // TODO: remove
+              @Override
+              public void setCountHint(int size) {}
+
               @Override
               public void accept(Group obj) {
                 db.addGroup(category, obj);
@@ -129,6 +133,10 @@ final public class CachingCatalog extends Catalog {
         public void updateCache() throws IOException {
           db.runInTransaction(() -> {
             remote.queryTracks(id, new TracksVisitor() {
+              // TODO: remove
+              @Override
+              public void setCountHint(int size) {}
+
               @Override
               public boolean accept(Track obj) {
                 db.addTrack(obj);
@@ -161,6 +169,10 @@ final public class CachingCatalog extends Catalog {
         @Override
         public Track updateCache() throws IOException {
           queryTracks(id, new TracksVisitor() {
+
+            // TODO: remove
+            @Override
+            public void setCountHint(int size) {}
 
             @Override
             public boolean accept(Track obj) {
