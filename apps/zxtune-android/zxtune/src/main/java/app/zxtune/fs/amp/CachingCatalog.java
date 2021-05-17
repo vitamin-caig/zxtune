@@ -13,7 +13,7 @@ import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 
-final public class CachingCatalog extends Catalog {
+final public class CachingCatalog implements Catalog {
 
   private final TimeStamp GROUPS_TTL = TimeStamp.fromDays(30);
   private final TimeStamp AUTHORS_TTL = TimeStamp.fromDays(30);
@@ -44,6 +44,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryGroups(new GroupsVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int count) {}
+
             @Override
             public void accept(Group obj) {
               db.addGroup(obj);
@@ -75,6 +79,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryAuthors(handleFilter, new AuthorsVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int count) {}
+
             @Override
             public void accept(Author obj) {
               db.addAuthor(obj);
@@ -106,6 +114,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryAuthors(country, new AuthorsVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int count) {}
+
             @Override
             public void accept(Author obj) {
               db.addAuthor(obj);
@@ -138,6 +150,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryAuthors(group, new AuthorsVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int count) {}
+
             @Override
             public void accept(Author obj) {
               db.addAuthor(obj);
@@ -170,6 +186,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryTracks(author, new TracksVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int count) {}
+
             @Override
             public void accept(Track obj) {
               db.addTrack(obj);

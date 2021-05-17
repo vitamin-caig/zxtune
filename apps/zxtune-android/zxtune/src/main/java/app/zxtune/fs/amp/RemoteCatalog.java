@@ -47,7 +47,7 @@ import app.zxtune.fs.http.MultisourceHttpProvider;
  * http://amp.dascene.net/newresult.php?request=module&search=${whatever}
  */
 
-public class RemoteCatalog extends Catalog {
+public class RemoteCatalog implements Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 

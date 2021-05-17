@@ -224,6 +224,10 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(letter, new Catalog.AuthorsVisitor() {
+        //TODO: remove
+        @Override
+        public void setCountHint(int count) {}
+
         @Override
         public void accept(Author obj) {
           visitor.onDir(makeSubdir(obj));
@@ -490,6 +494,10 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     public void find(String query, final Visitor visitor) throws IOException {
       catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
+
+        // TODO: remove
+        @Override
+        public void setCountHint(int count) {}
 
         @Override
         public void accept(Author author, Track track) {
