@@ -12,7 +12,7 @@ import app.zxtune.fs.dbhelpers.FileTree;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 
-final class CachingCatalog extends Catalog {
+final class CachingCatalog implements Catalog {
 
   private final static TimeStamp DIR_TTL = TimeStamp.fromDays(1);
 
