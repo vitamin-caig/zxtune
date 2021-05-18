@@ -11,7 +11,7 @@ import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.utils.ProgressCallback;
 
-class CachingCatalog extends Catalog {
+class CachingCatalog implements Catalog {
 
   private final TimeStamp GROUPS_TTL = TimeStamp.fromDays(1);
   private final TimeStamp GROUP_PACKS_TTL = TimeStamp.fromDays(1);
