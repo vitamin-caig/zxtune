@@ -41,4 +41,16 @@ public final class HttpProviderFactory {
     final PolicyImpl policy = new PolicyImpl(ctx);
     return new HttpUrlConnectionProvider(policy);
   }
+
+  public static HttpProvider createTestProvider() {
+    return new HttpUrlConnectionProvider(new HttpUrlConnectionProvider.Policy() {
+      @Override
+      public boolean hasConnection() {
+        return true;
+      }
+
+      @Override
+      public void checkConnectionError() {}
+    });
+  }
 }
