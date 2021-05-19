@@ -22,13 +22,13 @@ RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boo
     mv boost_*/boost ${prebuilt}/boost-${boost}/include/ && \
     rm -Rf boost_*
 
-#Android SDK AGP=4.1.0
-ENV build_tools=29.0.2 platform=29 ndk=21.1.6352462
+#Android SDK AGP=4.2.1
+ENV build_tools=30.0.2 platform=30 ndk=21.4.7075529
 RUN mkdir -p ${androidsdk} && cd ${androidsdk} && \
-    wget -q https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-7302050_latest.zip && \
     unzip -q *.zip && \
-    rm *.zip && \
-    (yes | tools/bin/sdkmanager --install "build-tools;${build_tools}" "platform-tools" "platforms;android-${platform}" "ndk;${ndk}")
+    (yes | cmdline-tools/bin/sdkmanager --sdk_root=${androidsdk} --install "build-tools;${build_tools}" "platform-tools" "platforms;android-${platform}" "ndk;${ndk}") && \
+    rm -Rf *.zip cmdline-tools
 
 #Sources
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
