@@ -15,10 +15,12 @@ class JniApi implements Api {
 
   private static final String TAG = JniApi.class.getName();
 
+  private static final String LIBRARY_NAME = "zxtune";
+
   private final PropertiesContainer loggingOptions;
 
   JniApi() {
-    NativeLoader.loadLibrary("zxtune", this::forcedInit);
+    NativeLoader.loadLibrary(LIBRARY_NAME, this::forcedInit);
     loggingOptions = new LoggingOptionsAdapter(JniOptions.instance());
   }
 
@@ -32,6 +34,10 @@ class JniApi implements Api {
 
   @Override
   public native void enumeratePlugins(Plugins.Visitor visitor);
+
+  public static void loadLibraryForTest() {
+    System.loadLibrary(LIBRARY_NAME);
+  }
 
   @Override
   public PropertiesContainer getOptions() {
