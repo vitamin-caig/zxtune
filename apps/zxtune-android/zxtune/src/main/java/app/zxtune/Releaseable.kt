@@ -5,16 +5,20 @@
  * @brief Releaseable interface declaration
  *
  * @author vitamin.caig@gmail.com
- *
  */
-
-package app.zxtune;
+package app.zxtune
 
 /**
  * Base interface for managed resources supporting release call
  * Analogue of Closeable but do not throw any specific exceptions
  */
-public interface Releaseable {
-  
-  void release();
+fun interface Releaseable {
+    fun release()
 }
+
+inline fun <R> Releaseable.use(block: () -> R): R =
+    try {
+        block()
+    } finally {
+        release()
+    }
