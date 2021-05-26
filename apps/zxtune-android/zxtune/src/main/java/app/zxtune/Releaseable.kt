@@ -16,6 +16,10 @@ fun interface Releaseable {
     fun release()
 }
 
+object ReleaseableStub : Releaseable {
+    override fun release() {}
+}
+
 inline fun <R> Releaseable.use(block: () -> R): R =
     try {
         block()
