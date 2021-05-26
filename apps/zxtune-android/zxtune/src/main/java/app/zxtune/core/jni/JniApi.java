@@ -11,7 +11,7 @@ import app.zxtune.core.ResolvingException;
 import app.zxtune.utils.NativeLoader;
 import app.zxtune.utils.ProgressCallback;
 
-class JniApi extends Api {
+class JniApi implements Api {
 
   private static final String TAG = JniApi.class.getName();
 
