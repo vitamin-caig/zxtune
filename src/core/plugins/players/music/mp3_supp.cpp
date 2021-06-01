@@ -76,6 +76,12 @@ namespace Module::Mp3
       : Frequency(rh.Frequency)
       , Data(std::move(rh.Data))
     {}
+    FrameSound& operator=(FrameSound&& rh) noexcept
+    {
+      Frequency = rh.Frequency;
+      Data = std::move(rh.Data);
+      return *this;
+    }
 
     Sound::Sample::Type* GetTarget()
     {
@@ -120,11 +126,6 @@ namespace Module::Mp3
     bool IsEnd() const
     {
       return Offset == Data->Content->Size();
-    }
-
-    Time::Microseconds GetEnd() const
-    {
-      return Data->Duration;
     }
 
     FrameSound RenderNextFrame()
@@ -250,18 +251,18 @@ namespace Module::Mp3
       {
         return {};
       }
-      const auto loops = State->LoopCount();
       auto frame = Tune.RenderNextFrame();
       if (frame.Data.empty())
       {
-        Dbg("Premature end at %1%us", State->PreciseAt().Get());
+        State->Consume({}, looped);
+        if (State->IsValid())
+        {
+          Tune.Reset();
+          frame = Tune.RenderNextFrame();
+        }
       }
       const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
-      if (Tune.IsEnd())
-      {
-        // Adjust position
-        State->Seek(Time::AtMicrosecond(Tune.GetEnd().Get() - rendered.Get()));
-      }
+      const auto loops = State->LoopCount();
       State->Consume(rendered, looped);
       if (loops != State->LoopCount())
       {
