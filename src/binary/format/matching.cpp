@@ -37,19 +37,7 @@ namespace Binary
 
     bool Match(View data) const override
     {
-      if (data.Size() < MinSize)
-      {
-        return false;
-      }
-      const uint8_t* const typedData = static_cast<const uint8_t*>(data.Start()) + Offset;
-      for (std::size_t idx = 0, lim = Pattern.GetSize(); idx != lim; ++idx)
-      {
-        if (!Pattern.Get(idx).Match(typedData[idx]))
-        {
-          return false;
-        }
-      }
-      return true;
+      return data.Size() >= MinSize && Pattern.Match(data.SubView(Offset).As<uint8_t>());
     }
 
     static Ptr Create(FormatDSL::StaticPattern expr, std::size_t startOffset, std::size_t minSize)

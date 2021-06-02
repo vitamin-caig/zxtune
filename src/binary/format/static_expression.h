@@ -124,6 +124,11 @@ namespace Binary
 
       StaticPattern(const StaticPattern&) = delete;
       StaticPattern& operator=(const StaticPattern&) = delete;
+      StaticPattern& operator=(StaticPattern&& rh) noexcept
+      {
+        Data = std::move(rh.Data);
+        return *this;
+      }
 
       StaticPattern(StaticPattern&& rh) noexcept  // = default;
         : Data(std::move(rh.Data))
@@ -143,6 +148,19 @@ namespace Binary
       std::vector<std::size_t> GetSuffixOffsets() const;
       // return forward offset
       std::size_t FindPrefix(std::size_t prefixSize) const;
+
+      bool Match(const uint8_t* blob) const
+      {
+        for (const auto& entry : Data)
+        {
+          if (!entry.Match(*blob))
+          {
+            return false;
+          }
+          ++blob;
+        }
+        return true;
+      }
 
     private:
       const StaticPredicate* Begin() const

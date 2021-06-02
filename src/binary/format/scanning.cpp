@@ -19,6 +19,7 @@
 #include <math/numeric.h>
 // std includes
 #include <array>
+#include <atomic>
 #include <limits>
 #include <vector>
 
@@ -230,9 +231,71 @@ namespace Binary
     const PatternMatrix Pattern;
   };
 
+  class DelayedScanningFuzzyFormat : public FormatDetails
+  {
+  public:
+    DelayedScanningFuzzyFormat(FormatDSL::StaticPattern pattern, std::size_t startOffset, std::size_t minSize)
+      : StartOffset(startOffset)
+      , MinSize(std::max(minSize, pattern.GetSize() + startOffset))
+      , Pattern(std::move(pattern))
+    {}
+
+    bool Match(View data) const override
+    {
+      if (data.Size() < MinSize)
+      {
+        return false;
+      }
+      else if (const Format* ref = DelegateRef)
+      {
+        return ref->Match(data);
+      }
+      else
+      {
+        return Pattern.Match(data.SubView(StartOffset).As<uint8_t>());
+      }
+    }
+
+    std::size_t NextMatchOffset(View data) const override
+    {
+      const std::size_t size = data.Size();
+      if (size < MinSize)
+      {
+        return size;
+      }
+      else if (const Format* ref = DelegateRef)
+      {
+        return ref->NextMatchOffset(data);
+      }
+      else
+      {
+        auto delegate = FuzzyFormat::Create(Pattern, StartOffset, MinSize);
+        if (DelegateRef.compare_exchange_strong(ref, delegate.get()))
+        {
+          Delegate = std::move(delegate);
+          Pattern = FormatDSL::StaticPattern({});
+          ref = Delegate.get();
+        }
+        return ref->NextMatchOffset(data);
+      }
+    }
+
+    std::size_t GetMinSize() const override
+    {
+      return MinSize;
+    }
+
+  private:
+    const std::size_t StartOffset;
+    const std::size_t MinSize;
+    mutable FormatDSL::StaticPattern Pattern;
+    mutable Format::Ptr Delegate;
+    mutable std::atomic<const Format*> DelegateRef{};
+  };
+
   Format::Ptr CreateScanningFormatFromPredicates(const FormatDSL::Expression& expr, std::size_t minSize)
   {
-    const FormatDSL::StaticPattern pattern(expr.Predicates());
+    FormatDSL::StaticPattern pattern(expr.Predicates());
     const std::size_t startOffset = expr.StartOffset();
     if (Format::Ptr exact = ExactFormat::TryCreate(pattern, startOffset, minSize))
     {
@@ -240,7 +303,7 @@ namespace Binary
     }
     else
     {
-      return FuzzyFormat::Create(pattern, startOffset, minSize);
+      return MakePtr<DelayedScanningFuzzyFormat>(std::move(pattern), startOffset, minSize);
     }
   }
 }  // namespace Binary
