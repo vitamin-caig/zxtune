@@ -1,6 +1,7 @@
 package app.zxtune.core.jni;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.Callable;
@@ -17,9 +18,16 @@ class DelayLoadApi implements Api {
   private static final String TAG = DelayLoadApi.class.getName();
 
   private final AtomicReference<Api> ref;
+  private final Callable<Api> factory;
 
   DelayLoadApi(AtomicReference<Api> ref) {
+    this(ref, JniApi::new);
+  }
+
+  @VisibleForTesting
+  DelayLoadApi(AtomicReference<Api> ref, Callable<Api> factory) {
     this.ref = ref;
+    this.factory = factory;
   }
 
   final void initialize(Runnable cb) {
@@ -35,7 +43,7 @@ class DelayLoadApi implements Api {
   }
 
   private void loadSync(Runnable cb) {
-    emplace(JniApi::new);
+    emplace(factory);
     cb.run();
   }
 
