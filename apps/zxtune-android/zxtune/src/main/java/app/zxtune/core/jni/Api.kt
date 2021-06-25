@@ -46,7 +46,7 @@ interface Api {
     fun getOptions(): PropertiesContainer
 
     private object Holder {
-        val INSTANCE = AtomicReference<Api?>()
+        val INSTANCE = AtomicReference<Api>()
     }
 
     companion object {
