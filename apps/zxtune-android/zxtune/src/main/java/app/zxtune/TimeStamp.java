@@ -20,6 +20,10 @@ public final class TimeStamp implements Comparable<TimeStamp> {
 
   public static final TimeStamp EMPTY = new TimeStamp(0, UNIT);
 
+  public static TimeStamp fromMicroseconds(long val) {
+    return new TimeStamp(val, TimeUnit.MICROSECONDS);
+  }
+
   public static TimeStamp fromMilliseconds(long val) {
     return new TimeStamp(val, TimeUnit.MILLISECONDS);
   }
@@ -30,6 +34,10 @@ public final class TimeStamp implements Comparable<TimeStamp> {
 
   public static TimeStamp fromDays(int val) {
     return new TimeStamp(val, TimeUnit.DAYS);
+  }
+
+  public final long toMicroseconds() {
+    return UNIT.toMicros(value);
   }
 
   public final long toMilliseconds() {
