@@ -246,13 +246,14 @@ namespace Binary
       {
         return false;
       }
-      else if (const Format* ref = DelegateRef)
+      const auto pat = Pattern.Use();
+      if (const Format* ref = DelegateRef)
       {
         return ref->Match(data);
       }
       else
       {
-        return Pattern.Match(data.SubView(StartOffset).As<uint8_t>());
+        return pat->Match(data.SubView(StartOffset).As<uint8_t>());
       }
     }
 
@@ -263,18 +264,19 @@ namespace Binary
       {
         return size;
       }
-      else if (const Format* ref = DelegateRef)
+      const auto pat = Pattern.Use();
+      if (const Format* ref = DelegateRef)
       {
         return ref->NextMatchOffset(data);
       }
       else
       {
-        auto delegate = FuzzyFormat::Create(Pattern, StartOffset, MinSize);
+        auto delegate = FuzzyFormat::Create(*pat, StartOffset, MinSize);
         if (DelegateRef.compare_exchange_strong(ref, delegate.get()))
         {
           Delegate = std::move(delegate);
-          Pattern = FormatDSL::StaticPattern({});
           ref = Delegate.get();
+          Pattern.Release();
         }
         return ref->NextMatchOffset(data);
       }
@@ -286,9 +288,74 @@ namespace Binary
     }
 
   private:
+    class RefcountedPattern
+    {
+    public:
+      explicit RefcountedPattern(FormatDSL::StaticPattern&& rh)
+        : Object(std::move(rh))
+        , Refcount(1)
+      {}
+
+      void Release()
+      {
+        static uint_t UNUSED = 0;
+        constexpr const uint_t RELEASED = 0x80000000;
+        if (1 == Refcount.fetch_sub(1) && Refcount.compare_exchange_strong(UNUSED, RELEASED))
+        {
+          Object = FormatDSL::StaticPattern({});
+        }
+      }
+
+      class Ptr
+      {
+      public:
+        explicit Ptr(RefcountedPattern* ref)
+          : Ref(ref)
+        {
+          Ref->Acquire();
+        }
+
+        ~Ptr()
+        {
+          Ref->Release();
+        }
+
+        FormatDSL::StaticPattern* operator->() const
+        {
+          return &Ref->Object;
+        }
+
+        FormatDSL::StaticPattern& operator*() const
+        {
+          return Ref->Object;
+        }
+
+      private:
+        RefcountedPattern* const Ref;
+      };
+
+      Ptr Use()
+      {
+        return Ptr(this);
+      }
+
+    private:
+      friend class Ptr;
+
+      void Acquire()
+      {
+        ++Refcount;
+      }
+
+    private:
+      mutable FormatDSL::StaticPattern Object;
+      mutable std::atomic<uint_t> Refcount;
+    };
+
+  private:
     const std::size_t StartOffset;
     const std::size_t MinSize;
-    mutable FormatDSL::StaticPattern Pattern;
+    mutable RefcountedPattern Pattern;
     mutable Format::Ptr Delegate;
     mutable std::atomic<const Format*> DelegateRef{};
   };
