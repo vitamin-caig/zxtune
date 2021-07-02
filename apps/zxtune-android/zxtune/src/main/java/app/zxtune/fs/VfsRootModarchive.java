@@ -38,10 +38,10 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
   private final CachingCatalog catalog;
   private final GroupingDir[] groupings;
 
-  VfsRootModarchive(VfsObject parent, Context context, MultisourceHttpProvider http) {
+  VfsRootModarchive(VfsObject parent, Context context, MultisourceHttpProvider http, String key) {
     this.parent = parent;
     this.context = context;
-    this.catalog = Catalog.create(context, http);
+    this.catalog = Catalog.create(context, http, key);
     this.groupings = new GroupingDir[]{
             new AuthorsDir(),
             new GenresDir(),

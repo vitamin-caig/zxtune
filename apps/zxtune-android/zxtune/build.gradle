@@ -86,9 +86,8 @@ dependencies {
 
 android {
     defaultConfig {
-        manifestPlaceholders += [
-            modarchiveKey: localProperties.getProperty("key.modarchive"),
-        ]
+        def modarchiveKey = localProperties.getProperty("key.modarchive", "")
+        buildConfigField("String", "MODARCHIVE_KEY", "\"${modarchiveKey}\"")
 
         def cdnRoot = localProperties.getProperty('cdn.root')
         if (cdnRoot != null) {

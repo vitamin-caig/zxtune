@@ -6,12 +6,7 @@
 
 package app.zxtune.fs.modarchive;
 
-import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.net.Uri;
-import android.os.Bundle;
 import android.sax.Element;
 import android.sax.RootElement;
 import android.text.Html;
@@ -26,33 +21,33 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import app.zxtune.Log;
-import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.fs.HtmlUtils;
-import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.utils.ProgressCallback;
+import app.zxtune.utils.StubProgressCallback;
 
 /**
  * API entry point:
- *   http://api.modarchive.org
- *
+ * http://api.modarchive.org
+ * <p>
  * Authors:
- *   ${API}/xml-tools.php?key=${key}&request=search_artist&page=${page}
- *
+ * ${API}/xml-tools.php?key=${key}&request=search_artist&page=${page}
+ * <p>
  * references author's tracks at
- *   ${API}/xml-tools.php?key=${key}&request=view_modules_by_artistid&query=${id}&page=${page}
- *
+ * ${API}/xml-tools.php?key=${key}&request=view_modules_by_artistid&query=${id}&page=${page}
+ * <p>
  * references tracks at
- *   ${API}/downloads.php?moduleid=${moduleid}
- *
+ * ${API}/downloads.php?moduleid=${moduleid}
+ * <p>
  * Genres:
- *   ${API}/xml-tools.php?key=${key}&request=view_genres (no paging)
- *
+ * ${API}/xml-tools.php?key=${key}&request=view_genres (no paging)
+ * <p>
  * references genre's tracks at
- *   ${API}/xml-tools.php?key=${key}&request=search&type=genre&query=${genreid}&page=${page}
- *
+ * ${API}/xml-tools.php?key=${key}&request=search&type=genre&query=${genreid}&page=${page}
+ * <p>
  * Search:
- *   ${API}/xml-tools.php?key=${key}&request=search&type=filename_or_songtitle&query=*${query}*&page=${page}
+ * ${API}/xml-tools.php?key=${key}&request=search&type=filename_or_songtitle&query=*${query}*&page=${page}
  */
 
 public class RemoteCatalog extends Catalog {
@@ -113,19 +108,9 @@ public class RemoteCatalog extends Catalog {
   private final MultisourceHttpProvider http;
   private final String key;
 
-  RemoteCatalog(Context context, MultisourceHttpProvider http) {
+  RemoteCatalog(MultisourceHttpProvider http, String key) {
     this.http = http;
-    final Bundle metaData = getAppMetadata(context);
-    this.key = metaData.getString("key.modarchive");
-  }
-
-  private static Bundle getAppMetadata(Context context) {
-    try {
-      final ApplicationInfo info = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
-      return info.metaData;
-    } catch (NameNotFoundException e) {
-      return new Bundle();
-    }
+    this.key = key;
   }
 
   @Override

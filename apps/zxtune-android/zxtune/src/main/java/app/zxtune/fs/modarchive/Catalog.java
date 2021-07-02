@@ -86,8 +86,8 @@ public abstract class Catalog {
    */
   public abstract void findRandomTracks(TracksVisitor visitor) throws IOException;
 
-  public static CachingCatalog create(Context context, MultisourceHttpProvider http) {
-    final RemoteCatalog remote = new RemoteCatalog(context, http);
+  public static CachingCatalog create(Context context, MultisourceHttpProvider http, String key) {
+    final RemoteCatalog remote = new RemoteCatalog(http, key);
     final Database db = new Database(context);
     return new CachingCatalog(remote, db);
   }

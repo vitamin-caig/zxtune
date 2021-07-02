@@ -7,16 +7,23 @@ import androidx.annotation.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.concurrent.Callable;
 
+import javax.annotation.CheckForNull;
+
+import app.zxtune.Log;
 import app.zxtune.R;
 
 @Icon(R.drawable.ic_browser_vfs_radio)
 final class VfsRootRadio extends StubObject implements VfsRoot {
 
+  private static final String TAG = VfsRootRadio.class.getName();
+
   private final Uri URI = Uri.fromParts("radio", "", "");
 
   private final Context ctx;
-  private final ArrayList<VfsDir> children = new ArrayList<>();
+  @CheckForNull
+  private ArrayList<VfsDir> children;
 
   VfsRootRadio(Context ctx) {
     this.ctx = ctx;
@@ -33,9 +40,8 @@ final class VfsRootRadio extends StubObject implements VfsRoot {
   }
 
   @Override
-  public void enumerate(Visitor visitor) throws IOException {
-    defferredFill();
-    for (VfsDir child : children) {
+  public void enumerate(Visitor visitor) {
+    for (VfsDir child : getChildren()) {
       visitor.onDir(child);
     }
   }
@@ -61,10 +67,20 @@ final class VfsRootRadio extends StubObject implements VfsRoot {
     return null;
   }
 
-  private void defferredFill() throws IOException {
-    if (children.isEmpty()) {
-      children.add(new EntryModarchive());
-      children.add(new EntryVgmrips());
+  private ArrayList<VfsDir> getChildren() {
+    if (children == null) {
+      children = new ArrayList<>();
+      maybeAdd(children, EntryModarchive::new);
+      maybeAdd(children, EntryVgmrips::new);
+    }
+    return children;
+  }
+
+  private static void maybeAdd(ArrayList<VfsDir> list, Callable<VfsDir> create) {
+    try {
+      list.add(create.call());
+    } catch (Exception e) {
+      Log.w(TAG, e, "Failed to add radio source");
     }
   }
 
