@@ -24,7 +24,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 
 import app.zxtune.Log;
 import app.zxtune.MainActivity;
@@ -32,7 +31,7 @@ import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.fs.VfsExtensions;
-import app.zxtune.models.MediaSessionModel;
+import app.zxtune.device.media.MediaSessionModel;
 
 public class NowPlayingFragment extends Fragment implements MainActivity.PagerTabListener {
 

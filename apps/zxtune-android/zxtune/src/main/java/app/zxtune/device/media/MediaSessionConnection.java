@@ -1,7 +1,6 @@
-package app.zxtune.models;
+package app.zxtune.device.media;
 
 import android.content.ComponentName;
-import android.os.RemoteException;
 import android.support.v4.media.MediaBrowserCompat;
 import android.support.v4.media.session.MediaControllerCompat;
 

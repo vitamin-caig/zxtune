@@ -8,7 +8,7 @@
  *
  */
 
-package app.zxtune;
+package app.zxtune.device;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -23,7 +23,7 @@ import androidx.core.content.ContextCompat;
 
 public class Permission {
   
-  static void request(FragmentActivity act, String id) {
+  public static void request(FragmentActivity act, String id) {
     if (Build.VERSION.SDK_INT >= 23) {
       requestMarshmallow(act, id);
     }

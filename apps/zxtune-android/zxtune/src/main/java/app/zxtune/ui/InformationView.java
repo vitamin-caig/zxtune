@@ -17,11 +17,10 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.Observer;
 
 import app.zxtune.R;
 import app.zxtune.core.ModuleAttributes;
-import app.zxtune.models.MediaSessionModel;
+import app.zxtune.device.media.MediaSessionModel;
 
 class InformationView {
 

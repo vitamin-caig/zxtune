@@ -1,4 +1,4 @@
-package app.zxtune.models;
+package app.zxtune.device.media;
 
 import android.app.Application;
 import android.os.Build;

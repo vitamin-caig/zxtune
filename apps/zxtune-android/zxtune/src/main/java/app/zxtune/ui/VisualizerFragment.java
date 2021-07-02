@@ -8,11 +8,9 @@ import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 
 import app.zxtune.R;
-import app.zxtune.models.MediaSessionModel;
-import app.zxtune.playback.Visualizer;
+import app.zxtune.device.media.MediaSessionModel;
 import app.zxtune.ui.views.SpectrumAnalyzerView;
 
 public class VisualizerFragment extends Fragment {

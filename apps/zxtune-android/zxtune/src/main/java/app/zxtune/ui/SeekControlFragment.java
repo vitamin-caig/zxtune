@@ -21,14 +21,13 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
-import app.zxtune.models.MediaSessionModel;
+import app.zxtune.device.media.MediaSessionModel;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.ui.utils.UiUtils;
 

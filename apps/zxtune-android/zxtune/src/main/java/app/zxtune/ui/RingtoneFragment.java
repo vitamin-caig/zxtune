@@ -21,7 +21,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import java.util.concurrent.TimeUnit;
 
-import app.zxtune.Permission;
+import app.zxtune.device.Permission;
 import app.zxtune.R;
 import app.zxtune.RingtoneService;
 import app.zxtune.TimeStamp;

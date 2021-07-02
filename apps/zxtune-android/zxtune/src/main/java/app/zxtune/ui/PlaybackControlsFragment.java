@@ -16,10 +16,9 @@ import android.widget.ImageButton;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 
 import app.zxtune.R;
-import app.zxtune.models.MediaSessionModel;
+import app.zxtune.device.media.MediaSessionModel;
 import app.zxtune.playback.PlaybackControl.SequenceMode;
 import app.zxtune.ui.utils.UiUtils;
 
