@@ -206,13 +206,8 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
   }
 
   @Override
-  public void subscribe(Callback callback) {
-    callbacks.add(callback);
-  }
-
-  @Override
-  public void unsubscribe(Callback callback) {
-    callbacks.remove(callback);
+  public Releaseable subscribe(Callback callback) {
+    return callbacks.add(callback);
   }
 
   @Override

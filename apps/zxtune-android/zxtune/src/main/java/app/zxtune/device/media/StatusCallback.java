@@ -33,7 +33,6 @@ import app.zxtune.fs.VfsObject;
 import app.zxtune.fs.VfsUtils;
 import app.zxtune.fs.provider.VfsProviderClient;
 import app.zxtune.playback.Callback;
-import app.zxtune.playback.CallbackSubscription;
 import app.zxtune.playback.Item;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.playback.PlaybackService;
@@ -54,7 +53,7 @@ class StatusCallback implements Callback {
     //TODO: rework repeat/shuffle model
     session.setShuffleMode(ctrl.getSequenceMode().ordinal());
     session.setRepeatMode(ctrl.getTrackMode().ordinal());
-    return new CallbackSubscription(svc, cb);
+    return svc.subscribe(cb);
   }
 
   private StatusCallback(Context ctx, MediaSessionCompat session) {
@@ -144,7 +143,7 @@ class StatusCallback implements Callback {
       final Drawable drawable = ResourcesCompat.getDrawableForDensity(resources, id, 320/*XHDPI*/, null);
       if (drawable instanceof BitmapDrawable) {
         return ((BitmapDrawable) drawable).getBitmap();
-      } else if (drawable != null){
+      } else if (drawable != null) {
         final Bitmap result = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888);
         final Canvas canvas = new Canvas(result);
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());

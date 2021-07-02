@@ -1,22 +1,19 @@
 /**
- *
  * @file
- *
  * @brief Composite callback helper
- *
  * @author vitamin.caig@gmail.com
- *
  */
 
 package app.zxtune.playback;
 
-import app.zxtune.TimeStamp;
-
 import java.util.LinkedList;
 import java.util.List;
 
+import app.zxtune.Releaseable;
+import app.zxtune.TimeStamp;
+
 public final class CompositeCallback implements Callback {
-  
+
   private final List<Callback> delegates;
   private PlaybackControl.State lastState;
 
@@ -32,7 +29,7 @@ public final class CompositeCallback implements Callback {
 
   @Override
   public void onStateChanged(PlaybackControl.State state, TimeStamp pos) {
-    synchronized (delegates) {
+    synchronized(delegates) {
       lastState = state;
       for (Callback cb : delegates) {
         cb.onStateChanged(state, pos);
@@ -42,7 +39,7 @@ public final class CompositeCallback implements Callback {
 
   @Override
   public void onItemChanged(Item item) {
-    synchronized (delegates) {
+    synchronized(delegates) {
       for (Callback cb : delegates) {
         cb.onItemChanged(item);
       }
@@ -51,7 +48,7 @@ public final class CompositeCallback implements Callback {
 
   @Override
   public void onError(String e) {
-    synchronized (delegates) {
+    synchronized(delegates) {
       for (Callback cb : delegates) {
         cb.onError(e);
       }
@@ -64,16 +61,15 @@ public final class CompositeCallback implements Callback {
     }
   }
 
-  public void add(Callback callback) {
-    synchronized (delegates) {
+  public Releaseable add(Callback callback) {
+    synchronized(delegates) {
       delegates.add(callback);
       callback.onInitialState(lastState);
     }
-  }
-
-  public void remove(Callback callback) {
-    synchronized (delegates) {
-      delegates.remove(callback);
-    }
+    return () -> {
+      synchronized(delegates) {
+        delegates.remove(callback);
+      }
+    };
   }
 }

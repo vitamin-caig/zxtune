@@ -10,6 +10,8 @@
 
 package app.zxtune.playback;
 
+import app.zxtune.Releaseable;
+
 public interface PlaybackService {
 
   PlaybackControl getPlaybackControl();
@@ -18,6 +20,5 @@ public interface PlaybackService {
   
   Visualizer getVisualizer();
   
-  void subscribe(Callback cb);
-  void unsubscribe(Callback cb);
+  Releaseable subscribe(Callback cb);
 }
