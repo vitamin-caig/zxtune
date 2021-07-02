@@ -89,9 +89,7 @@ public class MainActivity extends AppCompatActivity {
     TRACE.checkpoint("super");
 
     fillPages();
-    if (Build.VERSION.SDK_INT >= 16) {
-      Permission.request(this, Manifest.permission.READ_EXTERNAL_STORAGE);
-    }
+    Permission.request(this, Manifest.permission.READ_EXTERNAL_STORAGE);
     Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
     TRACE.checkpoint("perm");
 
