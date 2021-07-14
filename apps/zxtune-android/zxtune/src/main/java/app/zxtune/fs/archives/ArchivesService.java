@@ -19,9 +19,8 @@ import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.ModuleDetectCallback;
-import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.VfsFile;
-import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.utils.ProgressCallback;
 
 public class ArchivesService {
 
@@ -94,54 +93,47 @@ public class ArchivesService {
   }
 
   public final Archive analyzeArchive(VfsFile file, final ProgressCallback cb) throws IOException {
-    //final Identifier fileId = new Identifier(uri);
     final Uri path = file.getUri();
     Log.d(TAG, "Add archive content of %s", path);
+    final Archive[] result = {null};
     final HashSet<Identifier> dirEntries = new HashSet<>();
-    final Transaction transaction = db.startTransaction();
     final int[] report = new int[]{0, 10};
-    try {
-      Core.detectModules(file, new ModuleDetectCallback() {
-        @Override
-        public void onModule(String subpath, Module module) {
-          final Identifier moduleId = new Identifier(path, subpath);
-          final DirEntry dirEntry = DirEntry.create(moduleId);
+    db.runInTransaction(() -> {
+      Core.detectModules(file, (subpath, module) -> {
+        final Identifier moduleId = new Identifier(path, subpath);
+        final DirEntry dirEntry = DirEntry.create(moduleId);
 
-          try {
-            final String author = module.getProperty(ModuleAttributes.AUTHOR, "");
-            final String title = module.getProperty(ModuleAttributes.TITLE, "");
-            final String description = Util.formatTrackTitle(title, author, "");
-            final TimeStamp duration = module.getDuration();
-            final Track track = new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration);
-            module.release();
+        try {
+          final String author = module.getProperty(ModuleAttributes.AUTHOR, "");
+          final String title = module.getProperty(ModuleAttributes.TITLE, "");
+          final String description = Util.formatTrackTitle(title, author, "");
+          final TimeStamp duration = module.getDuration();
+          final Track track = new Track(dirEntry.path.getFullLocation(), dirEntry.filename, description, duration);
+          module.release();
 
-            db.addTrack(track);
-            final int doneTracks = ++report[0];
-            final int period = report[1];
-            if (0 == doneTracks % period) {
-              Log.d(TAG, "Found tracks: %d", doneTracks);
-              if (10 == doneTracks / period) {
-                report[1] *= 10;
-              }
+          db.addTrack(track);
+          final int doneTracks = ++report[0];
+          final int period = report[1];
+          if (0 == doneTracks % period) {
+            Log.d(TAG, "Found tracks: %d", doneTracks);
+            if (10 == doneTracks / period) {
+              report[1] *= 10;
             }
-          } catch (Exception e) {
-            Log.w(TAG, e, "Skip module");
           }
-          if (!dirEntry.isRoot()) {
-            db.addDirEntry(dirEntry);
-            dirEntries.add(dirEntry.parent);
-          }
+        } catch (Exception e) {
+          Log.w(TAG, e, "Skip module");
+        }
+        if (!dirEntry.isRoot()) {
+          db.addDirEntry(dirEntry);
+          dirEntries.add(dirEntry.parent);
         }
       }, cb);
-      final Archive result = new Archive(path, report[0]);
-      Log.d(TAG, "Found %d tracks total", result.modules);
-      db.addArchive(result);
+      result[0] = new Archive(path, report[0]);
+      Log.d(TAG, "Found %d tracks total", result[0].modules);
+      db.addArchive(result[0]);
       addDirEntries(dirEntries);
-      transaction.succeed();
-      return result;
-    } finally {
-      transaction.finish();
-    }
+    });
+    return result[0];
   }
 
   private void addDirEntries(HashSet<Identifier> dirs) {

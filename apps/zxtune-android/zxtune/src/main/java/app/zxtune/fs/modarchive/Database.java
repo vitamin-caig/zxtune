@@ -13,13 +13,14 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import androidx.annotation.Nullable;
 
+import java.io.IOException;
+
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
 
 /**
@@ -202,8 +203,8 @@ final class Database {
             " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
   }
 
-  final Transaction startTransaction() {
-    return Transaction.create(helper.getWritableDatabase());
+  final void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
+    Utils.runInTransaction(helper, cmd);
   }
 
   final Timestamps.Lifetime getAuthorsLifetime(TimeStamp ttl) {

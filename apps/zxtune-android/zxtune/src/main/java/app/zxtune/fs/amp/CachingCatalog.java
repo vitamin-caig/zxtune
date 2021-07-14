@@ -13,11 +13,8 @@ import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
 
 final public class CachingCatalog extends Catalog {
-
-  private static final String TAG = CachingCatalog.class.getName();
 
   private final TimeStamp GROUPS_TTL = days(30);
   private final TimeStamp AUTHORS_TTL = days(30);
@@ -39,30 +36,25 @@ final public class CachingCatalog extends Catalog {
 
   @Override
   public void queryGroups(final GroupsVisitor visitor) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("groups", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getGroupsLifetime(GROUPS_TTL);
 
       @Override
-      public String getScope() {
-        return "groups";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getGroupsLifetime(GROUPS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryGroups(new GroupsVisitor() {
-          @Override
-          public void accept(Group obj) {
-            db.addGroup(obj);
-          }
+        db.runInTransaction(() -> {
+          remote.queryGroups(new GroupsVisitor() {
+            @Override
+            public void accept(Group obj) {
+              db.addGroup(obj);
+            }
+          });
+          lifetime.update();
         });
       }
 
@@ -75,30 +67,25 @@ final public class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final String handleFilter, final AuthorsVisitor visitor) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("authors", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getAuthorsLifetime(handleFilter, AUTHORS_TTL);
 
       @Override
-      public String getScope() {
-        return "authors";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getAuthorsLifetime(handleFilter, AUTHORS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryAuthors(handleFilter, new AuthorsVisitor() {
-          @Override
-          public void accept(Author obj) {
-            db.addAuthor(obj);
-          }
+        db.runInTransaction(() -> {
+          remote.queryAuthors(handleFilter, new AuthorsVisitor() {
+            @Override
+            public void accept(Author obj) {
+              db.addAuthor(obj);
+            }
+          });
+          lifetime.update();
         });
       }
 
@@ -111,31 +98,26 @@ final public class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final Country country, final AuthorsVisitor visitor) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("authors", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getCountryLifetime(country, AUTHORS_TTL);
 
       @Override
-      public String getScope() {
-        return "authors";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getCountryLifetime(country, AUTHORS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryAuthors(country, new AuthorsVisitor() {
-          @Override
-          public void accept(Author obj) {
-            db.addAuthor(obj);
-            db.addCountryAuthor(country, obj);
-          }
+        db.runInTransaction(() -> {
+          remote.queryAuthors(country, new AuthorsVisitor() {
+            @Override
+            public void accept(Author obj) {
+              db.addAuthor(obj);
+              db.addCountryAuthor(country, obj);
+            }
+          });
+          lifetime.update();
         });
       }
 
@@ -148,31 +130,26 @@ final public class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final Group group, final AuthorsVisitor visitor) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("authors", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getGroupLifetime(group, AUTHORS_TTL);
 
       @Override
-      public String getScope() {
-        return "authors";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getGroupLifetime(group, AUTHORS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryAuthors(group, new AuthorsVisitor() {
-          @Override
-          public void accept(Author obj) {
-            db.addAuthor(obj);
-            db.addGroupAuthor(group, obj);
-          }
+        db.runInTransaction(() -> {
+          remote.queryAuthors(group, new AuthorsVisitor() {
+            @Override
+            public void accept(Author obj) {
+              db.addAuthor(obj);
+              db.addGroupAuthor(group, obj);
+            }
+          });
+          lifetime.update();
         });
       }
 
@@ -185,31 +162,26 @@ final public class CachingCatalog extends Catalog {
 
   @Override
   public void queryTracks(final Author author, final TracksVisitor visitor) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("tracks", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getAuthorTracksLifetime(author, TRACKS_TTL);
 
       @Override
-      public String getScope() {
-        return "tracks";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getAuthorTracksLifetime(author, TRACKS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryTracks(author, new TracksVisitor() {
-          @Override
-          public void accept(Track obj) {
-            db.addTrack(obj);
-            db.addAuthorTrack(author, obj);
-          }
+        db.runInTransaction(() -> {
+          remote.queryTracks(author, new TracksVisitor() {
+            @Override
+            public void accept(Track obj) {
+              db.addTrack(obj);
+              db.addAuthorTrack(author, obj);
+            }
+          });
+          lifetime.update();
         });
       }
 

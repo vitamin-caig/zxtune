@@ -10,18 +10,15 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.TimeStamp;
-import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.FetchCommand;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.utils.ProgressCallback;
+import app.zxtune.utils.StubProgressCallback;
 
 final public class CachingCatalog extends Catalog {
-
-  private static final String TAG = CachingCatalog.class.getName();
 
   private final TimeStamp GROUPS_TTL = days(30);
   private final TimeStamp GROUP_TRACKS_TTL = days(14);
@@ -72,31 +69,26 @@ final public class CachingCatalog extends Catalog {
     @Override
     public void queryGroups(final String filter, final GroupsVisitor visitor,
                             final ProgressCallback progress) throws IOException {
-      executor.executeQuery(new QueryCommand() {
+      executor.executeQuery(category, new QueryCommand() {
+
+        private final Timestamps.Lifetime lifetime = db.getGroupsLifetime(category, filter, GROUPS_TTL);
 
         @Override
-        public String getScope() {
-          return category;
-        }
-
-        @Override
-        public Timestamps.Lifetime getLifetime() {
-          return db.getGroupsLifetime(category, filter, GROUPS_TTL);
-        }
-
-        @Override
-        public Transaction startTransaction() {
-          return db.startTransaction();
+        public boolean isCacheExpired() {
+          return lifetime.isExpired();
         }
 
         @Override
         public void updateCache() throws IOException {
-          remote.queryGroups(filter, new GroupsVisitor() {
-            @Override
-            public void accept(Group obj) {
-              db.addGroup(category, obj);
-            }
-          }, progress);
+          db.runInTransaction(() -> {
+            remote.queryGroups(filter, new GroupsVisitor() {
+              @Override
+              public void accept(Group obj) {
+                db.addGroup(category, obj);
+              }
+            }, progress);
+            lifetime.update();
+          });
         }
 
         @Override
@@ -110,12 +102,7 @@ final public class CachingCatalog extends Catalog {
     public Group getGroup(final int id) throws IOException {
       // It's impossible to fill all the cache, so query/update for specified group
       final String categoryElement = category.substring(0, category.length() - 1);
-      return executor.executeFetchCommand(new FetchCommand<Group>() {
-
-        @Override
-        public String getScope() {
-          return categoryElement;
-        }
+      return executor.executeFetchCommand(categoryElement, new FetchCommand<Group>() {
 
         @Override
         public Group fetchFromCache() {
@@ -134,33 +121,28 @@ final public class CachingCatalog extends Catalog {
     @Override
     public void queryTracks(final int id, final TracksVisitor visitor,
                             final ProgressCallback progress) throws IOException {
-      executor.executeQuery(new QueryCommand() {
+      executor.executeQuery("tracks", new QueryCommand() {
+
+        private final Timestamps.Lifetime lifetime = db.getGroupTracksLifetime(category, id, GROUP_TRACKS_TTL);
 
         @Override
-        public String getScope() {
-          return "tracks";
-        }
-
-        @Override
-        public Timestamps.Lifetime getLifetime() {
-          return db.getGroupTracksLifetime(category, id, GROUP_TRACKS_TTL);
-        }
-
-        @Override
-        public Transaction startTransaction() {
-          return db.startTransaction();
+        public boolean isCacheExpired() {
+          return lifetime.isExpired();
         }
 
         @Override
         public void updateCache() throws IOException {
-          remote.queryTracks(id, new TracksVisitor() {
-            @Override
-            public boolean accept(Track obj) {
-              db.addTrack(obj);
-              db.addGroupTrack(category, id, obj);
-              return true;
-            }
-          }, progress);
+          db.runInTransaction(() -> {
+            remote.queryTracks(id, new TracksVisitor() {
+              @Override
+              public boolean accept(Track obj) {
+                db.addTrack(obj);
+                db.addGroupTrack(category, id, obj);
+                return true;
+              }
+            }, progress);
+            lifetime.update();
+          });
         }
 
         @Override
@@ -174,11 +156,7 @@ final public class CachingCatalog extends Catalog {
     public Track getTrack(final int id, final String filename) throws IOException {
       // Just query all the category tracks and store found one
       final Track[] resultRef = {null};
-      return executor.executeFetchCommand(new FetchCommand<Track>() {
-        @Override
-        public String getScope() {
-          return "track";
-        }
+      return executor.executeFetchCommand("track", new FetchCommand<Track>() {
 
         @Override
         public Track fetchFromCache() {

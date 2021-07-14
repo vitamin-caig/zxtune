@@ -14,6 +14,7 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 import app.zxtune.Log;
@@ -22,7 +23,6 @@ import app.zxtune.fs.dbhelpers.DBProvider;
 import app.zxtune.fs.dbhelpers.Grouping;
 import app.zxtune.fs.dbhelpers.Objects;
 import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
 
 /**
@@ -160,8 +160,8 @@ final class Database {
     this.timestamps = new Timestamps(helper);
   }
 
-  final Transaction startTransaction() {
-    return Transaction.create(helper.getWritableDatabase());
+  final void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
+    Utils.runInTransaction(helper, cmd);
   }
 
   final Timestamps.Lifetime getGroupsLifetime(String category, String filter, TimeStamp ttl) {

@@ -10,15 +10,12 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
-import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.utils.ProgressCallback;
 
 final public class CachingCatalog extends Catalog {
-
-  //private static final String TAG = CachingCatalog.class.getName();
 
   private final TimeStamp AUTHORS_TTL = days(2);
   private final TimeStamp GENRES_TTL = days(30);
@@ -40,31 +37,26 @@ final public class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final AuthorsVisitor visitor, final ProgressCallback progress) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("authors", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getAuthorsLifetime(AUTHORS_TTL);
 
       @Override
-      public String getScope() {
-        return "authors";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getAuthorsLifetime(AUTHORS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryAuthors(new AuthorsVisitor() {
-          @Override
-          public void accept(Author obj) {
-            db.addAuthor(obj);
-          }
-        }, progress);
+        db.runInTransaction(() -> {
+          remote.queryAuthors(new AuthorsVisitor() {
+            @Override
+            public void accept(Author obj) {
+              db.addAuthor(obj);
+            }
+          }, progress);
+          lifetime.update();
+        });
       }
 
       @Override
@@ -76,30 +68,25 @@ final public class CachingCatalog extends Catalog {
 
   @Override
   public void queryGenres(final GenresVisitor visitor) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("genres", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getGenresLifetime(GENRES_TTL);
 
       @Override
-      public String getScope() {
-        return "genres";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getGenresLifetime(GENRES_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryGenres(new GenresVisitor() {
-          @Override
-          public void accept(Genre obj) {
-            db.addGenre(obj);
-          }
+        db.runInTransaction(() -> {
+          remote.queryGenres(new GenresVisitor() {
+            @Override
+            public void accept(Genre obj) {
+              db.addGenre(obj);
+            }
+          });
+          lifetime.update();
         });
       }
 
@@ -113,32 +100,27 @@ final public class CachingCatalog extends Catalog {
   @Override
   public void queryTracks(final Author author, final TracksVisitor visitor,
                           final ProgressCallback progress) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("tracks", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getAuthorTracksLifetime(author, TRACKS_TTL);
 
       @Override
-      public String getScope() {
-        return "tracks";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getAuthorTracksLifetime(author, TRACKS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryTracks(author, new TracksVisitor() {
-          @Override
-          public void accept(Track obj) {
-            db.addTrack(obj);
-            db.addAuthorTrack(author, obj);
-          }
-        }, progress);
+        db.runInTransaction(() -> {
+          remote.queryTracks(author, new TracksVisitor() {
+            @Override
+            public void accept(Track obj) {
+              db.addTrack(obj);
+              db.addAuthorTrack(author, obj);
+            }
+          }, progress);
+          lifetime.update();
+        });
       }
 
       @Override
@@ -151,32 +133,27 @@ final public class CachingCatalog extends Catalog {
   @Override
   public void queryTracks(final Genre genre, final TracksVisitor visitor,
                           final ProgressCallback progress) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("tracks", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getGenreTracksLifetime(genre, TRACKS_TTL);
 
       @Override
-      public String getScope() {
-        return "tracks";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getGenreTracksLifetime(genre, TRACKS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryTracks(genre, new TracksVisitor() {
-          @Override
-          public void accept(Track obj) {
-            db.addTrack(obj);
-            db.addGenreTrack(genre, obj);
-          }
-        }, progress);
+        db.runInTransaction(() -> {
+          remote.queryTracks(genre, new TracksVisitor() {
+            @Override
+            public void accept(Track obj) {
+              db.addTrack(obj);
+              db.addGenreTrack(genre, obj);
+            }
+          }, progress);
+          lifetime.update();
+        });
       }
 
       @Override

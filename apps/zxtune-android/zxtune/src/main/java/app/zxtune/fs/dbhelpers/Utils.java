@@ -10,10 +10,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -94,5 +96,38 @@ public final class Utils {
       cursor.close();
     }
     return -1;
+  }
+
+  public interface ThrowingRunnable {
+    void run() throws IOException;
+  }
+
+  public static void runInTransaction(DBProvider helper, ThrowingRunnable cmd) throws IOException{
+    final SQLiteDatabase db = helper.getWritableDatabase();
+    db.beginTransaction();
+    try {
+      cmd.run();
+      db.setTransactionSuccessful();
+    } finally {
+      db.endTransaction();
+    }
+  }
+
+  @SuppressWarnings("RedundantThrows")
+  public static void runInTransaction(RoomDatabase db, ThrowingRunnable cmd) throws IOException {
+    db.runInTransaction(() -> run(cmd));
+  }
+
+  private static void run(ThrowingRunnable cmd) {
+    try {
+      cmd.run();
+    } catch (IOException e) {
+      sneakyThrow(e);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <E extends Throwable> void sneakyThrow(Throwable e) throws E {
+    throw (E) e;
   }
 }

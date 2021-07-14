@@ -10,11 +10,7 @@ import java.io.IOException;
 
 public interface QueryCommand {
 
-  String getScope();// for analytics
-
-  Timestamps.Lifetime getLifetime();
-
-  Transaction startTransaction();
+  boolean isCacheExpired();
 
   void updateCache() throws IOException;
 

@@ -92,8 +92,8 @@ final public class FileTree {
     this.timestamps = new Timestamps(helper);
   }
 
-  public final Transaction startTransaction() {
-    return Transaction.create(helper.getWritableDatabase());
+  public final void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
+    Utils.runInTransaction(helper, cmd);
   }
 
   public final Timestamps.Lifetime getDirLifetime(String path, TimeStamp ttl) {

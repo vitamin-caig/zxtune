@@ -17,12 +17,12 @@ import androidx.room.RoomDatabase;
 import androidx.room.TypeConverter;
 import androidx.room.TypeConverters;
 
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
 import app.zxtune.fs.dbhelpers.Utils;
 
 import static java.lang.annotation.RetentionPolicy.SOURCE;
@@ -158,23 +158,12 @@ class Database {
     Utils.sendStatistics(db.getOpenHelper());
   }
 
-  final Timestamps.Lifetime getLifetime(String id, TimeStamp ttl) {
-    return db.timestamps().getLifetime(id, ttl);
+  final void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
+    Utils.runInTransaction(db, cmd);
   }
 
-  final Transaction startTransaction() {
-    db.beginTransaction();
-    return new Transaction() {
-      @Override
-      public void succeed() {
-        db.setTransactionSuccessful();
-      }
-
-      @Override
-      public void finish() {
-        db.endTransaction();
-      }
-    };
+  final Timestamps.Lifetime getLifetime(String id, TimeStamp ttl) {
+    return db.timestamps().getLifetime(id, ttl);
   }
 
   final boolean queryGroups(@Type int type, Catalog.Visitor<Group> visitor) {

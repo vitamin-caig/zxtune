@@ -11,10 +11,10 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
 import app.zxtune.analytics.Analytics;
-import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.http.HttpObject;
 import app.zxtune.io.Io;
 import app.zxtune.io.TransactionalOutputStream;
+import app.zxtune.utils.ProgressCallback;
 
 public class CommandExecutor {
 
@@ -26,14 +26,14 @@ public class CommandExecutor {
     this.id = id;
   }
 
-  public final void executeQuery(QueryCommand cmd) throws IOException {
-    final Analytics.VfsTrace trace = Analytics.VfsTrace.create(id, cmd.getScope());
+  public final void executeQuery(String scope, QueryCommand cmd) throws IOException {
+    final Analytics.VfsTrace trace = Analytics.VfsTrace.create(id, scope);
     final int action = executeQueryImpl(cmd);
     trace.send(action);
   }
 
   private int executeQueryImpl(QueryCommand cmd) throws IOException {
-    if (cmd.getLifetime().isExpired()) {
+    if (cmd.isCacheExpired()) {
       return refreshAndQuery(cmd);
     } else {
       cmd.queryFromCache();
@@ -43,7 +43,7 @@ public class CommandExecutor {
 
   private int refreshAndQuery(QueryCommand cmd) throws IOException {
     try {
-      executeRefresh(cmd);
+      cmd.updateCache();
       cmd.queryFromCache();
       return Analytics.VFS_ACTION_REMOTE_FETCH;
     } catch (IOException e) {
@@ -55,19 +55,8 @@ public class CommandExecutor {
     }
   }
 
-  private void executeRefresh(QueryCommand cmd) throws IOException {
-    final Transaction transaction = cmd.startTransaction();
-    try {
-      cmd.updateCache();
-      cmd.getLifetime().update();
-      transaction.succeed();
-    } finally {
-      transaction.finish();
-    }
-  }
-
-  public final <T> T executeFetchCommand(FetchCommand<T> cmd) throws IOException {
-    final Analytics.VfsTrace trace = Analytics.VfsTrace.create(id, cmd.getScope());
+  public final <T> T executeFetchCommand(String scope, FetchCommand<T> cmd) throws IOException {
+    final Analytics.VfsTrace trace = Analytics.VfsTrace.create(id, scope);
     final T cached = cmd.fetchFromCache();
     if (cached != null) {
       trace.send(Analytics.VFS_ACTION_CACHED_FETCH);

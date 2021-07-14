@@ -6,8 +6,6 @@ import java.io.IOException;
 
 public interface FetchCommand<T> {
 
-  String getScope();
-
   @Nullable
   T fetchFromCache();
 

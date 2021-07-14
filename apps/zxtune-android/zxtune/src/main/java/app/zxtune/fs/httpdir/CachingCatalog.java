@@ -12,7 +12,6 @@ import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.FileTree;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
 
 final class CachingCatalog extends Catalog {
 
@@ -31,21 +30,13 @@ final class CachingCatalog extends Catalog {
   @Override
   public void parseDir(final Path path, final DirVisitor visitor) throws IOException {
     final String dirName = path.getLocalId();
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("dir", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getDirLifetime(dirName, DIR_TTL);
 
       @Override
-      public String getScope() {
-        return "dir";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getDirLifetime(dirName, DIR_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
@@ -62,7 +53,10 @@ final class CachingCatalog extends Catalog {
             entries.add(new FileTree.Entry(name, descr, size));
           }
         });
-        db.add(dirName, entries);
+        db.runInTransaction(() -> {
+          db.add(dirName, entries);
+          lifetime.update();
+        });
       }
 
       @Override

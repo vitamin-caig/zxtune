@@ -14,7 +14,6 @@ import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
 
 final public class CachingCatalog extends Catalog {
 
@@ -39,30 +38,25 @@ final public class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthors(final AuthorsVisitor visitor) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("authors", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getAuthorsLifetime(AUTHORS_TTL);
 
       @Override
-      public String getScope() {
-        return "authors";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getAuthorsLifetime(AUTHORS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryAuthors(new AuthorsVisitor() {
-          @Override
-          public void accept(Author obj) {
-            db.addAuthor(obj);
-          }
+        db.runInTransaction(() -> {
+          remote.queryAuthors(new AuthorsVisitor() {
+            @Override
+            public void accept(Author obj) {
+              db.addAuthor(obj);
+            }
+          });
+          lifetime.update();
         });
       }
 
@@ -75,31 +69,26 @@ final public class CachingCatalog extends Catalog {
 
   @Override
   public void queryAuthorTracks(final Author author, final TracksVisitor visitor) throws IOException {
-    executor.executeQuery(new QueryCommand() {
+    executor.executeQuery("tracks", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getAuthorTracksLifetime(author, TRACKS_TTL);
 
       @Override
-      public String getScope() {
-        return "tracks";
-      }
-
-      @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getAuthorTracksLifetime(author, TRACKS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        remote.queryAuthorTracks(author, new TracksVisitor() {
-          @Override
-          public void accept(Track obj) {
-            db.addTrack(obj);
-            db.addAuthorTrack(author, obj);
-          }
+        db.runInTransaction(() -> {
+          remote.queryAuthorTracks(author, new TracksVisitor() {
+            @Override
+            public void accept(Track obj) {
+              db.addTrack(obj);
+              db.addAuthorTrack(author, obj);
+            }
+          });
+          lifetime.update();
         });
       }
 

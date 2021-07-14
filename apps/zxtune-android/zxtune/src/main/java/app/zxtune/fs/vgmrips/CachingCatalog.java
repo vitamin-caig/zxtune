@@ -7,11 +7,10 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
-import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
-import app.zxtune.fs.dbhelpers.Transaction;
+import app.zxtune.utils.ProgressCallback;
 
 class CachingCatalog extends Catalog {
 
@@ -57,29 +56,25 @@ class CachingCatalog extends Catalog {
   @Override
   public Pack findPack(final String id, final Visitor<Track> visitor) throws IOException {
     final Pack[] result = {null};
-    executor.executeQuery(new QueryCommand() {
-      @Override
-      public String getScope() {
-        return "pack";
-      }
+    executor.executeQuery("pack", new QueryCommand() {
+
+      private final Timestamps.Lifetime lifetime = db.getLifetime(id, PACK_TRACKS_TTL);
 
       @Override
-      public Timestamps.Lifetime getLifetime() {
-        return db.getLifetime(id, PACK_TRACKS_TTL);
-      }
-
-      @Override
-      public Transaction startTransaction() {
-        return db.startTransaction();
+      public boolean isCacheExpired() {
+        return lifetime.isExpired();
       }
 
       @Override
       public void updateCache() throws IOException {
-        final Pack pack = remote.findPack(id, obj -> db.addPackTrack(id, obj));
-        if (pack != null) {
-          db.addPack(pack);
-        }
-        result[0] = pack;
+        db.runInTransaction(() -> {
+          final Pack pack = remote.findPack(id, obj -> db.addPackTrack(id, obj));
+          if (pack != null) {
+            db.addPack(pack);
+          }
+          lifetime.update();
+          result[0] = pack;
+        });
       }
 
       @Override
@@ -103,22 +98,19 @@ class CachingCatalog extends Catalog {
 
   @Nullable
   private Pack findRandomPackAndCache(Visitor<Track> visitor) throws IOException {
-    final Transaction trans = db.startTransaction();
-    try {
+    final Pack[] result = {null};
+    db.runInTransaction(() -> {
       final ArrayList<Track> tracks = new ArrayList<>();
-      final Pack result = remote.findRandomPack(tracks::add);
-      if (result != null) {
-        db.addPack(result);
+      result[0] = remote.findRandomPack(tracks::add);
+      if (result[0] != null) {
+        db.addPack(result[0]);
         for (Track tr : tracks) {
-          db.addPackTrack(result.id, tr);
+          db.addPackTrack(result[0].id, tr);
           visitor.accept(tr);
         }
-        trans.succeed();
       }
-      return result;
-    } finally {
-      trans.finish();
-    }
+    });
+    return result[0];
   }
 
   @Nullable
@@ -144,25 +136,21 @@ class CachingCatalog extends Catalog {
 
     @Override
     public void query(final Catalog.Visitor<Group> visitor) throws IOException {
-      executor.executeQuery(new QueryCommand() {
-        @Override
-        public String getScope() {
-          return scope + "s";
-        }
+      executor.executeQuery(scope + "s", new QueryCommand() {
+
+        private final Timestamps.Lifetime lifetime = db.getLifetime(scope, GROUPS_TTL);
 
         @Override
-        public Timestamps.Lifetime getLifetime() {
-          return db.getLifetime(scope, GROUPS_TTL);
-        }
-
-        @Override
-        public Transaction startTransaction() {
-          return db.startTransaction();
+        public boolean isCacheExpired() {
+          return lifetime.isExpired();
         }
 
         @Override
         public void updateCache() throws IOException {
-          remote.query(obj -> db.addGroup(type, obj));
+          db.runInTransaction(() -> {
+            remote.query(obj -> db.addGroup(type, obj));
+            lifetime.update();
+          });
         }
 
         @Override
@@ -175,25 +163,21 @@ class CachingCatalog extends Catalog {
     @Override
     public void queryPacks(final String id, final Catalog.Visitor<Pack> visitor,
                            final ProgressCallback progress) throws IOException {
-      executor.executeQuery(new QueryCommand() {
-        @Override
-        public String getScope() {
-          return scope;
-        }
+      executor.executeQuery(scope, new QueryCommand() {
+
+        private final Timestamps.Lifetime lifetime = db.getLifetime(id, GROUP_PACKS_TTL);
 
         @Override
-        public Timestamps.Lifetime getLifetime() {
-          return db.getLifetime(id, GROUP_PACKS_TTL);
-        }
-
-        @Override
-        public Transaction startTransaction() {
-          return db.startTransaction();
+        public boolean isCacheExpired() {
+          return lifetime.isExpired();
         }
 
         @Override
         public void updateCache() throws IOException {
-          remote.queryPacks(id, obj -> db.addGroupPack(id, obj), progress);
+          db.runInTransaction(() -> {
+            remote.queryPacks(id, obj -> db.addGroupPack(id, obj), progress);
+            lifetime.update();
+          });
         }
 
         @Override
