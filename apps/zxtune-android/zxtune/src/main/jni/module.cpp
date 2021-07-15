@@ -222,7 +222,7 @@ namespace Module
   }
 }  // namespace Module
 
-JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule(JNIEnv* env, jclass /*self*/, jobject buffer,
+JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule(JNIEnv* env, jobject /*self*/, jobject buffer,
                                                                      jstring subpath)
 {
   return Jni::Call(env, [=]() {
@@ -231,7 +231,7 @@ JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule(JNIEnv* env
   });
 }
 
-JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules(JNIEnv* env, jclass /*self*/, jobject buffer,
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules(JNIEnv* env, jobject /*self*/, jobject buffer,
                                                                      jobject cb, jobject progress)
 {
   return Jni::Call(env, [=]() {

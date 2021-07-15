@@ -22,17 +22,7 @@ class JniApi extends Api {
     loggingOptions = new LoggingOptionsAdapter(JniOptions.instance());
   }
 
-  private void forcedInit() {
-    enumeratePlugins(new Plugins.Visitor() {
-      @Override
-      public void onPlayerPlugin(int devices, String id, String description) {
-      }
-
-      @Override
-      public void onContainerPlugin(int type, String id, String description) {
-      }
-    });
-  }
+  private native void forcedInit();
 
   @Override
   public native Module loadModule(ByteBuffer data, String subPath) throws ResolvingException;

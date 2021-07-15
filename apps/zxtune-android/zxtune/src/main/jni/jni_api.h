@@ -9,11 +9,19 @@ extern "C" {
 #endif
 /*
  * Class:     app_zxtune_core_jni_JniApi
+ * Method:    forcedInit
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_forcedInit
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     app_zxtune_core_jni_JniApi
  * Method:    loadModule
  * Signature: (Ljava/nio/ByteBuffer;Ljava/lang/String;)Lapp/zxtune/core/Module;
  */
 JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule
-  (JNIEnv *, jclass, jobject, jstring);
+  (JNIEnv *, jobject, jobject, jstring);
 
 /*
  * Class:     app_zxtune_core_jni_JniApi
@@ -21,7 +29,7 @@ JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule
  * Signature: (Ljava/nio/ByteBuffer;Lapp/zxtune/core/jni/DetectCallback;Lapp/zxtune/utils/ProgressCallback;)V
  */
 JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules
-  (JNIEnv *, jclass, jobject, jobject, jobject);
+  (JNIEnv *, jobject, jobject, jobject, jobject);
 
 /*
  * Class:     app_zxtune_core_jni_JniApi
@@ -29,8 +37,19 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules
  * Signature: (Lapp/zxtune/core/jni/Plugins/Visitor;)V
  */
 JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_enumeratePlugins
-  (JNIEnv *, jclass, jobject);
+  (JNIEnv *, jobject, jobject);
 
+#ifdef __cplusplus
+}
+#endif
+#endif
+/* Header for class app_zxtune_core_jni_JniApi_LoggingOptionsAdapter */
+
+#ifndef _Included_app_zxtune_core_jni_JniApi_LoggingOptionsAdapter
+#define _Included_app_zxtune_core_jni_JniApi_LoggingOptionsAdapter
+#ifdef __cplusplus
+extern "C" {
+#endif
 #ifdef __cplusplus
 }
 #endif

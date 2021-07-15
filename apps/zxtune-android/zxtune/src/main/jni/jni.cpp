@@ -12,6 +12,9 @@
 #include "module.h"
 #include "player.h"
 #include "plugin.h"
+#include "jni_api.h"
+// library includes
+#include <core/plugin.h>
 // platform includes
 #include <jni.h>
 
@@ -40,4 +43,9 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* /*reserved*/)
   Plugin::CleanupJni(env);
   Player::CleanupJni(env);
   Module::CleanupJni(env);
+}
+
+JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_forcedInit(JNIEnv* /*env*/, jobject /*self*/)
+{
+  ZXTune::EnumeratePlugins();
 }
