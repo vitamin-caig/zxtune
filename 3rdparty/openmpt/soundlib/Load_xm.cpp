@@ -15,6 +15,9 @@
 #include "XMTools.h"
 #include "mod_specifications.h"
 #ifndef MODPLUG_NO_FILESAVE
+#include "mpt/io/base.hpp"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 #include "../common/mptFileIO.h"
 #endif
 #include "OggStream.h"
@@ -22,6 +25,7 @@
 #ifdef MODPLUG_TRACKER
 #include "../mptrack/TrackerSettings.h"	// For super smooth ramping option
 #endif // MODPLUG_TRACKER
+#include "mpt/audio/span.hpp"
 
 #if defined(MPT_WITH_VORBIS) && defined(MPT_WITH_VORBISFILE)
 #include <sstream>
@@ -47,14 +51,12 @@
 #if MPT_COMPILER_CLANG
 #pragma clang diagnostic pop
 #endif // MPT_COMPILER_CLANG
-#include "../soundbase/SampleFormatConverters.h"
-#include "../soundbase/SampleFormatCopy.h"
+#include "openmpt/soundbase/Copy.hpp"
 #endif
 
 #ifdef MPT_WITH_STBVORBIS
 #include <stb_vorbis/stb_vorbis.c>
-#include "../soundbase/SampleFormatConverters.h"
-#include "../soundbase/SampleFormatCopy.h"
+#include "openmpt/soundbase/Copy.hpp"
 #endif // MPT_WITH_STBVORBIS
 
 
@@ -480,15 +482,12 @@ static bool ReadSampleData(ModSample &sample, SampleIO sampleFlags, FileReader &
 							LimitMax(decodedSamples, mpt::saturate_cast<long>(sample.nLength - offset));
 							if(decodedSamples > 0 && channels == sample.GetNumChannels())
 							{
-								for(int chn = 0; chn < channels; chn++)
+								if(sample.uFlags[CHN_16BIT])
 								{
-									if(sample.uFlags[CHN_16BIT])
-									{
-										CopyChannelToInterleaved<SC::Convert<int16, float> >(sample.sample16() + offset * sample.GetNumChannels(), output[chn], channels, decodedSamples, chn);
-									} else
-									{
-										CopyChannelToInterleaved<SC::Convert<int8, float> >(sample.sample8() + offset * sample.GetNumChannels(), output[chn], channels, decodedSamples, chn);
-									}
+									CopyAudio(mpt::audio_span_interleaved(sample.sample16() + (offset * sample.GetNumChannels()), sample.GetNumChannels(), decodedSamples), mpt::audio_span_planar(output, channels, decodedSamples));
+								} else
+								{
+									CopyAudio(mpt::audio_span_interleaved(sample.sample8() + (offset * sample.GetNumChannels()), sample.GetNumChannels(), decodedSamples), mpt::audio_span_planar(output, channels, decodedSamples));
 								}
 							}
 							offset += decodedSamples;
@@ -520,7 +519,7 @@ static bool ReadSampleData(ModSample &sample, SampleIO sampleFlags, FileReader &
 
 		int consumed = 0, error = 0;
 		stb_vorbis *vorb = nullptr;
-		FileReader::PinnedRawDataView sampleDataView = sampleData.GetPinnedRawDataView();
+		FileReader::PinnedView sampleDataView = sampleData.GetPinnedView();
 		const std::byte* data = sampleDataView.data();
 		std::size_t dataLeft = sampleDataView.size();
 		vorb = stb_vorbis_open_pushdata(mpt::byte_cast<const unsigned char*>(data), mpt::saturate_cast<int>(dataLeft), &consumed, &error, nullptr);
@@ -544,12 +543,12 @@ static bool ReadSampleData(ModSample &sample, SampleIO sampleFlags, FileReader &
 				LimitMax(decodedSamples, mpt::saturate_cast<int>(sample.nLength - offset));
 				if(decodedSamples > 0 && channels == sample.GetNumChannels())
 				{
-					for(int chn = 0; chn < channels; chn++)
+					if(sample.uFlags[CHN_16BIT])
 					{
-						if(sample.uFlags[CHN_16BIT])
-							CopyChannelToInterleaved<SC::Convert<int16, float> >(sample.sample16() + offset * sample.GetNumChannels(), output[chn], channels, decodedSamples, chn);
-						else
-							CopyChannelToInterleaved<SC::Convert<int8, float> >(sample.sample8() + offset * sample.GetNumChannels(), output[chn], channels, decodedSamples, chn);
+						CopyAudio(mpt::audio_span_interleaved(sample.sample16() + (offset * sample.GetNumChannels()), sample.GetNumChannels(), decodedSamples), mpt::audio_span_planar(output, channels, decodedSamples));
+					} else
+					{
+						CopyAudio(mpt::audio_span_interleaved(sample.sample8() + (offset * sample.GetNumChannels()), sample.GetNumChannels(), decodedSamples), mpt::audio_span_planar(output, channels, decodedSamples));
 					}
 				}
 				offset += decodedSamples;

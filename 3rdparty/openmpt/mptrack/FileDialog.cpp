@@ -48,6 +48,7 @@ public:
 		}
 	}
 
+#if NTDDI_VERSION >= NTDDI_VISTA
 	// MFC's AddPlace() is declared as throw() but can in fact throw if any of the COM calls fail, e.g. because the place does not exist.
 	// Avoid this by re-implementing our own version which doesn't throw.
 	void AddPlace(const mpt::PathString &path)
@@ -62,6 +63,7 @@ public:
 			}
 		}
 	}
+#endif
 
 protected:
 	std::vector<TCHAR> m_fileNameBuf;
@@ -100,7 +102,7 @@ bool FileDialog::Show(CWnd *parent)
 		m_extFilter.c_str(),
 		parent != nullptr ? parent : CMainFrame::GetMainFrame(),
 		0,
-		mpt::OS::Windows::IsWine() ? FALSE : TRUE,
+		(mpt::OS::Windows::IsWine() || mpt::OS::Windows::Version::Current().IsBefore(mpt::OS::Windows::Version::WinVista)) ? FALSE : TRUE,
 		m_preview && TrackerSettings::Instance().previewInFileDialogs);
 	OPENFILENAME &ofn = dlg.GetOFN();
 	ofn.nFilterIndex = m_filterIndex != nullptr ? *m_filterIndex : 0;
@@ -108,6 +110,7 @@ bool FileDialog::Show(CWnd *parent)
 	{
 		ofn.lpstrInitialDir = m_workingDirectory.c_str();
 	}
+#if NTDDI_VERSION >= NTDDI_VISTA
 	const auto places =
 	{
 		&TrackerSettings::Instance().PathPluginPresets,
@@ -124,6 +127,7 @@ bool FileDialog::Show(CWnd *parent)
 	{
 		dlg.AddPlace(place);
 	}
+#endif
 
 	// Do it!
 	BypassInputHandler bih;
@@ -138,6 +142,7 @@ bool FileDialog::Show(CWnd *parent)
 
 	if(m_multiSelect)
 	{
+#if NTDDI_VERSION >= NTDDI_VISTA
 		// Multiple files might have been selected
 		if(CComPtr<IShellItemArray> shellItems = dlg.GetResults(); shellItems != nullptr)
 		{
@@ -158,6 +163,7 @@ bool FileDialog::Show(CWnd *parent)
 				}
 			}
 		} else
+#endif
 		{
 			POSITION pos = dlg.GetStartPosition();
 			while(pos != nullptr)

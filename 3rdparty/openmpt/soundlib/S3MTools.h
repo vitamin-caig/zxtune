@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "../soundlib/ModSample.h"
 #include "../soundlib/SampleIO.h"
@@ -84,7 +84,7 @@ struct S3MFileHeader
 	uint8le  masterVolume;     // Sample Volume (0...127, stereo if high bit is set)
 	uint8le  ultraClicks;      // Number of channels used for ultra click removal
 	uint8le  usePanningTable;  // 0xFC => read extended panning table
-	uint16le reserved2;        // Schism Tracker uses this for its extended version information
+	uint16le reserved2;        // Schism Tracker and OpenMPT use this for their extended version information
 	uint32le reserved3;        // Impulse Tracker hides its edit timer here
 	uint16le reserved4;
 	uint16le special;          // Pointer to special custom data (unused)
@@ -129,12 +129,15 @@ struct S3MSampleHeader
 	uint8le  pack;            // Packing algorithm, SamplePacking
 	uint8le  flags;           // Sample flags
 	uint32le c5speed;         // Middle-C frequency
-	char     reserved2[12];   // Reserved + Internal ST3 stuff
+	char     reserved2[4];    // Reserved
+	uint16le gusAddress;      // Sample address in GUS memory (used for fingerprinting)
+	uint16le sb512;           // SoundBlaster loop expansion stuff
+	uint32le lastUsedPos;     // More SoundBlaster stuff
 	char     name[28];        // Sample name
 	char     magic[4];        // "SCRS" magic bytes ("SCRI" for Adlib instruments)
 
 	// Convert an S3M sample header to OpenMPT's internal sample header.
-	void ConvertToMPT(ModSample &mptSmp) const;
+	void ConvertToMPT(ModSample &mptSmp, bool isST3 = false) const;
 	// Convert OpenMPT's internal sample header to an S3M sample header.
 	SmpLength ConvertToS3M(const ModSample &mptSmp);
 	// Retrieve the internal sample format flags for this sample.

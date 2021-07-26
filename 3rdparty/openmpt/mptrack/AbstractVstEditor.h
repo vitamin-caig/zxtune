@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #ifndef NO_PLUGINS
 
@@ -73,6 +73,7 @@ public:
 	afx_msg void OnCopyParameters();
 	afx_msg void OnPasteParameters();
 	afx_msg void OnRandomizePreset();
+	afx_msg void OnRenamePlugin();
 	afx_msg void OnSetPreset(UINT nID);
 	afx_msg void OnBypassPlug();
 	afx_msg void OnRecordAutomation();
@@ -100,7 +101,7 @@ public:
 	virtual void DoClose();
 	virtual void UpdateParamDisplays() { if(m_updateDisplay) { SetupMenu(true); m_updateDisplay = false; } }
 	virtual void UpdateParam(int32 /*param*/) { }
-	virtual void UpdateView(UpdateHint &/*hint*/) { }
+	virtual void UpdateView(UpdateHint hint);
 
 	virtual bool IsResizable() const = 0;
 	virtual bool SetSize(int contentWidth, int contentHeight) = 0;

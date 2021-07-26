@@ -11,6 +11,11 @@
 #include "stdafx.h"
 
 #include "Logging.h"
+
+#include "mpt/io/base.hpp"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
+
 #include "mptFileIO.h"
 #if defined(MODPLUG_TRACKER)
 #include <atomic>
@@ -32,9 +37,6 @@ namespace mpt
 {
 namespace log
 {
-	
-
-#ifndef NO_LOGGING
 
 
 
@@ -63,7 +65,7 @@ void SetFacilities(const std::string &solo, const std::string &blocked)
 	std::strcpy(g_FacilityBlocked, blocked.c_str());
 }
 
-bool IsFacilityActive(const char *facility)
+bool IsFacilityActive(const char *facility) noexcept
 {
 	if(facility)
 	{
@@ -88,7 +90,7 @@ bool IsFacilityActive(const char *facility)
 #endif
 
 
-void Logger::SendLogMessage(const mpt::source_location &loc, LogLevel level, const char *facility, const mpt::ustring &text)
+void GlobalLogger::SendLogMessage(const mpt::source_location &loc, LogLevel level, const char *facility, const mpt::ustring &text) const
 {
 #ifdef MPT_LOG_IS_DISABLED
 	MPT_UNREFERENCED_PARAMETER(loc);
@@ -109,7 +111,7 @@ void Logger::SendLogMessage(const mpt::source_location &loc, LogLevel level, con
 		MPT_UNREFERENCED_PARAMETER(facility);
 	#endif // MODPLUG_TRACKER
 	// remove eol if already present and add log level prefix
-	const mpt::ustring message = LogLevelToString(level) + U_(": ") + mpt::String::RTrim(text, U_("\r\n"));
+	const mpt::ustring message = LogLevelToString(level) + U_(": ") + mpt::trim_right(text, U_("\r\n"));
 	const mpt::ustring file = mpt::ToUnicode(mpt::CharsetSource, loc.file_name() ? loc.file_name() : "");
 	const mpt::ustring function = mpt::ToUnicode(mpt::CharsetSource, loc.function_name() ? loc.function_name() : "");
 	const mpt::ustring line = mpt::ufmt::dec(loc.line());
@@ -182,11 +184,6 @@ void Logger::SendLogMessage(const mpt::source_location &loc, LogLevel level, con
 	#endif // MODPLUG_TRACKER
 #endif // MPT_LOG_IS_DISABLED
 }
-
-
-
-
-#endif // !NO_LOGGING
 
 
 
@@ -335,8 +332,8 @@ bool Dump(const mpt::PathString &filename)
 	{
 		double period = static_cast<double>(Entries[Entries.size() - 1].Timestamp - Entries[0].Timestamp) / static_cast<double>(qpcFreq.QuadPart);
 		double eventsPerSecond = Entries.size() / period;
-		f << "Period [s]: " << mpt::fmt::fix(period) << std::endl;
-		f << "Events/second: " << mpt::fmt::fix(eventsPerSecond) << std::endl;
+		f << "Period [s]: " << mpt::afmt::fix(period) << std::endl;
+		f << "Events/second: " << mpt::afmt::fix(eventsPerSecond) << std::endl;
 	}
 
 	for(auto &entry : Entries)
@@ -349,7 +346,7 @@ bool Dump(const mpt::PathString &filename)
 			time = mpt::ToCharset(mpt::CharsetLogfile, mpt::Date::ANSI::ToUString( ftNow - static_cast<int64>( static_cast<double>(qpcNow.QuadPart - entry.Timestamp) * (10000000.0 / static_cast<double>(qpcFreq.QuadPart) ) ) ) );
 		} else
 		{
-			time = MPT_FORMAT("0x{}")(mpt::fmt::hex0<16>(entry.Timestamp));
+			time = MPT_AFORMAT("0x{}")(mpt::afmt::hex0<16>(entry.Timestamp));
 		}
 		f << time;
 		if(entry.ThreadId == ThreadIdGUI)
@@ -366,7 +363,7 @@ bool Dump(const mpt::PathString &filename)
 			f << " WatchDir ";
 		} else
 		{
-			f << " " << mpt::fmt::hex0<8>(entry.ThreadId) << " ";
+			f << " " << mpt::afmt::hex0<8>(entry.ThreadId) << " ";
 		}
 		f << (entry.Direction == mpt::log::Trace::Direction::Enter ? ">" : entry.Direction == mpt::log::Trace::Direction::Leave ? "<" : " ") << " ";
 		f << entry.File << "(" << entry.Line << "): " << entry.Function;

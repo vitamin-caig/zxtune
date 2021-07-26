@@ -11,6 +11,9 @@
 #include "stdafx.h"
 #include "Mptrack.h"
 #include "TuningDialog.h"
+#include "mpt/io/base.hpp"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 #include "TrackerSettings.h"
 #include <algorithm>
 #include "../common/mptFileIO.h"
@@ -677,7 +680,7 @@ void CTuningDialog::OnBnClickedButtonExport()
 
 		for(std::size_t i = 0; i < pTC->GetNumTunings(); ++i)
 		{
-			const CTuning & tuning = pTC->GetTuning(i);
+			const CTuning & tuning = *(pTC->GetTuning(i));
 			fileName = dlg.GetFirstFile();
 			mpt::ustring tuningName = mpt::ToUnicode(tuning.GetName());
 			if(tuningName.empty())
@@ -760,7 +763,7 @@ template <typename Tfile, std::size_t N> static bool CheckMagic(Tfile &f, mpt::I
 
 void CTuningDialog::OnBnClickedButtonImport()
 {
-	std::string sFilter = MPT_FORMAT("Tuning files (*{}, *{}, *.scl)|*{};*{};*.scl|")(
+	std::string sFilter = MPT_AFORMAT("Tuning files (*{}, *{}, *.scl)|*{};*{};*.scl|")(
 		CTuning::s_FileExtension,
 		CTuningCollection::s_FileExtension,
 		CTuning::s_FileExtension,
@@ -822,7 +825,7 @@ void CTuningDialog::OnBnClickedButtonImport()
 				if(pTC->GetNumTunings() == 1)
 				{
 					Reporting::Message(LogInformation, U_("- Tuning Collection with a Tuning file extension (.tun) detected. It only contains a single Tuning, importing the file as a Tuning.\n"), this);
-					pT = std::unique_ptr<CTuning>(new CTuning(pTC->GetTuning(0)));
+					pT = std::unique_ptr<CTuning>(new CTuning(*(pTC->GetTuning(0))));
 					delete pTC;
 					pTC = nullptr;
 					// ok
@@ -1580,11 +1583,11 @@ CTuningDialog::EnSclImport CTuningDialog::ImportScl(std::istream& iStrm, const m
 			break;
 		if(first)
 		{
-			filename = mpt::String::Trim(str.substr(start + 1), std::string(" \t\r\n"));
+			filename = mpt::trim(str.substr(start + 1), std::string(" \t\r\n"));
 		}
 		first = false;
 	}
-	std::string description = mpt::String::Trim(str, std::string(" \t\r\n"));
+	std::string description = mpt::trim(str, std::string(" \t\r\n"));
 
 	SkipCommentLines(iStrm, str);
 	// str should now contain number of notes.
@@ -1645,7 +1648,7 @@ CTuningDialog::EnSclImport CTuningDialog::ImportScl(std::istream& iStrm, const m
 			fRatios.push_back(static_cast<Tuning::RATIOTYPE>(ConvertStrTo<int32>(psz)));
 
 		std::string remainder = psz;
-		remainder = mpt::String::Trim(remainder, std::string("\r\n"));
+		remainder = mpt::trim(remainder, std::string("\r\n"));
 		if(remainder.find_first_of(" \t") != std::string::npos)
 		{
 			remainder = remainder.substr(remainder.find_first_of(" \t"));
@@ -1653,13 +1656,13 @@ CTuningDialog::EnSclImport CTuningDialog::ImportScl(std::istream& iStrm, const m
 		{
 			remainder = std::string();
 		}
-		remainder = mpt::String::Trim(remainder, std::string(" \t"));
+		remainder = mpt::trim(remainder, std::string(" \t"));
 		if(!remainder.empty())
 		{
 			if(remainder[0] == '!')
 			{
 				remainder = remainder.substr(1);
-				remainder = mpt::String::Trim(remainder, std::string(" \t"));
+				remainder = mpt::trim(remainder, std::string(" \t"));
 			}
 		}
 		if(mpt::ToLowerCaseAscii(remainder) == "cents" || mpt::ToLowerCaseAscii(remainder) == "cent")

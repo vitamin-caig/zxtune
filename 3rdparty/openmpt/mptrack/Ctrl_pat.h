@@ -1,5 +1,5 @@
 /*
- * ctrl_pat.h
+ * Ctrl_pat.h
  * ----------
  * Purpose: Pattern tab, upper panel.
  * Notes  : (currently none)
@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "Globals.h"
 #include "PatternCursor.h"

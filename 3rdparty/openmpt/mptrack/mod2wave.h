@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "StreamEncoder.h"
 #include "StreamEncoderSettings.h"
@@ -33,8 +33,6 @@ struct CWaveConvertSettings
 
 	Setting<mpt::ustring> EncoderName;
 	std::size_t EncoderIndex;
-
-	SampleFormat FinalSampleFormat;
 
 	StoredTags storedTags;
 	FileTags Tags;

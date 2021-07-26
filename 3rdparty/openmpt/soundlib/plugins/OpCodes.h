@@ -10,12 +10,12 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 OPENMPT_NAMESPACE_BEGIN
 
 #ifndef NO_VST
-static constexpr const char *VstOpCodes[] =
+inline constexpr const char *VstOpCodes[] =
 {
 	"effOpen",
 	"effClose",

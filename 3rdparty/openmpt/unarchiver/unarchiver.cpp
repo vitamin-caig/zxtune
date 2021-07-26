@@ -32,6 +32,9 @@ CUnarchiver::CUnarchiver(FileReader &file)
 #ifdef MPT_WITH_UNRAR
 	, rarArchive(inFile)
 #endif
+#ifdef MPT_WITH_ANCIENT
+	, ancientArchive(inFile)
+#endif
 {
 	inFile.Rewind();
 #if (defined(MPT_WITH_ZLIB) && defined(MPT_WITH_MINIZIP)) || defined(MPT_WITH_MINIZ)
@@ -45,6 +48,9 @@ CUnarchiver::CUnarchiver(FileReader &file)
 #endif
 #ifdef MPT_WITH_UNRAR
 	if(rarArchive.IsArchive()) { impl = &rarArchive; return; }
+#endif
+#ifdef MPT_WITH_ANCIENT
+	if(ancientArchive.IsArchive()) { impl = &ancientArchive; return; }
 #endif
 	impl = &emptyArchive;
 }
@@ -76,11 +82,11 @@ std::size_t CUnarchiver::FindBestFile(const std::vector<const char *> &extension
 	std::size_t bestIndex = failIndex;
 	for(std::size_t i = 0; i < size(); ++i)
 	{
-		if(at(i).type != ArchiveFileNormal)
+		if(operator[](i).type != ArchiveFileType::Normal)
 		{
 			continue;
 		}
-		const std::string ext = GetExtension(at(i).name.ToUTF8());
+		const std::string ext = GetExtension(operator[](i).name.ToUTF8());
 
 		if(ext == "diz" || ext == "nfo" || ext == "txt")
 		{
@@ -95,9 +101,9 @@ std::size_t CUnarchiver::FindBestFile(const std::vector<const char *> &extension
 			break;
 		}
 
-		if(at(i).size >= biggestSize)
+		if(operator[](i).size >= biggestSize)
 		{
-			biggestSize = at(i).size;
+			biggestSize = operator[](i).size;
 			bestIndex = i;
 		}
 	}
@@ -155,12 +161,6 @@ IArchive::const_iterator CUnarchiver::begin() const
 IArchive::const_iterator CUnarchiver::end() const
 {
 	return impl->end();
-}
-
-
-const ArchiveFileInfo & CUnarchiver::at(std::size_t index) const
-{
-	return impl->at(index);
 }
 
 

@@ -10,7 +10,6 @@
 
 #include "stdafx.h"
 #include "Loaders.h"
-#include "ChunkReader.h"
 
 OPENMPT_NAMESPACE_BEGIN
 
@@ -218,7 +217,6 @@ static void ConvertMDLCommand(uint8 &cmd, uint8 &param)
 		{
 		case 0x0: // unused
 		case 0x3: // unused
-		case 0x5: // Set Finetune
 		case 0x8: // Set Samplestatus (loop type)
 			cmd = CMD_NONE;
 			break;
@@ -232,6 +230,10 @@ static void ConvertMDLCommand(uint8 &cmd, uint8 &param)
 			break;
 		case 0x4: // Vibrato Waveform
 			param = 0x30 | (param & 0x0F);
+			break;
+		case 0x5:  // Set Finetune
+			cmd = CMD_FINETUNE;
+			param = (param << 4) ^ 0x80;
 			break;
 		case 0x6: // Pattern Loop
 			param = 0xB0 | (param & 0x0F);
@@ -635,8 +637,13 @@ bool CSoundFile::ReadMDL(FileReader &file, ModLoadingFlags loadFlags)
 				mptSmp.nPan = std::min(static_cast<uint16>(sampleHeader.panning * 2), uint16(254));
 				mptSmp.nVibType = MDLVibratoType[sampleHeader.vibType & 3];
 				mptSmp.nVibSweep = sampleHeader.vibSweep;
-				mptSmp.nVibDepth = sampleHeader.vibDepth;
+				mptSmp.nVibDepth = (sampleHeader.vibDepth + 3u) / 4u;
 				mptSmp.nVibRate = sampleHeader.vibSpeed;
+				// Convert to IT-like vibrato sweep
+				if(mptSmp.nVibSweep != 0)
+					mptSmp.nVibSweep = mpt::saturate_cast<decltype(mptSmp.nVibSweep)>(Util::muldivr_unsigned(mptSmp.nVibDepth, 256, mptSmp.nVibSweep));
+				else
+					mptSmp.nVibSweep = 255;
 				if(sampleHeader.panEnvFlags & 0x40)
 					mptSmp.uFlags.set(CHN_PANNING);
 			}

@@ -79,6 +79,7 @@ BEGIN_MESSAGE_MAP(CAbstractVstEditor, CDialog)
 	ON_COMMAND(ID_PLUG_PASSKEYS,		&CAbstractVstEditor::OnPassKeypressesToPlug)
 	ON_COMMAND(ID_PRESET_SAVE,			&CAbstractVstEditor::OnSavePreset)
 	ON_COMMAND(ID_PRESET_RANDOM,		&CAbstractVstEditor::OnRandomizePreset)
+	ON_COMMAND(ID_RENAME_PLUGIN,		&CAbstractVstEditor::OnRenamePlugin)
 	ON_COMMAND(ID_PREVIOUSVSTPRESET,	&CAbstractVstEditor::OnSetPreviousVSTPreset)
 	ON_COMMAND(ID_NEXTVSTPRESET,		&CAbstractVstEditor::OnSetNextVSTPreset)
 	ON_COMMAND(ID_VSTPRESETBACKWARDJUMP,&CAbstractVstEditor::OnVSTPresetBackwardJump)
@@ -265,6 +266,29 @@ void CAbstractVstEditor::OnRandomizePreset()
 }
 
 
+void CAbstractVstEditor::OnRenamePlugin()
+{
+	auto &sndFile = m_VstPlugin.GetSoundFile();
+	auto &plugin = sndFile.m_MixPlugins[m_VstPlugin.m_nSlot];
+
+	CInputDlg dlg(this, _T("New name for this plugin instance:"), mpt::ToCString(plugin.GetName()), static_cast<int32>(std::size(plugin.Info.szName.buf)));
+	if(dlg.DoModal() == IDOK)
+	{
+		if(dlg.resultAsString != mpt::ToCString(plugin.GetName()))
+		{
+			plugin.Info.szName = mpt::ToCharset(mpt::Charset::Locale, dlg.resultAsString);
+			if(auto *modDoc = sndFile.GetpModDoc(); modDoc != nullptr)
+			{
+				if(sndFile.GetModSpecifications().supportsPlugins)
+					modDoc->SetModified();
+				modDoc->UpdateAllViews(nullptr, PluginHint(m_VstPlugin.m_nSlot + 1).Info().Names(), this);
+			}
+			SetTitle();
+		}
+	}
+}
+
+
 bool CAbstractVstEditor::OpenEditor(CWnd *)
 {
 	ModifyStyleEx(0, WS_EX_ACCEPTFILES);
@@ -391,6 +415,7 @@ void CAbstractVstEditor::OnBypassPlug()
 	{
 		m_VstPlugin.GetModDoc()->SetModified();
 	}
+	SetTitle();
 }
 
 
@@ -451,6 +476,19 @@ bool CAbstractVstEditor::HandleKeyMessage(MSG &msg)
 }
 
 
+void CAbstractVstEditor::UpdateView(UpdateHint hint)
+{
+	if(!hint.GetType()[HINT_PLUGINNAMES | HINT_MIXPLUGINS])
+		return;
+
+	PLUGINDEX hintPlug = hint.ToType<PluginHint>().GetPlugin();
+	if(hintPlug > 0 && (hintPlug - 1) != m_VstPlugin.GetSlot())
+		return;
+
+	SetTitle();
+}
+
+
 void CAbstractVstEditor::SetTitle()
 {
 	if(m_VstPlugin.m_pMixStruct)
@@ -469,6 +507,9 @@ void CAbstractVstEditor::SetTitle()
 		if(vstPlugin != nullptr && vstPlugin->isBridged)
 			title += MPT_CFORMAT(" ({} Bridged)")(m_VstPlugin.GetPluginFactory().GetDllArchNameUser());
 #endif // NO_VST
+
+		if(m_VstPlugin.IsBypassed())
+			title += _T(" - Bypass");
 
 		SetWindowText(title);
 	}

@@ -28,13 +28,8 @@
 #include "../soundlib/plugins/PlugInterface.h"
 #include "VstPresets.h"
 #include "../common/FileReader.h"
-
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 
 
 OPENMPT_NAMESPACE_BEGIN
@@ -243,6 +238,7 @@ CHANNELINDEX CModDoc::ReArrangeChannels(const std::vector<CHANNELINDEX> &newOrde
 	}
 
 	// Reassign NNA channels (note: if we increase the number of channels, the lowest-indexed NNA channels will still be lost)
+	const auto muteFlag = CSoundFile::GetChannelMuteFlag();
 	for(CHANNELINDEX chn = oldNumChannels; chn < MAX_CHANNELS; chn++)
 	{
 		auto &channel = m_SndFile.m_PlayState.Chn[chn];
@@ -250,7 +246,7 @@ CHANNELINDEX CModDoc::ReArrangeChannels(const std::vector<CHANNELINDEX> &newOrde
 		if(masterChn > 0 && masterChn <= newIndex.size() && (newMasterChn = newIndex[masterChn - 1]) != CHANNELINDEX_INVALID)
 			channel.nMasterChn = newMasterChn + 1;
 		else
-			channel.Reset(ModChannel::resetTotal, m_SndFile, chn);
+			channel.Reset(ModChannel::resetTotal, m_SndFile, chn, muteFlag);
 	}
 
 	std::vector<ModChannel> chns(std::begin(m_SndFile.m_PlayState.Chn), std::begin(m_SndFile.m_PlayState.Chn) + oldNumChannels);
@@ -373,6 +369,7 @@ SAMPLEINDEX CModDoc::ReArrangeSamples(const std::vector<SAMPLEINDEX> &newOrder)
 
 	GetSampleUndo().RearrangeSamples(newIndex);
 
+	const auto muteFlag = CSoundFile::GetChannelMuteFlag();
 	for(CHANNELINDEX c = 0; c < std::size(m_SndFile.m_PlayState.Chn); c++)
 	{
 		ModChannel &chn = m_SndFile.m_PlayState.Chn[c];
@@ -383,7 +380,7 @@ SAMPLEINDEX CModDoc::ReArrangeSamples(const std::vector<SAMPLEINDEX> &newOrder)
 				chn.pModSample = &m_SndFile.GetSample(newIndex[i]);
 				if(i == 0 || i > newNumSamples)
 				{
-					chn.Reset(ModChannel::resetTotal, m_SndFile, c);
+					chn.Reset(ModChannel::resetTotal, m_SndFile, c, muteFlag);
 				}
 				break;
 			}
@@ -648,6 +645,9 @@ void CModDoc::ClonePlugin(SNDMIXPLUGIN &target, const SNDMIXPLUGIN &source)
 
 PATTERNINDEX CModDoc::InsertPattern(ROWINDEX rows, ORDERINDEX ord)
 {
+	if(ord != ORDERINDEX_INVALID && m_SndFile.Order().GetLengthTailTrimmed() >= m_SndFile.GetModSpecifications().ordersMax)
+		return PATTERNINDEX_INVALID;
+
 	PATTERNINDEX pat = m_SndFile.Patterns.InsertAny(rows, true);
 	if(pat != PATTERNINDEX_INVALID)
 	{

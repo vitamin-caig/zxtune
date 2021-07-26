@@ -1,4 +1,4 @@
-static bool AnyMessageDisplayed=0; // For console -idn switch.
+static bool AnyMessageDisplayed=false; // For console -idn switch.
 
 // Purely user interface function. Gets and returns user input.
 UIASKREP_RESULT uiAskReplace(wchar *Name,size_t MaxNameSize,int64 FileSize,RarTime *FileTime,uint Flags)
@@ -85,7 +85,18 @@ void uiProcessProgress(const char *Command,int64 CurSize,int64 TotalSize)
 
 void uiMsgStore::Msg()
 {
-  AnyMessageDisplayed=true;
+  // When creating volumes, AnyMessageDisplayed must be reset for UIEVENT_NEWARCHIVE,
+  // so it ignores this and all earlier messages like UIEVENT_PROTECTEND
+  // and UIEVENT_PROTECTEND, because they precede "Creating archive" message
+  // and do not interfere with -idn and file names. If we do not ignore them,
+  // uiEolAfterMsg() in uiStartFileAddit() can cause unneeded carriage return
+  // in archiving percent after creating a new volume with -v -idn (and -rr
+  // for UIEVENT_PROTECT*) switches. AnyMessageDisplayed is set for messages
+  // after UIEVENT_NEWARCHIVE, so archiving percent with -idn is moved to
+  // next line and does not delete their last characters.
+  // Similarly we ignore UIEVENT_RRTESTINGEND for volumes, because it is issued
+  // before "Testing archive" and would add an excessive \n otherwise.
+  AnyMessageDisplayed=(Code!=UIEVENT_NEWARCHIVE && Code!=UIEVENT_RRTESTINGEND);
 
   switch(Code)
   {

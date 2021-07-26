@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "../soundlib/ModInstrument.h"
 #include "../soundlib/ModSample.h"
@@ -63,7 +63,7 @@ struct ITFileHeader
 	uint8le  pwd;				// Pitch Wheel Depth
 	uint16le msglength;			// Length of Song Message
 	uint32le msgoffset;			// Offset of Song Message in File (IT crops message after first null)
-	uint32le reserved;			// Some IT versions save an edit timer here. ChibiTracker writes "CHBI" here. OpenMPT writes "OMPT" here in some cases, see Load_it.cpp
+	uint32le reserved;			// Some IT versions save an edit timer here. ChibiTracker writes "CHBI" here. OpenMPT and Schism Tracker save extended version information here.
 	uint8le  chnpan[64];		// Initial Channel Panning
 	uint8le  chnvol[64];		// Initial Channel Volume
 };
@@ -313,12 +313,9 @@ private:
 
 public:
 	static constexpr int32 date = yy * 365 + yy / 4 - yy / 100 + yy / 400 + (mm * 306 + 5) / 10 + (d - 1);
-
-	static constexpr int32 Version(const int32 trackerID = 0x1000)
-	{
-		return trackerID + 0x0050 + date - SchismVersionFromDate<2009, 10, 31>::date;
-	}
 };
+
+inline constexpr int32 SchismTrackerEpoch = SchismVersionFromDate<2009, 10, 31>::date;
 
 
 uint32 DecodeITEditTimer(uint16 cwtv, uint32 editTime);

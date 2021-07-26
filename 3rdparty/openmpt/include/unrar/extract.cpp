@@ -657,7 +657,7 @@ bool CmdExtract::ExtractCurrentFile(Archive &Arc,size_t HeaderSize,bool &Repeat)
           ExtrPrepareName(Arc,Arc.FileHead.RedirName,NameExisting,ASIZE(NameExisting));
           if (FileCreateMode && *NameExisting!=0) // *NameExisting can be 0 in case of excessive -ap switch.
             if (Type==FSREDIR_HARDLINK)
-              LinkSuccess=ExtractHardlink(DestFileName,NameExisting,ASIZE(NameExisting));
+              LinkSuccess=ExtractHardlink(Cmd,DestFileName,NameExisting,ASIZE(NameExisting));
             else
               LinkSuccess=ExtractFileCopy(CurFile,Arc.FileName,DestFileName,NameExisting,ASIZE(NameExisting));
         }
@@ -669,7 +669,7 @@ bool CmdExtract::ExtractCurrentFile(Archive &Arc,size_t HeaderSize,bool &Repeat)
           }
           else
           {
-            uiMsg(UIERROR_UNKNOWNEXTRA, Arc.FileName, DestFileName);
+            uiMsg(UIERROR_UNKNOWNEXTRA,Arc.FileName,DestFileName);
             LinkSuccess=false;
           }
           
@@ -751,7 +751,13 @@ bool CmdExtract::ExtractCurrentFile(Archive &Arc,size_t HeaderSize,bool &Repeat)
         }
       }
       else
-        mprintf(L"\b\b\b\b\b     ");
+      {
+        // We check SkipSolid to remove percent for skipped solid files only.
+        // We must not apply these \b to links with ShowChecksum==false
+        // and their possible error messages.
+        if (SkipSolid) 
+          mprintf(L"\b\b\b\b\b     ");
+      }
 
       /*	// OPENMPT ADDITION
       // If we successfully unpacked a hard link, we wish to set its file
@@ -890,6 +896,8 @@ void CmdExtract::ExtrPrepareName(Archive &Arc,const wchar *ArcFileName,wchar *De
      wchar LastChar=*PointToLastChar(Cmd->ExtrPath);
     // We need IsPathDiv check here to correctly handle Unix forward slash
     // in the end of destination path in Windows: rar x arc dest/
+    // so we call IsPathDiv first instead of just calling AddEndSlash,
+    // which checks for only one type of path separator.
     // IsDriveDiv is needed for current drive dir: rar x arc d:
     if (!IsPathDiv(LastChar) && !IsDriveDiv(LastChar))
     {
@@ -1110,19 +1118,23 @@ void CmdExtract::ExtrCreateDir(Archive &Arc,const wchar *ArcFileName)
     }
     if (!DirExist)
     {
-      CreatePath(DestFileName,true);
+      CreatePath(DestFileName,true,Cmd->DisableNames);
       MDCode=MakeDir(DestFileName,!Cmd->IgnoreGeneralAttr,Arc.FileHead.FileAttr);
-      if (MDCode!=MKDIR_SUCCESS)
+      if (MDCode!=MKDIR_SUCCESS && !IsNameUsable(DestFileName))
       {
+        uiMsg(UIMSG_CORRECTINGNAME,Arc.FileName);
         wchar OrigName[ASIZE(DestFileName)];
         wcsncpyz(OrigName,DestFileName,ASIZE(OrigName));
         MakeNameUsable(DestFileName,true);
-        CreatePath(DestFileName,true);
-        MDCode=MakeDir(DestFileName,!Cmd->IgnoreGeneralAttr,Arc.FileHead.FileAttr);
 #ifndef SFX_MODULE
-        if (MDCode==MKDIR_SUCCESS)
-          uiMsg(UIERROR_RENAMING,Arc.FileName,OrigName,DestFileName);
+        uiMsg(UIERROR_RENAMING,Arc.FileName,OrigName,DestFileName);
 #endif
+        DirExist=FileExist(DestFileName) && IsDir(GetFileAttr(DestFileName));
+        if (!DirExist)
+        {
+          CreatePath(DestFileName,true,Cmd->DisableNames);
+          MDCode=MakeDir(DestFileName,!Cmd->IgnoreGeneralAttr,Arc.FileHead.FileAttr);
+        }
       }
     }
   }
@@ -1202,7 +1214,7 @@ bool CmdExtract::ExtrCreateFile(Archive &Arc,File &CurFile)
 
           MakeNameUsable(DestFileName,true);
 
-          CreatePath(DestFileName,true);
+          CreatePath(DestFileName,true,Cmd->DisableNames);
           if (FileCreate(Cmd,&CurFile,DestFileName,ASIZE(DestFileName),&UserReject,Arc.FileHead.UnpSize,&Arc.FileHead.mtime,true))
           {
 #ifndef SFX_MODULE

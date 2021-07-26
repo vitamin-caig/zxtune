@@ -8,6 +8,7 @@
 #define pnts INT123_pnts
 #define catchsignal INT123_catchsignal
 #define safe_realloc INT123_safe_realloc
+#define safer_realloc INT123_safer_realloc
 #define compat_strdup INT123_compat_strdup
 #define compat_getenv INT123_compat_getenv
 #define compat_open INT123_compat_open
@@ -233,7 +234,6 @@
 #define dectype INT123_dectype
 #define defdec INT123_defdec
 #define decclass INT123_decclass
-#define check_decoders INT123_check_decoders
 #define read_frame_init INT123_read_frame_init
 #define frame_bitrate INT123_frame_bitrate
 #define frame_freq INT123_frame_freq

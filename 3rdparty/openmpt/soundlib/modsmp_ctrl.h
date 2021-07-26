@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "Snd_defs.h"
 
@@ -29,6 +29,9 @@ void ReplaceSample(ModSample &smp, void *pNewSample,  const SmpLength newLength,
 // Propagate loop point changes to player
 bool UpdateLoopPoints(const ModSample &smp, CSoundFile &sndFile);
 
+// Reverse sample data
+bool ReverseSample(ModSample &smp, SmpLength start, SmpLength end, CSoundFile &sndFile);
+
 // Invert sample data (flip by 180 degrees)
 bool InvertSample(ModSample &smp, SmpLength start, SmpLength end, CSoundFile &sndFile);
 
@@ -45,6 +48,10 @@ enum StereoToMonoMode
 
 // Convert a sample with any number of channels to mono
 bool ConvertToMono(ModSample &smp, CSoundFile &sndFile, StereoToMonoMode conversionMode);
+
+// Converts a stereo sample into two mono samples. Source sample will not be deleted.
+// Either of the two target samples may be identical to the source sample.
+bool SplitStereo(const ModSample &source, ModSample &left, ModSample &right, CSoundFile &sndFile);
 
 // Convert a mono sample to stereo
 bool ConvertToStereo(ModSample &smp, CSoundFile &sndFile);

@@ -12,6 +12,10 @@
 
 #include "serialization_utils.h"
 
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
+
+#include <array>
 #include <istream>
 #include <ostream>
 #include <sstream>
@@ -32,7 +36,7 @@ namespace srlztn
 
 
 #ifdef SSB_LOGGING
-#define SSB_LOG(x) MPT_LOG(LogDebug, "serialization", x)
+#define SSB_LOG(x) MPT_LOG_GLOBAL(LogDebug, "serialization", x)
 #else
 #define SSB_LOG(x) do { } while(0)
 #endif
@@ -67,7 +71,7 @@ bool ID::IsPrintable() const
 static void WriteAdaptive12String(std::ostream& oStrm, const std::string& str)
 {
 	uint16 s = static_cast<uint16>(str.size());
-	LimitMax(s, uint16(uint16_max / 2));
+	LimitMax(s, uint16(std::numeric_limits<uint16>::max() / 2));
 	mpt::IO::WriteAdaptiveInt16LE(oStrm, s);
 	oStrm.write(str.c_str(), s);
 }
@@ -75,7 +79,7 @@ static void WriteAdaptive12String(std::ostream& oStrm, const std::string& str)
 
 void WriteItemString(std::ostream& oStrm, const std::string &str)
 {
-	uint32 id = static_cast<uint32>(std::min(str.size(), static_cast<std::size_t>((uint32_max >> 4)))) << 4;
+	uint32 id = static_cast<uint32>(std::min(str.size(), static_cast<std::size_t>((std::numeric_limits<uint32>::max() >> 4)))) << 4;
 	id |= 12; // 12 == 1100b
 	Binarywrite<uint32>(oStrm, id);
 	id >>= 4;
@@ -257,7 +261,7 @@ void SsbWrite::WriteMapItem(const ID &id,
 void SsbWrite::IncrementWriteCounter()
 {
 	m_nCounter++;
-	if (m_nCounter >= (uint16_max >> 2))
+	if(m_nCounter >= static_cast<uint16>(std::numeric_limits<uint16>::max() >> 2))
 	{
 		FinishWrite();
 		AddWriteNote(SNW_MAX_WRITE_COUNT_REACHED);
@@ -424,13 +428,13 @@ void SsbRead::BeginRead(const ID &id, const uint64& nVersion)
 	// Compare IDs.
 	uint8 storedIdLen = 0;
 	Binaryread<uint8>(iStrm, storedIdLen);
-	char storedIdBuf[256];
-	Clear(storedIdBuf);
+	std::array<char, 256> storedIdBuf;
+	storedIdBuf = {};
 	if(storedIdLen > 0)
 	{
-		iStrm.read(storedIdBuf, storedIdLen);
+		iStrm.read(storedIdBuf.data(), storedIdLen);
 	}
-	if(!(id == ID(storedIdBuf, storedIdLen)))
+	if(!(id == ID(storedIdBuf.data(), storedIdLen)))
 	{
 		AddReadNote(SNR_OBJECTCLASS_IDMISMATCH);
 	}

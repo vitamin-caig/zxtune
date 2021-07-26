@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 #include "PatternEditorDialogs.h"
 
 OPENMPT_NAMESPACE_BEGIN

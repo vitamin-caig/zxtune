@@ -29,6 +29,7 @@ end
   filter {}
   local extincludedirs = {
    "../../include",
+   "../../include/ancient/api",
    "../../include/asiomodern/include",
    "../../include/ASIOSDK2/common",
    "../../include/flac/include",
@@ -52,6 +53,7 @@ end
 		sysincludedirs ( extincludedirs )
 	filter {}
   includedirs {
+   "../../src",
    "../../common",
    "../../soundlib",
    "$(IntDir)/svn_version",
@@ -70,12 +72,18 @@ end
 			"../../mptrack/res/OpenMPT-win7.manifest",
 		}
 	end
+	if not _OPTIONS["winxp"] then
+		files {
+			"../../include/asiomodern/include/ASIOModern/*.hpp",
+		}
+	end
   files {
-   "../../include/asiomodern/include/ASIOModern/*.hpp",
+   "../../src/mpt/**.cpp",
+   "../../src/mpt/**.hpp",
+   "../../src/openmpt/**.cpp",
+   "../../src/openmpt/**.hpp",
    "../../common/*.cpp",
    "../../common/*.h",
-   "../../soundbase/*.cpp",
-   "../../soundbase/*.h",
    "../../soundlib/*.cpp",
    "../../soundlib/*.h",
    "../../soundlib/plugins/*.cpp",
@@ -84,8 +92,6 @@ end
    "../../soundlib/plugins/dmo/*.h",
    "../../sounddsp/*.cpp",
    "../../sounddsp/*.h",
-   "../../sounddev/*.cpp",
-   "../../sounddev/*.h",
    "../../unarchiver/*.cpp",
    "../../unarchiver/*.h",
    "../../misc/*.cpp",
@@ -141,12 +147,17 @@ end
   dpiawareness "None"
   largeaddressaware ( true )
   characterset(charset)
+if charset == "Unicode" then
+else
+	defines { "NO_WARN_MBCS_MFC_DEPRECATION" }
+end
 if stringmode == "UTF8" then
 	defines { "MPT_USTRING_MODE_UTF8_FORCE" }
 end
   flags { "MFC" }
   warnings "Extra"
   links {
+   "ancient",
    "UnRAR",
    "zlib",
    "minizip",
@@ -167,7 +178,7 @@ end
    "vorbis",
   }
   filter {}
-	if not _OPTIONS["xp"] then
+	if not _OPTIONS["winxp"] then
   linkoptions {
    "/DELAYLOAD:mf.dll",
    "/DELAYLOAD:mfplat.dll",
@@ -192,9 +203,9 @@ end
   dofile "../../build/premake/premake-defaults-DLL.lua"
   dofile "../../build/premake/premake-defaults.lua"
   includedirs {
+   "../../src",
    "../../common",
    "../../include",
-   "../../include/msinttypes/inttypes",
    "../../include/asiomodern/include",
    "../../include/ASIOSDK2/common",
    "../../include/nlohmann-json/include",
@@ -205,12 +216,12 @@ end
   }
   files {
    "../../include/asiomodern/include/ASIOModern/*.hpp",
+   "../../src/mpt/**.cpp",
+   "../../src/mpt/**.hpp",
+   "../../src/openmpt/**.cpp",
+   "../../src/openmpt/**.hpp",
    "../../common/*.cpp",
    "../../common/*.h",
-   "../../soundbase/*.cpp",
-   "../../soundbase/*.h",
-   "../../sounddev/*.cpp",
-   "../../sounddev/*.h",
    "../../misc/*.cpp",
    "../../misc/*.h",
    "../../mptrack/wine/*.cpp",
@@ -239,9 +250,9 @@ end
   dofile "../../build/premake/premake-defaults-DLL.lua"
   dofile "../../build/premake/premake-defaults.lua"
   includedirs {
+   "../../src",
    "../../common",
    "../../include",
-   "../../include/msinttypes/inttypes",
    "$(IntDir)/svn_version",
    "../../build/svn_version",
   }

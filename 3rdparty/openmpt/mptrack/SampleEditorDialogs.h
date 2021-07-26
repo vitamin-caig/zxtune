@@ -11,8 +11,9 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
+#include "../common/FileReaderFwd.h"
 #include "../soundlib/SampleIO.h"
 #include "../tracklib/FadeLaws.h"
 #include "CDecimalSupport.h"
@@ -63,24 +64,42 @@ protected:
 
 class CRawSampleDlg: public CDialog
 {
-protected:
-	static SampleIO m_nFormat;
-	bool m_bRememberFormat = false;
-
-public:
-	static SampleIO GetSampleFormat() { return m_nFormat; }
-	static void SetSampleFormat(SampleIO nFormat) { m_nFormat = nFormat; }
-	bool GetRemeberFormat() const { return m_bRememberFormat; };
-	void SetRememberFormat(bool bRemember) { m_bRememberFormat = bRemember; };
-
-public:
-	CRawSampleDlg(CWnd *parent = nullptr)
-	    : CDialog(IDD_LOADRAWSAMPLE, parent) {}
+	friend class AutodetectFormatDlg;
 
 protected:
+	static SampleIO m_format;
+	static SmpLength m_offset;
+
+	CSpinButtonCtrl m_SpinOffset;
+	FileReader &m_file;
+	bool m_rememberFormat = false;
+
+public:
+	SampleIO GetSampleFormat() const { return m_format; }
+	void SetSampleFormat(SampleIO nFormat) { m_format = nFormat; }
+
+	bool GetRemeberFormat() const { return m_rememberFormat; };
+	void SetRememberFormat(bool remember) { m_rememberFormat = remember; };
+
+	SmpLength GetOffset() const { return m_offset; }
+	void SetOffset(SmpLength offset) { m_offset = offset; }
+
+public:
+	CRawSampleDlg(FileReader &file, CWnd *parent = nullptr)
+		: CDialog(IDD_LOADRAWSAMPLE, parent)
+		, m_file(file) {}
+
+protected:
+	void DoDataExchange(CDataExchange *pDX) override;
 	BOOL OnInitDialog() override;
 	void OnOK() override;
 	void UpdateDialog();
+
+	void OnBitDepthChanged(UINT id);
+	void OnEncodingChanged(UINT id);
+	void OnAutodetectFormat();
+
+	DECLARE_MESSAGE_MAP()
 };
 
 
@@ -197,7 +216,7 @@ protected:
 
 class CResamplingDlg: public CDialog
 {
-protected:
+public:
 	enum ResamplingOption
 	{
 		Upsample,
@@ -205,15 +224,18 @@ protected:
 		Custom
 	};
 
+protected:
 	ResamplingMode m_srcMode;
 	uint32 m_frequency;
+	bool m_resampleAll;
 	static uint32 lastFrequency;
 	static ResamplingOption lastChoice;
 
 public:
-	CResamplingDlg(CWnd *parent, uint32 frequency, ResamplingMode srcMode) : CDialog(IDD_RESAMPLE, parent), m_srcMode(srcMode), m_frequency(frequency) { };
+	CResamplingDlg(CWnd *parent, uint32 frequency, ResamplingMode srcMode, bool resampleAll) : CDialog(IDD_RESAMPLE, parent), m_srcMode(srcMode), m_frequency(frequency), m_resampleAll(resampleAll) { };
 	uint32 GetFrequency() const { return m_frequency; }
 	ResamplingMode GetFilter() const { return m_srcMode; }
+	static ResamplingOption GetResamplingOption() { return lastChoice; }
 
 protected:
 	BOOL OnInitDialog() override;

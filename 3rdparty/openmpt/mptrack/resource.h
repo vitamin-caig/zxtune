@@ -270,6 +270,9 @@
 #define IDC_RADIO7                      1407
 #define IDC_RADIO8                      1408
 #define IDC_RADIO9                      1409
+#define IDC_RADIO10                     1410
+#define IDC_RADIO11                     1411
+#define IDC_RADIO12                     1412
 #define IDC_SLIDER1                     1501
 #define IDC_SLIDER2                     1502
 #define IDC_SLIDER3                     1503
@@ -1206,6 +1209,7 @@
 #define ID_PATTERN_INSERTROWGLOBAL      43159
 #define ID_PATTERN_DELETEALLROWGLOBAL   43160
 #define ID_PATTERN_INSERTALLROWGLOBAL   43161
+#define ID_PATTERN_RESETCHANNELCOLORS   43214
 #define ID_PATTERN_TRANSPOSECHANNEL     43215
 #define ID_PATTERN_DUPLICATECHANNEL     43216
 #define ID_EDIT_GOTO_MENU               43217
@@ -1286,6 +1290,7 @@
 #define ID_SAMPLE_DELETE_CUEPOINT       44649
 #define ID_CONVERT_PINGPONG_LOOP        44650
 #define ID_CONVERT_PINGPONG_SUSTAIN     44651
+#define ID_RENAME_PLUGIN                44652
 
 // Next default values for new objects
 // 
@@ -1293,7 +1298,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        543
-#define _APS_NEXT_COMMAND_VALUE         44652
+#define _APS_NEXT_COMMAND_VALUE         44653
 #define _APS_NEXT_CONTROL_VALUE         2517
 #define _APS_NEXT_SYMED_VALUE           901
 #endif

@@ -8,6 +8,7 @@
   dofile "../../build/premake/premake-defaults-EXE.lua"
   dofile "../../build/premake/premake-defaults.lua"
   includedirs {
+   "../../src",
    "../../common",
    "../../include",
    "../../include/nlohmann-json/include",
@@ -15,6 +16,10 @@
    "../../build/svn_version",
   }
   files {
+   "../../src/mpt/**.cpp",
+   "../../src/mpt/**.hpp",
+   "../../src/openmpt/**.cpp",
+   "../../src/openmpt/**.hpp",
    "../../common/*.cpp",
    "../../common/*.h",
    "../../misc/*.cpp",
@@ -22,13 +27,13 @@
    "../../installer/signtool/*.cpp",
    "../../installer/signtool/*.h",
   }
+	excludes {
+		"../../src/openmpt/sounddevice/**.cpp",
+		"../../src/openmpt/sounddevice/**.hpp",
+	}
   defines { "MODPLUG_TRACKER", "MPT_BUILD_SIGNTOOL" }
   largeaddressaware ( true )
   characterset "Unicode"
   warnings "Extra"
-  links {
-   "portaudio",
-   "rtaudio",
-  }
   filter {}
   prebuildcommands { "..\\..\\build\\svn_version\\update_svn_version_vs_premake.cmd $(IntDir)" }

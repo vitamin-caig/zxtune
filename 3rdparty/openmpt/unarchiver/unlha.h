@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "archive.h"
 
@@ -38,7 +38,7 @@ public:
 	CLhaArchive(FileReader &file);
 	virtual ~CLhaArchive();
 public:
-	virtual bool ExtractFile(std::size_t index);
+	bool ExtractFile(std::size_t index) override;
 };
 
 #endif // MPT_WITH_LHASA

@@ -1,11 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{2DAB880B-99B4-887C-2230-9F7C8E38947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt">
+      <UniqueIdentifier>{1ACB48A9-86AA-C744-8FC2-521BFB202EA6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\audio">
+      <UniqueIdentifier>{08F9969C-74B9-12D3-3DF4-5B50A97357AF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\base">
+      <UniqueIdentifier>{B102DE80-9D65-6D25-46EB-A5DB322D39A8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\base\tests">
+      <UniqueIdentifier>{A092E23B-8C76-A391-F5D6-9DE4E1D98D13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\binary">
+      <UniqueIdentifier>{3B77F730-2745-EB36-10D9-5B5DFC45C79B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\binary\tests">
+      <UniqueIdentifier>{AAC627BD-9655-B186-3F74-C5812BE2C12C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\check">
+      <UniqueIdentifier>{940CB49C-00CD-2FD3-C907-7950358774AF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\crc">
+      <UniqueIdentifier>{2EEFC068-9AA4-395E-2399-33358F4D3062}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\crc\tests">
+      <UniqueIdentifier>{DD28764B-493F-74E1-92B6-FF02FE0B4569}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\crypto">
+      <UniqueIdentifier>{97C4F533-8392-E939-6C26-5A605893C59E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\crypto\tests">
+      <UniqueIdentifier>{06A9D974-F237-633E-9B56-773987C473E4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\detect">
+      <UniqueIdentifier>{CFBF5C35-BB8D-503B-A421-C161908E2CA0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\endian">
+      <UniqueIdentifier>{A50F4C38-91DD-3F3E-7A71-B06466DE1BA3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\endian\tests">
+      <UniqueIdentifier>{94862B67-8015-B530-2934-C92B15A2C5D6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\environment">
+      <UniqueIdentifier>{4BCBC71D-B72C-A52B-409A-EBDDACFADBEA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\exception_text">
+      <UniqueIdentifier>{C9C6093D-B5C0-328F-9E2D-C99F8AC698FB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\format">
+      <UniqueIdentifier>{1F0FBB3A-0BDD-AE40-F470-1F67E0DD8AA5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\format\tests">
+      <UniqueIdentifier>{8EB9DEF5-7A48-68BF-2367-7CBA0FD57865}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\io">
+      <UniqueIdentifier>{2EC2A8F3-1A7A-EA40-8381-C39C6F588531}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\io\tests">
+      <UniqueIdentifier>{DD3BB067-C934-CFB9-F266-B43EDEBEAEC5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\io_read">
+      <UniqueIdentifier>{89A4B677-F52F-243C-FE40-A7306A4B803C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\io_write">
+      <UniqueIdentifier>{98F5EC6E-84EE-0BC1-AD20-F1459978EBCC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\json">
+      <UniqueIdentifier>{D0B1E280-BC14-7225-659A-AADB51DC3DA8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\library">
+      <UniqueIdentifier>{CBA1DC50-372D-4A15-403E-CD09AC48A615}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\mutex">
+      <UniqueIdentifier>{A962709D-1523-ECD3-DE5D-35514ADD30B0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\osinfo">
+      <UniqueIdentifier>{44F4FC4F-30C2-F055-1956-617C05C3CCBA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\out_of_memory">
+      <UniqueIdentifier>{3AB0B2BD-A61C-6EB8-6F10-0616DB3B9020}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\parse">
+      <UniqueIdentifier>{D1AD9B9D-3D6E-17D4-06A9-605172285CB0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\parse\tests">
+      <UniqueIdentifier>{C0153CF8-2C77-1906-B5E4-5FB8214550C5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\path">
+      <UniqueIdentifier>{23B0E580-0F13-7525-B898-ADDBA4DA40A8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\random">
+      <UniqueIdentifier>{9749B955-8317-AD5B-6CAB-1D82581889C0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\random\tests">
+      <UniqueIdentifier>{06EE6C9E-F27C-F667-9B9B-0A638709070E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\string">
+      <UniqueIdentifier>{6D8A6859-5958-5C5F-42EC-CC852E5938C4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\string\tests">
+      <UniqueIdentifier>{5CF7BA51-4886-441B-F1A4-5816DD1255C1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\string_convert">
+      <UniqueIdentifier>{4DBC776B-39B6-A0BD-2223-37CE0EBC062A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\string_convert\tests">
+      <UniqueIdentifier>{3C11A0B3-28CC-8F5F-D183-08AABD1DDAEF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\system_error">
+      <UniqueIdentifier>{C4047277-B093-FB40-59B2-0F3C45200CE7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\test">
+      <UniqueIdentifier>{96F2E780-8255-7725-2BDB-AFDB171D43A8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\uuid">
+      <UniqueIdentifier>{ADC1E880-9924-7825-42AA-B0DB2EEC43A8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\uuid\tests">
+      <UniqueIdentifier>{9C9ED71A-8882-9870-F1E2-92C3DDE582F2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\uuid_namespace">
+      <UniqueIdentifier>{B98C0F94-A586-38E6-8EF3-CEF67A8C9E52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\mpt\uuid_namespace\tests">
+      <UniqueIdentifier>{A882657C-943D-5528-3DF5-CD72298F9FB8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\openmpt">
+      <UniqueIdentifier>{4C02B001-B8B7-28F7-41AC-22CEAD601FFB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\openmpt\sounddevice">
+      <UniqueIdentifier>{81A03C5C-EDD7-84F3-F6E1-E8166298ABEC}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\openmpt\all">
+      <UniqueIdentifier>{21667483-8DF1-E147-9602-653C020D3E48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\openmpt\base">
+      <UniqueIdentifier>{238901F2-0F82-2044-38B4-05C9240C0050}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\openmpt\logging">
+      <UniqueIdentifier>{8F722CAB-FBD3-09B9-8441-506BF0A14078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\openmpt\random">
+      <UniqueIdentifier>{8934D89D-7518-99F3-DE78-9346CA7B8375}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\openmpt\soundbase">
+      <UniqueIdentifier>{ECBE1C9D-582B-D897-211F-70F58D4AFAFF}</UniqueIdentifier>
+    </Filter>
     <Filter Include="common">
       <UniqueIdentifier>{AEFEE3F6-9AA0-0ECD-835B-22216F9C951D}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="soundbase">
-      <UniqueIdentifier>{69D0CCEC-D53A-8163-1E79-32098A225FB8}</UniqueIdentifier>
     </Filter>
     <Filter Include="soundlib">
       <UniqueIdentifier>{050BB116-F1D7-0B22-1AF1-F9C9061D41B0}</UniqueIdentifier>
@@ -24,16 +171,532 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\common\BuildSettings.h">
-      <Filter>common</Filter>
+    <ClInclude Include="..\..\src\mpt\audio\sample.hpp">
+      <Filter>src\mpt\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\CompilerDetect.h">
+    <ClInclude Include="..\..\src\mpt\audio\span.hpp">
+      <Filter>src\mpt\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\algorithm.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\aligned_array.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\alloc.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\arithmetic_shift.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\array.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\bit.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\check_platform.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\compiletime_warning.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\constexpr_throw.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\detect.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\detect_compiler.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\detect_libc.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\detect_libcxx.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\detect_os.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\detect_quirks.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\floatingpoint.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\integer.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\macros.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\math.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\memory.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\namespace.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\numbers.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\numeric.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\pointer.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\preprocessor.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\saturate_cast.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\saturate_round.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\secure.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\semantic_version.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\source_location.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\span.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\utility.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\version.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\wrapping_divide.hpp">
+      <Filter>src\mpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\tests\tests_base_arithmetic_shift.hpp">
+      <Filter>src\mpt\base\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\tests\tests_base_bit.hpp">
+      <Filter>src\mpt\base\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\tests\tests_base_math.hpp">
+      <Filter>src\mpt\base\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\tests\tests_base_saturate_cast.hpp">
+      <Filter>src\mpt\base\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\tests\tests_base_saturate_round.hpp">
+      <Filter>src\mpt\base\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\base\tests\tests_base_wrapping_divide.hpp">
+      <Filter>src\mpt\base\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\binary\base64.hpp">
+      <Filter>src\mpt\binary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\binary\base64url.hpp">
+      <Filter>src\mpt\binary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\binary\hex.hpp">
+      <Filter>src\mpt\binary</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\binary\tests\tests_binary.hpp">
+      <Filter>src\mpt\binary\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\check\libc.hpp">
+      <Filter>src\mpt\check</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\check\mfc.hpp">
+      <Filter>src\mpt\check</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\check\windows.hpp">
+      <Filter>src\mpt\check</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\crc\crc.hpp">
+      <Filter>src\mpt\crc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\crc\tests\tests_crc.hpp">
+      <Filter>src\mpt\crc\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\crypto\exception.hpp">
+      <Filter>src\mpt\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\crypto\hash.hpp">
+      <Filter>src\mpt\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\crypto\jwk.hpp">
+      <Filter>src\mpt\crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\crypto\tests\tests_crypto.hpp">
+      <Filter>src\mpt\crypto\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\detect\dl.hpp">
+      <Filter>src\mpt\detect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\detect\ltdl.hpp">
+      <Filter>src\mpt\detect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\detect\mfc.hpp">
+      <Filter>src\mpt\detect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\detect\nlohmann_json.hpp">
+      <Filter>src\mpt\detect</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\endian\floatingpoint.hpp">
+      <Filter>src\mpt\endian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\endian\int24.hpp">
+      <Filter>src\mpt\endian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\endian\integer.hpp">
+      <Filter>src\mpt\endian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\endian\tests\tests_endian_floatingpoint.hpp">
+      <Filter>src\mpt\endian\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\endian\tests\tests_endian_integer.hpp">
+      <Filter>src\mpt\endian\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\environment\environment.hpp">
+      <Filter>src\mpt\environment</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\exception_text\exception_text.hpp">
+      <Filter>src\mpt\exception_text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\default_floatingpoint.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\default_formatter.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\default_integer.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\default_string.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\helpers.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\join.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\message.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\message_macros.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\simple.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\simple_floatingpoint.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\simple_integer.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\simple_spec.hpp">
+      <Filter>src\mpt\format</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\tests\tests_format_message.hpp">
+      <Filter>src\mpt\format\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\format\tests\tests_format_simple.hpp">
+      <Filter>src\mpt\format\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io\base.hpp">
+      <Filter>src\mpt\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io\io.hpp">
+      <Filter>src\mpt\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io\io_span.hpp">
+      <Filter>src\mpt\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io\io_stdstream.hpp">
+      <Filter>src\mpt\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io\io_virtual_wrapper.hpp">
+      <Filter>src\mpt\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io\tests\tests_io.hpp">
+      <Filter>src\mpt\io\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\callbackstream.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filecursor.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filecursor_callbackstream.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filecursor_filename_traits.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filecursor_memory.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filecursor_stdstream.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filecursor_traits_filedata.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filecursor_traits_memory.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filedata.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filedata_base.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filedata_base_buffered.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filedata_base_seekable.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filedata_base_unseekable.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filedata_callbackstream.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filedata_memory.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filedata_stdstream.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_read\filereader.hpp">
+      <Filter>src\mpt\io_read</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\io_write\buffer.hpp">
+      <Filter>src\mpt\io_write</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\json\json.hpp">
+      <Filter>src\mpt\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\library\library.hpp">
+      <Filter>src\mpt\library</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\mutex\mutex.hpp">
+      <Filter>src\mpt\mutex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\osinfo\class.hpp">
+      <Filter>src\mpt\osinfo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\osinfo\windows_version.hpp">
+      <Filter>src\mpt\osinfo</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\out_of_memory\out_of_memory.hpp">
+      <Filter>src\mpt\out_of_memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\parse\parse.hpp">
+      <Filter>src\mpt\parse</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\parse\split.hpp">
+      <Filter>src\mpt\parse</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\parse\tests\tests_parse.hpp">
+      <Filter>src\mpt\parse\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\path\path.hpp">
+      <Filter>src\mpt\path</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\random\crand.hpp">
+      <Filter>src\mpt\random</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\random\default_engines.hpp">
+      <Filter>src\mpt\random</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\random\device.hpp">
+      <Filter>src\mpt\random</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\random\engine.hpp">
+      <Filter>src\mpt\random</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\random\engine_lcg.hpp">
+      <Filter>src\mpt\random</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\random\random.hpp">
+      <Filter>src\mpt\random</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\random\seed.hpp">
+      <Filter>src\mpt\random</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\random\tests\tests_random.hpp">
+      <Filter>src\mpt\random\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\string\buffer.hpp">
+      <Filter>src\mpt\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\string\types.hpp">
+      <Filter>src\mpt\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\string\utility.hpp">
+      <Filter>src\mpt\string</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\string\tests\tests_string_buffer.hpp">
+      <Filter>src\mpt\string\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\string\tests\tests_string_utility.hpp">
+      <Filter>src\mpt\string\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\string_convert\convert.hpp">
+      <Filter>src\mpt\string_convert</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\string_convert\macros.hpp">
+      <Filter>src\mpt\string_convert</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\string_convert\tests\tests_string_convert.hpp">
+      <Filter>src\mpt\string_convert\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\system_error\system_error.hpp">
+      <Filter>src\mpt\system_error</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\test\test.hpp">
+      <Filter>src\mpt\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\test\test_macros.hpp">
+      <Filter>src\mpt\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\uuid\guid.hpp">
+      <Filter>src\mpt\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\uuid\uuid.hpp">
+      <Filter>src\mpt\uuid</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\uuid\tests\tests_uuid.hpp">
+      <Filter>src\mpt\uuid\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\uuid_namespace\uuid_namespace.hpp">
+      <Filter>src\mpt\uuid_namespace</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\mpt\uuid_namespace\tests\tests_uuid_namespace.hpp">
+      <Filter>src\mpt\uuid_namespace\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\all\BuildSettings.hpp">
+      <Filter>src\openmpt\all</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\base\Endian.hpp">
+      <Filter>src\openmpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\base\FlagSet.hpp">
+      <Filter>src\openmpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\base\Int24.hpp">
+      <Filter>src\openmpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\base\Types.hpp">
+      <Filter>src\openmpt\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\logging\Logger.hpp">
+      <Filter>src\openmpt\logging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\random\ModPlug.hpp">
+      <Filter>src\openmpt\random</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\Copy.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\CopyMix.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\Dither.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\DitherModPlug.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\DitherNone.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\DitherSimple.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\MixSample.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\MixSampleConvert.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\SampleClip.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\SampleClipFixedPoint.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\SampleConvert.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\SampleConvertFixedPoint.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\SampleDecode.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\SampleEncode.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\soundbase\SampleFormat.hpp">
+      <Filter>src\openmpt\soundbase</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDevice.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDeviceASIO.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDeviceBase.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDeviceBuffer.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDeviceCallback.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDeviceDirectSound.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDeviceManager.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDevicePortAudio.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDevicePulseaudio.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDevicePulseSimple.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDeviceRtAudio.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDeviceUtilities.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\openmpt\sounddevice\SoundDeviceWaveout.hpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\common\BuildSettings.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\ComponentManager.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\Endianness.h">
+    <ClInclude Include="..\..\common\Dither.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\FileReader.h">
@@ -42,16 +705,10 @@
     <ClInclude Include="..\..\common\FileReaderFwd.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\FlagSet.h">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\Logging.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\misc_util.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptAlloc.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\mptAssert.h">
@@ -66,46 +723,13 @@
     <ClInclude Include="..\..\common\mptBaseUtils.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\mptCRC.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptException.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptExceptionText.h">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\mptFileIO.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptIO.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptLibrary.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptMemory.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptMutex.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptOS.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptOSError.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptOSException.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\mptPathString.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\mptRandom.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptSpan.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\mptString.h">
@@ -120,13 +744,7 @@
     <ClInclude Include="..\..\common\mptStringParse.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\mptThread.h">
-      <Filter>common</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\common\mptTime.h">
-      <Filter>common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\common\mptUUID.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\Profiler.h">
@@ -144,24 +762,6 @@
     <ClInclude Include="..\..\common\versionNumber.h">
       <Filter>common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\soundbase\Dither.h">
-      <Filter>soundbase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\soundbase\SampleBuffer.h">
-      <Filter>soundbase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\soundbase\SampleFormat.h">
-      <Filter>soundbase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\soundbase\SampleFormatConverters.h">
-      <Filter>soundbase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\soundbase\SampleFormatCopy.h">
-      <Filter>soundbase</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\soundbase\SampleTypes.h">
-      <Filter>soundbase</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\soundlib\AudioCriticalSection.h">
       <Filter>soundlib</Filter>
     </ClInclude>
@@ -169,9 +769,6 @@
       <Filter>soundlib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\soundlib\BitReader.h">
-      <Filter>soundlib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\soundlib\ChunkReader.h">
       <Filter>soundlib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\soundlib\Container.h">
@@ -273,7 +870,13 @@
     <ClInclude Include="..\..\soundlib\S3MTools.h">
       <Filter>soundlib</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\soundlib\SampleCopy.h">
+      <Filter>soundlib</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\soundlib\SampleIO.h">
+      <Filter>soundlib</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\soundlib\SampleNormalize.h">
       <Filter>soundlib</Filter>
     </ClInclude>
     <ClInclude Include="..\..\soundlib\Sndfile.h">
@@ -334,6 +937,9 @@
       <Filter>soundlib\plugins</Filter>
     </ClInclude>
     <ClInclude Include="..\..\soundlib\plugins\PlugInterface.h">
+      <Filter>soundlib\plugins</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\soundlib\plugins\SymMODEcho.h">
       <Filter>soundlib\plugins</Filter>
     </ClInclude>
     <ClInclude Include="..\..\soundlib\plugins\dmo\Chorus.h">
@@ -419,28 +1025,46 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\ComponentManager.cpp">
-      <Filter>common</Filter>
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDevice.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\FileReader.cpp">
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDeviceASIO.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDeviceBase.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDeviceDirectSound.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDeviceManager.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDevicePortAudio.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDevicePulseaudio.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDevicePulseSimple.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDeviceRtAudio.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDeviceUtilities.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\openmpt\sounddevice\SoundDeviceWaveout.cpp">
+      <Filter>src\openmpt\sounddevice</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\ComponentManager.cpp">
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\Logging.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\misc_util.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\common\mptFileIO.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\mptIO.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\mptLibrary.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\common\mptOS.cpp">
       <Filter>common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\mptPathString.cpp">
@@ -464,9 +1088,6 @@
     <ClCompile Include="..\..\common\mptTime.cpp">
       <Filter>common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\mptUUID.cpp">
-      <Filter>common</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\common\Profiler.cpp">
       <Filter>common</Filter>
     </ClCompile>
@@ -475,9 +1096,6 @@
     </ClCompile>
     <ClCompile Include="..\..\common\version.cpp">
       <Filter>common</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\soundbase\Dither.cpp">
-      <Filter>soundbase</Filter>
     </ClCompile>
     <ClCompile Include="..\..\soundlib\AudioCriticalSection.cpp">
       <Filter>soundlib</Filter>
@@ -531,6 +1149,9 @@
       <Filter>soundlib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\soundlib\Load_dsm.cpp">
+      <Filter>soundlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\soundlib\Load_dsym.cpp">
       <Filter>soundlib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\soundlib\Load_dtm.cpp">
@@ -603,6 +1224,9 @@
       <Filter>soundlib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\soundlib\Load_stp.cpp">
+      <Filter>soundlib</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\soundlib\Load_symmod.cpp">
       <Filter>soundlib</Filter>
     </ClCompile>
     <ClCompile Include="..\..\soundlib\Load_uax.cpp">
@@ -762,6 +1386,9 @@
       <Filter>soundlib\plugins</Filter>
     </ClCompile>
     <ClCompile Include="..\..\soundlib\plugins\PlugInterface.cpp">
+      <Filter>soundlib\plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\soundlib\plugins\SymMODEcho.cpp">
       <Filter>soundlib\plugins</Filter>
     </ClCompile>
     <ClCompile Include="..\..\soundlib\plugins\dmo\Chorus.cpp">

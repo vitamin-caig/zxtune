@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 #include <string>
-#include "../common/FlagSet.h"
+#include "openmpt/base/FlagSet.hpp"
 #include <map>
 #include <bitset>
 
@@ -106,7 +106,13 @@ enum CommandID
 	kcEstimateSongLength,
 	kcApproxRealBPM,
 	kcMidiRecord,
-	kcEndPlayCommands = kcMidiRecord,
+	kcTempoIncrease,
+	kcTempoDecrease,
+	kcTempoIncreaseFine,
+	kcTempoDecreaseFine,
+	kcSpeedIncrease,
+	kcSpeedDecrease,
+	kcEndPlayCommands = kcSpeedDecrease,
 
 	kcStartEditCommands,
 	kcEditUndo = kcStartEditCommands,
@@ -310,6 +316,9 @@ enum CommandID
 	kcChannelReset,
 	kcChannelTranspose,
 	kcChannelDuplicate,
+	kcChannelAddBefore,
+	kcChannelAddAfter,
+	kcChannelRemove,
 	kcChannelMoveLeft,
 	kcChannelMoveRight,
 	kcChannelSettings,
@@ -643,10 +652,12 @@ enum CommandID
 	kcSetFXsetEnvPos,           //l,?
 	kcSetFXmacro,               //z,z
 	kcFixedFXend = kcSetFXmacro,
-	kcSetFXmacroSlide,  //?,\ ,
-	kcSetFXdelaycut,    //?,:
-	kcSetFXextension,   //?,#
-	kcSetFXEnd = kcSetFXextension,
+	kcSetFXmacroSlide,      //?,\ ,
+	kcSetFXdelaycut,        //?,:
+	kcSetFXextension,       //?,#
+	kcSetFXFinetune,        //?,+
+	kcSetFXFinetuneSmooth,  //?,*
+	kcSetFXEnd = kcSetFXFinetuneSmooth,
 
 	kcStartInstrumentMisc,
 	// Note: Order must be the same as kcStartSampleMisc because commands are propagated!
@@ -813,6 +824,7 @@ enum CommandID
 	kcStartOrderlistEdit = kcStartOrderlistCommands,
 	kcOrderlistEditDelete = kcStartOrderlistEdit,
 	kcOrderlistEditInsert,
+	kcOrderlistEditInsertSeparator,
 	kcOrderlistEditCopyOrders,
 	kcMergePatterns,
 	kcOrderlistEditPattern,

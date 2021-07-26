@@ -13,8 +13,10 @@
 #include "Mptrack.h"
 #include "Moddoc.h"
 #include "Mainfrm.h"
-#include "../sounddev/SoundDevice.h"
-#include "../sounddev/SoundDeviceManager.h"
+#include "mpt/environment/environment.hpp"
+#include "mpt/uuid/uuid.hpp"
+#include "openmpt/sounddevice/SoundDevice.hpp"
+#include "openmpt/sounddevice/SoundDeviceManager.hpp"
 #include "../common/version.h"
 #include "UpdateCheck.h"
 #include "Mpdlgs.h"
@@ -26,7 +28,6 @@
 #include "ExceptionHandler.h"
 #include "../soundlib/mod_specifications.h"
 #include "../soundlib/Tables.h"
-#include "../common/mptUUID.h"
 #include "../common/mptFileIO.h"
 #include "../soundlib/tuningcollection.h"
 #include "TuningDialog.h"
@@ -109,7 +110,7 @@ void SampleUndoBufferSize::CalculateSize()
 DebugSettings::DebugSettings(SettingsContainer &conf)
 	: conf(conf)
 	// Debug
-#if !defined(NO_LOGGING) && !defined(MPT_LOG_IS_DISABLED)
+#if !defined(MPT_LOG_IS_DISABLED)
 	, DebugLogLevel(conf, U_("Debug"), U_("LogLevel"), static_cast<int>(mpt::log::GlobalLogLevel))
 	, DebugLogFacilitySolo(conf, U_("Debug"), U_("LogFacilitySolo"), std::string())
 	, DebugLogFacilityBlocked(conf, U_("Debug"), U_("LogFacilityBlocked"), std::string())
@@ -131,7 +132,7 @@ DebugSettings::DebugSettings(SettingsContainer &conf)
 	ExceptionHandler::delegateToWindowsHandler = DebugDelegateToWindowsHandler;
 
 		// enable debug features (as early as possible after reading the settings)
-	#if !defined(NO_LOGGING) && !defined(MPT_LOG_IS_DISABLED)
+	#if !defined(MPT_LOG_IS_DISABLED)
 		#if !defined(MPT_LOG_GLOBAL_LEVEL_STATIC)
 			mpt::log::GlobalLogLevel = DebugLogLevel;
 		#endif
@@ -189,7 +190,7 @@ TrackerSettings::TrackerSettings(SettingsContainer &conf)
 	, rememberSongWindows(conf, U_("Display"), U_("RememberSongWindows"), true)
 	, showDirsInSampleBrowser(conf, U_("Display"), U_("ShowDirsInSampleBrowser"), false)
 	, commentsFont(conf, U_("Display"), U_("Comments Font"), FontSetting(U_("Courier New"), 120))
-	, defaultRainbowChannelColors(conf, U_("Display"), U_("DefaultChannelColors"), true)
+	, defaultRainbowChannelColors(conf, U_("Display"), U_("DefaultChannelColors"), DefaultChannelColors::Random)
 	// Misc
 	, defaultModType(conf, U_("Misc"), U_("DefaultModType"), MOD_TYPE_IT)
 	, defaultNewFileAction(conf, U_("Misc"), U_("DefaultNewFileAction"), nfDefaultFormat)
@@ -203,6 +204,7 @@ TrackerSettings::TrackerSettings(SettingsContainer &conf)
 	, MiscProcessPriorityClass(conf, U_("Misc"), U_("ProcessPriorityClass"), ProcessPriorityClassNORMAL)
 	, MiscFlushFileBuffersOnSave(conf, U_("Misc"), U_("FlushFileBuffersOnSave"), true)
 	, MiscCacheCompleteFileBeforeLoading(conf, U_("Misc"), U_("CacheCompleteFileBeforeLoading"), false)
+	, MiscUseSingleInstance(conf, U_("Misc"), U_("UseSingleInstance"), false)
 	// Sound Settings
 	, m_SoundShowRecordingSettings(false)
 	, m_SoundShowDeprecatedDevices(conf, U_("Sound Settings"), U_("ShowDeprecatedDevices"), false)
@@ -316,6 +318,7 @@ TrackerSettings::TrackerSettings(SettingsContainer &conf)
 	// Broken Plugins Workarounds
 	, BrokenPluginsWorkaroundVSTMaskAllCrashes(conf, U_("Broken Plugins Workarounds"), U_("VSTMaskAllCrashes"), true)  // TODO: really should be false
 	, BrokenPluginsWorkaroundVSTNeverUnloadAnyPlugin(conf, U_("BrokenPluginsWorkarounds"), U_("VSTNeverUnloadAnyPlugin"), false)
+#if defined(MPT_ENABLE_UPDATE)
 	// Update
 	, UpdateEnabled(conf, U_("Update"), U_("Enabled"), true)
 	, UpdateInstallAutomatically(conf, U_("Update"), U_("InstallAutomatically"), false)
@@ -342,6 +345,7 @@ TrackerSettings::TrackerSettings(SettingsContainer &conf)
 #endif // MPT_UPDATE_LEGACY
 	, UpdateSkipSignatureVerificationUNSECURE(conf, U_("Update"), U_("SkipSignatureVerification"), false)
 	, UpdateSigningKeysRootAnchors(conf, U_("Update"), U_("SigningKeysRootAnchors"), CUpdateCheck::GetDefaultUpdateSigningKeysRootAnchors())
+#endif // MPT_ENABLE_UPDATE
 	// Wine suppport
 	, WineSupportEnabled(conf, U_("WineSupport"), U_("Enabled"), false)
 	, WineSupportAlwaysRecompile(conf, U_("WineSupport"), U_("AlwaysRecompile"), false)
@@ -466,7 +470,7 @@ TrackerSettings::TrackerSettings(SettingsContainer &conf)
 	if(!VersionInstallGUID.Get().IsValid())
 	{
 		// No UUID found - generate one.
-		VersionInstallGUID = mpt::UUID::Generate();
+		VersionInstallGUID = mpt::UUID::Generate(mpt::global_prng());
 	}
 
 	// Plugins
@@ -669,6 +673,130 @@ TrackerSettings::TrackerSettings(SettingsContainer &conf)
 		m_dwPatternSetup &= ~0x200;
 	}
 
+	// Export
+	if(storedVersion < MPT_V("1.30.00.38"))
+	{
+		{
+			conf.Write<mpt::ustring>(U_("Export"), U_("FLAC_Mode"), U_("Lossless"));
+			const int oldformat = conf.Read<int>(U_("Export"), U_("FLAC_Format"), 1);
+			Encoder::Format newformat = { Encoder::Format::Encoding::Integer, 24, mpt::get_endian() };
+			if (oldformat >= 0)
+			{
+				switch (oldformat % 3)
+				{
+				case 0:
+					newformat = { Encoder::Format::Encoding::Integer, 24, mpt::get_endian() };
+					break;
+				case 1:
+					newformat = { Encoder::Format::Encoding::Integer, 16, mpt::get_endian() };
+					break;
+				case 2:
+					newformat = { Encoder::Format::Encoding::Integer, 8, mpt::get_endian() };
+					break;
+				}
+			}
+			conf.Write<int32>(U_("Export"), U_("FLAC_Format2"), newformat.AsInt());
+			conf.Forget(U_("Export"), U_("FLAC_Format"));
+		}
+		{
+			conf.Write<mpt::ustring>(U_("Export"), U_("Wave_Mode"), U_("Lossless"));
+			const int oldformat = conf.Read<int>(U_("Export"), U_("Wave_Format"), 1);
+			Encoder::Format newformat = { Encoder::Format::Encoding::Float, 32, mpt::endian::little };
+			if (oldformat >= 0)
+			{
+				switch (oldformat % 6)
+				{
+				case 0:
+					newformat = { Encoder::Format::Encoding::Float, 64, mpt::endian::little };
+					break;
+				case 1:
+					newformat = { Encoder::Format::Encoding::Float, 32, mpt::endian::little };
+					break;
+				case 2:
+					newformat = { Encoder::Format::Encoding::Integer, 32, mpt::endian::little };
+					break;
+				case 3:
+					newformat = { Encoder::Format::Encoding::Integer, 24, mpt::endian::little };
+					break;
+				case 4:
+					newformat = { Encoder::Format::Encoding::Integer, 16, mpt::endian::little };
+					break;
+				case 5:
+					newformat = { Encoder::Format::Encoding::Unsigned, 8, mpt::endian::little };
+					break;
+				}
+			}
+			conf.Write<int32>(U_("Export"), U_("Wave_Format2"), newformat.AsInt());
+			conf.Forget(U_("Export"), U_("Wave_Format"));
+		}
+		{
+			conf.Write<mpt::ustring>(U_("Export"), U_("AU_Mode"), U_("Lossless"));
+			const int oldformat = conf.Read<int>(U_("Export"), U_("AU_Format"), 1);
+			Encoder::Format newformat = { Encoder::Format::Encoding::Float, 32, mpt::endian::big };
+			if(oldformat >= 0)
+			{
+				switch(oldformat % 6)
+				{
+				case 0:
+					newformat = { Encoder::Format::Encoding::Float, 64, mpt::endian::big };
+					break;
+				case 1:
+					newformat = { Encoder::Format::Encoding::Float, 32, mpt::endian::big };
+					break;
+				case 2:
+					newformat = { Encoder::Format::Encoding::Integer, 32, mpt::endian::big };
+					break;
+				case 3:
+					newformat = { Encoder::Format::Encoding::Integer, 24, mpt::endian::big };
+					break;
+				case 4:
+					newformat = { Encoder::Format::Encoding::Integer, 16, mpt::endian::big };
+					break;
+				case 5:
+					newformat = { Encoder::Format::Encoding::Integer, 8, mpt::endian::big };
+					break;
+				}
+			}
+			conf.Write<int32>(U_("Export"), U_("AU_Format2"), newformat.AsInt());
+			conf.Forget(U_("Export"), U_("AU_Format"));
+		}
+		{
+			conf.Write<mpt::ustring>(U_("Export"), U_("RAW_Mode"), U_("Lossless"));
+			const int oldformat = conf.Read<int>(U_("Export"), U_("RAW_Format"), 1);
+			Encoder::Format newformat = { Encoder::Format::Encoding::Float, 32, mpt::get_endian() };
+			if(oldformat >= 0)
+			{
+				switch(oldformat % 7)
+				{
+				case 0:
+					newformat = { Encoder::Format::Encoding::Float, 64, mpt::get_endian() };
+					break;
+				case 1:
+					newformat = { Encoder::Format::Encoding::Float, 32, mpt::get_endian() };
+					break;
+				case 2:
+					newformat = { Encoder::Format::Encoding::Integer, 32, mpt::get_endian() };
+					break;
+				case 3:
+					newformat = { Encoder::Format::Encoding::Integer, 24, mpt::get_endian() };
+					break;
+				case 4:
+					newformat = { Encoder::Format::Encoding::Integer, 16, mpt::get_endian() };
+					break;
+				case 5:
+					newformat = { Encoder::Format::Encoding::Integer, 8, mpt::get_endian() };
+					break;
+				case 6:
+					newformat = { Encoder::Format::Encoding::Unsigned, 8, mpt::get_endian() };
+					break;
+				}
+			}
+			conf.Write<int32>(U_("Export"), U_("RAW_Format2"), newformat.AsInt());
+			conf.Forget(U_("Export"), U_("RAW_Format"));
+		}
+	}
+
+#if defined(MPT_ENABLE_UPDATE)
 	// Update
 	if(storedVersion < MPT_V("1.28.00.39"))
 	{
@@ -703,6 +831,8 @@ TrackerSettings::TrackerSettings(SettingsContainer &conf)
 		conf.Forget(UpdateUpdateURL_DEPRECATED.GetPath());
 		conf.Forget(UpdateSendGUID_DEPRECATED.GetPath());
 	}
+#endif // MPT_ENABLE_UPDATE
+
 	if(storedVersion < MPT_V("1.29.00.39"))
 	{
 		// ASIO device IDs are now normalized to upper-case in the device enumeration code.
@@ -777,6 +907,69 @@ TrackerSettings::~TrackerSettings()
 {
 	return;
 }
+
+
+namespace SoundDevice
+{
+namespace Legacy
+{
+SoundDevice::Info FindDeviceInfo(SoundDevice::Manager &manager, SoundDevice::Legacy::ID id)
+{
+	if(manager.GetDeviceInfos().empty())
+	{
+		return SoundDevice::Info();
+	}
+	SoundDevice::Type type = SoundDevice::Type();
+	switch((id & SoundDevice::Legacy::MaskType) >> SoundDevice::Legacy::ShiftType)
+	{
+		case SoundDevice::Legacy::TypeWAVEOUT:
+			type = SoundDevice::TypeWAVEOUT;
+			break;
+		case SoundDevice::Legacy::TypeDSOUND:
+			type = SoundDevice::TypeDSOUND;
+			break;
+		case SoundDevice::Legacy::TypeASIO:
+			type = SoundDevice::TypeASIO;
+			break;
+		case SoundDevice::Legacy::TypePORTAUDIO_WASAPI:
+			type = SoundDevice::TypePORTAUDIO_WASAPI;
+			break;
+		case SoundDevice::Legacy::TypePORTAUDIO_WDMKS:
+			type = SoundDevice::TypePORTAUDIO_WDMKS;
+			break;
+		case SoundDevice::Legacy::TypePORTAUDIO_WMME:
+			type = SoundDevice::TypePORTAUDIO_WMME;
+			break;
+		case SoundDevice::Legacy::TypePORTAUDIO_DS:
+			type = SoundDevice::TypePORTAUDIO_DS;
+			break;
+	}
+	if(type.empty())
+	{	// fallback to first device
+		return *manager.begin();
+	}
+	std::size_t index = static_cast<uint8>((id & SoundDevice::Legacy::MaskIndex) >> SoundDevice::Legacy::ShiftIndex);
+	std::size_t seenDevicesOfDesiredType = 0;
+	for(const auto &info : manager)
+	{
+		if(info.type == type)
+		{
+			if(seenDevicesOfDesiredType == index)
+			{
+				if(!info.IsValid())
+				{	// fallback to first device
+					return *manager.begin();
+				}
+				return info;
+			}
+			seenDevicesOfDesiredType++;
+		}
+	}
+	// default to first device
+	return *manager.begin();
+}
+} // namespace Legacy
+} // namespace SoundDevice
 
 
 void TrackerSettings::MigrateOldSoundDeviceSettings(SoundDevice::Manager &manager)
@@ -870,7 +1063,7 @@ private:
 	Setting<bool> BoostThreadPriority;
 	Setting<bool> KeepDeviceRunning;
 	Setting<bool> UseHardwareTiming;
-	Setting<int> DitherType;
+	Setting<int32> DitherType;
 	Setting<uint32> InputSourceID;
 
 public:
@@ -889,7 +1082,7 @@ public:
 		, BoostThreadPriority(conf, U_("Sound Settings"), deviceInfo.GetIdentifier() + U_("_") + U_("BoostThreadPriority"), defaults.BoostThreadPriority)
 		, KeepDeviceRunning(conf, U_("Sound Settings"), deviceInfo.GetIdentifier() + U_("_") + U_("KeepDeviceRunning"), defaults.KeepDeviceRunning)
 		, UseHardwareTiming(conf, U_("Sound Settings"), deviceInfo.GetIdentifier() + U_("_") + U_("UseHardwareTiming"), defaults.UseHardwareTiming)
-		, DitherType(conf, U_("Sound Settings"), deviceInfo.GetIdentifier() + U_("_") + U_("DitherType"), defaults.DitherType)
+		, DitherType(conf, U_("Sound Settings"), deviceInfo.GetIdentifier() + U_("_") + U_("DitherType"), static_cast<int32>(defaults.DitherType))
 		, InputSourceID(conf, U_("Sound Settings"), deviceInfo.GetIdentifier() + U_("_") + U_("InputSourceID"), defaults.InputSourceID)
 	{
 		if(ChannelMapping.Get().GetNumHostChannels() != ChannelsOld)
@@ -918,7 +1111,7 @@ public:
 		BoostThreadPriority = settings.BoostThreadPriority;
 		KeepDeviceRunning = settings.KeepDeviceRunning;
 		UseHardwareTiming = settings.UseHardwareTiming;
-		DitherType = settings.DitherType;
+		DitherType = static_cast<int32>(settings.DitherType);
 		InputSourceID = settings.InputSourceID;
 		return *this;
 	}

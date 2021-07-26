@@ -28,7 +28,7 @@ class FLACStreamWriter : public StreamWriterBase
 {
 private:
 	const FLACEncoder &enc;
-	Encoder::Format formatInfo;
+	Encoder::Settings settings;
 	FLAC__StreamMetadata *flac_metadata[1];
 	FLAC__StreamEncoder *encoder;
 	std::vector<FLAC__int32> sampleBuf;
@@ -82,23 +82,23 @@ private:
 		}
 	}
 public:
-	FLACStreamWriter(const FLACEncoder &enc_, std::ostream &stream, const Encoder::Settings &settings, const FileTags &tags)
+	FLACStreamWriter(const FLACEncoder &enc_, std::ostream &stream, const Encoder::Settings &settings_, const FileTags &tags)
 		: StreamWriterBase(stream)
 		, enc(enc_)
+		, settings(settings_)
 	{
 		flac_metadata[0] = nullptr;
 		encoder = nullptr;
 
-		formatInfo = enc.GetTraits().formats[settings.Format];
-		ASSERT(formatInfo.Sampleformat.IsValid());
-		ASSERT(formatInfo.Samplerate > 0);
-		ASSERT(formatInfo.Channels > 0);
+		MPT_ASSERT(settings.Format.GetSampleFormat().IsValid());
+		MPT_ASSERT(settings.Samplerate > 0);
+		MPT_ASSERT(settings.Channels > 0);
 
 		encoder = FLAC__stream_encoder_new();
 
-		FLAC__stream_encoder_set_channels(encoder, formatInfo.Channels);
-		FLAC__stream_encoder_set_bits_per_sample(encoder, formatInfo.Sampleformat.GetBitsPerSample());
-		FLAC__stream_encoder_set_sample_rate(encoder, formatInfo.Samplerate);
+		FLAC__stream_encoder_set_channels(encoder, settings.Channels);
+		FLAC__stream_encoder_set_bits_per_sample(encoder, settings.Format.GetSampleFormat().GetBitsPerSample());
+		FLAC__stream_encoder_set_sample_rate(encoder, settings.Samplerate);
 
 		int compressionLevel = settings.Details.FLACCompressionLevel;
 		FLAC__stream_encoder_set_compression_level(encoder, compressionLevel);
@@ -123,55 +123,22 @@ public:
 		FLAC__stream_encoder_init_stream(encoder, FLACWriteCallback, FLACSeekCallback, FLACTellCallback, nullptr, this);
 
 	}
-	void WriteInterleaved(size_t count, const float *interleaved) override
+	SampleFormat GetSampleFormat() const
 	{
-		ASSERT(formatInfo.Sampleformat.IsFloat());
-		WriteInterleavedConverted(count, reinterpret_cast<const std::byte*>(interleaved));
+		return settings.Format.GetSampleFormat();
 	}
-	void WriteInterleavedConverted(size_t frameCount, const std::byte *data) override
+	template <typename Tsample>
+	void WriteInterleavedInt(std::size_t frameCount, const Tsample *p)
 	{
-		sampleBuf.resize(frameCount * formatInfo.Channels);
-		switch(formatInfo.Sampleformat.GetBitsPerSample()/8)
+		MPT_ASSERT(settings.Format.GetSampleFormat() == SampleFormatTraits<Tsample>::sampleFormat());
+		sampleBuf.resize(frameCount * settings.Channels);
+		for(std::size_t frame = 0; frame < frameCount; ++frame)
 		{
-			case 1:
+			for(int channel = 0; channel < settings.Channels; ++channel)
 			{
-				const uint8 *p = reinterpret_cast<const uint8*>(data);
-				for(std::size_t frame = 0; frame < frameCount; ++frame)
-				{
-					for(int channel = 0; channel < formatInfo.Channels; ++channel)
-					{
-						sampleBuf[frame * formatInfo.Channels + channel] = *p;
-						p++;
-					}
-				}
+				sampleBuf[frame * settings.Channels + channel] = *p;
+				p++;
 			}
-			break;
-			case 2:
-			{
-				const int16 *p = reinterpret_cast<const int16*>(data);
-				for(std::size_t frame = 0; frame < frameCount; ++frame)
-				{
-					for(int channel = 0; channel < formatInfo.Channels; ++channel)
-					{
-						sampleBuf[frame * formatInfo.Channels + channel] = *p;
-						p++;
-					}
-				}
-			}
-			break;
-			case 3:
-			{
-				const int24 *p = reinterpret_cast<const int24*>(data);
-				for(std::size_t frame = 0; frame < frameCount; ++frame)
-				{
-					for(int channel = 0; channel < formatInfo.Channels; ++channel)
-					{
-						sampleBuf[frame * formatInfo.Channels + channel] = *p;
-						p++;
-					}
-				}
-			}
-			break;
 		}
 		while(frameCount > 0)
 		{
@@ -179,6 +146,18 @@ public:
 			FLAC__stream_encoder_process_interleaved(encoder, sampleBuf.data(), frameCountChunk);
 			frameCount -= frameCountChunk;
 		}
+	}
+	void WriteInterleaved(std::size_t frameCount, const int8 *interleaved) override
+	{
+		WriteInterleavedInt(frameCount, interleaved);
+	}
+	void WriteInterleaved(std::size_t frameCount, const int16 *interleaved) override
+	{
+		WriteInterleavedInt(frameCount, interleaved);
+	}
+	void WriteInterleaved(std::size_t frameCount, const int24 *interleaved) override
+	{
+		WriteInterleavedInt(frameCount, interleaved);
 	}
 	void WriteFinalize() override
 	{
@@ -209,29 +188,14 @@ FLACEncoder::FLACEncoder()
 	traits.canTags = true;
 	traits.maxChannels = 4;
 	traits.samplerates = TrackerSettings::Instance().GetSampleRates();
-	traits.modes = Encoder::ModeEnumerated;
-	for(std::size_t i = 0; i < traits.samplerates.size(); ++i)
-	{
-		int samplerate = traits.samplerates[i];
-		for(int channels = 1; channels <= traits.maxChannels; channels *= 2)
-		{
-			const std::array<SampleFormat, 3> sampleFormats = { SampleFormatInt24, SampleFormatInt16, SampleFormatInt8 };
-			for(const auto sampleFormat : sampleFormats)
-			{
-				Encoder::Format format;
-				format.Samplerate = samplerate;
-				format.Channels = channels;
-				format.Sampleformat = sampleFormat;
-				format.Description = MPT_UFORMAT("{} Bit")(sampleFormat.GetBitsPerSample());
-				format.Bitrate = 0;
-				traits.formats.push_back(format);
-			}
-		}
-	}
+	traits.modes = Encoder::ModeLossless;
+	traits.formats.push_back({ Encoder::Format::Encoding::Integer, 24, mpt::get_endian() });
+	traits.formats.push_back({ Encoder::Format::Encoding::Integer, 16, mpt::get_endian() });
+	traits.formats.push_back({ Encoder::Format::Encoding::Integer, 8, mpt::get_endian() });
 	traits.defaultSamplerate = 48000;
 	traits.defaultChannels = 2;
-	traits.defaultMode = Encoder::ModeEnumerated;
-	traits.defaultFormat = 0;
+	traits.defaultMode = Encoder::ModeLossless;
+	traits.defaultFormat = { Encoder::Format::Encoding::Integer, 24, mpt::get_endian() };
 	SetTraits(traits);
 }
 

@@ -26,15 +26,11 @@
 #include "Childfrm.h"
 #include "ChannelManagerDlg.h"
 
-#include "../common/FileReader.h"
-#include "../common/mptIO.h"
-#include <sstream>
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
-#endif
+#include "../common/FileReader.h"
+#include <sstream>
 
 
 OPENMPT_NAMESPACE_BEGIN

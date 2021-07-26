@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 #include "ColorPickerButton.h"
 
 OPENMPT_NAMESPACE_BEGIN
@@ -57,7 +57,7 @@ public:
 	void UnlockControls() { PostMessage(WM_MOD_UNLOCKCONTROLS); }
 	bool IsLocked() const noexcept { return (m_nLockCount > 0); }
 	int GetDlgItemIntEx(UINT nID);
-	void PopulateChannelPlugins();
+	void PopulateChannelPlugins(PLUGINDEX plugin = PLUGINDEX_INVALID);
 	void BuildEmptySlotList(std::vector<PLUGINDEX> &emptySlots);
 	bool MovePlug(PLUGINDEX src, PLUGINDEX dest, bool bAdjustPat = AdjustPattern);
 
@@ -158,6 +158,7 @@ protected:
 	afx_msg void OnTabSelchange(NMHDR* pNMHDR, LRESULT* pResult);
 	afx_msg LRESULT OnMDIDeactivate(WPARAM, LPARAM);
 	afx_msg LRESULT OnUnlockControls(WPARAM, LPARAM) { if (m_nLockCount > 0) m_nLockCount--; return 0; }
+	afx_msg BOOL OnToolTipText(UINT, NMHDR *pNMHDR, LRESULT *pResult);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

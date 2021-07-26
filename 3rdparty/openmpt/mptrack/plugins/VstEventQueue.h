@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include <deque>
-#include "../../common/mptMutex.h"
+#include "mpt/mutex/mutex.hpp"
 #include "VstDefinitions.h"
 
 OPENMPT_NAMESPACE_BEGIN

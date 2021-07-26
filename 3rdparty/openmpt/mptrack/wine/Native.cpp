@@ -18,7 +18,12 @@
 
 #pragma comment(lib, "strmiids.lib")
 
+#if (_WIN32_WINNT >= 0x600)
 #pragma comment(lib, "avrt.lib")
+#endif
+#if defined(MPT_WITH_DIRECTSOUND)
+#pragma comment(lib, "dsound.lib")
+#endif // MPT_WITH_DIRECTSOUND
 #pragma comment(lib, "winmm.lib")
 
 #pragma comment(lib, "ksuser.lib")
@@ -36,12 +41,12 @@ MPT_NOINLINE void AssertHandler(const mpt::source_location &loc, const char *exp
 {
 	if(msg)
 	{
-		mpt::log::Logger().SendLogMessage(loc, LogError, "ASSERT",
+		mpt::log::GlobalLogger().SendLogMessage(loc, LogError, "ASSERT",
 			U_("ASSERTION FAILED: ") + mpt::ToUnicode(mpt::Charset::ASCII, msg) + U_(" (") + mpt::ToUnicode(mpt::Charset::ASCII, expr) + U_(")")
 			);
 	} else
 	{
-		mpt::log::Logger().SendLogMessage(loc, LogError, "ASSERT",
+		mpt::log::GlobalLogger().SendLogMessage(loc, LogError, "ASSERT",
 			U_("ASSERTION FAILED: ") + mpt::ToUnicode(mpt::Charset::ASCII, expr)
 			);
 	}

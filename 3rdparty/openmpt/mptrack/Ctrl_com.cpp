@@ -1,5 +1,5 @@
 /*
- * ctrl_com.cpp
+ * Ctrl_com.cpp
  * ------------
  * Purpose: Song comments tab, upper panel.
  * Notes  : (currently none)
@@ -63,6 +63,7 @@ void CCtrlComments::OnActivatePage(LPARAM)
 	// Don't stop generating VU meter messages
 	m_modDoc.SetNotifications(Notification::Default);
 	m_modDoc.SetFollowWnd(m_hWnd);
+	m_EditComments.SetFocus();
 }
 
 

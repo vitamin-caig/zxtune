@@ -9,16 +9,26 @@ is just a high-level summary.
 
  *  [**New**] `MUS` files from Psycho Pinball and Micro Machines 2 are now
     supported.
+ *  [**New**] `SymMOD` files created with Symphonie / Symphonie Pro are now
+    supported.
+ *  [**New**] `FMT` files created with Davey W Taylor's FM Tracker are now
+    supported.
+ *  [**New**] `DSYM` files created with Digital Symphony are now supported.
  *  [**New**] openmpt123: openmpt123 will now expand file wildcards passed on
     the command line in Windows when built with MSVC.
  *  [**New**] `Makefile` `CONFIG=emscripten` now supports
     `EMSCRIPTEN_TARGET=audioworkletprocessor` which builds an ES6 module in
     a single file with reduced dependencies suitable to be used in an
     AudioWorkletProcessor.
+ *  [**New**] `Makefile` `CONFIG=djgpp` now supports builds zlib, mpg123,
+    and vorbis locally instead of only uspporting miniz, minimp3, and
+    stb_vorbis via `ALLOW_LGPL=1`.
 
  *  [**Change**] `Makefile` `CONFIG=emscripten` now supports
     `EMSCRIPTEN_TARGET=all` which provides WebAssembly as well as fallback to
     JavaScript in a single build.
+ *  [**Change**] openmpt123: DOS builds now use the Mercury fork of
+    `liballegro 4.2` for improved hardware compatibility.
 
  *  [**Regression**] `Makefile` `CONFIG=emscripten` does not support
     `EMSCRIPTEN_TARGET=asmjs` or `EMSCRIPTEN_TARGET=asmjs128m` any more because
@@ -37,6 +47,8 @@ is just a high-level summary.
     song does not restart from the beginning even if the repeat count is not 0.
  *  `openmpt::module::set_position_seconds()` accuracy has been improved for
     modules with pattern loops.
+ *  IT: Portamentos in files with Linear Slides disabled are now more accurate.
+ *  FAR: Correct portamento depth is now used.
 
 ### libopenmpt 0.5.0 (2020-05-24)
 

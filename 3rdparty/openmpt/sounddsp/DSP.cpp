@@ -11,7 +11,7 @@
 
 #include "stdafx.h"
 #include "DSP.h"
-#include "../soundbase/SampleTypes.h"
+#include "openmpt/soundbase/MixSample.hpp"
 #include <math.h>
 
 OPENMPT_NAMESPACE_BEGIN
@@ -280,7 +280,7 @@ void CMegaBass::Process(int * MixSoundBuffer, int * MixRearBuffer, int count, ui
 	if(nChannels >= 2)
 	{
 		X86_StereoDCRemoval(MixSoundBuffer, count, nDCRFlt_Y1lf, nDCRFlt_X1lf, nDCRFlt_Y1rf, nDCRFlt_X1rf);
-		if(nChannels > 2) X86_StereoDCRemoval(MixSoundBuffer, count, nDCRFlt_Y1lb, nDCRFlt_X1lb, nDCRFlt_Y1rb, nDCRFlt_X1rb);
+		if(nChannels > 2) X86_StereoDCRemoval(MixRearBuffer, count, nDCRFlt_Y1lb, nDCRFlt_X1lb, nDCRFlt_Y1rb, nDCRFlt_X1rb);
 		int *px = MixSoundBuffer;
 		int *py = MixRearBuffer;
 		int x1 = nXBassFlt_X1;
@@ -444,11 +444,11 @@ void BitCrush::Process(int * MixSoundBuffer, int * MixRearBuffer, int count, uin
 	{
 		return;
 	}
-	if(m_Settings.m_Bits > MixSampleIntTraits::mix_precision_bits())
+	if(m_Settings.m_Bits > MixSampleIntTraits::mix_precision_bits)
 	{
 		return;
 	}
-	unsigned int mask = ~((1u << (MixSampleIntTraits::mix_precision_bits() - m_Settings.m_Bits)) - 1u);
+	unsigned int mask = ~((1u << (MixSampleIntTraits::mix_precision_bits - m_Settings.m_Bits)) - 1u);
 	if(nChannels == 4)
 	{
 		for(int frame = 0; frame < count; ++frame)

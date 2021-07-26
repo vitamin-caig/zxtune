@@ -123,6 +123,8 @@ static constexpr MPTEffectInfo gFXInfo[] =
 	{CMD_REVERSEOFFSET,		0,0,	0,	MOD_TYPE_PTM,	_T("Revert Sample + Offset")}, // PTM effect
 	{CMD_DBMECHO,			0,0,	0,	MOD_TYPE_DBM,	_T("Echo Enable")}, // DBM effect
 	{CMD_OFFSETPERCENTAGE,	0,0,	0,	MOD_TYPE_PLM,	_T("Offset (Percentage)")}, // PLM effect
+	{CMD_FINETUNE,			0,0,	0,	MOD_TYPE_MPT,	_T("Finetune")},
+	{CMD_FINETUNE_SMOOTH,	0,0,	0,	MOD_TYPE_MPT,	_T("Finetune (Smooth)")},
 	{CMD_DUMMY,	0,0,	0,	MOD_TYPE_NONE,	_T("Empty") },
 };
 
@@ -645,6 +647,20 @@ bool EffectInfo::GetEffectNameEx(CString &pszName, UINT ndx, UINT param, CHANNEL
 		pszName.Format(_T("Note delay: %d, cut after %d ticks"), (param >> 4), (param & 0x0F));
 		break;
 
+	case CMD_FINETUNE:
+	case CMD_FINETUNE_SMOOTH:
+		{
+			int8 pwd = 1;
+			if(chn != CHANNELINDEX_INVALID && sndFile.m_PlayState.Chn[chn].pModInstrument != nullptr)
+				pwd = sndFile.m_PlayState.Chn[chn].pModInstrument->midiPWD;
+
+			pszName = MPT_CFORMAT("Finetune{}: {}{} cents")(
+				CString(gFXInfo[ndx].effect == CMD_FINETUNE ? _T("") : _T(" (Smooth)")),
+				CString(param >= 0x8000 ? _T("+") : _T("")),
+				mpt::cfmt::val((static_cast<int32>(param) - 0x8000) * pwd / 256.0));
+		}
+		break;
+
 	default:
 		if (gFXInfo[ndx].paramMask == 0xF0)
 		{
@@ -880,7 +896,7 @@ static constexpr MPTVolCmdInfo gVolCmdInfo[] =
 	{VOLCMD_TONEPORTAMENTO,	MOD_TYPE_XMITMPT,	_T("Tone portamento")},
 	{VOLCMD_PORTAUP,		MOD_TYPE_ITMPT,		_T("Portamento up")},
 	{VOLCMD_PORTADOWN,		MOD_TYPE_ITMPT,		_T("Portamento down")},
-	{VOLCMD_DELAYCUT,		MOD_TYPE_NONE,		_T("")},
+	{VOLCMD_PLAYCONTROL,	MOD_TYPE_NONE,		_T("Play Control")},
 	{VOLCMD_OFFSET,			MOD_TYPE_MPT,		_T("Sample Cue")},
 };
 
@@ -1006,6 +1022,13 @@ bool EffectInfo::GetVolCmdParamInfo(const ModCommand &m, CString *s) const
 		{
 			*s = _T("continue");
 		}
+		break;
+
+	case VOLCMD_PLAYCONTROL:
+		if(m.vol == 0)
+			*s = _T("Pause Playback");
+		else if(m.vol == 1)
+			*s = _T("Continue Playback");
 		break;
 
 	default:

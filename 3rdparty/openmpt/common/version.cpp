@@ -14,8 +14,6 @@
 #include "mptStringFormat.h"
 #include "mptStringParse.h" 
 
-#include "mptOS.h"
-
 #include "versionNumber.h"
 #include "svn_version.h"
 
@@ -338,6 +336,9 @@ static mpt::ustring GetBuildFlagsString()
 {
 	mpt::ustring retval;
 	#ifdef MODPLUG_TRACKER
+		#if defined(MPT_BUILD_RETRO)
+			retval += UL_(" RETRO");
+		#endif // MPT_BUILD_RETRO
 		if(Version::Current().IsTestVersion())
 		{
 			retval += UL_(" TEST");
@@ -396,23 +397,6 @@ mpt::ustring GetBuildFeaturesString()
 		;
 	#endif
 	#ifdef MODPLUG_TRACKER
-		if constexpr(mpt::arch_bits == 64)
-		{
-			if (true
-				&& (mpt::OS::Windows::Version::GetMinimumKernelLevel() <= mpt::OS::Windows::Version::WinXP64)
-				&& (mpt::OS::Windows::Version::GetMinimumAPILevel() <= mpt::OS::Windows::Version::WinXP64)
-			) {
-				retval += UL_(" WIN64OLD");
-			}
-		} else if constexpr(mpt::arch_bits == 32)
-		{
-			if (true
-				&& (mpt::OS::Windows::Version::GetMinimumKernelLevel() <= mpt::OS::Windows::Version::WinXP)
-				&& (mpt::OS::Windows::Version::GetMinimumAPILevel() <= mpt::OS::Windows::Version::WinXP)
-			) {
-				retval += UL_(" WIN32OLD");
-			}
-		}
 		retval += UL_("")
 		#if defined(UNICODE)
 			UL_(" UNICODE")
@@ -427,9 +411,6 @@ mpt::ustring GetBuildFeaturesString()
 		#endif
 		#ifdef NO_PLUGINS
 			UL_(" NO_PLUGINS")
-		#endif
-		#ifndef MPT_WITH_ASIO
-			UL_(" NO_ASIO")
 		#endif
 			;
 	#endif
@@ -505,16 +486,6 @@ mpt::ustring GetVersionString(FlagSet<Build::Strings> strings)
 			result.push_back(GetRevisionString());
 		}
 	}
-	#if defined(MODPLUG_TRACKER) && MPT_OS_WINDOWS
-		if(strings[StringArchitecture])
-		{
-			result.push_back(mpt::OS::Windows::Name(mpt::OS::Windows::GetProcessArchitecture()));
-		}
-	#endif // MODPLUG_TRACKER && MPT_OS_WINDOWS
-	if(strings[StringBitness])
-	{
-		result.push_back(MPT_UFORMAT(" {} bit")(mpt::arch_bits));
-	}
 	if(strings[StringSourceInfo])
 	{
 		const SourceInfo sourceInfo = SourceInfo::Current();
@@ -542,7 +513,7 @@ mpt::ustring GetVersionString(FlagSet<Build::Strings> strings)
 	{
 		result.push_back(GetBuildFeaturesString());
 	}
-	return mpt::String::Trim(mpt::String::Combine<mpt::ustring>(result, U_("")));
+	return mpt::trim(mpt::String::Combine<mpt::ustring>(result, U_("")));
 }
 
 mpt::ustring GetVersionStringPure()
@@ -550,9 +521,6 @@ mpt::ustring GetVersionStringPure()
 	FlagSet<Build::Strings> strings;
 	strings |= Build::StringVersion;
 	strings |= Build::StringRevision;
-	#ifdef MODPLUG_TRACKER
-		strings |= Build::StringArchitecture;
-	#endif
 	return GetVersionString(strings);
 }
 
@@ -570,9 +538,6 @@ mpt::ustring GetVersionStringExtended()
 	FlagSet<Build::Strings> strings;
 	strings |= Build::StringVersion;
 	strings |= Build::StringRevision;
-	#ifdef MODPLUG_TRACKER
-		strings |= Build::StringArchitecture;
-	#endif
 	#ifndef MODPLUG_TRACKER
 		strings |= Build::StringSourceInfo;
 	#endif
@@ -711,6 +676,11 @@ mpt::ustring GetFullCreditsString()
 #ifdef MPT_WITH_UNRAR
 		"Alexander L. Roshal for UnRAR\n"
 		"https://rarlab.com/\n"
+		"\n"
+#endif
+#ifdef MPT_WITH_ANCIENT
+		"Teemu Suutari for ancient\n"
+		"https://github.com/temisu/ancient\n"
 		"\n"
 #endif
 #ifdef MPT_WITH_PORTAUDIO

@@ -21,6 +21,9 @@
 OPENMPT_NAMESPACE_BEGIN
 
 
+#if !defined(MPT_WITH_ANCIENT)
+
+
 struct PPBITBUFFER
 {
 	uint32 bitcount = 0;
@@ -185,11 +188,9 @@ bool UnpackPP20(std::vector<ContainerItem> &containerItems, FileReader &file, Co
 		return false;
 
 	file.Seek(length - 4);
-	uint32 dstLen = 0;
-	dstLen |= file.ReadUint8() << 16;
-	dstLen |= file.ReadUint8() << 8;
-	dstLen |= file.ReadUint8() << 0;
-	if(dstLen == 0) return false;
+	uint32 dstLen = file.ReadUint24BE();
+	if(dstLen == 0)
+		return false;
 	try
 	{
 		unpackedData.resize(dstLen);
@@ -208,6 +209,9 @@ bool UnpackPP20(std::vector<ContainerItem> &containerItems, FileReader &file, Co
 
 	return result;
 }
+
+
+#endif // !MPT_WITH_ANCIENT
 
 
 OPENMPT_NAMESPACE_END

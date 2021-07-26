@@ -1,11 +1,11 @@
 /*
-* Load_c67.cpp
-* ------------
-* Purpose: C67 (CDFM Composer) module loader
-* Notes  : C67 is the composer format; 670 files can be converted back to C67 using the converter that comes with CDFM.
-* Authors: OpenMPT Devs
-* The OpenMPT source code is released under the BSD license. Read LICENSE for more details.
-*/
+ * Load_c67.cpp
+ * ------------
+ * Purpose: C67 (CDFM Composer) module loader
+ * Notes  : C67 is the composer format; 670 files can be converted back to C67 using the converter that comes with CDFM.
+ * Authors: OpenMPT Devs
+ * The OpenMPT source code is released under the BSD license. Read LICENSE for more details.
+ */
 
 
 #include "stdafx.h"
@@ -168,6 +168,7 @@ bool CSoundFile::ReadC67(FileReader &file, ModLoadingFlags loadFlags)
 	m_nSamples = 64;
 	m_nChannels = 4 + 9;
 	m_playBehaviour.set(kOPLBeatingOscillators);
+	m_SongFlags.set(SONG_IMPORTED);
 
 	// Pan PCM channels only
 	for(CHANNELINDEX chn = 0; chn < 4; chn++)

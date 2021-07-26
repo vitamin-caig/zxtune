@@ -10,8 +10,8 @@
 
 #pragma once
 
-#include "BuildSettings.h"
-#include "../common/mptSpan.h"
+#include "openmpt/all/BuildSettings.hpp"
+#include "mpt/base/span.hpp"
 
 OPENMPT_NAMESPACE_BEGIN
 

@@ -10,28 +10,19 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
+
+#include "mpt/mutex/mutex.hpp"
 
 #include <map>
 #include <vector>
 #include "../common/misc_util.h"
-#include "../common/mptMutex.h"
+#if defined(MODPLUG_TRACKER)
+#include "../misc/mptLibrary.h"
+#endif
 
 
 OPENMPT_NAMESPACE_BEGIN
-
-
-#define MPT_ENABLE_COMPONENTS
-
-
-#if defined(MPT_ENABLE_COMPONENTS)
-
-
-#if defined(MODPLUG_TRACKER)
-#define MPT_COMPONENT_MANAGER 1
-#else
-#define MPT_COMPONENT_MANAGER 0
-#endif
 
 
 enum ComponentType
@@ -135,7 +126,7 @@ public:
 #define MPT_GLOBAL_BIND(lib, name) name = &::name;
 
 
-#if defined(MPT_ENABLE_DYNBIND)
+#if defined(MODPLUG_TRACKER)
 
 
 class ComponentLibrary
@@ -238,7 +229,7 @@ public:
 };
 
 
-#endif // MPT_ENABLE_DYNBIND
+#endif // MODPLUG_TRACKER
 
 
 #if MPT_COMPONENT_MANAGER
@@ -392,20 +383,29 @@ struct ComponentListEntry
 	ComponentListEntry *next;
 	void (*reg)(ComponentManager &componentManager);
 };
-		
+
 bool ComponentListPush(ComponentListEntry *entry);
 
-#define MPT_DECLARE_COMPONENT_MEMBERS public: static const char * const g_ID; static const char * const g_SettingsKey;
-		
-#define MPT_REGISTERED_COMPONENT(name, settingsKey) \
-	static void RegisterComponent ## name (ComponentManager &componentManager) \
-	{ \
-		componentManager.Register(ComponentFactory< name >()); \
-	} \
-	static ComponentListEntry Component ## name ## ListEntry = { nullptr, & RegisterComponent ## name }; \
-	bool Component ## name ## Registered = ComponentListPush(& Component ## name ## ListEntry ); \
-	const char * const name :: g_ID = #name ; \
-	const char * const name :: g_SettingsKey = settingsKey ; \
+template <typename TComponent>
+struct ComponentRegisterer
+{
+	static inline void RegisterComponent(ComponentManager &componentManager)
+	{
+		componentManager.Register(ComponentFactory<TComponent>());
+	}
+	static inline ComponentListEntry &GetComponentListEntry()
+	{
+		static ComponentListEntry s_ComponentListEntry = {nullptr, &RegisterComponent};
+		return s_ComponentListEntry;
+	}
+	static inline bool g_ComponentRegistered = ComponentListPush(&GetComponentListEntry());
+};
+
+#define MPT_DECLARE_COMPONENT_MEMBERS(name, settingsKey) \
+	public: \
+		static constexpr const char *g_ID = #name ; \
+		static constexpr const char *g_SettingsKey = settingsKey ; \
+		static inline ComponentRegisterer< name > s_ComponentRegisterer; \
 /**/
 
 
@@ -432,9 +432,7 @@ inline mpt::PathString GetComponentPath()
 #else // !MPT_COMPONENT_MANAGER
 
 
-#define MPT_DECLARE_COMPONENT_MEMBERS
-
-#define MPT_REGISTERED_COMPONENT(name, settingsKey)
+#define MPT_DECLARE_COMPONENT_MEMBERS(name, settingsKey)
 
 
 template <typename type>
@@ -451,12 +449,6 @@ std::shared_ptr<const type> GetComponent()
 		cache = component;
 	}
 	return component;
-}
-
-
-inline mpt::PathString GetComponentPath()
-{
-	return mpt::PathString();
 }
 
 
@@ -511,9 +503,6 @@ bool IsComponentAvailable(const ComponentHandle<T> &handle)
 {
 	return handle.IsAvailable();
 }
-
-
-#endif // MPT_ENABLE_COMPONENTS
 
 
 OPENMPT_NAMESPACE_END

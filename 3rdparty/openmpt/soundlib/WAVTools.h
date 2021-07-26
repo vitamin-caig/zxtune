@@ -10,11 +10,17 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
-#include "ChunkReader.h"
+#include "mpt/uuid/uuid.hpp"
+
+#include "../common/FileReader.h"
 #include "Loaders.h"
-#include "../common/mptUUID.h"
+
+#ifndef MODPLUG_NO_FILESAVE
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_virtual_wrapper.hpp"
+#endif
 
 OPENMPT_NAMESPACE_BEGIN
 
@@ -122,10 +128,10 @@ MPT_BINARY_STRUCT(WAVFormatChunk, 16)
 // Extension of the WAVFormatChunk structure, used if format == formatExtensible
 struct WAVFormatChunkExtension
 {
-	uint16le size;
-	uint16le validBitsPerSample;
-	uint32le channelMask;
-	GUIDms   subFormat;
+	uint16le    size;
+	uint16le    validBitsPerSample;
+	uint32le    channelMask;
+	mpt::GUIDms subFormat;
 };
 
 MPT_BINARY_STRUCT(WAVFormatChunkExtension, 24)
@@ -284,9 +290,9 @@ MPT_BINARY_STRUCT(WAVCuePoint, 24)
 class WAVReader
 {
 protected:
-	ChunkReader file;
+	FileReader file;
 	FileReader sampleData, smplChunk, instChunk, xtraChunk, wsmpChunk, cueChunk;
-	ChunkReader::ChunkList<RIFFChunk> infoChunk;
+	FileReader::ChunkList<RIFFChunk> infoChunk;
 
 	FileReader::off_t sampleLength;
 	WAVFormatChunk formatInfo;
@@ -295,14 +301,14 @@ protected:
 	bool isDLS;
 	bool mayBeCoolEdit16_8;
 
-	uint16 GetFileCodePage(ChunkReader::ChunkList<RIFFChunk> &chunks);
+	uint16 GetFileCodePage(FileReader::ChunkList<RIFFChunk> &chunks);
 
 public:
 	WAVReader(FileReader &inputFile);
 
 	bool IsValid() const { return sampleData.IsValid(); }
 
-	void FindMetadataChunks(ChunkReader::ChunkList<RIFFChunk> &chunks);
+	void FindMetadataChunks(FileReader::ChunkList<RIFFChunk> &chunks);
 
 	// Self-explanatory getters.
 	WAVFormatChunk::SampleFormats GetSampleFormat() const { return IsExtensibleFormat() ? static_cast<WAVFormatChunk::SampleFormats>(subFormat) : static_cast<WAVFormatChunk::SampleFormats>(formatInfo.format.get()); }
@@ -368,6 +374,11 @@ public:
 
 	// Write a buffer to the file.
 	void Write(mpt::const_byte_span data);
+
+	// Use before writing raw data directly to the underlying stream s
+	void WriteBeforeDirect();
+	// Use after writing raw data directly to the underlying stream s
+	void WriteAfterDirect(bool success, std::size_t count);
 
 	// Write the WAV format to the file.
 	void WriteFormat(uint32 sampleRate, uint16 bitDepth, uint16 numChannels, WAVFormatChunk::SampleFormats encoding);

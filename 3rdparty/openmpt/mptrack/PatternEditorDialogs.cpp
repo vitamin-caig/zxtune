@@ -24,48 +24,50 @@
 OPENMPT_NAMESPACE_BEGIN
 
 
+static constexpr EffectCommand ExtendedCommands[] = {CMD_OFFSET, CMD_PATTERNBREAK, CMD_POSITIONJUMP, CMD_TEMPO, CMD_FINETUNE, CMD_FINETUNE_SMOOTH};
+
 // For a given pattern cell, check if it contains a command supported by the X-Param mechanism.
 // If so, calculate the multipler for this cell and the value of all the other cells belonging to this param.
 void getXParam(ModCommand::COMMAND command, PATTERNINDEX nPat, ROWINDEX nRow, CHANNELINDEX nChannel, const CSoundFile &sndFile, UINT &xparam, UINT &multiplier)
 {
 	UINT xp = 0, mult = 1;
-	int nCmdRow = static_cast<int>(nRow);
+	int cmdRow = static_cast<int>(nRow);
 	const auto &pattern = sndFile.Patterns[nPat];
 
 	if(command == CMD_XPARAM)
 	{
 		// current command is a parameter extension command
-		nCmdRow--;
+		cmdRow--;
 
 		// Try to find previous command parameter to be extended
-		while(nCmdRow >= 0)
+		while(cmdRow >= 0)
 		{
-			const ModCommand &m = *pattern.GetpModCommand(nCmdRow, nChannel);
-			if(m.command == CMD_OFFSET || m.command == CMD_PATTERNBREAK || m.command == CMD_POSITIONJUMP || m.command == CMD_TEMPO)
+			const ModCommand &m = *pattern.GetpModCommand(cmdRow, nChannel);
+			if(mpt::contains(ExtendedCommands, m.command))
 				break;
 			if(m.command != CMD_XPARAM)
 			{
-				nCmdRow = -1;
+				cmdRow = -1;
 				break;
 			}
-			nCmdRow--;
+			cmdRow--;
 		}
-	} else if(command != CMD_OFFSET && command != CMD_PATTERNBREAK && command != CMD_POSITIONJUMP && command != CMD_TEMPO)
+	} else if(!mpt::contains(ExtendedCommands, command))
 	{
 		// If current row do not own any satisfying command parameter to extend, set return state
-		nCmdRow = -1;
+		cmdRow = -1;
 	}
 
-	if(nCmdRow >= 0)
+	if(cmdRow >= 0)
 	{
 		// An 'extendable' command parameter has been found
-		const ModCommand &m = *pattern.GetpModCommand(nCmdRow, nChannel);
+		const ModCommand &m = *pattern.GetpModCommand(cmdRow, nChannel);
 
 		// Find extension resolution (8 to 24 bits)
 		uint32 n = 1;
-		while(n < 4 && nCmdRow + n < pattern.GetNumRows())
+		while(n < 4 && cmdRow + n < pattern.GetNumRows())
 		{
-			if(pattern.GetpModCommand(nCmdRow + n, nChannel)->command != CMD_XPARAM)
+			if(pattern.GetpModCommand(cmdRow + n, nChannel)->command != CMD_XPARAM)
 				break;
 			n++;
 		}
@@ -82,15 +84,15 @@ void getXParam(ModCommand::COMMAND command, PATTERNINDEX nPat, ROWINDEX nRow, CH
 			// its value is changed by user
 			for(uint32 j = 0; j < n; j++)
 			{
-				const ModCommand &mx = *pattern.GetpModCommand(nCmdRow + j, nChannel);
+				const ModCommand &mx = *pattern.GetpModCommand(cmdRow + j, nChannel);
 
 				uint32 k = 8 * (n - j - 1);
-				if(nCmdRow + j == nRow)
+				if(cmdRow + j == nRow)
 					mult = 1 << k;
 				else
 					xp += (mx.param << k);
 			}
-		} else if(m.command == CMD_OFFSET)
+		} else if(m.command == CMD_OFFSET || m.command == CMD_FINETUNE || m.command == CMD_FINETUNE_SMOOTH)
 		{
 			// No parameter extension to perform (8 bits standard parameter),
 			// just care about offset command special case (16 bits, fake)
@@ -292,7 +294,7 @@ void CPatternPropertiesDlg::OnOK()
 		{
 			if(!sndFile.Patterns[m_nPattern].IsEmptyRow(row))
 			{
-				resize = (Reporting::Confirm(MPT_FORMAT("Data at the {} of the pattern will be lost.\nDo you want to continue?")(resizeAtEnd ? "end" : "start"), "Shrink Pattern") == cnfYes);
+				resize = (Reporting::Confirm(MPT_AFORMAT("Data at the {} of the pattern will be lost.\nDo you want to continue?")(resizeAtEnd ? "end" : "start"), "Shrink Pattern") == cnfYes);
 				break;
 			}
 		}
@@ -734,7 +736,7 @@ void CEditCommand::OnCommandChanged()
 		newCommand = static_cast<ModCommand::COMMAND>((ndx >= 0) ? effectInfo.GetEffectFromIndex(ndx, newParam) : CMD_NONE);
 	}
 
-	if(newCommand == CMD_OFFSET || newCommand == CMD_PATTERNBREAK || newCommand == CMD_POSITIONJUMP || newCommand == CMD_TEMPO || newCommand == CMD_XPARAM)
+	if(newCommand == CMD_XPARAM || mpt::contains(ExtendedCommands, newCommand))
 	{
 		xParam = 0;
 		xMultiplier = 1;
@@ -1314,7 +1316,7 @@ void QuickChannelProperties::Show(CModDoc *modDoc, CHANNELINDEX chn, CPoint posi
 	    Clamp(static_cast<int>(position.y) - rect.Height() / 2, 0, static_cast<int>(screenRect.bottom) - rect.Height()));
 	MoveWindow(rect);
 
-	SetWindowText(MPT_TFORMAT("Settings for Channel {}")(chn).c_str());
+	SetWindowText(MPT_TFORMAT("Settings for Channel {}")(chn + 1).c_str());
 
 	UpdateDisplay();
 
@@ -1519,7 +1521,8 @@ void QuickChannelProperties::OnChangeColor()
 	{
 		PrepareUndo();
 		m_document->GetSoundFile().ChnSettings[m_channel].color = *color;
-		m_document->SetModified();
+		if(m_document->SupportsChannelColors())
+			m_document->SetModified();
 		m_document->UpdateAllViews(nullptr, GeneralHint(m_channel).Channels(), this);
 	}
 	m_settingColor = false;
@@ -1548,7 +1551,8 @@ void QuickChannelProperties::PickColorFromChannel(CHANNELINDEX channel)
 		PrepareUndo();
 		channels[m_channel].color = channels[channel].color;
 		m_colorBtn.SetColor(channels[m_channel].color);
-		m_document->SetModified();
+		if(m_document->SupportsChannelColors())
+			m_document->SetModified();
 		m_document->UpdateAllViews(nullptr, GeneralHint(m_channel).Channels(), this);
 	}
 }
@@ -1640,6 +1644,14 @@ BOOL QuickChannelProperties::OnToolTipText(UINT, NMHDR *pNMHDR, LRESULT *pResult
 	CommandID cmd = kcNull;
 	switch (id)
 	{
+	case IDC_EDIT1:
+	case IDC_SLIDER1:
+		text = CModDoc::LinearToDecibels(m_document->GetSoundFile().ChnSettings[m_channel].nVolume, 64.0);
+		break;
+	case IDC_EDIT2:
+	case IDC_SLIDER2:
+		text = CModDoc::PanningToString(m_document->GetSoundFile().ChnSettings[m_channel].nPan, 128);
+		break;
 	case IDC_BUTTON1:
 		text = _T("Previous Channel");
 		cmd = kcChnSettingsPrev;

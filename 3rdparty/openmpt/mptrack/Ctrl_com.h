@@ -1,5 +1,5 @@
 /*
- * ctrl_com.h
+ * Ctrl_com.h
  * ----------
  * Purpose: Song comments tab, upper panel.
  * Notes  : (currently none)
@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 OPENMPT_NAMESPACE_BEGIN
 

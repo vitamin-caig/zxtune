@@ -20,12 +20,17 @@
 #include "Tagging.h"
 #include "Loaders.h"
 #include "WAVTools.h"
-#include "ChunkReader.h"
+#include "../common/FileReader.h"
 #include "modsmp_ctrl.h"
-#include "../soundbase/SampleFormatConverters.h"
-#include "../soundbase/SampleFormatCopy.h"
+#include "openmpt/soundbase/Copy.hpp"
+#include "openmpt/soundbase/SampleConvert.hpp"
+#include "openmpt/soundbase/SampleDecode.hpp"
+#include "../soundlib/SampleCopy.h"
 #include "../soundlib/ModSampleCopy.h"
-//#include "../common/mptCRC.h"
+#include "mpt/io/base.hpp"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
+//#include "mpt/crc/crc.hpp"
 #include "OggStream.h"
 #ifdef MPT_WITH_OGG
 #if MPT_COMPILER_CLANG
@@ -192,8 +197,8 @@ struct FLACDecoder
 		} else if(metadata->type == FLAC__METADATA_TYPE_APPLICATION && !memcmp(metadata->data.application.id, "riff", 4) && client.ready)
 		{
 			// Try reading RIFF loop points and other sample information
-			ChunkReader data(mpt::as_span(metadata->data.application.data, metadata->length));
-			ChunkReader::ChunkList<RIFFChunk> chunks = data.ReadChunks<RIFFChunk>(2);
+			FileReader data(mpt::as_span(metadata->data.application.data, metadata->length));
+			FileReader::ChunkList<RIFFChunk> chunks = data.ReadChunks<RIFFChunk>(2);
 
 			// We're not really going to read a WAV file here because there will be only one RIFF chunk per metadata event, but we can still re-use the code for parsing RIFF metadata...
 			WAVReader riffReader(data);
@@ -518,7 +523,7 @@ struct FLAC__StreamEncoder_RAII
 		{
 			return FLAC__STREAM_ENCODER_TELL_STATUS_ERROR;
 		}
-		if(!mpt::IO::OffsetFits<FLAC__uint64>(pos))
+		if(!mpt::in_range<FLAC__uint64>(pos))
 		{
 			return FLAC__STREAM_ENCODER_TELL_STATUS_ERROR;
 		}
@@ -583,7 +588,7 @@ bool CSoundFile::SaveFLACSample(SAMPLEINDEX nSample, std::ostream &f) const
 		{
 			// FLAC only supports a sample rate of up to 655350 Hz.
 			// Store the real sample rate in a custom Vorbis comment.
-			FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, "SAMPLERATE", mpt::fmt::val(sampleRate).c_str());
+			FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, "SAMPLERATE", mpt::afmt::val(sampleRate).c_str());
 			FLAC__metadata_object_vorbiscomment_append_comment(metadata[0], entry, false);
 		}
 	}

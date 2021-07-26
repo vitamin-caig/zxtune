@@ -41,15 +41,15 @@ call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "http://download.nullsoft.c
 call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "https://www.un4seen.com/files/xmp-sdk.zip"                                                       "build\externals\xmp-sdk.zip"                  62c442d656d4bb380360368a0f5f01da11b4ed54333d7f54f875a9a5ec390b08921e00bd08e62cd7a0a5fe642e3377023f20a950cc2a42898ff4cda9ab88fc91  322744 || goto error
 
 
-call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "https://download.microsoft.com/download/0/A/9/0A939EF6-E31C-430F-A3DF-DFAE7960D564/htmlhelp.exe" "build\externals\htmlhelp.exe"                 d91371244ea98c691b4674ee266c4a2496a296800c176adae069d21f5c52c0763b21cc7859cfffa865b89e50171a2c99a6d14620c32f7d72c0ef04045348f856 3509072 || goto error
+call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "https://web.archive.org/web/20200918004813if_/http://download.microsoft.com/download/0/A/9/0A939EF6-E31C-430F-A3DF-DFAE7960D564/htmlhelp.exe" "build\externals\htmlhelp.exe"                 d91371244ea98c691b4674ee266c4a2496a296800c176adae069d21f5c52c0763b21cc7859cfffa865b89e50171a2c99a6d14620c32f7d72c0ef04045348f856 3509072 || goto error
 
 
-call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "https://www.python.org/ftp/python/3.8.2/python-3.8.2-embed-win32.zip"                            "build\externals\python-3.8.2-embed-win32.zip" ff3fac1286d3608370f3ded451d51227376abeece0bed25f5fa48b38609a1942f3b256e9611355df32a24ecb65817bac0678789932c95ee75661662c510c1efa 7147713 || goto error
+call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "https://www.python.org/ftp/python/3.9.4/python-3.9.4-embed-amd64.zip"                            "build\externals\python-3.9.4-embed-amd64.zip" 6e314c6f8b18da28c7702e7908ff3d64988f18b13b8fab54acfe32683e92e52bec1c8cbd94defd058faaeb700be805f1213a5e79ed0edb9039e107b7c5d89dbb 8419530 || goto error
 
 
-call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "https://netcologne.dl.sourceforge.net/project/innounp/innounp/innounp%%%%200.49/innounp049.rar"  "build\externals\innounp049.rar"               a00dbb671de1fb0bc3c94ce97a569d2bbfcc00f6fcbe16578ea9940ffdc0558dcde7c9fa0b4a5d7c17d4b73706f6eb21f479c7e6d6b8de3605f3974d25841da3  140885 || goto error
+call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "https://netcologne.dl.sourceforge.net/project/innounp/innounp/innounp%%%%200.50/innounp050.rar"  "build\externals\innounp050.rar"               dbbc809308267a866db9d6b751fdeda6d179e1a65d8ddb14bb51984431ae91493f9a76105e1789b245732043a2c696c869ed10964b48cf59f81e55bd52f85330  141621 || goto error
 
-call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "http://files.jrsoftware.org/is/6/innosetup-6.0.5.exe"                                            "build\externals\innosetup-6.0.5.exe"  c8e7b6cfbf5228fd4ab07a8324d7719d92b485e91d1f8900b40e7bfafb4b38a3d1829b1aa096e36078dee7700f79b5b066f2bf95530f94b98ed74eda496268c9 4218712 || goto error
+call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "http://files.jrsoftware.org/is/6/innosetup-6.1.2.exe"                                            "build\externals\innosetup-6.1.2.exe"  ea6e276479011c0c90f58a68e95e79cf3273e0e5d6794749942493e5eea5b99b4a3f2ec881ef14cf7231dbc902408d3a29d8225cf3228c9b0de266cd7e02582a 4516136 || goto error
 
 
 call build\scriptlib\download.cmd %MPT_DOWNLOAD% x%1 "https://download.openmpt.org/resources/modules/example_songs_ompt_1_29.7z"                       "build\externals\example_songs_ompt_1_29.7z"  9cbe510b547ea52d8104dd4deddfadc698e8ef1e5aa4d089c867a879a021fceedeebf50acc2d996cbc23448c0b34c8f919256b100991ccd9325465952cb246ed 4882594 || goto error
@@ -71,12 +71,12 @@ call build\scriptlib\unpack.cmd "build\tools\htmlhelp" "build\externals\htmlhelp
 call build\scriptlib\unpack.cmd "include\winamp"   "build\externals\WA5.55_SDK.exe" "."          || goto error
 call build\scriptlib\unpack.cmd "include\xmplay"   "build\externals\xmp-sdk.zip"    "."          || goto error
 
-call build\scriptlib\unpack.cmd "build\tools\python3" "build\externals\python-3.8.2-embed-win32.zip" "." || goto error
+call build\scriptlib\unpack.cmd "build\tools\python3" "build\externals\python-3.9.4-embed-amd64.zip" "." || goto error
 
 call :killdir "build\tools\innounp"   || goto error
 call :killdir "build\tools\innosetup" || goto error
-call build\scriptlib\unpack.cmd "build\tools\innounp" "build\externals\innounp049.rar" "." || goto error
-build\tools\innounp\innounp.exe -x -dbuild\tools\innosetup "build\externals\innosetup-6.0.5.exe" || goto error
+call build\scriptlib\unpack.cmd "build\tools\innounp" "build\externals\innounp050.rar" "." || goto error
+build\tools\innounp\innounp.exe -x -dbuild\tools\innosetup "build\externals\innosetup-6.1.2.exe" || goto error
 
 call build\scriptlib\unpack.cmd "packageTemplate\ExampleSongs" "build\externals\example_songs_ompt_1_29.7z" "." || goto error
 

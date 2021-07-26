@@ -18,6 +18,8 @@
 #ifdef MODPLUG_TRACKER
 #include "../Mptrack.h"
 #endif
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 
 
 OPENMPT_NAMESPACE_BEGIN
@@ -68,7 +70,7 @@ void MidiInOut::SaveAllParameters()
 		return;
 
 	m_pMixStruct->defaultProgram = -1;
-	m_pMixStruct->pluginData.assign(chunk.cbegin(), chunk.cend());
+	m_pMixStruct->pluginData.assign(chunk.begin(), chunk.end());
 }
 
 
@@ -444,10 +446,10 @@ void MidiInOut::HardAllNotesOff()
 		PlugInstrChannel &channel = m_MidiCh[mc];
 		channel.ResetProgram();
 
-		MidiPitchBend(mc, EncodePitchBendParam(MIDIEvents::pitchBendCentre));		// centre pitch bend
-		MidiSend(MIDIEvents::CC(MIDIEvents::MIDICC_AllSoundOff, mc, 0));			// all sounds off
+		SendMidiPitchBend(mc, EncodePitchBendParam(MIDIEvents::pitchBendCentre));  // centre pitch bend
+		MidiSend(MIDIEvents::CC(MIDIEvents::MIDICC_AllSoundOff, mc, 0));           // all sounds off
 
-		for(size_t i = 0; i < std::size(channel.noteOnMap); i++)	//all notes
+		for(size_t i = 0; i < std::size(channel.noteOnMap); i++)
 		{
 			for(auto &c : channel.noteOnMap[i])
 			{

@@ -45,7 +45,7 @@ constexpr std::tuple<InputTargetContext, CommandID, CommandID> NoteContexts[] =
 #endif
 
 #ifdef MPT_COMMANDSET_LOGGING
-#define LOG_COMMANDSET(x) MPT_LOG(LogDebug, "CommandSet", x)
+#define LOG_COMMANDSET(x) MPT_LOG_GLOBAL(LogDebug, "CommandSet", x)
 #else
 #define LOG_COMMANDSET(x) do { } while(0)
 #endif
@@ -738,6 +738,18 @@ static constexpr struct
 	{2011, kcChannelMoveRight, _T("Move Channels to Right")},
 	{2012, kcSampleConvertPingPongLoop, _T("Convert Ping-Pong Loop to Unidirectional") },
 	{2013, kcSampleConvertPingPongSustain, _T("Convert Ping-Pong Sustain Loop to Unidirectional") },
+	{2014, kcChannelAddBefore, _T("Add Channel Before Current")},
+	{2015, kcChannelAddAfter, _T("Add Channel After Current") },
+	{2016, kcChannelRemove, _T("Remove Channel") },
+	{2017, kcSetFXFinetune, _T("Finetune") },
+	{2018, kcSetFXFinetuneSmooth, _T("Finetune (Smooth)")},
+	{2019, kcOrderlistEditInsertSeparator, _T("Insert Separator") },
+	{2020, kcTempoIncrease, _T("Increase Tempo")},
+	{2021, kcTempoDecrease, _T("Decrease Tempo")},
+	{2022, kcTempoIncreaseFine, _T("Increase Tempo (Fine)")},
+	{2023, kcTempoDecreaseFine, _T("Decrease Tempo (Fine)")},
+	{2024, kcSpeedIncrease, _T("Increase Ticks per Row")},
+	{2025, kcSpeedDecrease, _T("Decrease Ticks per Row")},
 };
 
 // Get command descriptions etc.. loaded up.
@@ -1724,7 +1736,7 @@ bool CCommandSet::LoadFile(const mpt::PathString &filename)
 
 bool CCommandSet::LoadDefaultKeymap()
 {
-	std::istringstream ss;
+	std::istringstream ss{ GetDefaultKeymap() };
 	return LoadFile(ss, U_("\"executable resource\""));
 }
 

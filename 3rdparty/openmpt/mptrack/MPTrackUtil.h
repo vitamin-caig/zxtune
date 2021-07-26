@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 
 #include <string>
@@ -65,6 +65,19 @@ namespace Util
 	MPT_FORCEINLINE int ScalePixelsInv(int pixels, HWND hwnd)
 	{
 		return MulDiv(pixels, 96, GetDPIx(hwnd));
+	}
+}
+
+
+namespace Util
+{
+	inline DWORD64 GetTickCount64()
+	{
+#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
+		return ::GetTickCount64();
+#else
+		return ::GetTickCount();
+#endif
 	}
 }
 

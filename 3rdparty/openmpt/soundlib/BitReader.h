@@ -12,18 +12,17 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "../common/FileReader.h"
 #include <stdexcept>
+#include "mpt/io/base.hpp"
 
 
 OPENMPT_NAMESPACE_BEGIN
 
 
-//==================================
 class BitReader : private FileReader
-//==================================
 {
 protected:
 	off_t m_bufPos = 0, m_bufSize = 0;
@@ -39,8 +38,10 @@ public:
 		eof() : std::range_error("Truncated bit buffer") { }
 	};
 
+	BitReader() : FileReader() { }
 	BitReader(mpt::span<const std::byte> bytedata) : FileReader(bytedata) { }
-	BitReader(const FileReader &other = FileReader()) : FileReader(other) { }
+	BitReader(const FileCursor &other) : FileReader(other) { }
+	BitReader(FileCursor &&other) : FileReader(std::move(other)) { }
 
 	off_t GetLength() const
 	{

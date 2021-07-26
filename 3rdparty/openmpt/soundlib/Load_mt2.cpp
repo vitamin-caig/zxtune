@@ -538,6 +538,8 @@ bool CSoundFile::ReadMT2(FileReader &file, ModLoadingFlags loadFlags)
 					for(ROWINDEX r = 0; r < fillRows; r++)
 					{
 						m += GetNumChannels();
+						// cppcheck false-positive
+						// cppcheck-suppress selfAssignment
 						*m = orig;
 					}
 				}
@@ -719,12 +721,12 @@ bool CSoundFile::ReadMT2(FileReader &file, ModLoadingFlags loadFlags)
 						// MT2 only ever calls effGetChunk for programs, and OpenMPT uses the defaultProgram value to determine
 						// whether it should use effSetChunk for programs or banks...
 						mixPlug.defaultProgram = -1;
-						LimitMax(vstHeader.n, Util::MaxValueOfType(dataSize) - 4);
+						LimitMax(vstHeader.n, std::numeric_limits<decltype(dataSize)>::max() - 4);
 						dataSize = vstHeader.n + 4;
 					} else
 					{
 						mixPlug.defaultProgram = vstHeader.programNr;
-						LimitMax(vstHeader.n, (Util::MaxValueOfType(dataSize) / 4u) - 1);
+						LimitMax(vstHeader.n, (std::numeric_limits<decltype(dataSize)>::max() / 4u) - 1);
 						dataSize = vstHeader.n * 4 + 4;
 					}
 					mixPlug.pluginData.resize(dataSize);
@@ -796,7 +798,7 @@ bool CSoundFile::ReadMT2(FileReader &file, ModLoadingFlags loadFlags)
 				ModInstrument *mptIns = AllocateInstrument(drumMap[i], drumHeader.DrumSamples[i] + 1);
 				if(mptIns != nullptr)
 				{
-					mptIns->name = MPT_FORMAT("Drum #{}")(i+1);
+					mptIns->name = MPT_AFORMAT("Drum #{}")(i+1);
 				}
 			} else
 			{
@@ -1146,8 +1148,8 @@ bool CSoundFile::ReadMT2(FileReader &file, ModLoadingFlags loadFlags)
 
 #if defined(MPT_EXTERNAL_SAMPLES)
 			if(filename.length() >= 2
-				&& filename.at(0) != '\\'	// Relative path on same drive
-				&& filename.at(1) != ':')	// Absolute path
+				&& filename[0] != '\\'	// Relative path on same drive
+				&& filename[1] != ':')	// Absolute path
 			{
 				// Relative path in same folder or sub folder
 				filename = ".\\" + filename;

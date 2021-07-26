@@ -25,6 +25,9 @@
 #include "../../common/mptFileIO.h"
 #include "../mod_specifications.h"
 #endif // MODPLUG_TRACKER
+#include "mpt/io/base.hpp"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_span.hpp"
 
 #include <cmath>
 
@@ -44,6 +47,7 @@ IMixPlugin::IMixPlugin(VSTPluginLib &factory, CSoundFile &sndFile, SNDMIXPLUGIN 
 	, m_SndFile(sndFile)
 	, m_pMixStruct(mixStruct)
 {
+	m_SndFile.m_loadedPlugins++;
 	m_MixState.pMixBuffer = (mixsample_t *)((((intptr_t)m_MixBuffer) + 7) & ~7);
 	while(m_pMixStruct != &(m_SndFile.m_MixPlugins[m_nSlot]) && m_nSlot < MAX_MIXPLUGINS - 1)
 	{
@@ -71,6 +75,7 @@ IMixPlugin::~IMixPlugin()
 	if (m_pPrev) m_pPrev->m_pNext = m_pNext;
 	m_pPrev = nullptr;
 	m_pNext = nullptr;
+	m_SndFile.m_loadedPlugins--;
 }
 
 
@@ -93,6 +98,21 @@ void IMixPlugin::SetSlot(PLUGINDEX slot)
 {
 	m_nSlot = slot;
 	m_pMixStruct = &m_SndFile.m_MixPlugins[slot];
+}
+
+
+PlugParamValue IMixPlugin::GetScaledUIParam(PlugParamIndex param)
+{
+	const auto [paramMin, paramMax] = GetParamUIRange(param);
+	return (std::clamp(GetParameter(param), paramMin, paramMax) - paramMin) / (paramMax - paramMin);
+}
+
+
+void IMixPlugin::SetScaledUIParam(PlugParamIndex param, PlugParamValue value)
+{
+	const auto [paramMin, paramMax] = GetParamUIRange(param);
+	const auto scaledVal = paramMin + std::clamp(value, 0.0f, 1.0f) * (paramMax - paramMin);
+	SetParameter(param, scaledVal);
 }
 
 
@@ -779,6 +799,13 @@ void IMidiPlugin::MidiCC(MIDIEvents::MidiCC nController, uint8 nParam, CHANNELIN
 }
 
 
+// Set MIDI pitch for given MIDI channel to the specified raw 14-bit position
+void IMidiPlugin::MidiPitchBendRaw(int32 pitchbend, CHANNELINDEX trackerChn)
+{
+	SendMidiPitchBend(GetMidiChannel(trackerChn), EncodePitchBendParam(Clamp(pitchbend, MIDIEvents::pitchBendMin, MIDIEvents::pitchBendMax)));
+}
+
+
 // Bend MIDI pitch for given MIDI channel using fine tracker param (one unit = 1/64th of a note step)
 void IMidiPlugin::MidiPitchBend(int32 increment, int8 pwd, CHANNELINDEX trackerChn)
 {
@@ -794,15 +821,15 @@ void IMidiPlugin::MidiPitchBend(int32 increment, int8 pwd, CHANNELINDEX trackerC
 		ApplyPitchWheelDepth(increment, pwd);
 	}
 
-	int32 newPitchBendPos = (increment + m_MidiCh[midiCh].midiPitchBendPos) & vstPitchBendMask;
+	int32 newPitchBendPos = (increment + m_MidiCh[midiCh].midiPitchBendPos) & kPitchBendMask;
 	Limit(newPitchBendPos, EncodePitchBendParam(MIDIEvents::pitchBendMin), EncodePitchBendParam(MIDIEvents::pitchBendMax));
 
-	MidiPitchBend(midiCh, newPitchBendPos);
+	SendMidiPitchBend(midiCh, newPitchBendPos);
 }
 
 
 // Set MIDI pitch for given MIDI channel using fixed point pitch bend value (converted back to 0-16383 MIDI range)
-void IMidiPlugin::MidiPitchBend(uint8 midiCh, int32 newPitchBendPos)
+void IMidiPlugin::SendMidiPitchBend(uint8 midiCh, int32 newPitchBendPos)
 {
 	MPT_ASSERT(EncodePitchBendParam(MIDIEvents::pitchBendMin) <= newPitchBendPos && newPitchBendPos <= EncodePitchBendParam(MIDIEvents::pitchBendMax));
 	m_MidiCh[midiCh].midiPitchBendPos = newPitchBendPos;
@@ -815,12 +842,12 @@ void IMidiPlugin::MidiVibrato(int32 depth, int8 pwd, CHANNELINDEX trackerChn)
 {
 	auto midiCh = GetMidiChannel(trackerChn);
 	depth = EncodePitchBendParam(depth);
-	if(depth != 0 || (m_MidiCh[midiCh].midiPitchBendPos & vstVibratoFlag))
+	if(depth != 0 || (m_MidiCh[midiCh].midiPitchBendPos & kVibratoFlag))
 	{
 		ApplyPitchWheelDepth(depth, pwd);
 
 		// Temporarily add vibrato offset to current pitch
-		int32 newPitchBendPos = (depth + m_MidiCh[midiCh].midiPitchBendPos) & vstPitchBendMask;
+		int32 newPitchBendPos = (depth + m_MidiCh[midiCh].midiPitchBendPos) & kPitchBendMask;
 		Limit(newPitchBendPos, EncodePitchBendParam(MIDIEvents::pitchBendMin), EncodePitchBendParam(MIDIEvents::pitchBendMax));
 
 		MidiSend(MIDIEvents::PitchBend(midiCh, DecodePitchBendParam(newPitchBendPos)));
@@ -828,9 +855,9 @@ void IMidiPlugin::MidiVibrato(int32 depth, int8 pwd, CHANNELINDEX trackerChn)
 
 	// Update vibrato status
 	if(depth != 0)
-		m_MidiCh[midiCh].midiPitchBendPos |= vstVibratoFlag;
+		m_MidiCh[midiCh].midiPitchBendPos |= kVibratoFlag;
 	else
-		m_MidiCh[midiCh].midiPitchBendPos &= ~vstVibratoFlag;
+		m_MidiCh[midiCh].midiPitchBendPos &= ~kVibratoFlag;
 }
 
 
@@ -923,9 +950,10 @@ void IMidiPlugin::MidiCommand(const ModInstrument &instr, uint16 note, uint16 vo
 
 		// Reset pitch bend on each new note, tracker style.
 		// This is done if the pitch wheel has been moved or there was a vibrato on the previous row (in which case the "vstVibratoFlag" bit of the pitch bend memory is set)
-		if(m_MidiCh[midiCh].midiPitchBendPos != EncodePitchBendParam(MIDIEvents::pitchBendCentre))
+		auto newPitchBendPos = EncodePitchBendParam(Clamp(m_SndFile.m_PlayState.Chn[trackChannel].GetMIDIPitchBend(), MIDIEvents::pitchBendMin, MIDIEvents::pitchBendMax));
+		if(m_MidiCh[midiCh].midiPitchBendPos != newPitchBendPos)
 		{
-			MidiPitchBend(midiCh, EncodePitchBendParam(MIDIEvents::pitchBendCentre));
+			SendMidiPitchBend(midiCh, newPitchBendPos);
 		}
 
 		// count instances of active notes.

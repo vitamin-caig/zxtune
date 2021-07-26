@@ -10,9 +10,11 @@
 #include "stdafx.h"
 #include "mptPathString.h"
 
+#include "mpt/uuid/uuid.hpp"
+
 #include "misc_util.h"
 
-#include "mptUUID.h"
+#include "mptRandom.h"
 
 #if MPT_OS_WINDOWS
 #include <windows.h>
@@ -20,18 +22,6 @@
 #include <shlwapi.h>
 #endif
 #include <tchar.h>
-#endif
-
-#if MPT_OS_WINDOWS && MPT_OS_WINDOWS_WINRT
-#if defined(__MINGW32__) || defined(__MINGW64__)
-// MinGW-w64 headers do not declare this for WinRT, which is wrong.
-extern "C" {
-WINBASEAPI DWORD WINAPI GetFullPathNameW(LPCWSTR lpFileName, DWORD nBufferLength, LPWSTR lpBuffer, LPWSTR *lpFilePart);
-#ifndef GetFullPathName
-#define GetFullPathName GetFullPathNameW
-#endif
-}
-#endif
 #endif
 
 OPENMPT_NAMESPACE_BEGIN
@@ -44,7 +34,11 @@ namespace mpt
 
 RawPathString PathString::AsNativePrefixed() const
 {
-	if(path.length() <= MAX_PATH || path.substr(0, 4) == PL_("\\\\?\\"))
+#if MPT_OS_WINDOWS_WINRT && (_WIN32_WINNT < 0x0a00)
+	// For WinRT on Windows 8, there is no official wy to determine an absolute path.
+	return path;
+#else
+	if(path.length() < MAX_PATH || path.substr(0, 4) == PL_("\\\\?\\"))
 	{
 		// Path is short enough or already in prefixed form
 		return path;
@@ -59,6 +53,7 @@ RawPathString PathString::AsNativePrefixed() const
 		// Regular file: C:\foo.bar -> \\?\C:\foo.bar
 		return PL_("\\\\?\\") + absPath;
 	}
+#endif
 }
 
 
@@ -149,7 +144,7 @@ namespace mpt
 {
 
 
-#if MPT_OS_WINDOWS && (defined(MPT_ENABLE_DYNBIND) || defined(MPT_ENABLE_TEMPFILE))
+#if defined(MODPLUG_TRACKER) && MPT_OS_WINDOWS
 
 void PathString::SplitPath(PathString *drive, PathString *dir, PathString *fname, PathString *ext) const
 {
@@ -283,8 +278,7 @@ bool PathString::IsDirectory() const
 	// Using PathIsDirectoryW here instead would increase libopenmpt dependencies by shlwapi.dll.
 	// GetFileAttributesW also does the job just fine.
 	#if MPT_OS_WINDOWS_WINRT
-		WIN32_FILE_ATTRIBUTE_DATA data;
-		MemsetZero(data);
+		WIN32_FILE_ATTRIBUTE_DATA data = {};
 		if(::GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &data) == 0)
 		{
 			return false;
@@ -299,8 +293,7 @@ bool PathString::IsDirectory() const
 bool PathString::IsFile() const
 {
 	#if MPT_OS_WINDOWS_WINRT
-		WIN32_FILE_ATTRIBUTE_DATA data;
-		MemsetZero(data);
+		WIN32_FILE_ATTRIBUTE_DATA data = {};
 		if (::GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &data) == 0)
 		{
 			return false;
@@ -312,7 +305,7 @@ bool PathString::IsFile() const
 	return ((dwAttrib != INVALID_FILE_ATTRIBUTES) && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-#endif // MPT_OS_WINDOWS && (MPT_ENABLE_DYNBIND || MPT_ENABLE_TEMPFILE)
+#endif // MODPLUG_TRACKER && MPT_OS_WINDOWS
 
 
 #if defined(MODPLUG_TRACKER) && MPT_OS_WINDOWS
@@ -371,7 +364,7 @@ PathString PathString::RelativePathToAbsolute(const PathString &relativeTo) cons
 	{
 		return result;
 	}
-	if(path.length() >= 2 && path.at(0) == PC_('\\') && path.at(1) != PC_('\\'))
+	if(path.length() >= 2 && path[0] == PC_('\\') && path[1] != PC_('\\'))
 	{
 		// Path is on the same drive as OpenMPT ("\Somepath\" => "C:\Somepath\"), but ignore network paths starting with "\\"
 		result = mpt::PathString::FromNative(relativeTo.AsNative().substr(0, 2));
@@ -442,6 +435,8 @@ bool PathIsAbsolute(const mpt::PathString &path) {
 
 #if MPT_OS_WINDOWS
 
+#if !(MPT_OS_WINDOWS_WINRT && (_WIN32_WINNT < 0x0a00))
+
 mpt::PathString GetAbsolutePath(const mpt::PathString &path)
 {
 	DWORD size = GetFullPathName(path.AsNative().c_str(), 0, nullptr, nullptr);
@@ -456,6 +451,8 @@ mpt::PathString GetAbsolutePath(const mpt::PathString &path)
 	}
 	return mpt::PathString::FromNative(fullPathName.data());
 }
+
+#endif
 
 #ifdef MODPLUG_TRACKER
 
@@ -479,8 +476,7 @@ bool DeleteWholeDirectoryTree(mpt::PathString path)
 	}
 	path.EnsureTrailingSlash();
 	HANDLE hFind = NULL;
-	WIN32_FIND_DATA wfd;
-	MemsetZero(wfd);
+	WIN32_FIND_DATA wfd = {};
 	hFind = FindFirstFile((path + P_("*.*")).AsNative().c_str(), &wfd);
 	if(hFind != NULL && hFind != INVALID_HANDLE_VALUE)
 	{
@@ -520,9 +516,7 @@ bool DeleteWholeDirectoryTree(mpt::PathString path)
 
 
 
-#if MPT_OS_WINDOWS
-
-#if defined(MPT_ENABLE_DYNBIND) || defined(MPT_ENABLE_TEMPFILE)
+#if defined(MODPLUG_TRACKER) && MPT_OS_WINDOWS
 
 mpt::PathString GetExecutablePath()
 {
@@ -538,10 +532,6 @@ mpt::PathString GetExecutablePath()
 	return mpt::GetAbsolutePath(mpt::PathString::FromNative(exeFileName.data()).GetPath());
 }
 
-#endif // MPT_ENABLE_DYNBIND || MPT_ENABLE_TEMPFILE
-
-
-#if defined(MPT_ENABLE_DYNBIND)
 
 #if !MPT_OS_WINDOWS_WINRT
 
@@ -558,14 +548,11 @@ mpt::PathString GetSystemPath()
 
 #endif // !MPT_OS_WINDOWS_WINRT
 
-#endif // MPT_ENABLE_DYNBIND
-
-#endif // MPT_OS_WINDOWS
+#endif // MODPLUG_TRACKER && MPT_OS_WINDOWS
 
 
 
-#if defined(MPT_ENABLE_TEMPFILE)
-#if MPT_OS_WINDOWS
+#if defined(MODPLUG_TRACKER) && MPT_OS_WINDOWS
 
 mpt::PathString GetTempDirectory()
 {
@@ -586,7 +573,7 @@ mpt::PathString CreateTempFileName(const mpt::PathString &fileNamePrefix, const 
 {
 	mpt::PathString filename = mpt::GetTempDirectory();
 	filename += (!fileNamePrefix.empty() ? fileNamePrefix + P_("_") : mpt::PathString());
-	filename += mpt::PathString::FromUnicode(mpt::UUID::GenerateLocalUseOnly().ToUString());
+	filename += mpt::PathString::FromUnicode(mpt::UUID::GenerateLocalUseOnly(mpt::global_prng()).ToUString());
 	filename += (!fileNameExtension.empty() ? P_(".") + fileNameExtension : mpt::PathString());
 	return filename;
 }
@@ -610,7 +597,6 @@ TempFileGuard::~TempFileGuard()
 	}
 }
 
-#ifdef MODPLUG_TRACKER
 
 TempDirGuard::TempDirGuard(const mpt::PathString &dirname_)
 	: dirname(dirname_.WithTrailingSlash())
@@ -638,10 +624,7 @@ TempDirGuard::~TempDirGuard()
 	}
 }
 
-#endif // MODPLUG_TRACKER
-
-#endif // MPT_OS_WINDOWS
-#endif // MPT_ENABLE_TEMPFILE
+#endif // MODPLUG_TRACKER && MPT_OS_WINDOWS
 
 } // namespace mpt
 

@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "ResizableDialog.h"
 #include "../soundlib/Snd_defs.h"

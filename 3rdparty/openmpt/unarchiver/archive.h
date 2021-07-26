@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "../common/FileReader.h"
 #include <string>
@@ -17,17 +17,17 @@
 
 OPENMPT_NAMESPACE_BEGIN
 
-enum ArchiveFileType
+enum class ArchiveFileType
 {
-	ArchiveFileInvalid,
-	ArchiveFileNormal,
-	ArchiveFileSpecial,
+	Invalid,
+	Normal,
+	Special,
 };
 
 struct ArchiveFileInfo
 {
 	mpt::PathString name;
-	ArchiveFileType type = ArchiveFileInvalid;
+	ArchiveFileType type = ArchiveFileType::Invalid;
 	uint64 size = 0;
 	mpt::ustring comment;
 	uint64 cookie1 = 0;
@@ -51,7 +51,6 @@ public:
 	virtual std::size_t size() const = 0;
 	virtual IArchive::const_iterator begin() const = 0;
 	virtual IArchive::const_iterator end() const = 0;
-	virtual const ArchiveFileInfo & at(std::size_t index) const = 0;
 	virtual const ArchiveFileInfo & operator [] (std::size_t index) const = 0;
 };
 
@@ -90,7 +89,6 @@ public:
 	std::size_t size() const override { return contents.size(); }
 	IArchive::const_iterator begin() const override { return contents.begin(); }
 	IArchive::const_iterator end() const override { return contents.end(); }
-	const ArchiveFileInfo & at(std::size_t index) const override { return contents.at(index); }
 	const ArchiveFileInfo & operator [] (std::size_t index) const override { return contents[index]; }
 };
 

@@ -28,10 +28,16 @@
 #include "../soundlib/WAVTools.h"
 #include "../common/FileReader.h"
 #include "../tracklib/SampleEdit.h"
-#include "../soundbase/SampleFormatConverters.h"
-#include "../soundbase/SampleFormatCopy.h"
+#include "openmpt/soundbase/SampleConvert.hpp"
+#include "openmpt/soundbase/SampleDecode.hpp"
+#include "../soundlib/SampleCopy.h"
 #include "../soundlib/mod_specifications.h"
 #include "../soundlib/S3MTools.h"
+#include "mpt/io/base.hpp"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_span.hpp"
+#include "mpt/io/io_stdstream.hpp"
+#include "mpt/io/io_virtual_wrapper.hpp"
 
 
 OPENMPT_NAMESPACE_BEGIN
@@ -627,10 +633,10 @@ double CViewSample::ScreenToSeconds(int32 x, bool ignoreSampleLength) const
 
 static bool HitTest(int pointX, int objX, int marginL, int marginR, int top, int bottom, CRect *rect)
 {
-	if(!IsInRange(pointX, objX - marginL, objX + marginR))
+	if(!mpt::is_in_range(pointX, objX - marginL, objX + marginR))
 		return false;
 	if(rect)
-		*rect = {objX - marginL, top, objX + marginR + 1, bottom};
+		*rect = CRect{objX - marginL, top, objX + marginR + 1, bottom};
 	return true;
 }
 
@@ -655,17 +661,17 @@ std::pair<CViewSample::HitTestItem, SmpLength> CViewSample::PointToItem(CPoint p
 		const auto &sample = sndFile.GetSample(m_nSample);
 		if(sample.nSustainStart < sample.nSustainEnd && sample.nSustainStart < sample.nLength)
 		{
-			if(HitTest(point.x, SampleToScreen(sample.nSustainStart), 0, m_timelineHeight / 2, 0, m_timelineHeight, rect))
-				return {HitTestItem::SustainStart, sample.nSustainStart};
 			if(HitTest(point.x, SampleToScreen(sample.nSustainEnd), m_timelineHeight / 2, 0, 0, m_timelineHeight, rect))
 				return {HitTestItem::SustainEnd, sample.nSustainEnd};
+			if(HitTest(point.x, SampleToScreen(sample.nSustainStart), 0, m_timelineHeight / 2, 0, m_timelineHeight, rect))
+				return {HitTestItem::SustainStart, sample.nSustainStart};
 		}
 		if (sample.nLoopStart < sample.nLoopEnd && sample.nLoopStart < sample.nLength)
 		{
-			if(HitTest(point.x, SampleToScreen(sample.nLoopStart), 0, m_timelineHeight / 2, 0, m_timelineHeight, rect))
-				return {HitTestItem::LoopStart, sample.nLoopStart };
 			if(HitTest(point.x, SampleToScreen(sample.nLoopEnd), m_timelineHeight / 2, 0, 0, m_timelineHeight, rect))
 				return {HitTestItem::LoopEnd, sample.nLoopEnd};
+			if(HitTest(point.x, SampleToScreen(sample.nLoopStart), 0, m_timelineHeight / 2, 0, m_timelineHeight, rect))
+				return {HitTestItem::LoopStart, sample.nLoopStart };
 		}
 		for(size_t i = 0; i < std::size(sample.cues); i++)
 		{
@@ -739,6 +745,15 @@ LRESULT CViewSample::OnModViewMsg(WPARAM wParam, LPARAM lParam)
 
 	case VIEWMSG_PREPAREUNDO:
 		GetDocument()->GetSampleUndo().PrepareUndo(m_nSample, sundo_none, "Edit OPL Patch");
+		break;
+
+	case VIEWMSG_SETFOCUS:
+	case VIEWMSG_SETACTIVE:
+		GetParentFrame()->SetActiveView(this);
+		if(IsOPLInstrument() && m_oplEditor)
+			m_oplEditor->SetFocus();
+		else
+			SetFocus();
 		break;
 
 	default:
@@ -2880,26 +2895,21 @@ void CViewSample::OnMonoConvert(ctrlSmp::StereoToMonoMode convert)
 			{
 				// Split sample into two slots
 				rightSmp = pModDoc->InsertSample();
-				if(rightSmp != SAMPLEINDEX_INVALID)
-				{
-					sndFile.ReadSampleFromSong(rightSmp, sndFile, m_nSample);
-				} else
-				{
+				if(rightSmp == SAMPLEINDEX_INVALID)
 					return;
-				}
 			}
 
 			pModDoc->GetSampleUndo().PrepareUndo(m_nSample, sundo_replace, "Mono Conversion");
 
-			if(ctrlSmp::ConvertToMono(sample, sndFile, convert))
+			bool success = false;
+			if(convert == ctrlSmp::splitSample)
 			{
-				if(convert == ctrlSmp::splitSample)
-				{
-					// Split mode: We need to convert the right channel as well!
-					ModSample &right = sndFile.GetSample(rightSmp);
-					ctrlSmp::ConvertToMono(right, sndFile, ctrlSmp::onlyRight);
+				ModSample &right = sndFile.GetSample(rightSmp);
+				success = ctrlSmp::SplitStereo(sample, sample, right, sndFile);
 
-					// Try to create a new instrument as well which maps to the right sample.
+				// Try to create a new instrument as well which maps to the right sample.
+				if(success)
+				{
 					INSTRUMENTINDEX ins = pModDoc->FindSampleParent(m_nSample);
 					if(ins != INSTRUMENTINDEX_INVALID)
 					{
@@ -2925,11 +2935,15 @@ void CViewSample::OnMonoConvert(ctrlSmp::StereoToMonoMode convert)
 					}
 					pModDoc->UpdateAllViews(this, SampleHint(rightSmp).Info().Data().Names(), this);
 				}
-				SetModified(SampleHint().Info().Data().Names(), true, true);
 			} else
 			{
-				pModDoc->GetSampleUndo().RemoveLastUndoStep(m_nSample);
+				success = ctrlSmp::ConvertToMono(sample, sndFile, convert);
 			}
+			
+			if(success)
+				SetModified(SampleHint().Info().Data().Names(), true, true);
+			else
+				pModDoc->GetSampleUndo().RemoveLastUndoStep(m_nSample);
 		}
 	}
 	EndWaitCursor();
@@ -3812,7 +3826,7 @@ int CViewSample::GetZoomLevel(SmpLength length) const
 	zoom = 1 + (std::log10(zoom) / std::log10(2.0));
 	if(zoom <= 0) zoom -= 2;
 
-	return static_cast<int>(zoom + sgn(zoom));
+	return static_cast<int>(zoom + mpt::signum(zoom));
 }
 
 

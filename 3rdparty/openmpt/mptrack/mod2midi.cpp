@@ -18,6 +18,8 @@
 #include "../soundlib/plugins/PlugInterface.h"
 #include "../soundlib/plugins/PluginManager.h"
 #include <sstream>
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 
 #ifndef NO_PLUGINS
 
@@ -299,6 +301,13 @@ namespace MidiExport
 			IMidiPlugin::MidiCommand(instr, note, vol, trackChannel);
 		}
 
+		void MidiPitchBendRaw(int32 pitchbend, CHANNELINDEX trackerChn) override
+		{
+			SynchronizeMidiChannelState();
+			SynchronizeMidiPitchWheelDepth(trackerChn);
+			IMidiPlugin::MidiPitchBendRaw(pitchbend, trackerChn);
+		}
+
 		void MidiPitchBend(int32 increment, int8 pwd, CHANNELINDEX trackerChn) override
 		{
 			SynchronizeMidiChannelState();
@@ -487,19 +496,20 @@ namespace MidiExport
 			std::move(m_oldPlugins.cbegin(), m_oldPlugins.cend(), std::begin(m_sndFile.m_MixPlugins));
 
 			// Be sure that instrument pointers to our faked instruments are gone.
+			const auto muteFlag = CSoundFile::GetChannelMuteFlag();
 			for(CHANNELINDEX i = 0; i < MAX_CHANNELS; i++)
 			{
-				m_sndFile.m_PlayState.Chn[i].Reset(ModChannel::resetTotal, m_sndFile, i);
+				m_sndFile.m_PlayState.Chn[i].Reset(ModChannel::resetTotal, m_sndFile, i, muteFlag);
 			}
 		}
 	};
 
 
-	class DummyAudioTarget : public IAudioReadTarget
+	class DummyAudioTarget : public IAudioTarget
 	{
 	public:
-		void DataCallback(MixSampleInt *, std::size_t, std::size_t) override { }
-		void DataCallback(MixSampleFloat *, std::size_t, std::size_t) override { }
+		void Process(mpt::audio_span_interleaved<MixSampleInt>) override { }
+		void Process(mpt::audio_span_interleaved<MixSampleFloat>) override { }
 	};
 }
 

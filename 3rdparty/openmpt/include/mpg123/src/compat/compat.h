@@ -15,7 +15,6 @@
 #define MPG123_COMPAT_H
 
 #include "config.h"
-#include "intsym.h"
 
 /* Disable inline for non-C99 compilers. */
 #if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
@@ -103,14 +102,28 @@
 
 typedef unsigned char byte;
 
-#if defined(_MSC_VER) && !defined(MPG123_DEF_SSIZE_T)
+#if defined(_MSC_VER)
+
+// For _setmode(), at least.
+#include <io.h>
+
+#if !defined(MPG123_DEF_SSIZE_T)
 #define MPG123_DEF_SSIZE_T
 #include <stddef.h>
 typedef ptrdiff_t ssize_t;
 #endif
 
+#endif
+
+// Not too early, leave system headers alone (strerror).
+#include "intsym.h"
+
 /* A safe realloc also for very old systems where realloc(NULL, size) returns NULL. */
 void *safe_realloc(void *ptr, size_t size);
+// Also freeing ptr if result is NULL. You can do
+// ptr = safer_realloc(ptr, size)
+// Also, ptr = safer_realloc(ptr, 0) will do free(ptr); ptr=NULL;.
+void *safer_realloc(void *ptr, size_t size);
 #ifndef HAVE_STRERROR
 const char *strerror(int errnum);
 #endif
@@ -193,8 +206,8 @@ int win32_wide_utf8(const wchar_t * const wptr, char **mbptr, size_t * buflen);
  * win32_mbc2uni
  * Converts a null terminated UTF-8 string to a UCS-2 equivalent.
  * Caller is supposed to free allocated buffer.
- * @param[out] mbptr Pointer to multibyte string.
- * @param[in] wptr Pointer to wide string.
+ * @param[in] mbptr Pointer to multibyte string.
+ * @param[out] wptr Pointer to wide string.
  * @param[out] buflen Optional parameter for length of allocated buffer.
  * @return status of WideCharToMultiByte conversion.
  *

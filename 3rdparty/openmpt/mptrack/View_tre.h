@@ -11,11 +11,10 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include <vector>
 #include <bitset>
-#include "../common/mptThread.h"
 
 OPENMPT_NAMESPACE_BEGIN
 
@@ -176,7 +175,11 @@ protected:
 	mpt::PathString m_cachedBankName;
 
 	CString m_compareStrL, m_compareStrR;  // Cache for ModTreeInsLibCompareNamesProc to avoid constant re-allocations
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
 	DWORD m_stringCompareFlags = NORM_IGNORECASE | NORM_IGNOREWIDTH | SORT_DIGITSASNUMBERS;
+#else
+	DWORD m_stringCompareFlags = NORM_IGNORECASE | NORM_IGNOREWIDTH;
+#endif
 
 	// Instrument library
 	mpt::PathString m_InstrLibPath;           // Current path to be explored

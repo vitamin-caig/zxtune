@@ -17,10 +17,9 @@
 #include "../common/misc_util.h"
 #include "Tagging.h"
 #include "Loaders.h"
-#include "ChunkReader.h"
+#include "../common/FileReader.h"
 #include "modsmp_ctrl.h"
-#include "../soundbase/SampleFormatConverters.h"
-#include "../soundbase/SampleFormatCopy.h"
+#include "openmpt/soundbase/Copy.hpp"
 #include "../soundlib/ModSampleCopy.h"
 #include "../common/ComponentManager.h"
 #if defined(MPT_WITH_MEDIAFOUNDATION)
@@ -113,7 +112,7 @@ static FileTags ReadMFMetadata(IMFMediaSource *mediaSource)
 				break;
 			} else if(hrToString == ERROR_INSUFFICIENT_BUFFER)
 			{
-				wcharVal.resize(Util::ExponentialGrow(wcharVal.size()));
+				wcharVal.resize(mpt::exponential_grow(wcharVal.size()));
 			} else
 			{
 				break;
@@ -138,7 +137,7 @@ static FileTags ReadMFMetadata(IMFMediaSource *mediaSource)
 
 class ComponentMediaFoundation : public ComponentLibrary
 {
-	MPT_DECLARE_COMPONENT_MEMBERS
+	MPT_DECLARE_COMPONENT_MEMBERS(ComponentMediaFoundation, "MediaFoundation")
 public:
 	ComponentMediaFoundation()
 		: ComponentLibrary(ComponentTypeSystem)
@@ -147,10 +146,6 @@ public:
 	}
 	bool DoInitialize() override
 	{
-		if(!mpt::OS::Windows::Version::Current().IsAtLeast(mpt::OS::Windows::Version::Win7))
-		{
-			return false;
-		}
 #if !MPT_OS_WINDOWS_WINRT
 		if(!(true
 			&& AddLibrary("mf", mpt::LibraryPath::System(P_("mf")))
@@ -176,7 +171,6 @@ public:
 		}
 	}
 };
-MPT_REGISTERED_COMPONENT(ComponentMediaFoundation, "MediaFoundation")
 
 #endif // MPT_WITH_MEDIAFOUNDATION
 
@@ -249,9 +243,9 @@ std::vector<FileType> CSoundFile::GetMediaFoundationFileTypes()
 
 			std::wstring guid = std::wstring(valueNameBuf.data());
 
-			mpt::ustring description = mpt::ToUnicode(std::wstring(reinterpret_cast<WCHAR*>(valueData.data())));
-			description = mpt::String::Replace(description, U_("Byte Stream Handler"), U_("Files"));
-			description = mpt::String::Replace(description, U_("ByteStreamHandler"), U_("Files"));
+			mpt::ustring description = mpt::ToUnicode(ParseMaybeNullTerminatedStringFromBufferWithSizeInBytes<std::wstring>(valueData.data(), valueDataLen));
+			description = mpt::replace(description, U_("Byte Stream Handler"), U_("Files"));
+			description = mpt::replace(description, U_("ByteStreamHandler"), U_("Files"));
 
 			guidMap[guid]
 				.ShortName(U_("mf"))
@@ -457,23 +451,6 @@ bool CSoundFile::ReadMediaFoundationSample(SAMPLEINDEX sample, FileReader &file,
 
 #endif
 
-}
-
-
-bool CSoundFile::CanReadMediaFoundation()
-{
-	bool result = false;
-	#if defined(MPT_WITH_MEDIAFOUNDATION)
-		if(!result)
-		{
-			ComponentHandle<ComponentMediaFoundation> mf;
-			if(IsComponentAvailable(mf))
-			{
-				result = true;
-			}
-		}
-	#endif
-	return result;
 }
 
 

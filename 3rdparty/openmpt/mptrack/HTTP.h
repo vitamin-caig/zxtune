@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include <functional>
 #include <iosfwd>
@@ -65,7 +65,7 @@ class status_exception
 {
 public:
 	status_exception(uint64 status)
-		: std::runtime_error(MPT_FORMAT("HTTP status {}")(status))
+		: std::runtime_error(MPT_AFORMAT("HTTP status {}")(status))
 	{
 		return;
 	}
@@ -234,6 +234,10 @@ struct Request
 	std::function<void(Progress, uint64, std::optional<uint64>)> progressCallback = nullptr;
 
 	Request &SetURI(const URI &uri);
+
+#if defined(MPT_BUILD_RETRO)
+	Request &InsecureTLSDowngradeWindowsXP();
+#endif // MPT_BUILD_RETRO
 
 	Result operator()(InternetSession &internet) const;
 

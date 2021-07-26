@@ -559,14 +559,14 @@ LIBOPENMPT_API double openmpt_could_open_probability2( openmpt_stream_callbacks 
 LIBOPENMPT_API size_t openmpt_probe_file_header_get_recommended_size(void);
 
 /*! Probe for module formats in openmpt_probe_file_header() or openmpt_probe_file_header_without_filesize(). \since 0.3.0 */
-#define OPENMPT_PROBE_FILE_HEADER_FLAGS_MODULES    0x1ul
+#define OPENMPT_PROBE_FILE_HEADER_FLAGS_MODULES    0x1ull
 /*! Probe for module-specific container formats in openmpt_probe_file_header() or openmpt_probe_file_header_without_filesize(). \since 0.3.0 */
-#define OPENMPT_PROBE_FILE_HEADER_FLAGS_CONTAINERS 0x2ul
+#define OPENMPT_PROBE_FILE_HEADER_FLAGS_CONTAINERS 0x2ull
 
 /*! Probe for the default set of formats in openmpt_probe_file_header() or openmpt_probe_file_header_without_filesize(). \since 0.3.0 */
 #define OPENMPT_PROBE_FILE_HEADER_FLAGS_DEFAULT    ( OPENMPT_PROBE_FILE_HEADER_FLAGS_MODULES | OPENMPT_PROBE_FILE_HEADER_FLAGS_CONTAINERS )
 /*! Probe for no formats in openmpt_probe_file_header() or openmpt_probe_file_header_without_filesize(). \since 0.3.0 */
-#define OPENMPT_PROBE_FILE_HEADER_FLAGS_NONE       0x0ul
+#define OPENMPT_PROBE_FILE_HEADER_FLAGS_NONE       0x0ull
 
 /*! Possible return values fo openmpt_probe_file_header() and openmpt_probe_file_header_without_filesize(). \since 0.3.0 */
 #define OPENMPT_PROBE_FILE_HEADER_RESULT_SUCCESS      1
@@ -1123,7 +1123,7 @@ LIBOPENMPT_API const char * openmpt_module_get_metadata_keys( openmpt_module * m
  * \param mod The module handle to work on.
  * \param key Metadata item key to query. Use openmpt_module_get_metadata_keys to check for available keys.
  *          Possible keys are:
- *          - type: Module format extension (e.g. it)
+ *          - type: Module format extension (e.g. it) or another similar identifier for modules formats that typically do not use a file extension
  *          - type_long: Format name associated with the module format (e.g. Impulse Tracker)
  *          - originaltype: Module format extension (e.g. it) of the original module in case the actual type is a converted format (e.g. mo3 or gdm)
  *          - originaltype_long: Format name associated with the module format (e.g. Impulse Tracker) of the original module in case the actual type is a converted format (e.g. mo3 or gdm)

@@ -3,7 +3,7 @@
 
 	objdir ( "../../build/obj/" .. mpt_projectpathname .. "/" .. mpt_projectname )
 	
-	buildoptions { "/std:c++17" }
+	flags { "Cpp17" }
 
 	configuration { "Debug", "x32" }
 		targetdir ( "../../bin/debug/" .. _ACTION .. "-" .. mpt_bindirsuffix .. "-static/x86" )
@@ -31,6 +31,15 @@
 		targetdir ( "../../bin/release/" .. _ACTION .. "-" .. mpt_bindirsuffix .. "-static/arm" )
 	configuration { "ReleaseShared", "ARM" }
 		targetdir ( "../../bin/release/" .. _ACTION .. "-" .. mpt_bindirsuffix .. "-shared/arm" )
+  
+	configuration { "Debug", "ARM64" }
+		targetdir ( "../../bin/debug/" .. _ACTION .. "-" .. mpt_bindirsuffix .. "-static/arm64" )
+	configuration { "DebugShared", "ARM64" }
+		targetdir ( "../../bin/debug/" .. _ACTION .. "-" .. mpt_bindirsuffix .. "-shared/arm64" )
+	configuration { "Release", "ARM64" }
+		targetdir ( "../../bin/release/" .. _ACTION .. "-" .. mpt_bindirsuffix .. "-static/arm64" )
+	configuration { "ReleaseShared", "ARM64" }
+		targetdir ( "../../bin/release/" .. _ACTION .. "-" .. mpt_bindirsuffix .. "-shared/arm64" )
   
   configuration "Debug"
    defines { "DEBUG" }
@@ -61,8 +70,14 @@
   configuration {}
    defines { "MPT_BUILD_MSVC" }
    
-  configuration {}
-   defines { "WIN32", "_CRT_SECURE_NO_WARNINGS", "_CRT_NONSTDC_NO_DEPRECATE", "_CRT_SECURE_NO_DEPRECATE", "_CRT_NONSTDC_NO_WARNINGS" }
+	configuration {}
+		defines {
+			"WIN32",
+			"_CRT_NONSTDC_NO_WARNINGS",
+			"_CRT_SECURE_NO_WARNINGS",
+			"_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES=1",
+			"_CRT_SECURE_CPP_OVERLOAD_STANDARD_NAMES_COUNT=1",
+		}
 
   configuration {}
 
@@ -91,6 +106,10 @@
 			local action = premake.action.current()
 			action.vstudio.windowsTargetPlatformVersion = "10.0.10240.0"
 			action.vstudio.windowsTargetPlatformMinVersion = "10.0.10240.0"
+
+		elseif _OPTIONS["target"] == "winstore10" then
+			defines { "_WIN32_WINNT=0x0A00" }
+			premake.vstudio.storeapp = "10.0"
 
 		end
 

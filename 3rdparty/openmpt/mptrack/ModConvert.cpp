@@ -179,7 +179,7 @@ bool CModDoc::ChangeModType(MODTYPE nNewType)
 	for(auto &pat : m_SndFile.Patterns) if(pat.IsValid())
 	{
 		// This is used for -> MOD/XM conversion
-		std::vector<ModCommand::PARAM[MAX_EFFECTS]> effMemory(GetNumChannels());
+		std::vector<std::array<ModCommand::PARAM, MAX_EFFECTS>> effMemory(GetNumChannels());
 		std::vector<ModCommand::VOL> volMemory(GetNumChannels(), 0);
 		std::vector<ModCommand::INSTR> instrMemory(GetNumChannels(), 0);
 
@@ -568,7 +568,7 @@ bool CModDoc::ChangeModType(MODTYPE nNewType)
 		m_SndFile.m_SongFlags.set(SONG_ISAMIGA);
 		m_SndFile.InitAmigaResampler();
 	}
-	m_SndFile.m_SongFlags &= (specs.GetSongFlags() | SONG_PLAY_FLAGS);
+	m_SndFile.m_SongFlags &= (specs.songFlags | SONG_PLAY_FLAGS);
 
 	// Adjust mix levels
 	if(newTypeIsMOD || newTypeIsS3M)

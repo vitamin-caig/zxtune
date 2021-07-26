@@ -1,23 +1,28 @@
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
+
+#include "mpt/base/span.hpp"
+#include "mpt/crypto/hash.hpp"
+#include "mpt/crypto/jwk.hpp"
+#include "mpt/environment/environment.hpp"
+#include "mpt/exception_text/exception_text.hpp"
+#include "mpt/io/base.hpp"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
+#include "mpt/out_of_memory/out_of_memory.hpp"
+#include "mpt/string/types.hpp"
+#include "mpt/string_convert/convert.hpp"
+#include "mpt/uuid/uuid.hpp"
+#include "mpt/uuid_namespace/uuid_namespace.hpp"
 
 #include "../common/mptBaseMacros.h"
 #include "../common/mptBaseTypes.h"
 #include "../common/mptBaseUtils.h"
-#include "../common/mptString.h"
 #include "../common/mptStringFormat.h"
 #include "../common/mptPathString.h"
-#include "../common/mptIO.h"
 #include "../common/mptFileIO.h"
-#include "../common/mptException.h"
-#include "../common/mptExceptionText.h"
-#include "../common/mptSpan.h"
-#include "../common/mptUUID.h"
 #include "../common/Logging.h"
 #include "../common/misc_util.h"
-
-#include "../misc/mptCrypto.h"
-#include "../misc/mptUUIDNamespace.h"
 
 #include <exception>
 #include <iostream>
@@ -43,18 +48,21 @@
 OPENMPT_NAMESPACE_BEGIN
 
 
+using namespace mpt::uuid_literals;
+
+
 #if defined(MPT_ASSERT_HANDLER_NEEDED) && defined(MPT_BUILD_SIGNTOOL)
 MPT_NOINLINE void AssertHandler(const mpt::source_location &loc, const char *expr, const char *msg)
 {
 	if(msg)
 	{
-		mpt::log::Logger().SendLogMessage(loc, LogError, "ASSERT",
-			U_("ASSERTION FAILED: ") + mpt::ToUnicode(mpt::Charset::ASCII, msg) + U_(" (") + mpt::ToUnicode(mpt::Charset::ASCII, expr) + U_(")")
+		mpt::log::GlobalLogger().SendLogMessage(loc, LogError, "ASSERT",
+			MPT_USTRING("ASSERTION FAILED: ") + mpt::convert<mpt::ustring>(mpt::common_encoding::ascii, msg) + MPT_USTRING(" (") + mpt::convert<mpt::ustring>(mpt::common_encoding::ascii, expr) + MPT_USTRING(")")
 		);
 	} else
 	{
-		mpt::log::Logger().SendLogMessage(loc, LogError, "ASSERT",
-			U_("ASSERTION FAILED: ") + mpt::ToUnicode(mpt::Charset::ASCII, expr)
+		mpt::log::GlobalLogger().SendLogMessage(loc, LogError, "ASSERT",
+			MPT_USTRING("ASSERTION FAILED: ") + mpt::convert<mpt::ustring>(mpt::common_encoding::ascii, expr)
 		);
 	}
 }
@@ -66,11 +74,11 @@ namespace signtool {
 
 static mpt::ustring get_keyname(mpt::ustring keyname)
 {
-	if(keyname == U_("auto"))
+	if(keyname == MPT_USTRING("auto"))
 	{
 		constexpr mpt::UUID ns = "9a88e12a-a132-4215-8bd0-3a002da65373"_uuid;
-		mpt::ustring computername = mpt::getenv(U_("COMPUTERNAME")).value_or(U_(""));
-		mpt::ustring username = mpt::getenv(U_("USERNAME")).value_or(U_(""));
+		mpt::ustring computername = mpt::getenv(MPT_USTRING("COMPUTERNAME")).value_or(MPT_USTRING(""));
+		mpt::ustring username = mpt::getenv(MPT_USTRING("USERNAME")).value_or(MPT_USTRING(""));
 		mpt::ustring name = MPT_UFORMAT("host={} user={}")(computername, username);
 		mpt::UUID uuid = mpt::UUIDRFC4122NamespaceV5(ns, name);
 		keyname = MPT_UFORMAT("OpenMPT Update Signing Key {}")(uuid);
@@ -86,10 +94,10 @@ static void main(const std::vector<mpt::ustring> &args)
 		{
 			throw std::invalid_argument("Usage: signtool [dumpkey|sign] ...");
 		}
-		if(args[1] == U_(""))
+		if(args[1] == MPT_USTRING(""))
 		{
 			throw std::invalid_argument("Usage: signtool [dumpkey|sign] ...");
-		} else	if(args[1] == U_("dumpkey"))
+		} else	if(args[1] == MPT_USTRING("dumpkey"))
 		{
 			if(args.size() != 4)
 			{
@@ -101,9 +109,9 @@ static void main(const std::vector<mpt::ustring> &args)
 			mpt::crypto::asymmetric::rsassa_pss<>::managed_private_key key(keystore, keyname);
 			mpt::SafeOutputFile sfo(mpt::PathString::FromUnicode(filename));
 			mpt::ofstream & fo = sfo.stream();
-			mpt::IO::WriteText(fo, mpt::ToCharset(mpt::Charset::UTF8, key.get_public_key_data().as_jwk()));
+			mpt::IO::WriteText(fo, mpt::convert<std::string>(mpt::common_encoding::utf8, key.get_public_key_data().as_jwk()));
 			fo.flush();
-		} else if(args[1] == U_("sign"))
+		} else if(args[1] == MPT_USTRING("sign"))
 		{
 			if(args.size() != 6)
 			{
@@ -117,7 +125,7 @@ static void main(const std::vector<mpt::ustring> &args)
 			mpt::crypto::asymmetric::rsassa_pss<>::managed_private_key key(keystore, keyname);
 			std::vector<std::byte> data;
 			{
-				mpt::ifstream fi(mpt::PathString::FromUnicode(inputfilename));
+				mpt::ifstream fi(mpt::PathString::FromUnicode(inputfilename), std::ios::binary);
 				fi.imbue(std::locale::classic());
 				fi.exceptions(std::ios::badbit);
 				while(!mpt::IO::IsEof(fi))
@@ -126,29 +134,29 @@ static void main(const std::vector<mpt::ustring> &args)
 					mpt::append(data, mpt::IO::ReadRaw(fi, mpt::as_span(buf)));
 				}
 			}
-			if(mode == U_(""))
+			if(mode == MPT_USTRING(""))
 			{
 				throw std::invalid_argument("Usage: signtool sign [raw|jws_compact|jws] KEYNAME INPUTFILENAME OUTPUTFILENAME");
-			} else if(mode == U_("raw"))
+			} else if(mode == MPT_USTRING("raw"))
 			{
 				std::vector<std::byte> signature = key.sign(mpt::as_span(data));
 				mpt::SafeOutputFile sfo(mpt::PathString::FromUnicode(outputfilename));
 				mpt::ofstream & fo = sfo.stream();
 				mpt::IO::WriteRaw(fo, mpt::as_span(signature));
 				fo.flush();
-			} else if(mode == U_("jws_compact"))
+			} else if(mode == MPT_USTRING("jws_compact"))
 			{
 				mpt::ustring signature = key.jws_compact_sign(mpt::as_span(data));
 				mpt::SafeOutputFile sfo(mpt::PathString::FromUnicode(outputfilename));
 				mpt::ofstream & fo = sfo.stream();
-				mpt::IO::WriteText(fo, mpt::ToCharset(mpt::Charset::UTF8, signature));
+				mpt::IO::WriteText(fo, mpt::convert<std::string>(mpt::common_encoding::utf8, signature));
 				fo.flush();
-			} else if(mode == U_("jws"))
+			} else if(mode == MPT_USTRING("jws"))
 			{
 				mpt::ustring signature = key.jws_sign(mpt::as_span(data));
 				mpt::SafeOutputFile sfo(mpt::PathString::FromUnicode(outputfilename));
 				mpt::ofstream & fo = sfo.stream();
-				mpt::IO::WriteText(fo, mpt::ToCharset(mpt::Charset::UTF8, signature));
+				mpt::IO::WriteText(fo, mpt::convert<std::string>(mpt::common_encoding::utf8, signature));
 				fo.flush();
 			} else
 			{
@@ -178,13 +186,13 @@ int main(int argc, char *argv[])
 #endif
 {
 	std::locale::global(std::locale(""));
-	std::vector<OPENMPT_NAMESPACE::mpt::ustring> args;
+	std::vector<mpt::ustring> args;
 	for(int arg = 0; arg < argc; ++arg)
 	{
 	#if defined(WIN32) && defined(UNICODE)
-		args.push_back(OPENMPT_NAMESPACE::mpt::ToUnicode(argv[arg]));
+		args.push_back(mpt::convert<mpt::ustring>(argv[arg]));
 	#else
-		args.push_back(OPENMPT_NAMESPACE::mpt::ToUnicode(mpt::ToUnicode(mpt::Charset::Locale, argv[arg]));
+		args.push_back(mpt::convert<mpt::ustring>(mpt::logical_encoding::locale, argv[arg]));
 	#endif
 	}
 	try

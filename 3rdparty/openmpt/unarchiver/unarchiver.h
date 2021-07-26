@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "../common/FileReader.h"
 
@@ -26,6 +26,9 @@
 #endif
 #ifdef MPT_WITH_UNRAR
 #include "unrar.h"
+#endif
+#ifdef MPT_WITH_ANCIENT
+#include "unancient.h"
 #endif
 
 
@@ -54,21 +57,23 @@ private:
 #ifdef MPT_WITH_UNRAR
 	CRarArchive rarArchive;
 #endif
+#ifdef MPT_WITH_ANCIENT
+	CAncientArchive ancientArchive;
+#endif
 
 public:
 
 	CUnarchiver(FileReader &file);
-	virtual ~CUnarchiver();
+	~CUnarchiver() override;
 
-	virtual bool IsArchive() const;
-	virtual mpt::ustring GetComment() const;
-	virtual bool ExtractFile(std::size_t index);
-	virtual FileReader GetOutputFile() const;
-	virtual std::size_t size() const;
-	virtual IArchive::const_iterator begin() const;
-	virtual IArchive::const_iterator end() const;
-	virtual const ArchiveFileInfo & at(std::size_t index) const;
-	virtual const ArchiveFileInfo & operator [] (std::size_t index) const;
+	bool IsArchive() const override;
+	mpt::ustring GetComment() const override;
+	bool ExtractFile(std::size_t index) override;
+	FileReader GetOutputFile() const override;
+	std::size_t size() const override;
+	IArchive::const_iterator begin() const override;
+	IArchive::const_iterator end() const override;
+	const ArchiveFileInfo & operator [] (std::size_t index) const override;
 
 public:
 

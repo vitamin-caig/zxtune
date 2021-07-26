@@ -9,7 +9,11 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
+
+#if defined(MODPLUG_TRACKER)
+#include "../misc/mptMutex.h"
+#endif
 
 OPENMPT_NAMESPACE_BEGIN
 

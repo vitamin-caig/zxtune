@@ -16,6 +16,8 @@
 #include "ITTools.h"
 #include "Sndfile.h"
 #include "mod_specifications.h"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 
 
 OPENMPT_NAMESPACE_BEGIN
@@ -262,7 +264,7 @@ bool CPattern::SetName(const char *newName, size_t maxChars)
 	{
 		return false;
 	}
-	m_PatternName = mpt::truncate(newName, maxChars);
+	m_PatternName = mpt::truncate(std::string(newName), maxChars);
 	return true;
 }
 

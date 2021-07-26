@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
-#include "../common/mptUUID.h"
+#include "mpt/uuid/uuid.hpp"
 
 #include <time.h>
 
@@ -22,6 +22,9 @@
 #include "Settings.h"
 
 OPENMPT_NAMESPACE_BEGIN
+
+
+#if defined(MPT_ENABLE_UPDATE)
 
 
 namespace HTTP {
@@ -113,28 +116,22 @@ public:
 
 	struct Result
 	{
-		time_t CheckTime;
+		time_t CheckTime = time_t{};
 		std::vector<std::byte> json;
 #if MPT_UPDATE_LEGACY
-		bool UpdateAvailable;
+		bool UpdateAvailable = false;
 		CString Version;
 		CString Date;
 		CString URL;
 #endif // MPT_UPDATE_LEGACY
-		Result()
-			: CheckTime(time_t())
-#if MPT_UPDATE_LEGACY
-			, UpdateAvailable(false)
-#endif // MPT_UPDATE_LEGACY
-		{
-			return;
-		}
 	};
 
 	static bool IsAutoUpdateFromMessage(WPARAM wparam, LPARAM lparam);
 
 	static CUpdateCheck::Result ResultFromMessage(WPARAM wparam, LPARAM lparam);
 	static CUpdateCheck::Error ErrorFromMessage(WPARAM wparam, LPARAM lparam);
+
+	static void AcknowledgeSuccess(WPARAM wparam, LPARAM lparam);
 
 	static void ShowSuccessGUI(WPARAM wparam, LPARAM lparam);
 	static void ShowFailureGUI(WPARAM wparam, LPARAM lparam);
@@ -204,6 +201,9 @@ private:
 	SettingChangedNotifyGuard m_SettingChangedNotifyGuard;
 	CComboBox m_CbnUpdateFrequency;
 };
+
+
+#endif // MPT_ENABLE_UPDATE
 
 
 OPENMPT_NAMESPACE_END

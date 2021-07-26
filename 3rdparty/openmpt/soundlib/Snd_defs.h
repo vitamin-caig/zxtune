@@ -11,48 +11,48 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
-#include "../common/FlagSet.h"
+#include "openmpt/base/FlagSet.hpp"
 
 
 OPENMPT_NAMESPACE_BEGIN
 
 
 using ROWINDEX = uint32;
-	const ROWINDEX ROWINDEX_INVALID = uint32_max;
+inline constexpr ROWINDEX ROWINDEX_INVALID = uint32_max;
 using CHANNELINDEX = uint16;
-	const CHANNELINDEX CHANNELINDEX_INVALID = uint16_max;
+inline constexpr CHANNELINDEX CHANNELINDEX_INVALID = uint16_max;
 using ORDERINDEX = uint16;
-	const ORDERINDEX ORDERINDEX_INVALID = uint16_max;
-	const ORDERINDEX ORDERINDEX_MAX = uint16_max - 1;
+inline constexpr ORDERINDEX ORDERINDEX_INVALID = uint16_max;
+inline constexpr ORDERINDEX ORDERINDEX_MAX = uint16_max - 1;
 using PATTERNINDEX = uint16;
-	const PATTERNINDEX PATTERNINDEX_INVALID = uint16_max;
+inline constexpr PATTERNINDEX PATTERNINDEX_INVALID = uint16_max;
 using PLUGINDEX = uint8;
-	const PLUGINDEX PLUGINDEX_INVALID = uint8_max;
+inline constexpr PLUGINDEX PLUGINDEX_INVALID = uint8_max;
 using SAMPLEINDEX = uint16;
-	const SAMPLEINDEX SAMPLEINDEX_INVALID = uint16_max;
+inline constexpr SAMPLEINDEX SAMPLEINDEX_INVALID = uint16_max;
 using INSTRUMENTINDEX = uint16;
-	const INSTRUMENTINDEX INSTRUMENTINDEX_INVALID = uint16_max;
+inline constexpr INSTRUMENTINDEX INSTRUMENTINDEX_INVALID = uint16_max;
 using SEQUENCEINDEX = uint8;
-	const SEQUENCEINDEX SEQUENCEINDEX_INVALID = uint8_max;
+inline constexpr SEQUENCEINDEX SEQUENCEINDEX_INVALID = uint8_max;
 
 using SmpLength = uint32;
 
 
-const SmpLength MAX_SAMPLE_LENGTH = 0x10000000; // Sample length in frames. Sample size in bytes can be more than this (= 256 MB).
+inline constexpr SmpLength MAX_SAMPLE_LENGTH = 0x10000000; // Sample length in frames. Sample size in bytes can be more than this (= 256 MB).
 
-const ROWINDEX MAX_PATTERN_ROWS       = 1024;
-const ORDERINDEX MAX_ORDERS           = ORDERINDEX_MAX + 1;
-const PATTERNINDEX MAX_PATTERNS       = 4000;
-const SAMPLEINDEX MAX_SAMPLES         = 4000;
-const INSTRUMENTINDEX MAX_INSTRUMENTS = 256;
-const PLUGINDEX MAX_MIXPLUGINS        = 250;
+inline constexpr ROWINDEX MAX_PATTERN_ROWS       = 1024;
+inline constexpr ORDERINDEX MAX_ORDERS           = ORDERINDEX_MAX + 1;
+inline constexpr PATTERNINDEX MAX_PATTERNS       = 4000;
+inline constexpr SAMPLEINDEX MAX_SAMPLES         = 4000;
+inline constexpr INSTRUMENTINDEX MAX_INSTRUMENTS = 256;
+inline constexpr PLUGINDEX MAX_MIXPLUGINS        = 250;
 
-const SEQUENCEINDEX MAX_SEQUENCES     = 50;
+inline constexpr SEQUENCEINDEX MAX_SEQUENCES     = 50;
 
-const CHANNELINDEX MAX_BASECHANNELS   = 127; // Maximum pattern channels.
-const CHANNELINDEX MAX_CHANNELS       = 256; // Maximum number of mixing channels.
+inline constexpr CHANNELINDEX MAX_BASECHANNELS   = 127; // Maximum pattern channels.
+inline constexpr CHANNELINDEX MAX_CHANNELS       = 256; // Maximum number of mixing channels.
 
 enum { FREQ_FRACBITS = 4 }; // Number of fractional bits in return value of CSoundFile::GetFreqFromPeriod()
 
@@ -244,30 +244,31 @@ enum class DuplicateNoteAction : uint8
 // Module flags - contains both song configuration and playback state... Use SONG_FILE_FLAGS and SONG_PLAY_FLAGS distinguish between the two.
 enum SongFlags
 {
-	SONG_FASTVOLSLIDES = 0x0002,    // Old Scream Tracker 3.0 volume slides
-	SONG_ITOLDEFFECTS  = 0x0004,    // Old Impulse Tracker effect implementations
-	SONG_ITCOMPATGXX   = 0x0008,    // IT "Compatible Gxx" (IT's flag to behave more like other trackers w/r/t portamento effects)
-	SONG_LINEARSLIDES  = 0x0010,    // Linear slides vs. Amiga slides
-	SONG_PATTERNLOOP   = 0x0020,    // Loop current pattern (pattern editor)
-	SONG_STEP          = 0x0040,    // Song is in "step" mode (pattern editor)
-	SONG_PAUSED        = 0x0080,    // Song is paused (no tick processing, just rendering audio)
-	SONG_FADINGSONG    = 0x0100,    // Song is fading out
-	SONG_ENDREACHED    = 0x0200,    // Song is finished
-	SONG_FIRSTTICK     = 0x1000,    // Is set when the current tick is the first tick of the row
-	SONG_MPTFILTERMODE = 0x2000,    // Local filter mode (reset filter on each note)
-	SONG_SURROUNDPAN   = 0x4000,    // Pan in the rear channels
-	SONG_EXFILTERRANGE = 0x8000,    // Cutoff Filter has double frequency range (up to ~10Khz)
-	SONG_AMIGALIMITS   = 0x10000,   // Enforce amiga frequency limits
-	SONG_S3MOLDVIBRATO = 0x20000,   // ScreamTracker 2 vibrato in S3M files
-	SONG_BREAKTOROW    = 0x80000,   // Break to row command encountered (internal flag, do not touch)
-	SONG_POSJUMP       = 0x100000,  // Position jump encountered (internal flag, do not touch)
-	SONG_PT_MODE       = 0x200000,  // ProTracker 1/2 playback mode
-	SONG_PLAYALLSONGS  = 0x400000,  // Play all subsongs consecutively (libopenmpt)
-	SONG_ISAMIGA       = 0x800000,  // Is an Amiga module and thus qualifies to be played using the Paula BLEP resampler
+	SONG_FASTVOLSLIDES =       0x02,  // Old Scream Tracker 3.0 volume slides
+	SONG_ITOLDEFFECTS  =       0x04,  // Old Impulse Tracker effect implementations
+	SONG_ITCOMPATGXX   =       0x08,  // IT "Compatible Gxx" (IT's flag to behave more like other trackers w/r/t portamento effects)
+	SONG_LINEARSLIDES  =       0x10,  // Linear slides vs. Amiga slides
+	SONG_PATTERNLOOP   =       0x20,  // Loop current pattern (pattern editor)
+	SONG_STEP          =       0x40,  // Song is in "step" mode (pattern editor)
+	SONG_PAUSED        =       0x80,  // Song is paused (no tick processing, just rendering audio)
+	SONG_FADINGSONG    =     0x0100,  // Song is fading out
+	SONG_ENDREACHED    =     0x0200,  // Song is finished
+	SONG_FIRSTTICK     =     0x1000,  // Is set when the current tick is the first tick of the row
+	SONG_MPTFILTERMODE =     0x2000,  // Local filter mode (reset filter on each note)
+	SONG_SURROUNDPAN   =     0x4000,  // Pan in the rear channels
+	SONG_EXFILTERRANGE =     0x8000,  // Cutoff Filter has double frequency range (up to ~10Khz)
+	SONG_AMIGALIMITS   =   0x1'0000,  // Enforce amiga frequency limits
+	SONG_S3MOLDVIBRATO =   0x2'0000,  // ScreamTracker 2 vibrato in S3M files
+	SONG_BREAKTOROW    =   0x8'0000,  // Break to row command encountered (internal flag, do not touch)
+	SONG_POSJUMP       =  0x10'0000,  // Position jump encountered (internal flag, do not touch)
+	SONG_PT_MODE       =  0x20'0000,  // ProTracker 1/2 playback mode
+	SONG_PLAYALLSONGS  =  0x40'0000,  // Play all subsongs consecutively (libopenmpt)
+	SONG_ISAMIGA       =  0x80'0000,  // Is an Amiga module and thus qualifies to be played using the Paula BLEP resampler
+	SONG_IMPORTED      = 0x100'0000,  // Song type does not represent actual module format / was imported from a different format (OpenMPT)
 };
 DECLARE_FLAGSET(SongFlags)
 
-#define SONG_FILE_FLAGS (SONG_FASTVOLSLIDES|SONG_ITOLDEFFECTS|SONG_ITCOMPATGXX|SONG_LINEARSLIDES|SONG_EXFILTERRANGE|SONG_AMIGALIMITS|SONG_S3MOLDVIBRATO|SONG_PT_MODE|SONG_ISAMIGA)
+#define SONG_FILE_FLAGS (SONG_FASTVOLSLIDES|SONG_ITOLDEFFECTS|SONG_ITCOMPATGXX|SONG_LINEARSLIDES|SONG_EXFILTERRANGE|SONG_AMIGALIMITS|SONG_S3MOLDVIBRATO|SONG_PT_MODE|SONG_ISAMIGA|SONG_IMPORTED)
 #define SONG_PLAY_FLAGS (~SONG_FILE_FLAGS)
 
 // Global Options (Renderer)
@@ -322,22 +323,22 @@ enum class AmigaFilter
 	Unfiltered = 3,
 };
 
-static inline std::array<ResamplingMode, 5> AllModes() noexcept { return { { SRCMODE_NEAREST, SRCMODE_LINEAR, SRCMODE_CUBIC, SRCMODE_SINC8, SRCMODE_SINC8LP } }; }
+inline std::array<ResamplingMode, 5> AllModes() noexcept { return { { SRCMODE_NEAREST, SRCMODE_LINEAR, SRCMODE_CUBIC, SRCMODE_SINC8, SRCMODE_SINC8LP } }; }
 
-static inline std::array<ResamplingMode, 6> AllModesWithDefault() noexcept { return { { SRCMODE_NEAREST, SRCMODE_LINEAR, SRCMODE_CUBIC, SRCMODE_SINC8, SRCMODE_SINC8LP, SRCMODE_DEFAULT } }; }
+inline std::array<ResamplingMode, 6> AllModesWithDefault() noexcept { return { { SRCMODE_NEAREST, SRCMODE_LINEAR, SRCMODE_CUBIC, SRCMODE_SINC8, SRCMODE_SINC8LP, SRCMODE_DEFAULT } }; }
 
-static constexpr ResamplingMode Default() noexcept { return SRCMODE_SINC8LP; }
+constexpr ResamplingMode Default() noexcept { return SRCMODE_SINC8LP; }
 
-static constexpr bool IsKnownMode(int mode) noexcept { return (mode >= 0) && (mode < SRCMODE_DEFAULT); }
+constexpr bool IsKnownMode(int mode) noexcept { return (mode >= 0) && (mode < SRCMODE_DEFAULT); }
 
-static constexpr ResamplingMode ToKnownMode(int mode) noexcept
+constexpr ResamplingMode ToKnownMode(int mode) noexcept
 {
 	return Resampling::IsKnownMode(mode) ? static_cast<ResamplingMode>(mode)
 		: (mode == SRCMODE_AMIGA) ? SRCMODE_LINEAR
 		: Resampling::Default();
 }
 
-static constexpr int Length(ResamplingMode mode) noexcept
+constexpr int Length(ResamplingMode mode) noexcept
 {
 	return mode == SRCMODE_NEAREST ? 1
 		: mode == SRCMODE_LINEAR ? 2
@@ -347,11 +348,11 @@ static constexpr int Length(ResamplingMode mode) noexcept
 		: 0;
 }
 
-static constexpr bool HasAA(ResamplingMode mode) noexcept { return (mode == SRCMODE_SINC8LP); }
+constexpr bool HasAA(ResamplingMode mode) noexcept { return (mode == SRCMODE_SINC8LP); }
 
-static constexpr ResamplingMode AddAA(ResamplingMode mode) noexcept { return (mode == SRCMODE_SINC8) ? SRCMODE_SINC8LP : mode; }
+constexpr ResamplingMode AddAA(ResamplingMode mode) noexcept { return (mode == SRCMODE_SINC8) ? SRCMODE_SINC8LP : mode; }
 
-static constexpr ResamplingMode RemoveAA(ResamplingMode mode) noexcept { return (mode == SRCMODE_SINC8LP) ? SRCMODE_SINC8 : mode; }
+constexpr ResamplingMode RemoveAA(ResamplingMode mode) noexcept { return (mode == SRCMODE_SINC8LP) ? SRCMODE_SINC8 : mode; }
 
 }
 
@@ -425,7 +426,7 @@ enum PlayBehaviour
 	kFT2VolumeRamping,              // Smooth volume ramping like in FT2 (XM)
 	kMODVBlankTiming,               // F21 and above set speed instead of tempo
 	kSlidesAtSpeed1,                // Execute normal slides at speed 1 as if they were fine slides
-	kHertzInLinearMode,             // Compute note frequency in hertz rather than periods
+	kPeriodsAreHertz,               // Compute note frequency in Hertz rather than periods
 	kTempoClamp,                    // Clamp tempo to 32-255 range.
 	kPerChannelGlobalVolSlide,      // Global volume slide memory is per-channel
 	kPanOverride,                   // Panning commands override surround and random pan variation
@@ -536,6 +537,9 @@ enum PlayBehaviour
 	kOPLRealRetrig,                 // Retrigger effect (Qxy) restarts OPL notes
 	kOPLNoResetAtEnvelopeEnd,       // Do not reset OPL channel status at end of envelope (OpenMPT 1.28 inconsistency with samples)
 	kOPLNoteStopWith0Hz,            // Set note frequency to 0 Hz to "stop" OPL notes
+	kOPLNoteOffOnNoteChange,        // Send note-off events for old note on every note change
+	kFT2PortaResetDirection,        // Reset portamento direction when reaching portamento target from below
+	kApplyUpperPeriodLimit,         // Enforce m_nMaxPeriod
 
 	// Add new play behaviours here.
 
@@ -567,13 +571,14 @@ protected:
 	value_t v = 0;
 
 public:
-	enum : uint32 { fractMax = 0xFFFFFFFFu };
+	static constexpr uint32 fractMax = 0xFFFFFFFFu;
 
 	MPT_CONSTEXPRINLINE SamplePosition() { }
 	MPT_CONSTEXPRINLINE explicit SamplePosition(value_t pos) : v(pos) { }
 	MPT_CONSTEXPRINLINE SamplePosition(int32 intPart, uint32 fractPart) : v((static_cast<value_t>(intPart) * (1ll << 32)) | fractPart) { }
 	static SamplePosition Ratio(uint32 dividend, uint32 divisor) { return SamplePosition((static_cast<int64>(dividend) << 32) / divisor); }
 	static SamplePosition FromDouble(double pos) { return SamplePosition(static_cast<value_t>(pos * 4294967296.0)); }
+	double ToDouble() const { return v / 4294967296.0; }
 
 	// Set integer and fractional part
 	MPT_CONSTEXPRINLINE SamplePosition &Set(int32 intPart, uint32 fractPart = 0) { v = (static_cast<int64>(intPart) << 32) | fractPart; return *this; }
