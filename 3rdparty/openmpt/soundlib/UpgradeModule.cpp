@@ -696,6 +696,7 @@ void CSoundFile::UpgradeModule()
 		}
 	}
 
+#ifndef NO_PLUGINS
 	if(m_dwLastSavedWithVersion >= MPT_V("1.27.00.42") && m_dwLastSavedWithVersion < MPT_V("1.30.00.46") && (GetType() & (MOD_TYPE_IT | MOD_TYPE_MPT | MOD_TYPE_XM)))
 	{
 		// The Flanger DMO plugin is almost identical to the Chorus... but only almost.
@@ -707,6 +708,7 @@ void CSoundFile::UpgradeModule()
 				plugin.Info.szLibraryName = "Flanger (Legacy)";
 		}
 	}
+#endif
 }
 
 OPENMPT_NAMESPACE_END
