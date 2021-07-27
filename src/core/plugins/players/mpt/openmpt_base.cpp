@@ -902,6 +902,29 @@ namespace Module::Mpt
       ,
       "Ultimate Soundtracker / etc (MOD Compatible)"
       //, "M15"
+    },
+    {
+      "DSYM"
+      ,
+      "020113131412010b"  //magic
+      "00-01"             //version
+      "01-08"             //channels
+      "? 00-10"           //le orders up to 4096
+      "? 00-10"           //le tracks up to 4096
+      ""_sv
+      ,
+      "Digital Symphony"
+      //, "DSYM"
+    },
+    {
+      "SYMMOD"
+      ,
+      "'S'y'm'M"          //magic
+      "00000001"          //be version==1
+      ""_sv
+      ,
+      "Symphonie"
+      //, "SYMMOD"
     }
   };
   // clang-format on
