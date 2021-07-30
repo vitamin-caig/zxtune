@@ -11,126 +11,82 @@
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
+#include <xrange.h>
 // library includes
-#include <math/fixedpoint.h>
 #include <sound/resampler.h>
 
-#include <utility>
+extern "C"
+{
+// 3rdparty includes
+#include <3rdparty/lazyusf2/usf/resampler.h>
+}
 
 namespace Sound
 {
-  typedef Math::FixedPoint<int_t, 256> FixedStep;
-
-  inline Sample::WideType Interpolate(Sample::WideType prev, FixedStep ratio, Sample::WideType next)
-  {
-    const Sample::WideType delta = next - prev;
-    return prev + (ratio * delta).Integer();
-  }
-
-  inline Sample Interpolate(Sample prev, FixedStep ratio, Sample next)
-  {
-    if (0 == ratio.Raw())
-    {
-      return prev;
-    }
-    else
-    {
-      return Sample(Sound::Interpolate(prev.Left(), ratio, next.Left()),
-                    Sound::Interpolate(prev.Right(), ratio, next.Right()));
-    }
-  }
-
-  class UpsampleCore
+  class CubicCore
   {
   public:
-    UpsampleCore(uint_t freqIn, uint_t freqOut)
-      : Step(freqIn, freqOut)
+    CubicCore(uint_t freqIn, uint_t freqOut)
+      : FreqIn(freqIn)
+      , FreqOut(freqOut)
+      , Delegate(::resampler_create(), &::resampler_delete)
     {
-      Require(freqIn < freqOut);
+      ::resampler_set_rate(Delegate.get(), double(freqIn) / freqOut);
     }
 
-    Chunk Apply(const Chunk& data)
+    Chunk Apply(Chunk data)
     {
-      if (data.empty())
-      {
-        return {};
-      }
-      auto it = data.begin(), lim = data.end();
-      if (0 == Position.Raw())
-      {
-        Prev = *it;
-        if (++it == lim)
-        {
-          // one sample - nothing to upscale
-          return {};
-        }
-      }
       Chunk result;
-      result.reserve(1 + (FixedStep(data.size()) / Step).Round());
-      Sample next = *it;
-      for (;; Position += Step)
+      result.reserve(data.size() * FreqOut / FreqIn + 1);
+      const Sample* in = data.data();
+      for (std::size_t rest = data.size(); rest != 0;)
       {
-        if (Position.Raw() >= Position.PRECISION)
+        const auto fed = Feed(in, rest);
+        const auto drained = Drain(&result);
+        in += fed;
+        rest -= fed;
+        if (!fed && !drained)
         {
-          Position -= 1;
-          Prev = next;
-          if (++it == lim)
-          {
-            break;
-          }
-          next = *it;
+          break;  // for any
         }
-        result.push_back(Interpolate(Prev, Position, next));
       }
       return result;
     }
 
   private:
-    const FixedStep Step;
-    FixedStep Position;
-    Sample Prev;
-  };
-
-  class DownsampleCore
-  {
-  public:
-    DownsampleCore(uint_t freqIn, uint_t freqOut)
-      : Step(freqOut, freqIn)
+    std::size_t Feed(const Sample* in, std::size_t limit)
     {
-      Require(freqIn > freqOut);
+      const auto avail = ::resampler_get_free_count(Delegate.get());
+      if (avail > 0)
+      {
+        const auto toDo = std::min(limit, std::size_t(avail));
+        for (const auto* smp : xrange(in, in + toDo))
+        {
+          ::resampler_write_sample(Delegate.get(), smp->Left(), smp->Right());
+        }
+        return toDo;
+      }
+      return 0;
     }
 
-    Chunk Apply(const Chunk& data)
+    std::size_t Drain(Chunk* output)
     {
-      if (data.empty())
+      Sample::Type left = 0;
+      Sample::Type right = 0;
+      const auto avail = ::resampler_get_sample_count(Delegate.get());
+      for (int i = 0; i < avail; ++i)
       {
-        return {};
+        ::resampler_get_sample(Delegate.get(), &left, &right);
+        ::resampler_remove_sample(Delegate.get());
+        output->emplace_back(left, right);
       }
-      auto it = data.begin(), lim = data.end();
-      if (0 == Position.Raw())
-      {
-        Prev = *it;
-        ++it;
-      }
-      Chunk result;
-      result.reserve(1 + (Step * data.size()).Round());
-      for (; it != lim; Position += Step, ++it)
-      {
-        const Sample next = *it;
-        if (Position.Raw() >= Position.PRECISION)
-        {
-          Position -= 1;
-          result.push_back(Interpolate(Prev, Position, next));
-        }
-        Prev = next;
-      }
-      return result;
+      return std::size_t(avail);
     }
 
   private:
-    const FixedStep Step;
-    FixedStep Position;
-    Sample Prev;
+    const uint_t FreqIn;
+    const uint_t FreqOut;
+    const std::shared_ptr<void> Delegate;
   };
 
   class IdentityCore
@@ -143,7 +99,7 @@ namespace Sound
 
     Chunk Apply(Chunk data)
     {
-      return std::move(data);
+      return Chunk(std::move(data));
     }
   };
 
@@ -170,13 +126,9 @@ namespace Sound
     {
       return MakePtr<Resampler<IdentityCore>>(inFreq, outFreq);
     }
-    else if (inFreq < outFreq)
-    {
-      return MakePtr<Resampler<UpsampleCore>>(inFreq, outFreq);
-    }
     else
     {
-      return MakePtr<Resampler<DownsampleCore>>(inFreq, outFreq);
+      return MakePtr<Resampler<CubicCore>>(inFreq, outFreq);
     }
   }
 }  // namespace Sound
