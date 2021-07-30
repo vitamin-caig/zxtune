@@ -15,7 +15,5 @@
 
 namespace Sound
 {
-  Sound::Receiver::Ptr CreateResampler(uint_t inFreq, uint_t outFreq, Sound::Receiver::Ptr delegate);
-
   Converter::Ptr CreateResampler(uint_t inFreq, uint_t outFreq);
 }  // namespace Sound

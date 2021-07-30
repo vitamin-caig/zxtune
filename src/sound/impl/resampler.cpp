@@ -147,29 +147,6 @@ namespace Sound
     }
   };
 
-  class UpsampleReceiver : public Receiver
-  {
-  public:
-    UpsampleReceiver(uint_t freqIn, uint_t freqOut, Receiver::Ptr delegate)
-      : Delegate(std::move(delegate))
-      , Core(freqIn, freqOut)
-    {}
-
-    void ApplyData(Chunk data) override
-    {
-      Delegate->ApplyData(Core.Apply(data));
-    }
-
-    void Flush() override
-    {
-      Delegate->Flush();
-    }
-
-  private:
-    const Receiver::Ptr Delegate;
-    UpsampleCore Core;
-  };
-
   template<class CoreType>
   class Resampler : public Converter
   {
@@ -186,45 +163,6 @@ namespace Sound
   private:
     CoreType Core;
   };
-
-  class DownsampleReceiver : public Receiver
-  {
-  public:
-    DownsampleReceiver(uint_t freqIn, uint_t freqOut, Receiver::Ptr delegate)
-      : Delegate(std::move(delegate))
-      , Core(freqOut, freqIn)
-    {}
-
-    void ApplyData(Chunk data) override
-    {
-      Delegate->ApplyData(Core.Apply(data));
-    }
-
-    void Flush() override
-    {
-      Delegate->Flush();
-    }
-
-  private:
-    const Receiver::Ptr Delegate;
-    DownsampleCore Core;
-  };
-
-  Receiver::Ptr CreateResampler(uint_t inFreq, uint_t outFreq, Receiver::Ptr delegate)
-  {
-    if (inFreq == outFreq)
-    {
-      return delegate;
-    }
-    else if (inFreq < outFreq)
-    {
-      return MakePtr<UpsampleReceiver>(inFreq, outFreq, delegate);
-    }
-    else
-    {
-      return MakePtr<DownsampleReceiver>(inFreq, outFreq, delegate);
-    }
-  }
 
   Converter::Ptr CreateResampler(uint_t inFreq, uint_t outFreq)
   {
