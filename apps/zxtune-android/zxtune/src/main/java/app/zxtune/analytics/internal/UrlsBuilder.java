@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 public class UrlsBuilder {
 
@@ -13,10 +14,15 @@ public class UrlsBuilder {
   private final StringBuilder delegate;
 
   public UrlsBuilder(String type) {
+    this(type, System.currentTimeMillis() / 1000);
+  }
+
+  @VisibleForTesting
+  UrlsBuilder(String type, long ts) {
     this.delegate = new StringBuilder(512);
     delegate.append(type);
     delegate.append("?ts=");
-    delegate.append(System.currentTimeMillis() / 1000);
+    delegate.append(ts);
   }
 
   public final void addParam(String key, @Nullable String value) {
