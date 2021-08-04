@@ -13,7 +13,6 @@
 
 #include "stdafx.h"
 #include "Loaders.h"
-#include "ChunkReader.h"
 
 OPENMPT_NAMESPACE_BEGIN
 
@@ -172,7 +171,7 @@ bool CSoundFile::ReadMUS_KM(FileReader &file, ModLoadingFlags loadFlags)
 
 	InitializeGlobals(MOD_TYPE_MOD);
 	InitializeChannels();
-	m_SongFlags = SONG_AMIGALIMITS;
+	m_SongFlags = SONG_AMIGALIMITS | SONG_IMPORTED;
 	m_nChannels = 4;
 	m_nSamples = 0;
 
@@ -223,7 +222,7 @@ bool CSoundFile::ReadMUS_KM(FileReader &file, ModLoadingFlags loadFlags)
 		
 		Order().SetName(mpt::ToUnicode(mpt::Charset::CP437, songHeader.name));
 
-		auto musicData = (loadFlags & loadPatternData) ? chunk.ReadChunk(songHeader.musicSize) : FileReader{};
+		FileReader musicData = (loadFlags & loadPatternData) ? chunk.ReadChunk(songHeader.musicSize) : FileReader{};
 
 		// Map the samples for this subsong
 		std::array<SAMPLEINDEX, 32> sampleMap{};

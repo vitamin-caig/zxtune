@@ -9,7 +9,8 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
+#include "openmpt/base/Endian.hpp"
 
 #include "archive.h"
 
@@ -63,10 +64,10 @@ protected:
 
 public:
 
-	bool ExtractFile(std::size_t index);
+	bool ExtractFile(std::size_t index) override;
 
 	CGzipArchive(FileReader &file);
-	virtual ~CGzipArchive();
+	~CGzipArchive() override;
 };
 
 #endif // MPT_WITH_ZLIB || MPT_WITH_MINIZ

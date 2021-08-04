@@ -143,10 +143,13 @@ void CSelectPluginDlg::OnOK()
 			CriticalSection cs;
 
 			// Destroy old plugin, if there was one.
+			const auto oldOutput = m_pPlugin->GetOutputPlugin();
 			m_pPlugin->Destroy();
 
 			// Initialize plugin info
 			MemsetZero(m_pPlugin->Info);
+			if(oldOutput != PLUGINDEX_INVALID)
+				m_pPlugin->SetOutputPlugin(oldOutput);
 			m_pPlugin->Info.dwPluginId1 = pFactory->pluginId1;
 			m_pPlugin->Info.dwPluginId2 = pFactory->pluginId2;
 			m_pPlugin->editorX = m_pPlugin->editorY = int32_min;
@@ -201,6 +204,18 @@ void CSelectPluginDlg::OnOK()
 		// Clear plugin info
 		MemsetZero(m_pPlugin->Info);
 		changed = true;
+		if(m_pModDoc)
+		{
+			for(PLUGINDEX plug = 0; plug < m_nPlugSlot; plug++)
+			{
+				auto &srcPlug = m_pModDoc->GetSoundFile().m_MixPlugins[plug];
+				if(srcPlug.GetOutputPlugin() == m_nPlugSlot)
+				{
+					srcPlug.SetOutputToMaster();
+					m_pModDoc->UpdateAllViews(nullptr, PluginHint(static_cast<PLUGINDEX>(plug + 1)).Info());
+				}
+			}
+		}
 	}
 
 	//remember window size:
@@ -319,6 +334,7 @@ void CSelectPluginDlg::UpdatePluginsList(const VSTPluginLib *forceSelect)
 		{ VSTPluginLib::catUnknown,        _T("Unsorted") },
 		{ VSTPluginLib::catDMO,            _T("DirectX Media Audio Effects") },
 		{ VSTPluginLib::catSynth,          _T("Instrument Plugins") },
+		{ VSTPluginLib::catHidden,         _T("Legacy Plugins") },
 	};
 
 	const HTREEITEM noPlug = AddTreeItem(_T("No plugin (empty slot)"), IMAGE_NOPLUGIN, false);
@@ -353,6 +369,9 @@ void CSelectPluginDlg::UpdatePluginsList(const VSTPluginLib *forceSelect)
 		{
 			MPT_ASSERT(p);
 			const VSTPluginLib &plug = *p;
+			if(plug.category == VSTPluginLib::catHidden && (m_pPlugin == nullptr || m_pPlugin->pMixPlugin == nullptr || &m_pPlugin->pMixPlugin->GetPluginFactory() != p))
+				continue;
+
 			if(nameFilterActive)
 			{
 				// Apply name filter
@@ -601,7 +620,7 @@ constexpr struct
 	{Vst::kEffectMagic, Vst::FourCC("MMID"), "MIDI Input Output", "* The MIDI Input / Output plugin is now built right into OpenMPT and should not be loaded from an external file."},
 };
 
-// Plugins that should always be bridged.
+// Plugins that should always be bridged or require a specific bridge mode.
 constexpr struct
 {
 	int32 id1;
@@ -628,7 +647,7 @@ bool CSelectPluginDlg::VerifyPlugin(VSTPluginLib *plug, CWnd *parent)
 	{
 		if(p.id2 == plug->pluginId2 && p.id1 == plug->pluginId1)
 		{
-			std::string s = MPT_FORMAT("WARNING: This plugin has been identified as {},\nwhich is known to have the following problem with OpenMPT:\n\n{}\n\nWould you still like to add this plugin to the library?")(p.name, p.problem);
+			std::string s = MPT_AFORMAT("WARNING: This plugin has been identified as {},\nwhich is known to have the following problem with OpenMPT:\n\n{}\n\nWould you still like to add this plugin to the library?")(p.name, p.problem);
 			if(Reporting::Confirm(s, false, false, parent) == cnfNo)
 			{
 				return false;
@@ -769,7 +788,7 @@ VSTPluginLib *CSelectPluginDlg::ScanPlugins(const mpt::PathString &path, CWnd *p
 	if(update)
 	{
 		// Force selection to last added plug.
-		Reporting::Information(MPT_FORMAT("Found {} plugin{}.")(files, files == 1 ? "" : "s").c_str(), parent);
+		Reporting::Information(MPT_AFORMAT("Found {} plugin{}.")(files, files == 1 ? "" : "s").c_str(), parent);
 		return plugLib;
 	} else
 	{

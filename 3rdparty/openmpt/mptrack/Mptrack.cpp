@@ -32,10 +32,12 @@
 #include "BuildVariants.h"
 #include "../common/ComponentManager.h"
 #include "WelcomeDialog.h"
-#include "../sounddev/SoundDeviceManager.h"
+#include "openmpt/sounddevice/SoundDeviceManager.hpp"
+#include "WineSoundDeviceStub.h"
 #include "../soundlib/plugins/PluginManager.h"
 #include "MPTrackWine.h"
 #include "MPTrackUtil.h"
+#include <afxdatarecovery.h>
 
 // GDI+
 #define max(a,b) (((a) > (b)) ? (a) : (b))
@@ -45,16 +47,10 @@
 #include <gdiplus.h>
 #pragma warning(pop)
 
-// rewbs.memLeak
+#if MPT_COMPILER_MSVC
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
-//end  rewbs.memLeak
-
-#ifdef _DEBUG
-#define new DEBUG_NEW
-#undef THIS_FILE
-static char THIS_FILE[] = __FILE__;
 #endif
 
 
@@ -73,6 +69,136 @@ static_assert(NOTE_MAX_SPECIAL - NOTE_MIN_SPECIAL + 1 == mpt::array_size<decltyp
 static_assert(mpt::array_size<decltype(szSpecialNoteShortDesc)>::size == mpt::array_size<decltype(szSpecialNoteNamesMPT)>::size);
 
 const char *szHexChar = "0123456789ABCDEF";
+
+
+#ifdef MPT_WITH_ASIO
+class ComponentASIO
+	: public ComponentBuiltin
+{
+	MPT_DECLARE_COMPONENT_MEMBERS(ComponentASIO, "ASIO")
+public:
+	ComponentASIO() = default;
+	virtual ~ComponentASIO() = default;
+};
+#endif // MPT_WITH_ASIO
+
+#if defined(MPT_WITH_DIRECTSOUND)
+class ComponentDirectSound 
+	: public ComponentBuiltin
+{
+	MPT_DECLARE_COMPONENT_MEMBERS(ComponentDirectSound, "DirectSound")
+public:
+	ComponentDirectSound() = default;
+	virtual ~ComponentDirectSound() = default;
+};
+#endif // MPT_WITH_DIRECTSOUND
+
+#if defined(MPT_WITH_PORTAUDIO)
+class ComponentPortAudio
+	: public ComponentBuiltin
+{
+	MPT_DECLARE_COMPONENT_MEMBERS(ComponentPortAudio, "PortAudio")
+public:
+	ComponentPortAudio() = default;
+	virtual ~ComponentPortAudio() = default;
+};
+#endif // MPT_WITH_PORTAUDIO
+
+#if defined(MPT_WITH_PULSEAUDIO)
+class ComponentPulseaudio
+	: public ComponentBuiltin
+{
+	MPT_DECLARE_COMPONENT_MEMBERS(ComponentPulseaudio, "Pulseaudio")
+public:
+	ComponentPulseaudio() = default;
+	virtual ~ComponentPulseaudio() = default;
+};
+#endif // MPT_WITH_PULSEAUDIO
+
+#if defined(MPT_WITH_PULSEAUDIO) && defined(MPT_WITH_PULSEAUDIOSIMPLE)
+class ComponentPulseaudioSimple
+	: public ComponentBuiltin
+{
+	MPT_DECLARE_COMPONENT_MEMBERS(ComponentPulseaudioSimple, "PulseaudioSimple")
+public:
+	ComponentPulseaudioSimple() = default;
+	virtual ~ComponentPulseaudioSimple() = default;
+};
+#endif // MPT_WITH_PULSEAUDIO && MPT_WITH_PULSEAUDIOSIMPLE
+
+#if defined(MPT_WITH_RTAUDIO)
+class ComponentRtAudio
+	: public ComponentBuiltin
+{
+	MPT_DECLARE_COMPONENT_MEMBERS(ComponentRtAudio, "RtAudio")
+public:
+	ComponentRtAudio() = default;
+	virtual ~ComponentRtAudio() = default;
+};
+#endif // MPT_WITH_RTAUDIO
+
+#if MPT_OS_WINDOWS
+class ComponentWaveOut
+	: public ComponentBuiltin
+{
+	MPT_DECLARE_COMPONENT_MEMBERS(ComponentWaveOut, "WaveOut")
+public:
+	ComponentWaveOut() = default;
+	virtual ~ComponentWaveOut() = default;
+};
+#endif // MPT_OS_WINDOWS
+
+struct AllSoundDeviceComponents
+{
+#if defined(MPT_WITH_PULSEAUDIO) && defined(MPT_ENABLE_PULSEAUDIO_FULL)
+	ComponentHandle<ComponentPulseaudio> m_Pulseaudio;
+#endif // MPT_WITH_PULSEAUDIO && MPT_ENABLE_PULSEAUDIO_FULL
+#if defined(MPT_WITH_PULSEAUDIO) && defined(MPT_WITH_PULSEAUDIOSIMPLE)
+	ComponentHandle<ComponentPulseaudioSimple> m_PulseaudioSimple;
+#endif // MPT_WITH_PULSEAUDIO && MPT_WITH_PULSEAUDIOSIMPLE
+#if MPT_OS_WINDOWS
+	ComponentHandle<ComponentWaveOut> m_WaveOut;
+#endif // MPT_OS_WINDOWS
+#if defined(MPT_WITH_DIRECTSOUND)
+	ComponentHandle<ComponentDirectSound> m_DirectSound;
+#endif // MPT_WITH_DIRECTSOUND
+#ifdef MPT_WITH_ASIO
+	ComponentHandle<ComponentASIO> m_ASIO;
+#endif // MPT_WITH_ASIO
+#ifdef MPT_WITH_PORTAUDIO
+	ComponentHandle<ComponentPortAudio> m_PortAudio;
+#endif // MPT_WITH_PORTAUDIO
+#ifdef MPT_WITH_RTAUDIO
+	ComponentHandle<ComponentRtAudio> m_RtAudio;
+#endif // MPT_WITH_RTAUDIO
+	operator SoundDevice::EnabledBackends() const
+	{
+		SoundDevice::EnabledBackends result;
+#if defined(MPT_WITH_PULSEAUDIO) && defined(MPT_ENABLE_PULSEAUDIO_FULL)
+		result.Pulseaudio = IsComponentAvailable(m_PulseAudio);
+#endif // MPT_WITH_PULSEAUDIO && MPT_ENABLE_PULSEAUDIO_FULL
+#if defined(MPT_WITH_PULSEAUDIO) && defined(MPT_WITH_PULSEAUDIOSIMPLE)
+		result.PulseaudioSimple = IsComponentAvailable(m_PulseAudioSimple);
+#endif // MPT_WITH_PULSEAUDIO && MPT_WITH_PULSEAUDIOSIMPLE
+#if MPT_OS_WINDOWS
+		result.WaveOut = IsComponentAvailable(m_WaveOut);
+#endif // MPT_OS_WINDOWS
+#if defined(MPT_WITH_DIRECTSOUND)
+		result.DirectSound = IsComponentAvailable(m_DirectSound);
+#endif // MPT_WITH_DIRECTSOUND
+#ifdef MPT_WITH_ASIO
+		result.ASIO = IsComponentAvailable(m_ASIO);
+#endif // MPT_WITH_ASIO
+#ifdef MPT_WITH_PORTAUDIO
+		result.PortAudio = IsComponentAvailable(m_PortAudio);
+#endif // MPT_WITH_PORTAUDIO
+#ifdef MPT_WITH_RTAUDIO
+		result.RtAudio = IsComponentAvailable(m_RtAudio);
+#endif // MPT_WITH_RTAUDIO
+		return result;
+	}
+};
+
 
 void CTrackApp::OnFileCloseAll()
 {
@@ -109,9 +235,7 @@ int CTrackApp::GetOpenDocumentCount() const
 std::vector<CModDoc *> CTrackApp::GetOpenDocuments() const
 {
 	std::vector<CModDoc *> documents;
-
-	CDocTemplate *pDocTmpl = GetModDocTemplate();
-	if(pDocTmpl)
+	if(auto *pDocTmpl = GetModDocTemplate())
 	{
 		POSITION pos = pDocTmpl->GetFirstDocPosition();
 		CDocument *pDoc;
@@ -318,8 +442,9 @@ void CTrackApp::LoadDefaultDLSBanks()
 			std::vector<TCHAR> filenameT(dwSize / sizeof(TCHAR));
 			if (RegQueryValueEx(key, _T("GMFilePath"), NULL, &dwRegType, reinterpret_cast<LPBYTE>(filenameT.data()), &dwSize) == ERROR_SUCCESS)
 			{
-				std::vector<TCHAR> filenameExpanded(::ExpandEnvironmentStrings(filenameT.data(), nullptr, 0));
-				::ExpandEnvironmentStrings(filenameT.data(), filenameExpanded.data(), static_cast<DWORD>(filenameExpanded.size()));
+				mpt::winstring filenamestr = ParseMaybeNullTerminatedStringFromBufferWithSizeInBytes<mpt::winstring>(filenameT.data(), dwSize);
+				std::vector<TCHAR> filenameExpanded(::ExpandEnvironmentStrings(filenamestr.c_str(), nullptr, 0));
+				::ExpandEnvironmentStrings(filenamestr.c_str(), filenameExpanded.data(), static_cast<DWORD>(filenameExpanded.size()));
 				auto filename = mpt::PathString::FromNative(filenameExpanded.data());
 				AddDLSBank(filename);
 				ImportMidiConfig(filename, true);
@@ -416,6 +541,104 @@ END_MESSAGE_MAP()
 CTrackApp::CTrackApp()
 {
 	m_dwRestartManagerSupportFlags = AFX_RESTART_MANAGER_SUPPORT_RESTART | AFX_RESTART_MANAGER_REOPEN_PREVIOUS_FILES;
+}
+
+
+class OpenMPTDataRecoveryHandler
+	: public CDataRecoveryHandler
+{
+public:
+	OpenMPTDataRecoveryHandler(_In_ DWORD dwRestartManagerSupportFlags, _In_ int nAutosaveInterval)
+		: CDataRecoveryHandler(dwRestartManagerSupportFlags, nAutosaveInterval)
+	{
+		return;
+	}
+	~OpenMPTDataRecoveryHandler() override = default;
+
+	BOOL SaveOpenDocumentList() override
+	{
+		BOOL bRet = TRUE;  // return FALSE if document list non-empty and not saved
+
+		POSITION posAutosave = m_mapDocNameToAutosaveName.GetStartPosition();
+		if (posAutosave != NULL)
+		{
+			bRet = FALSE;
+
+			// Save the open document list and associated autosave info to the registry
+			IniFileSettingsBackend ini(theApp.GetConfigPath() + P_("restart.") + mpt::PathString::FromCString(GetRestartIdentifier()) + P_(".ini"));
+			ini.ConvertToUnicode();
+			int32 count = 0;
+			while (posAutosave != NULL)
+			{
+				CString strDocument, strAutosave;
+				m_mapDocNameToAutosaveName.GetNextAssoc(posAutosave, strDocument, strAutosave);
+
+				ini.WriteSetting({ U_("RestartDocument"), mpt::ufmt::val(count) }, SettingValue(mpt::ToUnicode(strDocument)));
+				ini.WriteSetting({ U_("RestartAutosave"), mpt::ufmt::val(count) }, SettingValue(mpt::ToUnicode(strAutosave)));
+				count++;
+			}
+			ini.WriteSetting({ U_("Restart"), U_("Count") }, SettingValue(count));
+
+			return TRUE;
+		}
+
+		return bRet;
+	}
+
+	BOOL ReadOpenDocumentList() override
+	{
+		BOOL bRet = FALSE;  // return TRUE only if at least one document was found
+
+		{
+			IniFileSettingsBackend ini(theApp.GetConfigPath() + P_("restart.") + mpt::PathString::FromCString(GetRestartIdentifier()) + P_(".ini"));
+			int32 count = ini.ReadSetting({ U_("Restart"), U_("Count") }, SettingValue(0));
+
+			for(int32 index = 0; index < count; ++index)
+			{
+				mpt::ustring document = ini.ReadSetting({ U_("RestartDocument"), mpt::ufmt::val(index) }, SettingValue(U_("")));
+				mpt::ustring autosave = ini.ReadSetting({ U_("RestartAutosave"), mpt::ufmt::val(index) }, SettingValue(U_("")));
+				if(!document.empty())
+				{
+					m_mapDocNameToAutosaveName[mpt::ToCString(document)] = mpt::ToCString(autosave);
+					bRet = TRUE;
+				}
+			}
+
+			ini.RemoveSection(U_("Restart"));
+			ini.RemoveSection(U_("RestartDocument"));
+			ini.RemoveSection(U_("RestartAutosave"));
+
+		}
+
+		DeleteFile((theApp.GetConfigPath() + P_("restart.") + mpt::PathString::FromCString(GetRestartIdentifier()) + P_(".ini")).AsNative().c_str());
+
+		return bRet;
+	}
+
+};
+
+
+CDataRecoveryHandler *CTrackApp::GetDataRecoveryHandler()
+{
+	static BOOL bTriedOnce = FALSE;
+
+	// Since the application restart and application recovery are supported only on Windows
+	// Vista and above, we don't need a recovery handler on Windows versions less than Vista.
+	if (SupportsRestartManager() || SupportsApplicationRecovery())
+	{
+		if (!bTriedOnce && m_pDataRecoveryHandler == NULL)
+		{
+			m_pDataRecoveryHandler = new OpenMPTDataRecoveryHandler(m_dwRestartManagerSupportFlags, m_nAutosaveInterval);
+			if (!m_pDataRecoveryHandler->Initialize())
+			{
+				delete m_pDataRecoveryHandler;
+				m_pDataRecoveryHandler = NULL;
+			}
+		}
+	}
+
+	bTriedOnce = TRUE;
+	return m_pDataRecoveryHandler;
 }
 
 
@@ -684,6 +907,8 @@ void CTrackApp::CreatePaths()
 }
 
 
+#if !defined(MPT_BUILD_RETRO)
+
 bool CTrackApp::CheckSystemSupport()
 {
 	const mpt::ustring lf = U_("\n");
@@ -715,6 +940,8 @@ bool CTrackApp::CheckSystemSupport()
 	}
 	return true;
 }
+
+#endif // !MPT_BUILD_RETRO
 
 
 BOOL CTrackApp::InitInstanceEarly(CMPTCommandLineInfo &cmdInfo)
@@ -749,6 +976,9 @@ BOOL CTrackApp::InitInstanceEarly(CMPTCommandLineInfo &cmdInfo)
 		_CrtSetDebugFillThreshold(0); // Disable buffer filling in secure enhanced CRT functions.
 	#endif
 
+	// Avoid e.g. audio APIs trying to load wdmaud.drv from arbitrary working directory
+	::SetCurrentDirectory(mpt::GetExecutablePath().AsNative().c_str());
+
 	// Initialize OLE MFC support
 	BOOL oleinit = AfxOleInit();
 	ASSERT(oleinit != FALSE); // no MPT_ASSERT here!
@@ -768,8 +998,6 @@ BOOL CTrackApp::InitInstanceEarly(CMPTCommandLineInfo &cmdInfo)
 	// requires mpt::PathString
 	ASSERT(nullptr == m_pDocManager); // no MPT_ASSERT here!
 	m_pDocManager = new CModDocManager();
-
-	IPCWindow::Open(m_hInstance);
 
 	if(IsDebuggerPresent() && cmdInfo.m_debugCrashHandler)
 	{
@@ -816,7 +1044,7 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 	// Start loading
 	BeginWaitCursor();
 
-	MPT_LOG(LogInformation, "", U_("OpenMPT Start"));
+	MPT_LOG_GLOBAL(LogInformation, "", U_("OpenMPT Start"));
 
 	// create the tracker-global random device
 	m_RD = std::make_unique<mpt::random_device>();
@@ -827,7 +1055,7 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 	// make the best PRNG available to non-tracker-only code
 	mpt::set_global_prng(m_PRNG.get());
 	// additionally, seed the C rand() PRNG, just in case any third party library calls rand()
-	mpt::rng::crand::reseed(RandomDevice());
+	mpt::crand::reseed(RandomDevice());
 
 	m_Gdiplus = std::make_unique<GdiplusRAII>();
 
@@ -837,10 +1065,9 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 	}
 
 	#ifdef ENABLE_ASM
-		CPU::Init();
-		if(cmdInfo.m_noAssembly)
+		if(!cmdInfo.m_noAssembly)
 		{
-			CPU::ProcSupport = 0;
+			CPU::EnableAvailableFeatures();
 		}
 	#endif
 
@@ -859,12 +1086,19 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 
 	m_pTrackerSettings = new TrackerSettings(*m_pSettings);
 
-	MPT_LOG(LogInformation, "", U_("OpenMPT settings initialized."));
+	MPT_LOG_GLOBAL(LogInformation, "", U_("OpenMPT settings initialized."));
 
 	if(ExceptionHandler::useAnyCrashHandler)
 	{
 		ExceptionHandler::ConfigureSystemHandler();
 	}
+
+	if(TrackerSettings::Instance().MiscUseSingleInstance && IPCWindow::SendToIPC(cmdInfo.m_fileNames))
+	{
+		ExitProcess(0);
+	}
+
+	IPCWindow::Open(m_hInstance);
 
 	m_pSongSettingsIniFile = new IniFileSettingsBackend(GetConfigPath() + P_("SongSettings.ini"));
 	m_pSongSettings = new SettingsContainer(m_pSongSettingsIniFile);
@@ -987,7 +1221,16 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 
 	// Load sound APIs
 	// requires TrackerSettings
-	SoundDevice::SysInfo sysInfo = SoundDevice::SysInfo::Current();
+	m_pAllSoundDeviceComponents = std::make_unique<AllSoundDeviceComponents>();
+	auto GetSysInfo = [&]()
+	{
+		if(mpt::OS::Windows::IsWine())
+		{
+			return SoundDevice::SysInfo(mpt::osinfo::get_class(), mpt::OS::Windows::Version::Current(), mpt::OS::Windows::IsWine(), GetWineVersion()->HostClass(), GetWineVersion()->Version());
+		}
+		return SoundDevice::SysInfo(mpt::osinfo::get_class(), mpt::OS::Windows::Version::Current(), mpt::OS::Windows::IsWine(), mpt::osinfo::osclass::Unknown, mpt::osinfo::windows::wine::version());
+	};
+	SoundDevice::SysInfo sysInfo = GetSysInfo();
 	SoundDevice::AppInfo appInfo;
 	appInfo.SetName(U_("OpenMPT"));
 	appInfo.SetHWND(*m_pMainWnd);
@@ -998,7 +1241,9 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 	appInfo.BoostedThreadRtprioPosix = TrackerSettings::Instance().SoundBoostedThreadRtprioPosix;
 	appInfo.MaskDriverCrashes = TrackerSettings::Instance().SoundMaskDriverCrashes;
 	appInfo.AllowDeferredProcessing = TrackerSettings::Instance().SoundAllowDeferredProcessing;
-	m_pSoundDevicesManager = new SoundDevice::Manager(sysInfo, appInfo);
+	std::vector<std::shared_ptr<SoundDevice::IDevicesEnumerator>> deviceEnumerators = SoundDevice::Manager::GetEnabledEnumerators(*m_pAllSoundDeviceComponents);
+	deviceEnumerators.push_back(std::static_pointer_cast<SoundDevice::IDevicesEnumerator>(std::make_shared<SoundDevice::DevicesEnumerator<SoundDevice::SoundDeviceStub>>()));
+	m_pSoundDevicesManager = std::make_unique<SoundDevice::Manager>(m_GlobalLogger, sysInfo, appInfo, std::move(deviceEnumerators));
 	m_pTrackerSettings->MigrateOldSoundDeviceSettings(*m_pSoundDevicesManager);
 
 	// Set default note names
@@ -1050,6 +1295,7 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 
 	// Perform startup tasks.
 
+#if !defined(MPT_BUILD_RETRO)
 	// Check whether we are running the best build for the given system.
 	if(!cmdInfo.m_noSysCheck)
 	{
@@ -1059,6 +1305,7 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 			return FALSE;
 		}
 	}
+#endif // !MPT_BUILD_RETRO
 
 	if(TrackerSettings::Instance().FirstRun)
 	{
@@ -1069,9 +1316,10 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 		new WelcomeDlg(m_pMainWnd);
 	} else
 	{
+#if !defined(MPT_BUILD_RETRO)
 		bool deprecatedSoundDevice = GetSoundDevicesManager()->FindDeviceInfo(TrackerSettings::Instance().GetSoundDeviceIdentifier()).IsDeprecated();
 		bool showSettings = deprecatedSoundDevice && !TrackerSettings::Instance().m_SoundDeprecatedDeviceWarningShown && (Reporting::Confirm(
-			U_("You have currently selected a sound device which is deprecated. MME/WaveOut and DirectSound support will be removed in a future OpenMPT version.\n") +
+			U_("You have currently selected a sound device which is deprecated. MME/WaveOut support will be removed in a future OpenMPT version.\n") +
 			U_("The recommended sound device type is WASAPI.\n") +
 			U_("Do you want to change your sound device settings now?"),
 			U_("OpenMPT - Deprecated sound device")
@@ -1081,6 +1329,7 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 			TrackerSettings::Instance().m_SoundDeprecatedDeviceWarningShown = true;
 			m_pMainWnd->PostMessage(WM_COMMAND, ID_VIEW_OPTIONS);
 		}
+#endif // !MPT_BUILD_RETRO
 	}
 
 #ifdef ENABLE_TESTS
@@ -1097,10 +1346,12 @@ BOOL CTrackApp::InitInstanceImpl(CMPTCommandLineInfo &cmdInfo)
 
 	if(!TrackerSettings::Instance().FirstRun)
 	{
+#if defined(MPT_ENABLE_UPDATE)
 		if(CUpdateCheck::IsSuitableUpdateMoment())
 		{
 			CUpdateCheck::DoAutoUpdateCheck();
 		}
+#endif // MPT_ENABLE_UPDATE
 	}
 
 	return TRUE;
@@ -1213,8 +1464,8 @@ int CTrackApp::ExitInstanceImpl()
 {
 	IPCWindow::Close();
 
-	delete m_pSoundDevicesManager;
 	m_pSoundDevicesManager = nullptr;
+	m_pAllSoundDeviceComponents = nullptr;
 	ExportMidiConfig(theApp.GetSettings());
 	SaveDefaultDLSBanks();
 	for(auto &bank : gpDLSBanks)
@@ -1332,7 +1583,7 @@ void CTrackApp::OpenModulesDialog(std::vector<mpt::PathString> &files, const mpt
 		"FastTracker Modules (*.xm)|*.xm;*.xmz|"
 		"Impulse Tracker Modules (*.it)|*.it;*.itz|"
 		"OpenMPT Modules (*.mptm)|*.mptm;*.mptmz|"
-		"Other Modules (mtm,okt,mdl,669,far,...)|*.mtm;*.669;*.ult;*.wow;*.far;*.mdl;*.okt;*.dmf;*.ptm;*.med;*.ams;*.dbm;*.digi;*.dsm;*.dtm;*.umx;*.amf;*.psm;*.mt2;*.gdm;*.imf;*.itp;*.j2b;*.ice;*.st26;*.plm;*.stp;*.sfx;*.sfx2;*.mms;*.c67;*.mus;*.fmt|"
+		"Other Modules (mtm,okt,mdl,669,far,...)|*.mtm;*.669;*.ult;*.wow;*.far;*.mdl;*.okt;*.dmf;*.ptm;*.med;*.ams;*.dbm;*.digi;*.dsm;*.dsym;*.dtm;*.umx;*.amf;*.psm;*.mt2;*.gdm;*.imf;*.itp;*.j2b;*.ice;*.st26;*.plm;*.stp;*.sfx;*.sfx2;*.symmod;*.mms;*.c67;*.mus;*.fmt|"
 		"Wave Files (*.wav)|*.wav|"
 		"MIDI Files (*.mid,*.rmi)|*.mid;*.rmi;*.smf|"
 		"All Files (*.*)|*.*||")
@@ -1459,7 +1710,7 @@ static void StartSplashScreen()
 		gpSplashScreen->ShowWindow(SW_SHOW);
 		gpSplashScreen->UpdateWindow();
 		gpSplashScreen->BeginWaitCursor();
-		gSplashScreenStartTime = GetTickCount64();
+		gSplashScreenStartTime = Util::GetTickCount64();
 	}
 }
 
@@ -1480,7 +1731,7 @@ static void TimeoutSplashScreen()
 {
 	if(gpSplashScreen)
 	{
-		if(GetTickCount64() - gSplashScreenStartTime > 100)
+		if(Util::GetTickCount64() - gSplashScreenStartTime > 100)
 		{
 			StopSplashScreen();
 		}
@@ -1854,7 +2105,7 @@ void CTrackApp::InitializeDXPlugins()
 
 	CDialog pluginScanDlg;
 	CWnd *textWnd = nullptr;
-	DWORD64 scanStart = GetTickCount64();
+	DWORD64 scanStart = Util::GetTickCount64();
 
 	// Read tags for built-in plugins
 	for(auto plug : *m_pPluginManager)
@@ -1881,14 +2132,14 @@ void CTrackApp::InitializeDXPlugins()
 		{
 			plugPath = PathInstallRelativeToAbsolute(plugPath);
 
-			if(!pluginScanDlg.m_hWnd && GetTickCount64() >= scanStart + 2000)
+			if(!pluginScanDlg.m_hWnd && Util::GetTickCount64() >= scanStart + 2000)
 			{
 				// If this is taking too long, show the user what they're waiting for.
 				pluginScanDlg.Create(IDD_SCANPLUGINS, gpSplashScreen);
 				pluginScanDlg.ShowWindow(SW_SHOW);
 				pluginScanDlg.CenterWindow(gpSplashScreen);
 				textWnd = pluginScanDlg.GetDlgItem(IDC_SCANTEXT);
-			} else if(pluginScanDlg.m_hWnd && GetTickCount64() >= scanStart + 30)
+			} else if(pluginScanDlg.m_hWnd && Util::GetTickCount64() >= scanStart + 30)
 			{
 				textWnd->SetWindowText(scanFormat(plug + 1, numPlugins + 1, plugPath));
 				MSG msg;
@@ -1897,7 +2148,7 @@ void CTrackApp::InitializeDXPlugins()
 					::TranslateMessage(&msg);
 					::DispatchMessage(&msg);
 				}
-				scanStart = GetTickCount64();
+				scanStart = Util::GetTickCount64();
 			}
 
 			if(plugPath == failedPlugin)

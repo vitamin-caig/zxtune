@@ -10,11 +10,11 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 #include <atomic>
 
 #include "BridgeCommon.h"
-#include "../common/mptThread.h"
+
 
 OPENMPT_NAMESPACE_BEGIN
 

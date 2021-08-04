@@ -16,10 +16,9 @@
 #include "../common/misc_util.h"
 #include "Tagging.h"
 #include "Loaders.h"
-#include "ChunkReader.h"
+#include "../common/FileReader.h"
 #include "modsmp_ctrl.h"
-#include "../soundbase/SampleFormatConverters.h"
-#include "../soundbase/SampleFormatCopy.h"
+#include "openmpt/soundbase/Copy.hpp"
 #include "../soundlib/ModSampleCopy.h"
 #include "../common/ComponentManager.h"
 #ifdef MPT_ENABLE_MP3_SAMPLES
@@ -53,12 +52,19 @@ typedef off_t mpg123_off_t;
 
 typedef size_t mpg123_size_t;
 
+// Check for exactly _MSC_VER as libmpg123 does, in order to also catch clang-cl.
+#ifdef _MSC_VER
+// ssize_t definition in libmpg123.h.in should never have existed at all.
+// It got removed from libmpg23.h.in after 1.28.0 and before 1.28.1.
+typedef ptrdiff_t mpg123_ssize_t;
+#else
 typedef ssize_t mpg123_ssize_t;
+#endif
 
 class ComponentMPG123
 	: public ComponentBuiltin
 {
-	MPT_DECLARE_COMPONENT_MEMBERS
+	MPT_DECLARE_COMPONENT_MEMBERS(ComponentMPG123, "")
 
 public:
 
@@ -106,7 +112,7 @@ public:
 		}
 	}
 };
-MPT_REGISTERED_COMPONENT(ComponentMPG123, "")
+
 
 static mpt::ustring ReadMPG123String(const mpg123_string &str)
 {
@@ -577,7 +583,7 @@ bool CSoundFile::ReadMP3Sample(SAMPLEINDEX sample, FileReader &file, bool raw, b
 	MPT_UNREFERENCED_PARAMETER(raw);
 
 	file.Rewind();
-	FileReader::PinnedRawDataView rawDataView = file.GetPinnedRawDataView();
+	FileReader::PinnedView rawDataView = file.GetPinnedView();
 	int64 bytes_left = rawDataView.size();
 	const uint8 *stream_pos = mpt::byte_cast<const uint8 *>(rawDataView.data());
 
@@ -674,38 +680,6 @@ bool CSoundFile::ReadMP3Sample(SAMPLEINDEX sample, FileReader &file, bool raw, b
 #endif // MPT_WITH_MPG123 || MPT_WITH_MINIMP3
 
 	return false;
-}
-
-
-bool CSoundFile::CanReadMP3()
-{
-	bool result = false;
-	#if defined(MPT_WITH_MPG123)
-		if(!result)
-		{
-			ComponentHandle<ComponentMPG123> mpg123;
-			if(IsComponentAvailable(mpg123))
-			{
-				result = true;
-			}
-		}
-	#endif
-	#if defined(MPT_WITH_MINIMP3)
-		if(!result)
-		{
-			result = true;
-		}
-	#endif
-	#if defined(MPT_WITH_MEDIAFOUNDATION)
-		if(!result)
-		{
-			if(CanReadMediaFoundation())
-			{
-				result = true;
-			}
-		}
-	#endif
-	return result;
 }
 
 

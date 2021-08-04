@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 class CSoundFile;
 #include "../soundlib/Snd_defs.h"

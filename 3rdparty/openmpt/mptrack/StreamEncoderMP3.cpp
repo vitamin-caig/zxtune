@@ -17,7 +17,6 @@
 
 #include "../soundlib/Sndfile.h"
 
-#include "../soundbase/SampleFormatConverters.h"
 #include "../common/misc_util.h"
 #include "../common/mptStringBuffer.h"
 
@@ -198,7 +197,7 @@ void ID3V2Tagger::WriteID3v2Tags(std::ostream &s, const FileTags &tags, ReplayGa
 	totalID3v2Size += paddingSize;
 	if(settings.MP3ID3v2PaddingAlignHint > 0)
 	{
-		totalID3v2Size = Util::AlignUp<uint32>(totalID3v2Size, settings.MP3ID3v2PaddingAlignHint);
+		totalID3v2Size = mpt::align_up<uint32>(totalID3v2Size, settings.MP3ID3v2PaddingAlignHint);
 		paddingSize = totalID3v2Size - totalID3v2SizeWithoutPadding;
 	}
 	for(size_t i = 0; i < paddingSize; i++)
@@ -254,9 +253,9 @@ void ID3V2Tagger::WriteID3v2ReplayGainFrames(ReplayGain replayGain, std::ostream
 			content += "-";
 			gainTimes100 = std::abs(gainTimes100);
 		}
-		content += mpt::fmt::dec(gainTimes100 / 100);
+		content += mpt::afmt::dec(gainTimes100 / 100);
 		content += ".";
-		content += mpt::fmt::dec0<2>(gainTimes100 % 100);
+		content += mpt::afmt::dec0<2>(gainTimes100 % 100);
 		content += " ";
 		content += "dB";
 
@@ -287,9 +286,9 @@ void ID3V2Tagger::WriteID3v2ReplayGainFrames(ReplayGain replayGain, std::ostream
 
 		int32 peakTimes1000000 = mpt::saturate_round<int32>(std::fabs(replayGain.TrackPeak) * 1000000.0f);
 		std::string number;
-		number += mpt::fmt::dec(peakTimes1000000 / 1000000);
+		number += mpt::afmt::dec(peakTimes1000000 / 1000000);
 		number += ".";
-		number += mpt::fmt::dec0<6>(peakTimes1000000 % 1000000);
+		number += mpt::afmt::dec0<6>(peakTimes1000000 % 1000000);
 		content += number;
 
 		content += std::string(1, '\0');

@@ -10,16 +10,19 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include <Msctf.h>
 #include "Mptrack.h"
 #include "AutoSaver.h"
 #include "UpdateHints.h"
 #include "../soundlib/AudioCriticalSection.h"
-#include "../common/mptMutex.h"
+#include "mpt/mutex/mutex.hpp"
 #include "../soundlib/Sndfile.h"
-#include "../soundbase/Dither.h"
+#include "openmpt/soundbase/Dither.hpp"
+#include "../common/Dither.h"
+#include "mpt/audio/span.hpp"
+#include "openmpt/sounddevice/SoundDeviceBuffer.hpp"
 
 OPENMPT_NAMESPACE_BEGIN
 
@@ -29,7 +32,7 @@ class CModDoc;
 class CAutoSaver;
 namespace SoundDevice {
 class Base;
-class ISource;
+class ICallback;
 } // namerspace SoundDevice
 
 #define MAINFRAME_TITLE _T("Open ModPlug Tracker")
@@ -77,7 +80,6 @@ enum
 	CTRLMSG_DEACTIVATEPAGE,
 	CTRLMSG_SETFOCUS,
 	// Pattern-Specific
-	CTRLMSG_SETCURRENTPATTERN,
 	CTRLMSG_GETCURRENTPATTERN,
 	CTRLMSG_NOTIFYCURRENTORDER,
 	CTRLMSG_SETCURRENTORDER,
@@ -92,10 +94,7 @@ enum
 	CTRLMSG_PAT_SETSEQUENCE,
 	CTRLMSG_GETCURRENTINSTRUMENT,
 	CTRLMSG_SETCURRENTINSTRUMENT,
-	CTRLMSG_PLAYPATTERN,
-	CTRLMSG_GETSPACING,
 	CTRLMSG_SETSPACING,
-	CTRLMSG_ISRECORDING,
 	CTRLMSG_PATTERNCHANGED,
 	CTRLMSG_PREVORDER,
 	CTRLMSG_NEXTORDER,
@@ -207,6 +206,8 @@ template<> inline WINDOWPLACEMENT FromSettingValue(const SettingValue &val)
 
 
 class VUMeter
+	: public IMonitorInput
+	, public IMonitorOutput
 {
 public:
 	static constexpr std::size_t maxChannels = 4;
@@ -226,10 +227,10 @@ public:
 	void SetDecaySpeedDecibelPerSecond(float decibelPerSecond);
 public:
 	const Channel & operator [] (std::size_t channel) const { return channels[channel]; }
-	void Process(const MixSampleInt *mixbuffer, std::size_t numChannels, std::size_t numFrames); // mixbuffer is interleaved
-	void Process(const MixSampleInt *const *mixbuffers, std::size_t numChannels, std::size_t numFrames);
-	void Process(const MixSampleFloat *mixbuffer, std::size_t numChannels, std::size_t numFrames); // mixbuffer is interleaved
-	void Process(const MixSampleFloat *const *mixbuffers, std::size_t numChannels, std::size_t numFrames);
+	void Process(mpt::audio_span_interleaved<const MixSampleInt> buffer);
+	void Process(mpt::audio_span_planar<const MixSampleInt> buffer);
+	void Process(mpt::audio_span_interleaved<const MixSampleFloat> buffer);
+	void Process(mpt::audio_span_planar<const MixSampleFloat> buffer);
 	void Decay(int32 secondsNum, int32 secondsDen);
 	void ResetClipped();
 };
@@ -254,7 +255,11 @@ protected:
 };
 
 
-class CMainFrame: public CMDIFrameWnd, public SoundDevice::ISource, public SoundDevice::IMessageReceiver, public TfLanguageProfileNotifySink
+class CMainFrame
+	: public CMDIFrameWnd
+	, public SoundDevice::CallbackBufferHandler<DithersOpenMPT>
+	, public SoundDevice::IMessageReceiver
+	, public TfLanguageProfileNotifySink
 {
 	DECLARE_DYNAMIC(CMainFrame)
 	// static data
@@ -279,7 +284,6 @@ public:
 	Util::MultimediaClock m_SoundDeviceClock;
 	SoundDevice::IBase *gpSoundDevice = nullptr;
 	UINT_PTR m_NotifyTimer = 0;
-	Dither m_Dither;
 	VUMeter m_VUMeterInput;
 	VUMeter m_VUMeterOutput;
 
@@ -307,7 +311,9 @@ protected:
 	UINT m_nAvgMixChn = 0, m_nMixChn = 0;
 	// Misc
 	class COptionsSoundcard *m_SoundCardOptionsDialog = nullptr;
+#if defined(MPT_ENABLE_UPDATE)
 	class CUpdateSetupDlg *m_UpdateOptionsDialog = nullptr;
+#endif // MPT_ENABLE_UPDATE
 	DWORD helpCookie = 0;
 	bool m_bOptionsLocked = false;
 
@@ -337,17 +343,17 @@ public:
 	static void UpdateDspEffects(CSoundFile &sndFile, bool reset=false);
 	static void UpdateAudioParameters(CSoundFile &sndFile, bool reset=false);
 
-	// from SoundDevice::ISource
-	uint64 SoundSourceGetReferenceClockNowNanoseconds() const override;
-	void SoundSourcePreStartCallback() override;
-	void SoundSourcePostStopCallback() override;
-	bool SoundSourceIsLockedByCurrentThread() const override;
-	void SoundSourceLock() override;
-	uint64 SoundSourceLockedGetReferenceClockNowNanoseconds() const override;
-	void SoundSourceLockedReadPrepare(SoundDevice::TimeInfo timeInfo) override;
-	void SoundSourceLockedRead(SoundDevice::BufferFormat bufferFormat, std::size_t numFrames, void *buffer, const void *inputBuffer) override;
-	void SoundSourceLockedReadDone(SoundDevice::TimeInfo timeInfo) override;
-	void SoundSourceUnlock() override;
+	// from SoundDevice::IBufferHandler
+	uint64 SoundCallbackGetReferenceClockNowNanoseconds() const override;
+	void SoundCallbackPreStart() override;
+	void SoundCallbackPostStop() override;
+	bool SoundCallbackIsLockedByCurrentThread() const override;
+	void SoundCallbackLock() override;
+	uint64 SoundCallbackLockedGetReferenceClockNowNanoseconds() const override;
+	void SoundCallbackLockedProcessPrepare(SoundDevice::TimeInfo timeInfo) override;
+	void SoundCallbackLockedCallback(SoundDevice::CallbackBuffer<DithersOpenMPT> &buffer) override;
+	void SoundCallbackLockedProcessDone(SoundDevice::TimeInfo timeInfo) override;
+	void SoundCallbackUnlock() override;
 
 	// from SoundDevice::IMessageReceiver
 	void SoundDeviceMessage(LogLevel level, const mpt::ustring &str) override;
@@ -534,15 +540,19 @@ protected:
 	afx_msg LRESULT OnCustomKeyMsg(WPARAM, LPARAM);
 	afx_msg void OnInternetUpdate();
 	afx_msg void OnShowSettingsFolder();
+#if defined(MPT_ENABLE_UPDATE)
 	afx_msg LRESULT OnUpdateCheckStart(WPARAM wparam, LPARAM lparam);
 	afx_msg LRESULT OnUpdateCheckProgress(WPARAM wparam, LPARAM lparam);
 	afx_msg LRESULT OnUpdateCheckCanceled(WPARAM wparam, LPARAM lparam);
 	afx_msg LRESULT OnUpdateCheckFailure(WPARAM wparam, LPARAM lparam);
 	afx_msg LRESULT OnUpdateCheckSuccess(WPARAM wparam, LPARAM lparam);
 	afx_msg void OnToolbarUpdateIndicatorClick();
+#endif // MPT_ENABLE_UPDATE
 	afx_msg void OnHelp();
+	afx_msg BOOL OnDeviceChange(UINT nEventType, DWORD_PTR dwData);
 	afx_msg void OnDropFiles(HDROP hDropInfo);
 	afx_msg BOOL OnQueryEndSession();
+	afx_msg void OnActivateApp(BOOL active, DWORD threadID);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 public:

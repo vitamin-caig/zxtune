@@ -2,7 +2,6 @@ AC_INIT([libopenmpt], [!!MPT_LIBOPENMPT_VERSION_MAJOR!!.!!MPT_LIBOPENMPT_VERSION
 AC_PREREQ([2.68])
 
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_FILES([Makefile libopenmpt/libopenmpt.pc Doxyfile])
 
@@ -39,7 +38,8 @@ AC_ARG_VAR(CXXSTDLIB_PCLIBSPRIVATE, [C++ standard library (or libraries) require
 AC_CANONICAL_HOST
 case $host_os in
  mingw32*)
-  LIBOPENMPT_WIN32_LIBS=-lrpcrt4
+  LIBOPENMPT_WIN32_LIBS="-lole32 -lrpcrt4"
+  LIBOPENMPT_LIBS_PRIVATE_WIN32="-lole32 -lrpcrt4"
   OPENMPT123_WIN32_LIBS=-lwinmm
   CXXFLAGS="$CXXFLAGS -municode"
   CFLAGS="$CFLAGS -municode"
@@ -48,6 +48,7 @@ case $host_os in
   ;;
  *)
   LIBOPENMPT_WIN32_LIBS=
+  LIBOPENMPT_LIBS_PRIVATE_WIN32=
   OPENMPT123_WIN32_LIBS=
   WIN32_CONSOLE_CXXFLAGS=
   WIN32_CONSOLE_CFLAGS=
@@ -128,7 +129,7 @@ AS_IF([test "x$with_vorbisfile" != "xno"],
 
 
 LIBOPENMPT_REQUIRES_PRIVATE="$ZLIB_PKG $MPG123_PKG $OGG_PKG $VORBIS_PKG $VORBISFILE_PKG"
-LIBOPENMPT_LIBS_PRIVATE="$CXXSTDLIB_PCLIBSPRIVATE"
+LIBOPENMPT_LIBS_PRIVATE="$CXXSTDLIB_PCLIBSPRIVATE $LIBOPENMPT_LIBS_PRIVATE_WIN32"
 AC_SUBST([LIBOPENMPT_REQUIRES_PRIVATE])
 AC_SUBST([LIBOPENMPT_LIBS_PRIVATE])
 
@@ -236,8 +237,8 @@ AS_IF([test "x$with_portaudiocpp" != "xno"],
   have_portaudiocpp=0
  ]
 )
-],[have_portaudicppo=0])
-AM_CONDITIONAL([HAVE_PORTAUDIOCPP], [test x$have_portaudio = x1])
+],[have_portaudiocpp=0])
+AM_CONDITIONAL([HAVE_PORTAUDIOCPP], [test x$have_portaudiocpp = x1])
 
 # Optional disabled openmpt123 dependency: libsdl2
 AC_ARG_WITH([sdl2], AS_HELP_STRING([--with-sdl2], [Enable use of libsdl2.]))

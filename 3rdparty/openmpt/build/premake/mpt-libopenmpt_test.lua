@@ -8,7 +8,6 @@
   dofile "../../build/premake/premake-defaults-EXE.lua"
   dofile "../../build/premake/premake-defaults.lua"
   local extincludedirs = {
-   "../../include",
    "../../include/mpg123/ports/MSVC++",
    "../../include/mpg123/src/libmpg123",
    "../../include/ogg/include",
@@ -22,16 +21,18 @@
 	filter {}
   includedirs {
    "../..",
+   "../../src",
    "../../common",
-   "../../soundlib",
    "$(IntDir)/svn_version",
    "../../build/svn_version",
   }
   files {
+   "../../src/mpt/**.cpp",
+   "../../src/mpt/**.hpp",
+   "../../src/openmpt/**.cpp",
+   "../../src/openmpt/**.hpp",
    "../../common/*.cpp",
    "../../common/*.h",
-   "../../soundbase/*.cpp",
-   "../../soundbase/*.h",
    "../../soundlib/*.cpp",
    "../../soundlib/*.h",
    "../../soundlib/plugins/*.cpp",
@@ -60,6 +61,18 @@
    "../../libopenmpt/libopenmpt_impl.cpp",
    "../../libopenmpt/libopenmpt_test.cpp",
   }
+	excludes {
+		"../../src/mpt/crypto/**.cpp",
+		"../../src/mpt/crypto/**.hpp",
+		"../../src/mpt/json/**.cpp",
+		"../../src/mpt/json/**.hpp",
+		"../../src/mpt/uuid_namespace/**.cpp",
+		"../../src/mpt/uuid_namespace/**.hpp",
+		"../../test/mpt_tests_crypto.cpp",
+		"../../test/mpt_tests_uuid_namespace.cpp",
+		"../../src/openmpt/sounddevice/**.cpp",
+		"../../src/openmpt/sounddevice/**.hpp",
+	}
   characterset "Unicode"
   warnings "Extra"
   defines { "LIBOPENMPT_BUILD", "LIBOPENMPT_BUILD_TEST" }

@@ -59,6 +59,8 @@ struct MixLoopState
 	{
 		samplePointer = static_cast<const int8 *>(chn.pCurrentSample);
 		lookaheadPointer = nullptr;
+		if(!samplePointer)
+			return;
 		if(chn.nLoopEnd < InterpolationMaxLookahead)
 			lookaheadStart = chn.nLoopStart;
 		else
@@ -94,7 +96,8 @@ struct MixLoopState
 		int32 nLoopStart = chn.dwFlags[CHN_LOOP] ? chn.nLoopStart : 0;
 		SamplePosition nInc = chn.increment;
 
-		if ((nSamples <= 0) || nInc.IsZero() || (!chn.nLength)) return 0;
+		if(nSamples <= 0 || nInc.IsZero() || !chn.nLength || !samplePointer)
+			return 0;
 
 		// Part 1: Making sure the play position is valid, and if necessary, invert the play direction in case we reached a loop boundary of a ping-pong loop.
 		chn.pCurrentSample = samplePointer;
@@ -313,9 +316,10 @@ void CSoundFile::CreateStereoMix(int count)
 #ifndef NO_REVERB
 		if(((m_MixerSettings.DSPMask & SNDDSP_REVERB) && !chn.dwFlags[CHN_NOREVERB]) || chn.dwFlags[CHN_REVERB])
 		{
-			pbuffer = m_Reverb.GetReverbSendBuffer(count);
-			pOfsR = &m_Reverb.gnRvbROfsVol;
-			pOfsL = &m_Reverb.gnRvbLOfsVol;
+			m_Reverb.TouchReverbSendBuffer(ReverbSendBuffer, m_RvbROfsVol, m_RvbLOfsVol, count);
+			pbuffer = ReverbSendBuffer;
+			pOfsR = &m_RvbROfsVol;
+			pOfsL = &m_RvbLOfsVol;
 		}
 #endif
 		if(chn.dwFlags[CHN_SURROUND] && m_MixerSettings.gnChannels > 2)
@@ -346,6 +350,15 @@ void CSoundFile::CreateStereoMix(int count)
 			}
 		}
 #endif // NO_PLUGINS
+
+		if(chn.isPaused)
+		{
+			EndChannelOfs(chn, pbuffer, count);
+			*pOfsR += chn.nROfs;
+			*pOfsL += chn.nLOfs;
+			chn.nROfs = chn.nLOfs = 0;
+			continue;
+		}
 
 		MixLoopState mixLoopState(chn);
 
@@ -394,7 +407,7 @@ void CSoundFile::CreateStereoMix(int count)
 				size_t smp = std::distance(static_cast<const ModSample*>(static_cast<std::decay<decltype(Samples)>::type>(Samples)), chn.pModSample);
 				if(smp < m_SamplePlayLengths->size())
 				{
-					m_SamplePlayLengths->at(smp) = std::max(m_SamplePlayLengths->at(smp), chn.position.GetUInt());
+					(*m_SamplePlayLengths)[smp] = std::max((*m_SamplePlayLengths)[smp], chn.position.GetUInt());
 				}
 			}
 #endif

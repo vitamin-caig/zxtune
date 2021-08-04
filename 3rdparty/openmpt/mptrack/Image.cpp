@@ -60,7 +60,29 @@ namespace GDIP
 static CComPtr<IStream> GetStream(mpt::const_byte_span data)
 {
 	CComPtr<IStream> stream;
+#if (_WIN32_WINNT >= _WIN32_WINNT_VISTA)
 	stream.Attach(SHCreateMemStream(mpt::byte_cast<const unsigned char *>(data.data()), mpt::saturate_cast<UINT>(data.size())));
+#else
+	HGLOBAL hGlobal = GlobalAlloc(GMEM_MOVEABLE | GMEM_ZEROINIT, data.size());
+	if(hGlobal == NULL)
+	{
+		throw bad_image();
+	}
+	void * mem = GlobalLock(hGlobal);
+	if(!mem)
+	{
+		hGlobal = GlobalFree(hGlobal);
+		throw bad_image();
+	}
+	std::memcpy(mem, data.data(), data.size());
+	GlobalUnlock(hGlobal);
+	if(CreateStreamOnHGlobal(hGlobal, TRUE, &stream) != S_OK)
+	{
+		hGlobal = GlobalFree(hGlobal);
+		throw bad_image();
+	}
+	hGlobal = NULL;
+#endif
 	if(!stream)
 	{
 		throw bad_image();
@@ -87,7 +109,7 @@ std::unique_ptr<Gdiplus::Bitmap> LoadPixelImage(mpt::const_byte_span file)
 
 std::unique_ptr<Gdiplus::Bitmap> LoadPixelImage(FileReader file)
 {
-	FileReader::PinnedRawDataView view = file.GetPinnedRawDataView();
+	FileReader::PinnedView view = file.GetPinnedView();
 	return LoadPixelImage(view.span());
 }
 
@@ -110,7 +132,7 @@ std::unique_ptr<Gdiplus::Metafile> LoadVectorImage(mpt::const_byte_span file)
 
 std::unique_ptr<Gdiplus::Metafile> LoadVectorImage(FileReader file)
 {
-	FileReader::PinnedRawDataView view = file.GetPinnedRawDataView();
+	FileReader::PinnedView view = file.GetPinnedView();
 	return LoadVectorImage(view.span());
 }
 

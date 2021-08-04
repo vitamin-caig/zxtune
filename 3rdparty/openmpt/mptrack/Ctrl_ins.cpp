@@ -366,7 +366,7 @@ void CNoteMapWnd::OnRButtonDown(UINT, CPoint pt)
 
 BOOL CNoteMapWnd::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
-	SetCurrentNote(m_nNote - sgn(zDelta));
+	SetCurrentNote(m_nNote - mpt::signum(zDelta));
 	return CStatic::OnMouseWheel(nFlags, zDelta, pt);
 }
 
@@ -495,7 +495,7 @@ void CNoteMapWnd::MapTranspose(int nAmount)
 	if((nAmount == 12 || nAmount == -12))
 	{
 		// Special case for instrument-specific tunings
-		nAmount = m_modDoc.GetInstrumentGroupSize(m_nInstrument) * sgn(nAmount);
+		nAmount = m_modDoc.GetInstrumentGroupSize(m_nInstrument) * mpt::signum(nAmount);
 	}
 
 	m_undo = true;
@@ -1261,7 +1261,8 @@ LRESULT CCtrlInstruments::OnModCtrlMsg(WPARAM wParam, LPARAM lParam)
 
 void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 {
-	if(pObj == this) return;
+	if(pObj == this)
+		return;
 	if (hint.GetType()[HINT_MPTOPTIONS])
 	{
 		m_ToolBar.UpdateStyle();
@@ -1280,16 +1281,19 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 
 	const InstrumentHint instrHint = hint.ToType<InstrumentHint>();
 	FlagSet<HintType> hintType = instrHint.GetType();
-	if (!m_bInitialized) hintType.set(HINT_MODTYPE);
-	if(!hintType[HINT_MODTYPE | HINT_INSTRUMENT | HINT_ENVELOPE]) return;
+	if(!m_bInitialized)
+		hintType.set(HINT_MODTYPE);
+	if(!hintType[HINT_MODTYPE | HINT_INSTRUMENT | HINT_ENVELOPE | HINT_INSNAMES])
+		return;
 
 	const INSTRUMENTINDEX updateIns = instrHint.GetInstrument();
-	if(updateIns != m_nInstrument && updateIns != 0 && !hintType[HINT_MODTYPE]) return;
+	if(updateIns != m_nInstrument && updateIns != 0 && !hintType[HINT_MODTYPE])
+		return;
 
 	LockControls();
 	const ModInstrument *pIns = m_sndFile.Instruments[m_nInstrument];
 
-	if (hintType[HINT_MODTYPE])
+	if(hintType[HINT_MODTYPE])
 	{
 		auto &specs = m_sndFile.GetModSpecifications();
 
@@ -1371,7 +1375,14 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 			m_CbnMidiCh.SetItemData(m_CbnMidiCh.AddString(s), ich);
 		}
 	}
-	if (hintType[HINT_MODTYPE | HINT_INSTRUMENT])
+	if(hintType[HINT_MODTYPE | HINT_INSTRUMENT | HINT_INSNAMES])
+	{
+		if(pIns)
+			m_EditName.SetWindowText(mpt::ToCString(m_sndFile.GetCharsetInternal(), pIns->name));
+		else
+			m_EditName.SetWindowText(_T(""));
+	}
+	if(hintType[HINT_MODTYPE | HINT_INSTRUMENT])
 	{
 		m_SpinInstrument.SetRange(1, m_sndFile.m_nInstruments);
 		m_SpinInstrument.EnableWindow((m_sndFile.m_nInstruments) ? TRUE : FALSE);
@@ -1386,7 +1397,6 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 
 		if (pIns)
 		{
-			m_EditName.SetWindowText(mpt::ToCString(m_sndFile.GetCharsetInternal(), pIns->name));
 			m_EditFileName.SetWindowText(mpt::ToCString(m_sndFile.GetCharsetInternal(), pIns->filename));
 			// Fade Out Volume
 			SetDlgItemInt(IDC_EDIT7, pIns->nFadeOut);
@@ -1495,7 +1505,6 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 			}
 		} else
 		{
-			m_EditName.SetWindowText(_T(""));
 			m_EditFileName.SetWindowText(_T(""));
 			velocityStyle.EnableWindow(FALSE);
 			m_CbnPluginVolumeHandling.EnableWindow(FALSE);
@@ -1504,6 +1513,17 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 
 		}
 		m_NoteMap.Invalidate(FALSE);
+
+		m_ComboNNA.Invalidate(FALSE);
+		m_ComboDCT.Invalidate(FALSE);
+		m_ComboDCA.Invalidate(FALSE);
+		m_ComboPPC.Invalidate(FALSE);
+		m_CbnMidiCh.Invalidate(FALSE);
+		m_CbnMixPlug.Invalidate(FALSE);
+		m_CbnResampling.Invalidate(FALSE);
+		m_CbnFilterMode.Invalidate(FALSE);
+		m_CbnPluginVolumeHandling.Invalidate(FALSE);
+		m_ComboTuning.Invalidate(FALSE);
 	}
 	if(hint.ToType<PluginHint>().GetType()[HINT_MIXPLUGINS | HINT_PLUGINNAMES | HINT_MODTYPE])
 	{
@@ -1517,16 +1537,6 @@ void CCtrlInstruments::UpdateView(UpdateHint hint, CObject *pObj)
 		UnlockControls();
 	}
 
-	m_ComboNNA.Invalidate(FALSE);
-	m_ComboDCT.Invalidate(FALSE);
-	m_ComboDCA.Invalidate(FALSE);
-	m_ComboPPC.Invalidate(FALSE);
-	m_CbnMidiCh.Invalidate(FALSE);
-	m_CbnMixPlug.Invalidate(FALSE);
-	m_CbnResampling.Invalidate(FALSE);
-	m_CbnFilterMode.Invalidate(FALSE);
-	m_CbnPluginVolumeHandling.Invalidate(FALSE);
-	m_ComboTuning.Invalidate(FALSE);
 	UnlockControls();
 }
 
@@ -2908,7 +2918,7 @@ void CCtrlInstruments::OnCbnSelchangeCombotuning()
 	{
 		CriticalSection cs;
 		PrepareUndo("Set Tuning");
-		instr->SetTuning(&m_sndFile.GetTuneSpecificTunings().GetTuning(sel));
+		instr->SetTuning(m_sndFile.GetTuneSpecificTunings().GetTuning(sel));
 		cs.Leave();
 
 		SetModified(InstrumentHint().Info(), true);
@@ -2947,7 +2957,7 @@ void CCtrlInstruments::UpdateTuningComboBox()
 
 	for(size_t i = 0; i < m_sndFile.GetTuneSpecificTunings().GetNumTunings(); i++)
 	{
-		if(pIns->pTuning == &m_sndFile.GetTuneSpecificTunings().GetTuning(i))
+		if(pIns->pTuning == m_sndFile.GetTuneSpecificTunings().GetTuning(i))
 		{
 			m_ComboTuning.SetCurSel((int)(i + 1));
 			return;
@@ -3155,6 +3165,7 @@ void CCtrlInstruments::UpdatePluginList()
 	m_CbnMixPlug.SetItemData(m_CbnMixPlug.AddString(_T("No plugin")), 0);
 	AddPluginNamesToCombobox(m_CbnMixPlug, m_sndFile.m_MixPlugins, false);
 #endif // NO_PLUGINS
+	m_CbnMixPlug.Invalidate(FALSE);
 	m_CbnMixPlug.SetRedraw(TRUE);
 	ModInstrument *pIns = m_sndFile.Instruments[m_nInstrument];
 	if ((pIns) && (pIns->nMixPlug <= MAX_MIXPLUGINS)) m_CbnMixPlug.SetCurSel(pIns->nMixPlug);

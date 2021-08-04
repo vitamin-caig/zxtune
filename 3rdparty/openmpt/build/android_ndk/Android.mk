@@ -11,7 +11,7 @@ LOCAL_CPPFLAGS += -std=c++17 -fexceptions -frtti
 
 LOCAL_CPP_FEATURES += exceptions rtti
 
-LOCAL_C_INCLUDES += $(LOCAL_PATH) $(LOCAL_PATH)/common $(LOCAL_PATH)/build/svn_version
+LOCAL_C_INCLUDES += $(LOCAL_PATH) $(LOCAL_PATH)/src $(LOCAL_PATH)/common $(LOCAL_PATH)/build/svn_version
 
 LOCAL_CFLAGS   += -fvisibility=hidden -Wall -DLIBOPENMPT_BUILD -DMPT_WITH_ZLIB
 LOCAL_CPPFLAGS +=#-fvisibility=hidden -Wall -DLIBOPENMPT_BUILD -DMPT_WITH_ZLIB
@@ -86,13 +86,8 @@ endif
 
 LOCAL_SRC_FILES += \
 	common/ComponentManager.cpp \
-	common/FileReader.cpp \
 	common/Logging.cpp \
-	common/misc_util.cpp \
 	common/mptFileIO.cpp \
-	common/mptIO.cpp \
-	common/mptLibrary.cpp \
-	common/mptOS.cpp \
 	common/mptPathString.cpp \
 	common/mptRandom.cpp \
 	common/mptString.cpp \
@@ -100,7 +95,6 @@ LOCAL_SRC_FILES += \
 	common/mptStringFormat.cpp \
 	common/mptStringParse.cpp \
 	common/mptTime.cpp \
-	common/mptUUID.cpp \
 	common/Profiler.cpp \
 	common/serialization_utils.cpp \
 	common/version.cpp \
@@ -108,7 +102,6 @@ LOCAL_SRC_FILES += \
 	libopenmpt/libopenmpt_cxx.cpp \
 	libopenmpt/libopenmpt_impl.cpp \
 	libopenmpt/libopenmpt_ext_impl.cpp \
-	soundbase/Dither.cpp \
 	soundlib/AudioCriticalSection.cpp \
 	soundlib/ContainerMMCMP.cpp \
 	soundlib/ContainerPP20.cpp \
@@ -127,6 +120,7 @@ LOCAL_SRC_FILES += \
 	soundlib/Load_digi.cpp \
 	soundlib/Load_dmf.cpp \
 	soundlib/Load_dsm.cpp \
+	soundlib/Load_dsym.cpp \
 	soundlib/Load_dtm.cpp \
 	soundlib/Load_far.cpp \
 	soundlib/Load_fmt.cpp \
@@ -151,6 +145,7 @@ LOCAL_SRC_FILES += \
 	soundlib/Load_sfx.cpp \
 	soundlib/Load_stm.cpp \
 	soundlib/Load_stp.cpp \
+	soundlib/Load_symmod.cpp \
 	soundlib/Load_ult.cpp \
 	soundlib/Load_uax.cpp \
 	soundlib/Load_wav.cpp \
@@ -215,6 +210,7 @@ LOCAL_SRC_FILES += \
 	soundlib/plugins/LFOPlugin.cpp \
 	soundlib/plugins/PluginManager.cpp \
 	soundlib/plugins/PlugInterface.cpp \
+	soundlib/plugins/SymMODEcho.cpp \
 	sounddsp/AGC.cpp \
 	sounddsp/DSP.cpp \
 	sounddsp/EQ.cpp \

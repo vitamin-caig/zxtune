@@ -11,18 +11,19 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
+
+#include "mpt/uuid/uuid.hpp"
 
 #include "../common/Logging.h"
 #include "../common/version.h"
-#include "../common/mptUUID.h"
-#include "../soundbase/SampleFormat.h"
+#include "openmpt/soundbase/SampleFormat.hpp"
 #include "../soundlib/MixerSettings.h"
 #include "../soundlib/Resampler.h"
 #include "../sounddsp/EQ.h"
 #include "../sounddsp/DSP.h"
 #include "../sounddsp/Reverb.h"
-#include "../sounddev/SoundDevice.h"
+#include "openmpt/sounddevice/SoundDevice.hpp"
 #include "StreamEncoderSettings.h"
 #include "Settings.h"
 
@@ -241,6 +242,13 @@ enum class TimelineFormat
 	SamplesPow2,
 };
 
+enum class DefaultChannelColors
+{
+	NoColors = 0,
+	Rainbow,
+	Random,
+};
+
 
 class SampleUndoBufferSize
 {
@@ -282,6 +290,9 @@ template<> inline SampleEditorKeyBehaviour FromSettingValue(const SettingValue &
 
 template<> inline SettingValue ToSettingValue(const TimelineFormat &val) { return SettingValue(int32(val)); }
 template<> inline TimelineFormat FromSettingValue(const SettingValue &val) { return TimelineFormat(val.as<int32>()); }
+
+template<> inline SettingValue ToSettingValue(const DefaultChannelColors & val) { return SettingValue(int32(val)); }
+template<> inline DefaultChannelColors FromSettingValue(const SettingValue& val) { return DefaultChannelColors(val.as<int32>()); }
 
 template<> inline SettingValue ToSettingValue(const MODTYPE &val) { return SettingValue(SettingsModTypeToString(val), "MODTYPE"); }
 template<> inline MODTYPE FromSettingValue(const SettingValue &val) { ASSERT(val.GetTypeTag() == "MODTYPE"); return SettingsStringToModType(val.as<mpt::ustring>()); }
@@ -577,7 +588,7 @@ private:
 
 	// Debug
 
-#if !defined(NO_LOGGING) && !defined(MPT_LOG_IS_DISABLED)
+#if !defined(MPT_LOG_IS_DISABLED)
 	Setting<int> DebugLogLevel;
 	Setting<std::string> DebugLogFacilitySolo;
 	Setting<std::string> DebugLogFacilityBlocked;
@@ -602,6 +613,26 @@ public:
 	~DebugSettings();
 
 };
+
+
+namespace SoundDevice
+{
+namespace Legacy
+{
+typedef uint16 ID;
+inline constexpr SoundDevice::Legacy::ID MaskType = 0xff00;
+inline constexpr SoundDevice::Legacy::ID MaskIndex = 0x00ff;
+inline constexpr int ShiftType = 8;
+inline constexpr int ShiftIndex = 0;
+inline constexpr SoundDevice::Legacy::ID TypeWAVEOUT          = 0;
+inline constexpr SoundDevice::Legacy::ID TypeDSOUND           = 1;
+inline constexpr SoundDevice::Legacy::ID TypeASIO             = 2;
+inline constexpr SoundDevice::Legacy::ID TypePORTAUDIO_WASAPI = 3;
+inline constexpr SoundDevice::Legacy::ID TypePORTAUDIO_WDMKS  = 4;
+inline constexpr SoundDevice::Legacy::ID TypePORTAUDIO_WMME   = 5;
+inline constexpr SoundDevice::Legacy::ID TypePORTAUDIO_DS     = 6;
+} // namespace Legacy
+} // namespace SoundDevice
 
 
 class TrackerSettings
@@ -648,7 +679,7 @@ public:
 	CachedSetting<bool> accidentalFlats;
 	Setting<bool> rememberSongWindows;
 	Setting<bool> showDirsInSampleBrowser;
-	Setting<bool> defaultRainbowChannelColors;
+	Setting<DefaultChannelColors> defaultRainbowChannelColors;
 
 	Setting<FontSetting> commentsFont;
 
@@ -666,6 +697,7 @@ public:
 	Setting<ProcessPriorityClass> MiscProcessPriorityClass;
 	Setting<bool> MiscFlushFileBuffersOnSave;
 	Setting<bool> MiscCacheCompleteFileBeforeLoading;
+	Setting<bool> MiscUseSingleInstance;
 
 	// Sound Settings
 
@@ -680,6 +712,9 @@ public:
 	SoundDevice::Legacy::ID m_SoundDeviceID_DEPRECATED;
 	SoundDevice::Settings m_SoundDeviceSettingsDefaults;
 	SoundDevice::Settings GetSoundDeviceSettingsDefaults() const;
+#if defined(MPT_WITH_DIRECTSOUND)
+	bool m_SoundDeviceDirectSoundOldDefaultIdentifier;
+#endif // MPT_WITH_DIRECTSOUND
 
 	Setting<SoundDevice::Identifier> m_SoundDeviceIdentifier;
 	SoundDevice::Identifier GetSoundDeviceIdentifier() const;
@@ -854,6 +889,8 @@ public:
 	Setting<bool> BrokenPluginsWorkaroundVSTMaskAllCrashes;
 	Setting<bool> BrokenPluginsWorkaroundVSTNeverUnloadAnyPlugin;
 
+#if defined(MPT_ENABLE_UPDATE)
+
 	// Update
 
 	Setting<bool> UpdateEnabled;
@@ -879,6 +916,8 @@ public:
 #endif // MPT_UPDATE_LEGACY
 	Setting<bool> UpdateSkipSignatureVerificationUNSECURE;
 	Setting<std::vector<mpt::ustring>> UpdateSigningKeysRootAnchors;
+
+#endif // MPT_ENABLE_UPDATE
 
 	// Wine support
 

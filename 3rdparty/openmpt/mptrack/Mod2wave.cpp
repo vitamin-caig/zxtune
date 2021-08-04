@@ -18,14 +18,16 @@
 #include "WAVTools.h"
 #include "../common/mptString.h"
 #include "../common/version.h"
-#include "../soundbase/SampleFormatCopy.h"
 #include "../soundlib/MixerLoops.h"
-#include "../soundbase/Dither.h"
-#include "../soundbase/SampleBuffer.h"
+#include "openmpt/soundbase/Dither.hpp"
+#include "../common/Dither.h"
 #include "../soundlib/AudioReadTarget.h"
 #include "../soundlib/plugins/PlugInterface.h"
-
 #include "../common/mptFileIO.h"
+#include "mpt/audio/span.hpp"
+#include <variant>
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 
 
 OPENMPT_NAMESPACE_BEGIN
@@ -34,99 +36,12 @@ OPENMPT_NAMESPACE_BEGIN
 extern const TCHAR *gszChnCfgNames[3];
 
 
-class AudioReadTargetBufferInterleavedDynamic
-	: public IAudioReadTarget
-{
-private:
-	const SampleFormat sampleFormat;
-	Dither &dither;
-	void *buffer;
-public:
-	AudioReadTargetBufferInterleavedDynamic(SampleFormat sampleFormat_, Dither &dither_, void *buffer_)
-		: sampleFormat(sampleFormat_)
-		, dither(dither_)
-		, buffer(buffer_)
-	{
-		MPT_ASSERT_ALWAYS(sampleFormat.IsValid());
-	}
-private:
-	template<typename MixSampleType>
-	void DataCallbackTemplate(MixSampleType *MixSoundBuffer, std::size_t channels, std::size_t countChunk)
-	{
-		switch(sampleFormat)
-		{
-			case SampleFormatUnsigned8:
-				{
-					typedef SampleFormatToType<SampleFormatUnsigned8>::type Tsample;
-					AudioReadTargetBuffer<audio_buffer_interleaved<Tsample>> target(audio_buffer_interleaved<Tsample>(reinterpret_cast<Tsample*>(buffer), channels, countChunk), dither);
-					target.DataCallback(MixSoundBuffer, channels, countChunk);
-				}
-				break;
-			case SampleFormatInt8:
-				{
-					typedef SampleFormatToType<SampleFormatInt8>::type Tsample;
-					AudioReadTargetBuffer<audio_buffer_interleaved<Tsample>> target(audio_buffer_interleaved<Tsample>(reinterpret_cast<Tsample*>(buffer), channels, countChunk), dither);
-					target.DataCallback(MixSoundBuffer, channels, countChunk);
-				}
-				break;
-			case SampleFormatInt16:
-				{
-					typedef SampleFormatToType<SampleFormatInt16>::type Tsample;
-					AudioReadTargetBuffer<audio_buffer_interleaved<Tsample>> target(audio_buffer_interleaved<Tsample>(reinterpret_cast<Tsample*>(buffer), channels, countChunk), dither);
-					target.DataCallback(MixSoundBuffer, channels, countChunk);
-				}
-				break;
-			case SampleFormatInt24:
-				{
-					typedef SampleFormatToType<SampleFormatInt24>::type Tsample;
-					AudioReadTargetBuffer<audio_buffer_interleaved<Tsample>> target(audio_buffer_interleaved<Tsample>(reinterpret_cast<Tsample*>(buffer), channels, countChunk), dither);
-					target.DataCallback(MixSoundBuffer, channels, countChunk);
-				}
-				break;
-			case SampleFormatInt32:
-				{
-					typedef SampleFormatToType<SampleFormatInt32>::type Tsample;
-					AudioReadTargetBuffer<audio_buffer_interleaved<Tsample>> target(audio_buffer_interleaved<Tsample>(reinterpret_cast<Tsample*>(buffer), channels, countChunk), dither);
-					target.DataCallback(MixSoundBuffer, channels, countChunk);
-				}
-				break;
-			case SampleFormatFloat32:
-				{
-					typedef SampleFormatToType<SampleFormatFloat32>::type Tsample;
-					AudioReadTargetBuffer<audio_buffer_interleaved<Tsample>> target(audio_buffer_interleaved<Tsample>(reinterpret_cast<Tsample*>(buffer), channels, countChunk), dither);
-					target.DataCallback(MixSoundBuffer, channels, countChunk);
-				}
-				break;
-			case SampleFormatFloat64:
-			{
-				typedef SampleFormatToType<SampleFormatFloat64>::type Tsample;
-				AudioReadTargetBuffer<audio_buffer_interleaved<Tsample>> target(audio_buffer_interleaved<Tsample>(reinterpret_cast<Tsample*>(buffer), channels, countChunk), dither);
-				target.DataCallback(MixSoundBuffer, channels, countChunk);
-			}
-			break;
-			case SampleFormatInvalid:
-				// nothing
-				break;
-		}
-		// increment output buffer for potentially next callback
-		buffer = mpt::void_cast<std::byte*>(buffer) + (sampleFormat.GetBitsPerSample()/8) * channels * countChunk;
-	}
-public:
-	void DataCallback(MixSampleInt *MixSoundBuffer, std::size_t channels, std::size_t countChunk) override
-	{
-		DataCallbackTemplate(MixSoundBuffer, channels, countChunk);
-	}
-	void DataCallback(MixSampleFloat *MixSoundBuffer, std::size_t channels, std::size_t countChunk) override
-	{
-		DataCallbackTemplate(MixSoundBuffer, channels, countChunk);
-	}
-};
-
-
-static CSoundFile::samplecount_t ReadInterleaved(CSoundFile &sndFile, void *outputBuffer, CSoundFile::samplecount_t count, SampleFormat sampleFormat, Dither &dither)
+template <typename Tsample>
+static CSoundFile::samplecount_t ReadInterleaved(CSoundFile &sndFile, Tsample *outputBuffer, std::size_t channels, CSoundFile::samplecount_t count, DithersOpenMPT &dithers)
 {
 	sndFile.ResetMixStat();
-	AudioReadTargetBufferInterleavedDynamic target(sampleFormat, dither, outputBuffer);
+	MPT_ASSERT(sndFile.m_MixerSettings.gnChannels == channels);
+	AudioTargetBuffer<mpt::audio_span_interleaved<Tsample>, DithersOpenMPT> target(mpt::audio_span_interleaved<Tsample>(outputBuffer, channels, count), dithers);
 	return sndFile.Read(count, target);
 }
 
@@ -500,69 +415,61 @@ void CWaveConvert::FillFormats()
 			}
 		}
 	}
-	if(encTraits->modes & Encoder::ModeEnumerated)
+	if(encTraits->modes & Encoder::ModeLossless)
 	{
+		bool allBig = true;
+		bool allLittle = true;
+		for(const auto &format : encTraits->formats)
+		{
+			if(format.endian != mpt::endian::little)
+			{
+				allLittle = false;
+			}
+			if(format.endian != mpt::endian::big)
+			{
+				allBig = false;
+			}
+		}
+		bool showEndian = !(allBig || allLittle);
 		for(std::size_t i = 0; i < encTraits->formats.size(); ++i)
 		{
 			const Encoder::Format &format = encTraits->formats[i];
-			if(static_cast<int32>(format.Samplerate) != samplerate || format.Channels != channels)
+			mpt::ustring description;
+			switch(format.encoding)
 			{
-				continue;
-			}
-			if(i > 0xffff)
-			{
-				// too may formats
+			case Encoder::Format::Encoding::Float:
+				description = MPT_UFORMAT("{} Bit Floating Point")(format.bits);
+				break;
+			case Encoder::Format::Encoding::Integer:
+				description = MPT_UFORMAT("{} Bit")(format.bits);
+				break;
+			case Encoder::Format::Encoding::Alaw:
+				description = U_("A-law");
+				break;
+			case Encoder::Format::Encoding::ulaw:
+				description = MPT_UTF8("\xce\xbc-law");
+				break;
+			case Encoder::Format::Encoding::Unsigned:
+				description = MPT_UFORMAT("{} Bit (unsigned)")(format.bits);
 				break;
 			}
-			int ndx = m_CbnSampleFormat.AddString(mpt::ToCString(format.Description));
-			m_CbnSampleFormat.SetItemData(ndx, i & 0xffff);
-			if(encSettings.Mode & Encoder::ModeEnumerated && (int)i == encSettings.Format)
+			if(showEndian && format.bits != 8 && format.encoding != Encoder::Format::Encoding::Alaw && format.encoding != Encoder::Format::Encoding::ulaw)
+			{
+				switch(format.endian)
+				{
+				case mpt::endian::big:
+					description += U_(" Big-Endian");
+					break;
+				case mpt::endian::little:
+					description += U_(" Little-Endian");
+					break;
+				}
+			}
+			int ndx = m_CbnSampleFormat.AddString(mpt::ToCString(description));
+			m_CbnSampleFormat.SetItemData(ndx, format.AsInt());
+			if(encSettings.Mode & Encoder::ModeLossless && format == encSettings.Format2)
 			{
 				sel = ndx;
-			}
-		}
-		if(sel == -1 && encSettings.Mode & Encoder::ModeEnumerated && encTraits->defaultBitrate != 0)
-		{
-			// select enumerated format based on bitrate
-			for(int ndx = 0; ndx < m_CbnSampleFormat.GetCount(); ++ndx)
-			{
-				int i = static_cast<int>((m_CbnSampleFormat.GetItemData(ndx) >> 0) & 0xffff);
-				const Encoder::Format &format = encTraits->formats[i];
-				if(format.Bitrate != 0 && encSettings.Bitrate == format.Bitrate)
-				{
-					sel = ndx;
-				}
-			}
-			if(sel == -1)
-			{
-				// select enumerated format based on default bitrate
-				for(int ndx = 0; ndx < m_CbnSampleFormat.GetCount(); ++ndx)
-				{
-					int i = static_cast<int>((m_CbnSampleFormat.GetItemData(ndx) >> 0) & 0xffff);
-					const Encoder::Format &format = encTraits->formats[i];
-					if(format.Bitrate == encTraits->defaultBitrate)
-					{
-						sel = ndx;
-					}
-				}
-			}
-		}
-		if(sel == -1 && encSettings.Mode & Encoder::ModeEnumerated && encTraits->defaultBitrate == 0)
-		{
-			// select enumerated format based on sampleformat
-			for(int ndx = 0; ndx < m_CbnSampleFormat.GetCount(); ++ndx)
-			{
-				int i = static_cast<int>((m_CbnSampleFormat.GetItemData(ndx) >> 0) & 0xffff);
-				const Encoder::Format &format = encTraits->formats[i];
-				int32 currentFormat = encSettings.Format;
-				if(encSettings.Format < 0 || (std::size_t)currentFormat >= encTraits->formats.size())
-				{ // out of bounds
-					continue;
-				}
-				if(format.Sampleformat != SampleFormatInvalid && encTraits->formats[currentFormat].Sampleformat == format.Sampleformat)
-				{
-					sel = ndx;
-				}
 			}
 		}
 	}
@@ -578,21 +485,21 @@ void CWaveConvert::FillDither()
 {
 	EncoderSettingsConf &encSettings = m_Settings.GetEncoderSettings();
 	m_CbnDither.CComboBox::ResetContent();
-	int format = m_CbnSampleFormat.GetItemData(m_CbnSampleFormat.GetCurSel()) & 0xffff;
-	if((encTraits->modes & Encoder::ModeEnumerated) && encTraits->formats[format].Sampleformat != SampleFormatInvalid && encTraits->formats[format].Sampleformat != SampleFormatFloat32)
+	int format = m_CbnSampleFormat.GetItemData(m_CbnSampleFormat.GetCurSel()) & 0xffffff;
+	if((encTraits->modes & Encoder::ModeLossless) && Encoder::Format::FromInt(format).GetSampleFormat() != SampleFormat::Invalid && !Encoder::Format::FromInt(format).GetSampleFormat().IsFloat())
 	{
 		m_CbnDither.EnableWindow(TRUE);
-		for(int dither = 0; dither < NumDitherModes; ++dither)
+		for(std::size_t dither = 0; dither < DithersOpenMPT::GetNumDithers(); ++dither)
 		{
-			int ndx = m_CbnDither.AddString(mpt::ToCString(Dither::GetModeName((DitherMode)dither) + U_(" dither")));
+			int ndx = m_CbnDither.AddString(mpt::ToCString(DithersOpenMPT::GetModeName(dither) + U_(" dither")));
 			m_CbnDither.SetItemData(ndx, dither);
 		}
 	} else
 	{
 		m_CbnDither.EnableWindow(FALSE);
-		for(int dither = 0; dither < NumDitherModes; ++dither)
+		for(std::size_t dither = 0; dither < DithersOpenMPT::GetNumDithers(); ++dither)
 		{
-			int ndx = m_CbnDither.AddString(mpt::ToCString(Dither::GetModeName(DitherNone) + U_(" dither")));
+			int ndx = m_CbnDither.AddString(mpt::ToCString(DithersOpenMPT::GetModeName(DithersOpenMPT::GetNoDither()) + U_(" dither")));
 			m_CbnDither.SetItemData(ndx, dither);
 		}
 	}
@@ -880,24 +787,16 @@ void CWaveConvert::SaveEncoderSettings()
 	encSettings.Channels = static_cast<uint16>(m_CbnChannels.GetItemData(m_CbnChannels.GetCurSel()));
 	DWORD_PTR dwFormat = m_CbnSampleFormat.GetItemData(m_CbnSampleFormat.GetCurSel());
 
-	if(encTraits->modes & Encoder::ModeEnumerated)
+	if(encTraits->modes & Encoder::ModeLossless)
 	{
-		int format = (int)((dwFormat >> 0) & 0xffff);
-		if(encTraits->formats[format].Sampleformat == SampleFormatInvalid)
-		{
-			m_Settings.FinalSampleFormat = SampleFormatFloat32;
-		} else
-		{
-			m_Settings.FinalSampleFormat = encTraits->formats[format].Sampleformat;
-		}
+		int format = (int)((dwFormat >> 0) & 0xffffff);
 		encSettings.Dither = static_cast<int>(m_CbnDither.GetItemData(m_CbnDither.GetCurSel()));
-		encSettings.Format = format;
-		encSettings.Mode = Encoder::ModeEnumerated;
-		encSettings.Bitrate = encTraits->formats[format].Bitrate != 0 ? encTraits->formats[format].Bitrate : encTraits->defaultBitrate;
+		encSettings.Format2 = Encoder::Format::FromInt(format);
+		encSettings.Mode = Encoder::ModeLossless;
+		encSettings.Bitrate = 0;
 		encSettings.Quality = encTraits->defaultQuality;
 	} else
 	{
-		m_Settings.FinalSampleFormat = SampleFormatFloat32;
 		encSettings.Dither = static_cast<int>(m_CbnDither.GetItemData(m_CbnDither.GetCurSel()));
 		Encoder::Mode mode = (Encoder::Mode)((dwFormat >> 24) & 0xff);
 		int quality = (int)((dwFormat >> 0) & 0xff);
@@ -905,7 +804,7 @@ void CWaveConvert::SaveEncoderSettings()
 		encSettings.Mode = mode;
 		encSettings.Bitrate = bitrate;
 		encSettings.Quality = static_cast<float>(quality) * 0.01f;
-		encSettings.Format = -1;
+		encSettings.Format2 = { Encoder::Format::Encoding::Float, 32, mpt::get_endian() };
 	}
 	
 	encSettings.Cues = IsDlgButtonChecked(IDC_CHECK3) ? true : false;
@@ -971,7 +870,6 @@ CWaveConvertSettings::CWaveConvertSettings(SettingsContainer &conf, const std::v
 	: EncoderFactories(encFactories)
 	, EncoderName(conf, U_("Export"), U_("Encoder"), U_(""))
 	, EncoderIndex(FindEncoder(EncoderName))
-	, FinalSampleFormat(SampleFormatInt16)
 	, storedTags(conf)
 	, repeatCount(0)
 	, minOrder(ORDERINDEX_INVALID), maxOrder(ORDERINDEX_INVALID)
@@ -1009,18 +907,19 @@ CWaveConvertSettings::CWaveConvertSettings(SettingsContainer &conf, const std::v
 
 void CDoWaveConvert::Run()
 {
-	static std::byte buffer[MIXBUFFERSIZE * 4 * 4]; // channels * sizeof(biggestsample)
-	static MixSampleFloat floatbuffer[MIXBUFFERSIZE * 4]; // channels
-	static MixSampleInt mixbuffer[MIXBUFFERSIZE * 4]; // channels
 
 	UINT ok = IDOK;
 	uint64 ullSamples = 0;
 
+	std::vector<float> normalizeBufferData;
+	float *normalizeBuffer = nullptr;
 	float normalizePeak = 0.0f;
 	const mpt::PathString normalizeFileName = mpt::CreateTempFileName(P_("OpenMPT"));
 	std::optional<mpt::fstream> normalizeFile;
 	if(m_Settings.normalize)
 	{
+		normalizeBufferData.resize(MIXBUFFERSIZE * 4);
+		normalizeBuffer = normalizeBufferData.data();
 		// Ensure this temporary file is marked as temporary in the file system, to increase the chance it will never be written to disk
 		if(HANDLE hFile = ::CreateFile(normalizeFileName.AsNative().c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY, NULL); hFile != INVALID_HANDLE_VALUE)
 		{
@@ -1078,8 +977,7 @@ void CDoWaveConvert::Run()
 #endif
 	}
 
-	Dither dither(theApp.PRNG());
-	dither.SetMode(static_cast<DitherMode>(encSettings.Dither));
+	DithersOpenMPT dithers(theApp.PRNG(), encSettings.Dither, encSettings.Channels);
 
 	m_SndFile.ResetChannels();
 	m_SndFile.SetMixerSettings(mixersettings);
@@ -1091,7 +989,60 @@ void CDoWaveConvert::Run()
 	// otherwise they should just be cached by the encoder.
 	std::unique_ptr<IAudioStreamEncoder> fileEnc = m_Settings.GetEncoderFactory()->ConstructStreamEncoder(fileStream, encSettings, m_Settings.Tags);
 
-	uint64 ullMaxSamples = uint64_max / (channels * ((m_Settings.FinalSampleFormat.GetBitsPerSample()+7) / 8));
+	std::variant<
+		std::unique_ptr<std::array<double, MIXBUFFERSIZE * 4>>,
+		std::unique_ptr<std::array<float, MIXBUFFERSIZE * 4>>,
+		std::unique_ptr<std::array<int32, MIXBUFFERSIZE * 4>>,
+		std::unique_ptr<std::array<int24, MIXBUFFERSIZE * 4>>,
+		std::unique_ptr<std::array<int16, MIXBUFFERSIZE * 4>>,
+		std::unique_ptr<std::array<int8, MIXBUFFERSIZE * 4>>,
+		std::unique_ptr<std::array<uint8, MIXBUFFERSIZE * 4>>> bufferData;
+	union AnyBufferSamplePointer
+	{
+		double *float64;
+		float *float32;
+		int32 *int32;
+		int24 *int24;
+		int16 *int16;
+		int8 *int8;
+		uint8 *uint8;
+		void *any;
+	};
+	AnyBufferSamplePointer buffer;
+	buffer.any = nullptr;
+	switch(fileEnc->GetSampleFormat())
+	{
+	case SampleFormat::Float64:
+		bufferData = std::make_unique<std::array<double, MIXBUFFERSIZE * 4>>();
+		buffer.float64 = std::get<0>(bufferData)->data();
+		break;
+	case SampleFormat::Float32:
+		bufferData = std::make_unique<std::array<float, MIXBUFFERSIZE * 4>>();
+		buffer.float32 = std::get<1>(bufferData)->data();
+		break;
+	case SampleFormat::Int32:
+		bufferData = std::make_unique<std::array<int32, MIXBUFFERSIZE * 4>>();
+		buffer.int32 = std::get<2>(bufferData)->data();
+		break;
+	case SampleFormat::Int24:
+		bufferData = std::make_unique<std::array<int24, MIXBUFFERSIZE * 4>>();
+		buffer.int24 = std::get<3>(bufferData)->data();
+		break;
+	case SampleFormat::Int16:
+		bufferData = std::make_unique<std::array<int16, MIXBUFFERSIZE * 4>>();
+		buffer.int16 = std::get<4>(bufferData)->data();
+		break;
+	case SampleFormat::Int8:
+		bufferData = std::make_unique<std::array<int8, MIXBUFFERSIZE * 4>>();
+		buffer.int8 = std::get<5>(bufferData)->data();
+		break;
+	case SampleFormat::Unsigned8:
+		bufferData = std::make_unique<std::array<uint8, MIXBUFFERSIZE * 4>>();
+		buffer.uint8 = std::get<6>(bufferData)->data();
+		break;
+	}
+
+	uint64 ullMaxSamples = uint64_max / (channels * ((fileEnc->GetSampleFormat().GetBitsPerSample()+7) / 8));
 	if (m_dwSongLimit)
 	{
 		LimitMax(ullMaxSamples, m_dwSongLimit * samplerate);
@@ -1156,12 +1107,35 @@ void CDoWaveConvert::Run()
 	for (UINT n = 0; ; n++)
 	{
 		UINT lRead = 0;
-		if(m_Settings.normalize || m_Settings.FinalSampleFormat == SampleFormatFloat32)
+		if(m_Settings.normalize)
 		{
-			lRead = ReadInterleaved(m_SndFile, floatbuffer, MIXBUFFERSIZE, SampleFormatFloat32, dither);
+			lRead = ReadInterleaved(m_SndFile, normalizeBuffer, channels, MIXBUFFERSIZE, dithers);
 		} else
 		{
-			lRead = ReadInterleaved(m_SndFile, buffer, MIXBUFFERSIZE, m_Settings.FinalSampleFormat, dither);
+			switch(fileEnc->GetSampleFormat())
+			{
+			case SampleFormat::Float64:
+				lRead = ReadInterleaved(m_SndFile, buffer.float64, channels, MIXBUFFERSIZE, dithers);
+				break;
+			case SampleFormat::Float32:
+				lRead = ReadInterleaved(m_SndFile, buffer.float32, channels, MIXBUFFERSIZE, dithers);
+				break;
+			case SampleFormat::Int32:
+				lRead = ReadInterleaved(m_SndFile, buffer.int32, channels, MIXBUFFERSIZE, dithers);
+				break;
+			case SampleFormat::Int24:
+				lRead = ReadInterleaved(m_SndFile, buffer.int24, channels, MIXBUFFERSIZE, dithers);
+				break;
+			case SampleFormat::Int16:
+				lRead = ReadInterleaved(m_SndFile, buffer.int16, channels, MIXBUFFERSIZE, dithers);
+				break;
+			case SampleFormat::Int8:
+				lRead = ReadInterleaved(m_SndFile, buffer.int8, channels, MIXBUFFERSIZE, dithers);
+				break;
+			case SampleFormat::Unsigned8:
+				lRead = ReadInterleaved(m_SndFile, buffer.uint8, channels, MIXBUFFERSIZE, dithers);
+				break;
+			}
 		}
 
 		// Process cue points (add base offset), if there are any to process.
@@ -1189,7 +1163,7 @@ void CDoWaveConvert::Run()
 		{
 
 			std::size_t countSamples = lRead * m_SndFile.m_MixerSettings.gnChannels;
-			const float *src = floatbuffer;
+			const float *src = normalizeBuffer;
 			while(countSamples--)
 			{
 				const float val = *src;
@@ -1198,7 +1172,7 @@ void CDoWaveConvert::Run()
 				src++;
 			}
 
-			if(!mpt::IO::WriteRaw(*normalizeFile, mpt::as_span(reinterpret_cast<const std::byte*>(floatbuffer), lRead * m_SndFile.m_MixerSettings.gnChannels * sizeof(float))))
+			if(!mpt::IO::WriteRaw(*normalizeFile, mpt::as_span(reinterpret_cast<const std::byte*>(normalizeBuffer), lRead * m_SndFile.m_MixerSettings.gnChannels * sizeof(float))))
 			{
 				break;
 			}
@@ -1207,17 +1181,29 @@ void CDoWaveConvert::Run()
 		{
 
 			const std::streampos oldPos = fileStream.tellp();
-			if(m_Settings.FinalSampleFormat == SampleFormatFloat32)
+			switch(fileEnc->GetSampleFormat())
 			{
-				fileEnc->WriteInterleaved(lRead, floatbuffer);
-			} else
-			{
-				MPT_ASSERT(!mpt::endian_is_weird());
-				if(fileEnc->GetConvertedEndianness() != mpt::get_endian())
-				{
-					mpt::SwapBufferEndian(m_Settings.FinalSampleFormat.GetBitsPerSample()/8, buffer, lRead * encSettings.Channels);
-				}
-				fileEnc->WriteInterleavedConverted(lRead, buffer);
+			case SampleFormat::Float64:
+				fileEnc->WriteInterleaved(lRead, buffer.float64);
+				break;
+			case SampleFormat::Float32:
+				fileEnc->WriteInterleaved(lRead, buffer.float32);
+				break;
+			case SampleFormat::Int32:
+				fileEnc->WriteInterleaved(lRead, buffer.int32);
+				break;
+			case SampleFormat::Int24:
+				fileEnc->WriteInterleaved(lRead, buffer.int24);
+				break;
+			case SampleFormat::Int16:
+				fileEnc->WriteInterleaved(lRead, buffer.int16);
+				break;
+			case SampleFormat::Int8:
+				fileEnc->WriteInterleaved(lRead, buffer.int8);
+				break;
+			case SampleFormat::Unsigned8:
+				fileEnc->WriteInterleaved(lRead, buffer.uint8);
+				break;
 			}
 			const std::streampos newPos = fileStream.tellp();
 			bytesWritten += static_cast<uint64>(newPos - oldPos);
@@ -1288,80 +1274,71 @@ void CDoWaveConvert::Run()
 			const uint32 samplesChunk = static_cast<uint32>(framesChunk * channels);
 			
 			const std::size_t bytes = samplesChunk * sizeof(float);
-			if(mpt::IO::ReadRaw(*normalizeFile, mpt::as_span(reinterpret_cast<std::byte*>(floatbuffer), bytes)).size() != bytes)
+			if(mpt::IO::ReadRaw(*normalizeFile, mpt::as_span(reinterpret_cast<std::byte*>(normalizeBuffer), bytes)).size() != bytes)
 			{
 				break;
 			}
 
 			for(std::size_t i = 0; i < samplesChunk; ++i)
 			{
-				floatbuffer[i] *= normalizeFactor;
+				normalizeBuffer[i] *= normalizeFactor;
 			}
 
 			const std::streampos oldPos = fileStream.tellp();
-			if(m_Settings.FinalSampleFormat == SampleFormatFloat32)
-			{
-				fileEnc->WriteInterleaved(framesChunk, floatbuffer);
-			} else
-			{
-				switch(m_Settings.FinalSampleFormat)
+			std::visit(
+				[&](auto& ditherInstance)
 				{
-				case SampleFormatUnsigned8:
-					dither.WithDither(
-						[&](auto &ditherInstance)
-						{
-							ConvertBufferMixFloatToBuffer<false>(audio_buffer_interleaved<uint8>(reinterpret_cast<uint8*>(buffer), channels, framesChunk), audio_buffer_interleaved<const MixSampleFloat>(floatbuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
-						}
-					);
-					break;
-				case SampleFormatInt8:
-					dither.WithDither(
-						[&](auto &ditherInstance)
-						{
-							ConvertBufferMixFloatToBuffer<false>(audio_buffer_interleaved<int8>(reinterpret_cast<int8*>(buffer), channels, framesChunk), audio_buffer_interleaved<const MixSampleFloat>(floatbuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
-						}
-					);
-					break;
-				case SampleFormatInt16:
-					dither.WithDither(
-						[&](auto &ditherInstance)
-						{
-							ConvertBufferMixFloatToBuffer<false>(audio_buffer_interleaved<int16>(reinterpret_cast<int16*>(buffer), channels, framesChunk), audio_buffer_interleaved<const MixSampleFloat>(floatbuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
-						}
-					);
-					break;
-				case SampleFormatInt24:
-					dither.WithDither(
-						[&](auto &ditherInstance)
-						{
-							ConvertBufferMixFloatToBuffer<false>(audio_buffer_interleaved<int24>(reinterpret_cast<int24*>(buffer), channels, framesChunk), audio_buffer_interleaved<const MixSampleFloat>(floatbuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
-						}
-					);
-					break;
-				case SampleFormatInt32:
-					dither.WithDither(
-						[&](auto &ditherInstance)
-						{
-							ConvertBufferMixFloatToBuffer<false>(audio_buffer_interleaved<int32>(reinterpret_cast<int32*>(buffer), channels, framesChunk), audio_buffer_interleaved<const MixSampleFloat>(floatbuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
-						}
-					);
-					break;
-				case SampleFormatFloat64:
-					dither.WithDither(
-						[&](auto &ditherInstance)
-						{
-							ConvertBufferMixFloatToBuffer<false>(audio_buffer_interleaved<double>(reinterpret_cast<double*>(buffer), channels, framesChunk), audio_buffer_interleaved<const MixSampleFloat>(floatbuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
-						}
-					);
-					break;
-				default: MPT_ASSERT_NOTREACHED(); break;
-				}
-				MPT_ASSERT(!mpt::endian_is_weird());
-				if(fileEnc->GetConvertedEndianness() != mpt::get_endian())
-				{
-					mpt::SwapBufferEndian(m_Settings.FinalSampleFormat.GetBitsPerSample()/8, buffer, framesChunk * channels);
-				}
-				fileEnc->WriteInterleavedConverted(framesChunk, buffer);
+					switch(fileEnc->GetSampleFormat())
+					{
+					case SampleFormat::Unsigned8:
+						ConvertBufferMixInternalToBuffer<false>(mpt::audio_span_interleaved<uint8>(buffer.uint8, channels, framesChunk), mpt::audio_span_interleaved<const MixSampleFloat>(normalizeBuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
+						break;
+					case SampleFormat::Int8:
+						ConvertBufferMixInternalToBuffer<false>(mpt::audio_span_interleaved<int8>(buffer.int8, channels, framesChunk), mpt::audio_span_interleaved<const MixSampleFloat>(normalizeBuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
+						break;
+					case SampleFormat::Int16:
+						ConvertBufferMixInternalToBuffer<false>(mpt::audio_span_interleaved<int16>(buffer.int16, channels, framesChunk), mpt::audio_span_interleaved<const MixSampleFloat>(normalizeBuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
+						break;
+					case SampleFormat::Int24:
+						ConvertBufferMixInternalToBuffer<false>(mpt::audio_span_interleaved<int24>(buffer.int24, channels, framesChunk), mpt::audio_span_interleaved<const MixSampleFloat>(normalizeBuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
+						break;
+					case SampleFormat::Int32:
+						ConvertBufferMixInternalToBuffer<false>(mpt::audio_span_interleaved<int32>(buffer.int32, channels, framesChunk), mpt::audio_span_interleaved<const MixSampleFloat>(normalizeBuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
+						break;
+					case SampleFormat::Float32:
+						ConvertBufferMixInternalToBuffer<false>(mpt::audio_span_interleaved<float>(buffer.float32, channels, framesChunk), mpt::audio_span_interleaved<const MixSampleFloat>(normalizeBuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
+						break;
+					case SampleFormat::Float64:
+						ConvertBufferMixInternalToBuffer<false>(mpt::audio_span_interleaved<double>(buffer.float64, channels, framesChunk), mpt::audio_span_interleaved<const MixSampleFloat>(normalizeBuffer, channels, framesChunk), ditherInstance, channels, framesChunk);
+						break;
+					default: MPT_ASSERT_NOTREACHED(); break;
+					}
+				},
+				dithers.Variant()
+			);
+			switch(fileEnc->GetSampleFormat())
+			{
+			case SampleFormat::Float64:
+				fileEnc->WriteInterleaved(framesChunk, buffer.float64);
+				break;
+			case SampleFormat::Float32:
+				fileEnc->WriteInterleaved(framesChunk, buffer.float32);
+				break;
+			case SampleFormat::Int32:
+				fileEnc->WriteInterleaved(framesChunk, buffer.int32);
+				break;
+			case SampleFormat::Int24:
+				fileEnc->WriteInterleaved(framesChunk, buffer.int24);
+				break;
+			case SampleFormat::Int16:
+				fileEnc->WriteInterleaved(framesChunk, buffer.int16);
+				break;
+			case SampleFormat::Int8:
+				fileEnc->WriteInterleaved(framesChunk, buffer.int8);
+				break;
+			case SampleFormat::Unsigned8:
+				fileEnc->WriteInterleaved(framesChunk, buffer.uint8);
+				break;
 			}
 			const std::streampos newPos = fileStream.tellp();
 			bytesWritten += static_cast<std::size_t>(newPos - oldPos);

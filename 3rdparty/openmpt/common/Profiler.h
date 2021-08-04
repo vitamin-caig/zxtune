@@ -10,10 +10,11 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 
-#include "../common/mptMutex.h"
+#include "mpt/mutex/mutex.hpp"
+
 #include <string>
 #include <vector>
 

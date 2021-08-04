@@ -12,7 +12,8 @@
 #include "Mainfrm.h"
 #include "Mptrack.h"
 #include "AboutDialog.h"
-#include "../sounddev/SoundDevice.h"
+#include "InputHandler.h"
+#include "openmpt/sounddevice/SoundDevice.hpp"
 #include "Moddoc.h"
 #include <shlwapi.h>
 #include "ExceptionHandler.h"
@@ -295,8 +296,9 @@ void DebugReporter::ReportError(mpt::ustring errorMessage)
 	}
 
 	errorMessage += UL_("\n\n");
-	errorMessage += MPT_UFORMAT("OpenMPT {} ({} ({}))")
+	errorMessage += MPT_UFORMAT("OpenMPT {} {} ({} ({}))")
 		( Build::GetVersionStringExtended()
+		, mpt::OS::Windows::Name(mpt::OS::Windows::GetProcessArchitecture())
 		, SourceInfo::Current().GetUrlWithRevision()
 		, SourceInfo::Current().GetStateString()
 		);
@@ -316,18 +318,38 @@ void DebugReporter::ReportError(mpt::ustring errorMessage)
 		mpt::SafeOutputFile sf(crashDirectory.path + P_("error.txt"), std::ios::binary, mpt::FlushMode::Full);
 		mpt::ofstream& f = sf;
 		f.imbue(std::locale::classic());
-		f << mpt::String::Replace(mpt::ToCharset(mpt::Charset::UTF8, errorMessage), "\n", "\r\n");
+		f << mpt::replace(mpt::ToCharset(mpt::Charset::UTF8, errorMessage), std::string("\n"), std::string("\r\n"));
+	}
+
+	if(auto ih = CMainFrame::GetInputHandler(); ih != nullptr)
+	{
+		mpt::SafeOutputFile sf(crashDirectory.path + P_("last-commands.txt"), std::ios::binary, mpt::FlushMode::Full);
+		mpt::ofstream &f = sf;
+		f.imbue(std::locale::classic());
+
+		const auto commandSet = ih->m_activeCommandSet.get();
+		f << "Last commands:\n";
+		for(size_t i = 0; i < ih->m_lastCommands.size(); i++)
+		{
+			CommandID id = ih->m_lastCommands[(ih->m_lastCommandPos + i) % ih->m_lastCommands.size()];
+			if(id == kcNull)
+				continue;
+			f << mpt::afmt::val(id);
+			if(commandSet)
+				f << " (" << mpt::ToCharset(mpt::Charset::UTF8, commandSet->GetCommandText(id)) << ")";
+			f << "\n";
+		}
 	}
 
 	{
 		mpt::SafeOutputFile sf(crashDirectory.path + P_("threads.txt"), std::ios::binary, mpt::FlushMode::Full);
 		mpt::ofstream& f = sf;
 		f.imbue(std::locale::classic());
-		f << MPT_FORMAT("current : {}")(mpt::fmt::hex0<8>(GetCurrentThreadId())) << "\r\n";
-		f << MPT_FORMAT("GUI     : {}")(mpt::fmt::hex0<8>(mpt::log::Trace::GetThreadId(mpt::log::Trace::ThreadKindGUI))) << "\r\n";
-		f << MPT_FORMAT("Audio   : {}")(mpt::fmt::hex0<8>(mpt::log::Trace::GetThreadId(mpt::log::Trace::ThreadKindAudio))) << "\r\n";
-		f << MPT_FORMAT("Notify  : {}")(mpt::fmt::hex0<8>(mpt::log::Trace::GetThreadId(mpt::log::Trace::ThreadKindNotify))) << "\r\n";
-		f << MPT_FORMAT("WatchDir: {}")(mpt::fmt::hex0<8>(mpt::log::Trace::GetThreadId(mpt::log::Trace::ThreadKindWatchdir))) << "\r\n";
+		f << MPT_AFORMAT("current : {}")(mpt::afmt::hex0<8>(GetCurrentThreadId())) << "\r\n";
+		f << MPT_AFORMAT("GUI     : {}")(mpt::afmt::hex0<8>(mpt::log::Trace::GetThreadId(mpt::log::Trace::ThreadKindGUI))) << "\r\n";
+		f << MPT_AFORMAT("Audio   : {}")(mpt::afmt::hex0<8>(mpt::log::Trace::GetThreadId(mpt::log::Trace::ThreadKindAudio))) << "\r\n";
+		f << MPT_AFORMAT("Notify  : {}")(mpt::afmt::hex0<8>(mpt::log::Trace::GetThreadId(mpt::log::Trace::ThreadKindNotify))) << "\r\n";
+		f << MPT_AFORMAT("WatchDir: {}")(mpt::afmt::hex0<8>(mpt::log::Trace::GetThreadId(mpt::log::Trace::ThreadKindWatchdir))) << "\r\n";
 	}
 
 	static constexpr struct { const mpt::uchar * section; const mpt::uchar * key; } configAnonymize[] =
@@ -718,6 +740,7 @@ void ExceptionHandler::Register()
 
 void ExceptionHandler::ConfigureSystemHandler()
 {
+#if (_WIN32_WINNT >= 0x0600)
 	if(delegateToWindowsHandler)
 	{
 		//SetErrorMode(0);
@@ -726,6 +749,15 @@ void ExceptionHandler::ConfigureSystemHandler()
 	{
 		g_OriginalErrorMode = ::SetErrorMode(::GetErrorMode() | SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
 	}
+#else // _WIN32_WINNT < 0x0600
+	if(delegateToWindowsHandler)
+	{
+		g_OriginalErrorMode = ::SetErrorMode(0);
+	} else
+	{
+		g_OriginalErrorMode = ::SetErrorMode(::SetErrorMode(0) | SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
+	}
+#endif // _WIN32_WINNT
 }
 
 

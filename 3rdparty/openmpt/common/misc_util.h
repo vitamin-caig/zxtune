@@ -10,7 +10,10 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
+
+#include "mpt/base/span.hpp"
+#include "mpt/exception_text/exception_text.hpp"
 
 #include "mptAssert.h"
 #include "mptBaseMacros.h"
@@ -20,14 +23,9 @@
 
 // old
 #include "mptBaseUtils.h"
-#include "mptSpan.h"
-#include "mptMemory.h"
-#include "mptExceptionText.h"
 #include "mptStringFormat.h"
 #include "mptStringParse.h"
-#include "mptOS.h"
 #include "mptTime.h"
-#include "mptLibrary.h"
 
 #include <stdexcept>
 #include <optional>
@@ -38,11 +36,15 @@
 #include <stdlib.h>
 
 
+
 OPENMPT_NAMESPACE_BEGIN
+
 
 
 namespace Util
 {
+
+
 
 	// Insert a range of items [insStart,  insEnd], and possibly shift item fix to the left.
 	template<typename T>
@@ -109,12 +111,7 @@ namespace Util
 		}
 	}
 
-} // namespace Util
 
-
-
-namespace Util
-{
 
 	template<typename T, std::size_t n>
 	class fixed_size_queue
@@ -202,73 +199,23 @@ namespace Util
 		}
 	};
 
+
+
 } // namespace Util
 
 
-namespace Util
+
+#if MPT_OS_WINDOWS
+
+template <typename Tstring, typename Tbuf, typename Tsize>
+Tstring ParseMaybeNullTerminatedStringFromBufferWithSizeInBytes(const Tbuf *buf, Tsize sizeBytes)
 {
+	// REG_SZ may contain a single NUL terminator, multiple NUL terminators, or no NUL terminator at all
+	return Tstring(reinterpret_cast<const typename Tstring::value_type*>(buf), reinterpret_cast<const typename Tstring::value_type*>(buf) + (sizeBytes / sizeof(typename Tstring::value_type))).c_str();
+}
 
-std::vector<std::byte> HexToBin(const mpt::ustring &src);
-mpt::ustring BinToHex(mpt::const_byte_span src);
-template <typename T> inline mpt::ustring BinToHex(mpt::span<T> src) { return Util::BinToHex(mpt::byte_cast<mpt::const_byte_span>(src)); }
 
-class base64_parse_error : public std::runtime_error
-{
-public:
-	base64_parse_error()
-		: std::runtime_error("invalid Base64 encoding")
-	{
-	}
-};
-
-std::vector<std::byte> Base64ToBin(const mpt::ustring &src);
-mpt::ustring BinToBase64(mpt::const_byte_span src);
-template <typename T> inline mpt::ustring BinToBase64(mpt::span<T> src) { return Util::BinToBase64(mpt::byte_cast<mpt::const_byte_span>(src)); }
-
-std::vector<std::byte> Base64urlToBin(const mpt::ustring &src);
-mpt::ustring BinToBase64url(mpt::const_byte_span src);
-template <typename T> inline mpt::ustring BinToBase64url(mpt::span<T> src) { return Util::BinToBase64url(mpt::byte_cast<mpt::const_byte_span>(src)); }
-
-} // namespace Util
-
-namespace Util
-{
-
-template <typename T>
-class heap_value
-{
-private:
-	std::unique_ptr<T> m_value{};
-public:
-	template <typename ... Targs>
-	heap_value(Targs && ... args)
-		: m_value(std::make_unique<T>(std::forward<Targs>(args) ...))
-	{
-		return;
-	}
-	const T & value() const
-	{
-		return *m_value;
-	}
-	T & value()
-	{
-		return *m_value;
-	}
-};
-
-} // namespace Util
-
-#if defined(MODPLUG_TRACKER) || (defined(LIBOPENMPT_BUILD) && defined(LIBOPENMPT_BUILD_TEST))
-
-namespace mpt
-{
-
-// Wrapper around std::getenv.
-std::optional<mpt::ustring> getenv(const mpt::ustring &env_var);
-
-} // namespace mpt
-
-#endif // MODPLUG_TRACKER || (LIBOPENMPT_BUILD && LIBOPENMPT_BUILD_TEST)
+#endif // MPT_OS_WINDOWS
 
 
 OPENMPT_NAMESPACE_END

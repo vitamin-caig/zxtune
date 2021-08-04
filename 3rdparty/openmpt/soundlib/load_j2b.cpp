@@ -6,14 +6,15 @@
  *          It seems like no other game used the AM(FF) format.
  *          RIFF AM is the newer version of the format, generally following the RIFF "standard" closely.
  * Authors: Johannes Schultz (OpenMPT port, reverse engineering + loader implementation of the instrument format)
- *          Chris Moeller (foo_dumb - this is almost a complete port of his code, thanks)
+ *          kode54 (foo_dumb - this is almost a complete port of his code, thanks)
  * The OpenMPT source code is released under the BSD license. Read LICENSE for more details.
  */
 
 
 #include "stdafx.h"
 #include "Loaders.h"
-#include "ChunkReader.h"
+
+#include "mpt/io/base.hpp"
 
 #if defined(MPT_WITH_ZLIB)
 #include <zlib.h>
@@ -539,7 +540,7 @@ static bool ConvertAMPattern(FileReader chunk, PATTERNINDEX pat, bool isAM, CSou
 				} else
 				{
 #ifdef J2B_LOG
-					MPT_LOG(LogDebug, "J2B", MPT_UFORMAT("J2B: Unknown command: 0x{}, param 0x{}")(mpt::ufmt::HEX0<2>(command), mpt::ufmt::HEX0<2>(m.param)));
+					MPT_LOG_GLOBAL(LogDebug, "J2B", MPT_UFORMAT("J2B: Unknown command: 0x{}, param 0x{}")(mpt::ufmt::HEX0<2>(command), mpt::ufmt::HEX0<2>(m.param)));
 #endif
 					m.command = CMD_NONE;
 				}

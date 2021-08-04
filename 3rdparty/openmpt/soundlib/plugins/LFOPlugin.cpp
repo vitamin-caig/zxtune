@@ -1,11 +1,11 @@
 /*
-* LFOPlugin.cpp
-* -------------
-* Purpose: Plugin for automating other plugins' parameters
-* Notes  : (currently none)
-* Authors: OpenMPT Devs
-* The OpenMPT source code is released under the BSD license. Read LICENSE for more details.
-*/
+ * LFOPlugin.cpp
+ * -------------
+ * Purpose: Plugin for automating other plugins' parameters
+ * Notes  : (currently none)
+ * Authors: OpenMPT Devs
+ * The OpenMPT source code is released under the BSD license. Read LICENSE for more details.
+ */
 
 
 #include "stdafx.h"
@@ -17,6 +17,7 @@
 #ifdef MODPLUG_TRACKER
 #include "../../mptrack/plugins/LFOPluginEditor.h"
 #endif // MODPLUG_TRACKER
+#include "mpt/base/numbers.hpp"
 
 OPENMPT_NAMESPACE_BEGIN
 
@@ -28,20 +29,8 @@ IMixPlugin* LFOPlugin::Create(VSTPluginLib &factory, CSoundFile &sndFile, SNDMIX
 
 LFOPlugin::LFOPlugin(VSTPluginLib &factory, CSoundFile &sndFile, SNDMIXPLUGIN *mixStruct)
 	: IMixPlugin(factory, sndFile, mixStruct)
-	, m_nextRandom(0)
-	, m_tempo(0)
 	, m_PRNG(mpt::make_prng<mpt::fast_prng>(mpt::global_prng()))
 {
-	m_amplitude = 0.5f;
-	m_offset = 0.5f;
-	m_frequency = 0.290241f;
-	m_tempoSync = false;
-	m_waveForm = kSine;
-	m_polarity = false;
-	m_bypassed = false;
-	m_outputToCC = false;
-	m_outputParam = int32_max;
-	m_oneshot = false;
 	RecalculateFrequency();
 	RecalculateIncrement();
 
@@ -84,7 +73,7 @@ void LFOPlugin::Process(float *pOutL, float *pOutR, uint32 numFrames)
 		switch(m_waveForm)
 		{
 		case kSine:
-			value = std::sin(m_phase * 2.0 * M_PI);
+			value = std::sin(m_phase * (2.0 * mpt::numbers::pi));
 			break;
 		case kTriangle:
 			value = 1.0 - 4.0 * std::abs(m_phase - 0.5);
@@ -99,7 +88,7 @@ void LFOPlugin::Process(float *pOutL, float *pOutR, uint32 numFrames)
 			value = m_random;
 			break;
 		case kSmoothNoise:
-			value = m_phase * m_phase * m_phase * (m_phase * (m_phase * 6 - 15) + 10);	// Smootherstep
+			value = m_phase * m_phase * m_phase * (m_phase * (m_phase * 6 - 15) + 10);  // Smootherstep
 			value = m_nextRandom * value + m_random * (1.0 - value);
 			break;
 		default:
@@ -292,7 +281,7 @@ void LFOPlugin::SaveAllParameters()
 		return;
 
 	m_pMixStruct->defaultProgram = -1;
-	m_pMixStruct->pluginData.assign(chunk.cbegin(), chunk.cend());
+	m_pMixStruct->pluginData.assign(chunk.begin(), chunk.end());
 }
 
 
@@ -306,9 +295,9 @@ struct PluginData
 {
 	char     magic[4];
 	uint32le version;
-	uint32le amplitude;	// float
-	uint32le offset;	// float
-	uint32le frequency;	// float
+	uint32le amplitude;  // float
+	uint32le offset;     // float
+	uint32le frequency;  // float
 	uint32le waveForm;
 	uint32le outputParam;
 	uint8le  tempoSync;
@@ -362,11 +351,20 @@ void LFOPlugin::SetChunk(const ChunkData &chunk, bool)
 		m_bypassed = data.bypassed != 0;
 		m_outputToCC = data.outputToCC != 0;
 		m_oneshot = data.loopMode != 0;
+		RecalculateFrequency();
 	}
 }
 
 
 #ifdef MODPLUG_TRACKER
+
+std::pair<PlugParamValue, PlugParamValue> LFOPlugin::GetParamUIRange(PlugParamIndex param)
+{
+	if(param == kWaveform)
+		return {0.0f, WaveformToParam(static_cast<LFOWaveform>(kNumWaveforms - 1))};
+	else
+		return {0.0f, 1.0f};
+}
 
 CString LFOPlugin::GetParamName(PlugParamIndex param)
 {
@@ -470,7 +468,7 @@ void LFOPlugin::RecalculateFrequency()
 	{
 		if(m_computedFrequency > 0.00045)
 		{
-			double freqLog = std::log(m_computedFrequency) / M_LN2;
+			double freqLog = std::log(m_computedFrequency) / mpt::numbers::ln2;
 			double freqFrac = freqLog - std::floor(freqLog);
 			freqLog -= freqFrac;
 

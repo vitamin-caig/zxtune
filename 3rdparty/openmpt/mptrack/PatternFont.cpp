@@ -390,6 +390,7 @@ void PatternFont::UpdateFont(HWND hwnd)
 	DrawChar(hDC, '-', pf.nAlphaAM_X, pf.nAlphaAM_Y + 15 * charHeight, charWidth, charHeight);
 	DrawChar(hDC, ':', pf.nAlphaNZ_X, pf.nAlphaNZ_Y + 15 * charHeight, charWidth, charHeight);
 	DrawChar(hDC, '+', pf.nAlphaAM_X, pf.nAlphaAM_Y + 16 * charHeight, charWidth, charHeight);
+	DrawChar(hDC, '*', pf.nAlphaNZ_X, pf.nAlphaNZ_Y + 16 * charHeight, charWidth, charHeight);
 	DrawChar(hDC, 'd', pf.nAlphaAM_X, pf.nAlphaAM_Y + 17 * charHeight, charWidth, charHeight);
 
 	::GdiFlush();
@@ -434,7 +435,7 @@ void PatternFont::UpdateFont(HWND hwnd)
 		}
 		HGDIOBJ oldBitmap = hDC.SelectObject(bitmap);
 
-		hDC.FillSolidRect(0, 0, pf.dibASCII->bmiHeader.biWidth, pf.dibASCII->bmiHeader.biHeight, RGB(0xFF, 0xFF, 0xFF));
+		hDC.FillSolidRect(0, 0, pf.dibASCII->bmiHeader.biWidth, -pf.dibASCII->bmiHeader.biHeight, RGB(0xFF, 0xFF, 0xFF));
 		hDC.SetTextColor(RGB(0x00, 0x00, 0x00));
 		hDC.SetBkColor(RGB(0xFF, 0xFF, 0xFF));
 		hDC.SetTextAlign(TA_TOP | TA_LEFT);

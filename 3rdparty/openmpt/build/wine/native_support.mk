@@ -79,7 +79,7 @@ MPT_TRY_PORTAUDIO?=1
 MPT_TRY_PULSEAUDIO?=1
 MPT_TRY_RTAUDIO?=1
 
-CPPFLAGS += $(MPT_ARCH_TARGET) -Icommon -Iinclude/nlohmann-json/include -Iinclude
+CPPFLAGS += $(MPT_ARCH_TARGET) -Icommon -Isrc -Iinclude/nlohmann-json/include -Iinclude
 CXXFLAGS += $(MPT_ARCH_TARGET) -std=gnu++17 -fpermissive -fPIC -fvisibility=hidden
 CFLAGS   += $(MPT_ARCH_TARGET) -std=c99                  -fPIC -fvisibility=hidden
 LDFLAGS  += $(MPT_ARCH_TARGET) 
@@ -215,14 +215,14 @@ all: libopenmpt_native_support.so
 	$(SILENT)$(CCACHE) $(MPT_TARGET)$(COMPILE.c) -DMODPLUG_TRACKER -DMPT_BUILD_WINESUPPORT -DMPT_WITH_NLOHMANNJSON $(OUTPUT_OPTION) $<
 
 COMMON_CXX_SOURCES += $(wildcard common/*.cpp)
-SOUNDBASE_CXX_SOURCES += $(wildcard soundbase/*.cpp)
-SOUNDDEV_CXX_SOURCES += $(wildcard sounddev/*.cpp)
+MISC_CXX_SOURCES += $(wildcard misc/*.cpp)
+SOUNDDEVICE_CXX_SOURCES += $(wildcard src/openmpt/sounddevice/*.cpp)
 WINESUPPORT_CXX_SOURCES += $(wildcard mptrack/wine/*.cpp)
 
 OPENMPT_WINESUPPORT_CXX_SOURCES += \
  $(COMMON_CXX_SOURCES) \
- $(SOUNDBASE_CXX_SOURCES) \
- $(SOUNDDEV_CXX_SOURCES) \
+ $(MISC_CXX_SOURCES) \
+ $(SOUNDDEVICE_CXX_SOURCES) \
  $(WINESUPPORT_CXX_SOURCES) \
  
 OPENMPT_WINESUPPORT_C_SOURCES += \

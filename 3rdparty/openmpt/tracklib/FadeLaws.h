@@ -9,8 +9,9 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
+#include "mpt/base/numbers.hpp"
 #include <cmath>
 
 OPENMPT_NAMESPACE_BEGIN
@@ -30,20 +31,20 @@ namespace Fade
 	// Maps fade curve position in [0,1] to value in [0,1]
 	typedef double (*Func) (double pos);
 
-	static double LinearFunc(double pos)
+	inline double LinearFunc(double pos)
 		{ return pos; }
-	static double PowFunc(double pos)
+	inline double PowFunc(double pos)
 		{ return pos * pos; }
-	static double SqrtFunc(double pos)
+	inline double SqrtFunc(double pos)
 		{ return std::sqrt(pos); }
-	static double LogFunc(double pos)
+	inline double LogFunc(double pos)
 		{ return std::log10(1.0 + pos * 99.0) * 0.5; }
-	static double QuarterSineFunc(double pos)
-		{ return std::sin(M_PI_2 * pos); }
-	static double HalfSineFunc(double pos)
-		{ return (1.0 + std::cos(M_PI + M_PI * pos)) * 0.5; }
+	inline double QuarterSineFunc(double pos)
+		{ return std::sin((0.5 * mpt::numbers::pi) * pos); }
+	inline double HalfSineFunc(double pos)
+		{ return (1.0 + std::cos(mpt::numbers::pi + mpt::numbers::pi * pos)) * 0.5; }
 
-	static Func GetFadeFunc(Law fadeLaw)
+	inline Func GetFadeFunc(Law fadeLaw)
 	{
 		switch(fadeLaw)
 		{

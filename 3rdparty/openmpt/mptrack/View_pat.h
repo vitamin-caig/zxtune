@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "Globals.h"
 #include "PatternCursor.h"
@@ -60,7 +60,7 @@ public:
 
 
 // Edit Step aka Row Spacing
-static constexpr ROWINDEX MAX_SPACING = MAX_PATTERN_ROWS;
+inline constexpr ROWINDEX MAX_SPACING = MAX_PATTERN_ROWS;
 
 
 // Struct for controlling selection clearing. This is used to define which data fields should be cleared.
@@ -453,9 +453,10 @@ protected:
 	afx_msg void OnTransposeCustom();
 	afx_msg void OnTransposeCustomQuick();
 	afx_msg void OnSetSelInstrument();
-	afx_msg void OnAddChannelFront() { AddChannelBefore(m_MenuCursor.GetChannel()); }
-	afx_msg void OnAddChannelAfter() { AddChannelBefore(m_MenuCursor.GetChannel() + 1); };
+	afx_msg void OnAddChannelFront() { AddChannel(m_MenuCursor.GetChannel(), false); }
+	afx_msg void OnAddChannelAfter() { AddChannel(m_MenuCursor.GetChannel(), true); };
 	afx_msg void OnDuplicateChannel();
+	afx_msg void OnResetChannelColors();
 	afx_msg void OnTransposeChannel();
 	afx_msg void OnRemoveChannel();
 	afx_msg void OnRemoveChannelDialog();
@@ -556,7 +557,7 @@ private:
 	void PatternStep(ROWINDEX row = ROWINDEX_INVALID);
 
 	// Add a channel.
-	void AddChannelBefore(CHANNELINDEX nBefore);
+	void AddChannel(CHANNELINDEX parent, bool afterCurrent);
 
 	void DragChannel(CHANNELINDEX source, CHANNELINDEX target, CHANNELINDEX numChannels, bool duplicate);
 

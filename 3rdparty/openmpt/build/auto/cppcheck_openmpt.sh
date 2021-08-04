@@ -4,7 +4,7 @@
 
 set -e
 
-CPPCHECK_INCLUDES="-Iinclude -Iinclude/vstsdk2.4 -Iinclude/ASIOSDK2/common -Iinclude/flac/include -Iinclude/lame/include -Iinclude/lhasa/lib/public -Iinclude/mpg123/ports/MSVC++ -Iinclude/mpg123/src/libmpg123 -Iinclude/ogg/include -Iinclude/opus/include -Iinclude/opusenc/include -Iinclude/opusfile/include -Iinclude/portaudio/include -Iinclude/rtaudio -Iinclude/vorbis/include -Iinclude/zlib -Icommon -Isoundlib -Ibuild/svn_version"
+CPPCHECK_INCLUDES="-Isrc -Iinclude -Iinclude/vstsdk2.4 -Iinclude/ASIOSDK2/common -Iinclude/flac/include -Iinclude/lame/include -Iinclude/lhasa/lib/public -Iinclude/mpg123/ports/MSVC++ -Iinclude/mpg123/src/libmpg123 -Iinclude/ogg/include -Iinclude/opus/include -Iinclude/opusenc/include -Iinclude/opusfile/include -Iinclude/portaudio/include -Iinclude/rtaudio -Iinclude/vorbis/include -Iinclude/zlib -Icommon -Isoundlib -Ibuild/svn_version"
 
 CPPCHECK_DEFINES="-DMODPLUG_TRACKER -DMPT_BUILD_MSVC -DMPT_BUILD_MSVC_STATIC"
 
@@ -32,6 +32,6 @@ NPROC=$(nproc)
 echo "Platform: $CPPCHECK_PLATFORM"
 
 echo "Checking config ..."
-cppcheck -j $NPROC -DCPPCHECK -DMPT_CPPCHECK_CUSTOM $CPPCHECK_PLATFORM --std=c99 --std=c++17 --library=mfc.cfg --library=build/cppcheck/nlohmann-json.cfg --suppressions-list=build/cppcheck/nlohmann-json.suppressions.txt --suppressions-list=build/cppcheck/r8brain.suppressions.txt --enable=warning --inline-suppr --template='{file}:{line}: warning: {severity}: {message} [{id}]' --suppress=missingIncludeSystem $CPPCHECK_OPTIONS $CPPCHECK_DEFINES $CPPCHECK_INCLUDES --check-config --suppress=unmatchedSuppression $CPPCHECK_FILES
+cppcheck -j $NPROC -DCPPCHECK -DMPT_CPPCHECK_CUSTOM $CPPCHECK_PLATFORM --std=c99 --std=c++17 --library=mfc.cfg --library=build/cppcheck/nlohmann-json.cfg --suppressions-list=build/cppcheck/nlohmann-json.suppressions.txt --suppressions-list=build/cppcheck/r8brain.suppressions.txt --enable=warning --inline-suppr --template='{file}:{line}: warning: {severity}: {message} [{id}]' --suppress=missingIncludeSystem --suppress=uninitMemberVar $CPPCHECK_OPTIONS $CPPCHECK_DEFINES $CPPCHECK_INCLUDES --check-config --suppress=unmatchedSuppression $CPPCHECK_FILES
 echo "Checking C++ ..."
-cppcheck -j $NPROC -DCPPCHECK -DMPT_CPPCHECK_CUSTOM $CPPCHECK_PLATFORM --std=c99 --std=c++17 --library=mfc.cfg --library=build/cppcheck/nlohmann-json.cfg --suppressions-list=build/cppcheck/nlohmann-json.suppressions.txt --suppressions-list=build/cppcheck/r8brain.suppressions.txt --enable=warning --inline-suppr --template='{file}:{line}: warning: {severity}: {message} [{id}]' --suppress=missingIncludeSystem $CPPCHECK_OPTIONS $CPPCHECK_DEFINES $CPPCHECK_INCLUDES $CPPCHECK_FILES
+cppcheck -j $NPROC -DCPPCHECK -DMPT_CPPCHECK_CUSTOM $CPPCHECK_PLATFORM --std=c99 --std=c++17 --library=mfc.cfg --library=build/cppcheck/nlohmann-json.cfg --suppressions-list=build/cppcheck/nlohmann-json.suppressions.txt --suppressions-list=build/cppcheck/r8brain.suppressions.txt --enable=warning --inline-suppr --template='{file}:{line}: warning: {severity}: {message} [{id}]' --suppress=missingIncludeSystem --suppress=uninitMemberVar $CPPCHECK_OPTIONS $CPPCHECK_DEFINES $CPPCHECK_INCLUDES $CPPCHECK_FILES

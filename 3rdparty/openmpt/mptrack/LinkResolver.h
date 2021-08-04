@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 #include "../common/mptPathString.h"
 
 #include <ShObjIdl.h>

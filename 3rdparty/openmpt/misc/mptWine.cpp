@@ -11,7 +11,7 @@
 #include "stdafx.h"
 #include "mptWine.h"
 
-#include "../common/mptOS.h"
+#include "mptOS.h"
 #include "../common/mptFileIO.h"
 
 #include <deque>
@@ -25,7 +25,7 @@
 OPENMPT_NAMESPACE_BEGIN
 
 
-#if defined(MODPLUG_TRACKER) && MPT_OS_WINDOWS
+#if MPT_OS_WINDOWS
 
 
 namespace mpt
@@ -48,16 +48,16 @@ Context::Context(mpt::OS::Wine::VersionContext versionContext)
 	{
 		throw mpt::Wine::Exception("Unknown Wine version detected.");
 	}
-	m_Kernel32 = mpt::Library(mpt::LibraryPath::FullPath(P_("kernel32.dll")));
-	if(!m_Kernel32.IsValid())
+	m_Kernel32 = std::make_shared<std::optional<mpt::library>>(mpt::library::load({ mpt::library::path_search::system, mpt::library::path_prefix::none, MPT_PATH("kernel32.dll"), mpt::library::path_suffix::none }));
+	if(!m_Kernel32->has_value())
 	{
 		throw mpt::Wine::Exception("Could not load Wine kernel32.dll.");
 	}
-	if(!m_Kernel32.Bind(wine_get_unix_file_name, "wine_get_unix_file_name"))
+	if(!(*m_Kernel32)->bind(wine_get_unix_file_name, "wine_get_unix_file_name"))
 	{
 		throw mpt::Wine::Exception("Could not bind Wine kernel32.dll:wine_get_unix_file_name.");
 	}
-	if(!m_Kernel32.Bind(wine_get_dos_file_name, "wine_get_dos_file_name"))
+	if(!(*m_Kernel32)->bind(wine_get_dos_file_name, "wine_get_dos_file_name"))
 	{
 		throw mpt::Wine::Exception("Could not bind Wine kernel32.dll:wine_get_dos_file_name.");
 	}
@@ -74,7 +74,7 @@ Context::Context(mpt::OS::Wine::VersionContext versionContext)
 			{
 				throw mpt::Wine::Exception("Wine 'uname -m' failed.");
 			}
-			out = mpt::String::Trim(out, std::string("\r\n"));
+			out = mpt::trim(out, std::string("\r\n"));
 			m_Uname_m = out;
 		} catch(const std::exception &)
 		{
@@ -189,7 +189,7 @@ std::string Context::PathToPosixCanonical(mpt::PathString windowsPath)
 	{
 		throw mpt::Wine::Exception("Wine readlink failed.");
 	}
-	std::string trimmedOutput = mpt::String::Trim(output, std::string("\r\n"));
+	std::string trimmedOutput = mpt::trim(output, std::string("\r\n"));
 	result = trimmedOutput;
 	return result;
 }
@@ -212,14 +212,14 @@ std::string Context::EscapePosixShell(std::string line)
 {
 	const char escape_chars [] = { '|', '&', ';', '<', '>', '(', ')', '$', '`', '"', '\'', ' ', '\t' };
 	const char maybe_escape_chars [] = { '*', '?', '[', '#', '~', '=', '%' };
-	line = mpt::String::Replace(line, "\\", "\\\\");
+	line = mpt::replace(line, std::string("\\"), std::string("\\\\"));
 	for(char c : escape_chars)
 	{
-		line = mpt::String::Replace(line, std::string(1, c), "\\" + std::string(1, c));
+		line = mpt::replace(line, std::string(1, c), std::string("\\") + std::string(1, c));
 	}
 	for(char c : maybe_escape_chars)
 	{
-		line = mpt::String::Replace(line, std::string(1, c), "\\" + std::string(1, c));
+		line = mpt::replace(line, std::string(1, c), std::string("\\") + std::string(1, c));
 	}
 	return line;
 }
@@ -374,7 +374,7 @@ ExecResult Context::ExecutePosixShellScript(std::string script, FlagSet<ExecFlag
 		}
 		try
 		{
-			mpt::LazyFileRef out(dirWindows + P_("filetree") + P_("\\") + mpt::PathString::FromUTF8(mpt::String::Replace(file.first, "/", "\\")));
+			mpt::LazyFileRef out(dirWindows + P_("filetree") + P_("\\") + mpt::PathString::FromUTF8(mpt::replace(file.first, std::string("/"), std::string("\\"))));
 			out = file.second;
 		} catch(std::exception &)
 		{
@@ -442,12 +442,10 @@ ExecResult Context::ExecutePosixShellScript(std::string script, FlagSet<ExecFlag
 
 		std::wstring unixcommandW = mpt::ToWide(mpt::Charset::UTF8, unixcommand);
 		std::wstring titleW = mpt::ToWide(mpt::Charset::UTF8, title);
-		STARTUPINFOW startupInfo;
-		MemsetZero(startupInfo);
+		STARTUPINFOW startupInfo = {};
 		startupInfo.lpTitle = titleW.data();
 		startupInfo.cb = sizeof(startupInfo);
-		PROCESS_INFORMATION processInformation;
-		MemsetZero(processInformation);
+		PROCESS_INFORMATION processInformation = {};
 
 		progress(userdata);
 
@@ -512,12 +510,10 @@ ExecResult Context::ExecutePosixShellScript(std::string script, FlagSet<ExecFlag
 
 		std::wstring unixcommandW = mpt::ToWide(mpt::Charset::UTF8, unixcommand);
 		std::wstring titleW = mpt::ToWide(mpt::Charset::UTF8, title);
-		STARTUPINFOW startupInfo;
-		MemsetZero(startupInfo);
+		STARTUPINFOW startupInfo = {};
 		startupInfo.lpTitle = titleW.data();
 		startupInfo.cb = sizeof(startupInfo);
-		PROCESS_INFORMATION processInformation;
-		MemsetZero(processInformation);
+		PROCESS_INFORMATION processInformation = {};
 
 		progress(userdata);
 
@@ -653,8 +649,7 @@ ExecResult Context::ExecutePosixShellScript(std::string script, FlagSet<ExecFlag
 		paths.pop_front();
 		path.EnsureTrailingSlash();
 		HANDLE hFind = NULL;
-		WIN32_FIND_DATA wfd;
-		MemsetZero(wfd);
+		WIN32_FIND_DATA wfd = {};
 		hFind = FindFirstFile((path + P_("*.*")).AsNative().c_str(), &wfd);
 		if(hFind != NULL && hFind != INVALID_HANDLE_VALUE)
 		{
@@ -730,7 +725,7 @@ std::string Context::GetPosixEnvVar(std::string var, std::string def)
 	{
 		throw mpt::Wine::Exception("Wine echo $var failed.");
 	}
-	std::string result = mpt::String::RTrim(output, std::string("\r\n"));
+	std::string result = mpt::trim_right(output, std::string("\r\n"));
 	if(result.empty())
 	{
 		result = def;
@@ -743,13 +738,13 @@ std::string Context::GetPosixEnvVar(std::string var, std::string def)
 } // namespace mpt
 
 
-#else // !(MODPLUG_TRACKER && MPT_OS_WINDOWS)
+#else // !MPT_OS_WINDOWS
 
 
 MPT_MSVC_WORKAROUND_LNK4221(mptWine)
 
 
-#endif // MODPLUG_TRACKER && MPT_OS_WINDOWS
+#endif // MPT_OS_WINDOWS
 
 
 OPENMPT_NAMESPACE_END

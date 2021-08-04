@@ -16,12 +16,12 @@
 #include "../common/misc_util.h"
 #include "Tagging.h"
 #include "Loaders.h"
-#include "ChunkReader.h"
+#include "../common/FileReader.h"
 #include "modsmp_ctrl.h"
-#include "../soundbase/SampleFormatConverters.h"
-#include "../soundbase/SampleFormatCopy.h"
+#include "openmpt/soundbase/Copy.hpp"
+#include "mpt/audio/span.hpp"
 #include "../soundlib/ModSampleCopy.h"
-//#include "../common/mptCRC.h"
+//#include "mpt/crc/crc.hpp"
 #include "OggStream.h"
 #ifdef MPT_WITH_OGG
 #if MPT_COMPILER_CLANG
@@ -232,10 +232,7 @@ bool CSoundFile::ReadVorbisSample(SAMPLEINDEX sample, FileReader &file)
 						if(decodedSamples > 0 && (channels == 1 || channels == 2))
 						{
 							raw_sample_data.resize(raw_sample_data.size() + (channels * decodedSamples));
-							for(int chn = 0; chn < channels; chn++)
-							{
-								CopyChannelToInterleaved<SC::Convert<int16, float> >(&(raw_sample_data[0]) + offset * channels, output[chn], channels, decodedSamples, chn);
-							}
+							CopyAudio(mpt::audio_span_interleaved(raw_sample_data.data() + (offset * channels), channels, decodedSamples), mpt::audio_span_planar(output, channels, decodedSamples));
 							offset += decodedSamples;
 							if((raw_sample_data.size() / channels) > MAX_SAMPLE_LENGTH)
 							{
@@ -271,7 +268,7 @@ bool CSoundFile::ReadVorbisSample(SAMPLEINDEX sample, FileReader &file)
 	// means that, for remuxed and re-aligned/cutted (at stream start) Vorbis
 	// files, stb_vorbis will include superfluous samples at the beginning.
 
-	FileReader::PinnedRawDataView fileView = file.GetPinnedRawDataView();
+	FileReader::PinnedView fileView = file.GetPinnedView();
 	const std::byte* data = fileView.data();
 	std::size_t dataLeft = fileView.size();
 
@@ -305,10 +302,7 @@ bool CSoundFile::ReadVorbisSample(SAMPLEINDEX sample, FileReader &file)
 		if(decodedSamples > 0 && (frame_channels == 1 || frame_channels == 2))
 		{
 			raw_sample_data.resize(raw_sample_data.size() + (channels * decodedSamples));
-			for(int chn = 0; chn < frame_channels; chn++)
-			{
-				CopyChannelToInterleaved<SC::Convert<int16, float> >(&(raw_sample_data[0]) + offset * channels, output[chn], channels, decodedSamples, chn);
-			}
+			CopyAudio(mpt::audio_span_interleaved(raw_sample_data.data() + (offset * channels), channels, decodedSamples), mpt::audio_span_planar(output, channels, decodedSamples));
 			offset += decodedSamples;
 			if((raw_sample_data.size() / channels) > MAX_SAMPLE_LENGTH)
 			{
@@ -364,25 +358,6 @@ bool CSoundFile::ReadVorbisSample(SAMPLEINDEX sample, FileReader &file)
 
 #endif // VORBIS
 
-}
-
-
-bool CSoundFile::CanReadVorbis()
-{
-	bool result = false;
-	#if defined(MPT_WITH_OGG) && defined(MPT_WITH_VORBIS) && defined(MPT_WITH_VORBISFILE)
-		if(!result)
-		{
-			result = true;
-		}
-	#endif
-	#if defined(MPT_WITH_STBVORBIS)
-		if(!result)
-		{
-			result = true;
-		}
-	#endif
-	return result;
 }
 
 

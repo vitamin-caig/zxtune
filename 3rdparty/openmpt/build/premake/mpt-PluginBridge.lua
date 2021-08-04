@@ -15,11 +15,16 @@
 		sysincludedirs ( extincludedirs )
 	filter {}
   includedirs {
+   "../../src",
    "../../common",
    "$(IntDir)/svn_version",
    "../../build/svn_version",
   }
   files {
+   "../../src/mpt/**.cpp",
+   "../../src/mpt/**.hpp",
+   "../../src/openmpt/**.cpp",
+   "../../src/openmpt/**.hpp",
    "../../pluginBridge/AEffectWrapper.h",
    "../../pluginBridge/Bridge.cpp",
    "../../pluginBridge/Bridge.h",
@@ -28,6 +33,12 @@
    "../../misc/WriteMemoryDump.h",
    "../../common/versionNumber.h",
   }
+	excludes {
+		"../../src/openmpt/soundbase/**.cpp",
+		"../../src/openmpt/soundbase/**.hpp",
+		"../../src/openmpt/sounddevice/**.cpp",
+		"../../src/openmpt/sounddevice/**.hpp",
+	}
   files {
    "../../pluginBridge/PluginBridge.rc",
   }
@@ -75,11 +86,16 @@
 		sysincludedirs ( extincludedirs )
 	filter {}
   includedirs {
+   "../../src",
    "../../common",
    "$(IntDir)/svn_version",
    "../../build/svn_version",
   }
   files {
+   "../../src/mpt/**.cpp",
+   "../../src/mpt/**.hpp",
+   "../../src/openmpt/**.cpp",
+   "../../src/openmpt/**.hpp",
    "../../pluginBridge/AEffectWrapper.h",
    "../../pluginBridge/Bridge.cpp",
    "../../pluginBridge/Bridge.h",
@@ -88,6 +104,12 @@
    "../../misc/WriteMemoryDump.h",
    "../../common/versionNumber.h",
   }
+	excludes {
+		"../../src/openmpt/soundbase/**.cpp",
+		"../../src/openmpt/soundbase/**.hpp",
+		"../../src/openmpt/sounddevice/**.cpp",
+		"../../src/openmpt/sounddevice/**.hpp",
+	}
   files {
    "../../pluginBridge/PluginBridge.rc",
   }

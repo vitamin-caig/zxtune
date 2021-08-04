@@ -13,6 +13,8 @@
 
 #include "Settings.h"
 
+#include "mpt/binary/hex.hpp"
+
 #include "../common/misc_util.h"
 #include "../common/mptStringBuffer.h"
 #include "Mptrack.h"
@@ -79,7 +81,7 @@ mpt::ustring SettingValue::FormatValueAsString() const
 			return as<mpt::ustring>();
 			break;
 		case SettingTypeBinary:
-			return Util::BinToHex(mpt::as_span(as<std::vector<std::byte>>()));
+			return mpt::encode_hex(mpt::as_span(as<std::vector<std::byte>>()));
 			break;
 		case SettingTypeNone:
 		default:
@@ -106,7 +108,7 @@ void SettingValue::SetFromString(const AnyStringLocale &newVal)
 			value = newVal;
 			break;
 		case SettingTypeBinary:
-			value = Util::HexToBin(newVal);
+			value = mpt::decode_hex(newVal);
 			break;
 		case SettingTypeNone:
 		default:
@@ -308,7 +310,7 @@ mpt::ustring IniFileSettingsBackend::ReadSettingRaw(const SettingPath &path, con
 		{
 			return def;
 		}
-		buf.resize(Util::ExponentialGrow(buf.size(), std::numeric_limits<DWORD>::max()));
+		buf.resize(mpt::exponential_grow(buf.size(), std::numeric_limits<DWORD>::max()));
 	}
 	return mpt::ToUnicode(mpt::winstring(buf.data()));
 }
@@ -322,7 +324,7 @@ double IniFileSettingsBackend::ReadSettingRaw(const SettingPath &path, double de
 		{
 			return def;
 		}
-		buf.resize(Util::ExponentialGrow(buf.size(), std::numeric_limits<DWORD>::max()));
+		buf.resize(mpt::exponential_grow(buf.size(), std::numeric_limits<DWORD>::max()));
 	}
 	return ConvertStrTo<double>(mpt::winstring(buf.data()));
 }

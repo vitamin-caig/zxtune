@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
-#include "../../common/mptMutex.h"
+#include "mpt/mutex/mutex.hpp"
 #include "../../common/mptTime.h"
 #include "../../soundlib/plugins/PlugInterface.h"
 #include <rtmidi/RtMidi.h>

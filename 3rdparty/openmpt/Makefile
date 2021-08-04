@@ -2,7 +2,7 @@ library_name := openmpt
 dirs.root := ../..
 include $(dirs.root)/make/default.mak
 
-includes.dirs += common . build/svn_version
+includes.dirs += common . build/svn_version src
 
 source_files += $(addprefix libopenmpt/,\
                   libopenmpt_cxx libopenmpt_impl libopenmpt_ext_impl)
@@ -16,7 +16,7 @@ source_files += $(addprefix soundlib/,\
                   OggStream OPL Paula RowVisitor \
                   SampleIO SampleFormats $(addprefix SampleFormat,BRR FLAC MediaFoundation MP3 Opus SFZ Vorbis) \
                   SoundFilePlayConfig Sndfile Sndmix Snd_flt Snd_fx Tables \
-                  $(addprefix Load_,669 amf ams c67 dbm digi dmf dsm dtm far fmt gdm imf it itp mdl med mo3 mod mt2 mtm mus_km okt plm psm ptm s3m sfx stm stp ult xm) \
+                  $(addprefix Load_,669 amf ams c67 dbm digi dmf dsm dsym dtm far fmt gdm imf it itp mdl med mo3 mod mt2 mtm mus_km okt plm psm ptm s3m sfx stm stp symmod ult xm) \
                   load_j2b \
                   TinyFFT WindowedFIR WAVTools Tagging \
                   )
@@ -24,7 +24,7 @@ source_files += $(addprefix soundlib/,\
 source_files += $(addprefix sounddsp/,Reverb)
 
 source_files += $(addprefix common/,\
-                  Logging mptIO mptPathString mptRandom mptString mptStringBuffer mptStringFormat mptStringParse mptTime mptUUID \
+                  Logging mptPathString mptRandom mptString mptStringBuffer mptStringFormat mptStringParse mptTime \
                   serialization_utils version)
 
 source_files := $(addsuffix .cpp,$(source_files))

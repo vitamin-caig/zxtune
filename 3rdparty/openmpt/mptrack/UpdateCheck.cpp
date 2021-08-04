@@ -10,6 +10,7 @@
 
 #include "stdafx.h"
 #include "UpdateCheck.h"
+#include "mpt/binary/hex.hpp"
 #include "BuildVariants.h"
 #include "../common/version.h"
 #include "../common/misc_util.h"
@@ -18,19 +19,23 @@
 #include "TrackerSettings.h"
 // Setup dialog stuff
 #include "Mainfrm.h"
-#include "../common/mptThread.h"
-#include "../common/mptOSError.h"
-#include "../misc/mptCrypto.h"
+#include "mpt/system_error/system_error.hpp"
+#include "mpt/crypto/hash.hpp"
+#include "mpt/crypto/jwk.hpp"
 #include "HTTP.h"
-#include "../misc/JSON.h"
+#include "mpt/json/json.hpp"
 #include "dlg_misc.h"
-#include "../sounddev/SoundDeviceManager.h"
+#include "openmpt/sounddevice/SoundDeviceManager.hpp"
 #include "ProgressDialog.h"
 #include "Moddoc.h"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 
 
 OPENMPT_NAMESPACE_BEGIN
 
+
+#if defined(MPT_ENABLE_UPDATE)
 
 
 namespace Update {
@@ -163,17 +168,18 @@ static bool IsArchitectureFeatureSupported(const mpt::ustring &architecture, con
 {
 	MPT_UNUSED_VARIABLE(architecture);
 	#ifdef ENABLE_ASM
+		const CPU::Info CPUInfo = CPU::Info::Get();
 		if(feature == U_("")) return true;
-		else if(feature == U_("lm")) return (CPU::GetAvailableFeatures() & CPU::feature::lm) != 0;
-		else if(feature == U_("mmx")) return (CPU::GetAvailableFeatures() & CPU::feature::mmx) != 0;
-		else if(feature == U_("sse")) return (CPU::GetAvailableFeatures() & CPU::feature::sse) != 0;
-		else if(feature == U_("sse2")) return (CPU::GetAvailableFeatures() & CPU::feature::sse2) != 0;
-		else if(feature == U_("sse3")) return (CPU::GetAvailableFeatures() & CPU::feature::sse3) != 0;
-		else if(feature == U_("ssse3")) return (CPU::GetAvailableFeatures() & CPU::feature::ssse3) != 0;
-		else if(feature == U_("sse4.1")) return (CPU::GetAvailableFeatures() & CPU::feature::sse4_1) != 0;
-		else if(feature == U_("sse4.2")) return (CPU::GetAvailableFeatures() & CPU::feature::sse4_2) != 0;
-		else if(feature == U_("avx")) return (CPU::GetAvailableFeatures() & CPU::feature::avx) != 0;
-		else if(feature == U_("avx2")) return (CPU::GetAvailableFeatures() & CPU::feature::avx2) != 0;
+		else if(feature == U_("lm")) return (CPUInfo.AvailableFeatures & CPU::feature::lm) != 0;
+		else if(feature == U_("mmx")) return (CPUInfo.AvailableFeatures & CPU::feature::mmx) != 0;
+		else if(feature == U_("sse")) return (CPUInfo.AvailableFeatures & CPU::feature::sse) != 0;
+		else if(feature == U_("sse2")) return (CPUInfo.AvailableFeatures & CPU::feature::sse2) != 0;
+		else if(feature == U_("sse3")) return (CPUInfo.AvailableFeatures & CPU::feature::sse3) != 0;
+		else if(feature == U_("ssse3")) return (CPUInfo.AvailableFeatures & CPU::feature::ssse3) != 0;
+		else if(feature == U_("sse4.1")) return (CPUInfo.AvailableFeatures & CPU::feature::sse4_1) != 0;
+		else if(feature == U_("sse4.2")) return (CPUInfo.AvailableFeatures & CPU::feature::sse4_2) != 0;
+		else if(feature == U_("avx")) return (CPUInfo.AvailableFeatures & CPU::feature::avx) != 0;
+		else if(feature == U_("avx2")) return (CPUInfo.AvailableFeatures & CPU::feature::avx2) != 0;
 		else return false;
 	#else
 		return true;
@@ -578,17 +584,19 @@ CUpdateCheck::ThreadFunc::ThreadFunc(const CUpdateCheck::Settings &settings, con
 
 void CUpdateCheck::ThreadFunc::operator () ()
 {
-	mpt::SetCurrentThreadPriority(context.autoUpdate ? mpt::ThreadPriorityLower : mpt::ThreadPriorityNormal);
+	SetThreadPriority(GetCurrentThread(), context.autoUpdate ? THREAD_PRIORITY_BELOW_NORMAL : THREAD_PRIORITY_NORMAL);
 	CheckForUpdate(settings, context);
 }
 
 
 std::string CUpdateCheck::GetStatisticsDataV3(const Settings &settings)
 {
-	JSON::value j;
+	nlohmann::json j;
 	j["OpenMPT"]["Version"] = mpt::ufmt::val(Version::Current());
+	j["OpenMPT"]["BuildVariant"] = BuildVariants().GetBuildVariantName(BuildVariants().GetBuildVariant());
 	j["OpenMPT"]["Architecture"] = mpt::OS::Windows::Name(mpt::OS::Windows::GetProcessArchitecture());
 	j["Update"]["PeriodDays"] = settings.periodDays;
+	j["Update"]["Channel"] = ((settings.channel == UpdateChannelRelease) ? U_("Release") : (settings.channel == UpdateChannelNext) ? U_("Next") : (settings.channel == UpdateChannelDevelopment) ? U_("Development") : U_(""));
 	j["System"]["Windows"]["Version"]["Name"] = mpt::OS::Windows::Version::Current().GetName();
 	j["System"]["Windows"]["Version"]["Major"] = mpt::OS::Windows::Version::Current().GetSystem().Major;
 	j["System"]["Windows"]["Version"]["Minor"] = mpt::OS::Windows::Version::Current().GetSystem().Minor;
@@ -597,7 +605,7 @@ std::string CUpdateCheck::GetStatisticsDataV3(const Settings &settings)
 	j["System"]["Windows"]["Build"] = mpt::OS::Windows::Version::Current().GetBuild();
 	j["System"]["Windows"]["Architecture"] = mpt::OS::Windows::Name(mpt::OS::Windows::GetHostArchitecture());
 	j["System"]["Windows"]["IsWine"] = mpt::OS::Windows::IsWine();
-	j["System"]["Windows"]["TypeRaw"] = MPT_FORMAT("0x{}")(mpt::fmt::HEX0<8>(mpt::OS::Windows::Version::Current().GetTypeId()));
+	j["System"]["Windows"]["TypeRaw"] = MPT_AFORMAT("0x{}")(mpt::afmt::HEX0<8>(mpt::OS::Windows::Version::Current().GetTypeId()));
 	std::vector<mpt::OS::Windows::Architecture> architectures = mpt::OS::Windows::GetSupportedProcessArchitectures(mpt::OS::Windows::GetHostArchitecture());
 	for(const auto & arch : architectures)
 	{
@@ -631,23 +639,23 @@ std::string CUpdateCheck::GetStatisticsDataV3(const Settings &settings)
 	j["OpenMPT"]["SoundDevice"]["Settings"]["UseHardwareTiming"] = deviceSettings.UseHardwareTiming;
 	j["OpenMPT"]["SoundDevice"]["Settings"]["KeepDeviceRunning"] = deviceSettings.KeepDeviceRunning;
 	#ifdef ENABLE_ASM
-		j["OpenMPT"]["cpuid"] = ((CPU::GetAvailableFeatures() & CPU::feature::cpuid) != 0);
-		j["System"]["Processor"]["Vendor"] = std::string(mpt::String::ReadAutoBuf(CPU::ProcVendorID));
-		j["System"]["Processor"]["Brand"] = std::string(mpt::String::ReadAutoBuf(CPU::ProcBrandID));
-		j["System"]["Processor"]["CpuidRaw"] = mpt::fmt::hex0<8>(CPU::ProcRawCPUID);
-		j["System"]["Processor"]["Id"]["Family"] = CPU::ProcFamily;
-		j["System"]["Processor"]["Id"]["Model"] = CPU::ProcModel;
-		j["System"]["Processor"]["Id"]["Stepping"] = CPU::ProcStepping;
-		j["System"]["Processor"]["Features"]["lm"] = ((CPU::GetAvailableFeatures() & CPU::feature::lm) != 0);
-		j["System"]["Processor"]["Features"]["mmx"] = ((CPU::GetAvailableFeatures() & CPU::feature::mmx) != 0);
-		j["System"]["Processor"]["Features"]["sse"] = ((CPU::GetAvailableFeatures() & CPU::feature::sse) != 0);
-		j["System"]["Processor"]["Features"]["sse2"] = ((CPU::GetAvailableFeatures() & CPU::feature::sse2) != 0);
-		j["System"]["Processor"]["Features"]["sse3"] = ((CPU::GetAvailableFeatures() & CPU::feature::sse3) != 0);
-		j["System"]["Processor"]["Features"]["ssse3"] = ((CPU::GetAvailableFeatures() & CPU::feature::ssse3) != 0);
-		j["System"]["Processor"]["Features"]["sse4.1"] = ((CPU::GetAvailableFeatures() & CPU::feature::sse4_1) != 0);
-		j["System"]["Processor"]["Features"]["sse4.2"] = ((CPU::GetAvailableFeatures() & CPU::feature::sse4_2) != 0);
-		j["System"]["Processor"]["Features"]["avx"] = ((CPU::GetAvailableFeatures() & CPU::feature::avx) != 0);
-		j["System"]["Processor"]["Features"]["avx2"] = ((CPU::GetAvailableFeatures() & CPU::feature::avx2) != 0);
+		const CPU::Info CPUInfo = CPU::Info::Get();
+		j["System"]["Processor"]["Vendor"] = std::string(mpt::String::ReadAutoBuf(CPUInfo.VendorID));
+		j["System"]["Processor"]["Brand"] = std::string(mpt::String::ReadAutoBuf(CPUInfo.BrandID));
+		j["System"]["Processor"]["CpuidRaw"] = mpt::afmt::hex0<8>(CPUInfo.CPUID);
+		j["System"]["Processor"]["Id"]["Family"] = CPUInfo.Family;
+		j["System"]["Processor"]["Id"]["Model"] = CPUInfo.Model;
+		j["System"]["Processor"]["Id"]["Stepping"] = CPUInfo.Stepping;
+		j["System"]["Processor"]["Features"]["lm"] = ((CPUInfo.AvailableFeatures & CPU::feature::lm) != 0);
+		j["System"]["Processor"]["Features"]["mmx"] = ((CPUInfo.AvailableFeatures & CPU::feature::mmx) != 0);
+		j["System"]["Processor"]["Features"]["sse"] = ((CPUInfo.AvailableFeatures & CPU::feature::sse) != 0);
+		j["System"]["Processor"]["Features"]["sse2"] = ((CPUInfo.AvailableFeatures & CPU::feature::sse2) != 0);
+		j["System"]["Processor"]["Features"]["sse3"] = ((CPUInfo.AvailableFeatures & CPU::feature::sse3) != 0);
+		j["System"]["Processor"]["Features"]["ssse3"] = ((CPUInfo.AvailableFeatures & CPU::feature::ssse3) != 0);
+		j["System"]["Processor"]["Features"]["sse4.1"] = ((CPUInfo.AvailableFeatures & CPU::feature::sse4_1) != 0);
+		j["System"]["Processor"]["Features"]["sse4.2"] = ((CPUInfo.AvailableFeatures & CPU::feature::sse4_2) != 0);
+		j["System"]["Processor"]["Features"]["avx"] = ((CPUInfo.AvailableFeatures & CPU::feature::avx) != 0);
+		j["System"]["Processor"]["Features"]["avx2"] = ((CPUInfo.AvailableFeatures & CPU::feature::avx2) != 0);
 	#endif
 	return j.dump(1, '\t');
 }
@@ -817,6 +825,9 @@ void CUpdateCheck::SendStatistics(HTTP::InternetSession &internet, const CUpdate
 			requestLegacyUpdate.SetURI(ParseURI(GetUpdateURLV2(settings)));
 			requestLegacyUpdate.method = HTTP::Method::Get;
 			requestLegacyUpdate.flags = HTTP::NoCache;
+#if defined(MPT_BUILD_RETRO)
+			requestLegacyUpdate.InsecureTLSDowngradeWindowsXP();
+#endif // MPT_BUILD_RETRO
 			HTTP::Result resultLegacyUpdateHTTP = internet(requestLegacyUpdate);
 		}
 		HTTP::Request requestStatistics;
@@ -832,8 +843,11 @@ void CUpdateCheck::SendStatistics(HTTP::InternetSession &internet, const CUpdate
 		requestStatistics.dataMimeType = HTTP::MimeType::JSON();
 		requestStatistics.acceptMimeTypes = HTTP::MimeTypes::JSON();
 		std::string jsondata = statistics;
-		MPT_LOG(LogInformation, "Update", mpt::ToUnicode(mpt::Charset::UTF8, jsondata));
+		MPT_LOG_GLOBAL(LogInformation, "Update", mpt::ToUnicode(mpt::Charset::UTF8, jsondata));
 		requestStatistics.data = mpt::byte_cast<mpt::const_byte_span>(mpt::as_span(jsondata));
+#if defined(MPT_BUILD_RETRO)
+		requestSatistics.InsecureTLSDowngradeWindowsXP();
+#endif // MPT_BUILD_RETRO
 		internet(requestStatistics);
 	}
 }
@@ -848,6 +862,9 @@ CUpdateCheck::Result CUpdateCheck::SearchUpdateLegacy(HTTP::InternetSession &int
 	request.method = HTTP::Method::Get;
 	request.flags = HTTP::NoCache;
 
+#if defined(MPT_BUILD_RETRO)
+	request.InsecureTLSDowngradeWindowsXP();
+#endif // MPT_BUILD_RETRO
 	HTTP::Result resultHTTP = internet(request);
 
 	// Retrieve HTTP status code.
@@ -909,6 +926,9 @@ CUpdateCheck::Result CUpdateCheck::SearchUpdateModern(HTTP::InternetSession &int
 	request.acceptMimeTypes = HTTP::MimeTypes::JSON();
 	request.flags = HTTP::NoCache;
 
+#if defined(MPT_BUILD_RETRO)
+	request.InsecureTLSDowngradeWindowsXP();
+#endif // MPT_BUILD_RETRO
 	HTTP::Result resultHTTP = internet(request);
 
 	// Retrieve HTTP status code.
@@ -1111,7 +1131,7 @@ private:
 		}
 	};
 public:
-	CDoUpdate(Update::download download, CWnd *parent = NULL)
+	CDoUpdate(Update::download download, CWnd *parent = nullptr)
 		: CProgressDialog(parent)
 		, download(download)
 	{
@@ -1152,6 +1172,9 @@ public:
 					request.SetURI(ParseURI(download.url));
 					request.method = HTTP::Method::Get;
 					request.acceptMimeTypes = HTTP::MimeTypes::JSON();
+#if defined(MPT_BUILD_RETRO)
+					request.InsecureTLSDowngradeWindowsXP();
+#endif // MPT_BUILD_RETRO
 					HTTP::Result resultHTTP = internet(request);
 					if(resultHTTP.Status != 200)
 					{
@@ -1169,6 +1192,9 @@ public:
 						request.SetURI(ParseURI(download.url + U_(".jws.json")));
 						request.method = HTTP::Method::Get;
 						request.acceptMimeTypes = HTTP::MimeTypes::JSON();
+#if defined(MPT_BUILD_RETRO)
+						request.InsecureTLSDowngradeWindowsXP();
+#endif // MPT_BUILD_RETRO
 						HTTP::Result resultHTTP = internet(request);
 						if(resultHTTP.Status != 200)
 						{
@@ -1193,6 +1219,9 @@ public:
 							request.acceptMimeTypes = HTTP::MimeTypes::JSON();
 							try
 							{
+#if defined(MPT_BUILD_RETRO)
+								request.InsecureTLSDowngradeWindowsXP();
+#endif // MPT_BUILD_RETRO
 								HTTP::Result resultHTTP = internet(request);
 								resultHTTP.CheckStatus(200);
 								mpt::append(keys, mpt::crypto::asymmetric::rsassa_pss<>::parse_jwk_set(mpt::ToUnicode(mpt::Charset::UTF8, mpt::buffer_cast<std::string>(resultHTTP.Data))));
@@ -1290,6 +1319,9 @@ public:
 							throw HTTP::Abort();
 						}
 					};
+#if defined(MPT_BUILD_RETRO)
+					request.InsecureTLSDowngradeWindowsXP();
+#endif // MPT_BUILD_RETRO
 					HTTP::Result resultHTTP = internet(request);
 					if(resultHTTP.Status != 200)
 					{
@@ -1306,7 +1338,7 @@ public:
 			{
 				if(algorithm == U_("SHA-512"))
 				{
-					std::vector<std::byte> binhash = Util::HexToBin(value);
+					std::vector<std::byte> binhash = mpt::decode_hex(value);
 					if(binhash.size() != 512/8)
 					{
 						throw Error(U_("Download verification failed."));
@@ -1439,16 +1471,22 @@ public:
 };
 
 
+void CUpdateCheck::AcknowledgeSuccess(WPARAM wparam, LPARAM lparam)
+{
+	MPT_UNREFERENCED_PARAMETER(wparam);
+	const CUpdateCheck::Result& result = *reinterpret_cast<CUpdateCheck::Result*>(lparam);
+	if(result.CheckTime != time_t{})
+	{
+		TrackerSettings::Instance().UpdateLastUpdateCheck = mpt::Date::Unix(result.CheckTime);
+	}
+}
+
+
 void CUpdateCheck::ShowSuccessGUI(WPARAM wparam, LPARAM lparam)
 {
 
 	const CUpdateCheck::Result &result = *reinterpret_cast<CUpdateCheck::Result*>(lparam);
 	bool autoUpdate = wparam != 0;
-
-	if(result.CheckTime != time_t{})
-	{
-		TrackerSettings::Instance().UpdateLastUpdateCheck = mpt::Date::Unix(result.CheckTime);
-	}
 
 #if MPT_UPDATE_LEGACY
 
@@ -1499,37 +1537,42 @@ void CUpdateCheck::ShowSuccessGUI(WPARAM wparam, LPARAM lparam)
 
 	} else
 	{
-		
+		const TCHAR *action = _T("&View Announcement");
+		const bool canInstall = !updateInfo.download.empty() && versionInfo.downloads[updateInfo.download].can_autoupdate && (Version::Current() >= Version::Parse(versionInfo.downloads[updateInfo.download].autoupdate_minversion));
+		const bool canDownload = !canInstall && !updateInfo.download.empty() && !versionInfo.downloads[updateInfo.download].download_url.empty();
+		if(canInstall)
+		{
+			action = _T("&Install Now");
+		} else if(canDownload)
+		{
+			action = _T("&Download Now");
+		}
+
 		UpdateDialog dlg(
 			mpt::ToCString(versionInfo.version),
 			mpt::ToCString(versionInfo.date),
 			mpt::ToCString(versionInfo.changelog_url),
-				(!updateInfo.download.empty() && versionInfo.downloads[updateInfo.download].can_autoupdate && (Version::Current() >= Version::Parse(versionInfo.downloads[updateInfo.download].autoupdate_minversion))) ? _T("&Install now...") :
-				(!updateInfo.download.empty()) ? _T("&Download now...") :
-				_T("&View Announcement...")
-			);
+			action);
 		if(dlg.DoModal() != IDOK)
 		{
 			return;
 		}
 
-		if(!updateInfo.download.empty() && versionInfo.downloads[updateInfo.download].can_autoupdate && (Version::Current() >= Version::Parse(versionInfo.downloads[updateInfo.download].autoupdate_minversion)))
+		if(canInstall)
 		{
 			CDoUpdate updateDlg(versionInfo.downloads[updateInfo.download], theApp.GetMainWnd());
 			if(updateDlg.DoModal() != IDOK)
 			{
 				return;
 			}
-		} else if(!updateInfo.download.empty() && !versionInfo.downloads[updateInfo.download].download_url.empty())
+		} else if(canDownload)
 		{
 			CTrackApp::OpenURL(versionInfo.downloads[updateInfo.download].download_url);
 		} else
 		{
 			CTrackApp::OpenURL(versionInfo.announcement_url);
 		}
-
 	}
-
 }
 
 
@@ -1569,7 +1612,7 @@ CUpdateCheck::Error::Error(CString errorMessage, DWORD errorCode)
 
 CString CUpdateCheck::Error::FormatErrorCode(CString errorMessage, DWORD errorCode)
 {
-	errorMessage += mpt::ToCString(mpt::Windows::GetErrorMessage(errorCode, GetModuleHandle(TEXT("wininet.dll"))));
+	errorMessage += mpt::ToCString(mpt::windows::GetErrorMessage(errorCode, GetModuleHandle(TEXT("wininet.dll"))));
 	return errorMessage;
 }
 
@@ -1836,6 +1879,9 @@ void CUpdateSetupDlg::OnCheckNow()
 {
 	CUpdateCheck::DoManualUpdateCheck();
 }
+
+
+#endif // MPT_ENABLE_UPDATE
 
 
 OPENMPT_NAMESPACE_END

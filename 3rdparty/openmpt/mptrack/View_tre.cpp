@@ -155,9 +155,11 @@ CModTree::CModTree(CModTree *pDataTree)
 	MemsetZero(m_tiMidi);
 	MemsetZero(m_tiPerc);
 
+#if (_WIN32_WINNT >= _WIN32_WINNT_WIN7)
 	// Wine does not support natural sorting with SORT_DIGITSASNUMBERS, fall back to normal sorting
 	if(!::CompareString(LOCALE_USER_DEFAULT, m_stringCompareFlags, _T(""), -1, _T(""), -1))
 		m_stringCompareFlags &= ~SORT_DIGITSASNUMBERS;
+#endif
 }
 
 
@@ -370,6 +372,8 @@ BOOL CModTree::PreTranslateMessage(MSG *pMsg)
 		ModItem item = GetModItem(GetSelectedItem());
 		switch(item.type)
 		{
+		case MODITEM_SAMPLE:
+		case MODITEM_INSTRUMENT:
 		case MODITEM_MIDIINSTRUMENT:
 		case MODITEM_MIDIPERCUSSION:
 		case MODITEM_INSLIB_SAMPLE:
@@ -428,7 +432,17 @@ bool CModTree::InsLibSetFullPath(const mpt::PathString &libPath, const mpt::Path
 				}
 				if(m_SongFile != nullptr)
 				{
-					if(!m_SongFile->Create(file, CSoundFile::loadNoPatternOrPluginData, nullptr))
+					try
+					{
+						if(!m_SongFile->Create(file, CSoundFile::loadNoPatternOrPluginData, nullptr))
+						{
+							return false;
+						}
+					} catch(mpt::out_of_memory e)
+					{
+						mpt::delete_out_of_memory(e);
+						return false;
+					} catch(const std::exception &)
 					{
 						return false;
 					}
@@ -450,10 +464,20 @@ bool CModTree::InsLibSetFullPath(const mpt::PathString &libPath, const mpt::Path
 
 bool CModTree::SetSoundFile(FileReader &file)
 {
-	CSoundFile *sndFile = new(std::nothrow) CSoundFile;
-	if(sndFile == nullptr || !sndFile->Create(file, CSoundFile::loadNoPatternOrPluginData))
+	std::unique_ptr<CSoundFile> sndFile;
+	try
 	{
-		delete sndFile;
+		sndFile = std::make_unique<CSoundFile>();
+		if(!sndFile->Create(file, CSoundFile::loadNoPatternOrPluginData))
+		{
+			return false;
+		}
+	} catch(mpt::out_of_memory e)
+	{
+		mpt::delete_out_of_memory(e);
+		return false;
+	} catch(const std::exception &)
+	{
 		return false;
 	}
 
@@ -462,7 +486,7 @@ bool CModTree::SetSoundFile(FileReader &file)
 		m_SongFile->Destroy();
 		delete m_SongFile;
 	}
-	m_SongFile = sndFile;
+	m_SongFile = sndFile.release();
 	m_SongFile->Patterns.DestroyPatterns();
 	m_SongFile->m_songMessage.clear();
 	const mpt::PathString fileName = file.GetOptionalFileName().value_or(P_(""));
@@ -1942,7 +1966,7 @@ void CModTree::FillInstrumentLibrary(const TCHAR *selectedItem)
 				InsertInsLibItem(s, sample.uFlags[CHN_ADLIB] ? IMAGE_OPLINSTR : IMAGE_SAMPLES, selectedItem);
 			}
 		}
-	} else
+	} else if(!m_InstrLibPath.empty())
 	{
 		if(!IsSampleBrowser())
 		{
@@ -2135,12 +2159,12 @@ void CModTree::FillInstrumentLibrary(const TCHAR *selectedItem)
 // Monitor changes in the instrument library folder.
 void CModTree::MonitorInstrumentLibrary()
 {
-	mpt::SetCurrentThreadPriority(mpt::ThreadPriorityLowest);
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_LOWEST);
 	mpt::log::Trace::SetThreadId(mpt::log::Trace::ThreadKindWatchdir, GetCurrentThreadId());
 	DWORD result;
 	mpt::PathString lastWatchDir;
 	HANDLE hWatchDir = INVALID_HANDLE_VALUE;
-	DWORD64 lastRefresh = GetTickCount64();
+	DWORD64 lastRefresh = Util::GetTickCount64();
 	DWORD timeout = INFINITE;
 	DWORD interval = TrackerSettings::Instance().FSUpdateInterval;
 	do
@@ -2164,7 +2188,7 @@ void CModTree::MonitorInstrumentLibrary()
 		}
 		const HANDLE waitHandles[3] = {m_hWatchDirKillThread, m_hSwitchWatchDir, hWatchDir};
 		result = WaitForMultipleObjects(hWatchDir != INVALID_HANDLE_VALUE ? 3 : 2, waitHandles, FALSE, timeout);
-		DWORD64 now = GetTickCount64();
+		DWORD64 now = Util::GetTickCount64();
 		if(result == WAIT_TIMEOUT)
 		{
 			PostMessage(WM_COMMAND, ID_MODTREE_REFRESHINSTRLIB);

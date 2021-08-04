@@ -14,6 +14,9 @@
 #include "Loaders.h"
 #include "Tables.h"
 #ifndef MODPLUG_NO_FILESAVE
+#include "mpt/io/base.hpp"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 #include "../common/mptFileIO.h"
 #endif
 #ifdef MPT_EXTERNAL_SAMPLES
@@ -552,7 +555,7 @@ static bool ValidateMODPatternData(TFileReader &file, const uint32 threshold, co
 
 
 // Parse the order list to determine how many patterns are used in the file.
-static PATTERNINDEX GetNumPatterns(FileReader &file, ModSequence &Order, ORDERINDEX numOrders, SmpLength totalSampleLen, CHANNELINDEX &numChannels, SmpLength wowSampleLen = 0)
+static PATTERNINDEX GetNumPatterns(FileReader &file, ModSequence &Order, ORDERINDEX numOrders, SmpLength totalSampleLen, CHANNELINDEX &numChannels, SmpLength wowSampleLen, bool validateHiddenPatterns)
 {
 	PATTERNINDEX numPatterns = 0;         // Total number of patterns in file (determined by going through the whole order list) with pattern number < 128
 	PATTERNINDEX officialPatterns = 0;    // Number of patterns only found in the "official" part of the order list (i.e. order positions < claimed order length)
@@ -590,7 +593,7 @@ static PATTERNINDEX GetNumPatterns(FileReader &file, ModSequence &Order, ORDERIN
 		if(ValidateMODPatternData(file, 16, true))
 			numChannels = 8;
 		file.Seek(patternStartOffset);
-	} else if(numPatterns != officialPatterns && numChannels == 4 && !wowSampleLen)
+	} else if(numPatterns != officialPatterns && validateHiddenPatterns)
 	{
 		// Fix SoundTracker modules where "hidden" patterns should be ignored.
 		// razor-1911.mod (MD5 b75f0f471b0ae400185585ca05bf7fe8, SHA1 4de31af234229faec00f1e85e1e8f78f405d454b)
@@ -833,6 +836,8 @@ bool CSoundFile::ReadMOD(FileReader &file, ModLoadingFlags loadFlags)
 	bool isInconexia = IsMagic(magic, "M\0\0\0") || IsMagic(magic, "8\0\0\0");
 	// A loop length of zero will freeze ProTracker, so assume that modules having such a value were not meant to be played on Amiga. Fixes LHS_MI.MOD
 	bool hasRepLen0 = false;
+	// Empty sample slots typically should have a default volume of 0 in ProTracker
+	bool hasEmptySampleWithVolume = false;
 	if(modMagicResult.setMODVBlankTiming)
 	{
 		m_playBehaviour.set(kMODVBlankTiming);
@@ -867,7 +872,9 @@ bool CSoundFile::ReadMOD(FileReader &file, ModLoadingFlags loadFlags)
 		
 		if(sampleHeader.length && !sampleHeader.loopLength)
 			hasRepLen0 = true;
-		
+		else if(!sampleHeader.length && sampleHeader.volume == 64)
+			hasEmptySampleWithVolume = true;
+
 		if(maybeWOW)
 		{
 			// Some WOW files rely on sample length 1 being counted as well
@@ -913,7 +920,7 @@ bool CSoundFile::ReadMOD(FileReader &file, ModLoadingFlags loadFlags)
 	}
 
 	// Get number of patterns (including some order list sanity checks)
-	PATTERNINDEX numPatterns = GetNumPatterns(file, Order(), realOrders, totalSampleLen, m_nChannels, wowSampleLen);
+	PATTERNINDEX numPatterns = GetNumPatterns(file, Order(), realOrders, totalSampleLen, m_nChannels, wowSampleLen, false);
 	if(maybeWOW && GetNumChannels() == 8)
 	{
 		// M.K. with 8 channels = Mod's Grave
@@ -1193,8 +1200,11 @@ bool CSoundFile::ReadMOD(FileReader &file, ModLoadingFlags loadFlags)
 				// Fix sample 6 in MOD.shorttune2, which has a replen longer than the sample itself.
 				// ProTracker reads beyond the end of the sample when playing. Normally samples are
 				// adjacent in PT's memory, so we simply read into the next sample in the file.
+				// On the other hand, the loop points in Purple Motions's SOUL-O-M.MOD are completely broken and shouldn't be treated like this.
+				// As it was most likely written in Scream Tracker, it has empty sample slots with a default volume of 64, which we use for
+				// rejecting this quirk for that file.
 				FileReader::off_t nextSample = file.GetPosition() + sampleIO.CalculateEncodedSize(sample.nLength);
-				if(isMdKd && onlyAmigaNotes)
+				if(isMdKd && onlyAmigaNotes && !hasEmptySampleWithVolume)
 					sample.nLength = std::max(sample.nLength, sample.nLoopEnd);
 
 				sampleIO.ReadSample(sample, file);
@@ -1515,7 +1525,7 @@ bool CSoundFile::ReadM15(FileReader &file, ModLoadingFlags loadFlags)
 	file.ReadStruct(fileHeader);
 
 	ReadOrderFromArray(Order(), fileHeader.orderList);
-	PATTERNINDEX numPatterns = GetNumPatterns(file, Order(), fileHeader.numOrders, totalSampleLen, m_nChannels);
+	PATTERNINDEX numPatterns = GetNumPatterns(file, Order(), fileHeader.numOrders, totalSampleLen, m_nChannels, 0, true);
 
 	// Most likely just a file with lots of NULs at the start
 	if(fileHeader.restartPos == 0 && fileHeader.numOrders == 0 && numPatterns <= 1)
@@ -1955,7 +1965,7 @@ bool CSoundFile::ReadICE(FileReader &file, ModLoadingFlags loadFlags)
 	m_nMinPeriod = 14 * 4;
 	m_nMaxPeriod = 3424 * 4;
 	m_nSamplePreAmp = 64;
-	m_SongFlags.set(SONG_PT_MODE);
+	m_SongFlags.set(SONG_PT_MODE | SONG_IMPORTED);
 
 	// Setup channel pan positions and volume
 	SetupMODPanning();
@@ -2173,8 +2183,8 @@ bool CSoundFile::ReadPT36(FileReader &file, ModLoadingFlags loadFlags)
 		if(info.name[0])
 			m_songName = mpt::String::ReadBuf(mpt::String::maybeNullTerminated, info.name);
 
-		if(IsInRange(info.dateMonth, 1, 12) && IsInRange(info.dateDay, 1, 31) && IsInRange(info.dateHour, 0, 23)
-		   && IsInRange(info.dateMinute, 0, 59) && IsInRange(info.dateSecond, 0, 59))
+		if(mpt::is_in_range(info.dateMonth, 1, 12) && mpt::is_in_range(info.dateDay, 1, 31) && mpt::is_in_range(info.dateHour, 0, 23)
+		   && mpt::is_in_range(info.dateMinute, 0, 59) && mpt::is_in_range(info.dateSecond, 0, 59))
 		{
 			FileHistory mptHistory;
 			mptHistory.loadDate.tm_year = info.dateYear;
@@ -2205,7 +2215,7 @@ bool CSoundFile::ReadPT36(FileReader &file, ModLoadingFlags loadFlags)
 	m_SongFlags.set(SONG_PT_MODE);
 	m_playBehaviour.set(kMODIgnorePanning);
 	m_playBehaviour.set(kMODOneShotLoops);
-	m_playBehaviour.set(kMODSampleSwap);
+	m_playBehaviour.reset(kMODSampleSwap);
 
 	return ok;
 }

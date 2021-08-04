@@ -10,7 +10,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 OPENMPT_NAMESPACE_BEGIN
 
@@ -21,6 +21,10 @@ public:
 
 	struct Context
 	{
+		void SetDescription(mpt::ustring desc)
+		{
+			description = std::move(desc);
+		}
 		mpt::ustring description;
 	};
 

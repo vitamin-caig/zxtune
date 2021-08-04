@@ -20,7 +20,6 @@
 #ifdef MPT_EXTERNAL_SAMPLES
 #include "../common/mptPathString.h"
 #endif // MPT_EXTERNAL_SAMPLES
-#include "../common/mptIO.h"
 #include "../common/serialization_utils.h"
 #ifndef MODPLUG_NO_FILESAVE
 #include "../common/mptFileIO.h"
@@ -29,6 +28,9 @@
 #include <sstream>
 #include "../common/version.h"
 #include "ITTools.h"
+#include "mpt/io/base.hpp"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
 
 
 OPENMPT_NAMESPACE_BEGIN
@@ -352,7 +354,7 @@ mpt::ustring CSoundFile::GetSchismTrackerVersion(uint16 cwtv, uint32 reserved)
 	cwtv &= 0xFFF;
 	if(cwtv > 0x050)
 	{
-		int32 date = SchismVersionFromDate<2009, 10, 31>::date + (cwtv < 0xFFF ? cwtv - 0x050 : reserved);
+		int32 date = SchismTrackerEpoch + (cwtv < 0xFFF ? cwtv - 0x050 : reserved);
 		int32 y = static_cast<int32>((Util::mul32to64(10000, date) + 14780) / 3652425);
 		int32 ddd = date - (365 * y + y / 4 - y / 100 + y / 400);
 		if(ddd < 0)
@@ -472,9 +474,12 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 			{
 				// OpenMPT Version number (Major.Minor)
 				// This will only be interpreted as "made with ModPlug" (i.e. disable compatible playback etc) if the "reserved" field is set to "OMPT" - else, compatibility was used.
-				m_dwLastSavedWithVersion = Version((fileHeader.cwtv & 0x0FFF) << 16);
+				uint32 mptVersion = (fileHeader.cwtv & 0x0FFF) << 16;
 				if(!memcmp(&fileHeader.reserved, "OMPT", 4))
 					interpretModPlugMade = true;
+				else if(mptVersion >= 0x01'29'00'00)
+					mptVersion |= fileHeader.reserved & 0xFFFF;
+				m_dwLastSavedWithVersion = Version(mptVersion);
 			} else if(fileHeader.cmwt == 0x888 || fileHeader.cwtv == 0x888)
 			{
 				// OpenMPT 1.17.02.26 (r122) to 1.18 (raped IT format)
@@ -1154,6 +1159,7 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 		}
 	} else
 	{
+		const int32 schismDateVersion = SchismTrackerEpoch + ((fileHeader.cwtv == 0x1FFF) ? fileHeader.reserved : (fileHeader.cwtv - 0x1050));
 		switch(fileHeader.cwtv >> 12)
 		{
 		case 0:
@@ -1215,11 +1221,20 @@ bool CSoundFile::ReadIT(FileReader &file, ModLoadingFlags loadFlags)
 		case 1:
 			madeWithTracker = GetSchismTrackerVersion(fileHeader.cwtv, fileHeader.reserved);
 			// Hertz in linear mode: Added 2015-01-29, https://github.com/schismtracker/schismtracker/commit/671b30311082a0e7df041fca25f989b5d2478f69
-			if(fileHeader.cwtv < SchismVersionFromDate<2015, 01, 29>::Version())
-				m_playBehaviour.reset(kHertzInLinearMode);
+			if(schismDateVersion < SchismVersionFromDate<2015, 01, 29>::date && m_SongFlags[SONG_LINEARSLIDES])
+				m_playBehaviour.reset(kPeriodsAreHertz);
+			// Hertz in Amiga mode: Added 2021-05-02, https://github.com/schismtracker/schismtracker/commit/c656a6cbd5aaf81198a7580faf81cb7960cb6afa
+			else if(schismDateVersion < SchismVersionFromDate<2021, 05, 02>::date && !m_SongFlags[SONG_LINEARSLIDES])
+				m_playBehaviour.reset(kPeriodsAreHertz);
 			// Qxx with short samples: Added 2016-05-13, https://github.com/schismtracker/schismtracker/commit/e7b1461fe751554309fd403713c2a1ef322105ca
-			if(fileHeader.cwtv < SchismVersionFromDate<2016, 05, 13>::Version())
+			if(schismDateVersion < SchismVersionFromDate<2016, 05, 13>::date)
 				m_playBehaviour.reset(kITShortSampleRetrig);
+			// Instrument pan doesn't override channel pan: Added 2021-05-02, https://github.com/schismtracker/schismtracker/commit/a34ec86dc819915debc9e06f4727b77bf2dd29ee
+			if(schismDateVersion < SchismVersionFromDate<2021, 05, 02>::date)
+				m_playBehaviour.reset(kITDoNotOverrideChannelPan);
+			// Notes set instrument panning, not instrument numbers: Added 2021-05-02, https://github.com/schismtracker/schismtracker/commit/648f5116f984815c69e11d018b32dfec53c6b97a
+			if(schismDateVersion < SchismVersionFromDate<2021, 05, 02>::date)
+				m_playBehaviour.reset(kITPanningReset);
 			break;
 		case 4:
 			madeWithTracker = MPT_UFORMAT("pyIT {}.{}")((fileHeader.cwtv & 0x0F00) >> 8, mpt::ufmt::hex0<2>(fileHeader.cwtv & 0xFF));
@@ -1328,7 +1343,7 @@ static uint32 SaveITEditHistory(const CSoundFile &sndFile, std::ostream *file)
 #endif // MODPLUG_TRACKER
 		{
 			// Previous timestamps
-			mptHistory = sndFile.GetFileHistory().at(n);
+			mptHistory = sndFile.GetFileHistory()[n];
 #ifdef MODPLUG_TRACKER
 		} else if(pModDoc != nullptr)
 		{
@@ -1410,8 +1425,8 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 	} else
 	{
 		// IT
-		uint32 vVersion = Version::Current().GetRawVersion();
-		itHeader.cwtv = 0x5000 | (uint16)((vVersion >> 16) & 0x0FFF); // format: txyy (t = tracker ID, x = version major, yy = version minor), e.g. 0x5117 (OpenMPT = 5, 117 = v1.17)
+		const uint32 mptVersion = Version::Current().GetRawVersion();
+		itHeader.cwtv = 0x5000 | static_cast<uint16>((mptVersion >> 16) & 0x0FFF); // format: txyy (t = tracker ID, x = version major, yy = version minor), e.g. 0x5117 (OpenMPT = 5, 117 = v1.17)
 		itHeader.cmwt = 0x0214;	// Common compatible tracker :)
 		// Hack from schism tracker:
 		for(INSTRUMENTINDEX nIns = 1; nIns <= GetNumInstruments(); nIns++)
@@ -1423,11 +1438,10 @@ bool CSoundFile::SaveIT(std::ostream &f, const mpt::PathString &filename, bool c
 			}
 		}
 
-		if(!compatibilityExport)
-		{
-			// This way, we indicate that the file might contain OpenMPT hacks. Compatibility export puts 0 here.
+		if(compatibilityExport)
+			itHeader.reserved = mptVersion & 0xFFFF;
+		else
 			memcpy(&itHeader.reserved, "OMPT", 4);
-		}
 	}
 
 	itHeader.flags = ITFileHeader::useStereoPlayback | ITFileHeader::useMIDIPitchController;
@@ -2087,19 +2101,11 @@ void CSoundFile::ReadMixPluginChunk(FileReader &file, SNDMIXPLUGIN &plugin)
 	plugin.editorX = plugin.editorY = int32_min;
 
 	// Plugin user data
-	const uint32 pluginDataChunkSize = file.ReadUint32LE();
-	FileReader pluginDataChunk = file.ReadChunk(pluginDataChunkSize);
+	FileReader pluginDataChunk = file.ReadChunk(file.ReadUint32LE());
+	plugin.pluginData.resize(mpt::saturate_cast<size_t>(pluginDataChunk.BytesLeft()));
+	pluginDataChunk.ReadRaw(mpt::as_span(plugin.pluginData));
 
-	if(pluginDataChunk.IsValid())
-	{
-		plugin.pluginData.resize(pluginDataChunkSize);
-		pluginDataChunk.ReadRaw(mpt::as_span(plugin.pluginData));
-	}
-
-	FileReader modularData = file.ReadChunk(file.ReadUint32LE());
-
-	//if dwMPTExtra is positive and there are dwMPTExtra bytes left in nPluginSize, we have some more data!
-	if(modularData.IsValid())
+	if(FileReader modularData = file.ReadChunk(file.ReadUint32LE()); modularData.IsValid())
 	{
 		while(modularData.CanRead(5))
 		{

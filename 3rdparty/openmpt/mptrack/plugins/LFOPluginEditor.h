@@ -1,16 +1,16 @@
 /*
-* LFOPluginEditor.h
-* -----------------
-* Purpose: Editor interface for the LFO plugin.
-* Notes  : (currently none)
-* Authors: Johannes Schultz (OpenMPT Devs)
-* The OpenMPT source code is released under the BSD license. Read LICENSE for more details.
-*/
+ * LFOPluginEditor.h
+ * -----------------
+ * Purpose: Editor interface for the LFO plugin.
+ * Notes  : (currently none)
+ * Authors: Johannes Schultz (OpenMPT Devs)
+ * The OpenMPT source code is released under the BSD license. Read LICENSE for more details.
+ */
 
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "../AbstractVstEditor.h"
 #include "../../soundlib/plugins/LFOPlugin.h"
@@ -40,7 +40,7 @@ public:
 
 	void UpdateParamDisplays() override;
 	void UpdateParam(int32 param) override;
-	void UpdateView(UpdateHint &hint) override;
+	void UpdateView(UpdateHint hint) override;
 
 protected:
 	void DoDataExchange(CDataExchange* pDX) override;

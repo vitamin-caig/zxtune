@@ -6,7 +6,7 @@
 #if defined(MPT_BUILD_ENABLE_PCH)
 
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 
 #if defined(MODPLUG_TRACKER)
@@ -40,45 +40,63 @@
 #endif // MODPLUG_TRACKER
 
 
+#include "mpt/base/aligned_array.hpp"
+#include "mpt/base/memory.hpp"
+#include "mpt/base/span.hpp"
+#include "mpt/base/utility.hpp"
+#include "mpt/crc/crc.hpp"
+#include "mpt/crypto/hash.hpp"
+#include "mpt/crypto/jwk.hpp"
+#include "mpt/exception_text/exception_text.hpp"
+#include "mpt/io/base.hpp"
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_span.hpp"
+#include "mpt/io/io_stdstream.hpp"
+#include "mpt/io/io_virtual_wrapper.hpp"
+#include "mpt/io_read/filecursor.hpp"
+#include "mpt/io_read/filecursor_memory.hpp"
+#include "mpt/io_read/filecursor_stdstream.hpp"
+#include "mpt/io_read/filedata.hpp"
+#include "mpt/io_read/filereader.hpp"
+#include "mpt/out_of_memory/out_of_memory.hpp"
+#include "mpt/system_error/system_error.hpp"
+#if defined(MODPLUG_TRACKER)
+#include "mpt/uuid/guid.hpp"
+#endif // MODPLUG_TRACKER
+#include "mpt/uuid/uuid.hpp"
+
+#include "openmpt/base/Endian.hpp"
+#include "openmpt/base/FlagSet.hpp"
+#include "openmpt/base/Types.hpp"
+#include "openmpt/logging/Logger.hpp"
+
 #include "../common/mptBaseMacros.h"
 #include "../common/mptBaseTypes.h"
 #include "../common/mptAssert.h"
 #include "../common/mptBaseUtils.h"
-#include "../common/mptException.h"
-#include "../common/mptSpan.h"
-#include "../common/mptMemory.h"
-#include "../common/mptAlloc.h"
 #include "../common/mptString.h"
-#include "../common/mptExceptionText.h"
 #include "../common/mptStringFormat.h"
 #include "../common/mptStringParse.h"
-#include "../common/mptOSError.h"
 #include "../common/mptPathString.h"
 #include "../common/Logging.h"
 #include "../common/misc_util.h"
 
 #include "../common/ComponentManager.h"
-#include "../common/Endianness.h"
 #include "../common/FileReader.h"
-#include "../common/FlagSet.h"
-#include "../common/mptCRC.h"
 #include "../common/mptFileIO.h"
-#include "../common/mptIO.h"
-#include "../common/mptLibrary.h"
-#include "../common/mptMutex.h"
-#include "../common/mptOS.h"
 #include "../common/mptRandom.h"
 #include "../common/mptStringBuffer.h"
 #include "../common/mptTime.h"
-#include "../common/mptThread.h"
-#include "../common/mptUUID.h"
 #include "../common/Profiler.h"
 #include "../common/serialization_utils.h"
 #include "../common/version.h"
 
 #include "../misc/mptCPU.h"
-#include "../misc/mptCrypto.h"
+#include "../misc/mptLibrary.h"
+#include "../misc/mptMutex.h"
+#include "../misc/mptOS.h"
 #include "../misc/mptWine.h"
+
 
 
 #include <algorithm>

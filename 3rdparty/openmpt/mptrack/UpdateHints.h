@@ -10,9 +10,9 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
-#include "../common/FlagSet.h"
+#include "openmpt/base/FlagSet.hpp"
 #include "../soundlib/Snd_defs.h"
 
 OPENMPT_NAMESPACE_BEGIN

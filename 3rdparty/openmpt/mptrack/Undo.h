@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "../soundlib/ModChannel.h"
 #include "../soundlib/modcommand.h"

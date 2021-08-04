@@ -338,6 +338,10 @@ void CViewPattern::DrawLetter(int x, int y, char letter, int sizex, int ofsx)
 		srcx = pfnt->nAlphaNZ_X;
 		srcy = pfnt->nAlphaNZ_Y + 15 * pfnt->spacingY;
 		break;
+	case '*':
+		srcx = pfnt->nAlphaNZ_X;
+		srcy = pfnt->nAlphaNZ_Y + 16 * pfnt->spacingY;
+		break;
 	case ' ':
 		srcx = pfnt->nSpaceX;
 		srcy = pfnt->nSpaceY;
@@ -1348,31 +1352,25 @@ void CViewPattern::OnDrawDragSel()
 void CViewPattern::UpdateScrollSize()
 {
 	const CSoundFile *pSndFile = GetSoundFile();
-	if(pSndFile && pSndFile->Patterns.IsValidPat(m_nPattern))
-	{
-		CRect rect;
-		SIZE sizeTotal, sizePage, sizeLine;
-		sizeTotal.cx = m_szHeader.cx + pSndFile->GetNumChannels() * m_szCell.cx;
-		sizeTotal.cy = m_szHeader.cy + pSndFile->Patterns[m_nPattern].GetNumRows() * m_szCell.cy;
-		sizeLine.cx = m_szCell.cx;
-		sizeLine.cy = m_szCell.cy;
-		sizePage.cx = sizeLine.cx * 2;
-		sizePage.cy = sizeLine.cy * 8;
-		GetClientRect(&rect);
-		m_nMidRow = 0;
-		if (TrackerSettings::Instance().m_dwPatternSetup & PATTERN_CENTERROW) m_nMidRow = (rect.Height() - m_szHeader.cy) / (m_szCell.cy * 2);
-		if (m_nMidRow) sizeTotal.cy += m_nMidRow * m_szCell.cy * 2;
-		SetScrollSizes(MM_TEXT, sizeTotal, sizePage, sizeLine);
-		//UpdateScrollPos(); //rewbs.FixLPsOddScrollingIssue
-		if (rect.Height() >= sizeTotal.cy)
-		{
-			m_bWholePatternFitsOnScreen = true;
-			m_nYScroll = 0;  //rewbs.fix2977
-		} else
-		{
-			m_bWholePatternFitsOnScreen = false;
-		}
-	}
+	const CHANNELINDEX numChannels = pSndFile ? pSndFile->GetNumChannels() : 0;
+	const ROWINDEX numRows = (pSndFile && pSndFile->Patterns.IsValidPat(m_nPattern)) ? pSndFile->Patterns[m_nPattern].GetNumRows() : 0;
+
+	CRect rect;
+	SIZE sizeTotal, sizePage, sizeLine;
+	sizeTotal.cx = m_szHeader.cx + numChannels * m_szCell.cx;
+	sizeTotal.cy = m_szHeader.cy + numRows * m_szCell.cy;
+	sizeLine.cx = m_szCell.cx;
+	sizeLine.cy = m_szCell.cy;
+	sizePage.cx = sizeLine.cx * 2;
+	sizePage.cy = sizeLine.cy * 8;
+	GetClientRect(&rect);
+	m_nMidRow = 0;
+	if (TrackerSettings::Instance().m_dwPatternSetup & PATTERN_CENTERROW) m_nMidRow = (rect.Height() - m_szHeader.cy) / (m_szCell.cy * 2);
+	if (m_nMidRow) sizeTotal.cy += m_nMidRow * m_szCell.cy * 2;
+	SetScrollSizes(MM_TEXT, sizeTotal, sizePage, sizeLine);
+	m_bWholePatternFitsOnScreen = (rect.Height() >= sizeTotal.cy);
+	if(m_bWholePatternFitsOnScreen)
+		m_nYScroll = 0;
 }
 
 
@@ -1639,14 +1637,11 @@ void CViewPattern::UpdateIndicator(bool updateAccessibility)
 		return;
 
 	mainFrm->SetUserText(MPT_CFORMAT("Row {}, Col {}")(GetCurrentRow(), GetCurrentChannel() + 1));
-	const bool hasSelection = m_Selection.GetUpperLeft() != m_Selection.GetLowerRight();
-	if(hasSelection)
-	{
-		mainFrm->SetInfoText(MPT_CFORMAT("Selection: {} row{}, {} channel{}")
-			(m_Selection.GetNumRows(), m_Selection.GetNumRows() != 1 ? CString(_T("s")) : CString(_T("")), m_Selection.GetNumChannels(), m_Selection.GetNumChannels() != 1 ? CString(_T("s")) : CString(_T(""))));
-	}
 	if(::GetFocus() == m_hWnd)
 	{
+		const bool hasSelection = m_Selection.GetUpperLeft() != m_Selection.GetLowerRight();
+		if(hasSelection)
+			mainFrm->SetInfoText(MPT_CFORMAT("Selection: {} row{}, {} channel{}")(m_Selection.GetNumRows(), CString(m_Selection.GetNumRows() != 1 ? _T("s") : _T("")), m_Selection.GetNumChannels(), CString(m_Selection.GetNumChannels() != 1 ? _T("s") : _T(""))));
 		if(GetCurrentRow() < sndFile->Patterns[m_nPattern].GetNumRows() && m_Cursor.GetChannel() < sndFile->GetNumChannels())
 		{
 			if(!hasSelection)

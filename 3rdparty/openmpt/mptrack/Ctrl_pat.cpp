@@ -1,5 +1,5 @@
 /*
- * ctrl_pat.cpp
+ * Ctrl_pat.cpp
  * ------------
  * Purpose: Pattern tab, upper panel.
  * Notes  : (currently none)
@@ -265,9 +265,24 @@ void CCtrlPatterns::UpdateView(UpdateHint hint, CObject *pObj)
 		m_ToolBar.SetState(ID_OVERFLOWPASTE, ((TrackerSettings::Instance().m_dwPatternSetup & PATTERN_OVERFLOWPASTE) ? TBSTATE_CHECKED : 0) | TBSTATE_ENABLED);
 	}
 
+	bool instrPluginsChanged = false;
+	if(hint.GetCategory() == HINTCAT_PLUGINS && hintType[HINT_PLUGINNAMES])
+	{
+		const auto changedPlug = hint.ToType<PluginHint>().GetPlugin();
+		for(INSTRUMENTINDEX i = 1; i <= m_sndFile.GetNumInstruments(); i++)
+		{
+			const auto ins = m_sndFile.Instruments[i];
+			if(ins != nullptr && (!changedPlug && ins->nMixPlug != 0) || (changedPlug && ins->nMixPlug == changedPlug))
+			{
+				instrPluginsChanged = true;
+				break;
+			}
+		}
+	}
+
 	const bool updatePatNames = patternHint.GetType()[HINT_PATNAMES];
 	const bool updateSmpNames = hint.GetCategory() == HINTCAT_SAMPLES && hintType[HINT_SMPNAMES];
-	const bool updateInsNames = hint.GetCategory() == HINTCAT_INSTRUMENTS && hintType[HINT_INSNAMES];
+	const bool updateInsNames = (hint.GetCategory() == HINTCAT_INSTRUMENTS && hintType[HINT_INSNAMES]) || instrPluginsChanged;
 	if(updateAll || updatePatNames || updateSmpNames || updateInsNames)
 	{
 		LockControls();
@@ -390,10 +405,6 @@ LRESULT CCtrlPatterns::OnModCtrlMsg(WPARAM wParam, LPARAM lParam)
 		OnNextInstrument();
 		break;
 
-	case CTRLMSG_SETCURRENTPATTERN:
-		SetCurrentPattern((PATTERNINDEX)lParam);
-		break;
-
 	case CTRLMSG_NOTIFYCURRENTORDER:
 		if(m_OrderList.GetCurSel().GetSelCount() > 1 || m_OrderList.m_bDragging)
 		{
@@ -420,14 +431,6 @@ LRESULT CCtrlPatterns::OnModCtrlMsg(WPARAM wParam, LPARAM lParam)
 	case CTRLMSG_PAT_SETINSTRUMENT:
 		return SetCurrentInstrument(static_cast<uint32>(lParam));
 
-	case CTRLMSG_PLAYPATTERN:
-		switch(lParam)
-		{
-			case -2: OnPatternPlayNoLoop(); break;
-			case -1: OnPatternPlayFromStart(); break;
-			default: OnPatternPlay();
-		}
-
 	case CTRLMSG_SETVIEWWND:
 		{
 			SendViewMessage(VIEWMSG_FOLLOWSONG, IsDlgButtonChecked(IDC_PATTERN_FOLLOWSONG));
@@ -440,15 +443,9 @@ LRESULT CCtrlPatterns::OnModCtrlMsg(WPARAM wParam, LPARAM lParam)
 		}
 		break;
 
-	case CTRLMSG_GETSPACING:
-		return GetDlgItemInt(IDC_EDIT_SPACING);
-
 	case CTRLMSG_SETSPACING:
 		SetDlgItemInt(IDC_EDIT_SPACING, static_cast<UINT>(lParam));
 		break;
-
-	case CTRLMSG_ISRECORDING:
-		return m_bRecord;
 
 	case CTRLMSG_SETFOCUS:
 		GetParentFrame()->SetActiveView(&m_parent);
@@ -752,14 +749,14 @@ void CCtrlPatterns::OnPatternNew()
 	} else
 	{
 		// Use currently edited pattern for new pattern length
-		curPat = (PATTERNINDEX)SendViewMessage(VIEWMSG_GETCURRENTPATTERN);
+		curPat = static_cast<PATTERNINDEX>(SendViewMessage(VIEWMSG_GETCURRENTPATTERN));
 	}
 	if(m_sndFile.Patterns.IsValidPat(curPat))
 	{
 		rows = m_sndFile.Patterns[curPat].GetNumRows();
 	}
 	rows = Clamp(rows, m_sndFile.GetModSpecifications().patternRowsMin, m_sndFile.GetModSpecifications().patternRowsMax);
-	PATTERNINDEX newPat = m_modDoc.InsertPattern(rows, curOrd);
+	const PATTERNINDEX newPat = m_modDoc.InsertPattern(rows, curOrd);
 	if(m_sndFile.Patterns.IsValidPat(newPat))
 	{
 		// update time signature
@@ -777,8 +774,8 @@ void CCtrlPatterns::OnPatternNew()
 		m_modDoc.SetModified();
 		m_modDoc.UpdateAllViews(NULL, PatternHint(newPat).Names(), this);
 		m_modDoc.UpdateAllViews(NULL, SequenceHint().Data(), this);
+		SwitchToView();
 	}
-	SwitchToView();
 }
 
 
@@ -859,7 +856,7 @@ void CCtrlPatterns::OnPatternDuplicate()
 	if(outOfPatterns)
 	{
 		const auto &specs = m_sndFile.GetModSpecifications();
-		Reporting::Error(MPT_FORMAT("Pattern limit of the {} format ({} patterns) has been reached.")(mpt::ToUpperCaseAscii(specs.fileExtension), specs.patternsMax), "Duplicate Patterns");
+		Reporting::Error(MPT_AFORMAT("Pattern limit of the {} format ({} patterns) has been reached.")(mpt::ToUpperCaseAscii(specs.fileExtension), specs.patternsMax), "Duplicate Patterns");
 	}
 	SwitchToView();
 }
@@ -893,7 +890,7 @@ void CCtrlPatterns::OnPatternMerge()
 	const auto format = mpt::ToUpperCaseAscii(specs.fileExtension);
 	if(numRows > specs.patternRowsMax)
 	{
-		Reporting::Error(MPT_FORMAT("Merged pattern size ({} rows) exceeds the row limit ({} rows) of the {} format.")(numRows, specs.patternRowsMax, format), "Merge Patterns");
+		Reporting::Error(MPT_AFORMAT("Merged pattern size ({} rows) exceeds the row limit ({} rows) of the {} format.")(numRows, specs.patternRowsMax, format), "Merge Patterns");
 		SwitchToView();
 		return;
 	}
@@ -903,7 +900,7 @@ void CCtrlPatterns::OnPatternMerge()
 	if(newPat == PATTERNINDEX_INVALID)
 	{
 		cs.Leave();
-		Reporting::Error(MPT_FORMAT("Pattern limit of the {} format ({} patterns) has been reached.")(format, specs.patternsMax), "Merge Patterns");
+		Reporting::Error(MPT_AFORMAT("Pattern limit of the {} format ({} patterns) has been reached.")(format, specs.patternsMax), "Merge Patterns");
 		SwitchToView();
 		return;
 	}

@@ -17,8 +17,9 @@
 #include "Mpdlgs.h"
 #include "dlg_misc.h"
 #include "../common/mptStringBuffer.h"
-#include "../sounddev/SoundDevice.h"
-#include "../sounddev/SoundDeviceManager.h"
+#include "openmpt/sounddevice/SoundDevice.hpp"
+#include "openmpt/sounddevice/SoundDeviceManager.hpp"
+#include "../common/Dither.h"
 
 
 OPENMPT_NAMESPACE_BEGIN
@@ -361,7 +362,7 @@ void COptionsSoundcard::UpdateEverything()
 					cbi.iImage = IMAGE_CHIP; // No real image available for now,
 				} else if(it.type.find(TypeWineNative + U_("-")) == 0)
 				{
-					if(theApp.GetWineVersion() && (theApp.GetWineVersion()->HostClass() == mpt::OS::Class::Linux))
+					if(theApp.GetWineVersion() && (theApp.GetWineVersion()->HostClass() == mpt::osinfo::osclass::Linux))
 					{
 						cbi.mask |= CBEIF_IMAGE | CBEIF_SELECTEDIMAGE | CBEIF_OVERLAY;
 						cbi.iImage = IMAGE_TUX;
@@ -537,7 +538,7 @@ void COptionsSoundcard::UpdateSampleFormat()
 			name = MPT_CFORMAT("{} Bit")(sampleFormat.GetBitsPerSample());
 		}
 		UINT ndx = m_CbnSampleFormat.AddString(name);
-		m_CbnSampleFormat.SetItemData(ndx, static_cast<int>(sampleFormat));
+		m_CbnSampleFormat.SetItemData(ndx, mpt::to_underlying<SampleFormat::Enum>(sampleFormat));
 		if(sampleFormat == m_Settings.sampleFormat)
 		{
 			n = ndx;
@@ -561,21 +562,21 @@ void COptionsSoundcard::UpdateDither()
 	if(sampleFormat.IsInt() && sampleFormat.GetBitsPerSample() < 32)
 	{
 		m_CbnDither.EnableWindow(TRUE);
-		for(int i=0; i<NumDitherModes; ++i)
+		for(std::size_t i = 0; i < DithersOpenMPT::GetNumDithers(); ++i)
 		{
-			m_CbnDither.AddString(mpt::ToCString(Dither::GetModeName((DitherMode)i) + U_(" dither")));
+			m_CbnDither.AddString(mpt::ToCString(DithersOpenMPT::GetModeName(i) + U_(" dither")));
 		}
 	} else if(m_CurrentDeviceCaps.HasInternalDither)
 	{
 		m_CbnDither.EnableWindow(TRUE);
-		m_CbnDither.AddString(mpt::ToCString(Dither::GetModeName(DitherNone) + U_(" dither")));
-		m_CbnDither.AddString(mpt::ToCString(Dither::GetModeName(DitherDefault) + U_(" dither")));
+		m_CbnDither.AddString(mpt::ToCString(DithersOpenMPT::GetModeName(DithersOpenMPT::GetNoDither()) + U_(" dither")));
+		m_CbnDither.AddString(mpt::ToCString(DithersOpenMPT::GetModeName(DithersOpenMPT::GetDefaultDither()) + U_(" dither")));
 	} else
 	{
 		m_CbnDither.EnableWindow(FALSE);
-		for(int i=0; i<NumDitherModes; ++i)
+		for(std::size_t i = 0; i < DithersOpenMPT::GetNumDithers(); ++i)
 		{
-			m_CbnDither.AddString(mpt::ToCString(Dither::GetModeName(DitherNone) + U_(" dither")));
+			m_CbnDither.AddString(mpt::ToCString(DithersOpenMPT::GetModeName(DithersOpenMPT::GetNoDither()) + U_(" dither")));
 		}
 	}
 	if(m_Settings.DitherType < 0 || m_Settings.DitherType >= m_CbnDither.GetCount())
@@ -866,8 +867,7 @@ void COptionsSoundcard::OnOK()
 	}
 	// Dither
 	{
-		UINT n = m_CbnDither.GetCurSel();
-		m_Settings.DitherType = (DitherMode)(n);
+		m_Settings.DitherType = m_CbnDither.GetCurSel();
 	}
 	// Latency
 	{
@@ -951,6 +951,10 @@ void COptionsSoundcard::UpdateStatistics()
 	{
 		const SoundDevice::BufferAttributes bufferAttributes = pMainFrm->gpSoundDevice->GetEffectiveBufferAttributes();
 		const SoundDevice::Statistics stats = pMainFrm->gpSoundDevice->GetStatistics();
+#if 0
+		const SoundDevice::TimeInfo timeInfo = pMainFrm->gpSoundDevice->GetTimeInfo();
+		const SoundDevice::StreamPosition streamPosition = pMainFrm->gpSoundDevice->GetStreamPosition();
+#endif
 		const uint32 samplerate = pMainFrm->gpSoundDevice->GetSettings().Samplerate;
 		mpt::ustring s;
 		if(bufferAttributes.NumBuffers > 2)
@@ -962,6 +966,12 @@ void COptionsSoundcard::UpdateStatistics()
 		}
 		s += MPT_UFORMAT("Latency: {} ms (current: {} ms, {} frames)\r\n")(mpt::ufmt::fix(bufferAttributes.Latency * 1000.0, 1), mpt::ufmt::fix(stats.InstantaneousLatency * 1000.0, 1), mpt::saturate_round<int64>(stats.InstantaneousLatency * samplerate));
 		s += MPT_UFORMAT("Period: {} ms (current: {} ms, {} frames)\r\n")(mpt::ufmt::fix(bufferAttributes.UpdateInterval * 1000.0, 1), mpt::ufmt::fix(stats.LastUpdateInterval * 1000.0, 1), mpt::saturate_round<int64>(stats.LastUpdateInterval * samplerate));
+#if 0
+		s += MPT_UFORMAT("TimeInfo: latency = {} ms / speed = {} / latency = {} ms\r\n")(
+			mpt::ufmt::fix(timeInfo.Latency * 1000.0, 1),
+			mpt::ufmt::flt(timeInfo.Speed, 4),
+			mpt::ufmt::fix((timeInfo.RenderStreamPositionBefore.Seconds - streamPosition.Seconds) * 1000.0, 1));
+#endif
 		s += stats.text;
 		m_EditStatistics.SetWindowText(mpt::ToCString(s));
 	}	else
@@ -983,12 +993,13 @@ void COptionsSoundcard::UpdateStatistics()
 BEGIN_MESSAGE_MAP(COptionsMixer, CPropertyPage)
 	ON_WM_HSCROLL()
 	ON_WM_VSCROLL()
-	ON_CBN_SELCHANGE(IDC_COMBO_FILTER,			&COptionsMixer::OnSettingsChanged)
-	ON_CBN_SELCHANGE(IDC_COMBO_AMIGA_TYPE,		&COptionsMixer::OnSettingsChanged)
-	ON_EN_UPDATE(IDC_RAMPING_IN,				&COptionsMixer::OnRampingChanged)
-	ON_EN_UPDATE(IDC_RAMPING_OUT,				&COptionsMixer::OnRampingChanged)
-	ON_COMMAND(IDC_CHECK_SOFTPAN,				&COptionsMixer::OnSettingsChanged)
-	ON_COMMAND(IDC_CHECK1,						&COptionsMixer::OnAmigaChanged)
+	ON_CBN_SELCHANGE(IDC_COMBO_FILTER,     &COptionsMixer::OnSettingsChanged)
+	ON_CBN_SELCHANGE(IDC_COMBO_AMIGA_TYPE, &COptionsMixer::OnSettingsChanged)
+	ON_EN_UPDATE(IDC_RAMPING_IN,           &COptionsMixer::OnRampingChanged)
+	ON_EN_UPDATE(IDC_RAMPING_OUT,          &COptionsMixer::OnRampingChanged)
+	ON_COMMAND(IDC_CHECK_SOFTPAN,          &COptionsMixer::OnSettingsChanged)
+	ON_COMMAND(IDC_CHECK1,                 &COptionsMixer::OnAmigaChanged)
+	ON_COMMAND(IDC_BUTTON1,                &COptionsMixer::OnDefaultRampSettings)
 END_MESSAGE_MAP()
 
 
@@ -1112,6 +1123,14 @@ void COptionsMixer::OnRampingChanged()
 		return;
 	UpdateRamping();
 	OnSettingsChanged();
+}
+
+
+void COptionsMixer::OnDefaultRampSettings()
+{
+	m_CEditRampUp.SetWindowText(mpt::ToCString(mpt::ufmt::val(MixerSettings().GetVolumeRampUpMicroseconds())));
+	m_CEditRampDown.SetWindowText(mpt::ToCString(mpt::ufmt::val(MixerSettings().GetVolumeRampDownMicroseconds())));
+	OnRampingChanged();
 }
 
 
@@ -1558,7 +1577,7 @@ void COptionsPlayer::UpdateEQ(bool bReset)
 {
 	CriticalSection cs;
 	if(CMainFrame::GetMainFrame()->GetSoundFilePlaying())
-		CMainFrame::GetMainFrame()->GetSoundFilePlaying()->SetEQGains(m_EQPreset.Gains, MAX_EQ_BANDS, m_EQPreset.Freqs, bReset);
+		CMainFrame::GetMainFrame()->GetSoundFilePlaying()->SetEQGains(m_EQPreset.Gains, m_EQPreset.Freqs, bReset);
 }
 
 

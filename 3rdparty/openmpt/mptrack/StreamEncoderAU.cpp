@@ -13,6 +13,9 @@
 #include "StreamEncoder.h"
 #include "StreamEncoderAU.h"
 
+#include "mpt/io/io.hpp"
+#include "mpt/io/io_stdstream.hpp"
+
 #include "Mptrack.h"
 #include "TrackerSettings.h"
 
@@ -28,7 +31,7 @@ private:
 
 	const AUEncoder &enc;
 	std::ostream &f;
-	Encoder::Format formatInfo;
+	Encoder::Settings settings;
 
 private:
 	static std::string TagToAnnotation(const std::string & field, const mpt::ustring & tag)
@@ -37,19 +40,19 @@ private:
 		{
 			return std::string();
 		}
-		return MPT_FORMAT("{}={}\n")(field, mpt::ToCharset(mpt::Charset::UTF8, mpt::String::Replace(tag, U_("="), MPT_UTF8("\xEF\xBF\xBD")))); // U+FFFD
+		return MPT_AFORMAT("{}={}\n")(field, mpt::ToCharset(mpt::Charset::UTF8, mpt::String::Replace(tag, U_("="), MPT_UTF8("\xEF\xBF\xBD")))); // U+FFFD
 	}
 
 public:
-	AUStreamWriter(const AUEncoder &enc_, std::ostream &file, const Encoder::Settings &settings, const FileTags &tags)
+	AUStreamWriter(const AUEncoder &enc_, std::ostream &file, const Encoder::Settings &settings_, const FileTags &tags)
 		: enc(enc_)
 		, f(file)
+		, settings(settings_)
 	{
 
-		formatInfo = enc.GetTraits().formats[settings.Format];
-		MPT_ASSERT(formatInfo.Sampleformat.IsValid());
-		MPT_ASSERT(formatInfo.Samplerate > 0);
-		MPT_ASSERT(formatInfo.Channels > 0);
+		MPT_ASSERT(settings.Format.GetSampleFormat().IsValid());
+		MPT_ASSERT(settings.Samplerate > 0);
+		MPT_ASSERT(settings.Channels > 0);
 
 		std::string annotation;
 		std::size_t annotationSize = 0;
@@ -67,9 +70,9 @@ public:
 			annotationTotalSize = annotationSize;
 			if(settings.Details.AUPaddingAlignHint > 0)
 			{
-				annotationTotalSize = Util::AlignUp<std::size_t>(24u + annotationTotalSize, settings.Details.AUPaddingAlignHint) - 24u;
+				annotationTotalSize = mpt::align_up<std::size_t>(24u + annotationTotalSize, settings.Details.AUPaddingAlignHint) - 24u;
 			}
-			annotationTotalSize = Util::AlignUp<std::size_t>(annotationTotalSize, 8u);
+			annotationTotalSize = mpt::align_up<std::size_t>(annotationTotalSize, 8u);
 		}
 		MPT_ASSERT(annotationTotalSize >= annotationSize);
 		MPT_ASSERT(annotationTotalSize % 8 == 0);
@@ -78,22 +81,28 @@ public:
 		mpt::IO::WriteIntBE<uint32>(f, mpt::saturate_cast<uint32>(24u + annotationTotalSize));
 		mpt::IO::WriteIntBE<uint32>(f, ~uint32(0));
 		uint32 encoding = 0;
-		if(formatInfo.Sampleformat.IsFloat())
+		if(settings.Format.encoding == Encoder::Format::Encoding::Float)
 		{
-			switch(formatInfo.Sampleformat.GetBitsPerSample())
+			switch(settings.Format.bits)
 			{
 			case 32: encoding = 6; break;
 			case 64: encoding = 7; break;
 			}
-		} else
+		} else if(settings.Format.encoding == Encoder::Format::Encoding::Integer)
 		{
-			switch(formatInfo.Sampleformat.GetBitsPerSample())
+			switch(settings.Format.bits)
 			{
 			case  8: encoding = 2; break;
 			case 16: encoding = 3; break;
 			case 24: encoding = 4; break;
 			case 32: encoding = 5; break;
 			}
+		} else if(settings.Format.encoding == Encoder::Format::Encoding::Alaw)
+		{
+			encoding = 27;
+		} else if (settings.Format.encoding == Encoder::Format::Encoding::ulaw)
+		{
+			encoding = 1;
 		}
 		mpt::IO::WriteIntBE<uint32>(f, encoding);
 		mpt::IO::WriteIntBE<uint32>(f, settings.Samplerate);
@@ -109,48 +118,41 @@ public:
 		}
 
 	}
-	mpt::endian GetConvertedEndianness() const override
+
+	SampleFormat GetSampleFormat() const override
 	{
-		return mpt::endian::big;
+		return settings.Format.GetSampleFormat();
 	}
-	void WriteInterleaved(size_t count, const float *interleaved) override
+
+	void WriteInterleaved(std::size_t frameCount, const double *interleaved) override
 	{
-		MPT_ASSERT(formatInfo.Sampleformat.IsFloat());
-		MPT_MAYBE_CONSTANT_IF(mpt::endian_is_big())
-		{
-			WriteInterleavedConverted(count, reinterpret_cast<const std::byte*>(interleaved));
-		} else
-		{
-			std::vector<IEEE754binary32BE> frameData(formatInfo.Channels);
-			for(std::size_t frame = 0; frame < count; ++frame)
-			{
-				for(int channel = 0; channel < formatInfo.Channels; ++channel)
-				{
-					frameData[channel] = IEEE754binary32BE(interleaved[channel]);
-				}
-				mpt::IO::WriteRaw(f, reinterpret_cast<const char*>(frameData.data()), formatInfo.Channels * (formatInfo.Sampleformat.GetBitsPerSample()/8));
-				interleaved += formatInfo.Channels;
-			}
-		}
+		WriteInterleavedBE(f, settings.Channels, settings.Format, frameCount, interleaved);
 	}
-	void WriteInterleavedConverted(size_t frameCount, const std::byte *data) override
+	void WriteInterleaved(std::size_t frameCount, const float *interleaved) override
 	{
-		if(formatInfo.Sampleformat.GetBitsPerSample() == 8)
-		{
-			for(std::size_t frame = 0; frame < frameCount; ++frame)
-			{
-				for(int channel = 0; channel < formatInfo.Channels; ++channel)
-				{
-					int8 sample = static_cast<int8>(mpt::byte_cast<uint8>(*data) - 0x80);
-					mpt::IO::WriteIntBE<int8>(f, sample);
-					data++;
-				}
-			}
-		} else
-		{
-			mpt::IO::WriteRaw(f, data, frameCount * formatInfo.Channels * (formatInfo.Sampleformat.GetBitsPerSample()/8));
-		}
+		WriteInterleavedBE(f, settings.Channels, settings.Format, frameCount, interleaved);
 	}
+	void WriteInterleaved(std::size_t frameCount, const int32 *interleaved) override
+	{
+		WriteInterleavedBE(f, settings.Channels, settings.Format, frameCount, interleaved);
+	}
+	void WriteInterleaved(std::size_t frameCount, const int24 *interleaved) override
+	{
+		WriteInterleavedBE(f, settings.Channels, settings.Format, frameCount, interleaved);
+	}
+	void WriteInterleaved(std::size_t frameCount, const int16 *interleaved) override
+	{
+		WriteInterleavedBE(f, settings.Channels, settings.Format, frameCount, interleaved);
+	}
+	void WriteInterleaved(std::size_t frameCount, const int8 *interleaved) override
+	{
+		WriteInterleavedBE(f, settings.Channels, settings.Format, frameCount, interleaved);
+	}
+	void WriteInterleaved(std::size_t frameCount, const uint8 *interleaved) override
+	{
+		WriteInterleavedBE(f, settings.Channels, settings.Format, frameCount, interleaved);
+	}
+
 	void WriteCues(const std::vector<uint64> &cues) override
 	{
 		MPT_UNREFERENCED_PARAMETER(cues);
@@ -178,38 +180,19 @@ AUEncoder::AUEncoder()
 	traits.canCues = false;
 	traits.maxChannels = 4;
 	traits.samplerates = TrackerSettings::Instance().GetSampleRates();
-	traits.modes = Encoder::ModeEnumerated;
-	for(std::size_t i = 0; i < traits.samplerates.size(); ++i)
-	{
-		int samplerate = traits.samplerates[i];
-		for(int channels = 1; channels <= traits.maxChannels; channels *= 2)
-		{
-			const std::array<SampleFormat, 6> sampleFormats = { SampleFormatFloat64, SampleFormatFloat32, SampleFormatInt32, SampleFormatInt24, SampleFormatInt16, SampleFormatUnsigned8 };
-			for(const auto sampleFormat : sampleFormats)
-			{
-				Encoder::Format format;
-				format.Samplerate = samplerate;
-				format.Channels = channels;
-				format.Sampleformat = sampleFormat;
-				if(sampleFormat.IsFloat())
-				{
-					format.Description = MPT_UFORMAT("Floating Point ({} Bit)")(sampleFormat.GetBitsPerSample());
-				} else if(sampleFormat.IsUnsigned())
-				{
-					format.Description = MPT_UFORMAT("{} Bit (unsigned)")(sampleFormat.GetBitsPerSample());
-				} else
-				{
-					format.Description = MPT_UFORMAT("{} Bit")(sampleFormat.GetBitsPerSample());
-				}
-				format.Bitrate = 0;
-				traits.formats.push_back(format);
-			}
-		}
-	}
+	traits.modes = Encoder::ModeLossless;
+	traits.formats.push_back({ Encoder::Format::Encoding::Float, 64, mpt::endian::big });
+	traits.formats.push_back({ Encoder::Format::Encoding::Float, 32, mpt::endian::big });
+	traits.formats.push_back({ Encoder::Format::Encoding::Integer, 32, mpt::endian::big });
+	traits.formats.push_back({ Encoder::Format::Encoding::Integer, 24, mpt::endian::big });
+	traits.formats.push_back({ Encoder::Format::Encoding::Integer, 16, mpt::endian::big });
+	traits.formats.push_back({ Encoder::Format::Encoding::Integer, 8, mpt::endian::big });
+	traits.formats.push_back({ Encoder::Format::Encoding::Alaw, 16, mpt::endian::big });
+	traits.formats.push_back({ Encoder::Format::Encoding::ulaw, 16, mpt::endian::big });
 	traits.defaultSamplerate = 48000;
 	traits.defaultChannels = 2;
-	traits.defaultMode = Encoder::ModeEnumerated;
-	traits.defaultFormat = 1;  // 32-bit float
+	traits.defaultMode = Encoder::ModeLossless;
+	traits.defaultFormat = { Encoder::Format::Encoding::Float, 32, mpt::endian::big };
 	SetTraits(traits);
 }
 

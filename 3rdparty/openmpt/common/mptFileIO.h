@@ -9,19 +9,22 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #if defined(MPT_ENABLE_FILEIO)
 
+#include "mpt/io_read/filecursor_memory.hpp"
+#include "mpt/io_read/filecursor_stdstream.hpp"
+
 #include "../common/mptString.h"
 #include "../common/mptPathString.h"
-#include "../common/mptIO.h"
+#include "../common/FileReaderFwd.h"
 
-#if defined(MPT_FSTREAM_NO_WCHAR)
+#if defined(MPT_COMPILER_QUIRK_WINDOWS_FSTREAM_NO_WCHAR)
 #if MPT_GCC_AT_LEAST(9,1,0)
 #include <filesystem>
 #endif // MPT_GCC_AT_LEAST(9,1,0)
-#endif // MPT_FSTREAM_NO_WCHAR
+#endif // MPT_COMPILER_QUIRK_WINDOWS_FSTREAM_NO_WCHAR
 #include <fstream>
 #include <ios>
 #include <ostream>
@@ -69,21 +72,19 @@ namespace detail
 template<typename Tbase>
 inline void fstream_open(Tbase & base, const mpt::PathString & filename, std::ios_base::openmode mode)
 {
-	#if defined(MPT_FSTREAM_NO_WCHAR)
+	#if defined(MPT_COMPILER_QUIRK_WINDOWS_FSTREAM_NO_WCHAR)
 		#if MPT_GCC_AT_LEAST(9,1,0)
 			base.open(static_cast<std::filesystem::path>(filename.AsNative()), mode);
 		#else // !MPT_GCC_AT_LEAST(9,1,0)
 			// Warning: MinGW with GCC earlier than 9.1 detected. Standard library does neither provide std::fstream wchar_t overloads nor std::filesystem with wchar_t support. Unicode filename support is thus unavailable.
 			base.open(mpt::ToCharset(mpt::Charset::Locale, filename.AsNative()).c_str(), mode);
 		#endif // MPT_GCC_AT_LEAST(9,1,0)
-	#else // !MPT_FSTREAM_NO_WCHAR
+	#else // !MPT_COMPILER_QUIRK_WINDOWS_FSTREAM_NO_WCHAR
 		base.open(filename.AsNativePrefixed().c_str(), mode);
-	#endif // MPT_FSTREAM_NO_WCHAR
+	#endif // MPT_COMPILER_QUIRK_WINDOWS_FSTREAM_NO_WCHAR
 }
 
 } // namespace detail
-
-class SafeOutputFile;
 
 // We cannot rely on implicit conversion of mpt::PathString to std::filesystem::path when constructing std::fstream
 // because of broken overload implementation in GCC libstdc++ 8, 9, 10.
@@ -96,13 +97,19 @@ class fstream
 private:
 	typedef std::fstream Tbase;
 public:
-	friend SafeOutputFile;
-public:
 	fstream() {}
 	fstream(const mpt::PathString & filename, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
 	{
 		detail::fstream_open<Tbase>(*this, filename, mode);
 	}
+#if MPT_COMPILER_MSVC
+protected:
+	fstream(std::FILE * file)
+		: std::fstream(file)
+	{
+	}
+#endif // MPT_COMPILER_MSVC
+public:
 	void open(const mpt::PathString & filename, std::ios_base::openmode mode = std::ios_base::in | std::ios_base::out)
 	{
 		detail::fstream_open<Tbase>(*this, filename, mode);
@@ -121,13 +128,19 @@ class ifstream
 private:
 	typedef std::ifstream Tbase;
 public:
-	friend SafeOutputFile;
-public:
 	ifstream() {}
 	ifstream(const mpt::PathString & filename, std::ios_base::openmode mode = std::ios_base::in)
 	{
 		detail::fstream_open<Tbase>(*this, filename, mode);
 	}
+#if MPT_COMPILER_MSVC
+protected:
+	ifstream(std::FILE * file)
+		: std::ifstream(file)
+	{
+	}
+#endif // MPT_COMPILER_MSVC
+public:
 	void open(const mpt::PathString & filename, std::ios_base::openmode mode = std::ios_base::in)
 	{
 		detail::fstream_open<Tbase>(*this, filename, mode);
@@ -146,8 +159,6 @@ class ofstream
 private:
 	typedef std::ofstream Tbase;
 public:
-	friend SafeOutputFile;
-public:
 	ofstream() {}
 	ofstream(const mpt::PathString & filename, std::ios_base::openmode mode = std::ios_base::out)
 	{
@@ -155,11 +166,10 @@ public:
 	}
 #if MPT_COMPILER_MSVC
 protected:
-	ofstream(FILE * file)
+	ofstream(std::FILE * file)
 		: std::ofstream(file)
 	{
 	}
-
 #endif // MPT_COMPILER_MSVC
 public:
 	void open(const mpt::PathString & filename, std::ios_base::openmode mode = std::ios_base::out)
@@ -194,9 +204,21 @@ private:
 	FlushMode m_FlushMode;
 #if MPT_COMPILER_MSVC
 	std::FILE *m_f = nullptr;
-#endif // MPT_COMPILER_MSVC
+#else // !MPT_COMPILER_MSVC
 	mpt::ofstream m_s;
+#endif // MPT_COMPILER_MSVC
 #if MPT_COMPILER_MSVC
+	class FILEostream
+		: public mpt::ofstream
+	{
+	public:
+		FILEostream(std::FILE * file)
+			: mpt::ofstream(file)
+		{
+			return;
+		}
+	};
+	FILEostream m_s;
 	static mpt::tstring convert_mode(std::ios_base::openmode mode, FlushMode flushMode);
 	std::FILE * internal_fopen(const mpt::PathString &filename, std::ios_base::openmode mode, FlushMode flushMode);
 #endif // MPT_COMPILER_MSVC
@@ -284,22 +306,92 @@ private:
 	bool m_IsCached;
 	std::vector<std::byte> m_Cache;
 public:
-	static bool DefaultToLargeAddressSpaceUsage();
-public:
-	InputFile(const mpt::PathString &filename, bool allowWholeFileCaching = DefaultToLargeAddressSpaceUsage());
+	InputFile(const mpt::PathString &filename, bool allowWholeFileCaching = false);
 	~InputFile();
 	bool IsValid() const;
 	bool IsCached() const;
 	mpt::PathString GetFilename() const;
-	std::istream* GetStream();
+	std::istream& GetStream();
 	mpt::const_byte_span GetCache();
 private:
-	bool Open(const mpt::PathString &filename, bool allowWholeFileCaching = DefaultToLargeAddressSpaceUsage());
+	bool Open(const mpt::PathString &filename, bool allowWholeFileCaching = false);
 };
 
 
-#endif // MPT_ENABLE_FILEIO
+template <typename Targ1>
+inline FileCursor make_FileCursor(Targ1 &&arg1)
+{
+	return mpt::IO::make_FileCursor<mpt::PathString>(std::forward<Targ1>(arg1));
+}
 
+template <typename Targ1, typename Targ2>
+inline FileCursor make_FileCursor(Targ1 &&arg1, Targ2 &&arg2)
+{
+	return mpt::IO::make_FileCursor<mpt::PathString>(std::forward<Targ1>(arg1), std::forward<Targ2>(arg2));
+}
+
+
+// templated in order to reduce header inter-dependencies
+class InputFile;
+template <typename TInputFile, std::enable_if_t<std::is_same<TInputFile, InputFile>::value, bool> = true>
+inline FileCursor make_FileCursor(TInputFile &file)
+{
+	if(!file.IsValid())
+	{
+		return FileCursor();
+	}
+	if(file.IsCached())
+	{
+		return mpt::IO::make_FileCursor<mpt::PathString>(file.GetCache(), std::make_shared<mpt::PathString>(file.GetFilename()));
+	} else
+	{
+		return mpt::IO::make_FileCursor<mpt::PathString>(file.GetStream(), std::make_shared<mpt::PathString>(file.GetFilename()));
+	}
+}
+
+
+template <typename Targ1>
+inline FileCursor GetFileReader(Targ1 &&arg1)
+{
+	return make_FileCursor(std::forward<Targ1>(arg1));
+}
+
+
+template <typename Targ1, typename Targ2>
+inline FileCursor GetFileReader(Targ1 &&arg1, Targ2 &&arg2)
+{
+	return make_FileCursor(std::forward<Targ1>(arg1), std::forward<Targ2>(arg2));
+}
+
+
+#if defined(MODPLUG_TRACKER) && MPT_OS_WINDOWS
+
+class OnDiskFileWrapper
+{
+
+private:
+
+	mpt::PathString m_Filename;
+	bool m_IsTempFile;
+
+public:
+
+	OnDiskFileWrapper(FileCursor& file, const mpt::PathString& fileNameExtension = P_("tmp"));
+
+	~OnDiskFileWrapper();
+
+public:
+
+	bool IsValid() const;
+
+	mpt::PathString GetFilename() const;
+
+}; // class OnDiskFileWrapper
+
+#endif // MODPLUG_TRACKER && MPT_OS_WINDOWS
+
+
+#endif // MPT_ENABLE_FILEIO
 
 
 OPENMPT_NAMESPACE_END

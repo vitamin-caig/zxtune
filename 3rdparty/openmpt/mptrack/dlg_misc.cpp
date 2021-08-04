@@ -572,7 +572,7 @@ void CLegacyPlaybackSettingsDlg::OnFilterStringChanged()
 		case kMODVBlankTiming: desc = _T("VBlank timing: F20 and above sets speed instead of tempo"); break;
 
 		case kSlidesAtSpeed1: desc = _T("Execute regular portamento slides at speed 1"); break;
-		case kHertzInLinearMode: desc = _T("Compute note frequency in Hertz rather than periods"); break;
+		case kPeriodsAreHertz: desc = _T("Compute note frequency in Hertz rather than periods"); break;
 		case kTempoClamp: desc = _T("Clamp tempo to 32-255 range"); break;
 		case kPerChannelGlobalVolSlide: desc = _T("Global volume slide memory is per-channel"); break;
 		case kPanOverride: desc = _T("Panning commands override surround and random pan variation"); break;
@@ -682,6 +682,9 @@ void CLegacyPlaybackSettingsDlg::OnFilterStringChanged()
 		case kOPLRealRetrig: desc = _T("Retrigger (Qxy) affects OPL notes"); break;
 		case kOPLNoResetAtEnvelopeEnd: desc = _T("Do not reset OPL channel status at end of envelopes"); break;
 		case kOPLNoteStopWith0Hz: desc = _T("OPL key-off sets note frequency to 0 Hz"); break;
+		case kOPLNoteOffOnNoteChange: desc = _T("Send OPL key-off when triggering notes"); break;
+		case kFT2PortaResetDirection: desc = _T("Tone Portamento direction resets after reaching portamento target from below"); break;
+		case kApplyUpperPeriodLimit: desc = _T("Apply lower frequency limit"); break;
 
 		default: MPT_ASSERT_NOTREACHED();
 		}

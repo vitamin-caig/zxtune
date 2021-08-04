@@ -52,12 +52,10 @@ BOOL WelcomeDlg::OnInitDialog()
 	if(RegOpenKey(HKEY_LOCAL_MACHINE, _T("Software\\VST"), &hkEnum) == ERROR_SUCCESS
 		&& RegQueryValueEx(hkEnum, _T("VSTPluginsPath"), 0, &datatype, (LPBYTE)str, &datasize) == ERROR_SUCCESS)
 	{
-		mpt::String::SetNullTerminator(str);
-		m_vstPath = mpt::PathString::FromNative(str);
+		m_vstPath = mpt::PathString::FromNative(ParseMaybeNullTerminatedStringFromBufferWithSizeInBytes<mpt::winstring>(str, datasize));
 	} else if(SHGetSpecialFolderPath(0, str, CSIDL_PROGRAM_FILES, FALSE))
 	{
-		mpt::String::SetNullTerminator(str);
-		m_vstPath = mpt::PathString::FromNative(str) + P_("\\Steinberg\\VstPlugins\\");
+		m_vstPath = mpt::PathString::FromNative(ParseMaybeNullTerminatedStringFromBufferWithSizeInBytes<mpt::winstring>(str, datasize)) + P_("\\Steinberg\\VstPlugins\\");
 		if(!m_vstPath.IsDirectory())
 		{
 			m_vstPath = mpt::PathString();
@@ -113,6 +111,11 @@ BOOL WelcomeDlg::OnInitDialog()
 			int i = combo->AddString(_T("OpenMPT / Chromatic (") + CString(keyFileName) + _T(")"));
 			combo->SetItemDataPtr(i, (void *)keyFile);
 			combo->SetCurSel(i);
+
+			// As this is presented as the default, load it right now, even if the user closes the dialog through the close button
+			auto cmdSet = std::make_unique<CCommandSet>();
+			cmdSet->LoadFile(GetFullKeyPath(keyFile));
+			CMainFrame::GetInputHandler()->SetNewCommandSet(cmdSet.get());
 		}
 	}
 	combo->SetItemDataPtr(combo->AddString(_T("Impulse Tracker")), (void*)("US_mpt-it2_classic"));
@@ -120,7 +123,9 @@ BOOL WelcomeDlg::OnInitDialog()
 
 	CheckDlgButton(IDC_CHECK1, BST_CHECKED);
 	CheckDlgButton(IDC_CHECK3, BST_CHECKED);
+#if defined(MPT_ENABLE_UPDATE)
 	GetDlgItem(IDC_STATIC_WELCOME_STATISTICS)->SetWindowText(mpt::ToCString(mpt::String::Replace(CUpdateCheck::GetStatisticsUserInformation(false), U_("\n"), U_(" "))));
+#endif // MPT_ENABLE_UPDATE
 	CheckDlgButton(IDC_CHECK2, (TrackerSettings::Instance().patternFont.Get().name == PATTERNFONT_LARGE) ? BST_CHECKED : BST_UNCHECKED);
 
 	ShowWindow(SW_SHOW);
@@ -148,11 +153,13 @@ void WelcomeDlg::OnOK()
 {
 	CDialog::OnOK();
 
+#if defined(MPT_ENABLE_UPDATE)
 	bool runUpdates = IsDlgButtonChecked(IDC_CHECK1) != BST_UNCHECKED;
 	TrackerSettings::Instance().UpdateIntervalDays = (runUpdates ? 7 : -1);
 	TrackerSettings::Instance().UpdateStatistics = (IsDlgButtonChecked(IDC_CHECK3) != BST_UNCHECKED);
 	TrackerSettings::Instance().UpdateShowUpdateHint = false;
 	TrackerSettings::Instance().UpdateStatisticsConsentAsked = true;
+#endif // MPT_ENABLE_UPDATE
 	if(IsDlgButtonChecked(IDC_CHECK2) != BST_UNCHECKED)
 	{
 		FontSetting font = TrackerSettings::Instance().patternFont;
@@ -162,16 +169,19 @@ void WelcomeDlg::OnOK()
 
 	CComboBox *combo = (CComboBox *)GetDlgItem(IDC_COMBO1);
 	const char *keyFile = static_cast<char *>(combo->GetItemDataPtr(combo->GetCurSel()));
+	auto cmdSet = std::make_unique<CCommandSet>();
 	if(keyFile != nullptr)
-	{
-		auto cmdSet = std::make_unique<CCommandSet>();
 		cmdSet->LoadFile(GetFullKeyPath(keyFile));
-		CMainFrame::GetInputHandler()->SetNewCommandSet(cmdSet.get());
-	}
+	else
+		cmdSet->LoadDefaultKeymap();
+	CMainFrame::GetInputHandler()->SetNewCommandSet(cmdSet.get());
+
+#if defined(MPT_ENABLE_UPDATE)
 	if(runUpdates)
 	{
 		CUpdateCheck::DoAutoUpdateCheck();
 	}
+#endif // MPT_ENABLE_UPDATE
 	CMainFrame::GetMainFrame()->PostMessage(WM_MOD_INVALIDATEPATTERNS, HINT_MPTOPTIONS);
 
 	DestroyWindow();

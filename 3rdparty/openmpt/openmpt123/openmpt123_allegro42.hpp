@@ -115,6 +115,7 @@ public:
 		set_queue_size_frames( period_frames );
 		if ( flags.verbose ) {
 			log << "Allegro-4.2:" << std::endl;
+			log << " allegro samplerate: " << get_mixer_frequency() << std::endl;
 			log << " latency: " << flags.buffer << std::endl;
 			log << " period: " << flags.period << std::endl;
 			log << " frames per buffer: " << period_frames << std::endl;

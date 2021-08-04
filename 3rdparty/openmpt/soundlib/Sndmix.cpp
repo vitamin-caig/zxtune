@@ -47,13 +47,6 @@ static constexpr uint8 PreAmpAGCTable[16] =
 #endif
 
 
-// Compensate frequency slide LUTs depending on whether we are handling periods or frequency - "up" and "down" in function name are seen from frequency perspective.
-static uint32 GetLinearSlideDownTable    (const CSoundFile *sndFile, uint32 i) { MPT_ASSERT(i < std::size(LinearSlideDownTable));     return sndFile->m_playBehaviour[kHertzInLinearMode] ? LinearSlideDownTable[i]     : LinearSlideUpTable[i]; }
-static uint32 GetLinearSlideUpTable      (const CSoundFile *sndFile, uint32 i) { MPT_ASSERT(i < std::size(LinearSlideDownTable));     return sndFile->m_playBehaviour[kHertzInLinearMode] ? LinearSlideUpTable[i]       : LinearSlideDownTable[i]; }
-static uint32 GetFineLinearSlideDownTable(const CSoundFile *sndFile, uint32 i) { MPT_ASSERT(i < std::size(FineLinearSlideDownTable)); return sndFile->m_playBehaviour[kHertzInLinearMode] ? FineLinearSlideDownTable[i] : FineLinearSlideUpTable[i]; }
-static uint32 GetFineLinearSlideUpTable  (const CSoundFile *sndFile, uint32 i) { MPT_ASSERT(i < std::size(FineLinearSlideDownTable)); return sndFile->m_playBehaviour[kHertzInLinearMode] ? FineLinearSlideUpTable[i]   : FineLinearSlideDownTable[i]; }
-
-
 void CSoundFile::SetMixerSettings(const MixerSettings &mixersettings)
 {
 	SetPreAmp(mixersettings.m_nPreAmp); // adjust agc
@@ -89,7 +82,7 @@ void CSoundFile::InitPlayer(bool bReset)
 	}
 	m_Resampler.UpdateTables();
 #ifndef NO_REVERB
-	m_Reverb.Initialize(bReset, m_MixerSettings.gdwMixingFreq);
+	m_Reverb.Initialize(bReset, m_RvbROfsVol, m_RvbLOfsVol, m_MixerSettings.gdwMixingFreq);
 #endif
 #ifndef NO_DSP
 	m_Surround.Initialize(bReset, m_MixerSettings.gdwMixingFreq);
@@ -198,25 +191,13 @@ void CSoundFile::ProcessInputChannels(IAudioSource &source, std::size_t countChu
 	{
 		buffers[channel] = MixInputBuffer[channel];
 	}
-	source.FillCallback(buffers, m_MixerSettings.NumInputChannels, countChunk);
+	source.Process(mpt::audio_span_planar(buffers, m_MixerSettings.NumInputChannels, countChunk));
 }
 
 
-CSoundFile::samplecount_t CSoundFile::Read(samplecount_t count, IAudioReadTarget &target, IAudioSource &source)
+CSoundFile::samplecount_t CSoundFile::Read(samplecount_t count, IAudioTarget &target, IAudioSource &source, std::optional<std::reference_wrapper<IMonitorOutput>> outputMonitor, std::optional<std::reference_wrapper<IMonitorInput>> inputMonitor)
 {
 	MPT_ASSERT_ALWAYS(m_MixerSettings.IsValid());
-
-	bool mixPlugins = false;
-#ifndef NO_PLUGINS
-	for(const auto &plug : m_MixPlugins)
-	{
-		if(plug.pMixPlugin)
-		{
-			mixPlugins = true;
-			break;
-		}
-	}
-#endif // NO_PLUGINS
 
 	samplecount_t countRendered = 0;
 	samplecount_t countToRender = count;
@@ -296,6 +277,16 @@ CSoundFile::samplecount_t CSoundFile::Read(samplecount_t count, IAudioReadTarget
 			ProcessInputChannels(source, countChunk);
 		}
 
+		if(inputMonitor)
+		{
+			mixsample_t *buffers[NUMMIXINPUTBUFFERS];
+			for(std::size_t channel = 0; channel < NUMMIXINPUTBUFFERS; ++channel)
+			{
+				buffers[channel] = MixInputBuffer[channel];
+			}
+			inputMonitor->get().Process(mpt::audio_span_planar<const mixsample_t>(buffers, m_MixerSettings.NumInputChannels, countChunk));
+		}
+
 		CreateStereoMix(countChunk);
 
 		if(m_opl)
@@ -303,14 +294,16 @@ CSoundFile::samplecount_t CSoundFile::Read(samplecount_t count, IAudioReadTarget
 			m_opl->Mix(MixSoundBuffer, countChunk, m_OPLVolumeFactor * m_nVSTiVolume / 48);
 		}
 
-		#ifndef NO_REVERB
-			m_Reverb.Process(MixSoundBuffer, countChunk);
-		#endif // NO_REVERB
+#ifndef NO_REVERB
+		m_Reverb.Process(MixSoundBuffer, ReverbSendBuffer, m_RvbROfsVol, m_RvbLOfsVol, countChunk);
+#endif  // NO_REVERB
 
-		if(mixPlugins)
+#ifndef NO_PLUGINS
+		if(m_loadedPlugins)
 		{
 			ProcessPlugins(countChunk);
 		}
+#endif  // NO_PLUGINS
 
 		if(m_MixerSettings.gnChannels == 1)
 		{
@@ -337,7 +330,12 @@ CSoundFile::samplecount_t CSoundFile::Read(samplecount_t count, IAudioReadTarget
 			InterleaveFrontRear(MixSoundBuffer, MixRearBuffer, countChunk);
 		}
 
-		target.DataCallback(MixSoundBuffer, m_MixerSettings.gnChannels, countChunk);
+		if(outputMonitor)
+		{
+			outputMonitor->get().Process(mpt::audio_span_interleaved<const mixsample_t>(MixSoundBuffer, m_MixerSettings.gnChannels, countChunk));
+		}
+
+		target.Process(mpt::audio_span_interleaved<mixsample_t>(MixSoundBuffer, m_MixerSettings.gnChannels, countChunk));
 
 		// Buffer ready
 		countRendered += countChunk;
@@ -622,8 +620,9 @@ bool CSoundFile::ProcessRow()
 						m_visitedRows.Initialize(true);
 					}
 					// When jumping to the next subsong, stop all playing notes from the previous song...
+					const auto muteFlag = CSoundFile::GetChannelMuteFlag();
 					for(CHANNELINDEX i = 0; i < MAX_CHANNELS; i++)
-						m_PlayState.Chn[i].Reset(ModChannel::resetSetPosFull, *this, i);
+						m_PlayState.Chn[i].Reset(ModChannel::resetSetPosFull, *this, i, muteFlag);
 					StopAllVsti();
 					// ...and the global playback information.
 					m_PlayState.m_nMusicSpeed = m_nDefaultSpeed;
@@ -1133,7 +1132,7 @@ void CSoundFile::ProcessPanningEnvelope(ModChannel &chn) const
 }
 
 
-int CSoundFile::ProcessPitchFilterEnvelope(ModChannel &chn, int &period) const
+int CSoundFile::ProcessPitchFilterEnvelope(ModChannel &chn, int32 &period) const
 {
 	if(IsEnvelopeProcessed(chn, ENV_PITCH))
 	{
@@ -1175,7 +1174,7 @@ int CSoundFile::ProcessPitchFilterEnvelope(ModChannel &chn, int &period) const
 			{
 				if(chn.nFineTune != envval)
 				{
-					chn.nFineTune = envval;
+					chn.nFineTune = mpt::saturate_cast<int16>(envval);
 					chn.m_CalculateFreq = true;
 					//Preliminary tests indicated that this behavior
 					//is very close to original(with 12TET) when finestep count
@@ -1414,7 +1413,7 @@ void CSoundFile::ProcessPanbrello(ModChannel &chn) const
 }
 
 
-void CSoundFile::ProcessArpeggio(CHANNELINDEX nChn, int &period, Tuning::NOTEINDEXTYPE &arpeggioSteps)
+void CSoundFile::ProcessArpeggio(CHANNELINDEX nChn, int32 &period, Tuning::NOTEINDEXTYPE &arpeggioSteps)
 {
 	ModChannel &chn = m_PlayState.Chn[nChn];
 
@@ -1599,7 +1598,7 @@ void CSoundFile::ProcessArpeggio(CHANNELINDEX nChn, int &period, Tuning::NOTEIND
 }
 
 
-void CSoundFile::ProcessVibrato(CHANNELINDEX nChn, int &period, Tuning::RATIOTYPE &vibratoFactor)
+void CSoundFile::ProcessVibrato(CHANNELINDEX nChn, int32 &period, Tuning::RATIOTYPE &vibratoFactor)
 {
 	ModChannel &chn = m_PlayState.Chn[nChn];
 
@@ -1682,26 +1681,9 @@ void CSoundFile::ProcessVibrato(CHANNELINDEX nChn, int &period, Tuning::RATIOTYP
 					vdepth += 2;
 			}
 
-			vdelta = (vdelta * (int)chn.nVibratoDepth) / (1 << vdepth);
-#ifndef NO_PLUGINS
-			int16 midiDelta = static_cast<int16>(-vdelta);	// Periods are upside down
-#endif // NO_PLUGINS
+			vdelta = (-vdelta * static_cast<int>(chn.nVibratoDepth)) / (1 << vdepth);
 
-			if (m_SongFlags[SONG_LINEARSLIDES] && GetType() != MOD_TYPE_XM)
-			{
-				int l = vdelta;
-				if (l < 0)
-				{
-					l = -l;
-					vdelta = Util::muldiv(period, GetLinearSlideUpTable(this, l / 4u), 65536) - period;
-					if (l & 0x03) vdelta += Util::muldiv(period, GetFineLinearSlideUpTable(this, l & 0x03), 65536) - period;
-				} else
-				{
-					vdelta = Util::muldiv(period, GetLinearSlideDownTable(this, l / 4u), 65536) - period;
-					if (l & 0x03) vdelta += Util::muldiv(period, GetFineLinearSlideDownTable(this, l & 0x03), 65536) - period;
-				}
-			}
-			period += vdelta;
+			DoFreqSlide(chn, period, vdelta);
 
 			// Process MIDI vibrato for plugins:
 #ifndef NO_PLUGINS
@@ -1715,7 +1697,7 @@ void CSoundFile::ProcessVibrato(CHANNELINDEX nChn, int &period, Tuning::RATIOTYP
 				{
 					pwd = chn.pModInstrument->midiPWD;
 				}
-				plugin->MidiVibrato(midiDelta, pwd, nChn);
+				plugin->MidiVibrato(vdelta, pwd, nChn);
 			}
 #endif // NO_PLUGINS
 		}
@@ -1738,7 +1720,7 @@ void CSoundFile::ProcessVibrato(CHANNELINDEX nChn, int &period, Tuning::RATIOTYP
 }
 
 
-void CSoundFile::ProcessSampleAutoVibrato(ModChannel &chn, int &period, Tuning::RATIOTYPE &vibratoFactor, int &nPeriodFrac) const
+void CSoundFile::ProcessSampleAutoVibrato(ModChannel &chn, int32 &period, Tuning::RATIOTYPE &vibratoFactor, int &nPeriodFrac) const
 {
 	// Sample Auto-Vibrato
 	if(chn.pModSample != nullptr && chn.pModSample->nVibDepth)
@@ -1746,7 +1728,7 @@ void CSoundFile::ProcessSampleAutoVibrato(ModChannel &chn, int &period, Tuning::
 		const ModSample *pSmp = chn.pModSample;
 		const bool hasTuning = chn.HasCustomTuning();
 
-		// In IT linear slide mode, we use frequencies, otherwise we use periods, which are upside down.
+		// In IT compatible mode, we use always frequencies, otherwise we use periods, which are upside down.
 		// In this context, the "up" tables refer to the tables that increase frequency, and the down tables are the ones that decrease frequency.
 		const bool useFreq = PeriodsAreFrequencies();
 		const uint32 (&upTable)[256] = useFreq ? LinearSlideUpTable : LinearSlideDownTable;
@@ -1984,7 +1966,8 @@ void CSoundFile::ProcessRamping(ModChannel &chn) const
 }
 
 
-SamplePosition CSoundFile::GetChannelIncrement(const ModChannel &chn, uint32 period, int periodFrac) const
+// Returns channel increment and frequency with FREQ_FRACBITS fractional bits
+std::pair<SamplePosition, uint32> CSoundFile::GetChannelIncrement(const ModChannel &chn, uint32 period, int periodFrac) const
 {
 	uint32 freq;
 	if(!chn.HasCustomTuning())
@@ -1992,8 +1975,17 @@ SamplePosition CSoundFile::GetChannelIncrement(const ModChannel &chn, uint32 per
 	else
 		freq = chn.nPeriod;
 
-	// Applying Pitch/Tempo lock
 	const ModInstrument *ins = chn.pModInstrument;
+
+	if(int32 finetune = chn.microTuning; finetune != 0)
+	{
+		if(ins)
+			finetune *= ins->midiPWD;
+		if(finetune)
+			freq = mpt::saturate_round<uint32>(freq * std::pow(2.0, finetune / (12.0 * 256.0 * 128.0)));
+	}
+
+	// Applying Pitch/Tempo lock
 	if(ins && ins->pitchToTempoLock.GetRaw())
 	{
 		freq = Util::muldivr(freq, m_PlayState.m_nMusicTempo.GetRaw(), ins->pitchToTempoLock.GetRaw());
@@ -2001,7 +1993,7 @@ SamplePosition CSoundFile::GetChannelIncrement(const ModChannel &chn, uint32 per
 
 	// Avoid increment to overflow and become negative with unrealisticly high frequencies.
 	LimitMax(freq, uint32(int32_max));
-	return SamplePosition::Ratio(freq, m_MixerSettings.gdwMixingFreq << FREQ_FRACBITS);
+	return {SamplePosition::Ratio(freq, m_MixerSettings.gdwMixingFreq << FREQ_FRACBITS), freq};
 }
 
 
@@ -2105,7 +2097,7 @@ bool CSoundFile::ReadNote()
 		const ModInstrument *pIns = chn.pModInstrument;
 
 		// Calc Frequency
-		int period;
+		int32 period = 0;
 
 		// Also process envelopes etc. when there's a plugin on this channel, for possible fake automation using volume and pan data.
 		// We only care about master channels, though, since automation only "happens" on them.
@@ -2150,6 +2142,10 @@ bool CSoundFile::ReadNote()
 					vol = 0;
 				}
 			}
+			
+			if(chn.isPaused)
+				vol = 0;
+
 			// vol is 14-bits
 			if (vol)
 			{
@@ -2179,6 +2175,11 @@ bool CSoundFile::ReadNote()
 				&& !PeriodsAreFrequencies())
 			{
 				chn.nPeriod = m_nMinPeriod;
+			} else if(chn.nPeriod >= m_nMaxPeriod && m_playBehaviour[kApplyUpperPeriodLimit])
+			{
+				// ...but on the other hand, ST3's SoundBlaster driver clamps the maximum channel period.
+				// Test case: PeriodLimitUpper.s3m
+				chn.nPeriod = m_nMaxPeriod;
 			}
 			if(m_playBehaviour[kFT2Periods]) Clamp(chn.nPeriod, 1, 31999);
 			period = chn.nPeriod;
@@ -2291,6 +2292,16 @@ bool CSoundFile::ReadNote()
 				}
 			}
 
+			auto [ninc, freq] = GetChannelIncrement(chn, period, nPeriodFrac);
+#ifndef MODPLUG_TRACKER
+			ninc.MulDiv(m_nFreqFactor, 65536);
+#endif  // !MODPLUG_TRACKER
+			if(ninc.IsZero())
+			{
+				ninc.Set(0, 1);
+			}
+			chn.increment = ninc;
+
 			if((chn.dwFlags & (CHN_ADLIB | CHN_MUTE | CHN_SYNCMUTE)) == CHN_ADLIB && m_opl)
 			{
 				const bool doProcess = m_playBehaviour[kOPLFlexibleNoteOff] || !chn.dwFlags[CHN_NOTEFADE] || GetType() == MOD_TYPE_S3M;
@@ -2298,11 +2309,8 @@ bool CSoundFile::ReadNote()
 				{
 					// In ST3, a sample rate of 8363 Hz is mapped to middle-C, which is 261.625 Hz in a tempered scale at A4 = 440.
 					// Hence, we have to translate our "sample rate" into pitch.
-					const auto freq = hasTuning ? chn.nPeriod : GetFreqFromPeriod(period, chn.nC5Speed, nPeriodFrac);
 					auto milliHertz = Util::muldivr_unsigned(freq, 261625, 8363 << FREQ_FRACBITS);
-#ifndef MODPLUG_TRACKER
-					milliHertz = Util::muldivr_unsigned(milliHertz, m_nFreqFactor, 65536);
-#endif  // !MODPLUG_TRACKER
+
 					const bool keyOff = chn.dwFlags[CHN_KEYOFF] || (chn.dwFlags[CHN_NOTEFADE] && chn.nFadeOutVol == 0);
 					if(!m_playBehaviour[kOPLNoteStopWith0Hz] || !keyOff)
 						m_opl->Frequency(nChn, milliHertz, keyOff, m_playBehaviour[kOPLBeatingOscillators]);
@@ -2332,16 +2340,6 @@ bool CSoundFile::ReadNote()
 					chn.dwFlags.reset(CHN_ADLIB);
 				}
 			}
-
-			SamplePosition ninc = GetChannelIncrement(chn, period, nPeriodFrac);
-#ifndef MODPLUG_TRACKER
-			ninc.MulDiv(m_nFreqFactor, 65536);
-#endif // !MODPLUG_TRACKER
-			if(ninc.IsZero())
-			{
-				ninc.Set(0, 1);
-			}
-			chn.increment = ninc;
 		}
 
 		// Increment envelope positions
@@ -2353,7 +2351,7 @@ bool CSoundFile::ReadNote()
 		}
 
 		// Volume ramping
-		chn.dwFlags.set(CHN_VOLUMERAMP, (chn.nRealVolume | chn.rightVol | chn.leftVol) != 0);
+		chn.dwFlags.set(CHN_VOLUMERAMP, (chn.nRealVolume | chn.rightVol | chn.leftVol) != 0 && !chn.dwFlags[CHN_ADLIB]);
 
 		constexpr uint8 VUMETER_DECAY = 4;
 		chn.nLeftVU = (chn.nLeftVU > VUMETER_DECAY) ? (chn.nLeftVU - VUMETER_DECAY) : 0;
@@ -2361,7 +2359,7 @@ bool CSoundFile::ReadNote()
 
 		chn.newLeftVol = chn.newRightVol = 0;
 		chn.pCurrentSample = (chn.pModSample && chn.pModSample->HasSampleData() && chn.nLength && chn.IsSamplePlaying()) ? chn.pModSample->samplev() : nullptr;
-		if (chn.pCurrentSample || (chn.HasMIDIOutput() && !chn.dwFlags[CHN_KEYOFF | CHN_NOTEFADE]))
+		if(chn.pCurrentSample || (chn.HasMIDIOutput() && !chn.dwFlags[CHN_KEYOFF | CHN_NOTEFADE]))
 		{
 			// Update VU-Meter (nRealVolume is 14-bit)
 			uint32 vul = (chn.nRealVolume * (256-chn.nRealPan)) / (1 << 14);

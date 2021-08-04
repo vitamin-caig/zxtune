@@ -7,7 +7,7 @@
  * The OpenMPT source code is released under the BSD license. Read LICENSE for more details.
  */
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "libopenmpt_internal.h"
 #include "libopenmpt.h"
@@ -28,8 +28,6 @@
 #if defined(_MSC_VER)
 #pragma warning(disable:4702) /* unreachable code */
 #endif
-
-#ifndef NO_LIBOPENMPT_C
 
 namespace openmpt {
 
@@ -88,6 +86,8 @@ public:
 static std::string format_exception( const char * const function ) {
 	std::string err;
 	try {
+		// cppcheck false-positive
+		// cppcheck-suppress rethrowNoCurrentException
 		throw;
 	} catch ( const openmpt::exception & e ) {
 		err += function;
@@ -131,6 +131,8 @@ static int error_from_exception( const char * * error_message ) {
 		}
 	}
 	try {
+		// cppcheck false-positive
+		// cppcheck-suppress rethrowNoCurrentException
 		throw;
 
 	} catch ( const std::bad_alloc & e ) {
@@ -1784,5 +1786,3 @@ int openmpt_module_ext_get_interface( openmpt_module_ext * mod_ext, const char *
 }
 
 } // extern "C"
-
-#endif // NO_LIBOPENMPT_C

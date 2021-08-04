@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include "BuildSettings.h"
+#include "openmpt/all/BuildSettings.hpp"
 
 #include "NativeSoundDevice.h"
 
-#include "../../sounddev/SoundDevice.h"
+#include "openmpt/sounddevice/SoundDevice.hpp"
 
 #ifdef MPT_WITH_NLOHMANNJSON
 
@@ -14,7 +14,7 @@
 #pragma warning(push)
 #pragma warning(disable:4127) // conditional expression is constant
 #endif // MPT_COMPILER_MSVC
-#include "../../misc/JSON.h"
+#include "mpt/json/json.hpp"
 #if MPT_COMPILER_MSVC
 #pragma warning(pop)
 #endif // MPT_COMPILER_MSVC
@@ -29,11 +29,11 @@ OPENMPT_NAMESPACE_BEGIN
 
 #ifdef MPT_WITH_NLOHMANNJSON
 
-inline void to_json(JSON::value &j, const SampleFormat &val)
+inline void to_json(nlohmann::json &j, const SampleFormat &val)
 {
 	j = SampleFormat::ToInt(val);
 }
-inline void from_json(const JSON::value &j, SampleFormat &val)
+inline void from_json(const nlohmann::json &j, SampleFormat &val)
 {
 	val = SampleFormat::FromInt(j);
 }
@@ -41,20 +41,20 @@ inline void from_json(const JSON::value &j, SampleFormat &val)
 namespace SoundDevice
 {
 
-	inline void to_json(JSON::value &j, const SoundDevice::ChannelMapping &val)
+	inline void to_json(nlohmann::json &j, const SoundDevice::ChannelMapping &val)
 	{
 		j = val.ToUString();
 	}
-	inline void from_json(const JSON::value &j, SoundDevice::ChannelMapping &val)
+	inline void from_json(const nlohmann::json &j, SoundDevice::ChannelMapping &val)
 	{
 		val = SoundDevice::ChannelMapping::FromString(j);
 	}
 
-	inline void to_json(JSON::value &j, const SoundDevice::Info::Default &val)
+	inline void to_json(nlohmann::json &j, const SoundDevice::Info::Default &val)
 	{
 		j = static_cast<int>(val);
 	}
-	inline void from_json(const JSON::value &j, SoundDevice::Info::Default &val)
+	inline void from_json(const nlohmann::json &j, SoundDevice::Info::Default &val)
 	{
 		val = static_cast<SoundDevice::Info::Default>(static_cast<int>(j));
 	}
@@ -174,24 +174,20 @@ Tdst json_cast(const Tsrc &src)
 
 
 template <typename Tsrc>
-struct json_cast_impl<JSON::value, Tsrc>
+struct json_cast_impl<nlohmann::json, Tsrc>
 {
-	JSON::value operator () (const Tsrc &src)
+	nlohmann::json operator () (const Tsrc &src)
 	{
-		JSON::value j;
-		JSON::enc(j, src);
-		return j;
+		return static_cast<nlohmann::json>(src);
 	}
 };
 
 template <typename Tdst>
-struct json_cast_impl<Tdst, JSON::value>
+struct json_cast_impl<Tdst, nlohmann::json>
 {
-	Tdst operator () (const JSON::value &j)
+	Tdst operator () (const nlohmann::json &src)
 	{
-		Tdst val;
-		JSON::dec(val, j);
-		return val;
+		return src.get<Tdst>();
 	}
 };
 
@@ -200,7 +196,7 @@ struct json_cast_impl<std::string, Tsrc>
 {
 	std::string operator () (const Tsrc &src)
 	{
-		return JSON::serialize(json_cast<JSON::value>(src));
+		return json_cast<nlohmann::json>(src).dump(4);
 	}
 };
 
@@ -209,7 +205,7 @@ struct json_cast_impl<Tdst, std::string>
 {
 	Tdst operator () (const std::string &str)
 	{
-		return json_cast<Tdst>(JSON::deserialize(str));
+		return json_cast<Tdst>(nlohmann::json::parse(str));
 	}
 };
 
@@ -261,12 +257,12 @@ static_assert(sizeof(OpenMPT_SoundDevice_Flags) % 8 == 0);
 inline OpenMPT_SoundDevice_Flags encode(SoundDevice::Flags src) {
 	OpenMPT_SoundDevice_Flags dst;
 	MemsetZero(dst);
-	dst.NeedsClippedFloat = src.NeedsClippedFloat;
+	dst.WantsClippedOutput = src.WantsClippedOutput;
 	return dst;
 }
 inline SoundDevice::Flags decode(OpenMPT_SoundDevice_Flags src) {
 	SoundDevice::Flags dst;
-	dst.NeedsClippedFloat = src.NeedsClippedFloat;
+	dst.WantsClippedOutput = src.WantsClippedOutput;
 	return dst;
 }
 
@@ -278,7 +274,7 @@ inline OpenMPT_SoundDevice_BufferFormat encode(SoundDevice::BufferFormat src) {
 	dst.Channels = src.Channels;
 	dst.InputChannels = src.InputChannels;
 	dst.sampleFormat = SampleFormat::ToInt(src.sampleFormat);
-	dst.NeedsClippedFloat = src.NeedsClippedFloat;
+	dst.WantsClippedOutput = src.WantsClippedOutput;
 	dst.DitherType = src.DitherType;
 	return dst;
 }
@@ -288,7 +284,7 @@ inline SoundDevice::BufferFormat decode(OpenMPT_SoundDevice_BufferFormat src) {
 	dst.Channels = src.Channels;
 	dst.InputChannels = src.InputChannels;
 	dst.sampleFormat = SampleFormat::FromInt(src.sampleFormat);
-	dst.NeedsClippedFloat = src.NeedsClippedFloat;
+	dst.WantsClippedOutput = src.WantsClippedOutput;
 	dst.DitherType = src.DitherType;
 	return dst;
 }
