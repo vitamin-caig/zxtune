@@ -1,0 +1,15 @@
+## vgmstream autotools script
+
+#inputplugindir = $(libdir)/audacious/$(INPUT_PLUGIN_DIR)
+inputplugindir = $(plugindir)/$(INPUT_PLUGIN_DIR)
+
+inputplugin_LTLIBRARIES = libvgmstream.la
+
+AM_MAKEFLAGS=-f Makefile.autotools
+AM_CXXFLAGS = -DVGMSTREAM_VERSION_AUTO -DVGM_LOG_OUTPUT -Wall -std=c++11 -I$(top_builddir) -I$(top_srcdir) -I$(top_srcdir)/ext_includes/ $(AUDACIOUS_CFLAGS) $(GTK_CFLAGS)
+AM_LIBS =
+
+# sources/headers are updated automatically by ./bootstrap script (not all headers are needed though)
+libvgmstream_la_LDFLAGS = -no-undefined -module -avoid-version -export-symbols-regex get_plugin_info ../src/libvgmstream.la
+libvgmstream_la_SOURCES = (auto-updated)
+EXTRA_DIST = (auto-updated)
