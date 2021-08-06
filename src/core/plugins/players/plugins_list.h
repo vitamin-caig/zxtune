@@ -66,6 +66,7 @@ namespace ZXTune
   void RegisterV2MSupport(PlayerPluginsRegistrator& registrator);
   void RegisterVGMPlugins(PlayerPluginsRegistrator& registrator);
   void RegisterMPTPlugins(PlayerPluginsRegistrator& registrator);
+  void RegisterVGMStreamPlugins(PlayerPluginsRegistrator& registrator, ArchivePluginsRegistrator& archives);
 
   void RegisterPlayerPlugins(PlayerPluginsRegistrator& registrator);
   void RegisterMultitrackPlayerPlugins(PlayerPluginsRegistrator& players, ArchivePluginsRegistrator& archives);
