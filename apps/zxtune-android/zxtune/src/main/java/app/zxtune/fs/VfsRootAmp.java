@@ -400,12 +400,12 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return author.handle;
+      return author.getHandle();
     }
 
     @Override
     public String getDescription() {
-      return author.realName;
+      return author.getRealName();
     }
 
     @Override
@@ -501,7 +501,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
         @Override
         public void accept(Author author, Track track) {
-          final String letter = author.handle.substring(0, 1);
+          final String letter = author.getHandle().substring(0, 1);
           final Uri.Builder categoryUri = Identifier.forHandleLetter(Identifier.isHandleLetter(letter)
                   ? letter : Catalog.NON_LETTER_FILTER);
           final Uri.Builder authorsUri = Identifier.forAuthor(categoryUri, author);

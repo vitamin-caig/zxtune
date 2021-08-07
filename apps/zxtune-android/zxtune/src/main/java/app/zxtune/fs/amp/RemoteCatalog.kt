@@ -167,7 +167,7 @@ private fun parseAuthors(doc: Document, visitor: Catalog.AuthorsVisitor) {
         val id = HtmlUtils.getQueryInt(handleEl, "view") ?: continue
         val name = handleEl.text()
         val realName = realNameEl.text()
-        visitor.accept(Author(id, name, realName))
+        visitor.accept(Author(id, name, if (realName == "n/a") "" else realName))
     }
 }
 

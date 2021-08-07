@@ -13,9 +13,8 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 /**
- *
  * Paths:
- *
+ * <p>
  * 1) amp:/
  * 2) amp:/Handle
  * 3) amp:/Handle/${author_letter}
@@ -74,8 +73,8 @@ public class Identifier {
 
   public static boolean isHandleLetter(String letter) {
     return letter.length() == 1 &&
-            Character.isLetter(letter.charAt(0)) &&
-            Character.isUpperCase(letter.charAt(0));
+        Character.isLetter(letter.charAt(0)) &&
+        Character.isUpperCase(letter.charAt(0));
   }
 
   @Nullable
@@ -92,8 +91,8 @@ public class Identifier {
   // Countries
   public static Uri.Builder forCountry(Country country) {
     return forCategory(CATEGORY_COUNTRY)
-            .appendPath(country.name)
-            .appendQueryParameter(PARAM_COUNTRY, String.valueOf(country.id));
+        .appendPath(country.name)
+        .appendQueryParameter(PARAM_COUNTRY, String.valueOf(country.id));
   }
 
   @Nullable
@@ -111,8 +110,8 @@ public class Identifier {
   // Groups
   public static Uri.Builder forGroup(Group group) {
     return forCategory(CATEGORY_GROUP)
-            .appendPath(group.name)
-            .appendQueryParameter(PARAM_GROUP, String.valueOf(group.id));
+        .appendPath(group.name)
+        .appendQueryParameter(PARAM_GROUP, String.valueOf(group.id));
   }
 
   @Nullable
@@ -129,7 +128,7 @@ public class Identifier {
 
   // Authors
   public static Uri.Builder forAuthor(Uri.Builder parent, Author author) {
-    return parent.appendPath(author.handle).appendQueryParameter(PARAM_AUTHOR, String.valueOf(author.id));
+    return parent.appendPath(author.getHandle()).appendQueryParameter(PARAM_AUTHOR, String.valueOf(author.getId()));
   }
 
   @Nullable
