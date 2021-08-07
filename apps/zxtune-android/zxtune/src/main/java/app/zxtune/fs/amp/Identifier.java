@@ -110,8 +110,8 @@ public class Identifier {
   // Groups
   public static Uri.Builder forGroup(Group group) {
     return forCategory(CATEGORY_GROUP)
-        .appendPath(group.name)
-        .appendQueryParameter(PARAM_GROUP, String.valueOf(group.id));
+        .appendPath(group.getName())
+        .appendQueryParameter(PARAM_GROUP, String.valueOf(group.getId()));
   }
 
   @Nullable

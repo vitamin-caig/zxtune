@@ -359,7 +359,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return group.name;
+      return group.getName();
     }
 
     @Override

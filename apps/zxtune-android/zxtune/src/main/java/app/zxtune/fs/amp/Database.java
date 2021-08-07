@@ -174,7 +174,7 @@ final class Database {
       }
 
       final void add(Group obj) {
-        add(obj.id, obj.name);
+        add(obj.getId(), obj.getName());
       }
 
       static Group createGroup(Cursor cursor) {
@@ -194,11 +194,11 @@ final class Database {
       }
 
       final void add(Group group, Author author) {
-        add(group.id, author.getId());
+        add(group.getId(), author.getId());
       }
 
       final String getAuthorsIdsSelection(Group group) {
-        return getIdsSelection(group.id);
+        return getIdsSelection(group.getId());
       }
     }
   }
@@ -249,7 +249,7 @@ final class Database {
   }
 
   final Timestamps.Lifetime getGroupLifetime(Group group, TimeStamp ttl) {
-    return timestamps.getLifetime(Tables.Groups.NAME + group.id, ttl);
+    return timestamps.getLifetime(Tables.Groups.NAME + group.getId(), ttl);
   }
 
   final boolean queryAuthors(String handleFilter, AuthorsVisitor visitor) {
