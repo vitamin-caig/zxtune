@@ -91,8 +91,8 @@ public class Identifier {
   // Countries
   public static Uri.Builder forCountry(Country country) {
     return forCategory(CATEGORY_COUNTRY)
-        .appendPath(country.name)
-        .appendQueryParameter(PARAM_COUNTRY, String.valueOf(country.id));
+        .appendPath(country.getName())
+        .appendQueryParameter(PARAM_COUNTRY, String.valueOf(country.getId()));
   }
 
   @Nullable

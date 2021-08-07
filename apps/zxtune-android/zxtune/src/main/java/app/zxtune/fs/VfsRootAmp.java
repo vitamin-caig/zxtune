@@ -285,7 +285,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return country.name;
+      return country.getName();
     }
 
     @Override

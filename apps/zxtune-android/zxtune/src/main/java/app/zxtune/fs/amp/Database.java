@@ -148,11 +148,11 @@ final class Database {
       }
 
       final void add(Country country, Author author) {
-        add(country.id, author.getId());
+        add(country.getId(), author.getId());
       }
 
       final String getAuthorsIdsSelection(Country country) {
-        return getIdsSelection(country.id);
+        return getIdsSelection(country.getId());
       }
     }
 
@@ -237,7 +237,7 @@ final class Database {
   }
 
   final Timestamps.Lifetime getCountryLifetime(Country country, TimeStamp ttl) {
-    return timestamps.getLifetime("countries" + country.id, ttl);
+    return timestamps.getLifetime("countries" + country.getId(), ttl);
   }
 
   final Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
