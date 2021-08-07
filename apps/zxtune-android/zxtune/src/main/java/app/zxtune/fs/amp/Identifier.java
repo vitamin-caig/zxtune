@@ -145,7 +145,8 @@ public class Identifier {
 
   // Tracks
   public static Uri.Builder forTrack(Uri.Builder parent, Track track) {
-    return parent.appendPath(track.filename).appendQueryParameter(PARAM_TRACK, String.valueOf(track.id));
+    return parent.appendPath(track.getFilename()).appendQueryParameter(PARAM_TRACK,
+        String.valueOf(track.getId()));
   }
 
   @Nullable

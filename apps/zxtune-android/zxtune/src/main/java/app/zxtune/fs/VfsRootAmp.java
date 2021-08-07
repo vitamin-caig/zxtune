@@ -463,7 +463,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return track.filename;
+      return track.getFilename();
     }
 
     @Override
@@ -474,15 +474,15 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getSize() {
-      return Util.formatSize(track.size * 1024L);
+      return Util.formatSize(track.getSize() * 1024L);
     }
 
     @Override
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE_PATH.equals(id)) {
-        return Integer.toString(track.id);
+        return Integer.toString(track.getId());
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
-        return RemoteCatalog.getTrackUris(track.id);
+        return RemoteCatalog.getTrackUris(track.getId());
       } else {
         return super.getExtension(id);
       }
