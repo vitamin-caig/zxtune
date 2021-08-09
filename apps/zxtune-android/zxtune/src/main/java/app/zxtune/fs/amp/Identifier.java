@@ -7,6 +7,7 @@
 package app.zxtune.fs.amp;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
@@ -99,9 +100,9 @@ public class Identifier {
   public static Country findCountry(Uri uri, List<String> path) {
     if (path.size() > POS_COUNTRY_NAME) {
       final String id = uri.getQueryParameter(PARAM_COUNTRY);
-      if (id != null) {
+      if (id != null && TextUtils.isDigitsOnly(id)) {
         final String name = path.get(POS_COUNTRY_NAME);
-        return new Country(Integer.valueOf(id), name);
+        return new Country(Integer.parseInt(id), name);
       }
     }
     return null;
@@ -118,9 +119,9 @@ public class Identifier {
   public static Group findGroup(Uri uri, List<String> path) {
     if (path.size() > POS_GROUP_NAME) {
       final String id = uri.getQueryParameter(PARAM_GROUP);
-      if (id != null) {
+      if (id != null && TextUtils.isDigitsOnly(id)) {
         final String name = path.get(POS_GROUP_NAME);
-        return new Group(Integer.valueOf(id), name);
+        return new Group(Integer.parseInt(id), name);
       }
     }
     return null;
@@ -135,9 +136,9 @@ public class Identifier {
   public static Author findAuthor(Uri uri, List<String> path) {
     if (path.size() > POS_AUTHOR_NAME) {
       final String id = uri.getQueryParameter(PARAM_AUTHOR);
-      if (id != null) {
+      if (id != null && TextUtils.isDigitsOnly(id)) {
         final String name = path.get(POS_AUTHOR_NAME);
-        return new Author(Integer.valueOf(id), name, ""/*fake*/);
+        return new Author(Integer.parseInt(id), name, ""/*fake*/);
       }
     }
     return null;
@@ -153,9 +154,9 @@ public class Identifier {
   public static Track findTrack(Uri uri, List<String> path) {
     if (path.size() > POS_TRACK_FILENAME) {
       final String id = uri.getQueryParameter(PARAM_TRACK);
-      if (id != null) {
+      if (id != null && TextUtils.isDigitsOnly(id)) {
         final String name = path.get(POS_TRACK_FILENAME);
-        return new Track(Integer.valueOf(id), name, 0/*fake*/);
+        return new Track(Integer.parseInt(id), name, 0/*fake*/);
       }
     }
     return null;
