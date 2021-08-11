@@ -360,12 +360,12 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return genre.name;
+      return genre.getName();
     }
 
     @Override
     public String getDescription() {
-      return context.getResources().getQuantityString(R.plurals.tracks, genre.tracks, genre.tracks);
+      return context.getResources().getQuantityString(R.plurals.tracks, genre.getTracks(), genre.getTracks());
     }
 
     @Override

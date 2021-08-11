@@ -140,8 +140,8 @@ public class RemoteCatalog extends Catalog {
 
   @Override
   public void queryTracks(Genre genre, TracksVisitor visitor, ProgressCallback progress) throws IOException {
-    Log.d(TAG, "queryTracks(genre=%d)", genre.id);
-    final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("genre").setQuery(genre.id).build();
+    Log.d(TAG, "queryTracks(genre=%d)", genre.getId());
+    final String uri = ApiUriBuilder.forQuery(key).setRequest("search").setType("genre").setQuery(genre.getId()).build();
     final RootElement root = createTracksParserRoot(visitor);
     loadPages(uri, root, progress);
   }

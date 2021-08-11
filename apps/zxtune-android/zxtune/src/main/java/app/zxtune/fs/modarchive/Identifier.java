@@ -82,8 +82,8 @@ public class Identifier {
   // Genres
   public static Uri.Builder forGenre(Genre genre) {
     return forCategory(CATEGORY_GENRE)
-            .appendPath(genre.name)
-            .appendQueryParameter(PARAM_GENRE, String.valueOf(genre.id));
+            .appendPath(genre.getName())
+            .appendQueryParameter(PARAM_GENRE, String.valueOf(genre.getId()));
   }
 
   @Nullable

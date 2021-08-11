@@ -150,7 +150,7 @@ final class Database {
       }
 
       final void add(Genre obj) {
-        add(obj.id, obj.name, obj.tracks);
+        add(obj.getId(), obj.getName(), obj.getTracks());
       }
 
       static Genre createGenre(Cursor cursor) {
@@ -171,11 +171,11 @@ final class Database {
       }
 
       final void add(Genre genre, Track track) {
-        add(genre.id, track.id);
+        add(genre.getId(), track.id);
       }
 
       final String getTracksIdsSelection(Genre genre) {
-        return getIdsSelection(genre.id);
+        return getIdsSelection(genre.getId());
       }
     }
   }
@@ -220,7 +220,7 @@ final class Database {
   }
 
   final Timestamps.Lifetime getGenreTracksLifetime(Genre genre, TimeStamp ttl) {
-    return timestamps.getLifetime(Tables.Genres.NAME + genre.id, ttl);
+    return timestamps.getLifetime(Tables.Genres.NAME + genre.getId(), ttl);
   }
 
   final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
