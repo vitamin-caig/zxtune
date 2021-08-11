@@ -306,7 +306,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
       final int[] duration = {0};
       final Pack pack = catalog.findRandomPack(obj -> {
         tracks.add(obj);
-        duration[0] += obj.duration.toSeconds();
+        duration[0] += obj.getDuration().toSeconds();
       });
       if (pack == null || 0 == duration[0]) {
         return null;
@@ -314,7 +314,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
       final int hit = random.nextInt(duration[0]);
       int bound = 0;
       for (Track trk : tracks) {
-        bound += trk.duration.toSeconds();
+        bound += trk.getDuration().toSeconds();
         if (hit < bound) {
           return new Pair<>(pack, trk);
         }
@@ -441,12 +441,12 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return track.title;
+      return track.getTitle();
     }
 
     @Override
     public String getSize() {
-      return track.duration.toString();
+      return track.getDuration().toString();
     }
 
     @Override
@@ -458,7 +458,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     @Override
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE_PATH.equals(id)) {
-        return parent.pack.getId() + '/' + track.title;
+        return parent.pack.getId() + '/' + track.getTitle();
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return RemoteCatalog.getRemoteUris(track);
       } else {
@@ -475,7 +475,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     public int compare(VfsObject o1, VfsObject o2) {
       final TrackFile lh = (TrackFile) o1;
       final TrackFile rh = (TrackFile) o2;
-      return lh.track.number < rh.track.number ? -1 : 1;
+      return lh.track.getNumber() < rh.track.getNumber() ? -1 : 1;
     }
   }
 }

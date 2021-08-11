@@ -116,7 +116,7 @@ public class Identifier {
   }
 
   public static Uri.Builder forTrack(Uri.Builder parent, Track track) {
-    return parent.appendPath(track.title).appendQueryParameter(PARAM_TRACK, track.location);
+    return parent.appendPath(track.getTitle()).appendQueryParameter(PARAM_TRACK, track.getLocation());
   }
 
   @Nullable
