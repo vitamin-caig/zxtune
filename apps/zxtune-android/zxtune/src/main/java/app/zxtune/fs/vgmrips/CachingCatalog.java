@@ -100,7 +100,7 @@ class CachingCatalog implements Catalog {
       if (result[0] != null) {
         db.addPack(result[0]);
         for (Track tr : tracks) {
-          db.addPackTrack(result[0].id, tr);
+          db.addPackTrack(result[0].getId(), tr);
           visitor.accept(tr);
         }
       }
@@ -112,7 +112,7 @@ class CachingCatalog implements Catalog {
   private Pack findRandomPackFromCache(Visitor<Track> visitor) {
     final Pack res = db.queryRandomPack();
     if (res != null) {
-      db.queryPackTracks(res.id, visitor);
+      db.queryPackTracks(res.getId(), visitor);
     }
     return res;
   }

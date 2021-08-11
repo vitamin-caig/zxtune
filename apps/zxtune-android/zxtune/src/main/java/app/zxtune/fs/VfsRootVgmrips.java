@@ -323,9 +323,9 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     }
 
     private boolean canPlay(Pack pack) {
-      final int key = pack.id.hashCode();
+      final int key = pack.getId().hashCode();
       int donePlays = history.get(key, 0);
-      if (++donePlays > pack.songs) {
+      if (++donePlays > pack.getSongs()) {
         return false;
       }
       history.put(key, donePlays);
@@ -397,17 +397,17 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return pack.title;
+      return pack.getTitle();
     }
 
     @Override
     public String getDescription() {
-      return context.getResources().getQuantityString(R.plurals.tracks, pack.songs, pack.songs);
+      return context.getResources().getQuantityString(R.plurals.tracks, pack.getSongs(), pack.getSongs());
     }
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.findPack(pack.id, obj -> visitor.onFile(new TrackFile(PackDir.this, obj)));
+      catalog.findPack(pack.getId(), obj -> visitor.onFile(new TrackFile(PackDir.this, obj)));
     }
 
     @Override
@@ -458,7 +458,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     @Override
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE_PATH.equals(id)) {
-        return parent.pack.id + '/' + track.title;
+        return parent.pack.getId() + '/' + track.title;
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return RemoteCatalog.getRemoteUris(track);
       } else {

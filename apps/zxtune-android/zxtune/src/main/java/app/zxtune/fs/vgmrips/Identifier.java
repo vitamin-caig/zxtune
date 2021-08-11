@@ -88,7 +88,7 @@ public class Identifier {
   }
 
   public static Uri.Builder forPack(Uri.Builder parent, Pack pack) {
-    return parent.appendPath(pack.title).appendQueryParameter(PARAM_PACK, pack.id);
+    return parent.appendPath(pack.getTitle()).appendQueryParameter(PARAM_PACK, pack.getId());
   }
 
   @Nullable

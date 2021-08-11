@@ -194,7 +194,7 @@ class Database {
   final void addGroupPack(String id, Pack obj) {
     final CatalogDao dao = db.catalog();
     dao.insertPack(obj);
-    dao.bindGroupToPack(new GroupPacksRef(id, obj.id));
+    dao.bindGroupToPack(new GroupPacksRef(id, obj.getId()));
   }
 
   final void addPack(Pack obj) {
