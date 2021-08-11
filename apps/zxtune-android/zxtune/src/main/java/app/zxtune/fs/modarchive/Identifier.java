@@ -7,6 +7,7 @@
 package app.zxtune.fs.modarchive;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
@@ -70,9 +71,9 @@ public class Identifier {
   public static Author findAuthor(Uri uri, List<String> path) {
     if (path.size() > POS_AUTHOR_NAME) {
       final String id = uri.getQueryParameter(PARAM_AUTHOR);
-      if (id != null) {
+      if (id != null && TextUtils.isDigitsOnly(id)) {
         final String name = path.get(POS_AUTHOR_NAME);
-        return new Author(Integer.valueOf(id), name);
+        return new Author(Integer.parseInt(id), name);
       }
     }
     return null;
@@ -89,9 +90,9 @@ public class Identifier {
   public static Genre findGenre(Uri uri, List<String> path) {
     if (path.size() > POS_GENRE_NAME) {
       final String id = uri.getQueryParameter(PARAM_GENRE);
-      if (id != null) {
+      if (id != null && TextUtils.isDigitsOnly(id)) {
         final String name = path.get(POS_GENRE_NAME);
-        return new Genre(Integer.valueOf(id), name, 0/*fake*/);
+        return new Genre(Integer.parseInt(id), name, 0/*fake*/);
       }
     }
     return null;
@@ -108,9 +109,9 @@ public class Identifier {
     if (elements >= 2) {
       // do not allow files on root
       final String id = uri.getQueryParameter(PARAM_TRACK);
-      if (id != null) {
+      if (id != null && TextUtils.isDigitsOnly(id)) {
         final String name = path.get(elements - 1);
-        return new Track(Integer.valueOf(id), name, ""/*fake*/, 0/*fake*/);
+        return new Track(Integer.parseInt(id), name, ""/*fake*/, 0/*fake*/);
       }
     }
     return null;
