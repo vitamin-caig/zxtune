@@ -93,7 +93,7 @@ final class Database {
       }
 
       final void add(Track obj) {
-        add(obj.id, obj.filename, obj.title, obj.size);
+        add(obj.getId(), obj.getFilename(), obj.getTitle(), obj.getSize());
       }
 
       static Track createTrack(Cursor cursor) {
@@ -123,7 +123,7 @@ final class Database {
       }
 
       final void add(Author author, Track track) {
-        add(author.getId(), track.id);
+        add(author.getId(), track.getId());
       }
 
       final String getTracksIdsSelection(Author author) {
@@ -171,7 +171,7 @@ final class Database {
       }
 
       final void add(Genre genre, Track track) {
-        add(genre.getId(), track.id);
+        add(genre.getId(), track.getId());
       }
 
       final String getTracksIdsSelection(Genre genre) {

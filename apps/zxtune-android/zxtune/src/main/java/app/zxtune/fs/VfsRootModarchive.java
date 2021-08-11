@@ -287,7 +287,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
           public void accept(Track obj) {
             tracks.addLast(obj);
             // use associative hashing to cover random ordered result
-            newHash[0] += obj.id;
+            newHash[0] += obj.getId();
           }
         });
       } catch (IOException e) {
@@ -407,20 +407,20 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return track.filename;
+      return track.getFilename();
     }
 
     @Override
     public String getDescription() {
-      return track.title;
+      return track.getTitle();
     }
 
     @Override
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE_PATH.equals(id)) {
-        return Integer.toString(track.id);
+        return Integer.toString(track.getId());
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
-        return RemoteCatalog.getTrackUris(track.id);
+        return RemoteCatalog.getTrackUris(track.getId());
       } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {
@@ -436,13 +436,13 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     @Override
     public String getSize() {
-      return Util.formatSize(track.size);
+      return Util.formatSize(track.getSize());
     }
 
     private String getShareUrl() {
       return String.format(Locale.US, "https://modarchive.org/index" +
               ".php?request=view_player&query=%d",
-              track.id);
+              track.getId());
     }
   }
 

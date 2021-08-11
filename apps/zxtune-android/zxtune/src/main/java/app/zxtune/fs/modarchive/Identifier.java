@@ -13,9 +13,8 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 /**
- *
  * Paths:
- *
+ * <p>
  * 1) modarchive:/
  * 2) modarchive:/Author
  * 3) modarchive:/Author/${author_name}?author=${author_id}
@@ -63,8 +62,8 @@ public class Identifier {
   // Authors
   public static Uri.Builder forAuthor(Author author) {
     return forCategory(CATEGORY_AUTHOR)
-            .appendPath(author.getAlias())
-            .appendQueryParameter(PARAM_AUTHOR, String.valueOf(author.getId()));
+        .appendPath(author.getAlias())
+        .appendQueryParameter(PARAM_AUTHOR, String.valueOf(author.getId()));
   }
 
   @Nullable
@@ -82,8 +81,8 @@ public class Identifier {
   // Genres
   public static Uri.Builder forGenre(Genre genre) {
     return forCategory(CATEGORY_GENRE)
-            .appendPath(genre.getName())
-            .appendQueryParameter(PARAM_GENRE, String.valueOf(genre.getId()));
+        .appendPath(genre.getName())
+        .appendQueryParameter(PARAM_GENRE, String.valueOf(genre.getId()));
   }
 
   @Nullable
@@ -100,7 +99,7 @@ public class Identifier {
 
   // Tracks
   public static Uri.Builder forTrack(Uri.Builder parent, Track track) {
-    return parent.appendPath(track.filename).appendQueryParameter(PARAM_TRACK, String.valueOf(track.id));
+    return parent.appendPath(track.getFilename()).appendQueryParameter(PARAM_TRACK, String.valueOf(track.getId()));
   }
 
   @Nullable
