@@ -350,12 +350,12 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return group.title;
+      return group.getTitle();
     }
 
     @Override
     public String getDescription() {
-      return context.getResources().getQuantityString(R.plurals.packs, group.packs, group.packs);
+      return context.getResources().getQuantityString(R.plurals.packs, group.getPacks(), group.getPacks());
     }
 
     @Override
@@ -365,7 +365,8 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      parent.grouping.queryPacks(group.id, obj -> visitor.onDir(new PackDir(GroupDir.this, obj)), visitor);
+      parent.grouping.queryPacks(group.getId(), obj -> visitor.onDir(new PackDir(GroupDir.this, obj)),
+          visitor);
     }
 
     @Override

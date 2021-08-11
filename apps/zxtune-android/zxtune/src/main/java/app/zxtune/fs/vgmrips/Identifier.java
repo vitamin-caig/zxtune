@@ -71,8 +71,8 @@ public class Identifier {
 
   public static Uri.Builder forGroup(Uri.Builder parent, Group obj) {
     return parent
-        .appendPath(obj.title)
-        .appendQueryParameter(PARAM_GROUP, obj.id);
+        .appendPath(obj.getTitle())
+        .appendQueryParameter(PARAM_GROUP, obj.getId());
   }
 
   @Nullable
