@@ -63,8 +63,8 @@ public class Identifier {
   // Authors
   public static Uri.Builder forAuthor(Author author) {
     return forCategory(CATEGORY_AUTHOR)
-            .appendPath(author.alias)
-            .appendQueryParameter(PARAM_AUTHOR, String.valueOf(author.id));
+            .appendPath(author.getAlias())
+            .appendQueryParameter(PARAM_AUTHOR, String.valueOf(author.getId()));
   }
 
   @Nullable

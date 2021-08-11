@@ -320,7 +320,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return author.alias;
+      return author.getAlias();
     }
 
     @Override
