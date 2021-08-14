@@ -170,8 +170,8 @@ public class Identifier {
   // Tracks
   public static Uri.Builder forTrack(Uri.Builder parent, Track track) {
     return parent
-            .appendPath(track.filename)
-            .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.id));
+            .appendPath(track.getFilename())
+            .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.getId()));
   }
 
   @Nullable
@@ -179,7 +179,7 @@ public class Identifier {
     final String id = uri.getQueryParameter(PARAM_TRACK_ID);
     if (id != null && path.size() > POS_AUTHOR_TRACK) {
       final String filename = path.get(POS_AUTHOR_TRACK);
-      return new Track(Integer.valueOf(id), filename,
+      return new Track(Integer.parseInt(id), filename,
               //fake
               "", "", "", 0, "", 0);
     } else {
@@ -192,7 +192,7 @@ public class Identifier {
     final String id = uri.getQueryParameter(PARAM_TRACK_ID);
     if (id != null && path.size() > POS_PARTY_TRACK) {
       final String filename = path.get(POS_PARTY_TRACK);
-      return new Track(Integer.valueOf(id), filename,
+      return new Track(Integer.parseInt(id), filename,
               //fake
               "", "", "", 0, "", 0);
     } else {
@@ -205,7 +205,7 @@ public class Identifier {
     final String id = uri.getQueryParameter(PARAM_TRACK_ID);
     if (id != null && path.size() > POS_TOP_TRACK) {
       final String filename = path.get(POS_TOP_TRACK);
-      return new Track(Integer.valueOf(id), filename,
+      return new Track(Integer.parseInt(id), filename,
               //fake
               "", "", "", 0, "", 0);
     } else {
