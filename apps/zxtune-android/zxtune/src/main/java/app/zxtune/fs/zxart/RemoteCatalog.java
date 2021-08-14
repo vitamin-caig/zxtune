@@ -67,8 +67,8 @@ public final class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthorTracks(Author author, TracksVisitor visitor) throws IOException {
-    Log.d(TAG, "queryAuthorTracks(author=%d)", author.id);
-    queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
+    Log.d(TAG, "queryAuthorTracks(author=%d)", author.getId());
+    queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.getId()));
   }
 
   @Override
@@ -173,7 +173,7 @@ public final class RemoteCatalog extends Catalog {
 
     @Nullable
     final Author captureResult() {
-      final Author res = isValid() ? new Author(id, nickname, name) : null;
+      final Author res = isValid() ? new Author(id, nickname, name != null ? name : "") : null;
       id = null;
       nickname = null;
       name = null;

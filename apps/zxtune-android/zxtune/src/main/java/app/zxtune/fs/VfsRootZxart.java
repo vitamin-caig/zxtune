@@ -210,12 +210,12 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return author.nickname;
+      return author.getNickname();
     }
 
     @Override
     public String getDescription() {
-      return author.name;
+      return author.getName();
     }
 
     @Override

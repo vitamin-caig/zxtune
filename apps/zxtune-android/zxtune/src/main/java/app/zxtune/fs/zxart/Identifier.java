@@ -80,15 +80,15 @@ public class Identifier {
   // Authors
   public static Uri.Builder forAuthor(Author author) {
     return forCategory(CATEGORY_AUTHORS)
-            .appendPath(author.nickname)
-            .appendQueryParameter(PARAM_AUTHOR_ID, Integer.toString(author.id));
+            .appendPath(author.getNickname())
+            .appendQueryParameter(PARAM_AUTHOR_ID, Integer.toString(author.getId()));
   }
 
   public static Uri.Builder forAuthor(Author author, int year) {
     return forCategory(CATEGORY_AUTHORS)
-            .appendPath(author.nickname)
+            .appendPath(author.getNickname())
             .appendPath(year != 0 ? Integer.toString(year) : UNKNOWN_YEAR)
-            .appendQueryParameter(PARAM_AUTHOR_ID, Integer.toString(author.id));
+            .appendQueryParameter(PARAM_AUTHOR_ID, Integer.toString(author.getId()));
   }
 
   @Nullable
