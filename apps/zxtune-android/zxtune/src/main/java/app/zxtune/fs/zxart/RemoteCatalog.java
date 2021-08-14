@@ -81,8 +81,8 @@ public final class RemoteCatalog extends Catalog {
 
   @Override
   public void queryPartyTracks(Party party, TracksVisitor visitor) throws IOException {
-    Log.d(TAG, "queryPartyTracks(party=%d)", party.id);
-    queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party.id));
+    Log.d(TAG, "queryPartyTracks(party=%d)", party.getId());
+    queryTracks(visitor, String.format(Locale.US, PARTY_TRACKS_QUERY, party.getId()));
   }
 
   @Override

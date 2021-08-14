@@ -136,9 +136,9 @@ public class Identifier {
   }
 
   public static Uri.Builder forParty(Party party) {
-    return forPartiesYear(party.year)
-            .appendPath(party.name)
-            .appendQueryParameter(PARAM_PARTY_ID, Integer.toString(party.id));
+    return forPartiesYear(party.getYear())
+            .appendPath(party.getName())
+            .appendQueryParameter(PARAM_PARTY_ID, Integer.toString(party.getId()));
   }
 
   @Nullable
@@ -147,7 +147,7 @@ public class Identifier {
     if (id != null && path.size() > POS_PARTY_NAME) {
       final String year = path.get(POS_PARTY_YEAR);
       final String name = path.get(POS_PARTY_NAME);
-      return new Party(Integer.valueOf(id), name, Integer.valueOf(year));
+      return new Party(Integer.parseInt(id), name, Integer.parseInt(year));
     } else {
       return null;
     }

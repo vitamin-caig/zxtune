@@ -333,7 +333,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
       catalog.queryParties(new Catalog.PartiesVisitor() {
         @Override
         public void accept(Party obj) {
-          years.put(obj.year, 1 + years.get(obj.year));
+          years.put(obj.getYear(), 1 + years.get(obj.getYear()));
         }
       });
       visitor.onItemsCount(years.size());
@@ -401,7 +401,7 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
       catalog.queryParties(new Catalog.PartiesVisitor() {
         @Override
         public void accept(Party obj) {
-          if (obj.year == year) {
+          if (obj.getYear() == year) {
             visitor.onDir(new PartyDir(obj));
           }
         }
@@ -424,12 +424,12 @@ public class VfsRootZxart extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return party.name;
+      return party.getName();
     }
 
     @Override
     public VfsObject getParent() {
-      return new PartyYearDir(party.year);
+      return new PartyYearDir(party.getYear());
     }
 
     @Override

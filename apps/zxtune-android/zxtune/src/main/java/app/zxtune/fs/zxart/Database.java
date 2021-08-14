@@ -95,7 +95,7 @@ final class Database {
       }
 
       final void add(Party obj) {
-        add(obj.id, obj.name, obj.year);
+        add(obj.getId(), obj.getName(), obj.getYear());
       }
 
       private static Party createParty(Cursor cursor) {
@@ -176,11 +176,11 @@ final class Database {
       }
 
       final void add(Party party, Track track) {
-        add(party.id, track.id);
+        add(party.getId(), track.id);
       }
 
       final String getTracksIdsSelection(Party party) {
-        return getIdsSelection(party.id);
+        return getIdsSelection(party.getId());
       }
     }
   }
@@ -225,7 +225,7 @@ final class Database {
   }
 
   final Timestamps.Lifetime getPartyTracksLifetime(Party party, TimeStamp ttl) {
-    return timestamps.getLifetime(Tables.Parties.NAME + party.id, ttl);
+    return timestamps.getLifetime(Tables.Parties.NAME + party.getId(), ttl);
   }
 
   final Timestamps.Lifetime getTopLifetime(TimeStamp ttl) {
