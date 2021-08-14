@@ -14,4 +14,7 @@ data class Track(
     val year: Int,
     val compo: String?,
     val partyplace: Int
-)
+) {
+    // TODO: use default parameters
+    constructor(id: Int, filename: String) : this(id, filename, "", "", "", 0, "", 0)
+}
