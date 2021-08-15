@@ -63,7 +63,7 @@ final class Database {
       }
 
       final void add(Author obj) {
-        add(obj.id, obj.nickname, obj.name);
+        add(obj.getId(), obj.getNickname(), obj.getName());
       }
 
       private static Author createAuthor(Cursor cursor) {
@@ -122,11 +122,11 @@ final class Database {
       }
 
       final void add(Author author, Track track) {
-        add(author.id, track.id);
+        add(author.getId(), track.id);
       }
 
       final String getTracksIdsSelection(Author author) {
-        return getIdsSelection(author.id);
+        return getIdsSelection(author.getId());
       }
     }
   }
@@ -159,7 +159,7 @@ final class Database {
   }
 
   final Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
-    return timestamps.getLifetime(Tables.Authors.NAME + author.id, ttl);
+    return timestamps.getLifetime(Tables.Authors.NAME + author.getId(), ttl);
   }
 
   final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {

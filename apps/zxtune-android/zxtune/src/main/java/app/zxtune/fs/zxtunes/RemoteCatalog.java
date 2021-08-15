@@ -53,8 +53,8 @@ public final class RemoteCatalog extends Catalog {
 
   @Override
   public void queryAuthorTracks(Author author, TracksVisitor visitor) throws IOException {
-    Log.d(TAG, "queryAuthorTracks(author=%d)", author.id);
-    queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.id));
+    Log.d(TAG, "queryAuthorTracks(author=%d)", author.getId());
+    queryTracks(visitor, String.format(Locale.US, AUTHOR_TRACKS_QUERY, author.getId()));
   }
 
   private void queryTracks(TracksVisitor visitor, String query) throws IOException {
@@ -120,8 +120,7 @@ public final class RemoteCatalog extends Catalog {
     private Integer id;
     @Nullable
     private String nickname;
-    @Nullable
-    private String name;
+    private String name = "";
     @Nullable
     private Integer tracks;
 

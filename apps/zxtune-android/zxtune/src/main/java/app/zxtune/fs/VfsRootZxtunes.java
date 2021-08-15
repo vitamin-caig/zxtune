@@ -207,12 +207,12 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return author.nickname;
+      return author.getNickname();
     }
 
     @Override
     public String getDescription() {
-      return author.name;
+      return author.getName();
     }
 
     @Override
@@ -362,7 +362,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     private String getShareUrl() {
       final Author author = Identifier.findAuthor(uri, uri.getPathSegments());
       return author != null
-              ? String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.id,
+              ? String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.getId(),
               module.id)
               : null;
     }
