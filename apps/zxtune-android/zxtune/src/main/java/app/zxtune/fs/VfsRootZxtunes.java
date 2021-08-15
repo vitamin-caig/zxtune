@@ -232,11 +232,11 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
         @Override
         public void accept(Track obj) {
-          if (isEmptyDate(obj.date)) {
+          if (isEmptyDate(obj.getDate())) {
             final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), obj).build();
             visitor.onFile(new TrackFile(uri, obj));
           } else {
-            dates.put(obj.date, 1 + dates.get(obj.date));
+            dates.put(obj.getDate(), 1 + dates.get(obj.getDate()));
           }
         }
       });
@@ -296,7 +296,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
         @Override
         public void accept(Track obj) {
-          if (!isEmptyDate(obj.date) && date == obj.date) {
+          if (!isEmptyDate(obj.getDate()) && date == obj.getDate()) {
             final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), obj).build();
             visitor.onFile(new TrackFile(uri, obj));
           }
@@ -329,7 +329,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     @Override
     public String getDescription() {
-      return module.title;
+      return module.getTitle();
     }
 
     @Override
@@ -341,9 +341,9 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     @Override
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE_PATH.equals(id)) {
-        return Integer.toString(module.id);
+        return Integer.toString(module.getId());
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
-        return RemoteCatalog.getTrackUris(module.id);
+        return RemoteCatalog.getTrackUris(module.getId());
       } else if (VfsExtensions.SHARE_URL.equals(id)) {
         return getShareUrl();
       } else {
@@ -353,8 +353,8 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
     @Override
     public String getSize() {
-      return module.duration != null
-              ? FRAME_DURATION.multiplies(module.duration).toString()
+      return module.getDuration() != null
+              ? FRAME_DURATION.multiplies(module.getDuration()).toString()
               : "";
     }
 
@@ -363,7 +363,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
       final Author author = Identifier.findAuthor(uri, uri.getPathSegments());
       return author != null
               ? String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.getId(),
-              module.id)
+          module.getId())
               : null;
     }
   }

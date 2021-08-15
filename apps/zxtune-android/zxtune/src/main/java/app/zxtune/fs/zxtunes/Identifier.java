@@ -122,11 +122,11 @@ public class Identifier {
 
   // Tracks
   public static Uri.Builder forTrack(Uri.Builder parent, Track track) {
-    if (track.date != null) {
-      parent.appendPath(track.date.toString());
+    if (track.getDate() != null) {
+      parent.appendPath(track.getDate().toString());
     }
-    return parent.appendPath(track.filename)
-            .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.id));
+    return parent.appendPath(track.getFilename())
+        .appendQueryParameter(PARAM_TRACK_ID, Integer.toString(track.getId()));
   }
 
   @Nullable
@@ -138,10 +138,10 @@ public class Identifier {
     if (path.size() > POS_AUTHOR_DATE_TRACK) {
       final String date = path.get(POS_AUTHOR_DATE);
       final String filename = path.get(POS_AUTHOR_DATE_TRACK);
-      return new Track(Integer.valueOf(id), filename, ""/*fake*/, null/*fake*/, Integer.valueOf(date));
+      return new Track(Integer.parseInt(id), filename, ""/*fake*/, null/*fake*/, Integer.parseInt(date));
     } else {
       final String filename = path.get(POS_AUTHOR_TRACK);
-      return new Track(Integer.valueOf(id), filename, ""/*fake*/, null/*fake*/, null);
+      return new Track(Integer.parseInt(id), filename, ""/*fake*/, null/*fake*/, null);
     }
   }
 }
