@@ -55,7 +55,8 @@ class IdentifierTest {
             "ztune:/A/B/C/D?author=78&track=90",
             isFromRoot = false,
             category = "A",
-            author = Author(78, "B")
+            author = Author(78, "B"),
+            track = Track(90, "D")
         )
         testAnalyze("ztune:/A/B/C?author=number&track=number", isFromRoot = false, category = "A")
         testAnalyze(
