@@ -7,31 +7,31 @@
 package app.zxtune.fs.zxtunes;
 
 import android.net.Uri;
+import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
 import java.util.List;
 
 /**
- *
  * Paths
- *
+ * <p>
  * 1) zxtune:/
  * 2) zxtune:/${authors_folder}
  * 3) zxtune:/${authors_folder}/${author_name}?author=${author_id}
  * 4) zxtune:/${authors_folder}/${author_name}/${date}?author=${author_id}
  * 5) zxtune:/${authors_folder}/${author_name}/${Filename}?author=${author_id}&track=${track_id}
  * 6) zxtune:/${authors_folder}/${author_name}/${date}/${Filename}?author=${author_id}&track=${track_id}
- *
+ * <p>
  * means
- *
+ * <p>
  * 1) root
  * 2) authors root:
  * 3) specific author's root, modules without date, dates folders:
  * 4) author's modules by date:
  * 5) author's module without date:
  * 6) author's module with date
- *
+ * <p>
  * resolving executed sequentally in despite of explicit parameters. E.g.
  * author=${author_id} parameter is not analyzed for cases 1 and 2,
  * track=${track_id} parameter is not analyzed for cases 1, 2, 3 and 4
@@ -74,15 +74,15 @@ public class Identifier {
   // Authors
   public static Uri.Builder forAuthor(Author author) {
     return forCategory(CATEGORY_AUTHORS)
-            .appendPath(author.getNickname())
-            .appendQueryParameter(PARAM_AUTHOR_ID, Integer.toString(author.getId()));
+        .appendPath(author.getNickname())
+        .appendQueryParameter(PARAM_AUTHOR_ID, Integer.toString(author.getId()));
   }
 
   public static Uri.Builder forAuthor(Author author, int date) {
     return forCategory(CATEGORY_AUTHORS)
-            .appendPath(author.getNickname())
-            .appendPath(Integer.toString(date))
-            .appendQueryParameter(PARAM_AUTHOR_ID, Integer.toString(author.getId()));
+        .appendPath(author.getNickname())
+        .appendPath(Integer.toString(date))
+        .appendQueryParameter(PARAM_AUTHOR_ID, Integer.toString(author.getId()));
   }
 
   @Nullable
@@ -90,7 +90,7 @@ public class Identifier {
     if (path.size() > POS_AUTHOR_NICK) {
       final String nick = path.get(POS_AUTHOR_NICK);
       final String id = uri.getQueryParameter(PARAM_AUTHOR_ID);
-      if (nick != null && id != null) {
+      if (id != null && TextUtils.isDigitsOnly(id)) {
         return new Author(Integer.parseInt(id), nick, ""/*fake*/);
       }
     }
@@ -131,17 +131,20 @@ public class Identifier {
 
   @Nullable
   public static Track findTrack(Uri uri, List<String> path) {
-    final String id = uri.getQueryParameter(PARAM_TRACK_ID);
-    if (id == null) {
-      return null;
-    }
     if (path.size() > POS_AUTHOR_DATE_TRACK) {
       final String date = path.get(POS_AUTHOR_DATE);
       final String filename = path.get(POS_AUTHOR_DATE_TRACK);
-      return new Track(Integer.parseInt(id), filename, ""/*fake*/, null/*fake*/, Integer.parseInt(date));
-    } else {
+      final String id = uri.getQueryParameter(PARAM_TRACK_ID);
+      if (id != null && TextUtils.isDigitsOnly(id) && TextUtils.isDigitsOnly(date)) {
+        return new Track(Integer.parseInt(id), filename, ""/*fake*/, null/*fake*/, Integer.parseInt(date));
+      }
+    } else if (path.size() > POS_AUTHOR_TRACK) {
       final String filename = path.get(POS_AUTHOR_TRACK);
-      return new Track(Integer.parseInt(id), filename, ""/*fake*/, null/*fake*/, null);
+      final String id = uri.getQueryParameter(PARAM_TRACK_ID);
+      if (id != null && TextUtils.isDigitsOnly(id)) {
+        return new Track(Integer.parseInt(id), filename, ""/*fake*/, null/*fake*/, null);
+      }
     }
+    return null;
   }
 }
