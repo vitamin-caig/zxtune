@@ -21,6 +21,15 @@ source_files += $(addprefix soundlib/,\
                   TinyFFT WindowedFIR WAVTools Tagging \
                   )
 
+source_files += $(addprefix soundlib/plugins/,\
+                  PlugInterface PluginManager \
+                  DigiBoosterEcho LFOPlugin SymMODEcho \
+                  )
+source_files += $(addprefix soundlib/plugins/dmo/,\
+                  Chorus Compressor Distortion Echo Flanger Gargle I3DL2Reverb ParamEq WavesReverb \
+                  DMOUtils \
+                  )
+
 source_files += $(addprefix sounddsp/,Reverb)
 
 source_files += $(addprefix common/,\
@@ -29,7 +38,7 @@ source_files += $(addprefix common/,\
 
 source_files := $(addsuffix .cpp,$(source_files))
 
-defines += LIBOPENMPT_BUILD NO_LOGGING NO_MPG123 NO_OGG NO_VORBIS NO_VORBISFILE NO_PLUGINS NO_CONTAINERS_SUPPORT OPENMPT_VERSION_REVISION=0
+defines += LIBOPENMPT_BUILD NO_LOGGING NO_MPG123 NO_OGG NO_VORBIS NO_VORBISFILE NO_CONTAINERS_SUPPORT OPENMPT_VERSION_REVISION=0
 
 defines += MPT_WITH_MINIMP3 MPT_WITH_STBVORBIS
 
