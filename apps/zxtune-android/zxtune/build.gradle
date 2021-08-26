@@ -30,10 +30,11 @@ android {
 
     packagingOptions {
         exclude 'META-INF/*.version'
-        exclude 'META-INF/*module'
         //jsoup
         exclude 'META-INF/CHANGES'
         exclude 'META-INF/*.md'
+        //kotlin
+        exclude '**/*.kotlin_*'
     }
 }
 
