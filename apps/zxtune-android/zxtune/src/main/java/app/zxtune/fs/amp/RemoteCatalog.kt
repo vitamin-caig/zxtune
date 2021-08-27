@@ -42,7 +42,7 @@ import org.jsoup.nodes.Document
 
 private val LOG = Logger(RemoteCatalog::class.java.name)
 
-class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
+open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
     override fun queryGroups(visitor: Catalog.GroupsVisitor) =
         getQueryUriBuilder("groups", "").build().let { uri ->
@@ -89,7 +89,7 @@ class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
             }
         }
 
-    fun searchSupported() = http.hasConnection()
+    open fun searchSupported() = http.hasConnection()
 
     override fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) =
         getQueryUriBuilder("module", query).let { uri ->

@@ -39,7 +39,7 @@ import app.zxtune.fs.dbhelpers.Utils;
  *
  */
 
-final class Database {
+class Database {
 
   private static final String TAG = Database.class.getName();
 
@@ -228,43 +228,43 @@ final class Database {
             " WHERE tracks.filename LIKE '%' || ? || '%'";
   }
 
-  final void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
+  void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
     Utils.runInTransaction(helper, cmd);
   }
 
-  final Timestamps.Lifetime getAuthorsLifetime(String handleFilter, TimeStamp ttl) {
+  Timestamps.Lifetime getAuthorsLifetime(String handleFilter, TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Authors.NAME + handleFilter, ttl);
   }
 
-  final Timestamps.Lifetime getCountryLifetime(Country country, TimeStamp ttl) {
+  Timestamps.Lifetime getCountryLifetime(Country country, TimeStamp ttl) {
     return timestamps.getLifetime("countries" + country.getId(), ttl);
   }
 
-  final Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
+  Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Authors.NAME + author.getId(), ttl);
   }
 
-  final Timestamps.Lifetime getGroupsLifetime(TimeStamp ttl) {
+  Timestamps.Lifetime getGroupsLifetime(TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Groups.NAME, ttl);
   }
 
-  final Timestamps.Lifetime getGroupLifetime(Group group, TimeStamp ttl) {
+  Timestamps.Lifetime getGroupLifetime(Group group, TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Groups.NAME + group.getId(), ttl);
   }
 
-  final boolean queryAuthors(String handleFilter, AuthorsVisitor visitor) {
+  boolean queryAuthors(String handleFilter, AuthorsVisitor visitor) {
     final String selection = Catalog.NON_LETTER_FILTER.equals(handleFilter)
             ? "SUBSTR(" + Tables.Authors.Fields.handle + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
             : Tables.Authors.Fields.handle + " LIKE '" + handleFilter + "%'";
     return queryAuthorsInternal(selection, visitor);
   }
 
-  final boolean queryAuthors(Country country, AuthorsVisitor visitor) {
+  boolean queryAuthors(Country country, AuthorsVisitor visitor) {
     final String selection = Tables.Authors.getSelection(countryAuthors.getAuthorsIdsSelection(country));
     return queryAuthorsInternal(selection, visitor);
   }
 
-  final boolean queryAuthors(Group group, AuthorsVisitor visitor) {
+  boolean queryAuthors(Group group, AuthorsVisitor visitor) {
     final String selection = Tables.Authors.getSelection(groupAuthors.getAuthorsIdsSelection(group));
     return queryAuthorsInternal(selection, visitor);
   }
@@ -287,7 +287,7 @@ final class Database {
     return false;
   }
 
-  final boolean queryTracks(Author author, Catalog.TracksVisitor visitor) {
+  boolean queryTracks(Author author, Catalog.TracksVisitor visitor) {
     final String selection = Tables.Tracks.getSelection(authorTracks.getTracksIdsSelection(author));
     return queryTracksInternal(selection, visitor);
   }
@@ -310,7 +310,7 @@ final class Database {
     return false;
   }
 
-  final boolean queryGroups(Catalog.GroupsVisitor visitor) {
+  boolean queryGroups(Catalog.GroupsVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Groups.NAME, null, null, null, null, null, null);
     try {
@@ -328,7 +328,7 @@ final class Database {
     return false;
   }
 
-  final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
+  void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.rawQuery(findQuery, new String[]{query});
     try {
@@ -346,27 +346,27 @@ final class Database {
     }
   }
 
-  final void addCountryAuthor(Country country, Author author) {
+  void addCountryAuthor(Country country, Author author) {
     countryAuthors.add(country, author);
   }
 
-  final void addGroup(Group group) {
+  void addGroup(Group group) {
     groups.add(group);
   }
 
-  final void addGroupAuthor(Group group, Author author) {
+  void addGroupAuthor(Group group, Author author) {
     groupAuthors.add(group, author);
   }
 
-  final void addAuthor(Author obj) {
+  void addAuthor(Author obj) {
     authors.add(obj);
   }
 
-  final void addTrack(Track obj) {
+  void addTrack(Track obj) {
     tracks.add(obj);
   }
 
-  final void addAuthorTrack(Author author, Track track) {
+  void addAuthorTrack(Author author, Track track) {
     authorTracks.add(author, track);
   }
 
