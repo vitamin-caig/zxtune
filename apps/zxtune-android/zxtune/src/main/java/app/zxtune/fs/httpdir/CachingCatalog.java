@@ -2,6 +2,8 @@ package app.zxtune.fs.httpdir;
 
 import android.content.Context;
 
+import androidx.annotation.VisibleForTesting;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,8 +23,13 @@ final class CachingCatalog implements Catalog {
   private final CommandExecutor executor;
 
   CachingCatalog(Context ctx, RemoteCatalog remote, String id) {
+    this(remote, new FileTree(ctx, id), id);
+  }
+
+  @VisibleForTesting
+  CachingCatalog(RemoteCatalog remote, FileTree db, String id) {
     this.remote = remote;
-    this.db = new FileTree(ctx, id);
+    this.db = db;
     this.executor = new CommandExecutor(id);
   }
 

@@ -40,7 +40,7 @@ import app.zxtune.TimeStamp;
  * Changed serialization format of blob
  */
 
-final public class FileTree {
+public class FileTree {
 
   private static final String TAG = FileTree.class.getName();
 
@@ -92,11 +92,11 @@ final public class FileTree {
     this.timestamps = new Timestamps(helper);
   }
 
-  public final void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
+  public void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
     Utils.runInTransaction(helper, cmd);
   }
 
-  public final Timestamps.Lifetime getDirLifetime(String path, TimeStamp ttl) {
+  public Timestamps.Lifetime getDirLifetime(String path, TimeStamp ttl) {
     return timestamps.getLifetime(path, ttl);
   }
 
@@ -126,14 +126,20 @@ final public class FileTree {
     final public boolean isDir() {
       return size.isEmpty();
     }
+
+    @Override
+    public boolean equals(Object o) {
+      final Entry rh = (Entry) o;
+      return rh != null && name.equals(rh.name) && descr.equals(rh.descr) && size.equals(rh.size);
+    }
   }
 
-  public final void add(String path, List<Entry> obj) throws IOException {
+  public void add(String path, List<Entry> obj) throws IOException {
     entries.add(path, serialize(obj));
   }
 
   @Nullable
-  public final List<Entry> find(String path) {
+  public List<Entry> find(String path) {
     try {
       final byte[] data = entries.get(path);
       return data != null
