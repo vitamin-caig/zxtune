@@ -50,7 +50,7 @@ import app.zxtune.utils.StubProgressCallback;
  * ${API}/xml-tools.php?key=${key}&request=search&type=filename_or_songtitle&query=*${query}*&page=${page}
  */
 
-public class RemoteCatalog extends Catalog {
+public class RemoteCatalog implements Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 

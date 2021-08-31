@@ -14,7 +14,7 @@ import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.utils.ProgressCallback;
 
-final public class CachingCatalog extends Catalog {
+final public class CachingCatalog implements Catalog {
 
   private final TimeStamp AUTHORS_TTL = TimeStamp.fromDays(2);
   private final TimeStamp GENRES_TTL = TimeStamp.fromDays(30);
@@ -45,6 +45,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryAuthors(new AuthorsVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int count) {}
+
             @Override
             public void accept(Author obj) {
               db.addAuthor(obj);
@@ -76,6 +80,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryGenres(new GenresVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int count) {}
+
             @Override
             public void accept(Genre obj) {
               db.addGenre(obj);
@@ -108,6 +116,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryTracks(author, new TracksVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int count) {}
+
             @Override
             public void accept(Track obj) {
               db.addTrack(obj);
@@ -141,6 +153,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryTracks(genre, new TracksVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int count) {}
+
             @Override
             public void accept(Track obj) {
               db.addTrack(obj);
@@ -177,7 +193,7 @@ final public class CachingCatalog extends Catalog {
     }
   }
 
-  private class TracksCacher extends TracksVisitor {
+  private class TracksCacher implements TracksVisitor {
 
     private final TracksVisitor delegate;
 
@@ -190,5 +206,9 @@ final public class CachingCatalog extends Catalog {
       db.addTrack(obj);
       delegate.accept(obj);
     }
+
+    // TODO: remove
+    @Override
+    public void setCountHint(int count) {}
   }
 }

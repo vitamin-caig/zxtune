@@ -283,6 +283,10 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
       final int[] newHash = new int[1];
       try {
         catalog.findRandomTracks(new Catalog.TracksVisitor() {
+          // TODO: remove
+          @Override
+          public void setCountHint(int count) {}
+
           @Override
           public void accept(Track obj) {
             tracks.addLast(obj);
@@ -451,6 +455,10 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     @Override
     public void find(String query, final Visitor visitor) throws IOException {
       catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
+
+        // TODO: remove
+        @Override
+        public void setCountHint(int count) {}
 
         @Override
         public void accept(Author author, Track track) {
