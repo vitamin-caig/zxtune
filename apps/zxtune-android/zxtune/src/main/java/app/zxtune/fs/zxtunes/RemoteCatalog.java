@@ -24,7 +24,7 @@ import app.zxtune.Log;
 import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
-public final class RemoteCatalog extends Catalog {
+public final class RemoteCatalog implements Catalog {
 
   private static final String TAG = RemoteCatalog.class.getName();
 

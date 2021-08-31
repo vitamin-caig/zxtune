@@ -14,7 +14,7 @@ import app.zxtune.fs.dbhelpers.CommandExecutor;
 import app.zxtune.fs.dbhelpers.QueryCommand;
 import app.zxtune.fs.dbhelpers.Timestamps;
 
-final public class CachingCatalog extends Catalog {
+final public class CachingCatalog implements Catalog {
 
   private static final String TAG = CachingCatalog.class.getName();
 
@@ -46,6 +46,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryAuthors(new AuthorsVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int size) {}
+
             @Override
             public void accept(Author obj) {
               db.addAuthor(obj);
@@ -77,6 +81,10 @@ final public class CachingCatalog extends Catalog {
       public void updateCache() throws IOException {
         db.runInTransaction(() -> {
           remote.queryAuthorTracks(author, new TracksVisitor() {
+            // TODO: remove
+            @Override
+            public void setCountHint(int size) {}
+
             @Override
             public void accept(Track obj) {
               db.addTrack(obj);

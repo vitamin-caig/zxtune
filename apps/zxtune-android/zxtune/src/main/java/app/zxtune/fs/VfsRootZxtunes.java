@@ -374,6 +374,10 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     public void find(String query, final Visitor visitor) {
       catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
 
+        // TODO: remove
+        @Override
+        public void setCountHint(int size) {}
+
         @Override
         public void accept(Author author, Track track) {
           final Uri uri = Identifier.forTrack(Identifier.forAuthor(author), track).build();
