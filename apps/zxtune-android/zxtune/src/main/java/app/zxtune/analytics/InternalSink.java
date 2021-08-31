@@ -1,5 +1,8 @@
 package app.zxtune.analytics;
 
+import static app.zxtune.analytics.internal.UrlsBuilder.DEFAULT_LONG_VALUE;
+import static app.zxtune.analytics.internal.UrlsBuilder.DEFAULT_STRING_VALUE;
+
 import android.content.Context;
 import android.net.Uri;
 
@@ -17,9 +20,6 @@ import app.zxtune.core.ModuleAttributes;
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
 import app.zxtune.playlist.ProviderClient;
-
-import static app.zxtune.analytics.internal.UrlsBuilder.DEFAULT_LONG_VALUE;
-import static app.zxtune.analytics.internal.UrlsBuilder.DEFAULT_STRING_VALUE;
 
 final class InternalSink implements Sink {
 

@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.fs.DefaultComparator;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsArchive;
@@ -20,6 +19,7 @@ import app.zxtune.fs.VfsObject;
 import app.zxtune.playlist.AylIterator;
 import app.zxtune.playlist.ReferencesIterator;
 import app.zxtune.playlist.xspf.XspfIterator;
+import app.zxtune.utils.StubProgressCallback;
 
 public final class Scanner {
 

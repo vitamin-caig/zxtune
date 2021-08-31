@@ -1,5 +1,7 @@
 package app.zxtune.analytics;
 
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import android.content.Context;
 import android.net.Uri;
 
@@ -11,8 +13,6 @@ import java.util.HashMap;
 
 import app.zxtune.core.Player;
 import app.zxtune.playback.PlayableItem;
-
-import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 public class Analytics {
 

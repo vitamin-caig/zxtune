@@ -1,5 +1,7 @@
 package app.zxtune.preferences;
 
+import static org.mockito.ArgumentMatchers.eq;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Handler;
@@ -17,8 +19,6 @@ import org.mockito.Mockito;
 import app.zxtune.Preferences;
 import app.zxtune.Releaseable;
 import app.zxtune.core.PropertiesModifier;
-
-import static org.mockito.ArgumentMatchers.eq;
 
 @RunWith(AndroidJUnit4.class)
 public class SharedPreferencesBridgeTest {

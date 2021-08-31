@@ -6,6 +6,8 @@
 
 package app.zxtune.fs.provider;
 
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import android.content.ContentResolver;
 import android.content.UriMatcher;
 import android.net.Uri;
@@ -14,8 +16,6 @@ import androidx.annotation.IntDef;
 
 import java.lang.annotation.Retention;
 import java.util.List;
-
-import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /*
  * ${path} is full data uri (including subpath in fragment) stored as string

@@ -12,10 +12,12 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.SystemClock;
-import androidx.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import androidx.annotation.Nullable;
+
 import app.zxtune.Log;
 import app.zxtune.playback.Visualizer;
 import app.zxtune.playback.stubs.VisualizerStub;

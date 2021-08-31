@@ -3,7 +3,6 @@ package app.zxtune.core.jni;
 import androidx.annotation.Nullable;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicReference;
 

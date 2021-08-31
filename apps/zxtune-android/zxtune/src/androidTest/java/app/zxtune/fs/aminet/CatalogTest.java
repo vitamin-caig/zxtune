@@ -2,17 +2,18 @@ package app.zxtune.fs.aminet;
 
 import android.content.Context;
 import android.net.Uri;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
 
-import app.zxtune.fs.http.HttpProvider;
-import app.zxtune.fs.http.HttpProviderFactory;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
 
+import app.zxtune.fs.http.HttpProvider;
+import app.zxtune.fs.http.HttpProviderFactory;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.httpdir.RemoteCatalogTest;
 

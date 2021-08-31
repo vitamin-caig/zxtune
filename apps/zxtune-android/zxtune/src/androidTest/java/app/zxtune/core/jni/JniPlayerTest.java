@@ -1,8 +1,9 @@
 package app.zxtune.core.jni;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
-import org.junit.*;
+import org.junit.Test;
 
 public class JniPlayerTest {
 

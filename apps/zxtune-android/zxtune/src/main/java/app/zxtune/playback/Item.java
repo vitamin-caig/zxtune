@@ -8,8 +8,8 @@ package app.zxtune.playback;
 
 import android.net.Uri;
 
-import app.zxtune.core.Identifier;
 import app.zxtune.TimeStamp;
+import app.zxtune.core.Identifier;
 
 public interface Item {
 

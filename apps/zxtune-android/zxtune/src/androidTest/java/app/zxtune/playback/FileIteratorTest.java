@@ -1,14 +1,16 @@
 package app.zxtune.playback;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import android.content.Context;
 import android.content.res.Resources;
 import android.net.Uri;
+
 import androidx.annotation.RawRes;
-import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import app.zxtune.fs.Vfs;
-import app.zxtune.io.Io;
-import app.zxtune.io.TransactionalOutputStream;
+import androidx.test.platform.app.InstrumentationRegistry;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +23,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 
-import static org.junit.Assert.*;
+import app.zxtune.fs.Vfs;
+import app.zxtune.io.Io;
+import app.zxtune.io.TransactionalOutputStream;
 
 @RunWith(AndroidJUnit4.class)
 public class FileIteratorTest {

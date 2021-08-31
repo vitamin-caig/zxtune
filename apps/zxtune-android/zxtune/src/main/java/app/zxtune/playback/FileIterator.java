@@ -18,7 +18,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import app.zxtune.Log;
 import app.zxtune.R;
-import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.Scanner;
@@ -29,6 +28,7 @@ import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 import app.zxtune.playback.stubs.PlayableItemStub;
+import app.zxtune.utils.StubProgressCallback;
 
 // TODO: support cleanup of iterator itself
 public class FileIterator implements Iterator {

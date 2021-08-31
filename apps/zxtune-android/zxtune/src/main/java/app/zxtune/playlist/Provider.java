@@ -19,8 +19,6 @@ import android.util.SparseIntArray;
 
 import androidx.annotation.Nullable;
 
-import java.io.IOException;
-
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
 import app.zxtune.playlist.xspf.XspfStorage;

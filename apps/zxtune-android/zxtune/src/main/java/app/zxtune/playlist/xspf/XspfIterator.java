@@ -12,8 +12,6 @@ package app.zxtune.playlist.xspf;
 
 import android.net.Uri;
 import android.sax.Element;
-import android.sax.EndElementListener;
-import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.sax.TextElementListener;
 import android.util.Xml;

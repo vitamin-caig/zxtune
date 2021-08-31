@@ -1,5 +1,9 @@
 package app.zxtune.playlist.xspf;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import android.net.Uri;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -18,10 +22,6 @@ import app.zxtune.core.Identifier;
 import app.zxtune.io.Io;
 import app.zxtune.playlist.Item;
 import app.zxtune.playlist.ReferencesIterator;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * TODO:

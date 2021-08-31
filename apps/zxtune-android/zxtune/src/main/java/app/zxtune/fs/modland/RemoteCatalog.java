@@ -18,11 +18,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import app.zxtune.Log;
-import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.fs.HtmlUtils;
-import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.api.Cdn;
 import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.utils.ProgressCallback;
+import app.zxtune.utils.StubProgressCallback;
 
 /**
  * There's additional api gate for xbmc plugin at

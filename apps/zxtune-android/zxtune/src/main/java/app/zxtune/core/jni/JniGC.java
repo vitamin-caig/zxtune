@@ -1,10 +1,10 @@
 package app.zxtune.core.jni;
 
-import app.zxtune.core.Player;
-
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+
+import app.zxtune.core.Player;
 
 class JniGC {
 

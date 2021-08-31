@@ -30,8 +30,8 @@ import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.analytics.Analytics;
-import app.zxtune.fs.VfsExtensions;
 import app.zxtune.device.media.MediaSessionModel;
+import app.zxtune.fs.VfsExtensions;
 
 public class NowPlayingFragment extends Fragment implements MainActivity.PagerTabListener {
 

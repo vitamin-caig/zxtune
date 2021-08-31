@@ -1,9 +1,10 @@
 package app.zxtune.core.jni;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import androidx.annotation.NonNull;
-import org.junit.*;
+
+import org.junit.Test;
 
 import java.util.HashSet;
 

@@ -1,15 +1,17 @@
 package app.zxtune.fs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import android.content.res.Resources;
 import android.net.Uri;
 
 import androidx.annotation.RawRes;
-import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-
-import app.zxtune.utils.StubProgressCallback;
-import app.zxtune.io.Io;
-import app.zxtune.io.TransactionalOutputStream;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.After;
 import org.junit.Before;
@@ -22,7 +24,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import static org.junit.Assert.*;
+import app.zxtune.io.Io;
+import app.zxtune.io.TransactionalOutputStream;
+import app.zxtune.utils.StubProgressCallback;
 
 @RunWith(AndroidJUnit4.class)
 public class VfsArchiveTest {

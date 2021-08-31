@@ -1,5 +1,7 @@
 package app.zxtune.fs.modland;
 
+import static org.junit.Assert.assertEquals;
+
 import android.content.Context;
 
 import androidx.collection.SparseArrayCompat;
@@ -13,12 +15,10 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.http.HttpProvider;
 import app.zxtune.fs.http.HttpProviderFactory;
 import app.zxtune.fs.http.MultisourceHttpProvider;
-
-import static org.junit.Assert.assertEquals;
+import app.zxtune.utils.ProgressCallback;
 
 @RunWith(AndroidJUnit4.class)
 public class CatalogTest {

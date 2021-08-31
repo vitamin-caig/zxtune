@@ -2,10 +2,7 @@ package app.zxtune.playback.service;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Player;
-import app.zxtune.core.Properties;
 import app.zxtune.sound.SamplesSource;
-
-import java.util.concurrent.TimeUnit;
 
 class SeekableSamplesSource implements SamplesSource {
 

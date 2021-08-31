@@ -16,9 +16,7 @@ import app.zxtune.TimeStamp;
 import app.zxtune.Util;
 import app.zxtune.core.Core;
 import app.zxtune.core.Identifier;
-import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
-import app.zxtune.core.ModuleDetectCallback;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.utils.ProgressCallback;
 

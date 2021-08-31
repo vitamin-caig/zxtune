@@ -16,8 +16,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import androidx.annotation.Nullable;
 import android.util.SparseIntArray;
+
+import androidx.annotation.Nullable;
 
 import java.util.Locale;
 

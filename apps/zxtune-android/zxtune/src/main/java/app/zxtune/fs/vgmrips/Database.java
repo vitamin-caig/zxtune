@@ -1,5 +1,7 @@
 package app.zxtune.fs.vgmrips;
 
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import android.content.Context;
 
 import androidx.annotation.IntDef;
@@ -24,8 +26,6 @@ import java.util.concurrent.TimeUnit;
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.Timestamps;
 import app.zxtune.fs.dbhelpers.Utils;
-
-import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 class Database {
 

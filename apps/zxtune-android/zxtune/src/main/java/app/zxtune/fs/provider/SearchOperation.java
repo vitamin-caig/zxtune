@@ -7,7 +7,6 @@ import android.net.Uri;
 import androidx.annotation.Nullable;
 import androidx.core.os.OperationCanceledException;
 
-import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.concurrent.atomic.AtomicReference;
 

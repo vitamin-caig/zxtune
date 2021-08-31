@@ -1,5 +1,7 @@
 package app.zxtune.ui.browser;
 
+import static java.lang.annotation.RetentionPolicy.SOURCE;
+
 import android.net.Uri;
 
 import androidx.annotation.DrawableRes;
@@ -9,8 +11,6 @@ import androidx.annotation.Nullable;
 import java.lang.annotation.Retention;
 
 import app.zxtune.R;
-
-import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 // public for binding
 public class ListingEntry {

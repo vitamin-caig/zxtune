@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 import app.zxtune.io.Io;
-import app.zxtune.playlist.xspf.XspfIterator;
 
 public final class AylIterator {
 

@@ -1,12 +1,12 @@
 package app.zxtune.core;
 
+import static org.junit.Assert.assertEquals;
+
 import android.net.Uri;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
-
-import static org.junit.Assert.assertEquals;
 
 @RunWith(RobolectricTestRunner.class)
 public class IdentifierTest {

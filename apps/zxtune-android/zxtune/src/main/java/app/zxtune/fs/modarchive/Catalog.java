@@ -10,8 +10,8 @@ import android.content.Context;
 
 import java.io.IOException;
 
-import app.zxtune.utils.ProgressCallback;
 import app.zxtune.fs.http.MultisourceHttpProvider;
+import app.zxtune.utils.ProgressCallback;
 
 public abstract class Catalog {
 

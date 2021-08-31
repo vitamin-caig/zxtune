@@ -8,8 +8,6 @@ package app.zxtune.fs.zxart;
 
 import android.net.Uri;
 import android.sax.Element;
-import android.sax.EndElementListener;
-import android.sax.EndTextElementListener;
 import android.sax.RootElement;
 import android.text.Html;
 import android.util.Xml;

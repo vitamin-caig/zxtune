@@ -17,7 +17,6 @@ import java.util.HashMap;
 
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
-import app.zxtune.utils.StubProgressCallback;
 import app.zxtune.core.Identifier;
 import app.zxtune.fs.VfsDir.Visitor;
 import app.zxtune.fs.archives.Archive;
@@ -26,6 +25,7 @@ import app.zxtune.fs.archives.DirEntry;
 import app.zxtune.fs.archives.Entry;
 import app.zxtune.fs.archives.Track;
 import app.zxtune.utils.ProgressCallback;
+import app.zxtune.utils.StubProgressCallback;
 
 public final class VfsArchive {
 

@@ -13,10 +13,11 @@ package app.zxtune;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.DeadObjectException;
-import app.zxtune.analytics.Analytics;
 
 import java.util.Arrays;
 import java.util.Locale;
+
+import app.zxtune.analytics.Analytics;
 
 public final class Log {
 

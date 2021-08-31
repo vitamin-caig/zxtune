@@ -1,6 +1,7 @@
 package app.zxtune.fs.api;
 
 import android.net.Uri;
+
 import app.zxtune.BuildConfig;
 
 public class Cdn {

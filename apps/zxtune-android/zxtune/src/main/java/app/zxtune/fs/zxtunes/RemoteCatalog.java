@@ -8,15 +8,11 @@ package app.zxtune.fs.zxtunes;
 
 import android.net.Uri;
 import android.sax.Element;
-import android.sax.EndElementListener;
-import android.sax.EndTextElementListener;
 import android.sax.RootElement;
-import android.sax.StartElementListener;
 import android.util.Xml;
 
 import androidx.annotation.Nullable;
 
-import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import java.io.BufferedInputStream;

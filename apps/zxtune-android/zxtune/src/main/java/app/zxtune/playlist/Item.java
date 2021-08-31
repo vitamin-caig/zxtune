@@ -10,12 +10,12 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
-import app.zxtune.core.Identifier;
+import java.util.concurrent.TimeUnit;
+
 import app.zxtune.TimeStamp;
+import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
 import app.zxtune.core.ModuleAttributes;
-
-import java.util.concurrent.TimeUnit;
 
 public class Item {
 

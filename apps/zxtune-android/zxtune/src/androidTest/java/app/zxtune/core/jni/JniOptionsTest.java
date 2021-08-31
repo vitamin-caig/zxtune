@@ -1,8 +1,9 @@
 package app.zxtune.core.jni;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Test;
 
 import app.zxtune.core.PropertiesContainer;
 
