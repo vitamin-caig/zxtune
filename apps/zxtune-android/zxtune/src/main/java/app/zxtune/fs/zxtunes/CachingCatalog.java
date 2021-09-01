@@ -7,7 +7,6 @@
 package app.zxtune.fs.zxtunes;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -19,12 +18,8 @@ final public class CachingCatalog extends Catalog {
 
   private static final String TAG = CachingCatalog.class.getName();
 
-  private final TimeStamp AUTHORS_TTL = days(30);
-  private final TimeStamp TRACKS_TTL = days(7);
-
-  private static TimeStamp days(int val) {
-    return TimeStamp.createFrom(val, TimeUnit.DAYS);
-  }
+  private final TimeStamp AUTHORS_TTL = TimeStamp.fromDays(30);
+  private final TimeStamp TRACKS_TTL = TimeStamp.fromDays(7);
 
   private final RemoteCatalog remote;
   private final Database db;

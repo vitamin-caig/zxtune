@@ -8,7 +8,6 @@ package app.zxtune.fs.modland;
 
 import java.io.IOException;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
@@ -20,12 +19,8 @@ import app.zxtune.utils.StubProgressCallback;
 
 final public class CachingCatalog extends Catalog {
 
-  private final TimeStamp GROUPS_TTL = days(30);
-  private final TimeStamp GROUP_TRACKS_TTL = days(14);
-
-  private static TimeStamp days(int val) {
-    return TimeStamp.createFrom(val, TimeUnit.DAYS);
-  }
+  private final TimeStamp GROUPS_TTL = TimeStamp.fromDays(30);
+  private final TimeStamp GROUP_TRACKS_TTL = TimeStamp.fromDays(14);
 
   private final Database db;
   private final Grouping authors;

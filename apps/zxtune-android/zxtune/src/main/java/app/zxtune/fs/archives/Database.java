@@ -15,7 +15,6 @@ import android.net.Uri;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.BuildConfig;
 import app.zxtune.Log;
@@ -202,7 +201,7 @@ class Database {
       }
 
       final void add(Track obj) {
-        add(obj.path.toString(), obj.description, obj.duration.convertTo(TimeUnit.MILLISECONDS));
+        add(obj.path.toString(), obj.description, obj.duration.toMilliseconds());
       }
     }
 

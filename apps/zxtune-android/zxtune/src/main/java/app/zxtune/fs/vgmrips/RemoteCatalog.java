@@ -12,7 +12,6 @@ import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.HtmlUtils;
@@ -83,7 +82,7 @@ public class RemoteCatalog extends Catalog {
     for (Element track : tracks) {
       final int number = tryParseIntPrefix(track.attr("data-order"));
       final String title = track.selectFirst("td.title>a.beginPlay").text();
-      final TimeStamp duration = TimeStamp.createFrom(tryParseIntPrefix(track.attr("data-duration")), TimeUnit.SECONDS);
+      final TimeStamp duration = TimeStamp.fromSeconds(tryParseIntPrefix(track.attr("data-duration")));
       final String location = Uri.decode(getSuffix(track.attr("data-vgmurl"), "/packs/vgm/"));
       if (number > 0 && !title.isEmpty() && !location.isEmpty()) {
         visitor.accept(new Track(number, title, duration, location));

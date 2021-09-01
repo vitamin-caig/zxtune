@@ -11,8 +11,6 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Identifier;
 
@@ -35,7 +33,7 @@ public class Entry {
     final String description = cursor.getString(Database.Tables.Entries.Fields.description.ordinal());
     final long durationValue = cursor.getInt(Database.Tables.Entries.Fields.duration.ordinal());
     final TimeStamp duration = durationValue != 0
-        ? TimeStamp.createFrom(durationValue, TimeUnit.MILLISECONDS)
+        ? TimeStamp.fromMilliseconds(durationValue)
         : null;
     return new Entry(path, description, duration);
   }

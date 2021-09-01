@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Identifier;
@@ -84,8 +83,7 @@ public class Model extends AndroidViewModel {
         Identifier.parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal())),
         cursor.getString(Database.Tables.Playlist.Fields.title.ordinal()),
         cursor.getString(Database.Tables.Playlist.Fields.author.ordinal()),
-        TimeStamp.createFrom(cursor.getLong(Database.Tables.Playlist.Fields.duration.ordinal()),
-            TimeUnit.MILLISECONDS)
+        TimeStamp.fromMilliseconds(cursor.getLong(Database.Tables.Playlist.Fields.duration.ordinal()))
     );
   }
 }

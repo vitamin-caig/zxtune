@@ -18,14 +18,26 @@ public final class TimeStamp implements Comparable<TimeStamp> {
     this.value = UNIT.convert(val, unit);
   }
 
-  public static final TimeStamp EMPTY = createFrom(0, UNIT);
+  public static final TimeStamp EMPTY = new TimeStamp(0, UNIT);
 
-  public static TimeStamp createFrom(long val, TimeUnit unit) {
-    return new TimeStamp(val, unit);
+  public static TimeStamp fromMilliseconds(long val) {
+    return new TimeStamp(val, TimeUnit.MILLISECONDS);
   }
 
-  public final long convertTo(TimeUnit unit) {
-    return unit.convert(value, UNIT);
+  public static TimeStamp fromSeconds(long val) {
+    return new TimeStamp(val, TimeUnit.SECONDS);
+  }
+
+  public static TimeStamp fromDays(int val) {
+    return new TimeStamp(val, TimeUnit.DAYS);
+  }
+
+  public final long toMilliseconds() {
+    return UNIT.toMillis(value);
+  }
+
+  public final long toSeconds() {
+    return UNIT.toSeconds(value);
   }
 
   @Override
@@ -51,11 +63,7 @@ public final class TimeStamp implements Comparable<TimeStamp> {
 
   @Override
   public int compareTo(TimeStamp rh) {
-    return value == rh.value ? 0 : (value < rh.value ? -1 : +1);
-  }
-
-  public final long divides(TimeStamp rh) {
-    return value / rh.value;
+    return Long.compare(value, rh.value);
   }
 
   public final TimeStamp multiplies(long count) {

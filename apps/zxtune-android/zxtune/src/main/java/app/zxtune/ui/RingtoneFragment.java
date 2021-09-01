@@ -19,8 +19,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.R;
 import app.zxtune.RingtoneService;
 import app.zxtune.TimeStamp;
@@ -65,7 +63,7 @@ public class RingtoneFragment extends DialogFragment {
     final Button.OnClickListener listener = v -> {
       final String tag = (String) v.getTag();
       final int tagValue = Integer.parseInt(tag);
-      RingtoneService.execute(getActivity(), uri, TimeStamp.createFrom(tagValue, TimeUnit.SECONDS));
+      RingtoneService.execute(getActivity(), uri, TimeStamp.fromSeconds(tagValue));
       dismiss();
     };
     for (int idx = 0, lim = container.getChildCount(); idx != lim; ++idx) {

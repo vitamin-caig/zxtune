@@ -8,8 +8,6 @@ package app.zxtune.playlist;
 
 import android.database.Cursor;
 
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.TimeStamp;
 
 public class Statistics {
@@ -21,9 +19,7 @@ public class Statistics {
   public Statistics(Cursor cursor) {
     items = cursor.getInt(Database.Tables.Statistics.Fields.count.ordinal());
     locations = cursor.getInt(Database.Tables.Statistics.Fields.locations.ordinal());
-    duration =
-        TimeStamp.createFrom(cursor.getLong(Database.Tables.Statistics.Fields.duration.ordinal()),
-            TimeUnit.MILLISECONDS);
+    duration = TimeStamp.fromMilliseconds(cursor.getLong(Database.Tables.Statistics.Fields.duration.ordinal()));
   }
 
   public final int getTotal() {

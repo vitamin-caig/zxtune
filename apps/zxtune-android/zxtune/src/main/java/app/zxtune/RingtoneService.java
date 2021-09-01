@@ -28,7 +28,6 @@ import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.analytics.Analytics;
 import app.zxtune.core.Module;
@@ -64,7 +63,7 @@ public class RingtoneService extends IntentService {
     final Intent intent = new Intent(context, RingtoneService.class);
     intent.setAction(ACTION_MAKERINGTONE);
     intent.putExtra(EXTRA_MODULE, module);
-    intent.putExtra(EXTRA_DURATION_SECONDS, duration.convertTo(TimeUnit.SECONDS));
+    intent.putExtra(EXTRA_DURATION_SECONDS, duration.toSeconds());
     context.startService(intent);
   }
   
@@ -85,7 +84,7 @@ public class RingtoneService extends IntentService {
     if (intent != null && ACTION_MAKERINGTONE.equals(intent.getAction())) {
       final Uri module = intent.getParcelableExtra(EXTRA_MODULE);
       final long seconds = intent.getLongExtra(EXTRA_DURATION_SECONDS, DEFAULT_DURATION_SECONDS);
-      final TimeStamp duration = TimeStamp.createFrom(seconds, TimeUnit.SECONDS);
+      final TimeStamp duration = TimeStamp.fromSeconds(seconds);
       createRingtone(module, duration);
     }
   }
@@ -115,7 +114,7 @@ public class RingtoneService extends IntentService {
       Log.d(TAG, "Created ringtones directory");
     }
     final long moduleId = getModuleId(item);
-    final String filename = String.format(Locale.US, "%d_%d.wav", moduleId, duration.convertTo(TimeUnit.SECONDS)); 
+    final String filename = String.format(Locale.US, "%d_%d.wav", moduleId, duration.toSeconds());
     Log.d(TAG, "Dir: %s filename: %s", dir, filename);
     return new File(dir, filename);
   }
@@ -173,7 +172,7 @@ public class RingtoneService extends IntentService {
     values.put(MediaStore.MediaColumns.MIME_TYPE, "audio/wav");
     final String filename = item.getDataId().getDisplayFilename();
     values.put(MediaStore.MediaColumns.DISPLAY_NAME, filename);
-    values.put(MediaStore.Audio.Media.DURATION, limit.convertTo(TimeUnit.MILLISECONDS));
+    values.put(MediaStore.Audio.Media.DURATION, limit.toMilliseconds());
     final String title = Util.formatTrackTitle(item.getAuthor(), item.getTitle(), filename);
     final String name = String.format(Locale.US, "%s (%s)", title, limit);
     values.put(MediaStore.MediaColumns.TITLE, name);
@@ -227,7 +226,7 @@ public class RingtoneService extends IntentService {
     TimeLimitedSamplesSource(Module module, int sampleRate, TimeStamp limit) {
       this.player = module.createPlayer(sampleRate);
       this.limit = limit;
-      restSamples = (int) (limit.convertTo(TimeUnit.SECONDS) * sampleRate);
+      restSamples = (int) (limit.toSeconds() * sampleRate);
       player.setPosition(TimeStamp.EMPTY);
       player.setProperty(Properties.Sound.LOOPED, 1);
     }

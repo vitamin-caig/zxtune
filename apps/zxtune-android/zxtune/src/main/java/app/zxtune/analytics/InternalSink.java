@@ -9,7 +9,6 @@ import android.net.Uri;
 import androidx.collection.LongSparseArray;
 
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.analytics.internal.Factory;
@@ -56,7 +55,7 @@ final class InternalSink implements Sink {
 
     builder.addParam("type", mod.getProperty(ModuleAttributes.TYPE, DEFAULT_STRING_VALUE));
     builder.addParam("container", mod.getProperty(ModuleAttributes.CONTAINER, DEFAULT_STRING_VALUE));
-    builder.addParam("duration", item.getDuration().convertTo(TimeUnit.SECONDS));
+    builder.addParam("duration", item.getDuration().toSeconds());
 
     builder.addParam("crc", mod.getProperty("CRC", DEFAULT_LONG_VALUE));
     builder.addParam("fixedcrc", mod.getProperty("FixedCRC", DEFAULT_LONG_VALUE));

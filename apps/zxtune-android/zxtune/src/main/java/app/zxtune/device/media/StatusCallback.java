@@ -18,8 +18,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.Releaseable;
@@ -82,7 +80,7 @@ class StatusCallback implements Callback {
     final int stateCompat = isPlaying
         ? PlaybackStateCompat.STATE_PLAYING
         : PlaybackStateCompat.STATE_STOPPED;
-    final long position = pos.convertTo(TimeUnit.MILLISECONDS);
+    final long position = pos.toMilliseconds();
     final float speed = isPlaying ? 1 : 0;
     builder.setState(stateCompat, position, speed, SystemClock.elapsedRealtime());
     session.setPlaybackState(builder.build());
@@ -111,8 +109,7 @@ class StatusCallback implements Callback {
       putString(builder, MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, item.getComment());
       putString(builder, ModuleAttributes.PROGRAM, item.getProgram());
       putString(builder, ModuleAttributes.STRINGS, item.getStrings());
-      builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION,
-          item.getDuration().convertTo(TimeUnit.MILLISECONDS));
+      builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, item.getDuration().toMilliseconds());
       builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, getLocationIcon(dataId.getDataLocation()));
       builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_URI, dataId.toString());
       builder.putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, item.getId().toString());

@@ -5,7 +5,6 @@ import android.content.Context;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
@@ -15,7 +14,7 @@ import app.zxtune.fs.dbhelpers.Timestamps;
 
 final class CachingCatalog extends Catalog {
 
-  private final static TimeStamp DIR_TTL = TimeStamp.createFrom(1, TimeUnit.DAYS);
+  private final static TimeStamp DIR_TTL = TimeStamp.fromDays(1);
 
   private final RemoteCatalog remote;
   private final FileTree db;

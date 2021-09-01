@@ -10,8 +10,6 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Identifier;
 import app.zxtune.core.Module;
@@ -30,7 +28,7 @@ public class Item {
     this.location = Identifier.parse(cursor.getString(Database.Tables.Playlist.Fields.location.ordinal()));
     this.title = cursor.getString(Database.Tables.Playlist.Fields.title.ordinal());
     this.author = cursor.getString(Database.Tables.Playlist.Fields.author.ordinal());
-    this.duration = TimeStamp.createFrom(cursor.getInt(Database.Tables.Playlist.Fields.duration.ordinal()), TimeUnit.MILLISECONDS);
+    this.duration = TimeStamp.fromMilliseconds(cursor.getInt(Database.Tables.Playlist.Fields.duration.ordinal()));
   }
 
   public Item(Identifier location, Module module) {
@@ -90,7 +88,7 @@ public class Item {
     values.put(Database.Tables.Playlist.Fields.location.name(), location.toString());
     values.put(Database.Tables.Playlist.Fields.author.name(), author);
     values.put(Database.Tables.Playlist.Fields.title.name(), title);
-    values.put(Database.Tables.Playlist.Fields.duration.name(), duration.convertTo(TimeUnit.MILLISECONDS));
+    values.put(Database.Tables.Playlist.Fields.duration.name(), duration.toMilliseconds());
     return values;
   }
 }

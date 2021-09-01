@@ -15,7 +15,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Identifier;
@@ -62,21 +61,21 @@ public class XspfPlaylistTest {
     {
       final ReferencesIterator.Entry entry = list.get(0);
       assertEquals("file:/folder/only%20duration", entry.location);
-      assertEquals(TimeStamp.createFrom(123456, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals(TimeStamp.fromMilliseconds(123456), entry.duration);
       assertEquals("", entry.title);
       assertEquals("", entry.author);
     }
     {
       final ReferencesIterator.Entry entry = list.get(1);
       assertEquals("joshw:/some/%D1%84%D0%B0%D0%B9%D0%BB.7z#%D0%BF%D0%BE%D0%B4%D0%BF%D0%B0%D0%BF%D0%BA%D0%B0%2Fsubfile.mp3", entry.location);
-      assertEquals(TimeStamp.createFrom(2345, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals(TimeStamp.fromMilliseconds(2345), entry.duration);
       assertEquals("Название", entry.title);
       assertEquals("Author Unknown", entry.author);
     }
     {
       final ReferencesIterator.Entry entry = list.get(2);
       assertEquals("hvsc:/GAMES/file.sid#%233", entry.location);
-      assertEquals(TimeStamp.createFrom(6789, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals(TimeStamp.fromMilliseconds(6789), entry.duration);
       assertEquals("Escaped%21", entry.title);
       assertEquals("Me%)", entry.author);
     }
@@ -90,21 +89,21 @@ public class XspfPlaylistTest {
     {
       final ReferencesIterator.Entry entry = list.get(0);
       assertEquals("file:/folder/only%20duration", entry.location);
-      assertEquals(TimeStamp.createFrom(123456, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals(TimeStamp.fromMilliseconds(123456), entry.duration);
       assertEquals("", entry.title);
       assertEquals("", entry.author);
     }
     {
       final ReferencesIterator.Entry entry = list.get(1);
       assertEquals("joshw:/some/%D1%84%D0%B0%D0%B9%D0%BB.7z#%D0%BF%D0%BE%D0%B4%D0%BF%D0%B0%D0%BF%D0%BA%D0%B0%2Fsubfile.mp3", entry.location);
-      assertEquals(TimeStamp.createFrom(2345, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals(TimeStamp.fromMilliseconds(2345), entry.duration);
       assertEquals("Название", entry.title);
       assertEquals("Author Unknown", entry.author);
     }
     {
       final ReferencesIterator.Entry entry = list.get(2);
       assertEquals("hvsc:/GAMES/file.sid#%233", entry.location);
-      assertEquals(TimeStamp.createFrom(6789, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals(TimeStamp.fromMilliseconds(6789), entry.duration);
       assertEquals("Escaped%21", entry.title);
       assertEquals("Me%)", entry.author);
     }
@@ -118,14 +117,14 @@ public class XspfPlaylistTest {
     {
       final ReferencesIterator.Entry entry = list.get(0);
       assertEquals("chiptunes/RP2A0X/nsfe/SuperContra.nsfe#%232", entry.location);
-      assertEquals(TimeStamp.createFrom(111300, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals(TimeStamp.fromMilliseconds(111300), entry.duration);
       assertEquals("Stage 1 - Lightning and Grenades", entry.title);
       assertEquals("H.Maezawa", entry.author);
     }
     {
       final ReferencesIterator.Entry entry = list.get(1);
       assertEquals("../chiptunes/DAC/ZX/dst/Untitled.dst", entry.location);
-      assertEquals(TimeStamp.createFrom(186560, TimeUnit.MILLISECONDS), entry.duration);
+      assertEquals(TimeStamp.fromMilliseconds(186560), entry.duration);
       assertEquals("Untitled2(c)&(p)Cj.Le0'99aug", entry.title);
       assertEquals("", entry.author);
     }
@@ -149,11 +148,11 @@ public class XspfPlaylistTest {
       final Builder builder = new Builder(out);
       builder.writePlaylistProperties("Полный", 3);
       builder.writeTrack(new Item(createIdentifier("file:/folder/only duration"), "", "",
-          TimeStamp.createFrom(123456, TimeUnit.MILLISECONDS)));
+          TimeStamp.fromMilliseconds(123456)));
       builder.writeTrack(new Item(createIdentifier("joshw:/some/файл.7z#подпапка/subfile.mp3"),
-          "Название", "Author Unknown", TimeStamp.createFrom(2345, TimeUnit.MILLISECONDS)));
+          "Название", "Author Unknown", TimeStamp.fromMilliseconds(2345)));
       builder.writeTrack(new Item(createIdentifier("hvsc:/GAMES/file.sid##3"),
-          "Escaped%21", "Me%)", TimeStamp.createFrom(6789, TimeUnit.MILLISECONDS)));
+          "Escaped%21", "Me%)", TimeStamp.fromMilliseconds(6789)));
       builder.finish();
     }
     assertEquals(getPlaylistReference("mobile_v2"), out.toString());

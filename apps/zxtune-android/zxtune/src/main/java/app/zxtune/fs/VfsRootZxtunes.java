@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
@@ -306,7 +305,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     }
   }
 
-  private static final TimeStamp FRAME_DURATION = TimeStamp.createFrom(20, TimeUnit.MILLISECONDS);
+  private static final TimeStamp FRAME_DURATION = TimeStamp.fromMilliseconds(20);
 
   private class TrackFile extends StubObject implements VfsFile {
 

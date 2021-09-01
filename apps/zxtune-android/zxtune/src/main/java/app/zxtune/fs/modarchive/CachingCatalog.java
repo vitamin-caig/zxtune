@@ -7,7 +7,6 @@
 package app.zxtune.fs.modarchive;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.CommandExecutor;
@@ -17,13 +16,9 @@ import app.zxtune.utils.ProgressCallback;
 
 final public class CachingCatalog extends Catalog {
 
-  private final TimeStamp AUTHORS_TTL = days(2);
-  private final TimeStamp GENRES_TTL = days(30);
-  private final TimeStamp TRACKS_TTL = days(2);
-
-  private static TimeStamp days(int val) {
-    return TimeStamp.createFrom(val, TimeUnit.DAYS);
-  }
+  private final TimeStamp AUTHORS_TTL = TimeStamp.fromDays(2);
+  private final TimeStamp GENRES_TTL = TimeStamp.fromDays(30);
+  private final TimeStamp TRACKS_TTL = TimeStamp.fromDays(2);
 
   private final RemoteCatalog remote;
   private final Database db;

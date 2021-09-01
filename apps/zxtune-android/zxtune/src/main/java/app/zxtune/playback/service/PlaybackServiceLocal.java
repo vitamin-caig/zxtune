@@ -99,7 +99,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
       final Uri nowPlaying = getNowPlaying().getId();
       if (!Uri.EMPTY.equals(nowPlaying)) {
         final String path = nowPlaying.toString();
-        final long position = getSeekControl().getPosition().convertTo(TimeUnit.MILLISECONDS);
+        final long position = getSeekControl().getPosition().toMilliseconds();
         Log.d(TAG, "Save last played item '%s' at %dms", path, position);
         final Bundle bundle = new Bundle();
         bundle.putString(PREF_LAST_PLAYED_PATH, path);
@@ -120,7 +120,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
         public void run() {
           try {
             Log.d(TAG, "Restore last played item '%s' at %dms", path, position);
-            restoreSession(Uri.parse(path), TimeStamp.createFrom(position, TimeUnit.MILLISECONDS));
+            restoreSession(Uri.parse(path), TimeStamp.fromMilliseconds(position));
           } catch (Exception e) {
             Log.w(TAG, e, "Failed to restore session");
           }

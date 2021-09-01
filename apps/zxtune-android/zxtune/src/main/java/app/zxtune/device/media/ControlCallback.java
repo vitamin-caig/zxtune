@@ -12,7 +12,6 @@ import android.support.v4.media.session.MediaSessionCompat;
 
 import androidx.annotation.Nullable;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import app.zxtune.BroadcastReceiverConnection;
@@ -102,7 +101,7 @@ class ControlCallback extends MediaSessionCompat.Callback {
   @Override
   public void onSeekTo(long ms) {
     try {
-      seek.setPosition(TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS));
+      seek.setPosition(TimeStamp.fromMilliseconds(ms));
     } catch (Exception e) {
       Log.w(TAG, e, "Failed to seek");
     }

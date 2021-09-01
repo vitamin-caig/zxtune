@@ -22,8 +22,6 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
@@ -138,9 +136,9 @@ public class SeekControlFragment extends Fragment {
   }
 
   private void setDuration(long ms) {
-    final TimeStamp ts = TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS);
+    final TimeStamp ts = TimeStamp.fromMilliseconds(ms);
     totalTime.setText(ts.toString());
-    currentPosition.setMax((int) ts.convertTo(TimeUnit.SECONDS));
+    currentPosition.setMax((int) ts.toSeconds());
   }
 
   private void setUnknownDuration() {
@@ -163,7 +161,7 @@ public class SeekControlFragment extends Fragment {
     public void run() {
       try {
         final TimeStamp pos = getNewPos();
-        currentPosition.setProgress((int) pos.convertTo(TimeUnit.SECONDS));
+        currentPosition.setProgress((int) pos.toSeconds());
         currentTime.setText(pos.toString());
 
         timer.postDelayed(this, 1000);
@@ -175,7 +173,7 @@ public class SeekControlFragment extends Fragment {
     private TimeStamp getNewPos() {
       final long now = SystemClock.elapsedRealtime();
       final long newPosMs = posMs + (long) ((now - ts) * speed);
-      return TimeStamp.createFrom(newPosMs, TimeUnit.MILLISECONDS);
+      return TimeStamp.fromMilliseconds(newPosMs);
     }
 
     final void start(long pos, float speed, long ts) {

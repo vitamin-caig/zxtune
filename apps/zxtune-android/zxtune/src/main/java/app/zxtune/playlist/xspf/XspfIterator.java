@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.io.Io;
@@ -125,7 +124,7 @@ public final class XspfIterator {
     final void setDuration(String duration) {
       try {
         final long ms = Long.parseLong(duration);
-        result.duration = TimeStamp.createFrom(ms, TimeUnit.MILLISECONDS);
+        result.duration = TimeStamp.fromMilliseconds(ms);
       } catch (NumberFormatException e) {
       }
     }

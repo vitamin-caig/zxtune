@@ -2,7 +2,6 @@ package app.zxtune.core.jni;
 
 import java.lang.annotation.Native;
 import java.nio.ByteBuffer;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.core.Module;
@@ -27,7 +26,7 @@ final class JniModule implements Module {
 
   @Override
   public TimeStamp getDuration() {
-    return TimeStamp.createFrom(getDurationMs(), TimeUnit.MILLISECONDS);
+    return TimeStamp.fromMilliseconds(getDurationMs());
   }
 
   private native int getDurationMs();

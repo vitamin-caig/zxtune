@@ -8,7 +8,6 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.playlist.Item;
 
@@ -56,7 +55,7 @@ class Builder {
     writeTag(Tags.LOCATION, item.getLocation().toString());
     writeTag(Tags.CREATOR, item.getAuthor());
     writeTag(Tags.TITLE, item.getTitle());
-    writeTag(Tags.DURATION, Long.toString(item.getDuration().convertTo(TimeUnit.MILLISECONDS)));
+    writeTag(Tags.DURATION, Long.toString(item.getDuration().toMilliseconds()));
     //TODO: save extended properties
     xml.endTag(null, Tags.TRACK);
   }

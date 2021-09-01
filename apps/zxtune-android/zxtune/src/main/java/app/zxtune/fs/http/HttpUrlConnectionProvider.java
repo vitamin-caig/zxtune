@@ -17,7 +17,6 @@ import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.net.Http;
@@ -121,7 +120,7 @@ final class HttpUrlConnectionProvider implements HttpProvider {
   @Nullable
   private static TimeStamp getLastModified(HttpURLConnection connection) {
     final long stamp = connection.getLastModified();
-    return stamp > 0 ? TimeStamp.createFrom(stamp, TimeUnit.MILLISECONDS) : null;
+    return stamp > 0 ? TimeStamp.fromMilliseconds(stamp) : null;
   }
 
   private static boolean hasAcceptRanges(Map<String, List<String>> fields) {

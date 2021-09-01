@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.TimeStamp;
@@ -127,8 +126,8 @@ public class CommandExecutor {
   private static boolean remoteUpdated(File cache, HttpObject remote) {
     final long localLastModified = cache.lastModified();
     final TimeStamp remoteLastModified = remote.getLastModified();
-    if (localLastModified != 0 && remoteLastModified != null && remoteLastModified.convertTo(TimeUnit.MILLISECONDS) > localLastModified) {
-      Log.d(TAG, "Update outdated file: %d -> %d", localLastModified, remoteLastModified.convertTo(TimeUnit.MILLISECONDS));
+    if (localLastModified != 0 && remoteLastModified != null && remoteLastModified.toMilliseconds() > localLastModified) {
+      Log.d(TAG, "Update outdated file: %d -> %d", localLastModified, remoteLastModified.toMilliseconds());
       return true;
     } else {
       return false;

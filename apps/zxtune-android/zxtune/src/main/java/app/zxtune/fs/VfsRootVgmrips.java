@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.Log;
 import app.zxtune.R;
@@ -307,7 +306,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
       final int[] duration = {0};
       final Pack pack = catalog.findRandomPack(obj -> {
         tracks.add(obj);
-        duration[0] += obj.duration.convertTo(TimeUnit.SECONDS);
+        duration[0] += obj.duration.toSeconds();
       });
       if (pack == null || 0 == duration[0]) {
         return null;
@@ -315,7 +314,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
       final int hit = random.nextInt(duration[0]);
       int bound = 0;
       for (Track trk : tracks) {
-        bound += trk.duration.convertTo(TimeUnit.SECONDS);
+        bound += trk.duration.toSeconds();
         if (hit < bound) {
           return new Pair<>(pack, trk);
         }

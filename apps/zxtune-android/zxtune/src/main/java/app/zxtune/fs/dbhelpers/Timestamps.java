@@ -17,8 +17,6 @@ import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 import androidx.room.Query;
 
-import java.util.concurrent.TimeUnit;
-
 import app.zxtune.TimeStamp;
 
 public class Timestamps {
@@ -95,7 +93,7 @@ public class Timestamps {
     @Override
     public boolean isExpired() {
       try {
-        final TimeStamp age = TimeStamp.createFrom(queryAge(objId), TimeUnit.SECONDS);
+        final TimeStamp age = TimeStamp.fromSeconds(queryAge(objId));
         return age.compareTo(TTL) > 0;
       } catch (SQLiteDoneException e) {
         return true;
@@ -141,7 +139,7 @@ public class Timestamps {
       @Override
       public boolean isExpired() {
         final Long age = queryAge(objId);
-        return age == null || TimeStamp.createFrom(age, TimeUnit.SECONDS).compareTo(TTL) > 0;
+        return age == null || TimeStamp.fromSeconds(age).compareTo(TTL) > 0;
       }
 
       @Override

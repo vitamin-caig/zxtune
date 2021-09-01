@@ -21,7 +21,6 @@ import androidx.room.TypeConverters;
 
 import java.io.IOException;
 import java.lang.annotation.Retention;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.dbhelpers.Timestamps;
@@ -97,12 +96,12 @@ class Database {
   public static class TimeStampConverter {
     @TypeConverter
     public static Long toTimestamp(TimeStamp in) {
-      return in.convertTo(TimeUnit.SECONDS);
+      return in.toSeconds();
     }
 
     @TypeConverter
     public static TimeStamp fromTimestamp(Long in) {
-      return TimeStamp.createFrom(in, TimeUnit.SECONDS);
+      return TimeStamp.fromSeconds(in);
     }
   }
 

@@ -16,7 +16,6 @@ import org.junit.runner.RunWith;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.TimeStamp;
 import app.zxtune.fs.http.HttpProvider;
@@ -228,11 +227,9 @@ public class CatalogTest {
   public void testPackTracks() throws IOException {
     final Track[] checkpoints = {
         //first
-        new Track(1, "Into The Lair", TimeStamp.createFrom(54,
-            TimeUnit.SECONDS), "Other/The_Scheme_(NEC_PC-8801,_OPNA)/01 Into The Lair.vgz"),
+        new Track(1, "Into The Lair", TimeStamp.fromSeconds(54), "Other/The_Scheme_(NEC_PC-8801,_OPNA)/01 Into The Lair.vgz"),
         //last
-        new Track(17, "Theme of Gigaikotsu", TimeStamp.createFrom(121,
-            TimeUnit.SECONDS), "Other/The_Scheme_(NEC_PC-8801,_OPNA)/17 Theme of Gigaikotsu.vgz")
+        new Track(17, "Theme of Gigaikotsu", TimeStamp.fromSeconds(121), "Other/The_Scheme_(NEC_PC-8801,_OPNA)/17 Theme of Gigaikotsu.vgz")
     };
 
     final TracksChecker checker = new TracksChecker();

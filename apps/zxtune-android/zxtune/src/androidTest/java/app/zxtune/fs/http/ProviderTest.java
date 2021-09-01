@@ -17,7 +17,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
 
 import app.zxtune.BuildConfig;
 
@@ -56,7 +55,7 @@ public class ProviderTest {
     assertEquals(10855, obj.getContentLength().longValue());
     //$ date -u -d 'Sun, 14 Jul 2013 17:32:52 GMT' +%s
     //1373823172
-    assertEquals(1373823172, obj.getLastModified().convertTo(TimeUnit.SECONDS));
+    assertEquals(1373823172, obj.getLastModified().toSeconds());
     testStream(obj.getInput(), 10855, new byte[]{0x37, 0x7a, (byte) 0xbc, (byte) 0xaf, 0x27, 0x1c, 0x00, 0x03}, new byte[]{0x30, 0x2e, 0x39, 0x62, 0x65, 0x74, 0x61});
   }
 
@@ -67,7 +66,7 @@ public class ProviderTest {
     assertEquals(182985, obj.getContentLength().longValue());
     //$ date -u -d 'Sat, 17 Nov 2018 23:04:27 GMT' +%s
     //1542495867
-    assertEquals(1542495867, obj.getLastModified().convertTo(TimeUnit.SECONDS));
+    assertEquals(1542495867, obj.getLastModified().toSeconds());
     testStream(obj.getInput(), 182985, new byte[]{0x1f, (byte) 0x8b, 0x08, 0x08, 0x7b, (byte) 0x9e, (byte) 0xf0, 0x5b},
         new byte[]{0x03, (byte) 0xa7, (byte) 0x9f, 0x12, (byte) 0x99, 0x24, (byte) 0xb3, 0x04, 0x00});
   }
