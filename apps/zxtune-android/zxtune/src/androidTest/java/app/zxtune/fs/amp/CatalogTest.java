@@ -32,8 +32,8 @@ public class CatalogTest {
     catalog = new RemoteCatalog(new MultisourceHttpProvider(http));
   }
 
-  private static <T> void check(int size, ArrayList<T> real, T[] ref) {
-    assertEquals(size, real.size());
+  private static <T> void check(int minSize, ArrayList<T> real, T[] ref) {
+    assertTrue(real.size() >= minSize);
     for (T obj : ref) {
       assertTrue("Not found " + obj, contains(real, obj));
     }
@@ -92,7 +92,7 @@ public class CatalogTest {
       }
     });
 
-    check(8823, result, checkpoints);
+    check(8825, result, checkpoints);
   }
 
   @Test
@@ -126,7 +126,7 @@ public class CatalogTest {
 
     final AuthorsChecker checker = new AuthorsChecker();
     catalog.queryAuthors(new Country(44, "Russia"), checker);
-    checker.check(199, checkpoints);
+    checker.check(200, checkpoints);
   }
 
   @Test

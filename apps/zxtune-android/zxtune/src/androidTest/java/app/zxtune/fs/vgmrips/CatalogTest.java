@@ -35,8 +35,8 @@ public class CatalogTest {
     catalog = new RemoteCatalog(new MultisourceHttpProvider(http));
   }
 
-  private static <T> void check(int expectedSize, T[] expectedSubset, ArrayList<T> actual) {
-    assertEquals(expectedSize, actual.size());
+  private static <T> void check(int minimalSize, T[] expectedSubset, ArrayList<T> actual) {
+    assertTrue(actual.size() >= minimalSize);
     for (T expected : expectedSubset) {
       assertTrue("Not found " + expected, contains(actual, expected));
     }
@@ -68,7 +68,7 @@ public class CatalogTest {
   private static boolean matches(Group expected, Group actual) {
     if (expected.id.equals(actual.id)) {
       Assert.assertEquals(expected.id, expected.title, actual.title);
-      Assert.assertEquals(expected.id, expected.packs, actual.packs);
+      Assert.assertTrue(expected.id, actual.packs >= expected.packs);
       return true;
     } else {
       return false;
@@ -102,7 +102,7 @@ public class CatalogTest {
   public void testCompanies() throws IOException {
     final Group[] checkpoints = {
         //first
-        new Group("konami", "Konami", 218),
+        new Group("konami", "Konami", 219),
         new Group("naxat-soft", "Naxat Soft", 5),
         new Group("c-s-ware", "C's Ware", 4),
         new Group("crea-tech", "Crea-Tech", 1)
@@ -111,7 +111,7 @@ public class CatalogTest {
     final GroupsChecker checker = new GroupsChecker();
     catalog.companies().query(checker);
 
-    checker.check(542, checkpoints);
+    checker.check(555, checkpoints);
   }
 
   @Test
@@ -141,7 +141,7 @@ public class CatalogTest {
     final GroupsChecker checker = new GroupsChecker();
     catalog.composers().query(checker);
 
-    checker.check(1514, checkpoints);
+    checker.check(1541, checkpoints);
   }
 
   @Test
@@ -162,7 +162,7 @@ public class CatalogTest {
   public void testChips() throws IOException {
     final Group[] checkpoints = {
         //first
-        new Group("nes-apu", "NES APU", 436),
+        new Group("nes-apu", "NES APU", 437),
         //last
         new Group("vrc7", "VRC7", 1)
     };
@@ -170,7 +170,7 @@ public class CatalogTest {
     final GroupsChecker checker = new GroupsChecker();
     catalog.chips().query(checker);
 
-    checker.check(49, checkpoints);
+    checker.check(51, checkpoints);
   }
 
   @Test
@@ -202,7 +202,7 @@ public class CatalogTest {
     final GroupsChecker checker = new GroupsChecker();
     catalog.systems().query(checker);
 
-    checker.check(184, checkpoins);
+    checker.check(186, checkpoins);
   }
 
   @Test
