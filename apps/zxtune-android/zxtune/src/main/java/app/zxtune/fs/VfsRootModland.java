@@ -23,7 +23,6 @@ package app.zxtune.fs;
 import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
-import android.text.format.Formatter;
 
 import androidx.annotation.Nullable;
 
@@ -31,6 +30,7 @@ import java.io.IOException;
 import java.util.List;
 
 import app.zxtune.R;
+import app.zxtune.Util;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.modland.CachingCatalog;
 import app.zxtune.fs.modland.Catalog;
@@ -374,7 +374,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
     @Override
     public String getSize() {
-      return Formatter.formatShortFileSize(context, track.size);
+      return Util.formatSize(track.size);
     }
 
     @Override

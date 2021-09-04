@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
 
+import app.zxtune.Util;
 import app.zxtune.fs.HtmlUtils;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
@@ -57,18 +58,9 @@ public class RemoteCatalog extends Catalog {
       final String name = row.text();
       final String dateTime = row.attr("mtime");
       final String sizeInBytes = row.attr("size");
-      visitor.acceptFile(name, dateTime, formatSize(Long.parseLong(sizeInBytes)));
+      visitor.acceptFile(name, dateTime, Util.formatSize(Long.parseLong(sizeInBytes)));
     }
     return true;
-  }
-
-  private static String formatSize(long v) {
-    if (v < 1024) {
-      return Long.toString(v);
-    } else {
-      final int z = (63 - Long.numberOfLeadingZeros(v)) / 10;
-      return String.format(Locale.US, "%.1f%s", (float) v / (1 << (z * 10)), " KMGTPE".charAt(z));
-    }
   }
 
   /*

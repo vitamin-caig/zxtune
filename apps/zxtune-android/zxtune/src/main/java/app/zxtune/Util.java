@@ -10,6 +10,8 @@
 
 package app.zxtune;
 
+import java.util.Locale;
+
 public class Util {
 
   //! @return "${left}" or "${right}" or "${left} - ${right}" or "${fallback}"
@@ -26,6 +28,15 @@ public class Util {
       }
       result.append(right);
       return result.toString();
+    }
+  }
+
+  public static String formatSize(long v) {
+    if (v < 1024) {
+      return Long.toString(v);
+    } else {
+      final int z = (63 - Long.numberOfLeadingZeros(v)) / 10;
+      return String.format(Locale.US, "%.1f%s", (float) v / (1 << (z * 10)), " KMGTPE".charAt(z));
     }
   }
 }

@@ -14,7 +14,6 @@ import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.text.TextUtils;
-import android.text.format.Formatter;
 
 import androidx.annotation.Nullable;
 
@@ -27,6 +26,7 @@ import java.util.Scanner;
 
 import app.zxtune.Log;
 import app.zxtune.R;
+import app.zxtune.Util;
 
 @Icon(R.drawable.ic_browser_vfs_local)
 final class VfsRootLocal extends StubObject implements VfsRoot {
@@ -294,7 +294,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
 
     @Override
     public String getSize() {
-      return Formatter.formatShortFileSize(context, object.length());
+      return Util.formatSize(object.length());
     }
 
     @Nullable

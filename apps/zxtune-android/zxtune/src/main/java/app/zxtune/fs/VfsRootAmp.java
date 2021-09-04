@@ -8,7 +8,6 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import android.text.format.Formatter;
 
 import androidx.annotation.Nullable;
 
@@ -16,6 +15,7 @@ import java.io.IOException;
 import java.util.List;
 
 import app.zxtune.R;
+import app.zxtune.Util;
 import app.zxtune.fs.amp.Author;
 import app.zxtune.fs.amp.CachingCatalog;
 import app.zxtune.fs.amp.Catalog;
@@ -470,7 +470,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getSize() {
-      return Formatter.formatShortFileSize(context, track.size * 1024);
+      return Util.formatSize(track.size * 1024L);
     }
 
     @Override

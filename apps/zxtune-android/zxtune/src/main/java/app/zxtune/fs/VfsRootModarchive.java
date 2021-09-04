@@ -8,7 +8,6 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import android.text.format.Formatter;
 
 import androidx.annotation.Nullable;
 
@@ -19,6 +18,7 @@ import java.util.Locale;
 
 import app.zxtune.Log;
 import app.zxtune.R;
+import app.zxtune.Util;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.modarchive.Author;
 import app.zxtune.fs.modarchive.CachingCatalog;
@@ -436,7 +436,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
 
     @Override
     public String getSize() {
-      return Formatter.formatShortFileSize(context, track.size);
+      return Util.formatSize(track.size);
     }
 
     private String getShareUrl() {

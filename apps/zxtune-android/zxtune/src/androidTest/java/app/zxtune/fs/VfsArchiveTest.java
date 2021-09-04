@@ -108,7 +108,7 @@ public class VfsArchiveTest {
     assertNotNull(file);
     assertEquals("meminfo", file.getName());
     assertEquals("", file.getDescription());
-    assertEquals("0.00B", file.getSize());
+    assertEquals("0", file.getSize());
     assertEquals(uri, file.getUri());
   }
 
@@ -119,7 +119,7 @@ public class VfsArchiveTest {
     assertNotNull(file);
     assertEquals("track", file.getName());
     assertEquals("", file.getDescription());
-    assertEquals("2.8KB", file.getSize());
+    assertEquals("2.8K", file.getSize());
 
     final Uri normalizedUri = file.getUri();
     {
@@ -144,7 +144,7 @@ public class VfsArchiveTest {
     assertNotNull(file);
     assertEquals("gzipped", file.getName());
     assertEquals("", file.getDescription());
-    assertEquals("54KB", file.getSize());
+    assertEquals("54.1K", file.getSize());
 
     final Uri normalizedUri = file.getUri();
     final Uri subUri = normalizedUri.buildUpon().fragment("+unGZIP").build();
@@ -190,7 +190,7 @@ public class VfsArchiveTest {
     assertNotNull(file);
     assertEquals("multitrack", file.getName());
     assertEquals("", file.getDescription());
-    assertEquals("10KB", file.getSize());
+    assertEquals("10.3K", file.getSize());
 
     final Uri normalizedUri = file.getUri();
     final Uri subUri = normalizedUri.buildUpon().fragment("#2").build();
@@ -264,7 +264,7 @@ public class VfsArchiveTest {
     assertNotNull(file);
     assertEquals("archive", file.getName());
     assertEquals("", file.getDescription());
-    assertEquals("2.4KB", file.getSize());
+    assertEquals("2.4K", file.getSize());
 
     final Uri normalizedUri = file.getUri();
     final Uri subFileUri = normalizedUri.buildUpon().fragment("auricom.pt3").build();
