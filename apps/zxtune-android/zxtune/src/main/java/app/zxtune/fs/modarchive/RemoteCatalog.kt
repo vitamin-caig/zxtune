@@ -9,7 +9,6 @@ import android.net.Uri
 import android.sax.Element
 import android.sax.RootElement
 import android.text.Html
-import android.util.Xml
 import app.zxtune.Logger
 import app.zxtune.fs.HtmlUtils.tryGetInteger
 import app.zxtune.fs.api.Cdn
@@ -17,11 +16,9 @@ import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.fs.modarchive.Catalog.*
 import app.zxtune.utils.ProgressCallback
 import app.zxtune.utils.StubProgressCallback
+import app.zxtune.utils.Xml
 import app.zxtune.utils.ifNotNulls
-import org.xml.sax.SAXException
 import java.io.BufferedInputStream
-import java.io.IOException
-import java.io.InputStream
 
 /**
  * API entry point:
@@ -132,15 +129,9 @@ class RemoteCatalog internal constructor(
     }
 
     private fun loadSinglePage(uri: String, root: RootElement) =
-        performXmlQuery(http.getInputStream(Uri.parse(uri)), root)
-
-    private fun performXmlQuery(httpStream: InputStream, root: RootElement) = try {
-        BufferedInputStream(httpStream).use { stream ->
-            Xml.parse(stream, Xml.Encoding.UTF_8, root.contentHandler)
+        http.getInputStream(Uri.parse(uri)).let { httpStream ->
+            Xml.parse(BufferedInputStream(httpStream), root.contentHandler)
         }
-    } catch (e: SAXException) {
-        throw IOException(e)
-    }
 
     companion object {
         @JvmStatic
