@@ -1,18 +1,19 @@
 package app.zxtune.fs.modarchive
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.zxtune.BuildConfig
 import app.zxtune.fs.http.HttpProviderFactory
 import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.utils.ProgressCallback
 import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.*
+import org.robolectric.RobolectricTestRunner
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class RemoteCatalogTest {
 
     private lateinit var catalog: RemoteCatalog
@@ -23,7 +24,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_queryAuthors() {
+    fun `test queryAuthors`() {
         val checkpoints = arrayOf(
             Author(68877, "_Matt_"),
             Author(83394, "4mat"),
@@ -49,7 +50,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_queryGenres() {
+    fun `test queryGenres`() {
         val checkpoints = arrayOf(
             Genre(48, "Alternative", 440),
             Genre(71, "Trance (general)", 910),
@@ -71,7 +72,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_queryTracks_by_author() {
+    fun `test queryTracks by author`() {
         val checkpoints = arrayOf(
             Track(182782, "4mat_-_broken_heart.xm", "<3 broken heart <3", 61760),
             Track(77970, "forest-loader.mod", "forest-loader", 24992),
@@ -95,7 +96,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_queryTracks_by_genre() {
+    fun `test queryTracks by genre`() {
         val checkpoints = arrayOf(
             Track(94399, "_nice_outfit_.mod", "(.nice outfit.)", 43386),
             Track(190055, "joseph_tek_fox_-_ci_towermpa.s3m", "Tower of Masamune Past", 235184),
@@ -119,7 +120,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_findTracks() {
+    fun `test findTracks`() {
         val authorsCheckpoints = arrayOf(
             Author(69008, "xtd"),
             Author(0, "!Unknown"),
@@ -149,13 +150,26 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_findRandomTracks() {
+    fun `test findRandomTracks`() {
         val visitor = mock<Catalog.TracksVisitor>()
 
         catalog.findRandomTracks(visitor)
 
         verify(visitor, never()).setCountHint(any<Int>())
         verify(visitor, atLeastOnce()).accept(any<Track>())
+    }
+
+    @Test
+    fun `test getTrackUris`() = with(RemoteCatalog.getTrackUris(12345)) {
+        assertEquals(2L, size.toLong())
+        assertEquals(
+            "${BuildConfig.CDN_ROOT}/download/modarchive/ids/12345",
+            get(0).toString()
+        )
+        assertEquals(
+            "https://api.modarchive.org/downloads.php?moduleid=12345",
+            get(1).toString()
+        )
     }
 }
 
