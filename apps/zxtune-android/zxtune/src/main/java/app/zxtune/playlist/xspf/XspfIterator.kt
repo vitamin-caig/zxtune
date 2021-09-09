@@ -11,16 +11,14 @@ package app.zxtune.playlist.xspf
 import android.net.Uri
 import android.sax.RootElement
 import android.sax.TextElementListener
-import android.util.Xml
 import app.zxtune.TimeStamp
 import app.zxtune.io.Io.createByteBufferInputStream
 import app.zxtune.playlist.ReferencesArrayIterator
 import app.zxtune.playlist.ReferencesIterator
-import org.xml.sax.SAXException
+import app.zxtune.utils.Xml
 import java.io.IOException
 import java.io.InputStream
 import java.nio.ByteBuffer
-import java.util.*
 
 object XspfIterator {
     @Throws(IOException::class)
@@ -39,14 +37,8 @@ object XspfIterator {
     @JvmStatic
     fun parse(stream: InputStream): ArrayList<ReferencesIterator.Entry> =
         ArrayList<ReferencesIterator.Entry>().apply {
-            parse(stream, createPlaylistParseRoot(this))
+            Xml.parse(stream, createPlaylistParseRoot(this).contentHandler)
         }
-}
-
-private fun parse(stream: InputStream, root: RootElement) = try {
-    Xml.parse(stream, Xml.Encoding.UTF_8, root.contentHandler)
-} catch (e: SAXException) {
-    throw IOException(e)
 }
 
 private fun createPlaylistParseRoot(entries: ArrayList<ReferencesIterator.Entry>) =
