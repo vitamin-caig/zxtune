@@ -47,7 +47,7 @@ import java.io.BufferedInputStream
 
 private val LOG = Logger(RemoteCatalog::class.java.name)
 
-class RemoteCatalog internal constructor(
+open class RemoteCatalog internal constructor(
     private val http: MultisourceHttpProvider,
     private val key: String
 ) : Catalog {
@@ -92,7 +92,7 @@ class RemoteCatalog internal constructor(
         loadPages(uri, root, progress)
     }
 
-    fun searchSupported() = http.hasConnection()
+    open fun searchSupported() = http.hasConnection()
 
     override fun findTracks(query: String, visitor: FoundTracksVisitor) {
         LOG.d { "findTracks(query=$query)" }
