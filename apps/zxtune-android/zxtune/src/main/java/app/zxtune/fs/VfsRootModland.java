@@ -341,7 +341,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
           @Override
           Uri.Builder trackUri() {
             return groupUri()
-                .appendPath(track.filename);
+                .appendPath(track.getFilename());
           }
         }
       }
@@ -363,7 +363,7 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return track.filename;
+      return track.getFilename();
     }
 
     @Nullable
@@ -374,22 +374,22 @@ final class VfsRootModland extends StubObject implements VfsRoot {
 
     @Override
     public String getSize() {
-      return Util.formatSize(track.size);
+      return Util.formatSize(track.getSize());
     }
 
     @Override
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE_PATH.equals(id)) {
-        return track.path;
+        return track.getPath();
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
-        return RemoteCatalog.getTrackUris(track.path);
+        return RemoteCatalog.getTrackUris(track.getPath());
       } else {
         return super.getExtension(id);
       }
     }
 
     Uri.Builder trackUri() {
-      return Storage.makeUri().encodedPath(track.path);
+      return Storage.makeUri().encodedPath(track.getPath());
     }
   }
 }

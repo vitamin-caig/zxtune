@@ -111,7 +111,7 @@ final class Database {
       }
 
       final void add(Track obj) {
-        add(obj.id, obj.path, obj.size);
+        add(obj.getId(), obj.getPath(), obj.getSize());
       }
 
       static Track createTrack(Cursor cursor) {
@@ -258,7 +258,7 @@ final class Database {
   final void addGroupTrack(String category, int id, Track obj) {
     final Tables.GroupTracks tracks = groupTracks.get(category);
     if (tracks != null) {
-      tracks.add(id, obj.id);
+      tracks.add(id, obj.getId());
     }
   }
 

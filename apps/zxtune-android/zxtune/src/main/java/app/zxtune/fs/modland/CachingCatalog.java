@@ -176,7 +176,7 @@ final public class CachingCatalog implements Catalog {
 
             @Override
             public boolean accept(Track obj) {
-              if (obj.filename.equals(filename)) {
+              if (obj.getFilename().equals(filename)) {
                 resultRef[0] = obj;
               }
               return true;
