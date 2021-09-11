@@ -91,7 +91,7 @@ public class CatalogTest {
     checker.checkProgress(27, 27);
   }
 
-  private static class GroupsChecker extends Catalog.GroupsVisitor implements ProgressCallback {
+  private static class GroupsChecker implements Catalog.GroupsVisitor, ProgressCallback {
 
     final ArrayList<Group> result = new ArrayList<>();
     final int[] lastProgress = {-1, -1};
@@ -101,6 +101,9 @@ public class CatalogTest {
       lastProgress[0] = done;
       lastProgress[1] = total;
     }
+
+    @Override
+    public void setCountHint(int hint) {}
 
     @Override
     public void accept(Group obj) {
@@ -113,9 +116,9 @@ public class CatalogTest {
         final int pos = checkpoints.keyAt(i);
         final Group ref = checkpoints.valueAt(i);
         final Group real = result.get(pos);
-        assertEquals(ref.id, real.id);
-        assertEquals(ref.name, real.name);
-        assertEquals(ref.tracks, real.tracks);
+        assertEquals(ref.getId(), real.getId());
+        assertEquals(ref.getName(), real.getName());
+        assertEquals(ref.getTracks(), real.getTracks());
       }
     }
 
@@ -125,7 +128,7 @@ public class CatalogTest {
     }
   }
 
-  private static class TracksChecker extends Catalog.TracksVisitor implements ProgressCallback {
+  private static class TracksChecker implements Catalog.TracksVisitor, ProgressCallback {
 
     final ArrayList<Track> result = new ArrayList<>();
     final int[] lastProgress = {-1, -1};
@@ -135,6 +138,9 @@ public class CatalogTest {
       lastProgress[0] = done;
       lastProgress[1] = total;
     }
+
+    @Override
+    public void setCountHint(int hint) {}
 
     @Override
     public boolean accept(Track obj) {

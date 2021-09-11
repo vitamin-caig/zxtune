@@ -67,7 +67,7 @@ final class Database {
       }
 
       final void add(Group obj) {
-        add(obj.id, obj.name, obj.tracks);
+        add(obj.getId(), obj.getName(), obj.getTracks());
       }
 
       static Group createGroup(Cursor cursor) {
