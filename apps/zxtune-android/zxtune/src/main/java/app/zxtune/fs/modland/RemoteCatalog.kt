@@ -28,7 +28,7 @@ private val LOG = Logger(RemoteCatalog::class.java.name)
 private val PAGINATOR: Pattern =
     Pattern.compile("Browsing (.+?) - (\\d+) results? - showing page (\\d+) of (\\d+).")
 
-class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
+open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
     private val authors by lazy { BaseGrouping("aut", "Modules from author ") }
     private val collections by lazy { BaseGrouping("col", "Modules from collection ") }

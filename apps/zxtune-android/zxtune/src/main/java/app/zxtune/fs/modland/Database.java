@@ -41,7 +41,7 @@ import app.zxtune.fs.dbhelpers.Utils;
  * Use timestamps
  */
 
-final class Database {
+class Database {
 
   private static final String TAG = Database.class.getName();
 
@@ -160,19 +160,19 @@ final class Database {
     this.timestamps = new Timestamps(helper);
   }
 
-  final void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
+  void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
     Utils.runInTransaction(helper, cmd);
   }
 
-  final Timestamps.Lifetime getGroupsLifetime(String category, String filter, TimeStamp ttl) {
+  Timestamps.Lifetime getGroupsLifetime(String category, String filter, TimeStamp ttl) {
     return timestamps.getLifetime(category + filter, ttl);
   }
 
-  final Timestamps.Lifetime getGroupTracksLifetime(String category, int id, TimeStamp ttl) {
+  Timestamps.Lifetime getGroupTracksLifetime(String category, int id, TimeStamp ttl) {
     return timestamps.getLifetime(category + id, ttl);
   }
 
-  final boolean queryGroups(String category, String filter, Catalog.GroupsVisitor visitor) {
+  boolean queryGroups(String category, String filter, Catalog.GroupsVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = filter.equals("#")
             ? "SUBSTR(" + Tables.Groups.Fields.name + ", 1, 1) NOT BETWEEN 'A' AND 'Z' COLLATE NOCASE"
@@ -194,7 +194,7 @@ final class Database {
   }
 
   @Nullable
-  final Group queryGroup(String category, int id) {
+  Group queryGroup(String category, int id) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Groups.Fields._id + " = " + id;
     final Cursor cursor = db.query(category, null, selection, null, null, null, null);
@@ -207,14 +207,14 @@ final class Database {
     }
   }
 
-  final void addGroup(String category, Group obj) {
+  void addGroup(String category, Group obj) {
     final Tables.Groups group = groups.get(category);
     if (group != null) {
       group.add(obj);
     }
   }
 
-  final boolean queryTracks(String category, int id, Catalog.TracksVisitor visitor) {
+  boolean queryTracks(String category, int id, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Tracks.getSelection(groupTracks.get(category).getIdsSelection(id));
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, selection, null, null, null, null);
@@ -234,7 +234,7 @@ final class Database {
   }
 
   @Nullable
-  final Track findTrack(String category, int id, String filename) {
+  Track findTrack(String category, int id, String filename) {
     final String encodedFilename = Uri.encode(filename).replace("!", "%21").replace("'", "%27").replace("(", "%28").replace(")", "%29");
     final SQLiteDatabase db = helper.getReadableDatabase();
     final String selection = Tables.Tracks.getSelection(groupTracks.get(category).getIdsSelection(id))
@@ -251,11 +251,11 @@ final class Database {
     return null;
   }
 
-  final void addTrack(Track obj) {
+  void addTrack(Track obj) {
     tracks.add(obj);
   }
 
-  final void addGroupTrack(String category, int id, Track obj) {
+  void addGroupTrack(String category, int id, Track obj) {
     final Tables.GroupTracks tracks = groupTracks.get(category);
     if (tracks != null) {
       tracks.add(id, obj.getId());
