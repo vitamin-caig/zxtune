@@ -157,15 +157,15 @@ class Database {
     Utils.sendStatistics(db.getOpenHelper());
   }
 
-  final void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
+  void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
     Utils.runInTransaction(db, cmd);
   }
 
-  final Timestamps.Lifetime getLifetime(String id, TimeStamp ttl) {
+  Timestamps.Lifetime getLifetime(String id, TimeStamp ttl) {
     return db.timestamps().getLifetime(id, ttl);
   }
 
-  final boolean queryGroups(@Type int type, Catalog.Visitor<Group> visitor) {
+  boolean queryGroups(@Type int type, Catalog.Visitor<Group> visitor) {
     final Group[] result = db.catalog().queryGroups(type);
     if (result == null || result.length == 0) {
       return false;
@@ -176,11 +176,11 @@ class Database {
     return true;
   }
 
-  final void addGroup(@Type int type, Group obj) {
+  void addGroup(@Type int type, Group obj) {
     db.catalog().insertGroup(new GroupEntity(type, obj));
   }
 
-  final boolean queryGroupPacks(String id, Catalog.Visitor<Pack> visitor) {
+  boolean queryGroupPacks(String id, Catalog.Visitor<Pack> visitor) {
     final Pack[] result = db.catalog().queryGroupPacks(id);
     if (result == null || result.length == 0) {
       return false;
@@ -191,27 +191,27 @@ class Database {
     return true;
   }
 
-  final void addGroupPack(String id, Pack obj) {
+  void addGroupPack(String id, Pack obj) {
     final CatalogDao dao = db.catalog();
     dao.insertPack(obj);
     dao.bindGroupToPack(new GroupPacksRef(id, obj.getId()));
   }
 
-  final void addPack(Pack obj) {
+  void addPack(Pack obj) {
     db.catalog().insertPack(obj);
   }
 
   @Nullable
-  final Pack queryPack(String id) {
+  Pack queryPack(String id) {
     return db.catalog().queryPack(id);
   }
 
   @Nullable
-  final Pack queryRandomPack() {
+  Pack queryRandomPack() {
     return db.catalog().queryRandomPack();
   }
 
-  final boolean queryPackTracks(String id, Catalog.Visitor<Track> visitor) {
+  boolean queryPackTracks(String id, Catalog.Visitor<Track> visitor) {
     final Track[] result = db.catalog().queryPackTracks(id);
     if (result == null || result.length == 0) {
       return false;
@@ -222,7 +222,7 @@ class Database {
     return true;
   }
 
-  final void addPackTrack(String id, Track obj) {
+  void addPackTrack(String id, Track obj) {
     db.catalog().insertTrack(new TrackEntity(id, obj));
   }
 }

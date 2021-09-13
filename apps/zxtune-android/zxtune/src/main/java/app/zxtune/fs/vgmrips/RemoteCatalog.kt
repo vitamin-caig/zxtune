@@ -23,7 +23,7 @@ private const val SYSTEMS_DIR_PATH = "/packs/systems/"
 private const val SYSTEMS_FILE_PREFIX = "/packs/system/"
 private const val SYSTEMS_TITLE_PREFIX = "View games on "
 
-class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
+open class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
 
     private val companies by lazy { CompaniesGrouping() }
     private val composers by lazy { ComposersGrouping() }
@@ -55,7 +55,7 @@ class RemoteCatalog(val http: MultisourceHttpProvider) : Catalog {
             }
         }
 
-    fun isAvailable() = http.hasConnection()
+    open fun isAvailable() = http.hasConnection()
 
     companion object {
         @JvmStatic
