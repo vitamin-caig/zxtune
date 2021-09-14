@@ -24,6 +24,7 @@
 #include <atomic>
 #include <mutex>
 // qt includes
+#include <QtCore/QDataStream>
 #include <QtCore/QMimeData>
 #include <QtCore/QSet>
 #include <QtCore/QStringList>
@@ -402,13 +403,7 @@ namespace
 
     void Clear() override
     {
-      Playlist::Model::OldToNewIndexMap::Ptr remapping;
-      {
-        const RWMutex::WriteLock lock(SyncAccess);
-        Container = Playlist::Item::Storage::Create();
-        remapping = GetIndicesChanges();
-      }
-      NotifyAboutIndexChanged(remapping);
+      ChangeModel([this]() { Container = Playlist::Item::Storage::Create(); });
     }
 
     void RemoveItems(IndexSet::Ptr items) override
@@ -417,25 +412,13 @@ namespace
       {
         return;
       }
-      Playlist::Model::OldToNewIndexMap::Ptr remapping;
-      {
-        const RWMutex::WriteLock lock(SyncAccess);
-        Container->RemoveItems(*items);
-        remapping = GetIndicesChanges();
-      }
-      NotifyAboutIndexChanged(remapping);
+      ChangeModel([this, &items]() { Container->RemoveItems(*items); });
     }
 
     void MoveItems(const IndexSet& items, IndexType target) override
     {
       Dbg("Moving %1% items to row %2%", items.size(), target);
-      Playlist::Model::OldToNewIndexMap::Ptr remapping;
-      {
-        const RWMutex::WriteLock lock(SyncAccess);
-        Container->MoveItems(items, target);
-        remapping = GetIndicesChanges();
-      }
-      NotifyAboutIndexChanged(remapping);
+      ChangeModel([this, &items, &target]() { Container->MoveItems(items, target); });
     }
 
     void AddItem(Playlist::Item::Data::Ptr item) override
@@ -629,6 +612,24 @@ namespace
     }
 
   private:
+    template<class Function>
+    void ChangeModel(Function cmd)
+    {
+      beginResetModel();
+      Playlist::Model::OldToNewIndexMap::Ptr remapping;
+      {
+        const RWMutex::WriteLock lock(SyncAccess);
+        cmd();
+        FetchedItemsCount = Container->CountItems();
+        remapping = Container->ResetIndices();
+      }
+      endResetModel();
+      if (remapping)
+      {
+        emit IndicesChanged(std::move(remapping));
+      }
+    }
+
     void ExecuteOperation(Playlist::Item::StorageAccessOperation::Ptr operation) override
     {
       const RWMutex::ReadLock lock(SyncAccess);
@@ -655,29 +656,11 @@ namespace
         try
         {
           operation->Execute(*tmpStorage, *this);
-          const RWMutex::WriteLock lock(SyncAccess);
-          Container = tmpStorage;
-          remapping = GetIndicesChanges();
+          ChangeModel([this, &tmpStorage]() { Container = std::move(tmpStorage); });
         }
         catch (const std::exception&)
         {}
         emit OperationStopped();
-      }
-      NotifyAboutIndexChanged(remapping);
-    }
-
-    Playlist::Model::OldToNewIndexMap::Ptr GetIndicesChanges()
-    {
-      FetchedItemsCount = Container->CountItems();
-      return Container->ResetIndices();
-    }
-
-    void NotifyAboutIndexChanged(Playlist::Model::OldToNewIndexMap::Ptr changes)
-    {
-      if (changes)
-      {
-        emit IndicesChanged(changes);
-        reset();
       }
     }
 
@@ -698,13 +681,7 @@ namespace
     template<class T>
     void AddAndNotify(const T& val)
     {
-      Playlist::Model::OldToNewIndexMap::Ptr remapping;
-      {
-        const RWMutex::WriteLock lock(SyncAccess);
-        Container->Add(val);
-        remapping = GetIndicesChanges();
-      }
-      NotifyAboutIndexChanged(remapping);
+      ChangeModel([this, &val]() { Container->Add(val); });
     }
 
     template<class T>
