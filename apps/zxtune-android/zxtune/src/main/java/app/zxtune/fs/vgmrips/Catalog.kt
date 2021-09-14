@@ -7,7 +7,7 @@ import java.io.IOException
 
 interface Catalog {
 
-    interface Visitor<T> {
+    fun interface Visitor<T> {
         fun accept(obj: T)
     }
 
