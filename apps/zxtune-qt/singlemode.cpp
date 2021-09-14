@@ -18,6 +18,7 @@
 #include <debug/log.h>
 #include <platform/version/api.h>
 // qt includes
+#include <QtCore/QDataStream>
 #include <QtCore/QDir>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
