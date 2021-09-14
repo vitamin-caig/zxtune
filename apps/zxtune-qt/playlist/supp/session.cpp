@@ -61,7 +61,7 @@ namespace
   template<class T>
   QString BuildPlaylistFileName(const T& val)
   {
-    return QString::fromAscii("%1.xspf").arg(val);
+    return QString::fromLatin1("%1.xspf").arg(val);
   }
 
   class FiledSession : public Playlist::Session

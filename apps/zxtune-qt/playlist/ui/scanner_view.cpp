@@ -69,7 +69,7 @@ namespace
       // new file started
       if (progress == 0)
       {
-        const QString itemsProgressText = QString::fromAscii("%1/%2%3")
+        const QString itemsProgressText = QString::fromLatin1("%1/%2%3")
                                               .arg(Status->DoneFiles())
                                               .arg(Status->FoundFiles())
                                               .arg(Status->SearchFinished() ? ' ' : '+');
