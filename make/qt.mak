@@ -26,7 +26,7 @@ libraries.dirs.$(platform) += $(qt.dir)/lib
 qt.bin = $(qt.dir)/bin/
 endif
 
-libraries += $(foreach lib,$(libraries.qt),Qt$(lib))
+libraries += $(foreach lib,$(libraries.qt),Qt5$(lib))
 
 ifneq (,$(findstring Core,$(libraries.qt)))
 libraries.windows += Qtmain kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames

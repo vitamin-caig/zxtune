@@ -15,7 +15,7 @@
 // library includes
 #include <strings/array.h>
 // qt includes
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 namespace UI
 {

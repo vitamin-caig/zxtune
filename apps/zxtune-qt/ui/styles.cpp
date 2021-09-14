@@ -11,8 +11,8 @@
 // local includes
 #include "styles.h"
 // qt includes
-#include <QtGui/QApplication>
-#include <QtGui/QProxyStyle>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QProxyStyle>
 // std includes
 #include <utility>
 

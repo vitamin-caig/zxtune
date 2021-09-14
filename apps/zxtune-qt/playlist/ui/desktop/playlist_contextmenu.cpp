@@ -32,9 +32,9 @@
 // library includes
 #include <time/serialize.h>
 // qt includes
-#include <QtGui/QApplication>
 #include <QtGui/QClipboard>
-#include <QtGui/QMenu>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMenu>
 
 namespace
 {

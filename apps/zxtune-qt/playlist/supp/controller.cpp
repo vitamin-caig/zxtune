@@ -20,7 +20,7 @@
 // library includes
 #include <debug/log.h>
 // qt includes
-#include <QtGui/QMessageBox>
+#include <QtWidgets/QMessageBox>
 
 namespace
 {

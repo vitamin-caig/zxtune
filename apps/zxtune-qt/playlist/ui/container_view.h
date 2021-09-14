@@ -16,7 +16,7 @@
 // library includes
 #include <parameters/container.h>
 // qt includes
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 class QMenu;
 class QStringList;

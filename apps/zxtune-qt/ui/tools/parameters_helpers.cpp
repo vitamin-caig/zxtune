@@ -16,13 +16,13 @@
 #include <debug/log.h>
 #include <math/numeric.h>
 // qt includes
-#include <QtGui/QAbstractButton>
-#include <QtGui/QAction>
-#include <QtGui/QComboBox>
-#include <QtGui/QGroupBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QSlider>
-#include <QtGui/QSpinBox>
+#include <QtWidgets/QAbstractButton>
+#include <QtWidgets/QAction>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QSlider>
+#include <QtWidgets/QSpinBox>
 
 namespace
 {

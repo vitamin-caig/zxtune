@@ -11,7 +11,7 @@
 #pragma once
 
 // qt includes
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 class PlaybackSupport;
 

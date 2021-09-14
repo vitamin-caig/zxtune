@@ -21,8 +21,8 @@
 #include <debug/log.h>
 // qt includes
 #include <QtGui/QContextMenuEvent>
-#include <QtGui/QHeaderView>
-#include <QtGui/QMenu>
+#include <QtWidgets/QHeaderView>
+#include <QtWidgets/QMenu>
 
 namespace
 {
@@ -50,8 +50,8 @@ namespace
       setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
       setHighlightSections(false);
       setTextElideMode(Qt::ElideRight);
-      setMovable(true);
-      setClickable(true);
+      setSectionsMovable(true);
+      setSectionsClickable(true);
       const QFontMetrics fontMetrics(font());
       resizeSection(Playlist::Model::COLUMN_TYPE, fontMetrics.width(TYPE_TEXT));
       resizeSection(Playlist::Model::COLUMN_DISPLAY_NAME, DISPLAYNAME_WIDTH);
@@ -131,7 +131,7 @@ namespace
       if (QHeaderView* const verHeader = verticalHeader())
       {
         verHeader->setDefaultAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        verHeader->setResizeMode(QHeaderView::Fixed);
+        verHeader->setSectionResizeMode(QHeaderView::Fixed);
       }
       setModel(&model);
 

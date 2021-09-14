@@ -34,7 +34,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QTimer>
 #include <QtGui/QContextMenuEvent>
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 
 namespace
 {

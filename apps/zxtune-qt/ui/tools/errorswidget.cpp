@@ -18,8 +18,8 @@
 #include <cassert>
 #include <list>
 // qt includes
-#include <QtGui/QLabel>
 #include <QtGui/QPainter>
+#include <QtWidgets/QLabel>
 // std includes
 #include <utility>
 

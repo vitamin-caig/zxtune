@@ -18,8 +18,8 @@
 // std includes
 #include <utility>
 // qt includes
-#include <QtGui/QApplication>
-#include <QtGui/QDialog>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDialog>
 
 namespace
 {

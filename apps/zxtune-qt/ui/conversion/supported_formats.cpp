@@ -22,7 +22,7 @@
 // std includes
 #include <set>
 // qt includes
-#include <QtGui/QRadioButton>
+#include <QtWidgets/QRadioButton>
 
 namespace
 {

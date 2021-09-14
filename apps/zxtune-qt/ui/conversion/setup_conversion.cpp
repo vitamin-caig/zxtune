@@ -32,7 +32,7 @@
 // qt includes
 #include <QtCore/QThread>
 #include <QtGui/QCloseEvent>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QPushButton>
 
 namespace
 {
