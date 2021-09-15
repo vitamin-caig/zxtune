@@ -67,6 +67,7 @@ build_obj_cmd_cc = $(tools.cc) $(CCFLAGS) -std=c99 -c $1 -o $2 -MMD
 build_lib_cmd = $(tools.ar) $(ARFLAGS) $2 $1
 link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
         -L$(libraries.dir) $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP) \
+        $(if $(libraries.static),$(LINKER_BEGIN_GROUP) $(addprefix -l:,$(foreach l,$(libraries.static),$(call makelib_name,$(l)))) $(LINKER_END_GROUP)) \
         $(addprefix -L,$(libraries.dirs.$(platform)))\
         $(LINKER_BEGIN_GROUP) $(addprefix -l,$(sort $(libraries.$(platform)))) $(LINKER_END_GROUP)\
 	$(if $(libraries.dynamic),-L$(output_dir) $(addprefix -l,$(libraries.dynamic)),)
