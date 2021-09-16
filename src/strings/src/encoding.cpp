@@ -20,6 +20,7 @@
 // std includes
 #include <algorithm>
 #include <cassert>
+#include <limits>
 #include <vector>
 
 namespace Strings
