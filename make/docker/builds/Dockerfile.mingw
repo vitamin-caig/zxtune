@@ -1,9 +1,7 @@
 FROM archlinux/base:latest
 ARG cores=12
-# use gcc8 to avoid qt4's foreach problem
-RUN yes | pacman -Syu sudo awk fakeroot file make git zip python \
-      binutils gcc8 diffutils patch wget cmake pkg-config which && \
-    ln -s gcc-8 /usr/sbin/gcc && ln -s g++-8 /usr/sbin/g++ && \
+RUN yes | pacman -Syu sudo awk fakeroot file make git zip python xz \
+      binutils gcc mingw-w64-gcc diffutils patch wget cmake pkg-config which && \
     pacman-key --init && pacman-key --populate archlinux && \
     useradd -m -s /bin/bash -U -G wheel -d /build build && \
     echo '%wheel ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers && \
@@ -12,48 +10,46 @@ RUN yes | pacman -Syu sudo awk fakeroot file make git zip python \
 
 USER build
 WORKDIR /build
-COPY --chown=build mingw-w64 .
-RUN gpg --keyserver keys.gnupg.net --recv 93BDB53CD4EBC740 13FCEF89DD9E3C4F A328C3A2C3C45C06 && \
-    mkdir sources && sudo chmod o+w * && \
-    for pkg in headers binutils headers-bootstrap gcc-base crt winpthreads gcc pkg-config cmake win-iconv ;\
-    do \
-      (cd ${pkg} && makepkg && yes | sudo pacman -U *.pkg.tar.*) && \
-      rm -Rf ${pkg} ;\
-    done && \
-    rm -Rf sources
 
 ENV prebuilt=/build/prebuilt execprefix=x86_64-w64-mingw32-
 
-ENV boost=1.70.0
-RUN bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
+ENV boost=1.77.0
+RUN bash -c "wget -q https://boostorg.jfrog.io/artifactory/main/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
     cd boost_* && ./bootstrap.sh && \
     echo "using gcc : windows : ${execprefix}g++ ;" > tools/build/src/user-config.jam && \
-    ./bjam toolset=gcc-windows link=static threading=multi target-os=windows variant=release --layout=system \
+    ./b2 toolset=gcc-windows link=static threading=multi target-os=windows variant=release --layout=system \
       address-model=64 cxxflags=-mno-ms-bitfields cxxflags=-mmmx cxxflags=-msse cxxflags=-msse2 cxxflags=-ffunction-sections cxxflags=-fdata-sections \
       --with-filesystem --with-locale --with-program_options --with-system -j${cores} \
       --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-mingw-x86_64/lib install && \
     cd .. && rm -Rf boost_*
 
-ENV qt=4.8.7
-RUN bash -c "wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/qt-everywhere-opensource-src-${qt}.tar.gz -O - | tar -xz" && \
+ENV qt=5.15.2
+RUN bash -c "wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/single/qt-everywhere-src-${qt}.tar.xz -O - | tar -xJ" && \
     cd qt-everywhere* && \
-    ./configure -xplatform win32-g++ -device-option CROSS_COMPILE=${execprefix} -prefix ${prebuilt}/qt-${qt}-mingw-x86_64 \
-      -release -opensource -static -fast -confirm-license \
-      -no-accessibility -no-sql-sqlite -no-qt3support -no-xmlpatterns -no-multimedia -no-audio-backend -no-phonon -no-phonon-backend \
-      -no-svg -no-webkit -no-javascript-jit -no-script -no-scripttools -no-declarative -no-declarative-debug \
-      -qt-zlib -qt-libpng \
-      -no-gif -no-libtiff -no-libmng -no-libjpeg -no-openssl -no-nis -no-cups -no-pch -no-dbus \
-      -nomake demos -nomake examples -nomake docs -nomake translations -nomake assistant -nomake qdoc3 -nomake qtracereplay -nomake linguist \
-      -nomake qt3to4 -nomake qcollectiongenerator -nomake pixeltool && \
-    make -j${cores} install && \
-    cd .. && rm -Rf qt-everywhere*
+     sed -i '/type_traits/a #  include <limits>' qtbase/src/corelib/global/qglobal.h && \
+     ./configure -v -xplatform win32-g++ -device-option CROSS_COMPILE=${execprefix} -prefix ${prebuilt}/qt-${qt}-mingw-x86_64 -release -opensource -static -confirm-license -no-rpath \
+      -no-opengl -no-openvg -no-sql-sqlite \
+      -no-ico -no-gif -no-libjpeg -no-openssl -no-cups -no-pch -no-glib \
+      -no-feature-testlib \
+      -qt-pcre -qt-zlib -qt-libpng \
+      -skip qt3d -skip qtactiveqt -skip qtandroidextras -skip qtcharts -skip qtconnectivity -skip qtdatavis3d -skip qtdeclarative -skip qtdoc -skip qtgamepad -skip qtgraphicaleffects -skip qtlocation \
+      -skip qtlottie -skip qtmacextras -skip qtmultimedia -skip qtnetworkauth -skip qtpurchasing -skip qtquick3d -skip qtquickcontrols -skip qtquickcontrols2 -skip qtquicktimeline -skip qtremoteobjects \
+      -skip qtscript -skip qtscxml -skip qtsensors -skip qtserialbus -skip qtserialport -skip qtspeech -skip qtsvg -skip qttranslations -skip qtvirtualkeyboard -skip qtwayland -skip qtwebchannel \
+      -skip qtwebengine -skip qtwebglplugin -skip qtwebsockets -skip qtwebview -skip qtxmlpatterns \
+      -make libs && \
+     make -j${cores} install && \
+     cd .. && rm -Rf qt-everywhere*
 
 RUN mkdir zxtune && sudo chmod o+w zxtune && cd zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo -e "platform=mingw\narch=x86_64\ntools.python=python3\nmingw.execprefix=${execprefix}\n"\
+    echo -e "platform=mingw\narch=x86_64\ntools.python=python3\nmingw.execprefix=${execprefix}\n" \
       "prebuilt.dir=${prebuilt}\nboost.version=${boost}\nqt.version=${qt}\n"\
-      "host=linux\nembed_file_cmd=cat \$(embedded_files) >> \$@\nmakepkg_cmd=(cd \$(1) && zip -9rD \$(CURDIR)/\$(2) .)\npkg_suffix=zip" > variables.mak
+      "host=linux\nembed_file_cmd=cat \$(embedded_files) >> \$@\nmakepkg_cmd=(cd \$(1) && zip -9rD \$(CURDIR)/\$(2) .)\npkg_suffix=zip\n" \
+      "qt.plugins=QWindowsIntegrationPlugin QWindowsVistaStylePlugin\n" \
+      "libraries.qt.system.mingw=qwindows qwindowsvistastyle qtfreetype qtlibpng qtpcre2 qtharfbuzz userenv netapi32 version winmm" \
+        "oleaut32 wtsapi32 dwmapi uxtheme\n" \
+      "libraries.qt.mingw=FontDatabaseSupport EventDispatcherSupport ThemeSupport WindowsUIAutomationSupport\n" > variables.mak
 
 WORKDIR /build/zxtune
 COPY entrypoint.sh .
