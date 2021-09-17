@@ -1,15 +1,16 @@
 package app.zxtune.fs.zxtunes
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.zxtune.fs.http.HttpProviderFactory
 import app.zxtune.fs.http.MultisourceHttpProvider
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
+import org.robolectric.RobolectricTestRunner
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class RemoteCatalogTest {
 
     private lateinit var catalog: RemoteCatalog
@@ -20,7 +21,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_queryAuthors() {
+    fun `test queryAuthors`() {
         val visitor = mock<Catalog.AuthorsVisitor>()
 
         // http://zxtunes.com/xml.php?scope=authors&fields=nickname,name,tracks
@@ -34,7 +35,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_queryAuthorTracks() {
+    fun `test queryAuthorTracks`() {
         val visitor = mock<Catalog.TracksVisitor>()
 
         // http://zxtunes.com/xml.php?scope=tracks&fields=filename,title,duration,date&author_id=483
@@ -70,5 +71,11 @@ class RemoteCatalogTest {
                 1998
             )
         )
+    }
+
+    @Test
+    fun `test getTrackUris()`() = with(RemoteCatalog.getTrackUris(12345)) {
+        Assert.assertEquals(1L, size.toLong())
+        Assert.assertEquals("http://zxtunes.com/downloads.php?id=12345", get(0).toString())
     }
 }
