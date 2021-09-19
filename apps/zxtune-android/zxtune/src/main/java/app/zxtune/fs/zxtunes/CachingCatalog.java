@@ -21,11 +21,11 @@ final public class CachingCatalog implements Catalog {
   private final TimeStamp AUTHORS_TTL = TimeStamp.fromDays(30);
   private final TimeStamp TRACKS_TTL = TimeStamp.fromDays(7);
 
-  private final RemoteCatalog remote;
+  private final Catalog remote;
   private final Database db;
   private final CommandExecutor executor;
 
-  CachingCatalog(RemoteCatalog remote, Database db) {
+  CachingCatalog(Catalog remote, Database db) {
     this.remote = remote;
     this.db = db;
     this.executor = new CommandExecutor("zxtunes");

@@ -37,7 +37,7 @@ import app.zxtune.fs.dbhelpers.Utils;
  * Use timestamps
  */
 
-final class Database {
+class Database {
 
   private static final String TAG = Database.class.getName();
 
@@ -150,19 +150,19 @@ final class Database {
             " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
   }
 
-  final void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
+  void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
     Utils.runInTransaction(helper, cmd);
   }
 
-  final Timestamps.Lifetime getAuthorsLifetime(TimeStamp ttl) {
+  Timestamps.Lifetime getAuthorsLifetime(TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Authors.NAME, ttl);
   }
 
-  final Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
+  Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Authors.NAME + author.getId(), ttl);
   }
 
-  final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
+   boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Authors.NAME, null, null, null, null, null, null);
     try {
@@ -180,11 +180,11 @@ final class Database {
     return false;
   }
 
-  final void addAuthor(Author obj) {
+  void addAuthor(Author obj) {
     authors.add(obj);
   }
 
-  final boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {
+  boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {
     final String selection = Tables.Tracks.getSelection(authorsTracks.getTracksIdsSelection(author));
     return queryTracks(selection, visitor);
   }
@@ -207,7 +207,7 @@ final class Database {
     return false;
   }
 
-  final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
+  void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.rawQuery(findQuery, new String[]{query});
     try {
@@ -225,11 +225,11 @@ final class Database {
     }
   }
 
-  final void addTrack(Track obj) {
+  void addTrack(Track obj) {
     tracks.add(obj);
   }
 
-  final void addAuthorTrack(Author author, Track track) {
+  void addAuthorTrack(Author author, Track track) {
     authorsTracks.add(author, track);
   }
 
