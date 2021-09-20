@@ -9,16 +9,14 @@ import android.net.Uri
 import android.sax.Element
 import android.sax.RootElement
 import android.text.Html
-import android.util.Xml
 import app.zxtune.Logger
 import app.zxtune.Util
 import app.zxtune.fs.HtmlUtils.tryGetInteger
 import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.fs.zxart.Catalog.PartiesVisitor
+import app.zxtune.utils.Xml
 import app.zxtune.utils.ifNotNulls
-import org.xml.sax.SAXException
 import java.io.BufferedInputStream
-import java.io.IOException
 
 private val LOG = Logger(RemoteCatalog::class.java.name)
 
@@ -64,13 +62,10 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
         performQuery(Uris.forSearch(query), root)
     }
 
-    private fun performQuery(uri: Uri, root: RootElement) = try {
-        BufferedInputStream(http.getInputStream(uri)).use { stream ->
-            Xml.parse(stream, Xml.Encoding.UTF_8, root.contentHandler)
+    private fun performQuery(uri: Uri, root: RootElement) =
+        http.getInputStream(uri).let { httpStream ->
+            Xml.parse(BufferedInputStream(httpStream), root.contentHandler)
         }
-    } catch (e: SAXException) {
-        throw IOException(e)
-    }
 
     companion object {
         @JvmStatic
