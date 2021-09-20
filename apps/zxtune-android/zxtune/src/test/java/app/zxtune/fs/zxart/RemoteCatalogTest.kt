@@ -1,24 +1,24 @@
 package app.zxtune.fs.zxart
 
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import app.zxtune.fs.http.HttpProviderFactory
 import app.zxtune.fs.http.MultisourceHttpProvider
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatcher
 import org.mockito.kotlin.*
+import org.robolectric.RobolectricTestRunner
 
-private class MatchesTrack(
-    private val id: Int,
-    private val filename: String,
-    private val title: String,
-    private val duration: String,
-    private val year: Int = 0,
-    private val compo: String = "",
-    private val partyplace: Int = 0
-) : ArgumentMatcher<Track> {
-    override fun matches(argument: Track) = argument.id == id
+private fun matchesTrack(
+    id: Int,
+    filename: String,
+    title: String,
+    duration: String,
+    year: Int = 0,
+    compo: String = "",
+    partyplace: Int = 0
+): (Track) -> Boolean = { argument ->
+    argument.id == id
             && argument.filename == filename
             && argument.title == title
             && argument.duration == duration
@@ -28,7 +28,7 @@ private class MatchesTrack(
             && argument.votes.toDouble() <= 5.0
 }
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class RemoteCatalogTest {
 
     private lateinit var catalog: RemoteCatalog
@@ -39,7 +39,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_queryAuthors() {
+    fun `test queryAuthors`() {
         val visitor = mock<Catalog.AuthorsVisitor>()
 
         // https://zxart.ee/zxtune/language:eng/action:authors
@@ -53,7 +53,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_queryAuthorTracks() {
+    fun `test queryAuthorTracks`() {
         val visitor = mock<Catalog.TracksVisitor>()
 
         // https://zxart.ee/zxtune/language:eng/action:tunes/authorId:40406
@@ -63,7 +63,7 @@ class RemoteCatalogTest {
         // internal title
         verify(visitor).accept(
             argThat(
-                MatchesTrack(
+                matchesTrack(
                     78258,
                     "Alex Rostov - ARISE (1998) (FunTop 1998, 18).pt2",
                     "ARISE BY ALEX ROSTOV/DEMENTIA",
@@ -77,7 +77,7 @@ class RemoteCatalogTest {
         // full internal title
         verify(visitor).accept(
             argThat(
-                MatchesTrack(
+                matchesTrack(
                     90515,
                     "Alex Rostov - Aurora (2009).pt3",
                     "Alexander Rostov&#039;DT 2009 - Aurora (Enlight style) AY/ABC",
@@ -90,7 +90,7 @@ class RemoteCatalogTest {
         // generic title, no year, no compo
         verify(visitor).accept(
             argThat(
-                MatchesTrack(
+                matchesTrack(
                     78271,
                     "Alex Rostov - Dementia.stc",
                     "Dementia",
@@ -102,7 +102,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_queryParties() {
+    fun `test queryParties`() {
         val visitor = mock<Catalog.PartiesVisitor>()
 
         // https://zxart.ee/zxtune/language:eng/action:parties
@@ -120,7 +120,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_queryPartyTracks() {
+    fun `test queryPartyTracks`() {
         val visitor = mock<Catalog.TracksVisitor>()
 
         // https://zxart.ee/zxtune/language:eng/action:tunes/partyId:4045
@@ -129,7 +129,7 @@ class RemoteCatalogTest {
         verify(visitor).setCountHint(argThat { hint -> hint > 20 })
         verify(visitor).accept(
             argThat(
-                MatchesTrack(
+                matchesTrack(
                     44800,
                     "Mast - Activity (1999) (Paradox 1999, 14).pt3",
                     "Mast/FtL 8.07.99 - Activity",
@@ -140,21 +140,23 @@ class RemoteCatalogTest {
                 )
             )
         )
-        verify(visitor).accept(argThat(
-            MatchesTrack(
-                44324,
-                "Shov - Miles New (1999) (Paradox 1999, 3).pt3",
-                "Miles New",
-                "3:43.31",
-                1999,
-                "ay",
-                3
+        verify(visitor).accept(
+            argThat(
+                matchesTrack(
+                    44324,
+                    "Shov - Miles New (1999) (Paradox 1999, 3).pt3",
+                    "Miles New",
+                    "3:43.31",
+                    1999,
+                    "ay",
+                    3
+                )
             )
-        ))
+        )
     }
 
     @Test
-    fun test_queryTopTracks() {
+    fun `test queryTopTracks`() {
         val visitor = mock<Catalog.TracksVisitor>()
 
         // https://zxart.ee/zxtune/language:eng/action:topTunes/limit:10
@@ -166,7 +168,7 @@ class RemoteCatalogTest {
         verify(visitor, times(limit)).accept(any())
         verify(visitor).accept(
             argThat(
-                MatchesTrack(
+                matchesTrack(
                     74340,
                     "MmcM - AsSuRed (2000).pt3",
                     "Mm&lt;M of Sage 14.Apr.XX twr 00:37 - AsSuRed ... Hi! My Frends ...",
@@ -177,7 +179,7 @@ class RemoteCatalogTest {
         )
         verify(visitor).accept(
             argThat(
-                MatchesTrack(
+                matchesTrack(
                     192733,
                     "Karbofos - шторм (2017) (ArtField 2017, 1).pt3",
                     "karbo 2o17 ymabc - ?????",
@@ -191,7 +193,7 @@ class RemoteCatalogTest {
     }
 
     @Test
-    fun test_findTracks() {
+    fun `test findTracks`() {
         val visitor = mock<Catalog.FoundTracksVisitor>()
 
         // https://zxart.ee/zxtune/language:eng/action:search/query:test
@@ -200,7 +202,7 @@ class RemoteCatalogTest {
         verify(visitor).setCountHint(argThat { hint -> hint > 50 })
         verify(visitor).accept(
             eq(Author(38066, "Author38066", "")), argThat(
-                MatchesTrack(
+                matchesTrack(
                     75480,
                     "Moonwalker - 10MinutesTrash.pt2",
                     "&quot;10MinutesTrash&quot; by Moonwalker",
@@ -208,5 +210,11 @@ class RemoteCatalogTest {
                 )
             )
         )
+    }
+
+    @Test
+    fun `test getTrackUris()`() = with(RemoteCatalog.getTrackUris(12345)) {
+        assertEquals(1L, size.toLong())
+        assertEquals("https://zxart.ee/file/id:12345", get(0).toString())
     }
 }
