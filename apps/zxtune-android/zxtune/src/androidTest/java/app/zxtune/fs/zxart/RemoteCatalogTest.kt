@@ -15,7 +15,7 @@ private class MatchesTrack(
     private val title: String,
     private val duration: String,
     private val year: Int = 0,
-    private val compo: String? = null,
+    private val compo: String = "",
     private val partyplace: Int = 0
 ) : ArgumentMatcher<Track> {
     override fun matches(argument: Track) = argument.id == id

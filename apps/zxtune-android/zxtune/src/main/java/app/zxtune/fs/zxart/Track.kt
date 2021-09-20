@@ -12,7 +12,7 @@ data class Track(
     val votes: String,
     val duration: String,
     val year: Int,
-    val compo: String?,
+    val compo: String,
     val partyplace: Int
 ) {
     // TODO: use default parameters
