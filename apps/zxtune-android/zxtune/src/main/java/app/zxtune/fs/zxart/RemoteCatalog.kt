@@ -20,7 +20,7 @@ import java.io.BufferedInputStream
 
 private val LOG = Logger(RemoteCatalog::class.java.name)
 
-class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
+open class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
 
     override fun queryAuthors(visitor: Catalog.AuthorsVisitor) {
         LOG.d { "queryAuthors()" }
@@ -54,7 +54,7 @@ class RemoteCatalog(private val http: MultisourceHttpProvider) : Catalog {
         performQuery(uri, root)
     }
 
-    fun searchSupported() = http.hasConnection()
+    open fun searchSupported() = http.hasConnection()
 
     override fun findTracks(query: String, visitor: Catalog.FoundTracksVisitor) {
         LOG.d { "findTracks(query=${query})" }

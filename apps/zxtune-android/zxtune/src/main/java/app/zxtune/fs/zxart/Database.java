@@ -41,7 +41,7 @@ import app.zxtune.fs.dbhelpers.Utils;
  *
  */
 
-final class Database {
+class Database {
 
   private static final String TAG = Database.class.getName();
 
@@ -208,31 +208,31 @@ final class Database {
             " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
   }
 
-  final void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
+  void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
     Utils.runInTransaction(helper, cmd);
   }
 
-  final Timestamps.Lifetime getAuthorsLifetime(TimeStamp ttl) {
+  Timestamps.Lifetime getAuthorsLifetime(TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Authors.NAME, ttl);
   }
 
-  final Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
+  Timestamps.Lifetime getAuthorTracksLifetime(Author author, TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Authors.NAME + author.getId(), ttl);
   }
 
-  final Timestamps.Lifetime getPartiesLifetime(TimeStamp ttl) {
+  Timestamps.Lifetime getPartiesLifetime(TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Parties.NAME, ttl);
   }
 
-  final Timestamps.Lifetime getPartyTracksLifetime(Party party, TimeStamp ttl) {
+  Timestamps.Lifetime getPartyTracksLifetime(Party party, TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Parties.NAME + party.getId(), ttl);
   }
 
-  final Timestamps.Lifetime getTopLifetime(TimeStamp ttl) {
+  Timestamps.Lifetime getTopLifetime(TimeStamp ttl) {
     return timestamps.getLifetime(Tables.Tracks.NAME, ttl);
   }
 
-  final boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
+  boolean queryAuthors(Catalog.AuthorsVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Authors.NAME, null, null, null, null, null, null);
     try {
@@ -250,11 +250,11 @@ final class Database {
     return false;
   }
 
-  final void addAuthor(Author obj) {
+  void addAuthor(Author obj) {
     authors.add(obj);
   }
 
-  final boolean queryParties(Catalog.PartiesVisitor visitor) {
+  boolean queryParties(Catalog.PartiesVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Parties.NAME, null, null, null, null, null, null);
     try {
@@ -272,16 +272,16 @@ final class Database {
     return false;
   }
 
-  final void addParty(Party obj) {
+  void addParty(Party obj) {
     parties.add(obj);
   }
 
-  final boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {
+  boolean queryAuthorTracks(Author author, Catalog.TracksVisitor visitor) {
     final String selection = Tables.Tracks.getSelection(authorsTracks.getTracksIdsSelection(author));
     return queryTracks(selection, visitor);
   }
 
-  final boolean queryPartyTracks(Party party, Catalog.TracksVisitor visitor) {
+  boolean queryPartyTracks(Party party, Catalog.TracksVisitor visitor) {
     final String selection = Tables.Tracks.getSelection(partiesTracks.getTracksIdsSelection(party));
     return queryTracks(selection, visitor);
   }
@@ -292,7 +292,7 @@ final class Database {
     return queryTracks(cursor, visitor);
   }
 
-  final boolean queryTopTracks(int limit, Catalog.TracksVisitor visitor) {
+  boolean queryTopTracks(int limit, Catalog.TracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.query(Tables.Tracks.NAME, null, null, null, null, null,
             Tables.Tracks.Fields.votes.name() + " DESC", Integer.toString(limit));
@@ -315,7 +315,7 @@ final class Database {
     return false;
   }
 
-  final synchronized void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
+  void findTracks(String query, Catalog.FoundTracksVisitor visitor) {
     final SQLiteDatabase db = helper.getReadableDatabase();
     final Cursor cursor = db.rawQuery(findQuery, new String[]{query});
     try {
@@ -333,15 +333,15 @@ final class Database {
     }
   }
 
-  final void addTrack(Track track) {
+  void addTrack(Track track) {
     tracks.add(track);
   }
 
-  final void addAuthorTrack(Author author, Track track) {
+  void addAuthorTrack(Author author, Track track) {
     authorsTracks.add(author, track);
   }
 
-  final void addPartyTrack(Party party, Track track) {
+  void addPartyTrack(Party party, Track track) {
     partiesTracks.add(party, track);
   }
 
