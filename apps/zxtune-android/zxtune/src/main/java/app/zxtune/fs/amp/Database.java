@@ -228,6 +228,10 @@ class Database {
             " WHERE tracks.filename LIKE '%' || ? || '%'";
   }
 
+  final void close() {
+    helper.close();
+  }
+
   void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
     Utils.runInTransaction(helper, cmd);
   }
