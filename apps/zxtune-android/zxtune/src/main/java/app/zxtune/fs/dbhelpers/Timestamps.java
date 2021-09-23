@@ -12,6 +12,7 @@ import android.database.sqlite.SQLiteStatement;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.room.Dao;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
@@ -55,7 +56,8 @@ public class Timestamps {
     this(helper.getReadableDatabase(), helper.getWritableDatabase());
   }
 
-  private Timestamps(SQLiteDatabase readable, SQLiteDatabase writable) {
+  @VisibleForTesting
+  Timestamps(SQLiteDatabase readable, SQLiteDatabase writable) {
     this.queryStatement = readable.compileStatement(Table.QUERY_STATEMENT);
     this.updateStatement = writable.compileStatement(Table.INSERT_STATEMENT);
   }
