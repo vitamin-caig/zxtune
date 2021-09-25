@@ -92,6 +92,10 @@ public class FileTree {
     this.timestamps = new Timestamps(helper);
   }
 
+  final void close() {
+    helper.close();
+  }
+
   public void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
     Utils.runInTransaction(helper, cmd);
   }
