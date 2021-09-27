@@ -160,6 +160,10 @@ class Database {
     this.timestamps = new Timestamps(helper);
   }
 
+  void close() {
+    helper.close();
+  }
+
   void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
     Utils.runInTransaction(helper, cmd);
   }
