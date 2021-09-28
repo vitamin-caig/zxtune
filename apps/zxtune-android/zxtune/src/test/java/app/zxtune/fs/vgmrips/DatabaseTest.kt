@@ -24,7 +24,7 @@ class DatabaseTest {
         underTest = Database(
             Room.inMemoryDatabaseBuilder(
                 ApplicationProvider.getApplicationContext(),
-                Database.DatabaseDelegate::class.java
+                DatabaseDelegate::class.java
             ).allowMainThreadQueries().build()
         )
     }
