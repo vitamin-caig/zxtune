@@ -7,6 +7,7 @@ import android.content.Context;
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.room.ColumnInfo;
 import androidx.room.Dao;
 import androidx.room.Embedded;
@@ -153,8 +154,17 @@ class Database {
   private final DatabaseDelegate db;
 
   Database(Context ctx) {
-    this.db = Room.databaseBuilder(ctx, DatabaseDelegate.class, "vgmrips").build();
+    this(Room.databaseBuilder(ctx, DatabaseDelegate.class, "vgmrips").build());
     Utils.sendStatistics(db.getOpenHelper());
+  }
+
+  @VisibleForTesting
+  Database(DatabaseDelegate db) {
+    this.db = db;
+  }
+
+  final void close() {
+    db.close();
   }
 
   void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
