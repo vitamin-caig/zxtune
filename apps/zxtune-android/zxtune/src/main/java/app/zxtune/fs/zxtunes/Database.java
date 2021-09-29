@@ -150,6 +150,10 @@ class Database {
             " WHERE tracks.filename || tracks.title LIKE '%' || ? || '%'";
   }
 
+  final void close() {
+    helper.close();
+  }
+
   void runInTransaction(Utils.ThrowingRunnable cmd) throws IOException {
     Utils.runInTransaction(helper, cmd);
   }
