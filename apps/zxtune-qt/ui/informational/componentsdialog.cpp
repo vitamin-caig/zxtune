@@ -23,14 +23,14 @@
 // std includes
 #include <utility>
 // qt includes
-#include <QtGui/QApplication>
-#include <QtGui/QDialog>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDialog>
 
 namespace
 {
   QString Translate(const char* msg)
   {
-    return QApplication::translate("ComponentsDialog", msg, nullptr, QApplication::UnicodeUTF8);
+    return QApplication::translate("ComponentsDialog", msg);
   }
 
   template<class T>

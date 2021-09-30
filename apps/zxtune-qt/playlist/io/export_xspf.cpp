@@ -44,7 +44,7 @@ namespace
 
   QString DataToQString(const QByteArray& data)
   {
-    return QString::fromAscii(data.data(), data.size());
+    return QString::fromLatin1(data.data(), data.size());
   }
 
   QString ConvertString(StringView str)
@@ -234,7 +234,7 @@ namespace
     {
       Dbg(" Save content");
       Element.Text(ENDL);
-      Element.CData(QString::fromAscii(static_cast<const char*>(content.Start()), content.Size()));
+      Element.CData(QString::fromLatin1(static_cast<const char*>(content.Start()), content.Size()));
       Element.Text(ENDL);
     }
 

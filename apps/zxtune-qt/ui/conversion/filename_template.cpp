@@ -23,10 +23,11 @@
 #include <io/providers_parameters.h>
 // qt includes
 #include <QtGui/QCloseEvent>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QLineEdit>
-#include <QtGui/QMessageBox>
-#include <QtGui/QVBoxLayout>
+#include <QtWidgets/QDialogButtonBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QVBoxLayout>
+// std includes
 #include <utility>
 
 namespace

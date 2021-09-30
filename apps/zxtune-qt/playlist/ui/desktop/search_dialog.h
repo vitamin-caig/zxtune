@@ -15,7 +15,7 @@
 #include "playlist/supp/operations_search.h"
 #include "playlist/ui/search.h"
 // qt includes
-#include <QtGui/QDialog>
+#include <QtWidgets/QDialog>
 
 namespace Playlist
 {

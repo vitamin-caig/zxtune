@@ -18,8 +18,8 @@
 // std includes
 #include <utility>
 // qt includes
-#include <QtGui/QApplication>
-#include <QtGui/QDialog>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QDialog>
 
 namespace
 {
@@ -38,8 +38,7 @@ namespace
       setupUi(this);
       const QString appVersion(ToQString(Platform::Version::GetProgramVersionString()));
       buildLabel->setText(appVersion);
-      const QString feedbackFormat(
-          QApplication::translate("AboutDialog", FEEDBACK_FORMAT, nullptr, QApplication::UnicodeUTF8));
+      const QString feedbackFormat(QApplication::translate("AboutDialog", FEEDBACK_FORMAT));
       feedbackLabel->setText(feedbackFormat.arg(ToQString(Urls::Email())).arg(appVersion));
     }
   };

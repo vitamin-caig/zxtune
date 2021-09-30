@@ -29,10 +29,10 @@
 #include <utility>
 // qt includes
 #include <QtCore/QTimer>
-#include <QtGui/QApplication>
-#include <QtGui/QFileDialog>
-#include <QtGui/QMessageBox>
-#include <QtGui/QProgressDialog>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QProgressDialog>
 
 namespace
 {

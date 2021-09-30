@@ -11,9 +11,10 @@
 #pragma once
 
 // qt includes
-#include <QtGui/QWidget>
+#include <QtCore/QObject>
 
 class Error;
+class QWidget;
 
 namespace Update
 {

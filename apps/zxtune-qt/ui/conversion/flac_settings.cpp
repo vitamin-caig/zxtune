@@ -18,14 +18,14 @@
 #include <contract.h>
 // library includes
 #include <sound/backends_parameters.h>
-
+// std includes
 #include <utility>
 
 namespace
 {
   QString Translate(const char* msg)
   {
-    return QApplication::translate("FlacSettings", msg, nullptr, QApplication::UnicodeUTF8);
+    return QApplication::translate("FlacSettings", msg);
   }
 
   class FLACSettingsWidget

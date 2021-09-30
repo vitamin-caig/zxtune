@@ -32,7 +32,7 @@
 // qt includes
 #include <QtCore/QThread>
 #include <QtGui/QCloseEvent>
-#include <QtGui/QPushButton>
+#include <QtWidgets/QPushButton>
 
 namespace
 {
@@ -232,7 +232,7 @@ namespace
 
     static QString MakeFilter(const QString& type)
     {
-      return QString::fromAscii("%1 (*.%1)").arg(type);
+      return QString::fromLatin1("%1 (*.%1)").arg(type);
     }
 
   private:

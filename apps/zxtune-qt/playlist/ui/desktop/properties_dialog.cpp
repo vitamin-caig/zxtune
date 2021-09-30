@@ -25,12 +25,12 @@
 #include <module/attributes.h>
 #include <parameters/merged_accessor.h>
 // qt includes
-#include <QtGui/QAbstractButton>
-#include <QtGui/QComboBox>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QTextBrowser>
-#include <QtGui/QToolButton>
+#include <QtWidgets/QAbstractButton>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QTextBrowser>
+#include <QtWidgets/QToolButton>
 
 namespace
 {

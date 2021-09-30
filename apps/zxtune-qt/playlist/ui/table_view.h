@@ -15,8 +15,8 @@
 // std includes
 //#include <set>
 // qt includes
-#include <QtGui/QItemDelegate>
-#include <QtGui/QTableView>
+#include <QtWidgets/QItemDelegate>
+#include <QtWidgets/QTableView>
 
 namespace Playlist
 {

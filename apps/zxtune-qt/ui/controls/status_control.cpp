@@ -20,8 +20,8 @@
 // std includes
 #include <utility>
 // qt includes
-#include <QtGui/QGridLayout>
-#include <QtGui/QLabel>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
 
 namespace
 {

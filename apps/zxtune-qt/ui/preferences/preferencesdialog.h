@@ -10,8 +10,7 @@
 
 #pragma once
 
-// qt includes
-#include <QtGui/QDialog>
+class QWidget;
 
 namespace UI
 {

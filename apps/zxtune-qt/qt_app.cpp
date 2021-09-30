@@ -20,7 +20,7 @@
 #include <platform/application.h>
 #include <platform/version/api.h>
 // qt includes
-#include <QtGui/QApplication>
+#include <QtWidgets/QApplication>
 // std includes
 #include <utility>
 

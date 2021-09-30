@@ -29,7 +29,7 @@ namespace
 {
   QString Translate(const char* msg)
   {
-    return QApplication::translate("Mp3Settings", msg, nullptr, QApplication::UnicodeUTF8);
+    return QApplication::translate("Mp3Settings", msg);
   }
 
   const Parameters::StringType CHANNEL_MODES[] = {Parameters::ZXTune::Sound::Backends::Mp3::CHANNELS_DEFAULT,

@@ -18,7 +18,7 @@
 #include <sound/mixer_parameters.h>
 #include <sound/sample.h>
 // qt includes
-#include <QtGui/QLabel>
+#include <QtWidgets/QLabel>
 // std includes
 #include <utility>
 

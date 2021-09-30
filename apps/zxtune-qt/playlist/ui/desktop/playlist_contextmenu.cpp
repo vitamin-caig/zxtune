@@ -32,9 +32,9 @@
 // library includes
 #include <time/serialize.h>
 // qt includes
-#include <QtGui/QApplication>
 #include <QtGui/QClipboard>
-#include <QtGui/QMenu>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMenu>
 
 namespace
 {
@@ -187,7 +187,7 @@ namespace
       QStringList result;
       for (const auto& type : Types)
       {
-        result.append(QString::fromAscii("%1: %2").arg(ToQString(type.first)).arg(ModulesCount(type.second)));
+        result.append(QString::fromLatin1("%1: %2").arg(ToQString(type.first)).arg(ModulesCount(type.second)));
       }
       return result.join(LINE_BREAK);
     }

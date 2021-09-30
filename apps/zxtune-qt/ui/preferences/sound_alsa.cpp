@@ -166,7 +166,7 @@ namespace
       Device() {}
 
       Device(const Sound::Alsa::Device& in)
-        : Name(QString::fromAscii("%1 (%2)").arg(ToQString(in.Name())).arg(ToQString(in.CardName())))
+        : Name(QString::fromLatin1("%1 (%2)").arg(ToQString(in.Name())).arg(ToQString(in.CardName())))
         , Id(in.Id())
         , MixerNames(ToStringList(in.Mixers()))
       {}

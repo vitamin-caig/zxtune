@@ -14,7 +14,7 @@
 #include "ui/state.h"
 #include "ui/utils.h"
 // qt includes
-#include <QtGui/QFileDialog>
+#include <QtWidgets/QFileDialog>
 // std includes
 #include <utility>
 

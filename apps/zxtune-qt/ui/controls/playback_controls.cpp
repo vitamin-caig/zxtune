@@ -18,7 +18,7 @@
 #include <cassert>
 #include <utility>
 // qt includes
-#include <QtGui/QMenu>
+#include <QtWidgets/QMenu>
 
 namespace
 {

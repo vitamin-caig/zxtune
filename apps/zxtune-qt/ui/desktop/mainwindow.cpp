@@ -40,11 +40,11 @@
 #include <utility>
 // qt includes
 #include <QtCore/QUrl>
-#include <QtGui/QApplication>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QDesktopServices>
-#include <QtGui/QMessageBox>
-#include <QtGui/QToolBar>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QToolBar>
 
 namespace
 {

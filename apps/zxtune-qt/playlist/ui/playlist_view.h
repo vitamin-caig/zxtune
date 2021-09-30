@@ -13,7 +13,7 @@
 // local includes
 #include "playlist/supp/controller.h"
 // qt includes
-#include <QtGui/QWidget>
+#include <QtWidgets/QWidget>
 
 namespace Playlist
 {

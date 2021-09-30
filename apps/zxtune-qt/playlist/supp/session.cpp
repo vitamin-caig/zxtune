@@ -23,8 +23,8 @@
 // qt includes
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
+#include <QtCore/QStandardPaths>
 #include <QtCore/QStringList>
-#include <QtGui/QDesktopServices>
 
 namespace
 {
@@ -61,14 +61,14 @@ namespace
   template<class T>
   QString BuildPlaylistFileName(const T& val)
   {
-    return QString::fromAscii("%1.xspf").arg(val);
+    return QString::fromLatin1("%1.xspf").arg(val);
   }
 
   class FiledSession : public Playlist::Session
   {
   public:
     FiledSession()
-      : Directory(QDesktopServices::storageLocation(QDesktopServices::DataLocation))
+      : Directory(QStandardPaths::locate(QStandardPaths::DataLocation, "", QStandardPaths::LocateDirectory))
     {
       const auto dirPath = QCoreApplication::applicationName() + "/Playlists";
       Require(Directory.mkpath(dirPath));

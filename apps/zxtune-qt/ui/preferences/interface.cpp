@@ -24,7 +24,7 @@
 // library includes
 #include <math/numeric.h>
 // qt includes
-#include <QtGui/QRadioButton>
+#include <QtWidgets/QRadioButton>
 // std includes
 #include <utility>
 // boost includes
