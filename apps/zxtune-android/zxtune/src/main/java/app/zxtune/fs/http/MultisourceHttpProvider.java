@@ -3,6 +3,7 @@ package app.zxtune.fs.http;
 import android.net.Uri;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,16 +13,27 @@ import app.zxtune.Log;
 
 public final class MultisourceHttpProvider {
 
+  interface TimeSource {
+    long nowMillis();
+  }
+
   private static final String TAG = MultisourceHttpProvider.class.getName();
 
   private static final long MIN_QUARANTINE_PERIOD = 1000;
   private static final long MAX_QUARANTINE_PERIOD = 60 * 60 * 1000;
 
   private final HttpProvider delegate;
+  private final TimeSource time;
   private final HashMap<String, HostStatistics> hostStat = new HashMap<>();
 
   public MultisourceHttpProvider(HttpProvider delegate) {
+    this(delegate, System::currentTimeMillis);
+  }
+
+  @VisibleForTesting
+  MultisourceHttpProvider(HttpProvider delegate, TimeSource time) {
     this.delegate = delegate;
+    this.time = time;
   }
 
   public final boolean hasConnection() {
@@ -45,7 +57,7 @@ public final class MultisourceHttpProvider {
   }
 
   private <T> T getSingleObject(Uri[] uris, Getter<T> getter) throws IOException {
-    final long now = System.currentTimeMillis();
+    final long now = time.nowMillis();
     for (int idx = 0; ; ++idx) {
       final Uri uri = uris[idx];
       final String host = uri.getHost();
@@ -66,6 +78,12 @@ public final class MultisourceHttpProvider {
         }
       }
     }
+  }
+
+  @VisibleForTesting
+  boolean isHostDisabledFor(String host, long time) {
+    final HostStatistics stat = hostStat.get(host);
+    return stat != null && stat.isDisabledFor(time);
   }
 
   private synchronized HostStatistics getStat(@Nullable String host) {
