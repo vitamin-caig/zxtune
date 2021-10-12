@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="ru">
+<TS version="2.1" language="ru">
 <context>
     <name>FlacSettings</name>
     <message>
@@ -367,12 +367,12 @@
         <translation>Создавать промежуточные директории для файлов результата</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="174"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="175"/>
         <source>Invalid parameter</source>
         <translation>Неправильный параметр</translation>
     </message>
     <message>
-        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="175"/>
+        <location filename="../../apps/zxtune-qt/ui/conversion/filename_template.cpp" line="176"/>
         <source>Filename template is empty</source>
         <translation>Шаблон имени пустой</translation>
     </message>
