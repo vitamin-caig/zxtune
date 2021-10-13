@@ -21,9 +21,7 @@
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
-#include <module/players/aym/aym_base.h>
 #include <parameters/container.h>
-#include <parameters/merged_accessor.h>
 // std includes
 #include <map>
 
@@ -154,73 +152,6 @@ namespace Module
     const CachedFilesSource Source;
   };
 
-  // TODO: remove
-  class MixedPropertiesHolder : public Holder
-  {
-  public:
-    MixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
-      : Delegate(std::move(delegate))
-      , Properties(std::move(props))
-    {}
-
-    Information::Ptr GetModuleInformation() const override
-    {
-      return Delegate->GetModuleInformation();
-    }
-
-    Parameters::Accessor::Ptr GetModuleProperties() const override
-    {
-      return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
-    }
-
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
-    {
-      return Delegate->CreateRenderer(samplerate, Parameters::CreateMergedAccessor(params, Properties));
-    }
-
-  private:
-    const Holder::Ptr Delegate;
-    const Parameters::Accessor::Ptr Properties;
-  };
-
-  class MixedPropertiesAYMHolder : public AYM::Holder
-  {
-  public:
-    MixedPropertiesAYMHolder(AYM::Holder::Ptr delegate, Parameters::Accessor::Ptr props)
-      : Delegate(std::move(delegate))
-      , Properties(std::move(props))
-    {}
-
-    Information::Ptr GetModuleInformation() const override
-    {
-      return Delegate->GetModuleInformation();
-    }
-
-    Parameters::Accessor::Ptr GetModuleProperties() const override
-    {
-      return Parameters::CreateMergedAccessor(Properties, Delegate->GetModuleProperties());
-    }
-
-    Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
-    {
-      return Delegate->CreateRenderer(samplerate, Parameters::CreateMergedAccessor(params, Properties));
-    }
-
-    AYM::Chiptune::Ptr GetChiptune() const override
-    {
-      return Delegate->GetChiptune();
-    }
-
-    void Dump(Devices::AYM::Device& dev) const override
-    {
-      return Delegate->Dump(dev);
-    }
-
-  private:
-    const AYM::Holder::Ptr Delegate;
-    const Parameters::Accessor::Ptr Properties;
-  };
-
   std::size_t OpenInternal(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location,
                            DetectCallback& callback)
   {
@@ -314,15 +245,6 @@ namespace Module
   {
     ResolveAdditionalFilesAdapter adapter(params, data, callback);
     Detect(params, ZXTune::CreateLocation(data), adapter);
-  }
-
-  Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props)
-  {
-    if (const AYM::Holder::Ptr aym = std::dynamic_pointer_cast<const AYM::Holder>(delegate))
-    {
-      return MakePtr<MixedPropertiesAYMHolder>(aym, props);
-    }
-    return MakePtr<MixedPropertiesHolder>(delegate, props);
   }
 }  // namespace Module
 

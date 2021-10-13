@@ -36,6 +36,4 @@ namespace Module
     //! @return New player
     virtual Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const = 0;
   };
-
-  Holder::Ptr CreateMixedPropertiesHolder(Holder::Ptr delegate, Parameters::Accessor::Ptr props);
 }  // namespace Module
