@@ -19,10 +19,9 @@
 // library includes
 #include <core/additional_files_resolve.h>
 #include <core/core_parameters.h>
-#include <core/module_detect.h>
-#include <core/module_open.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <core/service.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
 #include <module/properties/path.h>
@@ -184,6 +183,7 @@ namespace
   public:
     Source(Parameters::Container::Ptr configParams)
       : Params(std::move(configParams))
+      , Service(ZXTune::Service::Create(Params))
       , OptionsDescription("Input options")
       , ShowProgress(false)
       , YM(false)
@@ -258,11 +258,11 @@ namespace
         const String subpath = id->Subpath();
         if (subpath.empty())
         {
-          Module::Detect(*Params, std::move(data), detectCallback);
+          Service->DetectModules(std::move(data), detectCallback);
         }
         else
         {
-          Module::Open(*Params, std::move(data), subpath, detectCallback);
+          Service->OpenModule(std::move(data), subpath, detectCallback);
         }
       }
       catch (const Error& e)
@@ -273,6 +273,7 @@ namespace
 
   private:
     const Parameters::Container::Ptr Params;
+    const ZXTune::Service::Ptr Service;
     boost::program_options::options_description OptionsDescription;
     Strings::Array Files;
     String ProvidersOptions;
