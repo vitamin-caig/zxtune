@@ -8,6 +8,7 @@ package app.zxtune;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Build;
 
 import androidx.annotation.Nullable;
 
@@ -38,9 +39,11 @@ public class MainApplication extends Application {
   public synchronized static void initialize(Context ctx) {
     if (globalContext == null) {
       globalContext = ctx;
-      Analytics.initialize(ctx);
-      Notifications.setup(ctx);
-      setupANRWatchdog();
+      if (!"robolectric".equals(Build.PRODUCT)) {
+        Analytics.initialize(ctx);
+        Notifications.setup(ctx);
+        setupANRWatchdog();
+      }
     }
   }
 
