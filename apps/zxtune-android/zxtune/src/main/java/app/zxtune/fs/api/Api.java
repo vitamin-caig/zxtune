@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Base64;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,14 +20,16 @@ public class Api {
   private static final String ENDPOINT = BuildConfig.API_ROOT + "/";
   private static final String REPLY = "";
 
+  @VisibleForTesting
   @Nullable
-  private static String authorization;
+  static String authorization;
 
   public static void initialize(Context ctx) {
     setAuthorization(Auth.getUserIdentifier(ctx), "");
   }
 
-  private static void setAuthorization(String name, String password) {
+  @VisibleForTesting
+  static void setAuthorization(String name, String password) {
     final String credentials = name + ":" + password;
     authorization = "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP);
   }
