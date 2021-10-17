@@ -28,7 +28,7 @@ public class Api {
 
   private static void setAuthorization(String name, String password) {
     final String credentials = name + ":" + password;
-    authorization = "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.DEFAULT);
+    authorization = "Basic " + Base64.encodeToString(credentials.getBytes(), Base64.NO_WRAP);
   }
 
   public static void postEvent(String url) throws IOException {
