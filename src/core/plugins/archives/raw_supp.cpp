@@ -23,10 +23,10 @@
 #include <make_ptr.h>
 // library includes
 #include <binary/container.h>
-#include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
+#include <math/scale.h>
 #include <strings/prefixed_index.h>
 #include <time/duration.h>
 #include <time/serialize.h>
@@ -322,29 +322,26 @@ namespace ZXTune::Raw
     const Parameters::Accessor& Accessor;
   };
 
-  class ProgressCallback : public Log::ProgressCallback
+  class ScanProgress
   {
   public:
-    ProgressCallback(const Module::DetectCallback& callback, uint_t limit, const String& path)
-      : Delegate(CreateProgressCallback(callback, limit))
+    ScanProgress(Log::ProgressCallback* delegate, std::size_t limit, const String& path)
+      : Delegate(delegate)
+      , ToPercent(limit, 100)
       , Text(ProgressMessage(ID, path))
     {}
 
-    void OnProgress(uint_t current) override
+    void Report(std::size_t offset)
     {
-      OnProgress(current, Text);
-    }
-
-    void OnProgress(uint_t current, const String& message) override
-    {
-      if (Delegate.get())
+      if (Delegate)
       {
-        Delegate->OnProgress(current, message);
+        Delegate->OnProgress(ToPercent(offset), Text);
       }
     }
 
   private:
-    const Log::ProgressCallback::Ptr Delegate;
+    Log::ProgressCallback* const Delegate;
+    const Math::ScaleFunctor<std::size_t> ToPercent;
     const String Text;
   };
 
@@ -590,20 +587,20 @@ namespace ZXTune::Raw
     }
 
     Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                                 Module::DetectCallback& callback) const override
+                                 ArchiveCallback& callback) const override
     {
-      const Analysis::Result::Ptr result = Delegate->Detect(params, inputData, callback);
-      if (const std::size_t matched = result->GetMatchedDataSize())
+      auto result = Delegate->Detect(params, std::move(inputData), callback);
+      if (const auto matched = result->GetMatchedDataSize())
       {
         return Analysis::CreateUnmatchedResult(matched);
       }
       return result;
     }
 
-    DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                           const Analysis::Path& pathToOpen) const override
+    DataLocation::Ptr TryOpen(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                              const Analysis::Path& pathToOpen) const override
     {
-      return Delegate->Open(params, inputData, pathToOpen);
+      return Delegate->TryOpen(params, std::move(inputData), pathToOpen);
     }
 
   private:
@@ -659,22 +656,22 @@ namespace ZXTune::Raw
       Archives.SetPluginLookahead(denied, denied.GetDescription()->Id(), ~std::size_t(0));
     }
 
-    std::size_t Detect(DataLocation::Ptr input, Module::DetectCallback& callback)
+    std::size_t Detect(DataLocation::Ptr input, ArchiveCallback& callback)
     {
-      const Analysis::Result::Ptr detectedModules = DetectIn(Players, input, callback);
-      if (const std::size_t matched = detectedModules->GetMatchedDataSize())
+      const auto detectedModules = DetectIn(Players, input, callback);
+      if (const auto matched = detectedModules->GetMatchedDataSize())
       {
         Statistic::Self().AddModule(matched);
         return matched;
       }
-      const Analysis::Result::Ptr detectedArchives = DetectIn(Archives, input, callback);
-      if (const std::size_t matched = detectedArchives->GetMatchedDataSize())
+      const auto detectedArchives = DetectIn(Archives, input, callback);
+      if (const auto matched = detectedArchives->GetMatchedDataSize())
       {
         Statistic::Self().AddArchived(matched);
         return matched;
       }
-      const std::ptrdiff_t archiveLookahead = detectedArchives->GetLookaheadOffset();
-      const std::ptrdiff_t moduleLookahead = detectedModules->GetLookaheadOffset();
+      const auto archiveLookahead = detectedArchives->GetLookaheadOffset();
+      const auto moduleLookahead = detectedModules->GetLookaheadOffset();
       Dbg("No archives for nearest %1% bytes, modules for %2% bytes", archiveLookahead, moduleLookahead);
       return static_cast<std::size_t>(std::min(archiveLookahead, moduleLookahead));
     }
@@ -687,19 +684,19 @@ namespace ZXTune::Raw
     }
 
   private:
-    template<class T>
-    Analysis::Result::Ptr DetectIn(LookaheadPluginsStorage<T>& container, DataLocation::Ptr input,
-                                   Module::DetectCallback& callback) const
+    template<class PluginType, class CallbackType>
+    Analysis::Result::Ptr DetectIn(LookaheadPluginsStorage<PluginType>& container, DataLocation::Ptr input,
+                                   CallbackType& callback) const
     {
       const bool initialScan = 0 == Offset;
       const std::size_t maxSize = input->GetData()->Size();
-      for (typename T::Iterator::Ptr iter = container.Enumerate(); iter->IsValid(); iter->Next())
+      for (const auto iter = container.Enumerate(); iter->IsValid(); iter->Next())
       {
         const Time::Timer detectTimer;
-        const typename T::Ptr plugin = iter->Get();
-        const Analysis::Result::Ptr result = plugin->Detect(Params, input, callback);
-        const String id = plugin->GetDescription()->Id();
-        if (const std::size_t usedSize = result->GetMatchedDataSize())
+        const auto plugin = iter->Get();
+        const auto result = plugin->Detect(Params, input, callback);
+        const auto id = plugin->GetDescription()->Id();
+        if (const auto usedSize = result->GetMatchedDataSize())
         {
           Statistic::Self().AddAimed(*plugin, detectTimer);
           Dbg("Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
@@ -751,14 +748,14 @@ namespace ZXTune::Raw
 
     Binary::Format::Ptr GetFormat() const override
     {
-      return Binary::Format::Ptr();
+      return {};
     }
 
     Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr input,
-                                 Module::DetectCallback& callback) const override
+                                 ArchiveCallback& callback) const override
     {
-      const Binary::Container::Ptr rawData = input->GetData();
-      const std::size_t size = rawData->Size();
+      const auto rawData = input->GetData();
+      const auto size = rawData->Size();
       Statistic::Self().Enqueue(size);
       if (size < MIN_MINIMAL_RAW_SIZE)
       {
@@ -771,24 +768,21 @@ namespace ZXTune::Raw
 
       const String currentPath = input->GetPath()->AsString();
       Dbg("Detecting modules in raw data at '%1%'", currentPath);
-      const Log::ProgressCallback::Ptr progress =
-          MakePtr<ProgressCallback>(callback, static_cast<uint_t>(size), currentPath);
-      Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
+      ScanProgress progress(callback.GetProgress(), size, currentPath);
 
-      const ArchivePlugin::Iterator::Ptr availableArchives = ArchivePluginsEnumerator::Create()->Enumerate();
-      const ArchivePlugin::Iterator::Ptr usedArchives =
+      const auto availableArchives = ArchivePluginsEnumerator::Create()->Enumerate();
+      const auto usedArchives =
           scanParams.GetDoubleAnalysis() ? MakePtr<DoubleAnalysisArchivePlugins>(availableArchives) : availableArchives;
       RawDetectionPlugins usedPlugins(params, PlayerPluginsEnumerator::Create()->Enumerate(), usedArchives, *this);
 
-      ScanDataLocation::Ptr subLocation = MakePtr<ScanDataLocation>(input, Description->Id(), 0);
+      auto subLocation = MakePtr<ScanDataLocation>(input, Description->Id(), 0);
 
       while (subLocation->HasToScan(minRawSize))
       {
         const std::size_t offset = subLocation->GetOffset();
-        progress->OnProgress(static_cast<uint_t>(offset));
+        progress.Report(offset);
         usedPlugins.SetOffset(offset);
-        auto& curCallback = offset ? noProgressCallback : callback;
-        const std::size_t bytesToSkip = usedPlugins.Detect(subLocation, curCallback);
+        const std::size_t bytesToSkip = usedPlugins.Detect(subLocation, callback);
         if (!subLocation.unique())
         {
           Dbg("Sublocation is captured. Duplicate.");
@@ -799,19 +793,19 @@ namespace ZXTune::Raw
       return Analysis::CreateMatchedResult(size);
     }
 
-    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location,
-                           const Analysis::Path& inPath) const override
+    DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr location,
+                              const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
       const Strings::PrefixedIndex pathIndex(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {
         const auto offset = pathIndex.GetIndex();
-        const Binary::Container::Ptr inData = location->GetData();
-        const Binary::Container::Ptr subData = inData->GetSubcontainer(offset, inData->Size() - offset);
-        return CreateNestedLocation(location, subData, Description->Id(), pathComp);
+        const auto inData = location->GetData();
+        auto subData = inData->GetSubcontainer(offset, inData->Size() - offset);
+        return CreateNestedLocation(std::move(location), std::move(subData), Description->Id(), pathComp);
       }
-      return DataLocation::Ptr();
+      return {};
     }
 
   private:

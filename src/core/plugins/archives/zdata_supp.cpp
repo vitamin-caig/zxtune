@@ -274,26 +274,25 @@ namespace ZXTune::Zdata
     }
 
     Analysis::Result::Ptr Detect(const Parameters::Accessor& /*params*/, DataLocation::Ptr input,
-                                 Module::DetectCallback& /*callback*/) const override
+                                 ArchiveCallback& /*callback*/) const override
     {
       return Analysis::CreateUnmatchedResult(input->GetData()->Size());
     }
 
-    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr location,
-                           const Analysis::Path& inPath) const override
+    DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr location,
+                              const Analysis::Path& inPath) const override
     {
       const String& pathComp = inPath.GetIterator()->Get();
       const Strings::PrefixedIndex pathIndex(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {
-        const Binary::Data::Ptr rawData = location->GetData();
-        if (const Binary::Container::Ptr decoded =
-                Zdata::Decode(*rawData, Zdata::Marker(static_cast<uint32_t>(pathIndex.GetIndex()))))
+        const auto rawData = location->GetData();
+        if (auto decoded = Zdata::Decode(*rawData, Zdata::Marker(static_cast<uint32_t>(pathIndex.GetIndex()))))
         {
-          return CreateNestedLocation(location, decoded, ID, pathComp);
+          return CreateNestedLocation(std::move(location), std::move(decoded), ID, pathComp);
         }
       }
-      return DataLocation::Ptr();
+      return {};
     }
 
   private:

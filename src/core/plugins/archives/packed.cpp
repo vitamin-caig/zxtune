@@ -12,7 +12,6 @@
 #include "core/plugins/archives/packed.h"
 #include "core/plugins/plugins_types.h"
 #include "core/src/callback.h"
-#include "core/src/detect.h"
 #include <core/plugin_attrs.h>
 // common includes
 #include <make_ptr.h>
@@ -39,43 +38,44 @@ namespace ZXTune
     return component.substr(ARCHIVE_PLUGIN_PREFIX.size());
   }
 
-  Analysis::Result::Ptr DetectModulesInArchive(const Parameters::Accessor& params, Plugin::Ptr plugin,
-                                               const Formats::Packed::Decoder& decoder, DataLocation::Ptr inputData,
-                                               Module::DetectCallback& callback)
+  Analysis::Result::Ptr DetectModulesInArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder,
+                                               DataLocation::Ptr inputData, ArchiveCallback& callback)
   {
-    const Binary::Container::Ptr rawData = inputData->GetData();
-    if (Formats::Packed::Container::Ptr subData = decoder.Decode(*rawData))
+    auto rawData = inputData->GetData();
+    if (auto subData = decoder.Decode(*rawData))
     {
-      Module::CustomProgressDetectCallbackAdapter noProgressCallback(callback);
-      const String subPlugin = plugin->Id();
-      const String subPath = EncodeArchivePluginToPath(subPlugin);
-      const DataLocation::Ptr subLocation = CreateNestedLocation(inputData, subData, subPlugin, subPath);
-      Module::Detect(params, subLocation, noProgressCallback);
-      return Analysis::CreateMatchedResult(subData->PackedSize());
+      const auto packedSize = subData->PackedSize();
+      auto subPlugin = plugin->Id();
+      auto subPath = EncodeArchivePluginToPath(subPlugin);
+      auto subLocation =
+          CreateNestedLocation(std::move(inputData), std::move(subData), std::move(subPlugin), std::move(subPath));
+      callback.ProcessData(std::move(subLocation));
+      return Analysis::CreateMatchedResult(packedSize);
     }
-    const Binary::Format::Ptr format = decoder.GetFormat();
-    return Analysis::CreateUnmatchedResult(format, rawData);
+    auto format = decoder.GetFormat();
+    return Analysis::CreateUnmatchedResult(std::move(format), std::move(rawData));
   }
 
-  DataLocation::Ptr OpenDataFromArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder,
-                                        DataLocation::Ptr inputData, const Analysis::Path& pathToOpen)
+  DataLocation::Ptr TryOpenDataFromArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder,
+                                           DataLocation::Ptr inputData, const Analysis::Path& pathToOpen)
   {
-    const String pathComponent = pathToOpen.GetIterator()->Get();
+    auto pathComponent = pathToOpen.GetIterator()->Get();
     if (!IsArchivePluginPathComponent(pathComponent))
     {
-      return DataLocation::Ptr();
+      return {};
     }
-    const String pluginId = DecodeArchivePluginFromPathComponent(pathComponent);
+    auto pluginId = DecodeArchivePluginFromPathComponent(pathComponent);
     if (pluginId != plugin->Id())
     {
-      return DataLocation::Ptr();
+      return {};
     }
-    const Binary::Container::Ptr rawData = inputData->GetData();
-    if (Formats::Packed::Container::Ptr subData = decoder.Decode(*rawData))
+    const auto rawData = inputData->GetData();
+    if (auto subData = decoder.Decode(*rawData))
     {
-      return CreateNestedLocation(inputData, subData, pluginId, pathComponent);
+      return CreateNestedLocation(std::move(inputData), std::move(subData), std::move(pluginId),
+                                  std::move(pathComponent));
     }
-    return DataLocation::Ptr();
+    return {};
   }
 
   class CommonArchivePlugin : public ArchivePlugin
@@ -97,15 +97,15 @@ namespace ZXTune
     }
 
     Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                                 Module::DetectCallback& callback) const override
+                                 ArchiveCallback& callback) const override
     {
-      return DetectModulesInArchive(params, Description, *Decoder, inputData, callback);
+      return DetectModulesInArchive(Description, *Decoder, std::move(inputData), callback);
     }
 
-    DataLocation::Ptr Open(const Parameters::Accessor& /*params*/, DataLocation::Ptr inputData,
-                           const Analysis::Path& pathToOpen) const override
+    DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr inputData,
+                              const Analysis::Path& pathToOpen) const override
     {
-      return OpenDataFromArchive(Description, *Decoder, inputData, pathToOpen);
+      return TryOpenDataFromArchive(Description, *Decoder, std::move(inputData), pathToOpen);
     }
 
   private:
@@ -118,8 +118,7 @@ namespace ZXTune
 {
   ArchivePlugin::Ptr CreateArchivePlugin(const String& id, uint_t caps, Formats::Packed::Decoder::Ptr decoder)
   {
-    const Plugin::Ptr description =
-        CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
-    return MakePtr<CommonArchivePlugin>(description, decoder);
+    auto description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
+    return MakePtr<CommonArchivePlugin>(std::move(description), std::move(decoder));
   }
 }  // namespace ZXTune

@@ -208,8 +208,7 @@ namespace ZXTune
     void DetectModules(Binary::Container::Ptr data, Module::DetectCallback& callback) const override
     {
       ResolveAdditionalFilesAdapter adapter(*this, data, callback);
-      auto location = CreateLocation(data);
-      DetectBy(*ArchivePlugins, location, adapter) || DetectBy(*PlayerPlugins, location, adapter);
+      DetectModules(CreateLocation(data), adapter);
     }
 
     void OpenModule(Binary::Container::Ptr data, const String& subpath, Module::DetectCallback& callback) const override
@@ -250,7 +249,7 @@ namespace ZXTune
       for (auto iter = ArchivePlugins->Enumerate(); iter->IsValid(); iter->Next())
       {
         const auto plugin = iter->Get();
-        if (auto result = plugin->Open(*Params, location, subPath))
+        if (auto result = plugin->TryOpen(*Params, location, subPath))
         {
           return result;
         }
@@ -271,9 +270,56 @@ namespace ZXTune
       throw Error(THIS_LINE, translate("Failed to find module at specified location."));
     }
 
-    template<class PluginsSet>
-    std::size_t DetectBy(const PluginsSet& pluginsSet, DataLocation::Ptr location,
-                         Module::DetectCallback& callback) const
+    void DetectModules(DataLocation::Ptr location, Module::DetectCallback& callback) const
+    {
+      DetectInArchives(location, callback) || DetectBy(*PlayerPlugins, std::move(location), callback);
+    }
+
+    class RecursiveDetectionAdapter : public ArchiveCallback
+    {
+    public:
+      RecursiveDetectionAdapter(const ServiceImpl& svc, Module::DetectCallback& delegate, bool useProgress)
+        : Svc(svc)
+        , Delegate(delegate)
+        , Progress(useProgress ? Delegate.GetProgress() : nullptr)
+      {}
+      Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const override
+      {
+        return Delegate.CreateInitialProperties(subpath);
+      }
+
+      void ProcessModule(const DataLocation& location, const Plugin& decoder, Module::Holder::Ptr holder) override
+      {
+        Delegate.ProcessModule(location, decoder, std::move(holder));
+      }
+
+      Log::ProgressCallback* GetProgress() const override
+      {
+        return Progress;
+      }
+
+      void ProcessData(DataLocation::Ptr data) override
+      {
+        // TODO: proper progress
+        Svc.DetectModules(std::move(data), Delegate);
+      }
+
+    private:
+      const ServiceImpl& Svc;
+      Module::DetectCallback& Delegate;
+      Log::ProgressCallback* const Progress;
+    };
+
+    bool DetectInArchives(DataLocation::Ptr location, Module::DetectCallback& callback) const
+    {
+      // Track progress only for top-level container
+      const auto useProgress = location->GetPath()->Empty();
+      RecursiveDetectionAdapter adapter(*this, callback, useProgress);
+      return DetectBy(*ArchivePlugins, std::move(location), adapter);
+    }
+
+    template<class PluginsSet, class CallbackType>
+    std::size_t DetectBy(const PluginsSet& pluginsSet, DataLocation::Ptr location, CallbackType& callback) const
     {
       for (const auto plugins = pluginsSet.Enumerate(); plugins->IsValid(); plugins->Next())
       {

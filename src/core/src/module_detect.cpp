@@ -18,9 +18,4 @@ namespace Module
   {
     return {};
   }
-
-  void Detect(const Parameters::Accessor& params, Binary::Container::Ptr data, DetectCallback& callback) {}
-
-  std::size_t Detect(const Parameters::Accessor& params, ZXTune::DataLocation::Ptr location, DetectCallback& callback)
-  {}
 }  // namespace Module

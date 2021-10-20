@@ -14,12 +14,8 @@
 #include "core/src/location.h"
 // library includes
 #include <analysis/result.h>
+#include <core/module_detect.h>
 #include <core/plugin.h>
-
-namespace Module
-{
-  class DetectCallback;
-}
 
 namespace Parameters
 {
@@ -28,6 +24,14 @@ namespace Parameters
 
 namespace ZXTune
 {
+  class ArchiveCallback : public Module::DetectCallback
+  {
+  public:
+    virtual ~ArchiveCallback() = default;
+
+    virtual void ProcessData(DataLocation::Ptr data) = 0;
+  };
+
   class ArchivePlugin
   {
   public:
@@ -40,9 +44,9 @@ namespace ZXTune
 
     //! @brief Detect modules in data
     virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                                         Module::DetectCallback& callback) const = 0;
+                                         ArchiveCallback& callback) const = 0;
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                                   const Analysis::Path& pathToOpen) const = 0;
+    virtual DataLocation::Ptr TryOpen(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                                      const Analysis::Path& pathToOpen) const = 0;
   };
 }  // namespace ZXTune
