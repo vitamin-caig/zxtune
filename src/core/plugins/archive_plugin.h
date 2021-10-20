@@ -21,6 +21,11 @@ namespace Module
   class DetectCallback;
 }
 
+namespace Parameters
+{
+  class Accessor;
+}
+
 namespace ZXTune
 {
   class ArchivePlugin

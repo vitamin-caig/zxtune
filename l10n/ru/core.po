@@ -18,9 +18,9 @@ msgstr "Ни один из внешних файлов из %1% не подхо�
 msgid "Failed to resolve additional files."
 msgstr "Ошибка загрузки дополнительных файлов."
 
+msgid "Failed to find module at specified location."
+msgstr "Модуль не найден по указанному пути."
+
 #, boost-format
 msgid "Failed to resolve subpath '%1%'."
 msgstr "Ошибка получения данных по пути '%1%'."
-
-msgid "Failed to find module at specified location."
-msgstr "Модуль не найден по указанному пути."

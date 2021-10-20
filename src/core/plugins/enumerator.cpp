@@ -21,8 +21,6 @@
 #include <make_ptr.h>
 #include <pointers.h>
 // library includes
-#include <core/module_detect.h>
-#include <core/module_open.h>
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <time/timer.h>
