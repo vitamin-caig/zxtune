@@ -215,7 +215,7 @@ namespace ZXTune
     {
       ResolveAdditionalFilesAdapter adapter(*this, data, callback);
       auto location = OpenLocation(std::move(data), subpath);
-      if (!DetectBy(*PlayerPlugins, std::move(location), adapter))
+      if (!DetectBy(PlayerPlugins, std::move(location), adapter))
       {
         throw Error(THIS_LINE, translate("Failed to find module at specified location."));
       }
@@ -246,9 +246,8 @@ namespace ZXTune
 
     DataLocation::Ptr TryToOpenLocation(DataLocation::Ptr location, const Analysis::Path& subPath) const
     {
-      for (auto iter = ArchivePlugins->Enumerate(); iter->IsValid(); iter->Next())
+      for (const auto& plugin : ArchivePlugins)
       {
-        const auto plugin = iter->Get();
         if (auto result = plugin->TryOpen(*Params, location, subPath))
         {
           return result;
@@ -259,9 +258,8 @@ namespace ZXTune
 
     Module::Holder::Ptr OpenModule(const Binary::Container& data, Parameters::Container::Ptr initialProperties) const
     {
-      for (auto usedPlugins = PlayerPlugins->Enumerate(); usedPlugins->IsValid(); usedPlugins->Next())
+      for (const auto& plugin : PlayerPlugins)
       {
-        const auto plugin = usedPlugins->Get();
         if (auto res = plugin->TryOpen(*Params, data, initialProperties))
         {
           return res;
@@ -272,7 +270,7 @@ namespace ZXTune
 
     void DetectModules(DataLocation::Ptr location, Module::DetectCallback& callback) const
     {
-      DetectInArchives(location, callback) || DetectBy(*PlayerPlugins, std::move(location), callback);
+      DetectInArchives(location, callback) || DetectBy(PlayerPlugins, std::move(location), callback);
     }
 
     class RecursiveDetectionAdapter : public ArchiveCallback
@@ -315,15 +313,14 @@ namespace ZXTune
       // Track progress only for top-level container
       const auto useProgress = location->GetPath()->Empty();
       RecursiveDetectionAdapter adapter(*this, callback, useProgress);
-      return DetectBy(*ArchivePlugins, std::move(location), adapter);
+      return DetectBy(ArchivePlugins, std::move(location), adapter);
     }
 
     template<class PluginsSet, class CallbackType>
     std::size_t DetectBy(const PluginsSet& pluginsSet, DataLocation::Ptr location, CallbackType& callback) const
     {
-      for (const auto plugins = pluginsSet.Enumerate(); plugins->IsValid(); plugins->Next())
+      for (const auto& plugin : pluginsSet)
       {
-        const auto plugin = plugins->Get();
         const auto result = plugin->Detect(*Params, location, callback);
         if (auto usedSize = result->GetMatchedDataSize())
         {
@@ -337,8 +334,8 @@ namespace ZXTune
 
   private:
     const Parameters::Accessor::Ptr Params;
-    const ArchivePluginsEnumerator::Ptr ArchivePlugins = ArchivePluginsEnumerator::Create();
-    const PlayerPluginsEnumerator::Ptr PlayerPlugins = PlayerPluginsEnumerator::Create();
+    const std::vector<ArchivePlugin::Ptr>& ArchivePlugins = ArchivePluginsEnumerator::GetPlugins();
+    const std::vector<PlayerPlugin::Ptr>& PlayerPlugins = PlayerPluginsEnumerator::GetPlugins();
   };
 
   Service::Ptr Service::Create(Parameters::Accessor::Ptr parameters)

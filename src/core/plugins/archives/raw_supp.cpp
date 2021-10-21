@@ -16,11 +16,10 @@
 #include <core/plugins/archives/l10n.h>
 #include <core/plugins/player_plugins_enumerator.h>
 #include <core/plugins/plugins_types.h>
-#include <core/plugins/utils.h>
-#include <core/src/callback.h>
 // common includes
 #include <error_tools.h>
 #include <make_ptr.h>
+#include <progress_callback.h>
 // library includes
 #include <binary/container.h>
 #include <core/plugin_attrs.h>
@@ -525,13 +524,13 @@ namespace ZXTune::Raw
     };
 
   public:
-    explicit LookaheadPluginsStorage(typename P::Iterator::Ptr iterator)
+    template<class Container>
+    explicit LookaheadPluginsStorage(const Container& plugins)
       : Offset()
     {
-      for (; iterator->IsValid(); iterator->Next())
+      for (const auto& plugin : plugins)
       {
-        const typename P::Ptr plugin = iterator->Get();
-        Plugins.push_back(PluginEntry(plugin));
+        Plugins.emplace_back(PluginEntry(plugin));
       }
     }
 
@@ -607,51 +606,47 @@ namespace ZXTune::Raw
     const ArchivePlugin::Ptr Delegate;
   };
 
-  class DoubleAnalysisArchivePlugins : public ArchivePlugin::Iterator
+  class DoubleAnalyzedArchives
   {
   public:
-    explicit DoubleAnalysisArchivePlugins(ArchivePlugin::Iterator::Ptr delegate)
-      : Delegate(std::move(delegate))
-    {}
-
-    bool IsValid() const override
+    static const std::vector<ArchivePlugin::Ptr>& GetPlugins()
     {
-      return Delegate->IsValid();
-    }
-
-    ArchivePlugin::Ptr Get() const override
-    {
-      if (const ArchivePlugin::Ptr res = Delegate->Get())
-      {
-        const Plugin::Ptr plug = res->GetDescription();
-        return 0 != (plug->Capabilities() & Capabilities::Container::Traits::PLAIN)
-                   ? MakePtr<DoubleAnalyzedArchivePlugin>(res)
-                   : res;
-      }
-      else
-      {
-        return ArchivePlugin::Ptr();
-      }
-    }
-
-    void Next() override
-    {
-      return Delegate->Next();
+      static const DoubleAnalyzedArchives INSTANCE;
+      return INSTANCE.Plugins;
     }
 
   private:
-    const ArchivePlugin::Iterator::Ptr Delegate;
+    DoubleAnalyzedArchives()
+    {
+      const auto& original = ArchivePluginsEnumerator::GetPlugins();
+      Plugins.resize(original.size());
+      std::transform(original.begin(), original.end(), Plugins.begin(), &MakeDoubleAnalyzed);
+    }
+
+    static ArchivePlugin::Ptr MakeDoubleAnalyzed(ArchivePlugin::Ptr plugin)
+    {
+      const auto desc = plugin->GetDescription();
+      return 0 != (desc->Capabilities() & Capabilities::Container::Traits::PLAIN)
+                 ? MakePtr<DoubleAnalyzedArchivePlugin>(std::move(plugin))
+                 : plugin;
+    }
+
+  private:
+    std::vector<ArchivePlugin::Ptr> Plugins;
   };
 
   class RawDetectionPlugins
   {
   public:
-    RawDetectionPlugins(const Parameters::Accessor& params, PlayerPlugin::Iterator::Ptr players,
-                        ArchivePlugin::Iterator::Ptr archives, const ArchivePlugin& denied)
+    RawDetectionPlugins(const Parameters::Accessor& params, bool plainArchivesDoubleAnalysis)
       : Params(params)
-      , Players(players)
-      , Archives(archives)
+      , Players(PlayerPluginsEnumerator::GetPlugins())
+      , Archives(plainArchivesDoubleAnalysis ? DoubleAnalyzedArchives::GetPlugins()
+                                             : ArchivePluginsEnumerator::GetPlugins())
       , Offset()
+    {}
+
+    void Deny(const ArchivePlugin& denied)
     {
       Archives.SetPluginLookahead(denied, denied.GetDescription()->Id(), ~std::size_t(0));
     }
@@ -770,10 +765,8 @@ namespace ZXTune::Raw
       Dbg("Detecting modules in raw data at '%1%'", currentPath);
       ScanProgress progress(callback.GetProgress(), size, currentPath);
 
-      const auto availableArchives = ArchivePluginsEnumerator::Create()->Enumerate();
-      const auto usedArchives =
-          scanParams.GetDoubleAnalysis() ? MakePtr<DoubleAnalysisArchivePlugins>(availableArchives) : availableArchives;
-      RawDetectionPlugins usedPlugins(params, PlayerPluginsEnumerator::Create()->Enumerate(), usedArchives, *this);
+      RawDetectionPlugins usedPlugins(params, scanParams.GetDoubleAnalysis());
+      usedPlugins.Deny(*this);
 
       auto subLocation = MakePtr<ScanDataLocation>(input, Description->Id(), 0);
 
