@@ -14,7 +14,6 @@
 #include "core/plugins/player_plugins_enumerator.h"
 #include "core/plugins/players/plugins_list.h"
 #include "core/plugins/registrator.h"
-#include "core/src/callback.h"
 #include "core/src/l10n.h"
 // common includes
 #include <error_tools.h>
@@ -22,11 +21,7 @@
 #include <pointers.h>
 // library includes
 #include <debug/log.h>
-#include <module/attributes.h>
 #include <time/timer.h>
-// std includes
-#include <list>
-#include <map>
 
 #define FILE_TAG 04EDD719
 
@@ -36,17 +31,76 @@ namespace ZXTune
   using Module::translate;
 
   template<class PluginType>
-  class PluginsContainer
-    : public PluginsRegistrator<PluginType>
-    , public PluginsEnumerator<PluginType>
+  class Registrator : public PluginsRegistrator<PluginType>
   {
   public:
+    Registrator(std::vector<typename PluginType::Ptr>& typed, std::vector<Plugin::Ptr>& all)
+      : Typed(typed)
+      , All(all)
+    {}
+
+    ~Registrator() override
+    {
+      EnumeratorDbg("Registered %1% plugins for %2%ms", Typed.size(), Timer.Elapsed<Time::Millisecond>().Get());
+    }
+
     void RegisterPlugin(typename PluginType::Ptr plugin) override
     {
-      const Plugin::Ptr description = plugin->GetDescription();
-      Plugins.push_back(plugin);
+      auto description = plugin->GetDescription();
+      Typed.emplace_back(std::move(plugin));
       EnumeratorDbg("Registered %1%", description->Id());
+      All.emplace_back(std::move(description));
     }
+
+  private:
+    const Time::Timer Timer;
+    std::vector<typename PluginType::Ptr>& Typed;
+    std::vector<Plugin::Ptr>& All;
+  };
+
+  class AllPlugins
+  {
+  public:
+    static const AllPlugins& Instance()
+    {
+      static const AllPlugins INSTANCE;
+      return INSTANCE;
+    }
+
+    std::vector<ArchivePlugin::Ptr> Archives;
+    std::vector<PlayerPlugin::Ptr> Players;
+    std::vector<Plugin::Ptr> All;
+
+  private:
+    AllPlugins()
+    {
+      Archives.reserve(128);
+      Players.reserve(256);
+      All.reserve(384);
+      RegisterArchivePlugins();
+      RegisterPlayerPlugins();
+    }
+
+    void RegisterArchivePlugins()
+    {
+      Registrator<ArchivePlugin> registrator(Archives, All);
+      ZXTune::RegisterArchivePlugins(registrator);
+    }
+
+    void RegisterPlayerPlugins()
+    {
+      Registrator<PlayerPlugin> registrator(Players, All);
+      ZXTune::RegisterPlayerPlugins(registrator);
+    }
+  };
+
+  template<class PluginType>
+  class Enumerator : public PluginsEnumerator<PluginType>
+  {
+  public:
+    Enumerator(const std::vector<typename PluginType::Ptr>& plugins)
+      : Plugins(plugins)
+    {}
 
     typename PluginType::Iterator::Ptr Enumerate() const override
     {
@@ -54,32 +108,40 @@ namespace ZXTune
     }
 
   protected:
-    std::vector<typename PluginType::Ptr> Plugins;
+    const std::vector<typename PluginType::Ptr>& Plugins;
   };
 
-  class ArchivePluginsContainer : public PluginsContainer<ArchivePlugin>
+  template<>
+  const std::vector<ArchivePlugin::Ptr>& ArchivePluginsEnumerator::GetPlugins()
   {
-  public:
-    ArchivePluginsContainer()
-    {
-      const Time::Timer timer;
-      RegisterArchivePlugins(*this);
-      EnumeratorDbg("Registered %1% archive plugins for %2%ms", Plugins.size(),
-                    timer.Elapsed<Time::Millisecond>().Get());
-    }
-  };
+    return AllPlugins::Instance().Archives;
+  }
 
-  class PlayerPluginsContainer : public PluginsContainer<PlayerPlugin>
+  template<>
+  ArchivePluginsEnumerator::Ptr ArchivePluginsEnumerator::Create()
   {
-  public:
-    PlayerPluginsContainer()
-    {
-      const Time::Timer timer;
-      RegisterPlayerPlugins(*this);
-      EnumeratorDbg("Registered %1% player plugins for %2%ms", Plugins.size(),
-                    timer.Elapsed<Time::Millisecond>().Get());
-    }
-  };
+    static const Enumerator<ArchivePlugin> instance(ArchivePluginsEnumerator::GetPlugins());
+    return MakeSingletonPointer(instance);
+  }
+
+  template<>
+  const std::vector<PlayerPlugin::Ptr>& PlayerPluginsEnumerator::GetPlugins()
+  {
+    return AllPlugins::Instance().Players;
+  }
+
+  template<>
+  PlayerPluginsEnumerator::Ptr PlayerPluginsEnumerator::Create()
+  {
+    static const Enumerator<PlayerPlugin> instance(PlayerPluginsEnumerator::GetPlugins());
+    return MakeSingletonPointer(instance);
+  }
+
+  Plugin::Iterator::Ptr EnumeratePlugins()
+  {
+    const auto& plugins = AllPlugins::Instance().All;
+    return CreateRangedObjectIteratorAdapter(plugins.begin(), plugins.end());
+  }
 
   class SimplePluginDescription : public Plugin
   {
@@ -110,82 +172,6 @@ namespace ZXTune
     const String Info;
     const uint_t Caps;
   };
-
-  class CompositePluginsIterator : public Plugin::Iterator
-  {
-  public:
-    CompositePluginsIterator(ArchivePlugin::Iterator::Ptr archives, PlayerPlugin::Iterator::Ptr players)
-      : Archives(std::move(archives))
-      , Players(std::move(players))
-    {
-      Check(Archives);
-      Check(Players);
-    }
-
-    bool IsValid() const override
-    {
-      return Archives || Players;
-    }
-
-    Plugin::Ptr Get() const override
-    {
-      return (Archives ? Archives->Get()->GetDescription() : Players->Get()->GetDescription());
-    }
-
-    void Next() override
-    {
-      if (Archives)
-      {
-        Next(Archives);
-      }
-      else
-      {
-        Next(Players);
-      }
-    }
-
-  private:
-    template<class T>
-    void Next(T& iter)
-    {
-      iter->Next();
-      Check(iter);
-    }
-
-    template<class T>
-    void Check(T& iter)
-    {
-      if (!iter->IsValid())
-      {
-        iter = T();
-      }
-    }
-
-  private:
-    ArchivePlugin::Iterator::Ptr Archives;
-    PlayerPlugin::Iterator::Ptr Players;
-  };
-
-  template<>
-  ArchivePluginsEnumerator::Ptr ArchivePluginsEnumerator::Create()
-  {
-    static ArchivePluginsContainer instance;
-    return MakeSingletonPointer(instance);
-  }
-
-  template<>
-  PlayerPluginsEnumerator::Ptr PlayerPluginsEnumerator::Create()
-  {
-    static PlayerPluginsContainer instance;
-    return PlayerPluginsEnumerator::Ptr(&instance, NullDeleter<PlayerPluginsEnumerator>());
-  }
-
-  Plugin::Iterator::Ptr EnumeratePlugins()
-  {
-    const ArchivePlugin::Iterator::Ptr archives = ArchivePluginsEnumerator::Create()->Enumerate();
-    const PlayerPlugin::Iterator::Ptr players = PlayerPluginsEnumerator::Create()->Enumerate();
-    return MakePtr<CompositePluginsIterator>(archives, players);
-  }
 
   Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)
   {

@@ -12,6 +12,7 @@
 
 // std includes
 #include <memory>
+#include <vector>
 
 namespace ZXTune
 {
@@ -26,5 +27,7 @@ namespace ZXTune
 
     //! Enumerate all supported plugins
     static Ptr Create();
+
+    static const std::vector<typename PluginType::Ptr>& GetPlugins();
   };
 }  // namespace ZXTune
