@@ -176,7 +176,7 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const IO::Identifier::Ptr Id;
     OnItemCallback& Callback;
-    const Log::ProgressCallback::Ptr ProgressCallback;
+    const std::unique_ptr<Log::ProgressCallback> ProgressCallback;
   };
 
   class Source : public SourceComponent

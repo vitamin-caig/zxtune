@@ -20,6 +20,7 @@
 #include <math/bitops.h>
 #include <parameters/template.h>
 #include <time/serialize.h>
+#include <tools/progress_callback_helpers.h>
 // std includes
 #include <atomic>
 #include <mutex>
@@ -205,9 +206,8 @@ namespace
       const uint_t totalItems = storage.CountItems();
       // according to STL spec: The number of comparisons is approximately N log N, where N is the list's size. Assume
       // that log is binary.
-      const Log::ProgressCallback::Ptr progress =
-          Log::CreatePercentProgressCallback(totalItems * Math::Log2(totalItems), cb);
-      const ComparisonsCounter countingComparer(*Comparer, *progress);
+      Log::PercentProgressCallback progress(totalItems * Math::Log2(totalItems), cb);
+      const ComparisonsCounter countingComparer(*Comparer, progress);
       storage.Sort(countingComparer);
     }
 

@@ -14,6 +14,8 @@
 #include "storage.h"
 // common includes
 #include <make_ptr.h>
+// library includes
+#include <tools/progress_callback_helpers.h>
 // std includes
 #include <numeric>
 
@@ -278,8 +280,8 @@ namespace
                      typename PropertyModel<T>::Visitor& visitor)
   {
     const std::size_t totalItems = model.CountItems();
-    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
-    const PropertyModelWithProgress<T> modelWrapper(model, *progress);
+    Log::PercentProgressCallback progress(static_cast<uint_t>(totalItems), cb);
+    const PropertyModelWithProgress<T> modelWrapper(model, progress);
     modelWrapper.ForAllItems(visitor);
   }
 
@@ -288,8 +290,8 @@ namespace
                             Log::ProgressCallback& cb, typename PropertyModel<T>::Visitor& visitor)
   {
     const std::size_t totalItems = model.CountItems() + selectedItems.size();
-    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
-    const PropertyModelWithProgress<T> modelWrapper(model, *progress);
+    Log::PercentProgressCallback progress(static_cast<uint_t>(totalItems), cb);
+    const PropertyModelWithProgress<T> modelWrapper(model, progress);
 
     PropertiesCollector<T> selectedProps;
     modelWrapper.ForSpecifiedItems(selectedItems, selectedProps);
@@ -302,8 +304,8 @@ namespace
                               Log::ProgressCallback& cb, typename PropertyModel<T>::Visitor& visitor)
   {
     const std::size_t totalItems = selectedItems.size();
-    const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
-    const PropertyModelWithProgress<uint32_t> modelWrapper(model, *progress);
+    Log::PercentProgressCallback progress(static_cast<uint_t>(totalItems), cb);
+    const PropertyModelWithProgress<uint32_t> modelWrapper(model, progress);
     modelWrapper.ForSpecifiedItems(selectedItems, visitor);
   }
 

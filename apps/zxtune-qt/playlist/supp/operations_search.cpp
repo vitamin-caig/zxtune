@@ -15,6 +15,8 @@
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
+// library includes
+#include <tools/progress_callback_helpers.h>
 // qt includes
 #include <QtCore/QRegExp>
 
@@ -79,8 +81,8 @@ namespace
     void Execute(const Playlist::Item::Storage& stor, Log::ProgressCallback& cb) override
     {
       const std::size_t totalItems = SelectedItems ? SelectedItems->size() : stor.CountItems();
-      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(totalItems, cb);
-      SearchVisitor visitor(Pred, *progress);
+      Log::PercentProgressCallback progress(totalItems, cb);
+      SearchVisitor visitor(Pred, progress);
       if (SelectedItems)
       {
         stor.ForSpecifiedItems(*SelectedItems, visitor);

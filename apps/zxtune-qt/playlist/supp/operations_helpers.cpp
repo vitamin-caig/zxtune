@@ -11,6 +11,8 @@
 // local includes
 #include "operations_helpers.h"
 #include "storage.h"
+// library includes
+#include <tools/progress_callback_helpers.h>
 
 namespace
 {
@@ -44,9 +46,8 @@ namespace Playlist
                           Log::ProgressCallback& cb)
     {
       const std::size_t totalItems = selectedItems ? selectedItems->size() : stor.CountItems();
-      const Log::ProgressCallback::Ptr progress =
-          Log::CreatePercentProgressCallback(static_cast<uint_t>(totalItems), cb);
-      ProgressModelVisitor progressed(visitor, *progress);
+      Log::PercentProgressCallback progress(static_cast<uint_t>(totalItems), cb);
+      ProgressModelVisitor progressed(visitor, progress);
       if (selectedItems)
       {
         stor.ForSpecifiedItems(*selectedItems, progressed);
