@@ -20,14 +20,6 @@ namespace ZXTune
   class PluginsEnumerator
   {
   public:
-    typedef std::shared_ptr<const PluginsEnumerator> Ptr;
-    virtual ~PluginsEnumerator() = default;
-
-    virtual typename PluginType::Iterator::Ptr Enumerate() const = 0;
-
-    //! Enumerate all supported plugins
-    static Ptr Create();
-
     static const std::vector<typename PluginType::Ptr>& GetPlugins();
   };
 }  // namespace ZXTune

@@ -9,10 +9,10 @@
  **/
 
 // local includes
+#include "jni_api.h"
 #include "module.h"
 #include "player.h"
 #include "plugin.h"
-#include "jni_api.h"
 // library includes
 #include <core/plugin.h>
 // platform includes

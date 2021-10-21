@@ -12,10 +12,9 @@
 #include "core/plugins/archives/archived.h"
 #include "core/plugins/archives/l10n.h"
 #include "core/plugins/plugins_types.h"
-#include "core/plugins/utils.h"
-#include "core/src/callback.h"
 // common includes
 #include <make_ptr.h>
+#include <progress_callback.h>
 // library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>

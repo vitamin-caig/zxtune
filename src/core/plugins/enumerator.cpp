@@ -94,23 +94,6 @@ namespace ZXTune
     }
   };
 
-  template<class PluginType>
-  class Enumerator : public PluginsEnumerator<PluginType>
-  {
-  public:
-    Enumerator(const std::vector<typename PluginType::Ptr>& plugins)
-      : Plugins(plugins)
-    {}
-
-    typename PluginType::Iterator::Ptr Enumerate() const override
-    {
-      return CreateRangedObjectIteratorAdapter(Plugins.begin(), Plugins.end());
-    }
-
-  protected:
-    const std::vector<typename PluginType::Ptr>& Plugins;
-  };
-
   template<>
   const std::vector<ArchivePlugin::Ptr>& ArchivePluginsEnumerator::GetPlugins()
   {
@@ -118,23 +101,9 @@ namespace ZXTune
   }
 
   template<>
-  ArchivePluginsEnumerator::Ptr ArchivePluginsEnumerator::Create()
-  {
-    static const Enumerator<ArchivePlugin> instance(ArchivePluginsEnumerator::GetPlugins());
-    return MakeSingletonPointer(instance);
-  }
-
-  template<>
   const std::vector<PlayerPlugin::Ptr>& PlayerPluginsEnumerator::GetPlugins()
   {
     return AllPlugins::Instance().Players;
-  }
-
-  template<>
-  PlayerPluginsEnumerator::Ptr PlayerPluginsEnumerator::Create()
-  {
-    static const Enumerator<PlayerPlugin> instance(PlayerPluginsEnumerator::GetPlugins());
-    return MakeSingletonPointer(instance);
   }
 
   Plugin::Iterator::Ptr EnumeratePlugins()

@@ -20,6 +20,7 @@
 #include <progress_callback.h>
 // library includes
 #include <core/additional_files_resolve.h>
+#include <core/data_location.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
 #include <core/service.h>

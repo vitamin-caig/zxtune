@@ -10,7 +10,6 @@
 
 // local includes
 #include "core/plugins/players/plugin.h"
-#include "core/src/callback.h"
 #include <core/plugins/plugins_types.h>
 // common includes
 #include <make_ptr.h>

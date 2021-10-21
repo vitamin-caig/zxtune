@@ -11,7 +11,6 @@
 // local includes
 #include "core/plugins/archives/packed.h"
 #include "core/plugins/plugins_types.h"
-#include "core/src/callback.h"
 #include <core/plugin_attrs.h>
 // common includes
 #include <make_ptr.h>

@@ -19,7 +19,6 @@
 // library includes
 #include <core/core_parameters.h>
 #include <core/plugins/archives/raw_supp.h>
-#include <core/plugins/utils.h>
 #include <debug/log.h>
 #include <devices/aym/chip.h>
 #include <formats/archived/multitrack/filename.h>

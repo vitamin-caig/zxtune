@@ -22,6 +22,7 @@
 #include <contract.h>
 #include <progress_callback.h>
 // library includes
+#include <core/data_location.h>
 #include <core/service.h>
 #include <module/additional_files.h>
 
@@ -240,7 +241,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules(JNIEnv* env
   return Jni::Call(env, [=]() {
     ProgressCallback progressAdapter(env, progress);
     DetectCallback callbackAdapter(env, cb, progressAdapter.Get());
-    Module::Detect(Parameters::GlobalOptions(), Binary::CreateByteBufferContainer(env, buffer), callbackAdapter);
+    GetService().DetectModules(Binary::CreateByteBufferContainer(env, buffer), callbackAdapter);
   });
 }
 
