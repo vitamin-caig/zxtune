@@ -47,7 +47,7 @@ namespace
     }
   }
 
-  class PluginsTreeHelper
+  class PluginsTreeHelper : public ZXTune::PluginVisitor
   {
   public:
     explicit PluginsTreeHelper(QTreeWidget& widget)
@@ -59,7 +59,7 @@ namespace
       FillContainersByTypes();
     }
 
-    void AddPlugin(const ZXTune::Plugin& plugin)
+    void Visit(const ZXTune::Plugin& plugin) override
     {
       using namespace ZXTune::Capabilities::Category;
       switch (plugin.Capabilities() & MASK)
@@ -350,12 +350,7 @@ namespace
     void FillPluginsTree()
     {
       PluginsTreeHelper tree(*pluginsTree);
-
-      for (ZXTune::Plugin::Iterator::Ptr plugins = ZXTune::EnumeratePlugins(); plugins->IsValid(); plugins->Next())
-      {
-        const ZXTune::Plugin::Ptr plugin = plugins->Get();
-        tree.AddPlugin(*plugin);
-      }
+      ZXTune::EnumeratePlugins(tree);
     }
 
     void FillBackendsTree()

@@ -14,9 +14,14 @@
 #include "core/src/location.h"
 // library includes
 #include <analysis/result.h>
-#include <core/module_detect.h>
 #include <core/plugin.h>
+#include <module/holder.h>
 #include <parameters/container.h>
+
+namespace Module
+{
+  class DetectCallback;
+}
 
 namespace ZXTune
 {
@@ -24,8 +29,8 @@ namespace ZXTune
   {
   public:
     typedef std::shared_ptr<const PlayerPlugin> Ptr;
-    typedef ObjectIterator<PlayerPlugin::Ptr> Iterator;
-    virtual ~PlayerPlugin() = default;
+
+    static const std::vector<Ptr>& Enumerate();
 
     virtual Binary::Format::Ptr GetFormat() const = 0;
 

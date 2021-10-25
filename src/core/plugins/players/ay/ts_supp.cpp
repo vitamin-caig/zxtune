@@ -9,8 +9,6 @@
  **/
 
 // local includes
-#include "core/plugins/enumerator.h"
-#include "core/plugins/player_plugins_enumerator.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugin.h"
 // common includes
@@ -84,7 +82,7 @@ namespace Module::TS
     Module::Holder::Ptr TryOpenAYModule(const Binary::Container& data) const
     {
       const auto initialProperties = Parameters::Container::Create();
-      for (const auto& plugin : ZXTune::PlayerPluginsEnumerator::GetPlugins())
+      for (const auto& plugin : ZXTune::PlayerPlugin::Enumerate())
       {
         if (!IsAYPlugin(*plugin))
         {

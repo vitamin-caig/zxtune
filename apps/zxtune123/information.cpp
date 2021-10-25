@@ -212,11 +212,17 @@ namespace
 
   inline void ShowPlugins()
   {
-    StdOut << "Supported plugins:" << std::endl;
-    for (ZXTune::Plugin::Iterator::Ptr plugins = ZXTune::EnumeratePlugins(); plugins->IsValid(); plugins->Next())
+    class PluginsPrinter : public ZXTune::PluginVisitor
     {
-      StdOut << DescribePlugin(*plugins->Get());
-    }
+    public:
+      void Visit(const ZXTune::Plugin& plugin) override
+      {
+        StdOut << DescribePlugin(plugin);
+      }
+    };
+    StdOut << "Supported plugins:" << std::endl;
+    PluginsPrinter print;
+    ZXTune::EnumeratePlugins(print);
   }
 
   inline String DescribeBackend(const Sound::BackendInformation& info)

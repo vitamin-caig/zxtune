@@ -13,6 +13,7 @@
 // common includes
 #include <make_ptr.h>
 // library includes
+#include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <module/attributes.h>
 #include <module/players/properties_helper.h>

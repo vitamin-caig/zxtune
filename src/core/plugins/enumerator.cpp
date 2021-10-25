@@ -9,9 +9,7 @@
  **/
 
 // local includes
-#include "core/plugins/archive_plugins_enumerator.h"
 #include "core/plugins/archives/plugins_list.h"
-#include "core/plugins/player_plugins_enumerator.h"
 #include "core/plugins/players/plugins_list.h"
 #include "core/plugins/registrator.h"
 #include "core/src/l10n.h"
@@ -34,9 +32,8 @@ namespace ZXTune
   class Registrator : public PluginsRegistrator<PluginType>
   {
   public:
-    Registrator(std::vector<typename PluginType::Ptr>& typed, std::vector<Plugin::Ptr>& all)
+    explicit Registrator(std::vector<typename PluginType::Ptr>& typed)
       : Typed(typed)
-      , All(all)
     {}
 
     ~Registrator() override
@@ -46,15 +43,13 @@ namespace ZXTune
 
     void RegisterPlugin(typename PluginType::Ptr plugin) override
     {
-      Typed.emplace_back(plugin);
       EnumeratorDbg("Registered %1%", plugin->Id());
-      All.emplace_back(std::move(plugin));
+      Typed.emplace_back(std::move(plugin));
     }
 
   private:
     const Time::Timer Timer;
     std::vector<typename PluginType::Ptr>& Typed;
-    std::vector<Plugin::Ptr>& All;
   };
 
   class AllPlugins
@@ -66,49 +61,56 @@ namespace ZXTune
       return INSTANCE;
     }
 
+    void Enumerate(PluginVisitor& visitor) const
+    {
+      for (const auto& arch : Archives)
+      {
+        visitor.Visit(*arch);
+      }
+      for (const auto& play : Players)
+      {
+        visitor.Visit(*play);
+      }
+    }
+
     std::vector<ArchivePlugin::Ptr> Archives;
     std::vector<PlayerPlugin::Ptr> Players;
-    std::vector<Plugin::Ptr> All;
 
   private:
     AllPlugins()
     {
       Archives.reserve(128);
       Players.reserve(256);
-      All.reserve(384);
       RegisterArchivePlugins();
       RegisterPlayerPlugins();
     }
 
     void RegisterArchivePlugins()
     {
-      Registrator<ArchivePlugin> registrator(Archives, All);
+      Registrator<ArchivePlugin> registrator(Archives);
       ZXTune::RegisterArchivePlugins(registrator);
     }
 
     void RegisterPlayerPlugins()
     {
-      Registrator<PlayerPlugin> registrator(Players, All);
+      Registrator<PlayerPlugin> registrator(Players);
       ZXTune::RegisterPlayerPlugins(registrator);
     }
   };
 
-  template<>
-  const std::vector<ArchivePlugin::Ptr>& ArchivePluginsEnumerator::GetPlugins()
+  const std::vector<ArchivePlugin::Ptr>& ArchivePlugin::Enumerate()
   {
     return AllPlugins::Instance().Archives;
   }
 
-  template<>
-  const std::vector<PlayerPlugin::Ptr>& PlayerPluginsEnumerator::GetPlugins()
+  const std::vector<PlayerPlugin::Ptr>& PlayerPlugin::Enumerate()
   {
     return AllPlugins::Instance().Players;
   }
 
-  Plugin::Iterator::Ptr EnumeratePlugins()
+  void EnumeratePlugins(PluginVisitor& visitor)
   {
-    const auto& plugins = AllPlugins::Instance().All;
-    return CreateRangedObjectIteratorAdapter(plugins.begin(), plugins.end());
+    AllPlugins::Instance().Enumerate(visitor);
   }
 }  // namespace ZXTune
 

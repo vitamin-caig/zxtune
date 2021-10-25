@@ -9,8 +9,8 @@
  **/
 
 // local includes
-#include "core/plugins/archive_plugins_enumerator.h"
-#include "core/plugins/player_plugins_enumerator.h"
+#include "core/plugins/archive_plugin.h"
+#include "core/plugins/player_plugin.h"
 #include "core/src/callback.h"
 #include "core/src/l10n.h"
 #include "core/src/location.h"
@@ -215,7 +215,7 @@ namespace ZXTune
     {
       ResolveAdditionalFilesAdapter adapter(*this, data, callback);
       auto location = OpenLocation(std::move(data), subpath);
-      if (!DetectBy(PlayerPlugins, std::move(location), adapter))
+      if (!DetectBy(PlayerPlugin::Enumerate(), std::move(location), adapter))
       {
         throw Error(THIS_LINE, translate("Failed to find module at specified location."));
       }
@@ -246,7 +246,7 @@ namespace ZXTune
 
     DataLocation::Ptr TryToOpenLocation(DataLocation::Ptr location, const Analysis::Path& subPath) const
     {
-      for (const auto& plugin : ArchivePlugins)
+      for (const auto& plugin : ArchivePlugin::Enumerate())
       {
         if (auto result = plugin->TryOpen(*Params, location, subPath))
         {
@@ -258,7 +258,7 @@ namespace ZXTune
 
     Module::Holder::Ptr OpenModule(const Binary::Container& data, Parameters::Container::Ptr initialProperties) const
     {
-      for (const auto& plugin : PlayerPlugins)
+      for (const auto& plugin : PlayerPlugin::Enumerate())
       {
         if (auto res = plugin->TryOpen(*Params, data, initialProperties))
         {
@@ -270,7 +270,7 @@ namespace ZXTune
 
     void DetectModules(DataLocation::Ptr location, Module::DetectCallback& callback) const
     {
-      DetectInArchives(location, callback) || DetectBy(PlayerPlugins, std::move(location), callback);
+      DetectInArchives(location, callback) || DetectBy(PlayerPlugin::Enumerate(), std::move(location), callback);
     }
 
     class RecursiveDetectionAdapter : public ArchiveCallback
@@ -313,7 +313,7 @@ namespace ZXTune
       // Track progress only for top-level container
       const auto useProgress = location->GetPath()->Empty();
       RecursiveDetectionAdapter adapter(*this, callback, useProgress);
-      return DetectBy(ArchivePlugins, std::move(location), adapter);
+      return DetectBy(ArchivePlugin::Enumerate(), std::move(location), adapter);
     }
 
     template<class PluginsSet, class CallbackType>
@@ -333,8 +333,6 @@ namespace ZXTune
 
   private:
     const Parameters::Accessor::Ptr Params;
-    const std::vector<ArchivePlugin::Ptr>& ArchivePlugins = ArchivePluginsEnumerator::GetPlugins();
-    const std::vector<PlayerPlugin::Ptr>& PlayerPlugins = PlayerPluginsEnumerator::GetPlugins();
   };
 
   Service::Ptr Service::Create(Parameters::Accessor::Ptr parameters)

@@ -9,7 +9,6 @@
  **/
 
 // local includes
-#include "core/plugins/player_plugins_enumerator.h"
 #include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/multi/multi_base.h"
 #include "core/plugins/players/plugin.h"
@@ -232,7 +231,7 @@ namespace Module::MTC
       {
         const auto initialProperties =
             Parameters::CreateMergedContainer(std::move(baseProperties), Parameters::Container::Create());
-        for (const auto& plugin : ZXTune::PlayerPluginsEnumerator::GetPlugins())
+        for (const auto& plugin : ZXTune::PlayerPlugin::Enumerate())
         {
           if (auto result = plugin->TryOpen(Params, *data, initialProperties))
           {

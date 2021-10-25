@@ -36,8 +36,8 @@ namespace ZXTune
   {
   public:
     typedef std::shared_ptr<const ArchivePlugin> Ptr;
-    typedef ObjectIterator<ArchivePlugin::Ptr> Iterator;
-    virtual ~ArchivePlugin() = default;
+
+    static const std::vector<Ptr>& Enumerate();
 
     virtual Binary::Format::Ptr GetFormat() const = 0;
 

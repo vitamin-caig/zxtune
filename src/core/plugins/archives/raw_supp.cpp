@@ -11,10 +11,9 @@
 // local includes
 #include "core/plugins/archives/raw_supp.h"
 #include "core/plugins/archives/archived.h"
-#include <core/plugins/archive_plugins_enumerator.h>
 #include <core/plugins/archive_plugins_registrator.h>
 #include <core/plugins/archives/l10n.h>
-#include <core/plugins/player_plugins_enumerator.h>
+#include <core/plugins/players/plugin.h>
 // common includes
 #include <error_tools.h>
 #include <make_ptr.h>
@@ -475,11 +474,11 @@ namespace ZXTune::Raw
     };
     typedef typename std::vector<PluginEntry> PluginsList;
 
-    class IteratorImpl : public P::Iterator
+  public:
+    class Iterator
     {
     public:
-      IteratorImpl(typename PluginsList::const_iterator it, typename PluginsList::const_iterator lim,
-                   std::size_t offset)
+      Iterator(typename PluginsList::const_iterator it, typename PluginsList::const_iterator lim, std::size_t offset)
         : Cur(std::move(it))
         , Lim(std::move(lim))
         , Offset(offset)
@@ -487,18 +486,18 @@ namespace ZXTune::Raw
         SkipUnaffected();
       }
 
-      bool IsValid() const override
+      bool IsValid() const
       {
         return Cur != Lim;
       }
 
-      typename P::Ptr Get() const override
+      typename P::Ptr Get() const
       {
         assert(Cur != Lim);
         return Cur->Plugin;
       }
 
-      void Next() override
+      void Next()
       {
         assert(Cur != Lim);
         ++Cur;
@@ -520,7 +519,6 @@ namespace ZXTune::Raw
       const std::size_t Offset;
     };
 
-  public:
     template<class Container>
     explicit LookaheadPluginsStorage(const Container& plugins)
       : Offset()
@@ -531,9 +529,9 @@ namespace ZXTune::Raw
       }
     }
 
-    typename P::Iterator::Ptr Enumerate() const
+    Iterator Enumerate() const
     {
-      return MakePtr<IteratorImpl>(Plugins.begin(), Plugins.end(), Offset);
+      return Iterator(Plugins.begin(), Plugins.end(), Offset);
     }
 
     std::size_t GetMinimalPluginLookahead() const
@@ -625,7 +623,7 @@ namespace ZXTune::Raw
   private:
     DoubleAnalyzedArchives()
     {
-      const auto& original = ArchivePluginsEnumerator::GetPlugins();
+      const auto& original = ArchivePlugin::Enumerate();
       Plugins.resize(original.size());
       std::transform(original.begin(), original.end(), Plugins.begin(), &MakeDoubleAnalyzed);
     }
@@ -646,9 +644,8 @@ namespace ZXTune::Raw
   public:
     RawDetectionPlugins(const Parameters::Accessor& params, bool plainArchivesDoubleAnalysis)
       : Params(params)
-      , Players(PlayerPluginsEnumerator::GetPlugins())
-      , Archives(plainArchivesDoubleAnalysis ? DoubleAnalyzedArchives::GetPlugins()
-                                             : ArchivePluginsEnumerator::GetPlugins())
+      , Players(PlayerPlugin::Enumerate())
+      , Archives(plainArchivesDoubleAnalysis ? DoubleAnalyzedArchives::GetPlugins() : ArchivePlugin::Enumerate())
       , Offset()
     {}
 
@@ -691,10 +688,10 @@ namespace ZXTune::Raw
     {
       const bool initialScan = 0 == Offset;
       const std::size_t maxSize = input->GetData()->Size();
-      for (const auto iter = container.Enumerate(); iter->IsValid(); iter->Next())
+      for (auto iter = container.Enumerate(); iter.IsValid(); iter.Next())
       {
         const Time::Timer detectTimer;
-        const auto plugin = iter->Get();
+        const auto plugin = iter.Get();
         const auto result = plugin->Detect(Params, input, callback);
         const auto id = plugin->Id();
         if (const auto usedSize = result->GetMatchedDataSize())

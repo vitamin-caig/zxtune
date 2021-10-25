@@ -47,5 +47,10 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* /*reserved*/)
 
 JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_forcedInit(JNIEnv* /*env*/, jobject /*self*/)
 {
-  ZXTune::EnumeratePlugins();
+  class EmptyVisitor : public ZXTune::PluginVisitor
+  {
+  public:
+    void Visit(const ZXTune::Plugin&) {}
+  } stub;
+  ZXTune::EnumeratePlugins(stub);
 }
