@@ -11,7 +11,6 @@
 // local includes
 #include "core/plugins/archives/archived.h"
 #include "core/plugins/archives/l10n.h"
-#include "core/plugins/plugins_types.h"
 // common includes
 #include <make_ptr.h>
 #include <progress_callback.h>
@@ -101,15 +100,25 @@ namespace ZXTune
   class ArchivedContainerPlugin : public ArchivePlugin
   {
   public:
-    ArchivedContainerPlugin(Plugin::Ptr descr, Formats::Archived::Decoder::Ptr decoder)
-      : Description(std::move(descr))
+    ArchivedContainerPlugin(StringView id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
+      : Identifier(id.to_string())
+      , Caps(caps)
       , Decoder(std::move(decoder))
-      , SupportDirectories(0 != (Description->Capabilities() & Capabilities::Container::Traits::DIRECTORIES))
     {}
 
-    Plugin::Ptr GetDescription() const override
+    String Id() const override
     {
-      return Description;
+      return Identifier;
+    }
+
+    String Description() const override
+    {
+      return Decoder->GetDescription();
+    }
+
+    uint_t Capabilities() const override
+    {
+      return Caps;
     }
 
     Binary::Format::Ptr GetFormat() const override
@@ -125,7 +134,7 @@ namespace ZXTune
       {
         if (const auto count = archive->CountFiles())
         {
-          ContainerDetectCallback detect(~std::size_t(0), Description->Id(), input, count, callback);
+          ContainerDetectCallback detect(~std::size_t(0), Identifier, input, count, callback);
           archive->ExploreFiles(detect);
         }
         return Analysis::CreateMatchedResult(archive->Size());
@@ -143,8 +152,7 @@ namespace ZXTune
         {
           if (auto subData = fileToOpen->GetData())
           {
-            return CreateNestedLocation(std::move(location), std::move(subData), Description->Id(),
-                                        fileToOpen->GetName());
+            return CreateNestedLocation(std::move(location), std::move(subData), Identifier, fileToOpen->GetName());
           }
         }
       }
@@ -152,6 +160,11 @@ namespace ZXTune
     }
 
   private:
+    bool SupportDirectories() const
+    {
+      return 0 != (Caps & Capabilities::Container::Traits::DIRECTORIES);
+    }
+
     Formats::Archived::File::Ptr FindFile(const Formats::Archived::Container& container,
                                           const Analysis::Path& path) const
     {
@@ -166,7 +179,7 @@ namespace ZXTune
           ArchivedDbg("Found");
           return file;
         }
-        if (!SupportDirectories)
+        if (!SupportDirectories())
         {
           break;
         }
@@ -175,9 +188,9 @@ namespace ZXTune
     }
 
   private:
-    const Plugin::Ptr Description;
+    const String Identifier;
+    const uint_t Caps;
     const Formats::Archived::Decoder::Ptr Decoder;
-    const bool SupportDirectories;
   };
 
   class OnceAppliedContainerPluginAdapter : public ArchivePlugin
@@ -185,12 +198,22 @@ namespace ZXTune
   public:
     explicit OnceAppliedContainerPluginAdapter(ArchivePlugin::Ptr delegate)
       : Delegate(std::move(delegate))
-      , Id(Delegate->GetDescription()->Id())
+      , Identifier(Delegate->Id())
     {}
 
-    Plugin::Ptr GetDescription() const override
+    String Id() const override
     {
-      return Delegate->GetDescription();
+      return Identifier;
+    }
+
+    String Description() const override
+    {
+      return Delegate->Description();
+    }
+
+    uint_t Capabilities() const
+    {
+      return Delegate->Capabilities();
     }
 
     Binary::Format::Ptr GetFormat() const override
@@ -229,7 +252,7 @@ namespace ZXTune
     {
       for (auto it = path.GetIterator(); it->IsValid(); it->Next())
       {
-        if (it->Get() == Id)
+        if (it->Get() == Identifier)
         {
           return true;
         }
@@ -239,16 +262,15 @@ namespace ZXTune
 
   private:
     const ArchivePlugin::Ptr Delegate;
-    const String Id;
+    const String Identifier;
   };
 }  // namespace ZXTune
 
 namespace ZXTune
 {
-  ArchivePlugin::Ptr CreateArchivePlugin(const String& id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
+  ArchivePlugin::Ptr CreateArchivePlugin(StringView id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
-    auto description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
-    auto result = MakePtr<ArchivedContainerPlugin>(description, decoder);
+    auto result = MakePtr<ArchivedContainerPlugin>(id, caps | Capabilities::Category::CONTAINER, decoder);
     return 0 != (caps & Capabilities::Container::Traits::ONCEAPPLIED)
                ? MakePtr<OnceAppliedContainerPluginAdapter>(std::move(result))
                : result;

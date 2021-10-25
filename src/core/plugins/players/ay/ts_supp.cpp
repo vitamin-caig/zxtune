@@ -100,7 +100,7 @@ namespace Module::TS
 
     static bool IsAYPlugin(const ZXTune::PlayerPlugin& plugin)
     {
-      return 0 != (plugin.GetDescription()->Capabilities() & ZXTune::Capabilities::Module::Device::AY38910);
+      return 0 != (plugin.Capabilities() & ZXTune::Capabilities::Module::Device::AY38910);
     }
 
   private:

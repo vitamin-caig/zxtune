@@ -17,5 +17,5 @@
 
 namespace ZXTune
 {
-  ArchivePlugin::Ptr CreateArchivePlugin(const String& id, uint_t caps, Formats::Packed::Decoder::Ptr decoder);
+  ArchivePlugin::Ptr CreateArchivePlugin(StringView id, uint_t caps, Formats::Packed::Decoder::Ptr decoder);
 }

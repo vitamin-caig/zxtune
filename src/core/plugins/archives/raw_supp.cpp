@@ -15,7 +15,6 @@
 #include <core/plugins/archive_plugins_registrator.h>
 #include <core/plugins/archives/l10n.h>
 #include <core/plugins/player_plugins_enumerator.h>
-#include <core/plugins/plugins_types.h>
 // common includes
 #include <error_tools.h>
 #include <make_ptr.h>
@@ -256,7 +255,7 @@ namespace ZXTune
       StatItem& res = Detection[key];
       if (res.Name.empty())
       {
-        res.Name = plug.GetDescription()->Description();
+        res.Name = plug.Description();
         res.Index = Detection.size() - 1;
       }
       return Detection[key];
@@ -398,9 +397,8 @@ namespace ZXTune::Raw
   public:
     typedef std::shared_ptr<ScanDataLocation> Ptr;
 
-    ScanDataLocation(DataLocation::Ptr parent, String subPlugin, std::size_t offset)
+    ScanDataLocation(DataLocation::Ptr parent, std::size_t offset)
       : Parent(std::move(parent))
-      , Subplugin(std::move(subPlugin))
       , Subdata(MakePtr<ScanDataContainer>(Parent->GetData(), offset))
     {}
 
@@ -425,7 +423,7 @@ namespace ZXTune::Raw
       const Analysis::Path::Ptr parentPlugins = Parent->GetPluginsChain();
       if (Subdata->GetOffset())
       {
-        return parentPlugins->Append(Subplugin);
+        return parentPlugins->Append(ID);
       }
       return parentPlugins;
     }
@@ -455,7 +453,6 @@ namespace ZXTune::Raw
 
   private:
     const DataLocation::Ptr Parent;
-    const String Subplugin;
     ScanDataContainer::Ptr Subdata;
   };
 
@@ -575,9 +572,19 @@ namespace ZXTune::Raw
       : Delegate(std::move(delegate))
     {}
 
-    Plugin::Ptr GetDescription() const override
+    String Id() const override
     {
-      return Delegate->GetDescription();
+      return Delegate->Id();
+    }
+
+    String Description() const override
+    {
+      return Delegate->Description();
+    }
+
+    uint_t Capabilities() const
+    {
+      return Delegate->Capabilities();
     }
 
     Binary::Format::Ptr GetFormat() const override
@@ -625,8 +632,7 @@ namespace ZXTune::Raw
 
     static ArchivePlugin::Ptr MakeDoubleAnalyzed(ArchivePlugin::Ptr plugin)
     {
-      const auto desc = plugin->GetDescription();
-      return 0 != (desc->Capabilities() & Capabilities::Container::Traits::PLAIN)
+      return 0 != (plugin->Capabilities() & Capabilities::Container::Traits::PLAIN)
                  ? MakePtr<DoubleAnalyzedArchivePlugin>(std::move(plugin))
                  : plugin;
     }
@@ -648,7 +654,7 @@ namespace ZXTune::Raw
 
     void Deny(const ArchivePlugin& denied)
     {
-      Archives.SetPluginLookahead(denied, denied.GetDescription()->Id(), ~std::size_t(0));
+      Archives.SetPluginLookahead(denied, denied.Id(), ~std::size_t(0));
     }
 
     std::size_t Detect(DataLocation::Ptr input, ArchiveCallback& callback)
@@ -690,7 +696,7 @@ namespace ZXTune::Raw
         const Time::Timer detectTimer;
         const auto plugin = iter->Get();
         const auto result = plugin->Detect(Params, input, callback);
-        const auto id = plugin->GetDescription()->Id();
+        const auto id = plugin->Id();
         if (const auto usedSize = result->GetMatchedDataSize())
         {
           Statistic::Self().AddAimed(*plugin, detectTimer);
@@ -732,13 +738,21 @@ namespace ZXTune::Raw
   class Scaner : public ArchivePlugin
   {
   public:
-    Scaner()
-      : Description(CreatePluginDescription(ID, INFO, CAPS))
-    {}
+    Scaner() = default;
 
-    Plugin::Ptr GetDescription() const override
+    String Id() const override
     {
-      return Description;
+      return ID;
+    }
+
+    String Description() const override
+    {
+      return INFO;
+    }
+
+    uint_t Capabilities() const override
+    {
+      return CAPS;
     }
 
     Binary::Format::Ptr GetFormat() const override
@@ -768,7 +782,7 @@ namespace ZXTune::Raw
       RawDetectionPlugins usedPlugins(params, scanParams.GetDoubleAnalysis());
       usedPlugins.Deny(*this);
 
-      auto subLocation = MakePtr<ScanDataLocation>(input, Description->Id(), 0);
+      auto subLocation = MakePtr<ScanDataLocation>(input, 0);
 
       while (subLocation->HasToScan(minRawSize))
       {
@@ -779,7 +793,7 @@ namespace ZXTune::Raw
         if (!subLocation.unique())
         {
           Dbg("Sublocation is captured. Duplicate.");
-          subLocation = MakePtr<ScanDataLocation>(input, Description->Id(), offset);
+          subLocation = MakePtr<ScanDataLocation>(input, offset);
         }
         subLocation->Move(std::max(bytesToSkip, SCAN_STEP));
       }
@@ -796,13 +810,10 @@ namespace ZXTune::Raw
         const auto offset = pathIndex.GetIndex();
         const auto inData = location->GetData();
         auto subData = inData->GetSubcontainer(offset, inData->Size() - offset);
-        return CreateNestedLocation(std::move(location), std::move(subData), Description->Id(), pathComp);
+        return CreateNestedLocation(std::move(location), std::move(subData), ID, pathComp);
       }
       return {};
     }
-
-  private:
-    const Plugin::Ptr Description;
   };
 }  // namespace ZXTune::Raw
 
@@ -810,7 +821,7 @@ namespace ZXTune
 {
   void RegisterRawContainer(ArchivePluginsRegistrator& registrator)
   {
-    const ArchivePlugin::Ptr plugin = MakePtr<Raw::Scaner>();
-    registrator.RegisterPlugin(plugin);
+    auto plugin = MakePtr<Raw::Scaner>();
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

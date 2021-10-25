@@ -324,8 +324,7 @@ namespace ZXTune
         const auto result = plugin->Detect(*Params, location, callback);
         if (auto usedSize = result->GetMatchedDataSize())
         {
-          Dbg("Detected %1% in %2% bytes at %3%.", plugin->GetDescription()->Id(), usedSize,
-              location->GetPath()->AsString());
+          Dbg("Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, location->GetPath()->AsString());
           return usedSize;
         }
       }

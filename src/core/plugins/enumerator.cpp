@@ -46,10 +46,9 @@ namespace ZXTune
 
     void RegisterPlugin(typename PluginType::Ptr plugin) override
     {
-      auto description = plugin->GetDescription();
-      Typed.emplace_back(std::move(plugin));
-      EnumeratorDbg("Registered %1%", description->Id());
-      All.emplace_back(std::move(description));
+      Typed.emplace_back(plugin);
+      EnumeratorDbg("Registered %1%", plugin->Id());
+      All.emplace_back(std::move(plugin));
     }
 
   private:
@@ -110,41 +109,6 @@ namespace ZXTune
   {
     const auto& plugins = AllPlugins::Instance().All;
     return CreateRangedObjectIteratorAdapter(plugins.begin(), plugins.end());
-  }
-
-  class SimplePluginDescription : public Plugin
-  {
-  public:
-    SimplePluginDescription(String id, String info, uint_t capabilities)
-      : ID(std::move(id))
-      , Info(std::move(info))
-      , Caps(capabilities)
-    {}
-
-    String Id() const override
-    {
-      return ID;
-    }
-
-    String Description() const override
-    {
-      return Info;
-    }
-
-    uint_t Capabilities() const override
-    {
-      return Caps;
-    }
-
-  private:
-    const String ID;
-    const String Info;
-    const uint_t Caps;
-  };
-
-  Plugin::Ptr CreatePluginDescription(const String& id, const String& info, uint_t capabilities)
-  {
-    return MakePtr<SimplePluginDescription>(id, info, capabilities);
   }
 }  // namespace ZXTune
 

@@ -32,14 +32,13 @@ namespace ZXTune
     virtual void ProcessData(DataLocation::Ptr data) = 0;
   };
 
-  class ArchivePlugin
+  class ArchivePlugin : public Plugin
   {
   public:
     typedef std::shared_ptr<const ArchivePlugin> Ptr;
     typedef ObjectIterator<ArchivePlugin::Ptr> Iterator;
     virtual ~ArchivePlugin() = default;
 
-    virtual Plugin::Ptr GetDescription() const = 0;
     virtual Binary::Format::Ptr GetFormat() const = 0;
 
     //! @brief Detect modules in data

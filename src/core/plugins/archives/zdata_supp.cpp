@@ -10,7 +10,6 @@
 
 // local includes
 #include "core/plugins/archive_plugins_registrator.h"
-#include "core/plugins/plugins_types.h"
 #include "core/src/location.h"
 // common includes
 #include <byteorder.h>
@@ -259,18 +258,26 @@ namespace ZXTune::Zdata
   class Plugin : public ArchivePlugin
   {
   public:
-    Plugin()
-      : Description(CreatePluginDescription(ID, INFO, CAPS))
-    {}
+    Plugin() = default;
 
-    ZXTune::Plugin::Ptr GetDescription() const override
+    String Id() const override
     {
-      return Description;
+      return ID;
+    }
+
+    String Description() const override
+    {
+      return INFO;
+    }
+
+    uint_t Capabilities() const override
+    {
+      return CAPS;
     }
 
     Binary::Format::Ptr GetFormat() const override
     {
-      return Binary::Format::Ptr();
+      return {};
     }
 
     Analysis::Result::Ptr Detect(const Parameters::Accessor& /*params*/, DataLocation::Ptr input,
@@ -294,9 +301,6 @@ namespace ZXTune::Zdata
       }
       return {};
     }
-
-  private:
-    const ZXTune::Plugin::Ptr Description;
   };
 }  // namespace ZXTune::Zdata
 

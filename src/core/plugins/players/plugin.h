@@ -18,6 +18,6 @@
 
 namespace ZXTune
 {
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
+  PlayerPlugin::Ptr CreatePlayerPlugin(StringView id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
                                        Module::Factory::Ptr factory);
 }

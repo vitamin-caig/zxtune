@@ -10,7 +10,6 @@
 
 // local includes
 #include "core/plugins/archives/packed.h"
-#include "core/plugins/plugins_types.h"
 #include <core/plugin_attrs.h>
 // common includes
 #include <make_ptr.h>
@@ -37,57 +36,28 @@ namespace ZXTune
     return component.substr(ARCHIVE_PLUGIN_PREFIX.size());
   }
 
-  Analysis::Result::Ptr DetectModulesInArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder,
-                                               DataLocation::Ptr inputData, ArchiveCallback& callback)
-  {
-    auto rawData = inputData->GetData();
-    if (auto subData = decoder.Decode(*rawData))
-    {
-      const auto packedSize = subData->PackedSize();
-      auto subPlugin = plugin->Id();
-      auto subPath = EncodeArchivePluginToPath(subPlugin);
-      auto subLocation =
-          CreateNestedLocation(std::move(inputData), std::move(subData), std::move(subPlugin), std::move(subPath));
-      callback.ProcessData(std::move(subLocation));
-      return Analysis::CreateMatchedResult(packedSize);
-    }
-    auto format = decoder.GetFormat();
-    return Analysis::CreateUnmatchedResult(std::move(format), std::move(rawData));
-  }
-
-  DataLocation::Ptr TryOpenDataFromArchive(Plugin::Ptr plugin, const Formats::Packed::Decoder& decoder,
-                                           DataLocation::Ptr inputData, const Analysis::Path& pathToOpen)
-  {
-    auto pathComponent = pathToOpen.GetIterator()->Get();
-    if (!IsArchivePluginPathComponent(pathComponent))
-    {
-      return {};
-    }
-    auto pluginId = DecodeArchivePluginFromPathComponent(pathComponent);
-    if (pluginId != plugin->Id())
-    {
-      return {};
-    }
-    const auto rawData = inputData->GetData();
-    if (auto subData = decoder.Decode(*rawData))
-    {
-      return CreateNestedLocation(std::move(inputData), std::move(subData), std::move(pluginId),
-                                  std::move(pathComponent));
-    }
-    return {};
-  }
-
   class CommonArchivePlugin : public ArchivePlugin
   {
   public:
-    CommonArchivePlugin(Plugin::Ptr descr, Formats::Packed::Decoder::Ptr decoder)
-      : Description(std::move(descr))
+    CommonArchivePlugin(StringView id, uint_t caps, Formats::Packed::Decoder::Ptr decoder)
+      : Identifier(id.to_string())
+      , Caps(caps)
       , Decoder(std::move(decoder))
     {}
 
-    Plugin::Ptr GetDescription() const override
+    String Id() const override
     {
-      return Description;
+      return Identifier;
+    }
+
+    String Description() const override
+    {
+      return Decoder->GetDescription();
+    }
+
+    uint_t Capabilities() const override
+    {
+      return Caps;
     }
 
     Binary::Format::Ptr GetFormat() const override
@@ -98,26 +68,53 @@ namespace ZXTune
     Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
                                  ArchiveCallback& callback) const override
     {
-      return DetectModulesInArchive(Description, *Decoder, std::move(inputData), callback);
+      auto rawData = inputData->GetData();
+      if (auto subData = Decoder->Decode(*rawData))
+      {
+        const auto packedSize = subData->PackedSize();
+        auto subPath = EncodeArchivePluginToPath(Identifier);
+        auto subLocation =
+            CreateNestedLocation(std::move(inputData), std::move(subData), Identifier, std::move(subPath));
+        callback.ProcessData(std::move(subLocation));
+        return Analysis::CreateMatchedResult(packedSize);
+      }
+      auto format = Decoder->GetFormat();
+      return Analysis::CreateUnmatchedResult(std::move(format), std::move(rawData));
     }
 
     DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr inputData,
                               const Analysis::Path& pathToOpen) const override
     {
-      return TryOpenDataFromArchive(Description, *Decoder, std::move(inputData), pathToOpen);
+      auto pathComponent = pathToOpen.GetIterator()->Get();
+      if (!IsArchivePluginPathComponent(pathComponent))
+      {
+        return {};
+      }
+      auto pluginId = DecodeArchivePluginFromPathComponent(pathComponent);
+      if (pluginId != Identifier)
+      {
+        return {};
+      }
+      const auto rawData = inputData->GetData();
+      if (auto subData = Decoder->Decode(*rawData))
+      {
+        return CreateNestedLocation(std::move(inputData), std::move(subData), std::move(pluginId),
+                                    std::move(pathComponent));
+      }
+      return {};
     }
 
   private:
-    const Plugin::Ptr Description;
+    const String Identifier;
+    const uint_t Caps;
     const Formats::Packed::Decoder::Ptr Decoder;
   };
 }  // namespace ZXTune
 
 namespace ZXTune
 {
-  ArchivePlugin::Ptr CreateArchivePlugin(const String& id, uint_t caps, Formats::Packed::Decoder::Ptr decoder)
+  ArchivePlugin::Ptr CreateArchivePlugin(StringView id, uint_t caps, Formats::Packed::Decoder::Ptr decoder)
   {
-    auto description = CreatePluginDescription(id, decoder->GetDescription(), caps | Capabilities::Category::CONTAINER);
-    return MakePtr<CommonArchivePlugin>(std::move(description), std::move(decoder));
+    return MakePtr<CommonArchivePlugin>(id, caps | Capabilities::Category::CONTAINER, std::move(decoder));
   }
 }  // namespace ZXTune
