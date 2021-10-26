@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
-#include <core/plugins/player_plugins_registrator.h>
-
 namespace ZXTune
 {
+  class PlayerPluginsRegistrator;
+
   void RegisterTSSupport(PlayerPluginsRegistrator& registrator);
   void RegisterAYSupport(PlayerPluginsRegistrator& registrator);
   void RegisterPSGSupport(PlayerPluginsRegistrator& registrator);

@@ -9,7 +9,7 @@
  **/
 
 // local includes
-#include <core/plugins/archive_plugins_registrator.h>
+#include <core/plugins/archives/plugins_list.h>
 
 namespace ZXTune
 {

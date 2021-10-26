@@ -9,9 +9,10 @@
  **/
 
 // local includes
+#include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/archives/plugins_list.h"
+#include "core/plugins/player_plugins_registrator.h"
 #include "core/plugins/players/plugins_list.h"
-#include "core/plugins/registrator.h"
 #include "core/src/l10n.h"
 // common includes
 #include <error_tools.h>
@@ -28,31 +29,9 @@ namespace ZXTune
   const Debug::Stream EnumeratorDbg("Core::Enumerator");
   using Module::translate;
 
-  template<class PluginType>
-  class Registrator : public PluginsRegistrator<PluginType>
-  {
-  public:
-    explicit Registrator(std::vector<typename PluginType::Ptr>& typed)
-      : Typed(typed)
-    {}
-
-    ~Registrator() override
-    {
-      EnumeratorDbg("Registered %1% plugins for %2%ms", Typed.size(), Timer.Elapsed<Time::Millisecond>().Get());
-    }
-
-    void RegisterPlugin(typename PluginType::Ptr plugin) override
-    {
-      EnumeratorDbg("Registered %1%", plugin->Id());
-      Typed.emplace_back(std::move(plugin));
-    }
-
-  private:
-    const Time::Timer Timer;
-    std::vector<typename PluginType::Ptr>& Typed;
-  };
-
   class AllPlugins
+    : private ArchivePluginsRegistrator
+    , private PlayerPluginsRegistrator
   {
   public:
     static const AllPlugins& Instance()
@@ -81,20 +60,23 @@ namespace ZXTune
     {
       Archives.reserve(128);
       Players.reserve(256);
-      RegisterArchivePlugins();
-      RegisterPlayerPlugins();
+      const Time::Timer timer;
+      ZXTune::RegisterArchivePlugins(*this);
+      ZXTune::RegisterPlayerPlugins(*this);
+      EnumeratorDbg("Registered %1% archives and %2% players for %3%ms", Archives.size(), Players.size(),
+                    timer.Elapsed<Time::Millisecond>().Get());
     }
 
-    void RegisterArchivePlugins()
+    void RegisterPlugin(ArchivePlugin::Ptr plugin) override
     {
-      Registrator<ArchivePlugin> registrator(Archives);
-      ZXTune::RegisterArchivePlugins(registrator);
+      EnumeratorDbg("Registered archive %1%", plugin->Id());
+      Archives.emplace_back(std::move(plugin));
     }
 
-    void RegisterPlayerPlugins()
+    void RegisterPlugin(PlayerPlugin::Ptr plugin) override
     {
-      Registrator<PlayerPlugin> registrator(Players);
-      ZXTune::RegisterPlayerPlugins(registrator);
+      EnumeratorDbg("Registered player %1%", plugin->Id());
+      Players.emplace_back(std::move(plugin));
     }
   };
 

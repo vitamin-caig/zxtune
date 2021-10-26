@@ -16,5 +16,6 @@
 
 namespace ZXTune
 {
-  typedef PluginsRegistrator<ArchivePlugin> ArchivePluginsRegistrator;
-}
+  class ArchivePluginsRegistrator : public PluginsRegistrator<ArchivePlugin>
+  {};
+}  // namespace ZXTune
