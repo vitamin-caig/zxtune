@@ -9,8 +9,9 @@
  **/
 
 // local includes
+#include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/player_plugins_registrator.h"
-#include "core/plugins/players/plugin.h"
+#include "core/plugins/players/multitrack_plugin.h"
 #include "core/plugins/players/sid/roms.h"
 #include "core/plugins/players/sid/songlengths.h"
 // common includes
@@ -21,7 +22,7 @@
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
-#include <formats/chiptune/emulation/sid.h>
+#include <formats/multitrack/decoders.h>
 #include <module/attributes.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
@@ -36,8 +37,6 @@
 #include <3rdparty/sidplayfp/sidplayfp/SidTune.h>
 #include <3rdparty/sidplayfp/sidplayfp/SidTuneInfo.h>
 #include <3rdparty/sidplayfp/sidplayfp/sidplayfp.h>
-// boost includes
-#include <boost/algorithm/string/predicate.hpp>
 
 namespace Module::Sid
 {
@@ -316,22 +315,16 @@ namespace Module::Sid
     const Parameters::Accessor::Ptr Properties;
   };
 
-  bool HasSidContainer(const Parameters::Accessor& params)
-  {
-    Parameters::StringType container;
-    Require(params.FindValue(Module::ATTR_CONTAINER, container));
-    return container == "SID" || boost::algorithm::ends_with(container, Module::CONTAINERS_DELIMITER + "SID");
-  }
-
   String DecodeString(StringView str)
   {
     return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
   }
 
-  class Factory : public Module::ExternalParsingFactory
+  class Factory : public Module::MultitrackFactory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Formats::Chiptune::Container& container,
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params,
+                                     const Formats::Multitrack::Container& container,
                                      Parameters::Container::Ptr properties) const override
     {
       try
@@ -339,10 +332,7 @@ namespace Module::Sid
         auto tune = MakePtr<Model>(container);
 
         const auto& tuneInfo = *tune->getInfo();
-        if (tuneInfo.songs() > 1)
-        {
-          Require(HasSidContainer(*properties));
-        }
+        Require(container.TracksCount() == tuneInfo.songs());
 
         PropertiesHelper props(*properties);
         switch (tuneInfo.numberOfInfoStrings())
@@ -377,13 +367,20 @@ namespace Module::Sid
 
 namespace ZXTune
 {
-  void RegisterSIDPlugins(PlayerPluginsRegistrator& registrator)
+  void RegisterSIDPlugins(PlayerPluginsRegistrator& players, ArchivePluginsRegistrator& archives)
   {
     const Char ID[] = {'S', 'I', 'D', 0};
-    const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::MOS6581;
-    auto decoder = Formats::Chiptune::CreateSIDDecoder();
-    auto factory = MakePtr<Module::Sid::Factory>();
-    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
-    registrator.RegisterPlugin(std::move(plugin));
+    const auto DESCR = "Commodore64 SID/RSID/PSID"_sv;
+    auto decoder = Formats::Multitrack::CreateSIDDecoder();
+    {
+      const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::MOS6581;
+      auto factory = MakePtr<Module::Sid::Factory>();
+      auto plugin = CreatePlayerPlugin(ID, DESCR, CAPS, decoder, std::move(factory));
+      players.RegisterPlugin(std::move(plugin));
+    }
+    {
+      auto plugin = CreateArchivePlugin(ID, DESCR, std::move(decoder));
+      archives.RegisterPlugin(std::move(plugin));
+    }
   }
 }  // namespace ZXTune

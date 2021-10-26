@@ -46,12 +46,10 @@ namespace ZXTune
     RegisterCOPSupport(registrator);
     RegisterTFESupport(registrator);
     RegisterXMPPlugins(registrator);
-    RegisterSIDPlugins(registrator);
     RegisterET1Support(registrator);
     RegisterAYCSupport(registrator);
     RegisterSPCSupport(registrator);
     RegisterMTCSupport(registrator);
-    RegisterGMEPlugins(registrator);
     RegisterAHXSupport(registrator);
     RegisterPSFSupport(registrator);
     RegisterUSFSupport(registrator);
@@ -59,7 +57,6 @@ namespace ZXTune
     Register2SFSupport(registrator);
     RegisterNCSFSupport(registrator);
     RegisterSDSFSupport(registrator);
-    RegisterASAPPlugins(registrator);
     RegisterMP3Plugin(registrator);
     RegisterOGGPlugin(registrator);
     RegisterWAVPlugin(registrator);
@@ -67,5 +64,12 @@ namespace ZXTune
     RegisterV2MSupport(registrator);
     RegisterVGMPlugins(registrator);
     RegisterMPTPlugins(registrator);
+  }
+
+  void RegisterMultitrackPlayerPlugins(PlayerPluginsRegistrator& players, ArchivePluginsRegistrator& archives)
+  {
+    RegisterSIDPlugins(players, archives);
+    RegisterGMEPlugins(players, archives);
+    RegisterASAPPlugins(players, archives);
   }
 }  // namespace ZXTune

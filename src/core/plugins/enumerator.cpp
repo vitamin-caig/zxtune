@@ -63,6 +63,7 @@ namespace ZXTune
       const Time::Timer timer;
       ZXTune::RegisterArchivePlugins(*this);
       ZXTune::RegisterPlayerPlugins(*this);
+      ZXTune::RegisterMultitrackPlayerPlugins(*this, *this);
       EnumeratorDbg("Registered %1% archives and %2% players for %3%ms", Archives.size(), Players.size(),
                     timer.Elapsed<Time::Millisecond>().Get());
     }

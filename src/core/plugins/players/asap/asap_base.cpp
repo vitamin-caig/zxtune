@@ -9,7 +9,9 @@
  **/
 
 // local includes
+#include "core/plugins/archive_plugins_registrator.h"
 #include "core/plugins/player_plugins_registrator.h"
+#include "core/plugins/players/multitrack_plugin.h"
 #include "core/plugins/players/plugin.h"
 // common includes
 #include <byteorder.h>
@@ -21,8 +23,6 @@
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
-#include <formats/chiptune/multitrack/decoders.h>
-#include <formats/chiptune/multitrack/multitrack.h>
 #include <formats/multitrack/decoders.h>
 #include <math/numeric.h>
 #include <module/attributes.h>
@@ -32,8 +32,6 @@
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 #include <strings/optimize.h>
-// boost includes
-#include <boost/algorithm/string/predicate.hpp>
 // 3rdparty
 #include <3rdparty/asap/asap.h>
 
@@ -270,37 +268,27 @@ namespace Module::ASAP
     const uint_t ChiptuneCaps;
   };
 
-  class MultitrackFactory : public Module::Factory
+  class MultitrackFactory : public Module::MultitrackFactory
   {
   public:
-    MultitrackFactory(PluginDescription desc, Formats::Multitrack::Decoder::Ptr decoder)
+    explicit MultitrackFactory(PluginDescription desc)
       : Desc(std::move(desc))
-      , Decoder(std::move(decoder))
     {}
 
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData,
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params,
+                                     const Formats::Multitrack::Container& container,
                                      Parameters::Container::Ptr properties) const override
     {
       try
       {
-        if (const auto container = Decoder->Decode(rawData))
-        {
-          if (container->TracksCount() > 1)
-          {
-            Require(HasContainer(Desc.Id, properties));
-          }
+        auto tune = MakePtr<AsapTune>(Desc.Id, container, container.StartTrackIndex());
 
-          auto tune = MakePtr<AsapTune>(Desc.Id, rawData, container->StartTrackIndex());
+        PropertiesHelper props(*properties);
+        props.SetPlatform(Platforms::ATARI);
+        tune->GetProperties(container, props);
 
-          PropertiesHelper props(*properties);
-          props.SetPlatform(Platforms::ATARI);
-          tune->GetProperties(rawData, props);
-
-          props.SetSource(*Formats::Chiptune::CreateMultitrackChiptuneContainer(container));
-
-          tune->FillDuration(params);
-          return MakePtr<Holder>(std::move(tune), std::move(properties));
-        }
+        tune->FillDuration(params);
+        return MakePtr<Holder>(std::move(tune), std::move(properties));
       }
       catch (const std::exception& e)
       {
@@ -310,26 +298,16 @@ namespace Module::ASAP
     }
 
   private:
-    static bool HasContainer(const String& type, Parameters::Accessor::Ptr params)
-    {
-      Parameters::StringType container;
-      Require(params->FindValue(Module::ATTR_CONTAINER, container));
-      return container == type || boost::algorithm::ends_with(container, Module::CONTAINERS_DELIMITER + type);
-    }
-
-  private:
     const PluginDescription Desc;
-    const Formats::Multitrack::Decoder::Ptr Decoder;
   };
 
   struct MultitrackPluginDescription
   {
     typedef Formats::Multitrack::Decoder::Ptr (*MultitrackDecoderCreator)();
-    typedef Formats::Chiptune::Decoder::Ptr (*ChiptuneDecoderCreator)(Formats::Multitrack::Decoder::Ptr);
 
     PluginDescription Desc;
     const MultitrackDecoderCreator CreateMultitrackDecoder;
-    const ChiptuneDecoderCreator CreateChiptuneDecoder;
+    const char* Title;
   };
 
   // clang-format off
@@ -342,7 +320,7 @@ namespace Module::ASAP
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
       },
       &Formats::Multitrack::CreateSAPDecoder,
-      &Formats::Chiptune::CreateSAPDecoder,
+      "Slight Atari Player Sound Format",
     }
   };
   // clang-format on
@@ -407,22 +385,27 @@ namespace Module::ASAP
 
 namespace ZXTune
 {
-  void RegisterASAPPlugins(PlayerPluginsRegistrator& registrator)
+  void RegisterASAPPlugins(PlayerPluginsRegistrator& players, ArchivePluginsRegistrator& archives)
   {
     for (const auto& desc : Module::ASAP::MULTITRACK_PLUGINS)
     {
-      const Formats::Multitrack::Decoder::Ptr multi = desc.CreateMultitrackDecoder();
-      const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder(multi);
-      const Module::Factory::Ptr factory = MakePtr<Module::ASAP::MultitrackFactory>(desc.Desc, multi);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto decoder = desc.CreateMultitrackDecoder();
+      {
+        auto factory = MakePtr<Module::ASAP::MultitrackFactory>(desc.Desc);
+        auto plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Title, desc.Desc.ChiptuneCaps, decoder, std::move(factory));
+        players.RegisterPlugin(std::move(plugin));
+      }
+      {
+        auto plugin = CreateArchivePlugin(desc.Desc.Id, desc.Title, std::move(decoder));
+        archives.RegisterPlugin(std::move(plugin));
+      }
     }
     for (const auto& desc : Module::ASAP::SINGLETRACK_PLUGINS)
     {
       auto decoder = desc.CreateChiptuneDecoder();
       auto factory = MakePtr<Module::ASAP::SingletrackFactory>(desc.Desc);
       auto plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, std::move(decoder), std::move(factory));
-      registrator.RegisterPlugin(std::move(plugin));
+      players.RegisterPlugin(std::move(plugin));
     }
   }
 }  // namespace ZXTune
