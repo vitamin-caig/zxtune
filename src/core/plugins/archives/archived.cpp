@@ -192,88 +192,13 @@ namespace ZXTune
     const uint_t Caps;
     const Formats::Archived::Decoder::Ptr Decoder;
   };
-
-  class OnceAppliedContainerPluginAdapter : public ArchivePlugin
-  {
-  public:
-    explicit OnceAppliedContainerPluginAdapter(ArchivePlugin::Ptr delegate)
-      : Delegate(std::move(delegate))
-      , Identifier(Delegate->Id())
-    {}
-
-    String Id() const override
-    {
-      return Identifier;
-    }
-
-    String Description() const override
-    {
-      return Delegate->Description();
-    }
-
-    uint_t Capabilities() const
-    {
-      return Delegate->Capabilities();
-    }
-
-    Binary::Format::Ptr GetFormat() const override
-    {
-      return Delegate->GetFormat();
-    }
-
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                                 ArchiveCallback& callback) const override
-    {
-      if (SelfIsVisited(*inputData->GetPluginsChain()))
-      {
-        return Analysis::CreateUnmatchedResult(inputData->GetData()->Size());
-      }
-      else
-      {
-        return Delegate->Detect(params, inputData, callback);
-      }
-    }
-
-    DataLocation::Ptr TryOpen(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                              const Analysis::Path& pathToOpen) const override
-    {
-      if (SelfIsVisited(*inputData->GetPluginsChain()))
-      {
-        return {};
-      }
-      else
-      {
-        return Delegate->TryOpen(params, inputData, pathToOpen);
-      }
-    }
-
-  private:
-    bool SelfIsVisited(const Analysis::Path& path) const
-    {
-      for (auto it = path.GetIterator(); it->IsValid(); it->Next())
-      {
-        if (it->Get() == Identifier)
-        {
-          return true;
-        }
-      }
-      return false;
-    }
-
-  private:
-    const ArchivePlugin::Ptr Delegate;
-    const String Identifier;
-  };
 }  // namespace ZXTune
 
 namespace ZXTune
 {
   ArchivePlugin::Ptr CreateArchivePlugin(StringView id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
-    auto result = MakePtr<ArchivedContainerPlugin>(id, caps | Capabilities::Category::CONTAINER, decoder);
-    return 0 != (caps & Capabilities::Container::Traits::ONCEAPPLIED)
-               ? MakePtr<OnceAppliedContainerPluginAdapter>(std::move(result))
-               : result;
+    return MakePtr<ArchivedContainerPlugin>(id, caps | Capabilities::Category::CONTAINER, decoder);
   }
 
   String ProgressMessage(const String& id, const String& path)

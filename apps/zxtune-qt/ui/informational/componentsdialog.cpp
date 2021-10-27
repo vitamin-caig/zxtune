@@ -206,7 +206,6 @@ namespace
       using namespace ZXTune::Capabilities::Container::Traits;
       AddCapability(caps, DIRECTORIES, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Directories support"));
       AddCapability(caps, PLAIN, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Plain data structure format"));
-      AddCapability(caps, ONCEAPPLIED, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Not recursive"));
     }
 
   private:

@@ -166,7 +166,6 @@ namespace
 
     static const CapsPair CONTAINER_CAPS[] = {{Capabilities::Container::Traits::DIRECTORIES, "dirs"_cap},
                                               {Capabilities::Container::Traits::PLAIN, "plain"_cap},
-                                              {Capabilities::Container::Traits::ONCEAPPLIED, "onceapplied"_cap},
                                               // limiter
                                               {}};
     String result = SerializeEnum(caps & Capabilities::Category::MASK, PLUGIN_TYPES);
