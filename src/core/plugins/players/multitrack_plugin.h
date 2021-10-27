@@ -28,5 +28,6 @@ namespace ZXTune
                                        Formats::Multitrack::Decoder::Ptr decoder,
                                        Module::MultitrackFactory::Ptr factory);
   ArchivePlugin::Ptr CreateArchivePlugin(StringView id, StringView description,
-                                         Formats::Multitrack::Decoder::Ptr decoder);
+                                         Formats::Multitrack::Decoder::Ptr decoder,
+                                         Module::MultitrackFactory::Ptr factory);
 }  // namespace ZXTune

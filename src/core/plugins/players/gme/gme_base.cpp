@@ -519,13 +519,13 @@ namespace ZXTune
     for (const auto& desc : Module::GME::MULTITRACK_PLUGINS)
     {
       auto decoder = desc.CreateMultitrackDecoder();
+      auto factory = MakePtr<Module::GME::MultitrackFactory>(desc.Desc);
       {
-        auto factory = MakePtr<Module::GME::MultitrackFactory>(desc.Desc);
-        auto plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Title, desc.Desc.ChiptuneCaps, decoder, std::move(factory));
+        auto plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Title, desc.Desc.ChiptuneCaps, decoder, factory);
         players.RegisterPlugin(std::move(plugin));
       }
       {
-        auto plugin = CreateArchivePlugin(desc.Desc.Id, desc.Title, std::move(decoder));
+        auto plugin = CreateArchivePlugin(desc.Desc.Id, desc.Title, std::move(decoder), std::move(factory));
         archives.RegisterPlugin(std::move(plugin));
       }
     }

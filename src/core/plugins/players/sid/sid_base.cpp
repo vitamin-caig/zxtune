@@ -52,9 +52,9 @@ namespace Module::Sid
   public:
     using Ptr = std::shared_ptr<Model>;
 
-    explicit Model(Binary::View data)
+    Model(Binary::View data, uint_t idx)
       : SidTune(static_cast<const uint_least8_t*>(data.Start()), data.Size())
-      , Index(selectSong(0))
+      , Index(selectSong(idx + 1))
     {
       CheckSidplayError(getStatus());
     }
@@ -329,7 +329,7 @@ namespace Module::Sid
     {
       try
       {
-        auto tune = MakePtr<Model>(container);
+        auto tune = MakePtr<Model>(container, container.StartTrackIndex());
 
         const auto& tuneInfo = *tune->getInfo();
         Require(container.TracksCount() == tuneInfo.songs());
@@ -372,14 +372,14 @@ namespace ZXTune
     const Char ID[] = {'S', 'I', 'D', 0};
     const auto DESCR = "Commodore64 SID/RSID/PSID"_sv;
     auto decoder = Formats::Multitrack::CreateSIDDecoder();
+    auto factory = MakePtr<Module::Sid::Factory>();
     {
       const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::MOS6581;
-      auto factory = MakePtr<Module::Sid::Factory>();
-      auto plugin = CreatePlayerPlugin(ID, DESCR, CAPS, decoder, std::move(factory));
+      auto plugin = CreatePlayerPlugin(ID, DESCR, CAPS, decoder, factory);
       players.RegisterPlugin(std::move(plugin));
     }
     {
-      auto plugin = CreateArchivePlugin(ID, DESCR, std::move(decoder));
+      auto plugin = CreateArchivePlugin(ID, DESCR, std::move(decoder), std::move(factory));
       archives.RegisterPlugin(std::move(plugin));
     }
   }
