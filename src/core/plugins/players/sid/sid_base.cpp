@@ -370,16 +370,15 @@ namespace ZXTune
   void RegisterSIDPlugins(PlayerPluginsRegistrator& players, ArchivePluginsRegistrator& archives)
   {
     const Char ID[] = {'S', 'I', 'D', 0};
-    const auto DESCR = "Commodore64 SID/RSID/PSID"_sv;
     auto decoder = Formats::Multitrack::CreateSIDDecoder();
     auto factory = MakePtr<Module::Sid::Factory>();
     {
       const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::MOS6581;
-      auto plugin = CreatePlayerPlugin(ID, DESCR, CAPS, decoder, factory);
+      auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
       players.RegisterPlugin(std::move(plugin));
     }
     {
-      auto plugin = CreateArchivePlugin(ID, DESCR, std::move(decoder), std::move(factory));
+      auto plugin = CreateArchivePlugin(ID, std::move(decoder), std::move(factory));
       archives.RegisterPlugin(std::move(plugin));
     }
   }

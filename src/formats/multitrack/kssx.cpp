@@ -71,6 +71,9 @@ namespace Formats::Multitrack
         "00|0c-10"   // extra header size
         "%0x0xxxxx"  // extra chips
         ""_sv;
+
+    const Char DESCRIPTION[] = "KSS Extended Music Format";
+
     const ExtraHeader STUB_EXTRA_HEADER = {~uint32_t(0), 0, 0, 0};
 
     const std::size_t MIN_SIZE = sizeof(RawHeader) + sizeof(ExtraHeader);
@@ -124,6 +127,11 @@ namespace Formats::Multitrack
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
+
+      String GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
 
       Binary::Format::Ptr GetFormat() const override
       {

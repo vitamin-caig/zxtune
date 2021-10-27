@@ -406,7 +406,6 @@ namespace Module::GME
 
     PluginDescription Desc;
     const MultitrackDecoderCreator CreateMultitrackDecoder;
-    const char* Title;
   };
 
   // clang-format off
@@ -422,7 +421,6 @@ namespace Module::GME
         [](Binary::View) -> StringView {return Platforms::NINTENDO_ENTERTAINMENT_SYSTEM;}
       },
       &Formats::Multitrack::CreateNSFDecoder,
-      "NES Sound Format",
     },
     //nsfe
     {
@@ -434,7 +432,6 @@ namespace Module::GME
         [](Binary::View) -> StringView {return Platforms::NINTENDO_ENTERTAINMENT_SYSTEM;}
       },
       &Formats::Multitrack::CreateNSFEDecoder,
-      "Extended Nintendo Sound Format",
     },
     //gbs
     {
@@ -446,7 +443,6 @@ namespace Module::GME
         [](Binary::View) -> StringView {return Platforms::GAME_BOY;}
       },
       &Formats::Multitrack::CreateGBSDecoder,
-      "GameBoy Sound",
     },
     //kssx
     {
@@ -458,7 +454,6 @@ namespace Module::GME
         &KSS::DetectPlatform
       },
       &Formats::Multitrack::CreateKSSXDecoder,
-      "KSS Extended Music Format"
     },
     //hes
     {
@@ -470,7 +465,6 @@ namespace Module::GME
         [](Binary::View) -> StringView {return Platforms::PC_ENGINE;}
       },
       &Formats::Multitrack::CreateHESDecoder,
-      "Home Entertainment System"
     },
   };
   // clang-format on
@@ -521,11 +515,11 @@ namespace ZXTune
       auto decoder = desc.CreateMultitrackDecoder();
       auto factory = MakePtr<Module::GME::MultitrackFactory>(desc.Desc);
       {
-        auto plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Title, desc.Desc.ChiptuneCaps, decoder, factory);
+        auto plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
         players.RegisterPlugin(std::move(plugin));
       }
       {
-        auto plugin = CreateArchivePlugin(desc.Desc.Id, desc.Title, std::move(decoder), std::move(factory));
+        auto plugin = CreateArchivePlugin(desc.Desc.Id, std::move(decoder), std::move(factory));
         archives.RegisterPlugin(std::move(plugin));
       }
     }

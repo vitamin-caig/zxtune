@@ -61,6 +61,8 @@ namespace Formats::Multitrack
         "? ? 0x 00"  // 1MB size limit
         ""_sv;
 
+    const Char DESCRIPTION[] = "Home Entertainment System";
+
     const std::size_t MIN_SIZE = 256;
 
     const uint_t TOTAL_TRACKS_COUNT = 32;
@@ -123,6 +125,11 @@ namespace Formats::Multitrack
       Decoder()
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
+
+      String GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
 
       Binary::Format::Ptr GetFormat() const override
       {

@@ -74,6 +74,8 @@ namespace Formats::Multitrack
         "(? 80-ff){2}"
         ""_sv;
 
+    const Char DESCRIPTION[] = "Extended Nintendo Sound Format";
+
     const std::size_t MIN_SIZE = 256;
 
     class Container : public Binary::BaseContainer<Multitrack::Container>
@@ -124,6 +126,11 @@ namespace Formats::Multitrack
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
+
+      String GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
 
       Binary::Format::Ptr GetFormat() const override
       {

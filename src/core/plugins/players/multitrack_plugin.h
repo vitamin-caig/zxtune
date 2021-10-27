@@ -24,10 +24,8 @@ namespace Module
 
 namespace ZXTune
 {
-  PlayerPlugin::Ptr CreatePlayerPlugin(StringView id, StringView description, uint_t caps,
-                                       Formats::Multitrack::Decoder::Ptr decoder,
+  PlayerPlugin::Ptr CreatePlayerPlugin(StringView id, uint_t caps, Formats::Multitrack::Decoder::Ptr decoder,
                                        Module::MultitrackFactory::Ptr factory);
-  ArchivePlugin::Ptr CreateArchivePlugin(StringView id, StringView description,
-                                         Formats::Multitrack::Decoder::Ptr decoder,
+  ArchivePlugin::Ptr CreateArchivePlugin(StringView id, Formats::Multitrack::Decoder::Ptr decoder,
                                          Module::MultitrackFactory::Ptr factory);
 }  // namespace ZXTune

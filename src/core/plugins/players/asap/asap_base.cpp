@@ -307,7 +307,6 @@ namespace Module::ASAP
 
     PluginDescription Desc;
     const MultitrackDecoderCreator CreateMultitrackDecoder;
-    const char* Title;
   };
 
   // clang-format off
@@ -320,7 +319,6 @@ namespace Module::ASAP
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
       },
       &Formats::Multitrack::CreateSAPDecoder,
-      "Slight Atari Player Sound Format",
     }
   };
   // clang-format on
@@ -392,11 +390,11 @@ namespace ZXTune
       auto decoder = desc.CreateMultitrackDecoder();
       auto factory = MakePtr<Module::ASAP::MultitrackFactory>(desc.Desc);
       {
-        auto plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Title, desc.Desc.ChiptuneCaps, decoder, factory);
+        auto plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
         players.RegisterPlugin(std::move(plugin));
       }
       {
-        auto plugin = CreateArchivePlugin(desc.Desc.Id, desc.Title, std::move(decoder), std::move(factory));
+        auto plugin = CreateArchivePlugin(desc.Desc.Id, std::move(decoder), std::move(factory));
         archives.RegisterPlugin(std::move(plugin));
       }
     }

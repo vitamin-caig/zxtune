@@ -43,6 +43,8 @@ namespace Formats::Multitrack
         "'O|' |' |'S|'O|'E|' |' |'P|' |'C|'E|'X|' "
         ""_sv;
 
+    const Char DESCRIPTION[] = "Slight Atari Player Sound Format";
+
     typedef std::array<uint8_t, 5> TextSignatureType;
 
     const TextSignatureType TEXT_SIGNATURE = {{'S', 'A', 'P', 0x0d, 0x0a}};
@@ -210,6 +212,11 @@ namespace Formats::Multitrack
       Decoder()
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
+
+      String GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
 
       Binary::Format::Ptr GetFormat() const override
       {

@@ -69,6 +69,8 @@ namespace Formats::Multitrack
         "(? 80-ff){2}"
         ""_sv;
 
+    const Char DESCRIPTION[] = "NES Sound Format";
+
     const std::size_t MIN_SIZE = 256;
 
     const RawHeader* GetHeader(Binary::View rawData)
@@ -141,6 +143,11 @@ namespace Formats::Multitrack
       Decoder()
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
+
+      String GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
 
       Binary::Format::Ptr GetFormat() const override
       {
