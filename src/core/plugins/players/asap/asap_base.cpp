@@ -347,40 +347,34 @@ namespace Module::ASAP
   };
   // clang-format on
 
-  class SingletrackFactory : public Module::Factory
+  class SingletrackFactory : public Module::ExternalParsingFactory
   {
   public:
-    SingletrackFactory(PluginDescription desc, Formats::Chiptune::Decoder::Ptr decoder)
+    explicit SingletrackFactory(PluginDescription desc)
       : Desc(std::move(desc))
-      , Decoder(std::move(decoder))
     {}
 
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData,
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Formats::Chiptune::Container& container,
                                      Parameters::Container::Ptr properties) const override
     {
       try
       {
-        if (const auto container = Decoder->Decode(rawData))
-        {
-          auto tune = MakePtr<AsapTune>(Desc.Id, rawData, 0);
+        auto tune = MakePtr<AsapTune>(Desc.Id, container, 0);
 
-          Require(tune->GetSongsCount() == 1);
+        Require(tune->GetSongsCount() == 1);
 
-          PropertiesHelper props(*properties);
-          props.SetPlatform(Platforms::ATARI);
-          tune->GetProperties(rawData, props);
+        PropertiesHelper props(*properties);
+        props.SetPlatform(Platforms::ATARI);
+        tune->GetProperties(container, props);
 
-          props.SetSource(*container);
-
-          tune->FillDuration(params);
-          return MakePtr<Holder>(std::move(tune), std::move(properties));
-        }
+        tune->FillDuration(params);
+        return MakePtr<Holder>(std::move(tune), std::move(properties));
       }
       catch (const std::exception& e)
       {
         Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
 
   private:
@@ -425,10 +419,10 @@ namespace ZXTune
     }
     for (const auto& desc : Module::ASAP::SINGLETRACK_PLUGINS)
     {
-      const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder();
-      const Module::Factory::Ptr factory = MakePtr<Module::ASAP::SingletrackFactory>(desc.Desc, decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto decoder = desc.CreateChiptuneDecoder();
+      auto factory = MakePtr<Module::ASAP::SingletrackFactory>(desc.Desc);
+      auto plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, std::move(decoder), std::move(factory));
+      registrator.RegisterPlugin(std::move(plugin));
     }
   }
 }  // namespace ZXTune

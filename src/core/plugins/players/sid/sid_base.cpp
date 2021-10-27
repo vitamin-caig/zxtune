@@ -21,7 +21,6 @@
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
-#include <formats/chiptune/container.h>
 #include <formats/chiptune/emulation/sid.h>
 #include <module/attributes.h>
 #include <module/players/duration.h>
@@ -329,15 +328,15 @@ namespace Module::Sid
     return Strings::ToAutoUtf8(Strings::TrimSpaces(str));
   }
 
-  class Factory : public Module::Factory
+  class Factory : public Module::ExternalParsingFactory
   {
   public:
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData,
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Formats::Chiptune::Container& container,
                                      Parameters::Container::Ptr properties) const override
     {
       try
       {
-        auto tune = MakePtr<Model>(rawData);
+        auto tune = MakePtr<Model>(container);
 
         const auto& tuneInfo = *tune->getInfo();
         if (tuneInfo.songs() > 1)
@@ -362,9 +361,6 @@ namespace Module::Sid
         case 0:
           break;
         }
-        auto data = rawData.GetSubcontainer(0, tuneInfo.dataFileLen());
-        const auto size = data->Size();
-        props.SetSource(*Formats::Chiptune::CreateCalculatingCrcContainer(std::move(data), 0, size));
 
         props.SetPlatform(Platforms::COMMODORE_64);
 
@@ -385,9 +381,9 @@ namespace ZXTune
   {
     const Char ID[] = {'S', 'I', 'D', 0};
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::MOS6581;
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSIDDecoder();
-    const Module::Factory::Ptr factory = MakePtr<Module::Sid::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateSIDDecoder();
+    auto factory = MakePtr<Module::Sid::Factory>();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

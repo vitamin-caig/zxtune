@@ -386,33 +386,27 @@ namespace Module::GME
     const Formats::Multitrack::Decoder::Ptr Decoder;
   };
 
-  class SingletrackFactory : public Module::Factory
+  class SingletrackFactory : public Module::ExternalParsingFactory
   {
   public:
-    SingletrackFactory(PluginDescription desc, Formats::Chiptune::Decoder::Ptr decoder)
+    explicit SingletrackFactory(PluginDescription desc)
       : Desc(std::move(desc))
-      , Decoder(std::move(decoder))
     {}
 
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& rawData,
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& params, const Formats::Chiptune::Container& container,
                                      Parameters::Container::Ptr properties) const override
     {
       try
       {
-        if (const auto container = Decoder->Decode(rawData))
-        {
-          PropertiesHelper props(*properties);
-          auto data = Desc.CreateData(*container);
-          props.SetPlatform(Desc.DetectPlatform(data));
-          auto tune = MakePtr<GMETune>(Desc.CreateEmu, std::move(data), 0);
-          const auto info = tune->GetInfo();
-          GetProperties(info, props);
-          tune->SetDuration(info, params);
+        PropertiesHelper props(*properties);
+        auto data = Desc.CreateData(container);
+        props.SetPlatform(Desc.DetectPlatform(data));
+        auto tune = MakePtr<GMETune>(Desc.CreateEmu, std::move(data), 0);
+        const auto info = tune->GetInfo();
+        GetProperties(info, props);
+        tune->SetDuration(info, params);
 
-          props.SetSource(*container);
-
-          return MakePtr<Holder>(std::move(tune), std::move(properties));
-        }
+        return MakePtr<Holder>(std::move(tune), std::move(properties));
       }
       catch (const std::exception& e)
       {
@@ -423,7 +417,6 @@ namespace Module::GME
 
   private:
     const PluginDescription Desc;
-    const Formats::Chiptune::Decoder::Ptr Decoder;
   };
 
   struct MultitrackPluginDescription
@@ -557,10 +550,10 @@ namespace ZXTune
   {
     for (const auto& desc : Module::GME::SINGLETRACK_PLUGINS)
     {
-      const Formats::Chiptune::Decoder::Ptr decoder = desc.CreateChiptuneDecoder();
-      const Module::Factory::Ptr factory = MakePtr<Module::GME::SingletrackFactory>(desc.Desc, decoder);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto factory = MakePtr<Module::GME::SingletrackFactory>(desc.Desc);
+      auto decoder = desc.CreateChiptuneDecoder();
+      auto plugin = CreatePlayerPlugin(desc.Desc.Id, desc.Desc.ChiptuneCaps, std::move(decoder), std::move(factory));
+      registrator.RegisterPlugin(std::move(plugin));
     }
   }
 

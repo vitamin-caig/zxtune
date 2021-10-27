@@ -291,9 +291,15 @@ namespace Module::Mpt
       return Fmt->Match(rawData);
     }
 
-    Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
+    Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
     {
-      return Formats::Chiptune::Container::Ptr();  // TODO
+      if (Check(rawData))
+      {
+        const auto size = rawData.Size();
+        auto data = rawData.GetSubcontainer(0, size);
+        return Formats::Chiptune::CreateCalculatingCrcContainer(std::move(data), 0, size);
+      }
+      return {};
     }
 
   private:
@@ -345,7 +351,7 @@ namespace Module::Mpt
     }
   }
 
-  class Factory : public Module::Factory
+  class Factory : public Module::ExternalParsingFactory
   {
   public:
     explicit Factory(const PluginDescription& desc)
@@ -354,14 +360,15 @@ namespace Module::Mpt
       Controls.emplace("play.at_end", "continue");
     }
 
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/,
+                                     const Formats::Chiptune::Container& container,
                                      Parameters::Container::Ptr properties) const override
     {
       try
       {
         // TODO: specify type filter
-        auto track =
-            ModulePtr(new openmpt::module(static_cast<const uint8_t*>(rawData.Start()), rawData.Size(), LOG, Controls));
+        auto track = ModulePtr(
+            new openmpt::module(static_cast<const uint8_t*>(container.Start()), container.Size(), LOG, Controls));
 
         // play all subsongs
         track->select_subsong(-1);
@@ -369,13 +376,7 @@ namespace Module::Mpt
         PropertiesHelper props(*properties);
         FillMetadata(*track, props);
 
-        const auto moduleSize = rawData.Size();  // TODO
-        if (auto data = rawData.GetSubcontainer(0, moduleSize))
-        {
-          const auto source = Formats::Chiptune::CreateCalculatingCrcContainer(std::move(data), 0, moduleSize);
-          props.SetSource(*source);
-          return MakePtr<Holder>(std::move(track), std::move(properties));
-        }
+        return MakePtr<Holder>(std::move(track), std::move(properties));
       }
       catch (const std::exception& e)
       {
