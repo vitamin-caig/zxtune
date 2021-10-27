@@ -15,7 +15,6 @@
 #include <pointers.h>
 // library includes
 #include <binary/container_base.h>
-#include <binary/container_factories.h>
 #include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
@@ -85,16 +84,6 @@ namespace Formats::Multitrack
       uint_t StartTrackIndex() const override
       {
         return Hdr->StartSong - 1;
-      }
-
-      Container::Ptr WithStartTrackIndex(uint_t idx) const override
-      {
-        std::unique_ptr<Binary::Dump> content(new Binary::Dump(Delegate->Size()));
-        std::memcpy(content->data(), Delegate->Start(), content->size());
-        auto* const hdr = safe_ptr_cast<RawHeader*>(content->data());
-        Require(idx < hdr->SongsCount);
-        hdr->StartSong = idx + 1;
-        return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));
       }
 
     private:

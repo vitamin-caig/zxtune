@@ -122,48 +122,6 @@ namespace Formats::Multitrack
         return crc;
       }
 
-      Binary::Container::Ptr Rebuild(uint_t startTrack) const
-      {
-        Require(TracksCount != 1);
-        Binary::DataBuilder builder;
-        builder.Add(TEXT_SIGNATURE);
-        DumpTextPart(builder);
-        AddString(DEFSONG.to_string() + " " + Strings::ConvertFrom(startTrack), builder);
-        builder.Add(BINARY_SIGNATURE);
-        DumpBinaryPart(builder);
-        return builder.CaptureResult();
-      }
-
-    private:
-      void DumpTextPart(Binary::DataBuilder& builder) const
-      {
-        for (const auto& line : Lines)
-        {
-          AddString(line, builder);
-        }
-      }
-
-      static void AddString(const String& str, Binary::DataBuilder& builder)
-      {
-        uint8_t* const dst = static_cast<uint8_t*>(builder.Allocate(str.size() + 2));
-        uint8_t* const end = std::copy(str.begin(), str.end(), dst);
-        end[0] = 0x0d;
-        end[1] = 0x0a;
-      }
-
-      void DumpBinaryPart(Binary::DataBuilder& builder) const
-      {
-        for (const auto& blk : Blocks)
-        {
-          const uint_t addr = blk.first;
-          const std::size_t size = blk.second.Size();
-          builder.Add<le_uint16_t>(addr);
-          builder.Add<le_uint16_t>(addr + size - 1);
-          auto* dst = builder.Allocate(size);
-          std::memcpy(dst, blk.second.Start(), size);
-        }
-      }
-
     private:
       Strings::Array Lines;
       uint_t TracksCount;
@@ -193,11 +151,6 @@ namespace Formats::Multitrack
       uint_t StartTrackIndex() const override
       {
         return StartTrack;
-      }
-
-      Container::Ptr WithStartTrackIndex(uint_t idx) const override
-      {
-        return MakePtr<Container>(Content, Content->Rebuild(idx), idx);
       }
 
     private:
@@ -232,14 +185,14 @@ namespace Formats::Multitrack
       {
         try
         {
-          const DataBuilder::RWPtr builder = MakeRWPtr<DataBuilder>();
+          auto builder = MakeRWPtr<DataBuilder>();
           auto data = Parse(rawData, *builder);
           const auto startTrack = builder->GetStartTrack();
           return MakePtr<Container>(std::move(builder), std::move(data), startTrack);
         }
         catch (const std::exception&)
         {}
-        return Formats::Multitrack::Container::Ptr();
+        return {};
       }
 
     private:

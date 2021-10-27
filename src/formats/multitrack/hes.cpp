@@ -15,7 +15,6 @@
 #include <pointers.h>
 // library includes
 #include <binary/container_base.h>
-#include <binary/container_factories.h>
 #include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
@@ -104,16 +103,6 @@ namespace Formats::Multitrack
         return Hdr->StartSong;
       }
 
-      Container::Ptr WithStartTrackIndex(uint_t idx) const override
-      {
-        std::unique_ptr<Binary::Dump> content(new Binary::Dump(Delegate->Size()));
-        std::memcpy(content->data(), Delegate->Start(), content->size());
-        RawHeader* const hdr = safe_ptr_cast<RawHeader*>(content->data());
-        Require(idx < TOTAL_TRACKS_COUNT);
-        hdr->StartSong = idx;
-        return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));
-      }
-
     private:
       const RawHeader* const Hdr;
     };
@@ -143,17 +132,17 @@ namespace Formats::Multitrack
 
       Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
-        if (const RawHeader* hdr = GetHeader(rawData))
+        if (const auto* hdr = GetHeader(rawData))
         {
           const std::size_t totalSize = sizeof(*hdr) + hdr->DataSize;
           // GME support truncated files
           const std::size_t realSize = std::min(rawData.Size(), totalSize);
-          const Binary::Container::Ptr used = rawData.GetSubcontainer(0, realSize);
-          return MakePtr<Container>(hdr, used);
+          auto used = rawData.GetSubcontainer(0, realSize);
+          return MakePtr<Container>(hdr, std::move(used));
         }
         else
         {
-          return Formats::Multitrack::Container::Ptr();
+          return {};
         }
       }
 

@@ -35,9 +35,6 @@ namespace Formats
 
       //! @return 0-based index of first track
       virtual uint_t StartTrackIndex() const = 0;
-
-      //! @brief Create copy of self with modified start track 0-based index
-      virtual Container::Ptr WithStartTrackIndex(uint_t idx) const = 0;
     };
 
     class Decoder

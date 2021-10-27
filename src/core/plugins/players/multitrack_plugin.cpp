@@ -12,7 +12,6 @@
 #include "core/plugins/players/multitrack_plugin.h"
 #include "core/plugins/archives/archived.h"
 // common includes
-#include <contract.h>
 #include <make_ptr.h>
 #include <xrange.h>
 // library includes
@@ -245,13 +244,6 @@ namespace ZXTune
       {
         return Index;
       }
-
-      Container::Ptr WithStartTrackIndex(uint_t idx) const override
-      {
-        Require(false);
-        return {};
-      }
-
     private:
       const Formats::Multitrack::Container& Delegate;
       const uint_t Index;
