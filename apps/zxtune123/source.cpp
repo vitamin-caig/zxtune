@@ -167,6 +167,12 @@ namespace
       Callback.ProcessItem(location.GetData(), std::move(holder));
     }
 
+    void ProcessUnknownData(const ZXTune::DataLocation& location) override
+    {
+      const auto subId = Id->WithSubpath(location.GetPath()->AsString());
+      Callback.ProcessUnknownData(subId->Full(), location.GetPluginsChain()->AsString(), location.GetData());
+    }
+
     Log::ProgressCallback* GetProgress() const override
     {
       return ProgressCallback.get();
