@@ -13,8 +13,7 @@
 // common includes
 #include <types.h>
 // library includes
-#include <binary/container.h>
-#include <binary/format.h>
+#include <formats/chiptune.h>
 // std includes
 #include <memory>
 
@@ -22,13 +21,10 @@ namespace Formats
 {
   namespace Multitrack
   {
-    class Container : public Binary::Container
+    class Container : public Chiptune::Container
     {
     public:
       typedef std::shared_ptr<const Container> Ptr;
-
-      //! Same as in Chiptune::Container
-      virtual uint_t FixedChecksum() const = 0;
 
       //! @return total tracks count
       virtual uint_t TracksCount() const = 0;

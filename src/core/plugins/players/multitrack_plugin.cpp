@@ -112,37 +112,6 @@ namespace ZXTune
       return CreateNestedLocation(std::move(inputData), std::move(blob), Identifier, Filename::FromIndex(idx));
     }
 
-    class ChiptuneContainerAdapter : public Formats::Chiptune::Container
-    {
-    public:
-      ChiptuneContainerAdapter(const Formats::Multitrack::Container& delegate)
-        : Delegate(delegate)
-      {}
-
-      const void* Start() const override
-      {
-        return Delegate.Start();
-      }
-
-      std::size_t Size() const override
-      {
-        return Delegate.Size();
-      }
-
-      Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
-      {
-        return Delegate.GetSubcontainer(offset, size);
-      }
-
-      uint_t FixedChecksum() const override
-      {
-        return Delegate.FixedChecksum();
-      }
-
-    private:
-      const Formats::Multitrack::Container& Delegate;
-    };
-
   private:
     bool Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
                 const Formats::Multitrack::Container& container, Module::DetectCallback& callback) const
@@ -178,7 +147,7 @@ namespace ZXTune
       props.SetContainer(inputData.GetPluginsChain()->AsString());
       if (auto holder = Factory->CreateModule(params, container, properties))
       {
-        props.SetSource(ChiptuneContainerAdapter(container));
+        props.SetSource(container);
         props.SetType(Identifier);
         callback.ProcessModule(inputData, *this, std::move(holder));
         return true;
@@ -238,6 +207,7 @@ namespace ZXTune
       {
         return Index;
       }
+
     private:
       const Formats::Multitrack::Container& Delegate;
       const uint_t Index;
@@ -276,7 +246,7 @@ namespace ZXTune
         if (auto result = Factory->CreateModule(params, *container, properties))
         {
           Module::PropertiesHelper props(*properties);
-          props.SetSource(ChiptuneContainerAdapter(*container));
+          props.SetSource(*container);
           props.SetType(Identifier);
           return result;
         }
