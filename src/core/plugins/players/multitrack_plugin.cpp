@@ -15,7 +15,6 @@
 #include <make_ptr.h>
 #include <xrange.h>
 // library includes
-#include <binary/crc.h>
 #include <core/module_detect.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
@@ -133,11 +132,6 @@ namespace ZXTune
       Binary::Container::Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
         return Delegate.GetSubcontainer(offset, size);
-      }
-
-      uint_t Checksum() const override
-      {
-        return Binary::Crc32(Delegate);
       }
 
       uint_t FixedChecksum() const override
