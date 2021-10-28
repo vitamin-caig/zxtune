@@ -34,6 +34,11 @@ namespace Module
       return Delegate.ProcessModule(location, decoder, std::move(holder));
     }
 
+    void ProcessUnknownData(const ZXTune::DataLocation& location)
+    {
+      return Delegate.ProcessUnknownData(location);
+    }
+
     Log::ProgressCallback* GetProgress() const override
     {
       return Delegate.GetProgress();

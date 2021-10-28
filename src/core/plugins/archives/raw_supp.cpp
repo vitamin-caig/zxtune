@@ -455,6 +455,38 @@ namespace ZXTune::Raw
     ScanDataContainer::Ptr Subdata;
   };
 
+  class UnknownDataLocation : public DataLocation
+  {
+  public:
+    UnknownDataLocation(DataLocation::Ptr parent, std::size_t start, std::size_t end)
+      : Parent(std::move(parent))
+      , Start(start)
+      , End(end)
+    {
+      Dbg("Unknown data at %1%..%2%", Start, End);
+    }
+
+    Binary::Container::Ptr GetData() const override
+    {
+      return Parent->GetData()->GetSubcontainer(Start, End - Start);
+    }
+
+    Analysis::Path::Ptr GetPath() const override
+    {
+      return Parent->GetPath()->Append(CreateFilename(Start));
+    }
+
+    Analysis::Path::Ptr GetPluginsChain() const override
+    {
+      return Parent->GetPluginsChain()->Append(ID);
+    }
+
+  private:
+    const DataLocation::Ptr Parent;
+    const std::size_t Start;
+    const std::size_t End;
+  };
+
   template<class P>
   class LookaheadPluginsStorage
   {
@@ -654,24 +686,24 @@ namespace ZXTune::Raw
       Archives.SetPluginLookahead(denied, denied.Id(), ~std::size_t(0));
     }
 
-    std::size_t Detect(DataLocation::Ptr input, ArchiveCallback& callback)
+    std::pair<std::size_t, bool> Detect(DataLocation::Ptr input, ArchiveCallback& callback)
     {
       const auto detectedModules = DetectIn(Players, input, callback);
       if (const auto matched = detectedModules->GetMatchedDataSize())
       {
         Statistic::Self().AddModule(matched);
-        return matched;
+        return {matched, true};
       }
       const auto detectedArchives = DetectIn(Archives, input, callback);
       if (const auto matched = detectedArchives->GetMatchedDataSize())
       {
         Statistic::Self().AddArchived(matched);
-        return matched;
+        return {matched, true};
       }
       const auto archiveLookahead = detectedArchives->GetLookaheadOffset();
       const auto moduleLookahead = detectedModules->GetLookaheadOffset();
       Dbg("No archives for nearest %1% bytes, modules for %2% bytes", archiveLookahead, moduleLookahead);
-      return static_cast<std::size_t>(std::min(archiveLookahead, moduleLookahead));
+      return {static_cast<std::size_t>(std::min(archiveLookahead, moduleLookahead)), false};
     }
 
     void SetOffset(std::size_t offset)
@@ -781,18 +813,31 @@ namespace ZXTune::Raw
 
       auto subLocation = MakePtr<ScanDataLocation>(input, 0);
 
+      std::size_t lastUsedEnd = 0;
       while (subLocation->HasToScan(minRawSize))
       {
         const std::size_t offset = subLocation->GetOffset();
         progress.Report(offset);
         usedPlugins.SetOffset(offset);
-        const std::size_t bytesToSkip = usedPlugins.Detect(subLocation, callback);
+        const auto detectResult = usedPlugins.Detect(subLocation, callback);
         if (!subLocation.unique())
         {
           Dbg("Sublocation is captured. Duplicate.");
           subLocation = MakePtr<ScanDataLocation>(input, offset);
         }
-        subLocation->Move(std::max(bytesToSkip, SCAN_STEP));
+        subLocation->Move(std::max(detectResult.first, SCAN_STEP));
+        if (detectResult.second)
+        {
+          if (lastUsedEnd != offset)
+          {
+            callback.ProcessUnknownData(UnknownDataLocation(input, lastUsedEnd, offset));
+          }
+          lastUsedEnd = subLocation->GetOffset();
+        }
+      }
+      if (lastUsedEnd != size)
+      {
+        callback.ProcessUnknownData(UnknownDataLocation(std::move(input), lastUsedEnd, size));
       }
       return Analysis::CreateMatchedResult(size);
     }

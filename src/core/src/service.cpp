@@ -270,7 +270,10 @@ namespace ZXTune
 
     void DetectModules(DataLocation::Ptr location, Module::DetectCallback& callback) const
     {
-      DetectInArchives(location, callback) || DetectBy(PlayerPlugin::Enumerate(), std::move(location), callback);
+      if (!DetectInArchives(location, callback) && !DetectBy(PlayerPlugin::Enumerate(), location, callback))
+      {
+        callback.ProcessUnknownData(*location);
+      }
     }
 
     class RecursiveDetectionAdapter : public ArchiveCallback
@@ -289,6 +292,11 @@ namespace ZXTune
       void ProcessModule(const DataLocation& location, const Plugin& decoder, Module::Holder::Ptr holder) override
       {
         Delegate.ProcessModule(location, decoder, std::move(holder));
+      }
+
+      void ProcessUnknownData(const ZXTune::DataLocation& location)
+      {
+        Delegate.ProcessUnknownData(location);
       }
 
       Log::ProgressCallback* GetProgress() const override
