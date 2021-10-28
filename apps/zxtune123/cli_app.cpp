@@ -367,6 +367,8 @@ namespace
     DisplayComponent& Display;
   };
 
+  const auto NO_BENCHMARK = ~0u;
+
   class CLIApplication
     : public Platform::Application
     , private OnItemCallback
@@ -379,7 +381,7 @@ namespace
       , Sounder(SoundComponent::Create(ConfigParams))
       , Display(DisplayComponent::Create())
       , SeekStep(10)
-      , BenchmarkIterations(0)
+      , BenchmarkIterations(NO_BENCHMARK)
     {}
 
     int Run(Strings::Array args) override
@@ -401,7 +403,7 @@ namespace
           Convertor cnv(*mergedParams, *Display);
           Sourcer->ProcessItems(cnv);
         }
-        else if (0 != BenchmarkIterations)
+        else if (NO_BENCHMARK != BenchmarkIterations)
         {
           Benchmark benchmark(BenchmarkIterations, DumpUnknownData, *Sounder, *Display);
           Sourcer->ProcessItems(benchmark);
