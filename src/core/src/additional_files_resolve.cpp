@@ -28,10 +28,9 @@ namespace Module
       auto filenames = files.Enumerate();
       while (!filenames.empty())
       {
-        for (const auto& name : filenames)
-        {
-          const_cast<AdditionalFiles&>(files).Resolve(name, source.Get(name));
-        }
+        // Try to resolve one-by-one
+        const auto name = filenames.front();
+        const_cast<AdditionalFiles&>(files).Resolve(name, source.Get(name));
         auto newFilenames = files.Enumerate();
         if (newFilenames == filenames)
         {
