@@ -249,8 +249,9 @@ namespace
   class Benchmark : public OnItemCallback
   {
   public:
-    Benchmark(unsigned iterations, SoundComponent& sound, DisplayComponent& display)
+    Benchmark(unsigned iterations, bool dumpUnknownData, SoundComponent& sound, DisplayComponent& display)
       : Iterations(iterations)
+      , DumpUnknownData(dumpUnknownData)
       , Sounder(sound)
       , Display(display)
     {}
@@ -304,6 +305,14 @@ namespace
       }
     }
 
+    void ProcessUnknownData(const String& path, const String& container, Binary::Data::Ptr data) override
+    {
+      if (DumpUnknownData)
+      {
+        Display.Message(Strings::Format("Unknown\t(%2%)\t%1%\t[%3%]", path, container, data->Size()));
+      }
+    }
+
   private:
     void BenchmarkFail(const String& path, const String& type, std::string msg) const
     {
@@ -353,9 +362,12 @@ namespace
 
   private:
     const unsigned Iterations;
+    const bool DumpUnknownData;
     SoundComponent& Sounder;
     DisplayComponent& Display;
   };
+
+  const auto NO_BENCHMARK = ~0u;
 
   class CLIApplication
     : public Platform::Application
@@ -369,7 +381,7 @@ namespace
       , Sounder(SoundComponent::Create(ConfigParams))
       , Display(DisplayComponent::Create())
       , SeekStep(10)
-      , BenchmarkIterations(0)
+      , BenchmarkIterations(NO_BENCHMARK)
     {}
 
     int Run(Strings::Array args) override
@@ -391,9 +403,9 @@ namespace
           Convertor cnv(*mergedParams, *Display);
           Sourcer->ProcessItems(cnv);
         }
-        else if (0 != BenchmarkIterations)
+        else if (NO_BENCHMARK != BenchmarkIterations)
         {
-          Benchmark benchmark(BenchmarkIterations, *Sounder, *Display);
+          Benchmark benchmark(BenchmarkIterations, DumpUnknownData, *Sounder, *Display);
           Sourcer->ProcessItems(benchmark);
         }
         else
@@ -436,6 +448,7 @@ namespace
               ".");
           opt("benchmark", value<uint_t>(&BenchmarkIterations),
               "Switch on benchmark mode with specified iterations count.\n");
+          opt("dump-unknown-data", bool_switch(&DumpUnknownData), "Also report about unprocessed data regions.\n");
         }
         options.add(Informer->GetOptionsDescription());
         options.add(Sourcer->GetOptionsDescription());
@@ -582,6 +595,7 @@ namespace
     std::unique_ptr<DisplayComponent> Display;
     uint_t SeekStep;
     uint_t BenchmarkIterations;
+    bool DumpUnknownData = false;
   };
 }  // namespace
 

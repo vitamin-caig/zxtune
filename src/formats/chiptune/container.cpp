@@ -28,11 +28,6 @@ namespace Formats
       explicit BaseDelegateContainer(Binary::Container::Ptr delegate)
         : BaseContainer(std::move(delegate))
       {}
-
-      uint_t Checksum() const override
-      {
-        return Binary::Crc32(*Delegate);
-      }
     };
 
     class KnownCrcContainer : public BaseDelegateContainer

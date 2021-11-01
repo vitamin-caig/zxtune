@@ -15,7 +15,6 @@
 #include <pointers.h>
 // library includes
 #include <binary/container_base.h>
-#include <binary/container_factories.h>
 #include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
@@ -71,6 +70,9 @@ namespace Formats::Multitrack
         "00|0c-10"   // extra header size
         "%0x0xxxxx"  // extra chips
         ""_sv;
+
+    const Char DESCRIPTION[] = "KSS Extended Music Format";
+
     const ExtraHeader STUB_EXTRA_HEADER = {~uint32_t(0), 0, 0, 0};
 
     const std::size_t MIN_SIZE = sizeof(RawHeader) + sizeof(ExtraHeader);
@@ -103,17 +105,6 @@ namespace Formats::Multitrack
         return Hdr->FirstTrack;
       }
 
-      Container::Ptr WithStartTrackIndex(uint_t idx) const override
-      {
-        Require(Hdr != &STUB_EXTRA_HEADER);
-        std::unique_ptr<Binary::Dump> content(new Binary::Dump(Delegate->Size()));
-        std::memcpy(content->data(), Delegate->Start(), content->size());
-        ExtraHeader* const hdr = safe_ptr_cast<ExtraHeader*>(content->data() + sizeof(RawHeader));
-        Require(idx <= hdr->LastTrack);
-        hdr->FirstTrack = idx;
-        return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));
-      }
-
     private:
       const ExtraHeader* const Hdr;
     };
@@ -124,6 +115,11 @@ namespace Formats::Multitrack
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
+
+      String GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
 
       Binary::Format::Ptr GetFormat() const override
       {
@@ -139,7 +135,7 @@ namespace Formats::Multitrack
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Multitrack::Container::Ptr();
+          return {};
         }
         const std::size_t availSize = rawData.Size();
         const RawHeader* const hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
@@ -154,8 +150,8 @@ namespace Formats::Multitrack
         const uint_t banksCount = hdr->ExtraBanks & 0x7f;
         const std::size_t totalSize = headersSize + hdr->InitialDataSize + bankSize * banksCount;
         // GME support truncated files
-        const Binary::Container::Ptr used = rawData.GetSubcontainer(0, std::min(availSize, totalSize));
-        return MakePtr<Container>(extraHdr, used);
+        auto used = rawData.GetSubcontainer(0, std::min(availSize, totalSize));
+        return MakePtr<Container>(extraHdr, std::move(used));
       }
 
     private:

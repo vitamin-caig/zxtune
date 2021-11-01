@@ -167,8 +167,6 @@ namespace ZXTune
           DIRECTORIES = 0x00000010,
           //! Use plain transformation, can be covered by scaner
           PLAIN       = 0x00000020,
-          //! Plugin should be applied only once
-          ONCEAPPLIED = 0x00000040,
 
           MASK        = 0x000000f0
         };

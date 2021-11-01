@@ -17,6 +17,7 @@ namespace Formats
 {
   namespace Multitrack
   {
+    Decoder::Ptr CreateSIDDecoder();
     Decoder::Ptr CreateNSFDecoder();
     Decoder::Ptr CreateNSFEDecoder();
     Decoder::Ptr CreateGBSDecoder();

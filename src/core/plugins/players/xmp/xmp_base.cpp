@@ -368,9 +368,15 @@ namespace Module::Xmp
       return Fmt->Match(rawData);
     }
 
-    Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
+    Formats::Chiptune::Container::Ptr Decode(const Binary::Container& rawData) const override
     {
-      return Formats::Chiptune::Container::Ptr();  // TODO
+      if (Check(rawData))
+      {
+        const auto size = rawData.Size();
+        auto data = rawData.GetSubcontainer(0, size);
+        return Formats::Chiptune::CreateCalculatingCrcContainer(std::move(data), 0, size);
+      }
+      return {};
     }
 
   private:
@@ -397,19 +403,20 @@ namespace Module::Xmp
     props.SetStrings(strings);
   }
 
-  class Factory : public Module::Factory
+  class Factory : public Module::ExternalParsingFactory
   {
   public:
     explicit Factory(const PluginDescription& desc)
       : Desc(desc)
     {}
 
-    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/, const Binary::Container& rawData,
+    Module::Holder::Ptr CreateModule(const Parameters::Accessor& /*params*/,
+                                     const Formats::Chiptune::Container& container,
                                      Parameters::Container::Ptr properties) const override
     {
       try
       {
-        auto ctx = MakePtr<Context>(rawData, Desc.Loader);
+        auto ctx = MakePtr<Context>(container, Desc.Loader);
         xmp_module_info modInfo;
         ctx->Call(&::xmp_get_module_info, &modInfo);
         xmp_frame_info frmInfo;
@@ -424,14 +431,8 @@ namespace Module::Xmp
           props.SetComment(DecodeString(comment));
         }
         ParseStrings(*modInfo.mod, props);
-        if (auto data = rawData.GetSubcontainer(0, modInfo.size))
-        {
-          const auto source = Formats::Chiptune::CreateCalculatingCrcContainer(std::move(data), 0, modInfo.size);
-          props.SetSource(*source);
-
-          auto info = MakePtr<Information>(*modInfo.mod, DurationType(frmInfo.total_time));
-          return MakePtr<Holder>(std::move(ctx), std::move(info), std::move(properties));
-        }
+        auto info = MakePtr<Information>(*modInfo.mod, DurationType(frmInfo.total_time));
+        return MakePtr<Holder>(std::move(ctx), std::move(info), std::move(properties));
       }
       catch (const std::exception&)
       {}
@@ -630,10 +631,10 @@ namespace ZXTune
     const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
     for (const auto& desc : Module::Xmp::PLUGINS)
     {
-      const Formats::Chiptune::Decoder::Ptr decoder = MakePtr<Module::Xmp::Decoder>(desc);
-      const Module::Factory::Ptr factory = MakePtr<Module::Xmp::Factory>(desc);
-      const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(desc.Id, CAPS, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto decoder = MakePtr<Module::Xmp::Decoder>(desc);
+      auto factory = MakePtr<Module::Xmp::Factory>(desc);
+      auto plugin = CreatePlayerPlugin(desc.Id, CAPS, std::move(decoder), std::move(factory));
+      registrator.RegisterPlugin(std::move(plugin));
     }
   }
 }  // namespace ZXTune

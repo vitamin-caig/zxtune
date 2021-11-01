@@ -70,7 +70,8 @@ namespace Module
 
       void SetLevelInPercents(uint_t levelInPercents)
       {
-        Data.Level = Devices::DAC::ChannelData::LevelType(levelInPercents, Devices::DAC::ChannelData::LevelType::PRECISION);
+        Data.Level =
+            Devices::DAC::ChannelData::LevelType(levelInPercents, Devices::DAC::ChannelData::LevelType::PRECISION);
         Data.Mask |= Devices::DAC::ChannelData::LEVEL;
       }
 

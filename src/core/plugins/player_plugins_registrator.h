@@ -15,5 +15,6 @@
 
 namespace ZXTune
 {
-  typedef PluginsRegistrator<PlayerPlugin> PlayerPluginsRegistrator;
-}
+  class PlayerPluginsRegistrator : public PluginsRegistrator<PlayerPlugin>
+  {};
+}  // namespace ZXTune

@@ -22,8 +22,8 @@
 #include <contract.h>
 #include <progress_callback.h>
 // library includes
-#include <core/module_detect.h>
-#include <core/module_open.h>
+#include <core/data_location.h>
+#include <core/service.h>
 #include <module/additional_files.h>
 
 namespace
@@ -117,6 +117,12 @@ namespace
   jmethodID CallbacksJni::OnProgress;
 
 #undef Require
+  const ZXTune::Service& GetService()
+  {
+    // TODO: cleanup
+    static const auto instance = ZXTune::Service::Create(MakeSingletonPointer(Parameters::GlobalOptions()));
+    return *instance;
+  }
 }  // namespace
 
 namespace
@@ -125,10 +131,8 @@ namespace
   {
     try
     {
-      const auto& options = Parameters::GlobalOptions();
       auto initialProperties = Parameters::Container::Create();
-      return subpath.empty() ? Module::Open(options, *data, std::move(initialProperties))
-                             : Module::Open(options, std::move(data), subpath, std::move(initialProperties));
+      return GetService().OpenModule(std::move(data), subpath, std::move(initialProperties));
     }
     catch (const Error& e)
     {
@@ -237,7 +241,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_detectModules(JNIEnv* env
   return Jni::Call(env, [=]() {
     ProgressCallback progressAdapter(env, progress);
     DetectCallback callbackAdapter(env, cb, progressAdapter.Get());
-    Module::Detect(Parameters::GlobalOptions(), Binary::CreateByteBufferContainer(env, buffer), callbackAdapter);
+    GetService().DetectModules(Binary::CreateByteBufferContainer(env, buffer), callbackAdapter);
   });
 }
 

@@ -8,27 +8,24 @@
  *
  **/
 
-// local includes
-#include "formats/chiptune/emulation/sid.h"
 // common includes
 #include <byteorder.h>
 #include <contract.h>
 #include <make_ptr.h>
 #include <pointers.h>
 // library includes
-#include <binary/container_factories.h>
+#include <binary/container_base.h>
+#include <binary/crc.h>
 #include <binary/format_factories.h>
+#include <formats/multitrack.h>
 #include <math/numeric.h>
 // std includes
-#include <array>
-#include <cstring>
+#include <utility>
 
-namespace Formats::Chiptune
+namespace Formats::Multitrack
 {
   namespace SID
   {
-    const Char DESCRIPTION[] = "Commodore64 RSID/PSID";
-
     typedef std::array<uint8_t, 4> SignatureType;
 
     const SignatureType SIGNATURE_RSID = {{'R', 'S', 'I', 'D'}};
@@ -45,7 +42,7 @@ namespace Formats::Chiptune
       be_uint16_t LoadAddr;
       be_uint16_t InitAddr;
       be_uint16_t PlayAddr;
-      be_uint16_t SoungsCount;
+      be_uint16_t SongsCount;
       be_uint16_t StartSong;
       be_uint32_t SpeedFlags;
     };
@@ -64,7 +61,54 @@ namespace Formats::Chiptune
         "????"          // BE speed flag
         ""_sv;
 
-    class Decoder : public Formats::Chiptune::Decoder
+    const Char DESCRIPTION[] = "Commodore64 SID/RSID/PSID";
+
+    class Container : public Binary::BaseContainer<Multitrack::Container>
+    {
+    public:
+      Container(const RawHeader* hdr, Binary::Container::Ptr data)
+        : BaseContainer(std::move(data))
+        , Hdr(hdr)
+      {}
+
+      uint_t FixedChecksum() const override
+      {
+        return Binary::Crc32(*Delegate);
+      }
+
+      uint_t TracksCount() const override
+      {
+        return Hdr->SongsCount;
+      }
+
+      uint_t StartTrackIndex() const override
+      {
+        return Hdr->StartSong - 1;
+      }
+
+    private:
+      const RawHeader* const Hdr;
+    };
+
+    const RawHeader* GetHeader(Binary::View rawData)
+    {
+      if (rawData.Size() < sizeof(RawHeader))
+      {
+        return nullptr;
+      }
+      const auto* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
+      if (hdr->Signature != SIGNATURE_PSID && hdr->Signature != SIGNATURE_RSID)
+      {
+        return nullptr;
+      }
+      if (!Math::InRange<uint_t>(hdr->Version, VERSION_MIN, VERSION_MAX))
+      {
+        return nullptr;
+      }
+      return hdr;
+    }
+
+    class Decoder : public Formats::Multitrack::Decoder
     {
     public:
       Decoder()
@@ -83,61 +127,29 @@ namespace Formats::Chiptune
 
       bool Check(Binary::View rawData) const override
       {
-        return Format->Match(rawData);
+        return Format->Match(rawData) && GetHeader(rawData);
       }
 
-      Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
+      Container::Ptr Decode(const Binary::Container& rawData) const override
       {
-        return Formats::Chiptune::Container::Ptr();  // TODO
+        if (const auto* hdr = GetHeader(rawData))
+        {
+          auto used = rawData.GetSubcontainer(0, rawData.Size());
+          return MakePtr<Container>(hdr, std::move(used));
+        }
+        else
+        {
+          return {};
+        }
       }
 
     private:
       const Binary::Format::Ptr Format;
     };
-
-    const RawHeader* GetHeader(Binary::View rawData)
-    {
-      if (rawData.Size() < sizeof(RawHeader))
-      {
-        return nullptr;
-      }
-      const RawHeader* hdr = safe_ptr_cast<const RawHeader*>(rawData.Start());
-      if (hdr->Signature != SIGNATURE_PSID && hdr->Signature != SIGNATURE_RSID)
-      {
-        return nullptr;
-      }
-      if (!Math::InRange<uint_t>(hdr->Version, VERSION_MIN, VERSION_MAX))
-      {
-        return nullptr;
-      }
-      return hdr;
-    }
-
-    uint_t GetModulesCount(Binary::View rawData)
-    {
-      if (const RawHeader* hdr = GetHeader(rawData))
-      {
-        return hdr->SoungsCount;
-      }
-      else
-      {
-        return 0;
-      }
-    }
-
-    Binary::Container::Ptr FixStartSong(Binary::View data, uint_t idx)
-    {
-      Require(GetHeader(data));
-      std::unique_ptr<Binary::Dump> content(new Binary::Dump(data.Size()));
-      std::memcpy(content->data(), data.Start(), content->size());
-      RawHeader& hdr = *safe_ptr_cast<RawHeader*>(content->data());
-      hdr.StartSong = static_cast<uint16_t>(idx);
-      return Binary::CreateContainer(std::move(content));
-    }
   }  // namespace SID
 
   Decoder::Ptr CreateSIDDecoder()
   {
     return MakePtr<SID::Decoder>();
   }
-}  // namespace Formats::Chiptune
+}  // namespace Formats::Multitrack

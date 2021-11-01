@@ -17,13 +17,16 @@
 
 namespace Module
 {
-  class Factory
+  template<class ContainerType>
+  class BaseFactory
   {
   public:
-    typedef std::shared_ptr<const Factory> Ptr;
-    virtual ~Factory() = default;
+    using Ptr = std::shared_ptr<const BaseFactory>;
+    virtual ~BaseFactory() = default;
 
-    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const Binary::Container& data,
+    virtual Holder::Ptr CreateModule(const Parameters::Accessor& params, const ContainerType& data,
                                      Parameters::Container::Ptr properties) const = 0;
   };
+
+  using Factory = BaseFactory<Binary::Container>;
 }  // namespace Module

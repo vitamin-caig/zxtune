@@ -20,11 +20,10 @@
 #include <progress_callback.h>
 // library includes
 #include <core/additional_files_resolve.h>
-#include <core/module_detect.h>
-#include <core/module_open.h>
+#include <core/data_location.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
-#include <core/src/location.h>
+#include <core/service.h>
 #include <debug/log.h>
 #include <io/api.h>
 #include <module/attributes.h>
@@ -348,8 +347,8 @@ namespace
   class ModuleSource
   {
   public:
-    ModuleSource(Parameters::Accessor::Ptr coreParams, DataSource::Ptr source, IO::Identifier::Ptr moduleId)
-      : CoreParams(std::move(coreParams))
+    ModuleSource(ZXTune::Service::Ptr service, DataSource::Ptr source, IO::Identifier::Ptr moduleId)
+      : Service(std::move(service))
       , Source(std::move(source))
       , ModuleId(std::move(moduleId))
     {}
@@ -363,7 +362,7 @@ namespace
           Parameters::CreateMergedContainer(std::move(forcedProperties), Parameters::Container::Create());
       auto data = Source->GetData();
       const auto& subpath = ModuleId->Subpath();
-      const auto module = Module::Open(*CoreParams, std::move(data), subpath, std::move(initialProperties));
+      const auto module = Service->OpenModule(std::move(data), subpath, std::move(initialProperties));
       if (subpath.empty())
       {
         if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
@@ -376,9 +375,8 @@ namespace
 
     Binary::Data::Ptr GetModuleData(std::size_t size) const
     {
-      const Binary::Container::Ptr data = Source->GetData();
-      const ZXTune::DataLocation::Ptr location = ZXTune::OpenLocation(*CoreParams, data, ModuleId->Subpath());
-      return location->GetData()->GetSubcontainer(0, size);
+      auto data = Source->GetData();
+      return Service->OpenData(std::move(data), ModuleId->Subpath())->GetSubcontainer(0, size);
     }
 
     String GetFullPath() const
@@ -392,7 +390,7 @@ namespace
     }
 
   private:
-    const Parameters::Accessor::Ptr CoreParams;
+    const ZXTune::Service::Ptr Service;
     const DataSource::Ptr Source;
     const IO::Identifier::Ptr ModuleId;
   };
@@ -625,10 +623,10 @@ namespace
   {
   public:
     DetectCallback(Playlist::Item::DetectParameters& delegate, DynamicAttributesProvider::Ptr attributes,
-                   CachedDataProvider::Ptr provider, Parameters::Accessor::Ptr coreParams, IO::Identifier::Ptr dataId)
+                   CachedDataProvider::Ptr provider, ZXTune::Service::Ptr service, IO::Identifier::Ptr dataId)
       : Delegate(delegate)
       , Attributes(std::move(attributes))
-      , CoreParams(std::move(coreParams))
+      , Service(std::move(service))
       , DataId(dataId)
       , Source(MakePtr<DataSource>(provider, dataId))
     {}
@@ -654,7 +652,7 @@ namespace
       auto adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const auto info = holder->GetModuleInformation();
       const auto lookupModuleProps = Parameters::CreateMergedAccessor(adjustedParams, holder->GetModuleProperties());
-      ModuleSource itemSource(CoreParams, Source, DataId->WithSubpath(subPath));
+      ModuleSource itemSource(Service, Source, DataId->WithSubpath(subPath));
       auto playitem = MakePtr<DataImpl>(Attributes, std::move(itemSource), std::move(adjustedParams), info->Duration(),
                                         *lookupModuleProps, decoder.Capabilities());
       Delegate.ProcessItem(std::move(playitem));
@@ -668,7 +666,7 @@ namespace
   private:
     Playlist::Item::DetectParameters& Delegate;
     const DynamicAttributesProvider::Ptr Attributes;
-    const Parameters::Accessor::Ptr CoreParams;
+    const ZXTune::Service::Ptr Service;
     const IO::Identifier::Ptr DataId;
     const DataSource::Ptr Source;
   };
@@ -678,7 +676,7 @@ namespace
   public:
     explicit DataProviderImpl(Parameters::Accessor::Ptr parameters)
       : Provider(MakePtr<CachedDataProvider>(parameters))
-      , CoreParams(parameters)
+      , Service(ZXTune::Service::Create(std::move(parameters)))
       , Attributes(MakePtr<DynamicAttributesProvider>())
     {}
 
@@ -690,8 +688,8 @@ namespace
       if (subPath.empty())
       {
         auto data = Provider->GetData(id->Path());
-        DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, std::move(id));
-        Module::Detect(*CoreParams, std::move(data), detectCallback);
+        DetectCallback detectCallback(detectParams, Attributes, Provider, Service, std::move(id));
+        Service->DetectModules(std::move(data), detectCallback);
       }
       else
       {
@@ -704,13 +702,13 @@ namespace
       auto id = IO::ResolveUri(path);
 
       auto data = Provider->GetData(id->Path());
-      DetectCallback detectCallback(detectParams, Attributes, Provider, CoreParams, id);
-      Module::Open(*CoreParams, std::move(data), id->Subpath(), detectCallback);
+      DetectCallback detectCallback(detectParams, Attributes, Provider, Service, id);
+      Service->OpenModule(std::move(data), id->Subpath(), detectCallback);
     }
 
   private:
     const CachedDataProvider::Ptr Provider;
-    const Parameters::Accessor::Ptr CoreParams;
+    const ZXTune::Service::Ptr Service;
     const DynamicAttributesProvider::Ptr Attributes;
   };
 }  // namespace

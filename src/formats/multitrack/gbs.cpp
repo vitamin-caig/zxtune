@@ -15,7 +15,6 @@
 #include <pointers.h>
 // library includes
 #include <binary/container_base.h>
-#include <binary/container_factories.h>
 #include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <formats/multitrack.h>
@@ -64,6 +63,8 @@ namespace Formats::Multitrack
         // do not pay attention to addresses
         ""_sv;
 
+    const Char DESCRIPTION[] = "GameBoy Sound";
+
     const std::size_t MIN_SIZE = 256;
 
     const RawHeader* GetHeader(Binary::View rawData)
@@ -111,16 +112,6 @@ namespace Formats::Multitrack
         return Hdr->StartSong - 1;
       }
 
-      Container::Ptr WithStartTrackIndex(uint_t idx) const override
-      {
-        std::unique_ptr<Binary::Dump> content(new Binary::Dump(Delegate->Size()));
-        std::memcpy(content->data(), Delegate->Start(), content->size());
-        RawHeader* const hdr = safe_ptr_cast<RawHeader*>(content->data());
-        Require(idx < hdr->SongsCount);
-        hdr->StartSong = idx + 1;
-        return MakePtr<Container>(hdr, Binary::CreateContainer(std::move(content)));
-      }
-
     private:
       const RawHeader* const Hdr;
     };
@@ -132,6 +123,11 @@ namespace Formats::Multitrack
       Decoder()
         : Format(Binary::CreateMatchOnlyFormat(FORMAT, MIN_SIZE))
       {}
+
+      String GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
 
       Binary::Format::Ptr GetFormat() const override
       {
@@ -145,14 +141,14 @@ namespace Formats::Multitrack
 
       Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
-        if (const RawHeader* hdr = GetHeader(rawData))
+        if (const auto* hdr = GetHeader(rawData))
         {
-          const Binary::Container::Ptr used = rawData.GetSubcontainer(0, std::min(rawData.Size(), MAX_SIZE));
-          return MakePtr<Container>(hdr, used);
+          auto used = rawData.GetSubcontainer(0, std::min(rawData.Size(), MAX_SIZE));
+          return MakePtr<Container>(hdr, std::move(used));
         }
         else
         {
-          return Formats::Multitrack::Container::Ptr();
+          return {};
         }
       }
 

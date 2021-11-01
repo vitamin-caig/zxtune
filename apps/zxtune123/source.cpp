@@ -19,10 +19,10 @@
 // library includes
 #include <core/additional_files_resolve.h>
 #include <core/core_parameters.h>
-#include <core/module_detect.h>
-#include <core/module_open.h>
+#include <core/data_location.h>
 #include <core/plugin.h>
 #include <core/plugin_attrs.h>
+#include <core/service.h>
 #include <io/api.h>
 #include <io/providers_parameters.h>
 #include <module/properties/path.h>
@@ -167,6 +167,12 @@ namespace
       Callback.ProcessItem(location.GetData(), std::move(holder));
     }
 
+    void ProcessUnknownData(const ZXTune::DataLocation& location) override
+    {
+      const auto subId = Id->WithSubpath(location.GetPath()->AsString());
+      Callback.ProcessUnknownData(subId->Full(), location.GetPluginsChain()->AsString(), location.GetData());
+    }
+
     Log::ProgressCallback* GetProgress() const override
     {
       return ProgressCallback.get();
@@ -176,7 +182,7 @@ namespace
     const Parameters::Accessor::Ptr Params;
     const IO::Identifier::Ptr Id;
     OnItemCallback& Callback;
-    const Log::ProgressCallback::Ptr ProgressCallback;
+    const std::unique_ptr<Log::ProgressCallback> ProgressCallback;
   };
 
   class Source : public SourceComponent
@@ -184,6 +190,7 @@ namespace
   public:
     Source(Parameters::Container::Ptr configParams)
       : Params(std::move(configParams))
+      , Service(ZXTune::Service::Create(Params))
       , OptionsDescription("Input options")
       , ShowProgress(false)
       , YM(false)
@@ -258,11 +265,11 @@ namespace
         const String subpath = id->Subpath();
         if (subpath.empty())
         {
-          Module::Detect(*Params, std::move(data), detectCallback);
+          Service->DetectModules(std::move(data), detectCallback);
         }
         else
         {
-          Module::Open(*Params, std::move(data), subpath, detectCallback);
+          Service->OpenModule(std::move(data), subpath, detectCallback);
         }
       }
       catch (const Error& e)
@@ -273,6 +280,7 @@ namespace
 
   private:
     const Parameters::Container::Ptr Params;
+    const ZXTune::Service::Ptr Service;
     boost::program_options::options_description OptionsDescription;
     Strings::Array Files;
     String ProvidersOptions;

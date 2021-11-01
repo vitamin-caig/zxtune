@@ -19,7 +19,6 @@
 // library includes
 #include <core/core_parameters.h>
 #include <core/plugins/archives/raw_supp.h>
-#include <core/plugins/utils.h>
 #include <debug/log.h>
 #include <devices/aym/chip.h>
 #include <formats/archived/multitrack/filename.h>
@@ -28,6 +27,7 @@
 #include <parameters/convert.h>
 #include <parameters/serialize.h>
 #include <sound/sound_parameters.h>
+#include <tools/progress_callback_helpers.h>
 // std includes
 #include <cctype>
 // boost includes
@@ -155,7 +155,7 @@ namespace
       : Container(MakeRWPtr<AYLEntries>())
       , Parameters()
     {
-      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(source.GetSize(), cb);
+      Log::PercentProgressCallback progress(source.GetSize(), cb);
       const uint_t REPORT_PERIOD_ITEMS = 1000;
       // parse playlist parameters
       while (ParseParameters(source, Parameters))
@@ -165,7 +165,7 @@ namespace
         ParseEntry(source);
         if (++counter >= REPORT_PERIOD_ITEMS)
         {
-          progress->OnProgress(source.GetPosition());
+          progress.OnProgress(source.GetPosition());
           counter = 0;
         }
       }

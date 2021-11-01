@@ -166,7 +166,6 @@ namespace
 
     static const CapsPair CONTAINER_CAPS[] = {{Capabilities::Container::Traits::DIRECTORIES, "dirs"_cap},
                                               {Capabilities::Container::Traits::PLAIN, "plain"_cap},
-                                              {Capabilities::Container::Traits::ONCEAPPLIED, "onceapplied"_cap},
                                               // limiter
                                               {}};
     String result = SerializeEnum(caps & Capabilities::Category::MASK, PLUGIN_TYPES);
@@ -212,11 +211,17 @@ namespace
 
   inline void ShowPlugins()
   {
-    StdOut << "Supported plugins:" << std::endl;
-    for (ZXTune::Plugin::Iterator::Ptr plugins = ZXTune::EnumeratePlugins(); plugins->IsValid(); plugins->Next())
+    class PluginsPrinter : public ZXTune::PluginVisitor
     {
-      StdOut << DescribePlugin(*plugins->Get());
-    }
+    public:
+      void Visit(const ZXTune::Plugin& plugin) override
+      {
+        StdOut << DescribePlugin(plugin);
+      }
+    };
+    StdOut << "Supported plugins:" << std::endl;
+    PluginsPrinter print;
+    ZXTune::EnumeratePlugins(print);
   }
 
   inline String DescribeBackend(const Sound::BackendInformation& info)

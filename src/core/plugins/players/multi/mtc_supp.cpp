@@ -17,7 +17,6 @@
 #include <error.h>
 #include <make_ptr.h>
 // library includes
-#include <core/module_open.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/multidevice/multitrackcontainer.h>
@@ -230,16 +229,16 @@ namespace Module::MTC
 
       Module::Holder::Ptr OpenModule(Binary::Container::Ptr data, Parameters::Accessor::Ptr baseProperties) const
       {
-        try
+        const auto initialProperties =
+            Parameters::CreateMergedContainer(std::move(baseProperties), Parameters::Container::Create());
+        for (const auto& plugin : ZXTune::PlayerPlugin::Enumerate())
         {
-          auto initialProperties =
-              Parameters::CreateMergedContainer(std::move(baseProperties), Parameters::Container::Create());
-          return Module::Open(Params, *data, std::move(initialProperties));
+          if (auto result = plugin->TryOpen(Params, *data, initialProperties))
+          {
+            return result;
+          }
         }
-        catch (const Error& /*ignored*/)
-        {
-          return {};
-        }
+        return {};
       }
 
     private:

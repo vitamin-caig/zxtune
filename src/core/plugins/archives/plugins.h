@@ -10,11 +10,10 @@
 
 #pragma once
 
-// local includes
-#include <core/plugins/archive_plugins_registrator.h>
-
 namespace ZXTune
 {
+  class ArchivePluginsRegistrator;
+
   void RegisterRawContainer(ArchivePluginsRegistrator& registrator);
   void RegisterMultitrackContainers(ArchivePluginsRegistrator& registrator);
   void RegisterZdataContainer(ArchivePluginsRegistrator& registrator);

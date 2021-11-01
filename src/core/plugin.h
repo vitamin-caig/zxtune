@@ -11,7 +11,6 @@
 #pragma once
 
 // common includes
-#include <iterator.h>
 #include <types.h>
 
 namespace ZXTune
@@ -20,12 +19,6 @@ namespace ZXTune
   class Plugin
   {
   public:
-    //! Pointer type
-    typedef std::shared_ptr<const Plugin> Ptr;
-    //! Iterator type
-    typedef ObjectIterator<Plugin::Ptr> Iterator;
-
-    //! Virtual destructor
     virtual ~Plugin() = default;
 
     //! Identification string
@@ -36,5 +29,13 @@ namespace ZXTune
     virtual uint_t Capabilities() const = 0;
   };
 
-  Plugin::Iterator::Ptr EnumeratePlugins();
+  class PluginVisitor
+  {
+  public:
+    virtual ~PluginVisitor() = default;
+
+    virtual void Visit(const Plugin& plugin) = 0;
+  };
+
+  void EnumeratePlugins(PluginVisitor& visitor);
 }  // namespace ZXTune

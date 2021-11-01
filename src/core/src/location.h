@@ -12,7 +12,6 @@
 
 // library includes
 #include <core/data_location.h>
-#include <parameters/accessor.h>
 
 namespace ZXTune
 {
@@ -21,8 +20,6 @@ namespace ZXTune
   //! @param subpath Subpath in source data to be resolved
   //! @return Object if path is valid. No object elsewhere
   DataLocation::Ptr CreateLocation(Binary::Container::Ptr data);
-  DataLocation::Ptr OpenLocation(const Parameters::Accessor& params, Binary::Container::Ptr data,
-                                 const String& subpath);
 
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData,
                                          const String& subPlugin, const String& subPath);

@@ -9,10 +9,10 @@
  **/
 
 // local includes
+#include "jni_api.h"
 #include "module.h"
 #include "player.h"
 #include "plugin.h"
-#include "jni_api.h"
 // library includes
 #include <core/plugin.h>
 // platform includes
@@ -47,5 +47,10 @@ JNIEXPORT void JNI_OnUnload(JavaVM* vm, void* /*reserved*/)
 
 JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_forcedInit(JNIEnv* /*env*/, jobject /*self*/)
 {
-  ZXTune::EnumeratePlugins();
+  class EmptyVisitor : public ZXTune::PluginVisitor
+  {
+  public:
+    void Visit(const ZXTune::Plugin&) {}
+  } stub;
+  ZXTune::EnumeratePlugins(stub);
 }

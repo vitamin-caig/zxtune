@@ -21,6 +21,7 @@
 #include <module/attributes.h>
 #include <parameters/convert.h>
 #include <parameters/serialize.h>
+#include <tools/progress_callback_helpers.h>
 // std includes
 #include <cctype>
 #include <set>
@@ -179,7 +180,7 @@ namespace
     {
       assert(XML.isStartElement() && XML.name() == XSPF::TRACKLIST_TAG);
       const uint_t REPORT_PERIOD_ITEMS = 1000;
-      const Log::ProgressCallback::Ptr progress = Log::CreatePercentProgressCallback(File.size(), cb);
+      Log::PercentProgressCallback progress(File.size(), cb);
       for (uint_t count = 0; XML.readNextStartElement(); ++count)
       {
         const QStringRef& tagName = XML.name();
@@ -199,7 +200,7 @@ namespace
         }
         if (++count >= REPORT_PERIOD_ITEMS)
         {
-          progress->OnProgress(XML.device()->pos());
+          progress.OnProgress(XML.device()->pos());
           count = 0;
         }
       }

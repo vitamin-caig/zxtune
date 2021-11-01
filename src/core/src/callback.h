@@ -12,8 +12,6 @@
 
 // core includes
 #include <core/module_detect.h>
-// common includes
-#include <progress_callback.h>
 
 namespace Module
 {
@@ -36,6 +34,11 @@ namespace Module
       return Delegate.ProcessModule(location, decoder, std::move(holder));
     }
 
+    void ProcessUnknownData(const ZXTune::DataLocation& location)
+    {
+      return Delegate.ProcessUnknownData(location);
+    }
+
     Log::ProgressCallback* GetProgress() const override
     {
       return Delegate.GetProgress();
@@ -43,26 +46,5 @@ namespace Module
 
   protected:
     DetectCallback& Delegate;
-  };
-
-  class CustomProgressDetectCallbackAdapter : public DetectCallbackDelegate
-  {
-  public:
-    CustomProgressDetectCallbackAdapter(DetectCallback& delegate, Log::ProgressCallback::Ptr progress)
-      : DetectCallbackDelegate(delegate)
-      , Progress(std::move(progress))
-    {}
-
-    CustomProgressDetectCallbackAdapter(DetectCallback& delegate)
-      : DetectCallbackDelegate(delegate)
-    {}
-
-    Log::ProgressCallback* GetProgress() const override
-    {
-      return Progress.get();
-    }
-
-  private:
-    const Log::ProgressCallback::Ptr Progress;
   };
 }  // namespace Module

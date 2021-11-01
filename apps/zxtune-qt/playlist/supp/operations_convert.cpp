@@ -27,6 +27,7 @@
 #include <sound/backend.h>
 #include <sound/backends_parameters.h>
 #include <sound/sound_parameters.h>
+#include <tools/progress_callback_helpers.h>
 // std includes
 #include <numeric>
 
@@ -121,19 +122,17 @@ namespace
     {
       try
       {
-        const Log::ProgressCallback::Ptr curItemProgress =
-            Log::CreateNestedPercentProgressCallback(TotalItems, DoneItems, Callback);
+        Log::NestedProgressCallback curItemProgress(TotalItems, DoneItems, Callback);
         const Module::Information::Ptr info = item->GetModuleInformation();
-        const Log::ProgressCallback::Ptr framesProgress =
-            Log::CreatePercentProgressCallback(info->Duration().Get(), *curItemProgress);
-        ConvertCallback cb(*framesProgress);
+        Log::PercentProgressCallback framesProgress(info->Duration().Get(), curItemProgress);
+        ConvertCallback cb(framesProgress);
         const Sound::Backend::Ptr backend =
             Service->CreateBackend(Type, item, Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
         const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
         control->Play();
         cb.WaitForFinish();
         control->Stop();
-        curItemProgress->OnProgress(100);
+        curItemProgress.OnProgress(100);
         Result->AddSucceed();
       }
       catch (const Error& err)

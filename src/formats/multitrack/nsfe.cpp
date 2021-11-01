@@ -15,7 +15,6 @@
 #include <pointers.h>
 // library includes
 #include <binary/container_base.h>
-#include <binary/container_factories.h>
 #include <binary/crc.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
@@ -74,6 +73,8 @@ namespace Formats::Multitrack
         "(? 80-ff){2}"
         ""_sv;
 
+    const Char DESCRIPTION[] = "Extended Nintendo Sound Format";
+
     const std::size_t MIN_SIZE = 256;
 
     class Container : public Binary::BaseContainer<Multitrack::Container>
@@ -100,19 +101,6 @@ namespace Formats::Multitrack
         return Info ? Info->StartTrack - 1 : 0;
       }
 
-      Container::Ptr WithStartTrackIndex(uint_t idx) const override
-      {
-        Require(Info != nullptr);
-        const Binary::View data(*Delegate);
-        const std::size_t infoOffset = safe_ptr_cast<const uint8_t*>(Info) - data.As<uint8_t>();
-        std::unique_ptr<Binary::Dump> content(new Binary::Dump(data.Size()));
-        std::memcpy(content->data(), data.Start(), data.Size());
-        InfoChunkFull* const info = safe_ptr_cast<InfoChunkFull*>(content->data() + infoOffset);
-        Require(idx < info->TracksCount);
-        info->StartTrack = idx;
-        return MakePtr<Container>(info, FixedCrc, Binary::CreateContainer(std::move(content)));
-      }
-
     private:
       const InfoChunkFull* const Info;
       const uint32_t FixedCrc;
@@ -124,6 +112,11 @@ namespace Formats::Multitrack
       Decoder()
         : Format(Binary::CreateFormat(FORMAT, MIN_SIZE))
       {}
+
+      String GetDescription() const override
+      {
+        return DESCRIPTION;
+      }
 
       Binary::Format::Ptr GetFormat() const override
       {
@@ -139,7 +132,7 @@ namespace Formats::Multitrack
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Multitrack::Container::Ptr();
+          return {};
         }
         try
         {
@@ -174,7 +167,7 @@ namespace Formats::Multitrack
         }
         catch (const std::exception&)
         {}
-        return Formats::Multitrack::Container::Ptr();
+        return {};
       }
 
     private:

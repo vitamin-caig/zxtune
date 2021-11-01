@@ -9,7 +9,7 @@
  **/
 
 #include <binary/container_factories.h>
-#include <core/module_open.h>
+#include <core/service.h>
 #include <error_tools.h>
 #include <io/api.h>
 #include <iostream>
@@ -26,7 +26,7 @@ namespace
     const Parameters::Container::Ptr emptyParams = Parameters::Container::Create();
     const String filename = fullPath;  // TODO: split if required
     const Binary::Container::Ptr data = IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub());
-    return Module::Open(*emptyParams, *data, Parameters::Container::Create());
+    return ZXTune::Service::Create(emptyParams)->OpenModule(data, {}, Parameters::Container::Create());
   }
 
   void ShowModuleInfo(const Module::Information& info)

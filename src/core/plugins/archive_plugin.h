@@ -14,30 +14,38 @@
 #include "core/src/location.h"
 // library includes
 #include <analysis/result.h>
+#include <core/module_detect.h>
 #include <core/plugin.h>
 
-namespace Module
+namespace Parameters
 {
-  class DetectCallback;
+  class Accessor;
 }
 
 namespace ZXTune
 {
-  class ArchivePlugin
+  class ArchiveCallback : public Module::DetectCallback
+  {
+  public:
+    virtual ~ArchiveCallback() = default;
+
+    virtual void ProcessData(DataLocation::Ptr data) = 0;
+  };
+
+  class ArchivePlugin : public Plugin
   {
   public:
     typedef std::shared_ptr<const ArchivePlugin> Ptr;
-    typedef ObjectIterator<ArchivePlugin::Ptr> Iterator;
-    virtual ~ArchivePlugin() = default;
 
-    virtual Plugin::Ptr GetDescription() const = 0;
+    static const std::vector<Ptr>& Enumerate();
+
     virtual Binary::Format::Ptr GetFormat() const = 0;
 
     //! @brief Detect modules in data
     virtual Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                                         Module::DetectCallback& callback) const = 0;
+                                         ArchiveCallback& callback) const = 0;
 
-    virtual DataLocation::Ptr Open(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                                   const Analysis::Path& pathToOpen) const = 0;
+    virtual DataLocation::Ptr TryOpen(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                                      const Analysis::Path& pathToOpen) const = 0;
   };
 }  // namespace ZXTune

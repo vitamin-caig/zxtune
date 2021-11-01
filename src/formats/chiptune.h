@@ -28,10 +28,6 @@ namespace Formats
     public:
       typedef std::shared_ptr<const Container> Ptr;
 
-      //! @brief Whole data fingerprint
-      //! @return Some integer value at least 32-bit
-      virtual uint_t Checksum() const = 0;
-
       //! @brief Internal structures simple fingerprint
       //! @return Some integer value at least 32-bit
       virtual uint_t FixedChecksum() const = 0;

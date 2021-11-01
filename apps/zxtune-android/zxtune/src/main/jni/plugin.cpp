@@ -68,29 +68,44 @@ namespace Plugin
   {
     NativePluginJni::Cleanup(env);
   }
+
+  class Visitor : public ZXTune::PluginVisitor
+  {
+  public:
+    Visitor(JNIEnv* env, jobject delegate)
+      : Env(env)
+      , Delegate(delegate)
+    {}
+
+    void Visit(const ZXTune::Plugin& plug) override
+    {
+      const uint_t caps = plug.Capabilities();
+      const String id = plug.Id();
+      const String desc = plug.Description();
+
+      // TODO: remove hardcode
+      using namespace ZXTune::Capabilities;
+      switch (caps & Category::MASK)
+      {
+      case Category::MODULE:
+        NativePluginJni::CallOnPlayerPlugin(Env, Delegate, (caps & Module::Device::MASK) >> 4, id, desc);
+        break;
+      case Category::CONTAINER:
+        NativePluginJni::CallOnContainerPlugin(Env, Delegate, (caps & Container::Type::MASK) >> 0, id, desc);
+        break;
+      default:
+        break;
+      }
+    }
+
+  private:
+    JNIEnv* const Env;
+    const jobject Delegate;
+  };
 }  // namespace Plugin
 
 JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniApi_enumeratePlugins(JNIEnv* env, jobject /*self*/, jobject visitor)
 {
-  for (const auto iter = ZXTune::EnumeratePlugins(); iter->IsValid(); iter->Next())
-  {
-    const ZXTune::Plugin::Ptr plug = iter->Get();
-    const uint_t caps = plug->Capabilities();
-    const String id = plug->Id();
-    const String desc = plug->Description();
-
-    // TODO: remove hardcode
-    using namespace ZXTune::Capabilities;
-    switch (caps & Category::MASK)
-    {
-    case Category::MODULE:
-      NativePluginJni::CallOnPlayerPlugin(env, visitor, (caps & Module::Device::MASK) >> 4, id, desc);
-      break;
-    case Category::CONTAINER:
-      NativePluginJni::CallOnContainerPlugin(env, visitor, (caps & Container::Type::MASK) >> 0, id, desc);
-      break;
-    default:
-      break;
-    }
-  }
+  Plugin::Visitor adapter(env, visitor);
+  ZXTune::EnumeratePlugins(adapter);
 }
