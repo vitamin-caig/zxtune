@@ -89,6 +89,11 @@ namespace Formats::Chiptune
           /*const auto crc = */ Stream.Read<le_uint32_t>();
           const auto segmentsCount = Stream.ReadByte();
           const auto segmentsSizes = Stream.PeekRawData(segmentsCount);
+          if (!segmentsSizes)
+          {
+            Stream.Seek(offset);
+            break;
+          }
           const auto payloadSize = std::accumulate(segmentsSizes, segmentsSizes + segmentsCount, std::size_t(0));
           {
             Stream.Skip(segmentsCount);
