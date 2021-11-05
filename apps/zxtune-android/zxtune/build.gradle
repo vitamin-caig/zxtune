@@ -1,18 +1,17 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     buildToolsVersion "30.0.2"
 
     defaultConfig {
         applicationId "app.zxtune"
         minSdkVersion 16
-        targetSdkVersion 29
+        targetSdkVersion 30
         //supported languages
         resConfigs "en", "de", "ru", "es", "cs", "zh", "ja", "pt"
         //supported densities for vector drawables rasterization
         vectorDrawables.generatedDensities  "mdpi", "hdpi", "xhdpi", "xxhdpi"
-
 
         javaCompileOptions {
             annotationProcessorOptions.arguments += [
@@ -25,10 +24,6 @@ android {
         renderScript false
         shaders false
         dataBinding true
-    }
-
-    dexOptions {
-        preDexLibraries false
     }
 
     packagingOptions {
