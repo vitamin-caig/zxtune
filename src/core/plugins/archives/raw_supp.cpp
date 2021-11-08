@@ -510,7 +510,7 @@ namespace ZXTune::Raw
     class Iterator
     {
     public:
-      Iterator(typename PluginsList::const_iterator it, typename PluginsList::const_iterator lim, std::size_t offset)
+      Iterator(typename PluginsList::iterator it, typename PluginsList::iterator lim, std::size_t offset)
         : Cur(std::move(it))
         , Lim(std::move(lim))
         , Offset(offset)
@@ -523,10 +523,16 @@ namespace ZXTune::Raw
         return Cur != Lim;
       }
 
-      typename P::Ptr Get() const
+      const P& GetPlugin() const
       {
         assert(Cur != Lim);
-        return Cur->Plugin;
+        return *Cur->Plugin;
+      }
+
+      void SetLookahead(std::size_t offset)
+      {
+        assert(Cur != Lim);
+        Cur->Offset += offset;
       }
 
       void Next()
@@ -546,8 +552,8 @@ namespace ZXTune::Raw
       }
 
     private:
-      typename PluginsList::const_iterator Cur;
-      const typename PluginsList::const_iterator Lim;
+      typename PluginsList::iterator Cur;
+      const typename PluginsList::iterator Lim;
       const std::size_t Offset;
     };
 
@@ -557,11 +563,18 @@ namespace ZXTune::Raw
     {
       for (const auto& plugin : plugins)
       {
-        Plugins.emplace_back(PluginEntry(plugin));
+        if (plugin->Capabilities() != CAPS)
+        {
+          Plugins.emplace_back(PluginEntry(plugin));
+        }
+        else
+        {
+          Dbg("Ignore '%1%'", plugin->Description());
+        }
       }
     }
 
-    Iterator Enumerate() const
+    Iterator Enumerate()
     {
       return Iterator(Plugins.begin(), Plugins.end(), Offset);
     }
@@ -577,17 +590,6 @@ namespace ZXTune::Raw
     void SetOffset(std::size_t offset)
     {
       Offset = offset;
-    }
-
-    void SetPluginLookahead(const P& plug, const String& id, std::size_t lookahead)
-    {
-      const auto it = std::find_if(Plugins.begin(), Plugins.end(),
-                                   [&plug](const PluginEntry& entry) { return entry.Plugin.get() == &plug; });
-      if (it != Plugins.end())
-      {
-        Dbg("Disabling check of %1% for neareast %2% bytes starting from %3%", id, lookahead, Offset);
-        it->Offset += lookahead;
-      }
     }
 
   private:
@@ -681,11 +683,6 @@ namespace ZXTune::Raw
       , Offset()
     {}
 
-    void Deny(const ArchivePlugin& denied)
-    {
-      Archives.SetPluginLookahead(denied, denied.Id(), ~std::size_t(0));
-    }
-
     std::pair<std::size_t, bool> Detect(DataLocation::Ptr input, ArchiveCallback& callback)
     {
       const auto detectedModules = DetectIn(Players, input, callback);
@@ -723,37 +720,33 @@ namespace ZXTune::Raw
       for (auto iter = container.Enumerate(); iter.IsValid(); iter.Next())
       {
         const Time::Timer detectTimer;
-        const auto plugin = iter.Get();
-        const auto result = plugin->Detect(Params, input, callback);
-        const auto id = plugin->Id();
+        const auto& plugin = iter.GetPlugin();
+        const auto result = plugin.Detect(Params, input, callback);
+        const auto id = plugin.Id();
         if (const auto usedSize = result->GetMatchedDataSize())
         {
-          Statistic::Self().AddAimed(*plugin, detectTimer);
+          Statistic::Self().AddAimed(plugin, detectTimer);
           Dbg("Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
           return result;
         }
-        else if (initialScan)
+        else if (!initialScan)
         {
-          const std::size_t initialLookahead = 1;
-          container.SetPluginLookahead(*plugin, id, initialLookahead);
-        }
-        else
-        {
-          Statistic::Self().AddMissed(*plugin, detectTimer);
+          Statistic::Self().AddMissed(plugin, detectTimer);
           const Time::Timer scanTimer;
           const std::size_t lookahead = result->GetLookaheadOffset();
-          container.SetPluginLookahead(*plugin, id, lookahead);
+          iter.SetLookahead(lookahead);
+          Dbg("Disabling check of %1% for neareast %2% bytes starting from %3%", id, lookahead, Offset);
           if (lookahead == maxSize)
           {
-            Statistic::Self().AddAimed(*plugin, scanTimer);
+            Statistic::Self().AddAimed(plugin, scanTimer);
           }
           else
           {
-            Statistic::Self().AddScanned(*plugin, scanTimer);
+            Statistic::Self().AddScanned(plugin, scanTimer);
           }
         }
       }
-      const std::size_t minLookahead = container.GetMinimalPluginLookahead();
+      const std::size_t minLookahead = initialScan ? std::size_t(1) : container.GetMinimalPluginLookahead();
       return Analysis::CreateUnmatchedResult(minLookahead);
     }
 
@@ -809,7 +802,6 @@ namespace ZXTune::Raw
       ScanProgress progress(callback.GetProgress(), size, currentPath);
 
       RawDetectionPlugins usedPlugins(params, scanParams.GetDoubleAnalysis());
-      usedPlugins.Deny(*this);
 
       auto subLocation = MakePtr<ScanDataLocation>(input, 0);
 
