@@ -26,6 +26,7 @@
 #include "constants.h"
 #include "libavutil/mips/asmdefs.h"
 #include "libavutil/mips/mmiutils.h"
+#include "libavutil/mem_internal.h"
 
 #define W1  22725  //cos(i*M_PI/16)*sqrt(2)*(1<<14) + 0.5
 #define W2  21407  //cos(i*M_PI/16)*sqrt(2)*(1<<14) + 0.5
@@ -39,7 +40,7 @@
 #define COL_SHIFT 20
 #define DC_SHIFT 3
 
-DECLARE_ALIGNED(8, const int16_t, W_arr)[46] = {
+DECLARE_ALIGNED(16, const int16_t, W_arr)[46] = {
     W4,  W2,  W4,  W6,
     W1,  W3,  W5,  W7,
     W4,  W6, -W4, -W2,

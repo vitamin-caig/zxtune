@@ -27,6 +27,9 @@
 #include "avcodec.h"
 #include "get_bits.h"
 
+// OBU header fields + max leb128 length
+#define MAX_OBU_HEADER_SIZE (2 + 8)
+
 typedef struct AV1OBU {
     /** Size of payload */
     int size;
@@ -56,6 +59,7 @@ typedef struct AV1Packet {
     AV1OBU *obus;
     int nb_obus;
     int obus_allocated;
+    unsigned obus_allocated_size;
 } AV1Packet;
 
 /**
@@ -104,7 +108,7 @@ static inline int parse_obu_header(const uint8_t *buf, int buf_size,
     int ret, extension_flag, has_size_flag;
     int64_t size;
 
-    ret = init_get_bits8(&gb, buf, FFMIN(buf_size, 2 + 8)); // OBU header fields + max leb128 length
+    ret = init_get_bits8(&gb, buf, FFMIN(buf_size, MAX_OBU_HEADER_SIZE));
     if (ret < 0)
         return ret;
 
@@ -145,7 +149,9 @@ static inline int get_obu_bit_length(const uint8_t *buf, int size, int type)
     int v;
 
     /* There are no trailing bits on these */
-    if (type == AV1_OBU_TILE_GROUP || type == AV1_OBU_FRAME) {
+    if (type == AV1_OBU_TILE_GROUP ||
+        type == AV1_OBU_TILE_LIST ||
+        type == AV1_OBU_FRAME) {
         if (size > INT_MAX / 8)
             return AVERROR(ERANGE);
         else

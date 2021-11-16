@@ -82,7 +82,7 @@ static inline void loco_update_rice_param(RICEContext *r, int val)
 
 static inline int loco_get_rice(RICEContext *r)
 {
-    int v;
+    unsigned v;
     if (r->run > 0) { /* we have zero run */
         r->run--;
         loco_update_rice_param(r, 0);
@@ -131,7 +131,7 @@ static int loco_decode_plane(LOCOContext *l, uint8_t *data, int width, int heigh
                              int stride, const uint8_t *buf, int buf_size)
 {
     RICEContext rc;
-    int val;
+    unsigned val;
     int ret;
     int i, j;
 
@@ -346,4 +346,5 @@ AVCodec ff_loco_decoder = {
     .init           = decode_init,
     .decode         = decode_frame,
     .capabilities   = AV_CODEC_CAP_DR1,
+    .caps_internal  = FF_CODEC_CAP_INIT_THREADSAFE,
 };

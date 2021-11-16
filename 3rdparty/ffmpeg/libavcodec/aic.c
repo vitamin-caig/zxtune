@@ -22,6 +22,8 @@
 
 #include <inttypes.h>
 
+#include "libavutil/mem_internal.h"
+
 #include "avcodec.h"
 #include "bytestream.h"
 #include "internal.h"
@@ -504,6 +506,5 @@ AVCodec ff_aic_decoder = {
     .close          = aic_decode_close,
     .decode         = aic_decode_frame,
     .capabilities   = AV_CODEC_CAP_DR1 | AV_CODEC_CAP_FRAME_THREADS,
-    .init_thread_copy = ONLY_IF_THREADS_ENABLED(aic_decode_init),
     .caps_internal  = FF_CODEC_CAP_INIT_THREADSAFE,
 };

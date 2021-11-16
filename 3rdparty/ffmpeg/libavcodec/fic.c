@@ -22,6 +22,7 @@
  */
 
 #include "libavutil/common.h"
+#include "libavutil/mem_internal.h"
 #include "libavutil/opt.h"
 #include "avcodec.h"
 #include "internal.h"
@@ -278,7 +279,7 @@ static int fic_decode_frame(AVCodecContext *avctx, void *data,
     int skip_cursor = ctx->skip_cursor;
     uint8_t *sdata;
 
-    if ((ret = ff_reget_buffer(avctx, ctx->frame)) < 0)
+    if ((ret = ff_reget_buffer(avctx, ctx->frame, 0)) < 0)
         return ret;
 
     /* Header + at least one slice (4) */
@@ -421,7 +422,7 @@ static int fic_decode_frame(AVCodecContext *avctx, void *data,
     }
 
     /* Make sure we use a user-supplied buffer. */
-    if ((ret = ff_reget_buffer(avctx, ctx->final_frame)) < 0) {
+    if ((ret = ff_reget_buffer(avctx, ctx->final_frame, 0)) < 0) {
         av_log(avctx, AV_LOG_ERROR, "Could not make frame writable.\n");
         return ret;
     }

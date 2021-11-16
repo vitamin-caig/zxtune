@@ -185,7 +185,7 @@ static int flic_decode_frame_8BPP(AVCodecContext *avctx,
 
     bytestream2_init(&g2, buf, buf_size);
 
-    if ((ret = ff_reget_buffer(avctx, s->frame)) < 0)
+    if ((ret = ff_reget_buffer(avctx, s->frame, 0)) < 0)
         return ret;
 
     pixels = s->frame->data[0];
@@ -519,7 +519,7 @@ static int flic_decode_frame_15_16BPP(AVCodecContext *avctx,
 
     bytestream2_init(&g2, buf, buf_size);
 
-    if ((ret = ff_reget_buffer(avctx, s->frame)) < 0)
+    if ((ret = ff_reget_buffer(avctx, s->frame, 0)) < 0)
         return ret;
 
     pixels = s->frame->data[0];
@@ -735,6 +735,8 @@ static int flic_decode_frame_15_16BPP(AVCodecContext *avctx,
                 bytestream2_skip(&g2, chunk_size - 6);
             } else {
 
+                if (bytestream2_get_bytes_left(&g2) < 2 * s->avctx->width * s->avctx->height )
+                    return AVERROR_INVALIDDATA;
                 for (y_ptr = 0; y_ptr < s->frame->linesize[0] * s->avctx->height;
                      y_ptr += s->frame->linesize[0]) {
 
@@ -817,7 +819,7 @@ static int flic_decode_frame_24BPP(AVCodecContext *avctx,
 
     bytestream2_init(&g2, buf, buf_size);
 
-    if ((ret = ff_reget_buffer(avctx, s->frame)) < 0)
+    if ((ret = ff_reget_buffer(avctx, s->frame, 0)) < 0)
         return ret;
 
     pixels = s->frame->data[0];

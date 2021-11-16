@@ -36,6 +36,8 @@
 #include <stdio.h>
 
 #include "libavutil/channel_layout.h"
+#include "libavutil/mem_internal.h"
+#include "libavutil/thread.h"
 
 #define BITSTREAM_READER_LE
 #include "avcodec.h"
@@ -205,7 +207,7 @@ static int qdm2_get_vlc(GetBitContext *gb, const VLC *vlc, int flag, int depth)
     value = get_vlc2(gb, vlc->table, vlc->bits, depth);
 
     /* stage-2, 3 bits exponent escape sequence */
-    if (value-- == 0)
+    if (value < 0)
         value = get_bits(gb, get_bits(gb, 3) + 1);
 
     /* stage-3, optional */
@@ -1334,6 +1336,9 @@ static void qdm2_fft_decode_tones(QDM2Context *q, int duration,
         if (q->frequency_range > (local_int_14 + 1)) {
             int sub_packet = (local_int_20 + local_int_28);
 
+            if (q->fft_coefs_index + stereo >= FF_ARRAY_ELEMS(q->fft_coefs))
+                return;
+
             qdm2_fft_init_coefficient(q, sub_packet, offset, duration,
                                       channel, exp, phase);
             if (stereo)
@@ -1591,22 +1596,14 @@ static void qdm2_synthesis_filter(QDM2Context *q, int index)
 
 /**
  * Init static data (does not depend on specific file)
- *
- * @param q    context
  */
 static av_cold void qdm2_init_static_data(void) {
-    static int done;
-
-    if(done)
-        return;
-
     qdm2_init_vlc();
-    ff_mpa_synth_init_float(ff_mpa_synth_window_float);
     softclip_table_init();
     rnd_table_init();
     init_noise_samples();
 
-    done = 1;
+    ff_mpa_synth_init_float();
 }
 
 /**
@@ -1614,11 +1611,10 @@ static av_cold void qdm2_init_static_data(void) {
  */
 static av_cold int qdm2_decode_init(AVCodecContext *avctx)
 {
+    static AVOnce init_static_once = AV_ONCE_INIT;
     QDM2Context *s = avctx->priv_data;
     int tmp_val, tmp, size;
     GetByteContext gb;
-
-    qdm2_init_static_data();
 
     /* extradata parsing
 
@@ -1765,6 +1761,8 @@ static av_cold int qdm2_decode_init(AVCodecContext *avctx)
 
     avctx->sample_fmt = AV_SAMPLE_FMT_S16;
 
+    ff_thread_once(&init_static_once, qdm2_init_static_data);
+
     return 0;
 }
 
@@ -1880,5 +1878,6 @@ AVCodec ff_qdm2_decoder = {
     .init             = qdm2_decode_init,
     .close            = qdm2_decode_close,
     .decode           = qdm2_decode_frame,
-    .capabilities     = AV_CODEC_CAP_DR1,
+    .capabilities     = AV_CODEC_CAP_DR1 | AV_CODEC_CAP_CHANNEL_CONF,
+    .caps_internal    = FF_CODEC_CAP_INIT_THREADSAFE,
 };

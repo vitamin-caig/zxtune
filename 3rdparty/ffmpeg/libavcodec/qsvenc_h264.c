@@ -34,6 +34,7 @@
 #include "qsv.h"
 #include "qsv_internal.h"
 #include "qsvenc.h"
+#include "atsc_a53.h"
 
 typedef struct QSVH264EncContext {
     AVClass *class;
@@ -197,4 +198,5 @@ AVCodec ff_h264_qsv_encoder = {
     .defaults       = qsv_enc_defaults,
     .caps_internal  = FF_CODEC_CAP_INIT_CLEANUP,
     .wrapper_name   = "qsv",
+    .hw_configs     = ff_qsv_enc_hw_configs,
 };

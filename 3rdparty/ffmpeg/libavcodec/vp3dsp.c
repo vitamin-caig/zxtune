@@ -449,8 +449,8 @@ av_cold void ff_vp3dsp_init(VP3DSPContext *c, int flags)
     c->idct_put      = vp3_idct_put_c;
     c->idct_add      = vp3_idct_add_c;
     c->idct_dc_add   = vp3_idct_dc_add_c;
-    c->v_loop_filter = vp3_v_loop_filter_8_c;
-    c->h_loop_filter = vp3_h_loop_filter_8_c;
+    c->v_loop_filter = c->v_loop_filter_unaligned = vp3_v_loop_filter_8_c;
+    c->h_loop_filter = c->h_loop_filter_unaligned = vp3_h_loop_filter_8_c;
 
     if (ARCH_ARM)
         ff_vp3dsp_init_arm(c, flags);
@@ -490,5 +490,5 @@ void ff_vp3dsp_set_bounding_values(int * bounding_values_array, int filter_limit
     }
     if (value)
         bounding_values[128] = value;
-    bounding_values[129] = bounding_values[130] = filter_limit * 0x02020202;
+    bounding_values[129] = bounding_values[130] = filter_limit * 0x02020202U;
 }

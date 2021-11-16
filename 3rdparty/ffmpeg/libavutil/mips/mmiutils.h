@@ -25,6 +25,8 @@
 #define AVUTIL_MIPS_MMIUTILS_H
 
 #include "config.h"
+
+#include "libavutil/mem_internal.h"
 #include "libavutil/mips/asmdefs.h"
 
 #if HAVE_LOONGSON2
@@ -205,7 +207,7 @@
  * backup register
  */
 #define BACKUP_REG \
-  double temp_backup_reg[8];                                    \
+  LOCAL_ALIGNED_16(double, temp_backup_reg, [8]);               \
   if (_MIPS_SIM == _ABI64)                                      \
     __asm__ volatile (                                          \
       "gssqc1       $f25,      $f24,       0x00(%[temp])  \n\t" \
