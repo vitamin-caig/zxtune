@@ -51,9 +51,15 @@ libraries.mingw += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi
 darwin.ld.flags += -framework Carbon -framework SystemConfiguration
 endif
 
+# .ui -> .ui.h
+# .h -> .moc.cpp
+# .ui.h -> .moc.cpp
+# .qrc -> qrc.cpp
 vpath %$(suffix.qrc) $(sort $(dir $(qrc_files)))
 vpath %$(suffix.ui) $(sort $(dir $(ui_files)))
-vpath %.h $(sort $(dir $(moc_files) $(ui_files) $(generated_dir)))
+vpath %.h $(sort $(dir $(ui_files) $(moc_files)))
+vpath %$(suffix.ui.h) $(generated_dir)
+#vpath %$(suffix.moc.cpp) $(generated_dir)
 
 $(generated_dir):
 	$(call makedir_cmd,$@)

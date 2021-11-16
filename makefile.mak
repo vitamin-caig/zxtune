@@ -108,12 +108,15 @@ ifdef jumbo.name
 include $(dirs.root)/make/jumbo.mak
 endif
 
-#calculate object files from sources
-OBJECTS = $(foreach src,$(notdir $(source_files) $(generated_sources)), $(objects_dir)/$(call makeobj_name,$(src)))
-OBJECTS.CPP = $(filter $(foreach ext,$(suffix.cpp.all),%$(call makeobj_name,$(ext))),$(OBJECTS))
-OBJECTS.C = $(filter %$(call makeobj_name,$(suffix.c)),$(OBJECTS))
-OBJECTS.RES = $(filter %$(call makeobj_name,$(suffix.res)),$(OBJECTS))
+ifdef objects_flat_names
+SRC2OBJ = $(objects_dir)/$(call makeobj_name,$(subst /,_,$(1)))
+else
+SRC2OBJ = $(objects_dir)/$(call makeobj_name,$(notdir $(1)))
+endif
 
+#calculate object files from sources
+SOURCES = $(source_files) $(generated_sources)
+OBJECTS = $(foreach src,$(SOURCES),$(call SRC2OBJ,$(src)))
 TRANSLATIONS = $(mo_files) $(qm_files)
 
 #make objects and binaries dir
@@ -154,16 +157,14 @@ endif
 
 $(OBJECTS): $(generated_headers) $(generated_sources) | $(objects_dir)
 
-VPATH = $(sort $(dir $(source_files) $(generated_sources)))
+define COMPILE
+$(SRC2OBJ): $(1)
+	$(call $(2),$$(CURDIR)/$(1),$$@)
+endef
 
-$(OBJECTS.CPP): $(objects_dir)/$(call makeobj_name,%): %
-	$(call build_obj_cmd,$(CURDIR)/$<,$@)
-
-$(OBJECTS.C): $(objects_dir)/$(call makeobj_name,%): %
-	$(call build_obj_cmd_cc,$(CURDIR)/$<,$@)
-
-$(OBJECTS.RES): $(objects_dir)/$(call makeobj_name,%): %
-	$(call makeres_cmd,$<,$@)
+$(foreach CPP,$(filter $(addprefix %,$(suffix.cpp.all)),$(SOURCES)),$(eval $(call COMPILE,$(CPP),build_obj_cmd)))
+$(foreach C,$(filter %$(suffix.c),$(SOURCES)),$(eval $(call COMPILE,$(C),build_obj_cmd_cc)))
+$(foreach RES,$(filter %$(suffix.res),$(SOURCES)),$(eval $(call COMPILE,$(RES),makeres_cmd)))
 
 .PHONY: clean
 
@@ -189,7 +190,3 @@ report:
 	$(info src.gen=$(generated_sources))
 	$(info hdr.gen=$(generated_headers))
 	$(info obj=$(OBJECTS))
-	$(info obj.cpp=$(OBJECTS.CPP))
-	$(info obj.c=$(OBJECTS.C))
-	$(info obj.res=$(OBJECTS.RES))
-	$(info vpath=$(VPATH))
