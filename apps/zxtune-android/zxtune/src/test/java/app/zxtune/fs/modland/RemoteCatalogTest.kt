@@ -7,6 +7,7 @@ import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.utils.ProgressCallback
 import org.junit.Assert
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -122,8 +123,8 @@ class RemoteCatalogTest {
             result.add(obj)
         }
 
-        fun checkGroups(size: Int, checkpoints: SparseArrayCompat<Group>) {
-            assertEquals(size, result.size)
+        fun checkGroups(minSize: Int, checkpoints: SparseArrayCompat<Group>) {
+            assertTrue(result.size >= minSize)
             for (i in 0 until checkpoints.size()) {
                 val pos = checkpoints.keyAt(i)
                 val ref = checkpoints.valueAt(i)
@@ -134,9 +135,9 @@ class RemoteCatalogTest {
             }
         }
 
-        fun checkProgress(done: Int, total: Int) {
-            assertEquals(done, lastProgress[0])
-            assertEquals(total, lastProgress[1])
+        fun checkProgress(minDone: Int, minTotal: Int) {
+            assertTrue(lastProgress[0] >= minDone)
+            assertTrue(lastProgress[1] >= minTotal)
         }
     }
 
@@ -156,8 +157,8 @@ class RemoteCatalogTest {
             return result.size < 100
         }
 
-        fun checkTracks(size: Int, checkpoints: SparseArrayCompat<Track>) {
-            assertEquals(size, result.size)
+        fun checkTracks(minSize: Int, checkpoints: SparseArrayCompat<Track>) {
+            assertTrue(result.size >= minSize)
             for (i in 0 until checkpoints.size()) {
                 val pos = checkpoints.keyAt(i)
                 val ref = checkpoints.valueAt(i)

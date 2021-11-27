@@ -150,13 +150,13 @@ class RemoteCatalogTest {
                 1,
                 "Into The Lair",
                 TimeStamp.fromSeconds(54),
-                "Other/The_Scheme_(NEC_PC-8801,_OPNA)/01 Into The Lair.vgz"
+                "Computers/NEC/The_Scheme_(NEC_PC-8801,_OPNA)/01 Into The Lair.vgz"
             ),  //last
             Track(
                 17,
                 "Theme of Gigaikotsu",
                 TimeStamp.fromSeconds(121),
-                "Other/The_Scheme_(NEC_PC-8801,_OPNA)/17 Theme of Gigaikotsu.vgz"
+                "Computers/NEC/The_Scheme_(NEC_PC-8801,_OPNA)/17 Theme of Gigaikotsu.vgz"
             )
         )
         with(TracksChecker()) {

@@ -18,7 +18,7 @@ class ProviderTest {
     @Test
     fun `test static object`() {
         val uri =
-            Uri.parse("http://nsf.joshw.info/n/North%20%26%20South%20(1990-09-21)(Kemco)[NES].7z")
+            Uri.parse("https://nsf.joshw.info/n/North%20%26%20South%20(1990-09-21)(Kemco)[NES].7z")
         with(provider.getObject(uri)) {
             assertEquals(uri, this.uri)
             assertEquals(10855, contentLength!!)
@@ -73,12 +73,12 @@ class ProviderTest {
     @Test
     fun `test unavailable file`() {
         try {
-            provider.getObject(Uri.parse("http://nsf.joshw.info/ne/"))
+            provider.getObject(Uri.parse("https://nsf.joshw.info/ne/"))
             fail("Should not create object")
         } catch (e: IOException) {
             assertNotNull("Thrown exception", e)
             assertEquals(
-                "Unexpected code 404 (Not Found) for HEAD request to http://nsf.joshw.info/ne/",
+                "Unexpected code 404 (Not Found) for HEAD request to https://nsf.joshw.info/ne/",
                 e.message
             )
         }
