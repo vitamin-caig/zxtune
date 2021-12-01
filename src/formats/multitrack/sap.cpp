@@ -183,6 +183,10 @@ namespace Formats::Multitrack
 
       Formats::Multitrack::Container::Ptr Decode(const Binary::Container& rawData) const override
       {
+        if (!Format->Match(rawData))
+        {
+          return {};
+        }
         try
         {
           auto builder = MakeRWPtr<DataBuilder>();
