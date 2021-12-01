@@ -25,16 +25,34 @@
 // std includes
 #include <cctype>
 #include <numeric>
+#include <unordered_map>
 
 namespace Formats::Chiptune
 {
   namespace Ogg
   {
-    const uint8_t SIGNATURE[] = {'O', 'g', 'g', 'S'};
-    const uint8_t VERSION = 0;
+    const uint8_t SIGNATURE[] = {'O', 'g', 'g', 'S', 0};
     const uint64_t UNFINISHED_PAGE_POSITION = ~0ull;
     const uint_t MAX_SEGMENT_SIZE = 255;
     const uint_t MAX_PAGE_SIZE = 32768;
+
+    const uint8_t* SeekSignature(Binary::DataInputStream& stream, const uint8_t* needle, std::size_t size)
+    {
+      const auto avail = stream.GetRestSize();
+      if (avail < size)
+      {
+        return nullptr;
+      }
+      const auto* start = stream.PeekRawData(avail);
+      const auto* end = start + avail;
+      const auto* pos = std::search(start, end, needle, needle + size);
+      if (pos != end)
+      {
+        stream.Skip(pos - start);
+        return pos;
+      }
+      return nullptr;
+    }
 
     // https://xiph.org/ogg/doc/framing.html
     class Format
@@ -56,36 +74,25 @@ namespace Formats::Chiptune
       Binary::Container::Ptr Parse(Callback& target)
       {
         static const std::size_t MIN_PAGE_SIZE = 27;
-        uint32_t streamId = 0;
-        uint32_t nextPageNumber = 0;
-        uint64_t position = 0;
-        while (Stream.GetRestSize() >= MIN_PAGE_SIZE)
+        uint32_t lastStreamId = ~0;
+        struct StreamData
+        {
+          uint32_t NextPageNumber = 0;
+          uint64_t Position = 0;
+        };
+        std::unordered_map<uint32_t, StreamData> streams;
+        while (Stream.GetRestSize() >= MIN_PAGE_SIZE && SyncToPage())
         {
           const auto offset = Stream.GetPosition();
-          // TODO: support seeking for pages
-          if (0 != std::memcmp(Stream.PeekRawData(sizeof(SIGNATURE)), SIGNATURE, sizeof(SIGNATURE)))
-          {
-            return Container::Ptr();
-          }
           Stream.Skip(sizeof(SIGNATURE));
-          Require(VERSION == Stream.ReadByte());
           /*const auto flags = */ Stream.ReadByte();
           const uint64_t nextPosition = Stream.Read<le_uint64_t>();
           const auto hasNextPosition = nextPosition != UNFINISHED_PAGE_POSITION;
-          if (const uint_t stream = Stream.Read<le_uint32_t>())
-          {
-            if (!streamId)
-            {
-              streamId = stream;
-              target.OnStream(streamId);
-            }
-            else
-            {
-              // multiple streams are not suported
-              Require(streamId == stream);
-            }
-          }
-          Require(nextPageNumber++ == Stream.Read<le_uint32_t>());
+          const uint_t streamId = Stream.Read<le_uint32_t>();
+          auto& stream = streams[streamId];
+          const uint32_t pageNumber = Stream.Read<le_uint32_t>();
+          Require(stream.NextPageNumber <= pageNumber);
+          stream.NextPageNumber = pageNumber + 1;
           /*const auto crc = */ Stream.Read<le_uint32_t>();
           const auto segmentsCount = Stream.ReadByte();
           const auto segmentsSizes = Stream.PeekRawData(segmentsCount);
@@ -94,10 +101,16 @@ namespace Formats::Chiptune
             Stream.Seek(offset);
             break;
           }
-          const auto payloadSize = std::accumulate(segmentsSizes, segmentsSizes + segmentsCount, std::size_t(0));
+          Stream.Skip(segmentsCount);
+          auto& position = stream.Position;
+          if (const auto payloadSize = std::accumulate(segmentsSizes, segmentsSizes + segmentsCount, std::size_t(0)))
           {
-            Stream.Skip(segmentsCount);
-            Binary::DataInputStream payload(Stream.ReadData(payloadSize));
+            if (lastStreamId != streamId)
+            {
+              lastStreamId = streamId;
+              target.OnStream(streamId);
+            }
+            Binary::DataInputStream payload(Stream.ReadData(std::min(payloadSize, Stream.GetRestSize())));
             target.OnPage(offset, hasNextPosition ? static_cast<uint_t>(nextPosition - position) : 0, payload);
           }
           if (hasNextPosition)
@@ -106,6 +119,16 @@ namespace Formats::Chiptune
           }
         }
         return Stream.GetReadContainer();
+      }
+
+    private:
+      bool SyncToPage()
+      {
+        if (0 == std::memcmp(Stream.PeekRawData(sizeof(SIGNATURE)), SIGNATURE, sizeof(SIGNATURE)))
+        {
+          return true;
+        }
+        return SeekSignature(Stream, SIGNATURE, sizeof(SIGNATURE));
       }
 
     private:
@@ -165,7 +188,6 @@ namespace Formats::Chiptune
         Storage.Allocate(LastPageSize);
         Storage.Resize(LastPageOffset);
         Storage.Add(SIGNATURE);
-        Storage.Add(VERSION);
         // assume single stream, so first page is always first
         const uint8_t flag = PagesDone == 0 ? FIRST_PAGE : (continued ? CONTINUED_PACKET : 0);
         Storage.Add(flag);
@@ -242,6 +264,7 @@ namespace Formats::Chiptune
       std::size_t LastPageOffset = 0;
       std::size_t LastPageSize = 0;
     };
+
   }  // namespace Ogg
 
   // https://xiph.org/vorbis/doc/Vorbis_I_spec.html
@@ -263,12 +286,12 @@ namespace Formats::Chiptune
     public:
       explicit Format(OggVorbis::Builder& target)
         : Target(target)
-        , NextPacketType(Identification)
       {}
 
       void OnStream(uint32_t streamId) override
       {
         Target.SetStreamId(streamId);
+        NextPacketType = &StreamsNextPacketTypes.try_emplace(streamId, Identification).first->second;
       }
 
       void OnPage(std::size_t offset, uint_t positionsCount, Binary::DataInputStream& payload) override
@@ -282,11 +305,17 @@ namespace Formats::Chiptune
     private:
       void ReadPacket(std::size_t pageOffset, uint_t samplesCount, Binary::DataInputStream& payload)
       {
-        if (NextPacketType != Audio)
+        if (*NextPacketType != Audio)
         {
-          const auto type = FindHeaderPacket(payload);
-          Require(NextPacketType == type);
-          ReadHeaderPacket(type, payload);
+          if (const auto* type = FindHeaderPacket(*NextPacketType, payload))
+          {
+            Require(*NextPacketType == *type);
+            ReadHeaderPacket(*type, payload);
+          }
+          else
+          {
+            Target.AddUnknownPacket(payload.ReadRestData());
+          }
         }
         else
         {
@@ -294,16 +323,15 @@ namespace Formats::Chiptune
         }
       }
 
-      static uint8_t FindHeaderPacket(Binary::DataInputStream& payload)
+      static const uint8_t* FindHeaderPacket(uint8_t type, Binary::DataInputStream& payload)
       {
-        const auto avail = payload.GetRestSize();
-        Require(avail > SIGNATURE.size() + 1);
-        const auto raw = payload.PeekRawData(avail);
-        const auto end = raw + avail;
-        const auto sign = std::search(raw + 1, end, SIGNATURE.begin(), SIGNATURE.end());
-        Require(sign != end);
-        payload.Skip(sign + SIGNATURE.size() - raw);
-        return sign[-1];
+        const uint8_t needle[] = {type, 'v', 'o', 'r', 'b', 'i', 's'};
+        if (const auto* sign = Ogg::SeekSignature(payload, needle, std::size(needle)))
+        {
+          payload.Skip(std::size(needle));
+          return sign;
+        }
+        return nullptr;
       }
 
       void ReadHeaderPacket(uint_t type, Binary::DataInputStream& payload)
@@ -312,16 +340,16 @@ namespace Formats::Chiptune
         {
         case Identification:
           ReadIdentification(payload);
-          NextPacketType = Comment;
+          *NextPacketType = Comment;
           break;
         case Comment:
           ParseComment(payload, Target.GetMetaBuilder());
-          NextPacketType = Setup;
+          *NextPacketType = Setup;
           break;
         case Setup:
           payload.Seek(payload.GetPosition() - SIGNATURE.size() - 1);
           Target.SetSetup(payload.ReadRestData());
-          NextPacketType = Audio;
+          *NextPacketType = Audio;
           break;
         default:
           Require(false);
@@ -350,7 +378,8 @@ namespace Formats::Chiptune
 
     private:
       OggVorbis::Builder& Target;
-      PacketType NextPacketType;
+      std::unordered_map<uint32_t, PacketType> StreamsNextPacketTypes;
+      PacketType* NextPacketType = nullptr;
     };
   }  // namespace Vorbis
 
@@ -388,6 +417,7 @@ namespace Formats::Chiptune
       }
 
       void SetStreamId(uint32_t /*streamId*/) override {}
+      void AddUnknownPacket(Binary::View /*data*/) override {}
       void SetProperties(uint_t /*channels*/, uint_t /*frequency*/, uint_t /*blockSizeLo*/,
                          uint_t /*blockSizeHi*/) override
       {}
@@ -416,6 +446,11 @@ namespace Formats::Chiptune
       void SetStreamId(uint32_t id) override
       {
         Storage.SetStreamId(id);
+      }
+
+      void AddUnknownPacket(Binary::View data) override
+      {
+        Storage.AddData(0, data.As<uint8_t>(), data.Size());
       }
 
       void SetProperties(uint_t channels, uint_t frequency, uint_t blockSizeLo, uint_t blockSizeHi) override
@@ -474,32 +509,14 @@ namespace Formats::Chiptune
       return MakePtr<SimpleDumpBuilder>(sizeHint);
     }
 
+    // Check only OGG container
     const auto FORMAT =
-        // first page
-        "'O'g'g'S"      // signature
-        "00"            // version
-        "02"            // flags, first page of logical bitstream
-        "00{8}"         // position
-        "?{4}"          // serial
-        "00000000"      // page
-        "?{4}"          // crc
-        "01 1e"         // 1 lace for 30-bytes block size
-        "01"            // identification
-        "'v'o'r'b'i's"  // signature
-        "00{4}"         // version
-        "01-02"         // mono/stereo supported
-        "? ? 00-01 00"  // up to 96kHz
-        "?{12}"         // bitrate
-        "66-dd"
-        "%xxxxxxx1"    // frame sync
-        "'O'g'g'S"     // signature
-        "00"           // version
-        "00"           // flags
-        "????00{4}"    // first page may contain also audio data
-        "?{4}"         // serial
-        "01000000"     // page
-        "?{4}"         // crc
-        "01-ff 01-ff"  // more than one lace
+        "'O'g'g'S"  // signature
+        "00"        // version
+        "02"        // flags, first page of logical bitstream
+        "00{8}"     // position
+        "?{4}"      // serial
+        "00000000"  // page
         ""_sv;
 
     class Decoder : public Formats::Chiptune::Decoder

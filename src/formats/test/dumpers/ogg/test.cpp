@@ -54,6 +54,11 @@ namespace
       std::cout << "StreamId: " << id << std::endl;
     }
 
+    void AddUnknownPacket(Binary::View data) override
+    {
+      std::cout << "Unknown data for " << data.Size() << " bytes" << std::endl;
+    }
+
     void SetProperties(uint_t channels, uint_t frequency, uint_t blockSizeLo, uint_t blockSizeHi) override
     {
       std::cout << "Channels: " << channels << std::endl

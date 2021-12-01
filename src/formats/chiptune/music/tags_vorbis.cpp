@@ -57,7 +57,11 @@ namespace Formats::Chiptune
     void ParseCommentField(StringView field, MetaBuilder& target)
     {
       const auto eqPos = field.find('=');
-      Require(eqPos != StringView::npos);
+      if (eqPos == StringView::npos)
+      {
+        target.SetStrings({Decode(field)});
+        return;
+      }
       const auto name = field.substr(0, eqPos);
       const auto value = field.substr(eqPos + 1);
       Strings::Array strings;

@@ -27,11 +27,13 @@
 // 3rdparty
 #define STB_VORBIS_NO_STDIO
 //#define STB_VORBIS_NO_PUSHDATA_API
-#define STB_VORBIS_MAX_CHANNELS 2
+//#define STB_VORBIS_MAX_CHANNELS 2
 #if BOOST_ENDIAN_BIG_BYTE
 #  define STB_VORBIS_BIG_ENDIAN
 #endif
 #include <3rdparty/stb/stb_vorbis.c>
+// std includes
+#include <unordered_map>
 
 #define FILE_TAG B064CB04
 
@@ -182,8 +184,7 @@ namespace Module::Ogg
   {
   public:
     explicit DataBuilder(PropertiesHelper& props)
-      : Data(MakeRWPtr<Model>())
-      , Meta(props)
+      : Meta(props)
     {}
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -191,38 +192,84 @@ namespace Module::Ogg
       return Meta;
     }
 
-    void SetStreamId(uint32_t /*id*/) override{};
+    void SetStreamId(uint32_t id) override
+    {
+      CurrentStreamId = id;
+      const auto existing = Streams.find(id);
+      if (existing != Streams.end())
+      {
+        CurrentStream = existing->second.get();
+      }
+      else
+      {
+        CurrentStream = nullptr;
+      }
+    }
+
+    void AddUnknownPacket(Binary::View data) override {}
+
     void SetProperties(uint_t /*channels*/, uint_t frequency, uint_t /*blockSizeLo*/, uint_t /*blockSizeHi*/) override
     {
-      Data->Frequency = frequency;
+      AllocateStream()->Frequency = frequency;
     }
 
     void SetSetup(Binary::View /*data*/) override {}
 
     void AddFrame(std::size_t /*offset*/, uint_t samples, Binary::View /*data*/) override
     {
-      Data->TotalSamples += samples;
+      if (CurrentStream)
+      {
+        CurrentStream->TotalSamples += samples;
+      }
+      else
+      {
+        Dbg("Ignore frame to unallocated stream %1%", CurrentStreamId);
+      }
     }
 
     void SetContent(Binary::Data::Ptr data)
     {
-      Data->Content = std::move(data);
+      for (auto& stream : Streams)
+      {
+        stream.second->Content = data;
+      }
     }
 
     Model::Ptr GetResult()
     {
-      if (Data->TotalSamples)
+      if (Streams.size() > 1)
       {
-        return Data;
+        Dbg("Multistream file with %1% streams", Streams.size());
+      }
+      if (DefaultStream && DefaultStream->TotalSamples)
+      {
+        return DefaultStream;
       }
       else
       {
-        return Model::Ptr();
+        return {};
       }
     }
 
   private:
-    const Model::RWPtr Data;
+    Model* AllocateStream()
+    {
+      Require(0 == Streams.count(CurrentStreamId));
+      auto stream = MakeRWPtr<Model>();
+      if (!DefaultStream)
+      {
+        DefaultStream = stream;
+      }
+      CurrentStream = stream.get();
+      Streams.emplace(CurrentStreamId, std::move(stream));
+      return CurrentStream;
+    }
+
+  private:
+    std::unordered_map<uint32_t, Model::RWPtr> Streams;
+    uint_t CurrentStreamId = 0;
+    Model* CurrentStream = nullptr;
+    Model::Ptr DefaultStream;
     MetaProperties Meta;
   };
 
