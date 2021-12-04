@@ -16,6 +16,7 @@ import com.github.anrwatchdog.ANRWatchDog;
 
 import app.zxtune.analytics.Analytics;
 import app.zxtune.device.ui.Notifications;
+import app.zxtune.net.NetworkManager;
 
 public class MainApplication extends Application {
 
@@ -40,6 +41,7 @@ public class MainApplication extends Application {
     if (globalContext == null) {
       globalContext = ctx;
       if (!"robolectric".equals(Build.PRODUCT)) {
+        NetworkManager.initialize(ctx);
         Analytics.initialize(ctx);
         Notifications.setup(ctx);
         setupANRWatchdog();

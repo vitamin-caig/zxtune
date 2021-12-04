@@ -3,6 +3,7 @@ package app.zxtune.fs.http
 import android.content.Context
 import android.net.ConnectivityManager
 import app.zxtune.R
+import app.zxtune.net.NetworkManager
 import java.io.IOException
 
 object HttpProviderFactory {
@@ -19,10 +20,7 @@ object HttpProviderFactory {
 
     private class PolicyImpl(private val context: Context) : HttpUrlConnectionProvider.Policy {
 
-        private val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as?
-                ConnectivityManager
-
-        override fun hasConnection() = manager?.activeNetworkInfo?.isConnected ?: false
+        override fun hasConnection() = NetworkManager.networkAvailable.value!!
 
         override fun checkConnectionError() {
             if (!hasConnection()) {
