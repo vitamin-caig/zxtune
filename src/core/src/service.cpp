@@ -65,6 +65,7 @@ namespace ZXTune
           catch (const Error& e)
           {
             Dbg(e.ToString().c_str());
+            Delegate.ProcessUnknownData(location);
             return;
           }
         }
