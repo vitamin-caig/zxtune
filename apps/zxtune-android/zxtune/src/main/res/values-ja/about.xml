@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="about">ZXTune について</string>
   <string name="about_credits">クレジット</string>
@@ -37,9 +37,13 @@
     \tlibFLAC\n
     \t<b>Farbrausch</b>と<b>Joakim L.Gilje</b>によるv2m-player\n
     \tFFmpeg\n
-    \tlibvgmによる<b>Valley Bell</b>\n
+    \t<b>Valley Bell</b>によるlibvgm\n
     \tlibopenmpt\n
-    \tsseqplayerによる<b>Christopher Snowhill</b>\n
+    \t<b>Christopher Snowhill</b>によるsseqplayer\n
+    \t<b>Alex Barney</b>によるLibAtrac9\n
+    \t<b>Thomas Orgis</b>によるmpg123\n
+    \tOGG Vorbis\n
+    \tvgmstream\n
     \n
     <b>Lizzi</b>に捧ぐ...
   </string>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="about">关于我们</string>
   <string name="about_credits">致谢</string>
@@ -39,6 +39,10 @@
     \tlibvgm由<b>Valley Bell</b>\n
     \tlibopenmpt\n
     \tsseqplayer由<b>Christopher Snowhill</b>\n
+    \tLibAtrac9由<b>Alex Barney</b>\n
+    \tmpg123由<b>Thomas Orgis</b>\n
+    \tOGG Vorbis\n
+    \tvgmstream\n
     \n
     献给<b>Lizzi</b>
   </string>
