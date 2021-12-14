@@ -50,7 +50,10 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://github.com/ValleyBell/libvgm&quot;&gt;libvgm&lt;/a&gt; library by &lt;b&gt;Valley Bell&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://lib.openmpt.org/libopenmpt/&quot;&gt;libopenmpt&lt;/a&gt; library&lt;/li&gt;
 &lt;li&gt;Used &lt;a href=&quot;https://git.lopez-snowhill.net/chris/sseqplayer/&quot;&gt;sseqplayer&lt;/a&gt; library by &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
-&lt;/ul&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/Thealexbarney/LibAtrac9&quot;&gt;LibAtrac9&lt;/a&gt; library by &lt;b&gt;Alex Barney&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://www.mpg123.de/&quot;&gt;mpg123&lt;/a&gt; library by &lt;b&gt;Thomas Orgis&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Used &lt;a href=&quot;https://github.com/vgmstream/vgmstream&quot;&gt;vgmstream&lt;/a&gt; library &lt;/li&gt;
+ &lt;/ul&gt;
 
 &lt;center&gt;Dedicated to &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
 &lt;/body&gt;&lt;/html&gt;</source>
@@ -69,7 +72,7 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/mkoloberdin/z80ex&quot;&gt;z80ex&lt;/a&gt; от &lt;b&gt;Boo-boo&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;http://boost.org&quot;&gt;boost&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;Использованы исходные коды &lt;a href=&quot;http://opensourcezx.untergrund.net/c_soft-music_ripper-pusher-pusher6_src.html&quot;&gt;Pusher&lt;/a&gt; от &lt;b&gt;Himik/ZxZ&lt;/b&gt;&lt;/li&gt;
-&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/fragglet/lhasa&quot;&gt;lhasa&lt;/a&gt; от&lt;b&gt;Simon Howard&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/fragglet/lhasa&quot;&gt;lhasa&lt;/a&gt; от &lt;b&gt;Simon Howard&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использован &lt;a href=&quot;http://lame.sourceforge.net&quot;&gt;LAME&lt;/a&gt; SDK&lt;/li&gt;
 &lt;li&gt;Использован &lt;a href=&quot;http://www.vorbis.com&quot;&gt;Ogg Vorbis&lt;/a&gt; SDK&lt;/li&gt;
 &lt;li&gt;Использован &lt;a href=&quot;http://flac.sourceforge.net&quot;&gt;FLAC&lt;/a&gt; SDK&lt;/li&gt;
@@ -94,6 +97,9 @@ Gfx: &lt;b&gt;Restorer&lt;/b&gt;&lt;br/&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/ValleyBell/libvgm&quot;&gt;libvgm&lt;/a&gt; от &lt;b&gt;Valley Bell&lt;/b&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://lib.openmpt.org/libopenmpt/&quot;&gt;libopenmpt&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;Использована библиотека &lt;a href=&quot;https://git.lopez-snowhill.net/chris/sseqplayer/&quot;&gt;sseqplayer&lt;/a&gt; от &lt;b&gt;Christopher Snowhill&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/Thealexbarney/LibAtrac9&quot;&gt;LibAtrac9&lt;/a&gt; от &lt;b&gt;Alex Barney&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://www.mpg123.de/&quot;&gt;mpg123&lt;/a&gt; от &lt;b&gt;Thomas Orgis&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;Использована библиотека &lt;a href=&quot;https://github.com/vgmstream/vgmstream&quot;&gt;vgmstream&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 
 &lt;center&gt;Посвящается &lt;b&gt;Lizzi&lt;/b&gt;&lt;/center&gt;
