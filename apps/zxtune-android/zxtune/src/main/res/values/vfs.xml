@@ -44,53 +44,41 @@
     <string name="vfs_zxart_compo_mainstream">Mainstream music compo</string>
     <string name="vfs_zxart_compo_progressive">Progressive music compo</string>
     <string name="vfs_zxart_compo_related">Music from this event works</string>
-    <!-- joshw.info -->
+    <!-- joshw.info Descriptions as in english wikipedia articles' title -->
     <string name="vfs_joshw_root_name" translatable="false">Josh W</string>
     <string name="vfs_joshw_root_description">Various archives</string>
-    <string name="vfs_joshw_gbs_name" translatable="false">Game Boy/Color</string>
-    <string name="vfs_joshw_gbs_description" translatable="false">http://gbs.joshw.info</string>
-    <string name="vfs_joshw_hes_name" translatable="false">PC Engine/PC Engine CD</string>
-    <string name="vfs_joshw_hes_description" translatable="false">http://hes.joshw.info</string>
-    <string name="vfs_joshw_nsf_name" translatable="false">Nintendo Entertainment System</string>
-    <string name="vfs_joshw_nsf_description" translatable="false">http://nsf.joshw.info</string>
-    <string name="vfs_joshw_smd_name" translatable="false">Mega Drive/Mega CD</string>
-    <string name="vfs_joshw_smd_description" translatable="false">http://smd.joshw.info</string>
-    <string name="vfs_joshw_spc_name" translatable="false">Super Nintendo</string>
-    <string name="vfs_joshw_spc_description" translatable="false">http://spc.joshw.info</string>
-    <string name="vfs_joshw_kss_name" translatable="false">MSX/Game Gear</string>
-    <string name="vfs_joshw_kss_description" translatable="false">http://kss.joshw.info</string>
-    <string name="vfs_joshw_psf_name" translatable="false">Sony Playstation 1</string>
-    <string name="vfs_joshw_psf_description" translatable="false">http://psf.joshw.info</string>
-    <string name="vfs_joshw_usf_name" translatable="false">Nintendo Ultra64</string>
-    <string name="vfs_joshw_usf_description" translatable="false">http://usf.joshw.info</string>
-    <string name="vfs_joshw_gsf_name" translatable="false">GameBoy Advance</string>
-    <string name="vfs_joshw_gsf_description" translatable="false">http://gsf.joshw.info</string>
-    <string name="vfs_joshw_2sf_name" translatable="false">Nintendo DS</string>
-    <string name="vfs_joshw_2sf_description" translatable="false">http://2sf.joshw.info</string>
-    <string name="vfs_joshw_ssf_name" translatable="false">Sega Saturn</string>
-    <string name="vfs_joshw_ssf_description" translatable="false">http://ssf.joshw.info</string>
+    <string name="vfs_joshw_description_format" translatable="false">http://%s.joshw.info</string>
+    <string name="vfs_joshw_2sf_name" translatable="false">Nintendo 2DS</string>
+    <string name="vfs_joshw_3do_name" translatable="false">3DO Interactive Multiplayer</string>
+    <string name="vfs_joshw_3sf_name" translatable="false">Nintendo 3DS</string>
+    <!--<string name="vfs_joshw_cdi_name" translatable="false">Amiga/CDI/Jaguar</string>-->
     <string name="vfs_joshw_dsf_name" translatable="false">Dreamcast</string>
-    <string name="vfs_joshw_dsf_description" translatable="false">http://dsf.joshw.info</string>
     <string name="vfs_joshw_fmtowns_name" translatable="false">FM Towns</string>
-    <string name="vfs_joshw_fmtowns_description" translatable="false">http://fmtowns.joshw.info</string>
-    <string name="vfs_joshw_ncd_name" translatable="false">NeoGeo CD</string>
-    <string name="vfs_joshw_ncd_description" translatable="false">http://ncd.joshw.info</string>
-    <string name="vfs_joshw_pc_name" translatable="false">PC</string>
-    <string name="vfs_joshw_pc_description" translatable="false">http://pc.joshw.info</string>
+    <string name="vfs_joshw_gbs_name" translatable="false">Game Boy/Color</string>
+    <string name="vfs_joshw_gcn_name" translatable="false">GameCube</string>
+    <string name="vfs_joshw_gsf_name" translatable="false">GameBoy Advance</string>
+    <string name="vfs_joshw_hes_name" translatable="false">PC Engine/CD</string>
+    <string name="vfs_joshw_kss_name" translatable="false">MSX/Game Gear</string>
     <string name="vfs_joshw_mobile_name" translatable="false">Mobile platforms</string>
-    <string name="vfs_joshw_mobile_description" translatable="false">http://mobile.joshw.info</string>
-    <string name="vfs_joshw_switch_name" translatable="false">Nintendo Switch</string>
-    <string name="vfs_joshw_switch_description" translatable="false">http://switch.joshw.info</string>
-    <string name="vfs_joshw_vita_name" translatable="false">Sony Playstation Vita</string>
-    <string name="vfs_joshw_vita_description" translatable="false">http://vita.joshw.info</string>
-    <string name="vfs_joshw_psf4_name" translatable="false">Sony Playstation 4</string>
-    <string name="vfs_joshw_psf4_description" translatable="false">http://psf4.joshw.info</string>
-    <string name="vfs_joshw_psf3_name" translatable="false">Sony Playstation 3</string>
-    <string name="vfs_joshw_psf3_description" translatable="false">http://psf3.joshw.info</string>
-    <string name="vfs_joshw_psp_name" translatable="false">Sony Playstation Portable</string>
-    <string name="vfs_joshw_psp_description" translatable="false">http://psp.joshw.info</string>
+    <string name="vfs_joshw_ncd_name" translatable="false">Neo Geo CD</string>
+    <string name="vfs_joshw_nsf_name" translatable="false">Nintendo Entertainment System</string>
+    <string name="vfs_joshw_pc_name" translatable="false">PC</string>
+    <string name="vfs_joshw_psf_name" translatable="false">PlayStation 1</string>
+    <string name="vfs_joshw_psf2_name" translatable="false">PlayStation 2</string>
+    <string name="vfs_joshw_psf3_name" translatable="false">PlayStation 3</string>
+    <string name="vfs_joshw_psf4_name" translatable="false">PlayStation 4</string>
+    <string name="vfs_joshw_psp_name" translatable="false">PlayStation Portable</string>
     <string name="vfs_joshw_s98_name" translatable="false">NEC/Sharp PC</string>
-    <string name="vfs_joshw_s98_description" translatable="false">http://s98.joshw.info</string>
+    <string name="vfs_joshw_smd_name" translatable="false">Mega Drive/Sega CD</string>
+    <string name="vfs_joshw_spc_name" translatable="false">Super Nintendo Entertainment System</string>
+    <string name="vfs_joshw_ssf_name" translatable="false">Sega Saturn</string>
+    <string name="vfs_joshw_switch_name" translatable="false">Nintendo Switch</string>
+    <string name="vfs_joshw_usf_name" translatable="false">Nintendo 64</string>
+    <string name="vfs_joshw_vita_name" translatable="false">PlayStation Vita</string>
+    <string name="vfs_joshw_wii_name" translatable="false">Wii</string>
+    <string name="vfs_joshw_wiiu_name" translatable="false">Wii U</string>
+    <string name="vfs_joshw_x360_name" translatable="false">Xbox 360</string>
+    <string name="vfs_joshw_xbox_name" translatable="false">Xbox</string>
     <!-- amp.dascene.net -->
     <string name="vfs_amp_root_name" translatable="false">Amiga Music Preservation</string>
     <string name="vfs_amp_root_description" translatable="false">http://amp.dascene.net</string>
