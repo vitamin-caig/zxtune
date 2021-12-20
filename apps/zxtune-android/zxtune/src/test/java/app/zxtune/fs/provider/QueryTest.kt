@@ -88,10 +88,10 @@ class QueryTest {
             assertEquals(Query.TYPE_SEARCH, Query.getUriType(uri))
         }
         Uri.parse("${AUTHORITY}/search").let { uri ->
-            assertThrowsIllegalArgumentException { Query.mimeTypeOf(uri) }
-            assertThrowsIllegalArgumentException { Query.getPathFrom(uri) }
+            assertEquals(MIME_GROUP, Query.mimeTypeOf(uri))
+            assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
-            assertEquals(-1, Query.getUriType(uri))
+            assertEquals(Query.TYPE_SEARCH, Query.getUriType(uri))
         }
     }
 
