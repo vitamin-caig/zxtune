@@ -198,10 +198,6 @@ internal object Schema {
         @JvmField
         val COLUMNS = arrayOf(COLUMN_DONE, COLUMN_TOTAL, COLUMN_ERROR)
 
-        @Deprecated("Outdated", ReplaceWith("Error.create"))
-        @JvmStatic
-        fun makeError(e: Exception): Array<Any?> = arrayOf(0, 0, e.cause?.message ?: e.message)
-
         @Deprecated("Outdated", ReplaceWith("Progress.createIntermediate"))
         @JvmStatic
         fun makeIntermediateProgress() = makeProgress(-1)
