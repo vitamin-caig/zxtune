@@ -1,6 +1,5 @@
 package app.zxtune.fs.provider
 
-import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
 import org.junit.Assert.assertEquals
@@ -42,86 +41,6 @@ class SchemaTest {
     }
 }
 
-// TODO: move to class after migration
-sealed interface ListingObject {
-    companion object {
-        fun parse(cursor: Cursor) = when {
-            Schema.Status.isStatus(cursor) -> parseStatus(cursor)
-            else -> parseObject(cursor)
-        }
-
-        private fun parseStatus(cursor: Cursor) = when (val err = Schema.Status.getError(cursor)) {
-            null -> ListingProgress(cursor)
-            else -> ListingError(err)
-        }
-
-        private fun parseObject(cursor: Cursor) = when {
-            Schema.Listing.isLimiter(cursor) -> ListingDelimiter
-            Schema.Listing.isDir(cursor) -> ListingDir(cursor)
-            else -> ListingFile(cursor)
-        }
-    }
-}
-
-object ListingDelimiter : ListingObject {
-    fun create(): Array<Any?> = Schema.Listing.makeLimiter()
-}
-
-sealed class ListingEntry(cursor: Cursor) : ListingObject {
-    val uri: Uri = Schema.Listing.getUri(cursor)
-    val name: String = Schema.Listing.getName(cursor)
-    val description: String = Schema.Listing.getDescription(cursor)
-}
-
-class ListingDir(cursor: Cursor) : ListingEntry(cursor) {
-    val icon = Schema.Listing.getIcon(cursor)
-    val hasFeed = Schema.Listing.hasFeed(cursor)
-
-    companion object {
-        fun create(
-            uri: Uri,
-            name: String,
-            description: String,
-            icon: Int?,
-            hasFeed: Boolean
-        ): Array<Any?> = Schema.Listing.makeDirectory(uri, name, description, icon, hasFeed)
-    }
-}
-
-class ListingFile(cursor: Cursor) : ListingEntry(cursor) {
-    val details: String = Schema.Listing.getDetails(cursor)
-    val tracks = Schema.Listing.getTracks(cursor)
-    val isCached = Schema.Listing.isCached(cursor)
-
-    companion object {
-        fun create(
-            uri: Uri,
-            name: String,
-            description: String,
-            details: String,
-            tracks: Int?,
-            isCached: Boolean?
-        ): Array<Any?> = Schema.Listing.makeFile(uri, name, description, details, tracks, isCached)
-    }
-}
-
-class ListingError(val error: String) : ListingObject {
-    companion object {
-        fun create(e: Exception): Array<Any?> = Schema.Status.makeError(e)
-    }
-}
-
-class ListingProgress(cursor: Cursor) : ListingObject {
-    val done = Schema.Status.getDone(cursor)
-    val total = Schema.Status.getTotal(cursor)
-
-    companion object {
-        fun createIntermediate(): Array<Any?> = Schema.Status.makeIntermediateProgress()
-        fun create(done: Int): Array<Any?> = Schema.Status.makeProgress(done)
-        fun create(done: Int, total: Int): Array<Any?> = Schema.Status.makeProgress(done, total)
-    }
-}
-
 private fun testListingDir(
     uri: Uri,
     name: String,
@@ -129,10 +48,10 @@ private fun testListingDir(
     icon: Int?,
     hasFeed: Boolean
 ) = MatrixCursor(Schema.Listing.COLUMNS).apply {
-    addRow(ListingDir.create(uri, name, description, icon, hasFeed))
+    addRow(Schema.Listing.Dir(uri, name, description, icon, hasFeed).serialize())
 }.use { cursor ->
     cursor.moveToFirst()
-    (ListingObject.parse(cursor) as ListingDir).let { dir ->
+    (Schema.Object.parse(cursor) as Schema.Listing.Dir).let { dir ->
         assertEquals(uri, dir.uri)
         assertEquals(name, dir.name)
         assertEquals(description, dir.description)
@@ -149,10 +68,10 @@ private fun testListingFile(
     tracks: Int?,
     isCached: Boolean?
 ) = MatrixCursor(Schema.Listing.COLUMNS).apply {
-    addRow(ListingFile.create(uri, name, description, details, tracks, isCached))
+    addRow(Schema.Listing.File(uri, name, description, details, tracks, isCached).serialize())
 }.use { cursor ->
     cursor.moveToFirst()
-    (ListingObject.parse(cursor) as ListingFile).let { file ->
+    (Schema.Object.parse(cursor) as Schema.Listing.File).let { file ->
         assertEquals(uri, file.uri)
         assertEquals(name, file.name)
         assertEquals(description, file.description)
@@ -163,54 +82,41 @@ private fun testListingFile(
 }
 
 private fun testListingDelimiter() = MatrixCursor(Schema.Listing.COLUMNS).apply {
-    addRow(ListingDelimiter.create())
+    addRow(Schema.Listing.Delimiter.serialize())
 }.use { cursor ->
     cursor.moveToFirst()
-    assertTrue(ListingObject.parse(cursor) is ListingDelimiter)
+    assertTrue(Schema.Object.parse(cursor) is Schema.Listing.Delimiter)
 }
 
 private fun testListingError(e: Exception) = MatrixCursor(Schema.Status.COLUMNS).apply {
-    addRow(ListingError.create(e))
+    addRow(Schema.Status.Error(e).serialize())
 }.use { cursor ->
     cursor.moveToFirst()
     assertEquals(
         e.cause?.message ?: e.message,
-        (ListingObject.parse(cursor) as ListingError).error
+        (Schema.Object.parse(cursor) as Schema.Status.Error).error
     )
 }
 
 private fun testListingProgress() = MatrixCursor(Schema.Status.COLUMNS).apply {
-    addRow(ListingProgress.createIntermediate())
-    addRow(ListingProgress.create(1))
-    addRow(ListingProgress.create(2, 3))
+    addRow(Schema.Status.Progress.createIntermediate().serialize())
+    addRow(Schema.Status.Progress(1).serialize())
+    addRow(Schema.Status.Progress(2, 3).serialize())
 }.use { cursor ->
     cursor.moveToNext()
-    (ListingObject.parse(cursor) as ListingProgress).let {
+    (Schema.Object.parse(cursor) as Schema.Status.Progress).let {
         assertEquals(-1, it.done)
         assertEquals(100, it.total)
     }
     cursor.moveToNext()
-    (ListingObject.parse(cursor) as ListingProgress).let {
+    (Schema.Object.parse(cursor) as Schema.Status.Progress).let {
         assertEquals(1, it.done)
         assertEquals(100, it.total)
     }
     cursor.moveToNext()
-    (ListingObject.parse(cursor) as ListingProgress).let {
+    (Schema.Object.parse(cursor) as Schema.Status.Progress).let {
         assertEquals(2, it.done)
         assertEquals(3, it.total)
-    }
-}
-
-class ParentObject private constructor(cursor: Cursor) {
-    val uri: Uri = Schema.Parents.getUri(cursor)
-    val name: String = Schema.Parents.getName(cursor)
-    val icon = Schema.Parents.getIcon(cursor)
-
-    companion object {
-        fun create(uri: Uri, name: String, icon: Int?): Array<Any?> =
-            Schema.Parents.make(uri, name, icon)
-
-        fun parse(cursor: Cursor) = ParentObject(cursor)
     }
 }
 
@@ -219,10 +125,10 @@ private fun testParent(
     name: String,
     icon: Int?
 ) = MatrixCursor(Schema.Parents.COLUMNS).apply {
-    addRow(ParentObject.create(uri, name, icon))
+    addRow(Schema.Parents.Object(uri, name, icon).serialize())
 }.use { cursor ->
     cursor.moveToFirst()
-    ParentObject.parse(cursor).let { parent ->
+    Schema.Parents.Object.parse(cursor).let { parent ->
         assertEquals(uri, parent.uri)
         assertEquals(name, parent.name)
         assertEquals(icon, parent.icon)
