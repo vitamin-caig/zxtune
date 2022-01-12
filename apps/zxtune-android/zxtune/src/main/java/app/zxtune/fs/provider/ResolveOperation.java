@@ -19,7 +19,7 @@ class ResolveOperation implements AsyncQueryOperation {
   private final Uri uri;
   private final Resolver resolver;
   private final SchemaSource schema;
-  private final int[] progress = {-1, -1};
+  private final int[] progress = {-1, 100};
 
   ResolveOperation(Uri uri, Resolver resolver, SchemaSource schema) {
     this.uri = uri;
