@@ -17,23 +17,18 @@ class ListingOperation implements AsyncQueryOperation {
   private final ListingCursorBuilder builder =
       new ListingCursorBuilder(VfsArchive::getModulesCount);
   private final Uri uri;
-  @Nullable
-  private VfsDir dir;
+  private final Resolver resolver;
 
-  ListingOperation(Uri uri) {
+  ListingOperation(Uri uri, Resolver resolver) {
     this.uri = uri;
-  }
-
-  ListingOperation(VfsDir dir) {
-    this.uri = dir.getUri();
-    this.dir = dir;
+    this.resolver = resolver;
   }
 
   @SuppressWarnings("unchecked")
   @Nullable
   @Override
   public Cursor call() throws Exception {
-    maybeResolve();
+    final VfsDir dir = maybeResolve();
     if (dir != null) {
       dir.enumerate(builder);
       return builder.getSortedResult((Comparator<VfsObject>) dir.getExtension(VfsExtensions.COMPARATOR));
@@ -42,13 +37,13 @@ class ListingOperation implements AsyncQueryOperation {
     }
   }
 
-  private void maybeResolve() throws Exception {
-    if (dir == null) {
-      final VfsObject obj = VfsArchive.resolve(uri);
-      if (obj instanceof VfsDir) {
-        dir = (VfsDir) obj;
-      }
+  @Nullable
+  private VfsDir maybeResolve() throws Exception {
+    final VfsObject obj = resolver.resolve(uri);
+    if (obj instanceof VfsDir) {
+      return (VfsDir) obj;
     }
+    return null;
   }
 
   @Override

@@ -5,34 +5,22 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
-import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsObject;
 
 class ParentsOperation implements AsyncQueryOperation {
 
   private final Uri uri;
-  @Nullable
-  private VfsObject obj;
+  private final Resolver resolver;
 
-  ParentsOperation(Uri uri) {
+  ParentsOperation(Uri uri, Resolver resolver) {
     this.uri = uri;
-  }
-
-  ParentsOperation(VfsObject obj) {
-    this.uri = obj.getUri();
-    this.obj = obj;
+    this.resolver = resolver;
   }
 
   @Override
   public Cursor call() throws Exception {
-    maybeResolve();
+    final VfsObject obj = resolver.resolve(uri);
     return ParentsCursorBuilder.makeParents(obj);
-  }
-
-  private void maybeResolve() throws Exception {
-    if (obj == null) {
-      obj = VfsArchive.resolve(uri);
-    }
   }
 
   @Nullable

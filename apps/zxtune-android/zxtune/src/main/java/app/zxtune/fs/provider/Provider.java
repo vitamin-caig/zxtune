@@ -9,7 +9,6 @@ import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 
 import androidx.annotation.Nullable;
-import androidx.collection.LruCache;
 
 import java.io.FileNotFoundException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,15 +32,7 @@ public class Provider extends ContentProvider {
 
   private final ExecutorService executor = Executors.newCachedThreadPool();
   private final ConcurrentHashMap<Uri, OperationHolder> operations = new ConcurrentHashMap<>();
-  private final LruCache<Uri, VfsObject> objectsCache = new LruCache<Uri, VfsObject>(CACHE_SIZE) {
-    @Override
-    protected void entryRemoved(boolean evicted, Uri key, VfsObject oldValue,
-                                @Nullable VfsObject newValue) {
-      if (evicted) {
-        Log.d(TAG, "Remove cache for " + key);
-      }
-    }
-  };
+  private final Resolver resolver = new CachingResolver(CACHE_SIZE);
   private final Handler handler = new Handler();
 
   @Override
@@ -80,56 +71,17 @@ public class Provider extends ContentProvider {
     final Uri path = Query.getPathFrom(uri);
     switch (Query.getUriType(uri)) {
       case Query.TYPE_RESOLVE:
-        return new ResolveOperation(path, objectsCache);
+        return new ResolveOperation(path, resolver);
       case Query.TYPE_LISTING:
-        return createListingOperation(path, objectsCache.get(path));
+        return new ListingOperation(path, resolver);
       case Query.TYPE_PARENTS:
-        return createParentsOperation(path, objectsCache.get(path));
+        return new ParentsOperation(path, resolver);
       case Query.TYPE_SEARCH:
-        return createSearchOperation(path, objectsCache.get(path), Query.getQueryFrom(uri));
+        return new SearchOperation(path, resolver, Query.getQueryFrom(uri));
       case Query.TYPE_FILE:
-        return createFileOperation(path, objectsCache.get(path), projection);
+        return new FileOperation(path, resolver, projection);
       default:
         throw new UnsupportedOperationException("Unsupported uri " + uri);
-    }
-  }
-
-  @Nullable
-  private AsyncQueryOperation createListingOperation(Uri uri, @Nullable VfsObject cached) {
-    if (cached instanceof VfsDir) {
-      return new ListingOperation((VfsDir) cached);
-    } else if (cached == null) {
-      return new ListingOperation(uri);
-    } else {
-      return null;
-    }
-  }
-
-  private AsyncQueryOperation createParentsOperation(Uri uri, @Nullable VfsObject cached) {
-    if (cached != null) {
-      return new ParentsOperation(cached);
-    } else {
-      return new ParentsOperation(uri);
-    }
-  }
-
-  @Nullable
-  private AsyncQueryOperation createSearchOperation(Uri uri, @Nullable VfsObject cached,
-                                                    String query) {
-    if (cached instanceof VfsDir) {
-      return new SearchOperation((VfsDir) cached, query);
-    } else if (cached == null) {
-      return new SearchOperation(uri, query);
-    } else {
-      return null;
-    }
-  }
-
-  private AsyncQueryOperation createFileOperation(Uri uri, @Nullable VfsObject cached, @Nullable String[] projection) {
-    if (cached instanceof VfsFile) {
-      return new FileOperation(projection, (VfsFile) cached);
-    } else {
-      return new FileOperation(projection, uri);
     }
   }
 

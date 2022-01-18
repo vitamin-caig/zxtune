@@ -12,62 +12,56 @@ import java.io.File;
 import java.io.IOException;
 
 import app.zxtune.fs.Vfs;
-import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
 
 class FileOperation implements AsyncQueryOperation {
 
   private static final String[] COLUMNS = {
-      OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE };
+      OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE};
 
+  private final Uri uri;
+  private final Resolver resolver;
   @Nullable
   private final String[] projection;
-  private final Uri uri;
-  @Nullable
-  private VfsFile file;
 
-  FileOperation(@Nullable String[] projection, Uri uri) {
-    this.projection = projection;
+  FileOperation(Uri uri, Resolver resolver, @Nullable String[] projection) {
     this.uri = uri;
-  }
-
-  FileOperation(@Nullable String[] projection, VfsFile file) {
+    this.resolver = resolver;
     this.projection = projection;
-    this.uri = file.getUri();
-    this.file = file;
   }
 
   @Nullable
   @Override
   public Cursor call() throws Exception {
-    final File f = maybeGetFile();
+    final VfsFile file = maybeResolve();
+    if (file == null) {
+      return null;
+    }
+    final File f = maybeGetFile(file);
     if (f != null) {
-      return makeResult(f);
+      return makeResult(file, f);
     } else {
       return null;
     }
   }
 
   @Nullable
-  private File maybeGetFile() throws Exception {
-    maybeResolve();
-    if (file != null) {
-      final File res = Vfs.getCacheOrFile(file);
-      if (res != null && res.isFile()) {
-        return res;
-      }
+  private VfsFile maybeResolve() throws IOException {
+    final VfsObject obj = resolver.resolve(uri);
+    if (obj instanceof VfsFile) {
+      return (VfsFile) obj;
     }
     return null;
   }
 
-  private void maybeResolve() throws IOException {
-    if (file == null) {
-      final VfsObject obj = VfsArchive.resolve(uri);
-      if (obj instanceof VfsFile) {
-        file = (VfsFile) obj;
-      }
+  @Nullable
+  private File maybeGetFile(VfsFile file) {
+    final File res = Vfs.getCacheOrFile(file);
+    if (res != null && res.isFile()) {
+      return res;
     }
+    return null;
   }
 
   @Nullable
@@ -77,17 +71,22 @@ class FileOperation implements AsyncQueryOperation {
   }
 
   final ParcelFileDescriptor openFile(String mode) throws Exception {
-    final File f = maybeGetFile();
+    if (!"r".equals(mode)) {
+      throw new IllegalArgumentException("Invalid mode: " + mode);
+    }
+    final VfsFile file = maybeResolve();
+    if (file == null) {
+      throw new IOException("Failed to resolve " + uri);
+    }
+    final File f = maybeGetFile(file);
     if (f == null) {
       throw new IOException("Failed to get file content of " + uri);
-    } else if (!"r".equals(mode)) {
-      throw new IllegalArgumentException("Invalid mode: " + mode);
     }
     return ParcelFileDescriptor.open(f, ParcelFileDescriptor.MODE_READ_ONLY);
   }
 
   // as in FileProvider
-  private Cursor makeResult(File content) {
+  private Cursor makeResult(VfsFile file, File content) {
     final String[] columns = projection != null ? projection : COLUMNS;
     String[] cols = new String[columns.length];
     Object[] values = new Object[columns.length];
@@ -95,7 +94,7 @@ class FileOperation implements AsyncQueryOperation {
     for (String col : columns) {
       if (OpenableColumns.DISPLAY_NAME.equals(col)) {
         cols[i] = OpenableColumns.DISPLAY_NAME;
-        values[i] = file != null ? file.getName() : content.getName();
+        values[i] = file.getName();
         ++i;
       } else if (OpenableColumns.SIZE.equals(col)) {
         cols[i] = OpenableColumns.SIZE;

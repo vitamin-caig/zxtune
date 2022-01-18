@@ -23,28 +23,22 @@ class SearchOperation implements AsyncQueryOperation {
   private static final String TAG = SearchOperation.class.getName();
 
   private final Uri uri;
-  @Nullable
-  private VfsDir dir;
+  private final Resolver resolver;
   private final String query;
   private final AtomicReference<ListingCursorBuilder> result = new AtomicReference<>();
 
-  SearchOperation(Uri uri, String query) {
+  SearchOperation(Uri uri, Resolver resolver, String query) {
     this.uri = uri;
-    this.query = query;
-  }
-
-  SearchOperation(VfsDir obj, String query) {
-    this.uri = obj.getUri();
-    this.dir = obj;
+    this.resolver = resolver;
     this.query = query;
   }
 
   @Override
   public Cursor call() throws Exception {
-    maybeResolve();
+    final VfsDir dir = maybeResolve();
     if (dir != null) {
       result.set(makeBuilder());
-      search();
+      search(dir);
     }
     synchronized(result) {
       final MatrixCursor res = (MatrixCursor) result.getAndSet(null).getResult();
@@ -53,32 +47,32 @@ class SearchOperation implements AsyncQueryOperation {
     }
   }
 
-  private void maybeResolve() throws Exception {
-    if (dir == null) {
-      final VfsObject obj = VfsArchive.resolve(uri);
-      if (obj instanceof VfsDir) {
-        dir = (VfsDir) obj;
-      }
+  @Nullable
+  private VfsDir maybeResolve() throws Exception {
+    final VfsObject obj = resolver.resolve(uri);
+    if (obj instanceof VfsDir) {
+      return (VfsDir) obj;
     }
+    return null;
   }
 
-  private void search() throws Exception {
+  private void search(VfsDir dir) throws Exception {
     final VfsExtensions.SearchEngine.Visitor visitor = obj -> {
       checkForCancel();
       synchronized(result) {
         result.get().onFile(obj);
       }
     };
-    search(visitor);
+    search(dir, visitor);
   }
 
-  private void search(VfsExtensions.SearchEngine.Visitor visitor) throws Exception {
+  private void search(VfsDir dir, VfsExtensions.SearchEngine.Visitor visitor) throws Exception {
     final VfsExtensions.SearchEngine engine =
         (VfsExtensions.SearchEngine) dir.getExtension(VfsExtensions.SEARCH_ENGINE);
     if (engine != null) {
       engine.find(query, visitor);
     } else {
-      final VfsIterator iter = new VfsIterator(new Uri[]{dir.getUri()}, e -> {
+      final VfsIterator iter = new VfsIterator(dir, e -> {
         if (e instanceof InterruptedIOException) {
           throwCanceled();
         } else {
