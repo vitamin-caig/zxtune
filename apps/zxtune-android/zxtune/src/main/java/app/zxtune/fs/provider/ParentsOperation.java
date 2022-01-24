@@ -11,16 +11,18 @@ class ParentsOperation implements AsyncQueryOperation {
 
   private final Uri uri;
   private final Resolver resolver;
+  private final SchemaSource schema;
 
-  ParentsOperation(Uri uri, Resolver resolver) {
+  ParentsOperation(Uri uri, Resolver resolver, SchemaSource schema) {
     this.uri = uri;
     this.resolver = resolver;
+    this.schema = schema;
   }
 
   @Override
   public Cursor call() throws Exception {
     final VfsObject obj = resolver.resolve(uri);
-    return ParentsCursorBuilder.makeParents(obj);
+    return ParentsCursorBuilder.makeParents(obj, schema);
   }
 
   @Nullable

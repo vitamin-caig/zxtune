@@ -7,21 +7,20 @@ import androidx.annotation.Nullable;
 
 import java.util.Comparator;
 
-import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsObject;
 
 class ListingOperation implements AsyncQueryOperation {
 
-  private final ListingCursorBuilder builder =
-      new ListingCursorBuilder(VfsArchive::getModulesCount);
   private final Uri uri;
   private final Resolver resolver;
+  private final ListingCursorBuilder builder;
 
-  ListingOperation(Uri uri, Resolver resolver) {
+  ListingOperation(Uri uri, Resolver resolver, SchemaSource schema) {
     this.uri = uri;
     this.resolver = resolver;
+    this.builder = new ListingCursorBuilder(schema);
   }
 
   @SuppressWarnings("unchecked")

@@ -15,5 +15,10 @@ class ShadowVfsArchive {
 
         @JvmStatic
         fun resolve(uri: Uri) = doResolve(uri, null)
+
+        val doGetModulesCount = mock<(Array<Uri>) -> Array<Int?>>()
+
+        @JvmStatic
+        fun getModulesCount(uris: Array<Uri>) = doGetModulesCount(uris)
     }
 }

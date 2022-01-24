@@ -8,10 +8,10 @@ import androidx.annotation.Nullable;
 import androidx.core.os.OperationCanceledException;
 
 import java.io.InterruptedIOException;
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import app.zxtune.Log;
-import app.zxtune.fs.VfsArchive;
 import app.zxtune.fs.VfsDir;
 import app.zxtune.fs.VfsExtensions;
 import app.zxtune.fs.VfsFile;
@@ -24,12 +24,14 @@ class SearchOperation implements AsyncQueryOperation {
 
   private final Uri uri;
   private final Resolver resolver;
+  private final SchemaSource schema;
   private final String query;
-  private final AtomicReference<ListingCursorBuilder> result = new AtomicReference<>();
+  private final AtomicReference<ArrayList<VfsFile>> result = new AtomicReference<>();
 
-  SearchOperation(Uri uri, Resolver resolver, String query) {
+  SearchOperation(Uri uri, Resolver resolver, SchemaSource schema, String query) {
     this.uri = uri;
     this.resolver = resolver;
+    this.schema = schema;
     this.query = query;
   }
 
@@ -37,12 +39,12 @@ class SearchOperation implements AsyncQueryOperation {
   public Cursor call() throws Exception {
     final VfsDir dir = maybeResolve();
     if (dir != null) {
-      result.set(makeBuilder());
+      result.set(new ArrayList<>());
       search(dir);
     }
     synchronized(result) {
-      final MatrixCursor res = (MatrixCursor) result.getAndSet(null).getResult();
-      res.addRow(Schema.Listing.makeLimiter());
+      final MatrixCursor res = convert(result.getAndSet(null));
+      res.addRow(Schema.Listing.Delimiter.INSTANCE.serialize());
       return res;
     }
   }
@@ -60,7 +62,7 @@ class SearchOperation implements AsyncQueryOperation {
     final VfsExtensions.SearchEngine.Visitor visitor = obj -> {
       checkForCancel();
       synchronized(result) {
-        result.get().onFile(obj);
+        result.get().add(obj);
       }
     };
     search(dir, visitor);
@@ -110,12 +112,16 @@ class SearchOperation implements AsyncQueryOperation {
   public Cursor status() {
     synchronized(result) {
       return result.get() != null
-          ? result.getAndSet(makeBuilder()).getResult()
+          ? convert(result.getAndSet(new ArrayList<>()))
           : null;
     }
   }
 
-  private static ListingCursorBuilder makeBuilder() {
-    return new ListingCursorBuilder(VfsArchive::getModulesCount);
+  private MatrixCursor convert(ArrayList<VfsFile> found) {
+    final MatrixCursor res = new MatrixCursor(Schema.Listing.COLUMNS, found.size() + 1);
+    for (Schema.Listing.File f : schema.files(found)) {
+      res.addRow(f.serialize());
+    }
+    return res;
   }
 }

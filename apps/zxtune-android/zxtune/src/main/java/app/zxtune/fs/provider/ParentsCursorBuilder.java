@@ -14,7 +14,7 @@ import app.zxtune.fs.VfsUtils;
 
 class ParentsCursorBuilder {
 
-  static Cursor makeParents(@Nullable VfsObject obj) {
+  static Cursor makeParents(@Nullable VfsObject obj, SchemaSource schema) {
     final ArrayList<VfsObject> entries = new ArrayList<>();
     if (obj != null && !Uri.EMPTY.equals(obj.getUri())) {
       for (VfsObject o = obj; o != null; o = o.getParent()) {
@@ -22,13 +22,9 @@ class ParentsCursorBuilder {
       }
       Collections.reverse(entries);
     }
-    return makeCursor(entries);
-  }
-
-  private static Cursor makeCursor(ArrayList<VfsObject> objects) {
-    final MatrixCursor result = new MatrixCursor(Schema.Parents.COLUMNS, objects.size());
-    for (VfsObject o : objects) {
-      result.addRow(Schema.Parents.make(o.getUri(), o.getName(), VfsUtils.getObjectIcon(o)));
+    final MatrixCursor result = new MatrixCursor(Schema.Parents.COLUMNS, entries.size());
+    for (Schema.Parents.Object o : schema.parents(entries)) {
+      result.addRow(o.serialize());
     }
     return result;
   }

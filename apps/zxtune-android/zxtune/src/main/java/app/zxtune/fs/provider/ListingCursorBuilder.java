@@ -22,18 +22,14 @@ import app.zxtune.fs.VfsUtils;
 
 class ListingCursorBuilder extends VfsDir.Visitor {
 
-  interface TracksCountSource {
-    Integer[] getTracksCount(Uri[] uris);
-  }
-
-  private final TracksCountSource tracksCountSource;
+  private final SchemaSource schema;
   private final ArrayList<VfsDir> dirs = new ArrayList<>();
   private final ArrayList<VfsFile> files = new ArrayList<>();
   private int total = -1;
   private int done = -1;
 
-  ListingCursorBuilder(TracksCountSource src) {
-    this.tracksCountSource = src;
+  ListingCursorBuilder(SchemaSource schema) {
+    this.schema = schema;
   }
 
   @Override
@@ -76,24 +72,13 @@ class ListingCursorBuilder extends VfsDir.Visitor {
 
   final Cursor getResult() {
     final MatrixCursor cursor = new MatrixCursor(Schema.Listing.COLUMNS, dirs.size() + files.size());
-    for (VfsDir d : dirs) {
-      cursor.addRow(makeRow(d));
+    for (Schema.Listing.Dir d : schema.directories(dirs)) {
+      cursor.addRow(d.serialize());
     }
-    final Uri[] uris = getFilesUris();
-    final Integer[] tracks = tracksCountSource.getTracksCount(uris);
-    for (int i = 0; i < uris.length; ++i) {
-      final VfsFile file = files.get(i);
-      cursor.addRow(makeRow(uris[i], file, tracks[i]));
+    for (Schema.Listing.File f : schema.files(files)) {
+      cursor.addRow(f.serialize());
     }
     return cursor;
-  }
-
-  private Uri[] getFilesUris() {
-    final Uri[] result = new Uri[files.size()];
-    for (int i = 0; i < result.length; ++i) {
-      result[i] = files.get(i).getUri();
-    }
-    return result;
   }
 
   private static Object[] makeRow(VfsDir d) {
@@ -119,9 +104,9 @@ class ListingCursorBuilder extends VfsDir.Visitor {
   final Cursor getStatus() {
     final MatrixCursor cursor = new MatrixCursor(Schema.Status.COLUMNS, 1);
     if (total != 0) {
-      cursor.addRow(Schema.Status.makeProgress(done, total));
+      cursor.addRow(new Schema.Status.Progress(done, total).serialize());
     } else {
-      cursor.addRow(Schema.Status.makeIntermediateProgress());
+      cursor.addRow(Schema.Status.Progress.Companion.createIntermediate().serialize());
     }
     return cursor;
   }

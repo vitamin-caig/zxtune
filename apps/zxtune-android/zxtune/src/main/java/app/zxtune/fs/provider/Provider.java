@@ -20,9 +20,6 @@ import java.util.concurrent.TimeoutException;
 
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
-import app.zxtune.fs.VfsDir;
-import app.zxtune.fs.VfsFile;
-import app.zxtune.fs.VfsObject;
 
 public class Provider extends ContentProvider {
 
@@ -33,6 +30,7 @@ public class Provider extends ContentProvider {
   private final ExecutorService executor = Executors.newCachedThreadPool();
   private final ConcurrentHashMap<Uri, OperationHolder> operations = new ConcurrentHashMap<>();
   private final Resolver resolver = new CachingResolver(CACHE_SIZE);
+  private final SchemaSource schema = new SchemaSourceImplementation();
   private final Handler handler = new Handler();
 
   @Override
@@ -71,13 +69,13 @@ public class Provider extends ContentProvider {
     final Uri path = Query.getPathFrom(uri);
     switch (Query.getUriType(uri)) {
       case Query.TYPE_RESOLVE:
-        return new ResolveOperation(path, resolver);
+        return new ResolveOperation(path, resolver, schema);
       case Query.TYPE_LISTING:
-        return new ListingOperation(path, resolver);
+        return new ListingOperation(path, resolver, schema);
       case Query.TYPE_PARENTS:
-        return new ParentsOperation(path, resolver);
+        return new ParentsOperation(path, resolver, schema);
       case Query.TYPE_SEARCH:
-        return new SearchOperation(path, resolver, Query.getQueryFrom(uri));
+        return new SearchOperation(path, resolver, schema, Query.getQueryFrom(uri));
       case Query.TYPE_FILE:
         return new FileOperation(path, resolver, projection);
       default:
