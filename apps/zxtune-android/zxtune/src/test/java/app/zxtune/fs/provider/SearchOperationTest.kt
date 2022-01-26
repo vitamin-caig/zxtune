@@ -34,7 +34,7 @@ class SearchOperationTest {
     @Test
     fun `no resolved dir`() = with(SearchOperation(uri, resolver, schema, query)) {
         assertEquals(null, status())
-        call()!!.run {
+        call().run {
             assertEquals(1, count)
             moveToFirst()
             assertTrue(Schema.Object.parse(this) is Schema.Listing.Delimiter)
@@ -74,7 +74,7 @@ class SearchOperationTest {
         }
         with(SearchOperation(uri, resolver, schema, query)) {
             assertEquals(null, status())
-            call()!!.run {
+            call().run {
                 assertEquals(3, count)
                 moveToNext()
                 assertEquals(rootObjectMatched, Schema.Object.parse(this) as Schema.Listing.File)
@@ -126,7 +126,7 @@ class SearchOperationTest {
                     }
                 }
             }
-            call()!!.run {
+            call().run {
                 assertEquals(2, count)
                 moveToNext()
                 assertEquals(object3, Schema.Object.parse(this) as Schema.Listing.File)
