@@ -34,7 +34,7 @@ class ResolveOperationTest {
     fun `not resolved`() {
         with(ResolveOperation(URI1, resolver, schema)) {
             assertEquals(null, call())
-            status()!!.run {
+            status().run {
                 assertEquals(1, count)
                 moveToFirst()
                 assertEquals(
@@ -60,7 +60,7 @@ class ResolveOperationTest {
                 moveToFirst()
                 assertEquals(fileObject, Schema.Object.parse(this) as Schema.Listing.File)
             }
-            status()!!.run {
+            status().run {
                 assertEquals(1, count)
                 moveToFirst()
                 assertEquals(
@@ -90,7 +90,7 @@ class ResolveOperationTest {
                 moveToFirst()
                 assertEquals(dirObject, Schema.Object.parse(this) as Schema.Listing.Dir)
             }
-            status()!!.run {
+            status().run {
                 assertEquals(1, count)
                 moveToFirst()
                 assertEquals(
@@ -112,7 +112,7 @@ class ResolveOperationTest {
             call()!!.run {
                 assertEquals(0, count)
             }
-            status()!!.run {
+            status().run {
                 assertEquals(1, count)
                 moveToFirst()
                 assertEquals(

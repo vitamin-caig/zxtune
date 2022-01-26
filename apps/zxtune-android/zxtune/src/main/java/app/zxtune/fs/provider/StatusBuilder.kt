@@ -9,7 +9,6 @@ internal object StatusBuilder {
         addRow(Schema.Status.Error(e).serialize())
     }
 
-    @JvmStatic
     fun makeProgress(done: Int, total: Int): Cursor = MatrixCursor(Schema.Status.COLUMNS, 1).apply {
         addRow(Schema.Status.Progress(done, total).serialize())
     }
