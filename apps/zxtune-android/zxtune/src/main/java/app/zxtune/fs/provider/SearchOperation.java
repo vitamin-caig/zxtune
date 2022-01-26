@@ -32,14 +32,14 @@ class SearchOperation implements AsyncQueryOperation {
     this.uri = uri;
     this.resolver = resolver;
     this.schema = schema;
-    this.query = query;
+    this.query = query.toLowerCase();
   }
 
   @Override
   public Cursor call() throws Exception {
     final VfsDir dir = maybeResolve();
+    result.set(new ArrayList<>());
     if (dir != null) {
-      result.set(new ArrayList<>());
       search(dir);
     }
     synchronized(result) {
