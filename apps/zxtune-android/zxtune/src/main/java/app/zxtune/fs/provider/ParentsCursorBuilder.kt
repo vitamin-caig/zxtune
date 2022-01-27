@@ -7,7 +7,6 @@ import app.zxtune.fs.VfsObject
 import java.util.*
 
 internal object ParentsCursorBuilder {
-    @JvmStatic
     fun makeParents(obj: VfsObject?, schema: SchemaSource): Cursor {
         val dirs = ArrayList<VfsObject>().apply {
             if (Uri.EMPTY != obj?.uri) {
