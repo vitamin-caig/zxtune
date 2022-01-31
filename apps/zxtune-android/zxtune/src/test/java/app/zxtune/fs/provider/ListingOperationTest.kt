@@ -38,7 +38,7 @@ class ListingOperationTest {
     @Test
     fun `not resolved`() = with(ListingOperation(uri, resolver, schema)) {
         assertEquals(null, call())
-        status()!!.run {
+        status().run {
             assertEquals(1, count)
             moveToNext()
             assertEquals(Schema.Status.Progress.createIntermediate(), Schema.Object.parse(this))
@@ -55,7 +55,7 @@ class ListingOperationTest {
         }
         with(ListingOperation(uri, resolver, schema)) {
             assertEquals(null, call())
-            status()!!.run {
+            status().run {
                 assertEquals(1, count)
                 moveToNext()
                 assertEquals(Schema.Status.Progress.createIntermediate(), Schema.Object.parse(this))
@@ -76,7 +76,7 @@ class ListingOperationTest {
             call()!!.run {
                 assertEquals(0, count)
             }
-            status()!!.run {
+            status().run {
                 assertEquals(1, count)
                 moveToNext()
                 assertEquals(Schema.Status.Progress.createIntermediate(), Schema.Object.parse(this))
@@ -120,7 +120,7 @@ class ListingOperationTest {
                 moveToNext()
                 assertEquals(makeFileObject(file4), Schema.Object.parse(this))
             }
-            status()!!.run {
+            status().run {
                 assertEquals(1, count)
                 moveToNext()
                 assertEquals(Schema.Status.Progress(4, 4), Schema.Object.parse(this))
@@ -166,7 +166,7 @@ class ListingOperationTest {
                 moveToNext()
                 assertEquals(makeFileObject(file3), Schema.Object.parse(this))
             }
-            status()!!.run {
+            status().run {
                 assertEquals(1, count)
                 moveToNext()
                 assertEquals(Schema.Status.Progress.createIntermediate(), Schema.Object.parse(this))
