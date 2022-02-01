@@ -17,17 +17,10 @@ data class Track constructor(
     // in bytes
     val size: Int,
     // decoded last segment of id
-    val filename: String,
+    val filename: String = Uri.decode(path.substringAfterLast('/'))
 ) {
-    // TODO: use default arguments
-    constructor(id: Long, path: String, size: Int) : this(
-        id,
-        path,
-        size,
-        Uri.decode(path.substringAfterLast('/'))
-    )
 
-    constructor(path: String, size: Int) : this(crc32(Uri.decode(path)), path, size) {}
+    constructor(path: String, size: Int) : this(crc32(Uri.decode(path)), path, size)
 }
 
 private fun crc32(str: String) = with(CRC32()) {
