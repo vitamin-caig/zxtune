@@ -7,6 +7,7 @@ import android.os.ParcelFileDescriptor;
 import android.provider.OpenableColumns;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,6 +72,11 @@ class FileOperation implements AsyncQueryOperation {
   }
 
   final ParcelFileDescriptor openFile(String mode) throws Exception {
+    return ParcelFileDescriptor.open(openFileInternal(mode), ParcelFileDescriptor.MODE_READ_ONLY);
+  }
+
+  @VisibleForTesting
+  final File openFileInternal(String mode) throws Exception {
     if (!"r".equals(mode)) {
       throw new IllegalArgumentException("Invalid mode: " + mode);
     }
@@ -82,7 +88,7 @@ class FileOperation implements AsyncQueryOperation {
     if (f == null) {
       throw new IOException("Failed to get file content of " + uri);
     }
-    return ParcelFileDescriptor.open(f, ParcelFileDescriptor.MODE_READ_ONLY);
+    return f;
   }
 
   // as in FileProvider
