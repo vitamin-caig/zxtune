@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.ParcelFileDescriptor;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import java.io.FileNotFoundException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -29,9 +30,20 @@ public class Provider extends ContentProvider {
 
   private final ExecutorService executor = Executors.newCachedThreadPool();
   private final ConcurrentHashMap<Uri, OperationHolder> operations = new ConcurrentHashMap<>();
-  private final Resolver resolver = new CachingResolver(CACHE_SIZE);
-  private final SchemaSource schema = new SchemaSourceImplementation();
+  private final Resolver resolver;
+  private final SchemaSource schema;
   private final Handler handler = new Handler();
+
+  @SuppressWarnings("unused")
+  Provider() {
+    this(new CachingResolver(CACHE_SIZE), new SchemaSourceImplementation());
+  }
+
+  @VisibleForTesting
+  Provider(Resolver resolver, SchemaSource schema) {
+    this.resolver = resolver;
+    this.schema = schema;
+  }
 
   @Override
   public boolean onCreate() {
@@ -53,9 +65,6 @@ public class Provider extends ContentProvider {
         return existing.status();
       } else {
         final AsyncQueryOperation op = createOperation(uri, projection);
-        if (op == null) {
-          return null;
-        }
         final OperationHolder newOne = new OperationHolder(uri, op);
         return newOne.start();
       }
@@ -64,7 +73,6 @@ public class Provider extends ContentProvider {
     }
   }
 
-  @Nullable
   private AsyncQueryOperation createOperation(Uri uri, @Nullable String[] projection) {
     final Uri path = Query.getPathFrom(uri);
     switch (Query.getUriType(uri)) {
