@@ -4,7 +4,6 @@ import android.database.Cursor
 import android.database.MatrixCursor
 
 internal object StatusBuilder {
-    @JvmStatic
     fun makeError(e: Throwable): Cursor = MatrixCursor(Schema.Status.COLUMNS, 1).apply {
         addRow(Schema.Status.Error(e).serialize())
     }

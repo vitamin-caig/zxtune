@@ -57,7 +57,6 @@ internal object Query {
     }
 
     //! @return Mime type of uri (used in content provider)
-    @JvmStatic
     fun mimeTypeOf(uri: Uri) = when (uriTemplate.match(uri)) {
         TYPE_RESOLVE, TYPE_FILE -> MIME_ITEM
         TYPE_LISTING, TYPE_SEARCH -> MIME_ITEMS_SET
@@ -65,36 +64,28 @@ internal object Query {
         else -> throw IllegalArgumentException("Wrong URI: $uri")
     }
 
-    @JvmStatic
     fun getPathFrom(uri: Uri): Uri = when (uriTemplate.match(uri)) {
         TYPE_RESOLVE, TYPE_LISTING, TYPE_PARENTS, TYPE_SEARCH, TYPE_FILE ->
             uri.pathSegments.getOrNull(1)?.let { Uri.parse(it) } ?: Uri.EMPTY
         else -> throw IllegalArgumentException("Wrong URI: $uri")
     }
 
-    @JvmStatic
     fun getQueryFrom(uri: Uri) =
         uri.takeIf { uriTemplate.match(uri) == TYPE_SEARCH }?.getQueryParameter(QUERY_PARAM)
             ?: throw IllegalArgumentException("Wrong search URI: $uri")
 
-    @JvmStatic
     @Type
     fun getUriType(uri: Uri) = uriTemplate.match(uri)
 
-    @JvmStatic
     fun resolveUriFor(uri: Uri): Uri = makeUri(RESOLVE_PATH, uri).build()
 
-    @JvmStatic
     fun listingUriFor(uri: Uri): Uri = makeUri(LISTING_PATH, uri).build()
 
-    @JvmStatic
     fun parentsUriFor(uri: Uri): Uri = makeUri(PARENTS_PATH, uri).build()
 
-    @JvmStatic
     fun searchUriFor(uri: Uri, query: String): Uri =
         makeUri(SEARCH_PATH, uri).appendQueryParameter(QUERY_PARAM, query).build()
 
-    @JvmStatic
     fun fileUriFor(uri: Uri): Uri = makeUri(FILE_PATH, uri).build()
 
     private fun makeUri(path: String, uri: Uri) = Uri.Builder()
