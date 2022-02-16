@@ -23,6 +23,7 @@ class ListingOperationTest {
             it.getArgument<List<VfsDir>>(0).map { o -> makeDirObject(o) }
         }
     }
+    private val callback = mock<AsyncQueryOperation.Callback>()
 
     private val dir1 = TestDir(1)
     private val dir2 = TestDir(2)
@@ -30,13 +31,13 @@ class ListingOperationTest {
     private val file4 = TestFile(4, "Unused")
 
     @Before
-    fun setUp() = clearInvocations(resolver, schema)
+    fun setUp() = clearInvocations(resolver, schema, callback)
 
     @After
-    fun tearDown() = verifyNoMoreInteractions(resolver, schema)
+    fun tearDown() = verifyNoMoreInteractions(resolver, schema, callback)
 
     @Test
-    fun `not resolved`() = with(ListingOperation(uri, resolver, schema)) {
+    fun `not resolved`() = with(ListingOperation(uri, resolver, schema, callback)) {
         assertEquals(null, call())
         status().run {
             assertEquals(1, count)
@@ -53,7 +54,7 @@ class ListingOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn mock<VfsFile>()
         }
-        with(ListingOperation(uri, resolver, schema)) {
+        with(ListingOperation(uri, resolver, schema, callback)) {
             assertEquals(null, call())
             status().run {
                 assertEquals(1, count)
@@ -72,7 +73,7 @@ class ListingOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn dir
         }
-        with(ListingOperation(uri, resolver, schema)) {
+        with(ListingOperation(uri, resolver, schema, callback)) {
             call()!!.run {
                 assertEquals(0, count)
             }
@@ -82,9 +83,10 @@ class ListingOperationTest {
                 assertEquals(Schema.Status.Progress.createIntermediate(), Schema.Object.parse(this))
             }
         }
-        inOrder(resolver, dir, schema) {
+        inOrder(resolver, dir, schema, callback) {
             verify(resolver).resolve(uri)
             verify(dir).enumerate(any())
+            verify(callback).checkForCancel()
             verify(dir).getExtension(VfsExtensions.COMPARATOR)
             verify(schema).directories(argThat { isEmpty() })
             verify(schema).files(argThat { isEmpty() })
@@ -108,7 +110,7 @@ class ListingOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn dir
         }
-        with(ListingOperation(uri, resolver, schema)) {
+        with(ListingOperation(uri, resolver, schema, callback)) {
             call()!!.run {
                 assertEquals(4, count)
                 moveToNext()
@@ -126,9 +128,10 @@ class ListingOperationTest {
                 assertEquals(Schema.Status.Progress(4, 4), Schema.Object.parse(this))
             }
         }
-        inOrder(resolver, dir, schema) {
+        inOrder(resolver, dir, schema, callback) {
             verify(resolver).resolve(uri)
             verify(dir).enumerate(any())
+            verify(callback, times(2)).checkForCancel()
             verify(dir).getExtension(VfsExtensions.COMPARATOR)
             verify(schema).directories(arrayListOf(dir1, dir2))
             verify(schema).files(arrayListOf(file3, file4))
@@ -154,7 +157,7 @@ class ListingOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn dir
         }
-        with(ListingOperation(uri, resolver, schema)) {
+        with(ListingOperation(uri, resolver, schema, callback)) {
             call()!!.run {
                 assertEquals(4, count)
                 moveToNext()
@@ -172,9 +175,10 @@ class ListingOperationTest {
                 assertEquals(Schema.Status.Progress.createIntermediate(), Schema.Object.parse(this))
             }
         }
-        inOrder(resolver, dir, schema) {
+        inOrder(resolver, dir, schema, callback) {
             verify(resolver).resolve(uri)
             verify(dir).enumerate(any())
+            verify(callback).checkForCancel()
             verify(dir).getExtension(VfsExtensions.COMPARATOR)
             verify(schema).directories(arrayListOf(dir2, dir1))
             verify(schema).files(arrayListOf(file4, file3))

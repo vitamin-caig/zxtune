@@ -24,15 +24,16 @@ class SearchOperationTest {
             it.getArgument<List<VfsFile>>(0).map { o -> makeFileObject(o) }
         }
     }
+    private val callback = mock<AsyncQueryOperation.Callback>()
 
     @Before
-    fun setUp() = reset(resolver)
+    fun setUp() = reset(resolver, callback)
 
     @After
-    fun tearDown() = verifyNoMoreInteractions(resolver, schema)
+    fun tearDown() = verifyNoMoreInteractions(resolver, schema, callback)
 
     @Test
-    fun `no resolved dir`() = with(SearchOperation(uri, resolver, schema, query)) {
+    fun `no resolved dir`() = with(SearchOperation(uri, resolver, schema, callback, query)) {
         assertEquals(null, status())
         call().run {
             assertEquals(1, count)
@@ -72,7 +73,7 @@ class SearchOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn rootDir
         }
-        with(SearchOperation(uri, resolver, schema, query)) {
+        with(SearchOperation(uri, resolver, schema, callback, query)) {
             assertEquals(null, status())
             call().run {
                 assertEquals(3, count)
@@ -86,6 +87,7 @@ class SearchOperationTest {
             assertEquals(null, status())
         }
         verify(resolver).resolve(uri)
+        verify(callback, times(4)).checkForCancel()
         verify(schema).files(arrayListOf(rootFileMatched, nestedFileMatched))
     }
 
@@ -108,7 +110,7 @@ class SearchOperationTest {
         resolver.stub {
             on { resolve(any()) } doReturn root
         }
-        with(SearchOperation(uri, resolver, schema, query)) {
+        with(SearchOperation(uri, resolver, schema, callback, query)) {
             assertEquals(null, status())
             searchEngine.stub {
                 on { find(any(), any()) } doAnswer {

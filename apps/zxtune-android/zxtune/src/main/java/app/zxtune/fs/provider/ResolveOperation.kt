@@ -2,13 +2,12 @@ package app.zxtune.fs.provider
 
 import android.database.MatrixCursor
 import android.net.Uri
-import androidx.core.os.OperationCanceledException
-import app.zxtune.Logger
 
 internal class ResolveOperation(
     private val uri: Uri,
     private val resolver: Resolver,
-    private val schema: SchemaSource
+    private val schema: SchemaSource,
+    private val callback: AsyncQueryOperation.Callback,
 ) : AsyncQueryOperation {
 
     private var done = -1
@@ -23,21 +22,10 @@ internal class ResolveOperation(
     }
 
     private fun maybeResolve() = resolver.resolve(uri) { done: Int, total: Int ->
-        checkForCancel()
+        callback.checkForCancel()
         this.done = done
         this.total = total
     }
 
-    private fun checkForCancel() {
-        if (Thread.interrupted()) {
-            LOG.d { "Canceled resolving for $uri" }
-            throw OperationCanceledException()
-        }
-    }
-
     override fun status() = StatusBuilder.makeProgress(done, total)
-
-    companion object {
-        private val LOG = Logger(ResolveOperation::class.java.name)
-    }
 }

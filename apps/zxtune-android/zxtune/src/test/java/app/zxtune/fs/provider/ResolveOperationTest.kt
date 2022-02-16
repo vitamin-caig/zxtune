@@ -18,6 +18,7 @@ class ResolveOperationTest {
     private val URI1 = mock<Uri>()
     private val resolver = mock<Resolver>()
     private val schema = mock<SchemaSource>()
+    private val callback = mock<AsyncQueryOperation.Callback>()
     private val file = TestFile(1, "unused")
     private val fileObject =
         Schema.Listing.File(file.uri, file.name, file.description, file.size, null, null)
@@ -25,14 +26,14 @@ class ResolveOperationTest {
     private val dirObject = Schema.Listing.Dir(dir.uri, dir.name, dir.description, null, false)
 
     @Before
-    fun setUp() = reset(resolver, schema)
+    fun setUp() = reset(resolver, schema, callback)
 
     @After
-    fun tearDown() = verifyNoMoreInteractions(resolver, schema)
+    fun tearDown() = verifyNoMoreInteractions(resolver, schema, callback)
 
     @Test
     fun `not resolved`() {
-        with(ResolveOperation(URI1, resolver, schema)) {
+        with(ResolveOperation(URI1, resolver, schema, callback)) {
             assertEquals(null, call())
             status().run {
                 assertEquals(1, count)
@@ -54,7 +55,7 @@ class ResolveOperationTest {
         schema.stub {
             on { resolved(any()) } doReturn fileObject
         }
-        with(ResolveOperation(file.uri, resolver, schema)) {
+        with(ResolveOperation(file.uri, resolver, schema, callback)) {
             call()!!.run {
                 assertEquals(1, count)
                 moveToFirst()
@@ -84,7 +85,7 @@ class ResolveOperationTest {
         schema.stub {
             on { resolved(any()) } doReturn dirObject
         }
-        with(ResolveOperation(dir.uri, resolver, schema)) {
+        with(ResolveOperation(dir.uri, resolver, schema, callback)) {
             call()!!.run {
                 assertEquals(1, count)
                 moveToFirst()
@@ -100,6 +101,7 @@ class ResolveOperationTest {
             }
         }
         verify(resolver).resolve(eq(dir.uri), any())
+        verify(callback).checkForCancel()
         verify(schema).resolved(dir)
     }
 
@@ -108,7 +110,7 @@ class ResolveOperationTest {
         resolver.stub {
             on { resolve(any(), any()) } doReturn file
         }
-        with(ResolveOperation(file.uri, resolver, schema)) {
+        with(ResolveOperation(file.uri, resolver, schema, callback)) {
             call()!!.run {
                 assertEquals(0, count)
             }

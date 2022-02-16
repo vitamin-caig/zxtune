@@ -36,8 +36,8 @@ class ListingCursorBuilderTest {
 
     @Test
     fun `empty dir`() {
-        with(ListingCursorBuilder(schema)) {
-            getSortedResult(null).run {
+        with(ListingCursorBuilder()) {
+            sort().getResult(schema).run {
                 assertEquals(0, count)
             }
         }
@@ -46,7 +46,7 @@ class ListingCursorBuilderTest {
     }
 
     @Test
-    fun `progress update`() = with(ListingCursorBuilder(schema)) {
+    fun `progress update`() = with(ListingCursorBuilder()) {
         status.run {
             assertEquals(1, count)
             moveToFirst()
@@ -55,7 +55,7 @@ class ListingCursorBuilderTest {
                 Schema.Object.parse(this) as Schema.Status.Progress
             )
         }
-        onProgressUpdate(12, 34)
+        setProgress(12, 34)
         status.run {
             assertEquals(1, count)
             moveToFirst()
@@ -75,13 +75,13 @@ class ListingCursorBuilderTest {
         val comparator = Comparator<VfsObject> { lh, rh ->
             (lh as TestObject).idx.compareTo((rh as TestObject).idx)
         }
-        ListingCursorBuilder(schema).apply {
-            onDir(dir2)
-            onFile(file2)
-            onFile(file1)
-            onDir(dir1)
-            onFile(file3)
-        }.getSortedResult(comparator).run {
+        ListingCursorBuilder().apply {
+            addDir(dir2)
+            addFile(file2)
+            addFile(file1)
+            addDir(dir1)
+            addFile(file3)
+        }.sort(comparator).getResult(schema).run {
             assertEquals(5, count)
             moveToNext()
             assertEquals(dirObject1, Schema.Object.parse(this) as Schema.Listing.Dir)

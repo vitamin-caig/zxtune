@@ -5,6 +5,7 @@ import android.content.ContentValues
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.os.OperationCanceledException
 import android.os.ParcelFileDescriptor
 import androidx.annotation.VisibleForTesting
 import app.zxtune.Logger
@@ -38,18 +39,38 @@ class Provider @VisibleForTesting internal constructor(
         if (existing != null) {
             existing.status()
         } else {
-            val op = createOperation(uri, projection)
+            val op = createOperation(uri, projection, makeCallback(uri))
             OperationHolder(uri, op).start()
         }
     }.recover(StatusBuilder::makeError).getOrNull()
 
-    private fun createOperation(uri: Uri, projection: Array<String>?): AsyncQueryOperation {
+    private fun makeCallback(uri: Uri): AsyncQueryOperation.Callback = object :
+        AsyncQueryOperation.Callback {
+        override fun checkForCancel() {
+            if (Thread.interrupted()) {
+                LOG.d { "Interrupted query $uri" }
+                throw OperationCanceledException()
+            }
+        }
+    }
+
+    private fun createOperation(
+        uri: Uri,
+        projection: Array<String>?,
+        callback: AsyncQueryOperation.Callback
+    ): AsyncQueryOperation {
         val path = Query.getPathFrom(uri)
         return when (Query.getUriType(uri)) {
-            Query.TYPE_RESOLVE -> ResolveOperation(path, resolver, schema)
-            Query.TYPE_LISTING -> ListingOperation(path, resolver, schema)
+            Query.TYPE_RESOLVE -> ResolveOperation(path, resolver, schema, callback)
+            Query.TYPE_LISTING -> ListingOperation(path, resolver, schema, callback)
             Query.TYPE_PARENTS -> ParentsOperation(path, resolver, schema)
-            Query.TYPE_SEARCH -> SearchOperation(path, resolver, schema, Query.getQueryFrom(uri))
+            Query.TYPE_SEARCH -> SearchOperation(
+                path,
+                resolver,
+                schema,
+                callback,
+                Query.getQueryFrom(uri)
+            )
             Query.TYPE_FILE -> FileOperation(path, resolver, projection)
             else -> throw UnsupportedOperationException("Unsupported uri $uri")
         }
@@ -74,8 +95,8 @@ class Provider @VisibleForTesting internal constructor(
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
         try {
-            (createOperation(uri, null) as? FileOperation)?.run {
-                return openFile(mode)
+            if (Query.getUriType(uri) == Query.TYPE_FILE) {
+                return FileOperation(Query.getPathFrom(uri), resolver, null).openFile(mode)
             }
         } catch (e: Exception) {
             LOG.w(e) { "Failed to open file $uri" }

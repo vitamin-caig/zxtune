@@ -3,16 +3,15 @@ package app.zxtune.fs.provider
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
-import androidx.core.os.OperationCanceledException
 import app.zxtune.Logger
 import app.zxtune.fs.*
-import java.io.InterruptedIOException
 import java.util.concurrent.atomic.AtomicReference
 
 internal class SearchOperation(
     private val uri: Uri,
     private val resolver: Resolver,
     private val schema: SchemaSource,
+    private val callback: AsyncQueryOperation.Callback,
     query: String
 ) : AsyncQueryOperation {
     private val query = query.lowercase()
@@ -29,26 +28,21 @@ internal class SearchOperation(
     private fun maybeResolve() = resolver.resolve(uri) as? VfsDir
 
     private fun search(dir: VfsDir) = search(dir) { obj ->
-        checkForCancel()
         synchronized(result) { result.get()!!.add(obj) }
     }
 
     private fun search(dir: VfsDir, visitor: VfsExtensions.SearchEngine.Visitor) =
         dir.searchEngine?.find(query, visitor) ?: iterate(dir) {
+            callback.checkForCancel()
             if (match(it.name) || match(it.description)) {
                 visitor.onFile(it)
-            } else {
-                checkForCancel()
             }
         }
 
     private fun iterate(dir: VfsDir, visitor: VfsExtensions.SearchEngine.Visitor) =
         VfsIterator(dir) { e ->
-            if (e is InterruptedIOException) {
-                throwCanceled()
-            } else {
-                LOG.w(e) { "Ignore I/O error" }
-            }
+            callback.checkForCancel()
+            LOG.w(e) { "Ignore I/O error" }
         }.run {
             while (isValid) {
                 visitor.onFile(file)
@@ -57,17 +51,6 @@ internal class SearchOperation(
         }
 
     private fun match(txt: String) = txt.lowercase().contains(query)
-
-    private fun checkForCancel() {
-        if (Thread.interrupted()) {
-            throwCanceled()
-        }
-    }
-
-    private fun throwCanceled() {
-        LOG.d { "Canceled search for $query at $uri" }
-        throw OperationCanceledException()
-    }
 
     override fun status() = intermediateResult()?.let { convert(it) }
 

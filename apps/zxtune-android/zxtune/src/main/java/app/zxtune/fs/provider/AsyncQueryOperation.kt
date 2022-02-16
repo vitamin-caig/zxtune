@@ -5,4 +5,8 @@ import java.util.concurrent.Callable
 
 internal interface AsyncQueryOperation : Callable<Cursor?> {
     fun status(): Cursor?
+
+    interface Callback {
+        fun checkForCancel()
+    }
 }
