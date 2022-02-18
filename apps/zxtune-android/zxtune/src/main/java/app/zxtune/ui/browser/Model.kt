@@ -2,6 +2,8 @@ package app.zxtune.ui.browser
 
 import android.app.Application
 import android.net.Uri
+import android.os.CancellationSignal
+import android.os.OperationCanceledException
 import androidx.annotation.VisibleForTesting
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.AndroidViewModel
@@ -15,7 +17,6 @@ import app.zxtune.fs.provider.VfsProviderClient.ParentsCallback
 import app.zxtune.ui.browser.ListingEntry.Companion.makeFile
 import app.zxtune.ui.browser.ListingEntry.Companion.makeFolder
 import java.util.concurrent.Executors
-import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -49,7 +50,7 @@ class Model @VisibleForTesting internal constructor(
     @VisibleForTesting
     val mutableState = MutableLiveData<State>()
     private val mutableProgress = MutableLiveData<Int?>()
-    private val lastTask = AtomicReference<Future<*>>()
+    private val activeTaskSignal = AtomicReference<CancellationSignal>()
     private var client: Client = object : Client {
         override fun onFileBrowse(uri: Uri) = Unit
         override fun onError(msg: String) = Unit
@@ -104,29 +105,30 @@ class Model @VisibleForTesting internal constructor(
     }
 
     private interface AsyncOperation {
-        fun execute()
-    }
-
-    private inner class AsyncOperationWrapper constructor(
-        private val op: AsyncOperation,
-        private val descr: String
-    ) : Runnable {
-        override fun run() = try {
-            LOG.d { "Started $descr" }
-            mutableProgress.postValue(-1)
-            op.execute()
-        } catch (e: InterruptedException) {
-            LOG.d { "Cancelled $descr" }
-        } catch (e: Exception) {
-            reportError(e)
-        } finally {
-            mutableProgress.postValue(null)
-            LOG.d { "Finished $descr" }
-        }
+        fun execute(signal: CancellationSignal)
     }
 
     private fun executeAsync(op: AsyncOperation, descr: String) {
-        lastTask.getAndSet(async.submit(AsyncOperationWrapper(op, descr)))?.cancel(true)
+        val signal = CancellationSignal().apply {
+            activeTaskSignal.getAndSet(this)?.cancel()
+        }
+        async.execute {
+            LOG.d { "Started $descr" }
+            mutableProgress.postValue(-1)
+            op.runCatching {
+                execute(signal)
+            }.onFailure {
+                if (it is OperationCanceledException) {
+                    LOG.d { "Canceled $descr" }
+                } else {
+                    reportError(it)
+                }
+            }
+            if (activeTaskSignal.compareAndSet(signal, null)) {
+                mutableProgress.postValue(null)
+                LOG.d { "Finished $descr" }
+            }
+        }
     }
 
     private fun updateState(
@@ -138,14 +140,15 @@ class Model @VisibleForTesting internal constructor(
     private fun updateProgress(done: Int, total: Int) =
         mutableProgress.postValue(if (done == -1 || total == 0) done else 100 * done / total)
 
-    private fun reportError(e: Exception) = with((e.cause ?: e).message ?: e.javaClass.name) {
+    private fun reportError(e: Throwable) = with((e.cause ?: e).message ?: e.javaClass.name) {
         client.onError(this)
     }
 
     private inner class BrowseTask(private val uri: Uri) : AsyncOperation {
-        override fun execute() = when (resolve(uri)) {
+
+        override fun execute(signal: CancellationSignal) = when (resolve(uri, signal)) {
             ObjectType.FILE, ObjectType.DIR_WITH_FEED -> client.onFileBrowse(uri)
-            ObjectType.DIR -> updateState(uri, parents, getEntries(uri))
+            ObjectType.DIR -> updateState(uri, parents, getEntries(uri, signal))
             else -> Unit
         }
 
@@ -164,23 +167,23 @@ class Model @VisibleForTesting internal constructor(
 
     private inner class BrowseParentTask(private val items: List<BreadcrumbsEntry>) :
         AsyncOperation {
-        override fun execute() {
+        override fun execute(signal: CancellationSignal) {
             for (idx in items.size - 2 downTo 0) {
-                if (tryBrowseAt(idx)) {
+                if (tryBrowseAt(idx, signal)) {
                     break
                 }
             }
         }
 
-        private fun tryBrowseAt(idx: Int): Boolean {
+        private fun tryBrowseAt(idx: Int, signal: CancellationSignal): Boolean {
             val uri = items[idx].uri
             try {
-                val type = resolve(uri)
+                val type = resolve(uri, signal)
                 if (ObjectType.DIR == type || ObjectType.DIR_WITH_FEED == type) {
-                    updateState(uri, items.subList(0, idx + 1), getEntries(uri))
+                    updateState(uri, items.subList(0, idx + 1), getEntries(uri, signal))
                     return true
                 }
-            } catch (e: InterruptedException) {
+            } catch (e: OperationCanceledException) {
                 throw e
             } catch (e: Exception) {
                 LOG.d { "Skipping $uri while navigating up" }
@@ -193,7 +196,7 @@ class Model @VisibleForTesting internal constructor(
         private val content = mutableListOf<ListingEntry>()
         private val newState = State(state.uri, state.breadcrumbs, content, query)
 
-        override fun execute() {
+        override fun execute(signal: CancellationSignal) {
             publishState()
             // assume already resolved
             providerClient.search(newState.uri, query, object : VfsProviderClient.ListingCallback {
@@ -218,7 +221,7 @@ class Model @VisibleForTesting internal constructor(
                 }
 
                 override fun onProgress(done: Int, total: Int) = Unit
-            })
+            }, signal)
         }
 
         private fun publishState() = mutableState.postValue(newState)
@@ -228,7 +231,7 @@ class Model @VisibleForTesting internal constructor(
         DIR, DIR_WITH_FEED, FILE
     }
 
-    private fun resolve(uri: Uri): ObjectType? {
+    private fun resolve(uri: Uri, signal: CancellationSignal): ObjectType? {
         var result: ObjectType? = null
         providerClient.resolve(uri, object : VfsProviderClient.ListingCallback {
             override fun onDir(
@@ -246,11 +249,11 @@ class Model @VisibleForTesting internal constructor(
             }
 
             override fun onProgress(done: Int, total: Int) = updateProgress(done, total)
-        })
+        }, signal)
         return result
     }
 
-    private fun getEntries(uri: Uri) = ArrayList<ListingEntry>().apply {
+    private fun getEntries(uri: Uri, signal: CancellationSignal) = ArrayList<ListingEntry>().apply {
         providerClient.list(uri, object : VfsProviderClient.ListingCallback {
             override fun onDir(
                 uri: Uri,
@@ -274,7 +277,7 @@ class Model @VisibleForTesting internal constructor(
             }
 
             override fun onProgress(done: Int, total: Int) = updateProgress(done, total)
-        })
+        }, signal)
     }
 
     companion object {

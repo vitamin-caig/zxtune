@@ -1,12 +1,13 @@
 package app.zxtune.fs.provider
 
 import android.database.Cursor
-import java.util.concurrent.Callable
 
-internal interface AsyncQueryOperation : Callable<Cursor?> {
+internal interface AsyncQueryOperation {
+    fun call(): Cursor?
     fun status(): Cursor?
 
     interface Callback {
         fun checkForCancel()
+        fun onStatusChanged()
     }
 }

@@ -131,7 +131,9 @@ class ListingOperationTest {
         inOrder(resolver, dir, schema, callback) {
             verify(resolver).resolve(uri)
             verify(dir).enumerate(any())
-            verify(callback, times(2)).checkForCancel()
+            verify(callback).checkForCancel()
+            verify(callback).onStatusChanged()
+            verify(callback).checkForCancel()
             verify(dir).getExtension(VfsExtensions.COMPARATOR)
             verify(schema).directories(arrayListOf(dir1, dir2))
             verify(schema).files(arrayListOf(file3, file4))

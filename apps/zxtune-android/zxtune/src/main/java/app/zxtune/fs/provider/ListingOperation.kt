@@ -20,6 +20,7 @@ internal class ListingOperation(
             override fun onProgressUpdate(done: Int, total: Int) {
                 callback.checkForCancel()
                 builder.setProgress(done, total)
+                callback.onStatusChanged()
             }
 
             override fun onDir(dir: VfsDir) = builder.addDir(dir)

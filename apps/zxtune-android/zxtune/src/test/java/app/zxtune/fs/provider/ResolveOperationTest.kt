@@ -100,9 +100,12 @@ class ResolveOperationTest {
                 )
             }
         }
-        verify(resolver).resolve(eq(dir.uri), any())
-        verify(callback).checkForCancel()
-        verify(schema).resolved(dir)
+        inOrder(resolver, schema, callback) {
+            verify(resolver).resolve(eq(dir.uri), any())
+            verify(callback).checkForCancel()
+            verify(callback).onStatusChanged()
+            verify(schema).resolved(dir)
+        }
     }
 
     @Test

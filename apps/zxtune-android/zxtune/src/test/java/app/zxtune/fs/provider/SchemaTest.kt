@@ -3,7 +3,6 @@ package app.zxtune.fs.provider
 import android.database.MatrixCursor
 import android.net.Uri
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -28,7 +27,6 @@ class SchemaTest {
         testListingFile(URI1, NAME2, DESCRIPTION1, DETAILS2, null, null)
         testListingFile(URI2, NAME1, DESCRIPTION2, DETAILS1, 100, true)
         testListingFile(URI1, NAME2, DESCRIPTION1, DETAILS2, 1000, false)
-        testListingDelimiter()
         testListingError(Exception("Some message"))
         testListingError(Exception("Topmost", Exception("Nested")))
         testListingProgress()
@@ -79,13 +77,6 @@ private fun testListingFile(
         assertEquals(tracks, file.tracks)
         assertEquals(isCached, file.isCached)
     }
-}
-
-private fun testListingDelimiter() = MatrixCursor(Schema.Listing.COLUMNS).apply {
-    addRow(Schema.Listing.Delimiter.serialize())
-}.use { cursor ->
-    cursor.moveToFirst()
-    assertTrue(Schema.Object.parse(cursor) is Schema.Listing.Delimiter)
 }
 
 private fun testListingError(e: Exception) = MatrixCursor(Schema.Status.COLUMNS).apply {

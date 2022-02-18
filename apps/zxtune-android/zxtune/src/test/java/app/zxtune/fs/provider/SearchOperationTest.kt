@@ -4,7 +4,6 @@ import android.net.Uri
 import app.zxtune.fs.*
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,9 +35,7 @@ class SearchOperationTest {
     fun `no resolved dir`() = with(SearchOperation(uri, resolver, schema, callback, query)) {
         assertEquals(null, status())
         call().run {
-            assertEquals(1, count)
-            moveToFirst()
-            assertTrue(Schema.Object.parse(this) is Schema.Listing.Delimiter)
+            assertEquals(0, count)
         }
         verify(resolver).resolve(uri)
         verify(schema).files(argThat { isEmpty() })
@@ -76,19 +73,22 @@ class SearchOperationTest {
         with(SearchOperation(uri, resolver, schema, callback, query)) {
             assertEquals(null, status())
             call().run {
-                assertEquals(3, count)
+                assertEquals(2, count)
                 moveToNext()
                 assertEquals(rootObjectMatched, Schema.Object.parse(this) as Schema.Listing.File)
                 moveToNext()
                 assertEquals(nestedObjectMatched, Schema.Object.parse(this) as Schema.Listing.File)
-                moveToNext()
-                assertTrue(Schema.Object.parse(this) is Schema.Listing.Delimiter)
             }
             assertEquals(null, status())
         }
-        verify(resolver).resolve(uri)
-        verify(callback, times(4)).checkForCancel()
-        verify(schema).files(arrayListOf(rootFileMatched, nestedFileMatched))
+        inOrder(resolver, callback, schema) {
+            verify(resolver).resolve(uri)
+            verify(callback).checkForCancel()
+            verify(callback).onStatusChanged()
+            verify(callback, times(3)).checkForCancel()
+            verify(callback).onStatusChanged()
+            verify(schema).files(arrayListOf(rootFileMatched, nestedFileMatched))
+        }
     }
 
     @Test
@@ -129,18 +129,18 @@ class SearchOperationTest {
                 }
             }
             call().run {
-                assertEquals(2, count)
+                assertEquals(1, count)
                 moveToNext()
                 assertEquals(object3, Schema.Object.parse(this) as Schema.Listing.File)
-                moveToNext()
-                assertTrue(Schema.Object.parse(this) is Schema.Listing.Delimiter)
             }
             assertEquals(null, status())
         }
-        inOrder(resolver, searchEngine, schema) {
+        inOrder(resolver, searchEngine, callback, schema) {
             verify(resolver).resolve(uri)
             verify(searchEngine).find(eq(query.lowercase()), any())
+            verify(callback, times(2)).onStatusChanged()
             verify(schema).files(listOf(file1, file2))
+            verify(callback).onStatusChanged()
             verify(schema).files(listOf(file3))
         }
     }

@@ -1,6 +1,7 @@
 package app.zxtune.ui.browser
 
 import android.net.Uri
+import android.os.CancellationSignal
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import app.zxtune.fs.provider.VfsProviderClient
@@ -75,7 +76,7 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, progressObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(testUri), any())
+            verify(vfsClient).resolve(eq(testUri), any(), any())
             verify(progressObserver).onChanged(null)
         }
     }
@@ -87,7 +88,7 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, progressObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(Uri.EMPTY), any())
+            verify(vfsClient).resolve(eq(Uri.EMPTY), any(), any())
             verify(progressObserver).onChanged(null)
         }
     }
@@ -109,7 +110,7 @@ class ModelTest {
     @Test
     fun `browse file`() {
         vfsClient.stub {
-            on { resolve(any(), any()) } doAnswer {
+            on { resolve(any(), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onProgress(1, 2)
                     onProgress(2, 2)
@@ -122,7 +123,7 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, progressObserver, modelClient) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(testUri), any())
+            verify(vfsClient).resolve(eq(testUri), any(), any())
             verify(progressObserver).onChanged(50)
             verify(progressObserver).onChanged(100)
             verify(modelClient).onFileBrowse(testUri)
@@ -133,7 +134,7 @@ class ModelTest {
     @Test
     fun `browse dir with feed`() {
         vfsClient.stub {
-            on { resolve(any(), any()) } doAnswer {
+            on { resolve(any(), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onProgress(1, 200)
                     onProgress(100, 200)
@@ -146,7 +147,7 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, progressObserver, modelClient) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(testUri), any())
+            verify(vfsClient).resolve(eq(testUri), any(), any())
             verify(progressObserver).onChanged(0)
             verify(progressObserver).onChanged(50)
             verify(modelClient).onFileBrowse(testUri)
@@ -157,7 +158,7 @@ class ModelTest {
     @Test
     fun `browse dir`() {
         vfsClient.stub {
-            on { resolve(any(), any()) } doAnswer {
+            on { resolve(any(), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onProgress(5, 10)
                     onDir(it.getArgument(0), "unused", "unused", null, false)
@@ -168,7 +169,7 @@ class ModelTest {
                     testParents.forEach(this::feed)
                 }
             }
-            on { list(any(), any()) } doAnswer {
+            on { list(any(), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onProgress(2, 10)
                     testContent.forEach(this::feed)
@@ -180,10 +181,10 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, progressObserver, stateObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(testUri), any())
+            verify(vfsClient).resolve(eq(testUri), any(), any())
             verify(progressObserver).onChanged(50)
             verify(vfsClient).parents(eq(testUri), any())
-            verify(vfsClient).list(eq(testUri), any())
+            verify(vfsClient).list(eq(testUri), any(), any())
             verify(progressObserver).onChanged(20)
             verify(stateObserver).onChanged(Model.State(testUri, testParents, testContent))
             verify(progressObserver).onChanged(null)
@@ -194,14 +195,14 @@ class ModelTest {
     fun `browse failed`() {
         val err = Exception("Fail")
         vfsClient.stub {
-            on { resolve(any(), any()) } doThrow err
+            on { resolve(any(), any(), any()) } doThrow err
         }
         execute {
             browse(testUri)
         }
         inOrder(vfsClient, modelClient, progressObserver, stateObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(testUri), any())
+            verify(vfsClient).resolve(eq(testUri), any(), any())
             verify(modelClient).onError(err.message!!)
             verify(progressObserver).onChanged(null)
         }
@@ -215,8 +216,8 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, progressObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(testParents[1].uri), any())
-            verify(vfsClient).resolve(eq(testParents[0].uri), any())
+            verify(vfsClient).resolve(eq(testParents[1].uri), any(), any())
+            verify(vfsClient).resolve(eq(testParents[0].uri), any(), any())
             verify(progressObserver).onChanged(null)
         }
     }
@@ -226,7 +227,7 @@ class ModelTest {
         setState(testParents, listOf())
         val parentUri = testParents[1].uri
         vfsClient.stub {
-            on { resolve(eq(parentUri), any()) } doAnswer {
+            on { resolve(eq(parentUri), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onDir(it.getArgument(0), "unused", "unused", null, false)
                 }
@@ -237,8 +238,8 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, stateObserver, progressObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(parentUri), any())
-            verify(vfsClient).list(eq(parentUri), any())
+            verify(vfsClient).resolve(eq(parentUri), any(), any())
+            verify(vfsClient).list(eq(parentUri), any(), any())
             verify(stateObserver).onChanged(
                 Model.State(
                     parentUri,
@@ -258,7 +259,7 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, progressObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(Uri.EMPTY), any())
+            verify(vfsClient).resolve(eq(Uri.EMPTY), any(), any())
             verify(progressObserver).onChanged(null)
         }
     }
@@ -267,7 +268,7 @@ class ModelTest {
     fun `browseParent failed to resolve`() {
         val err = Exception("Fail")
         vfsClient.stub {
-            on { resolve(any(), any()) } doThrow err
+            on { resolve(any(), any(), any()) } doThrow err
         }
         `browseParent with unresolvable state`()
     }
@@ -280,7 +281,7 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, progressObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(testUri), any())
+            verify(vfsClient).resolve(eq(testUri), any(), any())
             verify(progressObserver).onChanged(null)
         }
     }
@@ -290,7 +291,7 @@ class ModelTest {
         val noResultQuery = "Unused"
         val matchedContent = listOf(testContent[1], testContent[2])
         vfsClient.stub {
-            on { search(any(), eq(testQuery), any()) } doAnswer {
+            on { search(any(), eq(testQuery), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(2)) {
                     matchedContent.forEach(this::feed)
                 }
@@ -313,7 +314,7 @@ class ModelTest {
                     noResultQuery
                 )
             )
-            verify(vfsClient).search(eq(testUri), eq(noResultQuery), any())
+            verify(vfsClient).search(eq(testUri), eq(noResultQuery), any(), any())
             verify(progressObserver).onChanged(null)
 
             // TODO: mock captures references of mutable object, so only last version is available
@@ -326,7 +327,7 @@ class ModelTest {
                     testQuery
                 )
             )
-            verify(vfsClient).search(eq(testUri), eq(testQuery), any())
+            verify(vfsClient).search(eq(testUri), eq(testQuery), any(), any())
             verify(stateObserver, times(2)).onChanged(
                 Model.State(
                     testUri,
@@ -344,7 +345,7 @@ class ModelTest {
     fun `search failed`() {
         val err = Exception("Fail")
         vfsClient.stub {
-            on { search(any(), any(), any()) } doThrow err
+            on { search(any(), any(), any(), any()) } doThrow err
         }
         setState(testParents, listOf())
         execute {
@@ -353,7 +354,7 @@ class ModelTest {
         inOrder(vfsClient, modelClient, stateObserver, progressObserver) {
             verify(progressObserver).onChanged(-1)
             verify(stateObserver).onChanged(Model.State(testUri, testParents, listOf(), testQuery))
-            verify(vfsClient).search(eq(testUri), eq(testQuery), any())
+            verify(vfsClient).search(eq(testUri), eq(testQuery), any(), any())
             verify(modelClient).onError(err.message!!)
             verify(progressObserver).onChanged(null)
         }
@@ -365,11 +366,14 @@ class ModelTest {
         val lock = ReentrantLock()
         val signal = lock.newCondition()
         vfsClient.stub {
-            on { resolve(eq(slowUri), any()) } doAnswer {
+            on { resolve(eq(slowUri), any(), any()) } doAnswer {
                 lock.withLock {
                     signal.signal()
                 }
-                Thread.sleep(1000000)
+                with(it.getArgument<CancellationSignal>(2)) {
+                    throwIfCanceled()
+                    Thread.sleep(1000)
+                }
             }
         }
         execute {
@@ -381,11 +385,11 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, progressObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(slowUri), any())
-            verify(progressObserver).onChanged(null)
+            verify(vfsClient).resolve(eq(slowUri), any(), any())
+            //verify(progressObserver).onChanged(null)
 
             verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(testUri), any())
+            verify(vfsClient).resolve(eq(testUri), any(), any())
             verify(progressObserver).onChanged(null)
         }
     }

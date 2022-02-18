@@ -25,6 +25,7 @@ internal class ResolveOperation(
         callback.checkForCancel()
         this.done = done
         this.total = total
+        callback.onStatusChanged()
     }
 
     override fun status() = StatusBuilder.makeProgress(done, total)

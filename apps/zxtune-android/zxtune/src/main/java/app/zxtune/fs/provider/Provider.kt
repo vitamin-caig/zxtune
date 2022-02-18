@@ -3,23 +3,19 @@ package app.zxtune.fs.provider
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
-import android.os.OperationCanceledException
+import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import androidx.annotation.VisibleForTesting
 import app.zxtune.Logger
 import app.zxtune.MainApplication
 import java.io.FileNotFoundException
-import java.util.concurrent.*
+import java.util.concurrent.ConcurrentHashMap
 
 class Provider @VisibleForTesting internal constructor(
     private val resolver: Resolver,
     private val schema: SchemaSource
 ) : ContentProvider() {
-    private val executor = Executors.newCachedThreadPool()
-    private val operations = ConcurrentHashMap<Uri, OperationHolder>()
-    private val handler = Handler(Looper.getMainLooper())
+    private val operations = ConcurrentHashMap<Uri, Operation>()
 
     constructor() : this(CachingResolver(cacheSize = 10), SchemaSourceImplementation())
 
@@ -34,24 +30,56 @@ class Provider @VisibleForTesting internal constructor(
         selection: String?,
         selectionArgs: Array<String>?,
         sortOrder: String?
+    ) = query(uri, projection, selection, selectionArgs, sortOrder, null)
+
+    override fun query(
+        uri: Uri,
+        projection: Array<String>?,
+        selection: String?,
+        selectionArgs: Array<String>?,
+        sortOrder: String?,
+        signal: CancellationSignal?
     ) = runCatching {
         val existing = operations[uri]
         if (existing != null) {
             existing.status()
         } else {
-            val op = createOperation(uri, projection, makeCallback(uri))
-            OperationHolder(uri, op).start()
+            val op = createOperation(uri, projection, makeCallback(uri, signal))
+            Operation(uri, op).run()
         }
     }.recover(StatusBuilder::makeError).getOrNull()
 
-    private fun makeCallback(uri: Uri): AsyncQueryOperation.Callback = object :
-        AsyncQueryOperation.Callback {
-        override fun checkForCancel() {
-            if (Thread.interrupted()) {
-                LOG.d { "Interrupted query $uri" }
-                throw OperationCanceledException()
+    private fun makeCallback(uri: Uri, signal: CancellationSignal?): AsyncQueryOperation.Callback =
+        object : AsyncQueryOperation.Callback {
+            init {
+                signal?.setOnCancelListener {
+                    LOG.d { "Canceled query for $uri" }
+                    operations[uri]?.cancel()
+                }
+            }
+
+            override fun checkForCancel() {
+                signal?.throwIfCanceled()
+            }
+
+            override fun onStatusChanged() {
+                context?.contentResolver?.notifyChange(uri, null)
             }
         }
+
+    private inner class Operation(val uri: Uri, val op: AsyncQueryOperation) {
+        private val thread = Thread.currentThread()
+
+        fun run() = try {
+            operations[uri] = this
+            op.call()
+        } finally {
+            operations.remove(uri)
+        }
+
+        fun status() = op.status()
+
+        fun cancel() = thread.interrupt()
     }
 
     private fun createOperation(
@@ -80,11 +108,7 @@ class Provider @VisibleForTesting internal constructor(
 
     override fun insert(uri: Uri, values: ContentValues?): Uri? = null
 
-    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?): Int =
-        operations.remove(uri)?.run {
-            cancel()
-            1
-        } ?: 0
+    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?) = 0
 
     override fun update(
         uri: Uri,
@@ -102,54 +126,6 @@ class Provider @VisibleForTesting internal constructor(
             LOG.w(e) { "Failed to open file $uri" }
         }
         throw FileNotFoundException(uri.toString())
-    }
-
-    private fun notifyUpdate(uri: Uri) = context?.contentResolver?.notifyChange(uri, null) ?: Unit
-
-    private inner class OperationHolder constructor(
-        private val uri: Uri,
-        private val op: AsyncQueryOperation
-    ) {
-        private val task = FutureTask(op)
-        private val update = Runnable {
-            notifyUpdate(uri)
-            scheduleUpdate()
-        }
-
-        fun start() = try {
-            executor.execute(task)
-            task[1, TimeUnit.SECONDS]
-        } catch (e: TimeoutException) {
-            schedule()
-            op.status()
-        }
-
-        fun status() = if (task.isDone) {
-            unschedule()
-            notifyUpdate(uri)
-            task.get()
-        } else {
-            op.status()
-        }
-
-        fun cancel() {
-            task.cancel(true)
-            unschedule()
-        }
-
-        private fun schedule() {
-            operations[uri] = this
-            scheduleUpdate()
-        }
-
-        private fun unschedule() {
-            handler.removeCallbacks(update)
-            operations.remove(uri)
-        }
-
-        private fun scheduleUpdate() {
-            handler.postDelayed(update, 1000)
-        }
     }
 
     companion object {

@@ -1,7 +1,10 @@
 package app.zxtune.fs.provider
 
 import android.content.ContentProvider
+import android.os.CancellationSignal
+import android.os.OperationCanceledException
 import app.zxtune.fs.*
+import app.zxtune.utils.AsyncWorker
 import app.zxtune.utils.ProgressCallback
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -12,7 +15,6 @@ import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.android.controller.ContentProviderController
 import java.io.IOException
-import java.util.concurrent.Executors
 
 // tests both Provider and VfsClient
 @RunWith(RobolectricTestRunner::class)
@@ -20,12 +22,7 @@ class ClientProviderTest {
 
     private val fastDirContent = Array(10) { TestDir(2 + it) }
     private val fastDir = object : TestDir(1) {
-        override fun enumerate(visitor: VfsDir.Visitor) {
-            fastDirContent.forEachIndexed { index, obj ->
-                visitor.onProgressUpdate(index + 1, fastDirContent.size)
-                visitor.onDir(obj)
-            }
-        }
+        override fun enumerate(visitor: VfsDir.Visitor) = fastDirContent.forEach(visitor::onDir)
 
         override val parent: VfsObject? = null
     }
@@ -35,7 +32,7 @@ class ClientProviderTest {
     private val slowDir = object : TestDir(10) {
         override fun enumerate(visitor: VfsDir.Visitor) {
             slowDirContent.forEachIndexed { index, obj ->
-                Thread.sleep(1200)
+                kotlin.runCatching { Thread.sleep(1200) }
                 visitor.onProgressUpdate(index + 1, slowDirContent.size)
                 visitor.onFile(obj)
             }
@@ -58,6 +55,13 @@ class ClientProviderTest {
     }
     private val failedUri = failedDir.uri
 
+    private val hangingDir = object : TestDir(10000) {
+        override fun enumerate(visitor: VfsDir.Visitor) {
+            Thread.sleep(10000000L)
+        }
+    }
+    private val hangingUri = hangingDir.uri
+
     private val unknownUri = fastDirContent.first().uri
 
     private val resolver = mock<Resolver> {
@@ -65,6 +69,7 @@ class ClientProviderTest {
         on { resolve(slowUri) } doReturn slowDir
         on { resolve(deepUri) } doReturn deepDir
         on { resolve(failedUri) } doReturn failedDir
+        on { resolve(hangingUri) } doReturn hangingDir
         on { resolve(eq(fastUri), any()) } doReturn fastDir
         on { resolve(eq(slowUri), any()) } doAnswer {
             val progress = it.getArgument<ProgressCallback>(1)
@@ -142,10 +147,17 @@ class ClientProviderTest {
     @Test
     fun `resolve slow`() {
         client.resolve(slowUri, listingCallback)
-        verify(listingCallback, atLeast(4)).onProgress(any(), eq(50))
-        verify(listingCallback).onDir(slowDir.uri, slowDir.name, slowDir.description, null, false)
-        // TODO: remove after provider rework from polling to notification
-        clearInvocations(listingCallback)
+        inOrder(listingCallback) {
+            // dump progress first
+            verify(listingCallback, times(5)).onProgress(any(), eq(50))
+            verify(listingCallback).onDir(
+                slowDir.uri,
+                slowDir.name,
+                slowDir.description,
+                null,
+                false
+            )
+        }
     }
 
     @Test
@@ -173,12 +185,15 @@ class ClientProviderTest {
     fun `list slow`() {
         client.list(slowUri, listingCallback)
         val elements = slowDirContent.size
-        verify(listingCallback, atLeast(elements / 2)).onProgress(any(), eq(elements))
-        slowDirContent.forEach {
-            verify(listingCallback).onFile(it.uri, it.name, it.description, it.size, null, null)
+        inOrder(listingCallback) {
+            // dump progress first
+            for (done in 1..elements) {
+                verify(listingCallback).onProgress(done, elements)
+            }
+            slowDirContent.forEach {
+                verify(listingCallback).onFile(it.uri, it.name, it.description, it.size, null, null)
+            }
         }
-        // TODO: remove after provider rework from polling to notification
-        clearInvocations(listingCallback)
     }
 
     @Test
@@ -220,43 +235,38 @@ class ClientProviderTest {
         listingCallback.stub {
             on { onProgress(any(), any()) } doThrow Error("Client cancellation")
         }
-        val ex = assertThrows<Error> {
+        val ex = assertThrows<Exception> {
             client.list(slowUri, listingCallback)
         }
-        assertEquals("Client cancellation", ex.message)
+        assertEquals(OperationCanceledException().message, ex.message)
         verify(listingCallback).onProgress(any(), any())
-        // TODO: fix hanging operation at provider
+    }
+
+    @Test
+    fun `client cancellation`() {
+        val signal = CancellationSignal()
+        listingCallback.stub {
+            on { onProgress(any(), any()) } doAnswer {
+                signal.cancel()
+            }
+        }
+        val ex = assertThrows<Exception> {
+            client.list(slowUri, listingCallback, signal)
+        }
+        assertEquals(OperationCanceledException().message, ex.message)
+        verify(listingCallback).onProgress(any(), any())
     }
 
     @Test
     fun `client interruption`() {
-        listingCallback.stub {
-            on { onProgress(any(), any()) } doAnswer {
-                Thread.currentThread().interrupt()
-            }
+        val signal = CancellationSignal()
+        AsyncWorker("unused").execute {
+            Thread.sleep(1000)
+            signal.cancel()
         }
-        Executors.newCachedThreadPool().submit {
-            val ex = assertThrows<InterruptedException> {
-                client.list(slowUri, listingCallback)
-            }
-            assertEquals("sleep interrupted", ex.message)
-        }.get()
-        verify(listingCallback).onProgress(any(), any())
-    }
-
-    /* TODO: enable on new scheme
-    @Test
-    fun `provider cancellation`() {
-        listingCallback.stub {
-            on { onProgress(any(), any()) } doAnswer {
-                provider.delete(Query.listingUriFor(slowUri), null, null)
-                Unit
-            }
-        }
-        val ex = assertThrows<InterruptedException> {
-            client.list(slowUri, listingCallback)
+        val ex = assertThrows<Exception> {
+            client.list(hangingUri, listingCallback, signal)
         }
         assertEquals("sleep interrupted", ex.message)
-        verify(listingCallback).onProgress(any(), any())
-    }*/
+    }
 }

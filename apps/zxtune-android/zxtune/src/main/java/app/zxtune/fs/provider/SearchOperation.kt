@@ -20,15 +20,14 @@ internal class SearchOperation(
     override fun call(): Cursor {
         result.set(ArrayList())
         maybeResolve()?.let { search(it) }
-        return convert(result.getAndSet(null)!!).apply {
-            addRow(Schema.Listing.Delimiter.serialize())
-        }
+        return convert(result.getAndSet(null)!!)
     }
 
     private fun maybeResolve() = resolver.resolve(uri) as? VfsDir
 
     private fun search(dir: VfsDir) = search(dir) { obj ->
         synchronized(result) { result.get()!!.add(obj) }
+        callback.onStatusChanged()
     }
 
     private fun search(dir: VfsDir, visitor: VfsExtensions.SearchEngine.Visitor) =
@@ -62,7 +61,7 @@ internal class SearchOperation(
     }
 
     private fun convert(found: ArrayList<VfsFile>) =
-        MatrixCursor(Schema.Listing.COLUMNS, found.size + 1).apply {
+        MatrixCursor(Schema.Listing.COLUMNS, found.size).apply {
             schema.files(found).forEach { addRow(it.serialize()) }
         }
 

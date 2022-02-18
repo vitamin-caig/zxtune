@@ -68,13 +68,8 @@ internal object Schema {
         private fun getDescription(cursor: Cursor) = cursor.getString(3)
 
         fun parse(cursor: Cursor) = when {
-            cursor.isNull(1) -> Delimiter
             cursor.getInt(0) == TYPE_DIR -> Dir.parse(cursor)
             else -> File.parse(cursor)
-        }
-
-        object Delimiter : Object {
-            override fun serialize() = arrayOfNulls<Any>(COLUMNS.size)
         }
 
         data class Dir(
