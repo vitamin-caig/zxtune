@@ -3,7 +3,6 @@ package app.zxtune.ui.browser;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
-import androidx.core.util.ObjectsCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
@@ -19,13 +18,12 @@ class BreadcrumbsViewAdapter extends ListAdapter<BreadcrumbsEntry,
     super(new DiffUtil.ItemCallback<BreadcrumbsEntry>() {
       @Override
       public boolean areItemsTheSame(BreadcrumbsEntry oldItem, BreadcrumbsEntry newItem) {
-        return oldItem.uri.equals(newItem.uri);
+        return oldItem.getUri().equals(newItem.getUri());
       }
 
       @Override
       public boolean areContentsTheSame(BreadcrumbsEntry oldItem, BreadcrumbsEntry newItem) {
-        return oldItem.title.equals(newItem.title)
-            && ObjectsCompat.equals(oldItem.icon, newItem.icon);
+        return oldItem.equals(newItem);
       }
     });
     setHasStableIds(true);
@@ -49,7 +47,7 @@ class BreadcrumbsViewAdapter extends ListAdapter<BreadcrumbsEntry,
   @Override
   public long getItemId(int position) {
     final BreadcrumbsEntry entry = getItem(position);
-    return entry != null ? entry.uri.hashCode() : RecyclerView.NO_ID;
+    return entry != null ? entry.getUri().hashCode() : RecyclerView.NO_ID;
   }
 
   static class ViewHolder extends RecyclerView.ViewHolder {

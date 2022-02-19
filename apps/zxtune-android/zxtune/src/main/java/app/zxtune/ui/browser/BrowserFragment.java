@@ -111,7 +111,7 @@ public class BrowserFragment extends Fragment {
     final View.OnClickListener onClick = v -> {
       final int pos = listing.getChildAdapterPosition(v);
       final BreadcrumbsEntry entry = adapter.getCurrentList().get(pos);
-      browse(entry.uri);
+      browse(entry.getUri());
     };
     listing.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
       @Override

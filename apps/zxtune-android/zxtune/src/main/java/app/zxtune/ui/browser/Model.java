@@ -220,7 +220,7 @@ public class Model extends AndroidViewModel {
     }
 
     private boolean tryBrowseAt(int idx) throws InterruptedException {
-      final Uri uri = items.get(idx).uri;
+      final Uri uri = items.get(idx).getUri();
       try {
         final ObjectType type = resolve(uri);
         if (ObjectType.DIR == type || ObjectType.DIR_WITH_FEED == type) {
