@@ -10,7 +10,6 @@ import android.view.ViewGroup;
 import android.widget.Filter;
 
 import androidx.annotation.Nullable;
-import androidx.core.util.ObjectsCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.selection.ItemDetailsLookup;
 import androidx.recyclerview.selection.ItemKeyProvider;
@@ -39,18 +38,12 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
     super(new DiffUtil.ItemCallback<ListingEntry>() {
       @Override
       public boolean areItemsTheSame(ListingEntry oldItem, ListingEntry newItem) {
-        return oldItem.uri.equals(newItem.uri);
+        return oldItem.getUri().equals(newItem.getUri());
       }
 
       @Override
       public boolean areContentsTheSame(ListingEntry oldItem, ListingEntry newItem) {
-        return oldItem.type == newItem.type
-            && oldItem.icon == newItem.icon
-            && TextUtils.equals(oldItem.title, newItem.title)
-            && TextUtils.equals(oldItem.description, newItem.description)
-            && TextUtils.equals(oldItem.details, newItem.details)
-            && ObjectsCompat.equals(oldItem.tracks, newItem.tracks)
-            && ObjectsCompat.equals(oldItem.cached, newItem.cached);
+        return oldItem.equals(newItem);
       }
     });
     positionsCache = new SparseIntArray();
@@ -70,7 +63,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
   @Override
   public void onBindViewHolder(ViewHolder holder, int position) {
     final ListingEntry entry = getItem(position);
-    holder.bind(entry, isSelected(entry.uri));
+    holder.bind(entry, isSelected(entry.getUri()));
   }
 
   final void setSelection(Selection<Uri> selection) {
@@ -108,8 +101,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
   }
 
   final Uri getItemUri(int position) {
-    final ListingEntry entry = getItem(position);
-    return entry.uri;
+    return getItem(position).getUri();
   }
 
   private int getItemInternalId(int position) {
@@ -189,7 +181,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
     @Nullable
     @Override
     public Uri getSelectionKey() {
-      return holder.binding.getEntry().uri;
+      return holder.binding.getEntry().getUri();
     }
   }
 
@@ -227,7 +219,7 @@ class ListingViewAdapter extends ListAdapter<ListingEntry,
         final ArrayList<ListingEntry> filtered = new ArrayList<>();
         final String pattern = constraint.toString().toLowerCase().trim();
         for (ListingEntry entry : lastContent) {
-          if (entry.title.toLowerCase().contains(pattern) || entry.description.toLowerCase().contains(pattern)) {
+          if (entry.getTitle().toLowerCase().contains(pattern) || entry.getDescription().toLowerCase().contains(pattern)) {
             filtered.add(entry);
           }
         }

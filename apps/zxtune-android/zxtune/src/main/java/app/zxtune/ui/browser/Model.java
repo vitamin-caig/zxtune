@@ -260,11 +260,7 @@ public class Model extends AndroidViewModel {
         @Override
         public void onFile(Uri uri, String name, String description, String details,
                            @Nullable Integer tracks, @Nullable Boolean cached) {
-          final ListingEntry entry = new ListingEntry(uri, name, description);
-          entry.type = ListingEntry.FILE;
-          entry.details = details;
-          entry.tracks = tracks;
-          entry.cached = cached;
+          final ListingEntry entry = ListingEntry.makeFile(uri, name, description, details, tracks, cached);
           newState.entries.add(entry);
           state.postValue(newState);
         }
@@ -317,20 +313,14 @@ public class Model extends AndroidViewModel {
       @Override
       public void onDir(Uri uri, String name, String description, @Nullable Integer icon,
                         boolean hasFeed) {
-        final ListingEntry entry = new ListingEntry(uri, name, description);
-        entry.type = ListingEntry.FOLDER;
-        entry.icon = icon;
+        final ListingEntry entry = ListingEntry.makeFolder(uri, name, description, icon);
         result.add(entry);
       }
 
       @Override
       public void onFile(Uri uri, String name, String description, String details, @Nullable Integer tracks,
                          @Nullable Boolean cached) {
-        final ListingEntry entry = new ListingEntry(uri, name, description);
-        entry.type = ListingEntry.FILE;
-        entry.details = details;
-        entry.tracks = tracks;
-        entry.cached = cached;
+        final ListingEntry entry = ListingEntry.makeFile(uri, name, description, details, tracks, cached);
         result.add(entry);
       }
 
