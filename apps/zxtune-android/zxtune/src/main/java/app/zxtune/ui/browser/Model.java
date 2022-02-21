@@ -4,6 +4,8 @@ import android.app.Application;
 import android.net.Uri;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
+import androidx.core.util.ObjectsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -39,7 +41,7 @@ public class Model extends AndroidViewModel {
     void onError(String msg);
   }
 
-  class State {
+  static class State {
     Uri uri;
     @Nullable
     String query;
@@ -51,10 +53,17 @@ public class Model extends AndroidViewModel {
       this.breadcrumbs = breadcrumbs;
       this.entries = entries;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      State rh = (State) o;
+      return uri.equals(rh.uri) && ObjectsCompat.equals(query, rh.query) && breadcrumbs.equals(rh.breadcrumbs) && entries.equals(rh.entries);
+    }
   }
 
   private final ExecutorService async = Executors.newSingleThreadExecutor();
-  private final MutableLiveData<State> state = new MutableLiveData<>();
+  @VisibleForTesting
+  final MutableLiveData<State> state = new MutableLiveData<>();
   private final MutableLiveData<Integer> progress = new MutableLiveData<>();
   private final AtomicReference<Future<?>> lastTask = new AtomicReference<>();
   private Client client = new Client() {
@@ -71,9 +80,15 @@ public class Model extends AndroidViewModel {
         ViewModelProvider.AndroidViewModelFactory.getInstance(owner.getActivity().getApplication())).get(Model.class);
   }
 
+  @SuppressWarnings("unused")
   public Model(Application application) {
+    this(application, new VfsProviderClient(application));
+  }
+
+  @VisibleForTesting
+  Model(Application application, VfsProviderClient client) {
     super(application);
-    providerClient = new VfsProviderClient(application);
+    providerClient = client;
   }
 
   final LiveData<State> getState() {
@@ -117,6 +132,18 @@ public class Model extends AndroidViewModel {
       Analytics.sendBrowserEvent(currentState.uri, Analytics.BROWSER_ACTION_SEARCH);
       executeAsync(new SearchTask(currentState, query),
           "search for " + query + " in " + currentState.uri);
+    }
+  }
+
+  @VisibleForTesting
+  void waitForIdle() throws InterruptedException {
+    synchronized(async) {
+      async.submit(() -> {
+        synchronized(async) {
+          async.notify();
+        }
+      });
+      async.wait();
     }
   }
 
