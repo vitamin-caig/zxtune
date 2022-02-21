@@ -24,7 +24,6 @@ data class ListingEntry(
         const val FOLDER = 0
         const val FILE = 1
 
-        @JvmStatic
         fun makeFolder(
             uri: Uri,
             title: String,
@@ -38,7 +37,6 @@ data class ListingEntry(
             icon = icon
         )
 
-        @JvmStatic
         fun makeFile(
             uri: Uri,
             title: String,

@@ -12,7 +12,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
-import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -40,13 +39,13 @@ class ModelTest {
     private val modelClient = mock<Model.Client>()
     private lateinit var underTest: Model
     private val stateObserver = mock<Observer<Model.State>>()
-    private val progressObserver = mock<Observer<Int>>()
+    private val progressObserver = mock<Observer<Int?>>()
 
     @Before
     fun setUp() {
         underTest = Model(mock(), vfsClient).apply {
             setClient(modelClient)
-            state.observeForever(stateObserver)
+            mutableState.observeForever(stateObserver)
             progress.observeForever(progressObserver)
         }
         reset(vfsClient, modelClient, stateObserver, progressObserver)
@@ -58,7 +57,7 @@ class ModelTest {
 
     @Test
     fun `initial state`() = with(underTest) {
-        assertEquals(null, state.value)
+        assertEquals(null, mutableState.value)
         assertEquals(null, progress.value)
     }
 
@@ -307,17 +306,35 @@ class ModelTest {
         inOrder(vfsClient, modelClient, stateObserver, progressObserver) {
             verify(progressObserver).onChanged(-1)
             verify(stateObserver).onChanged(
-                Model.State(testUri, testParents, listOf()).apply { query = noResultQuery })
+                Model.State(
+                    testUri,
+                    testParents,
+                    listOf(),
+                    noResultQuery
+                )
+            )
             verify(vfsClient).search(eq(testUri), eq(noResultQuery), any())
             verify(progressObserver).onChanged(null)
 
             // TODO: mock captures references of mutable object, so only last version is available
             verify(progressObserver).onChanged(-1)
             verify(stateObserver).onChanged(
-                Model.State(testUri, testParents, matchedContent).apply { query = testQuery })
+                Model.State(
+                    testUri,
+                    testParents,
+                    matchedContent,
+                    testQuery
+                )
+            )
             verify(vfsClient).search(eq(testUri), eq(testQuery), any())
             verify(stateObserver, times(2)).onChanged(
-                Model.State(testUri, testParents, matchedContent).apply { query = testQuery })
+                Model.State(
+                    testUri,
+                    testParents,
+                    matchedContent,
+                    testQuery
+                )
+            )
             verify(progressObserver).onChanged(null)
         }
         verifyNoMoreInteractions(stateObserver)
@@ -335,8 +352,7 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, stateObserver, progressObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(stateObserver).onChanged(
-                Model.State(testUri, testParents, listOf()).apply { query = testQuery })
+            verify(stateObserver).onChanged(Model.State(testUri, testParents, listOf(), testQuery))
             verify(vfsClient).search(eq(testUri), eq(testQuery), any())
             verify(modelClient).onError(err.message!!)
             verify(progressObserver).onChanged(null)
@@ -375,7 +391,7 @@ class ModelTest {
     }
 
     private fun setState(breadCrumbs: List<BreadcrumbsEntry>, entries: List<ListingEntry>) {
-        underTest.state.value = Model.State(testUri, breadCrumbs, entries)
+        underTest.mutableState.value = Model.State(testUri, breadCrumbs, entries)
         clearInvocations(stateObserver)
     }
 }
