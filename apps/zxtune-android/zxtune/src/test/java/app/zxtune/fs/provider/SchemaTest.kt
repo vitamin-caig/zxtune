@@ -128,7 +128,7 @@ private fun testParent(
     addRow(Schema.Parents.Object(uri, name, icon).serialize())
 }.use { cursor ->
     cursor.moveToFirst()
-    Schema.Parents.Object.parse(cursor).let { parent ->
+    (Schema.Parents.Object.parse(cursor) as Schema.Parents.Object).let { parent ->
         assertEquals(uri, parent.uri)
         assertEquals(name, parent.name)
         assertEquals(icon, parent.icon)

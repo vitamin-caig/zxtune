@@ -128,6 +128,7 @@ class VfsProviderClient(ctx: Context) {
                         cb.onProgress(done, total)
                         return false
                     }
+                    else -> Unit
                 }
             }
             return true
@@ -135,15 +136,10 @@ class VfsProviderClient(ctx: Context) {
 
         private fun getParents(cursor: Cursor, cb: ParentsCallback): Boolean {
             while (cursor.moveToNext()) {
-                if (Schema.Status.isStatus(cursor)) {
-                    when (val obj = Schema.Status.parse(cursor)) {
-                        is Schema.Status.Error -> throw Exception(obj.error)
-                        else -> return false
-                    }
-                } else {
-                    Schema.Parents.Object.parse(cursor).run {
-                        cb.onObject(uri, name, icon)
-                    }
+                when (val obj = Schema.Parents.Object.parse(cursor)) {
+                    is Schema.Status.Error -> throw Exception(obj.error)
+                    is Schema.Parents.Object -> obj.run { cb.onObject(uri, name, icon) }
+                    else -> return false
                 }
             }
             return true
