@@ -70,7 +70,7 @@ public class BrowserFragment extends Fragment {
   public void onAttach(Context ctx) {
     super.onAttach(ctx);
 
-    this.stateStorage = new State(this);
+    this.stateStorage = State.create(requireContext());
   }
 
   @Override
@@ -142,8 +142,10 @@ public class BrowserFragment extends Fragment {
         .build();
     adapter.setSelection(selectionTracker.getSelection());
 
-    SelectionUtils.install((AppCompatActivity) getActivity(), selectionTracker,
-        new SelectionClient(adapter));
+    if (getActivity() instanceof AppCompatActivity) {
+      SelectionUtils.install((AppCompatActivity) getActivity(), selectionTracker,
+          new SelectionClient(adapter));
+    }
 
     final TextView stub = view.findViewById(R.id.browser_stub);
     model.getState().observe(getViewLifecycleOwner(), state -> {
