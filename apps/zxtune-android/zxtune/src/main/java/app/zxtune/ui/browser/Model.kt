@@ -283,7 +283,6 @@ class Model @VisibleForTesting internal constructor(
     companion object {
         private val LOG = Logger(Model::class.java.name)
 
-        @JvmStatic
         fun of(owner: Fragment): Model = ViewModelProvider(
             owner,
             ViewModelProvider.AndroidViewModelFactory.getInstance(owner.requireActivity().application)
