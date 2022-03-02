@@ -1,12 +1,15 @@
 package app.zxtune.fs.provider
 
+import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
+import android.os.Parcel
+import androidx.core.database.getBlobOrNull
 import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
 import java.util.*
 
-internal object Schema {
+object Schema {
     // int
     private const val COLUMN_TYPE = "type"
 
@@ -36,6 +39,9 @@ internal object Schema {
 
     // string
     private const val COLUMN_ERROR = "error"
+
+    // serialized Intent
+    private const val COLUMN_ACTION = "action"
 
     private const val TYPE_DIR = 0
     private const val TYPE_FILE = 1
@@ -181,8 +187,43 @@ internal object Schema {
             }
         }
     }
+
+    object Notifications {
+        val COLUMNS = arrayOf(COLUMN_DESCRIPTION, COLUMN_ACTION)
+
+        data class Object(val message: String, val action: Intent?) : Schema.Object {
+            override fun serialize() = arrayOf<Any?>(message, action?.run {
+                Parcel.obtain().use {
+                    writeToParcel(it, 0)
+                    it.marshall()
+                }
+            })
+
+            companion object {
+                fun parse(cursor: Cursor) = when {
+                    Status.isStatus(cursor) -> Status.parse(cursor)
+                    else -> Object(
+                        cursor.getString(0),
+                        cursor.getBlobOrNull(1)?.run {
+                            Parcel.obtain().use {
+                                it.unmarshall(this, 0, size)
+                                it.setDataPosition(0)
+                                Intent().apply { readFromParcel(it) }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
 }
 
 private fun Int?.toBoolean() = this?.let { it != 0 }
 
 private fun Boolean?.toInt() = this?.let { if (it) 1 else 0 }
+
+private fun <T> Parcel.use(cmd: (Parcel) -> T) = try {
+    cmd(this)
+} finally {
+    recycle()
+}

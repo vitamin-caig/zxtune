@@ -1,8 +1,10 @@
 package app.zxtune.fs.provider
 
+import android.content.Intent
 import android.database.MatrixCursor
 import android.net.Uri
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -36,6 +38,15 @@ class SchemaTest {
     fun `test parents schema`() {
         testParent(URI1, NAME2, 123)
         testParent(URI2, NAME1, null)
+    }
+
+    @Test
+    fun `test notification`() {
+        testNotification("", null)
+        testNotification("Only message", null)
+        testNotification("Intent action", Intent("action"))
+        testNotification("Intent action and uri", Intent("action", Uri.parse("schema://host")))
+        testNotification("Intent extra", Intent().apply { putExtra("extra", 123) })
     }
 }
 
@@ -123,5 +134,17 @@ private fun testParent(
         assertEquals(uri, parent.uri)
         assertEquals(name, parent.name)
         assertEquals(icon, parent.icon)
+    }
+}
+
+private fun testNotification(
+    message: String, action: Intent?
+) = MatrixCursor(Schema.Notifications.COLUMNS).apply {
+    addRow(Schema.Notifications.Object(message, action).serialize())
+}.use { cursor ->
+    cursor.moveToFirst()
+    (Schema.Notifications.Object.parse(cursor) as Schema.Notifications.Object).let { notification ->
+        assertEquals(message, notification.message)
+        assertTrue(action?.filterEquals(notification.action) ?: (notification.action == null))
     }
 }
