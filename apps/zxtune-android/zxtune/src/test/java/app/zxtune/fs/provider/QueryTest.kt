@@ -17,6 +17,7 @@ private const val AUTHORITY = "content://app.zxtune.vfs"
 private const val MIME_ITEM = "vnd.android.cursor.item/vnd.app.zxtune.vfs.item"
 private const val MIME_GROUP = "vnd.android.cursor.dir/vnd.app.zxtune.vfs.item"
 private const val MIME_SIMPLEITEMS = "vnd.android.cursor.dir/vnd.app.zxtune.vfs.simple_item"
+private const val MIME_NOTIFICATION = "vnd.android.cursor.item/vnd.app.zxtune.vfs.notification"
 
 @RunWith(RobolectricTestRunner::class)
 class QueryTest {
@@ -109,6 +110,23 @@ class QueryTest {
             assertThrowsIllegalArgumentException { Query.getPathFrom(uri) }
             assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
             assertEquals(-1, Query.getUriType(uri))
+        }
+    }
+
+    @Test
+    fun `test notification uri`() {
+        Uri.parse("${AUTHORITY}/notification/${ENCODED_PATH}").let { uri ->
+            assertEquals(MIME_NOTIFICATION, Query.mimeTypeOf(uri))
+            assertEquals(Uri.parse(PATH), Query.getPathFrom(uri))
+            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertEquals(Query.TYPE_NOTIFICATION, Query.getUriType(uri))
+            assertEquals(uri, Query.notificationUriFor(Uri.parse(PATH)))
+        }
+        Uri.parse("${AUTHORITY}/notification").let { uri ->
+            assertEquals(MIME_NOTIFICATION, Query.mimeTypeOf(uri))
+            assertEquals(Uri.EMPTY, Query.getPathFrom(uri))
+            assertThrowsIllegalArgumentException { Query.getQueryFrom(uri) }
+            assertEquals(Query.TYPE_NOTIFICATION, Query.getUriType(uri))
         }
     }
 }
