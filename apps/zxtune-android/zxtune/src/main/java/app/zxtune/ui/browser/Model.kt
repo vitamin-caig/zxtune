@@ -1,6 +1,7 @@
 package app.zxtune.ui.browser
 
 import android.app.Application
+import android.content.Intent
 import android.net.Uri
 import android.os.CancellationSignal
 import android.os.OperationCanceledException
@@ -11,6 +12,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import app.zxtune.Logger
+import app.zxtune.Releaseable
 import app.zxtune.analytics.Analytics
 import app.zxtune.fs.provider.VfsProviderClient
 import app.zxtune.fs.provider.VfsProviderClient.ParentsCallback
@@ -45,11 +47,29 @@ class Model @VisibleForTesting internal constructor(
         val query: String? = null,
     )
 
+    data class Notification(
+        val message: String,
+        val action: Intent?,
+    )
+
     private val async = Executors.newSingleThreadExecutor()
 
     @VisibleForTesting
     val mutableState = MutableLiveData<State>()
     private val mutableProgress = MutableLiveData<Int?>()
+    private val mutableNotification = object : MutableLiveData<Notification?>() {
+        private var uri: Uri? = null
+        private var handle: Releaseable? = null
+        fun watch(uri: Uri) {
+            // TODO: track onActive/onInactive
+            this.uri = uri
+            handle?.release()
+            handle = providerClient.subscribeForNotifications(uri) {
+                LOG.d { "Notification ${it?.message ?: "<none>"}" }
+                postValue(it?.run { Notification(message, action) })
+            }
+        }
+    }
     private val activeTaskSignal = AtomicReference<CancellationSignal>()
     private var client: Client = object : Client {
         override fun onFileBrowse(uri: Uri) = Unit
@@ -64,6 +84,9 @@ class Model @VisibleForTesting internal constructor(
 
     val progress: LiveData<Int?>
         get() = mutableProgress
+
+    val notification: LiveData<Notification?>
+        get() = mutableNotification
 
     fun setClient(client: Client) {
         this.client = client
@@ -135,7 +158,10 @@ class Model @VisibleForTesting internal constructor(
         uri: Uri,
         breadcrumbs: List<BreadcrumbsEntry>,
         entries: List<ListingEntry>,
-    ) = mutableState.postValue(State(uri, breadcrumbs, entries))
+    ) {
+        mutableState.postValue(State(uri, breadcrumbs, entries))
+        mutableNotification.watch(uri)
+    }
 
     private fun updateProgress(done: Int, total: Int) =
         mutableProgress.postValue(if (done == -1 || total == 0) done else 100 * done / total)
