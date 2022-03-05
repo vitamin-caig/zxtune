@@ -1,23 +1,36 @@
 package app.zxtune.fs.provider
 
 import android.content.ContentProvider
+import android.content.Context
+import android.net.Uri
 import android.os.CancellationSignal
 import android.os.OperationCanceledException
+import android.provider.Settings
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import app.zxtune.fs.*
+import app.zxtune.net.NetworkManager
+import app.zxtune.use
 import app.zxtune.utils.AsyncWorker
 import app.zxtune.utils.ProgressCallback
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.*
+import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.android.controller.ContentProviderController
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.Implementation
+import org.robolectric.annotation.Implements
 import java.io.IOException
 
 // tests both Provider and VfsClient
 @RunWith(RobolectricTestRunner::class)
+@Config(shadows = [ShadowNetworkManager::class])
 class ClientProviderTest {
 
     private val fastDirContent = Array(10) { TestDir(2 + it) }
@@ -231,6 +244,30 @@ class ClientProviderTest {
     }
 
     @Test
+    fun `network state notification`() {
+        val networkUri = Uri.parse("radio:/")
+        val notifications = ArrayList<Schema.Notifications.Object?>()
+        // First notification is delivered immediately
+        client.subscribeForNotifications(networkUri, notifications::add).use {
+            ShadowNetworkManager.state.value = false
+            while (notifications.size != 2) {
+                Robolectric.flushForegroundThreadScheduler()
+            }
+            ShadowNetworkManager.state.value = true
+            while (notifications.size != 3) {
+                Robolectric.flushForegroundThreadScheduler()
+            }
+        }
+        assertEquals(3, notifications.size)
+        assertEquals(null, notifications[0])
+        notifications[1]!!.run {
+            assertEquals("Network is not accessible", message)
+            assertEquals(Settings.ACTION_WIRELESS_SETTINGS, action!!.action)
+        }
+        assertEquals(null, notifications[2])
+    }
+
+    @Test
     fun `client exception`() {
         listingCallback.stub {
             on { onProgress(any(), any()) } doThrow Error("Client cancellation")
@@ -268,5 +305,22 @@ class ClientProviderTest {
             client.list(hangingUri, listingCallback, signal)
         }
         assertEquals("sleep interrupted", ex.message)
+    }
+}
+
+@Implements(NetworkManager::class)
+class ShadowNetworkManager {
+
+    companion object {
+        val state = MutableLiveData<Boolean>()
+
+        @JvmStatic
+        @Implementation
+        fun initialize(ctx: Context) = Unit
+
+        @JvmStatic
+        @get:Implementation
+        val networkAvailable: LiveData<Boolean>
+            get() = state
     }
 }

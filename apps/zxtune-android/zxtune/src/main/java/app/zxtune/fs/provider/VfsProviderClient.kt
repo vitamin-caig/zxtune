@@ -89,6 +89,21 @@ class VfsProviderClient(ctx: Context) {
     fun search(uri: Uri, query: String, cb: ListingCallback, signal: CancellationSignal? = null) =
         queryListing(Query.searchUriFor(uri, query), cb, signal)
 
+    fun subscribeForNotifications(
+        uri: Uri,
+        cb: (Schema.Notifications.Object?) -> Unit
+    ): Releaseable = Query.notificationUriFor(uri).let { resolverUri ->
+        subscribeForChanges(resolverUri) {
+            cb(getNotification(resolverUri))
+        }.also {
+            cb(getNotification(resolverUri))
+        }
+    }
+
+    private fun getNotification(resolverUri: Uri) = query(resolverUri)?.use {
+        getNotification(it)
+    }
+
     private fun query(uri: Uri, signal: CancellationSignal? = null) =
         resolver.query(uri, null, null, null, null, signal)
 
@@ -131,6 +146,16 @@ class VfsProviderClient(ctx: Context) {
                 }
             }
             return true
+        }
+
+        private fun getNotification(cursor: Cursor) = if (cursor.moveToNext()) {
+            when (val obj = Schema.Notifications.Object.parse(cursor)) {
+                is Schema.Status.Error -> throw Exception(obj.error)
+                is Schema.Notifications.Object -> obj
+                else -> null
+            }
+        } else {
+            null
         }
     }
 }
