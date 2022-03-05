@@ -65,6 +65,7 @@ class BrowserFragmentTest {
         model.stub {
             on { state } doReturn listingState
             on { progress } doReturn operationProgress
+            on { notification } doReturn mock()
         }
         val path = Uri.parse("")
         persistentState.stub {
@@ -75,6 +76,7 @@ class BrowserFragmentTest {
             verify(model).browse(path)
             verify(model, atLeastOnce()).state
             verify(model).progress
+            verify(model).notification
             verify(model).setClient(any())
             verify(listingState).value
             // listing + breadcrumbs
@@ -89,6 +91,7 @@ class BrowserFragmentTest {
         model.stub {
             on { state } doReturn MutableLiveData(listingState)
             on { progress } doReturn mock()
+            on { notification } doReturn mock()
         }
         persistentState.stub {
             on { currentPath } doReturn listingState.uri
@@ -144,6 +147,7 @@ class BrowserFragmentTest {
         model.stub {
             on { state } doReturn mock()
             on { progress } doReturn operationProgress
+            on { notification } doReturn mock()
         }
         persistentState.stub {
             on { currentPath } doReturn Uri.EMPTY
@@ -176,6 +180,7 @@ class BrowserFragmentTest {
         model.stub {
             on { state } doReturn MutableLiveData(listingState)
             on { progress } doReturn mock()
+            on { notification } doReturn mock()
         }
         persistentState.stub {
             on { currentPath } doReturn listingState.uri

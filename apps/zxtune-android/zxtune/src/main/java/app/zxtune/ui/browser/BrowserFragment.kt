@@ -6,6 +6,7 @@
 package app.zxtune.ui.browser
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
@@ -46,6 +47,22 @@ class BrowserFragment : Fragment() {
     private val listingLayoutManager
         get() = listing?.layoutManager as? LinearLayoutManager
 
+    private class NotificationView(view: View) {
+        private val panel = view.findViewById<TextView>(R.id.browser_notification)
+
+        fun bind(notification: Model.Notification?, onAction: (Intent) -> Unit) {
+            setPanelVisibility(notification != null)
+            panel.text = notification?.message
+            panel.setOnClickListener(notification?.action?.let { intent ->
+                View.OnClickListener { onAction(intent) }
+            })
+        }
+
+        private fun setPanelVisibility(isVisible: Boolean) = panel.run {
+            animate().translationY(if (isVisible) 0f else height.toFloat())
+        }
+    }
+
     override fun onAttach(ctx: Context) {
         super.onAttach(ctx)
         model = Model.of(this)
@@ -65,6 +82,7 @@ class BrowserFragment : Fragment() {
         listing = setupListing(model, view)
         search = setupSearchView(model, view)
         setupProgress(model, view)
+        setupNotification(model, view)
         if (model.state.value == null) {
             browse(stateStorage.currentPath)
         }
@@ -72,12 +90,14 @@ class BrowserFragment : Fragment() {
             override fun onFileBrowse(uri: Uri) =
                 controller?.transportControls?.playFromUri(uri, null) ?: Unit
 
-            override fun onError(msg: String) {
-                view.post {
-                    Toast.makeText(activity, msg, Toast.LENGTH_LONG).show()
-                }
-            }
+            override fun onError(msg: String) = showError(msg)
         })
+    }
+
+    private fun showError(msg: String) {
+        view?.post {
+            Toast.makeText(activity, msg, Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun setupRootsView(view: View) =
@@ -161,13 +181,27 @@ class BrowserFragment : Fragment() {
             }
         }
 
-    private fun storeCurrentViewPosition() = listingLayoutManager?.findFirstVisibleItemPosition()
-        ?.takeIf { it != RecyclerView.NO_POSITION }?.let { pos ->
-            stateStorage.currentViewPosition = pos
+    private fun setupNotification(model: Model, view: View) = with(NotificationView(view)) {
+        model.notification.observe(viewLifecycleOwner) {
+            bind(it) { intent ->
+                runCatching {
+                    requireContext().startActivity(intent)
+                }.onFailure { showError((it.cause ?: it).message ?: it.javaClass.name) }
+            }
         }
+    }
+
+    private fun storeCurrentViewPosition() =
+        listingLayoutManager?.findFirstVisibleItemPosition()
+            ?.takeIf { it != RecyclerView.NO_POSITION }?.let { pos ->
+                stateStorage.currentViewPosition = pos
+            }
 
     private fun restoreCurrentViewPosition() =
-        listingLayoutManager?.scrollToPositionWithOffset(stateStorage.currentViewPosition, 0)
+        listingLayoutManager?.scrollToPositionWithOffset(
+            stateStorage.currentViewPosition,
+            0
+        )
 
     private fun setupSearchView(model: Model, view: View) =
         view.findViewById<SearchView>(R.id.browser_search).apply {
