@@ -192,4 +192,5 @@
     <!-- errors -->
     <string name="network_inaccessible">无法访问网络</string>
     <string name="failed_resolve">无法解析 %s</string>
+    <string name="limited_storage_access">并非所有文件都可见。 点击修复。</string>
 </resources>

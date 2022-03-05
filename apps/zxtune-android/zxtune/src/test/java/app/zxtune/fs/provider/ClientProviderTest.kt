@@ -4,6 +4,7 @@ import android.content.ContentProvider
 import android.content.Context
 import android.net.Uri
 import android.os.CancellationSignal
+import android.os.Environment
 import android.os.OperationCanceledException
 import android.provider.Settings
 import androidx.lifecycle.LiveData
@@ -15,7 +16,6 @@ import app.zxtune.utils.AsyncWorker
 import app.zxtune.utils.ProgressCallback
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -26,11 +26,12 @@ import org.robolectric.android.controller.ContentProviderController
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
+import java.io.File
 import java.io.IOException
 
 // tests both Provider and VfsClient
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowNetworkManager::class])
+@Config(shadows = [ShadowNetworkManager::class, ShadowEnvironment::class], sdk = [30])
 class ClientProviderTest {
 
     private val fastDirContent = Array(10) { TestDir(2 + it) }
@@ -268,6 +269,39 @@ class ClientProviderTest {
     }
 
     @Test
+    fun `storage notification`() {
+        val filePath = "/root/dir/file"
+        val fileUri = Uri.parse("file:$filePath")
+        var isManaged = false
+        ShadowEnvironment.callback.stub {
+            on { invoke(any()) } doAnswer { isManaged }
+        }
+        client.subscribeForNotifications(fileUri) { notification ->
+            assertEquals("Not all the files may be visible. Tap to fix.", notification!!.message)
+            assertEquals(
+                Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION,
+                notification.action!!.action
+            )
+        }.release()
+        isManaged = true
+        client.subscribeForNotifications(fileUri) { notification ->
+            assertEquals(null, notification)
+        }.release()
+
+        verify(ShadowEnvironment.callback, times(2)).invoke(filePath)
+        verifyNoMoreInteractions(ShadowEnvironment.callback)
+    }
+
+    @Test
+    fun `storage root no notifications`() {
+        val fileUri = Uri.Builder().scheme("file").build()
+        client.subscribeForNotifications(fileUri) { notification ->
+            assertEquals(null, notification)
+        }.release()
+        verifyNoMoreInteractions(ShadowEnvironment.callback)
+    }
+
+    @Test
     fun `client exception`() {
         listingCallback.stub {
             on { onProgress(any(), any()) } doThrow Error("Client cancellation")
@@ -322,5 +356,16 @@ class ShadowNetworkManager {
         @get:Implementation
         val networkAvailable: LiveData<Boolean>
             get() = state
+    }
+}
+
+@Implements(Environment::class)
+class ShadowEnvironment {
+    companion object {
+        val callback = mock<(String) -> Boolean>()
+
+        @JvmStatic
+        @Implementation
+        fun isExternalStorageManager(f: File) = callback(f.absolutePath)
     }
 }

@@ -191,4 +191,5 @@
     <!-- errors -->
     <string name="network_inaccessible">Internet não disponível</string>
     <string name="failed_resolve">Falha ao resolver %s</string>
+    <string name="limited_storage_access">Nem todos os arquivos podem estar visíveis. Toque para corrigir.</string>
 </resources>

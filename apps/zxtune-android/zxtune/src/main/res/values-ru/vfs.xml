@@ -194,4 +194,5 @@
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
     <string name="failed_resolve">Не найден путь %s</string>
+    <string name="limited_storage_access">Не все файлы могут быть видны. Нажмите чтобы исправить.</string>
 </resources>

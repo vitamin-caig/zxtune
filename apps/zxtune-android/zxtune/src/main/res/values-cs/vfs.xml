@@ -192,4 +192,5 @@
     <!-- errors -->
     <string name="network_inaccessible">Síť není dostupná</string>
     <string name="failed_resolve">Podařilo se zrušit %s</string>
+    <string name="limited_storage_access">Ne všechny soubory mohou být viditelné. Klepněte na Opravit.</string>
 </resources>
