@@ -6,27 +6,18 @@
 
 package app.zxtune.fs;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
-import android.os.Environment;
-import android.os.storage.StorageManager;
-import android.os.storage.StorageVolume;
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Scanner;
 
-import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.Util;
+import app.zxtune.fs.local.StoragesSource;
 
 @Icon(R.drawable.ic_browser_vfs_local)
 final class VfsRootLocal extends StubObject implements VfsRoot {
@@ -35,9 +26,11 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
   private static final String SCHEME = "file";
 
   private final Context context;
+  private final StoragesSource source;
 
   VfsRootLocal(Context context) {
     this.context = context;
+    this.source = StoragesSource.create(context);
   }
 
   @Override
@@ -63,96 +56,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
 
   @Override
   public void enumerate(Visitor visitor) {
-    if (Build.VERSION.SDK_INT < 24 || !listStorageVolumes(visitor)) {
-      listMountpoints(visitor);
-    }
-    listPlaces(visitor);
-  }
-
-  @TargetApi(24)
-  private boolean listStorageVolumes(Visitor visitor) {
-    final StorageManager mgr = (StorageManager)context.getSystemService(Context.STORAGE_SERVICE);
-    if (mgr == null) {
-      return false;
-    }
-    try {
-      final Method method = StorageVolume.class.getMethod("getPathFile");
-      for (StorageVolume vol : mgr.getStorageVolumes()) {
-        if (isGoodState(vol.getState())) {
-          feedGood((File) method.invoke(vol), vol.getDescription(context), visitor);
-        }
-      }
-      return true;
-    } catch (IllegalAccessException e) {
-      Log.w(TAG, e, "Failed to get path");
-    } catch (InvocationTargetException e) {
-      Log.w(TAG, e, "Failed to get path");
-    } catch (NoSuchMethodException e) {
-      Log.w(TAG, e, getStorageVolumeMethods());
-    }
-    return false;
-  }
-
-  private boolean isGoodState(String state) {
-    return Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
-  }
-
-  @TargetApi(24)
-  private static String getStorageVolumeMethods() {
-    final StringBuilder builder = new StringBuilder();
-    builder.append("Available get methods:");
-    for (Method m : StorageVolume.class.getMethods()) {
-      final String name = m.getName();
-      if (name.startsWith("get")) {
-        builder.append(' ');
-        builder.append(name);
-      }
-    }
-    return builder.toString();
-  }
-
-  private void listMountpoints(Visitor visitor) {
-    final File mounts = new File("/proc/mounts");
-    ArrayList<File> result = new ArrayList<>(1);
-    try {
-      final Scanner scan = new Scanner(mounts);
-      while (scan.hasNext()) {
-        //assume no comments in file
-        final String line = scan.nextLine();
-        final String[] fields = line.split(" ");
-        final String device = fields[0];
-        if (device.startsWith("/dev/block/vold")
-                || device.equals("/dev/fuse")) {
-          final String mountpoint = fields[1];
-          final File point = new File(mountpoint);
-          if (!result.contains(point)) {
-            result.add(point);
-          }
-        }
-      }
-    } catch (IOException e) {
-      Log.w(TAG, e, "Failed to get external storages");
-    }
-    if (result.isEmpty()) {
-      if (isGoodState(Environment.getExternalStorageState())) {
-        feedGood(Environment.getExternalStorageDirectory(), "External storage", visitor);
-      } else {
-        for (File root : File.listRoots()) {
-          feedGood(root, "Root filesystem", visitor);
-        }
-      }
-    } else {
-      for (File dir : result) {
-        feedGood(dir, visitor);
-      }
-    }
-  }
-
-  private void listPlaces(Visitor visitor) {
-    final String[] types = {Environment.DIRECTORY_MUSIC, Environment.DIRECTORY_PODCASTS};
-    for (String type : types) {
-      feedGood(Environment.getExternalStoragePublicDirectory(type), visitor);
-    }
+    source.getStorages((obj, description) -> visitor.onDir(buildDir(obj, description)));
   }
 
   @Override
@@ -197,19 +101,6 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
     return new LocalFile(obj);
   }
 
-  private void feedGood(@Nullable File dir, Visitor visitor) {
-    if (dir != null) {
-      visitor.onDir(buildDir(dir));
-    }
-  }
-
-  private void feedGood(@Nullable File dir, String description, Visitor visitor) {
-    //dir.canRead sometimes returns false while dir is really readable
-    if (dir != null) {
-      visitor.onDir(buildDir(dir, description));
-    }
-  }
-
   @Nullable
   private VfsObject resolvePath(String path) {
     final File obj = new File(path);
@@ -240,8 +131,8 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
     public VfsObject getParent() {
       final File parent = object.getParentFile();
       return parent != null
-              ? new LocalDir(parent)
-              : VfsRootLocal.this;
+          ? new LocalDir(parent)
+          : VfsRootLocal.this;
     }
   }
 
