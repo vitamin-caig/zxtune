@@ -192,4 +192,5 @@
     <string name="network_inaccessible">Internet não disponível</string>
     <string name="failed_resolve">Falha ao resolver %s</string>
     <string name="limited_storage_access">Nem todos os arquivos podem estar visíveis. Toque para corrigir.</string>
+    <string name="limited_stored_playlists_access">Sem permissão para criar novas listas de reprodução. Toque para corrigir.</string>
 </resources>
