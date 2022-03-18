@@ -17,7 +17,7 @@ object Api {
     var authorization: String? = null
 
     @JvmStatic
-    fun initialize(ctx: Context) = setAuthorization(Auth.getUserIdentifier(ctx), "")
+    fun initialize(ctx: Context) = setAuthorization(Auth.getUserInfo(ctx).identifier, "")
 
     @VisibleForTesting
     fun setAuthorization(name: String, password: String) {
