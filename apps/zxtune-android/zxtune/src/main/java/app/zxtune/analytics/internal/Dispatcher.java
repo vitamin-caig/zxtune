@@ -1,7 +1,5 @@
 package app.zxtune.analytics.internal;
 
-import android.content.Context;
-
 import java.io.IOException;
 import java.util.ArrayDeque;
 
@@ -19,11 +17,10 @@ class Dispatcher implements UrlsSink {
   private UrlsSink current;
   private int networkRetryCountdown;
 
-  Dispatcher(Context ctx) {
-    this.online = new NetworkSink(ctx);
+  Dispatcher() {
+    this.online = new NetworkSink();
     this.offline = new BufferSink();
     current = online;
-    NetworkManager.initialize(ctx);
     NetworkManager.getNetworkAvailable().observeForever(this::onNetworkChange);
   }
 
@@ -104,6 +101,7 @@ class Dispatcher implements UrlsSink {
         buffers.removeFirst();
       }
     }
+
     private void sendDiagnostic(UrlsSink sink) throws IOException {
       sink.push(getDiagnosticUrl());
       lost = 0;
