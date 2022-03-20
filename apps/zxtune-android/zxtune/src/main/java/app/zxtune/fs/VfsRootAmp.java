@@ -224,6 +224,10 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
       catalog.queryAuthors(letter, new Catalog.AuthorsVisitor() {
+        //TODO: remove
+        @Override
+        public void setCountHint(int count) {}
+
         @Override
         public void accept(Author obj) {
           visitor.onDir(makeSubdir(obj));
@@ -281,7 +285,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return country.name;
+      return country.getName();
     }
 
     @Override
@@ -355,7 +359,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return group.name;
+      return group.getName();
     }
 
     @Override
@@ -396,12 +400,12 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return author.handle;
+      return author.getHandle();
     }
 
     @Override
     public String getDescription() {
-      return author.realName;
+      return author.getRealName();
     }
 
     @Override
@@ -459,7 +463,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return track.filename;
+      return track.getFilename();
     }
 
     @Override
@@ -470,15 +474,15 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
 
     @Override
     public String getSize() {
-      return Util.formatSize(track.size * 1024L);
+      return Util.formatSize(track.getSize() * 1024L);
     }
 
     @Override
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE_PATH.equals(id)) {
-        return Integer.toString(track.id);
+        return Integer.toString(track.getId());
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
-        return RemoteCatalog.getTrackUris(track.id);
+        return RemoteCatalog.getTrackUris(track.getId());
       } else {
         return super.getExtension(id);
       }
@@ -491,9 +495,13 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     public void find(String query, final Visitor visitor) throws IOException {
       catalog.findTracks(query, new Catalog.FoundTracksVisitor() {
 
+        // TODO: remove
+        @Override
+        public void setCountHint(int count) {}
+
         @Override
         public void accept(Author author, Track track) {
-          final String letter = author.handle.substring(0, 1);
+          final String letter = author.getHandle().substring(0, 1);
           final Uri.Builder categoryUri = Identifier.forHandleLetter(Identifier.isHandleLetter(letter)
                   ? letter : Catalog.NON_LETTER_FILTER);
           final Uri.Builder authorsUri = Identifier.forAuthor(categoryUri, author);

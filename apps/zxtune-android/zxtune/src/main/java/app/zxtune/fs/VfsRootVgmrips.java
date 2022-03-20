@@ -306,7 +306,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
       final int[] duration = {0};
       final Pack pack = catalog.findRandomPack(obj -> {
         tracks.add(obj);
-        duration[0] += obj.duration.toSeconds();
+        duration[0] += obj.getDuration().toSeconds();
       });
       if (pack == null || 0 == duration[0]) {
         return null;
@@ -314,7 +314,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
       final int hit = random.nextInt(duration[0]);
       int bound = 0;
       for (Track trk : tracks) {
-        bound += trk.duration.toSeconds();
+        bound += trk.getDuration().toSeconds();
         if (hit < bound) {
           return new Pair<>(pack, trk);
         }
@@ -323,9 +323,9 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     }
 
     private boolean canPlay(Pack pack) {
-      final int key = pack.id.hashCode();
+      final int key = pack.getId().hashCode();
       int donePlays = history.get(key, 0);
-      if (++donePlays > pack.songs) {
+      if (++donePlays > pack.getSongs()) {
         return false;
       }
       history.put(key, donePlays);
@@ -350,12 +350,12 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return group.title;
+      return group.getTitle();
     }
 
     @Override
     public String getDescription() {
-      return context.getResources().getQuantityString(R.plurals.packs, group.packs, group.packs);
+      return context.getResources().getQuantityString(R.plurals.packs, group.getPacks(), group.getPacks());
     }
 
     @Override
@@ -365,7 +365,8 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      parent.grouping.queryPacks(group.id, obj -> visitor.onDir(new PackDir(GroupDir.this, obj)), visitor);
+      parent.grouping.queryPacks(group.getId(), obj -> visitor.onDir(new PackDir(GroupDir.this, obj)),
+          visitor);
     }
 
     @Override
@@ -396,17 +397,17 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return pack.title;
+      return pack.getTitle();
     }
 
     @Override
     public String getDescription() {
-      return context.getResources().getQuantityString(R.plurals.tracks, pack.songs, pack.songs);
+      return context.getResources().getQuantityString(R.plurals.tracks, pack.getSongs(), pack.getSongs());
     }
 
     @Override
     public void enumerate(final Visitor visitor) throws IOException {
-      catalog.findPack(pack.id, obj -> visitor.onFile(new TrackFile(PackDir.this, obj)));
+      catalog.findPack(pack.getId(), obj -> visitor.onFile(new TrackFile(PackDir.this, obj)));
     }
 
     @Override
@@ -440,12 +441,12 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     @Override
     public String getName() {
-      return track.title;
+      return track.getTitle();
     }
 
     @Override
     public String getSize() {
-      return track.duration.toString();
+      return track.getDuration().toString();
     }
 
     @Override
@@ -457,7 +458,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     @Override
     public Object getExtension(String id) {
       if (VfsExtensions.CACHE_PATH.equals(id)) {
-        return parent.pack.id + '/' + track.title;
+        return parent.pack.getId() + '/' + track.getTitle();
       } else if (VfsExtensions.DOWNLOAD_URIS.equals(id)) {
         return RemoteCatalog.getRemoteUris(track);
       } else {
@@ -474,7 +475,7 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     public int compare(VfsObject o1, VfsObject o2) {
       final TrackFile lh = (TrackFile) o1;
       final TrackFile rh = (TrackFile) o2;
-      return lh.track.number < rh.track.number ? -1 : 1;
+      return lh.track.getNumber() < rh.track.getNumber() ? -1 : 1;
     }
   }
 }

@@ -8,6 +8,7 @@ package app.zxtune;
 
 import android.app.Application;
 import android.content.Context;
+import android.os.Build;
 
 import androidx.annotation.Nullable;
 
@@ -15,6 +16,7 @@ import com.github.anrwatchdog.ANRWatchDog;
 
 import app.zxtune.analytics.Analytics;
 import app.zxtune.device.ui.Notifications;
+import app.zxtune.net.NetworkManager;
 
 public class MainApplication extends Application {
 
@@ -38,9 +40,12 @@ public class MainApplication extends Application {
   public synchronized static void initialize(Context ctx) {
     if (globalContext == null) {
       globalContext = ctx;
-      Analytics.initialize(ctx);
-      Notifications.setup(ctx);
-      setupANRWatchdog();
+      if (!"robolectric".equals(Build.PRODUCT)) {
+        NetworkManager.initialize(ctx);
+        Analytics.initialize(ctx);
+        Notifications.setup(ctx);
+        setupANRWatchdog();
+      }
     }
   }
 

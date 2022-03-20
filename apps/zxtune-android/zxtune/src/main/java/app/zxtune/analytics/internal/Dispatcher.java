@@ -8,7 +8,7 @@ import java.util.ArrayDeque;
 import app.zxtune.Log;
 import app.zxtune.net.NetworkManager;
 
-class Dispatcher implements UrlsSink, NetworkManager.Callback {
+class Dispatcher implements UrlsSink {
 
   private static final String TAG = Dispatcher.class.getName();
 
@@ -24,8 +24,7 @@ class Dispatcher implements UrlsSink, NetworkManager.Callback {
     this.offline = new BufferSink();
     current = online;
     NetworkManager.initialize(ctx);
-    NetworkManager.getInstance().subscribe(this);
-    onNetworkChange(NetworkManager.getInstance().isNetworkAvailable());
+    NetworkManager.getNetworkAvailable().observeForever(this::onNetworkChange);
   }
 
   @Override
@@ -47,8 +46,7 @@ class Dispatcher implements UrlsSink, NetworkManager.Callback {
     }
   }
 
-  @Override
-  public void onNetworkChange(boolean isAvailable) {
+  private void onNetworkChange(boolean isAvailable) {
     Log.d(TAG, "onNetworkChange: " + isAvailable);
     if (isAvailable) {
       if (current == offline) {

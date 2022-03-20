@@ -6,13 +6,8 @@
 
 package app.zxtune.fs;
 
-import android.net.Uri;
-
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.Collections;
-
-import app.zxtune.Log;
 
 public final class VfsIterator {
 
@@ -20,23 +15,15 @@ public final class VfsIterator {
     void onIOError(IOException e);
   }
 
-  private static final String TAG = VfsIterator.class.getName();
-
   private final ErrorHandler handler;
   private final ArrayDeque<VfsFile> files;
   private final ArrayDeque<VfsDir> dirs;
-  private final ArrayDeque<Uri> paths;
 
-  public VfsIterator(Uri[] paths) {
-    this(paths, e -> Log.w(TAG, e, "Skip I/O error"));
-  }
-
-  public VfsIterator(Uri[] paths, ErrorHandler handler) {
+  public VfsIterator(VfsDir dir, ErrorHandler handler) {
     this.handler = handler;
     this.files = new ArrayDeque<>();
     this.dirs = new ArrayDeque<>();
-    this.paths = new ArrayDeque<>(paths.length);
-    Collections.addAll(this.paths, paths);
+    this.dirs.add(dir);
     prefetch();
   }
 
@@ -57,8 +44,6 @@ public final class VfsIterator {
     while (files.isEmpty()) {
       if (!dirs.isEmpty()) {
         scan(dirs.remove());
-      } else if (!paths.isEmpty()) {
-        resolve(paths.remove());
       } else {
         break;
       }
@@ -80,19 +65,6 @@ public final class VfsIterator {
           files.addLast(file);
         }
       });
-    } catch (IOException e) {
-      handler.onIOError(e);
-    }
-  }
-
-  private void resolve(Uri path) {
-    try {
-      final VfsObject obj = VfsArchive.resolve(path);
-      if (obj instanceof VfsFile) {
-        files.addLast((VfsFile) obj);
-      } else if (obj instanceof VfsDir) {
-        dirs.addLast((VfsDir) obj);
-      }
     } catch (IOException e) {
       handler.onIOError(e);
     }

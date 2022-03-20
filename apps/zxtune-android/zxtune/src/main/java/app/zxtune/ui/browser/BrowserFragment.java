@@ -104,14 +104,14 @@ public class BrowserFragment extends Fragment {
     final RecyclerView listing = view.findViewById(R.id.browser_breadcrumb);
     final BreadcrumbsViewAdapter adapter = new BreadcrumbsViewAdapter();
     listing.setAdapter(adapter);
-    model.getState().observe(this, state -> {
-      adapter.submitList(state.breadcrumbs);
-      listing.smoothScrollToPosition(state.breadcrumbs.size());
+    model.getState().observe(getViewLifecycleOwner(), state -> {
+      adapter.submitList(state.getBreadcrumbs());
+      listing.smoothScrollToPosition(state.getBreadcrumbs().size());
     });
     final View.OnClickListener onClick = v -> {
       final int pos = listing.getChildAdapterPosition(v);
       final BreadcrumbsEntry entry = adapter.getCurrentList().get(pos);
-      browse(entry.uri);
+      browse(entry.getUri());
     };
     listing.addOnChildAttachStateChangeListener(new RecyclerView.OnChildAttachStateChangeListener() {
       @Override
@@ -146,13 +146,13 @@ public class BrowserFragment extends Fragment {
         new SelectionClient(adapter));
 
     final TextView stub = view.findViewById(R.id.browser_stub);
-    model.getState().observe(this, state -> {
+    model.getState().observe(getViewLifecycleOwner(), state -> {
       storeCurrentViewPosition(listing);
-      adapter.submitList(state.entries, () -> {
-        stateStorage.setCurrentPath(state.uri);
+      adapter.submitList(state.getEntries(), () -> {
+        stateStorage.setCurrentPath(state.getUri());
         restoreCurrentViewPosition(listing);
       });
-      if (state.entries.isEmpty()) {
+      if (state.getEntries().isEmpty()) {
         listing.setVisibility(View.GONE);
         stub.setVisibility(View.VISIBLE);
       } else {
@@ -161,7 +161,7 @@ public class BrowserFragment extends Fragment {
       }
     });
     final ProgressBar progress = view.findViewById(R.id.browser_loading);
-    model.getProgress().observe(this, prg -> {
+    model.getProgress().observe(getViewLifecycleOwner(), prg -> {
       if (prg == null) {
         progress.setIndeterminate(false);
         progress.setProgress(0);

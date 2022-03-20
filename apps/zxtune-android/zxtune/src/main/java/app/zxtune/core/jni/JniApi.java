@@ -11,14 +11,16 @@ import app.zxtune.core.ResolvingException;
 import app.zxtune.utils.NativeLoader;
 import app.zxtune.utils.ProgressCallback;
 
-class JniApi extends Api {
+class JniApi implements Api {
 
   private static final String TAG = JniApi.class.getName();
+
+  private static final String LIBRARY_NAME = "zxtune";
 
   private final PropertiesContainer loggingOptions;
 
   JniApi() {
-    NativeLoader.loadLibrary("zxtune", this::forcedInit);
+    NativeLoader.loadLibrary(LIBRARY_NAME, this::forcedInit);
     loggingOptions = new LoggingOptionsAdapter(JniOptions.instance());
   }
 
@@ -32,6 +34,10 @@ class JniApi extends Api {
 
   @Override
   public native void enumeratePlugins(Plugins.Visitor visitor);
+
+  public static void loadLibraryForTest() {
+    System.loadLibrary(LIBRARY_NAME);
+  }
 
   @Override
   public PropertiesContainer getOptions() {
