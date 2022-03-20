@@ -20,6 +20,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
+import app.zxtune.auth.Auth;
+import app.zxtune.fs.api.Api;
 
 public final class Provider extends ContentProvider {
 
@@ -28,9 +30,9 @@ public final class Provider extends ContentProvider {
   static final String METHOD_PUSH = "push";
 
   static final Uri URI = new Uri.Builder()
-                             .scheme(ContentResolver.SCHEME_CONTENT)
-                             .authority("app.zxtune.analytics.internal")
-                             .build();
+      .scheme(ContentResolver.SCHEME_CONTENT)
+      .authority("app.zxtune.analytics.internal")
+      .build();
 
   private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(1024);
 
@@ -40,8 +42,11 @@ public final class Provider extends ContentProvider {
     if (ctx == null) {
       return false;
     }
-    MainApplication.initialize(ctx.getApplicationContext());
-    final UrlsSink delegate = new Dispatcher(ctx.getApplicationContext());
+    final Context appCtx = ctx.getApplicationContext();
+    MainApplication.initialize(appCtx);
+    final Auth.UserInfo auth = Auth.getUserInfo(appCtx);
+    Api.initialize(auth);
+    final UrlsSink delegate = new Dispatcher();
     final Thread thread = new Thread("IASender") {
       @Override
       public void run() {
@@ -56,6 +61,9 @@ public final class Provider extends ContentProvider {
     thread.start();
     sendSystemInfoEvent();
     sendSystemConfigurationEvent(ctx.getResources());
+    if (auth.isInitial()) {
+      sendInitialInstallationEvent();
+    }
     return true;
   }
 
@@ -98,6 +106,12 @@ public final class Provider extends ContentProvider {
     }
     builder.addParam("density", metrics.densityDpi);
 
+    doPush(builder.getResult());
+  }
+
+  private void sendInitialInstallationEvent() {
+    final UrlsBuilder builder = new UrlsBuilder("app/firstrun");
+    // TODO: add installation source
     doPush(builder.getResult());
   }
 

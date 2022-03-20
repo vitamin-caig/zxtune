@@ -1,6 +1,5 @@
 package app.zxtune.fs.api
 
-import android.content.Context
 import android.util.Base64
 import androidx.annotation.VisibleForTesting
 import app.zxtune.BuildConfig
@@ -17,7 +16,7 @@ object Api {
     var authorization: String? = null
 
     @JvmStatic
-    fun initialize(ctx: Context) = setAuthorization(Auth.getUserIdentifier(ctx), "")
+    fun initialize(auth: Auth.UserInfo) = setAuthorization(auth.identifier, "")
 
     @VisibleForTesting
     fun setAuthorization(name: String, password: String) {
