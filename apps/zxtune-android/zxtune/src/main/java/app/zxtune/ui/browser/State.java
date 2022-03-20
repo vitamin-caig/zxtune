@@ -6,11 +6,11 @@
 
 package app.zxtune.ui.browser;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 
 import java.util.Locale;
 
@@ -25,9 +25,13 @@ class State {
   private final DataStore prefs;
   private PathAndPosition current;
 
-  State(Fragment fragment) {
-    this.prefs = new DataStore(fragment.getActivity());
+  private State(Context ctx) {
+    this.prefs = new DataStore(ctx);
     this.current = new PathAndPosition();
+  }
+
+  static State create(Context ctx) {
+    return new State(ctx);
   }
 
   final Uri getCurrentPath() {

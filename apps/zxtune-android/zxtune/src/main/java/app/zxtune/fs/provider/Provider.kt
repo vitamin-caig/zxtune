@@ -17,10 +17,14 @@ class Provider @VisibleForTesting internal constructor(
 ) : ContentProvider() {
     private val operations = ConcurrentHashMap<Uri, Operation>()
 
+    // should be initialized in main thread
+    private lateinit var notifications: NotificationsSource
+
     constructor() : this(CachingResolver(cacheSize = 10), SchemaSourceImplementation())
 
     override fun onCreate() = context?.run {
         MainApplication.initialize(applicationContext)
+        notifications = NotificationsSource(this)
         true
     } ?: false
 
@@ -40,9 +44,8 @@ class Provider @VisibleForTesting internal constructor(
         sortOrder: String?,
         signal: CancellationSignal?
     ) = runCatching {
-        val existing = operations[uri]
-        if (existing != null) {
-            existing.status()
+        operations[uri]?.status() ?: if (Query.TYPE_NOTIFICATION == Query.getUriType(uri)) {
+            notifications.getFor(Query.getPathFrom(uri))
         } else {
             val op = createOperation(uri, projection, makeCallback(uri, signal))
             Operation(uri, op).run()

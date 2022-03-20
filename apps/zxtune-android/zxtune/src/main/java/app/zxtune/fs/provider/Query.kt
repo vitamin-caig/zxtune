@@ -18,11 +18,12 @@ import androidx.annotation.IntDef
  * content://app.zxtune.vfs/parents/${path} - get object parents chain
  * content://app.zxtune.vfs/search/${path}?query=${query} - start search
  * content://app.zxtune.vfs/file/${path} - get information about and file object about local file
+ * content://app.zxtune.vfs/notification/${path} - get path-related notification
  */
 internal object Query {
     @Retention(AnnotationRetention.SOURCE)
     @IntDef(
-        TYPE_RESOLVE, TYPE_LISTING, TYPE_PARENTS, TYPE_SEARCH, TYPE_FILE
+        TYPE_RESOLVE, TYPE_LISTING, TYPE_PARENTS, TYPE_SEARCH, TYPE_FILE, TYPE_NOTIFICATION
     )
     annotation class Type
 
@@ -31,6 +32,7 @@ internal object Query {
     const val TYPE_PARENTS = 2
     const val TYPE_SEARCH = 3
     const val TYPE_FILE = 4
+    const val TYPE_NOTIFICATION = 5
     private const val AUTHORITY = "app.zxtune.vfs"
     private const val RESOLVE_PATH = "resolve"
     private const val LISTING_PATH = "listing"
@@ -38,12 +40,16 @@ internal object Query {
     private const val SEARCH_PATH = "search"
     private const val QUERY_PARAM = "query"
     private const val FILE_PATH = "file"
+    private const val NOTIFICATION_PATH = "notification"
     private const val ITEM_SUBTYPE = "vnd.$AUTHORITY.item"
     private const val SIMPLE_ITEM_SUBTYPE = "vnd.$AUTHORITY.simple_item"
+    private const val NOTIFICATION_SUBTYPE = "vnd.$AUTHORITY.notification"
     private const val MIME_ITEM = "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$ITEM_SUBTYPE"
     private const val MIME_ITEMS_SET = "${ContentResolver.CURSOR_DIR_BASE_TYPE}/$ITEM_SUBTYPE"
     private const val MIME_SIMPLE_ITEMS_SET =
         "${ContentResolver.CURSOR_DIR_BASE_TYPE}/$SIMPLE_ITEM_SUBTYPE"
+    private const val MIME_NOTIFICATION =
+        "${ContentResolver.CURSOR_ITEM_BASE_TYPE}/$NOTIFICATION_SUBTYPE"
     private val uriTemplate = UriMatcher(UriMatcher.NO_MATCH).apply {
         addURI(AUTHORITY, RESOLVE_PATH, TYPE_RESOLVE)
         addURI(AUTHORITY, "$RESOLVE_PATH/*", TYPE_RESOLVE)
@@ -54,6 +60,8 @@ internal object Query {
         addURI(AUTHORITY, SEARCH_PATH, TYPE_SEARCH)
         addURI(AUTHORITY, "$SEARCH_PATH/*", TYPE_SEARCH)
         addURI(AUTHORITY, "$FILE_PATH/*", TYPE_FILE)
+        addURI(AUTHORITY, "$NOTIFICATION_PATH", TYPE_NOTIFICATION)
+        addURI(AUTHORITY, "$NOTIFICATION_PATH/*", TYPE_NOTIFICATION)
     }
 
     //! @return Mime type of uri (used in content provider)
@@ -61,11 +69,12 @@ internal object Query {
         TYPE_RESOLVE, TYPE_FILE -> MIME_ITEM
         TYPE_LISTING, TYPE_SEARCH -> MIME_ITEMS_SET
         TYPE_PARENTS -> MIME_SIMPLE_ITEMS_SET
+        TYPE_NOTIFICATION -> MIME_NOTIFICATION
         else -> throw IllegalArgumentException("Wrong URI: $uri")
     }
 
     fun getPathFrom(uri: Uri): Uri = when (uriTemplate.match(uri)) {
-        TYPE_RESOLVE, TYPE_LISTING, TYPE_PARENTS, TYPE_SEARCH, TYPE_FILE ->
+        TYPE_RESOLVE, TYPE_LISTING, TYPE_PARENTS, TYPE_SEARCH, TYPE_FILE, TYPE_NOTIFICATION ->
             uri.pathSegments.getOrNull(1)?.let { Uri.parse(it) } ?: Uri.EMPTY
         else -> throw IllegalArgumentException("Wrong URI: $uri")
     }
@@ -87,6 +96,8 @@ internal object Query {
         makeUri(SEARCH_PATH, uri).appendQueryParameter(QUERY_PARAM, query).build()
 
     fun fileUriFor(uri: Uri): Uri = makeUri(FILE_PATH, uri).build()
+
+    fun notificationUriFor(uri: Uri): Uri = makeUri(NOTIFICATION_PATH, uri).build()
 
     private fun makeUri(path: String, uri: Uri) = Uri.Builder()
         .scheme(ContentResolver.SCHEME_CONTENT)

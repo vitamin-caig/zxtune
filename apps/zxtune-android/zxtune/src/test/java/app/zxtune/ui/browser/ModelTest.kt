@@ -4,6 +4,8 @@ import android.net.Uri
 import android.os.CancellationSignal
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
+import app.zxtune.Releaseable
+import app.zxtune.fs.provider.Schema
 import app.zxtune.fs.provider.VfsProviderClient
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -41,25 +43,35 @@ class ModelTest {
     private lateinit var underTest: Model
     private val stateObserver = mock<Observer<Model.State>>()
     private val progressObserver = mock<Observer<Int?>>()
+    private val notificationObserver = mock<Observer<Model.Notification?>>()
 
     @Before
     fun setUp() {
         underTest = Model(mock(), vfsClient).apply {
             setClient(modelClient)
-            mutableState.observeForever(stateObserver)
+            state.observeForever(stateObserver)
             progress.observeForever(progressObserver)
+            notification.observeForever(notificationObserver)
+
         }
-        reset(vfsClient, modelClient, stateObserver, progressObserver)
+        reset(vfsClient, modelClient, stateObserver, progressObserver, notificationObserver)
     }
 
     @After
     fun tearDown() =
-        verifyNoMoreInteractions(vfsClient, modelClient, stateObserver, progressObserver)
+        verifyNoMoreInteractions(
+            vfsClient,
+            modelClient,
+            stateObserver,
+            progressObserver,
+            notificationObserver
+        )
 
     @Test
     fun `initial state`() = with(underTest) {
         assertEquals(null, mutableState.value)
         assertEquals(null, progress.value)
+        assertEquals(null, notification.value)
     }
 
     private fun execute(cmd: Model.() -> Unit) {
@@ -175,11 +187,15 @@ class ModelTest {
                     testContent.forEach(this::feed)
                 }
             }
+            on { subscribeForNotifications(any(), any()) } doAnswer {
+                it.getArgument<(Schema.Notifications.Object?) -> Unit>(1).invoke(null)
+                mock()
+            }
         }
         execute {
             browse(testUri)
         }
-        inOrder(vfsClient, modelClient, progressObserver, stateObserver) {
+        inOrder(vfsClient, modelClient, progressObserver, stateObserver, notificationObserver) {
             verify(progressObserver).onChanged(-1)
             verify(vfsClient).resolve(eq(testUri), any(), any())
             verify(progressObserver).onChanged(50)
@@ -187,6 +203,8 @@ class ModelTest {
             verify(vfsClient).list(eq(testUri), any(), any())
             verify(progressObserver).onChanged(20)
             verify(stateObserver).onChanged(Model.State(testUri, testParents, testContent))
+            verify(vfsClient).subscribeForNotifications(eq(testUri), any())
+            verify(notificationObserver).onChanged(null)
             verify(progressObserver).onChanged(null)
         }
     }
@@ -225,29 +243,64 @@ class ModelTest {
     @Test
     fun `browseParent with good state`() {
         setState(testParents, listOf())
-        val parentUri = testParents[1].uri
+        val notification = Model.Notification("message", null)
+        val notificationHandle = mock<Releaseable>()
         vfsClient.stub {
-            on { resolve(eq(parentUri), any(), any()) } doAnswer {
+            on { resolve(any(), any(), any()) } doAnswer {
                 with(it.getArgument<VfsProviderClient.ListingCallback>(1)) {
                     onDir(it.getArgument(0), "unused", "unused", null, false)
                 }
             }
+            on { subscribeForNotifications(any(), any()) } doAnswer {
+                it.getArgument<(Schema.Notifications.Object?) -> Unit>(1)
+                    .invoke(Schema.Notifications.Object(notification.message, notification.action))
+                notificationHandle
+            }
         }
         execute {
             browseParent()
+            waitForIdle()
+            browseParent()
         }
-        inOrder(vfsClient, modelClient, stateObserver, progressObserver) {
-            verify(progressObserver).onChanged(-1)
-            verify(vfsClient).resolve(eq(parentUri), any(), any())
-            verify(vfsClient).list(eq(parentUri), any(), any())
-            verify(stateObserver).onChanged(
-                Model.State(
-                    parentUri,
-                    testParents.subList(0, 2),
-                    listOf()
+        inOrder(
+            vfsClient,
+            modelClient,
+            stateObserver,
+            progressObserver,
+            notificationObserver,
+            notificationHandle
+        ) {
+            testParents[1].uri.let { parentUri ->
+                verify(progressObserver).onChanged(-1)
+                verify(vfsClient).resolve(eq(parentUri), any(), any())
+                verify(vfsClient).list(eq(parentUri), any(), any())
+                verify(stateObserver).onChanged(
+                    Model.State(
+                        parentUri,
+                        testParents.subList(0, 2),
+                        listOf()
+                    )
                 )
-            )
-            verify(progressObserver).onChanged(null)
+                verify(vfsClient).subscribeForNotifications(eq(parentUri), any())
+                verify(notificationObserver).onChanged(notification)
+                verify(progressObserver).onChanged(null)
+            }
+            testParents[0].uri.let { parentUri ->
+                verify(progressObserver).onChanged(-1)
+                verify(vfsClient).resolve(eq(parentUri), any(), any())
+                verify(vfsClient).list(eq(parentUri), any(), any())
+                verify(stateObserver).onChanged(
+                    Model.State(
+                        parentUri,
+                        testParents.subList(0, 1),
+                        listOf()
+                    )
+                )
+                verify(notificationHandle).release()
+                verify(vfsClient).subscribeForNotifications(eq(parentUri), any())
+                verify(notificationObserver).onChanged(notification)
+                verify(progressObserver).onChanged(null)
+            }
         }
     }
 
@@ -357,6 +410,13 @@ class ModelTest {
             verify(vfsClient).search(eq(testUri), eq(testQuery), any(), any())
             verify(modelClient).onError(err.message!!)
             verify(progressObserver).onChanged(null)
+        }
+    }
+
+    @Test
+    fun `no notifications`() {
+        execute {
+
         }
     }
 
