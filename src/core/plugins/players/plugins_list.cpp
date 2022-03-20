@@ -71,5 +71,6 @@ namespace ZXTune
     RegisterSIDPlugins(players, archives);
     RegisterGMEPlugins(players, archives);
     RegisterASAPPlugins(players, archives);
+    RegisterVGMStreamPlugins(players, archives);
   }
 }  // namespace ZXTune

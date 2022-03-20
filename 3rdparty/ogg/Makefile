@@ -1,17 +1,10 @@
-#	https://git.xiph.org/mirrors/ogg.git
-
-dynamic_name := ogg
+# v1.3.5 from https://gitlab.xiph.org/xiph/ogg.git
+library_name := ogg
 dirs.root := ../..
-include $(dirs.root)/make/default.mak 
+include $(dirs.root)/make/default.mak
 
-defines += LIBOGG_EXPORTS
+includes.dirs += $(dirs.root)/3rdparty
 
-includes.dirs += include
-source_files_cc := src/bitwise src/framing
-libraries.3rdparty := zlib
-
-LD_PLATFORM_FLAGS = /DEF:win32\ogg.def
-
-static_runtime = 1
+source_dirs = src
 
 include $(dirs.root)/makefile.mak

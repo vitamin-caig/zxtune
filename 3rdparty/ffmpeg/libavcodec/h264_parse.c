@@ -35,7 +35,7 @@ int ff_h264_pred_weight_table(GetBitContext *gb, const SPS *sps,
     pwt->use_weight             = 0;
     pwt->use_weight_chroma      = 0;
 
-    pwt->luma_log2_weight_denom = get_ue_golomb(gb);
+    pwt->luma_log2_weight_denom = get_ue_golomb_31(gb);
     if (pwt->luma_log2_weight_denom > 7U) {
         av_log(logctx, AV_LOG_ERROR, "luma_log2_weight_denom %d is out of range\n", pwt->luma_log2_weight_denom);
         pwt->luma_log2_weight_denom = 0;
@@ -43,7 +43,7 @@ int ff_h264_pred_weight_table(GetBitContext *gb, const SPS *sps,
     luma_def = 1 << pwt->luma_log2_weight_denom;
 
     if (sps->chroma_format_idc) {
-        pwt->chroma_log2_weight_denom = get_ue_golomb(gb);
+        pwt->chroma_log2_weight_denom = get_ue_golomb_31(gb);
         if (pwt->chroma_log2_weight_denom > 7U) {
             av_log(logctx, AV_LOG_ERROR, "chroma_log2_weight_denom %d is out of range\n", pwt->chroma_log2_weight_denom);
             pwt->chroma_log2_weight_denom = 0;
@@ -287,6 +287,8 @@ int ff_h264_init_poc(int pic_field_poc[2], int *pic_poc,
 
     if (sps->poc_type == 0) {
         const int max_poc_lsb = 1 << sps->log2_max_poc_lsb;
+        if (pc->prev_poc_lsb < 0)
+            pc->prev_poc_lsb =  pc->poc_lsb;
 
         if (pc->poc_lsb < pc->prev_poc_lsb &&
             pc->prev_poc_lsb - pc->poc_lsb >= max_poc_lsb / 2)
@@ -374,11 +376,22 @@ static int decode_extradata_ps(const uint8_t *data, int size, H264ParamSets *ps,
     for (i = 0; i < pkt.nb_nals; i++) {
         H2645NAL *nal = &pkt.nals[i];
         switch (nal->type) {
-        case H264_NAL_SPS:
-            ret = ff_h264_decode_seq_parameter_set(&nal->gb, logctx, ps, 0);
+        case H264_NAL_SPS: {
+            GetBitContext tmp_gb = nal->gb;
+            ret = ff_h264_decode_seq_parameter_set(&tmp_gb, logctx, ps, 0);
+            if (ret >= 0)
+                break;
+            av_log(logctx, AV_LOG_DEBUG,
+                   "SPS decoding failure, trying again with the complete NAL\n");
+            init_get_bits8(&tmp_gb, nal->raw_data + 1, nal->raw_size - 1);
+            ret = ff_h264_decode_seq_parameter_set(&tmp_gb, logctx, ps, 0);
+            if (ret >= 0)
+                break;
+            ret = ff_h264_decode_seq_parameter_set(&nal->gb, logctx, ps, 1);
             if (ret < 0)
                 goto fail;
             break;
+        }
         case H264_NAL_PPS:
             ret = ff_h264_decode_picture_parameter_set(&nal->gb, logctx, ps,
                                                        nal->size_bits);

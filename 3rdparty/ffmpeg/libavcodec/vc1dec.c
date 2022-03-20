@@ -29,7 +29,7 @@
 #include "avcodec.h"
 #include "blockdsp.h"
 #include "get_bits.h"
-#include "hwaccel.h"
+#include "hwconfig.h"
 #include "internal.h"
 #include "mpeg_er.h"
 #include "mpegvideo.h"
@@ -384,7 +384,7 @@ av_cold int ff_vc1_decode_init_alloc_tables(VC1Context *v)
     if (s->avctx->codec_id == AV_CODEC_ID_WMV3IMAGE || s->avctx->codec_id == AV_CODEC_ID_VC1IMAGE) {
         for (i = 0; i < 4; i++)
             if (!(v->sr_rows[i >> 1][i & 1] = av_malloc(v->output_width)))
-                return AVERROR(ENOMEM);
+                goto error;
     }
 
     ret = ff_intrax8_common_init(s->avctx, &v->x8, &s->idsp,
@@ -539,12 +539,6 @@ static av_cold int vc1_decode_init(AVCodecContext *avctx)
     ff_h264chroma_init(&v->h264chroma, 8);
     ff_qpeldsp_init(&s->qdsp);
 
-    // Must happen after calling ff_vc1_decode_end
-    // to avoid de-allocating the sprite_output_frame
-    v->sprite_output_frame = av_frame_alloc();
-    if (!v->sprite_output_frame)
-        return AVERROR(ENOMEM);
-
     avctx->has_b_frames = !!avctx->max_b_frames;
 
     if (v->color_prim == 1 || v->color_prim == 5 || v->color_prim == 6)
@@ -577,20 +571,15 @@ static av_cold int vc1_decode_init(AVCodecContext *avctx)
             v->sprite_height > 1 << 14 ||
             v->output_width  > 1 << 14 ||
             v->output_height > 1 << 14) {
-            ret = AVERROR_INVALIDDATA;
-            goto error;
+            return AVERROR_INVALIDDATA;
         }
 
         if ((v->sprite_width&1) || (v->sprite_height&1)) {
             avpriv_request_sample(avctx, "odd sprites support");
-            ret = AVERROR_PATCHWELCOME;
-            goto error;
+            return AVERROR_PATCHWELCOME;
         }
     }
     return 0;
-error:
-    av_frame_free(&v->sprite_output_frame);
-    return ret;
 }
 
 /** Close a VC1/WMV3 decoder
@@ -695,13 +684,13 @@ static int vc1_decode_frame(AVCodecContext *avctx, void *data,
                     int buf_size3;
                     if (avctx->hwaccel)
                         buf_start_second_field = start;
-                    tmp = av_realloc_array(slices, sizeof(*slices), (n_slices+1));
+                    tmp = av_realloc_array(slices, sizeof(*slices), n_slices+1);
                     if (!tmp) {
                         ret = AVERROR(ENOMEM);
                         goto err;
                     }
                     slices = tmp;
-                    slices[n_slices].buf = av_mallocz(buf_size + AV_INPUT_BUFFER_PADDING_SIZE);
+                    slices[n_slices].buf = av_mallocz(size + AV_INPUT_BUFFER_PADDING_SIZE);
                     if (!slices[n_slices].buf) {
                         ret = AVERROR(ENOMEM);
                         goto err;
@@ -724,13 +713,13 @@ static int vc1_decode_frame(AVCodecContext *avctx, void *data,
                     break;
                 case VC1_CODE_SLICE: {
                     int buf_size3;
-                    tmp = av_realloc_array(slices, sizeof(*slices), (n_slices+1));
+                    tmp = av_realloc_array(slices, sizeof(*slices), n_slices+1);
                     if (!tmp) {
                         ret = AVERROR(ENOMEM);
                         goto err;
                     }
                     slices = tmp;
-                    slices[n_slices].buf = av_mallocz(buf_size + AV_INPUT_BUFFER_PADDING_SIZE);
+                    slices[n_slices].buf = av_mallocz(size + AV_INPUT_BUFFER_PADDING_SIZE);
                     if (!slices[n_slices].buf) {
                         ret = AVERROR(ENOMEM);
                         goto err;
@@ -759,7 +748,7 @@ static int vc1_decode_frame(AVCodecContext *avctx, void *data,
             } else { // found field marker, unescape second field
                 if (avctx->hwaccel)
                     buf_start_second_field = divider;
-                tmp = av_realloc_array(slices, sizeof(*slices), (n_slices+1));
+                tmp = av_realloc_array(slices, sizeof(*slices), n_slices+1);
                 if (!tmp) {
                     ret = AVERROR(ENOMEM);
                     goto err;
@@ -854,7 +843,12 @@ static int vc1_decode_frame(AVCodecContext *avctx, void *data,
         ret = AVERROR_INVALIDDATA;
         goto err;
     }
-
+    if ((avctx->codec_id == AV_CODEC_ID_WMV3IMAGE || avctx->codec_id == AV_CODEC_ID_VC1IMAGE)
+        && v->field_mode) {
+        av_log(v->s.avctx, AV_LOG_ERROR, "Sprite decoder: expected Frames not Fields\n");
+        ret = AVERROR_INVALIDDATA;
+        goto err;
+    }
     if ((s->mb_height >> v->field_mode) == 0) {
         av_log(v->s.avctx, AV_LOG_ERROR, "image too short\n");
         ret = AVERROR_INVALIDDATA;
@@ -1033,7 +1027,6 @@ static int vc1_decode_frame(AVCodecContext *avctx, void *data,
 
         ff_mpeg_er_frame_start(s);
 
-        v->bits = buf_size * 8;
         v->end_mb_x = s->mb_width;
         if (v->field_mode) {
             s->current_picture.f->linesize[0] <<= 1;
@@ -1107,8 +1100,9 @@ static int vc1_decode_frame(AVCodecContext *avctx, void *data,
                 continue;
             }
             ff_vc1_decode_blocks(v);
-            if (i != n_slices)
+            if (i != n_slices) {
                 s->gb = slices[i].gb;
+            }
         }
         if (v->field_mode) {
             v->second_field = 0;
@@ -1130,7 +1124,9 @@ static int vc1_decode_frame(AVCodecContext *avctx, void *data,
             ret = AVERROR_INVALIDDATA;
             goto err;
         }
-        if (!v->field_mode)
+        if (   !v->field_mode
+            && avctx->codec_id != AV_CODEC_ID_WMV3IMAGE
+            && avctx->codec_id != AV_CODEC_ID_VC1IMAGE)
             ff_er_frame_end(&s->er);
     }
 
@@ -1142,6 +1138,11 @@ image:
         avctx->height = avctx->coded_height = v->output_height;
         if (avctx->skip_frame >= AVDISCARD_NONREF)
             goto end;
+        if (!v->sprite_output_frame &&
+            !(v->sprite_output_frame = av_frame_alloc())) {
+            ret = AVERROR(ENOMEM);
+            goto err;
+        }
 #if CONFIG_WMV3IMAGE_DECODER || CONFIG_VC1IMAGE_DECODER
         if ((ret = vc1_decode_sprites(v, &s->gb)) < 0)
             goto err;
@@ -1153,12 +1154,14 @@ image:
         if (s->pict_type == AV_PICTURE_TYPE_B || s->low_delay) {
             if ((ret = av_frame_ref(pict, s->current_picture_ptr->f)) < 0)
                 goto err;
-            ff_print_debug_info(s, s->current_picture_ptr, pict);
+            if (!v->field_mode)
+                ff_print_debug_info(s, s->current_picture_ptr, pict);
             *got_frame = 1;
         } else if (s->last_picture_ptr) {
             if ((ret = av_frame_ref(pict, s->last_picture_ptr->f)) < 0)
                 goto err;
-            ff_print_debug_info(s, s->last_picture_ptr, pict);
+            if (!v->field_mode)
+                ff_print_debug_info(s, s->last_picture_ptr, pict);
             *got_frame = 1;
         }
     }
@@ -1212,7 +1215,7 @@ AVCodec ff_vc1_decoder = {
     .flush          = ff_mpeg_flush,
     .capabilities   = AV_CODEC_CAP_DR1 | AV_CODEC_CAP_DELAY,
     .pix_fmts       = vc1_hwaccel_pixfmt_list_420,
-    .hw_configs     = (const AVCodecHWConfigInternal*[]) {
+    .hw_configs     = (const AVCodecHWConfigInternal *const []) {
 #if CONFIG_VC1_DXVA2_HWACCEL
                         HWACCEL_DXVA2(vc1),
 #endif
@@ -1249,7 +1252,7 @@ AVCodec ff_wmv3_decoder = {
     .flush          = ff_mpeg_flush,
     .capabilities   = AV_CODEC_CAP_DR1 | AV_CODEC_CAP_DELAY,
     .pix_fmts       = vc1_hwaccel_pixfmt_list_420,
-    .hw_configs     = (const AVCodecHWConfigInternal*[]) {
+    .hw_configs     = (const AVCodecHWConfigInternal *const []) {
 #if CONFIG_WMV3_DXVA2_HWACCEL
                         HWACCEL_DXVA2(wmv3),
 #endif

@@ -1,0 +1,31 @@
+#!/bin/sh
+# vgmstream autotools script - automake/autoconf init
+
+
+# gets all files and updates .am scripts to avoid having to do manually (frowned upon by automake, whatevs)
+# maybe there is a better way or place for this
+VGMSTREAM_SRCS=`(cd ./src/ && ls *.c coding/*.c layout/*.c meta/*.c util/*.c) | tr '\n' ' '`
+VGMSTREAM_HDRS=`(cd ./src/ && ls *.h coding/*.h layout/*.h meta/*.h util/*.h) | tr '\n' ' '`
+AUDACIOUS_SRCS=`(cd ./audacious/ && ls *.cc) | tr '\n' ' '`
+AUDACIOUS_HDRS=`(cd ./audacious/ && ls *.h) | tr '\n' ' '`
+
+# in case some distro sed doesn't support | separator and must use /, all slashes need to be escaped first
+#VGMSTREAM_SRCS=$(echo "$VGMSTREAM_SRCS" | sed 's/\//\\\//g')
+
+sed -i -e "s|libvgmstream_la_SOURCES =.*|libvgmstream_la_SOURCES = $VGMSTREAM_SRCS|g" ./src/Makefile.autotools.am
+sed -i -e "s|EXTRA_DIST =.*|EXTRA_DIST = $VGMSTREAM_HDRS|g" ./src/Makefile.autotools.am
+
+sed -i -e "s|libvgmstream_la_SOURCES =.*|libvgmstream_la_SOURCES = $AUDACIOUS_SRCS|g" ./audacious/Makefile.autotools.am
+sed -i -e "s|EXTRA_DIST =.*|EXTRA_DIST = $AUDACIOUS_HDRS|g" ./audacious/Makefile.autotools.am
+
+# make version to show in about dialogs
+# again, not very pretty
+sh version-make.sh
+
+# create fake files expected by automake and process
+touch README AUTHORS NEWS ChangeLog
+aclocal
+autoheader
+autoconf
+libtoolize --copy --force
+automake -a

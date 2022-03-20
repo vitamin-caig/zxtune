@@ -230,7 +230,7 @@ static int ulti_decode_frame(AVCodecContext *avctx,
     int skip;
     int tmp;
 
-    if ((ret = ff_reget_buffer(avctx, s->frame)) < 0)
+    if ((ret = ff_reget_buffer(avctx, s->frame, 0)) < 0)
         return ret;
 
     bytestream2_init(&s->gb, buf, buf_size);
@@ -428,4 +428,5 @@ AVCodec ff_ulti_decoder = {
     .close          = ulti_decode_end,
     .decode         = ulti_decode_frame,
     .capabilities   = AV_CODEC_CAP_DR1,
+    .caps_internal  = FF_CODEC_CAP_INIT_THREADSAFE,
 };

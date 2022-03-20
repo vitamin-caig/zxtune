@@ -23,10 +23,11 @@
 #include "libavutil/log.h"
 #include "libavutil/opt.h"
 
-#include "avcodec.h"
 #include "av1.h"
 #include "av1_parse.h"
 #include "bsf.h"
+#include "bsf_internal.h"
+#include "bytestream.h"
 #include "h2645_parse.h"
 #include "h264.h"
 #include "hevc.h"
@@ -38,10 +39,10 @@ typedef struct ExtractExtradataContext {
     int (*extract)(AVBSFContext *ctx, AVPacket *pkt,
                    uint8_t **data, int *size);
 
-    /* AV1 specifc fields */
+    /* AV1 specific fields */
     AV1Packet av1_pkt;
 
-    /* H264/HEVC specifc fields */
+    /* H264/HEVC specific fields */
     H2645Packet h2645_pkt;
 
     /* AVOptions */
@@ -86,7 +87,8 @@ static int extract_extradata_av1(AVBSFContext *ctx, AVPacket *pkt,
 
     if (extradata_size && has_seq) {
         AVBufferRef *filtered_buf = NULL;
-        uint8_t *extradata, *filtered_data;
+        PutByteContext pb_filtered_data, pb_extradata;
+        uint8_t *extradata;
 
         if (s->remove) {
             filtered_buf = av_buffer_alloc(filtered_size + AV_INPUT_BUFFER_PADDING_SIZE);
@@ -94,8 +96,6 @@ static int extract_extradata_av1(AVBSFContext *ctx, AVPacket *pkt,
                 return AVERROR(ENOMEM);
             }
             memset(filtered_buf->data + filtered_size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
-
-            filtered_data = filtered_buf->data;
         }
 
         extradata = av_malloc(extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
@@ -103,20 +103,21 @@ static int extract_extradata_av1(AVBSFContext *ctx, AVPacket *pkt,
             av_buffer_unref(&filtered_buf);
             return AVERROR(ENOMEM);
         }
-        memset(extradata + extradata_size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
 
         *data = extradata;
         *size = extradata_size;
+
+        bytestream2_init_writer(&pb_extradata, extradata, extradata_size);
+        if (s->remove)
+            bytestream2_init_writer(&pb_filtered_data, filtered_buf->data, filtered_size);
 
         for (i = 0; i < s->av1_pkt.nb_obus; i++) {
             AV1OBU *obu = &s->av1_pkt.obus[i];
             if (val_in_array(extradata_obu_types, nb_extradata_obu_types,
                              obu->type)) {
-                memcpy(extradata, obu->raw_data, obu->raw_size);
-                extradata += obu->raw_size;
+                bytestream2_put_bufferu(&pb_extradata, obu->raw_data, obu->raw_size);
             } else if (s->remove) {
-                memcpy(filtered_data, obu->raw_data, obu->raw_size);
-                filtered_data += obu->raw_size;
+                bytestream2_put_bufferu(&pb_filtered_data, obu->raw_data, obu->raw_size);
             }
         }
 
@@ -180,7 +181,8 @@ static int extract_extradata_h2645(AVBSFContext *ctx, AVPacket *pkt,
         ((ctx->par_in->codec_id == AV_CODEC_ID_HEVC && has_sps && has_vps) ||
          (ctx->par_in->codec_id == AV_CODEC_ID_H264 && has_sps))) {
         AVBufferRef *filtered_buf = NULL;
-        uint8_t *extradata, *filtered_data;
+        PutByteContext pb_filtered_data, pb_extradata;
+        uint8_t *extradata;
 
         if (s->remove) {
             filtered_buf = av_buffer_alloc(filtered_size + AV_INPUT_BUFFER_PADDING_SIZE);
@@ -188,8 +190,6 @@ static int extract_extradata_h2645(AVBSFContext *ctx, AVPacket *pkt,
                 return AVERROR(ENOMEM);
             }
             memset(filtered_buf->data + filtered_size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
-
-            filtered_data = filtered_buf->data;
         }
 
         extradata = av_malloc(extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
@@ -197,22 +197,23 @@ static int extract_extradata_h2645(AVBSFContext *ctx, AVPacket *pkt,
             av_buffer_unref(&filtered_buf);
             return AVERROR(ENOMEM);
         }
-        memset(extradata + extradata_size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
 
         *data = extradata;
         *size = extradata_size;
+
+        bytestream2_init_writer(&pb_extradata, extradata, extradata_size);
+        if (s->remove)
+            bytestream2_init_writer(&pb_filtered_data, filtered_buf->data, filtered_size);
 
         for (i = 0; i < s->h2645_pkt.nb_nals; i++) {
             H2645NAL *nal = &s->h2645_pkt.nals[i];
             if (val_in_array(extradata_nal_types, nb_extradata_nal_types,
                              nal->type)) {
-                AV_WB24(extradata, 1); // startcode
-                memcpy(extradata + 3, nal->raw_data, nal->raw_size);
-                extradata += 3 + nal->raw_size;
+                bytestream2_put_be24u(&pb_extradata, 1); //startcode
+                bytestream2_put_bufferu(&pb_extradata, nal->raw_data, nal->raw_size);
             } else if (s->remove) {
-                AV_WB24(filtered_data, 1); // startcode
-                memcpy(filtered_data + 3, nal->raw_data, nal->raw_size);
-                filtered_data += 3 + nal->raw_size;
+                bytestream2_put_be24u(&pb_filtered_data, 1); // startcode
+                bytestream2_put_bufferu(&pb_filtered_data, nal->raw_data, nal->raw_size);
             }
         }
 
@@ -251,7 +252,6 @@ static int extract_extradata_vc1(AVBSFContext *ctx, AVPacket *pkt,
             return AVERROR(ENOMEM);
 
         memcpy(*data, pkt->data, extradata_size);
-        memset(*data + extradata_size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
         *size = extradata_size;
 
         if (s->remove) {
@@ -275,19 +275,16 @@ static int extract_extradata_mpeg12(AVBSFContext *ctx, AVPacket *pkt,
         if (state == 0x1B3)
             found = 1;
         else if (found && state != 0x1B5 && state < 0x200 && state >= 0x100) {
-            if (i > 3) {
-                *size = i - 3;
-                *data = av_malloc(*size + AV_INPUT_BUFFER_PADDING_SIZE);
-                if (!*data)
-                    return AVERROR(ENOMEM);
+            *size = i - 3;
+            *data = av_malloc(*size + AV_INPUT_BUFFER_PADDING_SIZE);
+            if (!*data)
+                return AVERROR(ENOMEM);
 
-                memcpy(*data, pkt->data, *size);
-                memset(*data + *size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
+            memcpy(*data, pkt->data, *size);
 
-                if (s->remove) {
-                    pkt->data += *size;
-                    pkt->size -= *size;
-                }
+            if (s->remove) {
+                pkt->data += *size;
+                pkt->size -= *size;
             }
             break;
         }
@@ -312,7 +309,6 @@ static int extract_extradata_mpeg4(AVBSFContext *ctx, AVPacket *pkt,
                     return AVERROR(ENOMEM);
 
                 memcpy(*data, pkt->data, *size);
-                memset(*data + *size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
 
                 if (s->remove) {
                     pkt->data += *size;
@@ -374,6 +370,7 @@ static int extract_extradata_filter(AVBSFContext *ctx, AVPacket *pkt)
         goto fail;
 
     if (extradata) {
+        memset(extradata + extradata_size, 0, AV_INPUT_BUFFER_PADDING_SIZE);
         ret = av_packet_add_side_data(pkt, AV_PKT_DATA_NEW_EXTRADATA,
                                       extradata, extradata_size);
         if (ret < 0) {

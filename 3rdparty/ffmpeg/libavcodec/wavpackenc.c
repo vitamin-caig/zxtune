@@ -529,9 +529,9 @@ static int8_t store_weight(int weight)
 
 static int restore_weight(int8_t weight)
 {
-    int result;
+    int result = 8 * weight;
 
-    if ((result = (int) weight << 3) > 0)
+    if (result > 0)
         result += (result + 64) >> 7;
 
     return result;
@@ -644,9 +644,9 @@ static uint32_t log2sample(uint32_t v, int limit, uint32_t *result)
     uint32_t dbits = count_bits(v);
 
     if ((v += v >> 9) < (1 << 8)) {
-        *result += (dbits << 8) + wp_log2_table[(v << (9 - dbits)) & 0xff];
+        *result += (dbits << 8) + ff_wp_log2_table[(v << (9 - dbits)) & 0xff];
     } else {
-        *result += dbits = (dbits << 8) + wp_log2_table[(v >> (dbits - 9)) & 0xff];
+        *result += dbits = (dbits << 8) + ff_wp_log2_table[(v >> (dbits - 9)) & 0xff];
 
         if (limit && dbits >= limit)
             return 1;
@@ -2557,7 +2557,7 @@ static int wavpack_encode_block(WavPackEncodeContext *s,
             ret = wv_mono(s, samples_l, !s->num_terms, 1);
     } else {
         for (i = 0; i < nb_samples; i++)
-            crc += (crc << 3) + (samples_l[i] << 1) + samples_l[i] + samples_r[i];
+            crc += (crc << 3) + ((uint32_t)samples_l[i] << 1) + samples_l[i] + samples_r[i];
 
         if (s->num_passes)
             ret = wv_stereo(s, samples_l, samples_r, !s->num_terms, 1);

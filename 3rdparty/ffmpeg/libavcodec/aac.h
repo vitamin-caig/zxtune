@@ -34,6 +34,7 @@
 #include "aac_defines.h"
 #include "libavutil/float_dsp.h"
 #include "libavutil/fixed_dsp.h"
+#include "libavutil/mem_internal.h"
 #include "avcodec.h"
 #if !USE_FIXED
 #include "mdct15.h"
@@ -356,7 +357,7 @@ struct AACContext {
     OutputConfiguration oc[2];
     int warned_num_aac_frames;
     int warned_960_sbr;
-
+    unsigned warned_71_wide;
     int warned_gain_control;
 
     /* aacdec functions pointers */
