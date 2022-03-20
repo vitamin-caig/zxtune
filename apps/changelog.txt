@@ -5,6 +5,16 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev5010 from 20.03.2022
+
+[+] Added support of more than 150 formats from vgmstream library
+[*] Enabled plugins emulation in OpenMPT
+[*] Various memory and speed optimizations in core
+[*] zxtune-qt: migrated to Qt5
+[*] zxtune-android: reworked local storages enumeration
+[*] zxtune-android: Android 11 support
+[*] zxtune-android: added browser notifications about possible problems
+
 --- Rev5000 from 06.08.2021
 
 [+] Added support of Digital Symphony (DSYM) and Symphonie (SYMMOD) formats
