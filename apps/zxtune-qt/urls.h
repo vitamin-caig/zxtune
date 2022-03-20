@@ -22,7 +22,7 @@ namespace Urls
 
   constexpr StringView Site()
   {
-    return "https://zxtune.bitbucket.io/"_sv;
+    return "https://zxtune.ru/"_sv;
   }
 
   inline String DownloadsFeed()
