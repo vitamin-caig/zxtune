@@ -61,7 +61,7 @@ class InformationView {
     addNonEmptyField(builder, titleField, description.getTitle());
     addNonEmptyField(builder, authorField, description.getSubtitle());
     addNonEmptyField(builder, programField, metadata.getString(ModuleAttributes.PROGRAM));
-    addNonEmptyField(builder, commentField, description.getDescription());
+    addNonEmptyField(builder, commentField, metadata.getString(ModuleAttributes.COMMENT));
     addNonEmptyRawField(builder, metadata.getString(ModuleAttributes.STRINGS));
     final CharSequence styledVal = Html.fromHtml(builder.toString());
     content.setText(styledVal);

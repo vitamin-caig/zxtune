@@ -106,7 +106,7 @@ class StatusCallback implements Callback {
         // Do not localize
         builder.putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "Unknown artist");
       }
-      putString(builder, MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, item.getComment());
+      putString(builder, ModuleAttributes.COMMENT, item.getComment());
       putString(builder, ModuleAttributes.PROGRAM, item.getProgram());
       putString(builder, ModuleAttributes.STRINGS, item.getStrings());
       builder.putLong(MediaMetadataCompat.METADATA_KEY_DURATION, item.getDuration().toMilliseconds());
