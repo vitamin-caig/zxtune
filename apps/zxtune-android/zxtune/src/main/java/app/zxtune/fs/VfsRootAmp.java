@@ -27,7 +27,6 @@ import app.zxtune.fs.amp.RemoteCatalog;
 import app.zxtune.fs.amp.Track;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 
-@Icon(R.drawable.ic_browser_vfs_amp)
 final class VfsRootAmp extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootAmp.class.getName();
@@ -42,9 +41,9 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     this.context = context;
     this.catalog = Catalog.create(context, http);
     this.groupings = new GroupingDir[]{
-            new HandlesDir(),
-            new CountriesDir(),
-            new GroupsDir()
+        new HandlesDir(),
+        new CountriesDir(),
+        new GroupsDir()
     };
   }
 
@@ -73,6 +72,8 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
+    } else if (VfsExtensions.ICON.equals(id)) {
+      return R.drawable.ic_browser_vfs_amp;
     } else {
       return super.getExtension(id);
     }
@@ -443,7 +444,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
     }
     // cut uri here
     return new AuthorDir(Identifier.forAuthor(grouping.getUri().buildUpon(), author).build(),
-            author);
+        author);
   }
 
   private class TrackFile extends StubObject implements VfsFile {
@@ -503,7 +504,7 @@ final class VfsRootAmp extends StubObject implements VfsRoot {
         public void accept(Author author, Track track) {
           final String letter = author.getHandle().substring(0, 1);
           final Uri.Builder categoryUri = Identifier.forHandleLetter(Identifier.isHandleLetter(letter)
-                  ? letter : Catalog.NON_LETTER_FILTER);
+              ? letter : Catalog.NON_LETTER_FILTER);
           final Uri.Builder authorsUri = Identifier.forAuthor(categoryUri, author);
           final Uri.Builder trackUri = Identifier.forTrack(authorsUri, track);
           visitor.onFile(new TrackFile(trackUri.build(), track));
