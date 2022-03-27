@@ -17,7 +17,7 @@ public final class VfsUtils {
     if (annotation != null) {
       return annotation.value();
     }
-    return null;
+    return VfsExtensionsKt.getIcon(obj);
   }
 }
 
