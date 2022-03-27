@@ -9,7 +9,7 @@ internal class SchemaSourceImplementation : SchemaSource {
             name = data.name,
             description = data.description,
             icon = null,
-            hasFeed = hasFeed(data),
+            hasFeed = data.feed != null,
         )
         is VfsFile -> Schema.Listing.File(
             uri = data.uri,
@@ -26,7 +26,7 @@ internal class SchemaSourceImplementation : SchemaSource {
         Schema.Parents.Object(
             uri = it.uri,
             name = it.name,
-            icon = getIcon(it)
+            icon = it.icon,
         )
     }
 
@@ -35,8 +35,8 @@ internal class SchemaSourceImplementation : SchemaSource {
             uri = it.uri,
             name = it.name,
             description = it.description,
-            icon = getIcon(it),
-            hasFeed = hasFeed(it)
+            icon = it.icon,
+            hasFeed = it.feed != null,
         )
     }
 
@@ -49,15 +49,9 @@ internal class SchemaSourceImplementation : SchemaSource {
                 name = file.name,
                 description = file.description,
                 details = file.size,
-                isCached = isCached(file),
-                tracks = tracks[idx]
+                isCached = Vfs.getCache(file)?.isFile,
+                tracks = tracks[idx],
             )
         }
-    }
-
-    companion object {
-        private fun getIcon(obj: VfsObject) = VfsUtils.getObjectIcon(obj)
-        private fun hasFeed(dir: VfsDir) = dir.feed != null
-        private fun isCached(file: VfsFile) = Vfs.getCache(file)?.isFile
     }
 }

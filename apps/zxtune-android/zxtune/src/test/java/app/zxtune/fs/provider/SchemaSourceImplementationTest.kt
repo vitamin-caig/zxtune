@@ -12,10 +12,16 @@ import org.robolectric.annotation.Implements
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowVfsUtils::class, ShadowVfsArchive::class, ShadowVfs::class])
+@Config(shadows = [ShadowVfsArchive::class, ShadowVfs::class])
 class SchemaSourceImplementationTest {
 
-    private val iconDir = TestDir(1)
+    private val iconDir = object : TestDir(1) {
+        override fun getExtension(id: String) = if (id == VfsExtensions.ICON) {
+            1
+        } else {
+            super.getExtension(id)
+        }
+    }
     private val feedDir = object : TestDir(2) {
         override fun getExtension(id: String) = if (id == VfsExtensions.FEED) {
             mock<Iterator<VfsFile>>()
@@ -32,9 +38,6 @@ class SchemaSourceImplementationTest {
     private val underTest = SchemaSourceImplementation()
 
     init {
-        ShadowVfsUtils.doGetObjectIcon.stub {
-            on { invoke(iconDir) } doReturn 1
-        }
         ShadowVfsArchive.doGetModulesCount.stub {
             on { invoke(any()) } doAnswer {
                 val args = it.getArgument<Array<Uri>>(0)
@@ -157,14 +160,6 @@ class SchemaSourceImplementationTest {
             assertEquals(1, tracks)
         }
     }
-}
-
-@Implements(VfsUtils::class)
-object ShadowVfsUtils {
-    val doGetObjectIcon = mock<(VfsObject) -> Int?>()
-
-    @JvmStatic
-    fun getObjectIcon(obj: VfsObject) = doGetObjectIcon(obj)
 }
 
 @Implements(Vfs::class)
