@@ -4,7 +4,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.SparseIntArray;
 
+import androidx.annotation.DrawableRes;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.core.util.Pair;
 
 import java.io.IOException;
@@ -25,7 +27,6 @@ import app.zxtune.fs.vgmrips.RemoteCatalog;
 import app.zxtune.fs.vgmrips.Track;
 import app.zxtune.utils.ProgressCallback;
 
-@Icon(R.drawable.ic_browser_vfs_vgmrips)
 final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootVgmrips.class.getName();
@@ -69,6 +70,15 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
   @Override
   public VfsObject getParent() {
     return parent;
+  }
+
+  @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON.equals(id)) {
+      return R.drawable.ic_browser_vfs_vgmrips;
+    } else {
+      return super.getExtension(id);
+    }
   }
 
   @Override
@@ -149,10 +159,16 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
     private final String category;
     private final Catalog.Grouping grouping;
+    @StringRes
+    private final int nameRes;
+    @DrawableRes
+    private final int iconRes;
 
-    GroupingDir(String category, Catalog.Grouping grouping) {
+    GroupingDir(String category, Catalog.Grouping grouping, @StringRes int nameRes, @DrawableRes int iconRes) {
       this.category = category;
       this.grouping = grouping;
+      this.nameRes = nameRes;
+      this.iconRes = iconRes;
     }
 
     @Override
@@ -161,8 +177,22 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     }
 
     @Override
+    public String getName() {
+      return context.getString(nameRes);
+    }
+
+    @Override
     public VfsObject getParent() {
       return VfsRootVgmrips.this;
+    }
+
+    @Override
+    public Object getExtension(String id) {
+      if (VfsExtensions.ICON.equals(id)) {
+        return iconRes;
+      } else {
+        return super.getExtension(id);
+      }
     }
 
     @Override
@@ -184,73 +214,48 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     }
   }
 
-  @Icon(R.drawable.ic_browser_vfs_vgmrips_companies)
   private class CompaniesDir extends GroupingDir {
 
     CompaniesDir() {
-      super(Identifier.CATEGORY_COMPANY, catalog.companies());
-    }
-
-    @Override
-    public String getName() {
-      return context.getString(R.string.vfs_vgmrips_companies_name);
+      super(Identifier.CATEGORY_COMPANY, catalog.companies(),
+          R.string.vfs_vgmrips_companies_name, R.drawable.ic_browser_vfs_vgmrips_companies);
     }
   }
 
-  @Icon(R.drawable.ic_browser_vfs_vgmrips_composers)
   private class ComposersDir extends GroupingDir {
 
     ComposersDir() {
-      super(Identifier.CATEGORY_COMPOSER, catalog.composers());
-    }
-
-    @Override
-    public String getName() {
-      return context.getString(R.string.vfs_vgmrips_composers_name);
+      super(Identifier.CATEGORY_COMPOSER, catalog.composers(),
+          R.string.vfs_vgmrips_composers_name, R.drawable.ic_browser_vfs_vgmrips_composers);
     }
   }
 
-  @Icon(R.drawable.ic_browser_vfs_vgmrips_chips)
   private class ChipsDir extends GroupingDir {
 
     ChipsDir() {
-      super(Identifier.CATEGORY_CHIP, catalog.chips());
-    }
-
-    @Override
-    public String getName() {
-      return context.getString(R.string.vfs_vgmrips_chips_name);
+      super(Identifier.CATEGORY_CHIP, catalog.chips(),
+          R.string.vfs_vgmrips_chips_name, R.drawable.ic_browser_vfs_vgmrips_chips);
     }
   }
 
-  @Icon(R.drawable.ic_browser_vfs_vgmrips_systems)
   private class SystemsDir extends GroupingDir {
 
     SystemsDir() {
-      super(Identifier.CATEGORY_SYSTEM, catalog.systems());
-    }
-
-    @Override
-    public String getName() {
-      return context.getString(R.string.vfs_vgmrips_systems_name);
+      super(Identifier.CATEGORY_SYSTEM, catalog.systems(),
+          R.string.vfs_vgmrips_systems_name, R.drawable.ic_browser_vfs_vgmrips_systems);
     }
   }
 
-  @Icon(R.drawable.ic_browser_vfs_radio)
   private class RandomDir extends GroupingDir {
     RandomDir() {
       super(Identifier.CATEGORY_RANDOM, new Catalog.Grouping() {
-        @Override
-        public void query(Catalog.Visitor<Group> visitor) {}
+            @Override
+            public void query(Catalog.Visitor<Group> visitor) {}
 
-        @Override
-        public void queryPacks(String id, Catalog.Visitor<Pack> visitor, ProgressCallback progress) {}
-      });
-    }
-
-    @Override
-    public String getName() {
-      return context.getString(R.string.vfs_vgmrips_random_name);
+            @Override
+            public void queryPacks(String id, Catalog.Visitor<Pack> visitor, ProgressCallback progress) {}
+          },
+          R.string.vfs_vgmrips_random_name, R.drawable.ic_browser_vfs_radio);
     }
 
     @Override
