@@ -5,6 +5,7 @@
  */
 package app.zxtune.fs
 
+import android.net.Uri
 import androidx.annotation.DrawableRes
 import java.io.IOException
 
@@ -31,6 +32,9 @@ object VfsExtensions {
     // @DrawableRes
     const val ICON = "ICON"
 
+    // Uri[]
+    const val PERMISSION_QUERY_URI = "PERMISSION_QUERY_URI"
+
     // Separate interface for fast searching
     interface SearchEngine {
         fun interface Visitor {
@@ -56,3 +60,6 @@ val VfsDir.feed
 @get:DrawableRes
 val VfsObject.icon
     get() = getExtension(VfsExtensions.ICON) as? Int
+
+val VfsObject.permissionQueryUri
+    get() = getExtension(VfsExtensions.PERMISSION_QUERY_URI) as? Uri
