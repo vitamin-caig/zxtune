@@ -5,6 +5,7 @@
  */
 package app.zxtune.fs
 
+import androidx.annotation.DrawableRes
 import java.io.IOException
 
 object VfsExtensions {
@@ -27,6 +28,9 @@ object VfsExtensions {
     // Uri[]
     const val DOWNLOAD_URIS = "DOWNLOAD_URIS"
 
+    // @DrawableRes
+    const val ICON = "ICON"
+
     // Separate interface for fast searching
     interface SearchEngine {
         fun interface Visitor {
@@ -48,3 +52,7 @@ val VfsDir.comparator
 val VfsDir.feed
     @Suppress("UNCHECKED_CAST")
     get() = getExtension(VfsExtensions.FEED) as? Iterator<VfsFile>
+
+@get:DrawableRes
+val VfsObject.icon
+    get() = getExtension(VfsExtensions.ICON) as? Int

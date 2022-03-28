@@ -20,7 +20,6 @@ import app.zxtune.fs.httpdir.Catalog;
 import app.zxtune.fs.httpdir.HttpRootBase;
 import app.zxtune.fs.joshw.Path;
 
-@Icon(R.drawable.ic_browser_vfs_joshw)
 final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
 
   private final Context context;
@@ -30,37 +29,37 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
     super(parent, Catalog.create(context, http, "joshw"), Path.create());
     this.context = context;
     this.bases = new AudiobaseDir[]{
-            new AudiobaseDir("2sf", R.string.vfs_joshw_2sf_name),
-            new AudiobaseDir("3do", R.string.vfs_joshw_3do_name),
-            new AudiobaseDir("3sf", R.string.vfs_joshw_3sf_name),
-            //new AudiobaseDir("cdi", R.string.vfs_joshw_cdi_name),
-            new AudiobaseDir("dsf", R.string.vfs_joshw_dsf_name),
-            new AudiobaseDir("fmtowns", R.string.vfs_joshw_fmtowns_name),
-            new AudiobaseDir("gbs", R.string.vfs_joshw_gbs_name),
-            new AudiobaseDir("gcn", R.string.vfs_joshw_gcn_name),
-            new AudiobaseDir("gsf", R.string.vfs_joshw_gsf_name),
-            new AudiobaseDir("hes", R.string.vfs_joshw_hes_name),
-            new AudiobaseDir("kss", R.string.vfs_joshw_kss_name),
-            new AudiobaseDir("mobile", R.string.vfs_joshw_mobile_name),
-            new AudiobaseDir("ncd", R.string.vfs_joshw_ncd_name),
-            new AudiobaseDir("nsf", R.string.vfs_joshw_nsf_name),
-            new AudiobaseDir("pc", R.string.vfs_joshw_pc_name),
-            new AudiobaseDir("psf", R.string.vfs_joshw_psf_name),
-            new AudiobaseDir("psf2", R.string.vfs_joshw_psf2_name),
-            new AudiobaseDir("psf3", R.string.vfs_joshw_psf3_name),
-            new AudiobaseDir("psf4", R.string.vfs_joshw_psf4_name),
-            new AudiobaseDir("psp", R.string.vfs_joshw_psp_name),
-            new AudiobaseDir("s98", R.string.vfs_joshw_s98_name),
-            new AudiobaseDir("smd", R.string.vfs_joshw_smd_name),
-            new AudiobaseDir("spc", R.string.vfs_joshw_spc_name),
-            new AudiobaseDir("ssf", R.string.vfs_joshw_ssf_name),
-            new AudiobaseDir("switch", R.string.vfs_joshw_switch_name),
-            new AudiobaseDir("usf", R.string.vfs_joshw_usf_name),
-            new AudiobaseDir("vita", R.string.vfs_joshw_vita_name),
-            new AudiobaseDir("wii", R.string.vfs_joshw_wii_name),
-            new AudiobaseDir("wiiu", R.string.vfs_joshw_wiiu_name),
-            new AudiobaseDir("x360", R.string.vfs_joshw_x360_name),
-            new AudiobaseDir("xbox", R.string.vfs_joshw_xbox_name),
+        new AudiobaseDir("2sf", R.string.vfs_joshw_2sf_name),
+        new AudiobaseDir("3do", R.string.vfs_joshw_3do_name),
+        new AudiobaseDir("3sf", R.string.vfs_joshw_3sf_name),
+        //new AudiobaseDir("cdi", R.string.vfs_joshw_cdi_name),
+        new AudiobaseDir("dsf", R.string.vfs_joshw_dsf_name),
+        new AudiobaseDir("fmtowns", R.string.vfs_joshw_fmtowns_name),
+        new AudiobaseDir("gbs", R.string.vfs_joshw_gbs_name),
+        new AudiobaseDir("gcn", R.string.vfs_joshw_gcn_name),
+        new AudiobaseDir("gsf", R.string.vfs_joshw_gsf_name),
+        new AudiobaseDir("hes", R.string.vfs_joshw_hes_name),
+        new AudiobaseDir("kss", R.string.vfs_joshw_kss_name),
+        new AudiobaseDir("mobile", R.string.vfs_joshw_mobile_name),
+        new AudiobaseDir("ncd", R.string.vfs_joshw_ncd_name),
+        new AudiobaseDir("nsf", R.string.vfs_joshw_nsf_name),
+        new AudiobaseDir("pc", R.string.vfs_joshw_pc_name),
+        new AudiobaseDir("psf", R.string.vfs_joshw_psf_name),
+        new AudiobaseDir("psf2", R.string.vfs_joshw_psf2_name),
+        new AudiobaseDir("psf3", R.string.vfs_joshw_psf3_name),
+        new AudiobaseDir("psf4", R.string.vfs_joshw_psf4_name),
+        new AudiobaseDir("psp", R.string.vfs_joshw_psp_name),
+        new AudiobaseDir("s98", R.string.vfs_joshw_s98_name),
+        new AudiobaseDir("smd", R.string.vfs_joshw_smd_name),
+        new AudiobaseDir("spc", R.string.vfs_joshw_spc_name),
+        new AudiobaseDir("ssf", R.string.vfs_joshw_ssf_name),
+        new AudiobaseDir("switch", R.string.vfs_joshw_switch_name),
+        new AudiobaseDir("usf", R.string.vfs_joshw_usf_name),
+        new AudiobaseDir("vita", R.string.vfs_joshw_vita_name),
+        new AudiobaseDir("wii", R.string.vfs_joshw_wii_name),
+        new AudiobaseDir("wiiu", R.string.vfs_joshw_wiiu_name),
+        new AudiobaseDir("x360", R.string.vfs_joshw_x360_name),
+        new AudiobaseDir("xbox", R.string.vfs_joshw_xbox_name),
     };
   }
 
@@ -72,6 +71,16 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
   @Override
   public String getDescription() {
     return context.getString(R.string.vfs_joshw_root_description);
+  }
+
+  @Nullable
+  @Override
+  public Object getExtension(String id) {
+    if (VfsExtensions.ICON.equals(id)) {
+      return R.drawable.ic_browser_vfs_joshw;
+    } else {
+      return super.getExtension(id);
+    }
   }
 
   @Override
@@ -91,8 +100,8 @@ final class VfsRootJoshw extends HttpRootBase implements VfsRoot {
   public VfsDir makeDir(app.zxtune.fs.httpdir.Path path, String descr) {
     final Path ownPath = (Path) path;
     return ownPath.isCatalogue()
-            ? resolveCatalogue(ownPath.getCatalogue())
-            : super.makeDir(path, descr);
+        ? resolveCatalogue(ownPath.getCatalogue())
+        : super.makeDir(path, descr);
   }
 
   private VfsDir resolveCatalogue(String id) {

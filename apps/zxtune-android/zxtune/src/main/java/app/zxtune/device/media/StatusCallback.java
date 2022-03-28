@@ -26,9 +26,9 @@ import app.zxtune.core.Identifier;
 import app.zxtune.core.ModuleAttributes;
 import app.zxtune.fs.Vfs;
 import app.zxtune.fs.VfsExtensions;
+import app.zxtune.fs.VfsExtensionsKt;
 import app.zxtune.fs.VfsFile;
 import app.zxtune.fs.VfsObject;
-import app.zxtune.fs.VfsUtils;
 import app.zxtune.fs.provider.VfsProviderClient;
 import app.zxtune.playback.Callback;
 import app.zxtune.playback.Item;
@@ -157,7 +157,7 @@ class StatusCallback implements Callback {
     try {
       final Uri rootLocation = new Uri.Builder().scheme(location.getScheme()).build();
       final VfsObject root = Vfs.resolve(rootLocation);
-      Integer icon = VfsUtils.getObjectIcon(root);
+      Integer icon = VfsExtensionsKt.getIcon(root);
       if (icon != null) {
         return icon;
       }

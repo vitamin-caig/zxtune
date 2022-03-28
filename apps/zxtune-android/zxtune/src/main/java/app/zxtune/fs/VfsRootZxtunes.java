@@ -26,7 +26,6 @@ import app.zxtune.fs.zxtunes.Identifier;
 import app.zxtune.fs.zxtunes.RemoteCatalog;
 import app.zxtune.fs.zxtunes.Track;
 
-@Icon(R.drawable.ic_browser_vfs_zxtunes)
 final class VfsRootZxtunes extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootZxtunes.class.getName();
@@ -41,7 +40,7 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     this.context = context;
     this.catalog = Catalog.create(context, http);
     this.groups = new GroupingDir[]{
-            new AuthorsDir()
+        new AuthorsDir()
     };
   }
 
@@ -70,6 +69,8 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     if (VfsExtensions.SEARCH_ENGINE.equals(id) && catalog.searchSupported()) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
+    } else if (VfsExtensions.ICON.equals(id)) {
+      return R.drawable.ic_browser_vfs_zxtunes;
     } else {
       return super.getExtension(id);
     }
@@ -175,8 +176,8 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
       }
       final VfsObject dir = resolveDir(uri, path);
       return dir != null
-              ? dir
-              : this;
+          ? dir
+          : this;
     }
   }
 
@@ -188,8 +189,8 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     }
     final Integer date = Identifier.findDate(uri, path);
     return date != null
-            ? new AuthorDateDir(author, date)
-            : new AuthorDir(author);
+        ? new AuthorDateDir(author, date)
+        : new AuthorDir(author);
   }
 
   private class AuthorDir extends StubObject implements VfsDir {
@@ -354,17 +355,17 @@ final class VfsRootZxtunes extends StubObject implements VfsRoot {
     @Override
     public String getSize() {
       return module.getDuration() != null
-              ? FRAME_DURATION.multiplies(module.getDuration()).toString()
-              : "";
+          ? FRAME_DURATION.multiplies(module.getDuration()).toString()
+          : "";
     }
 
     @Nullable
     private String getShareUrl() {
       final Author author = Identifier.findAuthor(uri, uri.getPathSegments());
       return author != null
-              ? String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.getId(),
+          ? String.format(Locale.US, "http://zxtunes.com/author.php?id=%d&play=%d", author.getId(),
           module.getId())
-              : null;
+          : null;
     }
   }
 

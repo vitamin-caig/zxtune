@@ -21,14 +21,12 @@ import app.zxtune.R;
 import app.zxtune.Util;
 import app.zxtune.fs.http.MultisourceHttpProvider;
 import app.zxtune.fs.modarchive.Author;
-import app.zxtune.fs.modarchive.CachingCatalog;
 import app.zxtune.fs.modarchive.Catalog;
 import app.zxtune.fs.modarchive.Genre;
 import app.zxtune.fs.modarchive.Identifier;
 import app.zxtune.fs.modarchive.RemoteCatalog;
 import app.zxtune.fs.modarchive.Track;
 
-@Icon(R.drawable.ic_browser_vfs_modarchive)
 final class VfsRootModarchive extends StubObject implements VfsRoot {
 
   private static final String TAG = VfsRootModarchive.class.getName();
@@ -43,9 +41,9 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     this.context = context;
     this.catalog = Catalog.create(context, http, key);
     this.groupings = new GroupingDir[]{
-            new AuthorsDir(),
-            new GenresDir(),
-            new RandomDir(),
+        new AuthorsDir(),
+        new GenresDir(),
+        new RandomDir(),
     };
   }
 
@@ -74,6 +72,8 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     if (VfsExtensions.SEARCH_ENGINE.equals(id)) {
       //assume root will search by authors
       return new AuthorsSearchEngine();
+    } else if (VfsExtensions.ICON.equals(id)) {
+      return R.drawable.ic_browser_vfs_modarchive;
     } else {
       return super.getExtension(id);
     }
@@ -218,7 +218,6 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     }
   }
 
-  @Icon(R.drawable.ic_browser_vfs_radio)
   private final class RandomDir extends GroupingDir {
 
     @Override
@@ -249,6 +248,8 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     public Object getExtension(String id) {
       if (VfsExtensions.FEED.equals(id)) {
         return new FeedIterator();
+      } else if (VfsExtensions.ICON.equals(id)) {
+        return R.drawable.ic_browser_vfs_radio;
       } else {
         return super.getExtension(id);
       }
@@ -295,7 +296,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
           }
         });
       } catch (IOException e) {
-        Log.w(TAG, e,"Failed to load random tracks");
+        Log.w(TAG, e, "Failed to load random tracks");
       }
       if (hash == newHash[0]) {
         if (++count > MAX_REPEATS) {
@@ -446,7 +447,7 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
     private String getShareUrl() {
       return String.format(Locale.US, "https://modarchive.org/index" +
               ".php?request=view_player&query=%d",
-              track.getId());
+          track.getId());
     }
   }
 
