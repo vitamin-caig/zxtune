@@ -263,7 +263,7 @@ class BrowserFragment : Fragment() {
         //TODO: rework for PlaylistControl usage as a local iface
         private fun addToPlaylist(selection: Selection<Uri>) = controller?.run {
             val params = Bundle().apply {
-                putParcelableArrayList("uris", convertSelection(selection))
+                putParcelableArray("uris", convertSelection(selection))
             }
             transportControls.sendCustomAction(MainService.CUSTOM_ACTION_ADD, params)
         }
@@ -304,8 +304,10 @@ class BrowserFragment : Fragment() {
         fun createInstance() = BrowserFragment()
 
         private fun convertSelection(selection: Selection<Uri>) =
-            ArrayList<Uri>(selection.size()).apply {
-                selection.iterator().forEach(this::add)
+            selection.iterator().let { iterator ->
+                Array<Uri>(selection.size()) {
+                    iterator.next()
+                }
             }
     }
 }
