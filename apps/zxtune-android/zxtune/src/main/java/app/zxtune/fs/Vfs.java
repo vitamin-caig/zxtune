@@ -8,6 +8,7 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
@@ -136,7 +137,11 @@ public final class Vfs {
 
   private VfsRoot createRoot(Context appContext) {
     final VfsRootComposite composite = new VfsRootComposite(null);
-    composite.addSubroot(new VfsRootLocal(appContext));
+    if (Build.VERSION.SDK_INT >= VfsRootLocalStorageAccessFramework.REQUIRED_SDK_LEVEL) {
+      composite.addSubroot(new VfsRootLocalStorageAccessFramework(appContext));
+    } else {
+      composite.addSubroot(new VfsRootLocal(appContext));
+    }
     composite.addSubroot(new VfsRootNetwork(appContext, network));
     composite.addSubroot(new VfsRootPlaylists(appContext));
     composite.addSubroot(new VfsRootRadio(appContext));
