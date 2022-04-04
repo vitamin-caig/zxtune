@@ -194,6 +194,6 @@
     <!-- errors -->
     <string name="network_inaccessible">Сеть недоступна</string>
     <string name="failed_resolve">Не найден путь %s</string>
-    <string name="limited_storage_access">Не все файлы могут быть видны. Нажмите чтобы исправить.</string>
+    <string name="limited_storage_access">Нажмите, чтобы предоставить разрешение на доступ</string>
     <string name="limited_stored_playlists_access">Нет прав на создание новых списков. Нажмите чтобы исправить</string>
 </resources>

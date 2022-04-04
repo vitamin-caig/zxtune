@@ -11,8 +11,10 @@ import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import app.zxtune.R
+import app.zxtune.ResultActivity
+import app.zxtune.fs.VfsObject
+import app.zxtune.fs.permissionQueryUri
 import app.zxtune.net.NetworkManager
-import java.io.File
 
 internal class NotificationsSource @VisibleForTesting constructor(
     private val ctx: Context,
@@ -31,18 +33,19 @@ internal class NotificationsSource @VisibleForTesting constructor(
 
     constructor(ctx: Context) : this(ctx, getNetworkState(ctx))
 
-    fun getFor(uri: Uri) = getNotification(uri)?.let { obj ->
+    fun getFor(obj: VfsObject) = getNotification(obj)?.let { notification ->
         MatrixCursor(Schema.Notifications.COLUMNS).apply {
-            addRow(obj.serialize())
+            addRow(notification.serialize())
         }
     }
 
     @VisibleForTesting
-    fun getNotification(uri: Uri): Schema.Notifications.Object? {
+    fun getNotification(obj: VfsObject): Schema.Notifications.Object? {
         resolverNotificationUri = null
+        val uri = obj.uri
         return when (uri.scheme) {
             null -> null // root
-            "file" -> getStorageNotification(uri)
+            "file" -> getStorageNotification(obj)
             "playlists" -> getPlaylistNotification(uri)
             else -> getNetworkNotification(uri)
         }
@@ -60,19 +63,12 @@ internal class NotificationsSource @VisibleForTesting constructor(
         }
     }
 
-    private fun getStorageNotification(uri: Uri) =
-        if (Build.VERSION.SDK_INT >= 30 &&
-            true == uri.path?.takeIf { it.isNotEmpty() }?.let {
-                !Environment.isExternalStorageManager(File(it))
-            }
-        ) {
-            Schema.Notifications.Object(
-                ctx.getString(R.string.limited_storage_access),
-                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-            )
-        } else {
-            null
-        }
+    private fun getStorageNotification(obj: VfsObject) = obj.permissionQueryUri?.let { uri ->
+        Schema.Notifications.Object(
+            ctx.getString(R.string.limited_storage_access),
+            ResultActivity.createStoragePermissionRequestIntent(ctx, uri)
+        )
+    }
 
     private fun getPlaylistNotification(uri: Uri) =
         if (Build.VERSION.SDK_INT >= 30 && uri.path.isNullOrEmpty() && !Environment.isExternalStorageManager()) {

@@ -191,6 +191,6 @@
     <!--errors-->
     <string name="network_inaccessible">La red no es accesible</string>
     <string name="failed_resolve">No se pudo resolver %s</string>
-    <string name="limited_storage_access">Es posible que no todos los archivos estén visibles. Toca para arreglar.</string>
+    <string name="limited_storage_access">Toque para otorgar permiso de acceso</string>
     <string name="limited_stored_playlists_access">No hay permiso para crear nuevas listas de reproducción. Toca para arreglar.</string>
 </resources>

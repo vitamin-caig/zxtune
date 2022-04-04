@@ -192,6 +192,6 @@
     <!-- errors -->
     <string name="network_inaccessible">ネットワークに接続できませんでした</string>
     <string name="failed_resolve">%s の解決に失敗しました</string>
-    <string name="limited_storage_access">すべてのファイルが表示されるわけではありません。 タップして修正します。</string>
+    <string name="limited_storage_access">をタップしてアクセス許可を与えます</string>
     <string name="limited_stored_playlists_access">新しいプレイリストを作成する権限はありません。 タップして修正します。</string>
 </resources>

@@ -4,7 +4,6 @@ import android.content.ContentProvider
 import android.content.Context
 import android.net.Uri
 import android.os.CancellationSignal
-import android.os.Environment
 import android.os.OperationCanceledException
 import android.provider.Settings
 import androidx.lifecycle.LiveData
@@ -26,12 +25,11 @@ import org.robolectric.android.controller.ContentProviderController
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
-import java.io.File
 import java.io.IOException
 
 // tests both Provider and VfsClient
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowNetworkManager::class, ShadowEnvironment::class], sdk = [30])
+@Config(shadows = [ShadowNetworkManager::class], sdk = [30])
 class ClientProviderTest {
 
     private val fastDirContent = Array(10) { TestDir(2 + it) }
@@ -247,6 +245,13 @@ class ClientProviderTest {
     @Test
     fun `network state notification`() {
         val networkUri = Uri.parse("radio:/")
+        resolver.stub {
+            on { resolve(networkUri) } doAnswer {
+                mock<VfsDir> {
+                    on { uri } doReturn networkUri
+                }
+            }
+        }
         val notifications = ArrayList<Schema.Notifications.Object?>()
         // First notification is delivered immediately
         client.subscribeForNotifications(networkUri, notifications::add).use {
@@ -270,35 +275,33 @@ class ClientProviderTest {
 
     @Test
     fun `storage notification`() {
-        val filePath = "/root/dir/file"
-        val fileUri = Uri.parse("file:$filePath")
-        var isManaged = false
-        ShadowEnvironment.callback.stub {
-            on { invoke(any()) } doAnswer { isManaged }
+        val noPermissionsUri = Uri.parse("file://root/path/to/dir")
+        var permissionQueryUri: Uri? = null
+        val noPermissionsDir = object : TestDir(20000) {
+            override val uri: Uri
+                get() = noPermissionsUri
+
+            override fun getExtension(id: String) = when (id) {
+                VfsExtensions.PERMISSION_QUERY_URI -> permissionQueryUri
+                else -> super.getExtension(id)
+            }
         }
-        client.subscribeForNotifications(fileUri) { notification ->
-            assertEquals("Not all the files may be visible. Tap to fix.", notification!!.message)
+        resolver.stub {
+            on { resolve(noPermissionsUri) } doReturn noPermissionsDir
+        }
+
+        permissionQueryUri = noPermissionsUri
+        client.subscribeForNotifications(noPermissionsUri) { notification ->
+            assertEquals("Tap to give access permission", notification!!.message)
             assertEquals(
-                Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION,
+                "request_storage_permission",
                 notification.action!!.action
             )
         }.release()
-        isManaged = true
-        client.subscribeForNotifications(fileUri) { notification ->
+        permissionQueryUri = null
+        client.subscribeForNotifications(noPermissionsUri) { notification ->
             assertEquals(null, notification)
         }.release()
-
-        verify(ShadowEnvironment.callback, times(2)).invoke(filePath)
-        verifyNoMoreInteractions(ShadowEnvironment.callback)
-    }
-
-    @Test
-    fun `storage root no notifications`() {
-        val fileUri = Uri.Builder().scheme("file").build()
-        client.subscribeForNotifications(fileUri) { notification ->
-            assertEquals(null, notification)
-        }.release()
-        verifyNoMoreInteractions(ShadowEnvironment.callback)
     }
 
     @Test
@@ -356,16 +359,5 @@ class ShadowNetworkManager {
         @get:Implementation
         val networkAvailable: LiveData<Boolean>
             get() = state
-    }
-}
-
-@Implements(Environment::class)
-class ShadowEnvironment {
-    companion object {
-        val callback = mock<(String) -> Boolean>()
-
-        @JvmStatic
-        @Implementation
-        fun isExternalStorageManager(f: File) = callback(f.absolutePath)
     }
 }
