@@ -2,10 +2,12 @@ package app.zxtune.preferences
 
 import android.content.ContentProvider
 import android.os.Bundle
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.core.content.edit
 import app.zxtune.Preferences
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -13,6 +15,8 @@ import org.robolectric.android.controller.ContentProviderController
 
 @RunWith(RobolectricTestRunner::class)
 class ProviderClientTest {
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private lateinit var provider: ContentProvider
     private lateinit var client: ProviderClient
@@ -80,6 +84,38 @@ class ProviderClientTest {
             assertEquals(12, getInt("zxtune.int", 23).toLong())
             assertEquals(45, getLong("zxtune.long", 56))
             assertEquals("str", getString("zxtune.string", "default"))
+        }
+    }
+
+    @Test
+    fun `test live data`() {
+        // nonexisting
+        client.getLive("nonexisting", "defValue").run {
+            assertEquals("defValue", value)
+            client.set("nonexisting", "updated")
+            assertEquals("updated", value)
+            lateinit var fromLive: String
+            observeForever {
+                fromLive = it
+            }
+            assertEquals("updated", value)
+            client.set("nonexisting", "fromLive")
+            assertEquals("fromLive", fromLive)
+            assertEquals(fromLive, value)
+        }
+        // existing
+        client.getLive("ignored.int", 34).run {
+            assertEquals(23, value)
+            client.set("ignored.int", 45)
+            assertEquals(45, value)
+            var fromLive: Int = -1
+            observeForever {
+                fromLive = it
+            }
+            assertEquals(45, value)
+            client.set("ignored.int", 56)
+            assertEquals(56, fromLive)
+            assertEquals(fromLive, value)
         }
     }
 }
