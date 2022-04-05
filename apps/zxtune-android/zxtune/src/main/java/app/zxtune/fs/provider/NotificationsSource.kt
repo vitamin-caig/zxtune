@@ -5,22 +5,24 @@ import android.content.Intent
 import android.database.MatrixCursor
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.Settings
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import app.zxtune.R
 import app.zxtune.ResultActivity
+import app.zxtune.device.PersistentStorage
 import app.zxtune.fs.VfsObject
+import app.zxtune.fs.VfsRootLocalStorageAccessFramework
 import app.zxtune.fs.permissionQueryUri
 import app.zxtune.net.NetworkManager
 
 internal class NotificationsSource @VisibleForTesting constructor(
     private val ctx: Context,
     private val networkState: LiveData<Boolean>,
+    private val persistentStorageState: LiveData<PersistentStorage.State>,
 ) {
-    private val networkStateObserver = Observer<Boolean> {
+    private val statesObserver = Observer<Any> {
         resolverNotificationUri?.let { uri ->
             ctx.contentResolver?.notifyChange(uri, null)
         }
@@ -28,10 +30,11 @@ internal class NotificationsSource @VisibleForTesting constructor(
     private var resolverNotificationUri: Uri? = null
 
     init {
-        networkState.observeForever(networkStateObserver)
+        networkState.observeForever(statesObserver)
+        persistentStorageState.observeForever(statesObserver)
     }
 
-    constructor(ctx: Context) : this(ctx, getNetworkState(ctx))
+    constructor(ctx: Context) : this(ctx, getNetworkState(ctx), PersistentStorage.instance.state)
 
     fun getFor(obj: VfsObject) = getNotification(obj)?.let { notification ->
         MatrixCursor(Schema.Notifications.COLUMNS).apply {
@@ -70,15 +73,28 @@ internal class NotificationsSource @VisibleForTesting constructor(
         )
     }
 
-    private fun getPlaylistNotification(uri: Uri) =
-        if (Build.VERSION.SDK_INT >= 30 && uri.path.isNullOrEmpty() && !Environment.isExternalStorageManager()) {
-            Schema.Notifications.Object(
-                ctx.getString(R.string.limited_stored_playlists_access),
-                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-            )
-        } else {
-            null
+    private fun getPlaylistNotification(uri: Uri): Schema.Notifications.Object? {
+        // show only for root
+        if (!uri.path.isNullOrEmpty()) {
+            return null
         }
+        if (Build.VERSION.SDK_INT < VfsRootLocalStorageAccessFramework.REQUIRED_SDK_LEVEL) {
+            return null
+        }
+        resolverNotificationUri = Query.notificationUriFor(uri)
+        persistentStorageState.value?.let { state ->
+            if (true != state.location?.isDirectory) {
+                return Schema.Notifications.Object(
+                    ctx.getString(R.string.no_stored_playlists_access),
+                    ResultActivity.createPersistentStorageLocationRequestIntent(
+                        ctx,
+                        state.defaultLocationHint
+                    )
+                )
+            }
+        }
+        return null
+    }
 
     companion object {
         private fun getNetworkState(ctx: Context): LiveData<Boolean> {

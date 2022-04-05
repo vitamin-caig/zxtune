@@ -192,5 +192,5 @@
     <string name="network_inaccessible">Internet não disponível</string>
     <string name="failed_resolve">Falha ao resolver %s</string>
     <string name="limited_storage_access">Toque para dar permissão de acesso</string>
-    <string name="limited_stored_playlists_access">Sem permissão para criar novas listas de reprodução. Toque para corrigir.</string>
+    <string name="no_stored_playlists_access">Toque para configurar o local de armazenamento persistente</string>
 </resources>

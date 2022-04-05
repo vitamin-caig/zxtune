@@ -191,5 +191,5 @@
     <string name="network_inaccessible">Netzwerk ist nicht erreichbar</string>
     <string name="failed_resolve">Adresse %s konnte nicht aufgelöst werden</string>
     <string name="limited_storage_access">Tippen Sie auf, um die Zugriffsberechtigung zu erteilen</string>
-    <string name="limited_stored_playlists_access">Keine Berechtigung zum Erstellen neuer Wiedergabelisten. Tippen Sie auf, um zu beheben.</string>
+    <string name="no_stored_playlists_access">Tippen Sie auf, um einen dauerhaften Speicherort einzurichten</string>
 </resources>

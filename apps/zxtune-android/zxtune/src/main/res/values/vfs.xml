@@ -246,5 +246,5 @@
     <string name="network_inaccessible">Network is not accessible</string>
     <string name="failed_resolve">Failed to resolve %s</string>
     <string name="limited_storage_access">Tap to give access permission</string>
-    <string name="limited_stored_playlists_access">No permission to create new playlists. Tap to fix.</string>
+    <string name="no_stored_playlists_access">Tap to set up persistent storage location</string>
 </resources>
