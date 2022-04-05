@@ -40,6 +40,12 @@ public class Permission {
     ctx.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
   }
 
+  @RequiresApi(19)
+  public static void requestPersistentStorageAccess(Context ctx, Uri uri) {
+    ctx.getContentResolver().takePersistableUriPermission(uri,
+        Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+  }
+
   @TargetApi(23)
   private static void requestMarshmallow(FragmentActivity act, String id) {
     if (ContextCompat.checkSelfPermission(act, id) != PackageManager.PERMISSION_GRANTED) {
