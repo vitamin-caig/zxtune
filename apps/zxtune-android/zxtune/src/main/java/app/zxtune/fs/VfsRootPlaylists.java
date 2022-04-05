@@ -10,7 +10,8 @@ import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
-import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.List;
 
 import app.zxtune.R;
@@ -106,12 +107,21 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
     @Override
     @Nullable
     public Object getExtension(String id) {
-      if (VfsExtensions.FILE.equals(id)) {
-        final String path = client.getSavedPlaylists(name).get(name);
-        return path != null ? new File(path) : null;
+      if (VfsExtensions.INPUT_STREAM.equals(id)) {
+        return openStream();
       } else {
         return super.getExtension(id);
       }
+    }
+
+    @Nullable
+    private InputStream openStream() {
+      try {
+        final String path = client.getSavedPlaylists(name).get(name);
+        return path != null ? context.getContentResolver().openInputStream(Uri.parse(path)) : null;
+      } catch (FileNotFoundException e) {
+      }
+      return null;
     }
   }
 }
