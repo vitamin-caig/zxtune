@@ -9,6 +9,7 @@ import android.net.Uri
 import androidx.annotation.DrawableRes
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 
 object VfsExtensions {
     // Remote autoplay URI, string
@@ -35,6 +36,9 @@ object VfsExtensions {
 
     // Uri[]
     const val PERMISSION_QUERY_URI = "PERMISSION_QUERY_URI"
+
+    // InputStream
+    const val INPUT_STREAM = "INPUT_STREAM"
 
     // Separate interface for fast searching
     interface SearchEngine {
@@ -67,3 +71,6 @@ val VfsObject.icon
 
 val VfsObject.permissionQueryUri
     get() = getExtension(VfsExtensions.PERMISSION_QUERY_URI) as? Uri
+
+val VfsFile.inputStream
+    get() = getExtension(VfsExtensions.INPUT_STREAM) as? InputStream
