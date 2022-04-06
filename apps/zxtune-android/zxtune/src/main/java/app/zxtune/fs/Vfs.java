@@ -14,7 +14,9 @@ import android.text.TextUtils;
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import app.zxtune.MainApplication;
@@ -56,18 +58,34 @@ public final class Vfs {
     }
   }
 
+  public static InputStream openStream(VfsFile file) throws IOException {
+    final InputStream asStream = VfsExtensionsKt.getInputStream(file);
+    if (asStream != null) {
+      return asStream;
+    }
+    final File asFile = VfsExtensionsKt.getFile(file);
+    if (asFile != null) {
+      return new FileInputStream(asFile);
+    }
+    return Io.createByteBufferInputStream(download(file, null));
+  }
+
   public static ByteBuffer read(final VfsFile file) throws IOException {
     return read(file, null);
   }
 
   public static ByteBuffer read(final VfsFile file, @Nullable ProgressCallback progress) throws IOException {
-    final Uri uri = file.getUri();
     {
       final Object asFile = file.getExtension(VfsExtensions.FILE);
       if (asFile instanceof File) {
         return Io.readFrom((File) asFile);
       }
     }
+    return download(file, progress);
+  }
+
+  private static ByteBuffer download(final VfsFile file, @Nullable ProgressCallback progress) throws IOException {
+    final Uri uri = file.getUri();
     return new CommandExecutor(uri.getScheme()).executeDownloadCommand(new DownloadCommand() {
       @Override
       public File getCache() throws IOException {

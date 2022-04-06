@@ -12,25 +12,17 @@ import android.net.Uri
 import android.sax.RootElement
 import android.sax.TextElementListener
 import app.zxtune.TimeStamp
-import app.zxtune.io.Io.createByteBufferInputStream
 import app.zxtune.playlist.ReferencesArrayIterator
 import app.zxtune.playlist.ReferencesIterator
 import app.zxtune.utils.Xml
 import java.io.IOException
 import java.io.InputStream
-import java.nio.ByteBuffer
 
 object XspfIterator {
     @Throws(IOException::class)
     @JvmStatic
-    fun create(buf: ByteBuffer): ReferencesIterator {
-        return ReferencesArrayIterator(parse(buf))
-    }
-
-    @Throws(IOException::class)
-    @JvmStatic
-    fun parse(buf: ByteBuffer): ArrayList<ReferencesIterator.Entry> {
-        return parse(createByteBufferInputStream(buf))
+    fun create(stream: InputStream): ReferencesIterator {
+        return ReferencesArrayIterator(parse(stream))
     }
 
     @Throws(IOException::class)
