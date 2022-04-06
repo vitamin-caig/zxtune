@@ -43,14 +43,21 @@ class Provider @VisibleForTesting internal constructor(
         selectionArgs: Array<String>?,
         sortOrder: String?,
         signal: CancellationSignal?
-    ) = runCatching {
-        operations[uri]?.status() ?: if (Query.TYPE_NOTIFICATION == Query.getUriType(uri)) {
-            notifications.getFor(Query.getPathFrom(uri))
-        } else {
-            val op = createOperation(uri, projection, makeCallback(uri, signal))
-            Operation(uri, op).run()
-        }
-    }.recover(StatusBuilder::makeError).getOrNull()
+    ) = operations[uri]?.status() ?: query(uri, projection, signal)
+
+    private fun query(uri: Uri, projection: Array<String>?, signal: CancellationSignal?) =
+        runCatching {
+            if (Query.TYPE_NOTIFICATION == Query.getUriType(uri)) {
+                queryNotification(uri)
+            } else {
+                val op = createOperation(uri, projection, makeCallback(uri, signal))
+                Operation(uri, op).run()
+            }
+        }.recover(StatusBuilder::makeError).getOrNull()
+
+    private fun queryNotification(uri: Uri) = resolver.resolve(Query.getPathFrom(uri))?.let {
+        notifications.getFor(it)
+    }
 
     private fun makeCallback(uri: Uri, signal: CancellationSignal?): AsyncQueryOperation.Callback =
         object : AsyncQueryOperation.Callback {

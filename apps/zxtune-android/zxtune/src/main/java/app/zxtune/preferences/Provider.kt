@@ -16,11 +16,24 @@ private val LOG = Logger(Provider::class.java.name)
 
 class Provider : ContentProvider() {
 
-    private lateinit var prefs: SharedPreferences
+    private val prefs by lazy {
+        Preferences.getDefaultSharedPreferences(requireNotNull(context)).apply {
+            registerOnSharedPreferenceChangeListener(changeListener)
+        }
+    }
+
+    // should be strong reference
+    private val changeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            key?.let {
+                resolver.notifyChange(notificationUri(it), null)
+            }
+        }
+    private val resolver
+        get() = requireNotNull(context).contentResolver
 
     override fun onCreate() = context?.let { ctx ->
         MainApplication.initialize(ctx.applicationContext)
-        prefs = Preferences.getDefaultSharedPreferences(ctx)
         true
     } ?: false
 
@@ -60,12 +73,11 @@ class Provider : ContentProvider() {
         else -> null
     }
 
-    private fun get(key: String): Bundle? =
-        prefs.all[key]?.let { value ->
-            Bundle().apply {
-                copyPref(key, value, this)
-            }
+    private fun get(key: String) = prefs.all[key]?.let { value ->
+        Bundle().apply {
+            copyPref(key, value, this)
         }
+    }
 
     private fun list(prefix: String?) = Bundle().apply {
         for ((key, value) in prefs.all) {
@@ -101,10 +113,13 @@ class Provider : ContentProvider() {
     }
 
     companion object {
-        val URI: Uri = Uri.Builder()
+        val URI: Uri = builder().build()
+
+        fun notificationUri(key: String): Uri = builder().appendPath(key).build()
+
+        private fun builder() = Uri.Builder()
             .scheme(ContentResolver.SCHEME_CONTENT)
             .authority("app.zxtune.preferences")
-            .build()
 
         const val METHOD_GET = "get"
         const val METHOD_LIST = "list"

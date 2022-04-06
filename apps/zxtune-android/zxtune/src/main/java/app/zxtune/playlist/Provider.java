@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
+import app.zxtune.device.PersistentStorage;
 import app.zxtune.playlist.xspf.XspfStorage;
 
 public class Provider extends ContentProvider {
@@ -44,7 +45,7 @@ public class Provider extends ContentProvider {
     if (ctx != null) {
       MainApplication.initialize(ctx.getApplicationContext());
       db = new Database(ctx);
-      storage = new XspfStorage(ctx);
+      storage = new XspfStorage(ctx, PersistentStorage.getInstance().getState());
       resolver = ctx.getContentResolver();
       return true;
     } else {
@@ -74,15 +75,15 @@ public class Provider extends ContentProvider {
     final MatrixCursor cursor = new MatrixCursor(columns);
     if (selection == null) {
       for (String id : storage.enumeratePlaylists()) {
-        final String path = storage.findPlaylistPath(id);
-        if (path != null) {
-          cursor.addRow(new String[]{id, path});
+        final Uri uri = storage.findPlaylistUri(id);
+        if (uri != null) {
+          cursor.addRow(new String[]{id, uri.toString()});
         }
       }
     } else {
-      final String path = storage.findPlaylistPath(selection);
-      if (path != null) {
-        cursor.addRow(new String[]{selection, path});
+      final Uri uri = storage.findPlaylistUri(selection);
+      if (uri != null) {
+        cursor.addRow(new String[]{selection, uri.toString()});
       }
     }
     return cursor;

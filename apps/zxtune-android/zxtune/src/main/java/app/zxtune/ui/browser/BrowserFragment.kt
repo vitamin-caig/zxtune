@@ -182,8 +182,8 @@ class BrowserFragment : Fragment() {
         }
 
     private fun setupNotification(model: Model, view: View) = with(NotificationView(view)) {
-        model.notification.observe(viewLifecycleOwner) {
-            bind(it) { intent ->
+        model.notification.observe(viewLifecycleOwner) { notification ->
+            bind(notification) { intent ->
                 runCatching {
                     requireContext().startActivity(intent)
                 }.onFailure { showError((it.cause ?: it).message ?: it.javaClass.name) }

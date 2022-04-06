@@ -5,35 +5,51 @@
  */
 package app.zxtune.playlist.xspf
 
+import android.content.ContentResolver
 import android.content.Context
 import android.database.Cursor
-import android.os.Environment
 import androidx.annotation.VisibleForTesting
+import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.Transformations
 import app.zxtune.Logger
-import app.zxtune.R
+import app.zxtune.device.PersistentStorage
 import app.zxtune.playlist.Item
-import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 
-class XspfStorage @VisibleForTesting constructor(root: File) {
+class XspfStorage @VisibleForTesting constructor(
+    private val resolver: ContentResolver,
+    private val storage: LiveData<DocumentFile?>,
+) {
 
-    private val root: File = root
-        get() = field.apply {
-            if (mkdirs()) {
-                LOG.d { "Created playlists storage dir $this" }
-            }
+    init {
+        // Transformation is performed only on subscription
+        storage.observeForever { dir ->
+            LOG.d { "Using persistent storage at ${dir?.uri}" }
+            rootCache = null
         }
+    }
 
-    constructor(context: Context) : this(
-        File(
-            Environment.getExternalStorageDirectory(),
-            context.getString(R.string.playlists_storage_path)
-        )
-    )
+    private var rootCache: DocumentFile? = null
+    private val root
+        get() = rootCache ?: storage.value?.findFile(PLAYLISTS_DIR)?.takeIf { it.isDirectory }
+            ?.also {
+                rootCache = it
+                LOG.d { "Reuse playlists dir ${it.uri}" }
+            }
+    private val rwRoot
+        get() = root?.takeIf { it.isDirectory } ?: storage.value?.createDirectory(PLAYLISTS_DIR)
+            ?.also {
+                rootCache = it
+                LOG.d { "Create playlists dir ${it.uri}" }
+            }
+
+    constructor(ctx: Context, storageState: LiveData<PersistentStorage.State>) : this(
+        ctx.contentResolver, Transformations.map(storageState) { state -> state?.location })
 
     fun enumeratePlaylists() = ArrayList<String>().apply {
-        root.list()?.forEach { filename ->
+        root?.listFiles()?.forEach { doc ->
+            val filename = doc.name.takeIf { doc.isFile } ?: return@forEach
             val extPos = filename.lastIndexOf(EXTENSION, ignoreCase = true)
             if (-1 != extPos) {
                 add(filename.substring(0, extPos))
@@ -41,24 +57,33 @@ class XspfStorage @VisibleForTesting constructor(root: File) {
         }
     }
 
-    fun findPlaylistPath(name: String) = getFileFor(name).takeIf { it.isFile }?.absolutePath
+    fun findPlaylistUri(name: String) =
+        root?.findFile(makeFilename(name))?.takeIf { it.isFile }?.uri
 
     @Throws(IOException::class)
     fun createPlaylist(name: String, cursor: Cursor) {
-        FileOutputStream(getFileFor(name)).use { stream ->
-            Builder(stream).apply {
-                writePlaylistProperties(name, cursor.count)
-                while (cursor.moveToNext()) {
-                    writeTrack(Item(cursor))
-                }
-            }.finish()
+        val doc = requireNotNull(rwRoot?.createFile("", name + EXTENSION)) {
+            "cannot create file $name at ${rwRoot?.uri}"
         }
+        LOG.d { "Created playlist $name at ${doc.uri}" }
+        requireNotNull(resolver.openOutputStream(doc.uri)) { "cannot open output stream ${doc.uri}" }
+            .use { stream ->
+                Builder(stream).apply {
+                    writePlaylistProperties(name, cursor.count)
+                    while (cursor.moveToNext()) {
+                        writeTrack(Item(cursor))
+                    }
+                }.finish()
+            }
     }
-
-    private fun getFileFor(name: String) = File(root, name + EXTENSION)
 
     companion object {
         private val LOG = Logger(XspfStorage::class.java.name)
         private const val EXTENSION = ".xspf"
+
+        private fun makeFilename(name: String) = name + EXTENSION
+
+        // TODO: localize?
+        private const val PLAYLISTS_DIR = "Playlists"
     }
 }

@@ -8,12 +8,15 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import app.zxtune.MainApplication;
@@ -55,18 +58,34 @@ public final class Vfs {
     }
   }
 
+  public static InputStream openStream(VfsFile file) throws IOException {
+    final InputStream asStream = VfsExtensionsKt.getInputStream(file);
+    if (asStream != null) {
+      return asStream;
+    }
+    final File asFile = VfsExtensionsKt.getFile(file);
+    if (asFile != null) {
+      return new FileInputStream(asFile);
+    }
+    return Io.createByteBufferInputStream(download(file, null));
+  }
+
   public static ByteBuffer read(final VfsFile file) throws IOException {
     return read(file, null);
   }
 
   public static ByteBuffer read(final VfsFile file, @Nullable ProgressCallback progress) throws IOException {
-    final Uri uri = file.getUri();
     {
       final Object asFile = file.getExtension(VfsExtensions.FILE);
       if (asFile instanceof File) {
         return Io.readFrom((File) asFile);
       }
     }
+    return download(file, progress);
+  }
+
+  private static ByteBuffer download(final VfsFile file, @Nullable ProgressCallback progress) throws IOException {
+    final Uri uri = file.getUri();
     return new CommandExecutor(uri.getScheme()).executeDownloadCommand(new DownloadCommand() {
       @Override
       public File getCache() throws IOException {
@@ -136,7 +155,11 @@ public final class Vfs {
 
   private VfsRoot createRoot(Context appContext) {
     final VfsRootComposite composite = new VfsRootComposite(null);
-    composite.addSubroot(new VfsRootLocal(appContext));
+    if (Build.VERSION.SDK_INT >= VfsRootLocalStorageAccessFramework.REQUIRED_SDK_LEVEL) {
+      composite.addSubroot(new VfsRootLocalStorageAccessFramework(appContext));
+    } else {
+      composite.addSubroot(new VfsRootLocal(appContext));
+    }
     composite.addSubroot(new VfsRootNetwork(appContext, network));
     composite.addSubroot(new VfsRootPlaylists(appContext));
     composite.addSubroot(new VfsRootRadio(appContext));
