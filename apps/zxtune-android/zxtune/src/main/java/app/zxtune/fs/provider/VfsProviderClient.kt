@@ -5,8 +5,6 @@ import android.database.ContentObserver
 import android.database.Cursor
 import android.net.Uri
 import android.os.CancellationSignal
-import android.os.Handler
-import android.os.HandlerThread
 import app.zxtune.Releaseable
 import app.zxtune.use
 
@@ -44,9 +42,6 @@ class VfsProviderClient(ctx: Context) {
     }
 
     private val resolver = ctx.contentResolver
-    private val handler by lazy {
-        Handler(HandlerThread("VfsProviderClient").apply { start() }.looper)
-    }
 
     @Throws(Exception::class)
     fun resolve(uri: Uri, cb: ListingCallback, signal: CancellationSignal? = null) =
@@ -108,7 +103,7 @@ class VfsProviderClient(ctx: Context) {
         resolver.query(uri, null, null, null, null, signal)
 
     private fun subscribeForChanges(uri: Uri, cb: () -> Unit): Releaseable {
-        val observer = object : ContentObserver(handler) {
+        val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) = cb()
         }
         resolver.registerContentObserver(uri, false, observer)
