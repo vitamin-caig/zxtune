@@ -8,6 +8,7 @@ package app.zxtune.fs
 import android.net.Uri
 import androidx.annotation.DrawableRes
 import java.io.File
+import java.io.FileDescriptor
 import java.io.IOException
 import java.io.InputStream
 
@@ -39,6 +40,9 @@ object VfsExtensions {
 
     // InputStream
     const val INPUT_STREAM = "INPUT_STREAM"
+
+    // FileDescriptor
+    const val FILE_DESCRIPTOR = "FILE_DESCRIPTOR"
 
     // Separate interface for fast searching
     interface SearchEngine {
@@ -74,3 +78,6 @@ val VfsObject.permissionQueryUri
 
 val VfsFile.inputStream
     get() = getExtension(VfsExtensions.INPUT_STREAM) as? InputStream
+
+val VfsFile.fileDescriptor
+    get() = getExtension(VfsExtensions.FILE_DESCRIPTOR) as? FileDescriptor
