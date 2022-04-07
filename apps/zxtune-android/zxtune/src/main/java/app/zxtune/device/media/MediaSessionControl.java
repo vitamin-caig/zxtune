@@ -37,9 +37,9 @@ public class MediaSessionControl implements Releaseable {
     callback = StatusCallback.subscribe(ctx, svc, session);
     session.setCallback(new ControlCallback(ctx, svc, session));
     session.setMediaButtonReceiver(PendingIntent.getBroadcast(ctx, 0,
-        new Intent(Intent.ACTION_MEDIA_BUTTON).setComponent(mbrComponent), 0));
-    session.setSessionActivity(PendingIntent.getActivity(ctx, 0, new Intent(ctx,
-        MainActivity.class), 0));
+        new Intent(Intent.ACTION_MEDIA_BUTTON).setComponent(mbrComponent),
+        MainActivity.PENDING_INTENT_FLAG));
+    session.setSessionActivity(MainActivity.createPendingIntent(ctx));
     session.setExtras(createExtras(svc));
   }
 

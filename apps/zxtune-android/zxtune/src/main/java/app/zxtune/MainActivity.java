@@ -12,6 +12,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.media.session.MediaControllerCompat;
@@ -72,10 +73,13 @@ public class MainActivity extends AppCompatActivity {
   @Nullable
   private MediaSessionConnection sessionConnection;
 
+  public static final int PENDING_INTENT_FLAG = Build.VERSION.SDK_INT >= 23
+      ? PendingIntent.FLAG_IMMUTABLE : 0;
+
   public static PendingIntent createPendingIntent(Context ctx) {
     final Intent intent = new Intent(ctx, MainActivity.class);
     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-    return PendingIntent.getActivity(ctx, 0, intent, 0);
+    return PendingIntent.getActivity(ctx, 0, intent, PENDING_INTENT_FLAG);
   }
 
   public MainActivity() {

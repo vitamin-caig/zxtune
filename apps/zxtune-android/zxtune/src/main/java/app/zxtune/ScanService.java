@@ -11,6 +11,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Parcelable;
 import android.os.PowerManager;
@@ -79,6 +80,13 @@ public class ScanService extends IntentService {
     this.addedItems = new AtomicInteger();
     this.signal = new CancellationSignal();
     setIntentRedelivery(false);
+  }
+
+  private static PendingIntent createCancelPendingIntent(Context ctx) {
+    final Intent cancelIntent = new Intent(ctx, ScanService.class).setAction(ACTION_CANCEL);
+    final int flags = PendingIntent.FLAG_UPDATE_CURRENT |
+        (Build.VERSION.SDK_INT >= 31 ? PendingIntent.FLAG_MUTABLE : 0);
+    return PendingIntent.getService(ctx, 0, cancelIntent, flags);
   }
 
   @Override
@@ -212,14 +220,12 @@ public class ScanService extends IntentService {
       StatusNotification() {
         this.titlePrefix = getText(R.string.scanning_title);
         this.delegate = Notifications.createForService(ScanService.this, R.drawable.ic_stat_notify_scan);
-        final Intent cancelIntent = new Intent(ScanService.this, ScanService.class);
-        cancelIntent.setAction(ACTION_CANCEL);
         delegate.getBuilder()
-            .setContentIntent(
-                PendingIntent.getService(ScanService.this, 0, cancelIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT)).setOngoing(true).setProgress(0, 0, true)
+            .addAction(0, getText(R.string.scanning_text), createCancelPendingIntent(ScanService.this))
+            .setOngoing(true)
+            .setProgress(0, 0, true)
             .setContentTitle(titlePrefix)
-            .setContentText(getText(R.string.scanning_text));
+        ;
       }
 
       final void show() {
