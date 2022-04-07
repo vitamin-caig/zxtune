@@ -18,7 +18,11 @@ object Io {
 
     @JvmStatic
     @Throws(IOException::class)
-    fun readFrom(file: File): ByteBuffer = FileInputStream(file).use { stream ->
+    fun readFrom(file: File) = readFrom(FileInputStream(file))
+
+    @JvmStatic
+    @Throws(IOException::class)
+    fun readFrom(stream: FileInputStream) = stream.use {
         stream.channel.use {
             readFrom(it)
         }

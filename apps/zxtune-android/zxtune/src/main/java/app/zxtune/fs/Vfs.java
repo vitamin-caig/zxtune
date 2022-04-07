@@ -14,6 +14,7 @@ import android.text.TextUtils;
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,6 +68,10 @@ public final class Vfs {
     if (asFile != null) {
       return new FileInputStream(asFile);
     }
+    final FileDescriptor asDescriptor = VfsExtensionsKt.getFileDescriptor(file);
+    if (asDescriptor != null) {
+      return new FileInputStream(asDescriptor);
+    }
     return Io.createByteBufferInputStream(download(file, null));
   }
 
@@ -75,11 +80,13 @@ public final class Vfs {
   }
 
   public static ByteBuffer read(final VfsFile file, @Nullable ProgressCallback progress) throws IOException {
-    {
-      final Object asFile = file.getExtension(VfsExtensions.FILE);
-      if (asFile instanceof File) {
-        return Io.readFrom((File) asFile);
-      }
+    final File asFile = VfsExtensionsKt.getFile(file);
+    if (asFile != null) {
+      return Io.readFrom(asFile);
+    }
+    final FileDescriptor asDescriptor = VfsExtensionsKt.getFileDescriptor(file);
+    if (asDescriptor != null) {
+      return Io.readFrom(new FileInputStream(asDescriptor));
     }
     return download(file, progress);
   }
