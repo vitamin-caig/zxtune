@@ -6,12 +6,14 @@ import android.content.Intent
 import android.database.MatrixCursor
 import android.net.Uri
 import android.os.Environment
+import android.os.ParcelFileDescriptor
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
 import android.provider.DocumentsContract
 import app.zxtune.fs.local.Identifier
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,6 +21,7 @@ import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
+import java.io.FileDescriptor
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [VfsRootLocalStorageAccessFramework.REQUIRED_SDK_LEVEL])
@@ -113,33 +116,35 @@ class VfsRootLocalStorageAccessFrameworkTest {
 
     @Test
     fun `modern file access`() {
-        val mountpoint = File("/mnt/storage")
-        val rootId = Identifier.fromRoot("stor")
+        val permId = Identifier("stor", "path")
         val id = Identifier("stor", "path/to/file")
+        val descriptor = FileDescriptor()
         resolver.stub {
             on { getType(any()) } doReturn "binary/type"
-        }
-        val volume = mock<StorageVolume> {
-            on { createOpenDocumentTreeIntent() } doAnswer {
-                Intent("unused").putExtra(DocumentsContract.EXTRA_INITIAL_URI, rootId.rootUri)
+            on { persistedUriPermissions } doAnswer {
+                listOf(
+                    mock {
+                        on { uri } doReturn permId.treeDocumentUri
+                        on { isReadPermission } doReturn true
+                    }
+                )
             }
-            on { state } doReturn Environment.MEDIA_MOUNTED
-            on { directory } doReturn mountpoint
-        }
-        storageManager.stub {
-            on { storageVolumes } doAnswer {
-                listOf(volume)
+            on { openFileDescriptor(any(), any()) } doAnswer {
+                mock {
+                    on { fileDescriptor } doReturn descriptor
+                }
             }
         }
         (underTest.resolve(id.fsUri) as VfsFile).run {
             assertEquals("file", name)
-            assertEquals("/mnt/storage/path/to/file", file!!.absolutePath)
+            assertEquals(null, file)
+            assertSame(descriptor, fileDescriptor)
         }
-        inOrder(context, resolver, storageManager) {
+        inOrder(context, resolver) {
             verify(context).contentResolver
             verify(resolver).getType(id.documentUri)
-            verify(context).getSystemService(StorageManager::class.java)
-            verify(storageManager).storageVolumes
+            verify(resolver).persistedUriPermissions
+            verify(resolver).openFileDescriptor(id.getDocumentUriUsingTree(permId), "r")
         }
     }
 

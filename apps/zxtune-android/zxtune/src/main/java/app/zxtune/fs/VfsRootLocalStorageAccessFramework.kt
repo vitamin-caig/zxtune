@@ -9,7 +9,10 @@ import androidx.core.content.getSystemService
 import androidx.core.database.getStringOrNull
 import app.zxtune.R
 import app.zxtune.Util
-import app.zxtune.fs.local.*
+import app.zxtune.fs.local.Identifier
+import app.zxtune.fs.local.PersistablePermissions
+import app.zxtune.fs.local.isMounted
+import app.zxtune.fs.local.rootId
 import java.io.File
 
 @RequiresApi(29)
@@ -132,7 +135,7 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
                     visitor.onDir(LocalDir(subId, treeId, description))
                 } else {
                     val size = cursor.getLong(3)
-                    visitor.onFile(LocalFile(subId, description, Util.formatSize(size)))
+                    visitor.onFile(LocalFile(subId, treeId, description, Util.formatSize(size)))
                 }
             }
         } ?: Unit
@@ -147,19 +150,24 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
 
     private inner class LocalFile(
         id: Identifier,
+        treeId: Identifier? = null,
         override val description: String = "",
         override val size: String = "",
     ) : BaseObject(id), VfsFile {
 
+        private val treeId by lazy {
+            treeId ?: accessibleDirectories.findAncestor(id)
+        }
+
         override fun getExtension(id: String) = when (id) {
-            VfsExtensions.FILE -> findMountPoint()?.let {
-                File(it, this.id.path)
+            VfsExtensions.FILE_DESCRIPTOR -> treeId?.let {
+                resolver.openFileDescriptor(
+                    this.id.getDocumentUriUsingTree(it),
+                    "r"
+                )?.fileDescriptor
             }
             else -> super.getExtension(id)
         }
-
-        private fun findMountPoint() =
-            manager.storageVolumes.find { this.id.root == it.rootId() }?.mountPoint()
     }
 
     private inner class LegacyFile(
