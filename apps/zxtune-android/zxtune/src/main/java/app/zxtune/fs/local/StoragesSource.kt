@@ -1,6 +1,7 @@
 package app.zxtune.fs.local
 
 import android.content.Context
+import app.zxtune.Features
 import java.io.File
 
 interface StoragesSource {
@@ -13,8 +14,11 @@ interface StoragesSource {
     companion object {
         @JvmStatic
         fun create(ctx: Context) = object : StoragesSource {
-            private val delegate =
-                Api24StoragesSource.maybeCreate(ctx) ?: LegacyStoragesSource.create()
+            private val delegate = if (Features.StorageManagerVolumes.isEnabled()) {
+                Api24StoragesSource.create(ctx)
+            } else {
+                LegacyStoragesSource.create()
+            }
 
             override fun getStorages(visitor: Visitor) {
                 delegate.getStorages(visitor)

@@ -1,19 +1,18 @@
 package app.zxtune.fs.local
 
 import android.content.Context
-import android.os.Build
 import android.os.storage.StorageManager
 import androidx.annotation.RequiresApi
 import androidx.annotation.VisibleForTesting
 import androidx.core.content.getSystemService
 
+@RequiresApi(24)
 internal class Api24StoragesSource
 @VisibleForTesting constructor(
     private val ctx: Context,
     private val service: StorageManager
 ) : StoragesSource {
 
-    @RequiresApi(24)
     override fun getStorages(visitor: StoragesSource.Visitor) =
         service.storageVolumes.forEach { volume ->
             volume.mountPoint()?.let { obj ->
@@ -22,10 +21,6 @@ internal class Api24StoragesSource
         }
 
     companion object {
-        fun maybeCreate(ctx: Context) =
-            ctx.takeIf { Build.VERSION.SDK_INT >= 24 }?.getSystemService<StorageManager>()
-                ?.let { service ->
-                    Api24StoragesSource(ctx, service)
-                }
+        fun create(ctx: Context) = Api24StoragesSource(ctx, requireNotNull(ctx.getSystemService()))
     }
 }

@@ -9,4 +9,11 @@ object Features {
         @JvmStatic
         fun isEnabled() = Build.VERSION.SDK_INT >= REQUIRED_SDK
     }
+
+    object StorageManagerVolumes {
+        const val REQUIRED_ывл = 24
+
+        @JvmStatic
+        fun isEnabled() = Build.VERSION.SDK_INT >= StorageAccessFramework.REQUIRED_SDK
+    }
 }

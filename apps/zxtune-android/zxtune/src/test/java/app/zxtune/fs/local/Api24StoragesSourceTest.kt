@@ -17,16 +17,6 @@ import org.robolectric.shadows.StorageVolumeBuilder
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [23])
-class Api23StoragesSourceTest {
-    @Test
-    fun `no source for api23`() {
-        assertEquals(null, Api24StoragesSource.maybeCreate(mock()))
-    }
-}
-
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [24, 25, 26, 27, 28, 29, 30])
 class Api24StoragesSourceTest {
 
     private val service = mock<StorageManager>()
@@ -39,7 +29,7 @@ class Api24StoragesSourceTest {
     @Before
     fun setUp() {
         reset(service, visitor)
-        underTest = Api24StoragesSource.maybeCreate(ctx)!!
+        underTest = Api24StoragesSource.create(ctx)
     }
 
     @After
