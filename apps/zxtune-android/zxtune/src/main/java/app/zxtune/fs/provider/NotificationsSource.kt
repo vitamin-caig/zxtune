@@ -9,6 +9,7 @@ import android.provider.Settings
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import app.zxtune.Features
 import app.zxtune.R
 import app.zxtune.ResultActivity
 import app.zxtune.device.PersistentStorage
@@ -75,10 +76,7 @@ internal class NotificationsSource @VisibleForTesting constructor(
 
     private fun getPlaylistNotification(uri: Uri): Schema.Notifications.Object? {
         // show only for root
-        if (!uri.path.isNullOrEmpty()) {
-            return null
-        }
-        if (Build.VERSION.SDK_INT < VfsRootLocalStorageAccessFramework.REQUIRED_SDK_LEVEL) {
+        if (!uri.path.isNullOrEmpty() || !Features.StorageAccessFramework.isEnabled()) {
             return null
         }
         resolverNotificationUri = Query.notificationUriFor(uri)

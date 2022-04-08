@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+import app.zxtune.Features;
 import app.zxtune.MainApplication;
 import app.zxtune.fs.cache.CacheDir;
 import app.zxtune.fs.cache.CacheFactory;
@@ -162,7 +163,7 @@ public final class Vfs {
 
   private VfsRoot createRoot(Context appContext) {
     final VfsRootComposite composite = new VfsRootComposite(null);
-    if (Build.VERSION.SDK_INT >= VfsRootLocalStorageAccessFramework.REQUIRED_SDK_LEVEL) {
+    if (Features.StorageAccessFramework.isEnabled()) {
       composite.addSubroot(new VfsRootLocalStorageAccessFramework(appContext));
     } else {
       composite.addSubroot(new VfsRootLocal(appContext));

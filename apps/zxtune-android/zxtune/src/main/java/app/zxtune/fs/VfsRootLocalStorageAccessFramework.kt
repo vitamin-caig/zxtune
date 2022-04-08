@@ -180,8 +180,4 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
             else -> super.getExtension(id)
         }
     }
-
-    companion object {
-        const val REQUIRED_SDK_LEVEL = 30
-    }
 }

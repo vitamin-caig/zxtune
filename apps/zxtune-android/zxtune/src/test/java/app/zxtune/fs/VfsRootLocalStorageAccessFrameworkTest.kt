@@ -6,10 +6,10 @@ import android.content.Intent
 import android.database.MatrixCursor
 import android.net.Uri
 import android.os.Environment
-import android.os.ParcelFileDescriptor
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
 import android.provider.DocumentsContract
+import app.zxtune.Features
 import app.zxtune.fs.local.Identifier
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -20,11 +20,10 @@ import org.junit.runner.RunWith
 import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
-import java.io.File
 import java.io.FileDescriptor
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [VfsRootLocalStorageAccessFramework.REQUIRED_SDK_LEVEL])
+@Config(sdk = [Features.StorageAccessFramework.REQUIRED_SDK])
 class VfsRootLocalStorageAccessFrameworkTest {
 
     private val resolver = mock<ContentResolver>()

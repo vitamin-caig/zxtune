@@ -8,6 +8,7 @@ import android.os.OperationCanceledException
 import android.provider.Settings
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import app.zxtune.Features
 import app.zxtune.fs.*
 import app.zxtune.net.NetworkManager
 import app.zxtune.use
@@ -29,7 +30,7 @@ import java.io.IOException
 
 // tests both Provider and VfsClient
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowNetworkManager::class], sdk = [30])
+@Config(shadows = [ShadowNetworkManager::class], sdk = [Features.StorageAccessFramework.REQUIRED_SDK])
 class ClientProviderTest {
 
     private val fastDirContent = Array(10) { TestDir(2 + it) }

@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.Settings
 import androidx.lifecycle.MutableLiveData
+import app.zxtune.Features
 import app.zxtune.device.PersistentStorage
 import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.VfsObject
@@ -19,7 +20,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [VfsRootLocalStorageAccessFramework.REQUIRED_SDK_LEVEL])
+@Config(sdk = [Features.StorageAccessFramework.REQUIRED_SDK])
 class NotificationsSourceTest {
 
     private val resolver = mock<ContentResolver>()

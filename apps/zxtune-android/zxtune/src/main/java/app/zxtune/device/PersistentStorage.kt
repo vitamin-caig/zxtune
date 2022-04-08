@@ -12,6 +12,7 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
+import app.zxtune.Features
 import app.zxtune.Logger
 import app.zxtune.MainApplication
 import app.zxtune.fs.VfsRootLocalStorageAccessFramework
@@ -50,7 +51,7 @@ class PersistentStorage @VisibleForTesting constructor(private val ctx: Context)
     val state: LiveData<State> by lazy {
         client.getLive(PREFS_KEY, "").let {
             Transformations.map(it) { path ->
-                if (Build.VERSION.SDK_INT >= VfsRootLocalStorageAccessFramework.REQUIRED_SDK_LEVEL) {
+                if (Features.StorageAccessFramework.isEnabled()) {
                     SAFState(ctx, path)
                 } else {
                     LegacyState(path)
