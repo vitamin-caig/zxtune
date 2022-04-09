@@ -20,6 +20,7 @@ import org.junit.runner.RunWith
 import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.io.File
 import java.io.FileDescriptor
 
 @RunWith(RobolectricTestRunner::class)
@@ -107,9 +108,46 @@ class VfsRootLocalStorageAccessFrameworkTest {
 
     @Test
     fun `legacy file access`() {
-        (underTest.resolve(Uri.parse("file:///some/path")) as VfsFile).run {
-            assertEquals("path", name)
-            assertEquals("/some/path", file!!.absolutePath)
+        val id1 = Identifier.fromRoot("root")
+        val vol1 = mock<StorageVolume> {
+            on { state } doReturn Environment.MEDIA_MOUNTED
+            on { createOpenDocumentTreeIntent() } doAnswer {
+                Intent("unused").putExtra(DocumentsContract.EXTRA_INITIAL_URI, id1.rootUri)
+            }
+            on { directory } doAnswer {
+                File("/some/path")
+            }
+        }
+        val id2 = Identifier.fromRoot("root2")
+        val vol2 = mock<StorageVolume> {
+            on { state } doReturn Environment.MEDIA_MOUNTED
+            on { createOpenDocumentTreeIntent() } doAnswer {
+                Intent("unused").putExtra(DocumentsContract.EXTRA_INITIAL_URI, id2.rootUri)
+            }
+            on { directory } doAnswer {
+                File("/dir/mountpoint")
+            }
+        }
+        storageManager.stub {
+            on { storageVolumes } doAnswer {
+                listOf(vol1, vol2)
+            }
+        }
+
+        // don't care about result really
+        assertEquals(null, underTest.resolve(Uri.parse("file:/dir/mountpoint/sub/path")))
+        assertEquals(null, underTest.resolve(Uri.parse("file:/unknown/path/no/volumes")))
+        (underTest.resolve(Uri.parse("file:/some/path")) as VfsDir).run {
+            assertEquals("root", name)
+        }
+        inOrder(context, storageManager, resolver) {
+            verify(context).getSystemService(StorageManager::class.java)
+            // subpath
+            verify(storageManager).storageVolumes
+            verify(context).contentResolver
+            verify(resolver).getType(id2.copy(path = "sub/path").documentUri)
+            // unknown + volume root
+            verify(storageManager, times(2)).storageVolumes
         }
     }
 

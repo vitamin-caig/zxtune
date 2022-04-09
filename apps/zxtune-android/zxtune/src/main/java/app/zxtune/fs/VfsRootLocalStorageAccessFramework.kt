@@ -9,10 +9,7 @@ import androidx.core.content.getSystemService
 import androidx.core.database.getStringOrNull
 import app.zxtune.R
 import app.zxtune.Util
-import app.zxtune.fs.local.Identifier
-import app.zxtune.fs.local.PersistablePermissions
-import app.zxtune.fs.local.isMounted
-import app.zxtune.fs.local.rootId
+import app.zxtune.fs.local.*
 import java.io.File
 
 @RequiresApi(29)
@@ -57,9 +54,11 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
         resolve(it)
     }
 
-    private fun resolve(id: Identifier) = when {
+    private fun resolve(id: Identifier): VfsObject? = when {
         id == Identifier.EMPTY -> this
-        id.root.isEmpty() -> LegacyFile(id)
+        id.root.isEmpty() -> convertLegacyIdentifier(id)?.let {
+            resolve(it)
+        }
         id.path.isEmpty() -> StorageRoot(id)
         else -> when (resolver.getType(id.documentUri)) {
             null -> null
@@ -160,24 +159,34 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
         }
 
         override fun getExtension(id: String) = when (id) {
-            VfsExtensions.FILE_DESCRIPTOR -> treeId?.let {
-                resolver.openFileDescriptor(
-                    this.id.getDocumentUriUsingTree(it),
-                    "r"
-                )?.fileDescriptor
-            }
+            VfsExtensions.FILE_DESCRIPTOR -> resolver.openFileDescriptor(
+                fileUri,
+                "r"
+            )?.fileDescriptor
             else -> super.getExtension(id)
         }
+
+        // Return something to give explicit error
+        private val fileUri
+            get() = treeId?.let { id.getDocumentUriUsingTree(it) } ?: id.documentUri
     }
 
-    private inner class LegacyFile(
-        id: Identifier,
-        override val size: String = "",
-    ) : BaseObject(id), VfsFile {
+    private fun convertLegacyIdentifier(id: Identifier): Identifier? {
+        val fullPath = "${File.separatorChar}${id.path}"
+        manager.storageVolumes.forEach { vol ->
+            val volPath = vol.mountPoint()?.absolutePath ?: return@forEach
+            fullPath.extractRelativePath(volPath)?.let {
+                return Identifier(vol.rootId(), it)
+            }
+        }
+        return null
+    }
 
-        override fun getExtension(id: String) = when (id) {
-            VfsExtensions.FILE -> File("/${this.id.path}")
-            else -> super.getExtension(id)
+    companion object {
+        private fun String.extractRelativePath(subpath : String) = when {
+            this == subpath -> ""
+            startsWith(subpath) && getOrNull(subpath.length) == File.separatorChar -> drop(subpath.length + 1)
+            else -> null
         }
     }
 }
