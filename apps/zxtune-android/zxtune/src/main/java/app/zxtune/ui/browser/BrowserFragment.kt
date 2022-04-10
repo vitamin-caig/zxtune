@@ -114,8 +114,9 @@ class BrowserFragment : Fragment() {
             }
             val onClick = View.OnClickListener { v: View ->
                 val pos = getChildAdapterPosition(v)
-                val uri = adapter.currentList[pos].uri
-                browse(uri)
+                adapter.currentList.getOrNull(pos)?.uri?.let {
+                    browse(it)
+                }
             }
             addOnChildAttachStateChangeListener(object : OnChildAttachStateChangeListener {
                 override fun onChildViewAttachedToWindow(view: View) =
