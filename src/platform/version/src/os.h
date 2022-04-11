@@ -34,6 +34,8 @@ namespace Platform
       static const char OS[] = "unix";
 #elif defined(__CYGWIN__)
       static const char OS[] = "cygwin";
+#elif defined(__HAIKU__)
+      static const char OS[] = "haiku";
 #else
       static const char OS[] = "unknown-platform";
 #endif
