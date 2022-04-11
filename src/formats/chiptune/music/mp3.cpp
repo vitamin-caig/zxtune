@@ -295,7 +295,11 @@ namespace Formats::Chiptune
 
       Container::Ptr Parse(Builder& target)
       {
-        Id3::Parse(Stream, target.GetMetaBuilder());
+        auto* metaTarget = &target.GetMetaBuilder();
+        if (Id3::Parse(Stream, *metaTarget))
+        {
+          metaTarget = &GetStubMetaBuilder();
+        }
 
         uint_t syncLostsCount = 0;
         for (auto freeFormatFrameSize = Synchronize(); Stream.GetRestSize() != 0;)
@@ -311,8 +315,14 @@ namespace Formats::Chiptune
             out.Properties.Mono = inFrame->GetIsMono();
             target.AddFrame(out);
           }
-          else if (Id3::Parse(Stream, target.GetMetaBuilder()) || ApeTag::Parse(Stream, target.GetMetaBuilder()))
+          else if (Id3::Parse(Stream, *metaTarget))
           {
+            metaTarget = &GetStubMetaBuilder();
+            continue;
+          }
+          else if (ApeTag::Parse(Stream, *metaTarget))
+          {
+            metaTarget = &GetStubMetaBuilder();
             continue;
           }
           else
