@@ -811,7 +811,8 @@
 
         <receiver
                 android:name=".device.ui.WidgetHandler"
-                android:exported="true">
+                android:exported="true"
+                android:process=":service">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -822,7 +823,8 @@
         <!-- support library -->
         <receiver
                 android:name="androidx.media.session.MediaButtonReceiver"
-                android:exported="true">
+                android:exported="true"
+                android:process=":service">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
