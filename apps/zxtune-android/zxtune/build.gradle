@@ -9,7 +9,7 @@ android {
     defaultConfig {
         applicationId "app.zxtune"
         minSdkVersion 16
-        targetSdkVersion 31
+        targetSdkVersion 30
         //supported languages
         resConfigs "en", "de", "ru", "es", "cs", "zh", "ja", "pt"
         //supported densities for vector drawables rasterization
