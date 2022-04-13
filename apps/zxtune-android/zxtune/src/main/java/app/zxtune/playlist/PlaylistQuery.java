@@ -22,7 +22,7 @@ import app.zxtune.playlist.Database.Tables;
  * content://app.zxtune.playlist/items/$id - single item with specific id
  */
 
-class PlaylistQuery {
+public class PlaylistQuery {
 
   private static final class Type {
 
@@ -78,6 +78,11 @@ class PlaylistQuery {
   private static Uri.Builder uriForPath(String path) {
     return new Uri.Builder().scheme(ContentResolver.SCHEME_CONTENT).authority(AUTHORITY)
         .path(path);
+  }
+
+  public static boolean isPlaylistUri(Uri uri) {
+    final int type = uriTemplate.match(uri);
+    return type != -1;
   }
 
   //! @return Mime type of uri (used in content provider)

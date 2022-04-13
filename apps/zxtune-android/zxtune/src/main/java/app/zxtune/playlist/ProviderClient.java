@@ -46,7 +46,7 @@ public final class ProviderClient {
 
   @Nullable
   public static Long findId(Uri uri) {
-    return ContentResolver.SCHEME_CONTENT.equals(uri.getScheme())
+    return PlaylistQuery.isPlaylistUri(uri)
         ? PlaylistQuery.idOf(uri)
         : null;
   }

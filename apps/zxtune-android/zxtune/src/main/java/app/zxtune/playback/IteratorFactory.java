@@ -5,7 +5,6 @@
  */
 package app.zxtune.playback;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
 
@@ -14,13 +13,10 @@ import androidx.preference.PreferenceDataStore;
 import java.io.IOException;
 
 import app.zxtune.playback.PlaybackControl.SequenceMode;
+import app.zxtune.playlist.PlaylistQuery;
 import app.zxtune.preferences.DataStore;
 
 public final class IteratorFactory {
-
-  private static boolean isPlaylistUri(Uri uri) {
-    return ContentResolver.SCHEME_CONTENT.equals(uri.getScheme());
-  }
 
   /**
    *
@@ -30,7 +26,7 @@ public final class IteratorFactory {
    * @throws IOException
    */
   public static Iterator createIterator(Context context, Uri uri) throws Exception {
-    if (isPlaylistUri(uri)) {
+    if (PlaylistQuery.isPlaylistUri(uri)) {
       return new PlaylistIterator(context, uri);
     } else {
       return FileIterator.create(context, uri);
