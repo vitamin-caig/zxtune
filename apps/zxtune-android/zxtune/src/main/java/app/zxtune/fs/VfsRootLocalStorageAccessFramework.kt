@@ -50,8 +50,9 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
             }
         }
 
-    override fun resolve(uri: Uri) = Identifier.fromFsUri(uri)?.let {
-        resolve(it)
+    override fun resolve(uri: Uri): VfsObject? {
+        val id = Identifier.fromFsUri(uri) ?: return Document.tryResolve(context, uri)
+        return resolve(id)
     }
 
     private fun resolve(id: Identifier): VfsObject? = when {
@@ -183,7 +184,7 @@ class VfsRootLocalStorageAccessFramework(private val context: Context) : StubObj
     }
 
     companion object {
-        private fun String.extractRelativePath(subpath : String) = when {
+        private fun String.extractRelativePath(subpath: String) = when {
             this == subpath -> ""
             startsWith(subpath) && getOrNull(subpath.length) == File.separatorChar -> drop(subpath.length + 1)
             else -> null

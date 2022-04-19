@@ -9,8 +9,10 @@ import android.os.Environment
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
 import android.provider.DocumentsContract
+import androidx.documentfile.provider.DocumentFile
 import app.zxtune.Features
 import app.zxtune.fs.local.Identifier
+import app.zxtune.fs.local.ShadowDocumentFile
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
@@ -24,7 +26,7 @@ import java.io.File
 import java.io.FileDescriptor
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [Features.StorageAccessFramework.REQUIRED_SDK])
+@Config(sdk = [Features.StorageAccessFramework.REQUIRED_SDK], shadows = [ShadowDocumentFile::class])
 class VfsRootLocalStorageAccessFrameworkTest {
 
     private val resolver = mock<ContentResolver>()
@@ -39,7 +41,10 @@ class VfsRootLocalStorageAccessFrameworkTest {
     private val visitor = mock<VfsDir.Visitor>()
 
     @Before
-    fun setUp() = reset(resolver, storageManager, visitor)
+    fun setUp() {
+        reset(resolver, storageManager, visitor)
+        ShadowDocumentFile.document = null
+    }
 
     @After
     fun tearDown() = verifyNoMoreInteractions(resolver, storageManager, context, visitor)
@@ -283,8 +288,7 @@ class VfsRootLocalStorageAccessFrameworkTest {
             assertEquals(null, permissionQueryUri)
             enumerate(visitor)
         }
-        inOrder(context, resolver, visitor)
-        {
+        inOrder(context, resolver, visitor) {
             verify(context).contentResolver
             // resolve
             verify(resolver).getType(id.documentUri)
@@ -313,5 +317,19 @@ class VfsRootLocalStorageAccessFrameworkTest {
                 true
             })
         }
+    }
+
+    @Test
+    fun `document file`() {
+        val docUri = Uri.parse("content://authority/path")
+        val doc = mock<DocumentFile> {
+            on { isFile } doReturn true
+            on { uri } doReturn docUri
+        }
+        ShadowDocumentFile.document = doc
+        (underTest.resolve(docUri) as VfsFile).run {
+            assertEquals(docUri, uri)
+        }
+        verify(context).contentResolver
     }
 }
