@@ -17,6 +17,7 @@ import java.io.IOException;
 
 import app.zxtune.R;
 import app.zxtune.Util;
+import app.zxtune.fs.local.Document;
 import app.zxtune.fs.local.StoragesSource;
 
 final class VfsRootLocal extends StubObject implements VfsRoot {
@@ -79,7 +80,7 @@ final class VfsRootLocal extends StubObject implements VfsRoot {
         return resolvePath(path);
       }
     } else {
-      return null;
+      return Document.tryResolve(context, uri);
     }
   }
 

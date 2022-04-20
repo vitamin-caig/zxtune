@@ -6,6 +6,7 @@
 
 package app.zxtune.ui;
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -189,7 +190,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
       this.data = data;
       trackMenu.setEnabled(data != null);
       if (data != null) {
-        add.setEnabled(!data.isFromPlaylist());
+        add.setEnabled(data.canBeAddedToPlaylist());
         send.setEnabled(data.canBeSent());
         share.setEnabled(data.hasRemotePage());
       }
@@ -215,8 +216,8 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
       this.description = metadata.getDescription();
     }
 
-    final boolean isFromPlaylist() {
-      return !getFullLocation().toString().equals(description.getMediaId());
+    final boolean canBeAddedToPlaylist() {
+      return !description.getMediaId().startsWith(ContentResolver.SCHEME_CONTENT);
     }
 
     final boolean canBeSent() {
