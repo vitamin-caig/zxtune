@@ -33,7 +33,9 @@ import app.zxtune.ui.utils.SelectionUtils
 
 class BrowserFragment : Fragment() {
     private lateinit var model: Model
-    private lateinit var stateStorage: State
+    private val stateStorage by lazy {
+        State.create(requireContext())
+    }
 
     private var listing: RecyclerView? = null
     private var search: SearchView? = null
@@ -66,7 +68,6 @@ class BrowserFragment : Fragment() {
     override fun onAttach(ctx: Context) {
         super.onAttach(ctx)
         model = Model.of(this)
-        stateStorage = State.create(ctx)
     }
 
     override fun onCreateView(
@@ -84,7 +85,9 @@ class BrowserFragment : Fragment() {
         setupProgress(model, view)
         setupNotification(model, view)
         if (model.state.value == null) {
-            browse(stateStorage.currentPath)
+            model.browseAsync {
+                stateStorage.currentPath
+            }
         }
         model.setClient(object : Model.Client {
             override fun onFileBrowse(uri: Uri) =

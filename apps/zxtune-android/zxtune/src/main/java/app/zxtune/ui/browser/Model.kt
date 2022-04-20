@@ -97,6 +97,10 @@ class Model @VisibleForTesting internal constructor(
         executeAsync(BrowseTask(uri), "browse $uri")
     }
 
+    fun browseAsync(getUri: () -> Uri) = async.execute {
+        browse(getUri())
+    }
+
     fun browseParent() = state.value?.takeIf { it.breadcrumbs.size > 1 }?.run {
         Analytics.sendBrowserEvent(uri, Analytics.BROWSER_ACTION_BROWSE_PARENT)
         executeAsync(BrowseParentTask(breadcrumbs), "browse parent")

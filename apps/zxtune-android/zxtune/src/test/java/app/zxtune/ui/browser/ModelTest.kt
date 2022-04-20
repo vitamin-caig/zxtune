@@ -82,6 +82,20 @@ class ModelTest {
     }
 
     @Test
+    fun `browseAsync workflow`() {
+        execute {
+            browseAsync {
+                testUri
+            }
+        }
+        inOrder(vfsClient, modelClient, progressObserver) {
+            verify(progressObserver).onChanged(-1)
+            verify(vfsClient).resolve(eq(testUri), any(), any())
+            verify(progressObserver).onChanged(null)
+        }
+    }
+
+    @Test
     fun `browse not resolved`() {
         execute {
             browse(testUri)

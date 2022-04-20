@@ -66,14 +66,18 @@ class BrowserFragmentTest {
             on { state } doReturn listingState
             on { progress } doReturn operationProgress
             on { notification } doReturn mock()
+            on { browseAsync(any()) } doAnswer {
+                it.getArgument<() -> Uri>(0).invoke()
+                Unit
+            }
         }
         val path = Uri.parse("")
         persistentState.stub {
             on { currentPath } doReturn path
         }
         startScenario().onFragment {
+            verify(model).browseAsync(any())
             verify(persistentState).currentPath
-            verify(model).browse(path)
             verify(model, atLeastOnce()).state
             verify(model).progress
             verify(model).notification
