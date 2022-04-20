@@ -16,6 +16,7 @@ public class MediaSessionConnection {
 
   private final FragmentActivity activity;
   private final MediaBrowserCompat browser;
+  private boolean connectionInProgress = false;
 
   public MediaSessionConnection(FragmentActivity activity) {
     this.activity = activity;
@@ -24,17 +25,22 @@ public class MediaSessionConnection {
   }
 
   public final void connect() {
-    browser.connect();
+    if (!connectionInProgress) {
+      connectionInProgress = true;
+      browser.connect();
+    }
   }
 
   public final void disconnect() {
     browser.disconnect();
+    setControl(null);
   }
 
   private void setControl(@Nullable MediaControllerCompat ctrl) {
     final MediaSessionModel model = MediaSessionModel.of(activity);
     model.setControl(ctrl);
     MediaControllerCompat.setMediaController(activity, ctrl);
+    connectionInProgress = false;
   }
 
   private class ConnectionCallback extends MediaBrowserCompat.ConnectionCallback {
