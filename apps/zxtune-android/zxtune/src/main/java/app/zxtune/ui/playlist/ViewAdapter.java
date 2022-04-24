@@ -44,14 +44,14 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
     super(new DiffUtil.ItemCallback<Entry>() {
       @Override
       public boolean areItemsTheSame(Entry oldItem, Entry newItem) {
-        return oldItem.id == newItem.id;
+        return oldItem.getId() == newItem.getId();
       }
 
       @Override
       public boolean areContentsTheSame(Entry oldItem, Entry newItem) {
-        return TextUtils.equals(oldItem.title, newItem.title)
-            && TextUtils.equals(oldItem.author, newItem.author)
-            && oldItem.duration.equals(newItem.duration);
+        return TextUtils.equals(oldItem.getTitle(), newItem.getTitle())
+            && TextUtils.equals(oldItem.getAuthor(), newItem.getAuthor())
+            && oldItem.getDuration().equals(newItem.getDuration());
       }
     });
     this.client = client;
@@ -97,7 +97,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
     //TODO: lookup?
     final long numId = id;
     for (int pos = positionsCache.size(), lim = getItemCount(); pos < lim; ++pos) {
-      final long itemId = getItem(pos).id;
+      final long itemId = getItem(pos).getId();
       positionsCache.append(itemId, pos);
       if (numId == itemId) {
         return pos;
@@ -136,7 +136,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
 
   private void placeItem(int pos, Entry entry) {
     list.set(pos, entry);
-    positionsCache.put(entry.id, pos);
+    positionsCache.put(entry.getId(), pos);
   }
 
   @Override
@@ -148,7 +148,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
 
   @Override
   public long getItemId(int position) {
-    return getItem(position).id;
+    return getItem(position).getId();
   }
 
   @Override
@@ -161,7 +161,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
   @Override
   public void onBindViewHolder(final EntryViewHolder holder, int position) {
     final Entry entry = getItem(position);
-    holder.bind(entry, isPlaying && isNowPlaying(entry.id), isSelected(entry.id));
+    holder.bind(entry, isPlaying && isNowPlaying(entry.getId()), isSelected(entry.getId()));
   }
 
   private boolean isNowPlaying(long id) {
@@ -236,7 +236,7 @@ class ViewAdapter extends ListAdapter<Entry, ViewAdapter.EntryViewHolder> {
     @Nullable
     @Override
     public Long getKey(int position) {
-      return adapter.getItem(position).id;
+      return adapter.getItem(position).getId();
     }
 
     @Override
