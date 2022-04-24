@@ -4,6 +4,7 @@ import android.app.Application;
 import android.database.Cursor;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -34,14 +35,18 @@ public class Model extends AndroidViewModel {
   }
 
   public Model(Application application) {
+    this(application, new ProviderClient(application), Executors.newSingleThreadExecutor());
+  }
+
+  @VisibleForTesting
+  Model(Application application, ProviderClient client, ExecutorService async) {
     super(application);
-    this.client = new ProviderClient(application);
-    this.async = Executors.newSingleThreadExecutor();
+    this.client = client;
+    this.async = async;
     client.registerObserver(() -> {
-      if (items == null) {
-        items = new MutableLiveData<>();
+      if (items != null) {
+        loadAsync();
       }
-      loadAsync();
     });
   }
 
