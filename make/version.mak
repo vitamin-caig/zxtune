@@ -12,6 +12,7 @@ root.version.index = 0
 endif
 endif
 
+.DEFAULT_GOAL := all
 .PHONY: version_name version_index
 
 version_name:

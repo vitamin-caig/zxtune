@@ -31,7 +31,7 @@ namespace Platform
 #define TOSTRING(a) #a
 #define STR(a) TOSTRING(a)
       constexpr const char VERSION[] = STR(BUILD_VERSION);
-      static_assert(strlen(VERSION) > 0, "Undefined version");
+      static_assert(VERSION[0] != 0, "Undefined version");
       return VERSION;
     }
 
