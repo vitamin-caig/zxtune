@@ -22,6 +22,7 @@
 #ifndef M64P_R4300_FPU_H
 #define M64P_R4300_FPU_H
 
+#include <limits.h>
 #include <math.h>
 
 #include "usf/usf.h"
@@ -102,70 +103,86 @@ M64P_FPU_INLINE void cvt_s_d(usf_state_t * state, double *source,float *dest)
   *dest = (float) *source;
 }
 
+M64P_FPU_INLINE void do_l_s(float *source,long long *dest,float(*func)(float)) {
+  *dest = isfinite(*source) ? (long long)func(*source) : LLONG_MAX;
+}
+
+M64P_FPU_INLINE void do_w_s(float *source,int *dest,float(*func)(float)) {
+  *dest = isfinite(*source) ? (int)func(*source) : INT_MAX;
+}
+
+M64P_FPU_INLINE void do_l_d(double *source,long long *dest,double(*func)(double)) {
+  *dest = isfinite(*source) ? (long long)func(*source) : LLONG_MAX;
+}
+
+M64P_FPU_INLINE void do_w_d(double *source,int *dest,double(*func)(double)) {
+  *dest = isfinite(*source) ? (int)func(*source) : INT_MAX;
+}
+
 M64P_FPU_INLINE void round_l_s(float *source,long long *dest)
 {
-  *dest = (long long) roundf(*source);
+  do_l_s(source, dest, &roundf);
 }
 M64P_FPU_INLINE void round_w_s(float *source,int *dest)
 {
-  *dest = (int) roundf(*source);
+  do_w_s(source, dest, &roundf);
 }
 M64P_FPU_INLINE void trunc_l_s(float *source,long long *dest)
 {
-  *dest = (long long) truncf(*source);
+  do_l_s(source, dest, &truncf);
 }
 M64P_FPU_INLINE void trunc_w_s(float *source,int *dest)
 {
-  *dest = (int) truncf(*source);
+  do_w_s(source, dest, &truncf);
 }
 M64P_FPU_INLINE void ceil_l_s(float *source,long long *dest)
 {
-  *dest = (long long) ceilf(*source);
+  do_l_s(source, dest, &ceilf);
 }
 M64P_FPU_INLINE void ceil_w_s(float *source,int *dest)
 {
-  *dest = (int) ceilf(*source);
+  do_w_s(source, dest, &ceilf);
 }
 M64P_FPU_INLINE void floor_l_s(float *source,long long *dest)
 {
-  *dest = (long long) floorf(*source);
+  do_l_s(source, dest, &floorf);
 }
 M64P_FPU_INLINE void floor_w_s(float *source,int *dest)
 {
-  *dest = (int) floorf(*source);
+  do_w_s(source, dest, &floorf);
 }
 
 M64P_FPU_INLINE void round_l_d(double *source,long long *dest)
 {
-  *dest = (long long) round(*source);
+  do_l_d(source, dest, &round);
 }
 M64P_FPU_INLINE void round_w_d(double *source,int *dest)
 {
-  *dest = (int) round(*source);
+  do_w_d(source, dest, &round);
 }
 M64P_FPU_INLINE void trunc_l_d(double *source,long long *dest)
 {
-  *dest = (long long) trunc(*source);
+  do_l_d(source, dest, &trunc);
 }
 M64P_FPU_INLINE void trunc_w_d(double *source,int *dest)
 {
-  *dest = (int) trunc(*source);
+  do_w_d(source, dest, &trunc);
 }
 M64P_FPU_INLINE void ceil_l_d(double *source,long long *dest)
 {
-  *dest = (long long) ceil(*source);
+  do_l_d(source, dest, &ceil);
 }
 M64P_FPU_INLINE void ceil_w_d(double *source,int *dest)
 {
-  *dest = (int) ceil(*source);
+  do_w_d(source, dest, &ceil);
 }
 M64P_FPU_INLINE void floor_l_d(double *source,long long *dest)
 {
-  *dest = (long long) floor(*source);
+  do_l_d(source, dest, &floor);
 }
 M64P_FPU_INLINE void floor_w_d(double *source,int *dest)
 {
-  *dest = (int) floor(*source);
+  do_w_d(source, dest, &floor);
 }
 
 M64P_FPU_INLINE void cvt_w_s(usf_state_t * state, float *source,int *dest)
