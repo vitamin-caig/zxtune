@@ -23,6 +23,7 @@ set(LIBVGM_VERSION ${PROJECT_VERSION})	# for use in subdirectories
 set(LIBVGM_SOURCE_DIR ${PROJECT_SOURCE_DIR})	# for use in subdirectories
 set(LIBVGM_INSTALL_INCLUDE_DIR "${CMAKE_INSTALL_INCLUDEDIR}/vgm")
 set(LIBVGM_INSTALL_TARGETS)	# will be filled in by sub-projects
+set(LIBVGM_DEPS)	# will be filled in by sub-projects
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
@@ -53,7 +54,8 @@ if(MSVC)
 	set(Iconv_LIBRARY "${PROJECT_SOURCE_DIR}/libs/iconv/lib/libiconv.lib" CACHE FILEPATH "iconv library")
 	
 	if(NOT MSVC_VERSION LESS 1400)
-		add_definitions("/D _CRT_SECURE_NO_WARNINGS")
+		# Note: CMake 3.12 and up have add_compile_options()
+		add_definitions("-D _CRT_SECURE_NO_WARNINGS")
 	endif()
 endif()
 
@@ -208,4 +210,5 @@ cmake_cfg_install("${LIBVGM_SOURCE_DIR}/cmake/config.cmake.in"
 	NAME "${LIBVGM_NAME}"
 	VERSION "${LIBVGM_VERSION}"
 	TARGETS "${LIBVGM_INSTALL_TARGETS}"
+	DEPS "${LIBVGM_DEPS}"
 	)

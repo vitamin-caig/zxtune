@@ -1,6 +1,6 @@
-// TODO: option to disable DualOPL2 -> OPL3 _realHwType patch
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>	// for snprintf()
 #include <vector>
 #include <algorithm>
 
@@ -14,7 +14,12 @@
 #include "../emu/SoundDevs.h"
 #include "../emu/EmuCores.h"
 #include "helper.h"
-#include "logging.h"
+#include "../emu/logging.h"
+
+#ifdef _MSC_VER
+#define snprintf	_snprintf
+#endif
+
 
 enum DRO_HWTYPES
 {
@@ -46,7 +51,13 @@ DROPlayer::DROPlayer() :
 {
 	size_t curDev;
 	
+	dev_logger_set(&_logger, this, DROPlayer::PlayerLogCB, NULL);
+	
+	_playOpts.genOpts.pbSpeed = 0x10000;
 	_playOpts.v2opl3Mode = DRO_V2OPL3_DETECT;
+	
+	_lastTsMult = 0;
+	_lastTsDiv = 0;
 	
 	for (curDev = 0; curDev < 3; curDev ++)
 		InitDeviceOptions(_devOpts[curDev]);
@@ -330,6 +341,7 @@ UINT8 DROPlayer::UnloadFile(void)
 	_devPanning.clear();
 	_devCfgs.clear();
 	_devices.clear();
+	_devNames.clear();
 	
 	return 0x00;
 }
@@ -357,7 +369,8 @@ UINT8 DROPlayer::GetSongInfo(PLR_SONG_INFO& songInf)
 	songInf.tickRateDiv = _tickFreq;
 	songInf.songLen = GetTotalTicks();
 	songInf.loopTick = (UINT32)-1;
-	songInf.deviceCnt = _devTypes.size();
+	songInf.volGain = 0x10000;
+	songInf.deviceCnt = (UINT32)_devTypes.size();
 	
 	return 0x00;
 }
@@ -377,7 +390,7 @@ UINT8 DROPlayer::GetSongDeviceInfo(std::vector<PLR_DEV_INFO>& devInfList) const
 		PLR_DEV_INFO devInf;
 		memset(&devInf, 0x00, sizeof(PLR_DEV_INFO));
 		
-		devInf.id = curDev;
+		devInf.id = (UINT32)curDev;
 		devInf.type = _devTypes[curDev];
 		devInf.instance = (UINT8)curDev;
 		devInf.devCfg = devCfg;
@@ -509,6 +522,7 @@ UINT8 DROPlayer::GetDeviceMuting(UINT32 id, PLR_MUTE_OPTS& muteOpts) const
 UINT8 DROPlayer::SetPlayerOptions(const DRO_PLAY_OPTIONS& playOpts)
 {
 	_playOpts = playOpts;
+	RefreshTSRates();
 	return 0x00;
 }
 
@@ -527,11 +541,33 @@ UINT8 DROPlayer::SetSampleRate(UINT32 sampleRate)
 	return 0x00;
 }
 
-/*UINT8 DROPlayer::SetPlaybackSpeed(double speed)
+UINT8 DROPlayer::SetPlaybackSpeed(double speed)
 {
-	return 0xFF;	// not yet supported
-}*/
+	_playOpts.genOpts.pbSpeed = (UINT32)(0x10000 * speed);
+	RefreshTSRates();
+	return 0x00;
+}
 
+
+void DROPlayer::RefreshTSRates(void)
+{
+	_tsMult = _outSmplRate;
+	_tsDiv = _tickFreq;
+	if (_playOpts.genOpts.pbSpeed != 0 && _playOpts.genOpts.pbSpeed != 0x10000)
+	{
+		_tsMult *= 0x10000;
+		_tsDiv *= _playOpts.genOpts.pbSpeed;
+	}
+	if (_tsMult != _lastTsMult ||
+	    _tsDiv != _lastTsDiv)
+	{
+		if (_lastTsMult && _lastTsDiv)	// the order * / * / is required to avoid overflow
+			_playSmpl = (UINT32)(_playSmpl * _lastTsDiv / _lastTsMult * _tsMult / _tsDiv);
+		_lastTsMult = _tsMult;
+		_lastTsDiv = _tsDiv;
+	}
+	return;
+}
 
 UINT32 DROPlayer::Tick2Sample(UINT32 ticks) const
 {
@@ -590,13 +626,38 @@ UINT32 DROPlayer::GetLoopTicks(void) const
 	return 0;
 }
 
+/*static*/ void DROPlayer::PlayerLogCB(void* userParam, void* source, UINT8 level, const char* message)
+{
+	DROPlayer* player = (DROPlayer*)source;
+	if (player->_logCbFunc == NULL)
+		return;
+	player->_logCbFunc(player->_logCbParam, player, level, PLRLOGSRC_PLR, NULL, message);
+	return;
+}
+
+/*static*/ void DROPlayer::SndEmuLogCB(void* userParam, void* source, UINT8 level, const char* message)
+{
+	DEVLOG_CB_DATA* cbData = (DEVLOG_CB_DATA*)userParam;
+	DROPlayer* player = cbData->player;
+	if (player->_logCbFunc == NULL)
+		return;
+	if ((player->_playState & PLAYSTATE_SEEK) && level > PLRLOG_ERROR)
+		return;	// prevent message spam while seeking
+	player->_logCbFunc(player->_logCbParam, player, level, PLRLOGSRC_EMU,
+		player->_devNames[cbData->chipDevID].c_str(), message);
+	return;
+}
+
 
 void DROPlayer::GenerateDeviceConfig(void)
 {
 	size_t curDev;
+	const char* chipName;
+	char chipNameFull[0x10];
 	
 	_devCfgs.clear();
 	_devCfgs.resize(_devTypes.size());
+	_devNames.clear();
 	for (curDev = 0; curDev < _devCfgs.size(); curDev ++)
 	{
 		DEV_GEN_CFG* devCfg = &_devCfgs[curDev];
@@ -606,6 +667,17 @@ void DROPlayer::GenerateDeviceConfig(void)
 		if (_devTypes[curDev] == DEVID_YMF262)
 			devCfg->clock *= 4;	// OPL3 uses a 14 MHz clock
 		devCfg->flags = 0x00;
+		
+		chipName = (_devTypes[curDev] == DEVID_YMF262) ? "OPL3" : "OPL2";
+		if (_devCfgs.size() <= 1)
+		{
+			_devNames.push_back(chipName);
+		}
+		else
+		{
+			snprintf(chipNameFull, 0x10, "%s #%u", chipName, 1 + (unsigned int)curDev);
+			_devNames.push_back(chipNameFull);
+		}
 	}
 	
 	return;
@@ -630,7 +702,7 @@ UINT8 DROPlayer::Start(void)
 		
 		cDev->base.defInf.dataPtr = NULL;
 		cDev->base.linkDev = NULL;
-		cDev->optID = DeviceID2OptionID(curDev);
+		cDev->optID = DeviceID2OptionID((UINT32)curDev);
 		
 		devOpts = (cDev->optID != (size_t)-1) ? &_devOpts[cDev->optID] : NULL;
 		devCfg->emuCore = (devOpts != NULL) ? devOpts->emuCore[0] : 0x00;
@@ -649,6 +721,10 @@ UINT8 DROPlayer::Start(void)
 		}
 		SndEmu_GetDeviceFunc(cDev->base.defInf.devDef, RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, (void**)&cDev->write);
 		
+		cDev->logCbData.player = this;
+		cDev->logCbData.chipDevID = curDev;
+		if (cDev->base.defInf.devDef->SetLogCB != NULL)
+			cDev->base.defInf.devDef->SetLogCB(cDev->base.defInf.dataPtr, DROPlayer::SndEmuLogCB, &cDev->logCbData);
 		SetupLinkedDevices(&cDev->base, NULL, NULL);
 		
 		if (devOpts != NULL)
@@ -661,7 +737,7 @@ UINT8 DROPlayer::Start(void)
 		
 		for (clDev = &cDev->base; clDev != NULL; clDev = clDev->linkDev)
 		{
-			if (clDev->defInf.devDef->SetMuteMask != NULL)
+			if (devOpts != NULL && clDev->defInf.devDef->SetMuteMask != NULL)
 				clDev->defInf.devDef->SetMuteMask(clDev->defInf.dataPtr, devOpts->muteOpts.chnMute[0]);
 			
 			Resmpl_SetVals(&clDev->resmpl, 0xFF, 0x100, _outSmplRate);
@@ -715,10 +791,9 @@ UINT8 DROPlayer::Reset(void)
 	_playState &= ~PLAYSTATE_END;
 	_psTrigger = 0x00;
 	_selPort = 0;
-	
-	_tsMult = _outSmplRate;
-	_tsDiv = _tickFreq;
-	
+
+	RefreshTSRates();	
+
 	for (curDev = 0; curDev < _devices.size(); curDev ++)
 	{
 		DRO_CHIPDEV* cDev = &_devices[curDev];
@@ -896,7 +971,7 @@ void DROPlayer::DoCommand_v1(void)
 	
 	UINT8 curCmd;
 	
-	//debug("DRO v1: Ofs %04X, Command %02X data %02X\n", _filePos, _fileData[_filePos], _fileData[_filePos+1]);
+	//emu_logf(&_logger, PLRLOG_TRACE, "[DRO v1] Ofs %04X, Command %02X data %02X\n", _filePos, _fileData[_filePos], _fileData[_filePos+1]);
 	curCmd = _fileData[_filePos];
 	_filePos ++;
 	switch(curCmd)
@@ -922,7 +997,7 @@ void DROPlayer::DoCommand_v1(void)
 		_selPort = curCmd & 0x01;
 		if (_selPort >= (_devTypes.size() << _portShift))
 		{
-			//debug("More chips used than defined in header!\n");
+			//emu_logf(&_logger, PLRLOG_WARN, "More chips used than defined in header!\n");
 			//_shownMsgs[2] = true;
 		}
 		return;
@@ -957,7 +1032,7 @@ void DROPlayer::DoCommand_v2(void)
 	UINT8 reg;
 	UINT8 data;
 	
-	//debug("DRO v2: Ofs %04X, Command %02X data %02X\n", _filePos, _fileData[_filePos], _fileData[_filePos+1]);
+	//emu_logf(&_logger, PLRLOG_TRACE, "[DRO v2] Ofs %04X, Command %02X data %02X\n", _filePos, _fileData[_filePos], _fileData[_filePos+1]);
 	reg = _fileData[_filePos + 0x00];
 	data = _fileData[_filePos + 0x01];
 	_filePos += 0x02;

@@ -66,6 +66,7 @@ static DEV_DEF devDef =
 	c352_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	NULL,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -224,6 +225,8 @@ static void c352_update(void *chip, UINT32 samples, DEV_SMPL **outputs)
 
 	memset(outputs[0], 0, samples * sizeof(DEV_SMPL));
 	memset(outputs[1], 0, samples * sizeof(DEV_SMPL));
+	if (c->wave == NULL)
+		return;
 
 	for(i=0;i<samples;i++)
 	{

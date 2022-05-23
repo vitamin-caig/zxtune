@@ -173,6 +173,7 @@ DEV_DEF devDef_QSound_ctr =
 	qsoundc_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	NULL,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -274,9 +275,13 @@ static void qsoundc_update(void* param, UINT32 samples, DEV_SMPL** outputs)
 	struct qsound_chip* chip = (struct qsound_chip*)param;
 	UINT32 curSmpl;
 	
-	memset(outputs[0], 0, samples * sizeof(*outputs[0]));
-	memset(outputs[1], 0, samples * sizeof(*outputs[1]));
-	
+	if (chip->romData == NULL)
+	{
+		memset(outputs[0], 0, samples * sizeof(*outputs[0]));
+		memset(outputs[1], 0, samples * sizeof(*outputs[1]));
+		return;
+	}
+
 	for (curSmpl = 0; curSmpl < samples; curSmpl ++)
 	{
 		update_sample(chip);
@@ -522,6 +527,9 @@ INLINE INT16 get_sample(struct qsound_chip *chip, UINT16 bank,UINT16 address)
 
 	bank &= 0x7FFF;
 	rom_addr = (bank << 16) | (address << 0);
+	rom_addr &= chip->romMask;
+	if (rom_addr >= chip->romSize)
+		return 0;
 	
 	sample_data = chip->romData[rom_addr];
 	

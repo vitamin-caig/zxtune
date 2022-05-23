@@ -1,5 +1,5 @@
-#ifndef __S98PLAYER_HPP__
-#define __S98PLAYER_HPP__
+#ifndef __GYMPLAYER_HPP__
+#define __GYMPLAYER_HPP__
 
 #include "../stdtype.h"
 #include "../emu/EmuStructs.h"
@@ -14,60 +14,60 @@
 #include <string>
 
 
-#define FCC_S98 	0x53393800
+#define FCC_GYM 	0x47594D00
 
-struct S98_HEADER
+// GYMX header (optional, added by YMAMP WinAMP plugin)
+//	Ofs	Len	Description
+//	000	04	"GYMX"
+//	004	20	song title
+//	024	20	game name
+//	044	20	publisher
+//	064	20	emulator ("Dumped with")
+//	084	20	file creator ("Dumped by")
+//	0A4	100	comments
+//	1A4	04	loop start frame (0 = no loop)
+//	1A8	04	uncompressed data size (0 = data is uncompressed, 1 = data is zlib compressed)
+
+struct GYM_HEADER
 {
-	UINT8 fileVer;
-	UINT32 tickMult;	// [v1] tick timing numerator
-	UINT32 tickDiv;		// [v2] tick timing denumerator
-	UINT32 compression;	// [v1: 0 - no compression, >0 - size of uncompressed data] [v2: ??] [v3: must be 0]
-	UINT32 tagOfs;		// [v1/2: song title file offset] [v3: tag data file offset]
-	UINT32 dataOfs;		// play data file offset
-	UINT32 loopOfs;		// loop file offset
+	UINT8 hasHeader;
+	UINT32 uncomprSize;
+	UINT32 loopFrame;
+	UINT32 dataOfs;
+	UINT32 realFileSize;	// internal file size after possible decompression
 };
-struct S98_DEVICE
-{
-	UINT32 devType;
-	UINT32 clock;
-	UINT32 pan;			// [v2: reserved] [v3: pan setting]
-	UINT32 app_spec;	// [v2: application-specific] [v3: reserved]
-};
-struct S98_PLAY_OPTIONS
+
+struct GYM_PLAY_OPTIONS
 {
 	PLR_GEN_OPTS genOpts;
 };
 
 
-class S98Player : public PlayerBase
+class GYMPlayer : public PlayerBase
 {
 private:
-	struct DevCfgBuffer
+	struct DevCfg
 	{
+		UINT8 type;
+		UINT16 volume;
 		std::vector<UINT8> data;
 	};
 	struct DEVLOG_CB_DATA
 	{
-		S98Player* player;
+		GYMPlayer* player;
 		size_t chipDevID;
 	};
-	struct S98_CHIPDEV
+	struct GYM_CHIPDEV
 	{
 		VGM_BASEDEV base;
 		size_t optID;
-		std::vector<UINT8> cfg;
 		DEVFUNC_WRITE_A8D8 write;
 		DEVLOG_CB_DATA logCbData;
 	};
-	struct DEVLINK_CB_DATA
-	{
-		S98Player* player;
-		S98_CHIPDEV* chipDev;
-	};
 	
 public:
-	S98Player();
-	~S98Player();
+	GYMPlayer();
+	~GYMPlayer();
 	
 	UINT32 GetPlayerType(void) const;
 	const char* GetPlayerName(void) const;
@@ -75,7 +75,7 @@ public:
 	UINT8 CanLoadFile(DATA_LOADER *dataLoader) const;
 	UINT8 LoadFile(DATA_LOADER *dataLoader);
 	UINT8 UnloadFile(void);
-	const S98_HEADER* GetFileHeader(void) const;
+	const GYM_HEADER* GetFileHeader(void) const;
 	
 	const char* const* GetTags(void);
 	UINT8 GetSongInfo(PLR_SONG_INFO& songInf);
@@ -84,8 +84,8 @@ public:
 	UINT8 GetDeviceOptions(UINT32 id, PLR_DEV_OPTS& devOpts) const;
 	UINT8 SetDeviceMuting(UINT32 id, const PLR_MUTE_OPTS& muteOpts);
 	UINT8 GetDeviceMuting(UINT32 id, PLR_MUTE_OPTS& muteOpts) const;
-	UINT8 SetPlayerOptions(const S98_PLAY_OPTIONS& playOpts);
-	UINT8 GetPlayerOptions(S98_PLAY_OPTIONS& playOpts) const;
+	UINT8 SetPlayerOptions(const GYM_PLAY_OPTIONS& playOpts);
+	UINT8 GetPlayerOptions(GYM_PLAY_OPTIONS& playOpts) const;
 	
 	//UINT32 GetSampleRate(void) const;
 	UINT8 SetSampleRate(UINT32 sampleRate);
@@ -110,66 +110,64 @@ public:
 	UINT32 Render(UINT32 smplCnt, WAVE_32BS* data);
 	
 private:
-	UINT8 GetDeviceInstance(size_t id) const;
 	size_t DeviceID2OptionID(UINT32 id) const;
-	void RefreshMuting(S98_CHIPDEV& chipDev, const PLR_MUTE_OPTS& muteOpts);
-	void RefreshPanning(S98_CHIPDEV& chipDev, const PLR_PAN_OPTS& panOpts);
+	void RefreshMuting(GYM_CHIPDEV& chipDev, const PLR_MUTE_OPTS& muteOpts);
+	void RefreshPanning(GYM_CHIPDEV& chipDev, const PLR_PAN_OPTS& panOpts);
 	
+	UINT8 DecompressZlibData(void);
 	void CalcSongLength(void);
 	UINT8 LoadTags(void);
+	void LoadTag(const char* tagName, const void* data, size_t maxlen);
 	std::string GetUTF8String(const char* startPtr, const char* endPtr);
-	UINT8 ParsePSFTags(const std::string& tagData);
-	UINT32 ReadVarInt(UINT32& filePos);
-	
+
 	void RefreshTSRates(void);
 	
 	static void PlayerLogCB(void* userParam, void* source, UINT8 level, const char* message);
 	static void SndEmuLogCB(void* userParam, void* source, UINT8 level, const char* message);
 	
 	void GenerateDeviceConfig(void);
-	static void DeviceLinkCallback(void* userParam, VGM_BASEDEV* cDev, DEVLINK_INFO* dLink);
 	UINT8 SeekToTick(UINT32 tick);
 	UINT8 SeekToFilePos(UINT32 pos);
 	void ParseFile(UINT32 ticks);
-	void HandleEOF(void);
 	void DoCommand(void);
-	void DoRegWrite(UINT8 deviceID, UINT8 port, UINT8 reg, UINT8 data);
+	void DoFileEnd(void);
 	
-	enum
-	{
-		_OPT_DEV_COUNT = 0x0A
-	};
-	
-	CPCONV* _cpcSJIS;	// ShiftJIS -> UTF-8 codepage conversion
+	CPCONV* _cpc1252;	// CP1252 -> UTF-8 codepage conversion
 	DEV_LOGGER _logger;
-	DATA_LOADER *_dLoad;
+	DATA_LOADER* _dLoad;
+	UINT32 _fileLen;
 	const UINT8* _fileData;	// data pointer for quick access, equals _dLoad->GetFileData().data()
+	std::vector<UINT8> _decFData;
 	
-	S98_HEADER _fileHdr;
-	std::vector<S98_DEVICE> _devHdrs;
-	std::vector<DevCfgBuffer> _devCfgs;
+	GYM_HEADER _fileHdr;
+	std::vector<DevCfg> _devCfgs;
+	UINT32 _tickFreq;
 	UINT32 _totalTicks;
-	UINT32 _loopTick;
+	UINT32 _loopOfs;
 	std::map<std::string, std::string> _tagData;
 	std::vector<const char*> _tagList;
+	
+	std::vector<UINT8> _pcmBuffer;
+	UINT32 _pcmBaseTick;
+	UINT32 _pcmInPos;	// input position (GYM -> buffer)
+	UINT32 _pcmOutPos;	// output position (buffer -> YM2612)
+	UINT8 _ymFreqRegs[0x20];	// cache of 0x0A0..0x0AF and 0x1A0..0x1AF frequency registers
+	UINT8 _ymLatch[2];	// current latch value ([0] = normal channels, [1] = CH3 multi-freq mode registers]
 	
 	//UINT32 _outSmplRate;
 	
 	// tick/sample conversion rates
 	UINT64 _tsMult;
 	UINT64 _tsDiv;
-
+	
 	UINT64 _lastTsMult;
 	UINT64 _lastTsDiv;
 	
-	static const UINT8 _OPT_DEV_LIST[_OPT_DEV_COUNT];	// list of configurable libvgm devices
-	
-	S98_PLAY_OPTIONS _playOpts;
-	PLR_DEV_OPTS _devOpts[_OPT_DEV_COUNT * 2];	// space for 2 instances per chip
-	size_t _devOptMap[0x100][2];	// maps libvgm device ID to _devOpts vector
-	std::vector<S98_CHIPDEV> _devices;
+	GYM_PLAY_OPTIONS _playOpts;
+	PLR_DEV_OPTS _devOpts[2];	// 0 = YM2612, 1 = SEGA PSG
+	std::vector<GYM_CHIPDEV> _devices;
 	std::vector<std::string> _devNames;
-	size_t _optDevMap[_OPT_DEV_COUNT * 2];	// maps _devOpts vector index to _devices vector
+	size_t _optDevMap[2];	// maps _devOpts vector index to _devices vector
 	
 	UINT32 _filePos;
 	UINT32 _fileTick;
@@ -177,11 +175,11 @@ private:
 	UINT32 _playSmpl;
 	UINT32 _curLoop;
 	UINT32 _lastLoopTick;
-	
+
 	UINT8 _playState;
 	UINT8 _psTrigger;	// used to temporarily trigger special commands
 	//PLAYER_EVENT_CB _eventCbFunc;
 	//void* _eventCbParam;
 };
 
-#endif	// __S98PLAYER_HPP__
+#endif	// __GYMPLAYER_HPP__

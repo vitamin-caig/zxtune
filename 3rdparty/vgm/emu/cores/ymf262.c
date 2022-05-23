@@ -64,6 +64,7 @@ differences between OPL2 and OPL3 shown in datasheets:
 #include "../../stdtype.h"
 #include "../snddef.h"
 #include "../EmuHelper.h"
+#include "../logging.h"
 #include "ymf262.h"
 
 #ifdef _MSC_VER
@@ -191,6 +192,7 @@ typedef struct
 typedef struct
 {
 	DEV_DATA _devData;
+	DEV_LOGGER logger;
 
 	OPL3_CH P_CH[18];               /* OPL3 chips have 18 channels  */
 
@@ -692,7 +694,7 @@ INLINE void advance(OPL3 *chip)
 				{
 					op->volume += eg_inc[op->eg_sel_dr + ((chip->eg_cnt>>op->eg_sh_dr)&7)];
 
-					if ( op->volume >= op->sl )
+					if ( op->volume >= (INT32)op->sl )
 						op->state = EG_SUS;
 
 				}
@@ -1658,7 +1660,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 
 		default:
 			if (r < 0x120)
-				logerror("YMF262: write to unknown register (set#2): %03x value=%02x\n",r,v);
+				emu_logf(&chip->logger, DEVLOG_DEBUG, "write to unknown register (set#2): %03x value=%02x\n",r,v);
 		break;
 		}
 
@@ -1718,7 +1720,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 		break;
 
 		default:
-			logerror("YMF262: write to unknown register: %02x value=%02x\n",r,v);
+			emu_logf(&chip->logger, DEVLOG_DEBUG, "write to unknown register: %02x value=%02x\n",r,v);
 		break;
 		}
 		break;
@@ -2296,7 +2298,7 @@ static OPL3 *OPL3Create(UINT32 clock, UINT32 rate, int type)
 	OPL3_initalize(chip);
 
 	ymf262_set_volume(chip, 0x10000);
-	ymf262_set_mutemask(chip, 0x000000);
+	ymf262_set_mute_mask(chip, 0x000000);
 
 	return chip;
 }
@@ -2473,7 +2475,7 @@ void ymf262_set_update_handler(void *chip,OPL3_UPDATEHANDLER UpdateHandler,void 
 	OPL3SetUpdateHandler((OPL3 *)chip, UpdateHandler, param);
 }
 
-void ymf262_set_mutemask(void *chip, UINT32 MuteMask)
+void ymf262_set_mute_mask(void *chip, UINT32 MuteMask)
 {
 	OPL3 *opl3 = (OPL3 *)chip;
 	UINT8 CurChn;
@@ -2623,4 +2625,11 @@ void ymf262_update_one(void *_chip, UINT32 length, DEV_SMPL **buffers)
 		advance(chip);
 	}
 
+}
+
+void ymf262_set_log_cb(void* chip, DEVCB_LOG func, void* param)
+{
+	OPL3 *opl3 = (OPL3 *)chip;
+	dev_logger_set(&opl3->logger, opl3, func, param);
+	return;
 }

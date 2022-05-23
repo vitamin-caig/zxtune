@@ -104,6 +104,7 @@
 #include "../SoundDevs.h"
 #include "../SoundEmu.h"
 #include "../EmuHelper.h"
+#include "../logging.h"
 #include "ymf278b.h"
 
 
@@ -127,6 +128,7 @@ static void ymf278b_write_rom(void *info, UINT32 offset, UINT32 length, const UI
 static void ymf278b_write_ram(void *info, UINT32 offset, UINT32 length, const UINT8* data);
 
 static void ymf278b_set_mute_mask(void *info, UINT32 MuteMask);
+static void ymf278b_set_log_cb(void *info, DEVCB_LOG func, void* param);
 
 
 static DEVDEF_RWFUNC devFunc[] =
@@ -153,6 +155,7 @@ static DEV_DEF devDef =
 	ymf278b_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	ymf278b_set_log_cb,	// SetLoggingCallback
 	device_ymf278b_link_opl3,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -174,7 +177,6 @@ typedef struct
 					// invariant: step == calcStep(OCT, FN)
 	UINT32 stepptr;	// fixed-point pointer into the sample
 	UINT16 pos;
-	INT16 sample1, sample2;
 
 	INT16 env_vol;
 
@@ -218,6 +220,7 @@ typedef struct
 struct _YMF278BChip
 {
 	DEV_DATA _devData;
+	DEV_LOGGER logger;
 
 	YMF278BSlot slots[24];
 
@@ -457,7 +460,7 @@ static void ymf278b_slot_reset(YMF278BSlot* slot)
 	slot->state = EG_OFF;
 
 	// not strictly needed, but avoid UMR on savestate
-	slot->pos = slot->sample1 = slot->sample2 = 0;
+	slot->pos = 0;
 }
 
 INLINE UINT8 ymf278b_slot_compute_rate(YMF278BSlot* slot, int val)
@@ -694,7 +697,7 @@ static void ymf278b_advance(YMF278BChip* chip)
 	}
 }
 
-INLINE INT16 ymf278b_getSample(YMF278BChip* chip, YMF278BSlot* op)
+INLINE INT16 ymf278b_getSample(YMF278BChip* chip, YMF278BSlot* slot, UINT16 pos)
 {
 	// TODO How does this behave when R#2 bit 0 = 1?
 	//      As-if read returns 0xff? (Like for CPU memory reads.) Or is
@@ -702,23 +705,23 @@ INLINE INT16 ymf278b_getSample(YMF278BChip* chip, YMF278BSlot* op)
 	INT16 sample;
 	UINT32 addr;
 	
-	switch (op->bits)
+	switch (slot->bits)
 	{
 	case 0:
 		// 8 bit
-		sample = ymf278b_readMem(chip, op->startaddr + op->pos) << 8;
+		sample = ymf278b_readMem(chip, slot->startaddr + pos) << 8;
 		break;
 	case 1:
 		// 12 bit
-		addr = op->startaddr + ((op->pos / 2) * 3);
-		if (op->pos & 1)
+		addr = slot->startaddr + ((pos / 2) * 3);
+		if (pos & 1)
 			sample = (ymf278b_readMem(chip, addr + 2) << 8) | ((ymf278b_readMem(chip, addr + 1) & 0xF0) << 0);
 		else
 			sample = (ymf278b_readMem(chip, addr + 0) << 8) | ((ymf278b_readMem(chip, addr + 1) & 0x0F) << 4);
 		break;
 	case 2:
 		// 16 bit
-		addr = op->startaddr + (op->pos * 2);
+		addr = slot->startaddr + (pos * 2);
 		sample = (ymf278b_readMem(chip, addr + 0) << 8) | ymf278b_readMem(chip, addr + 1);
 		break;
 	default:
@@ -727,6 +730,17 @@ INLINE INT16 ymf278b_getSample(YMF278BChip* chip, YMF278BSlot* op)
 		break;
 	}
 	return sample;
+}
+
+INLINE INT16 ymf278b_nextPos(YMF278BSlot* slot, UINT16 pos, UINT16 step)
+{
+	// If there is a 4-sample loop and you advance 12 samples per step,
+	// it may exceed the end offset.
+	// This is abused by the "Lizard Star" song to generate noise at 0:52. -Valley Bell
+	pos += step;
+	if ((UINT32)pos + slot->endaddr >= 0x10000)	// check position >= (negated) end address
+		pos = pos + slot->endaddr + slot->loopaddr;	// This is how the actual chip does it.
+	return pos;
 }
 
 static int ymf278b_anyActive(YMF278BChip* chip)
@@ -781,8 +795,8 @@ static void ymf278b_pcm_update(void *info, UINT32 samples, DEV_SMPL** outputs)
 				continue;
 			}
 
-			sample = (sl->sample1 * (0x10000 - sl->stepptr) +
-			          sl->sample2 * sl->stepptr) >> 16;
+			sample = (ymf278b_getSample(chip, sl, sl->pos) * (0x10000 - sl->stepptr) +
+			          ymf278b_getSample(chip, sl, ymf278b_nextPos(sl, sl->pos, 1)) * sl->stepptr) >> 16;
 			
 			// TL levels are 00..FF internally (TL register value 7F is mapped to TL level FF)
 			// Envelope levels have 4x the resolution (000..3FF)
@@ -816,17 +830,10 @@ static void ymf278b_pcm_update(void *info, UINT32 samples, DEV_SMPL** outputs)
 			     : sl->step;
 			sl->stepptr += step;
 
-			// If there is a 4-sample loop and you advance 12 samples per step,
-			// it may exceed the end offset.
-			// This is abused by the "Lizard Star" song to generate noise at 0:52. -Valley Bell
 			if (sl->stepptr >= 0x10000)
 			{
-				sl->sample1 = sl->sample2;
-				sl->sample2 = ymf278b_getSample(chip, sl);
-				sl->pos += (sl->stepptr >> 16);
+				sl->pos = ymf278b_nextPos(sl, sl->pos, sl->stepptr >> 16);
 				sl->stepptr &= 0xFFFF;
-				if ((UINT32)sl->pos + sl->endaddr >= 0x10000)	// check position >= (negated) end address
-					sl->pos = sl->pos + sl->endaddr + sl->loopaddr;	// This is how the actual chip does it.
 			}
 		}
 		ymf278b_advance(chip);
@@ -850,9 +857,6 @@ INLINE void ymf278b_keyOnHelper(YMF278BChip* chip, YMF278BSlot* slot)
 	}
 	slot->stepptr = 0;
 	slot->pos = 0;
-	slot->sample1 = ymf278b_getSample(chip, slot);
-	slot->pos = 1;
-	slot->sample2 = ymf278b_getSample(chip, slot);
 }
 
 static void ymf278b_A_w(YMF278BChip *chip, UINT8 reg, UINT8 data)
@@ -883,7 +887,7 @@ static void ymf278b_A_w(YMF278BChip *chip, UINT8 reg, UINT8 data)
 			ymf278b_irq_check(chip);*/
 			break;
 		default:
-//			logerror("YMF278B:  Port A write %02x, %02x\n", reg, data);
+//			emu_logf(&chip->logger, DEVLOG_DEBUG, "Port A write %02x, %02x\n", reg, data);
 			break;
 	}
 }
@@ -1176,7 +1180,7 @@ static UINT8 ymf278b_r(void *info, UINT8 offset)
 			break;
 
 		default:
-			logerror("YMF278B: unexpected read at offset %X from ymf278b\n", offset);
+			emu_logf(&chip->logger, DEVLOG_DEBUG, "unexpected read at offset %X from ymf278b\n", offset);
 			break;
 	}
 
@@ -1219,7 +1223,7 @@ static void ymf278b_w(void *info, UINT8 offset, UINT8 data)
 			break;
 
 		default:
-			logerror("YMF278B: unexpected write at offset %X to ymf278b = %02X\n", offset, data);
+			emu_logf(&chip->logger, DEVLOG_DEBUG, "unexpected write at offset %X to ymf278b = %02X\n", offset, data);
 			break;
 	}
 }
@@ -1491,7 +1495,7 @@ static void device_reset_ymf278b(void *info)
 	refresh_opl3_volume(chip);
 }
 
-static UINT8 get_opl3_funcs(const DEV_DEF* devDef, OPL3FM* retFuncs)
+static UINT8 get_opl3_funcs(const DEV_DEF* devDef, OPL3FM* retFuncs, DEV_LOGGER* logger)
 {
 	UINT8 retVal;
 	
@@ -1503,7 +1507,7 @@ static UINT8 get_opl3_funcs(const DEV_DEF* devDef, OPL3FM* retFuncs)
 	if (retVal)
 	{
 		retFuncs->setVol = NULL;
-		logerror("YMF278B Warning: Unable to control OPL3 volume.\n");
+		emu_logf(logger, DEVLOG_WARN, "Unable to control OPL3 volume.\n");
 	}
 	
 	if (devDef->Reset == NULL)
@@ -1530,7 +1534,7 @@ static UINT8 device_ymf278b_link_opl3(void* param, UINT8 devID, const DEV_INFO* 
 	}
 	else
 	{
-		retVal = get_opl3_funcs(defInfOPL3->devDef, &chip->fm);
+		retVal = get_opl3_funcs(defInfOPL3->devDef, &chip->fm, &chip->logger);
 		if (! retVal)
 			chip->fm.chip = defInfOPL3->dataPtr;
 		refresh_opl3_volume(chip);
@@ -1603,5 +1607,12 @@ static void ymf278b_set_mute_mask(void *info, UINT32 MuteMask)
 	for (CurChn = 0; CurChn < 24; CurChn ++)
 		chip->slots[CurChn].Muted = (MuteMask >> CurChn) & 0x01;
 	
+	return;
+}
+
+static void ymf278b_set_log_cb(void *info, DEVCB_LOG func, void* param)
+{
+	YMF278BChip *chip = (YMF278BChip *)info;
+	dev_logger_set(&chip->logger, chip, func, param);
 	return;
 }

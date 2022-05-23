@@ -54,6 +54,7 @@ static DEV_DEF devDef3812_MAME =
 	opl_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	opl_set_log_cb,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc3812_MAME,	// rwFuncs
@@ -80,6 +81,7 @@ static DEV_DEF devDef3812_AdLibEmu =
 	adlib_OPL2_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	NULL,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc3812_Emu,	// rwFuncs
@@ -90,7 +92,7 @@ static DEVDEF_RWFUNC devFunc3812_Nuked[] =
 {
 	{RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, nukedopl3_write},
 	{RWF_REGISTER | RWF_READ, DEVRW_A8D8, 0, nukedopl3_read},
-	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, nukedopl3_set_mutemask},
+	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, nukedopl3_set_mute_mask},
 	{0x00, 0x00, 0, NULL}
 };
 static DEV_DEF devDef3812_Nuked =
@@ -103,9 +105,10 @@ static DEV_DEF devDef3812_Nuked =
 	nukedopl3_update,
 	
 	NULL,	// SetOptionBits
-	nukedopl3_set_mutemask,
+	nukedopl3_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	NULL,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc3812_Nuked,	// rwFuncs
@@ -150,6 +153,7 @@ static DEV_DEF devDef3526_MAME =
 	opl_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	opl_set_log_cb,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc3526_MAME,	// rwFuncs
@@ -186,6 +190,7 @@ static DEV_DEF devDef8950_MAME =
 	opl_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	opl_set_log_cb,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc8950_MAME,	// rwFuncs
@@ -261,7 +266,7 @@ static UINT8 device_start_ym3812_nuked(const DEV_GEN_CFG* cfg, DEV_INFO* retDevI
 		return 0xFF;
 	
 	nukedopl3_set_volume(chip, 0x10000);
-	nukedopl3_set_mutemask(chip, 0x000000);
+	nukedopl3_set_mute_mask(chip, 0x000000);
 	
 	devData = (DEV_DATA*)chip;
 	devData->chipInf = chip;

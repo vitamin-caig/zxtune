@@ -84,6 +84,7 @@ static DEV_DEF devDef =
 	multipcm_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	NULL,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -574,6 +575,13 @@ static void MultiPCM_update(void *info, UINT32 samples, DEV_SMPL **outputs)
 {
 	MultiPCM *ptChip = (MultiPCM *)info;
 	UINT32 i, sl;
+
+	if (ptChip->ROM == NULL)
+	{
+		memset(outputs[0], 0, samples * sizeof(DEV_SMPL));
+		memset(outputs[1], 0, samples * sizeof(DEV_SMPL));
+		return;
+	}
 
 	for (i = 0; i < samples; ++i)
 	{

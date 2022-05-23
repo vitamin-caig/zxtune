@@ -7,7 +7,9 @@
 #include "helper.h"
 #include "playerbase.hpp"
 #include "../utils/DataLoader.h"
+#include "../emu/logging.h"
 #include <vector>
+#include <string>
 
 
 #define FCC_DRO 	0x44524F00
@@ -66,20 +68,27 @@ struct DRO_HEADER
 #define DRO_V2OPL3_ENFORCE	0x02	// always enforce OPL3 mode when the DRO says DualOPL2
 struct DRO_PLAY_OPTIONS
 {
+	PLR_GEN_OPTS genOpts;
 	UINT8 v2opl3Mode;	// DRO v2 DualOPL2 -> OPL3 fixes
 };
 
 
-typedef struct _dro_chip_device DRO_CHIPDEV;
-struct _dro_chip_device
-{
-	VGM_BASEDEV base;
-	size_t optID;
-	DEVFUNC_WRITE_A8D8 write;
-};
-
 class DROPlayer : public PlayerBase
 {
+private:
+	struct DEVLOG_CB_DATA
+	{
+		DROPlayer* player;
+		size_t chipDevID;
+	};
+	struct DRO_CHIPDEV
+	{
+		VGM_BASEDEV base;
+		size_t optID;
+		DEVFUNC_WRITE_A8D8 write;
+		DEVLOG_CB_DATA logCbData;
+	};
+	
 public:
 	DROPlayer();
 	~DROPlayer();
@@ -104,7 +113,7 @@ public:
 	
 	//UINT32 GetSampleRate(void) const;
 	UINT8 SetSampleRate(UINT32 sampleRate);
-	//UINT8 SetPlaybackSpeed(double speed);
+	UINT8 SetPlaybackSpeed(double speed);
 	//void SetEventCallback(PLAYER_EVENT_CB cbFunc, void* cbParam);
 	UINT32 Tick2Sample(UINT32 ticks) const;
 	UINT32 Sample2Tick(UINT32 samples) const;
@@ -130,6 +139,11 @@ private:
 	void RefreshPanning(DRO_CHIPDEV& chipDev, const PLR_PAN_OPTS& panOpts);
 	
 	void ScanInitBlock(void);
+
+	void RefreshTSRates(void);
+	
+	static void PlayerLogCB(void* userParam, void* source, UINT8 level, const char* message);
+	static void SndEmuLogCB(void* userParam, void* source, UINT8 level, const char* message);
 	
 	void GenerateDeviceConfig(void);
 	UINT8 SeekToTick(UINT32 tick);
@@ -140,6 +154,7 @@ private:
 	void DoFileEnd(void);
 	void WriteReg(UINT8 port, UINT8 reg, UINT8 data);
 	
+	DEV_LOGGER _logger;
 	DATA_LOADER* _dLoad;
 	const UINT8* _fileData;	// data pointer for quick access, equals _dLoad->GetFileData().data()
 	
@@ -163,10 +178,14 @@ private:
 	// tick/sample conversion rates
 	UINT64 _tsMult;
 	UINT64 _tsDiv;
+
+	UINT64 _lastTsMult;
+	UINT64 _lastTsDiv;
 	
 	DRO_PLAY_OPTIONS _playOpts;
 	PLR_DEV_OPTS _devOpts[3];	// 0 = 1st OPL2, 1 = 2nd OPL2, 2 = 1st OPL3
 	std::vector<DRO_CHIPDEV> _devices;
+	std::vector<std::string> _devNames;
 	size_t _optDevMap[3];	// maps _devOpts vector index to _devices vector
 	
 	UINT32 _filePos;

@@ -31,6 +31,19 @@ typedef UINT8 (*PLAYER_EVENT_CB)(PlayerBase* player, void* userParam, UINT8 evtT
 
 typedef DATA_LOADER* (*PLAYER_FILEREQ_CB)(void* userParam, PlayerBase* player, const char* fileName);
 
+typedef void (*PLAYER_LOG_CB)(void* userParam, PlayerBase* player, UINT8 level, UINT8 srcType, const char* srcTag, const char* message);
+// log levels
+#define PLRLOG_OFF		DEVLOG_OFF
+#define PLRLOG_ERROR	DEVLOG_ERROR
+#define PLRLOG_WARN		DEVLOG_WARN
+#define PLRLOG_INFO		DEVLOG_INFO
+#define PLRLOG_DEBUG	DEVLOG_DEBUG
+#define PLRLOG_TRACE	DEVLOG_TRACE
+// log source types
+#define PLRLOGSRC_PLR	0x00	// player
+#define PLRLOGSRC_EMU	0x01	// sound emulation
+
+
 struct PLR_SONG_INFO
 {
 	UINT32 format;		// four-character-code for file format
@@ -40,7 +53,8 @@ struct PLR_SONG_INFO
 	UINT32 tickRateDiv;	// internal ticks per second: denumerator
 	// 1 second = 1 tick * tickMult / tickDiv
 	UINT32 songLen;		// song length in ticks
-	UINT32 loopTick;	// tick position where the loop begins
+	UINT32 loopTick;	// tick position where the loop begins (-1 = no loop)
+	INT32 volGain;		// song-specific volume gain, 16.16 fixed point factor (0x10000 = 100%)
 	UINT32 deviceCnt;	// number of used sound devices
 };
 
@@ -65,7 +79,7 @@ struct PLR_PAN_OPTS
 	INT16 chnPan[2][32];	// channel panning [TODO: rethink how this should be really configured]
 };
 
-#define PLR_DEV_ID(chip, instance)	(0x80000000 | (instance << 16) | (chip << 0))
+#define PLR_DEV_ID(chip, instance)	(0x80000000U | (instance << 16) | (chip << 0))
 
 struct PLR_DEV_OPTS
 {
@@ -76,6 +90,11 @@ struct PLR_DEV_OPTS
 	UINT32 coreOpts;
 	PLR_MUTE_OPTS muteOpts;
 	PLR_PAN_OPTS panOpts;
+};
+
+struct PLR_GEN_OPTS
+{
+	UINT32 pbSpeed; // playback speed (16.16 fixed point scale, 0x10000 = 100%)
 };
 
 
@@ -106,14 +125,15 @@ public:
 	virtual UINT8 SetDeviceMuting(UINT32 id, const PLR_MUTE_OPTS& muteOpts) = 0;
 	virtual UINT8 GetDeviceMuting(UINT32 id, PLR_MUTE_OPTS& muteOpts) const = 0;
 	// player-specific options
-	//virtual UINT8 SetPlayerOptions(const ###_PLAY_OPTIONS& playOpts) = 0;
-	//virtual UINT8 GetPlayerOptions(###_PLAY_OPTIONS& playOpts) const = 0;
+	//virtual UINT8 SetPlayerOptions(const PLR_GEN_OPTS& playOpts) = 0;
+	//virtual UINT8 GetPlayerOptions(PLR_GEN_OPTS& playOpts) const = 0;
 	
 	virtual UINT32 GetSampleRate(void) const;
 	virtual UINT8 SetSampleRate(UINT32 sampleRate);
 	virtual UINT8 SetPlaybackSpeed(double speed);
 	virtual void SetEventCallback(PLAYER_EVENT_CB cbFunc, void* cbParam);
 	virtual void SetFileReqCallback(PLAYER_FILEREQ_CB cbFunc, void* cbParam);
+	virtual void SetLogCallback(PLAYER_LOG_CB cbFunc, void* cbParam);
 	virtual UINT32 Tick2Sample(UINT32 ticks) const = 0;
 	virtual UINT32 Sample2Tick(UINT32 samples) const = 0;
 	virtual double Tick2Second(UINT32 ticks) const = 0;
@@ -138,6 +158,8 @@ protected:
 	void* _eventCbParam;
 	PLAYER_FILEREQ_CB _fileReqCbFunc;
 	void* _fileReqCbParam;
+	PLAYER_LOG_CB _logCbFunc;
+	void* _logCbParam;
 };
 
 #endif	// __PLAYERBASE_HPP__

@@ -51,9 +51,6 @@
     <ClCompile Include="emu\cores\2612intf.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
-    <ClCompile Include="emu\cores\fmopn2612.c">
-      <Filter>Quelldateien</Filter>
-    </ClCompile>
     <ClCompile Include="emu\cores\ym2612.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
@@ -244,6 +241,9 @@
       <Filter>Quelldateien</Filter>
     </ClCompile>
     <ClCompile Include="emu\cores\2151intf.c">
+      <Filter>Quelldateien</Filter>
+    </ClCompile>
+    <ClCompile Include="emu\logging.c">
       <Filter>Quelldateien</Filter>
     </ClCompile>
   </ItemGroup>
@@ -525,6 +525,9 @@
       <Filter>Headerdateien</Filter>
     </ClInclude>
     <ClInclude Include="emu\cores\2151intf.h">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="emu\logging.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

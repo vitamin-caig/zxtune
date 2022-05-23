@@ -44,6 +44,10 @@
 
 #define YM_DEBUG_LEVEL 0
 
+#if YM_DEBUG_LEVEL > 0
+#include <stdio.h>
+#endif
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -365,6 +369,7 @@ INLINE void CSM_Key_Control(ym2612_ *YM2612)
 }
 
 
+static
 int SLOT_SET(ym2612_ *YM2612, int Adr, unsigned char data)
 {
   channel_ *CH;
@@ -527,6 +532,7 @@ int SLOT_SET(ym2612_ *YM2612, int Adr, unsigned char data)
 }
 
 
+static
 int CHANNEL_SET(ym2612_ *YM2612, int Adr, unsigned char data)
 {
   channel_ *CH;
@@ -691,6 +697,7 @@ int CHANNEL_SET(ym2612_ *YM2612, int Adr, unsigned char data)
 }
 
 
+static
 int YM_SET(ym2612_ *YM2612, int Adr, unsigned char data)
 {
   channel_ *CH;

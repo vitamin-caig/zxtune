@@ -2,6 +2,7 @@
 // Required libraries:
 //	- ole32.lib (COM stuff)
 #define _CRTDBG_MAP_ALLOC
+#define _WIN32_DCOM	// for CoInitializeEx() / COINIT_MULTITHREADED
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -123,7 +124,7 @@ UINT8 XAudio2_Init(void)
 	deviceList.devNames = NULL;
 	devListIDs = NULL;
 	
-	retVal = CoInitialize(NULL);
+	retVal = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	if (! (retVal == S_OK || retVal == S_FALSE))
 		return AERR_API_ERR;
 	
@@ -290,7 +291,7 @@ UINT8 XAudio2_Start(void* drvObj, UINT32 deviceID, AUDIO_OPTS* options, void* au
 	drv->bufSize = drv->waveFmt.nBlockAlign * drv->bufSmpls;
 	drv->bufCount = options->numBuffers ? options->numBuffers : 10;
 	
-	retVal = CoInitialize(NULL);	// call again, in case Init() was called by another thread
+	retVal = CoInitializeEx(NULL, COINIT_MULTITHREADED);	// call again, in case Init() was called by another thread
 	if (! (retVal == S_OK || retVal == S_FALSE))
 		return AERR_API_ERR;
 	

@@ -541,6 +541,7 @@ YM2203 Japanese datasheet contents, translated: http://www.larwe.com/technical/c
 #include "../EmuStructs.h"
 #include "../EmuCores.h"
 #include "../EmuHelper.h"
+#include "../logging.h"
 #include "ayintf.h"
 #include "ay8910.h"
 
@@ -550,6 +551,7 @@ static DEVDEF_RWFUNC devFunc[] =
 	{RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, ay8910_write},
 	{RWF_REGISTER | RWF_QUICKWRITE, DEVRW_A8D8, 0, ay8910_write_reg},
 	{RWF_REGISTER | RWF_READ, DEVRW_A8D8, 0, ay8910_read},
+	{RWF_REGISTER | RWF_WRITE, DEVRW_ALL, 0x5354, ay8910_set_stereo_mask},	// 0x5354 = 'ST' (stereo)
 	{RWF_CLOCK | RWF_WRITE, DEVRW_VALUE, 0, ay8910_set_clock},
 	{RWF_SRATE | RWF_READ, DEVRW_VALUE, 0, ay8910_get_sample_rate},
 	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, ay8910_set_mute_mask},
@@ -568,6 +570,7 @@ DEV_DEF devDef_AY8910_MAME =
 	ay8910_set_mute_mask,
 	NULL,	// SetPanning
 	ay8910_set_srchg_cb,	// SetSampleRateChangeCallback
+	ay8910_set_log_cb,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -647,6 +650,7 @@ typedef struct _mosfet_param
 struct _ay8910_context
 {
 	DEV_DATA _devData;
+	DEV_LOGGER logger;
 	
 	// internal state
 	psg_type_t type;
@@ -948,14 +952,14 @@ INLINE void build_single_table(double rl, const ay_ym_param *par, int normalize,
 			/* The following line generates values that cause clicks when starting/pausing/stopping
 				because there're off (the center is at zero, not the base).
 				That's quite bad for a player.
-			tab[j] = MAX_OUTPUT * (((temp[j] - min)/(max-min)) - 0.25) * 0.5;
+			tab[j] = (INT32)(MAX_OUTPUT * (((temp[j] - min)/(max-min)) - 0.25) * 0.5);
 			*/
-			tab[j] = MAX_OUTPUT * ((temp[j] - min)/(max-min)) / NUM_CHANNELS;
+			tab[j] = (INT32)(MAX_OUTPUT * ((temp[j] - min)/(max-min)) / NUM_CHANNELS);
 	}
 	else
 	{
 		for (j=0; j < par->res_count; j++)
-			tab[j] = MAX_OUTPUT * temp[j] / NUM_CHANNELS;
+			tab[j] = (INT32)(MAX_OUTPUT * temp[j] / NUM_CHANNELS);
 	}
 
 }
@@ -1079,12 +1083,12 @@ void ay8910_write_reg(ay8910_context *psg, UINT8 r, UINT8 v)
 				//if (psg->port_a_write_cb != NULL)
 				//	psg->port_a_write_cb(psg, 0, psg->regs[AY_PORTA]);
 				//else
-				//	logerror("warning: unmapped write %02x to %s Port A\n", v, "AY8910");
+				//	emu_logf(&psg->logger, DEVLOG_WARN, "unmapped write %02x to Port A\n", v);
 			}
 			else
 			{
 #if LOG_IGNORED_WRITES
-				logerror("warning: write %02x to %s Port A set as input - ignored\n", v, "AY8910");
+				emu_logf(&psg->logger, DEVLOG_WARN, "write %02x to Port A set as input - ignored\n", v);
 #endif
 			}
 			break;
@@ -1094,12 +1098,12 @@ void ay8910_write_reg(ay8910_context *psg, UINT8 r, UINT8 v)
 				//if (psg->port_b_write_cb != NULL)
 				//	psg->port_b_write_cb(psg, 0, psg->regs[AY_PORTB]);
 				//else
-				//	logerror("warning: unmapped write %02x to %s Port B\n", v, "AY8910");
+				//	emu_logf(&psg->logger, DEVLOG_WARN, "unmapped write %02x to Port B\n", v);
 			}
 			else
 			{
 #if LOG_IGNORED_WRITES
-				logerror("warning: write %02x to %s Port B set as input - ignored\n", v, "AY8910");
+				emu_logf(&psg->logger, DEVLOG_WARN, "write %02x to Port B set as input - ignored\n", v);
 #endif
 			}
 			break;
@@ -1245,14 +1249,14 @@ static void build_mixer_table(ay8910_context *psg)
 
 	if ((psg->flags & AY8910_LEGACY_OUTPUT) != 0 || ! psg->flags)
 	{
-		//logerror("AY-3-8910/YM2149 using legacy output levels!\n");
+		//emu_logf(&psg->logger, DEVLOG_INFO, "AY-3-8910/YM2149 using legacy output levels!\n");
 		normalize = 1;
 	}
 
 	if ((psg->flags & AY8910_RESISTOR_OUTPUT) != 0)
 	{
 		if (psg->type != PSG_TYPE_AY)
-			logerror("AY8910_RESISTOR_OUTPUT currently only supported for AY8910 devices.");
+			emu_logf(&psg->logger, DEVLOG_WARN, "AY8910_RESISTOR_OUTPUT currently only supported for AY8910 devices.");
 
 		for (chan=0; chan < NUM_CHANNELS; chan++)
 		{
@@ -1508,7 +1512,7 @@ void ay8910_write(void *chip, UINT8 addr, UINT8 data)
 		}
 		else
 		{
-			logerror("warning - %s upper address mismatch\n", "AY8910");
+			emu_logf(&psg->logger, DEVLOG_WARN, "upper address mismatch\n");
 		}
 	}
 }
@@ -1524,7 +1528,7 @@ UINT8 ay8910_read(void *chip, UINT8 addr)
 	{
 	case AY_PORTA:
 		if ((psg->regs[AY_ENABLE] & 0x40) != 0)
-			logerror("warning: read from %s Port A set as output\n", "AY8910");
+			emu_logf(&psg->logger, DEVLOG_WARN, "read from Port A set as output\n");
 		/*
 		   even if the port is set as output, we still need to return the external
 		   data. Some games, like kidniki, need this to work.
@@ -1538,15 +1542,15 @@ UINT8 ay8910_read(void *chip, UINT8 addr)
 		//if (psg->port_a_read_cb != NULL)
 		//	psg->regs[AY_PORTA] = psg->port_a_read_cb(psg, 0);
 		//else
-		//	logerror("Warning - read 8910 Port A\n");
+		//	emu_logf(&psg->logger, DEVLOG_WARN, "read Port A\n");
 		break;
 	case AY_PORTB:
 		if ((psg->regs[AY_ENABLE] & 0x80) != 0)
-			logerror("warning: read from %s Port B set as output\n", "AY8910");
+			emu_logf(&psg->logger, DEVLOG_WARN, "read from Port B set as output\n");
 		//if (psg->port_b_read_cb != NULL)
 		//	psg->regs[AY_PORTB] = psg->port_b_read_cb(psg, 0);
 		//else
-		//	logerror("Warning - read 8910 Port B\n");
+		//	emu_logf(&psg->logger, DEVLOG_WARN, "read Port B\n");
 		break;
 	}
 
@@ -1608,5 +1612,12 @@ void ay8910_set_srchg_cb(void *chip, DEVCB_SRATE_CHG CallbackFunc, void* DataPtr
 	info->SmpRateFunc = CallbackFunc;
 	info->SmpRateData = DataPtr;
 	
+	return;
+}
+
+void ay8910_set_log_cb(void* chip, DEVCB_LOG func, void* param)
+{
+	ay8910_context *info = (ay8910_context *)chip;
+	dev_logger_set(&info->logger, info, func, param);
 	return;
 }

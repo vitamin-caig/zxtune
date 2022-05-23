@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>	// for snprintf()
+#include <math.h>	// for pow()
 #include <vector>
 #include <string>
 
@@ -23,12 +25,16 @@
 #include "../emu/cores/c140.h"
 #include "../emu/cores/qsoundintf.h"
 #include "../emu/cores/es5503.h"
-#include "../emu/cores/es5506.h"
+#include "../emu/cores/scsp.h"
 
 #include "dblk_compr.h"
 #include "../utils/StrUtils.h"
 #include "helper.h"
-#include "logging.h"
+#include "../emu/logging.h"
+
+#ifdef _MSC_VER
+#define snprintf	_snprintf
+#endif
 
 /*static*/ const UINT8 VGMPlayer::_OPT_DEV_LIST[_OPT_DEV_COUNT] =
 {
@@ -87,6 +93,9 @@
 	"COMMENT",
 };
 
+#define P2612FIX_ACTIVE	0x01	// set when YM2612 "legacy mode" is active (should be only at sample 0)
+#define P2612FIX_ENABLE	0x80	// the VGM needs a special workaround due to VGMTool2 YM2612 trimming
+
 
 INLINE UINT16 ReadLE16(const UINT8* data)
 {
@@ -144,8 +153,14 @@ VGMPlayer::VGMPlayer() :
 	UINT16 optChip;
 	UINT8 chipID;
 	
+	dev_logger_set(&_logger, this, VGMPlayer::PlayerLogCB, NULL);
+	
 	_playOpts.playbackHz = 0;
 	_playOpts.hardStopOld = 0;
+	_playOpts.genOpts.pbSpeed = 0x10000;
+
+	_lastTsMult = 0;
+	_lastTsDiv = 0;
 	
 	for (optChip = 0x00; optChip < 0x100; optChip ++)
 	{
@@ -161,10 +176,12 @@ VGMPlayer::VGMPlayer() :
 			PLR_DEV_OPTS& devOpts = _devOpts[optID];
 			
 			InitDeviceOptions(devOpts);
-			if (devID == DEVID_NES_APU)
+			if (devID == DEVID_AY8910)
+				devOpts.coreOpts = OPT_AY8910_PCM3CH_DETECT;
+			else if (devID == DEVID_NES_APU)
 				devOpts.coreOpts = 0x01B7;
 			else if (devID == DEVID_SCSP)
-				devOpts.coreOpts = 0x01;
+				devOpts.coreOpts = OPT_SCSP_BYPASS_DSP;
 			_devOptMap[devID][chipID] = optID;
 		}
 	}
@@ -256,7 +273,7 @@ UINT8 VGMPlayer::ParseHeader(void)
 		_fileHdr.dataOfs = 0x40;	// offset not set - assume v1.00 header size
 	if (_fileHdr.dataOfs < 0x38)
 	{
-		fprintf(stderr, "Warning! Invalid Data Offset 0x%02X!\n", _fileHdr.dataOfs);
+		emu_logf(&_logger, PLRLOG_WARN, "Invalid Data Offset 0x%02X!\n", _fileHdr.dataOfs);
 		_fileHdr.dataOfs = 0x38;
 	}
 	_hdrLenFile = _fileHdr.dataOfs;
@@ -287,20 +304,9 @@ UINT8 VGMPlayer::ParseHeader(void)
 		_fileHdr.volumeGain = _hdrBuffer[0x7C] - 0x100;
 	_fileHdr.volumeGain <<= 3;	// 3.5 fixed point -> 8.8 fixed point
 	
-	if (_fileHdr.extraHdrOfs)
-	{
-		UINT32 xhLen;
-		
-		xhLen = ReadLE32(&_fileData[_fileHdr.extraHdrOfs]);
-		if (xhLen >= 0x08)
-			_fileHdr.xhChpClkOfs = ReadRelOfs(_fileData, _fileHdr.extraHdrOfs + 0x04);
-		if (xhLen >= 0x0C)
-			_fileHdr.xhChpVolOfs = ReadRelOfs(_fileData, _fileHdr.extraHdrOfs + 0x08);
-	}
-	
 	if (! _fileHdr.eofOfs || _fileHdr.eofOfs > DataLoader_GetSize(_dLoad))
 	{
-		fprintf(stderr, "Warning! Invalid EOF Offset 0x%06X! (should be: 0x%06X)\n",
+		emu_logf(&_logger, PLRLOG_WARN, "Invalid EOF Offset 0x%06X! (should be: 0x%06X)\n",
 				_fileHdr.eofOfs, DataLoader_GetSize(_dLoad));
 		_fileHdr.eofOfs = DataLoader_GetSize(_dLoad);	// catch invalid EOF values
 	}
@@ -310,26 +316,45 @@ UINT8 VGMPlayer::ParseHeader(void)
 	if (_fileHdr.gd3Ofs && (_fileHdr.gd3Ofs < _fileHdr.dataEnd && _fileHdr.gd3Ofs >= _fileHdr.dataOfs))
 		_fileHdr.dataEnd = _fileHdr.gd3Ofs;
 	
+	if (_fileHdr.extraHdrOfs && _fileHdr.extraHdrOfs < _fileHdr.eofOfs)
+	{
+		UINT32 xhLen = ReadLE32(&_fileData[_fileHdr.extraHdrOfs]);
+		if (xhLen >= 0x08)
+			_fileHdr.xhChpClkOfs = ReadRelOfs(_fileData, _fileHdr.extraHdrOfs + 0x04);
+		if (xhLen >= 0x0C)
+			_fileHdr.xhChpVolOfs = ReadRelOfs(_fileData, _fileHdr.extraHdrOfs + 0x08);
+	}
+
 	if (_fileHdr.loopOfs)
 	{
 		if (_fileHdr.loopOfs < _fileHdr.dataOfs || _fileHdr.loopOfs >= _fileHdr.dataEnd)
 		{
-			debug("Invalid VGM loop offset 0x%06X - ignoring!\n", _fileHdr.loopOfs);
+			emu_logf(&_logger, PLRLOG_WARN, "Invalid loop offset 0x%06X - ignoring!\n", _fileHdr.loopOfs);
 			_fileHdr.loopOfs = 0x00;
 		}
 		if (_fileHdr.loopOfs && _fileHdr.loopTicks == 0)
 		{
 			// 0-Sample-Loops causes the program to hang in the playback routine
-			debug("Warning! Ignored Zero-Sample-Loop!\n");
+			emu_logf(&_logger, PLRLOG_WARN, "Ignored Zero-Sample-Loop!\n");
 			_fileHdr.loopOfs = 0x00;
 		}
 	}
 	
 	_p2612Fix = 0x00;
+	_v101Fix = 0x00;
 	if (_fileHdr.fileVer <= 0x150)
 	{
 		if (GetChipCount(0x02) == 1)	// there must be exactly 1x YM2612 present
-			_p2612Fix = 0x80;	// enable fix for Project2612 VGMs
+			_p2612Fix = P2612FIX_ENABLE;	// enable fix for Project2612 VGMs
+	}
+
+	if (_fileHdr.fileVer < 0x110)
+	{
+		if (GetChipCount(0x01))        // There must be an FM clock
+		{
+			ParseFileForFMClocks();
+			_v101Fix = 1;
+		}
 	}
 	
 	return 0x00;
@@ -467,8 +492,9 @@ UINT8 VGMPlayer::UnloadFile(void)
 	_fileData = NULL;
 	_fileHdr.fileVer = 0xFFFFFFFF;
 	_fileHdr.dataOfs = 0x00;
-	_devCfgs.clear();
+	_devNames.clear();
 	_devices.clear();
+	_devCfgs.clear();
 	for (size_t curTag = 0; curTag < _TAG_COUNT; curTag ++)
 		_tagData[curTag] = std::string();
 	_tagList[0] = NULL;
@@ -500,6 +526,7 @@ UINT8 VGMPlayer::GetSongInfo(PLR_SONG_INFO& songInf)
 	songInf.tickRateDiv = 44100;
 	songInf.songLen = GetTotalTicks();
 	songInf.loopTick = _fileHdr.loopOfs ? GetLoopTicks() : (UINT32)-1;
+	songInf.volGain = (INT32)(0x10000 * pow(2.0, _fileHdr.volumeGain / (double)0x100) + 0.5);
 	songInf.deviceCnt = 0;
 	for (vgmChip = 0x00; vgmChip < _CHIP_COUNT; vgmChip ++)
 		songInf.deviceCnt += GetChipCount(vgmChip);
@@ -526,7 +553,7 @@ UINT8 VGMPlayer::GetSongDeviceInfo(std::vector<PLR_DEV_INFO>& devInfList) const
 		// chip configuration from VGM header
 		memset(&devInf, 0x00, sizeof(PLR_DEV_INFO));
 		devInf.type = sdCfg.type;
-		devInf.id = sdCfg.deviceID;
+		devInf.id = (UINT32)sdCfg.deviceID;
 		devInf.instance = (UINT8)sdCfg.instance;
 		devInf.devCfg = dCfg;
 		if (cDev != NULL)
@@ -585,7 +612,7 @@ void VGMPlayer::RefreshDevOptions(CHIP_DEVICE& chipDev, const PLR_DEV_OPTS& devO
 		return;
 	
 	UINT32 coreOpts = devOpts.coreOpts;
-	if (chipType == DEVID_YM2612 && (_p2612Fix & 0x01))
+	if (chipType == DEVID_YM2612 && (_p2612Fix & P2612FIX_ACTIVE))
 		coreOpts |= OPT_YM2612_LEGACY_MODE;	// enable legacy mode
 	else if (chipType == DEVID_GB_DMG)
 		coreOpts |= OPT_GB_DMG_LEGACY_MODE;	// enable legacy mode (fix playback of old VGMs)
@@ -686,8 +713,7 @@ UINT8 VGMPlayer::GetDeviceMuting(UINT32 id, PLR_MUTE_OPTS& muteOpts) const
 UINT8 VGMPlayer::SetPlayerOptions(const VGM_PLAY_OPTIONS& playOpts)
 {
 	_playOpts = playOpts;
-	// TODO: allow for mid-playback change of playbackHz (currently breaks playback)
-	//RefreshTSRates();	// refresh, in case _playOpts.playbackHz changed
+	RefreshTSRates();	// refresh, in case _playOpts.playbackHz changed
 	return 0x00;
 }
 
@@ -706,10 +732,12 @@ UINT8 VGMPlayer::SetSampleRate(UINT32 sampleRate)
 	return 0x00;
 }
 
-/*UINT8 VGMPlayer::SetPlaybackSpeed(double speed)
+UINT8 VGMPlayer::SetPlaybackSpeed(double speed)
 {
-	return 0xFF;	// not yet supported
-}*/
+	_playOpts.genOpts.pbSpeed = (UINT32)(0x10000 * speed);
+	RefreshTSRates();
+	return 0x00;
+}
 
 
 void VGMPlayer::RefreshTSRates(void)
@@ -723,7 +751,20 @@ void VGMPlayer::RefreshTSRates(void)
 		_ttMult *= _fileHdr.recordHz;
 		_tsDiv *= _playOpts.playbackHz;
 	}
-	
+	if (_playOpts.genOpts.pbSpeed != 0 && _playOpts.genOpts.pbSpeed != 0x10000)
+	{
+		_tsMult *= 0x10000;
+		_ttMult *= 0x10000;
+		_tsDiv *= _playOpts.genOpts.pbSpeed;
+	}
+	if (_tsMult != _lastTsMult ||
+	    _tsDiv != _lastTsDiv)
+	{
+		if (_lastTsMult && _lastTsDiv)	// the order * / * / is required to avoid overflow
+			_playSmpl = (UINT32)(_playSmpl * _lastTsDiv / _lastTsMult * _tsMult / _tsDiv);
+		_lastTsMult = _tsMult;
+		_lastTsDiv = _tsDiv;
+	}
 	return;
 }
 
@@ -787,6 +828,48 @@ UINT32 VGMPlayer::GetLoopTicks(void) const
 		return _fileHdr.loopTicks;
 }
 
+UINT32 VGMPlayer::GetModifiedLoopCount(UINT32 defaultLoops) const
+{
+	if (defaultLoops == 0)
+		return 0;
+	UINT32 loopCntModified;
+	if (_fileHdr.loopModifier)
+		loopCntModified = (defaultLoops * _fileHdr.loopModifier + 0x08) / 0x10;
+	else
+		loopCntModified = defaultLoops;
+	if ((INT32)loopCntModified <= _fileHdr.loopBase)
+		return 1;
+	else
+		return loopCntModified - _fileHdr.loopBase;
+}
+
+const std::vector<VGMPlayer::DACSTRM_DEV>& VGMPlayer::GetStreamDevInfo(void) const
+{
+	return _dacStreams;
+}
+
+/*static*/ void VGMPlayer::PlayerLogCB(void* userParam, void* source, UINT8 level, const char* message)
+{
+	VGMPlayer* player = (VGMPlayer*)source;
+	if (player->_logCbFunc == NULL)
+		return;
+	player->_logCbFunc(player->_logCbParam, player, level, PLRLOGSRC_PLR, NULL, message);
+	return;
+}
+
+/*static*/ void VGMPlayer::SndEmuLogCB(void* userParam, void* source, UINT8 level, const char* message)
+{
+	DEVLOG_CB_DATA* cbData = (DEVLOG_CB_DATA*)userParam;
+	VGMPlayer* player = cbData->player;
+	if (player->_logCbFunc == NULL)
+		return;
+	if ((player->_playState & PLAYSTATE_SEEK) && level > PLRLOG_ERROR)
+		return;	// prevent message spam while seeking
+	player->_logCbFunc(player->_logCbParam, player, level, PLRLOGSRC_EMU,
+		player->_devNames[cbData->chipDevID].c_str(), message);
+	return;
+}
+
 
 UINT8 VGMPlayer::Start(void)
 {
@@ -825,6 +908,7 @@ UINT8 VGMPlayer::Stop(void)
 	
 	for (curDev = 0; curDev < _devices.size(); curDev ++)
 		FreeDeviceTree(&_devices[curDev].base, 0);
+	_devNames.clear();
 	_devices.clear();
 	_devCfgs.clear();
 	if (_eventCbFunc != NULL)
@@ -890,9 +974,9 @@ UINT8 VGMPlayer::Reset(void)
 		}
 	}
 	
-	if ((_p2612Fix & 0x80) && ! (_p2612Fix & 0x01))
+	if ((_p2612Fix & P2612FIX_ENABLE) && ! (_p2612Fix & P2612FIX_ACTIVE))
 	{
-		_p2612Fix |= 0x01;	// enable Project2612 fix (YM2612 "legacy" mode)
+		_p2612Fix |= P2612FIX_ACTIVE;	// enable Project2612 fix (YM2612 "legacy" mode)
 		
 		size_t optID = _devOptMap[DEVID_YM2612][0];
 		size_t devID = (optID == (size_t)-1) ? (size_t)-1 : _optDevMap[optID];
@@ -908,6 +992,22 @@ UINT32 VGMPlayer::GetHeaderChipClock(UINT8 chipType) const
 {
 	if (chipType >= _CHIP_COUNT)
 		return 0;
+
+	// Fix for 1.00/1.01 "FM" clock
+	if (_v101Fix)
+	{
+		switch (chipType)
+		{
+		case 1:
+			return _v101ym2413clock;
+		case 2:
+			return _v101ym2612clock;
+		case 3:
+			return _v101ym2151clock;
+		default:
+			break;
+		}
+	}
 	
 	return ReadLE32(&_hdrBuffer[_CHIPCLK_OFS[chipType]]);
 }
@@ -1210,6 +1310,7 @@ void VGMPlayer::InitDevices(void)
 	size_t curChip;
 	
 	_devices.clear();
+	_devNames.clear();
 	{
 		UINT8 vgmChip;
 		UINT8 chipID;
@@ -1223,10 +1324,10 @@ void VGMPlayer::InitDevices(void)
 		_optDevMap[curChip] = (size_t)-1;
 	
 	// When the Project2612 fix is enabled [bit 7], enable it during chip init [bit 0].
-	if (_p2612Fix & 0x80)
-		_p2612Fix |= 0x01;
+	if (_p2612Fix & P2612FIX_ENABLE)
+		_p2612Fix |= P2612FIX_ACTIVE;
 	else
-		_p2612Fix &= ~0x01;
+		_p2612Fix &= ~P2612FIX_ACTIVE;
 	
 	for (curChip = 0; curChip < _devCfgs.size(); curChip ++)
 	{
@@ -1267,7 +1368,10 @@ void VGMPlayer::InitDevices(void)
 				if (otherDev != NULL)
 				{
 					SN76496_CFG* snCfg = (SN76496_CFG*)devCfg;
+					// set pointer to other instance, for connecting both
 					snCfg->t6w28_tone = otherDev->base.defInf.dataPtr;
+					// ensure that both instances use the same core, as they are going to cross-reference each other
+					snCfg->_genCfg.emuCore = otherDev->base.defInf.devDef->coreID;
 				}
 			}
 			
@@ -1408,11 +1512,24 @@ void VGMPlayer::InitDevices(void)
 		}
 		sdCfg.deviceID = _devices.size();
 		
+		std::string devName = SndEmu_GetDevName(chipType, 0x00, devCfg);	// use short name for now
+		if (GetChipCount(sdCfg.vgmChipType) > 1)
+		{
+			char postFix[0x10];
+			snprintf(postFix, 0x10, " #%u", 1 + chipID);
+			devName += postFix;
+		}
+		chipDev.logCbData.player = this;
+		chipDev.logCbData.chipDevID = _devices.size();
+		_devNames.push_back(devName);	// push here, so that we can have logs during SetupLinkedDevices()
+		
 		{
 			DEVLINK_CB_DATA dlCbData;
 			dlCbData.player = this;
 			dlCbData.sdCfg = &sdCfg;
 			dlCbData.chipDev = &chipDev;
+			if (devInf->devDef->SetLogCB != NULL)	// allow for device link warnings
+				devInf->devDef->SetLogCB(devInf->dataPtr, VGMPlayer::SndEmuLogCB, &chipDev.logCbData);
 			SetupLinkedDevices(&chipDev.base, &DeviceLinkCallback, &dlCbData);
 		}
 		// already done by SndEmu_Start()
@@ -1424,7 +1541,14 @@ void VGMPlayer::InitDevices(void)
 			RefreshMuting(chipDev, devOpts->muteOpts);
 			RefreshPanning(chipDev, devOpts->panOpts);
 		}
-		
+		if (devInf->linkDevCount > 0 && devInf->linkDevs[0].devID == DEVID_AY8910)
+		{
+			VGM_BASEDEV* clDev = chipDev.base.linkDev;
+			size_t optID = DeviceID2OptionID(PLR_DEV_ID(DEVID_AY8910, chipID));
+			if (optID != (size_t)-1 && clDev != NULL && clDev->defInf.devDef->SetOptionBits != NULL)
+				clDev->defInf.devDef->SetOptionBits(devInf->dataPtr, _devOpts[optID].coreOpts);
+		}
+
 		_vdDevMap[sdCfg.vgmChipType][chipID] = _devices.size();
 		if (chipDev.optID != (size_t)-1)
 			_optDevMap[chipDev.optID] = _devices.size();
@@ -1436,7 +1560,12 @@ void VGMPlayer::InitDevices(void)
 	for (curChip = 0; curChip < _devices.size(); curChip ++)
 	{
 		CHIP_DEVICE& chipDev = _devices[curChip];
+		DEV_INFO* devInf = &chipDev.base.defInf;
 		VGM_BASEDEV* clDev;
+		
+		if (devInf->devDef->SetLogCB != NULL)
+			devInf->devDef->SetLogCB(devInf->dataPtr, VGMPlayer::SndEmuLogCB, &chipDev.logCbData);
+		
 		UINT8 linkCntr = 0;
 		for (clDev = &chipDev.base; clDev != NULL; clDev = clDev->linkDev, linkCntr ++)
 		{
@@ -1544,8 +1673,8 @@ void VGMPlayer::LoadOPL4ROM(CHIP_DEVICE* chipDev)
 		return;
 	
 	if (chipDev->romSize != NULL)
-		chipDev->romSize(chipDev->base.defInf.dataPtr, _yrwRom.size());
-	chipDev->romWrite(chipDev->base.defInf.dataPtr, 0x00, _yrwRom.size(), &_yrwRom[0]);
+		chipDev->romSize(chipDev->base.defInf.dataPtr, (UINT32)_yrwRom.size());
+	chipDev->romWrite(chipDev->base.defInf.dataPtr, 0x00, (UINT32)_yrwRom.size(), &_yrwRom[0]);
 	
 	return;
 }
@@ -1602,7 +1731,7 @@ UINT8 VGMPlayer::SeekToFilePos(UINT32 pos)
 		_psTrigger |= PLAYSTATE_END;
 		if (_eventCbFunc != NULL)
 			_eventCbFunc(this, _eventCbParam, PLREVT_END, NULL);
-		debug("VGM file ends early! (filePos 0x%06X, end at 0x%06X)\n", _filePos, _fileHdr.dataEnd);
+		emu_logf(&_logger, PLRLOG_WARN, "VGM file ends early! (filePos 0x%06X, end at 0x%06X)\n", _filePos, _fileHdr.dataEnd);
 	}
 	_playState &= ~PLAYSTATE_SEEK;
 	
@@ -1677,9 +1806,9 @@ void VGMPlayer::ParseFile(UINT32 ticks)
 		_filePos += _CMD_INFO[curCmd].cmdLen;
 	}
 	
-	if (_p2612Fix & 0x01)
+	if (_p2612Fix & P2612FIX_ACTIVE)
 	{
-		_p2612Fix &= ~0x01;	// disable Project2612 fix
+		_p2612Fix &= ~P2612FIX_ACTIVE;	// disable Project2612 fix
 		// Note: Due to the way the Legacy Mode is implemented in YM2612 GPGX right now,
 		//       it should be no problem to keep it enabled during the whole song.
 		//       But let's just turn it off for safety.
@@ -1699,8 +1828,59 @@ void VGMPlayer::ParseFile(UINT32 ticks)
 		_psTrigger |= PLAYSTATE_END;
 		if (_eventCbFunc != NULL)
 			_eventCbFunc(this, _eventCbParam, PLREVT_END, NULL);
-		debug("VGM file ends early! (filePos 0x%06X, end at 0x%06X)\n", _filePos, _fileHdr.dataEnd);
+		emu_logf(&_logger, PLRLOG_WARN, "VGM file ends early! (filePos 0x%06X, end at 0x%06X)\n", _filePos, _fileHdr.dataEnd);
 	}
 	
 	return;
+}
+
+void VGMPlayer::ParseFileForFMClocks()
+{
+	UINT32 filePos = _fileHdr.dataOfs;
+
+	_v101ym2413clock = GetHeaderChipClock(0x01);
+	_v101ym2612clock = 0;
+	_v101ym2151clock = 0;
+
+	while(filePos < _fileHdr.dataEnd)
+	{
+		UINT8 curCmd = _fileData[filePos];
+
+		switch (curCmd)
+		{
+		case 0x66: // end
+			return;
+
+		case 0x50: // PSG
+		case 0x63: // byte delay
+			filePos += 2;
+			break;
+
+		case 0x61: // delay
+			filePos += 3;
+			break;
+
+		case 0x67: // data block
+			filePos += 7 + ReadLE32(&_fileData[filePos + 3]);
+			break;
+
+		case 0x51: // YM2413
+			return;
+
+		case 0x52: // YM2612 port 0
+		case 0x53: // YM2612 port 1
+			_v101ym2612clock = _v101ym2413clock;
+			_v101ym2413clock = 0;
+			return;
+
+		case 0x54: // YM2151
+			_v101ym2151clock = _v101ym2413clock;
+			_v101ym2413clock = 0;
+			return;
+
+		default:
+			filePos += _CMD_INFO[curCmd].cmdLen;
+			break;
+		}
+	}
 }

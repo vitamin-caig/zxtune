@@ -81,6 +81,7 @@ static DEV_DEF devDef =
 	es5503_set_mute_mask,
 	NULL,	// SetPanning
 	es5503_set_srchg_cb,	// SetSampleRateChangeCallback
+	NULL,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -214,6 +215,8 @@ static void es5503_pcm_update(void *param, UINT32 samples, DEV_SMPL **outputs)
 
 	memset(outputs[0], 0, samples * sizeof(DEV_SMPL));
 	memset(outputs[1], 0, samples * sizeof(DEV_SMPL));
+	if (chip->docram == NULL)
+		return;
 
 	chnsStereo = chip->output_channels & ~1;
 	for (osc = 0; osc < chip->oscsenabled; osc++)
@@ -448,7 +451,7 @@ static UINT8 es5503_r(void *info, UINT8 offset)
 					}
 				}
 
-				return retval;
+				return retval | 0x41;
 
 			case 0xe1:  // oscillator enable
 				return (chip->oscsenabled-1)<<1;

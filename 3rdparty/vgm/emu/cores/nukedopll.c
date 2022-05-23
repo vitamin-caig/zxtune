@@ -36,13 +36,13 @@ static UINT8 device_start_ym2413_nuked(const DEV_GEN_CFG* cfg, DEV_INFO* retDevI
 static void nukedopll_shutdown(void *chip);
 static void nukedopll_reset_chip(void *chip);
 static void nukedopll_update(void *chip, UINT32 samples, DEV_SMPL **out);
-static void nukedopll_set_mutemask(void *chip, UINT32 MuteMask);
+static void nukedopll_set_mute_mask(void *chip, UINT32 MuteMask);
 
 
 static DEVDEF_RWFUNC devFunc[] =
 {
 	{RWF_REGISTER | RWF_WRITE, DEVRW_A8D8, 0, nukedopll_write},
-	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, nukedopll_set_mutemask},
+	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, nukedopll_set_mute_mask},
 	{0x00, 0x00, 0, NULL}
 };
 DEV_DEF devDef_YM2413_Nuked =
@@ -55,9 +55,10 @@ DEV_DEF devDef_YM2413_Nuked =
 	nukedopll_update,
 	
 	NULL,	// SetOptionBits
-	nukedopll_set_mutemask,
+	nukedopll_set_mute_mask,
 	NULL,
 	NULL,	// SetSampleRateChangeCallback
+	NULL,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -441,6 +442,7 @@ static void OPLL_DoRegWrite(opll_t *chip) {
     }
 
 }
+
 static void OPLL_PreparePatch1(opll_t *chip) {
     uint8_t instr;
     uint32_t mcsel = ((chip->cycles + 1) / 3) & 0x01;
@@ -609,8 +611,7 @@ static void OPLL_PhaseCalcIncrement(opll_t *chip) {
     chip->pg_inc = (freq * pg_multi[chip->c_multi]) >> 1;
 }
 
-static void OPLL_EnvelopeKSLTL(opll_t *chip)
-{
+static void OPLL_EnvelopeKSLTL(opll_t *chip) {
     int32_t ksl;
 
     ksl = eg_ksltable[chip->c_ksl_freq]-((8-chip->c_ksl_block)<<3);
@@ -629,8 +630,7 @@ static void OPLL_EnvelopeKSLTL(opll_t *chip)
     chip->eg_ksltl = ksl + (chip->c_tl<<1);
 }
 
-static void OPLL_EnvelopeOutput(opll_t *chip)
-{
+static void OPLL_EnvelopeOutput(opll_t *chip) {
     int32_t level = chip->eg_level[(chip->cycles+17)%18];
 
     level += chip->eg_ksltl;
@@ -730,13 +730,8 @@ static void OPLL_EnvelopeGenerate(opll_t *chip) {
     switch (state) {
     case eg_num_attack:
         if (!chip->eg_maxrate && (chip->eg_kon & 2) && !zero) {
-            int32_t shift = chip->eg_rate_hi - 11 + chip->eg_inc_hi;
-            if (chip->eg_inc_lo) {
-                shift = 1;
-            }
+            int32_t shift = (chip->eg_rate_hi < 12) ? chip->eg_inc_lo : (chip->eg_rate_hi - 11 + chip->eg_inc_hi);
             if (shift > 0) {
-                if (shift > 4)
-                    shift = 4;
                 step = ~level >> (5 - shift);
             }
         }
@@ -1349,7 +1344,7 @@ static UINT8 device_start_ym2413_nuked(const DEV_GEN_CFG* cfg, DEV_INFO* retDevI
 	chip->clock = cfg->clock;
 	chip->smplRate = rate; // save for reset
 	chip->chip_type = (cfg->flags & 0x01) ? opll_type_ds1001 : opll_type_ym2413;
-	nukedopll_set_mutemask(chip, 0x00);
+	nukedopll_set_mute_mask(chip, 0x00);
 	
 	chip->_devData.chipInf = chip;
 	INIT_DEVINF(retDevInf, &chip->_devData, rate, &devDef_YM2413_Nuked);
@@ -1405,7 +1400,7 @@ static const uint32_t MUTE_MASK_MAP[14] = {
 	9, 10, 11, 12, 13
 };
 
-static void nukedopll_set_mutemask(void *chipptr, UINT32 MuteMask)
+static void nukedopll_set_mute_mask(void *chipptr, UINT32 MuteMask)
 {
 	opll_t *chip = (opll_t *)chipptr;
 	UINT8 chn;

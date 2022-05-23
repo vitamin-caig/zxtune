@@ -12,7 +12,6 @@
     - EN and EXT Out bits
     - Src B and Src NOTE bits
     - statusreg Busy flag
-    - timer register 0x11
     - ch2/ch3 (4 speakers)
     - PFM (FM using external PCM waveform)
     - detune (should be same as on other Yamaha chips)
@@ -20,6 +19,7 @@
       "determines if slot output is accumulated(1), or output directly(0)"
     - Is memory handling 100% correct? At the moment, seibuspi.c is the only
       hardware currently emulated that uses external handlers.
+    - *16 multiplier for timer B is free-running like other yamaha FM chips?
 */
 
 #include <stdlib.h>
@@ -34,6 +34,7 @@
 #include "../EmuCores.h"
 #include "../snddef.h"
 #include "../EmuHelper.h"
+#include "../logging.h"
 #include "ymf271.h"
 
 #ifdef _MSC_VER
@@ -52,6 +53,7 @@ static void ymf271_alloc_rom(void* info, UINT32 memsize);
 static void ymf271_write_rom(void *info, UINT32 offset, UINT32 length, const UINT8* data);
 
 static void ymf271_set_mute_mask(void *info, UINT32 MuteMask);
+static void ymf271_set_log_cb(void *info, DEVCB_LOG func, void* param);
 
 
 static DEVDEF_RWFUNC devFunc[] =
@@ -76,6 +78,7 @@ static DEV_DEF devDef =
 	ymf271_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	ymf271_set_log_cb,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -326,6 +329,7 @@ typedef struct
 typedef struct
 {
 	DEV_DATA _devData;
+	DEV_LOGGER logger;
 	
 	// lookup tables
 	INT16 *lut_waves[8];
@@ -641,7 +645,9 @@ static void update_pcm(YMF271Chip *chip, int slotnum, INT32 *mixp, UINT32 length
 
 	if (slot->waveform != 7)
 	{
-		logerror("Waveform %d in update_pcm !!!\n", slot->waveform);
+#ifdef _DEBUG	// include only in Debug mode, as this may spam a lot
+		emu_logf(&chip->logger, DEVLOG_DEBUG, "Waveform %d in update_pcm !!!\n", slot->waveform);
+#endif
 	}
 
 	for (i = 0; i < length; i++)
@@ -760,13 +766,13 @@ static void ymf271_update(void *info, UINT32 samples, DEV_SMPL** outputs)
 		YMF271Group *slot_group = &chip->groups[j];
 		mixp = chip->mix_buffer;
 
-		if (slot_group->Muted)
+		if (slot_group->Muted || chip->mem_base == NULL)
 			continue;
 
 		if (slot_group->pfm && slot_group->sync != 3)
 		{
 			//popmessage("ymf271 PFM, contact MAMEdev");
-			logerror("ymf271 Group %d: PFM, Sync = %d, Waveform Slot1 = %d, Slot2 = %d, Slot3 = %d, Slot4 = %d\n",
+			emu_logf(&chip->logger, DEVLOG_WARN, "ymf271 Group %d: PFM, Sync = %d, Waveform Slot1 = %d, Slot2 = %d, Slot3 = %d, Slot4 = %d\n",
 				j, slot_group->sync, chip->slots[j+0].waveform, chip->slots[j+12].waveform, chip->slots[j+24].waveform, chip->slots[j+36].waveform);
 		}
 
@@ -1308,7 +1314,7 @@ static void ymf271_write_fm(YMF271Chip *chip, int bank, UINT8 address, UINT8 dat
 
 	if (groupnum == -1)
 	{
-		logerror("ymf271_write_fm invalid group %02X %02X\n", address, data);
+		emu_logf(&chip->logger, DEVLOG_DEBUG, "ymf271_write_fm invalid group %02X %02X\n", address, data);
 		return;
 	}
 
@@ -1405,7 +1411,7 @@ static void ymf271_write_pcm(YMF271Chip *chip, UINT8 address, UINT8 data)
 	YMF271Slot *slot;
 	if (slotnum == -1)
 	{
-		logerror("ymf271_write_pcm invalid slot %02X %02X\n", address, data);
+		emu_logf(&chip->logger, DEVLOG_DEBUG, "ymf271_write_pcm invalid slot %02X %02X\n", address, data);
 		return;
 	}
 	slot = &chip->slots[slotnum];
@@ -1522,7 +1528,7 @@ static void ymf271_write_timer(YMF271Chip *chip, UINT8 address, UINT8 data)
 		YMF271Group *group;
 		if (groupnum == -1)
 		{
-			logerror("ymf271_write_timer invalid group %02X %02X\n", address, data);
+			emu_logf(&chip->logger, DEVLOG_DEBUG, "ymf271_write_timer invalid group %02X %02X\n", address, data);
 			return;
 		}
 		group = &chip->groups[groupnum];
@@ -1535,14 +1541,13 @@ static void ymf271_write_timer(YMF271Chip *chip, UINT8 address, UINT8 data)
 		switch (address)
 		{
 			case 0x10:
-				chip->timerA = data;
+				chip->timerA = (chip->timerA & 0x003) | (data << 2); // High 8 bit of Timer A period
 				break;
 
 			case 0x11:
-				// According to Yamaha's documentation, this sets timer A upper 2 bits
-				// (it says timer A is 10 bits). But, PCB audio recordings proves
-				// otherwise: it doesn't affect timer A frequency. (see ms32.c tetrisp)
-				// Does this register have another function regarding timer A/B?
+				// Timer A is 10 bit, split high 8 bit and low 2 bit like other Yamaha FM chips
+				// unlike Yamaha's documentation; it says 0x11 writes timer A upper 2 bits.
+				chip->timerA = (chip->timerA & 0x3fc) | (data & 0x03); // Low 2 bit of Timer A period
 				break;
 
 			case 0x12:
@@ -1553,7 +1558,7 @@ static void ymf271_write_timer(YMF271Chip *chip, UINT8 address, UINT8 data)
 				// timer A load
 				if (~chip->enable & data & 1)
 				{
-					//attotime period = attotime::from_hz(chip->clock) * (384 * 4 * (256 - chip->timerA));
+					//attotime period = attotime::from_hz(chip->clock) * (384 * (1024 - chip->timerA));
 					//chip->timA->adjust((data & 1) ? period : attotime::never, 0);
 				}
 
@@ -1930,7 +1935,7 @@ static void ymf271_write_rom(void *info, UINT32 offset, UINT32 length, const UIN
 	return;
 }
 
-void ymf271_set_mute_mask(void *info, UINT32 MuteMask)
+static void ymf271_set_mute_mask(void *info, UINT32 MuteMask)
 {
 	YMF271Chip *chip = (YMF271Chip *)info;
 	UINT8 CurChn;
@@ -1938,5 +1943,12 @@ void ymf271_set_mute_mask(void *info, UINT32 MuteMask)
 	for (CurChn = 0; CurChn < 12; CurChn ++)
 		chip->groups[CurChn].Muted = (MuteMask >> CurChn) & 0x01;
 	
+	return;
+}
+
+static void ymf271_set_log_cb(void *info, DEVCB_LOG func, void* param)
+{
+	YMF271Chip *chip = (YMF271Chip *)info;
+	dev_logger_set(&chip->logger, chip, func, param);
 	return;
 }

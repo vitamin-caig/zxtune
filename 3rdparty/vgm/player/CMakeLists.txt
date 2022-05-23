@@ -7,6 +7,7 @@ set(PLAYER_FILES
 	helper.c
 	playerbase.cpp
 	droplayer.cpp
+	gymplayer.cpp
 	s98player.cpp
 	vgmplayer_cmdhandler.cpp
 	vgmplayer.cpp
@@ -16,9 +17,9 @@ set(PLAYER_FILES
 set(PLAYER_HEADERS
 	dblk_compr.h
 	helper.h
-	logging.h
 	playerbase.hpp
 	droplayer.hpp
+	gymplayer.hpp
 	s98player.hpp
 	vgmplayer.hpp
 	playera.hpp
@@ -39,6 +40,12 @@ target_include_directories(${PROJECT_NAME}
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PLAYER_LIBS} vgm-emu vgm-utils)
 
+if(CMAKE_COMPILER_IS_GNUCC OR UNIX)
+	# link Math library
+	target_link_libraries(${PROJECT_NAME} PRIVATE m)
+	set(PLAYER_PC_LDFLAGS "-lm")
+endif()
+
 
 pkgcfg_configure("${LIBVGM_SOURCE_DIR}/cmake/libvgm.pc.in" "${CMAKE_CURRENT_BINARY_DIR}/vgm-player.pc"
 		NAME "LibVGM Player"
@@ -48,7 +55,7 @@ pkgcfg_configure("${LIBVGM_SOURCE_DIR}/cmake/libvgm.pc.in" "${CMAKE_CURRENT_BINA
 		CFLAGS ${PLAYER_PC_CFLAGS}
 		LDFLAGS_PRIV ${PLAYER_PC_LDFLAGS}
 		LDFLAGS_PUB "-l${PROJECT_NAME}"
-		PKGS_PRIV ${UTILS_PC_REQUIRES} vgm-emu vgm-utils
+		PKGS_PRIV vgm-emu vgm-utils
 	)
 
 install(TARGETS ${PROJECT_NAME}

@@ -39,6 +39,7 @@
 #include "../EmuCores.h"
 #include "../snddef.h"
 #include "../EmuHelper.h"
+#include "../logging.h"
 #include "scsp.h"
 #include "scspdsp.h"
 
@@ -61,6 +62,7 @@ static UINT8 scsp_midi_out_r(void* info, UINT8 offset);
 static void scsp_write_ram(void* info, UINT32 offset, UINT32 length, const UINT8* data);
 static void scsp_set_mute_mask(void* info, UINT32 MuteMask);
 static void scsp_set_options(void* info, UINT32 Flags);
+static void scsp_set_log_cb(void* info, DEVCB_LOG func, void* param);
 
 
 static DEVDEF_RWFUNC devFunc[] =
@@ -86,6 +88,7 @@ static DEV_DEF devDef =
 	scsp_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	scsp_set_log_cb,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -248,6 +251,7 @@ typedef struct _scsp_state scsp_state;
 struct _scsp_state
 {
 	DEV_DATA _devData;
+	DEV_LOGGER logger;
 
 	//int m_roffset;                /* offset in the region */
 	//devcb_write8       m_irq_cb;  /* irq callback */
@@ -522,7 +526,7 @@ static void SCSP_Init(scsp_state *scsp, UINT32 clock)
 		if(iTL&0x40) SegaDB-=24.0f;
 		if(iTL&0x80) SegaDB-=48.0f;
 
-		TL=pow(10.0,SegaDB/20.0);
+		TL=powf(10.0f,SegaDB/20.0f);
 
 		SegaDB=0;
 		if(iPAN&0x1) SegaDB-=3.0f;
@@ -530,8 +534,8 @@ static void SCSP_Init(scsp_state *scsp, UINT32 clock)
 		if(iPAN&0x4) SegaDB-=12.0f;
 		if(iPAN&0x8) SegaDB-=24.0f;
 
-		if((iPAN&0xf)==0xf) PAN=0.0;
-		else PAN=pow(10.0,SegaDB/20.0);
+		if((iPAN&0xf)==0xf) PAN=0.0f;
+		else PAN=powf(10.0f,SegaDB/20.0f);
 
 		if(iPAN<0x10)
 		{
@@ -545,12 +549,12 @@ static void SCSP_Init(scsp_state *scsp, UINT32 clock)
 		}
 
 		if(iSDL)
-			fSDL=pow(10.0,(SDLT[iSDL])/20.0);
+			fSDL=powf(10.0f,(SDLT[iSDL])/20.0f);
 		else
 			fSDL=0.0;
 
-		scsp->LPANTABLE[i]=FIX((4.0*LPAN*TL*fSDL));
-		scsp->RPANTABLE[i]=FIX((4.0*RPAN*TL*fSDL));
+		scsp->LPANTABLE[i]=FIX((4.0f*LPAN*TL*fSDL));
+		scsp->RPANTABLE[i]=FIX((4.0f*RPAN*TL*fSDL));
 	}
 
 	scsp->ARTABLE[0]=scsp->DRTABLE[0]=0;    //Infinite time
@@ -892,7 +896,7 @@ static UINT16 SCSP_r16(void* info, UINT16 addr)
 			@todo Kyuutenkai reads from 0xee0/0xee2, it's tied with EXTS register(s) also used for CD-Rom Player equalizer.
 			This port is actually an external parallel port, directly connected from the CD Block device, hence code is a bit of an hack.
 			*/
-			logerror("SCSP: Reading from EXTS register %08x\n",addr);
+			emu_logf(&scsp->logger, DEVLOG_DEBUG, "Reading from EXTS register %08x\n",addr);
 			if(addr<0xEE4)
 				v = *((UINT16 *) (scsp->DSP.EXTS+(addr-0xee0)/2));
 		}
@@ -914,7 +918,7 @@ INLINE INT32 SCSP_UpdateSlot(scsp_state *scsp, SCSP_SLOT *slot)
 
 	if (SSCTL(slot) == 3) // manual says cannot be used
 	{
-		logerror("SCSP: Invaild SSCTL setting at slot %02x\n", slot->slot);
+		emu_logf(&scsp->logger, DEVLOG_WARN, "Invaild SSCTL setting at slot %02x\n", slot->slot);
 		return 0;
 	}
 
@@ -974,7 +978,7 @@ INLINE INT32 SCSP_UpdateSlot(scsp_state *scsp, SCSP_SLOT *slot)
 	}
 	else if (SSCTL(slot) == 1)  // Internally generated data (Noise)
 		sample = (INT16)(rand() & 0xffff); // Unknown algorithm
-	else if (SSCTL(slot) >= 2)  // Internally generated data (All 0)
+	else //if (SSCTL(slot) >= 2)  // Internally generated data (All 0)
 		sample = 0;
 
 	if(SBCTL(slot)&0x1)
@@ -1085,6 +1089,13 @@ static void SCSP_DoMasterSamples(void* info, UINT32 nsamples, DEV_SMPL **outputs
 
 	bufl = outputs[0];
 	bufr = outputs[1];
+
+	if (scsp->SCSPRAM == NULL)
+	{
+		memset(bufl, 0, nsamples * sizeof(DEV_SMPL));
+		memset(bufr, 0, nsamples * sizeof(DEV_SMPL));
+		return;
+	}
 
 	for(s=0;s<nsamples;++s)
 	{
@@ -1301,5 +1312,12 @@ static void scsp_set_options(void* info, UINT32 Flags)
 {
 	BypassDSP = (Flags & 0x01) >> 0;
 	
+	return;
+}
+
+static void scsp_set_log_cb(void* info, DEVCB_LOG func, void* param)
+{
+	scsp_state *scsp = (scsp_state *)info;
+	dev_logger_set(&scsp->logger, scsp, func, param);
 	return;
 }

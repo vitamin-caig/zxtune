@@ -57,6 +57,7 @@ DEV_DEF devDef_RF5C68_MAME =
 	rf5c68_set_mute_mask,
 	NULL,	// SetPanning
 	NULL,	// SetSampleRateChangeCallback
+	NULL,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -115,7 +116,7 @@ static void rf5c68_update(void *info, UINT32 samples, DEV_SMPL **outputs)
 	memset(right, 0, samples * sizeof(*right));
 
 	/* bail if not enabled */
-	if (!chip->enable)
+	if (chip->data == NULL || !chip->enable)
 		return;
 
 	/* loop over channels */

@@ -177,7 +177,7 @@ if(SNDEMU__PRESET_NES)
 	set(SNDEMU_YM2413_ALL ON)	# VRC7
 	set(SNDEMU_AY8910_ALL ON)	# Sunsoft 5B
 endif()
-if(SNDEMU__PRESET_PC)
+if(SNDEMU__PRESET_IBM_PC)
 	set(SNDEMU_SN76496_ALL ON)	# Tandy
 	set(SNDEMU_SAA1099_ALL ON)	# CMS / Game Blaster
 	set(SNDEMU_YM3812_ALL ON)	# AdLib / Sound Blaster 1/2
@@ -245,6 +245,7 @@ endif()
 set(EMU_FILES
 	SoundEmu.c
 	Resampler.c
+	logging.c
 	panning.c
 	dac_control.c
 )
@@ -256,6 +257,7 @@ set(EMU_HEADERS
 	SoundDevs.h
 	EmuCores.h
 	Resampler.h
+	logging.h
 	dac_control.h
 )
 set(EMU_CORE_HEADERS)
@@ -296,7 +298,7 @@ if(SNDEMU_YM2612_GPGX OR SNDEMU_YM2612_GENS OR SNDEMU_YM2612_NUKED)
 	set(EMU_CORE_HEADERS ${EMU_CORE_HEADERS} cores/2612intf.h)
 	if(SNDEMU_YM2612_GPGX)
 		set(EMU_DEFS ${EMU_DEFS} " EC_YM2612_GPGX")
-		set(EMU_FILES ${EMU_FILES} cores/fmopn2612.c)
+		set(EMU_FILES ${EMU_FILES} cores/fmopn.c)
 	endif()
 	if(SNDEMU_YM2612_GENS)
 		set(EMU_DEFS ${EMU_DEFS} " EC_YM2612_GENS")

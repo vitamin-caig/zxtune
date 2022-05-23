@@ -12,6 +12,7 @@
                                    frequency register is written before key-on.
   2015 12-13 : Version 1.17     -- Changed own integer types to C99 stdint.h types.
   2016 09-06 : Version 1.20     -- Support per-channel output.
+  2021 09-29 : Version 1.30     -- Fix some envelope generator problems (issue #2).
   
   Further modifications:
     - voltbl fix by rainwarrior
@@ -47,10 +48,11 @@ static DEVDEF_RWFUNC devFunc[] =
 	{RWF_REGISTER | RWF_READ, DEVRW_A8D8, 0, EPSG_readIO},
 	{RWF_REGISTER | RWF_QUICKWRITE, DEVRW_A8D8, 0, EPSG_writeReg},
 	{RWF_REGISTER | RWF_QUICKREAD, DEVRW_A8D8, 0, EPSG_readReg},
+	{RWF_REGISTER | RWF_WRITE, DEVRW_ALL, 0x5354, EPSG_setStereoMask},	// 0x5354 = 'ST' (stereo)
 	{RWF_CLOCK | RWF_WRITE, DEVRW_VALUE, 0, EPSG_set_clock},
 	{RWF_SRATE | RWF_WRITE, DEVRW_VALUE, 0, EPSG_set_rate},
 	{RWF_CHN_MUTE | RWF_WRITE, DEVRW_ALL, 0, EPSG_setMuteMask},
-	{RWF_CHN_PAN | RWF_WRITE, DEVRW_ALL, 0, ay8910_pan_emu},
+	{RWF_CHN_PAN | RWF_WRITE, DEVRW_ALL, 0, ay8910_emu_pan},
 	{0x00, 0x00, 0, NULL}
 };
 DEV_DEF devDef_YM2149_Emu =
@@ -62,10 +64,11 @@ DEV_DEF devDef_YM2149_Emu =
 	(DEVFUNC_CTRL)EPSG_reset,
 	(DEVFUNC_UPDATE)EPSG_calc_stereo,
 	
-	NULL,	// SetOptionBits
+	ay8910_emu_set_options,
 	(DEVFUNC_OPTMASK)EPSG_setMuteMask,
-	ay8910_pan_emu,
+	ay8910_emu_pan,
 	NULL,	// SetSampleRateChangeCallback
+	NULL,	// SetLoggingCallback
 	NULL,	// LinkDevice
 	
 	devFunc,	// rwFuncs
@@ -76,11 +79,11 @@ static const uint32_t voltbl[2][32] = {
   {0x00, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09,
    0x0B, 0x0D, 0x0F, 0x12,
    0x16, 0x1A, 0x1F, 0x25, 0x2D, 0x35, 0x3F, 0x4C, 0x5A, 0x6A, 0x7F, 0x97,
-   0xB4, 0xD6, 0xEB, 0xFF},
-  {0x00, 0x00, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03, 0x05, 0x05, 0x07, 0x07,
-   0x0B, 0x0B, 0x0F, 0x0F,
-   0x16, 0x16, 0x1F, 0x1F, 0x2D, 0x2D, 0x3F, 0x3F, 0x5A, 0x5A, 0x7F, 0x7F,
-   0xB4, 0xB4, 0xFF, 0xFF}
+   0xB4, 0xD6, 0xFF, 0xFF},
+  {0x00, 0x00, 0x03, 0x03, 0x04, 0x04, 0x06, 0x06, 0x09, 0x09, 0x0D, 0x0D,
+   0x12, 0x12, 0x1D, 0x1D,
+   0x22, 0x22, 0x37, 0x37, 0x4D, 0x4D, 0x62, 0x62, 0x82, 0x82, 0xA6, 0xA6,
+   0xD0, 0xD0, 0xFF, 0xFF}
 };
 
 static const uint8_t regmsk[16] = {
@@ -186,6 +189,8 @@ EPSG_new (UINT32 c, UINT32 r)
     psg->stereo_mask[i] = 0x03;
     Panning_Centre(psg->pan[i]);
   }
+  psg->pcm3ch = 0;
+  psg->pcm3ch_detect = 0;
 
   EPSG_setMask(psg, 0x00);
 
@@ -356,7 +361,7 @@ update_output (EPSG * psg)
 
   /* Envelope */
   psg->env_count += incr;
-  while (psg->env_count>=0x10000 && psg->env_freq!=0)
+  while (psg->env_count>=0x10000)
   {
     if (!psg->env_pause)
     {
@@ -381,7 +386,7 @@ update_output (EPSG * psg)
       }
     }
 
-    psg->env_count -= psg->env_freq;
+    psg->env_count -= psg->env_freq?psg->env_freq:1; /* env_freq 0 is the same as 1. */
   }
 
   /* Noise */
@@ -465,7 +470,7 @@ mix_output_stereo(EPSG *psg, int32_t out[2])
   out[0] = out[1] = 0;
   for (i = 0; i < 3; i++)
   {
-    if (! (~psg->stereo_mask[i] & 0x03))
+    if (! (~psg->stereo_mask[i] & 0x03) && ! psg->pcm3ch)
     {
       // mono channel
       out[0] += APPLY_PANNING_S(psg->ch_out[i], psg->pan[i][0]);
@@ -524,6 +529,24 @@ EPSG_calc_stereo (EPSG * psg, UINT32 samples, DEV_SMPL **out)
   }
 }
 
+static void EPSG_Is3ChPcm(EPSG* psg)
+{
+  uint8_t tone_mask = psg->tmask[0] | psg->tmask[1] | psg->tmask[2];	// 1 = disabled, 0 = enabled
+  uint8_t noise_mask = psg->nmask[0] | psg->nmask[1] | psg->nmask[2];	// 1 = disabled, 0 = enabled
+
+  psg->pcm3ch = 0x00;
+  if (!psg->pcm3ch_detect)
+    return; // 3-channel PCM detection disabled
+  if (~noise_mask & 0x38)
+    return; // at least one noise channel is enabled - no 3-channel PCM possible
+
+  // bit 0 - tone channels disabled
+  psg->pcm3ch |= !(~tone_mask & 0x07) << 0;
+  // bit 1 - all channels have frequency <= 1
+  psg->pcm3ch |= (psg->freq[0] <= 1 && psg->freq[1] <= 1 && psg->freq[2] <= 1) << 1;
+  return;
+}
+
 void
 EPSG_writeReg (EPSG * psg, UINT8 reg, UINT8 val)
 {
@@ -544,6 +567,7 @@ EPSG_writeReg (EPSG * psg, UINT8 reg, UINT8 val)
   case 5:
     c = reg >> 1;
     psg->freq[c] = ((psg->reg[c * 2 + 1] & 15) << 8) + psg->reg[c * 2];
+    EPSG_Is3ChPcm(psg);
     break;
 
   case 6:
@@ -557,6 +581,7 @@ EPSG_writeReg (EPSG * psg, UINT8 reg, UINT8 val)
     psg->nmask[0] = (val & 8);
     psg->nmask[1] = (val & 16);
     psg->nmask[2] = (val & 32);
+    EPSG_Is3ChPcm(psg);
     break;
 
   case 8:
@@ -568,6 +593,7 @@ EPSG_writeReg (EPSG * psg, UINT8 reg, UINT8 val)
   case 11:
   case 12:
     psg->env_freq = (psg->reg[12] << 8) + psg->reg[11];
+    psg->env_count = 0x10000 - psg->env_freq;
     break;
 
   case 13:
@@ -598,12 +624,21 @@ void EPSG_set_pan (EPSG * psg, uint8_t ch, int16_t pan)
   Panning_Calculate( psg->pan[ch], pan );
 }
 
-static void ay8910_pan_emu(void* chipptr, const INT16* PanVals)
+static void ay8910_emu_set_options(void *chip, UINT32 Flags)
+{
+  EPSG* psg = (EPSG*)chip;
+
+  psg->pcm3ch_detect = (Flags >> 0) & 0x01;
+
+  return;
+}
+
+static void ay8910_emu_pan(void* chip, const INT16* PanVals)
 {
   UINT8 curChn;
   
   for (curChn = 0; curChn < 3; curChn ++)
-    EPSG_set_pan((EPSG*)chipptr, curChn, PanVals[curChn]);
+    EPSG_set_pan((EPSG*)chip, curChn, PanVals[curChn]);
   
   return;
 }
