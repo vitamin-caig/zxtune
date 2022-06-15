@@ -39,7 +39,7 @@ namespace Module
     //! @brief Process module
     virtual void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& decoder,
                                Module::Holder::Ptr holder) = 0;
-    virtual void ProcessUnknownData(const ZXTune::DataLocation& location){};
+    virtual void ProcessUnknownData(const ZXTune::DataLocation& /*location*/){};
     //! @brief Logging callback
     virtual Log::ProgressCallback* GetProgress() const = 0;
   };

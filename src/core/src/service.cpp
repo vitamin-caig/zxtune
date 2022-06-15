@@ -227,19 +227,19 @@ namespace ZXTune
     {
       auto resolvedLocation = CreateLocation(std::move(data));
       const auto sourcePath = Analysis::ParsePath(subpath, Module::SUBPATH_DELIMITER);
-      for (auto unresolved = sourcePath; !unresolved->Empty();
-           unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString()))
+      for (auto unresolved = sourcePath; !unresolved->Empty();)
       {
-        const auto toResolve = unresolved->AsString();
-        Dbg("Resolving '%1%'", toResolve);
-        if (auto nextResolved = TryToOpenLocation(resolvedLocation, *unresolved))
+        Dbg("Resolving '%1%'", unresolved->AsString());
+        resolvedLocation = TryToOpenLocation(resolvedLocation, *unresolved);
+        if (resolvedLocation)
         {
-          resolvedLocation = std::move(nextResolved);
+          unresolved = sourcePath->Extract(resolvedLocation->GetPath()->AsString());
+          if (unresolved)
+          {
+            continue;
+          }
         }
-        else
-        {
-          throw MakeFormattedError(THIS_LINE, translate("Failed to resolve subpath '%1%'."), subpath);
-        }
+        throw MakeFormattedError(THIS_LINE, translate("Failed to resolve subpath '%1%'."), subpath);
       }
       Dbg("Resolved '%1%'", subpath);
       return resolvedLocation;
