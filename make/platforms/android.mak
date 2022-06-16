@@ -7,6 +7,10 @@ ifndef android.ndk
 $(error android.ndk is not defined)
 endif
 
+ifeq ($(arch),)
+$(error Architecture is not defined)
+endif
+
 host=linux
 compiler=clang
 android.toolchain = $(android.ndk)/toolchains/llvm/prebuilt/linux-x86_64/bin

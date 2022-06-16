@@ -75,10 +75,6 @@ def callMake(cmdline) {
     assert 0 == proc.waitFor()
 }
 
-def abiToName(abi) {
-    return abi.replace('-', '_').capitalize()
-}
-
 android {
     def jniIntermediateDir = "${project.buildDir}/jni"
     sourceSets {
@@ -87,29 +83,22 @@ android {
         }
     }
 
-    def allAbis = ["armeabi-v7a", "arm64-v8a", "x86", "x86_64"]
-    allAbis.each { arch ->
-        task("nativeLibs${abiToName(arch)}", group: "Native") {
-            //optimize incremental builds - assume existing soFolder means that all libs are ready
-            def outDir = "${jniIntermediateDir}/${arch}"
-            outputs.dir outDir
-            doLast {
-                def cpuCount = Runtime.runtime.availableProcessors()
-                android.sourceSets.main.jni.srcDirs.each { jniDir ->
-                    callMake("arch=${arch} bins_dir=${outDir} -C ${jniDir} -j ${cpuCount}")
-                }
+    def nativeLibsTask = task("nativeLibs", group: "Native") {
+        //optimize incremental builds - assume existing soFolder means that all libs are ready
+        def outDir = jniIntermediateDir
+        outputs.dir outDir
+        doLast {
+            def cpuCount = Runtime.runtime.availableProcessors()
+            def allAbis = [applicationVariants*.productFlavors*.ndk.abiFilters, splits.abiFilters].flatten().unique()
+            android.sourceSets.main.jni.srcDirs.each { jniDir ->
+                callMake("multiarch=${allAbis.join(':')} bins_dir=${outDir} -C ${jniDir} -j ${cpuCount}")
             }
         }
     }
 
     applicationVariants.all { variant ->
         def suffix = variant.name.capitalize()
-        def pkg = tasks.getByName("package${suffix}")
-        def fld = tasks.getByName("merge${suffix}JniLibFolders")
-        [variant.productFlavors*.ndk.abiFilters, splits.abiFilters].flatten().unique().each { arch ->
-            def makeNative = "nativeLibs${abiToName(arch)}"
-            pkg.dependsOn.add(makeNative)
-            fld.dependsOn.add(makeNative)
-        }
+        tasks.getByName("package${suffix}").dependsOn.add(nativeLibsTask)
+        tasks.getByName("merge${suffix}JniLibFolders").dependsOn.add(nativeLibsTask)
     }
 }
