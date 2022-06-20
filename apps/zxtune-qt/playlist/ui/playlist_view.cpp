@@ -257,8 +257,7 @@ namespace
       }
       else
       {
-        const Module::Holder::Ptr holder = item.GetModule();
-        const Parameters::Accessor::Ptr properties = holder->GetModuleProperties();
+        const auto properties = item.GetModuleProperties();
         return Tooltip.Get(*properties);
       }
     }

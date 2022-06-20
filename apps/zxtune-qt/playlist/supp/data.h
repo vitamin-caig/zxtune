@@ -33,8 +33,11 @@ namespace Playlist
       virtual ~Data() = default;
 
       // common
+      //  eager objects
       virtual Module::Holder::Ptr GetModule() const = 0;
       virtual Binary::Data::Ptr GetModuleData() const = 0;
+      //  lightweight objects
+      virtual Parameters::Accessor::Ptr GetModuleProperties() const = 0;
       virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
       virtual Capabilities GetCapabilities() const = 0;
       // playlist-related

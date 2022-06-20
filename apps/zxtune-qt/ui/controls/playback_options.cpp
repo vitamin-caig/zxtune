@@ -60,34 +60,25 @@ namespace
       DACOptions->setVisible(caps.IsDAC());
       SetEnabled(true);
 
-      const Parameters::Accessor::Ptr properties = item->GetModule()->GetModuleProperties();
-      if (const Parameters::Accessor::Ptr adjusted = item->GetAdjustedParameters())
-      {
-        AdjustedParameters = CreateMergedAccessor(adjusted, properties);
-      }
-      else
-      {
-        AdjustedParameters = properties;
-      }
+      ModuleProperties = item->GetModuleProperties();
     }
 
     void UpdateState() override
     {
-      if (isVisible() && AdjustedParameters)
+      if (isVisible() && ModuleProperties)
       {
         // TODO: use walker?
         Parameters::IntType val;
-        isYM->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::TYPE, val));
-        aymLayout->setEnabled(!AdjustedParameters->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, val));
-        isDACInterpolated->setEnabled(
-            !AdjustedParameters->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val));
+        isYM->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::AYM::TYPE, val));
+        aymLayout->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::AYM::LAYOUT, val));
+        isDACInterpolated->setEnabled(!ModuleProperties->FindValue(Parameters::ZXTune::Core::DAC::INTERPOLATION, val));
       }
     }
 
     void CloseState() override
     {
       SetEnabled(false);
-      AdjustedParameters = Parameters::Accessor::Ptr();
+      ModuleProperties = {};
     }
 
     // QWidget
@@ -109,7 +100,7 @@ namespace
 
   private:
     const Parameters::Container::Ptr Params;
-    Parameters::Accessor::Ptr AdjustedParameters;
+    Parameters::Accessor::Ptr ModuleProperties;
   };
 }  // namespace
 

@@ -449,20 +449,15 @@ namespace
   public:
     typedef Playlist::Item::Data::Ptr Ptr;
 
-    DataImpl(DynamicAttributesProvider::Ptr attributes, ModuleSource source, Parameters::Container::Ptr adjustedParams,
-             Time::Milliseconds duration, const Parameters::Accessor& moduleProps, uint_t caps)
+    DataImpl(DynamicAttributesProvider::Ptr attributes, ModuleSource source, Parameters::Accessor::Ptr moduleProps,
+             Parameters::Container::Ptr adjustedParams, Time::Milliseconds duration, uint_t caps)
       : Caps(caps)
       , Attributes(std::move(attributes))
       , Source(std::move(source))
       , AdjustedParams(std::move(adjustedParams))
-      , Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
-      , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_CRC)))
-      , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_FIXEDCRC)))
-      , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, Module::ATTR_SIZE)))
+      , Properties(Parameters::CreateMergedAccessor(AdjustedParams, std::move(moduleProps)))
       , Duration(duration)
-    {
-      LoadProperties(moduleProps);
-    }
+    {}
 
     Module::Holder::Ptr GetModule() const override
     {
@@ -475,12 +470,17 @@ namespace
       {
         State = e;
       }
-      return Module::Holder::Ptr();
+      return {};
     }
 
     Binary::Data::Ptr GetModuleData() const override
     {
-      return Source.GetModuleData(Size);
+      return Source.GetModuleData(GetSize());
+    }
+
+    Parameters::Accessor::Ptr GetModuleProperties() const override
+    {
+      return Properties;
     }
 
     Parameters::Container::Ptr GetAdjustedParameters() const override
@@ -513,12 +513,12 @@ namespace
 
     String GetType() const override
     {
-      return Type;
+      return GetFields().Type;
     }
 
     String GetDisplayName() const override
     {
-      return DisplayName;
+      return GetFields().DisplayName;
     }
 
     Time::Milliseconds GetDuration() const override
@@ -528,32 +528,32 @@ namespace
 
     String GetAuthor() const override
     {
-      return Author;
+      return GetFields().Author;
     }
 
     String GetTitle() const override
     {
-      return Title;
+      return GetFields().Title;
     }
 
     String GetComment() const override
     {
-      return Comment;
+      return GetFields().Comment;
     }
 
     uint32_t GetChecksum() const override
     {
-      return Checksum;
+      return GetFields().Checksum;
     }
 
     uint32_t GetCoreChecksum() const override
     {
-      return CoreChecksum;
+      return GetFields().CoreChecksum;
     }
 
     std::size_t GetSize() const override
     {
-      return Size;
+      return GetFields().Size;
     }
 
   private:
@@ -579,27 +579,39 @@ namespace
 
     void OnPropertyChanged()
     {
-      if (const auto holder = GetModule())
-      {
-        LoadProperties(*holder->GetModuleProperties());
-        Duration = holder->GetModuleInformation()->Duration();
-      }
-      else
-      {
-        DisplayName.clear();
-        Author.clear();
-        Title.clear();
-        Comment.clear();
-        Duration = {};
-      }
+      Content.reset();
     }
 
-    void LoadProperties(const Parameters::Accessor& props)
+    struct Fields
     {
-      DisplayName = Attributes->GetDisplayName(props);
-      Author = GetStringProperty(props, Module::ATTR_AUTHOR);
-      Title = GetStringProperty(props, Module::ATTR_TITLE);
-      Comment = GetStringProperty(props, Module::ATTR_COMMENT);
+      Fields(const Parameters::Accessor& moduleProps, const DynamicAttributesProvider& attrs)
+        : Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
+        , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_CRC)))
+        , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_FIXEDCRC)))
+        , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, Module::ATTR_SIZE)))
+        , DisplayName(attrs.GetDisplayName(moduleProps))
+        , Author(GetStringProperty(moduleProps, Module::ATTR_AUTHOR))
+        , Title(GetStringProperty(moduleProps, Module::ATTR_TITLE))
+        , Comment(GetStringProperty(moduleProps, Module::ATTR_COMMENT))
+      {}
+
+      const String Type;
+      const uint32_t Checksum;
+      const uint32_t CoreChecksum;
+      const std::size_t Size;
+      const String DisplayName;
+      const String Author;
+      const String Title;
+      const String Comment;
+    };
+
+    const Fields& GetFields() const
+    {
+      if (!Content)
+      {
+        Content = std::make_unique<Fields>(*Properties, *Attributes);
+      }
+      return *Content;
     }
 
   private:
@@ -607,15 +619,9 @@ namespace
     const DynamicAttributesProvider::Ptr Attributes;
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
-    const String Type;
-    const uint32_t Checksum;
-    const uint32_t CoreChecksum;
-    const std::size_t Size;
-    String DisplayName;
-    String Author;
-    String Title;
-    String Comment;
+    const Parameters::Accessor::Ptr Properties;
     Time::Milliseconds Duration;
+    mutable std::unique_ptr<Fields> Content;
     mutable Error State;
   };
 
@@ -649,12 +655,11 @@ namespace
           Module::ResolveAdditionalFiles(*Source, *files);
         }
       }
-      auto adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const auto info = holder->GetModuleInformation();
-      const auto lookupModuleProps = Parameters::CreateMergedAccessor(adjustedParams, holder->GetModuleProperties());
       ModuleSource itemSource(Service, Source, DataId->WithSubpath(subPath));
-      auto playitem = MakePtr<DataImpl>(Attributes, std::move(itemSource), std::move(adjustedParams), info->Duration(),
-                                        *lookupModuleProps, decoder.Capabilities());
+      auto playitem = MakePtr<DataImpl>(Attributes, std::move(itemSource), holder->GetModuleProperties(),
+                                        Delegate.CreateInitialAdjustedParameters(), info->Duration(),
+                                        decoder.Capabilities());
       Delegate.ProcessItem(std::move(playitem));
     }
 

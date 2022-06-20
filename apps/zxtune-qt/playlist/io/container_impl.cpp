@@ -78,6 +78,11 @@ namespace
       return Binary::Data::Ptr();
     }
 
+    Parameters::Accessor::Ptr GetModuleProperties() const override
+    {
+      return Params;
+    }
+
     Parameters::Container::Ptr GetAdjustedParameters() const override
     {
       return Params;
@@ -210,14 +215,17 @@ namespace
     // common
     Module::Holder::Ptr GetModule() const override
     {
-      AcquireDelegate();
-      return Delegate->GetModule();
+      return AcquireDelegate().GetModule();
     }
 
     Binary::Data::Ptr GetModuleData() const override
     {
-      AcquireDelegate();
-      return Delegate->GetModuleData();
+      return AcquireDelegate().GetModuleData();
+    }
+
+    Parameters::Accessor::Ptr GetModuleProperties() const override
+    {
+      return AcquireDelegate().GetModuleProperties();
     }
 
     Parameters::Container::Ptr GetAdjustedParameters() const override
@@ -227,15 +235,13 @@ namespace
 
     Playlist::Item::Capabilities GetCapabilities() const override
     {
-      AcquireDelegate();
-      return Delegate->GetCapabilities();
+      return AcquireDelegate().GetCapabilities();
     }
 
     // playlist-related
     Error GetState() const override
     {
-      AcquireDelegate();
-      return Delegate->GetState();
+      return AcquireDelegate().GetState();
     }
 
     String GetFullPath() const override
@@ -245,72 +251,63 @@ namespace
 
     String GetFilePath() const override
     {
-      AcquireDelegate();
-      return Delegate->GetFilePath();
+      return AcquireDelegate().GetFilePath();
     }
 
     String GetType() const override
     {
-      AcquireDelegate();
-      return Delegate->GetType();
+      return AcquireDelegate().GetType();
     }
 
     String GetDisplayName() const override
     {
-      AcquireDelegate();
-      return Delegate->GetDisplayName();
+      return AcquireDelegate().GetDisplayName();
     }
 
     Time::Milliseconds GetDuration() const override
     {
-      AcquireDelegate();
-      return Delegate->GetDuration();
+      return AcquireDelegate().GetDuration();
     }
 
     String GetAuthor() const override
     {
-      AcquireDelegate();
-      return Delegate->GetAuthor();
+      return AcquireDelegate().GetAuthor();
     }
 
     String GetTitle() const override
     {
-      AcquireDelegate();
-      return Delegate->GetTitle();
+      return AcquireDelegate().GetTitle();
     }
 
     String GetComment() const override
     {
-      AcquireDelegate();
-      return Delegate->GetComment();
+      return AcquireDelegate().GetComment();
     }
 
     uint32_t GetChecksum() const override
     {
-      AcquireDelegate();
-      return Delegate->GetChecksum();
+      return AcquireDelegate().GetChecksum();
     }
 
     uint32_t GetCoreChecksum() const override
     {
-      AcquireDelegate();
-      return Delegate->GetCoreChecksum();
+      return AcquireDelegate().GetCoreChecksum();
     }
 
     std::size_t GetSize() const override
     {
-      AcquireDelegate();
-      return Delegate->GetSize();
+      return AcquireDelegate().GetSize();
     }
 
   private:
-    void AcquireDelegate() const
+    const Playlist::Item::Data& AcquireDelegate() const
     {
       if (!Delegate)
       {
         Delegate = Provider->OpenItem();
         Provider.reset();
       }
+      return *Delegate;
     }
 
   private:
