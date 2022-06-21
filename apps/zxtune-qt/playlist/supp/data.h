@@ -32,6 +32,7 @@ namespace Playlist
 
       virtual ~Data() = default;
 
+      virtual bool IsLoaded() const = 0;
       // common
       //  eager objects
       virtual Module::Holder::Ptr GetModule() const = 0;

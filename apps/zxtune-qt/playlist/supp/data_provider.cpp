@@ -442,9 +442,7 @@ namespace
     const String DummyDisplayName;
   };
 
-  class DataImpl
-    : public Playlist::Item::Data
-    , private Parameters::Modifier
+  class DataImpl : public Playlist::Item::Data
   {
   public:
     typedef Playlist::Item::Data::Ptr Ptr;
@@ -458,6 +456,11 @@ namespace
       , Properties(Parameters::CreateMergedAccessor(AdjustedParams, std::move(moduleProps)))
       , Duration(duration)
     {}
+
+    bool IsLoaded() const override
+    {
+      return true;
+    }
 
     Module::Holder::Ptr GetModule() const override
     {
@@ -485,9 +488,7 @@ namespace
 
     Parameters::Container::Ptr GetAdjustedParameters() const override
     {
-      const Parameters::Modifier& cb = *this;
-      return Parameters::CreatePostChangePropertyTrackedContainer(AdjustedParams,
-                                                                  const_cast<Parameters::Modifier&>(cb));
+      return AdjustedParams;
     }
 
     Playlist::Item::Capabilities GetCapabilities() const override
@@ -513,12 +514,12 @@ namespace
 
     String GetType() const override
     {
-      return GetFields().Type;
+      return GetStringProperty(*Properties, Module::ATTR_TYPE);
     }
 
     String GetDisplayName() const override
     {
-      return GetFields().DisplayName;
+      return Attributes->GetDisplayName(*Properties);
     }
 
     Time::Milliseconds GetDuration() const override
@@ -528,90 +529,32 @@ namespace
 
     String GetAuthor() const override
     {
-      return GetFields().Author;
+      return GetStringProperty(*Properties, Module::ATTR_AUTHOR);
     }
 
     String GetTitle() const override
     {
-      return GetFields().Title;
+      return GetStringProperty(*Properties, Module::ATTR_TITLE);
     }
 
     String GetComment() const override
     {
-      return GetFields().Comment;
+      return GetStringProperty(*Properties, Module::ATTR_COMMENT);
     }
 
     uint32_t GetChecksum() const override
     {
-      return GetFields().Checksum;
+      return static_cast<uint32_t>(GetIntProperty(*Properties, Module::ATTR_CRC));
     }
 
     uint32_t GetCoreChecksum() const override
     {
-      return GetFields().CoreChecksum;
+      return static_cast<uint32_t>(GetIntProperty(*Properties, Module::ATTR_FIXEDCRC));
     }
 
     std::size_t GetSize() const override
     {
-      return GetFields().Size;
-    }
-
-  private:
-    void SetValue(Parameters::Identifier /*name*/, Parameters::IntType /*val*/) override
-    {
-      OnPropertyChanged();
-    }
-
-    void SetValue(Parameters::Identifier /*name*/, StringView /*val*/) override
-    {
-      OnPropertyChanged();
-    }
-
-    void SetValue(Parameters::Identifier /*name*/, Binary::View /*val*/) override
-    {
-      OnPropertyChanged();
-    }
-
-    void RemoveValue(Parameters::Identifier /*name*/) override
-    {
-      OnPropertyChanged();
-    }
-
-    void OnPropertyChanged()
-    {
-      Content.reset();
-    }
-
-    struct Fields
-    {
-      Fields(const Parameters::Accessor& moduleProps, const DynamicAttributesProvider& attrs)
-        : Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
-        , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_CRC)))
-        , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_FIXEDCRC)))
-        , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, Module::ATTR_SIZE)))
-        , DisplayName(attrs.GetDisplayName(moduleProps))
-        , Author(GetStringProperty(moduleProps, Module::ATTR_AUTHOR))
-        , Title(GetStringProperty(moduleProps, Module::ATTR_TITLE))
-        , Comment(GetStringProperty(moduleProps, Module::ATTR_COMMENT))
-      {}
-
-      const String Type;
-      const uint32_t Checksum;
-      const uint32_t CoreChecksum;
-      const std::size_t Size;
-      const String DisplayName;
-      const String Author;
-      const String Title;
-      const String Comment;
-    };
-
-    const Fields& GetFields() const
-    {
-      if (!Content)
-      {
-        Content = std::make_unique<Fields>(*Properties, *Attributes);
-      }
-      return *Content;
+      return static_cast<std::size_t>(GetIntProperty(*Properties, Module::ATTR_SIZE));
     }
 
   private:
@@ -621,7 +564,6 @@ namespace
     const Parameters::Container::Ptr AdjustedParams;
     const Parameters::Accessor::Ptr Properties;
     Time::Milliseconds Duration;
-    mutable std::unique_ptr<Fields> Content;
     mutable Error State;
   };
 

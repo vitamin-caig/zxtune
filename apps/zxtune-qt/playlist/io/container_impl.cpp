@@ -67,6 +67,11 @@ namespace
       params.Process(*Params);
     }
 
+    bool IsLoaded() const override
+    {
+      return true;
+    }
+
     // common
     Module::Holder::Ptr GetModule() const override
     {
@@ -211,6 +216,11 @@ namespace
     explicit DelayLoadItemData(DelayLoadItemProvider::Ptr provider)
       : Provider(std::move(provider))
     {}
+
+    bool IsLoaded() const override
+    {
+      return !Provider;
+    }
 
     // common
     Module::Holder::Ptr GetModule() const override
