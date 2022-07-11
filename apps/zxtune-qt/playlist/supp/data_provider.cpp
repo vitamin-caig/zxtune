@@ -11,6 +11,7 @@
 // local includes
 #include "data_provider.h"
 #include "playlist/parameters.h"
+#include "supp/thread_utils.h"
 #include "ui/format.h"
 #include "ui/utils.h"
 // common includes
@@ -48,6 +49,11 @@ namespace
 
 namespace
 {
+  void EnsureNotMainThread()
+  {
+    Require(!MainThread::IsCurrent());
+  }
+
   class DataProvider
   {
   public:
@@ -618,12 +624,48 @@ namespace
     const DataSource::Ptr Source;
   };
 
+  class ThreadCheckingService : public ZXTune::Service
+  {
+  public:
+    ThreadCheckingService(Parameters::Accessor::Ptr parameters)
+      : Delegate(ZXTune::Service::Create(std::move(parameters)))
+    {}
+
+    Binary::Container::Ptr OpenData(Binary::Container::Ptr data, const String& subpath) const override
+    {
+      EnsureNotMainThread();
+      return Delegate->OpenData(std::move(data), subpath);
+    }
+
+    Module::Holder::Ptr OpenModule(Binary::Container::Ptr data, const String& subpath,
+                                   Parameters::Container::Ptr initialProperties) const override
+    {
+      EnsureNotMainThread();
+      return Delegate->OpenModule(std::move(data), subpath, std::move(initialProperties));
+    }
+
+    void DetectModules(Binary::Container::Ptr data, Module::DetectCallback& callback) const override
+    {
+      EnsureNotMainThread();
+      return Delegate->DetectModules(std::move(data), callback);
+    }
+
+    void OpenModule(Binary::Container::Ptr data, const String& subpath, Module::DetectCallback& callback) const override
+    {
+      EnsureNotMainThread();
+      return Delegate->OpenModule(std::move(data), subpath, callback);
+    }
+
+  private:
+    const Ptr Delegate;
+  };
+
   class DataProviderImpl : public Playlist::Item::DataProvider
   {
   public:
     explicit DataProviderImpl(Parameters::Accessor::Ptr parameters)
       : Provider(MakePtr<CachedDataProvider>(parameters))
-      , Service(ZXTune::Service::Create(std::move(parameters)))
+      , Service(MakePtr<ThreadCheckingService>(parameters))
       , Attributes(MakePtr<DynamicAttributesProvider>())
     {}
 

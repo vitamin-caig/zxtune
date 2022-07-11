@@ -36,3 +36,8 @@ IOThread* IOThread::Instance()
   static IOThread INSTANCE;
   return &INSTANCE;
 }
+
+bool MainThread::IsCurrent()
+{
+  return QThread::currentThread() == QCoreApplication::instance()->thread();
+}

@@ -43,3 +43,9 @@ public:
     Require(QMetaObject::invokeMethod(self, std::bind(std::forward<F>(func), self, std::forward<P>(p)...)));
   }
 };
+
+class MainThread
+{
+public:
+  static bool IsCurrent();
+};
