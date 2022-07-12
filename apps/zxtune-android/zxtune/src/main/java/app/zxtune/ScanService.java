@@ -52,7 +52,7 @@ public class ScanService extends IntentService {
   //TODO: remove C&P
   public static void add(Context ctx, app.zxtune.playback.Item source) {
     try {
-      final ProviderClient client = new ProviderClient(ctx);
+      final ProviderClient client = ProviderClient.create(ctx);
       client.addItem(new app.zxtune.playlist.Item(source));
       client.notifyChanges();
       Analytics.sendPlaylistEvent(Analytics.PLAYLIST_ACTION_ADD, 1);
@@ -92,7 +92,7 @@ public class ScanService extends IntentService {
   @Override
   public void onCreate() {
     super.onCreate();
-    this.client = new ProviderClient(this);
+    this.client = ProviderClient.create(this);
     makeToast(R.string.scanning_started, Toast.LENGTH_SHORT);
   }
 

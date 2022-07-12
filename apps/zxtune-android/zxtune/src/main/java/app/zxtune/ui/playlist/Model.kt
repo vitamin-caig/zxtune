@@ -34,7 +34,7 @@ class Model @VisibleForTesting internal constructor(
 
     constructor(application: Application) : this(
         application,
-        ProviderClient(application),
+        ProviderClient.create(application),
         Executors.newSingleThreadExecutor()
     )
 

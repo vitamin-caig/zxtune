@@ -36,8 +36,12 @@ public final class ProviderClient {
   @Nullable
   private ContentObserver contentObserver;
 
-  public ProviderClient(Context ctx) {
+  private ProviderClient(Context ctx) {
     this.resolver = ctx.getContentResolver();
+  }
+
+  public static ProviderClient create(Context ctx) {
+    return new ProviderClient(ctx);
   }
 
   public static Uri createUri(long id) {

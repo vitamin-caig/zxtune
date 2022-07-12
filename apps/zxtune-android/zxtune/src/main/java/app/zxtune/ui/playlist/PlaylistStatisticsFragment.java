@@ -82,7 +82,7 @@ public class PlaylistStatisticsFragment extends DialogFragment {
 
     public Model(Application application) {
       super(application);
-      this.client = new ProviderClient(application);
+      this.client = ProviderClient.create(application);
       this.async = Executors.newSingleThreadExecutor();
       this.data = new MutableLiveData<>();
     }

@@ -49,7 +49,7 @@ public class PlaylistSaveFragment extends DialogFragment {
   @Override
   public void onAttach(Context ctx) {
     super.onAttach(ctx);
-    client = new ProviderClient(ctx);
+    client = ProviderClient.create(ctx);
     usedNames = client.getSavedPlaylists(null).keySet();
   }
 

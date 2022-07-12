@@ -6,6 +6,7 @@
 
 package app.zxtune.ui.playlist;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -68,7 +69,7 @@ public class PlaylistFragment extends Fragment {
   public void onAttach(Context ctx) {
     super.onAttach(ctx);
 
-    ctrl = new ProviderClient(ctx);
+    ctrl = ProviderClient.create(ctx);
   }
 
   @Override
@@ -157,8 +158,12 @@ public class PlaylistFragment extends Fragment {
         .build();
     adapter.setSelection(selectionTracker.getSelection());
 
-    SelectionUtils.install((AppCompatActivity) getActivity(), selectionTracker,
-        new SelectionClient());
+    // another class for test
+    final Activity activity = getActivity();
+    if (activity instanceof AppCompatActivity) {
+      SelectionUtils.install((AppCompatActivity) activity, selectionTracker,
+          new SelectionClient());
+    }
 
     if (savedInstanceState != null) {
       restoreState(savedInstanceState);
@@ -171,7 +176,7 @@ public class PlaylistFragment extends Fragment {
     stub = view.findViewById(R.id.playlist_stub);
 
     final Model playlistModel = Model.of(this);
-    playlistModel.getItems().observe(this, entries -> {
+    playlistModel.getItems().observe(getViewLifecycleOwner(), entries -> {
       if (touchHelperCallback.isDragging()) {
         return;
       }
@@ -185,11 +190,11 @@ public class PlaylistFragment extends Fragment {
       }
     });
     final MediaSessionModel model = MediaSessionModel.of(getActivity());
-    model.getState().observe(this, state -> {
+    model.getState().observe(getViewLifecycleOwner(), state -> {
       final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
       adapter.setIsPlaying(isPlaying);
     });
-    model.getMetadata().observe(this, metadata -> {
+    model.getMetadata().observe(getViewLifecycleOwner(), metadata -> {
       if (metadata != null) {
         final Uri uri = Uri.parse(metadata.getDescription().getMediaId());
         adapter.setNowPlaying(ProviderClient.findId(uri));

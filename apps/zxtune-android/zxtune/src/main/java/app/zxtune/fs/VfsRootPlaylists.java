@@ -26,7 +26,7 @@ final class VfsRootPlaylists extends StubObject implements VfsRoot {
 
   VfsRootPlaylists(Context context) {
     this.context = context;
-    this.client = new ProviderClient(context);
+    this.client = ProviderClient.create(context);
   }
 
   @Override
