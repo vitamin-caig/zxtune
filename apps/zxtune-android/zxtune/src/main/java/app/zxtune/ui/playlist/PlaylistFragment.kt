@@ -5,7 +5,6 @@
  */
 package app.zxtune.ui.playlist
 
-import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
@@ -29,21 +28,16 @@ import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.utils.SelectionUtils
 
 class PlaylistFragment : Fragment() {
-    private lateinit var ctrl: ProviderClient
     private lateinit var listing: RecyclerView
     private lateinit var selectionTracker: SelectionTracker<Long>
 
-    private val model
-        get() = Model.of(this)
+    private val model by lazy {
+        Model.of(this)
+    }
     private val mediaSessionModel
         get() = MediaSessionModel.of(requireActivity())
     private val mediaController
         get() = MediaControllerCompat.getMediaController(requireActivity())
-
-    override fun onAttach(ctx: Context) {
-        super.onAttach(ctx)
-        ctrl = ProviderClient.create(ctx)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,7 +52,7 @@ class PlaylistFragment : Fragment() {
             for (sortOrder in ProviderClient.SortOrder.values()) {
                 sortMenuRoot.add(getMenuTitle(sortBy)).run {
                     setOnMenuItemClickListener {
-                        ctrl.sort(sortBy, sortOrder)
+                        model.sort(sortBy, sortOrder)
                         true
                     }
                     setIcon(getMenuIcon(sortOrder))
@@ -86,7 +80,7 @@ class PlaylistFragment : Fragment() {
     private fun setupListing(view: View) =
         view.findViewById<RecyclerView>(R.id.playlist_content).apply {
             setHasFixedSize(true)
-            val adapter = ViewAdapter(ctrl::move).apply {
+            val adapter = ViewAdapter(model::move).apply {
                 adapter = this
             }
             selectionTracker = SelectionTracker.Builder(
@@ -169,8 +163,8 @@ class PlaylistFragment : Fragment() {
 
     private fun processMenuItem(itemId: Int, selection: Selection<Long>): Boolean {
         when (itemId) {
-            R.id.action_clear -> ctrl.deleteAll()
-            R.id.action_delete -> convertSelection(selection)?.let { ctrl.delete(it) }
+            R.id.action_clear -> model.deleteAll()
+            R.id.action_delete -> convertSelection(selection)?.let { model.delete(it) }
             R.id.action_save -> savePlaylist(convertSelection(selection))
             R.id.action_statistics -> showStatistics(convertSelection(selection))
             else -> return false

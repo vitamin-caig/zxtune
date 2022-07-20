@@ -61,6 +61,15 @@ class Model @VisibleForTesting internal constructor(
         }
     } ?: Unit
 
+    fun sort(by: ProviderClient.SortBy, order: ProviderClient.SortOrder) =
+        async.execute { client.sort(by, order) }
+
+    fun move(id: Long, delta: Int) = async.execute { client.move(id, delta) }
+
+    fun deleteAll() = async.execute { client.deleteAll() }
+
+    fun delete(ids: LongArray) = async.execute { client.delete(ids) }
+
     companion object {
         @JvmStatic
         fun of(owner: Fragment): Model = ViewModelProvider(
