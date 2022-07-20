@@ -11,6 +11,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.testing.FragmentScenario
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.recyclerview.selection.MutableSelection
 import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
 import app.zxtune.TimeStamp
@@ -120,6 +121,22 @@ class PlaylistFragmentTest {
             }
         }.close()
         clearInvocations(model, sessionModel)
+    }
+
+    @Test
+    fun `selection processing`() {
+        val selection = MutableSelection<Long>()
+        assertEquals(null, PlaylistFragment.convertSelection(selection))
+        selection.add(2)
+        with(requireNotNull(PlaylistFragment.convertSelection(selection))) {
+            assertEquals(1, size)
+            assertEquals(2, get(0))
+        }
+        selection.add(5)
+        with(requireNotNull(PlaylistFragment.convertSelection(selection))) {
+            assertEquals(2, size)
+            assertEquals(5, get(1))
+        }
     }
 }
 

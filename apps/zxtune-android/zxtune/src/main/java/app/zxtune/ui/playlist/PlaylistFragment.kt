@@ -1,0 +1,214 @@
+/**
+ * @file
+ * @brief Playlist fragment component
+ * @author vitamin.caig@gmail.com
+ */
+package app.zxtune.ui.playlist
+
+import android.content.Context
+import android.net.Uri
+import android.os.Bundle
+import android.os.Parcelable
+import android.support.v4.media.MediaMetadataCompat
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
+import android.view.*
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.annotation.VisibleForTesting
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.selection.Selection
+import androidx.recyclerview.selection.SelectionPredicates
+import androidx.recyclerview.selection.SelectionTracker
+import androidx.recyclerview.selection.StorageStrategy
+import androidx.recyclerview.widget.RecyclerView
+import app.zxtune.R
+import app.zxtune.device.media.MediaSessionModel
+import app.zxtune.playlist.ProviderClient
+import app.zxtune.ui.utils.SelectionUtils
+
+class PlaylistFragment : Fragment() {
+    private lateinit var ctrl: ProviderClient
+    private lateinit var listing: RecyclerView
+    private lateinit var selectionTracker: SelectionTracker<Long>
+
+    private val model
+        get() = Model.of(this)
+    private val mediaSessionModel
+        get() = MediaSessionModel.of(requireActivity())
+    private val mediaController
+        get() = MediaControllerCompat.getMediaController(requireActivity())
+
+    override fun onAttach(ctx: Context) {
+        super.onAttach(ctx)
+        ctrl = ProviderClient.create(ctx)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.playlist, menu)
+        val sortMenuRoot = requireNotNull(menu.findItem(R.id.action_sort)).subMenu
+        for (sortBy in ProviderClient.SortBy.values()) {
+            for (sortOrder in ProviderClient.SortOrder.values()) {
+                sortMenuRoot.add(getMenuTitle(sortBy)).run {
+                    setOnMenuItemClickListener {
+                        ctrl.sort(sortBy, sortOrder)
+                        true
+                    }
+                    setIcon(getMenuIcon(sortOrder))
+                }
+            }
+        }
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem) = processMenuItem(
+        item.itemId,
+        selectionTracker.selection
+    ) || super.onOptionsItemSelected(item)
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ) = container?.let { inflater.inflate(R.layout.playlist, it, false) }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        listing = setupListing(view)
+        savedInstanceState?.let { restoreState(it) }
+    }
+
+    private fun setupListing(view: View) =
+        view.findViewById<RecyclerView>(R.id.playlist_content).apply {
+            setHasFixedSize(true)
+            val adapter = ViewAdapter(ctrl::move).apply {
+                adapter = this
+            }
+            selectionTracker = SelectionTracker.Builder(
+                "playlist_selection",
+                this,
+                ViewAdapter.KeyProvider(adapter),
+                ViewAdapter.DetailsLookup(this, adapter),
+                StorageStrategy.createLongStorage()
+            )
+                .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+                .withOnItemActivatedListener { item, _ ->
+                    item.selectionKey?.let { onItemClick(it) }
+                    true
+                }.build().also {
+                    adapter.setSelection(it.selection)
+                    // another class for test
+                    (activity as? AppCompatActivity)?.let { activity ->
+                        SelectionUtils.install(activity, it, SelectionClient(adapter))
+                    }
+                }
+            model.items.observe(viewLifecycleOwner) { state ->
+                adapter.submitList(state) {
+                    val stub = view.findViewById<View>(R.id.playlist_stub)
+                    if (0 == adapter.itemCount) {
+                        visibility = View.GONE
+                        stub.visibility = View.VISIBLE
+                    } else {
+                        visibility = View.VISIBLE
+                        stub.visibility = View.GONE
+                    }
+                }
+            }
+            mediaSessionModel.run {
+                state.observe(viewLifecycleOwner) { state: PlaybackStateCompat? ->
+                    adapter.setIsPlaying(PlaybackStateCompat.STATE_PLAYING == state?.state)
+                }
+                metadata.observe(viewLifecycleOwner) { metadata: MediaMetadataCompat? ->
+                    metadata?.let {
+                        val uri = Uri.parse(it.description.mediaId)
+                        adapter.setNowPlaying(ProviderClient.findId(uri))
+                    }
+                }
+            }
+        }
+
+    private fun restoreState(savedInstanceState: Bundle) {
+        selectionTracker.onRestoreInstanceState(savedInstanceState)
+        listing.layoutManager?.run {
+            savedInstanceState.getParcelable<Parcelable>(LISTING_STATE_KEY)?.let {
+                onRestoreInstanceState(it)
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        selectionTracker.onSaveInstanceState(outState)
+        listing.layoutManager?.run {
+            outState.putParcelable(LISTING_STATE_KEY, onSaveInstanceState())
+        }
+    }
+
+    private fun onItemClick(id: Long) =
+        mediaController?.transportControls?.playFromUri(ProviderClient.createUri(id), null) ?: Unit
+
+    // ArchivesService for selection
+    private inner class SelectionClient(private val adapter: ViewAdapter) :
+        SelectionUtils.Client<Long> {
+        override fun getTitle(count: Int) =
+            resources.getQuantityString(R.plurals.tracks, count, count)
+
+        override fun getAllItems() = adapter.currentList.map(Entry::id)
+
+        override fun fillMenu(inflater: MenuInflater, menu: Menu) =
+            inflater.inflate(R.menu.playlist_items, menu)
+
+        override fun processMenu(itemId: Int, selection: Selection<Long>) =
+            processMenuItem(itemId, selection)
+    }
+
+    private fun processMenuItem(itemId: Int, selection: Selection<Long>): Boolean {
+        when (itemId) {
+            R.id.action_clear -> ctrl.deleteAll()
+            R.id.action_delete -> convertSelection(selection)?.let { ctrl.delete(it) }
+            R.id.action_save -> savePlaylist(convertSelection(selection))
+            R.id.action_statistics -> showStatistics(convertSelection(selection))
+            else -> return false
+        }
+        return true
+    }
+
+    private fun savePlaylist(ids: LongArray?) =
+        PlaylistSaveFragment.createInstance(ids).show(parentFragmentManager, "save")
+
+    private fun showStatistics(ids: LongArray?) =
+        PlaylistStatisticsFragment.createInstance(ids).show(parentFragmentManager, "statistics")
+
+    companion object {
+        private const val LISTING_STATE_KEY = "listing_state"
+
+        @JvmStatic
+        fun createInstance(): Fragment = PlaylistFragment()
+
+        @StringRes
+        private fun getMenuTitle(by: ProviderClient.SortBy) = when (by) {
+            ProviderClient.SortBy.title -> R.string.information_title
+            ProviderClient.SortBy.author -> R.string.information_author
+            ProviderClient.SortBy.duration -> R.string.statistics_duration //TODO: extract
+        }
+
+        @DrawableRes
+        private fun getMenuIcon(order: ProviderClient.SortOrder) = when (order) {
+            ProviderClient.SortOrder.asc -> android.R.drawable.arrow_up_float
+            ProviderClient.SortOrder.desc -> android.R.drawable.arrow_down_float
+        }
+
+        @VisibleForTesting
+        fun convertSelection(selection: Selection<Long>) =
+            selection.takeUnless { it.isEmpty }?.iterator()?.let { iterator ->
+                LongArray(selection.size()) {
+                    iterator.next()
+                }
+            }
+    }
+}
