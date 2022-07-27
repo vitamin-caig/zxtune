@@ -7,7 +7,7 @@ import app.zxtune.core.Identifier
 import app.zxtune.playlist.Database
 import app.zxtune.playlist.ProviderClient
 import org.junit.After
-import org.junit.Assert.assertEquals
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -84,9 +84,9 @@ class ModelTest {
             on { query(null) }.doReturn(emptyList, nonEmptyList)
         }
         with(Model(mock(), client, async)) {
-            assertEquals(0, requireNotNull(items.value).size)
+            assertEquals(0, requireNotNull(state.value).entries.size)
             observer.onChange()
-            requireNotNull(items.value).run {
+            requireNotNull(state.value).entries.run {
                 assertEquals(1, size)
                 get(0).run {
                     assertEquals(123, id)
@@ -106,6 +106,45 @@ class ModelTest {
             verify(async).execute(any())
             verify(client).query(null)
             verify(client).unregisterObserver()
+        }
+    }
+
+    @Test
+    fun `state logic`() {
+        val initial = Model.State().apply {
+            assertNull(entries as? MutableList<Entry>)
+            assertEquals(0, entries.size)
+            assertEquals(null, filter)
+        }
+        val entry1 = Entry(1, Identifier.EMPTY, "First entry", "Author1", TimeStamp.EMPTY)
+        val entry2 = Entry(2, Identifier.EMPTY, "Second entry", "Author2", TimeStamp.EMPTY)
+        val entry3 = Entry(3, Identifier.EMPTY, "Third entry", "second author", TimeStamp.EMPTY)
+        val filled2 = initial.withContent(arrayListOf(entry1, entry2)).apply {
+            assertNotNull(entries as? MutableList<Entry>)
+            assertEquals(null, filter)
+            assertEquals(arrayListOf(entry1, entry2), entries)
+        }
+        assertEquals(initial, filled2.withContent(arrayListOf()))
+        assertEquals(filled2, filled2.withFilter(null))
+        assertEquals(filled2, filled2.withFilter(" "))
+
+        val filtered2 = filled2.withFilter("second").apply {
+            assertNull(entries as? MutableList<Entry>)
+            assertEquals("second", filter)
+            assertEquals(arrayListOf(entry2), entries)
+        }
+        assertEquals(initial, filtered2.withContent(arrayListOf()))
+
+        val filtered3 = filtered2.withContent(arrayListOf(entry3, entry1, entry2)).apply {
+            assertNull(entries as? MutableList<Entry>)
+            assertEquals("second", filter)
+            assertEquals(arrayListOf(entry3, entry2), entries)
+        }
+
+        val filled3 = filtered3.withFilter(null).apply {
+            assertNotNull(entries as? MutableList<Entry>)
+            assertEquals(null, filter)
+            assertEquals(arrayListOf(entry3, entry1, entry2), entries)
         }
     }
 }

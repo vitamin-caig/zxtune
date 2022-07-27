@@ -12,8 +12,16 @@ import app.zxtune.TimeStamp.Companion.fromMilliseconds
 import app.zxtune.core.Identifier.Companion.parse
 import app.zxtune.playlist.Database
 import app.zxtune.playlist.ProviderClient
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
+private fun Entry.matches(filter: String) =
+    title.contains(filter, true) || author.contains(filter, true)
+
+private class ImmutableList<T>(private val inner : List<T>) : List<T> by inner
+
+private fun <T> List<T>.toImmutable() : List<T> = (this as? ImmutableList<T>) ?: ImmutableList(this)
 
 // public for provider
 class Model @VisibleForTesting internal constructor(
@@ -22,11 +30,44 @@ class Model @VisibleForTesting internal constructor(
     private val async: ExecutorService
 ) : AndroidViewModel(application) {
 
-    private lateinit var state: MutableLiveData<List<Entry>>
+    class State(
+        private val fullEntries: List<Entry> = emptyList(),
+        val filter: String? = null,
+        filtered: List<Entry>? = null,
+    ) {
+        private val filteredEntries = filtered?.toImmutable()
+
+        val entries
+            get() = filteredEntries ?: fullEntries
+
+        fun withContent(newContent: List<Entry>) =
+            if (filter.isNullOrBlank() || newContent.isEmpty()) {
+                State(newContent)
+            } else {
+                State(newContent, filter, newContent.filter { it.matches(filter) })
+            }
+
+        fun withFilter(newFilter: String?) = when {
+            newFilter.isNullOrBlank() || fullEntries.isEmpty() -> State(fullEntries)
+            newFilter == filter -> State(fullEntries, filter, filteredEntries)
+            filter != null && newFilter.startsWith(filter) -> State(
+                fullEntries,
+                newFilter,
+                filteredEntries?.filter { it.matches(newFilter) })
+            else -> State(fullEntries, newFilter, fullEntries.filter { it.matches(newFilter) })
+        }
+
+        @VisibleForTesting
+        override fun equals(other: Any?) = true == (other as? State)?.let {
+            it.fullEntries == fullEntries && it.filter == filter && it.filteredEntries == filteredEntries
+        }
+    }
+
+    private lateinit var mutableState: MutableLiveData<State>
 
     init {
         client.registerObserver {
-            if (this::state.isInitialized) {
+            if (this::mutableState.isInitialized) {
                 loadAsync()
             }
         }
@@ -40,13 +81,13 @@ class Model @VisibleForTesting internal constructor(
 
     public override fun onCleared() = client.unregisterObserver()
 
-    val items: LiveData<List<Entry>>
+    val state: LiveData<State>
         get() {
-            if (!this::state.isInitialized) {
-                state = MutableLiveData()
+            if (!this::mutableState.isInitialized) {
+                mutableState = MutableLiveData(State())
                 loadAsync()
             }
-            return state
+            return mutableState
         }
 
     private fun loadAsync() = async.execute(this::load)
@@ -57,9 +98,18 @@ class Model @VisibleForTesting internal constructor(
                 add(createItem(cursor))
             }
         }.let {
-            state.postValue(it)
+            mutableState.postValue(requireNotNull(mutableState.value).withContent(it))
         }
     } ?: Unit
+
+    fun filter(rawFilter: String) = requireNotNull(mutableState.value).let { current ->
+        val filter = rawFilter.trim()
+        if (current.filter != filter) {
+            async.execute {
+                mutableState.postValue(current.withFilter(filter))
+            }
+        }
+    }
 
     fun sort(by: ProviderClient.SortBy, order: ProviderClient.SortOrder) =
         async.execute { client.sort(by, order) }

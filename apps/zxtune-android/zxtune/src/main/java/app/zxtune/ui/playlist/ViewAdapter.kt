@@ -29,7 +29,7 @@ internal class ViewAdapter(private val client: Client) :
     }
 
     private val positionsCache: LongSparseArray<Int> = LongSparseArray()
-    private lateinit var mutableList: MutableList<Entry>
+    private var mutableList: MutableList<Entry>? = null
     private lateinit var selection: Selection<Long>
     private lateinit var touchHelper: CustomTouchHelper
     private var isPlaying = false
@@ -79,33 +79,35 @@ internal class ViewAdapter(private val client: Client) :
         if (fromPosition == toPosition) {
             return
         }
-        if (maxOf(fromPosition, toPosition) >= mutableList.size) {
+        val list = mutableList ?: return
+        if (maxOf(fromPosition, toPosition) >= list.size) {
             return
         }
         val placeItem = { pos: Int, entry: Entry ->
-            mutableList[pos] = entry
+            list[pos] = entry
             positionsCache.put(entry.id, pos)
         }
-        val moved = mutableList[fromPosition]
+        val moved = list[fromPosition]
         if (fromPosition < toPosition) {
             for (pos in fromPosition until toPosition) {
-                placeItem(pos, mutableList[pos + 1])
+                placeItem(pos, list[pos + 1])
             }
         } else {
             for (pos in fromPosition downTo toPosition + 1) {
-                placeItem(pos, mutableList[pos - 1])
+                placeItem(pos, list[pos - 1])
             }
         }
         placeItem(toPosition, moved)
         notifyItemMoved(fromPosition, toPosition)
     }
 
+    // TODO: think about another solution about D&D detection
     override fun submitList(list: List<Entry>?, callback: Runnable?) {
         if (touchHelper.isDragging) {
             callback?.run()
         } else {
             positionsCache.clear()
-            mutableList = (list as? MutableList<Entry>) ?: mutableListOf()
+            mutableList = list as? MutableList<Entry>
             super.submitList(list, callback)
         }
     }
@@ -134,7 +136,7 @@ internal class ViewAdapter(private val client: Client) :
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewAttachedToWindow(holder: EntryViewHolder) {
         holder.binding.playlistEntryState.setOnTouchListener { _, event ->
-            if (event.action == MotionEvent.ACTION_DOWN && !hasSelection()) {
+            if (event.action == MotionEvent.ACTION_DOWN && !hasSelection() && mutableList != null) {
                 touchHelper.startDrag(holder)
                 true
             } else {

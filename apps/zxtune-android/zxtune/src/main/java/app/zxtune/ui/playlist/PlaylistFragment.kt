@@ -12,6 +12,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.*
+import android.widget.SearchView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.annotation.VisibleForTesting
@@ -29,6 +30,7 @@ import app.zxtune.ui.utils.SelectionUtils
 
 class PlaylistFragment : Fragment() {
     private lateinit var listing: RecyclerView
+    private lateinit var search: SearchView
     private lateinit var selectionTracker: SelectionTracker<Long>
 
     private val model by lazy {
@@ -74,7 +76,7 @@ class PlaylistFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         listing = setupListing(view)
-        savedInstanceState?.let { restoreState(it) }
+        search = setupSearchView(view)
     }
 
     private fun setupListing(view: View) =
@@ -101,8 +103,8 @@ class PlaylistFragment : Fragment() {
                         SelectionUtils.install(activity, it, SelectionClient(adapter))
                     }
                 }
-            model.items.observe(viewLifecycleOwner) { state ->
-                adapter.submitList(state) {
+            model.state.observe(viewLifecycleOwner) { state ->
+                adapter.submitList(state.entries) {
                     val stub = view.findViewById<View>(R.id.playlist_stub)
                     if (0 == adapter.itemCount) {
                         visibility = View.GONE
@@ -126,20 +128,43 @@ class PlaylistFragment : Fragment() {
             }
         }
 
-    private fun restoreState(savedInstanceState: Bundle) {
-        selectionTracker.onRestoreInstanceState(savedInstanceState)
-        listing.layoutManager?.run {
-            savedInstanceState.getParcelable<Parcelable>(LISTING_STATE_KEY)?.let {
-                onRestoreInstanceState(it)
-            }
+    private fun setupSearchView(view: View) = view.findViewById<SearchView>(R.id.playlist_search)
+        .apply {
+            isSubmitButtonEnabled = false
+            setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String) = true
+                override fun onQueryTextChange(newText: String): Boolean {
+                    model.filter(newText)
+                    return true
+                }
+            })
         }
-    }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         selectionTracker.onSaveInstanceState(outState)
         listing.layoutManager?.run {
             outState.putParcelable(LISTING_STATE_KEY, onSaveInstanceState())
+        }
+        search.query?.let { query ->
+            outState.putString(FILTER_STATE_KEY, query.toString())
+        }
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        savedInstanceState?.let { state ->
+            selectionTracker.onRestoreInstanceState(state)
+            listing.layoutManager?.run {
+                state.getParcelable<Parcelable>(LISTING_STATE_KEY)?.let {
+                    onRestoreInstanceState(it)
+                }
+            }
+            state.getString(FILTER_STATE_KEY)?.takeIf { it.isNotEmpty() }?.let { query ->
+                search.post {
+                    search.setQuery(query, false)
+                }
+            } ?: model.filter("")
         }
     }
 
@@ -180,6 +205,7 @@ class PlaylistFragment : Fragment() {
 
     companion object {
         private const val LISTING_STATE_KEY = "listing_state"
+        private const val FILTER_STATE_KEY = "search_state"
 
         @JvmStatic
         fun createInstance(): Fragment = PlaylistFragment()
