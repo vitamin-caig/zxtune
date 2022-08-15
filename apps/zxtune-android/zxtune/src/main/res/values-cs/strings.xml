@@ -13,6 +13,8 @@
     <string name="send">Poslat</string>
     <string name="share">Sdílet</string>
     <string name="sort">Třídit</string>
+    <string name="delete_all_items_query">Smazat všechny položky?</string>
+    <string name="delete_selected_items_query">Smazat vybrané položky?</string>
     <!-- information-related -->
     <string name="information_title">Název</string>
     <string name="information_author">Autor</string>

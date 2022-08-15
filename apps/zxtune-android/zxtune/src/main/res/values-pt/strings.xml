@@ -13,6 +13,8 @@
     <string name="send">Enviar</string>
     <string name="share">Partilhar</string>
     <string name="sort">Ordenar</string>
+    <string name="delete_all_items_query">Excluir todos os itens?</string>
+    <string name="delete_selected_items_query">Excluir itens selecionados?</string>
     <!-- information-related -->
     <string name="information_title">Título</string>
     <string name="information_author">Autor</string>

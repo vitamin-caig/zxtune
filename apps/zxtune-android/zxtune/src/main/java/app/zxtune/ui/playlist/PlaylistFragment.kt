@@ -16,6 +16,7 @@ import android.widget.SearchView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.annotation.VisibleForTesting
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.selection.Selection
@@ -188,14 +189,29 @@ class PlaylistFragment : Fragment() {
 
     private fun processMenuItem(itemId: Int, selection: Selection<Long>): Boolean {
         when (itemId) {
-            R.id.action_clear -> model.deleteAll()
-            R.id.action_delete -> convertSelection(selection)?.let { model.delete(it) }
+            R.id.action_clear -> deletionAlert(R.string.delete_all_items_query) {
+                model.deleteAll()
+            }
+            R.id.action_delete -> convertSelection(selection)?.let {
+                deletionAlert(R.string.delete_selected_items_query) {
+                    model.delete(it)
+                }
+            }
             R.id.action_save -> savePlaylist(convertSelection(selection))
             R.id.action_statistics -> showStatistics(convertSelection(selection))
             else -> return false
         }
         return true
     }
+
+    // TODO: think about using DialogFragment - complicated lambda passing
+    private fun deletionAlert(@StringRes message: Int, action: () -> Unit) =
+        AlertDialog.Builder(requireContext())
+            .setTitle(message)
+            .setPositiveButton(R.string.delete) { _, _ ->
+                action()
+            }
+            .show()
 
     private fun savePlaylist(ids: LongArray?) =
         PlaylistSaveFragment.createInstance(ids).show(parentFragmentManager, "save")

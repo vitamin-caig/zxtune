@@ -13,6 +13,8 @@
     <string name="send">Send</string>
     <string name="share">Share</string>
     <string name="sort">Sort</string>
+    <string name="delete_all_items_query">Delete all items?</string>
+    <string name="delete_selected_items_query">Delete selected items?</string>
     <!-- information-related -->
     <string name="information_title">Title</string>
     <string name="information_author">Author</string>
