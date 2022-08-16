@@ -11,6 +11,7 @@
 // local includes
 #include "data_provider.h"
 #include "playlist/parameters.h"
+#include "supp/thread_utils.h"
 #include "ui/format.h"
 #include "ui/utils.h"
 // common includes
@@ -48,6 +49,11 @@ namespace
 
 namespace
 {
+  void EnsureNotMainThread()
+  {
+    Require(!MainThread::IsCurrent());
+  }
+
   class DataProvider
   {
   public:
@@ -442,26 +448,24 @@ namespace
     const String DummyDisplayName;
   };
 
-  class DataImpl
-    : public Playlist::Item::Data
-    , private Parameters::Modifier
+  class DataImpl : public Playlist::Item::Data
   {
   public:
     typedef Playlist::Item::Data::Ptr Ptr;
 
-    DataImpl(DynamicAttributesProvider::Ptr attributes, ModuleSource source, Parameters::Container::Ptr adjustedParams,
-             Time::Milliseconds duration, const Parameters::Accessor& moduleProps, uint_t caps)
+    DataImpl(DynamicAttributesProvider::Ptr attributes, ModuleSource source, Parameters::Accessor::Ptr moduleProps,
+             Parameters::Container::Ptr adjustedParams, Time::Milliseconds duration, uint_t caps)
       : Caps(caps)
       , Attributes(std::move(attributes))
       , Source(std::move(source))
       , AdjustedParams(std::move(adjustedParams))
-      , Type(GetStringProperty(moduleProps, Module::ATTR_TYPE))
-      , Checksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_CRC)))
-      , CoreChecksum(static_cast<uint32_t>(GetIntProperty(moduleProps, Module::ATTR_FIXEDCRC)))
-      , Size(static_cast<std::size_t>(GetIntProperty(moduleProps, Module::ATTR_SIZE)))
+      , Properties(Parameters::CreateMergedAccessor(AdjustedParams, std::move(moduleProps)))
       , Duration(duration)
+    {}
+
+    bool IsLoaded() const override
     {
-      LoadProperties(moduleProps);
+      return true;
     }
 
     Module::Holder::Ptr GetModule() const override
@@ -475,19 +479,22 @@ namespace
       {
         State = e;
       }
-      return Module::Holder::Ptr();
+      return {};
     }
 
     Binary::Data::Ptr GetModuleData() const override
     {
-      return Source.GetModuleData(Size);
+      return Source.GetModuleData(GetSize());
+    }
+
+    Parameters::Accessor::Ptr GetModuleProperties() const override
+    {
+      return Properties;
     }
 
     Parameters::Container::Ptr GetAdjustedParameters() const override
     {
-      const Parameters::Modifier& cb = *this;
-      return Parameters::CreatePostChangePropertyTrackedContainer(AdjustedParams,
-                                                                  const_cast<Parameters::Modifier&>(cb));
+      return AdjustedParams;
     }
 
     Playlist::Item::Capabilities GetCapabilities() const override
@@ -513,12 +520,12 @@ namespace
 
     String GetType() const override
     {
-      return Type;
+      return GetStringProperty(*Properties, Module::ATTR_TYPE);
     }
 
     String GetDisplayName() const override
     {
-      return DisplayName;
+      return Attributes->GetDisplayName(*Properties);
     }
 
     Time::Milliseconds GetDuration() const override
@@ -528,78 +535,32 @@ namespace
 
     String GetAuthor() const override
     {
-      return Author;
+      return GetStringProperty(*Properties, Module::ATTR_AUTHOR);
     }
 
     String GetTitle() const override
     {
-      return Title;
+      return GetStringProperty(*Properties, Module::ATTR_TITLE);
     }
 
     String GetComment() const override
     {
-      return Comment;
+      return GetStringProperty(*Properties, Module::ATTR_COMMENT);
     }
 
     uint32_t GetChecksum() const override
     {
-      return Checksum;
+      return static_cast<uint32_t>(GetIntProperty(*Properties, Module::ATTR_CRC));
     }
 
     uint32_t GetCoreChecksum() const override
     {
-      return CoreChecksum;
+      return static_cast<uint32_t>(GetIntProperty(*Properties, Module::ATTR_FIXEDCRC));
     }
 
     std::size_t GetSize() const override
     {
-      return Size;
-    }
-
-  private:
-    void SetValue(Parameters::Identifier /*name*/, Parameters::IntType /*val*/) override
-    {
-      OnPropertyChanged();
-    }
-
-    void SetValue(Parameters::Identifier /*name*/, StringView /*val*/) override
-    {
-      OnPropertyChanged();
-    }
-
-    void SetValue(Parameters::Identifier /*name*/, Binary::View /*val*/) override
-    {
-      OnPropertyChanged();
-    }
-
-    void RemoveValue(Parameters::Identifier /*name*/) override
-    {
-      OnPropertyChanged();
-    }
-
-    void OnPropertyChanged()
-    {
-      if (const auto holder = GetModule())
-      {
-        LoadProperties(*holder->GetModuleProperties());
-        Duration = holder->GetModuleInformation()->Duration();
-      }
-      else
-      {
-        DisplayName.clear();
-        Author.clear();
-        Title.clear();
-        Comment.clear();
-        Duration = {};
-      }
-    }
-
-    void LoadProperties(const Parameters::Accessor& props)
-    {
-      DisplayName = Attributes->GetDisplayName(props);
-      Author = GetStringProperty(props, Module::ATTR_AUTHOR);
-      Title = GetStringProperty(props, Module::ATTR_TITLE);
-      Comment = GetStringProperty(props, Module::ATTR_COMMENT);
+      return static_cast<std::size_t>(GetIntProperty(*Properties, Module::ATTR_SIZE));
     }
 
   private:
@@ -607,14 +568,7 @@ namespace
     const DynamicAttributesProvider::Ptr Attributes;
     const ModuleSource Source;
     const Parameters::Container::Ptr AdjustedParams;
-    const String Type;
-    const uint32_t Checksum;
-    const uint32_t CoreChecksum;
-    const std::size_t Size;
-    String DisplayName;
-    String Author;
-    String Title;
-    String Comment;
+    const Parameters::Accessor::Ptr Properties;
     Time::Milliseconds Duration;
     mutable Error State;
   };
@@ -649,12 +603,11 @@ namespace
           Module::ResolveAdditionalFiles(*Source, *files);
         }
       }
-      auto adjustedParams = Delegate.CreateInitialAdjustedParameters();
       const auto info = holder->GetModuleInformation();
-      const auto lookupModuleProps = Parameters::CreateMergedAccessor(adjustedParams, holder->GetModuleProperties());
       ModuleSource itemSource(Service, Source, DataId->WithSubpath(subPath));
-      auto playitem = MakePtr<DataImpl>(Attributes, std::move(itemSource), std::move(adjustedParams), info->Duration(),
-                                        *lookupModuleProps, decoder.Capabilities());
+      auto playitem = MakePtr<DataImpl>(Attributes, std::move(itemSource), holder->GetModuleProperties(),
+                                        Delegate.CreateInitialAdjustedParameters(), info->Duration(),
+                                        decoder.Capabilities());
       Delegate.ProcessItem(std::move(playitem));
     }
 
@@ -671,12 +624,48 @@ namespace
     const DataSource::Ptr Source;
   };
 
+  class ThreadCheckingService : public ZXTune::Service
+  {
+  public:
+    ThreadCheckingService(Parameters::Accessor::Ptr parameters)
+      : Delegate(ZXTune::Service::Create(std::move(parameters)))
+    {}
+
+    Binary::Container::Ptr OpenData(Binary::Container::Ptr data, const String& subpath) const override
+    {
+      EnsureNotMainThread();
+      return Delegate->OpenData(std::move(data), subpath);
+    }
+
+    Module::Holder::Ptr OpenModule(Binary::Container::Ptr data, const String& subpath,
+                                   Parameters::Container::Ptr initialProperties) const override
+    {
+      EnsureNotMainThread();
+      return Delegate->OpenModule(std::move(data), subpath, std::move(initialProperties));
+    }
+
+    void DetectModules(Binary::Container::Ptr data, Module::DetectCallback& callback) const override
+    {
+      EnsureNotMainThread();
+      return Delegate->DetectModules(std::move(data), callback);
+    }
+
+    void OpenModule(Binary::Container::Ptr data, const String& subpath, Module::DetectCallback& callback) const override
+    {
+      EnsureNotMainThread();
+      return Delegate->OpenModule(std::move(data), subpath, callback);
+    }
+
+  private:
+    const Ptr Delegate;
+  };
+
   class DataProviderImpl : public Playlist::Item::DataProvider
   {
   public:
     explicit DataProviderImpl(Parameters::Accessor::Ptr parameters)
       : Provider(MakePtr<CachedDataProvider>(parameters))
-      , Service(ZXTune::Service::Create(std::move(parameters)))
+      , Service(MakePtr<ThreadCheckingService>(parameters))
       , Attributes(MakePtr<DynamicAttributesProvider>())
     {}
 

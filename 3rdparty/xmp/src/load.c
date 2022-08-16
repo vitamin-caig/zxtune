@@ -20,7 +20,11 @@
 #include <limits.h>
 #endif
 
-#if !defined(HAVE_POPEN) && defined(WIN32)
+#ifndef DECRUNCH_MAX
+#define DECRUNCH_MAX 5 /* don't recurse more than this */
+#endif
+
+#if !defined(HAVE_POPEN) && defined(WIN32) && DECRUNCH_MAX > 0
 #include "../win32/ptpopen.h"
 #endif
 
@@ -69,10 +73,6 @@ static void set_md5sum(HIO_HANDLE *f, unsigned char *digest)
 	}
 	MD5Final(digest, &ctx);
 }
-
-#ifndef DECRUNCH_MAX
-#define DECRUNCH_MAX 5 /* don't recurse more than this */
-#endif
 
 #if DECRUNCH_MAX > 0
 int decrunch_arc	(FILE *, FILE *);

@@ -37,9 +37,9 @@ namespace
   class ItemPropertiesContainer : public Parameters::Container
   {
   public:
-    ItemPropertiesContainer(Parameters::Container::Ptr adjusted, Parameters::Accessor::Ptr native)
-      : Adjusted(adjusted)
-      , Merged(Parameters::CreateMergedAccessor(adjusted, native))
+    ItemPropertiesContainer(Parameters::Container::Ptr adjusted, Parameters::Accessor::Ptr merged)
+      : Adjusted(std::move(adjusted))
+      , Merged(std::move(merged))
     {}
 
     uint_t Version() const override
@@ -104,11 +104,7 @@ namespace
       setupUi(this);
       setWindowTitle(ToQString(item->GetFullPath()));
 
-      // TODO: query only item
-      const Module::Holder::Ptr module = item->GetModule();
-      const Parameters::Accessor::Ptr nativeProps = module->GetModuleProperties();
-      const Parameters::Container::Ptr adjustedProps = item->GetAdjustedParameters();
-      Properties = MakePtr<ItemPropertiesContainer>(adjustedProps, nativeProps);
+      Properties = MakePtr<ItemPropertiesContainer>(item->GetAdjustedParameters(), item->GetModuleProperties());
 
       FillProperties(item->GetCapabilities());
       itemsLayout->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding),

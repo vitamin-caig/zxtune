@@ -11,8 +11,10 @@
 // local includes
 #include "model.h"
 #include "storage.h"
+#include "supp/thread_utils.h"
 #include "ui/utils.h"
 // common includes
+#include <contract.h>
 #include <make_ptr.h>
 // library includes
 #include <async/activity.h>
@@ -41,12 +43,18 @@ namespace
   public:
     virtual ~RowDataProvider() = default;
 
+    virtual bool IsLightweightField(unsigned column) const = 0;
     virtual QVariant GetData(const Playlist::Item::Data& item, unsigned column) const = 0;
   };
 
   class DummyDataProvider : public RowDataProvider
   {
   public:
+    bool IsLightweightField(unsigned /*column*/) const override
+    {
+      return true;
+    }
+
     QVariant GetData(const Playlist::Item::Data& /*item*/, unsigned /*column*/) const override
     {
       return QVariant();
@@ -62,6 +70,11 @@ namespace
   class DisplayDataProvider : public RowDataProvider
   {
   public:
+    bool IsLightweightField(unsigned column) const override
+    {
+      return column == Playlist::Model::COLUMN_PATH;
+    }
+
     QVariant GetData(const Playlist::Item::Data& item, unsigned column) const override
     {
       switch (column)
@@ -592,10 +605,17 @@ namespace
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
       const RWMutex::ReadLock lock(SyncAccess);
-      if (const Playlist::Item::Data::Ptr item = Container->GetItem(itemNum))
+      if (auto item = Container->GetItem(itemNum))
       {
-        const RowDataProvider& provider = Providers.GetProvider(role);
-        return provider.GetData(*item, fieldNum);
+        const auto& provider = Providers.GetProvider(role);
+        if (provider.IsLightweightField(fieldNum) || item->IsLoaded())
+        {
+          return provider.GetData(*item, fieldNum);
+        }
+        else
+        {
+          AsyncLoad(std::move(item), index);
+        }
       }
       return QVariant();
     }
@@ -612,6 +632,23 @@ namespace
     }
 
   private:
+    void AsyncLoad(Playlist::Item::Data::Ptr item, const QModelIndex& index) const
+    {
+      auto* self = const_cast<ModelImpl*>(this);
+      IOThread::Execute([item, self, index]() {
+        if (!item->IsLoaded())
+        {
+          item->GetModule();
+          SelfThread::Execute(self, &ModelImpl::NotifyRowChanged, index);
+        }
+      });
+    }
+
+    void NotifyRowChanged(const QModelIndex& index)
+    {
+      dataChanged(index.siblingAtColumn(0), index.siblingAtColumn(Playlist::Model::COLUMNS_COUNT));
+    }
+
     template<class Function>
     void ChangeModel(Function cmd)
     {

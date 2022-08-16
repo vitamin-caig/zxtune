@@ -11,10 +11,12 @@
 // local includes
 #include "playback_supp.h"
 #include "playlist/supp/data.h"
+#include "supp/thread_utils.h"
 #include "ui/utils.h"
 // common includes
 #include <contract.h>
 #include <error.h>
+#include <lazy.h>
 #include <pointers.h>
 // library includes
 #include <parameters/merged_accessor.h>
@@ -54,7 +56,7 @@ namespace
   public:
     PlaybackSupportImpl(QObject& parent, Parameters::Accessor::Ptr sndOptions)
       : PlaybackSupport(parent)
-      , Service(Sound::CreateSystemService(sndOptions))
+      , Service(&Sound::CreateSystemService, std::move(sndOptions))
       , Control(StubControl::Instance())
     {
       const unsigned UI_UPDATE_FPS = 5;
@@ -67,26 +69,30 @@ namespace
 
     void SetDefaultItem(Playlist::Item::Data::Ptr item) override
     {
-      if (Backend)
-      {
-        return;
-      }
-      LoadItem(item);
+      IOThread::Execute([this, item]() {
+        if (Backend)
+        {
+          return;
+        }
+        LoadItem(item);
+      });
     }
 
     void SetItem(Playlist::Item::Data::Ptr item) override
     {
-      try
-      {
-        if (LoadItem(item))
+      IOThread::Execute([this, item]() {
+        try
         {
-          Control->Play();
+          if (LoadItem(item))
+          {
+            Control->Play();
+          }
         }
-      }
-      catch (const Error& e)
-      {
-        emit ErrorOccurred(e);
-      }
+        catch (const Error& e)
+        {
+          emit ErrorOccurred(e);
+        }
+      });
     }
 
     void ResetItem() override
@@ -238,7 +244,7 @@ namespace
     }
 
   private:
-    const Sound::Service::Ptr Service;
+    const Lazy<Sound::Service::Ptr> Service;
     QTimer Timer;
     Playlist::Item::Data::Ptr Item;
     Sound::Backend::Ptr Backend;

@@ -73,8 +73,8 @@ namespace
           return Iterator.GetState();
         }
         // TODO: do not access item
-        const Playlist::Item::Data::Ptr item = Model.GetItem(row);
-        if (item && !item->GetState())
+        const auto item = Model.GetItem(row);
+        if (item && (!item->IsLoaded() || !item->GetState()))
         {
           return Playlist::Item::STOPPED;
         }
@@ -242,9 +242,18 @@ namespace
   private:
     QVariant GetTooltip(int_t itemNum) const
     {
-      if (const Playlist::Item::Data::Ptr item = Delegate.GetItem(itemNum))
+      if (const auto item = Delegate.GetItem(itemNum))
       {
-        return GetTooltip(*item);
+        if (item->IsLoaded())
+        {
+          return GetTooltip(*item);
+        }
+        else
+        {
+          // force prefetch
+          QIdentityProxyModel::data(index(itemNum, 0), Qt::DisplayRole);
+          return Playlist::UI::View::tr("Loading...");
+        }
       }
       return QVariant();
     }
@@ -257,8 +266,7 @@ namespace
       }
       else
       {
-        const Module::Holder::Ptr holder = item.GetModule();
-        const Parameters::Accessor::Ptr properties = holder->GetModuleProperties();
+        const auto properties = item.GetModuleProperties();
         return Tooltip.Get(*properties);
       }
     }
