@@ -61,6 +61,7 @@ namespace
       Test("zero.RelativeTo(one)", zeroId.RelativeTo(one), ""_sv);
       Test("zero.RelativeTo(two)", zeroId.RelativeTo(two), ""_sv);
       Test("zero.RelativeTo(three)", zeroId.RelativeTo(three), ""_sv);
+      Test("zero.Append(one)", zeroId.Append(one), "one"_sv);
     }
 
     {
@@ -75,6 +76,7 @@ namespace
       Test("one + one", one + one, "one.one"_sv);
       Test("one + two", one + two, "one.one.two"_sv);
       Test("one + three", one + three, "one.one.two.three"_sv);
+      Test("one.Append(zero)", oneId.Append(zero), "one"_sv);
     }
 
     {

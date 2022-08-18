@@ -77,7 +77,7 @@ namespace Parameters
 
     String Append(Identifier rh) const
     {
-      return rh.IsEmpty() ? AsString() : AsString() + NAMESPACE_DELIMITER + rh.AsString();
+      return rh.IsEmpty() ? AsString() : (IsEmpty() ? rh.AsString() : AsString() + NAMESPACE_DELIMITER + rh.AsString());
     }
 
     String AsString() const
