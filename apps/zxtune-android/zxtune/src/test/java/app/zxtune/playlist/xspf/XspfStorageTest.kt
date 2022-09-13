@@ -6,7 +6,7 @@ import android.net.Uri
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
-import androidx.lifecycle.MutableLiveData
+import app.zxtune.device.PersistentStorage
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -38,7 +38,14 @@ class XspfStorageTest {
                 FileOutputStream(it.getArgument<Uri>(0).toFile())
             }
         }
-        underTest = XspfStorage(resolver, MutableLiveData(DocumentFile.fromFile(storage)))
+        val subdir = object : PersistentStorage.Subdirectory {
+            override fun tryGet(createIfAbsent: Boolean) =
+                if (root.isDirectory || (createIfAbsent && root.mkdirs()))
+                    DocumentFile.fromFile(root)
+                else
+                    null
+        }
+        underTest = XspfStorage(resolver, subdir)
         assertEquals(true, storage.exists())
         assertEquals(false, root.exists())
     }

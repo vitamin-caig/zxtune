@@ -21,7 +21,6 @@ import androidx.annotation.Nullable;
 
 import app.zxtune.Log;
 import app.zxtune.MainApplication;
-import app.zxtune.device.PersistentStorage;
 import app.zxtune.playlist.xspf.XspfStorage;
 
 public class Provider extends ContentProvider {
@@ -45,7 +44,7 @@ public class Provider extends ContentProvider {
     if (ctx != null) {
       MainApplication.initialize(ctx.getApplicationContext());
       db = new Database(ctx);
-      storage = new XspfStorage(ctx, PersistentStorage.getInstance().getState());
+      storage = new XspfStorage(ctx);
       resolver = ctx.getContentResolver();
       return true;
     } else {
