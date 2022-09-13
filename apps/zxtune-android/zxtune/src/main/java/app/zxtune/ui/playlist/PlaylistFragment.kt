@@ -25,6 +25,7 @@ import androidx.recyclerview.selection.SelectionTracker
 import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
+import app.zxtune.device.PersistentStorage
 import app.zxtune.device.media.MediaSessionModel
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.utils.SelectionUtils
@@ -214,7 +215,7 @@ class PlaylistFragment : Fragment() {
             .show()
 
     private fun savePlaylist(ids: LongArray?) =
-        PlaylistSaveFragment.createInstance(ids).show(parentFragmentManager, "save")
+        PlaylistSaveFragment.show(this, PersistentStorage.instance, ids)
 
     private fun showStatistics(ids: LongArray?) =
         PlaylistStatisticsFragment.createInstance(ids).show(parentFragmentManager, "statistics")
