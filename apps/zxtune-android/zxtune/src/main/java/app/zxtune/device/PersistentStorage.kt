@@ -1,6 +1,7 @@
 package app.zxtune.device
 
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -10,12 +11,14 @@ import androidx.annotation.VisibleForTesting
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.Observer
+import androidx.lifecycle.map
 import app.zxtune.Features
 import app.zxtune.Logger
 import app.zxtune.MainApplication
-import app.zxtune.fs.VfsRootLocalStorageAccessFramework
+import app.zxtune.ResultActivity
 import app.zxtune.fs.local.Identifier
 import app.zxtune.fs.local.rootId
 import app.zxtune.preferences.ProviderClient
@@ -28,6 +31,10 @@ class PersistentStorage @VisibleForTesting constructor(private val ctx: Context)
 
         // as required by system (e.g. document tree for  SAF)
         val defaultLocationHint: Uri
+    }
+
+    interface Subdirectory {
+        fun tryGet(createIfAbsent: Boolean = false): DocumentFile?
     }
 
     companion object {
@@ -45,19 +52,67 @@ class PersistentStorage @VisibleForTesting constructor(private val ctx: Context)
     }
 
     private val client by lazy {
-        ProviderClient(ctx)
+        ProviderClient.create(ctx)
     }
 
     val state: LiveData<State> by lazy {
-        client.getLive(PREFS_KEY, "").let {
-            Transformations.map(it) { path ->
-                if (Features.StorageAccessFramework.isEnabled()) {
-                    SAFState(ctx, path)
-                } else {
-                    LegacyState(path)
-                }
+        client.getLive(PREFS_KEY, "").map { path ->
+            if (Features.StorageAccessFramework.isEnabled()) {
+                SAFState(ctx, path)
+            } else {
+                LegacyState(path)
             }
         }
+    }
+
+    val setupIntent: LiveData<Intent?> by lazy {
+        state.map {
+            if (true != it.location?.isDirectory) {
+                ResultActivity.createPersistentStorageLocationRequestIntent(
+                    ctx,
+                    it.defaultLocationHint
+                )
+            } else {
+                null
+            }
+        }
+    }
+
+    fun subdirectory(name: String, lifecycleOwner: LifecycleOwner? = null): Subdirectory =
+        object : Subdirectory {
+
+            private var cache: DocumentFile? = null
+            private val observer = Observer<DocumentFile?> { dir ->
+                LOG.d { "Using persistent storage at ${dir?.uri}" }
+                cache = null
+            }
+
+            init {
+                with(location) {
+                    lifecycleOwner?.let {
+                        observe(it, observer)
+                    } ?: observeForever(observer)
+                }
+            }
+
+            override fun tryGet(createIfAbsent: Boolean) = cache ?: location.value?.run {
+                val existing = findFile(name)
+                when {
+                    existing != null -> existing.takeIf { it.isDirectory }?.also {
+                        LOG.d { "Reuse dir ${it.uri}" }
+                    }
+                    createIfAbsent -> createDirectory(name)?.also {
+                        LOG.d { "Create dir ${it.uri}" }
+                    }
+                    else -> null
+                }
+            }?.also {
+                cache = it
+            }
+        }
+
+    private val location by lazy {
+        state.map { it.location }
     }
 
     fun setLocation(uri: Uri) {
@@ -92,7 +147,7 @@ class PersistentStorage @VisibleForTesting constructor(private val ctx: Context)
                 defaultLocation
             }.apply {
                 val created = mkdirs()
-                LOG.d { "Legacy dir at $this (created=$created)"}
+                LOG.d { "Legacy dir at $this (created=$created)" }
             }
             DocumentFile.fromFile(loc)
         }

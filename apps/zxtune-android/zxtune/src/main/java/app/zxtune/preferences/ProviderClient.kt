@@ -33,10 +33,14 @@ class ProviderClient(ctx: Context) {
             getString(k, def)
         }
 
-    fun getLive(key : String, defaultValue: Int = 0) : LiveData<Int> =
+    fun getLive(key: String, defaultValue: Int = 0): LiveData<Int> =
         PreferenceLiveData(resolver, key, defaultValue) { k, def ->
             getInt(k, def)
         }
+
+    companion object {
+        fun create(ctx: Context) = ProviderClient(ctx)
+    }
 }
 
 private fun ContentResolver.list(prefix: String? = null) =
