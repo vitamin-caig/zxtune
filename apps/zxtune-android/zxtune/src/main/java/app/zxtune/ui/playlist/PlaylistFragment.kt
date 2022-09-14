@@ -215,7 +215,7 @@ class PlaylistFragment : Fragment() {
             .show()
 
     private fun savePlaylist(ids: LongArray?) =
-        PlaylistSaveFragment.show(this, PersistentStorage.instance, ids)
+        PlaylistSaveFragment.show(requireActivity(), PersistentStorage.instance, ids)
 
     private fun showStatistics(ids: LongArray?) =
         PlaylistStatisticsFragment.createInstance(ids).show(parentFragmentManager, "statistics")

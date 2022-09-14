@@ -20,8 +20,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.LifecycleOwner;
+import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LiveData;
 
 import java.util.Set;
@@ -44,14 +43,13 @@ public class PlaylistSaveFragment extends DialogFragment {
   @Nullable
   private EditText name;
 
-  static void show(Fragment parent, PersistentStorage storage, @Nullable long[] ids) {
-    final LifecycleOwner owner = parent.getViewLifecycleOwner();
+  static void show(FragmentActivity activity, PersistentStorage storage, @Nullable long[] ids) {
     final LiveData<Intent> setupIntent = storage.getSetupIntent();
-    setupIntent.observe(owner, (@Nullable Intent intent) -> {
-      setupIntent.removeObservers(owner);
+    setupIntent.observe(activity, (@Nullable Intent intent) -> {
+      setupIntent.removeObservers(activity);
       final DialogFragment result = intent != null ?
           PersistentStorageSetupFragment.createInstance(intent) : createInstance(ids);
-      result.show(parent.getParentFragmentManager(), "save_playlist");
+      result.show(activity.getSupportFragmentManager(), "save_playlist");
     });
   }
 
