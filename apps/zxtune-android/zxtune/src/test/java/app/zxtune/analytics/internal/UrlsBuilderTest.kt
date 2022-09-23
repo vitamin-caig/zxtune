@@ -24,11 +24,15 @@ class UrlsBuilderTest {
         addUri(Uri.EMPTY)
         addUri(Uri.parse("file://should/be/stripped"))
         addUri(Uri.parse("http://example.com?query=value"))
+        addUri(Uri.parse("content://some.package.name/should/be/stripped?this=too#andthis"))
 
         assertEquals(
             "/full/complex/type?ts=4567" +
                     "&string=with%20spaces&long=123456789&" +
-                    "uri=root&uri=file&uri=http%3A%2F%2Fexample.com%3Fquery%3Dvalue", result
+                    "uri=root&" +
+                    "uri=file&" +
+                    "uri=http%3A%2F%2Fexample.com%3Fquery%3Dvalue&" +
+                    "uri=content%3A%2F%2Fsome.package.name", result
         )
     }
 

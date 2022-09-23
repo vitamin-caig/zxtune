@@ -17,22 +17,22 @@ class UrlsBuilder @VisibleForTesting internal constructor(type: String, ts: Long
 
     constructor(type: String) : this(type, System.currentTimeMillis() / 1000)
 
-  fun addParam(key: String, value: String?) {
+    fun addParam(key: String, value: String?) {
         if (!value.isNullOrEmpty()) {
-          addDelimiter().apply {
-            append(key)
-            append('=')
-            append(Uri.encode(value))
-          }
+            addDelimiter().apply {
+                append(key)
+                append('=')
+                append(Uri.encode(value))
+            }
         }
     }
 
     fun addParam(key: String, value: Long) {
         if (value != DEFAULT_LONG_VALUE) {
             addDelimiter().apply {
-              append(key)
-              append('=')
-              append(value)
+                append(key)
+                append('=')
+                append(value)
             }
         }
     }
@@ -47,6 +47,7 @@ class UrlsBuilder @VisibleForTesting internal constructor(type: String, ts: Long
     private fun cleanupUri(uri: Uri) = when (val scheme = uri.scheme) {
         null -> "root"
         "file" -> scheme
+        "content" -> "${scheme}://${uri.host}"
         else -> uri.toString()
     }
 
