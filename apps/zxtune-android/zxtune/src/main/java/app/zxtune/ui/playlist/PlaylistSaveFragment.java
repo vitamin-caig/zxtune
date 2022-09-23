@@ -8,6 +8,7 @@ package app.zxtune.ui.playlist;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,12 +20,16 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.LiveData;
 
 import java.util.Set;
 import java.util.concurrent.Executors;
 
 import app.zxtune.R;
+import app.zxtune.device.PersistentStorage;
 import app.zxtune.playlist.ProviderClient;
+import app.zxtune.ui.PersistentStorageSetupFragment;
 
 public class PlaylistSaveFragment extends DialogFragment {
 
@@ -38,7 +43,17 @@ public class PlaylistSaveFragment extends DialogFragment {
   @Nullable
   private EditText name;
 
-  static DialogFragment createInstance(@Nullable long[] ids) {
+  static void show(FragmentActivity activity, PersistentStorage storage, @Nullable long[] ids) {
+    final LiveData<Intent> setupIntent = storage.getSetupIntent();
+    setupIntent.observe(activity, (@Nullable Intent intent) -> {
+      setupIntent.removeObservers(activity);
+      final DialogFragment result = intent != null ?
+          PersistentStorageSetupFragment.createInstance(intent) : createInstance(ids);
+      result.show(activity.getSupportFragmentManager(), "save_playlist");
+    });
+  }
+
+  private static DialogFragment createInstance(@Nullable long[] ids) {
     final DialogFragment res = new PlaylistSaveFragment();
     final Bundle args = new Bundle();
     args.putLongArray(IDS_KEY, ids);
@@ -49,7 +64,7 @@ public class PlaylistSaveFragment extends DialogFragment {
   @Override
   public void onAttach(Context ctx) {
     super.onAttach(ctx);
-    client = new ProviderClient(ctx);
+    client = ProviderClient.create(ctx);
     usedNames = client.getSavedPlaylists(null).keySet();
   }
 

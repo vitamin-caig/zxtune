@@ -31,15 +31,15 @@
                     style="@style/text_main"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{entry.title.isEmpty() ? entry.location.getDisplayFilename() : entry.title}"/>
+                    android:text="@{entry.getTitle().isEmpty() ? entry.getLocation().getDisplayFilename() : entry.getTitle()}"/>
 
             <TextView
                     android:id="@+id/list_item_text_aux"
                     style="@style/text_aux"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{entry.author}"
-                    android:visibility="@{entry.author.isEmpty() ? View.GONE : View.VISIBLE}"/>
+                    android:text="@{entry.getAuthor()}"
+                    android:visibility="@{entry.getAuthor().isEmpty() ? View.GONE : View.VISIBLE}"/>
         </LinearLayout>
 
         <TextView
@@ -52,7 +52,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:drawablePadding="@dimen/spacing_half"
-                android:text="@{entry.duration.toString()}"/>
+                android:text="@{entry.getDuration().toString()}"/>
 
     </RelativeLayout>
 </layout>

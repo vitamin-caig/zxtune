@@ -13,6 +13,8 @@
     <string name="send">送信</string>
     <string name="share">共有</string>
     <string name="sort">ソート</string>
+    <string name="delete_all_items_query">すべての項目を削除しますか？</string>
+    <string name="delete_selected_items_query">選択した項目を削除しますか？</string>
     <!-- information-related -->
     <string name="information_title">タイトル</string>
     <string name="information_author">作者</string>

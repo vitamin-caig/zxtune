@@ -2,14 +2,13 @@ package app.zxtune.fs.provider
 
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.lifecycle.MutableLiveData
 import app.zxtune.Features
-import app.zxtune.device.PersistentStorage
 import app.zxtune.fs.VfsExtensions
 import app.zxtune.fs.VfsObject
-import app.zxtune.fs.VfsRootLocalStorageAccessFramework
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -28,7 +27,7 @@ class NotificationsSourceTest {
         on { contentResolver } doReturn resolver
     }
     private lateinit var networkState: MutableLiveData<Boolean>
-    private lateinit var storageState: MutableLiveData<PersistentStorage.State>
+    private lateinit var storageSetupIntent: MutableLiveData<Intent?>
     private lateinit var underTest: NotificationsSource
 
     private fun getNotification(objUri: Uri) = mock<VfsObject> {
@@ -41,8 +40,8 @@ class NotificationsSourceTest {
     fun setUp() {
         clearInvocations(context, resolver)
         networkState = MutableLiveData()
-        storageState = MutableLiveData()
-        underTest = NotificationsSource(context, networkState, storageState)
+        storageSetupIntent = MutableLiveData()
+        underTest = NotificationsSource(context, networkState, storageSetupIntent)
         assertEquals(true, networkState.hasActiveObservers())
     }
 
@@ -133,36 +132,16 @@ class NotificationsSourceTest {
             }
         }
         val defaultLocation = Uri.parse("scheme://host/path")
-        storageState.value = mock {
-            on { defaultLocationHint } doReturn defaultLocation
-        }
+        storageSetupIntent.value = Intent("action", defaultLocation)
         underTest.getNotification(dir)!!.run {
             assertEquals(playlistNotificationMessage, message)
             assertEquals(defaultLocation, action?.data)
         }
-        storageState.value = mock {
-            on { location } doAnswer {
-                mock {
-                    on { isDirectory } doReturn false
-                }
-            }
-            on { defaultLocationHint } doReturn defaultLocation
-        }
-        underTest.getNotification(dir)!!.run {
-            assertEquals(playlistNotificationMessage, message)
-            assertEquals(defaultLocation, action?.data)
-        }
-        storageState.value = mock {
-            on { location } doAnswer {
-                mock {
-                    on { isDirectory } doReturn true
-                }
-            }
-        }
+        storageSetupIntent.value = null
         assertEquals(null, underTest.getNotification(dir))
         objUri = uri2
         assertEquals(null, underTest.getNotification(dir))
 
-        verify(resolver, times(2)).notifyChange(Query.notificationUriFor(uri1), null)
+        verify(resolver).notifyChange(Query.notificationUriFor(uri1), null)
     }
 }

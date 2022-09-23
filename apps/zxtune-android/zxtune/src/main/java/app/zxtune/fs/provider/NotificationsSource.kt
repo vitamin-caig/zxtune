@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.database.MatrixCursor
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.LiveData
@@ -14,16 +13,15 @@ import app.zxtune.R
 import app.zxtune.ResultActivity
 import app.zxtune.device.PersistentStorage
 import app.zxtune.fs.VfsObject
-import app.zxtune.fs.VfsRootLocalStorageAccessFramework
 import app.zxtune.fs.permissionQueryUri
 import app.zxtune.net.NetworkManager
 
 internal class NotificationsSource @VisibleForTesting constructor(
     private val ctx: Context,
     private val networkState: LiveData<Boolean>,
-    private val persistentStorageState: LiveData<PersistentStorage.State>,
+    private val persistentStorageSetupIntent: LiveData<Intent?>,
 ) {
-    private val statesObserver = Observer<Any> {
+    private val statesObserver = Observer<Any?> {
         resolverNotificationUri?.let { uri ->
             ctx.contentResolver?.notifyChange(uri, null)
         }
@@ -32,10 +30,14 @@ internal class NotificationsSource @VisibleForTesting constructor(
 
     init {
         networkState.observeForever(statesObserver)
-        persistentStorageState.observeForever(statesObserver)
+        persistentStorageSetupIntent.observeForever(statesObserver)
     }
 
-    constructor(ctx: Context) : this(ctx, getNetworkState(ctx), PersistentStorage.instance.state)
+    constructor(ctx: Context) : this(
+        ctx,
+        getNetworkState(ctx),
+        PersistentStorage.instance.setupIntent
+    )
 
     fun getFor(obj: VfsObject) = getNotification(obj)?.let { notification ->
         MatrixCursor(Schema.Notifications.COLUMNS).apply {
@@ -80,18 +82,9 @@ internal class NotificationsSource @VisibleForTesting constructor(
             return null
         }
         resolverNotificationUri = Query.notificationUriFor(uri)
-        persistentStorageState.value?.let { state ->
-            if (true != state.location?.isDirectory) {
-                return Schema.Notifications.Object(
-                    ctx.getString(R.string.no_stored_playlists_access),
-                    ResultActivity.createPersistentStorageLocationRequestIntent(
-                        ctx,
-                        state.defaultLocationHint
-                    )
-                )
-            }
+        return persistentStorageSetupIntent.value?.let {
+            Schema.Notifications.Object(ctx.getString(R.string.no_stored_playlists_access), it)
         }
-        return null
     }
 
     companion object {
