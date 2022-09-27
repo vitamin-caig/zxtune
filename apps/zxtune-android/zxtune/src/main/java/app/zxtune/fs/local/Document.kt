@@ -3,6 +3,8 @@ package app.zxtune.fs.local
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import androidx.documentfile.provider.DocumentFile
 import app.zxtune.Util
 import app.zxtune.fs.StubObject
@@ -12,11 +14,25 @@ import app.zxtune.fs.VfsObject
 
 object Document {
     @JvmStatic
-    fun tryResolve(context: Context, uri: Uri): VfsFile? =
-        if (DocumentFile.isDocumentUri(context, uri)) {
+    fun tryResolve(context: Context, uri: Uri): VfsFile? = when {
+        DocumentFile.isDocumentUri(context, uri) ->
             DocumentFile.fromSingleUri(context, uri)?.takeIf { it.isFile }?.let {
                 VfsDocumentFile(context.contentResolver, it)
             }
+        isMediaUri(uri) -> getDocumentUriByMedia(context, uri)?.let {
+            tryResolve(context, it)
+        }
+        else -> null
+    }
+
+    private fun isMediaUri(uri: Uri) = MediaStore.AUTHORITY == authorityWithoutUserId(uri.authority)
+
+    private fun authorityWithoutUserId(authority: String?) = authority?.substringAfterLast('@')
+
+    private fun getDocumentUriByMedia(context: Context, uri: Uri) =
+        if (Build.VERSION.SDK_INT >= 29) {
+            val cleanUri = uri.buildUpon().authority(authorityWithoutUserId(uri.authority)).build()
+            MediaStore.getDocumentUri(context, cleanUri)
         } else {
             null
         }
