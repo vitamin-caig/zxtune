@@ -60,10 +60,13 @@ class Model @VisibleForTesting internal constructor(
     private val mutableNotification = object : MutableLiveData<Notification?>() {
         private var uri: Uri? = null
         private var handle: Releaseable? = null
+
+        fun release() = handle?.release() ?: Unit
+
         fun watch(uri: Uri) {
             // TODO: track onActive/onInactive
             this.uri = uri
-            handle?.release()
+            release()
             handle = providerClient.subscribeForNotifications(uri) {
                 LOG.d { "Notification ${it?.message ?: "<none>"}" }
                 postValue(it?.run { Notification(message, action) })
@@ -78,6 +81,8 @@ class Model @VisibleForTesting internal constructor(
 
     @Suppress("UNUSED")
     constructor(application: Application) : this(application, VfsProviderClient(application))
+
+    override fun onCleared() = mutableNotification.release()
 
     val state: LiveData<State>
         get() = mutableState
