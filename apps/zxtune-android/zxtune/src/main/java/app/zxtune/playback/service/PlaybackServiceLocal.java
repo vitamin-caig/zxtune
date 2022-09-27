@@ -78,7 +78,7 @@ public class PlaybackServiceLocal implements PlaybackService, Releaseable {
     this.playback = new DispatchedPlaybackControl();
     this.seek = new DispatchedSeekControl();
     this.visualizer = new DispatchedVisualizer();
-    final SamplesTarget target = SoundOutputSamplesTarget.create();
+    final SamplesTarget target = SoundOutputSamplesTarget.create(context);
     final PlayerEventsListener events = new PlaybackEvents(callbacks, playback, seek);
     this.iterator = new AtomicReference<>(IteratorStub.instance());
     this.holder = new AtomicReference<>(Holder.instance());

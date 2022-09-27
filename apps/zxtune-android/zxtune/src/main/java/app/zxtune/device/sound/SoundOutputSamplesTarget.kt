@@ -8,9 +8,12 @@
  */
 package app.zxtune.device.sound
 
+import android.content.Context
+import android.content.Intent
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
+import android.media.audiofx.AudioEffect
 import app.zxtune.Logger
 import app.zxtune.sound.SamplesSource
 import app.zxtune.sound.SamplesSource.Sample
@@ -18,7 +21,8 @@ import app.zxtune.sound.SamplesTarget
 
 class SoundOutputSamplesTarget private constructor(
     private val bufferSize: Int,
-    private val target: AudioTrack
+    private val target: AudioTrack,
+    private val effectControl: AudioEffectControl,
 ) : SamplesTarget {
 
     override val sampleRate: Int
@@ -52,6 +56,7 @@ class SoundOutputSamplesTarget private constructor(
 
     @Synchronized
     override fun release() {
+        effectControl.release()
         target.release()
     }
 
@@ -63,7 +68,7 @@ class SoundOutputSamplesTarget private constructor(
         const val STREAM = AudioManager.STREAM_MUSIC
 
         @JvmStatic
-        fun create(): SamplesTarget {
+        fun create(ctx: Context): SamplesTarget {
             //xmp plugin limits max frequency
             val freqRate = AudioTrack.getNativeOutputSampleRate(STREAM).coerceAtMost(48000)
             val minBufSize = AudioTrack.getMinBufferSize(freqRate, CHANNEL_OUT, ENCODING)
@@ -75,7 +80,25 @@ class SoundOutputSamplesTarget private constructor(
             }
             val target =
                 AudioTrack(STREAM, freqRate, CHANNEL_OUT, ENCODING, bufSize, AudioTrack.MODE_STREAM)
-            return SoundOutputSamplesTarget(bufSize, target)
+            val effectControl = AudioEffectControl(ctx, target.audioSessionId)
+            return SoundOutputSamplesTarget(bufSize, target, effectControl)
         }
+    }
+}
+
+private class AudioEffectControl(private val ctx: Context, private val sessionId: Int) {
+
+    init {
+        send(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION)
+    }
+
+    fun release() = send(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION)
+
+    private fun send(action: String) {
+        val intent = Intent(action).apply {
+            putExtra(AudioEffect.EXTRA_AUDIO_SESSION, sessionId)
+            putExtra(AudioEffect.EXTRA_PACKAGE_NAME, ctx.packageName)
+        }
+        ctx.sendBroadcast(intent)
     }
 }
