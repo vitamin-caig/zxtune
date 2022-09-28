@@ -5,6 +5,19 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev5020 from 28.09.2022
+
+[*] Fixed playback of multitrack .hes files
+[*] Fixed playback of some .usf and .vgm files
+[*] zxtune-qt: asynchronous playlist items loading
+[*] zxtune123: fixed commandline parameters processing
+[+] zxtune-android: added playlist filter
+[+] zxtune-android: added support of external equalizers
+[*] zxtune-android: added confirmation alerts on some playlist operations
+[*] zxtune-android: added persistent storage location request on playlist saving when required
+[*] zxtune-android: fixed ringtone creation on modern Android versions
+[*] zxtune-android: improved 'open with' functionality support
+
 --- Rev5010 from 20.03.2022
 
 [+] Added support of more than 150 formats from vgmstream library
