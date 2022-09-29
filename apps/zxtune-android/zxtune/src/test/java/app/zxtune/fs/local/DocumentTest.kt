@@ -97,7 +97,7 @@ class DocumentTest {
 
         // Multiple calls of doc.uri interleaved with other calls are not supported by inOrder
         /*inOrder(doc, ShadowMediaStore.getDocUri, resolver)*/ run {
-            verify(doc, times(2)).uri
+            verify(doc, times(5)).uri
             verify(ShadowMediaStore.getDocUri).invoke(Uri.parse("content://media/external/music/2"))
             verify(doc).name
             verify(resolver).openFileDescriptor(docUri, "r")
