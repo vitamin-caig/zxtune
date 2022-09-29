@@ -114,18 +114,17 @@ class ModelTest {
         val initial = Model.State().apply {
             assertNull(entries as? MutableList<Entry>)
             assertEquals(0, entries.size)
-            assertEquals(null, filter)
+            assertEquals("", filter)
         }
         val entry1 = Entry(1, Identifier.EMPTY, "First entry", "Author1", TimeStamp.EMPTY)
         val entry2 = Entry(2, Identifier.EMPTY, "Second entry", "Author2", TimeStamp.EMPTY)
         val entry3 = Entry(3, Identifier.EMPTY, "Third entry", "second author", TimeStamp.EMPTY)
         val filled2 = initial.withContent(arrayListOf(entry1, entry2)).apply {
             assertNotNull(entries as? MutableList<Entry>)
-            assertEquals(null, filter)
+            assertEquals("", filter)
             assertEquals(arrayListOf(entry1, entry2), entries)
         }
         assertEquals(initial, filled2.withContent(arrayListOf()))
-        assertEquals(filled2, filled2.withFilter(null))
         assertEquals(filled2, filled2.withFilter(" "))
 
         val filtered2 = filled2.withFilter("second").apply {
@@ -141,9 +140,9 @@ class ModelTest {
             assertEquals(arrayListOf(entry3, entry2), entries)
         }
 
-        val filled3 = filtered3.withFilter(null).apply {
+        val filled3 = filtered3.withFilter(" ").apply {
             assertNotNull(entries as? MutableList<Entry>)
-            assertEquals(null, filter)
+            assertEquals("", filter)
             assertEquals(arrayListOf(entry3, entry1, entry2), entries)
         }
     }
