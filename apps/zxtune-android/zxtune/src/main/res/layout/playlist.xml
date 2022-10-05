@@ -7,9 +7,9 @@
 
     <SearchView
             android:id="@+id/playlist_search"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:iconifiedByDefault="false"
+            android:iconifiedByDefault="true"
             android:imeOptions="actionSearch|flagNoExtractUi"
             android:queryHint="@string/playlist_search_hint" />
 

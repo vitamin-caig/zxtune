@@ -7,7 +7,6 @@ package app.zxtune.ui.playlist
 
 import android.net.Uri
 import android.os.Bundle
-import android.os.Parcelable
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
@@ -133,6 +132,25 @@ class PlaylistFragment : Fragment() {
     private fun setupSearchView(view: View) = view.findViewById<SearchView>(R.id.playlist_search)
         .apply {
             isSubmitButtonEnabled = false
+            setOnSearchClickListener {
+                layoutParams = layoutParams.apply {
+                    width = ViewGroup.LayoutParams.MATCH_PARENT
+                }
+            }
+            setOnCloseListener {
+                layoutParams = layoutParams.apply {
+                    width = ViewGroup.LayoutParams.WRAP_CONTENT
+                }
+                post {
+                    clearFocus()
+                }
+                false
+            }
+            onFocusChangeListener = View.OnFocusChangeListener { _, _ ->
+                if (!isIconified && query.isEmpty()) {
+                    isIconified = true
+                }
+            }
             setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                 override fun onQueryTextSubmit(query: String) = true
                 override fun onQueryTextChange(newText: String): Boolean {
@@ -145,28 +163,17 @@ class PlaylistFragment : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         selectionTracker.onSaveInstanceState(outState)
-        listing.layoutManager?.run {
-            outState.putParcelable(LISTING_STATE_KEY, onSaveInstanceState())
-        }
-        search.query?.let { query ->
-            outState.putString(FILTER_STATE_KEY, query.toString())
-        }
     }
 
     override fun onViewStateRestored(savedInstanceState: Bundle?) {
         super.onViewStateRestored(savedInstanceState)
         savedInstanceState?.let { state ->
             selectionTracker.onRestoreInstanceState(state)
-            listing.layoutManager?.run {
-                state.getParcelable<Parcelable>(LISTING_STATE_KEY)?.let {
-                    onRestoreInstanceState(it)
-                }
+        }
+        model.state.value?.filter?.takeIf { it.isNotEmpty() }.let { query ->
+            search.post {
+                search.setQuery(query, false)
             }
-            state.getString(FILTER_STATE_KEY)?.takeIf { it.isNotEmpty() }?.let { query ->
-                search.post {
-                    search.setQuery(query, false)
-                }
-            } ?: model.filter("")
         }
     }
 
@@ -221,9 +228,6 @@ class PlaylistFragment : Fragment() {
         PlaylistStatisticsFragment.createInstance(ids).show(parentFragmentManager, "statistics")
 
     companion object {
-        private const val LISTING_STATE_KEY = "listing_state"
-        private const val FILTER_STATE_KEY = "search_state"
-
         @JvmStatic
         fun createInstance(): Fragment = PlaylistFragment()
 
