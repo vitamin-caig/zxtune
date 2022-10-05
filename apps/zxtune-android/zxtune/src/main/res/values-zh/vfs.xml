@@ -41,6 +41,8 @@
     <string name="vfs_zxart_compo_oldschool">老牌音乐比赛</string>
     <string name="vfs_zxart_compo_mainstream">主流音乐比赛</string>
     <string name="vfs_zxart_compo_progressive">渐进音乐比赛</string>
+    <string name="vfs_zxart_compo_ts">TurboSound音乐比赛</string>
+    <string name="vfs_zxart_compo_tsfm">TSFM音乐比赛</string>
     <string name="vfs_zxart_compo_related">音乐从本次活动的作品</string>
     <!-- joshw.info -->
     <string name="vfs_joshw_root_description">各种档案</string>

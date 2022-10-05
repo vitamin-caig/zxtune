@@ -41,6 +41,8 @@
     <string name="vfs_zxart_compo_oldschool"> 音楽コンテスト</string>
     <string name="vfs_zxart_compo_mainstream">主流音楽競争</string>
     <string name="vfs_zxart_compo_progressive">順送音楽コンクール</string>
+    <string name="vfs_zxart_compo_ts">TurboSound音楽コンクール</string>
+    <string name="vfs_zxart_compo_tsfm">TSFM音楽コンクール</string>
     <string name="vfs_zxart_compo_related">このイベントの作品からの音楽</string>
     <!-- joshw.info -->
     <string name="vfs_joshw_root_description">各種カタログ</string>

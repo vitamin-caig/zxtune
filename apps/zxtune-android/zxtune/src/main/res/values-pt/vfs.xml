@@ -41,6 +41,8 @@
     <string name="vfs_zxart_compo_oldschool">Música Oldschool compo</string>
     <string name="vfs_zxart_compo_mainstream">Música convencional compo</string>
     <string name="vfs_zxart_compo_progressive">Música progressiva compo</string>
+    <string name="vfs_zxart_compo_ts">Compo de música TurboSound</string>
+    <string name="vfs_zxart_compo_tsfm">Compo de música TSFM</string>
     <string name="vfs_zxart_compo_related">A música deste evento funciona</string>
     <!-- joshw.info -->
     <string name="vfs_joshw_root_description">Vários arquivos</string>

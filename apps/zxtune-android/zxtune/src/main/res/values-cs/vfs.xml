@@ -41,6 +41,8 @@
     <string name="vfs_zxart_compo_oldschool">Hudební soutěž podle staré školy</string>
     <string name="vfs_zxart_compo_mainstream">Běžná hudební soutěž</string>
     <string name="vfs_zxart_compo_progressive">Pokroková hudební soutěž</string>
+    <string name="vfs_zxart_compo_ts">Hudební soutěž TurboSound</string>
+    <string name="vfs_zxart_compo_tsfm">Hudební soutěž TSFM</string>
     <string name="vfs_zxart_compo_related">Hudba z této události prací</string>
     <!-- joshw.info -->
     <string name="vfs_joshw_root_description">Různé archivy</string>

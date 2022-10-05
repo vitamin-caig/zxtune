@@ -40,6 +40,8 @@
     <string name="vfs_zxart_compo_oldschool">Oldschool-Musikwettbewerb</string>
     <string name="vfs_zxart_compo_mainstream">Mainstream-Musikwettbewerb</string>
     <string name="vfs_zxart_compo_progressive">Progressive Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_ts">TurboSound Musikwettbewerb</string>
+    <string name="vfs_zxart_compo_tsfm">TSFM Musikwettbewerb</string>
     <string name="vfs_zxart_compo_related">Musik von diesem Event Werke</string>
     <!-- joshw.info -->
     <string name="vfs_joshw_root_description">Verschiedene Archive</string>

@@ -43,6 +43,8 @@
     <string name="vfs_zxart_compo_oldschool">Oldschool music compo</string>
     <string name="vfs_zxart_compo_mainstream">Mainstream music compo</string>
     <string name="vfs_zxart_compo_progressive">Progressive music compo</string>
+    <string name="vfs_zxart_compo_ts">TurboSound music compo</string>
+    <string name="vfs_zxart_compo_tsfm">TSFM music compo</string>
     <string name="vfs_zxart_compo_related">Music from this event works</string>
     <!-- joshw.info Descriptions as in english wikipedia articles' title -->
     <string name="vfs_joshw_root_name" translatable="false">Josh W</string>
