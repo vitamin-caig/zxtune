@@ -43,7 +43,7 @@ namespace Module::Ogg
     using Ptr = std::shared_ptr<const Model>;
 
     uint_t Frequency = 0;
-    uint_t TotalSamples = 0;
+    uint64_t TotalSamples = 0;
     Binary::Data::Ptr Content;
   };
 
@@ -333,11 +333,11 @@ namespace Module::Ogg
 
     void SetSetup(Binary::View /*data*/) override {}
 
-    void AddFrame(std::size_t /*offset*/, uint_t samples, Binary::View /*data*/) override
+    void AddFrame(std::size_t /*offset*/, uint64_t positionInFrames, Binary::View /*data*/) override
     {
       if (CurrentStream)
       {
-        CurrentStream->TotalSamples += samples;
+        CurrentStream->TotalSamples = positionInFrames;
       }
       else
       {

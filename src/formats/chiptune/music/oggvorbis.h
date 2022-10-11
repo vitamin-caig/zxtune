@@ -34,7 +34,7 @@ namespace Formats
         virtual void SetProperties(uint_t channels, uint_t frequency, uint_t blockSizeLo, uint_t blockSizeHi) = 0;
         // Full setup block, including header
         virtual void SetSetup(Binary::View data) = 0;
-        virtual void AddFrame(std::size_t offset, uint_t framesCount, Binary::View data) = 0;
+        virtual void AddFrame(std::size_t offset, uint64_t positionInFrames, Binary::View data) = 0;
       };
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);

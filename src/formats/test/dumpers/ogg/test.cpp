@@ -72,9 +72,9 @@ namespace
       std::cout << "Setup: " << data.Size() << " bytes" << std::endl;
     }
 
-    void AddFrame(std::size_t offset, uint_t samplesCount, Binary::View data) override
+    void AddFrame(std::size_t offset, uint64_t positionInFrames, Binary::View data) override
     {
-      std::cout << Strings::Format("Frame: @{0} (0x{0:08x}) {1} samples, {2} bytes\n", offset, samplesCount,
+      std::cout << Strings::Format("Frame: @{0} (0x{0:08x}) at frame {1}, {2} bytes\n", offset, positionInFrames,
                                    data.Size());
     }
   };
