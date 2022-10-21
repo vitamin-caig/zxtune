@@ -134,7 +134,7 @@ namespace
       {
         return;
       }
-      Dbg("  saving extended attribute %1%=%2%", static_cast<StringView>(name), val);
+      Dbg("  saving extended attribute {}={}", static_cast<StringView>(name), val);
       SaveProperty(name, val);
     }
 
@@ -144,7 +144,7 @@ namespace
       {
         return;
       }
-      Dbg("  saving extended attribute %1%='%2%'", static_cast<StringView>(name), val);
+      Dbg("  saving extended attribute {}='{}'", static_cast<StringView>(name), val);
       SaveProperty(name, val);
     }
 
@@ -154,7 +154,7 @@ namespace
       {
         return;
       }
-      Dbg("  saving extended attribute %1%=data(%2%)", static_cast<StringView>(name), val.Size());
+      Dbg("  saving extended attribute {}=data({})", static_cast<StringView>(name), val.Size());
       SaveProperty(name, val);
     }
 
@@ -186,13 +186,13 @@ namespace
 
     void SaveModuleLocation(StringView location)
     {
-      Dbg("  saving absolute item location %1%", location);
+      Dbg("  saving absolute item location {}", location);
       SaveModuleLocation(ToQString(location));
     }
 
     void SaveModuleLocation(StringView location, const QDir& root)
     {
-      Dbg("  saving relative item location %1%", location);
+      Dbg("  saving relative item location {}", location);
       const QString path = ToQString(location);
       const QString rel = root.relativeFilePath(path);
       if (path == root.absoluteFilePath(rel))
@@ -252,17 +252,17 @@ namespace
       const QString valStr = ConvertString(value);
       if (name == Module::ATTR_TITLE)
       {
-        Dbg("  saving item attribute %1%='%2%'", static_cast<StringView>(name), val);
+        Dbg("  saving item attribute {}='{}'", static_cast<StringView>(name), val);
         Element.Text(XSPF::ITEM_TITLE_TAG, valStr);
       }
       else if (name == Module::ATTR_AUTHOR)
       {
-        Dbg("  saving item attribute %1%='%2%'", static_cast<StringView>(name), val);
+        Dbg("  saving item attribute {}='{}'", static_cast<StringView>(name), val);
         Element.Text(XSPF::ITEM_CREATOR_TAG, valStr);
       }
       else if (name == Module::ATTR_COMMENT)
       {
-        Dbg("  saving item attribute %1%='%2%'", static_cast<StringView>(name), val);
+        Dbg("  saving item attribute {}='{}'", static_cast<StringView>(name), val);
         Element.Text(XSPF::ITEM_ANNOTATION_TAG, valStr);
       }
     }
@@ -273,7 +273,7 @@ namespace
     void SaveDuration(const Module::Information& info)
     {
       const uint64_t msecDuration = info.Duration().CastTo<Time::Millisecond>().Get();
-      Dbg("  saving item attribute Duration=%1%", msecDuration);
+      Dbg("  saving item attribute Duration={}", msecDuration);
       Element.Text(XSPF::ITEM_DURATION_TAG, QString::number(msecDuration));
     }
 
@@ -361,7 +361,7 @@ namespace
         }
         else
         {
-          Dbg("Use already stored data for id=%1%", id);
+          Dbg("Use already stored data for id={}", id);
         }
       }
       else

@@ -122,7 +122,7 @@ namespace Module::Flac
                                                              &DoWrite, nullptr, &DoError, this);
       if (status != FLAC__STREAM_DECODER_INIT_STATUS_OK)
       {
-        throw MakeFormattedError(THIS_LINE, "Failed to init decoder. Status: %1%",
+        throw MakeFormattedError(THIS_LINE, "Failed to create decoder. Error: {}",
                                  ::FLAC__StreamDecoderInitStatusString[status]);
       }
       Reset();
@@ -464,7 +464,7 @@ namespace Module::Flac
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create FLAC: %s", e.what());
+        Dbg("Failed to create FLAC: {}", e.what());
       }
       return {};
     }

@@ -11,22 +11,19 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#, boost-format
-msgid "Failed to find symbol '%1%' in shared object."
-msgstr "Символ '%1%' не найден в динамической библиотеке."
+msgid "Failed to find symbol '{}' in shared object."
+msgstr "Символ '{}' не найден в динамической библиотеке."
 
-#, boost-format
-msgid "Failed to load shared object '%1%' (%2%)."
-msgstr "Ошибка загрузки динамической библиотеки '%1%' (%2%)."
+msgid "Failed to load shared object '{0}' ({1})."
+msgstr "Ошибка загрузки динамической библиотеки '{0}' ({1})."
 
-#, boost-format
-msgid "Failed to load dynamic library '%1%' by any of the alternative names."
-msgstr "Динамическая библиотека '%1%' не может быть загружена ни по одному из известных имен."
+msgid "Failed to load dynamic library '{}' by any of the alternative names."
+msgstr ""
+"Динамическая библиотека '{}' не может быть загружена ни по одному из "
+"известных имен."
 
-#, boost-format
-msgid "Failed to find symbol '%1%' in dynamic library."
-msgstr "Символ '%1%' не найден в динамической библиотеке."
+msgid "Failed to find symbol '{}' in dynamic library."
+msgstr "Символ '{}' не найден в динамической библиотеке."
 
-#, boost-format
-msgid "Failed to load dynamic library '%1%' (error code is %2%)."
-msgstr "Ошибка загрузки динамической библиотеки '%1%' (код %2%)."
+msgid "Failed to load dynamic library '{0}' (error code is {1})."
+msgstr "Ошибка загрузки динамической библиотеки '{0}' (код {1})."

@@ -30,7 +30,7 @@ namespace
     if (::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info) && info.dli_sname && info.dli_saddr)
     {
       String result(info.dli_fname);
-      Dbg("Shared library name: %1%", result);
+      Dbg("Shared library name: {}", result);
       return result;
     }
     else
@@ -51,7 +51,7 @@ namespace
       }
       result.resize(size);
     }
-    Dbg("Executable name: %1%", result);
+    Dbg("Executable name: {}", result);
     return result;
   }
 }  // namespace
@@ -63,7 +63,7 @@ namespace Platform
     static const auto soName = GetSharedLibraryName();
     if (!soName.empty())
     {
-      Dbg("Shared library name is '%1%'", soName);
+      Dbg("Shared library name is '{}'", soName);
       return soName;
     }
     static const auto binName = GetExecutableName();

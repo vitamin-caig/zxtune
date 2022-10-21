@@ -51,7 +51,7 @@ namespace Platform::Details
       {
         return res;
       }
-      throw MakeFormattedError(THIS_LINE, translate("Failed to find symbol '%1%' in shared object."), name);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to find symbol '{}' in shared object."), name);
     }
 
   private:
@@ -72,7 +72,7 @@ namespace Platform::Details
       res = MakePtr<LinuxSharedLibrary>(handle);
       return Error();
     }
-    return MakeFormattedError(THIS_LINE, translate("Failed to load shared object '%1%' (%2%)."), fileName, ::dlerror());
+    return MakeFormattedError(THIS_LINE, translate("Failed to load shared object '{0}' ({1})."), fileName, ::dlerror());
   }
 
   String GetSharedLibraryFilename(const String& name)

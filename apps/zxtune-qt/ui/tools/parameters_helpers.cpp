@@ -49,7 +49,7 @@ namespace
     void Set(bool value) override
     {
       const IntType val = value ? OneValue : 0;
-      Dbg("%1%=%2%", static_cast<StringView>(Name), val);
+      Dbg("{}={}", static_cast<StringView>(Name), val);
       Storage.SetValue(Name, val);
     }
 
@@ -99,7 +99,7 @@ namespace
     {
       if (value)
       {
-        Dbg("%1%=%2%", static_cast<StringView>(Name), Value);
+        Dbg("{}={}", static_cast<StringView>(Name), Value);
         Storage.SetValue(Name, Value);
       }
     }
@@ -170,7 +170,7 @@ namespace
 
     void Set(int value) override
     {
-      Dbg("%1%=%2%", static_cast<StringView>(Name), value);
+      Dbg("{}={}", static_cast<StringView>(Name), value);
       Storage.SetValue(Name, value);
     }
 
@@ -255,7 +255,7 @@ namespace
       const IntType val = value.toLongLong();
       if (Math::InRange(val, Traits.Min, Traits.Max))
       {
-        Dbg("%1%=%2%", static_cast<StringView>(Traits.Name), val);
+        Dbg("{}={}", static_cast<StringView>(Traits.Name), val);
         Storage.SetValue(Traits.Name, val);
       }
     }
@@ -311,7 +311,7 @@ namespace
     void Set(const QString& value) override
     {
       const auto val = FromQString(value);
-      Dbg("%1%=%2%", static_cast<StringView>(Name), val);
+      Dbg("{}={}", static_cast<StringView>(Name), val);
       Storage.SetValue(Name, val);
     }
 

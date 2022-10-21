@@ -47,7 +47,7 @@ namespace Module
       , FadeOut(fadeOut)
       , Duration(duration)
     {
-      Debug("Fading: %u+%u/%u ms", fadeIn.Get(), fadeOut.Get(), duration.Get());
+      Debug("Fading: {}+{}/{} ms", fadeIn.Get(), fadeOut.Get(), duration.Get());
     }
 
     bool IsValid() const
@@ -118,7 +118,7 @@ namespace Module
       using namespace Parameters::ZXTune::Sound;
       const auto duration = GetDurationValue(params, SILENCE_LIMIT, SILENCE_LIMIT_DEFAULT, SILENCE_LIMIT_PRECISION);
       const auto limit = std::size_t(samplerate) * duration.Get() / duration.PER_SECOND;
-      Debug("Silence detection: %u ms (%u samples)", duration.Get(), limit);
+      Debug("Silence detection: {} ms ({} samples)", duration.Get(), limit);
       return SilenceDetector(limit);
     }
 
@@ -184,7 +184,7 @@ namespace Module
         auto val = GAIN_DEFAULT;
         Params->FindValue(GAIN, val);
         Preamp = Sound::Gain::Type(val, GAIN_PRECISION);
-        Debug("Preamp: %u%%", val);
+        Debug("Preamp: {}%", val);
       }
       if (!Fading.IsValid())
       {

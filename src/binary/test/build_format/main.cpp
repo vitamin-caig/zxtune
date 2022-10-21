@@ -40,11 +40,11 @@ namespace
     {
       if (Min < Max)
       {
-        return Strings::Format("%1$02x-%2$02x ", Min, Max);
+        return Strings::Format("{0:02x}-{1:02x} ", Min, Max);
       }
       else if (Min == Max)
       {
-        return Strings::Format("%1$02x", Min);
+        return Strings::Format("{:02x}", Min);
       }
       else
       {
@@ -184,7 +184,7 @@ namespace
 
     std::string ToString() const
     {
-      Dbg("Result has %1% entries", Ranges.size());
+      Dbg("Result has {} entries", Ranges.size());
       if (std::all_of(Ranges.begin(), Ranges.end(), [](const Range& rng) { return rng.IsThis(); }))
       {
         Dbg("Using ranges format");
@@ -209,7 +209,7 @@ namespace
     {
       if (Ranges.empty() || len < Ranges.size())
       {
-        Dbg("Set size to %1%", len);
+        Dbg("Set size to {}", len);
         Ranges.resize(len);
         Binaries.resize(len);
         Bitmasks.resize(len);
@@ -261,7 +261,7 @@ namespace
       {
         const Range& rng = Ranges[idx];
         const BinaryMask& bin = Binaries[idx];
-        Dbg("Range=(%1%..%2%) Bin=(%3$02x/%4$02x)", rng.Min, rng.Max, bin.Zeroes, bin.Ones);
+        Dbg("Range=({}..{}) Bin=({:02x}/{:02x})", rng.Min, rng.Max, bin.Zeroes, bin.Ones);
         if (!rng.IsThis() && !bin.IsThis())
         {
           Dbg(" any");
@@ -273,7 +273,7 @@ namespace
           {
             if (lastAny > 3)
             {
-              result += Strings::Format("+%1%+ ", lastAny);
+              result += Strings::Format("+{}+ ", lastAny);
             }
             else
             {
@@ -287,7 +287,7 @@ namespace
           }
           const std::size_t rngWeight = rng.CountCatches();
           const std::size_t binWeight = bin.CountCatches();
-          Dbg(" range=%1% bytes bin=%2% bytes", rngWeight, binWeight);
+          Dbg(" range={} bytes bin={} bytes", rngWeight, binWeight);
           result += rngWeight <= binWeight ? rng.ToString() : bin.ToString();
         }
       }
@@ -358,7 +358,7 @@ int main(int argc, char* argv[])
         const Dump& data = Read(filename);
         if (!check->Match(data))
         {
-          throw std::runtime_error(Strings::Format("Not matched for %1%", filename));
+          throw std::runtime_error(Strings::Format("Not matched for {}", filename));
         }
       }
     }

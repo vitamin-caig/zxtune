@@ -169,19 +169,19 @@ namespace Formats::Archived
         const uint_t size = catEntry->SizeInSectors;
         if (offset + size > totalSectors)
         {
-          Dbg("File '%1%' is out of bounds", entryName);
+          Dbg("File '{}' is out of bounds", entryName);
           return 0;  // out of bounds
         }
         const auto begin = usedSectors.begin() + offset;
         const auto end = begin + size;
         if (end != std::find(begin, end, true))
         {
-          Dbg("File '%1%' is overlapped with some other", entryName);
+          Dbg("File '{}' is overlapped with some other", entryName);
           return 0;  // overlap
         }
         if (!*(begin - 1))
         {
-          Dbg("File '%1%' has a gap before", entryName);
+          Dbg("File '{}' has a gap before", entryName);
           return 0;  // gap
         }
         std::fill(begin, end, true);

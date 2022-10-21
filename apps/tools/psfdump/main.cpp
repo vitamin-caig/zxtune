@@ -56,7 +56,7 @@ namespace
   template<class... P>
   void Write(uint_t level, const char* msg, P&&... params)
   {
-    Write(level, Strings::Format(msg, params...).c_str());
+    Write(level, Strings::Format(msg, std::forward<P>(params)...).c_str());
   }
 
   char ToHex(uint_t nib)
@@ -138,22 +138,22 @@ namespace
     public:
       void SetRegisters(uint32_t pc, uint32_t gp) override
       {
-        Write(3, "Registers: PC=0x%1$08x GP=0x%2$08x", pc, gp);
+        Write(3, "Registers: PC=0x{:08x} GP=0x{:08x}", pc, gp);
       }
 
       void SetStackRegion(uint32_t head, uint32_t size) override
       {
-        Write(3, "Stack: %1% (0x%1$08x) bytes at 0x%2$08x", size, head);
+        Write(3, "Stack: {0} (0x{0:08x}) bytes at 0x{1:08x}", size, head);
       }
 
       void SetRegion(String region, uint_t fps) override
       {
-        Write(3, "Region: %1% (%2% fps)", region, fps);
+        Write(3, "Region: {} ({} fps)", region, fps);
       }
 
       void SetTextSection(uint32_t address, Binary::View content)
       {
-        Write(3, "Text section: %1% (0x%1$08x) bytes at 0x%2$08x", content.Size(), address);
+        Write(3, "Text section: {0} (0x{0:08x}) bytes at 0x{1:08x}", content.Size(), address);
         DumpHex(4, content.Start(), content.Size());
       };
     };
@@ -171,7 +171,7 @@ namespace
         Formats::Chiptune::Playstation2SoundFormat::ParseVFS(blob, delegate);
         if (const auto total = delegate.GetTotalSize())
         {
-          Write(2, "Total: %1% bytes (%2%%% ratio)", total, 100.0f * blob.Size() / total);
+          Write(2, "Total: {} bytes ({}% ratio)", total, 100.0f * blob.Size() / total);
         }
       }
       catch (const std::exception&)
@@ -187,7 +187,7 @@ namespace
       void OnFile(String path, Binary::Container::Ptr content) override
       {
         const auto fileSize = content ? content->Size() : std::size_t(0);
-        Write(3, "%1%: %2% bytes", path, fileSize);
+        Write(3, "{}: {} bytes", path, fileSize);
         if (fileSize)
         {
           DumpHex(4, content->Start(), fileSize);
@@ -262,7 +262,7 @@ namespace
         {
           if (ChunksCount)
           {
-            Write(3, "%1%: %2% chunks with %3% bytes total (%4%%% covered)", tag, ChunksCount, ChunksSize,
+            Write(3, "{}: {} chunks with {} bytes total ({}% covered)", tag, ChunksCount, ChunksSize,
                   100.0f * ChunksSize / End);
           }
         }
@@ -295,12 +295,12 @@ namespace
     public:
       void SetEntryPoint(uint32_t addr) override
       {
-        Write(3, "EntryPoint: 0x%1$08x", addr);
+        Write(3, "EntryPoint: 0x{:08x}", addr);
       }
 
       void SetRom(uint32_t addr, Binary::View content) override
       {
-        Write(3, "ROM: %1% (0x%1$08x) bytes at 0x%2$08x", content.Size(), addr);
+        Write(3, "ROM: {0} (0x{0:08x}) bytes at 0x{1:08x}", content.Size(), addr);
         DumpHex(4, content.Start(), content.Size());
       }
     };
@@ -343,7 +343,7 @@ namespace
     public:
       void SetChunk(uint32_t offset, Binary::View content) override
       {
-        Write(3, "%1% (0x%1$08x) bytes at 0x%2$08x", content.Size(), offset);
+        Write(3, "{0} (0x{0:08x}) bytes at 0x{1:08x}", content.Size(), offset);
         DumpHex(4, content.Start(), content.Size());
       }
     };
@@ -354,13 +354,13 @@ namespace
   public:
     void SetVersion(uint_t ver) override
     {
-      Write(1, "Type: %1% (id=0x%2$02x)", DecodeVersion(ver), ver);
+      Write(1, "Type: {} (id=0x{:02x})", DecodeVersion(ver), ver);
       Dumper = CreateDumper(ver);
     }
 
     void SetReservedSection(Binary::Container::Ptr blob) override
     {
-      Write(1, "Reserved area: %1% bytes", blob->Size());
+      Write(1, "Reserved area: {} bytes", blob->Size());
       Dumper->DumpReserved(*blob);
     }
 
@@ -368,74 +368,74 @@ namespace
     {
       const auto packedSize = blob->Size();
       const auto unpacked = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(blob));
-      Write(1, "Program area: %1% bytes (%2% packed, %3%%% ratio)", unpacked->Size(), packedSize,
+      Write(1, "Program area: {} bytes ({} packed, {}% ratio)", unpacked->Size(), packedSize,
             100.0f * packedSize / unpacked->Size());
       Dumper->DumpProgram(*unpacked);
     }
 
     void SetTitle(String title) override
     {
-      Write(1, "Title: %1%", title);
+      Write(1, "Title: {}", title);
     }
 
     virtual void SetArtist(String artist) override
     {
-      Write(1, "Artist: %1%", artist);
+      Write(1, "Artist: {}", artist);
     }
 
     void SetGame(String game) override
     {
-      Write(1, "Game: %1%", game);
+      Write(1, "Game: {}", game);
     }
 
     void SetYear(String date) override
     {
-      Write(1, "Year: %1%", date);
+      Write(1, "Year: {}", date);
     }
 
     void SetGenre(String genre) override
     {
-      Write(1, "Genre: %1%", genre);
+      Write(1, "Genre: {}", genre);
     }
 
     void SetComment(String comment) override
     {
-      Write(1, "Comment: %1%", comment);
+      Write(1, "Comment: {}", comment);
     }
 
     void SetCopyright(String copyright) override
     {
-      Write(1, "Copyright: %1%", copyright);
+      Write(1, "Copyright: {}", copyright);
     }
 
     void SetDumper(String dumper) override
     {
-      Write(1, "Dumper: %1%", dumper);
+      Write(1, "Dumper: {}", dumper);
     }
 
     void SetLength(Time::Milliseconds duration) override
     {
-      Write(1, "Length: %1%", Time::ToString(duration));
+      Write(1, "Length: {}", Time::ToString(duration));
     }
 
     void SetFade(Time::Milliseconds fade) override
     {
-      Write(1, "Fade: %1%", Time::ToString(fade));
+      Write(1, "Fade: {}", Time::ToString(fade));
     }
 
     void SetVolume(float vol) override
     {
-      Write(1, "Volume: %1%", vol);
+      Write(1, "Volume: {}", vol);
     }
 
     void SetTag(String name, String value) override
     {
-      Write(1, "%1%: %2%", name, value);
+      Write(1, "{}: {}", name, value);
     }
 
     void SetLibrary(uint_t num, String filename) override
     {
-      Write(1, "Library #%1%: %2%", num, filename);
+      Write(1, "Library #{}: {}", num, filename);
     }
 
   private:
@@ -505,12 +505,12 @@ int main(int argc, char* argv[])
     for (int arg = 1; arg < argc; ++arg)
     {
       const std::string filename(argv[arg]);
-      Write(0, "%1%:", filename);
+      Write(0, "{}:", filename);
       const auto data = OpenFile(filename);
       PSFDumper builder;
       if (const auto container = Formats::Chiptune::PortableSoundFormat::Parse(*data, builder))
       {
-        Write(1, "Size: %1% bytes (file %2% bytes, %3%%% used)", container->Size(), data->Size(),
+        Write(1, "Size: {} bytes (file {} bytes, {}% used)", container->Size(), data->Size(),
               100.0f * container->Size() / data->Size());
       }
       else

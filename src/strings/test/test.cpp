@@ -240,10 +240,10 @@ int main()
       Test(Strings::FormatTime(0, 123, 0, 4) == "123:00.04", "Format time no hours");
       Test(Strings::FormatTime(2, 0, 4, 25) == "2:00:04.25", "Format time");
       Test(Strings::Format("Just string") == "Just string", "No args");
-      Test(Strings::Format("Integer: %1%", 1234) == "Integer: 1234", "Integer arg");
-      Test(Strings::Format("String: '%1%'", "str") == "String: 'str'", "String arg");
-      Test(Strings::Format("%2% positional %1%", "args", 2) == "2 positional args", "Positional args");
-      Test(Strings::Format("Hex %1$04x", 0xbed) == "Hex 0bed", "Formatting");
+      Test(Strings::Format("Integer: {}", 1234) == "Integer: 1234", "Integer arg");
+      Test(Strings::Format("String: '{}'", "str") == "String: 'str'", "String arg");
+      Test(Strings::Format("{1} positional {0}", "args", 2) == "2 positional args", "Positional args");
+      Test(Strings::Format("Hex {:04x}", 0xbed) == "Hex 0bed", "Formatting");
     }
   }
   catch (int code)

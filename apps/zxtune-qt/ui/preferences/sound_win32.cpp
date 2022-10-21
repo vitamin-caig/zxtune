@@ -76,7 +76,7 @@ namespace
 
     void DeviceChanged(const QString& name) override
     {
-      Dbg("Selecting device '%1%'", FromQString(name));
+      Dbg("Selecting device '{}'", FromQString(name));
       DeviceChanged([&name](const Device& dev) { return dev.Name == name; });
     }
 

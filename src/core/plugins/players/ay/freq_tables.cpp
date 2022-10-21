@@ -269,7 +269,7 @@ namespace Module
                                      [&idNormal](const FreqTableEntry& entry) { return entry.Name == idNormal; });
     if (entry == std::end(TABLES))
     {
-      throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table '%1%'."), id);
+      throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table '{}'."), id);
     }
     // copy result forward (normal) or backward (reverted)
     if (doRevert)

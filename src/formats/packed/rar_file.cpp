@@ -161,7 +161,7 @@ namespace Formats::Packed
         const bool isSolid = header.IsSolid();
         const auto data = container.GetData();
         const auto size = data->Size();
-        Dbg("Depack %1% -> %2% (solid %3%)", size, outSize, isSolid);
+        Dbg("Depack {} -> {} (solid {})", size, outSize, isSolid);
         // Old format starts from 52 45 7e 5e
         const bool oldFormat = false;
         Stream.SetUnpackFromMemory(static_cast<const uint8_t*>(data->Start()), size, oldFormat);
@@ -181,13 +181,13 @@ namespace Formats::Packed
           Decoder.DoUnpack(method, isSolid);
           if (crc != Stream.GetUnpackedCrc())
           {
-            Dbg("Crc mismatch: stored 0x%1$08x, calculated 0x%2$08x", crc, Stream.GetUnpackedCrc());
+            Dbg("Crc mismatch: stored 0x{:08x}, calculated 0x{:08x}", crc, Stream.GetUnpackedCrc());
           }
           return Binary::CreateContainer(std::move(result));
         }
         catch (const std::exception& e)
         {
-          Dbg("Failed to decode: %1%", e.what());
+          Dbg("Failed to decode: {}", e.what());
           return Binary::Container::Ptr();
         }
       }

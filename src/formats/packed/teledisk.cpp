@@ -344,7 +344,7 @@ namespace Formats::Packed
             SourceStream subStream(*fullDecoded);
             ParseSectors(subStream, visitor);
             const std::size_t usedInPacked = subStream.GetOffset();
-            Dbg("Used %1% bytes in packed stream", usedInPacked);
+            Dbg("Used {} bytes in packed stream", usedInPacked);
             if (const Formats::Packed::Container::Ptr decoded =
                     Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, usedInPacked))
             {

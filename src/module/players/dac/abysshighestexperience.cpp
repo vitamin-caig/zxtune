@@ -354,7 +354,7 @@ namespace Module::AHX
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create AHX: %s", e.what());
+        Dbg("Failed to create AHX: {}", e.what());
       }
       return Module::Holder::Ptr();
     }

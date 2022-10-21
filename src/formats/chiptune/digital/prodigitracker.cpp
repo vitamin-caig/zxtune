@@ -290,7 +290,7 @@ namespace Formats::Chiptune
         Positions positions;
         positions.Loop = Source.Loop;
         positions.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + Source.Length);
-        Dbg("Positions: %1%, loop to %2%", positions.GetSize(), positions.GetLoop());
+        Dbg("Positions: {}, loop to {}", positions.GetSize(), positions.GetLoop());
         target.SetPositions(std::move(positions));
       }
 
@@ -299,7 +299,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           ParsePattern(patIndex, target);
         }
       }
@@ -317,7 +317,7 @@ namespace Formats::Chiptune
           std::size_t size = descr.Size;
           if (descr.Page < PAGES_COUNT && start >= PAGES_START && size != 0)
           {
-            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x", samIdx, start, loop, size);
+            Dbg("Sample {}: start=#{:04x} loop=#{:04x} size=#{:04x}", samIdx, start, loop, size);
             const uint8_t* const sampleData =
                 samplesStart + ZX_PAGE_SIZE * GetPageOrder(descr.Page) + (start - PAGES_START);
             while (--size && sampleData[size] == 0)
@@ -329,7 +329,7 @@ namespace Formats::Chiptune
               continue;
             }
           }
-          Dbg(" Stub sample %1%", samIdx);
+          Dbg(" Stub sample {}", samIdx);
           const uint8_t dummy[] = {128};
           target.SetSample(samIdx, 0, dummy);
         }

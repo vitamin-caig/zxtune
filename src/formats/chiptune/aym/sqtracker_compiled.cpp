@@ -333,7 +333,7 @@ namespace Formats::Chiptune
 
       void Add(std::size_t offset, std::size_t size) const
       {
-        Dbg(" Affected range %1%..%2%", offset, offset + size);
+        Dbg(" Affected range {}..{}", offset, offset + size);
         Require(TotalRanges->AddRange(offset, size));
       }
 
@@ -415,7 +415,7 @@ namespace Formats::Chiptune
             break;
           }
         }
-        Dbg("Positions: %1% entries, loop to %2%", result.GetSize(), result.GetLoop());
+        Dbg("Positions: {} entries, loop to {}", result.GetSize(), result.GetLoop());
         builder.SetPositions(std::move(result));
       }
 
@@ -424,7 +424,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           ParsePattern(patIndex, builder);
         }
       }
@@ -434,7 +434,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          Dbg("Parse sample %1%", samIdx);
+          Dbg("Parse sample {}", samIdx);
           const RawSample& src = GetSample(samIdx);
           builder.SetSample(samIdx, ParseSample(src));
         }
@@ -450,7 +450,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
-          Dbg("Parse ornament %1%", ornIdx);
+          Dbg("Parse ornament {}", ornIdx);
           const RawOrnament& src = GetOrnament(ornIdx);
           builder.SetOrnament(ornIdx, ParseOrnament(src));
         }
@@ -572,7 +572,7 @@ namespace Formats::Chiptune
         const std::size_t start = patOffset;
         if (start >= Data.Size())
         {
-          Dbg("Invalid offset (%1%)", start);
+          Dbg("Invalid offset ({})", start);
         }
         else
         {

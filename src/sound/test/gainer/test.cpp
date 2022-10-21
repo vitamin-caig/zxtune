@@ -110,7 +110,7 @@ namespace Sound
       else
       {
         std::cout << "failed\n";
-        throw MakeFormattedError(THIS_LINE, "Failed. Value=<%1%,%2%> while expected=<%3%,%4%>", data.front().Left(),
+        throw MakeFormattedError(THIS_LINE, "Failed. Value=<{},{}> while expected=<{},{}>", data.front().Left(),
                                  data.front().Right(), ToCompare.Left(), ToCompare.Right());
       }
     }

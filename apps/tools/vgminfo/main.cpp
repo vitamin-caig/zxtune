@@ -390,7 +390,7 @@ namespace
       if (code == 0x4f)
       {
         const uint_t mode = stream.ReadByte();
-        Add(Strings::Format("gg mixer 0x%02x", mode));
+        Add(Strings::Format("gg mixer 0x{:02x}", mode));
         return true;
       }
 
@@ -533,7 +533,7 @@ namespace
       case 0x07:
         return "NES APU DPCM";
       default:
-        return Strings::Format("data type=0x%02x", code);
+        return Strings::Format("data type=0x{:02x}", code);
       }
     }
 
@@ -582,7 +582,7 @@ namespace
       case 0x93:
         return "GA20";
       default:
-        return Strings::Format("type=0x%02x", code);
+        return Strings::Format("type=0x{:02x}", code);
       }
     }
 
@@ -601,7 +601,7 @@ namespace
       case 0xe1:
         return "ES5503";
       default:
-        return Strings::Format("type=0x%02x", code);
+        return Strings::Format("type=0x{:02x}", code);
       }
     }
 
@@ -614,7 +614,7 @@ namespace
       const uint_t compat = stream.ReadByte();
       if (0x66 != compat)
       {
-        throw std::runtime_error(Strings::Format("Invalid ram write code %1% at %2%", compat, stream.GetPos() - 1));
+        throw std::runtime_error(Strings::Format("Invalid ram write code {} at {}", compat, stream.GetPos() - 1));
       }
       const uint8_t type = stream.ReadByte();
       Add(GetDataBlockType(type) + "RAM write");
@@ -682,7 +682,7 @@ namespace
                                           1, 1, 1, 2, 2, 3, 1, 1, 1, 1, 3, 3, 4, 4, 5, 5};
       const auto size = SIZES[code >> 4];
       const std::size_t curPos = stream.GetPos();
-      Add(Strings::Format("unknown 0x%02x (%u bytes) @ 0x%x", uint_t(code), size, curPos - 1));
+      Add(Strings::Format("unknown 0x{:02x} ({} bytes) @ 0x{:x}", uint_t(code), size, curPos - 1));
       stream.Skip(size - 1);
       return true;
     }

@@ -123,18 +123,18 @@ namespace ZXTune
       }
       if (tracksCount == 1)
       {
-        MultistreamDbg("%1%: detect in single track container", Identifier);
+        MultistreamDbg("{}: detect in single track container", Identifier);
         return ProcessSubtrack(params, *inputData, container, callback);
       }
       else if (const auto index = FindTrackIndexIn(*inputData->GetPath()))
       {
-        MultistreamDbg("%1%: detect in specified track %2% out of %3%", Identifier, *index, tracksCount);
+        MultistreamDbg("{}: detect in specified track {} out of {}", Identifier, *index, tracksCount);
         return *index < tracksCount
                && ProcessSubtrack(params, *inputData, ChangedTrackIndexAdapter(container, *index), callback);
       }
       else
       {
-        MultistreamDbg("%1%: detect in all %2% tracks", Identifier, tracksCount);
+        MultistreamDbg("{}: detect in all {} tracks", Identifier, tracksCount);
         return ProcessAllSubtracks(params, std::move(inputData), container, callback);
       }
     }

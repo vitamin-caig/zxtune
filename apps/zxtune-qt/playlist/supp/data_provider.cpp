@@ -293,7 +293,8 @@ namespace
 
     void ReportCache() const
     {
-      Dbg("Cache(%1%): %2% files, %3% bytes", this, Cache.GetItemsCount(), Cache.GetItemsWeight());
+      Dbg("Cache({}): {} files, {} bytes", static_cast<const void*>(this), Cache.GetItemsCount(),
+          Cache.GetItemsWeight());
     }
 
   private:

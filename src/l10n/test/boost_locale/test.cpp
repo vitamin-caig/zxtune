@@ -43,10 +43,9 @@ namespace
     str << translate("context", "Just a message with context") << "\r\n";
     for (uint_t idx = 0; idx != 5; ++idx)
     {
-      str << Strings::Format(translate("Single form for %1%", "Plural form for %1%", idx), idx) << "\r\n";
+      str << Strings::Format(translate("Single form for {}", "Plural form for {}", idx), idx) << "\r\n";
       str << Strings::Format(
-          translate("another context", "Single form for %1% with context", "Plural form for %1% with context", idx),
-          idx)
+          translate("another context", "Single form for {} with context", "Plural form for {} with context", idx), idx)
           << "\r\n";
     }
     return str.str();

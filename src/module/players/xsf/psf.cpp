@@ -51,13 +51,13 @@ namespace Module::PSF
         if (length == 0)
         {
           const auto result = GetSize();
-          Dbg("Size()=%1%", result);
+          Dbg("Size()={}", result);
           return result;
         }
         else
         {
           const auto result = Read(offset, buffer, length);
-          Dbg("Read(%2%@%1%)=%3%", offset, length, result);
+          Dbg("Read({}@{})={}", length, offset, result);
           return result;
         }
       }
@@ -71,10 +71,10 @@ namespace Module::PSF
       {
         if (!Vfs->Find(path, CachedData))
         {
-          Dbg("Not found '%1%'", path);
+          Dbg("Not found '{}'", path);
           return false;
         }
-        Dbg("Open '%1%'", path);
+        Dbg("Open '{}'", path);
         CachedName = path;
       }
       return true;

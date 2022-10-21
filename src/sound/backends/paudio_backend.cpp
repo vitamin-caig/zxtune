@@ -120,7 +120,7 @@ namespace Sound::PulseAudio
     {
       if (const char* txt = PaApi->pa_strerror(code))
       {
-        return MakeFormattedError(loc, translate("Error in PulseAudio backend: %1%."), txt);
+        return MakeFormattedError(loc, translate("Error in PulseAudio backend: {}."), txt);
       }
       else
       {
@@ -174,7 +174,7 @@ namespace Sound
     {
       const PulseAudio::Api::Ptr api = PulseAudio::LoadDynamicApi();
       const char* const version = api->pa_get_library_version();
-      PulseAudio::Dbg("Detected PulseAudio v%1%", version);
+      PulseAudio::Dbg("Detected PulseAudio v{}", version);
       const BackendWorkerFactory::Ptr factory = MakePtr<PulseAudio::BackendWorkerFactory>(api);
       storage.Register(PulseAudio::BACKEND_ID, PulseAudio::BACKEND_DESCRIPTION, PulseAudio::CAPABILITIES, factory);
     }

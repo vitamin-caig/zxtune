@@ -43,7 +43,7 @@ namespace Module::AYM
     const Char* const pos = std::find(LETTERS, std::end(LETTERS), letter);
     if (pos == std::end(LETTERS))
     {
-      throw MakeFormattedError(THIS_LINE, translate("Invalid duty cycle mask item: '%1%'."), String(1, letter));
+      throw MakeFormattedError(THIS_LINE, translate("Invalid duty cycle mask item: '{}'."), String(1, letter));
     }
     return val | MASKS[pos - LETTERS];
   }
@@ -85,7 +85,7 @@ namespace Module::AYM
     }
     else
     {
-      throw MakeFormattedError(THIS_LINE, translate("Invalid layout value (%1%)."), str);
+      throw MakeFormattedError(THIS_LINE, translate("Invalid layout value ({})."), str);
     }
   }
 
@@ -109,7 +109,7 @@ namespace Module::AYM
           && !Math::InRange(val, Parameters::ZXTune::Core::AYM::CLOCKRATE_MIN,
                             Parameters::ZXTune::Core::AYM::CLOCKRATE_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, translate("Invalid clock frequency (%1%)."), val);
+        throw MakeFormattedError(THIS_LINE, translate("Invalid clock frequency ({})."), val);
       }
       return val;
     }
@@ -142,7 +142,7 @@ namespace Module::AYM
           && (intVal < Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MIN
               || intVal > Parameters::ZXTune::Core::AYM::DUTY_CYCLE_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, translate("Invalid duty cycle value (%1%)."), intVal);
+        throw MakeFormattedError(THIS_LINE, translate("Invalid duty cycle value ({})."), intVal);
       }
       return static_cast<uint_t>(intVal);
     }
@@ -170,7 +170,7 @@ namespace Module::AYM
         if (intVal < static_cast<int_t>(Devices::AYM::LAYOUT_ABC)
             || intVal >= static_cast<int_t>(Devices::AYM::LAYOUT_LAST))
         {
-          throw MakeFormattedError(THIS_LINE, translate("Invalid layout value (%1%)."), intVal);
+          throw MakeFormattedError(THIS_LINE, translate("Invalid layout value ({})."), intVal);
         }
         return static_cast<Devices::AYM::LayoutType>(intVal);
       }
@@ -214,7 +214,7 @@ namespace Module::AYM
         // as dump
         if (newData.size() != table.size() * sizeof(table.front()))
         {
-          throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table size (%1%)."), newData.size());
+          throw MakeFormattedError(THIS_LINE, translate("Invalid frequency table size ({})."), newData.size());
         }
         std::memcpy(table.data(), newData.data(), newData.size());
       }

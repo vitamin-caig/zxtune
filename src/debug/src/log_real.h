@@ -15,6 +15,7 @@
 // std includes
 #include <cassert>
 #include <string>
+#include <utility>
 // library includes
 #include <strings/format.h>
 
@@ -39,7 +40,7 @@ namespace Debug
      @code
        const Debug::Stream Dbg(THIS_MODULE);
        ...
-       Dbg("message %1%", parameter);
+       Dbg("message {}", parameter);
      @endcode
   */
   class Stream
@@ -67,7 +68,7 @@ namespace Debug
       assert(msg);
       if (Enabled)
       {
-        Message(Module, Strings::Format(msg, p...));
+        Message(Module, Strings::Format(msg, std::forward<P>(p)...));
       }
     }
 

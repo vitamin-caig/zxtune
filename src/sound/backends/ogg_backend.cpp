@@ -43,7 +43,7 @@ namespace Sound::Ogg
   {
     if (res < 0)
     {
-      throw MakeFormattedError(loc, translate("Error in OGG backend: code %1%."), res);
+      throw MakeFormattedError(loc, translate("Error in OGG backend: code {}."), res);
     }
   }
 
@@ -321,7 +321,7 @@ namespace Sound::Ogg
       }
       else
       {
-        throw MakeFormattedError(THIS_LINE, translate("OGG backend error: invalid mode '%1%'."), mode);
+        throw MakeFormattedError(THIS_LINE, translate("OGG backend error: invalid mode '{}'."), mode);
       }
     }
 
@@ -331,7 +331,7 @@ namespace Sound::Ogg
       if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Ogg::BITRATE, bitrate)
           && !Math::InRange<Parameters::IntType>(bitrate, BITRATE_MIN, BITRATE_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, translate("OGG backend error: bitrate (%1%) is out of range (%2%..%3%)."),
+        throw MakeFormattedError(THIS_LINE, translate("OGG backend error: bitrate ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(bitrate), BITRATE_MIN, BITRATE_MAX);
       }
       return static_cast<uint_t>(bitrate);
@@ -343,7 +343,7 @@ namespace Sound::Ogg
       if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Ogg::QUALITY, quality)
           && !Math::InRange<Parameters::IntType>(quality, QUALITY_MIN, QUALITY_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, translate("OGG backend error: quality (%1%) is out of range (%2%..%3%)."),
+        throw MakeFormattedError(THIS_LINE, translate("OGG backend error: quality ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(quality), QUALITY_MIN, QUALITY_MAX);
       }
       return static_cast<uint_t>(quality);
@@ -383,17 +383,17 @@ namespace Sound::Ogg
       const StreamParameters stream(Params);
 
       const uint_t samplerate = GetSoundFrequency(*Params);
-      Dbg("Samplerate is %1%", samplerate);
+      Dbg("Samplerate is {}", samplerate);
       if (stream.IsABRMode())
       {
         const uint_t bitrate = stream.GetBitrate();
-        Dbg("Setting ABR to %1%kbps", bitrate);
+        Dbg("Setting ABR to {}kbps", bitrate);
         info.SetABR(bitrate, samplerate);
       }
       else
       {
         const uint_t quality = stream.GetQuality();
-        Dbg("Setting VBR quality to %1%", quality);
+        Dbg("Setting VBR quality to {}", quality);
         info.SetQuality(quality, samplerate);
       }
     }
@@ -436,7 +436,7 @@ namespace Sound
       const Ogg::Api::Ptr oggApi = Ogg::LoadDynamicApi();
       const Vorbis::Api::Ptr vorbisApi = Vorbis::LoadDynamicApi();
       const VorbisEnc::Api::Ptr vorbisEncApi = VorbisEnc::LoadDynamicApi();
-      Ogg::Dbg("Detected Vorbis library %1%", vorbisApi->vorbis_version_string());
+      Ogg::Dbg("Detected Vorbis library {}", vorbisApi->vorbis_version_string());
       const BackendWorkerFactory::Ptr factory = MakePtr<Ogg::BackendWorkerFactory>(oggApi, vorbisApi, vorbisEncApi);
       storage.Register(Ogg::BACKEND_ID, Ogg::BACKEND_DESCRIPTION, CAP_TYPE_FILE, factory);
     }

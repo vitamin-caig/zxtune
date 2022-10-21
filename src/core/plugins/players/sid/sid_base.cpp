@@ -67,7 +67,7 @@ namespace Module::Sid
       {
         Duration = GetDefaultDuration(params);
       }
-      Dbg("Duration for %1%/%2% is %3%ms", md5, Index, Duration.Get());
+      Dbg("Duration for {}/{} is {}ms", md5, Index, Duration.Get());
     }
 
     Time::Milliseconds GetDuration() const

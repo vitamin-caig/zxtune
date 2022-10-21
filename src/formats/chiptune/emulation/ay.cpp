@@ -152,7 +152,7 @@ namespace Formats::Chiptune
         const uint8_t* const ptr = GetPointerNocheck(beOffset);
         if (ptr < Start || ptr >= Finish)
         {
-          Dbg("Out of range %1%..%2% (%3%)", static_cast<const void*>(Start), static_cast<const void*>(Finish),
+          Dbg("Out of range {}..{} ({})", static_cast<const void*>(Start), static_cast<const void*>(Finish),
               static_cast<const void*>(ptr));
           return Binary::View(nullptr, 0);
         }
@@ -493,7 +493,7 @@ namespace Formats::Chiptune
           dst->Address = it->first;
           dst->Size = static_cast<uint16_t>(it->second.size());
           SetPointer(&dst->Offset, result->Add(it->second.data(), it->second.size()));
-          Dbg("Stored block %1% bytes at %2% stored at %3%", dst->Size, dst->Address, dst->Offset);
+          Dbg("Stored block {} bytes at {} stored at {}", dst->Size, dst->Address, dst->Offset);
         }
         return Binary::CreateContainer(std::unique_ptr<Binary::Dump>(std::move(result)));
       }
@@ -566,7 +566,7 @@ namespace Formats::Chiptune
       }
       try
       {
-        Dbg("Parse idx=%1%, totalSize=%2%", idx, container.Size());
+        Dbg("Parse idx={}, totalSize={}", idx, container.Size());
         const Parser data(container);
         const auto& header = data.GetField<Header>(std::size_t(0));
         target.SetAuthor(data.GetString(&header.AuthorOffset));
@@ -594,7 +594,7 @@ namespace Formats::Chiptune
           const auto& block = data.GetField<EMUL::ModuleBlock>(&moddata.BlocksOffset, blockIdx);
           const uint16_t blockAddr = block.Address;
           const std::size_t blockSize = block.Size;
-          Dbg("Block %1% bytes at %2% located at %3%", blockSize, blockAddr, block.Offset);
+          Dbg("Block {} bytes at {} located at {}", blockSize, blockAddr, block.Offset);
           if (const auto blockData = data.GetBlob(&block.Offset, blockSize))
           {
             target.AddBlock(blockAddr, blockData);

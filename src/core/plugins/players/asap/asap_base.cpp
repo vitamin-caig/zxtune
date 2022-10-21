@@ -61,7 +61,7 @@ namespace Module::ASAP
       Info = ::ASAP_GetInfo(Module);
       Require(Track == ::ASAPInfo_GetDefaultSong(Info));
       Channels = ::ASAPInfo_GetChannels(Info);
-      Dbg("Track %1%, %2% channels", Track, Channels);
+      Dbg("Track {}, {} channels", Track, Channels);
       Require(Channels == 1 || Channels == 2);
     }
 
@@ -292,7 +292,7 @@ namespace Module::ASAP
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
+        Dbg("Failed to create {}: {}", Desc.Id, e.what());
       }
       return {};
     }
@@ -348,7 +348,7 @@ namespace Module::ASAP
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
+        Dbg("Failed to create {}: {}", Desc.Id, e.what());
       }
       return {};
     }

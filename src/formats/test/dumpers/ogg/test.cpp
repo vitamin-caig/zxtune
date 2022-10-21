@@ -74,7 +74,8 @@ namespace
 
     void AddFrame(std::size_t offset, uint_t samplesCount, Binary::View data) override
     {
-      std::cout << Strings::Format("Frame: @%1%(0x%1$08x) %2% samples, %3% bytes\n", offset, samplesCount, data.Size());
+      std::cout << Strings::Format("Frame: @{0} (0x{0:08x}) {1} samples, {2} bytes\n", offset, samplesCount,
+                                   data.Size());
     }
   };
 }  // namespace

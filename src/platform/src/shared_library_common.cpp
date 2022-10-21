@@ -32,7 +32,7 @@ namespace Platform
     const auto fileName = Details::GetSharedLibraryFilename(name);
     SharedLibrary::Ptr res;
     ThrowIfError(Details::LoadSharedLibrary(fileName, res));
-    Dbg("Loaded '%1%' (as '%2%')", name, fileName);
+    Dbg("Loaded '{}' (as '{}')", name, fileName);
     return res;
   }
 
@@ -40,7 +40,7 @@ namespace Platform
   {
     const auto filenames = Details::GetSharedLibraryFilenames(name);
     Error resError = MakeFormattedError(
-        THIS_LINE, translate("Failed to load dynamic library '%1%' by any of the alternative names."), name.Base());
+        THIS_LINE, translate("Failed to load dynamic library '{}' by any of the alternative names."), name.Base());
     for (const auto& file : filenames)
     {
       SharedLibrary::Ptr res;
@@ -50,7 +50,7 @@ namespace Platform
       }
       else
       {
-        Dbg("Loaded '%1%' (as '%2%')", name.Base(), file);
+        Dbg("Loaded '{}' (as '{}')", name.Base(), file);
         return res;
       }
     }

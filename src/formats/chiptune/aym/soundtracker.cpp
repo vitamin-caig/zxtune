@@ -164,7 +164,7 @@ namespace Formats::Chiptune
           dst.PatternIndex = src.Pattern - 1;
           dst.Transposition = src.Transposition;
         }
-        Dbg("Positions: %1% entries", positions.GetSize());
+        Dbg("Positions: {} entries", positions.GetSize());
         builder.SetPositions(std::move(positions));
       }
 
@@ -175,12 +175,12 @@ namespace Formats::Chiptune
           const uint_t patIndex = *it;
           if (patIndex < MaxPatterns)
           {
-            Dbg("Parse pattern %1%", patIndex);
+            Dbg("Parse pattern {}", patIndex);
             ParsePattern(patIndex, builder);
           }
           else
           {
-            Dbg("Fill stub pattern %1%", patIndex);
+            Dbg("Fill stub pattern {}", patIndex);
             builder.StartPattern(patIndex).Finish(Source.PatternsSize);
           }
         }
@@ -191,7 +191,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          Dbg("Parse sample %1%", samIdx);
+          Dbg("Parse sample {}", samIdx);
           if (samIdx)
           {
             builder.SetSample(samIdx, ParseSample(Source.Samples[samIdx - 1]));
@@ -213,7 +213,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
           const uint_t ornIdx = *it;
-          Dbg("Parse ornament %1%", ornIdx);
+          Dbg("Parse ornament {}", ornIdx);
           builder.SetOrnament(ornIdx, ParseOrnament(Source.Ornaments[ornIdx]));
         }
       }

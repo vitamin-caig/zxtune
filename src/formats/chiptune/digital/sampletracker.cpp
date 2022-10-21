@@ -144,17 +144,17 @@ namespace Formats::Chiptune
         positions.Lines.resize(positionsCount);
         std::transform(Source.Positions.begin(), Source.Positions.begin() + positionsCount, positions.Lines.begin(),
                        [](auto b) { return b - 1; });
-        Dbg("Positions: %1%", positions.GetSize());
+        Dbg("Positions: {}", positions.GetSize());
         target.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& target) const
       {
-        Dbg("Parse %1% patterns", pats.Count());
+        Dbg("Parse {} patterns", pats.Count());
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           PatternBuilder& patBuilder = target.StartPattern(patIndex);
           ParsePattern(Source.Patterns[patIndex], patBuilder, target);
           AddFixedRange(offsetof(Header, Patterns) + patIndex * sizeof(Pattern), sizeof(Pattern));
@@ -163,7 +163,7 @@ namespace Formats::Chiptune
 
       void ParseSamples(const Indices& sams, Builder& target) const
       {
-        Dbg("Parse %1% samples", sams.Count());
+        Dbg("Parse {} samples", sams.Count());
         target.SetSamplesFrequency(SAMPLES_FREQ);
         std::size_t validSamples = 0;
         for (Indices::Iterator it = sams.Items(); it; ++it)
@@ -176,7 +176,7 @@ namespace Formats::Chiptune
           }
           else
           {
-            Dbg(" Stub sample %1%", samIdx);
+            Dbg(" Stub sample {}", samIdx);
             const uint8_t dummy[] = {128};
             target.SetSample(samIdx, 0, dummy, false);
           }
@@ -273,7 +273,7 @@ namespace Formats::Chiptune
           return Binary::View(nullptr, 0);
         }
         const std::size_t sampleAvail = std::min(maxSize, RawData.Size() - sampleOffset);
-        Dbg("Sample %1%: start=#%2$04x size=#%3$04x (avail=#%4$04x)", samIdx, absAddr, maxSize, sampleAvail);
+        Dbg("Sample {}: start=#{:04x} size=#{:04x} (avail=#{:04x})", samIdx, absAddr, maxSize, sampleAvail);
         const uint8_t* const sampleStart = Source.Samples + (absAddr - SAMPLES_ADDR);
         const uint8_t* const sampleEnd = std::find(sampleStart, sampleStart + sampleAvail, 0);
         const std::size_t sampleSize = sampleEnd - sampleStart;

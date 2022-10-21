@@ -74,7 +74,7 @@ namespace
       Require(Directory.mkpath(dirPath));
       Require(Directory.cd(dirPath));
       Files = Directory.entryList(QStringList(BuildPlaylistFileName('*')), QDir::Files | QDir::Readable, QDir::Name);
-      Dbg("%1% stored playlists", Files.size());
+      Dbg("{} stored playlists", Files.size());
     }
 
     bool Empty() const override
@@ -88,7 +88,7 @@ namespace
       {
         const QString& fileName = *it;
         const QString& fullPath = Directory.absoluteFilePath(fileName);
-        Dbg("Loading stored playlist '%1%'", FromQString(fullPath));
+        Dbg("Loading stored playlist '{}'", FromQString(fullPath));
         container->OpenPlaylist(fullPath);
       }
     }
@@ -96,7 +96,7 @@ namespace
     void Save(Playlist::Controller::Iterator::Ptr it) override
     {
       const QStringList& newFiles = SaveFiles(it);
-      Dbg("Saved %1% playlists", newFiles.size());
+      Dbg("Saved {} playlists", newFiles.size());
       const QStringList& toRemove = Substract(Files, newFiles);
       RemoveFiles(toRemove);
       Files = newFiles;

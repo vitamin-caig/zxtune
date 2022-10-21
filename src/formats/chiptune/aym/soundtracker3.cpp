@@ -204,7 +204,7 @@ namespace Formats::Chiptune
           dst.Transposition = src.Transposition;
           positions.Lines.push_back(dst);
         }
-        Dbg("Positions: %1% entries", positions.GetSize());
+        Dbg("Positions: {} entries", positions.GetSize());
         builder.SetPositions(std::move(positions));
       }
 
@@ -213,7 +213,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           ParsePattern(patIndex, builder);
         }
       }
@@ -227,7 +227,7 @@ namespace Formats::Chiptune
         {
           const uint_t samIdx = *it;
           const std::size_t samOffset = table.Offsets[samIdx];
-          Dbg("Parse sample %1% at %2%", samIdx, samOffset);
+          Dbg("Parse sample {} at {}", samIdx, samOffset);
           const RawSample& src = GetObject<RawSample>(samOffset);
           builder.SetSample(samIdx, ParseSample(src));
         }
@@ -242,7 +242,7 @@ namespace Formats::Chiptune
         {
           const uint_t ornIdx = *it;
           const std::size_t ornOffset = table.Offsets[ornIdx];
-          Dbg("Parse ornament %1% at %2%", ornIdx, ornOffset);
+          Dbg("Parse ornament {} at {}", ornIdx, ornOffset);
           const RawOrnament& src = GetObject<RawOrnament>(ornOffset);
           builder.SetOrnament(ornIdx, ParseOrnament(src));
         }
@@ -385,12 +385,12 @@ namespace Formats::Chiptune
           const std::size_t start = rangesStarts[chanNum];
           if (start >= Data.Size())
           {
-            Dbg("Invalid offset (%1%)", start);
+            Dbg("Invalid offset ({})", start);
           }
           else
           {
             const std::size_t stop = std::min(Data.Size(), state.Channels[chanNum].Offset + 1);
-            Dbg("Affected ranges %1%..%2%", start, stop);
+            Dbg("Affected ranges {}..{}", start, stop);
             AddFixedRange(start, stop - start);
           }
         }

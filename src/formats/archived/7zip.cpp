@@ -250,7 +250,7 @@ namespace Formats::Archived
         , Name(Arch->GetFileName(Idx))
         , Size(Arch->GetFileSize(Idx))
       {
-        Dbg("Created file '%1%', idx=%2% size=%3%", Name, Idx, Size);
+        Dbg("Created file '{}', idx={} size={}", Name, Idx, Size);
       }
 
       String GetName() const override
@@ -265,7 +265,7 @@ namespace Formats::Archived
 
       Binary::Container::Ptr GetData() const override
       {
-        Dbg("Decompressing '%1%'", Name);
+        Dbg("Decompressing '{}'", Name);
         return Arch->GetFileData(Idx);
       }
 

@@ -151,7 +151,7 @@ namespace Formats::Packed
         return Container::Ptr();
       }
       const uint_t compileAddr = dataAddr - playerSize;
-      Dbg("Detected player compiled at %1% (#%1$04x) with %2% patterns", compileAddr, patternsCount);
+      Dbg("Detected player compiled at #%{:04x}) with {} patterns", compileAddr, patternsCount);
       const auto builder = Formats::Chiptune::PatchedDataBuilder::Create(modData);
       // fix patterns/samples/ornaments offsets
       for (uint_t idx = offsetof(CompiledPTU13::RawHeader, PatternsOffset);

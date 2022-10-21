@@ -18,6 +18,7 @@
 #include <binary/format_factories.h>
 #include <debug/log.h>
 // std includes
+#include <algorithm>
 #include <array>
 
 namespace Formats::Packed
@@ -128,7 +129,7 @@ namespace Formats::Packed
         return Container::Ptr();
       }
       const uint_t compileAddr = rawPlayer.GetCompileAddr();
-      Dbg("Detected player compiled at %1% (#%1$04x) in first %2% bytes", compileAddr, playerSize);
+      Dbg("Detected player compiled at #{:04x} in first {} bytes", compileAddr, playerSize);
       const auto modData = rawData.GetSubcontainer(playerSize, MAX_MODULE_SIZE);
       const auto metainfo = rawPlayer.GetInfo();
       auto& stub = Formats::Chiptune::SoundTracker::GetStubBuilder();

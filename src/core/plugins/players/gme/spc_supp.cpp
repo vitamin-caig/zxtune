@@ -310,7 +310,7 @@ namespace Module::SPC
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create SPC: %s", e.what());
+        Dbg("Failed to create SPC: {}", e.what());
       }
       return {};
     }

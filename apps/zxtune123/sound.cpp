@@ -169,7 +169,7 @@ namespace
       }
       if (!UsedId.empty())
       {
-        Dbg("Using previously succeed backend %1%", UsedId);
+        Dbg("Using previously succeed backend {}", UsedId);
         return Service->CreateBackend(UsedId, module, callback);
       }
       for (Sound::BackendInformation::Iterator::Ptr backends = Service->EnumerateBackends(); backends->IsValid();
@@ -179,7 +179,7 @@ namespace
         const String id = info->Id();
         if (BackendOptions.empty() || BackendOptions.count(id))
         {
-          Dbg("Trying backend %1%", id);
+          Dbg("Trying backend {}", id);
           try
           {
             const Sound::Backend::Ptr result = Service->CreateBackend(id, module, callback);
@@ -189,7 +189,7 @@ namespace
           }
           catch (const Error& e)
           {
-            Dbg(" failed:\n%1%", e.ToString());
+            Dbg(" failed:\n{}", e.ToString());
             if (1 == BackendOptions.size())
             {
               throw;

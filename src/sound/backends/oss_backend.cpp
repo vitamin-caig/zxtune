@@ -63,7 +63,7 @@ namespace Sound::Oss
       , Handle(::open(Name.c_str(), mode, 0))
     {
       CheckResult(Valid(), THIS_LINE);
-      Dbg("Opened device '%1%'", Name);
+      Dbg("Opened device '{}'", Name);
     }
 
     AutoDescriptor(const AutoDescriptor&) = delete;
@@ -93,7 +93,7 @@ namespace Sound::Oss
     {
       if (Valid())
       {
-        Dbg("Close device '%1%'", Name);
+        Dbg("Close device '{}'", Name);
         int tmpHandle = -1;
         std::swap(Handle, tmpHandle);
         Name.clear();
@@ -137,7 +137,7 @@ namespace Sound::Oss
     {
       if (!res)
       {
-        throw MakeFormattedError(loc, translate("Error in OSS backend while working with device '%1%': %2%."), Name,
+        throw MakeFormattedError(loc, translate("Error in OSS backend while working with device '{0}': {1}."), Name,
                                  ::strerror(errno));
       }
     }
@@ -335,22 +335,22 @@ namespace Sound::Oss
       static_assert(8 == Sample::BITS || 16 == Sample::BITS, "Incompatible sound sample bits count");
       int tmp = 0;
       tmpDevice.Ioctl(SNDCTL_DSP_GETFMTS, &tmp, THIS_LINE);
-      Dbg("Supported formats %1%", tmp);
+      Dbg("Supported formats {}", tmp);
       const SoundFormat format(tmp);
       if (!format.IsSupported())
       {
         throw Error(THIS_LINE, translate("No suitable formats supported by OSS."));
       }
       tmp = format.Get();
-      Dbg("Setting format to %1%", tmp);
+      Dbg("Setting format to {}", tmp);
       tmpDevice.Ioctl(SNDCTL_DSP_SETFMT, &tmp, THIS_LINE);
 
       tmp = Sample::CHANNELS;
-      Dbg("Setting channels to %1%", tmp);
+      Dbg("Setting channels to {}", tmp);
       tmpDevice.Ioctl(SNDCTL_DSP_CHANNELS, &tmp, THIS_LINE);
 
       tmp = sound->SoundFreq();
-      Dbg("Setting frequency to %1%", tmp);
+      Dbg("Setting frequency to {}", tmp);
       tmpDevice.Ioctl(SNDCTL_DSP_SPEED, &tmp, THIS_LINE);
 
       device.Swap(tmpDevice);

@@ -21,18 +21,16 @@ msgid "Just a message with context"
 msgstr "ru: just a message with context"
 
 #: test.cpp:36
-#, boost-format
-msgid "Single form for %1%"
-msgid_plural "Plural form for %1%"
-msgstr[0] "ru: plural form 0 for %1%"
-msgstr[1] "ru: plural form 1 for %1%"
-msgstr[2] "ru: plural form 2 for %1%"
+msgid "Single form for {}"
+msgid_plural "Plural form for {}"
+msgstr[0] "ru: plural form 0 for {}"
+msgstr[1] "ru: plural form 1 for {}"
+msgstr[2] "ru: plural form 2 for {}"
 
 #: test.cpp:37
-#, boost-format
 msgctxt "another context"
-msgid "Single form for %1% with context"
-msgid_plural "Plural form for %1% with context"
-msgstr[0] "ru: plural form 0 for %1% with context"
-msgstr[1] "ru: plural form 1 for %1% with context"
-msgstr[2] "ru: plural form 2 for %1% with context"
+msgid "Single form for {} with context"
+msgid_plural "Plural form for {} with context"
+msgstr[0] "ru: plural form 0 for {} with context"
+msgstr[1] "ru: plural form 1 for {} with context"
+msgstr[2] "ru: plural form 2 for {} with context"

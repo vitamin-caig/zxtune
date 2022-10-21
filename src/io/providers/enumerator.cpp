@@ -43,7 +43,7 @@ namespace IO
     void RegisterProvider(DataProvider::Ptr provider) override
     {
       Providers.push_back(provider);
-      Dbg("Registered provider '%1%'", provider->Id());
+      Dbg("Registered provider '{}'", provider->Id());
       const Strings::Set& schemes = provider->Schemes();
       for (const auto& scheme : schemes)
       {
@@ -53,24 +53,24 @@ namespace IO
 
     Identifier::Ptr ResolveUri(const String& uri) const override
     {
-      Dbg("Resolving uri '%1%'", uri);
+      Dbg("Resolving uri '{}'", uri);
       if (const Identifier::Ptr id = Resolve(uri))
       {
         return id;
       }
       Dbg(" No suitable provider found");
-      throw MakeFormattedError(THIS_LINE, translate("Failed to resolve uri '%1%'."), uri);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to resolve uri '{}'."), uri);
     }
 
     Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params,
                                     Log::ProgressCallback& cb) const override
     {
-      Dbg("Opening path '%1%'", path);
+      Dbg("Opening path '{}'", path);
       if (Identifier::Ptr id = Resolve(path))
       {
         if (const DataProvider* provider = FindProvider(id->Scheme()))
         {
-          Dbg(" Used provider '%1%'", provider->Id());
+          Dbg(" Used provider '{}'", provider->Id());
           return provider->Open(id->Path(), params, cb);
         }
       }
@@ -81,12 +81,12 @@ namespace IO
     Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params,
                                            Log::ProgressCallback& cb) const override
     {
-      Dbg("Creating stream '%1%'", path);
+      Dbg("Creating stream '{}'", path);
       if (Identifier::Ptr id = Resolve(path))
       {
         if (const DataProvider* provider = FindProvider(id->Scheme()))
         {
-          Dbg(" Used provider '%1%'", provider->Id());
+          Dbg(" Used provider '{}'", provider->Id());
           // pass nonchanged parameter to lower level
           return provider->Create(path, params, cb);
         }

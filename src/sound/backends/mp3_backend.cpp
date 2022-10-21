@@ -45,7 +45,7 @@ namespace Sound::Mp3
   {
     if (res < 0)
     {
-      throw MakeFormattedError(loc, translate("Error in MP3 backend: %1%."), res);
+      throw MakeFormattedError(loc, translate("Error in MP3 backend: {}."), res);
     }
   }
 
@@ -130,7 +130,7 @@ namespace Sound::Mp3
     void ResizeBuffer()
     {
       Encoded.resize(Encoded.size() * 2);
-      Dbg("Increase buffer to %1% bytes", Encoded.size());
+      Dbg("Increase buffer to {} bytes", Encoded.size());
     }
 
   private:
@@ -180,7 +180,7 @@ namespace Sound::Mp3
       }
       else
       {
-        throw MakeFormattedError(THIS_LINE, translate("MP3 backend error: invalid bitrate mode '%1%'."), mode);
+        throw MakeFormattedError(THIS_LINE, translate("MP3 backend error: invalid bitrate mode '{}'."), mode);
       }
     }
 
@@ -190,7 +190,7 @@ namespace Sound::Mp3
       if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Mp3::BITRATE, bitrate)
           && !Math::InRange<Parameters::IntType>(bitrate, BITRATE_MIN, BITRATE_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, translate("MP3 backend error: bitrate (%1%) is out of range (%2%..%3%)."),
+        throw MakeFormattedError(THIS_LINE, translate("MP3 backend error: bitrate ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(bitrate), BITRATE_MIN, BITRATE_MAX);
       }
       return static_cast<uint_t>(bitrate);
@@ -202,7 +202,7 @@ namespace Sound::Mp3
       if (Params->FindValue(Parameters::ZXTune::Sound::Backends::Mp3::QUALITY, quality)
           && !Math::InRange<Parameters::IntType>(quality, QUALITY_MIN, QUALITY_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, translate("MP3 backend error: quality (%1%) is out of range (%2%..%3%)."),
+        throw MakeFormattedError(THIS_LINE, translate("MP3 backend error: quality ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(quality), QUALITY_MIN, QUALITY_MAX);
       }
       return static_cast<uint_t>(quality);
@@ -230,7 +230,7 @@ namespace Sound::Mp3
       }
       else
       {
-        throw MakeFormattedError(THIS_LINE, translate("MP3 backend error: invalid channels mode '%1%'."), mode);
+        throw MakeFormattedError(THIS_LINE, translate("MP3 backend error: invalid channels mode '{}'."), mode);
       }
     }
 
@@ -265,7 +265,7 @@ namespace Sound::Mp3
       const StreamParameters stream(Params);
 
       const uint_t samplerate = GetSoundFrequency(*Params);
-      Dbg("Setting samplerate to %1%Hz", samplerate);
+      Dbg("Setting samplerate to {}Hz", samplerate);
       CheckLameCall(LameApi->lame_set_in_samplerate(&ctx, samplerate), THIS_LINE);
       CheckLameCall(LameApi->lame_set_out_samplerate(&ctx, samplerate), THIS_LINE);
       CheckLameCall(LameApi->lame_set_num_channels(&ctx, Sample::CHANNELS), THIS_LINE);
@@ -275,7 +275,7 @@ namespace Sound::Mp3
       case MODE_CBR:
       {
         const uint_t bitrate = stream.GetBitrate();
-        Dbg("Setting bitrate to %1%kbps", bitrate);
+        Dbg("Setting bitrate to {}kbps", bitrate);
         CheckLameCall(LameApi->lame_set_VBR(&ctx, vbr_off), THIS_LINE);
         CheckLameCall(LameApi->lame_set_brate(&ctx, bitrate), THIS_LINE);
       }
@@ -283,7 +283,7 @@ namespace Sound::Mp3
       case MODE_ABR:
       {
         const uint_t bitrate = stream.GetBitrate();
-        Dbg("Setting average bitrate to %1%kbps", bitrate);
+        Dbg("Setting average bitrate to {}kbps", bitrate);
         CheckLameCall(LameApi->lame_set_VBR(&ctx, vbr_abr), THIS_LINE);
         CheckLameCall(LameApi->lame_set_VBR_mean_bitrate_kbps(&ctx, bitrate), THIS_LINE);
       }
@@ -291,7 +291,7 @@ namespace Sound::Mp3
       case MODE_VBR:
       {
         const uint_t quality = stream.GetQuality();
-        Dbg("Setting VBR quality to %1%", quality);
+        Dbg("Setting VBR quality to {}", quality);
         CheckLameCall(LameApi->lame_set_VBR(&ctx, vbr_default), THIS_LINE);
         CheckLameCall(LameApi->lame_set_VBR_q(&ctx, quality), THIS_LINE);
       }
@@ -353,7 +353,7 @@ namespace Sound
     try
     {
       const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
-      Mp3::Dbg("Detected LAME library %1%", api->get_lame_version());
+      Mp3::Dbg("Detected LAME library {}", api->get_lame_version());
       const BackendWorkerFactory::Ptr factory = MakePtr<Mp3::BackendWorkerFactory>(api);
       storage.Register(Mp3::BACKEND_ID, Mp3::BACKEND_DESCRIPTION, CAP_TYPE_FILE, factory);
     }

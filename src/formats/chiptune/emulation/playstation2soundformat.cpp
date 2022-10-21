@@ -157,12 +157,12 @@ namespace Formats::Chiptune
       {
         Require(depth < 10);
         const uint_t entries = Stream.Read<le_uint32_t>();
-        Dbg("%2% entries at '%1%'", path, entries);
+        Dbg("{} entries at '{}'", entries, path);
         for (uint_t idx = 0; idx < entries; ++idx)
         {
           const auto entryPos = Stream.GetPosition();
           const DirectoryEntry entry(Stream);
-          Dbg("%1% (offset=%2% size=%3% block=%4%)", entry.Name, entry.Offset, entry.Size, entry.BlockSize);
+          Dbg("{} (offset={} size={} block={})", entry.Name, entry.Offset, entry.Size, entry.BlockSize);
           auto entryPath = path + entry.Name;
           Stream.Seek(entry.Offset);
           if (entry.IsDir())
@@ -198,7 +198,7 @@ namespace Formats::Chiptune
         for (const auto size : blocksSizes)
         {
           const auto unpackedSize = std::min(blockSize, fileSize - offset);
-          Dbg(" @%1%: %2% -> %3%", offset, size, unpackedSize);
+          Dbg(" @{}: {} -> {}", offset, size, unpackedSize);
           auto packed = Stream.ReadContainer(size);
           auto unpacked = Binary::Compression::Zlib::CreateDeferredDecompressContainer(std::move(packed), unpackedSize);
           result.emplace(offset, std::move(unpacked));

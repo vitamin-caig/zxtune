@@ -455,24 +455,24 @@ namespace
       , Routine(MakePtr<ScanRoutine>(static_cast<ScannerCallback&>(*this), provider))
       , ScanJob(Async::CreateJob(Routine))
     {
-      Dbg("Created at %1%", this);
+      Dbg("Created at {}", Self());
     }
 
     ~ScannerImpl() override
     {
-      Dbg("Destroyed at %1%", this);
+      Dbg("Destroyed at {}", Self());
     }
 
     void AddItems(const QStringList& items) override
     {
-      Dbg("Added %1% items to %2%", items.size(), this);
+      Dbg("Added {} items to {}", items.size(), Self());
       Routine->Add(items);
       ScanJob->Start();
     }
 
     void PasteItems(const QStringList& items) override
     {
-      Dbg("Paste %1% items to %2%", items.size(), this);
+      Dbg("Paste {} items to {}", items.size(), Self());
       // TODO: optimize
       const Playlist::IO::Container::Ptr container = Playlist::IO::OpenPlainList(Provider, items);
       emit ItemsFound(container->GetItems());
@@ -480,7 +480,7 @@ namespace
 
     void Pause(bool pause) override
     {
-      Dbg(pause ? "Pausing %1%" : "Resuming %1%", this);
+      Dbg(pause ? "Pausing {}" : "Resuming {}", Self());
       if (pause)
       {
         ScanJob->Pause();
@@ -493,11 +493,16 @@ namespace
 
     void Stop() override
     {
-      Dbg("Stopping %1%", this);
+      Dbg("Stopping {}", Self());
       ScanJob->Stop();
     }
 
   private:
+    const void* Self() const
+    {
+      return this;
+    }
+
     void OnItem(Playlist::Item::Data::Ptr item) override
     {
       emit ItemFound(item);

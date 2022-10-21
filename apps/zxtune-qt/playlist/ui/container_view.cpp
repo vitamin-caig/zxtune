@@ -131,12 +131,12 @@ namespace
       Parameters::BooleanValue::Bind(*actionRandom, *Options, Parameters::ZXTuneQT::Playlist::RANDOMIZED,
                                      Parameters::ZXTuneQT::Playlist::RANDOMIZED_DEFAULT);
 
-      Dbg("Created at %1%", this);
+      Dbg("Created at {}", Self());
     }
 
     ~ContainerViewImpl() override
     {
-      Dbg("Destroyed at %1%", this);
+      Dbg("Destroyed at {}", Self());
     }
 
     void Setup() override
@@ -267,7 +267,8 @@ namespace
       view->hide();  // to save layout
       view->GetPlaylist()->Shutdown();
       widgetsContainer->removeTab(index);
-      Dbg("Closed playlist idx=%1% val=%2%, active=%3%", index, view, ActivePlaylistView);
+      Dbg("Closed playlist idx={} val={}, active={}", index, static_cast<const void*>(view),
+          static_cast<const void*>(ActivePlaylistView));
       if (view == ActivePlaylistView)
       {
         emit Deactivated();
@@ -300,6 +301,11 @@ namespace
     }
 
   private:
+    const void* Self() const
+    {
+      return this;
+    }
+
     void CreatePlaylist(Playlist::Controller::Ptr ctrl) override
     {
       RegisterPlaylist(ctrl);
@@ -391,7 +397,7 @@ namespace
 
     void SwitchTo(Playlist::UI::View* plView)
     {
-      Dbg("Switch playlist %1% -> %2%", ActivePlaylistView, plView);
+      Dbg("Switch playlist {} -> {}", static_cast<const void*>(ActivePlaylistView), static_cast<const void*>(plView));
       const bool wasPrevious = ActivePlaylistView != nullptr;
       if (wasPrevious)
       {
@@ -455,7 +461,7 @@ namespace
       Parameters::IntType idx = 0, trk = 0;
       Options->FindValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
       Options->FindValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
-      Dbg("Restore current playlist %1% with track %2%", idx, trk);
+      Dbg("Restore current playlist {} with track {}", idx, trk);
       ActivatePlaylist(idx);
       widgetsContainer->setCurrentIndex(idx);
       const Playlist::Controller::Ptr playlist = ActivePlaylistView->GetPlaylist();
@@ -469,7 +475,7 @@ namespace
       Session->Save(iter);
       const uint_t idx = widgetsContainer->indexOf(ActivePlaylistView);
       const uint_t trk = ActivePlaylistView->GetPlaylist()->GetIterator()->GetIndex();
-      Dbg("Store current playlist %1% (visible is %2%), track %3%", idx, widgetsContainer->currentIndex(), trk);
+      Dbg("Store current playlist {} (visible is {}), track {}", idx, widgetsContainer->currentIndex(), trk);
       Options->SetValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
       Options->SetValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
     }

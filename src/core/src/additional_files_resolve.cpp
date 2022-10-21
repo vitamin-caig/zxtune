@@ -34,7 +34,7 @@ namespace Module
         auto newFilenames = files.Enumerate();
         if (newFilenames == filenames)
         {
-          throw MakeFormattedError(THIS_LINE, translate("None of the additional files %1% were resolved."),
+          throw MakeFormattedError(THIS_LINE, translate("None of the additional files {} were resolved."),
                                    boost::algorithm::join(filenames, ","));
         }
         filenames.swap(newFilenames);

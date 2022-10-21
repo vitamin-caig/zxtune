@@ -133,14 +133,14 @@ namespace Formats::Chiptune
       {
         Description& desc = Samples[idx];
         desc = Description(loop, std::move(data));
-        Dbg(" size #%1$05x, loop #%2$04x%3%", desc.Content.size(), loop, desc.Is4Bit ? " 4bit" : "");
+        Dbg(" size #{:05x}, loop #{:04x}{}", desc.Content.size(), loop, desc.Is4Bit ? " 4bit" : "");
         ++SamplesTotal;
         Samples4Bit += desc.Is4Bit;
       }
 
       bool Is4Bit() const
       {
-        Dbg("%1% 4-bit samples out of %2%", Samples4Bit, SamplesTotal);
+        Dbg("{} 4-bit samples out of {}", Samples4Bit, SamplesTotal);
         return Samples4Bit >= SamplesTotal / 2;
       }
 
@@ -226,7 +226,7 @@ namespace Formats::Chiptune
         Digital::Positions positions;
         positions.Loop = Source.Loop;
         positions.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + Source.Length);
-        Dbg("Positions: %1%, loop to %2%", positions.GetSize(), positions.GetLoop());
+        Dbg("Positions: {}, loop to {}", positions.GetSize(), positions.GetLoop());
         target.SetPositions(std::move(positions));
       }
 
@@ -235,7 +235,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           PatternBuilder& patBuilder = target.StartPattern(patIndex);
           ParsePattern(Source.Patterns[patIndex], patBuilder, target);
         }
@@ -247,7 +247,7 @@ namespace Formats::Chiptune
         {
           const uint_t samIdx = *it;
           const SampleInfo& info = Source.Samples[samIdx];
-          Dbg("Sample %1%: start=#%2$04x loop=#%3$04x page=#%4$02x size=#%5$04x", samIdx, info.Start, info.Loop,
+          Dbg("Sample {}: start=#{:04x} loop=#{:04x} page=#{:02x} size=#{:04x}", samIdx, info.Start, info.Loop,
               unsigned(info.Page), info.Size);
           if (!ParseSample(samIdx, info, samples))
           {
@@ -392,11 +392,11 @@ namespace Formats::Chiptune
             const auto part1 = RawData.SubView(firstOffset, firstSize);
             const std::size_t secondOffset = offsets[pageNumber];
             const std::size_t secondSize = sampleOffsetInPage + sampleSize - ZX_PAGE_SIZE;
-            Dbg(" Two parts in low memory: #%1$05x..#%2$05x + #%3$05x..#%4$05x", firstOffset, firstOffset + firstSize,
+            Dbg(" Two parts in low memory: #{:05x}..#{:05x} + #{:05x}..#{:05x}", firstOffset, firstOffset + firstSize,
                 secondOffset, secondOffset + secondSize);
             if (const auto part2 = GetSampleData(secondOffset, secondSize))
             {
-              Dbg(" Using two parts with sizes #%1$05x + #%2$05x", part1.Size(), part2.Size());
+              Dbg(" Using two parts with sizes #{:05x} + #{:05x}", part1.Size(), part2.Size());
               out.Add(samIdx, loop, part1, part2);
               return true;
             }
@@ -410,7 +410,7 @@ namespace Formats::Chiptune
           else
           {
             const std::size_t dataOffset = offsets[0] + sampleOffsetInPage;
-            Dbg(" One part in low memory: #%1$05x..#%2$05x", dataOffset, dataOffset + sampleSize);
+            Dbg(" One part in low memory: #{:05x}..#{:05x}", dataOffset, dataOffset + sampleSize);
             if (const auto data = GetSampleData(dataOffset, sampleSize))
             {
               out.Add(samIdx, loop, data);
@@ -421,7 +421,7 @@ namespace Formats::Chiptune
         else
         {
           const std::size_t dataOffset = offsets[pageNumber] + sampleOffsetInPage;
-          Dbg(" Hi memory: #%1$05x..#%2$05x", dataOffset, dataOffset + sampleSize);
+          Dbg(" Hi memory: #{:05x}..#{:05x}", dataOffset, dataOffset + sampleSize);
           if (const auto data = GetSampleData(dataOffset, sampleSize))
           {
             out.Add(samIdx, loop, data);

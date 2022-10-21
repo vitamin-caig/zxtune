@@ -16,6 +16,8 @@
 #include <parameters/serialize.h>
 #include <strings/map.h>
 // std includes
+#include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <fstream>
 
@@ -88,7 +90,7 @@ namespace
         }
         else
         {
-          throw MakeFormattedError(THIS_LINE, "Invalid parameter format '%1%'.", str);
+          throw MakeFormattedError(THIS_LINE, "Invalid parameter format '{}'.", str);
         }
         break;
       case IN_VALUE:
@@ -133,7 +135,7 @@ namespace
     }
     else if (IN_NOWHERE != mode)
     {
-      throw MakeFormattedError(THIS_LINE, "Invalid parameter format '%1%'.", str);
+      throw MakeFormattedError(THIS_LINE, "Invalid parameter format '{}'.", str);
     }
     result.swap(res);
   }

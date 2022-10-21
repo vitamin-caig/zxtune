@@ -59,7 +59,7 @@ namespace IO::Network
       : Api(std::move(api))
       , Object(Api->curl_easy_init())
     {
-      Dbg("Curl(%1%): created", Object);
+      Dbg("Curl({}): created", Object);
     }
 
     ~CurlObject()
@@ -67,7 +67,7 @@ namespace IO::Network
       if (Object)
       {
         Api->curl_easy_cleanup(Object);
-        Dbg("Curl(%1%): destroyed", Object);
+        Dbg("Curl({}): destroyed", Object);
       }
     }
 
@@ -93,7 +93,7 @@ namespace IO::Network
     {
       if (code != CURLE_OK)
       {
-        throw MakeFormattedError(loc, translate("Network error happends: %1%"), Api->curl_easy_strerror(code));
+        throw MakeFormattedError(loc, translate("Network error happends: {}"), Api->curl_easy_strerror(code));
       }
     }
 
@@ -151,7 +151,7 @@ namespace IO::Network
       Object.GetInfo(CURLINFO_RESPONSE_CODE, &retCode, THIS_LINE);
       if (IsHttpErrorCode(retCode))
       {
-        throw MakeFormattedError(THIS_LINE, translate("Http error happends: %1%."), retCode);
+        throw MakeFormattedError(THIS_LINE, translate("Http error happends: {}."), retCode);
       }
       return Binary::CreateContainer(std::move(result));
     }
@@ -170,13 +170,13 @@ namespace IO::Network
       switch (type)
       {
       case CURLINFO_TEXT:
-        Dbg("Curl(%1%): %2%", obj, str);
+        Dbg("Curl({}): {}", obj, str);
         break;
       case CURLINFO_HEADER_IN:
-        Dbg("Curl(%1%): -> %2%", obj, str);
+        Dbg("Curl({}): -> {}", obj, str);
         break;
       case CURLINFO_HEADER_OUT:
-        Dbg("Curl(%1%): <- %2%", obj, str);
+        Dbg("Curl({}): <- {}", obj, str);
         break;
       default:
         break;
@@ -357,7 +357,7 @@ namespace IO::Network
       }
       catch (const Error& e)
       {
-        throw MakeFormattedError(THIS_LINE, translate("Failed to open network resource '%1%'."), path).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to open network resource '{}'."), path).AddSuberror(e);
       }
     }
 
@@ -385,7 +385,7 @@ namespace IO
     try
     {
       const Curl::Api::Ptr api = Curl::LoadDynamicApi();
-      Network::Dbg("Detected CURL library %1%", api->curl_version());
+      Network::Dbg("Detected CURL library {}", api->curl_version());
       enumerator.RegisterProvider(CreateNetworkDataProvider(api));
     }
     catch (const Error& e)

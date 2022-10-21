@@ -115,7 +115,7 @@ namespace Formats::Packed
         }
         else
         {
-          Dbg("Restore %1% bytes", DestSize);
+          Dbg("Restore {} bytes", DestSize);
           return Data;
         }
       }
@@ -135,7 +135,7 @@ namespace Formats::Packed
 
       Binary::Container::Ptr Decompress() const override
       {
-        Dbg("Inflate %1% -> %2%", Data->Size(), DestSize);
+        Dbg("Inflate {} -> {}", Data->Size(), DestSize);
         try
         {
           Binary::DataInputStream input(*Data);
@@ -146,7 +146,7 @@ namespace Formats::Packed
         }
         catch (const Error& e)
         {
-          Dbg("Failed to inflate: %1%", e.ToString());
+          Dbg("Failed to inflate: {}", e.ToString());
         }
         catch (const std::exception&)
         {

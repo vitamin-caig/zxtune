@@ -182,7 +182,7 @@ namespace
 
     void OnEntry(const RSS::Entry& e) override
     {
-      Dbg("Feed entry '%1%'", FromQString(e.Title));
+      Dbg("Feed entry '{}'", FromQString(e.Title));
       if (-1 == ContentMatch.indexIn(e.HtmlContent))
       {
         Dbg("Failed to parse html content");

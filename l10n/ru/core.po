@@ -11,9 +11,8 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#, boost-format
-msgid "None of the additional files %1% were resolved."
-msgstr "Ни один из внешних файлов из %1% не подходит."
+msgid "None of the additional files {} were resolved."
+msgstr "Ни один из внешних файлов из {} не подходит."
 
 msgid "Failed to resolve additional files."
 msgstr "Ошибка загрузки дополнительных файлов."
@@ -21,6 +20,5 @@ msgstr "Ошибка загрузки дополнительных файлов.
 msgid "Failed to find module at specified location."
 msgstr "Модуль не найден по указанному пути."
 
-#, boost-format
-msgid "Failed to resolve subpath '%1%'."
-msgstr "Ошибка получения данных по пути '%1%'."
+msgid "Failed to resolve subpath '{}'."
+msgstr "Ошибка получения данных по пути '{}'."

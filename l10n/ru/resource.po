@@ -11,13 +11,11 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#, boost-format
-msgid "Failed to load resource archive '%1%'."
-msgstr "Ошибка загрузки архива ресурсов '%1%'."
+msgid "Failed to load resource archive '{}'."
+msgstr "Ошибка загрузки архива ресурсов '{}'."
 
 msgid "Failed to find resource archive."
 msgstr "Архив ресурсов не найден."
 
-#, boost-format
-msgid "Failed to load resource file '%1%'."
-msgstr "Ошибка загрузки файла ресурсов '%1%'."
+msgid "Failed to load resource file '{}'."
+msgstr "Ошибка загрузки файла ресурсов '{}'."

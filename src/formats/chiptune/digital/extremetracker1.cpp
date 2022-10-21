@@ -431,7 +431,7 @@ namespace Formats::Chiptune
         Positions result;
         result.Loop = Source.LoopPosition;
         result.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + std::max<uint_t>(Source.Length, 1));
-        Dbg("Positions: %1%, loop to %2%", result.GetSize(), result.GetLoop());
+        Dbg("Positions: {}, loop to {}", result.GetSize(), result.GetLoop());
         target.SetPositions(std::move(result));
       }
 
@@ -440,7 +440,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           const Pattern& source = Source.Patterns[patIndex];
           ParsePattern(source, patIndex, target);
         }
@@ -465,7 +465,7 @@ namespace Formats::Chiptune
                                               {0x13c00, 0x8400, 0x10000}};
 
         target.SetSamplesFrequency(Version.GetSamplesFrequency());
-        Dbg("Parse %1% samples", sams.Count());
+        Dbg("Parse {} samples", sams.Count());
         for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
@@ -477,21 +477,21 @@ namespace Formats::Chiptune
           if (0 == bank.FileOffset || 0 == info.Blocks || rawAddr < bank.Addr || rawEnd > bank.End || rawLoop < rawAddr
               || rawLoop > rawEnd)
           {
-            Dbg("Skip sample %1%", samIdx);
+            Dbg("Skip sample {}", samIdx);
             continue;
           }
           const std::size_t size = rawEnd - rawAddr;
           const std::size_t offset = bank.FileOffset + (rawAddr - bank.Addr);
           if (const auto sample = GetSample(offset, size))
           {
-            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", samIdx, rawAddr, rawLoop, sample.Size(),
+            Dbg("Sample {}: start=#{:04x} loop=#{:04x} size=#{:04x} bank={}", samIdx, rawAddr, rawLoop, sample.Size(),
                 uint_t(info.Page));
             const std::size_t loop = rawLoop - bank.Addr;
             target.SetSample(samIdx, loop, sample);
           }
           else
           {
-            Dbg("Empty sample %1%", samIdx);
+            Dbg("Empty sample {}", samIdx);
           }
         }
       }

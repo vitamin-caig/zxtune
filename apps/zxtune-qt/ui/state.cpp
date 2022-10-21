@@ -369,7 +369,7 @@ namespace
       const SortState sortstate(View);
       if (!View.restoreState(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_LAYOUT)))
       {
-        Dbg("Failed to restore state of QHeaderView(%1%)", FromQString(View.objectName()));
+        Dbg("Failed to restore state of QHeaderView({})", FromQString(View.objectName()));
       }
     }
 
@@ -425,7 +425,7 @@ namespace
       Parameters::IntType val;
       if (!Wid.restoreGeometry(LoadBlob(*Container, Parameters::ZXTuneQT::UI::PARAM_GEOMETRY)))
       {
-        Dbg("Failed to restore geometry of QWidget(%1%)", FromQString(Wid.objectName()));
+        Dbg("Failed to restore geometry of QWidget({})", FromQString(Wid.objectName()));
       }
       else if (Container->FindValue(Parameters::ZXTuneQT::UI::PARAM_VISIBLE, val))
       {

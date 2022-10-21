@@ -55,7 +55,7 @@ namespace Sound::Sdl
           && (!Math::InRange<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX)))
       {
         throw MakeFormattedError(THIS_LINE,
-                                 translate("SDL backend error: buffers count (%1%) is out of range (%2%..%3%)."),
+                                 translate("SDL backend error: buffers count ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<uint_t>(val);
@@ -115,7 +115,7 @@ namespace Sound::Sdl
 
     void SetSize(uint_t size)
     {
-      Dbg("Change buffers count %1% -> %2%", Buffers.size(), size);
+      Dbg("Change buffers count {} -> {}", Buffers.size(), size);
       Buffers.resize(size);
       FillIter = CycledIterator<Buffer*>(Buffers.data(), Buffers.data() + Buffers.size());
       PlayIter = FillIter;
@@ -254,7 +254,7 @@ namespace Sound::Sdl
       {
         if (const char* txt = SdlApi->SDL_GetError())
         {
-          throw MakeFormattedError(loc, translate("Error in SDL backend: %1%."), txt);
+          throw MakeFormattedError(loc, translate("Error in SDL backend: {}."), txt);
         }
         throw Error(loc, translate("Unknown error in SDL backend."));
       }
@@ -298,7 +298,7 @@ namespace Sound
     {
       const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
       const SDL_version* const vers = api->SDL_Linked_Version();
-      Sdl::Dbg("Detected SDL %1%.%2%.%3%", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
+      Sdl::Dbg("Detected SDL {}.{}.{}", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
       const BackendWorkerFactory::Ptr factory = MakePtr<Sdl::BackendWorkerFactory>(api);
       storage.Register(Sdl::BACKEND_ID, Sdl::BACKEND_DESCRIPTION, Sdl::CAPABILITIES, factory);
     }

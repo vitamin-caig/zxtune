@@ -24,7 +24,7 @@ namespace
     for (const Device::Iterator::Ptr devices = EnumerateDevices(); devices->IsValid(); devices->Next())
     {
       const Device::Ptr device = devices->Get();
-      std::cout << Strings::Format("Name: '%1%' Card: '%2%' Id: '%3%'\n", device->Name(), device->CardName(),
+      std::cout << Strings::Format("Name: '{}' Card: '{}' Id: '{}'\n", device->Name(), device->CardName(),
                                    device->Id());
       const Strings::Array& mixers = device->Mixers();
       for (Strings::Array::const_iterator mit = mixers.begin(), mlim = mixers.end(); mit != mlim; ++mit)
@@ -41,7 +41,7 @@ namespace
     for (const Device::Iterator::Ptr devices = EnumerateDevices(); devices->IsValid(); devices->Next())
     {
       const Device::Ptr device = devices->Get();
-      std::cout << Strings::Format(" Name: '%1%' Id: '%2%'", device->Name(), device->Id()) << std::endl;
+      std::cout << Strings::Format(" Name: '{}' Id: '{}'", device->Name(), device->Id()) << std::endl;
     }
   }
 
@@ -52,7 +52,7 @@ namespace
     const Strings::Array& devices = EnumerateDevices();
     for (Strings::Array::const_iterator it = devices.begin(), lim = devices.end(); it != lim; ++it)
     {
-      std::cout << Strings::Format(" Name: %1%", *it) << std::endl;
+      std::cout << Strings::Format(" Name: {}", *it) << std::endl;
     }
   }
 
@@ -63,7 +63,7 @@ namespace
     for (const Device::Iterator::Ptr devices = EnumerateDevices(); devices->IsValid(); devices->Next())
     {
       const Device::Ptr device = devices->Get();
-      std::cout << Strings::Format(" Name: '%1%' Id: '%2%'", device->Name(), device->Id()) << std::endl;
+      std::cout << Strings::Format(" Name: '{}' Id: '{}'", device->Name(), device->Id()) << std::endl;
     }
   }
 }  // namespace

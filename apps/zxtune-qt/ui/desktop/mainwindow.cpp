@@ -158,7 +158,7 @@ namespace
     void StartModule(Sound::Backend::Ptr /*player*/, Playlist::Item::Data::Ptr item) override
     {
       setWindowTitle(
-          ToQString(Strings::Format("%2% [%1%]", Platform::Version::GetProgramTitle(), item->GetDisplayName())));
+          ToQString(Strings::Format("{1} [{0}]", Platform::Version::GetProgramTitle(), item->GetDisplayName())));
       Playing = true;
     }
 

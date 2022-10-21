@@ -25,6 +25,8 @@
 // std includes
 #include <algorithm>
 #include <functional>
+// boost includes
+#include <boost/optional.hpp>
 
 #define FILE_TAG 6575CD3F
 
@@ -185,7 +187,7 @@ namespace Sound::Flac
       if (!res)
       {
         const FLAC__StreamEncoderState state = FlacApi->FLAC__stream_encoder_get_state(Encoder.get());
-        throw MakeFormattedError(loc, translate("Error in FLAC backend (code %1%)."), state);
+        throw MakeFormattedError(loc, translate("Error in FLAC backend (code {})."), static_cast<int>(state));
       }
     }
 
@@ -258,16 +260,16 @@ namespace Sound::Flac
       CheckFlacCall(FlacApi->FLAC__stream_encoder_set_channels(&encoder, Sample::CHANNELS), THIS_LINE);
       CheckFlacCall(FlacApi->FLAC__stream_encoder_set_bits_per_sample(&encoder, Sample::BITS), THIS_LINE);
       const uint_t samplerate = GetSoundFrequency(*Params);
-      Dbg("Setting samplerate to %1%Hz", samplerate);
+      Dbg("Setting samplerate to {}Hz", samplerate);
       CheckFlacCall(FlacApi->FLAC__stream_encoder_set_sample_rate(&encoder, samplerate), THIS_LINE);
       if (const auto compression = stream.GetCompressionLevel())
       {
-        Dbg("Setting compression level to %1%", *compression);
+        Dbg("Setting compression level to {}", *compression);
         CheckFlacCall(FlacApi->FLAC__stream_encoder_set_compression_level(&encoder, *compression), THIS_LINE);
       }
       if (const auto blocksize = stream.GetBlockSize())
       {
-        Dbg("Setting block size to %1%", *blocksize);
+        Dbg("Setting block size to {}", *blocksize);
         CheckFlacCall(FlacApi->FLAC__stream_encoder_set_blocksize(&encoder, *blocksize), THIS_LINE);
       }
     }

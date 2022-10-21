@@ -96,7 +96,7 @@ namespace
       }
       if (const Playlist::Model::IndexType* moved = remapping->FindNewIndex(Index))
       {
-        Dbg("Iterator: index updated %1% -> %2%", Index, *moved);
+        Dbg("Iterator: index updated {} -> {}", Index, *moved);
         Index = *moved;
         return;
       }
@@ -113,7 +113,7 @@ namespace
     {
       if (Playlist::Item::Data::Ptr item = Model->GetItem(idx))
       {
-        Dbg("Iterator: selected %1%", idx);
+        Dbg("Iterator: selected {}", idx);
         Index = idx;
         if (item->GetState())
         {
@@ -159,7 +159,7 @@ namespace
       if (const Playlist::Item::Data::Ptr item = Model->GetItem(idx))
       {
         Index = idx;
-        Dbg("Iterator: activated at %1%.", idx);
+        Dbg("Iterator: activated at {}.", idx);
         emit Activated(item);
       }
     }
@@ -193,12 +193,12 @@ namespace
       Require(Model->connect(Scanner, SIGNAL(ItemsFound(Playlist::Item::Collection::Ptr)),
                              SLOT(AddItems(Playlist::Item::Collection::Ptr)), Qt::DirectConnection));
 
-      Dbg("Created at %1%", this);
+      Dbg("Created at {}", static_cast<void*>(this));
     }
 
     ~ControllerImpl() override
     {
-      Dbg("Destroyed at %1%", this);
+      Dbg("Destroyed at {}", static_cast<void*>(this));
 
       Scanner->Stop();
     }
@@ -234,7 +234,7 @@ namespace
 
     void Shutdown() override
     {
-      Dbg("Shutdown at %1%", this);
+      Dbg("Shutdown at {}", static_cast<void*>(this));
       Scanner->Stop();
       Model->CancelLongOperation();
     }

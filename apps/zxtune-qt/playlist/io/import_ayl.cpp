@@ -294,7 +294,7 @@ namespace
 
     void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
-      Dbg("  property %1%=%2%", static_cast<StringView>(name), val);
+      Dbg("  property {}={}", static_cast<StringView>(name), val);
       if (name == AYL::CHIP_FREQUENCY)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, val);
@@ -316,7 +316,7 @@ namespace
 
     void SetValue(Parameters::Identifier name, StringView val) override
     {
-      Dbg("  property %1%='%2%'", static_cast<StringView>(name), val);
+      Dbg("  property {}='{}'", static_cast<StringView>(name), val);
       if (name == AYL::CHIP_TYPE)
       {
         Delegate.SetValue(Parameters::ZXTune::Core::AYM::TYPE, DecodeChipType(val));
@@ -459,7 +459,7 @@ namespace
     for (AYLContainer::Iterator iter = aylItems.GetIterator(); iter.IsValid(); iter.Next())
     {
       const String& itemPath = iter.GetPath();
-      Dbg("Processing '%1%'", itemPath);
+      Dbg("Processing '{}'", itemPath);
       Playlist::IO::ContainerItem item;
       const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();
       ParametersFilter filter(version, *adjustedParams);
@@ -512,7 +512,7 @@ namespace Playlist
       {
         return Container::Ptr();
       }
-      Dbg("Processing AYL version %1%", vers);
+      Dbg("Processing AYL version {}", vers);
       const VersionLayer version(vers);
       LinesSource lines(stream, version);
       const AYLContainer aylItems(lines, cb);

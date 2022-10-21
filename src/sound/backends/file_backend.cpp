@@ -188,11 +188,11 @@ namespace Sound::File
 
   String InstantiateModuleFields(const String& nameTemplate, const Parameters::Accessor& props)
   {
-    Dbg("Original filename template: '%1%'", nameTemplate);
+    Dbg("Original filename template: '{}'", nameTemplate);
     const Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource> moduleFields(props);
     const Strings::Template::Ptr templ = IO::CreateFilenameTemplate(nameTemplate);
     const String nameTemplateWithRuntimeFields = templ->Instantiate(moduleFields);
-    Dbg("Fixed filename template: '%1%'", nameTemplateWithRuntimeFields);
+    Dbg("Fixed filename template: '{}'", nameTemplateWithRuntimeFields);
     return nameTemplateWithRuntimeFields;
   }
 

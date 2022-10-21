@@ -157,7 +157,7 @@ namespace Module::SDSF
         const auto rawStart = static_cast<le_uint32_t*>(const_cast<void*>(unpackedSection->Start()));
         const auto toCopy = FixupSection(rawStart, rawSize);
         // TODO: make input const
-        Dbg("Section %1% -> %2%  @ 0x%3$08x", packed->Size(), toCopy, *rawStart);
+        Dbg("Section {} -> {}  @ 0x{:08x}", packed->Size(), toCopy, *rawStart);
         Require(0 == ::sega_upload_program(Emu.get(), rawStart, toCopy));
       }
     }

@@ -207,12 +207,12 @@ namespace Formats::Archived::FSB
           }
           else
           {
-            Dbg("Ignore invalid lookup %1%@%2%", position, offset);
+            Dbg("Ignore invalid lookup {}@{}", position, offset);
           }
         }
         if (!dst.Setup)
         {
-          Dbg("Unknown vorbis metadata for sample #%1% ('%2%') crc=%3%", CurSample, dst.Name, crc);
+          Dbg("Unknown vorbis metadata for sample #{} ('{}') crc={}", CurSample, dst.Name, crc);
         }
         // Require(dst.Setup);
       }
@@ -230,7 +230,7 @@ namespace Formats::Archived::FSB
           {
             break;
           }
-          Dbg("Drop invalid lookup %1%@%2%", last.Position, last.Offset);
+          Dbg("Drop invalid lookup {}@{}", last.Position, last.Offset);
           dst.Lookup.pop_back();
         }
         dst.Lookup.emplace_back(std::move(limiter));

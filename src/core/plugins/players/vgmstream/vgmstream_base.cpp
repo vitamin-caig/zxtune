@@ -78,12 +78,12 @@ namespace Module::VGMStream
           std::find_if(Content.begin(), Content.end(), [name](const auto& entry) { return name == entry.first; });
       if (it != Content.end() && it->second)
       {
-        Dbg("Found %1%", name);
+        Dbg("Found {}", name);
         return *it->second;
       }
       else
       {
-        Dbg("Not found %1%", name);
+        Dbg("Not found {}", name);
         if (it == Content.end())
         {
           Content.emplace_back(name, Binary::Data::Ptr());
@@ -114,7 +114,7 @@ namespace Module::VGMStream
           result.emplace_back(entry.first);
         }
       }
-      Dbg("Up to %1% unresolved files", result.size());
+      Dbg("Up to {} unresolved files", result.size());
       return result;
     }
 
@@ -278,7 +278,7 @@ namespace Module::VGMStream
     {
       ::vgmstream_mixing_autodownmix(Tune.get(), Sound::Sample::CHANNELS);
       ::vgmstream_mixing_enable(Tune.get(), SamplesPerFrame, nullptr, &Channels);
-      Dbg("Rendering %1%Hz/%2%ch -> %3%Hz/%4%ch", Tune->sample_rate, Tune->channels, samplerate, Channels);
+      Dbg("Rendering {}Hz/{}ch -> {}Hz/{}ch", Tune->sample_rate, Tune->channels, samplerate, Channels);
     }
 
     State::Ptr GetState() const override
@@ -431,7 +431,7 @@ namespace Module::VGMStream
     stream.stream_index = subtrackIndex + 1;  // 1-based really
     if (auto result = VGMStreamPtr(::init_vgmstream_from_STREAMFILE(&stream), &::close_vgmstream))
     {
-      Dbg("Found stream with %1% streams, %2% samples at %3%Hz", result->num_streams, result->num_samples,
+      Dbg("Found stream with {} streams, {} samples at {}Hz", result->num_streams, result->num_samples,
           result->sample_rate);
       if ((subtrackIndex == -1 && result->num_streams > 1) || result->num_samples >= result->sample_rate / 100)
       {
@@ -500,7 +500,7 @@ namespace Module::VGMStream
 
     void Resolve(const String& name, Binary::Container::Ptr data) override
     {
-      Dbg("Resolving dependency '%1%'", name);
+      Dbg("Resolving dependency '{}'", name);
       Model->Resolve(name, std::move(data));
       TryCreateDelegate();
     }
@@ -620,7 +620,7 @@ namespace Module::VGMStream
         try
         {
           // assume all dump is used
-          Dbg("Trying %1%", Desc.Description);
+          Dbg("Trying {}", Desc.Description);
           auto vfs = MakePtr<Vfs>(Desc.Suffix, container.GetSubcontainer(0, container.Size()));
           if (auto singlefile = TryCreateModule(vfs, properties))
           {
@@ -634,7 +634,7 @@ namespace Module::VGMStream
         }
         catch (const std::exception& e)
         {
-          Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
+          Dbg("Failed to create {}: {}", Desc.Id, e.what());
         }
         return {};
       }
@@ -737,7 +737,7 @@ namespace Module::VGMStream
       {
         try
         {
-          Dbg("Trying %1%", Desc.Description);
+          Dbg("Trying {}", Desc.Description);
           // assume all dump is used
           auto vfs = MakePtr<Vfs>(Desc.Suffix, container.GetSubcontainer(0, container.Size()));
           if (auto singlefile = TryCreateModule(vfs, properties, container.StartTrackIndex()))
@@ -752,7 +752,7 @@ namespace Module::VGMStream
         }
         catch (const std::exception& e)
         {
-          Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
+          Dbg("Failed to create {}: {}", Desc.Id, e.what());
         }
         return {};
       }

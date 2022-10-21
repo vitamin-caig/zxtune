@@ -96,7 +96,7 @@ namespace
             FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
         const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
         stream->ApplyData(*data.Data);
-        Display.Message(Strings::Format("Converted '%1%' => '%2%'", id, filename));
+        Display.Message("Converted '{0}' => '{1}'", id, filename);
       }
       catch (const Error& e)
       {
@@ -200,7 +200,7 @@ namespace
         Parameters::StringType type;
         props->FindValue(Module::ATTR_TYPE, type);
         const String& id = GetModuleId(*props);
-        Display.Message(Strings::Format("Skipping '%1%' (type '%2%') due to convert impossibility.", id, type));
+        Display.Message("Skipping '{0}' (type '{1}') due to convert impossibility.", id, type);
       }
     }
 
@@ -288,8 +288,8 @@ namespace
         }
         const auto real = timer.Elapsed<>();
         const auto relSpeed = total.Divide<double>(real);
-        Display.Message(Strings::Format("x%|3$.2f|\t(%2%)\t%1%\t[0x%4$08x]\t{%5%..%6%}", path, type, relSpeed,
-                                        receiver.GetHash(), receiver.GetMinSample(), receiver.GetMaxSample()));
+        Display.Message("x{2:.2f}\t({1})\t{0}\t[0x{3:08x}]\t{{{4}..{5}}}", path, type, relSpeed, receiver.GetHash(),
+                        receiver.GetMinSample(), receiver.GetMaxSample());
       }
       catch (const std::exception& e)
       {
@@ -309,14 +309,14 @@ namespace
     {
       if (DumpUnknownData)
       {
-        Display.Message(Strings::Format("Unknown\t(%2%)\t%1%\t[%3%]", path, container, data->Size()));
+        Display.Message("Unknown\t({1})\t{0}\t[{2}]", path, container, data->Size());
       }
     }
 
   private:
     void BenchmarkFail(const String& path, const String& type, std::string msg) const
     {
-      Display.Message(Strings::Format("Fail\t(%2%)\t%1%\t[%3%]", path, type, msg));
+      Display.Message("Fail\t({1})\t{0}\t[{2}]", path, type, msg);
     }
 
     class BenchmarkSoundReceiver
@@ -428,7 +428,7 @@ namespace
 
         String configFile;
         options_description options(
-            Strings::Format("Usage:\n%1% <Informational keys>\n%1% <Options> <files>...\n\nKeys", args[0]));
+            Strings::Format("Usage:\n{0} <Informational keys>\n{0} <Options> <files>...\n\nKeys", args[0]));
         const Char HELP_KEY[] = "help";
         const Char VERSION_KEY[] = "version";
         const Char ABOUT_KEY[] = "about";
@@ -494,7 +494,7 @@ namespace
       }
       catch (const std::exception& e)
       {
-        throw MakeFormattedError(THIS_LINE, "Error: %1%", e.what());
+        throw MakeFormattedError(THIS_LINE, "Error: {}", e.what());
       }
     }
 

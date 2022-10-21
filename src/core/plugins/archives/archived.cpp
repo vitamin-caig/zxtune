@@ -73,7 +73,7 @@ namespace ZXTune
       }
       else
       {
-        ArchivedDbg("'%1%' is too big (%1%). Skipping.", name, size);
+        ArchivedDbg("'{}' is too big ({}). Skipping.", name, size);
       }
       Logger.Report(name);
     }
@@ -173,7 +173,7 @@ namespace ZXTune
       {
         resolved = resolved->Append(components->Get());
         const String filename = resolved->AsString();
-        ArchivedDbg("Trying '%1%'", filename);
+        ArchivedDbg("Trying '{}'", filename);
         if (auto file = container.FindFile(filename))
         {
           ArchivedDbg("Found");
@@ -203,13 +203,13 @@ namespace ZXTune
 
   String ProgressMessage(const String& id, const String& path)
   {
-    return path.empty() ? Strings::Format(translate("%1% processing"), id)
-                        : Strings::Format(translate("%1% processing at %2%"), id, path);
+    return path.empty() ? Strings::Format(translate("{} processing"), id)
+                        : Strings::Format(translate("{0} processing at {1}"), id, path);
   }
 
   String ProgressMessage(const String& id, const String& path, const String& element)
   {
-    return path.empty() ? Strings::Format(translate("%1% processing for %2%"), id, element)
-                        : Strings::Format(translate("%1% processing for %2% at %3%"), id, element, path);
+    return path.empty() ? Strings::Format(translate("{0} processing for {1}"), id, element)
+                        : Strings::Format(translate("{0} processing for {1} at {2}"), id, element, path);
   }
 }  // namespace ZXTune

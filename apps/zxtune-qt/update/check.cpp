@@ -188,7 +188,7 @@ namespace
       : AsDate(VersionToDate(ver, date))
       , AsRev(VersionToRevision(ver))
     {
-      Dbg("Version(%1%, %2%) = (date=%3%, rev=%4%)", FromQString(ver), FromQString(date.toString()),
+      Dbg("Version({}, {}) = (date={}, rev={})", FromQString(ver), FromQString(date.toString()),
           FromQString(AsDate.toString()), AsRev);
     }
 
@@ -243,10 +243,10 @@ namespace
       , CurTypes(Product::SupportedUpdateTypes())
       , UpdateRank(~std::size_t(0))
     {
-      Dbg("Supported update types: %1% items", CurTypes.size());
+      Dbg("Supported update types: {} items", CurTypes.size());
       for (auto type : CurTypes)
       {
-        Dbg(" %1%", type);
+        Dbg(" {}", int(type));
       }
     }
 
@@ -254,7 +254,7 @@ namespace
     {
       const Product::Update::TypeTag type =
           Product::GetUpdateType(update->Platform(), update->Architecture(), update->Packaging());
-      Dbg("Update %1%, type %2%", FromQString(update->Title()), type);
+      Dbg("Update {}, type {}", FromQString(update->Title()), int(type));
       const std::vector<Product::Update::TypeTag>::const_iterator it =
           std::find(CurTypes.begin(), CurTypes.end(), type);
       if (CurTypes.end() == it)
@@ -272,7 +272,7 @@ namespace
           Update = update;
           UpdateRank = rank;
           UpdateVersion = version;
-          Dbg(" using: rank=%1%", rank);
+          Dbg(" using: rank={}", rank);
         }
         else
         {
@@ -327,7 +327,7 @@ namespace
       {
         Object = Binary::OutputStream::Ptr();
         const bool res = Info.absoluteDir().remove(Info.fileName());
-        Dbg("Remove failed saving: %1%", res);
+        Dbg("Remove failed saving: {}", res);
       }
     }
 

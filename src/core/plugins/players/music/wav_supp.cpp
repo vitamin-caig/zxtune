@@ -233,7 +233,7 @@ namespace Module::Wav
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create WAV: %s", e.what());
+        Dbg("Failed to create WAV: {}", e.what());
       }
       return {};
     }

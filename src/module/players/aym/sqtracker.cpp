@@ -164,7 +164,7 @@ namespace Module::SQTracker
       {
         const uint_t newIdx = uniqPositions.Add(Positions.GetLine(pos));
         newIndices[pos] = newIdx;
-        Dbg("Position[%1%] -> %2%", pos, newIdx);
+        Dbg("Position[{}] -> {}", pos, newIdx);
       }
       return MakePtr<SimpleOrderList>(Positions.Loop, std::move(newIndices));
     }
@@ -180,7 +180,7 @@ namespace Module::SQTracker
         if (donePatterns.insert(patIdx).second)
         {
           const Formats::Chiptune::SQTracker::PositionEntry& patAttrs = Positions.GetLine(pos);
-          Dbg("Pattern %1%", patIdx);
+          Dbg("Pattern {}", patIdx);
           builder.SetPattern(patIdx);
           ConvertPattern(patAttrs, builder);
         }
@@ -291,7 +291,7 @@ namespace Module::SQTracker
     {
       const MultiPattern inPattern(*RawPatterns, patAttrs);
       const uint_t maxLines = inPattern.GetSize();
-      Dbg(" subpatterns (%1%, %2%, %3%), size=%4%", patAttrs.Channels[0].Pattern, patAttrs.Channels[1].Pattern,
+      Dbg(" subpatterns ({}, {}, {}), size={}", patAttrs.Channels[0].Pattern, patAttrs.Channels[1].Pattern,
           patAttrs.Channels[2].Pattern, maxLines);
       MutablePatternHelper outPattern(builder);
       uint_t tempo = patAttrs.Tempo;

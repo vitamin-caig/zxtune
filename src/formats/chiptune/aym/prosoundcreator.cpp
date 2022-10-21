@@ -37,7 +37,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ProSoundCreator");
 
-    const Char EDITOR[] = "Pro Sound Creator v%1%";
+    const Char EDITOR[] = "Pro Sound Creator v{}";
     const Char EDITOR_OLD[] = "Pro Sound Creator v1.00-1.03";
     const Char EDITOR_NEW[] = "Pro Sound Creator v1.04-1.07";
 
@@ -479,7 +479,7 @@ namespace Formats::Chiptune
 
       void Add(std::size_t offset, std::size_t size) const
       {
-        Dbg(" Affected range %1%..%2%", offset, offset + size);
+        Dbg(" Affected range {}..{}", offset, offset + size);
         Require(TotalRanges->AddRange(offset, size));
       }
 
@@ -613,7 +613,7 @@ namespace Formats::Chiptune
           const uint_t patIndex = patterns.Add(pat);
           positions.Lines.push_back(patIndex);
         }
-        Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
+        Dbg("Positions: {} entries, loop to {}", positions.GetSize(), positions.GetLoop());
         builder.SetPositions(std::move(positions));
         return patterns;
       }
@@ -624,7 +624,7 @@ namespace Formats::Chiptune
         for (PatternsSet::Iterator it = patterns.Get(); it; ++it)
         {
           const RawPattern& pat = *it;
-          Dbg("Parse pattern %1%", pat.Index);
+          Dbg("Parse pattern {}", pat.Index);
           if (ParsePattern(pat, builder))
           {
             hasValidPatterns = true;
@@ -635,12 +635,12 @@ namespace Formats::Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        Dbg("Samples: %1% to parse", samples.Count());
+        Dbg("Samples: {} to parse", samples.Count());
         const std::size_t samplesTableStart = sizeof(RawHeader);
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;
-          Dbg("Parse sample %1%", samIdx);
+          Dbg("Parse sample {}", samIdx);
           const std::size_t offsetAddr = samplesTableStart + samIdx * sizeof(uint16_t);
           const std::size_t sampleAddr = Trait.SamplesBase + GetServiceObject<le_uint16_t>(offsetAddr);
           builder.SetSample(samIdx, ParseSample(sampleAddr));
@@ -649,7 +649,7 @@ namespace Formats::Chiptune
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
-        Dbg("Ornaments: %1% to parse", ornaments.Count());
+        Dbg("Ornaments: {} to parse", ornaments.Count());
         // Some of the modules (e.g. Story Map.psc) references more ornaments than really stored
         const std::size_t ornamentsTableStart = Source.OrnamentsTableOffset;
         const std::size_t ornamentsTableEnd = Source.SamplesStart;
@@ -659,14 +659,14 @@ namespace Formats::Chiptune
           const uint_t ornIdx = *it;
           if (ornIdx < maxOrnaments)
           {
-            Dbg("Parse ornament %1%", ornIdx);
+            Dbg("Parse ornament {}", ornIdx);
             const std::size_t offsetAddr = ornamentsTableStart + ornIdx * sizeof(uint16_t);
             const std::size_t ornamentAddr = Trait.OrnamentsBase + GetServiceObject<le_uint16_t>(offsetAddr);
             builder.SetOrnament(ornIdx, ParseOrnament(ornamentAddr));
           }
           else
           {
-            Dbg("Parse stub ornament %1%", ornIdx);
+            Dbg("Parse stub ornament {}", ornIdx);
             builder.SetOrnament(ornIdx, Ornament());
           }
         }
@@ -798,7 +798,7 @@ namespace Formats::Chiptune
           const std::size_t start = rangesStarts[chanNum];
           if (start >= Data.Size())
           {
-            Dbg("Invalid offset (%1%)", start);
+            Dbg("Invalid offset ({})", start);
           }
           else
           {

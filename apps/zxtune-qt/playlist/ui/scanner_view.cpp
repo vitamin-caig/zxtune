@@ -42,24 +42,24 @@ namespace
       Require(Scanner->connect(scanCancel, SIGNAL(clicked()), SLOT(Stop())));
       Require(Scanner->connect(scanPause, SIGNAL(toggled(bool)), SLOT(Pause(bool))));
 
-      Dbg("Created at %1%", this);
+      Dbg("Created at {}", Self());
     }
 
     ~ScannerViewImpl() override
     {
-      Dbg("Destroyed at %1%", this);
+      Dbg("Destroyed at {}", Self());
     }
 
     void ScanStart(Playlist::ScanStatus::Ptr status) override
     {
-      Dbg("Scan started for %1%", this);
+      Dbg("Scan started for {}", Self());
       Status = status;
       show();
     }
 
     void ScanStop() override
     {
-      Dbg("Scan stopped for %1%", this);
+      Dbg("Scan stopped for {}", Self());
       hide();
       scanPause->setChecked(false);
     }
@@ -86,6 +86,11 @@ namespace
     }
 
   private:
+    const void* Self() const
+    {
+      return this;
+    }
+
     void CheckedShow()
     {
       if (!isVisible())

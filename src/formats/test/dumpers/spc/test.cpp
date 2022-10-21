@@ -22,8 +22,8 @@ namespace
   public:
     void SetRegisters(uint16_t pc, uint8_t a, uint8_t x, uint8_t y, uint8_t psw, uint8_t sp) override
     {
-      std::cout << Strings::Format("Registers: PC=0x%04x A=0x%02x X=0x%02x Y=0x%02x PSW=0x%02x SP=0x%02x\n", uint_t(pc),
-                                   uint_t(a), uint_t(x), uint_t(y), uint_t(psw), uint_t(sp));
+      std::cout << Strings::Format("Registers: PC=0x{:04x} A=0x{:02x} X=0x{:02x} Y=0x{:02x} PSW=0x{:02x} SP=0x{:02x}\n",
+                                   uint_t(pc), uint_t(a), uint_t(x), uint_t(y), uint_t(psw), uint_t(sp));
     }
 
     void SetTitle(String title) override
