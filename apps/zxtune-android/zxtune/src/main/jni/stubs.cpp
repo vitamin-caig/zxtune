@@ -8,7 +8,12 @@
  *
  **/
 
-namespace __gnu_cxx
-{
-  void __verbose_terminate_handler() {}
-}  // namespace __gnu_cxx
+#include <types.h>
+
+extern "C" char __cxa_demangle(const char*,char*,size_t*,int* status) {
+  if (status)
+  {
+    *status = -1;
+  }
+  return 0;
+}
