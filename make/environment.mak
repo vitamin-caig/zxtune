@@ -26,8 +26,8 @@ android.x86_64.cxx.flags = -m64 -target x86_64-linux-android21
 android.x86_64.ld.flags = -target x86_64-linux-android21
 # armeabi-v7a
 android.armeabi-v7a.execprefix = $(android.toolchain)/arm-linux-androideabi-
-android.armeabi-v7a.cxx.flags = -target armv7a-linux-androideabi16
-android.armeabi-v7a.ld.flags = -target armv7a-linux-androideabi16
+android.armeabi-v7a.cxx.flags = -mthumb -target armv7a-linux-androideabi16
+android.armeabi-v7a.ld.flags = -mthumb -target armv7a-linux-androideabi16
 # arm64-v8a
 android.arm64-v8a.execprefix = $(android.toolchain)/aarch64-linux-android-
 android.arm64-v8a.cxx.flags = -target aarch64-linux-android21
