@@ -65,7 +65,7 @@ namespace ZXTune
       return Decoder->GetFormat();
     }
 
-    Analysis::Result::Ptr Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+    Analysis::Result::Ptr Detect(const Parameters::Accessor&, DataLocation::Ptr inputData,
                                  ArchiveCallback& callback) const override
     {
       auto rawData = inputData->GetData();
