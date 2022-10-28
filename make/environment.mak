@@ -12,7 +12,7 @@ defines += HAVE_STDINT_H
 
 #android
 # All assembler-related options (e.g. -Wa,--noexecstack) are not applicable for lto mode.
-android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector-strong -fomit-frame-pointer -fno-addrsig -flto
+android.cxx.flags = -no-canonical-prefixes -funwind-tables -fstack-protector-strong -fomit-frame-pointer -fno-addrsig -flto -Wno-gnu-string-literal-operator-template
 android.ld.flags = -no-canonical-prefixes -Wl,-soname,$(notdir $@) -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -static-libstdc++ -fuse-ld=lld -flto
 #assume that all the platforms are little-endian
 #this required to use boost which doesn't know anything about __armel__ or __mipsel__
