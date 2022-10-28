@@ -67,6 +67,19 @@ namespace Formats::Chiptune
       std::array<le_uint16_t, MAX_SAMPLES_COUNT> SamplesOffsets;
       std::array<le_uint16_t, MAX_ORNAMENTS_COUNT> OrnamentsOffsets;
       uint8_t Positions[1];  // finished by marker
+
+      StringView GetProgram() const
+      {
+        const char COMPILATION_OF[] = "COMPILATION OF";
+        const auto opt = Strings::TrimSpaces(Optional1);
+        return boost::algorithm::iequals(opt, COMPILATION_OF) ? StringView(Id.data(), Optional1.data())
+                                                              : StringView(Id.data(), &Optional1.back() + 1);
+      }
+
+      uint_t GetVersion() const
+      {
+        return std::isdigit(Subversion) ? Subversion - '0' : 6;
+      }
     };
 
     const uint8_t POS_END_MARKER = 0xff;
@@ -311,7 +324,7 @@ namespace Formats::Chiptune
       void ParseCommonProperties(Builder& builder) const
       {
         MetaBuilder& meta = builder.GetMetaBuilder();
-        meta.SetProgram(Strings::OptimizeAscii(StringView(Source.Id.data(), &Source.Optional1.back() + 1)));
+        meta.SetProgram(Strings::OptimizeAscii(Source.GetProgram()));
         const RawId& id = Source.Metainfo;
         if (id.HasAuthor())
         {
@@ -322,8 +335,7 @@ namespace Formats::Chiptune
         {
           meta.SetTitle(DecodeString(StringView(id.TrackName.data(), &id.TrackAuthor.back() + 1)));
         }
-        const uint_t version = std::isdigit(Source.Subversion) ? Source.Subversion - '0' : 6;
-        builder.SetVersion(version);
+        builder.SetVersion(Source.GetVersion());
         if (Math::InRange<uint_t>(Source.FreqTableNum, PROTRACKER, NATURAL))
         {
           builder.SetNoteTable(static_cast<NoteTable>(Source.FreqTableNum));
