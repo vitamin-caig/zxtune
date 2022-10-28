@@ -341,10 +341,10 @@
 
 /* Define to disable error messages in combination with a return value (the
    return is left intact). */
-/* #undef NO_ERETURN */
+#define NO_ERETURN
 
 /* Define to disable error messages. */
-/* #undef NO_ERRORMSG */
+#define NO_ERRORMSG
 
 /* Define to disable feeder and buffered readers. */
 /* #undef NO_FEEDER */
@@ -380,7 +380,7 @@
 /* #undef NO_SYNTH32 */
 
 /* Define to disable warning messages. */
-/* #undef NO_WARNING */
+#define NO_WARNING
 
 /* Name of package */
 #define PACKAGE "mpg123"
