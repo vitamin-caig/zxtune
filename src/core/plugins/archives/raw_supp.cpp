@@ -614,7 +614,7 @@ namespace ZXTune::Raw
       return Delegate->Description();
     }
 
-    uint_t Capabilities() const
+    uint_t Capabilities() const override
     {
       return Delegate->Capabilities();
     }

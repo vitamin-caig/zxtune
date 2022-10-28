@@ -98,7 +98,7 @@ namespace ZXTune
       auto data = inputData->GetData();
       if (auto container = Decoder->Decode(*data))
       {
-        if (Detect(params, std::move(inputData), *container, callback))
+        if (DetectModules(params, std::move(inputData), *container, callback))
         {
           return Analysis::CreateMatchedResult(container->Size());
         }
@@ -113,8 +113,8 @@ namespace ZXTune
     }
 
   private:
-    bool Detect(const Parameters::Accessor& params, DataLocation::Ptr inputData,
-                const Formats::Multitrack::Container& container, Module::DetectCallback& callback) const
+    bool DetectModules(const Parameters::Accessor& params, DataLocation::Ptr inputData,
+                       const Formats::Multitrack::Container& container, Module::DetectCallback& callback) const
     {
       const auto tracksCount = container.TracksCount();
       if (tracksCount == 0)

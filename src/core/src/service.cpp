@@ -295,7 +295,7 @@ namespace ZXTune
         Delegate.ProcessModule(location, decoder, std::move(holder));
       }
 
-      void ProcessUnknownData(const ZXTune::DataLocation& location)
+      void ProcessUnknownData(const ZXTune::DataLocation& location) override
       {
         Delegate.ProcessUnknownData(location);
       }
