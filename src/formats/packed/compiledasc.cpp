@@ -20,6 +20,7 @@
 #include <binary/format_factories.h>
 #include <debug/log.h>
 // std includes
+#include <algorithm>
 #include <array>
 
 namespace Formats::Packed
@@ -239,7 +240,7 @@ namespace Formats::Packed
         Dbg("Invalid player");
         return Container::Ptr();
       }
-      Dbg("Detected player in first %1% bytes", rawPlayer.Size);
+      Dbg("Detected player in first {} bytes", rawPlayer.Size);
       const auto modData = rawData.GetSubcontainer(rawPlayer.Size, MAX_MODULE_SIZE);
       const auto rawInfo = data.SubView(rawPlayer.InfoOffset, sizeof(InfoData));
       auto& stub = Formats::Chiptune::ASCSoundMaster::GetStubBuilder();

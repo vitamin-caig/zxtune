@@ -242,19 +242,19 @@ namespace
     LinearStorage()
       : Version(0)
     {
-      Dbg("Created at %1%", this);
+      Dbg("Created at {}", Self());
     }
 
     LinearStorage(const LinearStorage& rh)
       : Version(0)
       , Items(rh.Items)
     {
-      Dbg("Created at %1% (cloned from %2% with %3% items)", this, &rh, Items.size());
+      Dbg("Created at {} (cloned from {} with {} items)", Self(), rh.Self(), Items.size());
     }
 
     ~LinearStorage() override
     {
-      Dbg("Destroyed at %1% with %2% items", this, Items.size());
+      Dbg("Destroyed at {} with {} items", Self(), Items.size());
     }
 
     Item::Storage::Ptr Clone() const override
@@ -391,6 +391,11 @@ namespace
     }
 
   private:
+    const void* Self() const
+    {
+      return this;
+    }
+
     static Model::OldToNewIndexMap::value_type MakeIndexPair(const IndexedItem& item, Model::IndexType idx)
     {
       return Model::OldToNewIndexMap::value_type(item.second, idx);
@@ -427,7 +432,7 @@ namespace
         std::advance(entry.second, delta);
         if (Math::Absolute(delta) > std::ptrdiff_t(CACHE_THRESHOLD))
         {
-          Dbg("Cached iterator for idx=%1%. Nearest idx=%2%, delta=%3%", idx, entry.first, delta);
+          Dbg("Cached iterator for idx={}. Nearest idx={}, delta={}", idx, entry.first, delta);
           entry.first += delta;
           IteratorsCache.insert(entry);
         }

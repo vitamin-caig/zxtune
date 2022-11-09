@@ -209,7 +209,7 @@ namespace Formats::Archived
             }
             else
             {
-              return Strings::Format("#%1%", idx);
+              return Strings::Format("#{}", idx);
             }
           }
 

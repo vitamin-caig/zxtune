@@ -33,7 +33,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::ChipTracker");
 
-    const Char EDITOR[] = "Chip Tracker v%1%";
+    const Char EDITOR[] = "Chip Tracker v{}";
 
     // const std::size_t MAX_MODULE_SIZE = 65536;
     const std::size_t MAX_PATTERN_SIZE = 64;
@@ -284,7 +284,7 @@ namespace Formats::Chiptune
         Positions result;
         result.Loop = Source.Loop;
         result.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + Source.Length + 1);
-        Dbg("Positions: %1%, loop to %2%", result.GetSize(), result.GetLoop());
+        Dbg("Positions: {}, loop to {}", result.GetSize(), result.GetLoop());
         target.SetPositions(std::move(result));
       }
 
@@ -293,7 +293,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           PatternBuilder& patBuilder = target.StartPattern(patIndex);
           ParsePattern(patIndex, patBuilder, target);
         }
@@ -315,8 +315,8 @@ namespace Formats::Chiptune
           {
             if (sams.Contain(samIdx))
             {
-              Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x (avail=#%5$04x)", samIdx, sampleStart, loop,
-                  size, availSize);
+              Dbg("Sample {}: start=#{:04x} loop=#{:04x} size=#{:04x} (avail=#{:04x})", samIdx, sampleStart, loop, size,
+                  availSize);
               AddRange(sampleStart, availSize);
               target.SetSample(samIdx, loop, RawData.SubView(sampleStart, availSize));
             }

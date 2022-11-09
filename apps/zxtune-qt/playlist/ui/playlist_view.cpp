@@ -200,12 +200,12 @@ namespace
       , Delegate(model)
     {
       setSourceModel(&model);
-      Dbg("Created retranslation model at %1% for %2%", this, &model);
+      Dbg("Created retranslation model at {} for {}", Self(), static_cast<const void*>(&model));
     }
 
     ~RetranslateModel() override
     {
-      Dbg("Destroyed retranslation model at %1%", this);
+      Dbg("Destroyed retranslation model at {}", Self());
     }
 
     QVariant headerData(int section, Qt::Orientation orientation, int role) const override
@@ -240,6 +240,11 @@ namespace
     }
 
   private:
+    const void* Self() const
+    {
+      return this;
+    }
+
     QVariant GetTooltip(int_t itemNum) const
     {
       if (const auto item = Delegate.GetItem(itemNum))
@@ -368,12 +373,12 @@ namespace
       Require(connect(OperationProgress, SIGNAL(Canceled()), SLOT(LongOperationCancel())));
 
       LayoutState->AddWidget(*View->horizontalHeader());
-      Dbg("Created at %1%", this);
+      Dbg("Created at {}", Self());
     }
 
     ~ViewImpl() override
     {
-      Dbg("Destroyed at %1%", this);
+      Dbg("Destroyed at {}", Self());
     }
 
     Playlist::Controller::Ptr GetPlaylist() const override
@@ -571,19 +576,24 @@ namespace
 
     void showEvent(QShowEvent* event) override
     {
-      Dbg("Layout load for %1%", this);
+      Dbg("Layout load for {}", Self());
       LayoutState->Load();
       event->accept();
     }
 
     void hideEvent(QHideEvent* event) override
     {
-      Dbg("Layout save for %1%", this);
+      Dbg("Layout save for {}", Self());
       LayoutState->Save();
       event->accept();
     }
 
   private:
+    const void* Self() const
+    {
+      return this;
+    }
+
     void UpdateState(Playlist::Item::State state)
     {
       const Playlist::Item::Iterator::Ptr iter = Controller->GetIterator();

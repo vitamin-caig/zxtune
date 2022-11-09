@@ -50,7 +50,7 @@ namespace Formats::Archived
 
       Binary::Container::Ptr GetData() const override
       {
-        Dbg("Decompressing '%1%'", Name);
+        Dbg("Decompressing '{}'", Name);
         return Decoder.Decode(*Data);
       }
 
@@ -233,7 +233,7 @@ namespace Formats::Archived
         , Decoder(std::move(decoder))
         , FilesCount(filesCount)
       {
-        Dbg("Found %1% files. Size is %2%", filesCount, Delegate->Size());
+        Dbg("Found {} files. Size is {}", filesCount, Delegate->Size());
       }
 
       void ExploreFiles(const Container::Walker& walker) const override
@@ -286,11 +286,11 @@ namespace Formats::Archived
           const String fileName = Iter->GetName();
           if (!Iter->IsValid())
           {
-            Dbg("Invalid file '%1%'", fileName);
+            Dbg("Invalid file '{}'", fileName);
             Iter->Next();
             continue;
           }
-          Dbg("Found file '%1%'", fileName);
+          Dbg("Found file '{}'", fileName);
           const File::Ptr fileObject = Iter->GetFile();
           Files.insert(FilesMap::value_type(fileName, fileObject));
           Iter->Next();

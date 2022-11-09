@@ -56,7 +56,7 @@ namespace ZXTune
         const auto path = location.GetPath();
         if (const auto dir = path->GetParent())
         {
-          Dbg("Archived multifile %1% at '%2%'", decoder.Id(), path->AsString());
+          Dbg("Archived multifile {} at '{}'", decoder.Id(), path->AsString());
           try
           {
             const ArchivedFilesSource source(dir, Source);
@@ -85,7 +85,7 @@ namespace ZXTune
       Binary::Container::Ptr Get(const String& name) const override
       {
         const auto subpath = Dir->Append(name)->AsString();
-        Dbg("Resolve '%1%' as '%2%'", name, subpath);
+        Dbg("Resolve '{}' as '{}'", name, subpath);
         return Delegate.Get(subpath);
       }
 
@@ -229,7 +229,7 @@ namespace ZXTune
       const auto sourcePath = Analysis::ParsePath(subpath, Module::SUBPATH_DELIMITER);
       for (auto unresolved = sourcePath; !unresolved->Empty();)
       {
-        Dbg("Resolving '%1%'", unresolved->AsString());
+        Dbg("Resolving '{}'", unresolved->AsString());
         resolvedLocation = TryToOpenLocation(resolvedLocation, *unresolved);
         if (resolvedLocation)
         {
@@ -239,9 +239,9 @@ namespace ZXTune
             continue;
           }
         }
-        throw MakeFormattedError(THIS_LINE, translate("Failed to resolve subpath '%1%'."), subpath);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to resolve subpath '{}'."), subpath);
       }
-      Dbg("Resolved '%1%'", subpath);
+      Dbg("Resolved '{}'", subpath);
       return resolvedLocation;
     }
 
@@ -333,7 +333,7 @@ namespace ZXTune
         const auto result = plugin->Detect(*Params, location, callback);
         if (auto usedSize = result->GetMatchedDataSize())
         {
-          Dbg("Detected %1% in %2% bytes at %3%.", plugin->Id(), usedSize, location->GetPath()->AsString());
+          Dbg("Detected {} in {} bytes at {}.", plugin->Id(), usedSize, location->GetPath()->AsString());
           return usedSize;
         }
       }

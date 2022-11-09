@@ -13,6 +13,7 @@
 // library includes
 #include <module/holder.h>
 #include <sound/backend.h>
+#include <strings/format.h>
 #include <time/duration.h>
 // std includes
 #include <memory>
@@ -35,6 +36,12 @@ public:
 
   // commandline-related part
   virtual const boost::program_options::options_description& GetOptionsDescription() const = 0;
+
+  template<class... P>
+  void Message(const char* msg, P&&... params)
+  {
+    Message(Strings::Format(msg, std::forward<P>(params)...));
+  }
 
   virtual void Message(const String& msg) = 0;
   virtual void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player) = 0;

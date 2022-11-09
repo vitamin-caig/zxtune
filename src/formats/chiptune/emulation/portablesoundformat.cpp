@@ -87,7 +87,7 @@ namespace Formats::Chiptune::PortableSoundFormat
       Require(0 == std::memcmp(sign.Start(), SIGNATURE, sizeof(SIGNATURE)));
       const uint_t version = Stream.ReadByte();
       target.SetVersion(version);
-      Dbg("Version %1%", version);
+      Dbg("Version {}", version);
     }
 
     void ParseData(Builder& target)
@@ -97,14 +97,14 @@ namespace Formats::Chiptune::PortableSoundFormat
       const uint32_t compressedCrc = Stream.Read<le_uint32_t>();
       if (auto reserved = Stream.ReadContainer(reservedSize))
       {
-        Dbg("Reserved section %1% bytes", reservedSize);
+        Dbg("Reserved section {} bytes", reservedSize);
         target.SetReservedSection(std::move(reserved));
       }
       if (compressedSize)
       {
         auto programPacked = Stream.ReadContainer(compressedSize);
         Require(compressedCrc == Binary::Crc32(*programPacked));
-        Dbg("Program section %1% bytes", compressedSize);
+        Dbg("Program section {} bytes", compressedSize);
         target.SetPackedProgramSection(std::move(programPacked));
       }
     }
@@ -126,7 +126,7 @@ namespace Formats::Chiptune::PortableSoundFormat
           // Blank lines, or lines not of the form "variable=value", are ignored.
           continue;
         }
-        Dbg("tags[%1%]=%2%", name, valueView);
+        Dbg("tags[{}]={}", name, valueView);
         if (const auto num = FindLibraryNumber(name))
         {
           target.SetLibrary(num, valueView.to_string());

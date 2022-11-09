@@ -228,7 +228,7 @@ namespace IO::File
     const std::streampos read = stream.read(safe_ptr_cast<char*>(res->data()), size).tellg();
     if (static_cast<std::size_t>(read) != size)
     {
-      throw MakeFormattedError(THIS_LINE, translate("Failed to read %1% bytes. Actually got %2% bytes."), size, read);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to read {0} bytes. Actually got {1} bytes."), size, read);
     }
     // TODO: Binary::CreateData
     return Binary::CreateContainer(std::move(res));
@@ -295,13 +295,13 @@ namespace IO::File
     }
     else if (size >= mmapThreshold)
     {
-      Dbg("Using memory-mapped i/o for '%1%'.", path);
+      Dbg("Using memory-mapped i/o for '{}'.", path);
       // use local encoding here
       return OpenMemoryMappedFile(fileName.string());
     }
     else
     {
-      Dbg("Reading '%1%' to memory.", path);
+      Dbg("Reading '{}' to memory.", path);
       boost::filesystem::ifstream stream(fileName, std::ios::binary);
       return ReadFileToMemory(stream, static_cast<std::size_t>(size));
     }
@@ -324,7 +324,7 @@ namespace IO::File
     {
       if (!Stream.write(static_cast<const char*>(data.Start()), data.Size()))
       {
-        throw MakeFormattedError(THIS_LINE, translate("Failed to write file '%1%'"), Name);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to write file '{}'"), Name);
       }
     }
 
@@ -332,7 +332,7 @@ namespace IO::File
     {
       if (!Stream.flush())
       {
-        throw MakeFormattedError(THIS_LINE, translate("Failed to flush file '%1%'"), Name);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to flush file '{}'"), Name);
       }
     }
 
@@ -340,7 +340,7 @@ namespace IO::File
     {
       if (!Stream.seekp(pos))
       {
-        throw MakeFormattedError(THIS_LINE, translate("Failed to seek file '%1%'"), Name);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to seek file '{}'"), Name);
       }
     }
 
@@ -392,7 +392,7 @@ namespace IO::File
     }
     if (initial != result)
     {
-      Dbg("Sanitized path '%1%' to '%2%'", fileName, Details::ToString(result));
+      Dbg("Sanitized path '{}' to '{}'", fileName, Details::ToString(result));
     }
     return result;
   }
@@ -403,7 +403,7 @@ namespace IO::File
     {
       boost::filesystem::path path = params.SanitizeNames() ? CreateSanitizedPath(fileName)
                                                             : Details::FromString(fileName);
-      Dbg("CreateStream: input='%1%' path='%2%'", fileName, Details::ToString(path));
+      Dbg("CreateStream: input='{}' path='{}'", fileName, Details::ToString(path));
       if (params.CreateDirectories() && path.has_parent_path())
       {
         CreateDirectoryRecursive(path.parent_path());
@@ -423,7 +423,7 @@ namespace IO::File
         for (uint_t idx = 1; IsExists(path); ++idx)
         {
           auto newFilename = oldStem;
-          newFilename += Strings::Format(" (%1%)", idx);
+          newFilename += Strings::Format(" ({})", idx);
           newFilename += extension;
           path.remove_filename();
           path /= newFilename;
@@ -509,7 +509,7 @@ namespace IO
     }
     catch (const Error& e)
     {
-      throw MakeFormattedError(THIS_LINE, translate("Failed to open file '%1%'."), path).AddSuberror(e);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to open file '{}'."), path).AddSuberror(e);
     }
   }
 
@@ -521,7 +521,7 @@ namespace IO
     }
     catch (const Error& e)
     {
-      throw MakeFormattedError(THIS_LINE, translate("Failed to create file '%1%'."), path).AddSuberror(e);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to create file '{}'."), path).AddSuberror(e);
     }
   }
 

@@ -393,7 +393,8 @@ namespace Player
   jobject Create(JNIEnv* env, const Module::Holder& module, uint_t samplerate)
   {
     auto ctrl = CreateControl(module, samplerate);
-    Dbg("Player::Create(module=%p)=%p", &module, ctrl.get());
+    Dbg("Player::Create(module={0:#0x})={1:#0x}", static_cast<const void*>(&module),
+        static_cast<const void*>(ctrl.get()));
     const auto handle = Player::Storage::Instance().Add(std::move(ctrl));
     return NativePlayerJni::Create(env, handle);
   }
@@ -413,7 +414,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniPlayer_close(JNIEnv* /*env*/,
 {
   if (Player::Storage::Instance().Fetch(handle))
   {
-    Dbg("Player::Close(handle=%1%)", handle);
+    Dbg("Player::Close(handle={})", handle);
   }
 }
 

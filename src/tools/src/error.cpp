@@ -21,14 +21,14 @@ namespace
     {
 #ifdef NDEBUG
       constexpr const Char FORMAT[] =
-          "%1%\n"
-          "@%2$08x\n"
+          "{0}\n"
+          "@{1:08x}\n"
           "--------\n";
       return Strings::Format(FORMAT, text, loc);
 #else
       constexpr const Char FORMAT[] =
-          "%1%\n"
-          "@%2$08x (%3%:%4%, %5%)\n"
+          "{0}\n"
+          "@{1:08x} ({2}:{3}, {4})\n"
           "--------\n";
       return Strings::Format(FORMAT, text, loc.Tag, loc.File, loc.Line, loc.Function);
 #endif

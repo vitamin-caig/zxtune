@@ -86,7 +86,7 @@ namespace
       socket.connectToServer(SERVER_NAME, QLocalSocket::WriteOnly);
       if (socket.waitForConnected(500))
       {
-        Dbg("Connected to existing server. Sending cmdline with %1% args", Cmdline.size());
+        Dbg("Connected to existing server. Sending cmdline with {} args", Cmdline.size());
         SendDataTo(socket);
         return false;
       }
@@ -105,7 +105,7 @@ namespace
         const std::unique_ptr<QLocalSocket> holder(conn);
         QStringList cmdline;
         ReadDataFrom(*holder, cmdline);
-        Dbg("Slave passed cmdline '%1%'", FromQString(cmdline.join(" ")));
+        Dbg("Slave passed cmdline '{}'", FromQString(cmdline.join(" ")));
         emit OnSlaveStarted(cmdline);
       }
     }

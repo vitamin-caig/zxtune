@@ -358,7 +358,7 @@ namespace Module::GME
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
+        Dbg("Failed to create {}: {}", Desc.Id, e.what());
       }
       return {};
     }
@@ -391,7 +391,7 @@ namespace Module::GME
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create %1%: %2%", Desc.Id, e.what());
+        Dbg("Failed to create {}: {}", Desc.Id, e.what());
       }
       return {};
     }

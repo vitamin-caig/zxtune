@@ -16,6 +16,8 @@
 #include <make_ptr.h>
 // library includes
 #include <l10n/api.h>
+// std includes
+#include <algorithm>
 // platform includes
 #include <windows.h>
 
@@ -51,7 +53,7 @@ namespace Platform::Details
       {
         return res;
       }
-      throw MakeFormattedError(THIS_LINE, translate("Failed to find symbol '%1%' in dynamic library."), name);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to find symbol '{}' in dynamic library."), name);
     }
 
   private:
@@ -78,7 +80,7 @@ namespace Platform::Details
       res = MakePtr<WindowsSharedLibrary>(handle);
       return Error();
     }
-    return MakeFormattedError(THIS_LINE, translate("Failed to load dynamic library '%1%' (error code is %2%)."),
+    return MakeFormattedError(THIS_LINE, translate("Failed to load dynamic library '{0}' (error code is {1})."),
                               fileName, GetWindowsError());
   }
 

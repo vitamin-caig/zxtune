@@ -78,11 +78,11 @@ namespace Formats::Packed
         }
         catch (const std::exception& e)
         {
-          Dbg("Failed to uncompress: %1%", e.what());
+          Dbg("Failed to uncompress: {}", e.what());
         }
         catch (const Error& e)
         {
-          Dbg("Failed to uncompress: %1%", e.ToString());
+          Dbg("Failed to uncompress: {}", e.ToString());
         }
         return {};
       }

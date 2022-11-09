@@ -101,7 +101,7 @@ namespace Formats::Archived
       const uint32_t checksum = std::accumulate(dump, dump + checksumOffset, uint32_t(0));
       if (storedChecksum != checksum)
       {
-        Dbg("Invalid checksum (stored %1%@%2%, calculated %3%)", storedChecksum, checksumOffset, checksum);
+        Dbg("Invalid checksum (stored {}@{}, calculated {})", storedChecksum, checksumOffset, checksum);
         return false;
       }
       return true;

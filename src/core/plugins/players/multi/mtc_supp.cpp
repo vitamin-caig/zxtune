@@ -95,7 +95,7 @@ namespace Module::MTC
 
     void StartTrack(uint_t idx) override
     {
-      Dbg("Start track %1%", idx);
+      Dbg("Start track {}", idx);
       CurEntity = CurTrack = Module.AddTrack(idx);
     }
 
@@ -281,10 +281,10 @@ namespace Module::MTC
       {
         if (!SelectedStream)
         {
-          Dbg("Select stream from %1% candidates", Streams.size());
+          Dbg("Select stream from {} candidates", Streams.size());
           Require(!Streams.empty());
           SelectedStream = &*std::min_element(Streams.begin(), Streams.end());
-          Dbg(" selected %1%", SelectedStream->GetType());
+          Dbg(" selected {}", SelectedStream->GetType());
         }
         return *SelectedStream;
       }
@@ -314,7 +314,7 @@ namespace Module::MTC
       Module::Holder::Ptr GetHolder() const override
       {
         const std::size_t tracksCount = Tracks.size();
-        Dbg("Merge %1% tracks together", tracksCount);
+        Dbg("Merge {} tracks together", tracksCount);
         Require(tracksCount > 0);
         Module::Multi::HoldersArray holders(tracksCount);
         std::transform(Tracks.begin(), Tracks.end(), holders.begin(),
@@ -373,7 +373,7 @@ namespace Module::MTC
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create MTC: %s", e.what());
+        Dbg("Failed to create MTC: {}", e.what());
       }
       return {};
     }

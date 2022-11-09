@@ -216,7 +216,7 @@ namespace Analysis
       if (const typename Traits::Container::Ptr result = decoder->Decode(Window))
       {
         const std::size_t used = Traits::GetUsedSize(*result);
-        Dbg("Found %1% at %2%+%3% in %4% bytes", decoder->GetDescription(), Base, Window.GetOffset(), used);
+        Dbg("Found {} at {}+{} in {} bytes", decoder->GetDescription(), Base, Window.GetOffset(), used);
         FlushUnrecognized(target);
         target.Apply(*decoder, Base + Window.GetOffset(), result);
         Schedule(decoder, used);
@@ -237,7 +237,7 @@ namespace Analysis
       const std::size_t unmatchedAt = Unrecognized.GetOffset();
       if (till > unmatchedAt)
       {
-        Dbg("Unrecognized %1%+(%2%..%3%)", Base, unmatchedAt, till);
+        Dbg("Unrecognized {}+({}..{})", Base, unmatchedAt, till);
         target.Apply(Base + unmatchedAt, Unrecognized.GetSubcontainer(0, till - unmatchedAt));
       }
     }
@@ -248,12 +248,12 @@ namespace Analysis
       if (delta != Window.Size())
       {
         const std::size_t nextPos = Window.GetOffset() + delta;
-        Dbg("Skip %1% for %2% bytes (check at %3%+%4%)", id, delta, Base, nextPos);
+        Dbg("Skip {} for {} bytes (check at {}+{})", id, delta, Base, nextPos);
         Scheduled.Add(nextPos, decoder);
       }
       else
       {
-        Dbg("Disable %1% for future scans", id);
+        Dbg("Disable {} for future scans", id);
       }
     }
 
@@ -267,7 +267,7 @@ namespace Analysis
 
     void Reschedule(typename Traits::Decoder::Ptr decoder)
     {
-      Dbg("Schedule to check %1% at %2%", decoder->GetDescription(), Window.GetOffset());
+      Dbg("Schedule to check {} at {}", decoder->GetDescription(), Window.GetOffset());
       Scheduled.Add(Window.GetOffset(), decoder);
     }
 

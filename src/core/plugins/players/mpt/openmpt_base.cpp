@@ -380,7 +380,7 @@ namespace Module::Mpt
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create OpenMPT module: %1%", e.what());
+        Dbg("Failed to create OpenMPT module: {}", e.what());
       }
       return {};
     }

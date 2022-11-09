@@ -38,7 +38,7 @@ namespace Formats::Chiptune
   {
     const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
 
-    const Char EDITOR[] = "VortexTracker (Pro Tracker v%1%.%2%)";
+    const Char EDITOR[] = "VortexTracker (Pro Tracker v{}.{})";
 
     /*
       Common module structure:
@@ -465,7 +465,7 @@ namespace Formats::Chiptune
         for (auto line = src.ReadString(); !line.empty(); line = src.ReadString())
         {
           Entry entry(line);
-          Dbg(" %1%=%2%", entry.Name, entry.Value);
+          Dbg(" {}={}", entry.Name, entry.Value);
           if (boost::algorithm::iequals(entry.Name, "Version"))
           {
             static const String VERSION("3.");
@@ -573,7 +573,7 @@ namespace Formats::Chiptune
         : Index(header.GetIndex())
       {
         Require(Math::InRange<uint_t>(Index, 0, MAX_ORNAMENTS_COUNT - 1));
-        Dbg("Parse ornament %1%", Index);
+        Dbg("Parse ornament {}", Index);
         const LoopedList<int_t> llist(src.ReadString());
         Require(src.ReadString().empty());
         Loop = llist.GetLoop();
@@ -623,7 +623,7 @@ namespace Formats::Chiptune
         : Index(header.GetIndex())
       {
         Require(Math::InRange<uint_t>(Index, 0, MAX_SAMPLES_COUNT - 1));
-        Dbg("Parse sample %1%", Index);
+        Dbg("Parse sample {}", Index);
         std::size_t loop = NO_LOOP;
         for (auto str = src.ReadString(); !str.empty(); str = src.ReadString())
         {
@@ -1103,7 +1103,7 @@ namespace Formats::Chiptune
         : Index(header.GetIndex())
       {
         Require(Math::InRange<uint_t>(Index, 0, MAX_PATTERNS_COUNT - 1));
-        Dbg("Parse pattern %1%", Index);
+        Dbg("Parse pattern {}", Index);
         Lines.reserve(MAX_PATTERN_SIZE);
         for (auto line = src.ReadString(); !line.empty();
              line = 0 != src.GetRestSize() ? src.ReadString() : StringView())

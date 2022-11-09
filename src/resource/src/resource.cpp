@@ -133,7 +133,7 @@ namespace
     std::ifstream file(filename.c_str(), std::ios::binary);
     if (!file)
     {
-      throw MakeFormattedError(THIS_LINE, translate("Failed to load resource archive '%1%'."), filename);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to load resource archive '{}'."), filename);
     }
     file.seekg(0, std::ios_base::end);
     const std::size_t size = static_cast<std::size_t>(file.tellg());
@@ -163,7 +163,7 @@ namespace
         if (const Formats::Archived::Container::Ptr arch = decoder.Decode(archData))
         {
           const std::size_t size = arch->Size();
-          Dbg("Found resource archive at %1%, size %2%", offset, size);
+          Dbg("Found resource archive at {}, size {}", offset, size);
           result.push_back(arch);
           offset += size;
           continue;
@@ -209,7 +209,7 @@ namespace
       {
         return file->GetData();
       }
-      throw MakeFormattedError(THIS_LINE, translate("Failed to load resource file '%1%'."), name);
+      throw MakeFormattedError(THIS_LINE, translate("Failed to load resource file '{}'."), name);
     }
 
     void Enumerate(Resource::Visitor& visitor) const

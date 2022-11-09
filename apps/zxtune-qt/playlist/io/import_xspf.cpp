@@ -188,7 +188,7 @@ namespace
         {
           if (!ParseTrackItem())
           {
-            Dbg("Failed to parse trackitem: %1% at %2%:%3%", FromQString(XML.errorString()), XML.lineNumber(),
+            Dbg("Failed to parse trackitem: {} at {}:{}", FromQString(XML.errorString()), XML.lineNumber(),
                 XML.columnNumber());
             return false;
           }
@@ -219,7 +219,7 @@ namespace
         if (tagName == XSPF::ITEM_LOCATION_TAG)
         {
           item.Path = ParseTrackitemLocation();
-          Dbg("  parsed location %1%", item.Path);
+          Dbg("  parsed location {}", item.Path);
         }
         else
         {
@@ -252,19 +252,19 @@ namespace
       {
         const String author = ConvertString(XML.readElementText());
         props.SetValue(Module::ATTR_AUTHOR, author);
-        Dbg("  parsed author %1%", author);
+        Dbg("  parsed author {}", author);
       }
       else if (attr == XSPF::ITEM_TITLE_TAG)
       {
         const String title = ConvertString(XML.readElementText());
         props.SetValue(Module::ATTR_TITLE, title);
-        Dbg("  parsed title %1%", title);
+        Dbg("  parsed title {}", title);
       }
       else if (attr == XSPF::ITEM_ANNOTATION_TAG)
       {
         const String annotation = ConvertString(XML.readElementText());
         props.SetValue(Module::ATTR_COMMENT, annotation);
-        Dbg("  parsed comment %1%", annotation);
+        Dbg("  parsed comment {}", annotation);
       }
       else if (attr == XSPF::EXTENSION_TAG)
       {
@@ -276,7 +276,7 @@ namespace
       {
         if (attr != XSPF::ITEM_DURATION_TAG)
         {
-          Dbg("Unknown playitem attribute '%1%'", FromQString(attr.toString()));
+          Dbg("Unknown playitem attribute '{}'", FromQString(attr.toString()));
         }
         XML.skipCurrentElement();
       }
@@ -303,7 +303,7 @@ namespace
         const String propNameStr = FromQString(propName.toString());
         const String propValStr = ConvertString(propValue);
         strings[propNameStr] = propValStr;
-        Dbg("  parsing extended property %1%='%2%'", propNameStr, propValStr);
+        Dbg("  parsing extended property {}='{}'", propNameStr, propValStr);
       }
       Parameters::Convert(strings, props);
     }
@@ -351,7 +351,7 @@ namespace
 
     const Playlist::IO::ContainerItems::Ptr items = reader.GetItems();
     const Parameters::Accessor::Ptr properties = reader.GetProperties();
-    Dbg("Parsed %1% items", items->size());
+    Dbg("Parsed {} items", items->size());
     return Playlist::IO::CreateContainer(provider, properties, items);
   }
 

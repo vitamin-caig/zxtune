@@ -11,22 +11,17 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#, boost-format
-msgid "Invalid duty cycle mask item: '%1%'."
-msgstr "Неправильное значение канала для задания скважности: '%1%'."
+msgid "Invalid duty cycle mask item: '{}'."
+msgstr "Неправильное значение канала для задания скважности: '{}'."
 
-#, boost-format
-msgid "Invalid layout value (%1%)."
-msgstr "Неправильное значение раскладки каналов (%1%)."
+msgid "Invalid layout value ({})."
+msgstr "Неправильное значение раскладки каналов ({})."
 
-#, boost-format
-msgid "Invalid clock frequency (%1%)."
-msgstr "Неправильное значение тактовой частоты (%1%)."
+msgid "Invalid clock frequency ({})."
+msgstr "Неправильное значение тактовой частоты ({})."
 
-#, boost-format
-msgid "Invalid duty cycle value (%1%)."
-msgstr "Неправильное значение скважности (%1%)."
+msgid "Invalid duty cycle value ({})."
+msgstr "Неправильное значение скважности ({})."
 
-#, boost-format
-msgid "Invalid frequency table size (%1%)."
-msgstr "Неправильный размер частотной таблицы (%1%)."
+msgid "Invalid frequency table size ({})."
+msgstr "Неправильный размер частотной таблицы ({})."

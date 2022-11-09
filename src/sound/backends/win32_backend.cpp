@@ -66,7 +66,7 @@ namespace Sound::Win32
       if (!val)
       {
         // TODO: convert code to string
-        throw MakeFormattedError(loc, translate("Error in Win32 backend: code %1%."), ::GetLastError());
+        throw MakeFormattedError(loc, translate("Error in Win32 backend: code {}."), ::GetLastError());
       }
     }
 
@@ -84,7 +84,7 @@ namespace Sound::Win32
       : WinApi(api)
       , Handle(0)
     {
-      Dbg("Opening device %1% (%2% Hz)", device, format.nSamplesPerSec);
+      Dbg("Opening device {} ({} Hz)", device, format.nSamplesPerSec);
       CheckMMResult(
           WinApi->waveOutOpen(&Handle, device, &format, DWORD_PTR(Event.Get()), 0, CALLBACK_EVENT | WAVE_FORMAT_DIRECT),
           THIS_LINE);
@@ -98,7 +98,7 @@ namespace Sound::Win32
       }
       catch (const Error& e)
       {
-        Dbg("Failed to close device: %1%", e.ToString());
+        Dbg("Failed to close device: {}", e.ToString());
       }
     }
 
@@ -166,12 +166,12 @@ namespace Sound::Win32
         std::vector<char> buffer(1024);
         if (MMSYSERR_NOERROR == WinApi->waveOutGetErrorTextA(res, buffer.data(), static_cast<UINT>(buffer.size())))
         {
-          throw MakeFormattedError(loc, translate("Error in Win32 backend: %1%."),
+          throw MakeFormattedError(loc, translate("Error in Win32 backend: {}."),
                                    String(buffer.begin(), std::find(buffer.begin(), buffer.end(), '\0')));
         }
         else
         {
-          throw MakeFormattedError(loc, translate("Error in Win32 backend: code %1%."), res);
+          throw MakeFormattedError(loc, translate("Error in Win32 backend: code {}."), res);
         }
       }
     }
@@ -207,7 +207,7 @@ namespace Sound::Win32
       }
       catch (const Error& e)
       {
-        Dbg("Failed to reset buffer: %1%", e.ToString());
+        Dbg("Failed to reset buffer: {}", e.ToString());
       }
     }
 
@@ -312,7 +312,7 @@ namespace Sound::Win32
       }
       catch (const Error& e)
       {
-        Dbg("Failed to reset cycle buffer: %1%", e.ToString());
+        Dbg("Failed to reset cycle buffer: {}", e.ToString());
       }
     }
 
@@ -398,7 +398,7 @@ namespace Sound::Win32
           && !Math::InRange<Parameters::IntType>(buffers, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
-                                 translate("Win32 backend error: buffers count (%1%) is out of range (%2%..%3%)."),
+                                 translate("Win32 backend error: buffers count ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(buffers), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<std::size_t>(buffers);
@@ -555,7 +555,7 @@ namespace Sound::Win32
     {
       if (Limit)
       {
-        Dbg("Detected %1% devices to output.", Limit);
+        Dbg("Detected {} devices to output.", Limit);
         Current = -1;  // WAVE_MAPPER
       }
       else
@@ -623,7 +623,7 @@ namespace Sound
       }
       catch (const Error& e)
       {
-        Dbg("%1%", e.ToString());
+        Dbg("{}", e.ToString());
         return Device::Iterator::CreateStub();
       }
     }

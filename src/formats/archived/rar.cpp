@@ -207,14 +207,14 @@ namespace Formats::Archived
 
       Binary::Container::Ptr DecodeSingleBlock(const FileBlock& block) const
       {
-        Dbg(" Decoding block @%1% (chained=%2%, hasParent=%3%)", block.Offset, block.IsChained(), block.HasParent());
+        Dbg(" Decoding block @{} (chained={}, hasParent={})", block.Offset, block.IsChained(), block.HasParent());
         const Binary::Container::Ptr blockContent = Data->GetSubcontainer(block.Offset, block.Size);
         return StatefulDecoder->Decode(*blockContent);
       }
 
       void ProcessBlock(const FileBlock& block) const
       {
-        Dbg(" Decoding parent block @%1% (chained=%2%, hasParent=%3%)", block.Offset, block.IsChained(),
+        Dbg(" Decoding parent block @{} (chained={}, hasParent={})", block.Offset, block.IsChained(),
             block.HasParent());
         const Binary::Container::Ptr blockContent = Data->GetSubcontainer(block.Offset, block.Size);
         StatefulDecoder->Decode(*blockContent);
@@ -222,7 +222,7 @@ namespace Formats::Archived
 
       void SkipBlock(const FileBlock& block) const
       {
-        Dbg(" Skip block @%1% (chained=%2%, hasParent=%3%)", block.Offset, block.IsChained(), block.HasParent());
+        Dbg(" Skip block @{} (chained={}, hasParent={})", block.Offset, block.IsChained(), block.HasParent());
       }
 
     private:
@@ -252,7 +252,7 @@ namespace Formats::Archived
 
       Binary::Container::Ptr GetData() const override
       {
-        Dbg("Decompressing '%1%' started at %2%", Name, Block.Offset);
+        Dbg("Decompressing '{}' started at {}", Name, Block.Offset);
         return Decoder->DecodeBlock(Block);
       }
 
@@ -339,7 +339,7 @@ namespace Formats::Archived
         , Decoder(MakePtr<ChainDecoder>(Delegate))
         , FilesCount(filesCount)
       {
-        Dbg("Found %1% files. Size is %2%", filesCount, Delegate->Size());
+        Dbg("Found {} files. Size is {}", filesCount, Delegate->Size());
       }
 
       // Archive::Container

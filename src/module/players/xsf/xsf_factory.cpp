@@ -70,7 +70,7 @@ namespace Module::XSF
 
     void Resolve(const String& name, Binary::Container::Ptr data) override
     {
-      Dbg("Resolving dependency '%1%'", name);
+      Dbg("Resolving dependency '{}'", name);
       auto& file = Files.at(name);
       Require(0 == file.Version);
       if (Parse(name, *data, file))
@@ -88,11 +88,11 @@ namespace Module::XSF
         Require(!dep.empty());
         if (Files.emplace(dep, File()).second)
         {
-          Dbg("Found unresolved dependency '%1%'", dep);
+          Dbg("Found unresolved dependency '{}'", dep);
         }
         else
         {
-          Dbg("Reuse already resolved dependency '%1%'", dep);
+          Dbg("Reuse already resolved dependency '{}'", dep);
         }
       }
     }
@@ -122,8 +122,8 @@ namespace Module::XSF
         }
         else
         {
-          Dbg("Unresolved '%1%'", dep.first);
-          throw MakeFormattedError(THIS_LINE, "Unresolved dependency '%1%'", dep.first);
+          Dbg("Unresolved '{}'", dep.first);
+          throw MakeFormattedError(THIS_LINE, "Unresolved dependency '{}'", dep.first);
         }
       }
       PropertiesHelper(*Properties).SetStrings(linear);

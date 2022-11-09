@@ -190,8 +190,9 @@ namespace Formats::Chiptune
 
       String ToString() const
       {
-        return (IsEmpty() || !IsValid()) ? String()
-                                         : Strings::Format("%02u/%02u/%04u", uint_t(Month), uint_t(Day), uint_t(Year));
+        return (IsEmpty() || !IsValid())
+                   ? String()
+                   : Strings::Format("{:02}/{:02}/{:04}", uint_t(Month), uint_t(Day), uint_t(Year));
       }
     };
 
@@ -516,7 +517,7 @@ namespace Formats::Chiptune
           }
           else
           {
-            Dbg("Invalid IFFF chunk stored (id=%s, size=%u)", String(hdr.ID.begin(), hdr.ID.end()), size);
+            Dbg("Invalid IFFF chunk stored (id={}, size={})", String(hdr.ID.begin(), hdr.ID.end()), size);
             // TODO: fix used size instead
             Stream.ReadRestData();
           }
@@ -575,7 +576,7 @@ namespace Formats::Chiptune
             }
             else
             {
-              Dbg("ParseSubchunk id=%u, type=%u, size=%u", uint_t(hdr->ID), uint_t(hdr->Type), uint_t(hdr->DataSize));
+              Dbg("ParseSubchunk id={}, type={}, size={}", uint_t(hdr->ID), uint_t(hdr->Type), uint_t(hdr->DataSize));
               stream.Skip(sizeof(*hdr) + hdr->GetDataSize());
               ParseSubchunk(*hdr, target);
             }

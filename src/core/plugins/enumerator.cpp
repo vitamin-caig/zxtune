@@ -64,19 +64,19 @@ namespace ZXTune
       ZXTune::RegisterArchivePlugins(*this);
       ZXTune::RegisterMultitrackPlayerPlugins(*this, *this);
       ZXTune::RegisterPlayerPlugins(*this);
-      EnumeratorDbg("Registered %1% archives and %2% players for %3%ms", Archives.size(), Players.size(),
+      EnumeratorDbg("Registered {} archives and {} players for {}ms", Archives.size(), Players.size(),
                     timer.Elapsed<Time::Millisecond>().Get());
     }
 
     void RegisterPlugin(ArchivePlugin::Ptr plugin) override
     {
-      EnumeratorDbg("Registered archive %1%", plugin->Id());
+      EnumeratorDbg("Registered archive {}", plugin->Id());
       Archives.emplace_back(std::move(plugin));
     }
 
     void RegisterPlugin(PlayerPlugin::Ptr plugin) override
     {
-      EnumeratorDbg("Registered player %1%", plugin->Id());
+      EnumeratorDbg("Registered player {}", plugin->Id());
       Players.emplace_back(std::move(plugin));
     }
   };

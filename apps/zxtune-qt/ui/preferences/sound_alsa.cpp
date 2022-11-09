@@ -90,7 +90,7 @@ namespace
     void DeviceChanged(const QString& name) override
     {
       const String& id = FromQString(name);
-      Dbg("Selecting device '%1%'", id);
+      Dbg("Selecting device '{}'", id);
       const auto it = std::find_if(Devices.begin(), Devices.end(),
                                    [&name, &id](const Device& dev) { return dev.Name == name || dev.Id == id; });
       if (it != Devices.end())
@@ -113,7 +113,7 @@ namespace
       if (name.size())
       {
         const String mixer = FromQString(name);
-        Dbg("Selecting mixer '%1%'", mixer);
+        Dbg("Selecting mixer '{}'", mixer);
         Options->SetValue(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, mixer);
       }
     }

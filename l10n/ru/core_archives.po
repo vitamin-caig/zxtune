@@ -11,24 +11,17 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#, boost-format
-msgid "%1% processing"
-msgstr "Анализ %1%"
+msgid "{} processing"
+msgstr "Анализ {}"
 
-#, boost-format
-msgid "%1% processing at %2%"
-msgstr "Анализ %1% в %2%"
+msgid "{0} processing at {1}"
+msgstr "Анализ {0} в {1}"
 
-#, boost-format
-msgid "%1% processing for %2%"
-msgstr "Анализ %1% для %2%"
+msgid "{0} processing for {1}"
+msgstr "Анализ {0} для {1}"
 
-#, boost-format
-msgid "%1% processing for %2% at %3%"
-msgstr "Анализ %1% для %2% в %3%"
+msgid "{0} processing for {1} at {2}"
+msgstr "Анализ {0} для {1} в {2}"
 
-#, boost-format
-msgid "Specified minimal scan size (%1%). Should be more than %2%."
-msgstr ""
-"Неправильный минимальный размер блока для анализа (%1%). Должен быть "
-"больше %2%."
+msgid "Specified minimal scan size ({0}). Should be more than {1}."
+msgstr "Неправильный минимальный размер блока для анализа ({0}). Должен быть больше {1}."

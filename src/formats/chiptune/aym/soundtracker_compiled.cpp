@@ -204,7 +204,7 @@ namespace Formats::Chiptune
           dst.Transposition = src.Transposition;
           positions.Lines.push_back(dst);
         }
-        Dbg("Positions: %1% entries", positions.GetSize());
+        Dbg("Positions: {} entries", positions.GetSize());
         builder.SetPositions(std::move(positions));
       }
 
@@ -224,7 +224,7 @@ namespace Formats::Chiptune
             continue;
           }
           donePats.Insert(patIndex);
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           ParsePattern(src, builder);
           if (pats.Count() == donePats.Count())
           {
@@ -237,7 +237,7 @@ namespace Formats::Chiptune
           const uint_t idx = *it;
           if (!donePats.Contain(idx))
           {
-            Dbg("Fill stub pattern %1%", idx);
+            Dbg("Fill stub pattern {}", idx);
             builder.StartPattern(idx);
           }
         }
@@ -255,7 +255,7 @@ namespace Formats::Chiptune
             continue;
           }
           doneSams.Insert(samIdx);
-          Dbg("Parse sample %1%", samIdx);
+          Dbg("Parse sample {}", samIdx);
           builder.SetSample(samIdx, ParseSample(src));
           if (doneSams.Count() == samples.Count())
           {
@@ -267,7 +267,7 @@ namespace Formats::Chiptune
           const uint_t idx = *it;
           if (!doneSams.Contain(idx))
           {
-            Dbg("Fill stub sample %1%", idx);
+            Dbg("Fill stub sample {}", idx);
             builder.SetSample(idx, Sample());
           }
         }
@@ -290,7 +290,7 @@ namespace Formats::Chiptune
             continue;
           }
           doneOrns.Insert(ornIdx);
-          Dbg("Parse ornament %1%", ornIdx);
+          Dbg("Parse ornament {}", ornIdx);
           builder.SetOrnament(ornIdx, ParseOrnament(src));
           if (doneOrns.Count() == ornaments.Count())
           {
@@ -302,7 +302,7 @@ namespace Formats::Chiptune
           const uint_t idx = *it;
           if (!doneOrns.Contain(idx))
           {
-            Dbg("Fill stub ornament %1%", idx);
+            Dbg("Fill stub ornament {}", idx);
             builder.SetOrnament(idx, Ornament());
           }
         }
@@ -455,12 +455,12 @@ namespace Formats::Chiptune
           const std::size_t start = rangesStarts[chanNum];
           if (start >= Data.Size())
           {
-            Dbg("Invalid offset (%1%)", start);
+            Dbg("Invalid offset ({})", start);
           }
           else
           {
             const std::size_t stop = std::min(Data.Size(), state.Channels[chanNum].Offset + 1);
-            Dbg("Affected ranges %1%..%2%", start, stop);
+            Dbg("Affected ranges {}..{}", start, stop);
             AddFixedRange(start, stop - start);
           }
         }

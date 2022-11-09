@@ -262,7 +262,7 @@ namespace Module::V2M
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create V2M: %s", e.what());
+        Dbg("Failed to create V2M: {}", e.what());
       }
       return Module::Holder::Ptr();
     }

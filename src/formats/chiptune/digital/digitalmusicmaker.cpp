@@ -281,7 +281,7 @@ namespace Formats::Chiptune
         Positions positions;
         positions.Loop = Source.Loop;
         positions.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + Source.Length + 1);
-        Dbg("Positions: %1%, loop to %2%", positions.GetSize(), positions.GetLoop());
+        Dbg("Positions: {}, loop to {}", positions.GetSize(), positions.GetLoop());
         target.SetPositions(std::move(positions));
       }
 
@@ -290,7 +290,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           ParsePattern(patIndex, target);
         }
       }
@@ -304,7 +304,7 @@ namespace Formats::Chiptune
         const uint_t maxMixingsCount = (RawData.Size() - offsetof(Header, Mixings)) / sizeof(MixedLine);
         for (uint_t mixIdx = 0, mixLimit = std::min(availMixingsCount, maxMixingsCount); mixIdx < mixLimit; ++mixIdx)
         {
-          Dbg("Parse mixin %1%", mixIdx);
+          Dbg("Parse mixin {}", mixIdx);
           const MixedLine& src = mixings[mixIdx];
           const std::unique_ptr<ChannelBuilder> dst = target.SetSampleMixin(mixIdx, src.Period);
           ParseChannel(src.Mixin, *dst);
@@ -326,7 +326,7 @@ namespace Formats::Chiptune
           Require(bankEnd >= SAMPLES_ADDR);
           if (bankEnd == SAMPLES_ADDR)
           {
-            Dbg("Skipping empty bank #%1$02x (end=#%2$04x)", bankNum, bankEnd);
+            Dbg("Skipping empty bank #{:02x} (end=#{:04x})", bankNum, bankEnd);
             continue;
           }
           const std::size_t bankSize = bankEnd - SAMPLES_ADDR;
@@ -336,7 +336,7 @@ namespace Formats::Chiptune
             const std::size_t realSize = 256 * (1 + alignedBankSize / 512);
             Require(lastData + realSize <= limit);
             regions.emplace(bankNum, RawData.SubView(lastData, realSize));
-            Dbg("Added unpacked bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, realSize,
+            Dbg("Added unpacked bank #{:02x} (end=#{:04x}, size=#{:04x}) offset=#{:05x}", bankNum, bankEnd, realSize,
                 lastData);
             AddRange(lastData, realSize);
             lastData += realSize;
@@ -345,7 +345,7 @@ namespace Formats::Chiptune
           {
             Require(lastData + alignedBankSize <= limit);
             regions.emplace(bankNum, RawData.SubView(lastData, alignedBankSize));
-            Dbg("Added bank #%1$02x (end=#%2$04x, size=#%3$04x) offset=#%4$05x", bankNum, bankEnd, alignedBankSize,
+            Dbg("Added bank #{:02x} (end=#{:04x}, size=#{:04x}) offset=#{:05x}", bankNum, bankEnd, alignedBankSize,
                 lastData);
             AddRange(lastData, alignedBankSize);
             lastData += alignedBankSize;
@@ -357,13 +357,13 @@ namespace Formats::Chiptune
           const SampleInfo& srcSample = Source.SampleDescriptions[samIdx - 1];
           if (srcSample.Name[0] == '.')
           {
-            Dbg("No sample %1%", samIdx);
+            Dbg("No sample {}", samIdx);
             continue;
           }
           const std::size_t sampleStart = srcSample.Start;
           const std::size_t sampleEnd = srcSample.Limit;
           std::size_t sampleLoop = srcSample.Loop;
-          Dbg("Processing sample %1% (bank #%2$02x #%3$04x..#%4$04x loop #%5$04x)", samIdx, uint_t(srcSample.Bank),
+          Dbg("Processing sample {} (bank #{:02x} #{:04x}..#{:04x} loop #{:04x})", samIdx, uint_t(srcSample.Bank),
               sampleStart, sampleEnd, sampleLoop);
           Require(sampleStart >= SAMPLES_ADDR && sampleStart <= sampleEnd);
           if (sampleLoop < sampleStart)

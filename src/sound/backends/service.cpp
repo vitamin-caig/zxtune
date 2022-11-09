@@ -111,11 +111,11 @@ namespace Sound
         {
           return Sound::CreateBackend(Options, module, std::move(callback), factory->CreateWorker(Options, module));
         }
-        throw MakeFormattedError(THIS_LINE, translate("Backend '%1%' not registered."), backendId);
+        throw MakeFormattedError(THIS_LINE, translate("Backend '{}' not registered."), backendId);
       }
       catch (const Error& e)
       {
-        throw MakeFormattedError(THIS_LINE, translate("Failed to create backend '%1%'."), backendId).AddSuberror(e);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to create backend '{}'."), backendId).AddSuberror(e);
       }
     }
 
@@ -124,14 +124,14 @@ namespace Sound
       Factories.push_back(FactoryWithId(id, factory));
       const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, Error());
       Infos.push_back(info);
-      Dbg("Service(%1%): Registered backend %2%", this, id);
+      Dbg("Service({}): Registered backend {}", static_cast<void*>(this), id);
     }
 
     void Register(const String& id, const char* description, uint_t caps, const Error& status) override
     {
       const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, status);
       Infos.push_back(info);
-      Dbg("Service(%1%): Registered disabled backend %2%", this, id);
+      Dbg("Service({}): Registered disabled backend {}", static_cast<void*>(this), id);
     }
 
     void Register(const String& id, const char* description, uint_t caps) override
@@ -139,7 +139,7 @@ namespace Sound
       const Error status = Error(THIS_LINE, translate("Not supported in current configuration"));
       const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, status);
       Infos.push_back(info);
-      Dbg("Service(%1%): Registered stub backend %2%", this, id);
+      Dbg("Service({}): Registered stub backend {}", static_cast<void*>(this), id);
     }
 
   private:

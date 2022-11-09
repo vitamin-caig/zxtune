@@ -29,6 +29,7 @@
 #include <time/serialize.h>
 #include <time/timer.h>
 // std includes
+#include <algorithm>
 #include <array>
 #include <list>
 #include <map>
@@ -114,12 +115,12 @@ namespace ZXTune
     {
       const Debug::Stream Dbg("Core::RawScaner::Statistic");
       const auto spent = Timer.Elapsed();
-      Dbg("Total processed: %1%", TotalData);
-      Dbg("Time spent: %1%", Time::ToString(spent));
+      Dbg("Total processed: {}", TotalData);
+      Dbg("Time spent: {}", Time::ToString(spent));
       const uint64_t useful = ArchivedData + ModulesData;
-      Dbg("Useful detected: %1% (%2% archived + %3% modules)", useful, ArchivedData, ModulesData);
-      Dbg("Coverage: %1%%%", useful * 100 / TotalData);
-      Dbg("Speed: %1% b/s", spent.Get() ? (TotalData * spent.PER_SECOND / spent.Get()) : TotalData);
+      Dbg("Useful detected: {} ({} archived + {} modules)", useful, ArchivedData, ModulesData);
+      Dbg("Coverage: {}%", useful * 100 / TotalData);
+      Dbg("Speed: {} b/s", spent.Get() ? (TotalData * spent.PER_SECOND / spent.Get()) : TotalData);
       StatisticBuilder<7> builder;
       builder.Add(MakeStatLine(), 0);
       StatItem total;
@@ -302,7 +303,7 @@ namespace ZXTune::Raw
       if (Accessor.FindValue(Parameters::ZXTune::Core::Plugins::Raw::MIN_SIZE, minRawSize)
           && minRawSize < Parameters::IntType(MIN_MINIMAL_RAW_SIZE))
       {
-        throw MakeFormattedError(THIS_LINE, translate("Specified minimal scan size (%1%). Should be more than %2%."),
+        throw MakeFormattedError(THIS_LINE, translate("Specified minimal scan size ({0}). Should be more than {1}."),
                                  minRawSize, MIN_MINIMAL_RAW_SIZE);
       }
       return static_cast<std::size_t>(minRawSize);
@@ -463,7 +464,7 @@ namespace ZXTune::Raw
       , Start(start)
       , End(end)
     {
-      Dbg("Unknown data at %1%..%2%", Start, End);
+      Dbg("Unknown data at {}..{}", Start, End);
     }
 
     Binary::Container::Ptr GetData() const override
@@ -569,7 +570,7 @@ namespace ZXTune::Raw
         }
         else
         {
-          Dbg("Ignore '%1%'", plugin->Description());
+          Dbg("Ignore '{}'", plugin->Description());
         }
       }
     }
@@ -699,7 +700,7 @@ namespace ZXTune::Raw
       }
       const auto archiveLookahead = detectedArchives->GetLookaheadOffset();
       const auto moduleLookahead = detectedModules->GetLookaheadOffset();
-      Dbg("No archives for nearest %1% bytes, modules for %2% bytes", archiveLookahead, moduleLookahead);
+      Dbg("No archives for nearest {} bytes, modules for {} bytes", archiveLookahead, moduleLookahead);
       return {static_cast<std::size_t>(std::min(archiveLookahead, moduleLookahead)), false};
     }
 
@@ -726,7 +727,7 @@ namespace ZXTune::Raw
         if (const auto usedSize = result->GetMatchedDataSize())
         {
           Statistic::Self().AddAimed(plugin, detectTimer);
-          Dbg("Detected %1% in %2% bytes at %3%.", id, usedSize, input->GetPath()->AsString());
+          Dbg("Detected {} in {} bytes at {}", id, usedSize, input->GetPath()->AsString());
           return result;
         }
         else if (!initialScan)
@@ -735,7 +736,7 @@ namespace ZXTune::Raw
           const Time::Timer scanTimer;
           const std::size_t lookahead = result->GetLookaheadOffset();
           iter.SetLookahead(lookahead);
-          Dbg("Disabling check of %1% for neareast %2% bytes starting from %3%", id, lookahead, Offset);
+          Dbg("Disabling check of {} for neareast {} bytes starting from {}", id, lookahead, Offset);
           if (lookahead == maxSize)
           {
             Statistic::Self().AddAimed(plugin, scanTimer);
@@ -790,7 +791,7 @@ namespace ZXTune::Raw
       Statistic::Self().Enqueue(size);
       if (size < MIN_MINIMAL_RAW_SIZE)
       {
-        Dbg("Size is too small (%1%)", size);
+        Dbg("Size is too small ({})", size);
         return Analysis::CreateUnmatchedResult(size);
       }
 
@@ -798,7 +799,7 @@ namespace ZXTune::Raw
       const std::size_t minRawSize = scanParams.GetMinimalSize();
 
       const String currentPath = input->GetPath()->AsString();
-      Dbg("Detecting modules in raw data at '%1%'", currentPath);
+      Dbg("Detecting modules in raw data at '{}'", currentPath);
       ScanProgress progress(callback.GetProgress(), size, currentPath);
 
       RawDetectionPlugins usedPlugins(params, scanParams.GetDoubleAnalysis());

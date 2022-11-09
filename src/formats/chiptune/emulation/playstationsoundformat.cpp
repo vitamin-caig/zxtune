@@ -106,7 +106,7 @@ namespace Formats::Chiptune
         Stream.Seek(0x10);
         const uint32_t pc = Stream.Read<le_uint32_t>();
         const uint32_t gp = Stream.Read<le_uint32_t>();
-        Dbg("PC=0x%08x GP=0x%08x", pc, gp);
+        Dbg("PC=0x{:08x} GP=0x{:08x}", pc, gp);
         target.SetRegisters(pc, gp);
       }
 
@@ -115,7 +115,7 @@ namespace Formats::Chiptune
         Stream.Seek(0x18);
         const uint32_t startAddress = Stream.Read<le_uint32_t>();
         const std::size_t size = Stream.Read<le_uint32_t>();
-        Dbg("Text section %u (%u in header) bytes at 0x%08x", Stream.GetRestSize(), size, startAddress);
+        Dbg("Text section {} ({} in header) bytes at 0x{:08x}", Stream.GetRestSize(), size, startAddress);
         if (size)
         {
           Stream.Seek(HEADER_SIZE);
@@ -128,7 +128,7 @@ namespace Formats::Chiptune
         Stream.Seek(0x30);
         const uint32_t stackHead = Stream.Read<le_uint32_t>();
         const uint32_t stackSize = Stream.Read<le_uint32_t>();
-        Dbg("Stack %u bytes at 0x%08x", stackSize, stackHead);
+        Dbg("Stack {} bytes at 0x{:08x}", stackSize, stackHead);
         target.SetStackRegion(stackHead, stackSize);
       }
 
@@ -155,7 +155,7 @@ namespace Formats::Chiptune
         {
           target.SetRegion(marker.to_string(), 0);
         }
-        Dbg("Marker: %s", marker);
+        Dbg("Marker: {}", marker);
       }
 
     private:

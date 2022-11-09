@@ -12,6 +12,7 @@
 #include <strings/encoding.h>
 #include <strings/fields.h>
 #include <strings/fields_filter.h>
+#include <strings/format.h>
 #include <strings/map.h>
 #include <strings/optimize.h>
 #include <strings/prefixed_index.h>
@@ -233,6 +234,16 @@ int main()
       TestParse<int_t>("negative", "-123456", -123456, "");
       TestParse<uint_t>("plus positive", "+123456", 123456, "");
       TestParse<uint_t>("with suffix", "1234M", 1234, "M");
+    }
+    std::cout << "---- Test for format ----" << std::endl;
+    {
+      Test(Strings::FormatTime(0, 123, 0, 4) == "123:00.04", "Format time no hours");
+      Test(Strings::FormatTime(2, 0, 4, 25) == "2:00:04.25", "Format time");
+      Test(Strings::Format("Just string") == "Just string", "No args");
+      Test(Strings::Format("Integer: {}", 1234) == "Integer: 1234", "Integer arg");
+      Test(Strings::Format("String: '{}'", "str") == "String: 'str'", "String arg");
+      Test(Strings::Format("{1} positional {0}", "args", 2) == "2 positional args", "Positional args");
+      Test(Strings::Format("Hex {:04x}", 0xbed) == "Hex 0bed", "Formatting");
     }
   }
   catch (int code)

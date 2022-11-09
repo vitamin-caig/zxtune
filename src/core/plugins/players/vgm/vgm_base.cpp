@@ -391,7 +391,7 @@ namespace Module::VideoGameMusic
       }
       catch (const std::exception& e)
       {
-        LibVGM::Dbg("Failed to create VGM: %1%", e.what());
+        LibVGM::Dbg("Failed to create VGM: {}", e.what());
       }
       return {};
     }
@@ -450,7 +450,7 @@ namespace Module::Sound98
       }
       catch (const std::exception& e)
       {
-        LibVGM::Dbg("Failed to create S98: %1%", e.what());
+        LibVGM::Dbg("Failed to create S98: {}", e.what());
       }
       return {};
     }

@@ -188,11 +188,11 @@ namespace ZXTune::Zdata
     {
       const Layout layout = FindLayout(raw, marker);
       const Header hdr = Header::Decode(layout.GetHeader());
-      Dbg("Found container id=%1%", hdr.Crc);
+      Dbg("Found container id={}", hdr.Crc);
       Binary::Dump decoded(hdr.Packed);
       Binary::Base64::Decode(layout.GetBody(), layout.GetBodyEnd(), decoded.data(), decoded.data() + hdr.Packed);
       std::unique_ptr<Binary::Dump> unpacked(new Binary::Dump(hdr.Original));
-      Dbg("Unpack %1% => %2%", hdr.Packed, hdr.Original);
+      Dbg("Unpack {} => {}", hdr.Packed, hdr.Original);
       // TODO: use another function
       Require(hdr.Original == Binary::Compression::Zlib::Decompress(decoded, unpacked->data(), unpacked->size()));
       Require(hdr.Crc == Binary::Crc32(*unpacked));
@@ -205,7 +205,7 @@ namespace ZXTune::Zdata
     }
     catch (const Error& e)
     {
-      Dbg("Error: %1%", e.ToString());
+      Dbg("Error: {}", e.ToString());
       return Binary::Container::Ptr();
     }
   }

@@ -233,7 +233,7 @@ namespace
     {
       if (LastData)
       {
-        const String& filename = LastDataName.empty() ? Strings::Format("track%u_data%u", LastTrackIdx, LastDataIdx)
+        const String& filename = LastDataName.empty() ? Strings::Format("track{}_data{}", LastTrackIdx, LastDataIdx)
                                                       : LastDataName;
         std::cout << "Save " << LastData->Size() << " bytes to " << filename << std::endl;
         WriteFile(*LastData, filename);

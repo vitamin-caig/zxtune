@@ -44,7 +44,7 @@ namespace
       : Locale(std::move(locale))
       , Domain(std::move(domain))
     {
-      Dbg("Created vocabulary for domain '%1%'", Domain);
+      Dbg("Created vocabulary for domain '{}'", Domain);
     }
 
     String GetText(const char* text) const override
@@ -108,7 +108,7 @@ namespace
       : SystemLocale()
       , CurrentLocale(new std::locale())
     {
-      Dbg("Current locale is %1%. Encoding is %2%. Translation is %3%", SystemLocale.Name, SystemLocale.Encoding,
+      Dbg("Current locale is {}. Encoding is {}. Translation is {}", SystemLocale.Name, SystemLocale.Encoding,
           SystemLocale.Translation);
     }
 
@@ -131,7 +131,7 @@ namespace
       const String filename =
           EMPTY_PATH + '/' + trans.Language + '/' + info.locale_category + '/' + trans.Domain + '.' + TYPE_MO;
       Translations[filename] = trans.Data;
-      Dbg("Added translation %1% in %2% bytes", filename, trans.Data.size());
+      Dbg("Added translation {} in {} bytes", filename, trans.Data.size());
     }
 
     void SelectTranslation(const String& translation) override
@@ -144,16 +144,16 @@ namespace
           message_format<Char>* const facet = gnu_gettext::create_messages_facet<Char>(*info);
           Require(facet != nullptr);
           *CurrentLocale = std::locale(std::locale::classic(), facet);
-          Dbg("Selected translation %1%", translation);
+          Dbg("Selected translation {}", translation);
           return;
         }
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to select translation %1%: %2%", e.what());
+        Dbg("Failed to select translation {}: {}", e.what());
       }
       *CurrentLocale = std::locale();
-      Dbg("Selected unknown translation %1%", translation);
+      Dbg("Selected unknown translation {}", translation);
     }
 
     L10n::Vocabulary::Ptr GetVocabulary(const String& domain) const override
@@ -173,12 +173,12 @@ namespace
       const BoostLocaleLibrary& self = Instance();
       if (const auto* data = self.Translations.Find(file))
       {
-        Dbg("Loading message %1% with encoding %2%", file, encoding);
+        Dbg("Loading message {} with encoding {}", file, encoding);
         return std::vector<char>(data->begin(), data->end());
       }
       else
       {
-        Dbg("Message %1% with encoding %2% not found", file, encoding);
+        Dbg("Message {} with encoding {} not found", file, encoding);
         return std::vector<char>();
       }
     }

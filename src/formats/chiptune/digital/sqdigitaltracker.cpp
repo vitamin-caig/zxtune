@@ -329,7 +329,7 @@ namespace Formats::Chiptune
         Positions positions;
         positions.Loop = Source.Loop;
         positions.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + Source.LastPosition + 1);
-        Dbg("Positions: %1%, loop to %2%", positions.GetSize(), positions.GetLoop());
+        Dbg("Positions: {}, loop to {}", positions.GetSize(), positions.GetLoop());
         target.SetPositions(std::move(positions));
       }
 
@@ -338,7 +338,7 @@ namespace Formats::Chiptune
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           const Pattern& source = Source.Patterns[patIndex];
           PatternBuilder& patBuilder = target.StartPattern(patIndex);
           ParsePattern(source, patBuilder, target);
@@ -347,7 +347,7 @@ namespace Formats::Chiptune
 
       void ParseSamples(const Indices& sams, Builder& target) const
       {
-        Dbg("Parse %1% samples", sams.Count());
+        Dbg("Parse {} samples", sams.Count());
         //[bank & 7] => <offset, size>
         std::pair<std::size_t, std::size_t> regions[8] = {};
         for (std::size_t layIdx = 0, cursor = sizeof(Source); layIdx != Source.Layouts.size(); ++layIdx)
@@ -357,7 +357,7 @@ namespace Formats::Chiptune
           const std::size_t size = 256 * layout.Sectors;
           if (addr >= BIG_SAMPLE_ADDR && addr + size <= SAMPLES_LIMIT)
           {
-            Dbg("Used bank %1% at %2$04x..%3$04x", uint_t(layout.Bank), addr, addr + size);
+            Dbg("Used bank {} at {:04x}..{:04x}", uint_t(layout.Bank), addr, addr + size);
             regions[layout.Bank & 0x07] = std::make_pair(cursor, size);
           }
           AddRange(cursor, size);
@@ -371,7 +371,7 @@ namespace Formats::Chiptune
           const std::size_t rawLoop = info.Loop;
           if (rawAddr < BIG_SAMPLE_ADDR || rawLoop < rawAddr)
           {
-            Dbg("Skip sample %1%", samIdx);
+            Dbg("Skip sample {}", samIdx);
             continue;
           }
           const uint_t bank = info.Bank & 0x07;
@@ -382,14 +382,14 @@ namespace Formats::Chiptune
           const std::size_t offset = offsetSize.first + rawAddr - sampleBase;
           if (const auto sample = GetSample(offset, size))
           {
-            Dbg("Sample %1%: start=#%2$04x loop=#%3$04x size=#%4$04x bank=%5%", samIdx, rawAddr, rawLoop, sample.Size(),
+            Dbg("Sample {}: start=#{:04x} loop=#{:04x} size=#{:04x} bank={}", samIdx, rawAddr, rawLoop, sample.Size(),
                 uint_t(info.Bank));
             const std::size_t loop = info.IsLooped ? rawLoop - sampleBase : sample.Size();
             target.SetSample(samIdx, loop, sample);
           }
           else
           {
-            Dbg("Empty sample %1%", samIdx);
+            Dbg("Empty sample {}", samIdx);
           }
         }
       }

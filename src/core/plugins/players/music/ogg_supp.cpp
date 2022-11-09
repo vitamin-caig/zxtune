@@ -85,7 +85,7 @@ namespace Module::Ogg
                                      &::stb_vorbis_close);
       if (!decoder)
       {
-        throw MakeFormattedError(THIS_LINE, "Failed to create decoder. Error: %1%", error);
+        throw MakeFormattedError(THIS_LINE, "Failed to create decoder. Error: {}", error);
       }
       Decoder = decoder;
     }
@@ -223,7 +223,7 @@ namespace Module::Ogg
       }
       else
       {
-        Dbg("Ignore frame to unallocated stream %1%", CurrentStreamId);
+        Dbg("Ignore frame to unallocated stream {}", CurrentStreamId);
       }
     }
 
@@ -239,7 +239,7 @@ namespace Module::Ogg
     {
       if (Streams.size() > 1)
       {
-        Dbg("Multistream file with %1% streams", Streams.size());
+        Dbg("Multistream file with {} streams", Streams.size());
       }
       if (DefaultStream && DefaultStream->TotalSamples)
       {
@@ -295,7 +295,7 @@ namespace Module::Ogg
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create OGG: %s", e.what());
+        Dbg("Failed to create OGG: {}", e.what());
       }
       return {};
     }

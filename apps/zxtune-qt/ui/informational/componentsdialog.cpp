@@ -133,7 +133,7 @@ namespace
       using namespace ZXTune::Capabilities::Module;
       // root
       const uint_t caps = plugin.Capabilities();
-      const String& title = Strings::Format("[%s] %s", plugin.Id(), plugin.Description());
+      const String& title = Strings::Format("[{}] {}", plugin.Id(), plugin.Description());
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(title)));
       FillModuleType(caps & Type::MASK, *pluginItem);
       // conversion

@@ -324,7 +324,7 @@ namespace Formats::Archived
           InputStream stream(Header.PackageVersion, *entryData);
           ReadProperties(stream);
           const ClassName& cls = GetClass(exp.Class);
-          Dbg("Entry[%1%] data at %2% size=%3% class=%4%", idx, offset, size, cls.Name);
+          Dbg("Entry[{}] data at {} size={} class={}", idx, offset, size, cls.Name);
           const Binary::Container::Ptr result = cls.IsMusic() ? ExtractMusicData(stream) : stream.ReadRestContainer();
           UsedSize = std::max(UsedSize, offset + stream.GetMaxUsedSize());
           return result;
@@ -345,7 +345,7 @@ namespace Formats::Archived
         {
           NameEntry& entry = Names[idx];
           stream.Read(entry);
-          Dbg("Names[%1%] = '%2%'", idx, entry.Name);
+          Dbg("Names[{}] = '{}'", idx, entry.Name);
         }
       }
 
@@ -358,7 +358,7 @@ namespace Formats::Archived
         {
           ExportEntry& entry = Exports[idx];
           stream.Read(entry);
-          Dbg("Exports[%1%] = {class=%2% name=%3% super=%4% size=%5%}", idx, entry.Class.Value, entry.ObjectName.Value,
+          Dbg("Exports[{}] = {class={} name={} super={} size={}}", idx, entry.Class.Value, entry.ObjectName.Value,
               entry.Super.Value, entry.SerialSize.Value);
         }
       }
@@ -372,7 +372,7 @@ namespace Formats::Archived
         {
           ImportEntry& entry = Imports[idx];
           stream.Read(entry);
-          Dbg("Imports[%1%] = {pkg=%2% class=%3% name=%4%}", idx, entry.ClassPackage.Value, entry.ClassName.Value,
+          Dbg("Imports[{}] = {pkg={} class={} name={}}", idx, entry.ClassPackage.Value, entry.ClassName.Value,
               entry.ObjectName.Value);
         }
       }
@@ -446,7 +446,7 @@ namespace Formats::Archived
         }
         Index size;
         stream.Read(size);
-        Dbg("Extract music data from container (version=%1% format=%2% size=%3%)", version, format.Value, size.Value);
+        Dbg("Extract music data from container (version={} format={} size={})", version, format.Value, size.Value);
         return stream.ReadContainer(size.Value);
       }
 

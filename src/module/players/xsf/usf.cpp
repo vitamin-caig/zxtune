@@ -92,7 +92,7 @@ namespace Module::USF
         SetupEnvironment(*data.Meta);
       }
       DetectSoundFrequency();
-      Dbg("Used sound frequency is %1%", SoundFrequency);
+      Dbg("Used sound frequency is {}", SoundFrequency);
     }
 
     void Reset()
@@ -114,7 +114,7 @@ namespace Module::USF
         const auto dst = safe_ptr_cast<short int*>(&result[doneSamples]);
         if (const auto res = ::usf_render(Emu.GetRaw(), dst, toRender, nullptr))
         {
-          throw MakeFormattedError(THIS_LINE, "USF: failed to render: %1%", res);
+          throw MakeFormattedError(THIS_LINE, "USF: failed to render: {}", res);
         }
         doneSamples += toRender;
       }
@@ -128,7 +128,7 @@ namespace Module::USF
         const auto toSkip = std::min<uint32_t>(samples - skippedSamples, 1024);
         if (const auto res = ::usf_render(Emu.GetRaw(), nullptr, toSkip, nullptr))
         {
-          throw MakeFormattedError(THIS_LINE, "USF: failed to skip: %1%", res);
+          throw MakeFormattedError(THIS_LINE, "USF: failed to skip: {}", res);
         }
         skippedSamples += toSkip;
       }
@@ -167,7 +167,7 @@ namespace Module::USF
       int32_t freq = 0;
       if (const auto res = ::usf_render(Emu.GetRaw(), nullptr, 0, &freq))
       {
-        throw MakeFormattedError(THIS_LINE, "USF: failed to detect frequency: %1%", res);
+        throw MakeFormattedError(THIS_LINE, "USF: failed to detect frequency: {}", res);
       }
       Reset();
       SoundFrequency = freq;

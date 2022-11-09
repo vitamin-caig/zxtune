@@ -48,7 +48,7 @@ namespace Sound::Alsa
   {
     if (res < 0)
     {
-      throw MakeFormattedError(loc, translate("Error in ALSA backend: %1%."), api.snd_strerror(res));
+      throw MakeFormattedError(loc, translate("Error in ALSA backend: {}."), api.snd_strerror(res));
     }
   }
 
@@ -155,7 +155,7 @@ namespace Sound::Alsa
     {
       if (res < 0)
       {
-        throw MakeFormattedError(loc, translate("Error in ALSA backend while working with device '%1%': %2%."), Name,
+        throw MakeFormattedError(loc, translate("Error in ALSA backend while working with device '{0}': {1}."), Name,
                                  AlsaApi->snd_strerror(res));
       }
     }
@@ -236,7 +236,7 @@ namespace Sound::Alsa
     void Open()
     {
       Require(Handle == nullptr);
-      Dbg("Opening PCM device '%1%'", Name);
+      Dbg("Opening PCM device '{}'", Name);
       CheckResult(AlsaApi->snd_pcm_open(&Handle, Name.c_str(), SND_PCM_STREAM_PLAYBACK, 0), THIS_LINE);
     }
 
@@ -247,7 +247,7 @@ namespace Sound::Alsa
         // do not break if error while drain- we need to close
         AlsaApi->snd_pcm_drain(Handle);
         AlsaApi->snd_pcm_hw_free(Handle);
-        Dbg("Closing PCM device '%1%'", Name);
+        Dbg("Closing PCM device '{}'", Name);
         CheckResult(AlsaApi->snd_pcm_close(Release()), THIS_LINE);
       }
     }
@@ -325,7 +325,7 @@ namespace Sound::Alsa
 
       const unsigned freq = params.SoundFreq();
       const unsigned latency = Time::Microseconds(lat).Get();
-      Dbg("Setting parameters: rate=%1%Hz latency=%2%uS", freq, latency);
+      Dbg("Setting parameters: rate={}Hz latency={}uS", freq, latency);
       Pcm.CheckedCall(&Api::snd_pcm_set_params, fmt.Get(), SND_PCM_ACCESS_RW_INTERLEAVED, unsigned(Sample::CHANNELS),
                       freq, 1, latency, THIS_LINE);
 
@@ -454,7 +454,7 @@ namespace Sound::Alsa
 
     void Open()
     {
-      Dbg("Opening mixer device '%1%'", Name);
+      Dbg("Opening mixer device '{}'", Name);
       CheckResult(AlsaApi->snd_mixer_open(&Handle, 0), THIS_LINE);
     }
 
@@ -462,7 +462,7 @@ namespace Sound::Alsa
     {
       if (Handle)
       {
-        Dbg("Closing mixer device '%1%'", Name);
+        Dbg("Closing mixer device '{}'", Name);
         CheckResult(AlsaApi->snd_mixer_close(Release()), THIS_LINE);
       }
     }
@@ -491,7 +491,7 @@ namespace Sound::Alsa
 
     void Open()
     {
-      Dbg("Attaching to mixer device '%1%'", Name);
+      Dbg("Attaching to mixer device '{}'", Name);
       MixDev.CheckedCall(&Api::snd_mixer_attach, Name.c_str(), THIS_LINE);
       MixDev.CheckedCall(&Api::snd_mixer_selem_register, static_cast<snd_mixer_selem_regopt*>(nullptr),
                          static_cast<snd_mixer_class_t**>(nullptr), THIS_LINE);
@@ -502,7 +502,7 @@ namespace Sound::Alsa
     {
       if (MixDev.Get())
       {
-        Dbg("Detaching from mixer device '%1%'", Name);
+        Dbg("Detaching from mixer device '{}'", Name);
         MixDev.CheckedCall(&Api::snd_mixer_detach, Name.c_str(), THIS_LINE);
         MixDev.Close();
       }
@@ -531,29 +531,29 @@ namespace Sound::Alsa
       , MixerElement(nullptr)
     {
 
-      Dbg("Opening mixer '%1%'", mixer);
+      Dbg("Opening mixer '{}'", mixer);
       // find mixer element
       for (MixerElementsIterator iter = Attached.GetElements(); iter.IsValid(); iter.Next())
       {
         snd_mixer_elem_t* const elem = iter.Get();
         const String mixName = iter.GetName();
-        Dbg("Checking for mixer %1%", mixName);
+        Dbg("Checking for mixer {}", mixName);
         if (mixer.empty())
         {
-          Dbg("Using first mixer: %1%", mixName);
+          Dbg("Using first mixer: {}", mixName);
           MixerElement = elem;
           break;
         }
         else if (mixer == mixName)
         {
-          Dbg("Found mixer: %1%", mixName);
+          Dbg("Found mixer: {}", mixName);
           MixerElement = elem;
           break;
         }
       }
       if (!MixerElement)
       {
-        throw MakeFormattedError(THIS_LINE, translate("Failed to found mixer '%1%' for ALSA backend."), mixer);
+        throw MakeFormattedError(THIS_LINE, translate("Failed to found mixer '{}' for ALSA backend."), mixer);
       }
     }
 
@@ -688,7 +688,7 @@ namespace Sound::Alsa
       if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::LATENCY, val)
           && !Math::InRange<Parameters::IntType>(val, LATENCY_MIN, LATENCY_MAX))
       {
-        throw MakeFormattedError(THIS_LINE, translate("ALSA backend error: latency (%1%) is out of range (%2%..%3%)."),
+        throw MakeFormattedError(THIS_LINE, translate("ALSA backend error: latency ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(val), LATENCY_MIN, LATENCY_MAX);
       }
       return Time::Milliseconds(val);
@@ -841,7 +841,7 @@ namespace Sound::Alsa
 
       for (; AlsaApi->snd_card_next(&Index) >= 0 && Index >= 0;)
       {
-        const auto hwId = Strings::Format("hw:%i", Index);
+        const auto hwId = Strings::Format("hw:{}", Index);
         const auto handle = OpenDevice(AlsaApi, hwId);
         if (!handle)
         {
@@ -889,7 +889,7 @@ namespace Sound::Alsa
 
     String Id() const
     {
-      return Strings::Format("hw:%s,%u", Card.Id(), Index);
+      return Strings::Format("hw:{},{}", Card.Id(), Index);
     }
 
     void Next()
@@ -1041,7 +1041,7 @@ namespace Sound
     try
     {
       const Alsa::Api::Ptr api = Alsa::LoadDynamicApi();
-      Alsa::Dbg("Detected Alsa %1%", api->snd_asoundlib_version());
+      Alsa::Dbg("Detected Alsa {}", api->snd_asoundlib_version());
       if (Alsa::DeviceInfoIterator(api).IsValid())
       {
         const BackendWorkerFactory::Ptr factory = MakePtr<Alsa::BackendWorkerFactory>(api);
@@ -1075,7 +1075,7 @@ namespace Sound
       }
       catch (const Error& e)
       {
-        Alsa::Dbg("%1%", e.ToString());
+        Alsa::Dbg("{}", e.ToString());
         return Device::Iterator::CreateStub();
       }
     }

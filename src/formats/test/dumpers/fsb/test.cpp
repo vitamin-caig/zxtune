@@ -77,38 +77,38 @@ namespace
   public:
     void Setup(uint_t samplesCount, uint_t format) override
     {
-      Write(0, "%1% samples type %2% (%3%)", samplesCount, format, FormatString(format));
+      Write(0, "{} samples type {} ({})", samplesCount, format, FormatString(format));
     }
 
     void StartSample(uint_t idx) override
     {
-      Write(1, "Sample %1%", idx);
+      Write(1, "Sample {}", idx);
     }
 
     void SetFrequency(uint_t frequency) override
     {
-      Write(2, "Frequency: %1%Hz", frequency);
+      Write(2, "Frequency: {}Hz", frequency);
     }
 
     void SetChannels(uint_t channels) override
     {
-      Write(2, "Channels: %1%", channels);
+      Write(2, "Channels: {}", channels);
     }
 
     void SetName(String name) override
     {
-      Write(2, "Name: %1%", name);
+      Write(2, "Name: {}", name);
     }
 
     void AddMetaChunk(uint_t type, Binary::View chunk) override
     {
-      Write(2, "Meta chunk %1% (%2%) %3% bytes", type, ChunkTypeString(type), chunk.Size());
+      Write(2, "Meta chunk {} ({}) {} bytes", type, ChunkTypeString(type), chunk.Size());
       DumpHex(3, chunk);
     }
 
     void SetData(uint_t samplesCount, Binary::Container::Ptr blob) override
     {
-      Write(2, "Data: %1% samples in %2% bytes", samplesCount, blob ? blob->Size() : std::size_t(0));
+      Write(2, "Data: {} samples in {} bytes", samplesCount, blob ? blob->Size() : std::size_t(0));
     }
 
   private:

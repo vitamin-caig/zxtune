@@ -150,7 +150,7 @@ namespace Analysis
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, std::size_t offset)
   {
-    return MakePtr<SubNode>(std::move(parent), std::move(data), Strings::Format("+%1%", offset));
+    return MakePtr<SubNode>(std::move(parent), std::move(data), Strings::Format("+{}", offset));
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name, std::size_t offset)
@@ -402,7 +402,7 @@ namespace
 
     void Flush() override
     {
-      std::cout << Strings::Format("%1% files output. Total size is %2% bytes", Total, TotalSize) << std::endl;
+      std::cout << Strings::Format("{0} files output. Total size is {1} bytes", Total, TotalSize) << std::endl;
     }
 
   private:
@@ -542,7 +542,7 @@ namespace
                Formats::Archived::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
-      Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
+      Dbg("Found {0} in {1} bytes at {2}", name, data->Size(), offset);
       auto archNode = Analysis::CreateSubnode(Root, data, name, offset);
       const ScanFiles walker(ToScan, std::move(archNode));
       data->ExploreFiles(walker);
@@ -552,7 +552,7 @@ namespace
                Formats::Packed::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
-      Dbg("Found %1% in %2% bytes at %3%", name, data->PackedSize(), offset);
+      Dbg("Found {0} in {1} bytes at {2}", name, data->PackedSize(), offset);
       auto packNode = Analysis::CreateSubnode(Root, std::move(data), name, offset);
       ToScan.ApplyData(std::move(packNode));
     }
@@ -560,8 +560,8 @@ namespace
     void Apply(const Formats::Image::Decoder& decoder, std::size_t offset, Formats::Image::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
-      Dbg("Found %1% in %2% bytes at %3%", name, data->OriginalSize(), offset);
-      auto imageNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+%1%.image", offset));
+      Dbg("Found {0} in {1} bytes at {2}", name, data->OriginalSize(), offset);
+      auto imageNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+{}.image", offset));
       ToStore.ApplyData(std::move(imageNode));
     }
 
@@ -569,14 +569,14 @@ namespace
                Formats::Chiptune::Container::Ptr data) override
     {
       const String name = decoder.GetDescription();
-      Dbg("Found %1% in %2% bytes at %3%", name, data->Size(), offset);
-      auto chiptuneNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+%1%.chiptune", offset));
+      Dbg("Found {0} in {1} bytes at {2}", name, data->Size(), offset);
+      auto chiptuneNode = Analysis::CreateSubnode(Root, std::move(data), Strings::Format("+{}.chiptune", offset));
       ToStore.ApplyData(std::move(chiptuneNode));
     }
 
     void Apply(std::size_t offset, Binary::Container::Ptr data) override
     {
-      Dbg("Unresolved %1% bytes at %2%", data->Size(), offset);
+      Dbg("Unresolved {0} bytes at {1}", data->Size(), offset);
       auto rawNode = Analysis::CreateSubnode(Root, std::move(data), offset);
       ToStore.ApplyData(std::move(rawNode));
     }
@@ -595,7 +595,7 @@ namespace
         if (const Binary::Container::Ptr data = file.GetData())
         {
           const String name = file.GetName();
-          Dbg("Processing %1%", name);
+          Dbg("Processing {}", name);
           auto fileNode = Analysis::CreateSubnode(ArchiveNode, data, name);
           ToScan.ApplyData(std::move(fileNode));
         }
@@ -626,7 +626,7 @@ namespace
 
     void ApplyData(Analysis::Node::Ptr node) override
     {
-      Dbg("Analyze %1%", node->Name());
+      Dbg("Analyze {}", node->Name());
       NestedScannerTarget target(node, *this, *Target);
       try
       {
@@ -663,7 +663,7 @@ namespace
   const auto TEMPLATE_FIELD_FLATSUBPATH = "FlatSubpath"_sv;
 
   const auto DEFAULT_TARGET_NAME_TEMPLATE =
-      Strings::Format("XTractor/[%1%]/[%2%]", TEMPLATE_FIELD_FILENAME, TEMPLATE_FIELD_SUBPATH);
+      Strings::Format("XTractor/[{0}]/[{1}]", TEMPLATE_FIELD_FILENAME, TEMPLATE_FIELD_SUBPATH);
 
   typedef DataReceiver<String> StringsReceiver;
 
@@ -681,7 +681,7 @@ namespace
     {
       try
       {
-        Dbg("Opening '%1%'", filename);
+        Dbg("Opening '{}'", filename);
         const Binary::Container::Ptr data = IO::OpenData(filename, *Params, Log::ProgressCallback::Stub());
         auto root = Analysis::CreateRootNode(data, filename);
         Analyse->ApplyData(std::move(root));
@@ -1032,12 +1032,12 @@ namespace
       using namespace boost::program_options;
       auto opt = OptionsDescription.add_options();
       opt("analysis-threads", value<std::size_t>(&AnalysisThreadsValue),
-          Strings::Format("threads count for parallel analysis. 0 to disable paralleling. Default is %1%",
+          Strings::Format("threads count for parallel analysis. 0 to disable paralleling. Default is {}",
                           AnalysisThreadsValue)
               .c_str());
       opt("analysis-queue-size", value<std::size_t>(&AnalysisDataQueueSizeValue),
           Strings::Format("queue size for parallel analysis. Valuable only when analysis threads count is more than 0. "
-                          "Default is %1%",
+                          "Default is {}",
                           AnalysisDataQueueSizeValue)
               .c_str());
       opt("target-name-template", value<String>(&TargetNameTemplateValue),
@@ -1048,15 +1048,15 @@ namespace
               .c_str());
       opt("ignore-empty", bool_switch(&IgnoreEmptyDataValue), "do not store files filled with single byte");
       opt("minimal-size", value<std::size_t>(&MinDataSizeValue),
-          Strings::Format("do not store files with lesser size. Default is %1%", MinDataSizeValue).c_str());
+          Strings::Format("do not store files with lesser size. Default is {}", MinDataSizeValue).c_str());
       opt("format", value<std::string>(&FormatFilterValue), "specify fuzzy data format to save");
       opt("save-threads", value<std::size_t>(&SaveThreadsCountValue),
-          Strings::Format("threads count for parallel data saving. 0 to disable paralleling. Default is %1%",
+          Strings::Format("threads count for parallel data saving. 0 to disable paralleling. Default is {}",
                           SaveThreadsCountValue)
               .c_str());
       opt("save-queue-size", value<std::size_t>(&SaveDataQueueSizeValue),
           Strings::Format(
-              "queue size for parallel data saving. Valuable only when save threads is more than 0. Default is %1%",
+              "queue size for parallel data saving. Valuable only when save threads is more than 0. Default is {}",
               SaveDataQueueSizeValue)
               .c_str());
       opt("statistic", bool_switch(&StatisticOutputValue), "do not save any data, just collect summary statistic");
@@ -1170,7 +1170,7 @@ private:
     const auto helpKey = "help";
     const auto inputKey = "input";
     const auto versionKey = "version";
-    options_description options(Strings::Format("Usage:\n%1% [options] [--%2%] <input paths>", args[0], inputKey));
+    options_description options(Strings::Format("Usage:\n{0} [options] [--{1}] <input paths>", args[0], inputKey));
     auto opt = options.add_options();
     opt(helpKey, "show this message");
     opt(versionKey, "show application version");

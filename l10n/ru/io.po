@@ -11,9 +11,8 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 
-#, boost-format
-msgid "Failed to resolve uri '%1%'."
-msgstr "Ошибка анализа идентификатора '%1%'."
+msgid "Failed to resolve uri '{}'."
+msgstr "Ошибка анализа идентификатора '{}'."
 
 msgid "Specified uri scheme is not supported."
 msgstr "Данная схема идентификатора не поддерживается."
@@ -21,9 +20,8 @@ msgstr "Данная схема идентификатора не поддерж
 msgid "Not supported in current configuration"
 msgstr "Не поддерживается в текущей конфигурации."
 
-#, boost-format
-msgid "Failed to read %1% bytes. Actually got %2% bytes."
-msgstr "Ошибка чтения %1% байт. Прочитано %2%."
+msgid "Failed to read {0} bytes. Actually got {1} bytes."
+msgstr "Ошибка чтения {0} байт. Прочитано {1}."
 
 msgid "File is empty."
 msgstr "Файл пуст."
@@ -31,17 +29,14 @@ msgstr "Файл пуст."
 msgid "Failed to open file."
 msgstr "Ошибка открытия файла."
 
-#, boost-format
-msgid "Failed to write file '%1%'"
-msgstr "Ошибка записи файла '%1%'."
+msgid "Failed to write file '{}'"
+msgstr "Ошибка записи файла '{}'."
 
-#, boost-format
-msgid "Failed to flush file '%1%'"
-msgstr "Ошибка синхронизации файла '%1%'."
+msgid "Failed to flush file '{}'"
+msgstr "Ошибка синхронизации файла '{}'."
 
-#, boost-format
-msgid "Failed to seek file '%1%'"
-msgstr "Ошибка позиционирования файла '%1%'."
+msgid "Failed to seek file '{}'"
+msgstr "Ошибка позиционирования файла '{}'."
 
 msgid "File already exists."
 msgstr "Файл существует."
@@ -49,25 +44,20 @@ msgstr "Файл существует."
 msgid "Local files and file:// scheme support"
 msgstr "Поддержка доступа к локальным файлам и схемы file://"
 
-#, boost-format
-msgid "Failed to open file '%1%'."
-msgstr "Ошибка открытия файла '%1%'."
+msgid "Failed to open file '{}'."
+msgstr "Ошибка открытия файла '{}'."
 
-#, boost-format
-msgid "Failed to create file '%1%'."
-msgstr "Ошибка создания файла '%1%'."
+msgid "Failed to create file '{}'."
+msgstr "Ошибка создания файла '{}'."
 
-#, boost-format
-msgid "Network error happends: %1%"
-msgstr "Сетевая ошибка: %1%"
+msgid "Network error happends: {}"
+msgstr "Сетевая ошибка: {}"
 
-#, boost-format
-msgid "Http error happends: %1%."
-msgstr "Ошибка HTTP: %1%."
+msgid "Http error happends: {}."
+msgstr "Ошибка HTTP: {}."
 
-#, boost-format
-msgid "Failed to open network resource '%1%'."
-msgstr "Ошибка открытия сетевого ресурса '%1%'."
+msgid "Failed to open network resource '{}'."
+msgstr "Ошибка открытия сетевого ресурса '{}'."
 
 msgid "Not supported."
 msgstr "Не поддерживается."

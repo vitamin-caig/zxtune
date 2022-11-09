@@ -50,7 +50,7 @@ namespace Formats::Packed::Lha
       if (const std::size_t decoded = ::lha_decoder_read(decoder.get(), result->data(), outputSize))
       {
         const std::size_t originalSize = input.GetPosition();
-        Dbg("Decoded %1% -> %2% bytes", originalSize, outputSize);
+        Dbg("Decoded {} -> {} bytes", originalSize, outputSize);
         return CreateContainer(std::move(result), originalSize);
       }
       return Formats::Packed::Container::Ptr();
@@ -87,7 +87,7 @@ namespace Formats::Packed::Lha
         return result;
       }
       const std::size_t originalSize = result->PackedSize();
-      Dbg("Output size mismatch while decoding %1% -> %2% (%3% required)", originalSize, decoded, outputSize);
+      Dbg("Output size mismatch while decoding {} -> {} ({} required)", originalSize, decoded, outputSize);
     }
     return Formats::Packed::Container::Ptr();
   }

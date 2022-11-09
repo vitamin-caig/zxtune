@@ -32,7 +32,7 @@ namespace
     if (::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info) && info.dli_sname && info.dli_saddr)
     {
       const String result(info.dli_fname);
-      Dbg("Shared library name: %1%", result);
+      Dbg("Shared library name: {}", result);
       return result;
     }
     else
@@ -47,12 +47,12 @@ namespace
     struct stat sb;
     if (-1 == ::lstat(selfPath.c_str(), &sb))
     {
-      Dbg("Failed to stat %1% (errno %2%)", selfPath, errno);
+      Dbg("Failed to stat {} (errno {})", selfPath, errno);
       return String();
     }
     if (!S_ISLNK(sb.st_mode))
     {
-      Dbg("%1% is not a symlink", selfPath);
+      Dbg("{} is not a symlink", selfPath);
       return String();
     }
 
@@ -62,7 +62,7 @@ namespace
       const int len = ::readlink(selfPath.c_str(), filename.data(), filename.size() - 1);
       if (len == -1)
       {
-        Dbg("Failed to readlink '%1%' (errno %2%)", selfPath, errno);
+        Dbg("Failed to readlink '{}' (errno {})", selfPath, errno);
         return String();
       }
       else if (len == static_cast<int>(filename.size()) - 1)
@@ -76,7 +76,7 @@ namespace
       }
     }
     const String result(filename.data());
-    Dbg("Executable name: %1%", result);
+    Dbg("Executable name: {}", result);
     return result;
   }
 }  // namespace
@@ -88,7 +88,7 @@ namespace Platform
     static const String soName = GetSharedLibraryName();
     if (!soName.empty())
     {
-      Dbg("Shared library name is '%1%'", soName);
+      Dbg("Shared library name is '{}'", soName);
       return soName;
     }
     static const String binName = GetExecutableName();

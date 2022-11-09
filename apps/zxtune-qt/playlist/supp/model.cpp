@@ -356,12 +356,12 @@ namespace
       , AsyncExecution(Async::Activity::CreateStub())
       , Canceled(false)
     {
-      Dbg("Created at %1%", this);
+      Dbg("Created at {}", Self());
     }
 
     ~ModelImpl() override
     {
-      Dbg("Destroyed at %1%", this);
+      Dbg("Destroyed at {}", Self());
     }
 
     void PerformOperation(Playlist::Item::StorageAccessOperation::Ptr operation) override
@@ -430,7 +430,7 @@ namespace
 
     void MoveItems(const IndexSet& items, IndexType target) override
     {
-      Dbg("Moving %1% items to row %2%", items.size(), target);
+      Dbg("Moving {} items to row {}", items.size(), target);
       ChangeModel([this, &items, &target]() { Container->MoveItems(items, target); });
     }
 
@@ -622,7 +622,7 @@ namespace
 
     void sort(int column, Qt::SortOrder order) override
     {
-      Dbg("Sort data in column=%1% by order=%2%", column, order);
+      Dbg("Sort data in column={} by order={}", column, static_cast<int>(order));
       const bool ascending = order == Qt::AscendingOrder;
       if (Playlist::Item::Comparer::Ptr comparer = CreateComparerByColumn(column, ascending))
       {
@@ -632,6 +632,11 @@ namespace
     }
 
   private:
+    const void* Self() const
+    {
+      return this;
+    }
+
     void AsyncLoad(Playlist::Item::Data::Ptr item, const QModelIndex& index) const
     {
       auto* self = const_cast<ModelImpl*>(this);

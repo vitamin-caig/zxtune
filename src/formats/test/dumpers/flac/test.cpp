@@ -75,7 +75,7 @@ namespace
 
     void AddFrame(std::size_t offset) override
     {
-      std::cout << Strings::Format("Frame: @%1%(0x%1$08x)\n", offset);
+      std::cout << Strings::Format("Frame: @{0}(0x{0:08x})\n", offset);
       ++FramesCount;
     }
 

@@ -37,8 +37,8 @@ namespace
   inline void ShowTrackingStatus(const Module::TrackState& state)
   {
     static const Char FORMAT[] =
-        "Position: %|1$-6|Line:     %|3$-6|Channels: %|5$-6|\n"
-        "Pattern:  %|2$-6|Frame:    %|4$-6|Tempo:    %|6$-6|\n"
+        "Position: {0:<6}Line:     {2:<6}Channels: {4:<6}\n"
+        "Pattern:  {1:<6}Frame:    {3:<6}Tempo:    {5:<6}\n"
         "\n";
 
     const String& dump = Strings::Format(FORMAT, state.Position(), state.Pattern(), state.Line(), state.Quirk(),
@@ -67,9 +67,9 @@ namespace
       "Title:   [Title]\n"
       "Author:  [Author]";
 
-  const Char ITEM_INFO_ADDON[] = "\nTime:    %1%\tLoop duration:  %2%\n";
+  const Char ITEM_INFO_ADDON[] = "\nTime:    {0}\tLoop duration:  {1}\n";
 
-  const Char PLAYBACK_STATUS[] = "[%1%] [%2%]\n\n";
+  const Char PLAYBACK_STATUS[] = "[{0}] [{1}]\n\n";
   // clang-format on
 
   class DisplayComponentImpl : public DisplayComponent

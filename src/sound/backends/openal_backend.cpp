@@ -53,7 +53,7 @@ namespace Sound::OpenAl
     {
       if (const ALenum err = OalApi.alGetError())
       {
-        throw MakeFormattedError(loc, translate("Error in OpenAL backend: %1%."), err);
+        throw MakeFormattedError(loc, translate("Error in OpenAL backend: {}."), err);
       }
     }
 
@@ -75,12 +75,12 @@ namespace Sound::OpenAl
       , Previous(OalApi.alcGetCurrentContext())
       , Current(OalApi.alcCreateContext(&device, 0), [&api](ALCcontext* ctx) { api.alcDestroyContext(ctx); })
     {
-      Dbg("Create context instead of current %p", Previous);
+      Dbg("Create context instead of current {}", static_cast<void*>(Previous));
       if (!Current)
       {
         RaiseError(THIS_LINE);
       }
-      Dbg("Set current context to %p", Current.get());
+      Dbg("Set current context to {}", static_cast<void*>(Current.get()));
       if (!OalApi.alcMakeContextCurrent(Current.get()))
       {
         RaiseError(THIS_LINE);
@@ -117,7 +117,7 @@ namespace Sound::OpenAl
       , Size(count)
       , Ids(new ALuint[count])
     {
-      Dbg("Generate %u buffers", count);
+      Dbg("Generate {} buffers", count);
       OalApi.alGetError();
       OalApi.alGenBuffers(Size, Ids.get());
       CheckError(THIS_LINE);
@@ -279,7 +279,7 @@ namespace Sound::OpenAl
       , Dev(OalApi.alcOpenDevice(deviceName.empty() ? 0 : deviceName.c_str()),
             [&api](ALCdevice* dev) { api.alcCloseDevice(dev); })
     {
-      Dbg("Open device %1%", deviceName);
+      Dbg("Open device {}", deviceName);
       if (!Dev)
       {
         RaiseError(THIS_LINE);
@@ -319,7 +319,7 @@ namespace Sound::OpenAl
           && !Math::InRange<Parameters::IntType>(val, BUFFERS_MIN, BUFFERS_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
-                                 translate("OpenAL backend error: buffers count (%1%) is out of range (%2%..%3%)."),
+                                 translate("OpenAL backend error: buffers count ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(val), BUFFERS_MIN, BUFFERS_MAX);
       }
       return static_cast<uint_t>(val);
@@ -445,7 +445,7 @@ namespace Sound
       const char* const version = api->alGetString(AL_VERSION);
       const char* const vendor = api->alGetString(AL_VENDOR);
       const char* const renderer = api->alGetString(AL_RENDERER);
-      OpenAl::Dbg("Detected OpenAL v%1% by '%2%' (renderer '%3%')", version, vendor,
+      OpenAl::Dbg("Detected OpenAL v{} by '{}' (renderer '{}')", version, vendor,
                   renderer);  // usually empty strings...
       const BackendWorkerFactory::Ptr factory = MakePtr<OpenAl::BackendWorkerFactory>(api);
       storage.Register(OpenAl::BACKEND_ID, OpenAl::BACKEND_DESCRIPTION, OpenAl::CAPABILITIES, factory);

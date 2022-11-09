@@ -174,7 +174,7 @@ namespace Module::Mp3
         }
         else if (!info.frame_bytes)
         {
-          Dbg("Failed to decode frame for seek @0x%1$08x", offset);
+          Dbg("Failed to decode frame for seek @0x{:08x}", offset);
           break;
         }
       }
@@ -361,7 +361,7 @@ namespace Module::Mp3
       }
       else
       {
-        Dbg("Built %1% seek points", Data->Lookup.size());
+        Dbg("Built {} seek points", Data->Lookup.size());
         Data->Lookup.shrink_to_fit();
         return Data;
       }
@@ -395,7 +395,7 @@ namespace Module::Mp3
       }
       catch (const std::exception& e)
       {
-        Dbg("Failed to create MP3: %s", e.what());
+        Dbg("Failed to create MP3: {}", e.what());
       }
       return {};
     }

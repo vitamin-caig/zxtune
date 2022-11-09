@@ -340,13 +340,13 @@ namespace Formats::Chiptune
           const std::size_t dumpOffset = stream.GetPosition();
           const std::size_t dumpSize = size - sizeof(Ver5::Footer) - dumpOffset;
           const std::size_t lines = header.Frames;
-          Dbg("ymver5: dump started at %1%, size %2%, vtbls %3%", dumpOffset, dumpSize, lines);
+          Dbg("ymver5: dump started at {}, size {}, vtbls {}", dumpOffset, dumpSize, lines);
           const std::size_t columns = sizeof(Ver5::RegistersDump);
           const std::size_t matrixSize = dumpSize;
           const std::size_t availLines = dumpSize / columns;
           if (availLines != lines)
           {
-            Dbg("available only %1% lines", availLines);
+            Dbg("available only {} lines", availLines);
           }
           const auto src = stream.ReadData(matrixSize);
           if (header.Interleaved())
@@ -616,7 +616,7 @@ namespace Formats::Chiptune
         }
 
         const std::size_t packedOffset = stream.GetPosition();
-        Dbg("Packed data at %1%", packedOffset);
+        Dbg("Packed data at {}", packedOffset);
         const auto packed = stream.ReadRestContainer();
         if (const auto unpacked = Packed::Lha::DecodeRawData(*packed, "-lh5-", unpackedSize))
         {

@@ -54,7 +54,7 @@ namespace Sound::DirectSound
   {
     if (FAILED(res))
     {
-      throw MakeFormattedError(loc, translate("Error in DirectSound backend: %1%."), res);
+      throw MakeFormattedError(loc, translate("Error in DirectSound backend: {}."), res);
     }
   }
 
@@ -101,7 +101,7 @@ namespace Sound::DirectSound
 
   DirectSoundPtr OpenDevice(Api& api, const String& device)
   {
-    Dbg("OpenDevice(%1%)", device);
+    Dbg("OpenDevice({})", device);
     IDirectSound* raw = 0;
     const std::unique_ptr<GUID> deviceUuid = String2Guid(device);
     CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
@@ -171,7 +171,7 @@ namespace Sound::DirectSound
       caps.dwSize = sizeof(caps);
       CheckWin32Error(Buff->GetCaps(&caps), THIS_LINE);
       BuffSize = caps.dwBufferBytes;
-      Dbg("Using cycle buffer size %1%", BuffSize);
+      Dbg("Using cycle buffer size {}", BuffSize);
       CheckWin32Error(Buff->Play(0, 0, DSBPLAY_LOOPING), THIS_LINE);
     }
 
@@ -326,7 +326,7 @@ namespace Sound::DirectSound
       const int_t attLeft = vols.first - (vols.second > 0 ? vols.second : 0);
       const int_t attRight = vols.first - (vols.second < 0 ? -vols.second : 0);
       const Gain volume(AttenuationToGain(attLeft), AttenuationToGain(attRight));
-      Dbg("GetVolume(vol=%1% pan=%2%)", vols.first, vols.second);
+      Dbg("GetVolume(vol={} pan={})", vols.first, vols.second);
       return volume;
     }
 
@@ -341,7 +341,7 @@ namespace Sound::DirectSound
       const LONG vol = std::max(attLeft, attRight);
       // pan is negative for left
       const LONG pan = attLeft < vol ? vol - attLeft : vol - attRight;
-      Dbg("SetVolume(vol=%1% pan=%2%)", vol, pan);
+      Dbg("SetVolume(vol={} pan={})", vol, pan);
       SetVolumeImpl(VolPan(vol, pan));
     }
 
@@ -388,7 +388,7 @@ namespace Sound::DirectSound
           && !Math::InRange<Parameters::IntType>(latency, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE,
-                                 translate("DirectSound backend error: latency (%1%) is out of range (%2%..%3%)."),
+                                 translate("DirectSound backend error: latency ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(latency), LATENCY_MIN, LATENCY_MAX);
       }
       return static_cast<uint_t>(latency);
@@ -551,7 +551,7 @@ namespace Sound::DirectSound
       }
       else
       {
-        Dbg("Detected %1% devices to output.", Devices.size());
+        Dbg("Detected {} devices to output.", Devices.size());
         Current = Devices.begin();
       }
     }
@@ -581,7 +581,7 @@ namespace Sound::DirectSound
       const auto& id = Guid2String(guid);
       const auto& name = Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(descr));
       const auto& mod = Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(module));
-      Dbg("Detected device '%1%' (uuid=%2% module='%3%')", name, id, mod);
+      Dbg("Detected device '{}' (uuid={} module='{}')", name, id, mod);
       DevicesArray& devices = *static_cast<DevicesArray*>(param);
       devices.push_back(IdAndName(id, name));
       return TRUE;
@@ -629,7 +629,7 @@ namespace Sound
       }
       catch (const Error& e)
       {
-        Dbg("%1%", e.ToString());
+        Dbg("{}", e.ToString());
         return Device::Iterator::CreateStub();
       }
     }

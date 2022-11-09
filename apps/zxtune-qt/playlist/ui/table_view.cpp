@@ -138,12 +138,12 @@ namespace
       // signals
       Require(connect(this, SIGNAL(activated(const QModelIndex&)), SLOT(ActivateItem(const QModelIndex&))));
 
-      Dbg("Created at %1%", this);
+      Dbg("Created at {}", Self());
     }
 
     ~TableViewImpl() override
     {
-      Dbg("Destroyed at %1%", this);
+      Dbg("Destroyed at {}", Self());
     }
 
     Playlist::Model::IndexSet::Ptr GetSelectedItems() const override
@@ -212,6 +212,12 @@ namespace
         qSort(items);
         scrollTo(items.first(), QAbstractItemView::EnsureVisible);
       }
+    }
+
+  private:
+    const void* Self() const
+    {
+      return this;
     }
   };
 

@@ -129,12 +129,11 @@ namespace TRDos
   private:
     String GenerateName() const
     {
-      static const Char DISAMBIG_NAME_FORMAT[] = {'%', '1', '%', '~', '%', '2', '%', '%', '3', '%', '\0'};
       assert(Idx);
       const String::size_type dotPos = Name.find_last_of('.');
       const String base = Name.substr(0, dotPos);
       const String ext = dotPos == String::npos ? String() : Name.substr(dotPos);
-      return Strings::Format(DISAMBIG_NAME_FORMAT, base, Idx, ext);
+      return Strings::Format("{}~{}{}", base, Idx, ext);
     }
 
   private:

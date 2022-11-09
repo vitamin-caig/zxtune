@@ -48,9 +48,9 @@ namespace
   {
     const Binary::Dump ref(REFERENCE, REFERENCE + refSize);
     const std::string encoded = Binary::Base64::Encode(ref);
-    Test(Strings::Format("encode for %1% bytes", refSize), encoded, encodedRef);
+    Test(Strings::Format("encode for {} bytes", refSize), encoded, encodedRef);
     const auto decoded = Binary::Base64::Decode(encoded);
-    Test(Strings::Format("decode for %1% bytes", refSize), decoded, ref);
+    Test(Strings::Format("decode for {} bytes", refSize), decoded, ref);
   }
 }  // namespace
 

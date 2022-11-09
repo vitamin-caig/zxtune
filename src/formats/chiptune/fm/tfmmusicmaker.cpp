@@ -823,17 +823,17 @@ namespace Formats::Chiptune
         Positions positions;
         positions.Loop = Source.LoopPosition;
         positions.Lines.assign(Source.Positions.begin(), Source.Positions.begin() + positionsCount);
-        Dbg("Positions: %1% entries, loop to %2%", positions.GetSize(), positions.GetLoop());
+        Dbg("Positions: {} entries, loop to {}", positions.GetSize(), positions.GetLoop());
         builder.SetPositions(std::move(positions));
       }
 
       void ParsePatterns(const Indices& pats, Builder& builder) const
       {
-        Dbg("Patterns: %1% to parse", pats.Count());
+        Dbg("Patterns: {} to parse", pats.Count());
         for (Indices::Iterator it = pats.Items(); it; ++it)
         {
           const uint_t patIndex = *it;
-          Dbg("Parse pattern %1%", patIndex);
+          Dbg("Parse pattern {}", patIndex);
           const uint_t patSize = Source.PatternsSizes[patIndex];
           const typename Version::RawPattern& pattern = Source.Patterns[patIndex];
           PatternBuilder& patBuilder = builder.StartPattern(patIndex);
@@ -843,11 +843,11 @@ namespace Formats::Chiptune
 
       void ParseInstruments(const Indices& instruments, Builder& builder) const
       {
-        Dbg("Instruments: %1% to parse", instruments.Count());
+        Dbg("Instruments: {} to parse", instruments.Count());
         for (Indices::Iterator it = instruments.Items(); it; ++it)
         {
           const uint_t insIdx = *it;
-          Dbg("Parse instrument %1%", insIdx);
+          Dbg("Parse instrument {}", insIdx);
           builder.SetInstrument(insIdx, ParseInstrument(Source.Instruments[insIdx - 1]));
         }
       }

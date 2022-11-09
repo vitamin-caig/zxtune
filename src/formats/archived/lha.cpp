@@ -111,7 +111,7 @@ namespace Formats::Archived
         , Size(header.length)
         , Method(header.compress_method)
       {
-        Dbg("Created file '%1%', size=%2%, packed size=%3%, compression=%4%", Name, Size, Data->Size(), Method);
+        Dbg("Created file '{}', size={}, packed size={}, compression={}", Name, Size, Data->Size(), Method);
       }
 
       String GetName() const override
@@ -126,7 +126,7 @@ namespace Formats::Archived
 
       Binary::Container::Ptr GetData() const override
       {
-        Dbg("Decompressing '%1%'", Name);
+        Dbg("Decompressing '{}'", Name);
         return Packed::Lha::DecodeRawData(*Data, Method, Size);
       }
 

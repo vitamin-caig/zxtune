@@ -249,7 +249,7 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_close(JNIEnv* /*env*/,
 {
   if (Module::Storage::Instance().Fetch(handle))
   {
-    Dbg("Module::Close(handle=%1%)", handle);
+    Dbg("Module::Close(handle={})", handle);
   }
 }
 

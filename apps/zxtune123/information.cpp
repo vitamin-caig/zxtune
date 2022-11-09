@@ -33,12 +33,11 @@
 #include <strings/format.h>
 // std includes
 #include <iostream>
+#include <variant>
 // boost includes
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <boost/variant/get.hpp>
-#include <boost/variant/variant.hpp>
 
 namespace
 {
@@ -57,7 +56,7 @@ namespace
     }
     if (caps)
     {
-      result += Strings::Format(" 0x%08x", caps);
+      result += Strings::Format(" 0x{:08x}", caps);
     }
     return result;
   }
@@ -202,9 +201,9 @@ namespace
   inline String DescribePlugin(const ZXTune::Plugin& plugin)
   {
     return Strings::Format(
-        "Plugin:       %1%\n"
-        "Description:  %2%\n"
-        "Capabilities: %3%\n"
+        "Plugin:       {0}\n"
+        "Description:  {1}\n"
+        "Capabilities: {2}\n"
         "\n",
         plugin.Id(), plugin.Description(), PluginCaps(plugin.Capabilities()));
   }
@@ -228,10 +227,10 @@ namespace
   {
     const Error& status = info.Status();
     return Strings::Format(
-        "Backend:      %1%\n"
-        "Description:  %2%\n"
-        "Capabilities: %3%\n"
-        "Status:       %4%\n"
+        "Backend:      {0}\n"
+        "Description:  {1}\n"
+        "Capabilities: {2}\n"
+        "Status:       {3}\n"
         "\n",
         info.Id(), info.Description(), BackendCaps(info.Capabilities()), status ? status.GetText() : "Available");
   }
@@ -249,9 +248,9 @@ namespace
   {
     const Error& status = provider.Status();
     return Strings::Format(
-        "Provider:    %1%\n"
-        "Description: %2%\n"
-        "Status:      %3%\n"
+        "Provider:    {0}\n"
+        "Description: {1}\n"
+        "Status:      {2}\n"
         "\n",
         provider.Id(), provider.Description(), status ? status.GetText() : "Available");
   }
@@ -265,7 +264,7 @@ namespace
     }
   }
 
-  typedef boost::variant<Parameters::IntType, Parameters::StringType> ValueType;
+  typedef std::variant<Parameters::IntType, Parameters::StringType> ValueType;
 
   struct OptionDesc
   {
@@ -292,14 +291,21 @@ namespace
       }
       else
       {
-        const Parameters::StringType* defValString = boost::get<const Parameters::StringType>(&Default);
-        if (defValString && defValString->empty())
+        if (const auto* defValString = std::get_if<Parameters::StringType>(&Default))
         {
-          return Strings::Format("  %1%\n  - %2%.", Name, Desc);
+          if (defValString->empty())
+          {
+            return Strings::Format("  {0}\n  - {1}.", Name, Desc);
+          }
+          else
+          {
+            return Strings::Format("  {0}\n  - {1} (default value is '{2}').", Name, Desc, *defValString);
+          }
         }
         else
         {
-          return Strings::Format("  %1%\n  - %2% (default value is '%3%').", Name, Desc, Default);
+          return Strings::Format("  {0}\n  - {1} (default value is {2}).", Name, Desc,
+                                 std::get<Parameters::IntType>(Default));
         }
       }
     }
@@ -436,7 +442,7 @@ namespace
   typedef std::pair<StringView, const Char*> AttrType;
   void ShowAttribute(const AttrType& arg)
   {
-    StdOut << Strings::Format(" %|1$-20|- %2%", arg.first, arg.second) << std::endl;
+    StdOut << Strings::Format(" {0:<20}- {1}", arg.first, arg.second) << std::endl;
   }
 
   void ShowAttributes()

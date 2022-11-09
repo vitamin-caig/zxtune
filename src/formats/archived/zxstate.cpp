@@ -394,7 +394,7 @@ namespace Formats::Archived
         {
           const auto& hdr = Stream.Read<Header>();
           Require(hdr.Id == Header::SIGNATURE);
-          Dbg("ZXState container ver %1%.%2%", uint_t(hdr.Major), uint_t(hdr.Minor));
+          Dbg("ZXState container ver {}.{}", uint_t(hdr.Major), uint_t(hdr.Minor));
         }
 
         const Chunk* GetNext()
@@ -439,7 +439,7 @@ namespace Formats::Archived
       }
       catch (const Error& e)
       {
-        Dbg("Failed to decompress: %1%", e.ToString());
+        Dbg("Failed to decompress: {}", e.ToString());
       }
       catch (const std::exception&)
       {
@@ -476,7 +476,7 @@ namespace Formats::Archived
         , Name(std::move(name))
         , Block(std::move(block))
       {
-        Dbg("Created file '%1%', size=%2%, packed size=%3%, compression=%4%", Name, Block.UncompressedSize, Block.Size,
+        Dbg("Created file '{}', size={}, packed size={}, compression={}", Name, Block.UncompressedSize, Block.Size,
             Block.IsCompressed);
       }
 
@@ -492,7 +492,7 @@ namespace Formats::Archived
 
       Binary::Container::Ptr GetData() const override
       {
-        Dbg("Decompressing '%1%' (%2% -> %3%)", Name, Block.Size, Block.UncompressedSize);
+        Dbg("Decompressing '{}' ({} -> {})", Name, Block.Size, Block.UncompressedSize);
         return ExtractData(Block);
       }
 
@@ -517,7 +517,7 @@ namespace Formats::Archived
         , Name(std::move(name))
         , Blocks(std::move(blocks))
       {
-        Dbg("Created file '%1%', contains from %2% parts", Name, Blocks.size());
+        Dbg("Created file '{}', contains from {} parts", Name, Blocks.size());
       }
 
       String GetName() const override
@@ -536,7 +536,7 @@ namespace Formats::Archived
         {
           const std::size_t unpacked = GetSize();
           Require(unpacked != 0);
-          Dbg("Decompressing '%1%' (%2% blocks, %3% butes result)", Name, Blocks.size(), unpacked);
+          Dbg("Decompressing '{}' ({} blocks, {} butes result)", Name, Blocks.size(), unpacked);
           std::unique_ptr<Binary::Dump> result(new Binary::Dump(unpacked));
           auto* target = result->data();
           for (const auto& block : Blocks)
@@ -594,14 +594,14 @@ namespace Formats::Archived
     public:
       bool Visit(const Chunk& ch) override
       {
-        Dbg("Skipping useless '%1%'", GenerateChunkName(ch));
+        Dbg("Skipping useless '{}'", GenerateChunkName(ch));
         return true;
       }
 
       bool Visit(const Chunk& ch, const DataBlockDescription& blk) override
       {
         const String& name = GenerateChunkName(ch);
-        Dbg("Single block '%1%'", name);
+        Dbg("Single block '{}'", name);
         (*this)[name].push_back(blk);
         return true;
       }
@@ -609,7 +609,7 @@ namespace Formats::Archived
       bool Visit(const Chunk& ch, uint_t idx, const DataBlockDescription& blk) override
       {
         const String& name = GenerateChunkName(ch, idx);
-        Dbg("Single indexed block '%1%'", name);
+        Dbg("Single indexed block '{}'", name);
         DataBlocksAdapter blocks((*this)[name], ch.Id);
         blocks.Add(idx, blk);
         return true;
@@ -618,7 +618,7 @@ namespace Formats::Archived
       bool Visit(const Chunk& ch, const String& suffix, const DataBlockDescription& blk) override
       {
         const String& name = GenerateChunkName(ch, suffix);
-        Dbg("Single suffixed block '%1%'", name);
+        Dbg("Single suffixed block '{}'", name);
         (*this)[name].push_back(blk);
         return true;
       }

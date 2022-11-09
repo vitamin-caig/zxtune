@@ -426,7 +426,7 @@ namespace Module::AYEMUL
       // check CPC first
       else if (CPC.Write(timeStamp, port, data))
       {
-        Dbg("Detected CPC port mapping on write to port #%1$04x", port);
+        Dbg("Detected CPC port mapping on write to port #{:04x}", port);
         Current = &CPC;
       }
       else

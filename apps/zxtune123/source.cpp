@@ -81,7 +81,7 @@ namespace
         if (const uint_t currentWidth = GetCurrentWidth())
         {
           String text = message;
-          text += Strings::Format(" [%1%%%]", current);
+          text += Strings::Format(" [{}%]", current);
           OutputString(currentWidth, text);
         }
       }

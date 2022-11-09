@@ -197,7 +197,7 @@ namespace Formats::Packed
         Dbg("Invalid player");
         return Container::Ptr();
       }
-      Dbg("Detected player in first %1% bytes", playerSize);
+      Dbg("Detected player in first {} bytes", playerSize);
       const auto modData = rawData.GetSubcontainer(playerSize, CompiledSTP::MAX_MODULE_SIZE);
       const auto metainfo = rawPlayer.GetInfo();
       auto& stub = Formats::Chiptune::SoundTrackerPro::GetStubBuilder();
