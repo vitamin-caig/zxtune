@@ -25,14 +25,10 @@
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 // 3rdparty
-#define STB_VORBIS_NO_STDIO
-//#define STB_VORBIS_NO_PUSHDATA_API
-//#define STB_VORBIS_MAX_CHANNELS 2
-#if BOOST_ENDIAN_BIG_BYTE
-#  define STB_VORBIS_BIG_ENDIAN
-#endif
-#include <3rdparty/stb/stb_vorbis.c>
+#define OV_EXCLUDE_STATIC_CALLBACKS
+#include <3rdparty/vorbis/vorbisfile.h>
 // std includes
+#include <algorithm>
 #include <unordered_map>
 
 #define FILE_TAG B064CB04
@@ -51,6 +47,144 @@ namespace Module::Ogg
     Binary::Data::Ptr Content;
   };
 
+  class VorbisDecoder
+  {
+  public:
+    using Ptr = std::unique_ptr<VorbisDecoder>;
+
+    explicit VorbisDecoder(Binary::View data)
+      : Data(data)
+    {
+      const ov_callbacks cb = {.read_func = &DoRead, .seek_func = &DoSeek, .close_func = nullptr, .tell_func = &DoTell};
+      const auto res = ::ov_open_callbacks(this, &File, nullptr, 0, cb);
+      if (res != 0)
+      {
+        throw MakeFormattedError(THIS_LINE, "Failed to open OGG Vorbis: {}", res);
+      }
+      Channels = ::ov_info(&File, -1)->channels;
+    }
+
+    ~VorbisDecoder()
+    {
+      ::ov_clear(&File);
+    }
+
+    void Seek(uint64_t sample)
+    {
+      const auto res = ::ov_pcm_seek_lap(&File, sample);
+      if (res != 0)
+      {
+        throw MakeFormattedError(THIS_LINE, "Failed to seek OGG stream: {}", res);
+      }
+    }
+
+    std::size_t Render(Sound::Sample* target, std::size_t avail)
+    {
+      std::size_t done = 0;
+      while (done < avail)
+      {
+        float** pcm = nullptr;
+        const auto res = ::ov_read_float(&File, &pcm, std::min(2048, int(avail - done)), nullptr);
+        if (res == 0)
+        {
+          break;
+        }
+        else if (res < 0)
+        {
+          continue;
+        }
+        Convert(pcm, target + done, res);
+        done += res;
+      }
+      return done;
+    }
+
+  private:
+    static size_t DoRead(void* target, size_t size, size_t count, void* ctx)
+    {
+      auto* const self = static_cast<VorbisDecoder*>(ctx);
+      const auto avail = (self->Data.Size() - self->Position) / size;
+      const auto toRead = std::min(avail, count);
+      if (toRead)
+      {
+        std::memcpy(target, self->Data.As<uint8_t>() + self->Position, toRead * size);
+        self->Position += toRead * size;
+      }
+      return toRead;
+    }
+
+    static int DoSeek(void* ctx, ogg_int64_t offset, int whence)
+    {
+      auto* const self = static_cast<VorbisDecoder*>(ctx);
+      std::size_t newPos = offset;
+      switch (whence)
+      {
+      case SEEK_SET:
+        break;
+      case SEEK_CUR:
+        newPos += self->Position;
+        break;
+      case SEEK_END:
+        newPos = self->Data.Size();
+        break;
+      default:
+        return -1;
+      }
+      if (newPos <= self->Data.Size())
+      {
+        self->Position = newPos;
+        return 0;
+      }
+      else
+      {
+        return -1;
+      }
+    }
+
+    static long DoTell(void* ctx)
+    {
+      auto* const self = static_cast<VorbisDecoder*>(ctx);
+      return self->Position;
+    }
+
+    void Convert(float** in, Sound::Sample* out, std::size_t samples)
+    {
+      static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound sample channels count");
+      static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
+      static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
+      if (Channels == 1)
+      {
+        std::transform(in[0], in[0] + samples, out, &MakeMonoSample);
+      }
+      else
+      {
+        std::transform(in[0], in[0] + samples, in[1], out, &MakeStereoSample);
+      }
+    }
+
+    static Sound::Sample::Type MakeSample(float f)
+    {
+      return static_cast<Sound::Sample::Type>(f * Sound::Sample::MAX);
+    }
+
+    static Sound::Sample MakeMonoSample(float f)
+    {
+      const auto smp = MakeSample(f);
+      return {smp, smp};
+    }
+
+    static Sound::Sample MakeStereoSample(float l, float r)
+    {
+      return {MakeSample(l), MakeSample(r)};
+    }
+
+  private:
+    const Binary::View Data;
+    std::size_t Position = 0;
+    OggVorbis_File File;
+    int Channels = 0;
+  };
+
   class OggTune
   {
   public:
@@ -58,8 +192,6 @@ namespace Module::Ogg
       : Data(std::move(data))
     {
       Reset();
-      static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
-      static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
     }
 
     uint_t GetFrequency() const
@@ -70,38 +202,24 @@ namespace Module::Ogg
     Sound::Chunk RenderFrame()
     {
       Sound::Chunk chunk(Data->Frequency / 10);
-      const auto done = ::stb_vorbis_get_samples_short_interleaved(Decoder.get(), Sound::Sample::CHANNELS,
-                                                                   safe_ptr_cast<short*>(chunk.data()),
-                                                                   int(Sound::Sample::CHANNELS * chunk.size()));
+      const auto done = Decoder->Render(chunk.data(), chunk.size());
       chunk.resize(done);
       return chunk;
     }
 
     void Reset()
     {
-      int error = 0;
-      const auto decoder = VorbisPtr(::stb_vorbis_open_memory(static_cast<const uint8_t*>(Data->Content->Start()),
-                                                              int(Data->Content->Size()), &error, nullptr),
-                                     &::stb_vorbis_close);
-      if (!decoder)
-      {
-        throw MakeFormattedError(THIS_LINE, "Failed to create decoder. Error: {}", error);
-      }
-      Decoder = decoder;
+      Decoder = MakePtr<VorbisDecoder>(*Data->Content);
     }
 
     void Seek(uint64_t sample)
     {
-      if (!::stb_vorbis_seek(Decoder.get(), sample))
-      {
-        throw Error(THIS_LINE, "Failed to seek");
-      }
+      Decoder->Seek(sample);
     }
 
   private:
     const Model::Ptr Data;
-    using VorbisPtr = std::shared_ptr<stb_vorbis>;
-    VorbisPtr Decoder;
+    VorbisDecoder::Ptr Decoder;
   };
 
   class Renderer : public Module::Renderer
@@ -206,7 +324,7 @@ namespace Module::Ogg
       }
     }
 
-    void AddUnknownPacket(Binary::View data) override {}
+    void AddUnknownPacket(Binary::View /*data*/) override {}
 
     void SetProperties(uint_t /*channels*/, uint_t frequency, uint_t /*blockSizeLo*/, uint_t /*blockSizeHi*/) override
     {
