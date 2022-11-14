@@ -25,8 +25,7 @@
 // std includes
 #include <algorithm>
 #include <functional>
-// boost includes
-#include <boost/optional.hpp>
+#include <optional>
 
 #define FILE_TAG 6575CD3F
 
@@ -206,25 +205,25 @@ namespace Sound::Flac
       : Params(std::move(params))
     {}
 
-    boost::optional<uint_t> GetCompressionLevel() const
+    std::optional<uint_t> GetCompressionLevel() const
     {
       return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Flac::COMPRESSION);
     }
 
-    boost::optional<uint_t> GetBlockSize() const
+    std::optional<uint_t> GetBlockSize() const
     {
       return GetOptionalParameter(Parameters::ZXTune::Sound::Backends::Flac::BLOCKSIZE);
     }
 
   private:
-    boost::optional<uint_t> GetOptionalParameter(Parameters::Identifier name) const
+    std::optional<uint_t> GetOptionalParameter(Parameters::Identifier name) const
     {
       Parameters::IntType val = 0;
       if (Params->FindValue(name, val))
       {
         return val;
       }
-      return boost::optional<uint_t>();
+      return {};
     }
 
   private:

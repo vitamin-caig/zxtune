@@ -22,8 +22,8 @@
 #include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-// boost includes
-#include <boost/optional.hpp>
+// std includes
+#include <optional>
 
 namespace Module::ProSoundMaker
 {
@@ -192,8 +192,8 @@ namespace Module::ProSoundMaker
 
     bool Reinit;
     uint_t Type;
-    boost::optional<uint_t> Note;
-    boost::optional<uint_t> Tone;
+    std::optional<uint_t> Note;
+    std::optional<uint_t> Tone;
 
     bool Enabled() const
     {
