@@ -27,6 +27,7 @@
 #include <sound/render_params.h>
 // std includes
 #include <algorithm>
+#include <ctime>
 
 #define FILE_TAG B01A305D
 

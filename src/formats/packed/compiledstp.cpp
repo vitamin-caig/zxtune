@@ -18,6 +18,7 @@
 #include <binary/format_factories.h>
 #include <debug/log.h>
 // std includes
+#include <algorithm>
 #include <array>
 #include <cstring>
 

@@ -17,6 +17,7 @@
 #include <binary/container_factories.h>
 #include <strings/format.h>
 // std includes
+#include <cassert>
 #include <cstring>
 #include <numeric>
 

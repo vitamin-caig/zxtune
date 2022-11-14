@@ -24,6 +24,8 @@
 #include <3rdparty/v2m/src/sounddef.h>
 #include <3rdparty/v2m/src/v2mconv.h>
 #include <3rdparty/v2m/src/v2mplayer.h>
+// std includes
+#include <algorithm>
 
 namespace Module::V2M
 {

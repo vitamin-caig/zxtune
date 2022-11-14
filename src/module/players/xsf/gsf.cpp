@@ -29,6 +29,8 @@
 #include <mgba/core/blip_buf.h>
 #include <mgba/core/core.h>
 #include <mgba/gba/core.h>
+// std includes
+#include <algorithm>
 
 #undef min
 
