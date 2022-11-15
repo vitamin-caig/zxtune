@@ -5,7 +5,9 @@
  */
 package app.zxtune.sound
 
-interface SamplesTarget {
+import app.zxtune.Releaseable
+
+interface SamplesTarget : Releaseable {
     /**
      * @return target sample rate in Hz
      */
@@ -33,9 +35,4 @@ interface SamplesTarget {
      */
     @Throws(Exception::class)
     fun stop()
-
-    /**
-     * Release all internal resources
-     */
-    fun release()
 }

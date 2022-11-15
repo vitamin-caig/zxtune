@@ -37,12 +37,8 @@ class RingtoneService : LifecycleService() {
         AsyncWorker(TAG)
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        onStart(intent, startId)
-        return START_NOT_STICKY
-    }
-
     override fun onStart(intent: Intent?, startId: Int) {
+        super.onStart(intent, startId)
         worker.execute {
             onHandleIntent(intent)
             stopSelf(startId)
@@ -59,10 +55,11 @@ class RingtoneService : LifecycleService() {
 
     private fun createRingtone(source: Uri, seconds: Int) = runCatching {
         val item = load(source)
-        val target = getTargetLocation(getModuleId(item), seconds)
-        convert(item.module, seconds, target)
-        item.module.release()
-        setAsRingtone(item, seconds, target)
+        item.module.use {
+            val target = getTargetLocation(getModuleId(item), seconds)
+            convert(item.module, seconds, target)
+            setAsRingtone(item, seconds, target)
+        }
         Analytics.sendSocialEvent(source, "app.zxtune", Analytics.SOCIAL_ACTION_RINGTONE)
     }.onFailure {
         LOG.w(it) { "Failed to create ringtone" }
@@ -76,7 +73,7 @@ class RingtoneService : LifecycleService() {
         if (dir.mkdirs()) {
             LOG.d { "Created ringtones directory" }
         }
-        val filename = "${moduleId}_${seconds}"
+        val filename = "${moduleId}_${seconds}.wav"
         LOG.d { "Dir: $dir filename: $filename" }
         return File(dir, filename)
     }
@@ -98,20 +95,22 @@ class RingtoneService : LifecycleService() {
         makeToast(getString(R.string.ringtone_create_started), Toast.LENGTH_SHORT)
         val target = WaveWriteSamplesTarget(location.absolutePath)
 
-        val sampleRate = target.sampleRate
-        val player = module.createPlayer(sampleRate).apply {
-            position = TimeStamp.EMPTY
-            setProperty(Properties.Sound.LOOPED, 1)
+        target.use {
+            val sampleRate = target.sampleRate
+            val player = module.createPlayer(sampleRate).apply {
+                position = TimeStamp.EMPTY
+                setProperty(Properties.Sound.LOOPED, 1)
+            }
+            player.use {
+                val buffer = ShortArray(sampleRate * SamplesSource.Channels.COUNT)
+                target.start()
+                repeat(limit) {
+                    player.render(buffer)
+                    target.writeSamples(buffer)
+                }
+                target.stop()
+            }
         }
-        val buffer = ShortArray(sampleRate * SamplesSource.Channels.COUNT)
-        target.start()
-        repeat(limit) {
-            player.render(buffer)
-            target.writeSamples(buffer)
-        }
-        target.stop()
-        player.release()
-        target.release()
     }
 
     private fun setAsRingtone(item: PlayableItem, limit: Int, path: File) {
@@ -180,12 +179,11 @@ class RingtoneService : LifecycleService() {
             path: File
         ) = ContentValues().apply {
             put(MediaStore.MediaColumns.DATA, path.absolutePath)
-            put(MediaStore.MediaColumns.MIME_TYPE, "audio/wav")
             val filename = item.dataId.displayFilename
             put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
             put(MediaStore.Audio.Media.DURATION, seconds * 1000)
             val title = Util.formatTrackTitle(item.author, item.title, filename)
-            put(MediaStore.MediaColumns.TITLE, "$title (seconds)")
+            put(MediaStore.MediaColumns.TITLE, "$title ($seconds)")
             put(MediaStore.Audio.Media.IS_RINGTONE, true)
             put(MediaStore.Audio.Media.IS_NOTIFICATION, false)
             put(MediaStore.Audio.Media.IS_ALARM, false)
