@@ -38,15 +38,15 @@ source_files += $(addprefix common/,\
 
 source_files := $(addsuffix .cpp,$(source_files))
 
-defines += LIBOPENMPT_BUILD NO_LOGGING NO_MPG123 NO_OGG NO_VORBIS NO_VORBISFILE NO_CONTAINERS_SUPPORT OPENMPT_VERSION_REVISION=0
+defines += LIBOPENMPT_BUILD NO_LOGGING NO_MPG123 NO_CONTAINERS_SUPPORT OPENMPT_VERSION_REVISION=0
 
-defines += MPT_WITH_MINIMP3 MPT_WITH_STBVORBIS
+defines += MPT_WITH_MINIMP3 MPT_WITH_VORBISFILE
 
+# force using 3rdparty externals
 includes.dirs.SampleFormatMP3.cpp = $(dirs.root)/3rdparty
-# for stb_vorbis
-includes.dirs.Load_mo3.cpp = include
-includes.dirs.Load_xm.cpp = include
-includes.dirs.SampleFormatVorbis.cpp = include
+includes.dirs.SampleFormatVorbis.cpp = $(dirs.root)/3rdparty
+includes.dirs.Load_mo3.cpp = $(dirs.root)/3rdparty
+includes.dirs.Load_xm.cpp = $(dirs.root)/3rdparty
 
 # declare ASSERT macro as Require to avoid AssertHandler
 defines += MPT_FRAMEWORK_ASSERT_IS_DEFINED MPT_ASSERT_USE_FRAMEWORK=1 MPT_FRAMEWORK_ASSERT_IS_ACTIVE=1 "ASSERT(p)=(void)(p)" MPT_LOG_IS_DISABLED

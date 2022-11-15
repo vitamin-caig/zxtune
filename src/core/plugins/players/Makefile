@@ -7,6 +7,7 @@ po_files := core_players
 includes.dirs.sid_base.cpp = $(dirs.root)/3rdparty/sidplayfp
 includes.dirs.ffmpeg_decoder.cpp = $(dirs.root)/3rdparty/ffmpeg
 includes.dirs.vgmstream_base.cpp = $(dirs.root)/3rdparty/vgmstream/ext_includes
+includes.dirs.ogg_supp.cpp = $(dirs.root)/3rdparty
 
 jumbo.name := $(library_name)
 jumbo.excludes := asap/asap_base.cpp \
