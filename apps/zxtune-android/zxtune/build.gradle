@@ -3,13 +3,14 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 31
-    buildToolsVersion "30.0.2"
+    compileSdkVersion 32
+    buildToolsVersion "30.0.3"
+    namespace 'app.zxtune'
 
     defaultConfig {
         applicationId "app.zxtune"
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 32
         //supported languages
         resConfigs "en", "de", "ru", "es", "cs", "zh", "ja", "pt"
         //supported densities for vector drawables rasterization
