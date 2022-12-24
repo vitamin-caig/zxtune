@@ -17,6 +17,7 @@ android.toolchain = $(android.ndk)/toolchains/llvm/prebuilt/linux-x86_64/bin
 tools.cxx ?= $(tools.cxxwrapper) $(android.toolchain)/clang++
 tools.cc ?= $(tools.ccwrapper) $(android.toolchain)/clang
 tools.ld ?= $(android.toolchain)/clang++
+tools.ar ?= $(android.toolchain)/llvm-ar
 postlink_cmd = true
 
 ifndef profile
