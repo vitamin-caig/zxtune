@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext {
-        kotlin_version = '1.5.31'
+        kotlin_version = '1.7.10'
     }
     repositories {
         google()
@@ -24,13 +24,13 @@ allprojects {
 }
 
 ext {
-    appcompat_version = '1.4.2' // kotlin 1.5
+    appcompat_version = '1.5.1'
     lifecycle_version = '2.5.1'
     media_version = '1.6.0'
-    room_version = '2.4.2' // kotlin 1.5
+    room_version = '2.4.3'
 
     junit_version = '4.13.2'
-    fragment_testing_version = '1.4.1' // kotlin 1.5
+    fragment_version = '1.5.5'
 }
 
 ext.path_step = "../.."
