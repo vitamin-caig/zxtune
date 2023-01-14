@@ -48,7 +48,6 @@ public:
 
   // begin frame, returns current position
   virtual Time::AtMillisecond BeginFrame(Sound::PlaybackControl::State state) = 0;
-  virtual void EndFrame() = 0;
 
   static Ptr Create();
 };

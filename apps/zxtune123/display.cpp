@@ -28,49 +28,37 @@
 
 namespace
 {
-  // layout constants
-  // TODO: make dynamic calculation
-  const std::size_t INFORMATION_HEIGHT = 5;
-  const std::size_t TRACKING_HEIGHT = 3;
-  const std::size_t PLAYING_HEIGHT = 2;
-
-  inline void ShowTrackingStatus(const Module::TrackState& state)
+  template<class T>
+  constexpr std::size_t CountLines(const T& str)
   {
-    static const Char FORMAT[] =
-        "Position: {0:<6}Line:     {2:<6}Channels: {4:<6}\n"
-        "Pattern:  {1:<6}Frame:    {3:<6}Tempo:    {5:<6}\n"
-        "\n";
-
-    const String& dump = Strings::Format(FORMAT, state.Position(), state.Pattern(), state.Line(), state.Quirk(),
-                                         state.Channels(), state.Tempo());
-    assert(TRACKING_HEIGHT == static_cast<std::size_t>(std::count(dump.begin(), dump.end(), '\n')));
-    StdOut << dump;
-  }
-
-  inline Char StateSymbol(Sound::PlaybackControl::State state)
-  {
-    switch (state)
+    // TODO: use std::count at C++20
+    std::size_t result = 0;
+    for (auto c : str)
     {
-    case Sound::PlaybackControl::STARTED:
-      return '>';
-    case Sound::PlaybackControl::PAUSED:
-      return '#';
-    default:
-      return '\?';
+      result += c == '\n';
     }
+    return result;
   }
 
   // clang-format off
-  const Char ITEM_INFO[] =
+  constexpr auto ITEM_INFO =
       "Playing: [Fullpath]\n"
       "Type:    [Type]\tContainer: [Container]\tProgram: [Program]\n"
       "Title:   [Title]\n"
-      "Author:  [Author]";
-
-  const Char ITEM_INFO_ADDON[] = "\nTime:    {0}\tLoop duration:  {1}\n";
-
-  const Char PLAYBACK_STATUS[] = "[{0}] [{1}]\n\n";
+      "Author:  [Author]\n"_sv;
+  // Exact type for Strings::Format
+  constexpr std::string_view ITEM_INFO_ADDON = "\nTime:    {0}\tLoop duration:  {1}\n\n";
+  constexpr std::string_view TRACKING_FORMAT =
+        "Position: {0:<6}Line:     {2:<6}Channels: {4:<6}\n"
+        "Pattern:  {1:<6}Frame:    {3:<6}Tempo:    {5:<6}\n"
+        "\n";
+  constexpr std::string_view PLAYBACK_STATUS = "[{0}] [{1}]\n";
   // clang-format on
+
+  // layout constants
+  constexpr auto INFORMATION_HEIGHT = CountLines(ITEM_INFO) + CountLines(ITEM_INFO_ADDON);
+  constexpr auto TRACKING_HEIGHT = CountLines(TRACKING_FORMAT);
+  constexpr auto PLAYING_HEIGHT = CountLines(PLAYBACK_STATUS);
 
   class DisplayComponentImpl : public DisplayComponent
   {
@@ -81,7 +69,7 @@ namespace
       , Quiet(false)
       , ShowAnalyze(false)
       , Updatefps(10)
-      , InformationTemplate(Strings::Template::Create(ITEM_INFO))
+      , InformationTemplate(Strings::Template::Create(ITEM_INFO.to_string()))
       , ScrSize(Console::Self().GetSize())
     {
       using namespace boost::program_options;
@@ -122,13 +110,13 @@ namespace
         Analyzer.reset();
       }
 
-      if (Silent)
+      if (!Silent)
       {
-        return;
+        // May require encoding, so write via console
+        Console::Self().Write(InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
+        StdOut << Strings::Format(ITEM_INFO_ADDON, Time::ToString(TotalDuration), Time::ToString(info->LoopDuration()));
       }
-      Message(InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
-      Message(Strings::Format(ITEM_INFO_ADDON, Time::ToString(TotalDuration), Time::ToString(info->LoopDuration())));
-      // TODO: also dump track information
+      DynamicLines = 0;
     }
 
     Time::AtMillisecond BeginFrame(Sound::PlaybackControl::State state) override
@@ -167,21 +155,12 @@ namespace
           Sound::Analyzer::LevelType spectrum[ScrSize.first];
           Analyzer->GetSpectrum(spectrum, ScrSize.first);
           AnalyzerData.resize(ScrSize.first);
-          UpdateAnalyzer(spectrum, 10);
+          UpdateAnalyzer(spectrum);
           ShowAnalyzer(spectrumHeight);
         }
+        StdOut << std::flush;
       }
       return curPos;
-    }
-
-    void EndFrame() override
-    {
-      if (!Silent && !Quiet)
-      {
-        const int_t trackingHeight = TrackState ? TRACKING_HEIGHT : 0;
-        Console::Self().MoveCursorUp(Analyzer ? ScrSize.second - INFORMATION_HEIGHT - 1
-                                              : trackingHeight + PLAYING_HEIGHT);
-      }
     }
 
   private:
@@ -197,9 +176,21 @@ namespace
       }
       const uint_t waitPeriod(std::max<uint_t>(1, 1000 / std::max<uint_t>(Updatefps, 1)));
       NextFrameStart += std::chrono::milliseconds(waitPeriod);
+      if (DynamicLines)
+      {
+        Console::Self().MoveCursorUp(DynamicLines);
+      }
+      DynamicLines = 0;
     }
 
-    void ShowPlaybackStatus(Time::Milliseconds played, Sound::PlaybackControl::State state) const
+    void ShowTrackingStatus(const Module::TrackState& state)
+    {
+      StdOut << Strings::Format(TRACKING_FORMAT, state.Position(), state.Pattern(), state.Line(), state.Quirk(),
+                                state.Channels(), state.Tempo());
+      DynamicLines += TRACKING_HEIGHT;
+    }
+
+    void ShowPlaybackStatus(Time::Milliseconds played, Sound::PlaybackControl::State state)
     {
       const Char MARKER = '\x1';
       String data = Strings::Format(PLAYBACK_STATUS, Time::ToString(played), MARKER);
@@ -210,8 +201,21 @@ namespace
       const auto pos = (played * (ScrSize.first - totalSize)).Divide<uint_t>(TotalDuration);
       prog[pos] = StateSymbol(state);
       data.replace(markerPos, 1, prog);
-      assert(PLAYING_HEIGHT == static_cast<std::size_t>(std::count(data.begin(), data.end(), '\n')));
-      StdOut << data << std::flush;
+      StdOut << data;
+      DynamicLines += PLAYING_HEIGHT;
+    }
+
+    static Char StateSymbol(Sound::PlaybackControl::State state)
+    {
+      switch (state)
+      {
+      case Sound::PlaybackControl::STARTED:
+        return '>';
+      case Sound::PlaybackControl::PAUSED:
+        return '#';
+      default:
+        return '\?';
+      }
     }
 
     void ShowAnalyzer(uint_t high)
@@ -220,19 +224,20 @@ namespace
       std::string buffer(width, ' ');
       for (int_t y = high; y; --y)
       {
-        const int_t limit = (y - 1) * 100 / high;
+        const int_t limit = (y - 1) * Sound::Analyzer::LevelType::PRECISION / high;
         std::transform(AnalyzerData.begin(), AnalyzerData.end(), buffer.begin(),
                        [limit](const int_t val) { return val > limit ? '#' : ' '; });
         StdOut << buffer << '\n';
       }
-      StdOut << std::flush;
+      DynamicLines += high;
     }
 
-    void UpdateAnalyzer(const Sound::Analyzer::LevelType* inState, int_t fallspeed)
+    void UpdateAnalyzer(const Sound::Analyzer::LevelType* inState)
     {
+      const auto falling = Sound::Analyzer::LevelType::PRECISION / Updatefps;
       for (uint_t band = 0, lim = AnalyzerData.size(); band < lim; ++band)
       {
-        AnalyzerData[band] = std::max(AnalyzerData[band] - fallspeed, int_t(inState[band].Raw()));
+        AnalyzerData[band] = std::max<int>(AnalyzerData[band] - falling, int_t(inState[band].Raw()));
       }
     }
 
@@ -245,6 +250,7 @@ namespace
     const Strings::Template::Ptr InformationTemplate;
     // context
     std::chrono::time_point<std::chrono::steady_clock> NextFrameStart;
+    std::size_t DynamicLines = 0;
     Console::SizeType ScrSize;
     Time::Milliseconds TotalDuration;
     Module::State::Ptr State;

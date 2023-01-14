@@ -582,7 +582,6 @@ namespace
         {
           break;
         }
-        Display->EndFrame();
       }
     }
 
