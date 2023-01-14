@@ -156,6 +156,7 @@ namespace
       }
       else
       {
+        Vsync();
         if (TrackState)
         {
           ShowTrackingStatus(*TrackState);
@@ -175,8 +176,6 @@ namespace
 
     void EndFrame() override
     {
-      const uint_t waitPeriod(std::max<uint_t>(1, 1000 / std::max<uint_t>(Updatefps, 1)));
-      std::this_thread::sleep_for(std::chrono::milliseconds(waitPeriod));
       if (!Silent && !Quiet)
       {
         const int_t trackingHeight = TrackState ? TRACKING_HEIGHT : 0;
@@ -186,6 +185,20 @@ namespace
     }
 
   private:
+    void Vsync()
+    {
+      if (NextFrameStart != decltype(NextFrameStart){})
+      {
+        std::this_thread::sleep_until(NextFrameStart);
+      }
+      else
+      {
+        NextFrameStart = std::chrono::steady_clock::now();
+      }
+      const uint_t waitPeriod(std::max<uint_t>(1, 1000 / std::max<uint_t>(Updatefps, 1)));
+      NextFrameStart += std::chrono::milliseconds(waitPeriod);
+    }
+
     void ShowPlaybackStatus(Time::Milliseconds played, Sound::PlaybackControl::State state) const
     {
       const Char MARKER = '\x1';
@@ -231,6 +244,7 @@ namespace
     uint_t Updatefps;
     const Strings::Template::Ptr InformationTemplate;
     // context
+    std::chrono::time_point<std::chrono::steady_clock> NextFrameStart;
     Console::SizeType ScrSize;
     Time::Milliseconds TotalDuration;
     Module::State::Ptr State;

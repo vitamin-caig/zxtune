@@ -36,6 +36,22 @@ namespace
     }
   }
 
+  unsigned ReadKey()
+  {
+    uint8_t codes[3] = {};
+    switch (::read(STDIN_FILENO, codes, 3))
+    {
+    case 3:
+      return 65536 * codes[0] + 256 * codes[1] + codes[2];
+    case 2:
+      return 256 * codes[0] + codes[1];
+    case 1:
+      return codes[0];
+    default:
+      return 0;
+    }
+  }
+
   class LinuxConsole : public Console
   {
   public:
@@ -48,7 +64,7 @@ namespace
         ThrowIfError(::tcgetattr(STDIN_FILENO, &OldProps), THIS_LINE);
         struct termios newProps = OldProps;
         newProps.c_lflag &= ~(ICANON | ECHO);
-        newProps.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INLCR | IGNCR | ICRNL | IXON);
+        newProps.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | INLCR | IGNCR | IXON);
         newProps.c_cc[VMIN] = 0;
         newProps.c_cc[VTIME] = 0;
         ThrowIfError(::tcsetattr(STDIN_FILENO, TCSANOW, &newProps), THIS_LINE);
@@ -98,42 +114,34 @@ namespace
         return INPUT_KEY_NONE;
       }
 
-      switch (const int code = ::getchar())
+      switch (ReadKey())
       {
-      case -1:
-        return INPUT_KEY_NONE;
-      case 27:
-      {
-        if (::getchar() != '[')
-        {
-          return INPUT_KEY_NONE;
-        }
-        switch (::getchar())
-        {
-        case 65:
-          return INPUT_KEY_UP;
-        case 66:
-          return INPUT_KEY_DOWN;
-        case 67:
-          return INPUT_KEY_RIGHT;
-        case 68:
-          return INPUT_KEY_LEFT;
-        default:
-          return INPUT_KEY_NONE;
-        }
-      }
-      case 10:
+      case 'q':
+        return 'Q';
+      case 0x20:
+        return ' ';
+      case 0x1b:
+        return INPUT_KEY_CANCEL;
+      case 0x1b5b41:
+        return INPUT_KEY_UP;
+      case 0x1b5b42:
+        return INPUT_KEY_DOWN;
+      case 0x1b5b43:
+        return INPUT_KEY_RIGHT;
+      case 0x1b5b44:
+        return INPUT_KEY_LEFT;
+      case 0x0a:
         return INPUT_KEY_ENTER;
       default:
-        return std::toupper(code);
-      };
+        return INPUT_KEY_NONE;
+      }
     }
 
     void WaitForKeyRelease() const override
     {
       if (IsConsoleIn)
       {
-        for (int key = ::getchar(); - 1 != key; key = ::getchar())
+        while (0 != ReadKey())
         {}
       }
     }
