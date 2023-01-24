@@ -20,6 +20,7 @@
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/oggvorbis.h>
+#include <math/numeric.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -162,18 +163,19 @@ namespace Module::Ogg
       }
     }
 
-    static Sound::Sample::Type MakeSample(float f)
+    inline static Sound::Sample::Type MakeSample(float s)
     {
-      return static_cast<Sound::Sample::Type>(f * Sound::Sample::MAX);
+      const auto wide = static_cast<Sound::Sample::WideType>(s * Sound::Sample::MAX);
+      return Math::Clamp<Sound::Sample::WideType>(wide, Sound::Sample::MIN, Sound::Sample::MAX);
     }
 
-    static Sound::Sample MakeMonoSample(float f)
+    inline static Sound::Sample MakeMonoSample(float f)
     {
       const auto smp = MakeSample(f);
       return {smp, smp};
     }
 
-    static Sound::Sample MakeStereoSample(float l, float r)
+    inline static Sound::Sample MakeStereoSample(float l, float r)
     {
       return {MakeSample(l), MakeSample(r)};
     }
