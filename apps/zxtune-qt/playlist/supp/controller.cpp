@@ -12,6 +12,7 @@
 #include "controller.h"
 #include "model.h"
 #include "scanner.h"
+#include "supp/thread_utils.h"
 #include "ui/utils.h"
 // common includes
 #include <contract.h>
@@ -111,23 +112,36 @@ namespace
   private:
     bool SelectItem(unsigned idx)
     {
-      if (Playlist::Item::Data::Ptr item = Model->GetItem(idx))
+      if (auto item = Model->GetItem(idx))
       {
-        Dbg("Iterator: selected {}", idx);
-        Index = idx;
-        if (item->GetState())
+        if (!item->IsLoaded())
         {
-          State = Playlist::Item::ERROR;
+          IOThread::Execute([item, idx, this]() {
+            item->GetModule();
+            SelfThread::Execute(this, &ItemIteratorImpl::SetItem, idx, std::move(item));
+          });
+          return true;
         }
-        else
-        {
-          State = Playlist::Item::STOPPED;
-          emit ItemActivated(item);
-          emit ItemActivated(Index);
-        }
+        SetItem(idx, std::move(item));
         return true;
       }
       return false;
+    }
+
+    void SetItem(unsigned idx, Playlist::Item::Data::Ptr item)
+    {
+      Dbg("Iterator: selected {}", idx);
+      Index = idx;
+      if (item->GetState())
+      {
+        State = Playlist::Item::ERROR;
+      }
+      else
+      {
+        State = Playlist::Item::STOPPED;
+        emit ItemActivated(item);
+        emit ItemActivated(Index);
+      }
     }
 
     bool Navigate(int newIndex, unsigned playorderMode)
