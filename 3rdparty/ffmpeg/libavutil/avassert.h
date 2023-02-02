@@ -34,6 +34,7 @@
 /**
  * assert() equivalent, that is always enabled.
  */
+#if defined(ASSERT_LEVEL)
 #define av_assert0(cond) do {                                           \
     if (!(cond)) {                                                      \
         av_log(NULL, AV_LOG_PANIC, "Assertion %s failed at %s:%d\n",    \
@@ -41,7 +42,9 @@
         abort();                                                        \
     }                                                                   \
 } while (0)
-
+#else
+#define av_assert0(cond) ((void)0)
+#endif
 
 /**
  * assert() equivalent, that does not lie in speed critical code.
