@@ -17,8 +17,6 @@
 #include <l10n/markup.h>
 #include <sound/backend_attrs.h>
 
-#define FILE_TAG 9A6FD87F
-
 namespace Sound::Null
 {
   const Char BACKEND_ID[] = "null";
@@ -64,4 +62,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

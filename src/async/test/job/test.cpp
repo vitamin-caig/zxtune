@@ -14,8 +14,6 @@
 #include <pointers.h>
 #include <thread>
 
-#define FILE_TAG 8D106607
-
 namespace
 {
   using namespace Async;

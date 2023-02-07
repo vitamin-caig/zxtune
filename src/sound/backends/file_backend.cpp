@@ -26,8 +26,6 @@
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
 
-#define FILE_TAG B4CB6B0C
-
 namespace Sound::File
 {
   const Debug::Stream Dbg("Sound::Backend::FileBase");
@@ -332,4 +330,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

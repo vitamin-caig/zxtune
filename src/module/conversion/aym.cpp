@@ -25,8 +25,6 @@
 // boost includes
 #include <boost/algorithm/string.hpp>
 
-#define FILE_TAG ED36600C
-
 namespace Module
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module_conversion");

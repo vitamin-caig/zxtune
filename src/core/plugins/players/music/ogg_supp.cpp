@@ -32,8 +32,6 @@
 #include <algorithm>
 #include <unordered_map>
 
-#define FILE_TAG B064CB04
-
 namespace Module::Ogg
 {
   const Debug::Stream Dbg("Core::OggSupp");
@@ -436,4 +434,3 @@ namespace ZXTune
   }
 }  // namespace ZXTune
 
-#undef FILE_TAG

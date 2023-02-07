@@ -26,8 +26,6 @@
 #include <algorithm>
 #include <cstring>
 
-#define FILE_TAG EF5CB4C6
-
 namespace Sound::Wav
 {
   const Char BACKEND_ID[] = "wav";
@@ -272,4 +270,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

@@ -26,8 +26,6 @@
 #include <QtCore/QDirIterator>
 #include <QtCore/QStringList>
 
-#define FILE_TAG EA26A866
-
 namespace
 {
   const Debug::Stream Dbg("Playlist::Scanner");

@@ -29,8 +29,6 @@
 #define MINIMP3_NONSTANDARD_BUT_LOGICAL
 #include <3rdparty/minimp3/minimp3.h>
 
-#define FILE_TAG 04123EA8
-
 namespace Module::Mp3
 {
   const Debug::Stream Dbg("Core::Mp3Supp");
@@ -416,4 +414,3 @@ namespace ZXTune
   }
 }  // namespace ZXTune
 
-#undef FILE_TAG

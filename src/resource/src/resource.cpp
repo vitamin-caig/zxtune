@@ -22,8 +22,6 @@
 // std includes
 #include <fstream>
 
-#define FILE_TAG 82AE713A
-
 namespace
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("resource");

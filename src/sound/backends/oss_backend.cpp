@@ -36,8 +36,6 @@
 #include <cstring>
 #include <mutex>
 
-#define FILE_TAG 69200152
-
 namespace Sound::Oss
 {
   const Debug::Stream Dbg("Sound::Backend::Oss");
@@ -389,4 +387,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

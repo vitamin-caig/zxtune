@@ -47,8 +47,6 @@
 #include <3rdparty/gme/gme/Sap_Emu.h>
 #include <3rdparty/gme/gme/Vgm_Emu.h>
 
-#define FILE_TAG 513E65A8
-
 namespace Module::GME
 {
   const Debug::Stream Dbg("Core::GMESupp");
@@ -543,4 +541,3 @@ namespace ZXTune
   }
 }  // namespace ZXTune
 
-#undef FILE_TAG

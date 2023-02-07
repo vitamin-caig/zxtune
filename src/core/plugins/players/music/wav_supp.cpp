@@ -26,8 +26,6 @@
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
 
-#define FILE_TAG 72CE1906
-
 namespace Module::Wav
 {
   const Debug::Stream Dbg("Core::WavSupp");
@@ -254,4 +252,3 @@ namespace ZXTune
   }
 }  // namespace ZXTune
 
-#undef FILE_TAG

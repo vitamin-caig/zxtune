@@ -17,8 +17,6 @@
 // std includes
 #include <algorithm>
 
-#define FILE_TAG E8071E22
-
 namespace Module
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("core_players");
@@ -285,4 +283,3 @@ namespace Module
   }
 }  // namespace Module
 
-#undef FILE_TAG

@@ -21,8 +21,6 @@
 #include <algorithm>
 #include <numeric>
 
-#define FILE_TAG 278565B1
-
 namespace Sound
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("sound");

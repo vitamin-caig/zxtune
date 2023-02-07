@@ -34,8 +34,6 @@
 #include <list>
 #include <map>
 
-#define FILE_TAG 7E0CBD98
-
 namespace ZXTune
 {
   template<std::size_t Fields>

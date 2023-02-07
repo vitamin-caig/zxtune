@@ -26,8 +26,6 @@
 // std includes
 #include <cstring>
 
-#define FILE_TAG 18F46494
-
 namespace IO::Network
 {
   const Debug::Stream Dbg("IO::Provider::Network");
@@ -396,4 +394,3 @@ namespace IO
   }
 }  // namespace IO
 
-#undef FILE_TAG

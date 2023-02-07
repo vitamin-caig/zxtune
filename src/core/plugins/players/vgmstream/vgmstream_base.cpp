@@ -51,8 +51,6 @@ extern "C"
 #include <map>
 #include <set>
 
-#define FILE_TAG 48C05B65
-
 namespace Module::VGMStream
 {
   const Debug::Stream Dbg("Core::VGMStream");
@@ -2380,4 +2378,3 @@ namespace ZXTune
   }
 }  // namespace ZXTune
 
-#undef FILE_TAG

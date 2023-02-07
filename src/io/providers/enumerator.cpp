@@ -23,8 +23,6 @@
 #include <list>
 #include <map>
 
-#define FILE_TAG 03113EE3
-
 namespace IO
 {
   const Debug::Stream Dbg("IO::Enumerator");
@@ -223,4 +221,3 @@ namespace IO
   }
 }  // namespace IO
 
-#undef FILE_TAG

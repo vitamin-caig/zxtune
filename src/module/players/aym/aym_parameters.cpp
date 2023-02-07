@@ -24,8 +24,6 @@
 #include <cstring>
 #include <numeric>
 
-#define FILE_TAG 6972CAAF
-
 namespace Module::AYM
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("module_players");
@@ -291,4 +289,3 @@ namespace Module::AYM
   }
 }  // namespace Module::AYM
 
-#undef FILE_TAG

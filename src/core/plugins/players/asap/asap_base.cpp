@@ -35,8 +35,6 @@
 // 3rdparty
 #include <3rdparty/asap/asap.h>
 
-#define FILE_TAG 90B9A91A
-
 namespace Module::ASAP
 {
   const Debug::Stream Dbg("Core::ASAPSupp");
@@ -408,4 +406,3 @@ namespace ZXTune
   }
 }  // namespace ZXTune
 
-#undef FILE_TAG

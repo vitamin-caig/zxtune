@@ -22,8 +22,6 @@
 #include <debug/log.h>
 #include <time/timer.h>
 
-#define FILE_TAG 04EDD719
-
 namespace ZXTune
 {
   const Debug::Stream EnumeratorDbg("Core::Enumerator");
@@ -97,4 +95,3 @@ namespace ZXTune
   }
 }  // namespace ZXTune
 
-#undef FILE_TAG

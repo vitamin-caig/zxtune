@@ -40,8 +40,6 @@
 #include <deque>
 #include <mutex>
 
-#define FILE_TAG 0C9BBC6E
-
 namespace
 {
   const Debug::Stream Dbg("Playlist::DataProvider");

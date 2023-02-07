@@ -28,8 +28,6 @@
 #include <algorithm>
 #include <functional>
 
-#define FILE_TAG 3B251603
-
 namespace Sound::Mp3
 {
   const Debug::Stream Dbg("Sound::Backend::Mp3");
@@ -364,4 +362,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

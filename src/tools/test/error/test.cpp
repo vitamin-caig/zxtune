@@ -13,8 +13,6 @@
 #include <iomanip>
 #include <iostream>
 
-#define FILE_TAG 2725FBAF
-
 namespace
 {
   // clang-format off

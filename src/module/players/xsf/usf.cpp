@@ -27,8 +27,6 @@
 // 3rdparty includes
 #include <3rdparty/lazyusf2/usf/usf.h>
 
-#define FILE_TAG 59F6FD73
-
 namespace Module::USF
 {
   const Debug::Stream Dbg("Module::USF");
@@ -381,4 +379,3 @@ namespace Module::USF
   }
 }  // namespace Module::USF
 
-#undef FILE_TAG

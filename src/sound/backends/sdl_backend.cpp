@@ -30,8 +30,6 @@
 // std includes
 #include <condition_variable>
 
-#define FILE_TAG 608CF986
-
 namespace Sound::Sdl
 {
   const Debug::Stream Dbg("Sound::Backend::Sdl");
@@ -309,4 +307,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

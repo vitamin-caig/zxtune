@@ -25,8 +25,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#define FILE_TAG A6428476
-
 namespace Sound
 {
   const Debug::Stream Dbg("Sound::Backend");
@@ -216,4 +214,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

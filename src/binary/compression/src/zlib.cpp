@@ -17,8 +17,6 @@
 // 3rd-party includes
 #include <3rdparty/zlib/zlib.h>
 
-#define FILE_TAG 0A028BD4
-
 namespace Binary
 {
   namespace Compression

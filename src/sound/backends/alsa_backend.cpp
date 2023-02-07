@@ -33,8 +33,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 
-#define FILE_TAG 8B5627E4
-
 namespace Sound::Alsa
 {
   const Debug::Stream Dbg("Sound::Backend::Alsa");
@@ -1082,4 +1080,3 @@ namespace Sound
   }  // namespace Alsa
 }  // namespace Sound
 
-#undef FILE_TAG
