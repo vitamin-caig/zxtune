@@ -19,7 +19,7 @@
 
 //! @brief Building error object with formatted text
 template<class S, class... P>
-Error MakeFormattedError(Error::LocationRef loc, S&& fmt, P&&... p)
+Error MakeFormattedError(Error::Location loc, S&& fmt, P&&... p)
 {
   return Error(loc, Strings::Format(std::forward<S>(fmt), std::forward<P>(p)...));
 }

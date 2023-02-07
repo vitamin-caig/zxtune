@@ -17,7 +17,14 @@
 
 namespace
 {
-  const Error::Location LOCATIONS[] = {THIS_LINE, THIS_LINE, THIS_LINE};
+  // clang-format off
+  const Error::Location LOCATIONS[] =
+  {
+    THIS_LINE,
+    THIS_LINE,
+    THIS_LINE
+  };
+  // clang-format on
 
   const String TEXTS[] = {"Error1", "Error2", "Error3"};
 
