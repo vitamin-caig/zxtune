@@ -20,7 +20,7 @@ class basic_string_view : public std::basic_string_view<C>
 {
   using parent = std::basic_string_view<C>;
 
-  basic_string_view(const std::basic_string_view<C>& p)
+  constexpr basic_string_view(const std::basic_string_view<C>& p) noexcept
     : parent(p)
   {}
 
