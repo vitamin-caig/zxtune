@@ -36,8 +36,6 @@
 // std includes
 #include <map>
 
-#define FILE_TAG 975CF2F9
-
 namespace Module::LibVGM
 {
   const Debug::Stream Dbg("Core::VGMSupp");
@@ -480,4 +478,3 @@ namespace ZXTune
   }
 }  // namespace ZXTune
 
-#undef FILE_TAG

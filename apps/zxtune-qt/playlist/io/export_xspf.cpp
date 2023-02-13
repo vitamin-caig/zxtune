@@ -30,8 +30,6 @@
 #include <QtCore/QUrl>
 #include <QtCore/QXmlStreamWriter>
 
-#define FILE_TAG A016CAAF
-
 namespace
 {
   const Debug::Stream Dbg("Playlist::IO::XSPF");

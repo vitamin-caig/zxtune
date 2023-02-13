@@ -14,8 +14,6 @@
 // common includes
 #include <make_ptr.h>
 
-#define FILE_TAG B368C82C
-
 namespace Sound
 {
   class VolumeControlDelegate : public VolumeControl
@@ -56,4 +54,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

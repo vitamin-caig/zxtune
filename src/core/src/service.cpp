@@ -25,8 +25,6 @@
 // std includes
 #include <map>
 
-#define FILE_TAG 7F50D054
-
 namespace ZXTune
 {
   const Debug::Stream Dbg("Core::Service");
@@ -350,4 +348,3 @@ namespace ZXTune
   }
 }  // namespace ZXTune
 
-#undef FILE_TAG

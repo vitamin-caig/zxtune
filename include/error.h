@@ -11,7 +11,7 @@
 #pragma once
 
 // common includes
-#include <types.h>
+#include <source_location.h>
 // std includes
 #include <memory>
 
@@ -19,62 +19,10 @@
 //! @brief Error subsystem core class. Can be used as a return value or throw object
 class Error
 {
-  // internal types
-  struct Meta;
-  typedef std::shared_ptr<Meta> MetaPtr;
-
-  void TrueFunc() const {}
-
 public:
-  //! @brief Datatype for source text line identification\n
-  //! LineTag = FILE_TAG + __LINE__\n
-  //! assume __LINE__ < 65536
-  typedef uint32_t LineTag;
+  using Location = uint_t;
+  using LocationRef = Location;  // TODO: remove
 
-#ifndef NDEBUG
-  //! @struct Location
-  //! @brief %Location type for debug builds
-  struct Location
-  {
-    //! Default constructor
-    Location()
-      : Tag(0)
-      , File(nullptr)
-      , Function(nullptr)
-      , Line(0)
-    {}
-    //! Full parameters list constructor
-    Location(LineTag tag, const char* file, const char* function, uint_t line)
-      : Tag(tag)
-      , File(file)
-      , Function(function)
-      , Line(line)
-    {}
-    //! Tag (same as in release version)
-    LineTag Tag;
-    //! Filename where exception was created
-    const char* File;
-    //! Source function
-    const char* Function;
-    //! Source line
-    uint_t Line;
-
-    bool operator==(const Location& rh) const
-    {
-      return Tag == rh.Tag;
-    }
-  };
-  //! @typedef const Location& LocationRef
-  //! @brief Reference type for debug location
-  typedef const Location& LocationRef;
-#else
-  //! @typedef LineTag Location
-  //! @brief %Location type for release builds
-  typedef LineTag Location;
-  //! @typedef Location LocationRef
-  //! @brief Reference type for release location
-  typedef Location LocationRef;
-#endif
   //@{
   //! @name Error initializers
   Error() = default;  // success
@@ -82,7 +30,9 @@ public:
   //! @code
   //! return Error(THIS_LINE, ERROR_TEXT);
   //! @endcode
-  Error(LocationRef loc, const String& text);
+  Error(Location loc, String text) noexcept
+    : ErrorMeta(std::make_shared<Meta>(loc, std::move(text)))
+  {}
 
   Error(const Error&) = default;
   Error(Error&& rh)  // = default
@@ -104,44 +54,91 @@ public:
   //! @param e Reference to other object. Empty objects are ignored
   //! @return Modified current object
   //! @note Error uses shared references scheme, so it's safe to use parameter again
-  Error& AddSuberror(const Error& e);
-  Error GetSuberror() const;
+  Error& AddSuberror(const Error& e) noexcept
+  {
+    // do not add/add to 'success' error
+    if (e && *this)
+    {
+      auto ptr = ErrorMeta;
+      while (ptr->Suberror)
+      {
+        ptr = ptr->Suberror;
+      }
+      ptr->Suberror = e.ErrorMeta;
+    }
+    return *this;
+  }
+
+  Error GetSuberror() const noexcept
+  {
+    return ErrorMeta && ErrorMeta->Suberror ? Error(ErrorMeta->Suberror) : Error();
+  }
   //@}
 
   //@{
   //! @name Content accessors
 
   //! @brief Text accessor
-  String GetText() const;
-  //! @brief Location accessor
-  Location GetLocation() const;
+  const String& GetText() const noexcept
+  {
+    static const String EMPTY;
+    return ErrorMeta ? ErrorMeta->Text : EMPTY;
+  }
 
-  typedef void (Error::*BoolType)() const;
+  //! @brief Location accessor
+  Location GetLocation() const noexcept
+  {
+    return ErrorMeta ? ErrorMeta->Source : Location();
+  }
 
   //! @brief Check if error not empty
-  operator BoolType() const;
+  explicit operator bool() const
+  {
+    return !!ErrorMeta;
+  }
 
   //! @brief Checking if error is empty
-  bool operator!() const;
+  bool operator!() const
+  {
+    return !ErrorMeta;
+  }
   //@}
 
   //@{
   //! @name Serialization-related functions
 
   //! @brief Convert error and all suberrors to single string using AttributesToString function
-  String ToString() const throw();
+  String ToString() const noexcept;
   //@}
 private:
-  explicit Error(MetaPtr ptr)
+  // internal types
+  struct Meta
+  {
+    using Ptr = std::shared_ptr<Meta>;
+
+    Meta(Location src, String txt)
+      : Source(std::move(src))
+      , Text(std::move(txt))
+    {}
+
+    // source error location
+    const Location Source;
+    // error text message
+    const String Text;
+    // suberror
+    Ptr Suberror;
+  };
+
+  explicit Error(Meta::Ptr ptr)
     : ErrorMeta(std::move(ptr))
   {}
 
 private:
-  MetaPtr ErrorMeta;
+  Meta::Ptr ErrorMeta;
 };
 
 //! @brief Tool function used for check result of function and throw error in case of unsuccess
-inline void ThrowIfError(const Error& e)
+inline void ThrowIfError(const Error& e) noexcept(false)
 {
   if (e)
   {
@@ -152,11 +149,4 @@ inline void ThrowIfError(const Error& e)
 //! @def THIS_LINE
 //! @brief Macro is used for bind created error with current source line
 
-#define MKTAG1(a) 0x##a
-#define MKTAG(a) MKTAG1(a)
-#define MAKETAG (MKTAG(FILE_TAG) + __LINE__)
-#ifndef NDEBUG
-#  define THIS_LINE (Error::Location(MAKETAG, __FILE__, __FUNCTION__, __LINE__))
-#else
-#  define THIS_LINE (Error::Location(MAKETAG))
-#endif
+#define THIS_LINE (Error::Location(ThisLine().Tag()))

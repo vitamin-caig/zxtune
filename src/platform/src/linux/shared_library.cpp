@@ -19,8 +19,6 @@
 // platform includes
 #include <dlfcn.h>
 
-#define FILE_TAG 4C0042B0
-
 namespace
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("platform");

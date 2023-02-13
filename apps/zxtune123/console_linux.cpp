@@ -24,8 +24,6 @@
 // std includes
 #include <iostream>
 
-#define FILE_TAG D037A662
-
 namespace
 {
   void ThrowIfError(int res, Error::LocationRef loc)

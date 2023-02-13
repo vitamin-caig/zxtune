@@ -30,8 +30,6 @@
 #include <cstring>
 #include <thread>
 
-#define FILE_TAG F1936398
-
 namespace Sound::AyLpt
 {
   const Debug::Stream Dbg("Sound::Backend::Aylpt");
@@ -270,4 +268,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

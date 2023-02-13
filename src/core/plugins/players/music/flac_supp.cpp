@@ -29,8 +29,6 @@
 #define FLAC__NO_DLL
 #include <3rdparty/FLAC/stream_decoder.h>
 
-#define FILE_TAG B064CB05
-
 namespace Module::Flac
 {
   const Debug::Stream Dbg("Core::FlacSupp");
@@ -485,4 +483,3 @@ namespace ZXTune
   }
 }  // namespace ZXTune
 
-#undef FILE_TAG

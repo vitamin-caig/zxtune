@@ -21,8 +21,6 @@
 #include <cctype>
 #include <fstream>
 
-#define FILE_TAG 0DBA1FA8
-
 namespace
 {
   static const Char PARAMETERS_DELIMITER = ',';

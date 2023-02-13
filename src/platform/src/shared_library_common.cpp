@@ -16,8 +16,6 @@
 #include <debug/log.h>
 #include <l10n/api.h>
 
-#define FILE_TAG 098808A4
-
 namespace
 {
   const Debug::Stream Dbg("Platform");

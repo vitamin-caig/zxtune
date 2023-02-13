@@ -29,8 +29,6 @@
 #include <algorithm>
 #include <ctime>
 
-#define FILE_TAG B01A305D
-
 namespace Sound::Ogg
 {
   const Debug::Stream Dbg("Sound::Backend::Ogg");
@@ -448,4 +446,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

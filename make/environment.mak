@@ -8,7 +8,7 @@ endif
 endif
 
 #generic defines
-defines += HAVE_STDINT_H
+defines += HAVE_STDINT_H SOURCES_ROOT=\"$(abspath $(dirs.root))\"
 
 #android
 # All assembler-related options (e.g. -Wa,--noexecstack) are not applicable for lto mode.

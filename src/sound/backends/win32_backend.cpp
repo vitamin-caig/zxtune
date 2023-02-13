@@ -31,8 +31,6 @@
 #include <algorithm>
 #include <cstring>
 
-#define FILE_TAG 5E3F141A
-
 namespace Sound::Win32
 {
   const Debug::Stream Dbg("Sound::Backend::Win32");
@@ -630,4 +628,3 @@ namespace Sound
   }  // namespace Win32
 }  // namespace Sound
 
-#undef FILE_TAG

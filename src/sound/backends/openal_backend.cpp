@@ -29,8 +29,6 @@
 #include <functional>
 #include <thread>
 
-#define FILE_TAG 07CDA82B
-
 namespace Sound::OpenAl
 {
   const Debug::Stream Dbg("Sound::Backend::OpenAL");
@@ -481,4 +479,3 @@ namespace Sound
   }  // namespace OpenAl
 }  // namespace Sound
 
-#undef FILE_TAG

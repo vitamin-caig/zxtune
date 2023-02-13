@@ -18,8 +18,6 @@
 
 #include <boost/range/size.hpp>
 
-#define FILE_TAG 25E829A2
-
 namespace Sound
 {
   const int_t THRESHOLD = 5 * (Sample::MAX - Sample::MIN) / 1000;  // 0.5%

@@ -27,8 +27,6 @@
 #include <functional>
 #include <optional>
 
-#define FILE_TAG 6575CD3F
-
 namespace Sound::Flac
 {
   const Debug::Stream Dbg("Sound::Backend::Flac");
@@ -314,4 +312,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

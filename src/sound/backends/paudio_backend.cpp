@@ -28,8 +28,6 @@
 // std includes
 #include <functional>
 
-#define FILE_TAG 181AC911
-
 namespace Sound::PulseAudio
 {
   const Debug::Stream Dbg("Sound::Backend::PulseAudio");
@@ -185,4 +183,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG

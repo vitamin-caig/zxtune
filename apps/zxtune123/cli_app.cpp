@@ -48,8 +48,6 @@
 // boost includes
 #include <boost/program_options.hpp>
 
-#define FILE_TAG 81C76E7D
-
 namespace
 {
   String GetModuleId(const Parameters::Accessor& props)

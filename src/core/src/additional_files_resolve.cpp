@@ -17,8 +17,6 @@
 // boost includes
 #include <boost/algorithm/string/join.hpp>
 
-#define FILE_TAG 3BC2770E
-
 namespace Module
 {
   void ResolveAdditionalFiles(const AdditionalFilesSource& source, const Module::AdditionalFiles& files)
@@ -47,4 +45,3 @@ namespace Module
   }
 }  // namespace Module
 
-#undef FILE_TAG

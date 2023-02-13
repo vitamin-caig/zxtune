@@ -21,8 +21,6 @@
 // platform includes
 #include <windows.h>
 
-#define FILE_TAG 326CACD8
-
 namespace
 {
   const L10n::TranslateFunctor translate = L10n::TranslateFunctor("platform");

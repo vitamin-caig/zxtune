@@ -13,8 +13,6 @@
 #include <make_ptr.h>
 #include <thread>
 
-#define FILE_TAG 238D7960
-
 namespace
 {
   using namespace Async;

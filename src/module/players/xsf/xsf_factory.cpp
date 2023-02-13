@@ -21,8 +21,6 @@
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
 
-#define FILE_TAG 153C53E0
-
 namespace Module::XSF
 {
   const Debug::Stream Dbg("Module::xSF");
@@ -203,4 +201,3 @@ namespace Module::XSF
   }
 }  // namespace Module::XSF
 
-#undef FILE_TAG

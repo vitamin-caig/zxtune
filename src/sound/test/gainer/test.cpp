@@ -15,8 +15,6 @@
 #include <math/numeric.h>
 #include <sound/gainer.h>
 
-#define FILE_TAG B5BAF4C1
-
 namespace Sound
 {
   const int_t THRESHOLD = 5 * (Sample::MAX - Sample::MIN) / 1000;  // 0.5%

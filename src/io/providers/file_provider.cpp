@@ -34,8 +34,6 @@
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
-#define FILE_TAG 0D4CB3DA
-
 #undef min
 
 namespace
@@ -536,4 +534,3 @@ namespace IO
   }
 }  // namespace IO
 
-#undef FILE_TAG

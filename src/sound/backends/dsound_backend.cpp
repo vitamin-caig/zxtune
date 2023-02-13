@@ -30,8 +30,6 @@
 // boost includes
 #include <boost/range/size.hpp>
 
-#define FILE_TAG BCBCECCC
-
 namespace Sound::DirectSound
 {
   const Debug::Stream Dbg("Sound::Backend::DirectSound");
@@ -636,4 +634,3 @@ namespace Sound
   }  // namespace DirectSound
 }  // namespace Sound
 
-#undef FILE_TAG

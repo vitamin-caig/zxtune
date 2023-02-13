@@ -26,8 +26,6 @@
 // std includes
 #include <atomic>
 
-#define FILE_TAG B3D60DB5
-
 namespace Sound::BackendBase
 {
   const Debug::Stream Dbg("Sound::Backend::Base");
@@ -414,4 +412,3 @@ namespace Sound
   }
 }  // namespace Sound
 
-#undef FILE_TAG
