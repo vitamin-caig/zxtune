@@ -27,6 +27,5 @@ namespace Formats
     Decoder::Ptr CreateZXStateDecoder();
     Decoder::Ptr CreateUMXDecoder();
     Decoder::Ptr Create7zipDecoder();
-    Decoder::Ptr CreateFSBDecoder();
   }  // namespace Archived
 }  // namespace Formats
