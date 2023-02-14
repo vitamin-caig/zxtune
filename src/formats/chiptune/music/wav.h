@@ -63,16 +63,6 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
-
-      class DumpBuilder : public Builder
-      {
-      public:
-        using Ptr = std::shared_ptr<DumpBuilder>;
-
-        virtual Binary::Container::Ptr GetDump() = 0;
-      };
-
-      DumpBuilder::Ptr CreateDumpBuilder();
     }  // namespace Wav
 
     Decoder::Ptr CreateWAVDecoder();
