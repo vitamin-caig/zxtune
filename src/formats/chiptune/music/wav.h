@@ -45,9 +45,6 @@ namespace Formats
       const Guid ATRAC9 = {
           {0xd2, 0x42, 0xe1, 0x47, 0xba, 0x36, 0x8d, 0x4d, 0x88, 0xfc, 0x61, 0x65, 0x4f, 0x8c, 0x83, 0x6c}};
 
-      // Non-standard!!!
-      const Guid FADPCM = {{'F', 'M', 'O', 'D', ' ', 'A', 'D', 'P', 'C', 'M', ' ', 'C', 'O', 'D', 'E', 'C'}};
-
       class Builder
       {
       public:
@@ -66,16 +63,6 @@ namespace Formats
 
       Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
       Builder& GetStubBuilder();
-
-      class DumpBuilder : public Builder
-      {
-      public:
-        using Ptr = std::shared_ptr<DumpBuilder>;
-
-        virtual Binary::Container::Ptr GetDump() = 0;
-      };
-
-      DumpBuilder::Ptr CreateDumpBuilder();
     }  // namespace Wav
 
     Decoder::Ptr CreateWAVDecoder();

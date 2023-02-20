@@ -228,84 +228,6 @@ namespace Module::Wav
     }
   }  // namespace ImaAdpcm
 
-  namespace FmodAdpcm
-  {
-    static const int_t COEF1[] = {0, 60, 122, 115, 98, 0, 0, 0};
-    static const int_t COEF2[] = {0, 0, 60, 52, 55, 0, 0, 0};
-
-    const auto BLOCK_SIZE = 140;
-    const auto SAMPLES_PER_BLOCK = 256;
-
-    // https://github.com/simontime/VGMPlayerNX/fadpcm_decoder.c
-    void Convert(const uint8_t* data, Sound::Sample* output)
-    {
-      auto coefs = ReadLE<uint32_t>(data);
-      auto shifts = ReadLE<uint32_t>(data + 4);
-      auto hist1 = ReadLE<int16_t>(data + 8);
-      auto hist2 = ReadLE<int16_t>(data + 10);
-      data += 12;
-      // groups by 16 bytes
-      for (uint_t i = 0; i < 8; ++i, coefs >>= 4, shifts >>= 4)
-      {
-        const auto coefIndex = (coefs & 15) % 7;
-        const auto coef1 = COEF1[coefIndex];
-        const auto coef2 = COEF2[coefIndex];
-        const auto shift = 0x16 - (shifts & 15);
-        for (uint_t j = 0; j < 4; ++j, data += 4)
-        {
-          auto nibbles = ReadLE<uint32_t>(data);
-          for (uint_t k = 0; k < 8; ++k, nibbles >>= 4)
-          {
-            int32_t sample = nibbles & 15;
-            sample = (sample << 28) >> shift;  // sign extend + scale
-            sample = sample - hist2 * coef2 + hist1 * coef1;
-            sample >>= 6;
-            sample = Math::Clamp<int32_t>(sample, Sound::Sample::MIN, Sound::Sample::MAX);
-            *output = MakeSample(sample);
-            ++output;
-            hist2 = hist1;
-            hist1 = sample;
-          }
-        }
-      }
-    }
-
-    void ConvertMono(const uint8_t* data, std::size_t /*blockSize*/, Sound::Chunk* chunk)
-    {
-      chunk->resize(SAMPLES_PER_BLOCK);
-      Convert(data, chunk->data());
-    }
-
-    Sound::Sample MixSample(Sound::Sample left, Sound::Sample right)
-    {
-      return Sound::Sample(left.Left(), right.Right());
-    }
-
-    void ConvertStereo(const uint8_t* data, std::size_t blockSize, Sound::Chunk* chunk)
-    {
-      ConvertMono(data, 0, chunk);
-      Sound::Sample right[SAMPLES_PER_BLOCK];
-      Convert(data + blockSize / 2, right);
-      std::transform(chunk->begin(), chunk->end(), right, chunk->begin(), &MixSample);
-    }
-
-    ConvertFunc GetConvertFunc(uint_t channels)
-    {
-      if (channels == 1)
-      {
-        return &ConvertMono;
-      }
-      else if (channels == 2)
-      {
-        return &ConvertStereo;
-      }
-      else
-      {
-        return nullptr;
-      }
-    }
-  }  // namespace FmodAdpcm
-
   class AdpcmModel : public BlockingModel
   {
   public:
@@ -347,16 +269,6 @@ namespace Module::Wav
     const auto func = ImaAdpcm::GetConvertFunc(props.Channels);
     Require(func);
     props.BlockSizeSamples = ImaAdpcm::GetSamplesPerBlock(props.Channels, props.BlockSize);
-    return MakePtr<AdpcmModel>(std::move(props), func);
-  }
-
-  Model::Ptr CreateFmodAdpcmModel(Properties props)
-  {
-    Require(props.Bits == 4);
-    Require(props.BlockSize == FmodAdpcm::BLOCK_SIZE * props.Channels);
-    Require(props.BlockSizeSamples == FmodAdpcm::SAMPLES_PER_BLOCK);
-    const auto func = FmodAdpcm::GetConvertFunc(props.Channels);
-    Require(func);
     return MakePtr<AdpcmModel>(std::move(props), func);
   }
 }  // namespace Module::Wav
