@@ -183,7 +183,6 @@ namespace Formats
       scanner.AddDecoder(CreateZXStateDecoder());
       scanner.AddDecoder(CreateUMXDecoder());
       scanner.AddDecoder(Create7zipDecoder());
-      scanner.AddDecoder(CreateFSBDecoder());
     }
   }  // namespace Archived
 
