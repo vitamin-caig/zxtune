@@ -15,17 +15,23 @@ import app.zxtune.fs.VfsObject
 object Document {
     @JvmStatic
     fun tryResolve(context: Context, uri: Uri): VfsFile? = when {
-        DocumentFile.isDocumentUri(context, uri) ->
-            DocumentFile.fromSingleUri(context, uri)?.takeIf { it.isFile }?.let {
-                VfsDocumentFile(context.contentResolver, it)
+        DocumentFile.isDocumentUri(context, uri) -> tryCreateDocumentFile(context, uri)
+        isMediaUri(uri) -> try {
+            getDocumentUriByMedia(context, uri)?.let {
+                tryResolve(context, it)
             }
-        isMediaUri(uri) -> getDocumentUriByMedia(context, uri)?.let {
-            tryResolve(context, it)
+        } catch (e: SecurityException) {
+            tryCreateDocumentFile(context, uri)
         }
-        else -> null
+        else -> tryCreateDocumentFile(context, uri)
     }
 
     private fun isMediaUri(uri: Uri) = MediaStore.AUTHORITY == authorityWithoutUserId(uri.authority)
+
+    private fun tryCreateDocumentFile(context: Context, uri: Uri) =
+        DocumentFile.fromSingleUri(context, uri)?.takeIf { it.isFile }?.let {
+            VfsDocumentFile(context.contentResolver, it)
+        }
 
     private fun authorityWithoutUserId(authority: String?) = authority?.substringAfterLast('@')
 
