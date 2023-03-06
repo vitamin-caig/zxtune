@@ -184,7 +184,7 @@ namespace Module::NCSF
       return State;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const LoopParameters& looped) override
     {
       if (!State->IsValid())
       {

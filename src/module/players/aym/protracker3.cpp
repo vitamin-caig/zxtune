@@ -392,7 +392,7 @@ namespace Module::ProTracker3
         return Delegate->IsValid();
       }
 
-      void NextFrame(const Sound::LoopParameters& looped) override
+      void NextFrame(const LoopParameters& looped) override
       {
         Delegate->NextFrame(looped);
       }

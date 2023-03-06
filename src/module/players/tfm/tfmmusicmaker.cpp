@@ -16,10 +16,10 @@
 #include <make_ptr.h>
 // library includes
 #include <math/fixedpoint.h>
+#include <module/loop.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
-#include <sound/loop.h>
 
 namespace Module::TFMMusicMaker
 {
@@ -1425,7 +1425,7 @@ namespace Module::TFMMusicMaker
       return Cursor->IsValid();
     }
 
-    void NextFrame(const Sound::LoopParameters& looped) override
+    void NextFrame(const LoopParameters& looped) override
     {
       if (!Cursor->IsValid())
       {

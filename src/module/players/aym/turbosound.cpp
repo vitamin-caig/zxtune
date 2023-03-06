@@ -17,10 +17,10 @@
 #include <make_ptr.h>
 // library includes
 #include <module/attributes.h>
+#include <module/loop.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/src/names_set.h>
 #include <parameters/visitor.h>
-#include <sound/loop.h>
 #include <sound/mixer_factory.h>
 // std includes
 #include <map>
@@ -246,7 +246,7 @@ namespace Module::TurboSound
       return First->IsValid() && Second->IsValid();
     }
 
-    void NextFrame(const Sound::LoopParameters& looped) override
+    void NextFrame(const LoopParameters& looped) override
     {
       First->NextFrame(looped);
       Second->NextFrame({true, 0});
@@ -282,7 +282,7 @@ namespace Module::TurboSound
       return Iterator->GetStateObserver();
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const LoopParameters& looped) override
     {
       if (!Iterator->IsValid())
       {

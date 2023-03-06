@@ -29,13 +29,13 @@
 #include <io/api.h>
 #include <io/template.h>
 #include <module/attributes.h>
+#include <module/loop.h>
 #include <module/conversion/api.h>
 #include <module/conversion/types.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/template.h>
 #include <platform/application.h>
 #include <platform/version/api.h>
-#include <sound/loop.h>
 #include <sound/sound_parameters.h>
 #include <time/duration.h>
 #include <time/timer.h>

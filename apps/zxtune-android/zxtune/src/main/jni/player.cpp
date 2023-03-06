@@ -336,7 +336,7 @@ namespace
     const Module::Renderer::Ptr Renderer;
     const Module::State::Ptr State;
     BufferTarget Buffer;
-    Sound::LoopParameters Looped;
+    Module::LoopParameters Looped;
     RenderingPerformanceAccountant RenderingPerformance;
     AnalyzerControl Analyzer;
   };

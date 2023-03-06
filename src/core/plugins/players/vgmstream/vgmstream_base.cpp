@@ -29,12 +29,12 @@
 #include <math/numeric.h>
 #include <module/additional_files.h>
 #include <module/attributes.h>
+#include <module/loop.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
-#include <sound/loop.h>
 #include <sound/resampler.h>
 // 3rdparty includes
 extern "C"
@@ -284,7 +284,7 @@ namespace Module::VGMStream
       return Status;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const LoopParameters& looped) override
     {
       if (Tune->loop_count != 0 && !looped(Tune->loop_count))
       {

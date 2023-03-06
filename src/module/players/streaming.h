@@ -57,7 +57,7 @@ namespace Module
     }
 
     // Returns really consumed
-    Time::Microseconds Consume(Time::Microseconds range, const Sound::LoopParameters& looped);
+    Time::Microseconds Consume(Time::Microseconds range, const LoopParameters& looped);
 
     // Returns delta to skip
     Time::Microseconds Seek(Time::AtMicrosecond request)
@@ -132,7 +132,7 @@ namespace Module
       return DoneSamples < TotalSamples;
     }
 
-    void Consume(uint_t samples, const Sound::LoopParameters& looped);
+    void Consume(uint_t samples, const LoopParameters& looped);
 
     void Seek(Time::AtMillisecond request)
     {

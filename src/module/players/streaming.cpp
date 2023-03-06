@@ -13,7 +13,7 @@
 // common includes
 #include <make_ptr.h>
 // library includes
-#include <sound/loop.h>
+#include <module/loop.h>
 // std includes
 #include <utility>
 
@@ -134,7 +134,7 @@ namespace Module
       return Cursor->IsValid();
     }
 
-    void NextFrame(const Sound::LoopParameters& looped) override
+    void NextFrame(const LoopParameters& looped) override
     {
       Cursor->NextFrame();
       if (!Cursor->IsValid() && looped(Cursor->LoopCount()))
@@ -208,7 +208,7 @@ namespace Module
     return MakePtr<TimedInfo>(duration, loopDuration);
   }
 
-  Time::Microseconds TimedState::Consume(Time::Microseconds range, const Sound::LoopParameters& looped)
+  Time::Microseconds TimedState::Consume(Time::Microseconds range, const LoopParameters& looped)
   {
     const auto nextPos = range.Get() ? Position + range : Limit;
     if (nextPos < Limit || looped(Loops++))
@@ -233,7 +233,7 @@ namespace Module
     return CreateTimedInfo(Time::Milliseconds::FromRatio(totalSamples, samplerate));
   }
 
-  void SampledState::Consume(uint_t samples, const Sound::LoopParameters& looped)
+  void SampledState::Consume(uint_t samples, const LoopParameters& looped)
   {
     const auto nextSamples = samples ? DoneSamples + samples : TotalSamples;
     if (nextSamples < TotalSamples || looped(Loops++))

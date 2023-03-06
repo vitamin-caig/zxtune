@@ -13,7 +13,7 @@
 // common includes
 #include <types.h>
 
-namespace Sound
+namespace Module
 {
   struct LoopParameters
   {

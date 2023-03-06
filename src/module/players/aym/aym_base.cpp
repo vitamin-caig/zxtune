@@ -17,7 +17,7 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/loop.h>
+#include <module/loop.h>
 #include <sound/mixer_factory.h>
 
 namespace Module
@@ -38,7 +38,7 @@ namespace Module
       return Iterator->GetStateObserver();
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const LoopParameters& looped) override
     {
       if (!Iterator->IsValid())
       {

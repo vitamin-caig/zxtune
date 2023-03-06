@@ -101,7 +101,7 @@ namespace Sound::BackendBase
       return Analyzer;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const Module::LoopParameters& looped) override
     {
       const auto request = SeekRequest.exchange(NO_SEEK);
       if (request != NO_SEEK)
@@ -141,7 +141,7 @@ namespace Sound::BackendBase
       : Delegate(std::move(params))
     {}
 
-    const LoopParameters& operator*() const
+    const Module::LoopParameters& operator*() const
     {
       if (Delegate.IsChanged())
       {
@@ -152,7 +152,7 @@ namespace Sound::BackendBase
 
   private:
     mutable Parameters::TrackingHelper<Parameters::Accessor> Delegate;
-    mutable LoopParameters Value;
+    mutable Module::LoopParameters Value;
   };
 
   class AsyncWrapper : public Async::Worker

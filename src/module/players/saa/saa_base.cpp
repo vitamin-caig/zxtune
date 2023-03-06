@@ -14,7 +14,7 @@
 #include <make_ptr.h>
 // library includes
 #include <math/numeric.h>
-#include <sound/loop.h>
+#include <module/loop.h>
 // std includes
 #include <utility>
 
@@ -43,7 +43,7 @@ namespace Module
       return Delegate->IsValid();
     }
 
-    void NextFrame(const Sound::LoopParameters& looped) override
+    void NextFrame(const LoopParameters& looped) override
     {
       Delegate->NextFrame(looped);
       FillCurrentData();
@@ -91,7 +91,7 @@ namespace Module
       return Iterator->GetStateObserver();
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const LoopParameters& looped) override
     {
       if (!Iterator->IsValid())
       {

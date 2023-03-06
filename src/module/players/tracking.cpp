@@ -14,7 +14,7 @@
 #include <make_ptr.h>
 #include <pointers.h>
 // library includes
-#include <sound/loop.h>
+#include <module/loop.h>
 
 namespace Module
 {
@@ -289,7 +289,7 @@ namespace Module
       return Cursor->IsValid();
     }
 
-    void NextFrame(const Sound::LoopParameters& looped) override
+    void NextFrame(const LoopParameters& looped) override
     {
       if (!Cursor->IsValid())
       {

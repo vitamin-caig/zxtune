@@ -13,7 +13,7 @@
 // common includes
 #include <make_ptr.h>
 // library includes
-#include <sound/loop.h>
+#include <module/loop.h>
 // std includes
 #include <utility>
 
@@ -33,7 +33,7 @@ namespace Module
       return Iterator->GetStateObserver();
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const LoopParameters& looped) override
     {
       if (!Iterator->IsValid())
       {

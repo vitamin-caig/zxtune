@@ -19,11 +19,11 @@
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/container.h>
+#include <module/loop.h>
 #include <module/players/properties_helper.h>
 #include <module/track_information.h>
 #include <module/track_state.h>
 #include <parameters/tracking_helper.h>
-#include <sound/loop.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
 #include <time/duration.h>
@@ -250,7 +250,7 @@ namespace Module::Xmp
       return Track;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render(const LoopParameters& looped) override
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");

@@ -11,7 +11,7 @@
 // local includes
 #include "module/players/iterator.h"
 // library includes
-#include <sound/loop.h>
+#include <module/loop.h>
 
 namespace Module
 {

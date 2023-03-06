@@ -150,7 +150,7 @@ namespace Module
       return State;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& loop) override
+    Sound::Chunk Render(const LoopParameters& loop) override
     {
       auto data = Delegate->Render(loop);
       if (Silence.Detected(data))
@@ -176,7 +176,7 @@ namespace Module
     }
 
   private:
-    Sound::Gain::Type CalculateGain(const Sound::LoopParameters& loop)
+    Sound::Gain::Type CalculateGain(const LoopParameters& loop)
     {
       if (Params.IsChanged())
       {

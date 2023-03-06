@@ -44,12 +44,6 @@ namespace Sound
       return static_cast<uint_t>(FoundProperty(FREQUENCY, FREQUENCY_DEFAULT));
     }
 
-    LoopParameters Looped() const override
-    {
-      using namespace Parameters::ZXTune::Sound;
-      return {0 != FoundProperty(LOOPED, 0), static_cast<uint_t>(FoundProperty(LOOP_LIMIT, 0))};
-    }
-
   private:
     Parameters::IntType FoundProperty(Parameters::Identifier name, Parameters::IntType defVal) const
     {
@@ -68,7 +62,7 @@ namespace Sound
     return MakePtr<RenderParametersImpl>(soundParameters);
   }
 
-  LoopParameters GetLoopParameters(const Parameters::Accessor& params)
+  Module::LoopParameters GetLoopParameters(const Parameters::Accessor& params)
   {
     using namespace Parameters::ZXTune::Sound;
     return {0 != GetProperty(params, LOOPED), static_cast<uint_t>(GetProperty(params, LOOP_LIMIT))};
