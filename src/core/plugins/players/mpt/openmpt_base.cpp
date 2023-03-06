@@ -182,7 +182,7 @@ namespace Module::Mpt
       ApplyParameters();
       const auto samples = SoundFreq / 10;  // TODO
       Sound::Chunk chunk(samples);
-      while (State->LoopCount() == 0 || looped(State->LoopCount()))
+      while (looped(State->LoopCount()))
       {
         const auto done = Track->read_interleaved_stereo(SoundFreq, samples, safe_ptr_cast<int16_t*>(chunk.data()));
         if (done != samples)

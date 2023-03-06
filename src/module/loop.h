@@ -28,7 +28,7 @@ namespace Module
 
     bool operator()(uint_t loopCount) const
     {
-      return Enabled && (!Limit || loopCount < Limit);
+      return !loopCount || (Enabled && (!Limit || loopCount < Limit));
     }
   };
-}  // namespace Sound
+}  // namespace Module

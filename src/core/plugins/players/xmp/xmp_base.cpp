@@ -257,7 +257,7 @@ namespace Module::Xmp
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
       static_assert(sizeof(Sound::Sample) == 4, "Incompatible sound sample size");
 
-      if (State->loop_count == 0 || looped(State->loop_count))
+      if (looped(State->loop_count))
       {
         ApplyParameters();
         Ctx->Call(&::xmp_play_frame);

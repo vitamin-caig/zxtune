@@ -258,8 +258,7 @@ namespace Module::LibVGM
 
     Sound::Chunk Render(const LoopParameters& looped) override
     {
-      const auto loops = Engine->LoopCount();
-      if (loops == 0 || looped(loops))
+      if (looped(Engine->LoopCount()))
       {
         return Engine->Render();
       }

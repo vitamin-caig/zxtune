@@ -253,8 +253,7 @@ namespace Module::AHX
 
     Sound::Chunk Render(const LoopParameters& looped) override
     {
-      const auto loops = Tune->LoopCount();
-      if (loops == 0 || looped(loops))
+      if (looped(Tune->LoopCount()))
       {
         return Tune->RenderFrame();
       }

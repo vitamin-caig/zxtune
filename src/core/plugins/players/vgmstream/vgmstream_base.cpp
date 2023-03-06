@@ -286,7 +286,7 @@ namespace Module::VGMStream
 
     Sound::Chunk Render(const LoopParameters& looped) override
     {
-      if (Tune->loop_count != 0 && !looped(Tune->loop_count))
+      if (!looped(Tune->loop_count))
       {
         return {};
       }
