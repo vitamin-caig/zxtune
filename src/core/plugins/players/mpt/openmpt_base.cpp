@@ -47,6 +47,7 @@ namespace Module::Mpt
     return Time::Milliseconds(seconds * Time::Milliseconds::PER_SECOND);
   }
 
+  // TODO: implement proper loop-related calculations after https://bugs.openmpt.org/view.php?id=1675 fix
   class Information : public Module::TrackInformation
   {
   public:
@@ -92,11 +93,14 @@ namespace Module::Mpt
 
     explicit TrackState(ModulePtr track)
       : Track(std::move(track))
+      , TotalDuration(Track->get_duration_seconds())
+      , FirstPlayed(Track->get_num_orders())
     {}
 
     Time::AtMillisecond At() const override
     {
-      return Time::AtMillisecond() + ToDuration(Track->get_position_seconds() - LastLoopStart);
+      return Time::AtMillisecond()
+             + ToDuration(std::min(TotalDuration, Track->get_position_seconds() - AllLoopsDuration));
     }
 
     Time::Milliseconds Total() const override
@@ -106,12 +110,12 @@ namespace Module::Mpt
 
     uint_t LoopCount() const override
     {
-      return LoopsDone;
+      return Loopings;
     }
 
     uint_t Position() const override
     {
-      return Track->get_current_order();
+      return Current.Position;
     }
 
     uint_t Pattern() const override
@@ -121,7 +125,7 @@ namespace Module::Mpt
 
     uint_t Line() const override
     {
-      return Track->get_current_row();
+      return Current.Row;
     }
 
     uint_t Tempo() const override
@@ -139,22 +143,66 @@ namespace Module::Mpt
       return Track->get_current_playing_channels();
     }
 
-    void Looped()
+    void Update()
     {
-      LastLoopStart = Track->get_position_seconds();
-      ++LoopsDone;
+      const auto prev = Current;
+      Current = PositionIndex{static_cast<uint_t>(Track->get_current_order()),
+                              static_cast<uint_t>(Track->get_current_row()), Track->get_position_seconds()};
+      if (Current.Position > prev.Position)
+      {
+        if (!Loopings)
+        {
+          FirstPlayed[Current.Position] = Current.Time;
+        }
+      }
+      else if (Current.Position < prev.Position || Current.Row < prev.Row)
+      {
+        Looped();
+      }
+      else if (Current.Row == prev.Row)
+      {
+        const double STUCK_THRESHOLD = 5.0;
+        if (Current.Time - prev.Time > STUCK_THRESHOLD)
+        {
+          Looped();
+        }
+        else
+        {
+          Current.Time = prev.Time;
+        }
+      }
     }
 
     void Reset()
     {
-      LastLoopStart = {};
-      LoopsDone = 0;
+      Loopings = 0;
+      AllLoopsDuration = 0.0;
+      std::fill(FirstPlayed.begin(), FirstPlayed.end(), double{});
+      Current = {};
+    }
+
+  private:
+    void Looped()
+    {
+      ++Loopings;
+      AllLoopsDuration = Current.Time - FirstPlayed[Current.Position];
     }
 
   private:
     const ModulePtr Track;
-    double LastLoopStart = 0;
-    uint_t LoopsDone = 0;
+    const double TotalDuration;
+    uint_t Loopings = 0;
+    double AllLoopsDuration = 0.0;
+
+    struct PositionIndex
+    {
+      uint_t Position = 0;
+      uint_t Row = 0;
+      double Time;
+    };
+
+    std::vector<double> FirstPlayed;
+    PositionIndex Current = {};
   };
 
   class Renderer : public Module::Renderer
@@ -184,15 +232,20 @@ namespace Module::Mpt
       Sound::Chunk chunk(samples);
       while (looped(State->LoopCount()))
       {
-        const auto done = Track->read_interleaved_stereo(SoundFreq, samples, safe_ptr_cast<int16_t*>(chunk.data()));
-        if (done != samples)
-        {
-          State->Looped();
-        }
-        if (done)
+        State->Update();
+        if (const auto done = Track->read_interleaved_stereo(SoundFreq, samples, safe_ptr_cast<int16_t*>(chunk.data())))
         {
           chunk.resize(done);
           return chunk;
+        }
+        else if (State->Total())
+        {
+          // see XM.cheapchoon%20II%20%20%203-30.gz @ AMP
+          Track->set_position_seconds(0);
+        }
+        else
+        {
+          break;
         }
       }
       return {};
@@ -351,12 +404,15 @@ namespace Module::Mpt
     }
   }
 
+  const double MIN_DURATION = 0.1;
+
   class Factory : public Module::ExternalParsingFactory
   {
   public:
     explicit Factory(const PluginDescription& desc)
       : Desc(desc)
     {
+      // In conjunction with set_repeat_count(-1) disables zero rendered samples in general
       Controls.emplace("play.at_end", "continue");
     }
 
@@ -372,6 +428,14 @@ namespace Module::Mpt
 
         // play all subsongs
         track->select_subsong(-1);
+
+        // use external repeats control
+        track->set_repeat_count(-1);
+
+        if (!track->get_num_orders() || track->get_duration_seconds() < MIN_DURATION)
+        {
+          return {};
+        }
 
         PropertiesHelper props(*properties);
         FillMetadata(*track, props);
