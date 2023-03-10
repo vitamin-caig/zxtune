@@ -233,17 +233,13 @@ namespace Module
     return CreateTimedInfo(Time::Milliseconds::FromRatio(totalSamples, samplerate));
   }
 
-  void SampledState::Consume(uint_t samples, const LoopParameters& looped)
+  uint_t SampledState::Consume(uint_t samples)
   {
     const auto nextSamples = samples ? DoneSamples + samples : TotalSamples;
-    if (nextSamples < TotalSamples || looped(Loops++))
-    {
-      DoneSamples = nextSamples % TotalSamples;
-      DoneSamplesTotal += samples;
-    }
-    else
-    {
-      DoneSamples = TotalSamples;
-    }
+    DoneSamples = nextSamples % TotalSamples;
+    DoneSamplesTotal += samples;
+    const auto doneLoops = nextSamples / TotalSamples;
+    Loops += doneLoops;
+    return doneLoops;
   }
 }  // namespace Module

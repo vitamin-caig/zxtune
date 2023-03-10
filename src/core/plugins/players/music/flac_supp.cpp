@@ -21,6 +21,7 @@
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/flac.h>
+#include <module/loop.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -323,19 +324,16 @@ namespace Module::Flac
 
     Sound::Chunk Render(const LoopParameters& looped) override
     {
-      if (!State->IsValid())
+      if (!looped(State->LoopCount()))
       {
         return {};
       }
-      const auto loops = State->LoopCount();
       auto frame = Tune.RenderFrame();
-      State->Consume(frame.size(), looped);
-      frame = Target->Apply(std::move(frame));
-      if (State->LoopCount() != loops)
+      if (0 != State->Consume(frame.size()))
       {
         Tune.Seek(0);
       }
-      return frame;
+      return Target->Apply(std::move(frame));
     }
 
     void Reset() override

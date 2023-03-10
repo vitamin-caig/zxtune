@@ -127,12 +127,9 @@ namespace Module
       Loops = 0;
     }
 
-    bool IsValid() const
-    {
-      return DoneSamples < TotalSamples;
-    }
-
-    void Consume(uint_t samples, const LoopParameters& looped);
+    // Set samples = 0 to enforce stream end
+    // return done loops count
+    uint_t Consume(uint_t samples);
 
     void Seek(Time::AtMillisecond request)
     {

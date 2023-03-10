@@ -21,6 +21,7 @@
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/oggvorbis.h>
 #include <math/numeric.h>
+#include <module/loop.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -238,14 +239,12 @@ namespace Module::Ogg
 
     Sound::Chunk Render(const LoopParameters& looped) override
     {
-      if (!State->IsValid())
+      if (!looped(State->LoopCount()))
       {
         return {};
       }
-      const auto loops = State->LoopCount();
       auto frame = Tune.RenderFrame();
-      State->Consume(frame.size(), looped);
-      if (State->LoopCount() != loops)
+      if (0 != State->Consume(frame.size()))
       {
         Tune.Seek(0);
       }
