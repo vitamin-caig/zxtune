@@ -26,9 +26,10 @@ namespace Module
       , Limit(limit)
     {}
 
+    // Assume single playback ends with loopCount == 1, so real limit is bigger by one
     bool operator()(uint_t loopCount) const
     {
-      return !loopCount || (Enabled && (!Limit || loopCount < Limit));
+      return !loopCount || (Enabled && (!Limit || loopCount <= Limit));
     }
   };
 }  // namespace Module
