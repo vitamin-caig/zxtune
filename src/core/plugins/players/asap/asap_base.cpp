@@ -26,6 +26,7 @@
 #include <formats/multitrack/decoders.h>
 #include <math/numeric.h>
 #include <module/attributes.h>
+#include <module/loop.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
@@ -184,12 +185,11 @@ namespace Module::ASAP
 
     Sound::Chunk Render(const LoopParameters& looped) override
     {
-      if (!State->IsValid())
+      if (!looped(State->LoopCount()))
       {
         return {};
       }
-      const auto avail = State->Consume(FRAME_DURATION, looped);
-
+      const auto avail = State->Consume(FRAME_DURATION);
       return Target->Apply(Tune->Render(GetSamples(avail)));
     }
 

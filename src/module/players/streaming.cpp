@@ -208,24 +208,13 @@ namespace Module
     return MakePtr<TimedInfo>(duration, loopDuration);
   }
 
-  Time::Microseconds TimedState::Consume(Time::Microseconds range, const LoopParameters& looped)
+  Time::Microseconds TimedState::Consume(Time::Microseconds range)
   {
     const auto nextPos = range.Get() ? Position + range : Limit;
-    if (nextPos < Limit || looped(Loops++))
-    {
-      Position = Time::AtMicrosecond(nextPos.Get() % Limit.Get());
-      TotalPlayback += range;
-      return range;
-    }
-    else if (nextPos == Limit)
-    {
-      Position = nextPos;
-      return range;
-    }
-    else
-    {
-      return Consume(Time::Microseconds(Limit.Get() - Position.Get()), looped);
-    }
+    Position = Time::AtMicrosecond(nextPos.Get() % Limit.Get());
+    Loops += nextPos.Get() / Limit.Get();
+    TotalPlayback += range;
+    return range;
   }
 
   Information::Ptr CreateSampledInfo(uint_t samplerate, uint64_t totalSamples)

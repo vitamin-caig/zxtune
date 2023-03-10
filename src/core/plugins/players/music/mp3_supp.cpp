@@ -20,6 +20,7 @@
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/mp3.h>
+#include <module/loop.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -245,28 +246,21 @@ namespace Module::Mp3
 
     Sound::Chunk Render(const LoopParameters& looped) override
     {
-      if (!State->IsValid())
+      while (looped(State->LoopCount()))
       {
-        return {};
-      }
-      auto frame = Tune.RenderNextFrame();
-      if (frame.Data.empty())
-      {
-        State->Consume({}, looped);
-        if (State->IsValid())
+        auto frame = Tune.RenderNextFrame();
+        if (frame.Data.empty())
         {
+          // force end/loop
+          State->Consume({});
           Tune.Reset();
-          frame = Tune.RenderNextFrame();
+          continue;
         }
+        const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
+        State->Consume(rendered);
+        return Target.Apply(std::move(frame));
       }
-      const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
-      const auto loops = State->LoopCount();
-      State->Consume(rendered, looped);
-      if (loops != State->LoopCount())
-      {
-        Tune.Reset();
-      }
-      return Target.Apply(std::move(frame));
+      return {};
     }
 
     void Reset() override
