@@ -38,14 +38,9 @@ namespace Module
       FillCurrentData();
     }
 
-    bool IsValid() const override
+    void NextFrame() override
     {
-      return Delegate->IsValid();
-    }
-
-    void NextFrame(const LoopParameters& looped) override
-    {
-      Delegate->NextFrame(looped);
+      Delegate->NextFrame();
       FillCurrentData();
     }
 
@@ -62,12 +57,9 @@ namespace Module
   private:
     void FillCurrentData()
     {
-      if (Delegate->IsValid())
-      {
-        SAA::TrackBuilder builder;
-        Render->SynthesizeData(*State, builder);
-        builder.GetResult(CurrentData);
-      }
+      SAA::TrackBuilder builder;
+      Render->SynthesizeData(*State, builder);
+      builder.GetResult(CurrentData);
     }
 
   private:
@@ -93,12 +85,12 @@ namespace Module
 
     Sound::Chunk Render(const LoopParameters& looped) override
     {
-      if (!Iterator->IsValid())
+      if (!looped(GetState()->LoopCount()))
       {
         return {};
       }
       TransferChunk();
-      Iterator->NextFrame(looped);
+      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -117,12 +109,12 @@ namespace Module
       {
         Iterator->Reset();
         Device->Reset();
-        LastChunk.TimeStamp = Devices::SAA::Stamp();
+        LastChunk.TimeStamp = {};
       }
-      while (state->At() < request && Iterator->IsValid())
+      while (state->At() < request)
       {
         TransferChunk();
-        Iterator->NextFrame({});
+        Iterator->NextFrame();
       }
     }
 

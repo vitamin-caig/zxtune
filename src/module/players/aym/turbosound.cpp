@@ -241,15 +241,10 @@ namespace Module::TurboSound
       Second->Reset();
     }
 
-    bool IsValid() const override
+    void NextFrame() override
     {
-      return First->IsValid() && Second->IsValid();
-    }
-
-    void NextFrame(const LoopParameters& looped) override
-    {
-      First->NextFrame(looped);
-      Second->NextFrame({true, 0});
+      First->NextFrame();
+      Second->NextFrame();
     }
 
     State::Ptr GetStateObserver() const override
@@ -284,12 +279,12 @@ namespace Module::TurboSound
 
     Sound::Chunk Render(const LoopParameters& looped) override
     {
-      if (!Iterator->IsValid())
+      if (!looped(GetState()->LoopCount()))
       {
         return {};
       }
       TransferChunk();
-      Iterator->NextFrame(looped);
+      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -310,10 +305,10 @@ namespace Module::TurboSound
         Device->Reset();
         LastChunk.TimeStamp = {};
       }
-      while (state->At() < request && Iterator->IsValid())
+      while (state->At() < request)
       {
         TransferChunk();
-        Iterator->NextFrame({});
+        Iterator->NextFrame();
       }
     }
 

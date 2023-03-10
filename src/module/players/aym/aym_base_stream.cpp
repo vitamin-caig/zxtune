@@ -35,14 +35,9 @@ namespace Module
         Delegate->Reset();
       }
 
-      bool IsValid() const override
+      void NextFrame() override
       {
-        return Delegate->IsValid();
-      }
-
-      void NextFrame(const LoopParameters& looped) override
-      {
-        Delegate->NextFrame(looped);
+        Delegate->NextFrame();
       }
 
       Module::State::Ptr GetStateObserver() const override
@@ -52,7 +47,7 @@ namespace Module
 
       Devices::AYM::Registers GetData() const override
       {
-        return Delegate->IsValid() ? Data->Get(Delegate->CurrentFrame()) : Devices::AYM::Registers();
+        return Data->Get(Delegate->CurrentFrame());
       }
 
     private:

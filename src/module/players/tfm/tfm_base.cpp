@@ -35,12 +35,12 @@ namespace Module
 
     Sound::Chunk Render(const LoopParameters& looped) override
     {
-      if (!Iterator->IsValid())
+      if (!looped(GetState()->LoopCount()))
       {
         return {};
       }
       TransferChunk();
-      Iterator->NextFrame(looped);
+      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -61,10 +61,10 @@ namespace Module
         Device->Reset();
         LastChunk.TimeStamp = {};
       }
-      while (state->At() < request && Iterator->IsValid())
+      while (state->At() < request)
       {
         TransferChunk();
-        Iterator->NextFrame({});
+        Iterator->NextFrame();
       }
     }
 

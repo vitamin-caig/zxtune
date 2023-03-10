@@ -16,7 +16,6 @@
 #include <make_ptr.h>
 // library includes
 #include <math/fixedpoint.h>
-#include <module/loop.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
@@ -1420,18 +1419,9 @@ namespace Module::TFMMusicMaker
       Cursor->Reset();
     }
 
-    bool IsValid() const override
+    void NextFrame() override
     {
-      return Cursor->IsValid();
-    }
-
-    void NextFrame(const LoopParameters& looped) override
-    {
-      if (!Cursor->IsValid())
-      {
-        return;
-      }
-      else if (!Cursor->NextFrame() && looped(Cursor->LoopCount()))
+      if (!Cursor->NextFrame())
       {
         MoveToLoop();
       }

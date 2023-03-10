@@ -34,14 +34,9 @@ namespace Module
         Delegate->Reset();
       }
 
-      bool IsValid() const override
+      void NextFrame() override
       {
-        return Delegate->IsValid();
-      }
-
-      void NextFrame(const LoopParameters& looped) override
-      {
-        Delegate->NextFrame(looped);
+        Delegate->NextFrame();
       }
 
       Module::State::Ptr GetStateObserver() const override
@@ -51,14 +46,7 @@ namespace Module
 
       void GetData(Devices::TFM::Registers& res) const override
       {
-        if (Delegate->IsValid())
-        {
-          Data->Get(Delegate->CurrentFrame(), res);
-        }
-        else
-        {
-          res.clear();
-        }
+        Data->Get(Delegate->CurrentFrame(), res);
       }
 
     private:

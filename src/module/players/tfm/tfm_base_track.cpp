@@ -52,14 +52,9 @@ namespace Module
         FillCurrentData();
       }
 
-      bool IsValid() const override
+      void NextFrame() override
       {
-        return Delegate->IsValid();
-      }
-
-      void NextFrame(const LoopParameters& looped) override
-      {
-        Delegate->NextFrame(looped);
+        Delegate->NextFrame();
         FillCurrentData();
       }
 
@@ -76,16 +71,9 @@ namespace Module
     private:
       void FillCurrentData()
       {
-        if (Delegate->IsValid())
-        {
-          TrackBuilder builder;
-          Render->SynthesizeData(*State, builder);
-          builder.CaptureResult(CurrentData);
-        }
-        else
-        {
-          CurrentData.clear();
-        }
+        TrackBuilder builder;
+        Render->SynthesizeData(*State, builder);
+        builder.CaptureResult(CurrentData);
       }
 
     private:

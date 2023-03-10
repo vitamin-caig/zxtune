@@ -387,14 +387,9 @@ namespace Module::ProTracker3
         Second->Reset();
       }
 
-      bool IsValid() const override
+      void NextFrame() override
       {
-        return Delegate->IsValid();
-      }
-
-      void NextFrame(const LoopParameters& looped) override
-      {
-        Delegate->NextFrame(looped);
+        Delegate->NextFrame();
       }
 
       Module::State::Ptr GetStateObserver() const override
@@ -404,16 +399,11 @@ namespace Module::ProTracker3
 
       Devices::TurboSound::Registers GetData() const override
       {
-        return Delegate->IsValid() ? GetCurrentChunk() : Devices::TurboSound::Registers();
-      }
-
-    private:
-      Devices::TurboSound::Registers GetCurrentChunk() const
-      {
         SynchronizeParameters();
         return {{RenderFrom(*First), RenderFrom(*Second)}};
       }
 
+    private:
       Devices::AYM::Registers RenderFrom(AYM::DataRenderer& renderer) const
       {
         AYM::TrackBuilder builder(Table);

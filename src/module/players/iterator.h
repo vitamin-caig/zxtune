@@ -15,8 +15,6 @@
 
 namespace Module
 {
-  struct LoopParameters;
-
   class Iterator
   {
   public:
@@ -25,8 +23,7 @@ namespace Module
     virtual ~Iterator() = default;
 
     virtual void Reset() = 0;
-    virtual bool IsValid() const = 0;
-    virtual void NextFrame(const LoopParameters& looped) = 0;
+    virtual void NextFrame() = 0;
   };
 
   class StateIterator : public Iterator
@@ -38,6 +35,4 @@ namespace Module
 
     virtual State::Ptr GetStateObserver() const = 0;
   };
-
-  void SeekIterator(Iterator& iter, State::Ptr state, Time::AtMillisecond pos);
 }  // namespace Module

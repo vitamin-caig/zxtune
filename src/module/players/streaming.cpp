@@ -12,8 +12,6 @@
 #include "module/players/streaming.h"
 // common includes
 #include <make_ptr.h>
-// library includes
-#include <module/loop.h>
 // std includes
 #include <utility>
 
@@ -129,15 +127,10 @@ namespace Module
       Cursor->Reset();
     }
 
-    bool IsValid() const override
-    {
-      return Cursor->IsValid();
-    }
-
-    void NextFrame(const LoopParameters& looped) override
+    void NextFrame() override
     {
       Cursor->NextFrame();
-      if (!Cursor->IsValid() && looped(Cursor->LoopCount()))
+      if (!Cursor->IsValid())
       {
         Cursor->ResetToLoop();
       }
