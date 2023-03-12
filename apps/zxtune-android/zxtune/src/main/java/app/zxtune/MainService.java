@@ -26,9 +26,12 @@ import java.util.List;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.core.PropertiesModifier;
 import app.zxtune.core.jni.Api;
+import app.zxtune.device.media.AudioFocusConnection;
 import app.zxtune.device.media.MediaSessionControl;
+import app.zxtune.device.media.NoisyAudioConnection;
 import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
+import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.preferences.DataStore;
 import app.zxtune.preferences.SharedPreferencesBridge;
@@ -68,7 +71,7 @@ public class MainService extends MediaBrowserServiceCompat {
     addHandle(service);
     TRACE.checkpoint("svc");
 
-    setupCallbacks(ctx);
+    setupCallbacks(ctx, service);
     TRACE.checkpoint("cbs");
 
     service.restoreSession();
@@ -137,7 +140,9 @@ public class MainService extends MediaBrowserServiceCompat {
     result.sendResult(null);
   }
 
-  private void setupCallbacks(Context ctx) {
+  private void setupCallbacks(Context ctx, PlaybackServiceLocal service) {
+    handles.add(AudioFocusConnection.create(ctx, service));
+    handles.add(NoisyAudioConnection.create(ctx, service));
     //should be always paired
     MediaSessionControl ctrl = MediaSessionControl.subscribe(ctx, service);
     handles.add(ctrl);
