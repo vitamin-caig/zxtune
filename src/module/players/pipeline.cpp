@@ -13,6 +13,7 @@
 // library includes
 #include <debug/log.h>
 #include <module/holder.h>
+#include <module/loop.h>
 #include <module/players/pipeline.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/tracking_helper.h>
@@ -150,15 +151,20 @@ namespace Module
       return State;
     }
 
-    Sound::Chunk Render(const LoopParameters& loop) override
+    Sound::Chunk Render(const LoopParameters& /*loop*/) override
     {
-      auto data = Delegate->Render(loop);
+      UpdateParameters();
+      if (!Loop(State->LoopCount()))
+      {
+        return {};
+      }
+      auto data = Delegate->Render({true, 0});
       if (Silence.Detected(data))
       {
         return {};
       }
       // Apply fading at post-rendering position to avoid absolute silence at the beginning
-      Gainer->SetGain(CalculateGain(loop));
+      Gainer->SetGain(CalculateGain());
       return Gainer->Apply(std::move(data));
     }
 
@@ -176,7 +182,7 @@ namespace Module
     }
 
   private:
-    Sound::Gain::Type CalculateGain(const LoopParameters& loop)
+    void UpdateParameters()
     {
       if (Params.IsChanged())
       {
@@ -185,7 +191,12 @@ namespace Module
         Params->FindValue(GAIN, val);
         Preamp = Sound::Gain::Type(val, GAIN_PRECISION);
         Debug("Preamp: {}%", val);
+        Loop = Sound::GetLoopParameters(*Params);
       }
+    }
+
+    Sound::Gain::Type CalculateGain()
+    {
       if (!Fading.IsValid())
       {
         return Preamp;
@@ -195,8 +206,9 @@ namespace Module
       {
         return Fading.GetFadein(Preamp, pos);
       }
-      else if (!loop.Enabled && Fading.IsFadeout(pos))
+      else if (!Loop.Enabled && Fading.IsFadeout(pos))
       {
+        // TODO: implement fadeout on last loop cycle
         return Fading.GetFadeout(Preamp, pos);
       }
       else
@@ -213,6 +225,7 @@ namespace Module
     const Sound::Gainer::Ptr Gainer;
     SilenceDetector Silence;
     Sound::Gain::Type Preamp;
+    LoopParameters Loop;
   };
 
   Renderer::Ptr CreatePipelinedRenderer(const Holder& holder, Parameters::Accessor::Ptr globalParams)
