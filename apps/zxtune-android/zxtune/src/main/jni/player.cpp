@@ -25,7 +25,6 @@
 #include <parameters/merged_accessor.h>
 #include <sound/impl/fft_analyzer.h>
 #include <sound/mixer_factory.h>
-#include <sound/render_params.h>
 // std includes
 #include <atomic>
 #include <ctime>
@@ -312,7 +311,7 @@ namespace
     Sound::Chunk RenderNextFrame()
     {
       RenderingPerformance.StartAccounting();
-      auto chunk = Renderer->Render({});
+      auto chunk = Renderer->Render();
       RenderingPerformance.StopAccounting();
       return chunk;
     }

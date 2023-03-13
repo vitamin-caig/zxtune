@@ -21,7 +21,6 @@
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/oggvorbis.h>
 #include <math/numeric.h>
-#include <module/loop.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -237,12 +236,8 @@ namespace Module::Ogg
       return State;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!looped(State->LoopCount()))
-      {
-        return {};
-      }
       auto frame = Tune.RenderFrame();
       if (0 != State->Consume(frame.size()))
       {
@@ -432,4 +427,3 @@ namespace ZXTune
     registrator.RegisterPlugin(plugin);
   }
 }  // namespace ZXTune
-

@@ -20,7 +20,6 @@
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/container.h>
-#include <module/loop.h>
 #include <module/players/properties_helper.h>
 #include <module/track_information.h>
 #include <module/track_state.h>
@@ -220,7 +219,7 @@ namespace Module::Mpt
       return State;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
@@ -230,7 +229,7 @@ namespace Module::Mpt
       ApplyParameters();
       const auto samples = SoundFreq / 10;  // TODO
       Sound::Chunk chunk(samples);
-      while (looped(State->LoopCount()))
+      for (;;)
       {
         State->Update();
         if (const auto done = Track->read_interleaved_stereo(SoundFreq, samples, safe_ptr_cast<int16_t*>(chunk.data())))

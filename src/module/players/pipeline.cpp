@@ -151,14 +151,14 @@ namespace Module
       return State;
     }
 
-    Sound::Chunk Render(const LoopParameters& /*loop*/) override
+    Sound::Chunk Render() override
     {
       UpdateParameters();
       if (!Loop(State->LoopCount()))
       {
         return {};
       }
-      auto data = Delegate->Render({true, 0});
+      auto data = Delegate->Render();
       if (Silence.Detected(data))
       {
         return {};

@@ -21,7 +21,6 @@
 #include <devices/beeper.h>
 #include <devices/z80.h>
 #include <formats/chiptune/emulation/ay.h>
-#include <module/loop.h>
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
 #include <module/players/streaming.h>
@@ -570,12 +569,8 @@ namespace Module::AYEMUL
       return State;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!looped(State->LoopCount()))
-      {
-        return {};
-      }
       State->Consume(FrameDuration);
       DeviceTime += FrameDuration;
       Comp->ExecuteFrameTill(DeviceTime);

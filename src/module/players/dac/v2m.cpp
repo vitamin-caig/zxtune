@@ -16,7 +16,6 @@
 // library includes
 #include <debug/log.h>
 #include <formats/chiptune/digital/v2m.h>
-#include <module/loop.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -146,13 +145,9 @@ namespace Module::V2M
       return State;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
       const auto loops = State->LoopCount();
-      if (!looped(loops))
-      {
-        return {};
-      }
       const auto avail = State->Consume(FRAME_DURATION);
       auto frame = Target->Apply(Engine.RenderFrame(GetSamples(avail)));
       if (State->LoopCount() != loops)

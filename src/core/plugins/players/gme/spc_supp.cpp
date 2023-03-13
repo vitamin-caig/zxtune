@@ -20,7 +20,6 @@
 #include <debug/log.h>
 #include <formats/chiptune/emulation/spc.h>
 #include <math/numeric.h>
-#include <module/loop.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
@@ -122,12 +121,8 @@ namespace Module::SPC
       return State;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!looped(State->LoopCount()))
-      {
-        return {};
-      }
       const auto avail = State->Consume(FRAME_DURATION);
       return Target->Apply(Engine->Render(GetSamples(avail)));
     }

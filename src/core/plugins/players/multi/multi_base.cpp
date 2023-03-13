@@ -14,7 +14,6 @@
 #include <contract.h>
 #include <make_ptr.h>
 // library includes
-#include <module/loop.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/visitor.h>
 // std includes
@@ -148,14 +147,13 @@ namespace Module
       return Delegates.front()->GetState();
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      static const LoopParameters INFINITE_LOOP{true, 0};
       for (std::size_t idx = 0, lim = Delegates.size(); idx != lim; ++idx)
       {
         if (Target.NeedStream(idx))
         {
-          auto data = Delegates[idx]->Render(idx == 0 ? looped : INFINITE_LOOP);
+          auto data = Delegates[idx]->Render();
           Target.MixStream(idx, data);
         }
       }

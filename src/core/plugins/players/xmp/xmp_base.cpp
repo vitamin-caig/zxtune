@@ -19,7 +19,6 @@
 #include <core/core_parameters.h>
 #include <core/plugin_attrs.h>
 #include <formats/chiptune/container.h>
-#include <module/loop.h>
 #include <module/players/properties_helper.h>
 #include <module/track_information.h>
 #include <module/track_state.h>
@@ -250,14 +249,14 @@ namespace Module::Xmp
       return Track;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
       static_assert(sizeof(Sound::Sample) == 4, "Incompatible sound sample size");
 
-      if (looped(State->loop_count))
+      for (;;)
       {
         ApplyParameters();
         Ctx->Call(&::xmp_play_frame);

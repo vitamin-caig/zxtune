@@ -17,7 +17,6 @@
 // library includes
 #include <debug/log.h>
 #include <formats/chiptune/digital/abysshighestexperience.h>
-#include <module/loop.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_meta.h>
 #include <module/track_information.h>
@@ -251,16 +250,9 @@ namespace Module::AHX
       return Tune->MakeTrackState();
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (looped(Tune->LoopCount()))
-      {
-        return Tune->RenderFrame();
-      }
-      else
-      {
-        return {};
-      }
+      return Tune->RenderFrame();
     }
 
     void Reset() override

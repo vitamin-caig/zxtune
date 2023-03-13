@@ -29,7 +29,6 @@
 #include <math/numeric.h>
 #include <module/additional_files.h>
 #include <module/attributes.h>
-#include <module/loop.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
@@ -284,12 +283,8 @@ namespace Module::VGMStream
       return Status;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!looped(Tune->loop_count))
-      {
-        return {};
-      }
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
@@ -2377,4 +2372,3 @@ namespace ZXTune
     }
   }
 }  // namespace ZXTune
-

@@ -12,8 +12,6 @@
 #include "module/players/tfm/tfm_base.h"
 // common includes
 #include <make_ptr.h>
-// library includes
-#include <module/loop.h>
 // std includes
 #include <utility>
 
@@ -33,12 +31,8 @@ namespace Module
       return Iterator->GetStateObserver();
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!looped(GetState()->LoopCount()))
-      {
-        return {};
-      }
       TransferChunk();
       Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;

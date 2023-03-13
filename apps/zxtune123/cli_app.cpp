@@ -29,7 +29,6 @@
 #include <io/api.h>
 #include <io/template.h>
 #include <module/attributes.h>
-#include <module/loop.h>
 #include <module/conversion/api.h>
 #include <module/conversion/types.h>
 #include <parameters/merged_accessor.h>
@@ -267,13 +266,14 @@ namespace
         const auto total = info->Duration() * Iterations;
         BenchmarkSoundReceiver receiver;
         const auto renderer = holder->CreateRenderer(Sounder.GetSamplerate(), props);
+        const auto state = renderer->GetState();
         const Time::Timer timer;
         for (unsigned i = 0; i != Iterations; ++i)
         {
           renderer->SetPosition({});
-          for (;;)
+          while (0 == state->LoopCount())
           {
-            auto data = renderer->Render({});
+            auto data = renderer->Render();
             if (data.empty())
             {
               break;

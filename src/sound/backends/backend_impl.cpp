@@ -100,7 +100,7 @@ namespace Sound::BackendBase
       return Analyzer;
     }
 
-    Sound::Chunk Render(const Module::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
       const auto request = SeekRequest.exchange(NO_SEEK);
       if (request != NO_SEEK)
@@ -108,7 +108,7 @@ namespace Sound::BackendBase
         Delegate->SetPosition(Time::AtMillisecond(request));
       }
       Callback->OnFrame(*State);
-      auto result = Delegate->Render(looped);
+      auto result = Delegate->Render();
       Analyzer->FeedSound(result.data(), result.size());
       return result;
     }
@@ -230,7 +230,7 @@ namespace Sound::BackendBase
     {
       try
       {
-        auto data = Renderer->Render({});
+        auto data = Renderer->Render();
         if (!data.empty())
         {
           Playing = true;

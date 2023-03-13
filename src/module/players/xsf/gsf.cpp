@@ -21,7 +21,6 @@
 #include <binary/compression/zlib_container.h>
 #include <debug/log.h>
 #include <module/attributes.h>
-#include <module/loop.h>
 #include <module/players/platforms.h>
 #include <module/players/streaming.h>
 // 3rdparty includes
@@ -284,12 +283,8 @@ namespace Module::GSF
       return State;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!looped(State->LoopCount()))
-      {
-        return {};
-      }
       const auto avail = State->Consume(FRAME_DURATION);
       return Engine->Render(GetSamples(avail));
     }

@@ -17,7 +17,6 @@
 #include <make_ptr.h>
 // library includes
 #include <module/attributes.h>
-#include <module/loop.h>
 #include <parameters/merged_accessor.h>
 #include <parameters/src/names_set.h>
 #include <parameters/visitor.h>
@@ -277,12 +276,8 @@ namespace Module::TurboSound
       return Iterator->GetStateObserver();
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!looped(GetState()->LoopCount()))
-      {
-        return {};
-      }
       TransferChunk();
       Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;

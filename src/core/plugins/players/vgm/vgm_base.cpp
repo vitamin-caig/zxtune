@@ -23,7 +23,6 @@
 #include <formats/chiptune/multidevice/videogamemusic.h>
 #include <math/numeric.h>
 #include <module/attributes.h>
-#include <module/loop.h>
 #include <module/players/duration.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
@@ -256,16 +255,9 @@ namespace Module::LibVGM
       return Engine;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (looped(Engine->LoopCount()))
-      {
-        return Engine->Render();
-      }
-      else
-      {
-        return {};
-      }
+      return Engine->Render();
     }
 
     void Reset() override
@@ -476,4 +468,3 @@ namespace ZXTune
     }
   }
 }  // namespace ZXTune
-

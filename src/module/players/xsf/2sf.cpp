@@ -22,7 +22,6 @@
 #include <formats/chiptune/emulation/nintendodssoundformat.h>
 #include <math/bitops.h>
 #include <module/attributes.h>
-#include <module/loop.h>
 #include <module/players/platforms.h>
 #include <module/players/streaming.h>
 #include <sound/resampler.h>
@@ -227,12 +226,8 @@ namespace Module::TwoSF
       return State;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!looped(State->LoopCount()))
-      {
-        return {};
-      }
       const auto avail = State->Consume(FRAME_DURATION);
       return Target->Apply(Engine->Render(GetSamples(avail)));
     }

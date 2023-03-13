@@ -20,7 +20,6 @@
 #include <debug/log.h>
 #include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/mp3.h>
-#include <module/loop.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
@@ -244,9 +243,9 @@ namespace Module::Mp3
       return State;
     }
 
-    Sound::Chunk Render(const LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      while (looped(State->LoopCount()))
+      for (;;)
       {
         auto frame = Tune.RenderNextFrame();
         if (frame.Data.empty())
@@ -407,4 +406,3 @@ namespace ZXTune
     registrator.RegisterPlugin(plugin);
   }
 }  // namespace ZXTune
-
