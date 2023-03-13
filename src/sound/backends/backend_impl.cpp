@@ -19,7 +19,6 @@
 #include <async/worker.h>
 #include <debug/log.h>
 #include <module/players/pipeline.h>
-#include <parameters/tracking_helper.h>
 #include <sound/impl/fft_analyzer.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -134,34 +133,11 @@ namespace Sound::BackendBase
     const FFTAnalyzer::Ptr Analyzer;
   };
 
-  class LoopParameterAdapter
-  {
-  public:
-    explicit LoopParameterAdapter(Parameters::Accessor::Ptr params)
-      : Delegate(std::move(params))
-    {}
-
-    const Module::LoopParameters& operator*() const
-    {
-      if (Delegate.IsChanged())
-      {
-        Value = GetLoopParameters(*Delegate);
-      }
-      return Value;
-    }
-
-  private:
-    mutable Parameters::TrackingHelper<Parameters::Accessor> Delegate;
-    mutable Module::LoopParameters Value;
-  };
-
   class AsyncWrapper : public Async::Worker
   {
   public:
-    AsyncWrapper(Parameters::Accessor::Ptr params, BackendCallback::Ptr callback, Module::Renderer::Ptr render,
-                 BackendWorker::Ptr worker)
-      : Looped(std::move(params))
-      , Callback(std::move(callback))
+    AsyncWrapper(BackendCallback::Ptr callback, Module::Renderer::Ptr render, BackendWorker::Ptr worker)
+      : Callback(std::move(callback))
       , Renderer(std::move(render))
       , Worker(std::move(worker))
       , Playing(false)
@@ -254,7 +230,7 @@ namespace Sound::BackendBase
     {
       try
       {
-        auto data = Renderer->Render(*Looped);
+        auto data = Renderer->Render({});
         if (!data.empty())
         {
           Playing = true;
@@ -278,7 +254,6 @@ namespace Sound::BackendBase
     }
 
   private:
-    const LoopParameterAdapter Looped;
     const BackendWorker::Ptr Delegate;
     const BackendCallback::Ptr Callback;
     const Module::Renderer::Ptr Renderer;
@@ -405,10 +380,8 @@ namespace Sound
     auto origRenderer = Module::CreatePipelinedRenderer(*holder, globalParams);
     auto callback = BackendBase::CreateCallback(std::move(origCallback), worker);
     auto renderer = MakePtr<BackendBase::RendererWrapper>(std::move(origRenderer), callback);
-    auto asyncWorker =
-        MakePtr<BackendBase::AsyncWrapper>(std::move(globalParams), std::move(callback), renderer, worker);
+    auto asyncWorker = MakePtr<BackendBase::AsyncWrapper>(std::move(callback), renderer, worker);
     auto job = Async::CreateJob(std::move(asyncWorker));
     return MakePtr<BackendBase::BackendInternal>(std::move(worker), std::move(renderer), std::move(job));
   }
 }  // namespace Sound
-
