@@ -13,8 +13,6 @@
 // common includes
 #include <make_ptr.h>
 #include <pointers.h>
-// library includes
-#include <sound/loop.h>
 
 namespace Module
 {
@@ -133,11 +131,6 @@ namespace Module
     }
 
     // navigation
-    bool IsValid() const
-    {
-      return Plain.Position < Order.GetSize();
-    }
-
     const PlainTrackState& GetState() const
     {
       return Plain;
@@ -256,6 +249,11 @@ namespace Module
       return IsValid();
     }
 
+    bool IsValid() const
+    {
+      return Plain.Position < Order.GetSize();
+    }
+
   private:
     // context
     const Time::Microseconds FrameDuration;
@@ -284,18 +282,9 @@ namespace Module
       Cursor->Reset();
     }
 
-    bool IsValid() const override
+    void NextFrame() override
     {
-      return Cursor->IsValid();
-    }
-
-    void NextFrame(const Sound::LoopParameters& looped) override
-    {
-      if (!Cursor->IsValid())
-      {
-        return;
-      }
-      if (!Cursor->NextFrame() && looped(Cursor->LoopCount()))
+      if (!Cursor->NextFrame())
       {
         MoveToLoop();
       }

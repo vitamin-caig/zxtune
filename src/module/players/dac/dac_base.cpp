@@ -13,7 +13,6 @@
 // common includes
 #include <make_ptr.h>
 // library includes
-#include <sound/loop.h>
 #include <sound/multichannel_sample.h>
 
 namespace Module
@@ -36,14 +35,9 @@ namespace Module
       FillCurrentData();
     }
 
-    bool IsValid() const override
+    void NextFrame() override
     {
-      return Delegate->IsValid();
-    }
-
-    void NextFrame(const Sound::LoopParameters& looped) override
-    {
-      Delegate->NextFrame(looped);
+      Delegate->NextFrame();
       FillCurrentData();
     }
 
@@ -60,16 +54,9 @@ namespace Module
   private:
     void FillCurrentData()
     {
-      if (Delegate->IsValid())
-      {
-        DAC::TrackBuilder builder;
-        Render->SynthesizeData(*State, builder);
-        builder.GetResult(CurrentData);
-      }
-      else
-      {
-        CurrentData.clear();
-      }
+      DAC::TrackBuilder builder;
+      Render->SynthesizeData(*State, builder);
+      builder.GetResult(CurrentData);
     }
 
   private:
@@ -93,14 +80,10 @@ namespace Module
       return Iterator->GetStateObserver();
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!Iterator->IsValid())
-      {
-        return {};
-      }
       TransferChunk();
-      Iterator->NextFrame(looped);
+      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -126,9 +109,9 @@ namespace Module
         Iterator->GetData(LastChunk.Data);
         Device->UpdateState(LastChunk);
       }
-      while (state->At() < request && Iterator->IsValid())
+      while (state->At() < request)
       {
-        Iterator->NextFrame({});
+        Iterator->NextFrame();
         LastChunk.TimeStamp += FrameDuration;
         Iterator->GetData(LastChunk.Data);
         Device->UpdateState(LastChunk);

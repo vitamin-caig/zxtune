@@ -39,14 +39,9 @@ namespace Module
         Render->Reset();
       }
 
-      bool IsValid() const override
+      void NextFrame() override
       {
-        return Delegate->IsValid();
-      }
-
-      void NextFrame(const Sound::LoopParameters& looped) override
-      {
-        Delegate->NextFrame(looped);
+        Delegate->NextFrame();
       }
 
       Module::State::Ptr GetStateObserver() const override
@@ -56,18 +51,13 @@ namespace Module
 
       Devices::AYM::Registers GetData() const override
       {
-        return Delegate->IsValid() ? GetCurrentChunk() : Devices::AYM::Registers();
-      }
-
-    private:
-      Devices::AYM::Registers GetCurrentChunk() const
-      {
         SynchronizeParameters();
         TrackBuilder builder(Table);
         Render->SynthesizeData(*State, builder);
         return builder.GetResult();
       }
 
+    private:
       void SynchronizeParameters() const
       {
         if (Params.IsChanged())

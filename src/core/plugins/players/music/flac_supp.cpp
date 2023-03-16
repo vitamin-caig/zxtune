@@ -321,21 +321,14 @@ namespace Module::Flac
       return State;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!State->IsValid())
-      {
-        return {};
-      }
-      const auto loops = State->LoopCount();
       auto frame = Tune.RenderFrame();
-      State->Consume(frame.size(), looped);
-      frame = Target->Apply(std::move(frame));
-      if (State->LoopCount() != loops)
+      if (0 != State->Consume(frame.size()))
       {
         Tune.Seek(0);
       }
-      return frame;
+      return Target->Apply(std::move(frame));
     }
 
     void Reset() override
@@ -482,4 +475,3 @@ namespace ZXTune
     registrator.RegisterPlugin(plugin);
   }
 }  // namespace ZXTune
-

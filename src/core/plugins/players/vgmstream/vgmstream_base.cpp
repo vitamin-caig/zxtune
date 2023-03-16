@@ -34,7 +34,6 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
-#include <sound/loop.h>
 #include <sound/resampler.h>
 // 3rdparty includes
 extern "C"
@@ -284,12 +283,8 @@ namespace Module::VGMStream
       return Status;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (Tune->loop_count != 0 && !looped(Tune->loop_count))
-      {
-        return {};
-      }
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
@@ -2377,4 +2372,3 @@ namespace ZXTune
     }
   }
 }  // namespace ZXTune
-

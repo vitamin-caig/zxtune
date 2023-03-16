@@ -13,11 +13,6 @@
 // library includes
 #include <module/state.h>
 
-namespace Sound
-{
-  struct LoopParameters;
-}
-
 namespace Module
 {
   class Iterator
@@ -28,8 +23,7 @@ namespace Module
     virtual ~Iterator() = default;
 
     virtual void Reset() = 0;
-    virtual bool IsValid() const = 0;
-    virtual void NextFrame(const Sound::LoopParameters& looped) = 0;
+    virtual void NextFrame() = 0;
   };
 
   class StateIterator : public Iterator
@@ -41,6 +35,4 @@ namespace Module
 
     virtual State::Ptr GetStateObserver() const = 0;
   };
-
-  void SeekIterator(Iterator& iter, State::Ptr state, Time::AtMillisecond pos);
 }  // namespace Module

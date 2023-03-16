@@ -569,13 +569,9 @@ namespace Module::AYEMUL
       return State;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!State->IsValid())
-      {
-        return {};
-      }
-      State->Consume(FrameDuration.CastTo<Time::Millisecond>(), looped);
+      State->Consume(FrameDuration);
       DeviceTime += FrameDuration;
       Comp->ExecuteFrameTill(DeviceTime);
       return Device->RenderFrameTill(DeviceTime);

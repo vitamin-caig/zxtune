@@ -20,7 +20,6 @@
 #include <parameters/merged_accessor.h>
 #include <parameters/src/names_set.h>
 #include <parameters/visitor.h>
-#include <sound/loop.h>
 #include <sound/mixer_factory.h>
 // std includes
 #include <map>
@@ -241,15 +240,10 @@ namespace Module::TurboSound
       Second->Reset();
     }
 
-    bool IsValid() const override
+    void NextFrame() override
     {
-      return First->IsValid() && Second->IsValid();
-    }
-
-    void NextFrame(const Sound::LoopParameters& looped) override
-    {
-      First->NextFrame(looped);
-      Second->NextFrame({true, 0});
+      First->NextFrame();
+      Second->NextFrame();
     }
 
     State::Ptr GetStateObserver() const override
@@ -282,14 +276,10 @@ namespace Module::TurboSound
       return Iterator->GetStateObserver();
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!Iterator->IsValid())
-      {
-        return {};
-      }
       TransferChunk();
-      Iterator->NextFrame(looped);
+      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -310,10 +300,10 @@ namespace Module::TurboSound
         Device->Reset();
         LastChunk.TimeStamp = {};
       }
-      while (state->At() < request && Iterator->IsValid())
+      while (state->At() < request)
       {
         TransferChunk();
-        Iterator->NextFrame({});
+        Iterator->NextFrame();
       }
     }
 

@@ -21,7 +21,6 @@
 #include <module/attributes.h>
 #include <module/conversion/types.h>
 #include <module/players/aym/aym_base.h>
-#include <sound/loop.h>
 // boost includes
 #include <boost/algorithm/string.hpp>
 

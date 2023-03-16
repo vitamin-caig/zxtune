@@ -17,7 +17,6 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/loop.h>
 #include <sound/mixer_factory.h>
 
 namespace Module
@@ -38,14 +37,10 @@ namespace Module
       return Iterator->GetStateObserver();
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!Iterator->IsValid())
-      {
-        return {};
-      }
       TransferChunk();
-      Iterator->NextFrame(looped);
+      Iterator->NextFrame();
       LastChunk.TimeStamp += FrameDuration;
       return Device->RenderTill(LastChunk.TimeStamp);
     }
@@ -64,12 +59,12 @@ namespace Module
       {
         Iterator->Reset();
         Device->Reset();
-        LastChunk.TimeStamp = Devices::AYM::Stamp();
+        LastChunk.TimeStamp = {};
       }
-      while (state->At() < request && Iterator->IsValid())
+      while (state->At() < request)
       {
         TransferChunk();
-        Iterator->NextFrame({});
+        Iterator->NextFrame();
       }
     }
 
@@ -129,9 +124,10 @@ namespace Module
     {
       auto trackParams = AYM::TrackParameters::Create(Tune->GetProperties());
       const auto iterator = Tune->CreateDataIterator(std::move(trackParams));
+      const auto state = iterator->GetStateObserver();
       Devices::AYM::DataChunk chunk;
-      for (const auto frameDuration = Tune->GetFrameDuration(); iterator->IsValid();
-           chunk.TimeStamp += frameDuration, iterator->NextFrame({}))
+      for (const auto frameDuration = Tune->GetFrameDuration(); !state->LoopCount();
+           chunk.TimeStamp += frameDuration, iterator->NextFrame())
       {
         chunk.Data = iterator->GetData();
         aym.RenderData(chunk);

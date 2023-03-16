@@ -12,8 +12,6 @@
 #include "module/players/streaming.h"
 // common includes
 #include <make_ptr.h>
-// library includes
-#include <sound/loop.h>
 // std includes
 #include <utility>
 
@@ -129,15 +127,10 @@ namespace Module
       Cursor->Reset();
     }
 
-    bool IsValid() const override
-    {
-      return Cursor->IsValid();
-    }
-
-    void NextFrame(const Sound::LoopParameters& looped) override
+    void NextFrame() override
     {
       Cursor->NextFrame();
-      if (!Cursor->IsValid() && looped(Cursor->LoopCount()))
+      if (!Cursor->IsValid())
       {
         Cursor->ResetToLoop();
       }
@@ -208,24 +201,13 @@ namespace Module
     return MakePtr<TimedInfo>(duration, loopDuration);
   }
 
-  Time::Microseconds TimedState::Consume(Time::Microseconds range, const Sound::LoopParameters& looped)
+  Time::Microseconds TimedState::Consume(Time::Microseconds range)
   {
     const auto nextPos = range.Get() ? Position + range : Limit;
-    if (nextPos < Limit || looped(Loops++))
-    {
-      Position = Time::AtMicrosecond(nextPos.Get() % Limit.Get());
-      TotalPlayback += range;
-      return range;
-    }
-    else if (nextPos == Limit)
-    {
-      Position = nextPos;
-      return range;
-    }
-    else
-    {
-      return Consume(Time::Microseconds(Limit.Get() - Position.Get()), looped);
-    }
+    Position = Time::AtMicrosecond(nextPos.Get() % Limit.Get());
+    Loops += nextPos.Get() / Limit.Get();
+    TotalPlayback += range;
+    return range;
   }
 
   Information::Ptr CreateSampledInfo(uint_t samplerate, uint64_t totalSamples)
@@ -233,17 +215,13 @@ namespace Module
     return CreateTimedInfo(Time::Milliseconds::FromRatio(totalSamples, samplerate));
   }
 
-  void SampledState::Consume(uint_t samples, const Sound::LoopParameters& looped)
+  uint_t SampledState::Consume(uint_t samples)
   {
     const auto nextSamples = samples ? DoneSamples + samples : TotalSamples;
-    if (nextSamples < TotalSamples || looped(Loops++))
-    {
-      DoneSamples = nextSamples % TotalSamples;
-      DoneSamplesTotal += samples;
-    }
-    else
-    {
-      DoneSamples = TotalSamples;
-    }
+    DoneSamples = nextSamples % TotalSamples;
+    DoneSamplesTotal += samples;
+    const auto doneLoops = nextSamples / TotalSamples;
+    Loops += doneLoops;
+    return doneLoops;
   }
 }  // namespace Module

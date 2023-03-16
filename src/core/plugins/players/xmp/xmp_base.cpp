@@ -23,7 +23,6 @@
 #include <module/track_information.h>
 #include <module/track_state.h>
 #include <parameters/tracking_helper.h>
-#include <sound/loop.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
 #include <time/duration.h>
@@ -250,14 +249,14 @@ namespace Module::Xmp
       return Track;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       static_assert(Sound::Sample::MID == 0, "Incompatible sound sample type");
       static_assert(sizeof(Sound::Sample) == 4, "Incompatible sound sample size");
 
-      if (State->loop_count == 0 || looped(State->loop_count))
+      for (;;)
       {
         ApplyParameters();
         Ctx->Call(&::xmp_play_frame);

@@ -121,13 +121,9 @@ namespace Module::SPC
       return State;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!State->IsValid())
-      {
-        return {};
-      }
-      const auto avail = State->Consume(FRAME_DURATION, looped);
+      const auto avail = State->Consume(FRAME_DURATION);
       return Target->Apply(Engine->Render(GetSamples(avail)));
     }
 

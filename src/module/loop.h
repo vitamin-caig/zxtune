@@ -13,7 +13,7 @@
 // common includes
 #include <types.h>
 
-namespace Sound
+namespace Module
 {
   struct LoopParameters
   {
@@ -26,9 +26,10 @@ namespace Sound
       , Limit(limit)
     {}
 
+    // Assume single playback ends with loopCount == 1, so real limit is bigger by one
     bool operator()(uint_t loopCount) const
     {
-      return Enabled && (!Limit || loopCount < Limit);
+      return !loopCount || (Enabled && (!Limit || loopCount <= Limit));
     }
   };
-}  // namespace Sound
+}  // namespace Module

@@ -16,7 +16,6 @@
 // library includes
 #include <parameters/merged_accessor.h>
 #include <parameters/visitor.h>
-#include <sound/loop.h>
 // std includes
 #include <algorithm>
 
@@ -148,14 +147,13 @@ namespace Module
       return Delegates.front()->GetState();
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      static const Sound::LoopParameters INFINITE_LOOP{true, 0};
       for (std::size_t idx = 0, lim = Delegates.size(); idx != lim; ++idx)
       {
         if (Target.NeedStream(idx))
         {
-          auto data = Delegates[idx]->Render(idx == 0 ? looped : INFINITE_LOOP);
+          auto data = Delegates[idx]->Render();
           Target.MixStream(idx, data);
         }
       }

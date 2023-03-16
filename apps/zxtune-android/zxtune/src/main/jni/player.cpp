@@ -23,10 +23,8 @@
 // library includes
 #include <module/players/pipeline.h>
 #include <parameters/merged_accessor.h>
-#include <parameters/tracking_helper.h>
 #include <sound/impl/fft_analyzer.h>
 #include <sound/mixer_factory.h>
-#include <sound/render_params.h>
 // std includes
 #include <atomic>
 #include <ctime>
@@ -242,8 +240,8 @@ namespace
       : Duration(holder.GetModuleInformation()->Duration())
       , Samplerate(samplerate)
       , LocalParameters(Parameters::Container::Create())
-      , Props(Parameters::CreateMergedAccessor(LocalParameters, std::move(globalParams)))
-      , Renderer(Module::CreatePipelinedRenderer(holder, samplerate, MakeSingletonPointer(*Props)))
+      , Renderer(Module::CreatePipelinedRenderer(
+            holder, samplerate, Parameters::CreateMergedAccessor(LocalParameters, std::move(globalParams))))
       , State(Renderer->GetState())
     {
       Require(Duration.Get() != 0);
@@ -312,31 +310,19 @@ namespace
   private:
     Sound::Chunk RenderNextFrame()
     {
-      ApplyParameters();
       RenderingPerformance.StartAccounting();
-      auto chunk = Renderer->Render(Looped);
+      auto chunk = Renderer->Render();
       RenderingPerformance.StopAccounting();
       return chunk;
-    }
-
-  private:
-    void ApplyParameters()
-    {
-      if (Props.IsChanged())
-      {
-        Looped = Sound::GetLoopParameters(*Props);
-      }
     }
 
   private:
     const Time::Milliseconds Duration;
     const uint_t Samplerate;
     const Parameters::Container::Ptr LocalParameters;
-    Parameters::TrackingHelper<Parameters::Accessor> Props;
     const Module::Renderer::Ptr Renderer;
     const Module::State::Ptr State;
     BufferTarget Buffer;
-    Sound::LoopParameters Looped;
     RenderingPerformanceAccountant RenderingPerformance;
     AnalyzerControl Analyzer;
   };

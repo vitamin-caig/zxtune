@@ -35,7 +35,6 @@
 #include <parameters/template.h>
 #include <platform/application.h>
 #include <platform/version/api.h>
-#include <sound/loop.h>
 #include <sound/sound_parameters.h>
 #include <time/duration.h>
 #include <time/timer.h>
@@ -267,13 +266,14 @@ namespace
         const auto total = info->Duration() * Iterations;
         BenchmarkSoundReceiver receiver;
         const auto renderer = holder->CreateRenderer(Sounder.GetSamplerate(), props);
+        const auto state = renderer->GetState();
         const Time::Timer timer;
         for (unsigned i = 0; i != Iterations; ++i)
         {
           renderer->SetPosition({});
-          for (;;)
+          while (0 == state->LoopCount())
           {
-            auto data = renderer->Render({});
+            auto data = renderer->Render();
             if (data.empty())
             {
               break;

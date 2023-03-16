@@ -243,30 +243,23 @@ namespace Module::Mp3
       return State;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!State->IsValid())
+      for (;;)
       {
-        return {};
-      }
-      auto frame = Tune.RenderNextFrame();
-      if (frame.Data.empty())
-      {
-        State->Consume({}, looped);
-        if (State->IsValid())
+        auto frame = Tune.RenderNextFrame();
+        if (frame.Data.empty())
         {
+          // force end/loop
+          State->Consume({});
           Tune.Reset();
-          frame = Tune.RenderNextFrame();
+          continue;
         }
+        const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
+        State->Consume(rendered);
+        return Target.Apply(std::move(frame));
       }
-      const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
-      const auto loops = State->LoopCount();
-      State->Consume(rendered, looped);
-      if (loops != State->LoopCount())
-      {
-        Tune.Reset();
-      }
-      return Target.Apply(std::move(frame));
+      return {};
     }
 
     void Reset() override
@@ -413,4 +406,3 @@ namespace ZXTune
     registrator.RegisterPlugin(plugin);
   }
 }  // namespace ZXTune
-

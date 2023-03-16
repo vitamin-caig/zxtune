@@ -19,6 +19,7 @@ namespace Module
   class Holder;
 
   /* Creates wrapper that applies:
+   - loop control
    - gain
    - fadein/fadeout
    - silence detection

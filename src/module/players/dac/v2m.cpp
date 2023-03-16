@@ -145,16 +145,12 @@ namespace Module::V2M
       return State;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!State->IsValid())
-      {
-        return {};
-      }
-      const auto avail = State->Consume(FRAME_DURATION, looped);
-
+      const auto loops = State->LoopCount();
+      const auto avail = State->Consume(FRAME_DURATION);
       auto frame = Target->Apply(Engine.RenderFrame(GetSamples(avail)));
-      if (State->At() < Time::AtMillisecond() + FRAME_DURATION)
+      if (State->LoopCount() != loops)
       {
         Engine.Reset();
       }

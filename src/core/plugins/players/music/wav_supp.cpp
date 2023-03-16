@@ -44,16 +44,10 @@ namespace Module::Wav
       return State;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      if (!State->IsValid())
-      {
-        return {};
-      }
-      const auto loops = State->LoopCount();
       auto frame = Tune->RenderNextFrame();
-      State->Consume(frame.size(), looped);
-      if (State->LoopCount() != loops)
+      if (0 != State->Consume(frame.size()))
       {
         Tune->Seek(0);
       }
@@ -247,4 +241,3 @@ namespace ZXTune
     registrator.RegisterPlugin(plugin);
   }
 }  // namespace ZXTune
-

@@ -14,11 +14,6 @@
 #include <module/state.h>
 #include <sound/chunk.h>
 
-namespace Sound
-{
-  struct LoopParameters;
-}
-
 namespace Module
 {
   //! @brief %Module player interface
@@ -35,7 +30,7 @@ namespace Module
 
     //! @brief Rendering single frame and modifying internal state
     //! @return empty chunk if there's no more data to render
-    virtual Sound::Chunk Render(const Sound::LoopParameters& looped) = 0;
+    virtual Sound::Chunk Render() = 0;
 
     //! @brief Performing reset to initial state
     virtual void Reset() = 0;

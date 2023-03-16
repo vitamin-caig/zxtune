@@ -28,7 +28,6 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
-#include <sound/loop.h>
 // 3rdparty includes
 #include <3rdparty/vgm/player/s98player.hpp>
 #include <3rdparty/vgm/player/vgmplayer.hpp>
@@ -256,17 +255,9 @@ namespace Module::LibVGM
       return Engine;
     }
 
-    Sound::Chunk Render(const Sound::LoopParameters& looped) override
+    Sound::Chunk Render() override
     {
-      const auto loops = Engine->LoopCount();
-      if (loops == 0 || looped(loops))
-      {
-        return Engine->Render();
-      }
-      else
-      {
-        return {};
-      }
+      return Engine->Render();
     }
 
     void Reset() override
@@ -477,4 +468,3 @@ namespace ZXTune
     }
   }
 }  // namespace ZXTune
-

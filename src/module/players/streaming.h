@@ -56,8 +56,9 @@ namespace Module
       TotalPlayback = {};
     }
 
+    // Set range = 0 to enforce stream end
     // Returns really consumed
-    Time::Microseconds Consume(Time::Microseconds range, const Sound::LoopParameters& looped);
+    Time::Microseconds Consume(Time::Microseconds range);
 
     // Returns delta to skip
     Time::Microseconds Seek(Time::AtMicrosecond request)
@@ -80,11 +81,6 @@ namespace Module
     Time::AtMicrosecond PreciseAt() const
     {
       return Position;
-    }
-
-    bool IsValid() const
-    {
-      return Position < Limit;
     }
 
   private:
@@ -127,12 +123,9 @@ namespace Module
       Loops = 0;
     }
 
-    bool IsValid() const
-    {
-      return DoneSamples < TotalSamples;
-    }
-
-    void Consume(uint_t samples, const Sound::LoopParameters& looped);
+    // Set samples = 0 to enforce stream end
+    // return done loops count
+    uint_t Consume(uint_t samples);
 
     void Seek(Time::AtMillisecond request)
     {
