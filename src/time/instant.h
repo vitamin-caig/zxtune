@@ -37,7 +37,7 @@ namespace Time
     template<class OtherUnit>
     const Instant& operator+=(Base<OtherUnit, DurationTag> rh)
     {
-      static_assert(PER_SECOND >= rh.PER_SECOND, "Invalid resolution");
+      static_assert(PER_SECOND >= OtherUnit::PER_SECOND, "Invalid resolution");
       Value += Base<Unit, DurationTag>(rh).Get();
       return *this;
     }
@@ -45,7 +45,7 @@ namespace Time
     template<class OtherUnit>
     Instant operator+(Base<OtherUnit, DurationTag> rh) const
     {
-      static_assert(PER_SECOND >= rh.PER_SECOND, "Invalid resolution");
+      static_assert(PER_SECOND >= OtherUnit::PER_SECOND, "Invalid resolution");
       return Instant(Value + Base<Unit, DurationTag>(rh).Get());
     }
   };

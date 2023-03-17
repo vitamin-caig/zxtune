@@ -13,6 +13,7 @@
 // library includes
 #include <math/scale.h>
 // std includes
+#include <numeric>
 #include <type_traits>
 
 namespace Time
@@ -43,62 +44,68 @@ namespace Time
 
     Base() = default;
 
-    explicit Base(ValueType value)
+    constexpr explicit Base(ValueType value)
       : Value(value)
     {}
 
     // from the other types with the same tag and lesser or equal precision
     template<class OtherUnit,
              typename std::enable_if<PER_SECOND >= OtherUnit::PER_SECOND, const void*>::type p = nullptr>
-    Base(Base<OtherUnit, Tag> rh)
+    constexpr Base(Base<OtherUnit, Tag> rh)
       : Value(Scale<OtherUnit, Unit>(rh.Get()))
     {}
 
     // Allow any precision of output
     template<class OtherUnit>
-    Base<OtherUnit, Tag> CastTo() const
+    constexpr Base<OtherUnit, Tag> CastTo() const
     {
       return Base<OtherUnit, Tag>(Scale<Unit, OtherUnit>(Get()));
     }
 
-    bool operator<(Base rh) const
+    constexpr bool operator<(Base rh) const
     {
       return Value < rh.Value;
     }
 
-    bool operator==(Base rh) const
+    constexpr bool operator==(Base rh) const
     {
       return Value == rh.Value;
     }
 
-    template<class OtherUnit,
-             typename std::enable_if<PER_SECOND<OtherUnit::PER_SECOND, const void*>::type p = nullptr> bool operator<(
-                 Base<OtherUnit, Tag> rh) const
+    template<class OtherUnit>
+    constexpr bool operator<(Base<OtherUnit, Tag> rh) const
     {
-      return Base<OtherUnit, Tag>(*this) < rh;
+      // a/b < c/d => a*d < c*b => a*d/gcd < c*b/gcd
+      constexpr const auto gcd = std::gcd(PER_SECOND, OtherUnit::PER_SECOND);
+      return (OtherUnit::PER_SECOND / gcd) * Get() < (PER_SECOND / gcd) * rh.Get();
     }
 
-    template<class OtherUnit,
-             typename std::enable_if<PER_SECOND<OtherUnit::PER_SECOND, const void*>::type p = nullptr> bool operator==(
-                 Base<OtherUnit, Tag> rh) const
+    template<class OtherUnit>
+    constexpr bool operator==(Base<OtherUnit, Tag> rh) const
     {
-      return rh == *this;
+      constexpr const auto gcd = std::gcd(PER_SECOND, OtherUnit::PER_SECOND);
+      return (OtherUnit::PER_SECOND / gcd) * Get() == (PER_SECOND / gcd) * rh.Get();
     }
 
-    ValueType Get() const
+    constexpr ValueType Get() const
     {
       return Value;
     }
 
   private:
     template<class Unit1, class Unit2>
-    static typename Unit2::StorageType Scale(typename Unit1::StorageType raw)
+    static constexpr auto Scale(typename Unit1::StorageType raw)
     {
-      using MidType = typename std::common_type<typename Unit1::StorageType, typename Unit2::StorageType>::type;
-      const MidType val = Unit1::PER_SECOND == Unit2::PER_SECOND
-                              ? raw
-                              : Math::Scale(MidType(raw), MidType(Unit1::PER_SECOND), MidType(Unit2::PER_SECOND));
-      return static_cast<typename Unit2::StorageType>(val);
+      if constexpr (Unit1::PER_SECOND == Unit2::PER_SECOND)
+      {
+        return static_cast<typename Unit2::StorageType>(raw);
+      }
+      else
+      {
+        using MidType = std::common_type_t<typename Unit1::StorageType, typename Unit2::StorageType>;
+        const auto val = Math::Scale(MidType(raw), MidType(Unit1::PER_SECOND), MidType(Unit2::PER_SECOND));
+        return static_cast<typename Unit2::StorageType>(val);
+      }
     }
 
   protected:
