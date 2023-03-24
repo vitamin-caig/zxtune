@@ -76,12 +76,13 @@ class PlaylistFragmentTest {
             on { metadata } doReturn testMetadata
         }
         startScenario().onFragment {
-            verify(model).state
+            verify(model, times(2)).state
             verify(testState).observe(eq(it.viewLifecycleOwner), any())
             verify(sessionModel).state
             verify(testPlaybackState).observe(eq(it.viewLifecycleOwner), any())
             verify(sessionModel).metadata
             verify(testMetadata).observe(eq(it.viewLifecycleOwner), any())
+            verify(model).filter("")
         }.close()
     }
 

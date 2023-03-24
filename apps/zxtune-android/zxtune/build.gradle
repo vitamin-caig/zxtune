@@ -86,9 +86,11 @@ dependencies {
     testImplementation 'androidx.test:core-ktx:1.5.0'
     testImplementation 'androidx.arch.core:core-testing:2.1.0'
     testImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    // required both...
+    // See https://developer.android.com/guide/fragments/test#configure
+    // But for some reason testImplementation is required
     testImplementation "androidx.fragment:fragment-testing:$fragment_version"
     debugImplementation "androidx.fragment:fragment-testing:$fragment_version"
+    developImplementation "androidx.fragment:fragment-testing:$fragment_version"
     kaptTest "androidx.room:room-compiler:$room_version"
 }
 
