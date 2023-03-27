@@ -22,6 +22,7 @@ import androidx.media.session.MediaButtonReceiver
 import app.zxtune.Logger
 import app.zxtune.MainService
 import app.zxtune.R
+import app.zxtune.Releaseable
 
 private val LOG = Logger(StatusNotification::class.java.name)
 
@@ -35,8 +36,11 @@ class StatusNotification private constructor(
         private const val ACTION_NEXT = 2
 
         @JvmStatic
-        fun connect(service: Service, session: MediaSessionCompat) =
-            session.controller.registerCallback(StatusNotification(service, session))
+        fun connect(service: Service, session: MediaSessionCompat) = session.controller.run {
+            val cb = StatusNotification(service, session)
+            registerCallback(cb)
+            Releaseable { unregisterCallback(cb) }
+        }
 
         private fun needFixForHuawei() = Build.MANUFACTURER.contains(
             "huawei",

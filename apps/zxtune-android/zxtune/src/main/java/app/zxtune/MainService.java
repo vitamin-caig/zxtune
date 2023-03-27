@@ -147,7 +147,7 @@ public class MainService extends MediaBrowserServiceCompat {
     MediaSessionControl ctrl = MediaSessionControl.subscribe(ctx, service);
     handles.add(ctrl);
     session = ctrl.getSession();
-    StatusNotification.connect(this, session);
+    handles.add(StatusNotification.connect(this, session));
     setSessionToken(session.getSessionToken());
 
     WidgetHandler.connect(ctx, session);
