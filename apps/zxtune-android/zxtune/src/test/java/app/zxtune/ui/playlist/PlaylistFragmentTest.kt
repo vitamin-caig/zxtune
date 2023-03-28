@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
 import app.zxtune.TimeStamp
 import app.zxtune.core.Identifier
-import app.zxtune.device.media.MediaSessionModel
+import app.zxtune.device.media.MediaModel
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.AsyncDifferInMainThreadRule
 import org.junit.After
@@ -34,7 +34,7 @@ import org.robolectric.annotation.Implementation
 import org.robolectric.annotation.Implements
 
 @RunWith(RobolectricTestRunner::class)
-@Config(shadows = [ShadowProviderClient::class, ShadowModel::class, ShadowMediaSessionModel::class])
+@Config(shadows = [ShadowProviderClient::class, ShadowModel::class, ShadowMediaModel::class])
 class PlaylistFragmentTest {
 
     @get:Rule
@@ -45,16 +45,16 @@ class PlaylistFragmentTest {
 
     private val client = mock<ProviderClient>()
     private val model = mock<Model>()
-    private val sessionModel = mock<MediaSessionModel>()
+    private val mediaModel = mock<MediaModel>()
 
     private val mocks
-        get() = arrayOf(client, model, sessionModel)
+        get() = arrayOf(client, model, mediaModel)
 
     @Before
     fun setUp() {
         ShadowProviderClient.instance = client
         ShadowModel.instance = model
-        ShadowMediaSessionModel.instance = sessionModel
+        ShadowMediaModel.instance = mediaModel
         reset(*mocks)
     }
 
@@ -66,26 +66,26 @@ class PlaylistFragmentTest {
     @Test
     fun `initial state`() {
         val testState = mock<LiveData<Model.State>>()
-        val testPlaybackState = mock<LiveData<PlaybackStateCompat>>()
-        val testMetadata = mock<LiveData<MediaMetadataCompat>>()
+        val testPlaybackState = mock<LiveData<PlaybackStateCompat?>>()
+        val testMetadata = mock<LiveData<MediaMetadataCompat?>>()
         model.stub {
             on { state } doReturn testState
         }
-        sessionModel.stub {
-            on { state } doReturn testPlaybackState
+        mediaModel.stub {
+            on { playbackState } doReturn testPlaybackState
             on { metadata } doReturn testMetadata
         }
         startScenario().onFragment {
             verify(model, times(2)).state
             verify(testState).observe(eq(it.viewLifecycleOwner), any())
-            verify(sessionModel).state
+            verify(mediaModel).playbackState
             verify(testPlaybackState).observe(eq(it.viewLifecycleOwner), any())
-            verify(sessionModel).metadata
+            verify(mediaModel).metadata
             verify(testMetadata).observe(eq(it.viewLifecycleOwner), any())
             verify(model).filter("")
         }.close()
+        verifyNoMoreInteractions(testPlaybackState, testMetadata)
     }
-
 
     @Test
     fun `with state`() {
@@ -104,8 +104,8 @@ class PlaylistFragmentTest {
         model.stub {
             on { state } doReturn testState
         }
-        sessionModel.stub {
-            on { state } doReturn testPlaybackState
+        mediaModel.stub {
+            on { playbackState } doReturn testPlaybackState
             on { metadata } doReturn testMetadata
         }
         startScenario().onFragment {
@@ -122,7 +122,7 @@ class PlaylistFragmentTest {
                 assertEquals(content.size, listing.childCount)
             }
         }.close()
-        clearInvocations(model, sessionModel)
+        clearInvocations(model, mediaModel)
     }
 
     @Test
@@ -141,8 +141,8 @@ class PlaylistFragmentTest {
                 testState.value = requireNotNull(testState.value).withFilter(it.getArgument(0))
             }
         }
-        sessionModel.stub {
-            on { state } doReturn testPlaybackState
+        mediaModel.stub {
+            on { playbackState } doReturn testPlaybackState
             on { metadata } doReturn testMetadata
         }
         startScenario().onFragment {
@@ -163,7 +163,7 @@ class PlaylistFragmentTest {
                 }
             }
         }.close()
-        clearInvocations(model, sessionModel)
+        clearInvocations(model, mediaModel)
     }
 
     @Test
@@ -204,13 +204,12 @@ class ShadowModel {
     }
 }
 
-@Implements(MediaSessionModel::class)
-class ShadowMediaSessionModel {
-    companion object {
-        @JvmStatic
-        @Implementation
-        fun of(owner: FragmentActivity): MediaSessionModel = instance
+@Implements(MediaModel.Companion::class)
+class ShadowMediaModel {
+    @Implementation
+    fun of(owner: FragmentActivity) = instance
 
-        internal lateinit var instance: MediaSessionModel
+    companion object {
+        internal lateinit var instance: MediaModel
     }
 }

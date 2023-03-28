@@ -25,7 +25,7 @@ import androidx.fragment.app.Fragment;
 import app.zxtune.Log;
 import app.zxtune.R;
 import app.zxtune.TimeStamp;
-import app.zxtune.device.media.MediaSessionModel;
+import app.zxtune.device.media.MediaModel;
 import app.zxtune.playback.PlaybackControl;
 import app.zxtune.ui.utils.UiUtils;
 
@@ -57,8 +57,8 @@ public class SeekControlFragment extends Fragment {
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    final MediaSessionModel model = MediaSessionModel.of(getActivity());
-    model.getMediaController().observe(this, controller -> {
+    final MediaModel model = MediaModel.of(requireActivity());
+    model.getController().observe(this, controller -> {
       if (controller != null) {
         ctrl = controller.getTransportControls();
         trackModeValue = controller.getRepeatMode();
@@ -75,7 +75,7 @@ public class SeekControlFragment extends Fragment {
         setUnknownDuration();
       }
     });
-    model.getState().observe(this, state -> {
+    model.getPlaybackState().observe(this, state -> {
       if (state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING) {
         final long pos = state.getPosition();
         final float speed = state.getPlaybackSpeed();
