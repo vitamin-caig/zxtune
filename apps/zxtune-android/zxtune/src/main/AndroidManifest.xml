@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="app.zxtune"
         android:installLocation="auto">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -60,7 +59,8 @@
         <service
                 android:name=".MainService"
                 android:exported="true"
-                android:process=":service">
+                android:process=":service"
+                android:foregroundServiceType="mediaPlayback">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>
