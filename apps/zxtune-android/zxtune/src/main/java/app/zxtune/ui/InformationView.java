@@ -20,7 +20,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import app.zxtune.R;
 import app.zxtune.core.ModuleAttributes;
-import app.zxtune.device.media.MediaSessionModel;
+import app.zxtune.device.media.MediaModel;
 
 class InformationView {
 
@@ -43,7 +43,7 @@ class InformationView {
     this.commentField = activity.getString(R.string.information_comment);
     this.locationField = activity.getString(R.string.information_location);
     this.content.setMovementMethod(ScrollingMovementMethod.getInstance());
-    final MediaSessionModel model = MediaSessionModel.of(activity);
+    final MediaModel model = MediaModel.of(activity);
     model.getMetadata().observe(activity, mediaMetadataCompat -> {
       if (mediaMetadataCompat != null) {
         update(mediaMetadataCompat);

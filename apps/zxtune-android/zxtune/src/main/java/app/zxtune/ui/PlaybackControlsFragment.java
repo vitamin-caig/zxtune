@@ -18,7 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import app.zxtune.R;
-import app.zxtune.device.media.MediaSessionModel;
+import app.zxtune.device.media.MediaModel;
 import app.zxtune.playback.PlaybackControl.SequenceMode;
 import app.zxtune.ui.utils.UiUtils;
 
@@ -38,8 +38,8 @@ public class PlaybackControlsFragment extends Fragment {
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    final MediaSessionModel model = MediaSessionModel.of(getActivity());
-    model.getMediaController().observe(this, controller -> {
+    final MediaModel model = MediaModel.of(getActivity());
+    model.getController().observe(this, controller -> {
       if (controller != null) {
         ctrl = controller.getTransportControls();
         sequenceModeValue = controller.getShuffleMode();
@@ -49,7 +49,7 @@ public class PlaybackControlsFragment extends Fragment {
       }
       UiUtils.setViewEnabled(getView(), controller != null);
     });
-    model.getState().observe(this, state -> {
+    model.getPlaybackState().observe(this, state -> {
       final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
       updateStatus(isPlaying);
     });

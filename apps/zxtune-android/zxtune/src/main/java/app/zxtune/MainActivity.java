@@ -34,8 +34,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import app.zxtune.analytics.Analytics;
 import app.zxtune.device.Permission;
-import app.zxtune.device.media.MediaSessionConnection;
-import app.zxtune.device.media.MediaSessionModel;
+import app.zxtune.device.media.MediaModel;
 import app.zxtune.ui.AboutFragment;
 import app.zxtune.ui.NowPlayingFragment;
 import app.zxtune.ui.ViewPagerAdapter;
@@ -70,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
   private int browserPageIndex;
   @Nullable
   private BrowserFragment browser;
-  @Nullable
-  private MediaSessionConnection sessionConnection;
 
   public static final int PENDING_INTENT_FLAG = Build.VERSION.SDK_INT >= 23
       ? PendingIntent.FLAG_IMMUTABLE : 0;
@@ -97,10 +94,13 @@ public class MainActivity extends AppCompatActivity {
     Permission.request(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
     TRACE.checkpoint("perm");
 
-    sessionConnection = new MediaSessionConnection(this);
+    final LiveData<MediaControllerCompat> ctrl = MediaModel.of(this).getController();
+    ctrl.observe(this, (@Nullable MediaControllerCompat update) -> {
+      MediaControllerCompat.setMediaController(this, update);
+    });
 
     if (savedInstanceState == null) {
-      subscribeForPendingOpenRequest();
+      subscribeForPendingOpenRequest(ctrl);
     }
     Analytics.sendUiEvent(Analytics.UI_ACTION_OPEN);
 
@@ -117,22 +117,6 @@ public class MainActivity extends AppCompatActivity {
     super.onDestroy();
 
     Analytics.sendUiEvent(Analytics.UI_ACTION_CLOSE);
-  }
-
-  @Override
-  public void onStart() {
-    TRACE.beginMethod("onStart");
-    super.onStart();
-    sessionConnection.connect();
-    TRACE.endMethod();
-  }
-
-  @Override
-  public void onStop() {
-    TRACE.beginMethod("onStop");
-    super.onStop();
-    sessionConnection.disconnect();
-    TRACE.endMethod();
   }
 
   @Override
@@ -172,13 +156,11 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  private void subscribeForPendingOpenRequest() {
+  private void subscribeForPendingOpenRequest(LiveData<MediaControllerCompat> ctrl) {
     final Intent intent = getIntent();
     if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
       final Uri uri = intent.getData();
       if (uri != null) {
-        final MediaSessionModel model = MediaSessionModel.of(this);
-        final LiveData<MediaControllerCompat> ctrl = model.getMediaController();
         ctrl.observe(this,
             new Observer<MediaControllerCompat>() {
               @Override

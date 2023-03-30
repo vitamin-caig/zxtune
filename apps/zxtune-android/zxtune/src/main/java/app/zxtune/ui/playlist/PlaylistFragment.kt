@@ -25,7 +25,7 @@ import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
 import app.zxtune.device.PersistentStorage
-import app.zxtune.device.media.MediaSessionModel
+import app.zxtune.device.media.MediaModel
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.utils.SelectionUtils
 
@@ -37,8 +37,8 @@ class PlaylistFragment : Fragment() {
     private val model by lazy {
         Model.of(this)
     }
-    private val mediaSessionModel
-        get() = MediaSessionModel.of(requireActivity())
+    private val mediaModel
+        get() = MediaModel.of(requireActivity())
     private val mediaController
         get() = MediaControllerCompat.getMediaController(requireActivity())
 
@@ -116,8 +116,8 @@ class PlaylistFragment : Fragment() {
                     }
                 }
             }
-            mediaSessionModel.run {
-                state.observe(viewLifecycleOwner) { state: PlaybackStateCompat? ->
+            mediaModel.run {
+                playbackState.observe(viewLifecycleOwner) { state: PlaybackStateCompat? ->
                     adapter.setIsPlaying(PlaybackStateCompat.STATE_PLAYING == state?.state)
                 }
                 metadata.observe(viewLifecycleOwner) { metadata: MediaMetadataCompat? ->

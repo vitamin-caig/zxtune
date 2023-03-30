@@ -31,7 +31,7 @@ import app.zxtune.MainActivity;
 import app.zxtune.MainService;
 import app.zxtune.R;
 import app.zxtune.analytics.Analytics;
-import app.zxtune.device.media.MediaSessionModel;
+import app.zxtune.device.media.MediaModel;
 import app.zxtune.fs.VfsExtensions;
 
 public class NowPlayingFragment extends Fragment implements MainActivity.PagerTabListener {
@@ -64,8 +64,7 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
     inflater.inflate(R.menu.track, menu);
 
     trackActionsMenu = new TrackActionsMenu(menu);
-    final MediaSessionModel model = MediaSessionModel.of(getActivity());
-    model.getMetadata().observe(this, metadata -> trackActionsMenu.setupMenu(metadata));
+    MediaModel.of(requireActivity()).getMetadata().observe(this, metadata -> trackActionsMenu.setupMenu(metadata));
   }
 
   /*

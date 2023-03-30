@@ -10,7 +10,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import app.zxtune.R;
-import app.zxtune.device.media.MediaSessionModel;
+import app.zxtune.device.media.MediaModel;
 import app.zxtune.ui.views.SpectrumAnalyzerView;
 
 public class VisualizerFragment extends Fragment {
@@ -21,9 +21,9 @@ public class VisualizerFragment extends Fragment {
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    final MediaSessionModel model = MediaSessionModel.of(getActivity());
+    final MediaModel model = MediaModel.of(getActivity());
     model.getVisualizer().observe(this, visualizer -> view.setSource(visualizer));
-    model.getState().observe(this, state -> {
+    model.getPlaybackState().observe(this, state -> {
       final boolean isPlaying = state != null && state.getState() == PlaybackStateCompat.STATE_PLAYING;
       view.setIsUpdating(isPlaying);
     });
