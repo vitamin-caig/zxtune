@@ -64,17 +64,29 @@ namespace
     return QString::fromLatin1("%1.xspf").arg(val);
   }
 
+  // For some reason, playlists were stored at $DATA/ZXTune/ZXTune/Playlists, but if no $DATA/ZXTune exists,
+  // ./ZXTune/Playlists was used as a dir. So load playlists from outdated locations (if actual $DATA/ZXTune/Playlists
+  // does not exists), but store only to actual.
+  QDir GetOutdatedPlaylistsDir()
+  {
+    return QDir(QStandardPaths::locate(QStandardPaths::DataLocation, "", QStandardPaths::LocateDirectory) + "/"
+                + QCoreApplication::applicationName() + "/Playlists");
+  }
+
+  QStringList GetPlaylistFiles(const QDir& dir)
+  {
+    return dir.entryList(QStringList(BuildPlaylistFileName('*')), QDir::Files | QDir::Readable, QDir::Name);
+  }
+
   class FiledSession : public Playlist::Session
   {
   public:
     FiledSession()
-      : Directory(QStandardPaths::locate(QStandardPaths::DataLocation, "", QStandardPaths::LocateDirectory))
+      : TargetDir(QStandardPaths::writableLocation(QStandardPaths::DataLocation) + "/Playlists")
+      , SourceDir(TargetDir.exists() ? TargetDir : GetOutdatedPlaylistsDir())
     {
-      const auto dirPath = QCoreApplication::applicationName() + "/Playlists";
-      Require(Directory.mkpath(dirPath));
-      Require(Directory.cd(dirPath));
-      Files = Directory.entryList(QStringList(BuildPlaylistFileName('*')), QDir::Files | QDir::Readable, QDir::Name);
-      Dbg("{} stored playlists", Files.size());
+      Files = GetPlaylistFiles(SourceDir);
+      Dbg("{} stored playlists at {}", Files.size(), FromQString(SourceDir.absolutePath()));
     }
 
     bool Empty() const override
@@ -87,7 +99,7 @@ namespace
       for (QStringList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
       {
         const QString& fileName = *it;
-        const QString& fullPath = Directory.absoluteFilePath(fileName);
+        const QString& fullPath = SourceDir.absoluteFilePath(fileName);
         Dbg("Loading stored playlist '{}'", FromQString(fullPath));
         container->OpenPlaylist(fullPath);
       }
@@ -96,8 +108,8 @@ namespace
     void Save(Playlist::Controller::Iterator::Ptr it) override
     {
       const QStringList& newFiles = SaveFiles(it);
-      Dbg("Saved {} playlists", newFiles.size());
-      const QStringList& toRemove = Substract(Files, newFiles);
+      Dbg("Saved {} playlists to {}", newFiles.size(), FromQString(TargetDir.absolutePath()));
+      const QStringList& toRemove = Substract(SourceDir == TargetDir ? Files : GetPlaylistFiles(TargetDir), newFiles);
       RemoveFiles(toRemove);
       Files = newFiles;
     }
@@ -105,13 +117,17 @@ namespace
   private:
     QStringList SaveFiles(Playlist::Controller::Iterator::Ptr it)
     {
+      if (!TargetDir.exists())
+      {
+        Require(TargetDir.mkpath("."));
+      }
       TasksSet tasks;
       QStringList newFiles;
       for (int idx = 0; it->IsValid(); it->Next(), ++idx)
       {
         const Playlist::Controller::Ptr ctrl = it->Get();
         const QString& fileName = BuildPlaylistFileName(idx);
-        const QString& fullPath = Directory.absoluteFilePath(fileName);
+        const QString& fullPath = TargetDir.absoluteFilePath(fileName);
         Playlist::Save(ctrl, fullPath, 0);
         tasks.Add(ctrl);
         newFiles.push_back(fileName);
@@ -124,12 +140,13 @@ namespace
     {
       for (const auto& name : files)
       {
-        Directory.remove(name);
+        TargetDir.remove(name);
       }
     }
 
   private:
-    QDir Directory;
+    QDir TargetDir;
+    QDir SourceDir;
     QStringList Files;
   };
 }  // namespace
