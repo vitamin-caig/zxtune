@@ -19,7 +19,12 @@ android {
     flavorDimensions "packaging"
 
     splits.abi {
+        def abis = getListProperty("flavors.splitted.abifilters", "")
         reset()
+        if (abis.length != 0) {
+            enable true
+            include abis
+        }
     }
 
     // Splits config is global and cannot be per-variant
@@ -44,26 +49,22 @@ android {
         splitted {
             dimension "packaging"
             versionNameSuffix "-splitted"
-            ndk.abiFilters getListProperty("flavors.splitted.abifilters", "")
         }
     }
 
     variantFilter { variant ->
-        def flavor = variant.getFlavors().get(0)
-        def abis = flavor.ndk.abiFilters
-        if (variant.name =~ /splitted/) {
-            if (!abis.isEmpty()) {
-                splits.abi.enable true
-                splits.abi.include((String[])abis.toArray())
-                abis.clear()
+        def names = variant.flavors*.name
+        if (names.contains('splitted')) {
+            if (!splits.abi.enable) {
+                setIgnore(true)
+                println "Disable ${variant.name} due to disabled abi split"
             }
-            if (splits.abi.enable) {
-                return
-            }
-        }
-        if (abis.isEmpty()) {
+        } else if (splits.abi.enable) {
             setIgnore(true)
-            println 'Disable ' + variant.name
+            println "Disable ${variant.name} due to enabled abi split"
+        } else if (variant.flavors*.ndk.abiFilters.flatten().isEmpty()) {
+            setIgnore(true)
+            println "Disable ${variant.name} due to empty ndk.abiFilters"
         }
     }
 }
