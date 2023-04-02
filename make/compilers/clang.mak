@@ -56,9 +56,9 @@ ARFLAGS := crus
 LDFLAGS = $(LD_MODE_FLAGS) $($(platform).ld.flags) $($(platform).$(arch).ld.flags) $(ld_flags)
 
 #specify endpoint commands
-build_obj_cmd_nodeps = $(tools.cxx) $(CXXFLAGS) -c $1 -o $2
+build_obj_cmd_nodeps = $(tools.cxx) $(CXXFLAGS) -c $$(realpath $1) -o $2
 build_obj_cmd = $(build_obj_cmd_nodeps) -MMD
-build_obj_cmd_cc = $(tools.cc) $(CCFLAGS) -c $1 -o $2
+build_obj_cmd_cc = $(tools.cc) $(CCFLAGS) -c $$(realpath $1) -o $2
 build_lib_cmd = $(tools.ar) $(ARFLAGS) $2 $1
 link_cmd = $(tools.ld) $(LDFLAGS) -o $@ $(OBJECTS) $(RESOURCES) \
         -L$(libraries.dir) $(LINKER_BEGIN_GROUP) $(addprefix -l,$(libraries)) $(LINKER_END_GROUP) \

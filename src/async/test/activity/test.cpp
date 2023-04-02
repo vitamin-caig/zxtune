@@ -13,6 +13,11 @@
 #include <make_ptr.h>
 #include <thread>
 
+bool operator!=(const Error& lh, const Error& rh)
+{
+  return lh.ToString() != rh.ToString();
+}
+
 namespace
 {
   using namespace Async;

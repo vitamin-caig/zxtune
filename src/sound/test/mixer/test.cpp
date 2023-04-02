@@ -86,15 +86,6 @@ namespace Sound
     return res;
   }
 
-  bool ShowIfError(const Error& e)
-  {
-    if (e)
-    {
-      std::cerr << e.ToString();
-    }
-    return e;
-  }
-
   bool Check(Sample::Type data, Sample::Type ref)
   {
     return Math::Absolute(int_t(data) - ref) <= THRESHOLD;

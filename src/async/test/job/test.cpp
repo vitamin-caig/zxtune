@@ -14,6 +14,17 @@
 #include <pointers.h>
 #include <thread>
 
+bool operator!=(const Error& lh, const Error& rh)
+{
+  return lh.ToString() != rh.ToString();
+}
+
+std::ostream& operator<<(std::ostream& o, const Error& e)
+{
+  o << e.ToString();
+  return o;
+}
+
 namespace
 {
   using namespace Async;
