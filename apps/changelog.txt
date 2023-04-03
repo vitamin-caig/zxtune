@@ -5,6 +5,20 @@ Annotation:
 [-] - removed feature/rudiment
 [*] - fix/improvement
 
+--- Rev5030 from 03.04.2023
+
+[*] Fixed playback of some ogg files
+[*] Fixed loops count processing
+[*] zxtune-qt: fixed stored playlists location
+[*] zxtune-qt: fixed crash on not ready module playback
+[*] zxtune123: fixed layout when analyzer is on
+[*] zxtune123: fixed keyboard processing on linux
+[*] zxtune-android: fixed ringtone creating
+[*] zxtune-android: fixed modules opening from another apps
+[*] zxtune-android: fixed 'Open with' functionality
+[*] zxtune-android: fixed audio focus processing
+[*] zxtune-android: reduced package size
+
 --- Rev5020 from 28.09.2022
 
 [*] Fixed playback of multitrack .hes files
