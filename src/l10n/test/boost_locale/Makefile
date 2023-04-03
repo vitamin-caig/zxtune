@@ -10,7 +10,6 @@ libraries.common = binary binary_compression binary_format debug formats_archive
 libraries.3rdparty = lhasa lzma unrar zlib
 
 libraries.boost += locale
-libraries.mingw += iconv
 libraries.darwin += iconv
 
 include $(dirs.root)/makefile.mak
