@@ -46,11 +46,9 @@ namespace
     return false;
   }
 
-  Binary::Dump LoadResource(const String& name)
+  Binary::Data::Ptr LoadResource(const String& name)
   {
-    const Binary::Container::Ptr data = Resource::Load(name);
-    const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
-    return Binary::Dump(begin, begin + data->Size());
+    return Resource::Load(name);
   }
 
   class ResourceFilesVisitor : public Resource::Visitor
@@ -66,7 +64,7 @@ namespace
       if (ParseFilename(name, trans))
       {
         trans.Data = LoadResource(name);
-        Lib.AddTranslation(trans);
+        Lib.AddTranslation(std::move(trans));
       }
     }
 

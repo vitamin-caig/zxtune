@@ -25,13 +25,14 @@ namespace
   const Debug::Stream Dbg("L10n");
 
   template<class K, class V>
-  class MapAdapter : public std::map<K, V>
+  class MapAdapter : public std::map<K, V, std::less<>>
   {
   public:
-    const V* Find(const K& key) const
+    template<class K2>
+    const V* Find(const K2& key) const
     {
-      const typename std::map<K, V>::const_iterator it = std::map<K, V>::find(key), limit = std::map<K, V>::end();
-      return it != limit ? &it->second : nullptr;
+      const auto it = std::map<K, V, std::less<>>::find(key);
+      return it != std::map<K, V, std::less<>>::end() ? &it->second : nullptr;
     }
   };
 
@@ -112,7 +113,7 @@ namespace
           SystemLocale.Translation);
     }
 
-    void AddTranslation(const L10n::Translation& trans) override
+    void AddTranslation(L10n::Translation trans) override
     {
       if (trans.Type != TYPE_MO)
       {
@@ -130,18 +131,18 @@ namespace
 
       const String filename =
           EMPTY_PATH + '/' + trans.Language + '/' + info.locale_category + '/' + trans.Domain + '.' + TYPE_MO;
-      Translations[filename] = trans.Data;
-      Dbg("Added translation {} in {} bytes", filename, trans.Data.size());
+      Dbg("Added translation {} in {} bytes", filename, trans.Data->Size());
+      Translations[filename] = std::move(trans.Data);
     }
 
-    void SelectTranslation(const String& translation) override
+    void SelectTranslation(StringView translation) override
     {
       using namespace boost::locale;
       try
       {
-        if (const gnu_gettext::messages_info* info = Locales.Find(translation))
+        if (const auto* info = Locales.Find(translation))
         {
-          message_format<Char>* const facet = gnu_gettext::create_messages_facet<Char>(*info);
+          auto* const facet = gnu_gettext::create_messages_facet<Char>(*info);
           Require(facet != nullptr);
           *CurrentLocale = std::locale(std::locale::classic(), facet);
           Dbg("Selected translation {}", translation);
@@ -156,9 +157,9 @@ namespace
       Dbg("Selected unknown translation {}", translation);
     }
 
-    L10n::Vocabulary::Ptr GetVocabulary(const String& domain) const override
+    L10n::Vocabulary::Ptr GetVocabulary(StringView domain) const override
     {
-      return MakePtr<DomainVocabulary>(CurrentLocale, domain);
+      return MakePtr<DomainVocabulary>(CurrentLocale, domain.to_string());
     }
 
     static BoostLocaleLibrary& Instance()
@@ -174,19 +175,21 @@ namespace
       if (const auto* data = self.Translations.Find(file))
       {
         Dbg("Loading message {} with encoding {}", file, encoding);
-        return std::vector<char>(data->begin(), data->end());
+        const auto* rawStart = static_cast<const char*>((*data)->Start());
+        const auto rawSize = (*data)->Size();
+        return std::vector<char>(rawStart, rawStart + rawSize);
       }
       else
       {
         Dbg("Message {} with encoding {} not found", file, encoding);
-        return std::vector<char>();
+        return {};
       }
     }
 
   private:
     const LocaleAttributes SystemLocale;
     const LocalePtr CurrentLocale;
-    MapAdapter<String, Binary::Dump> Translations;
+    MapAdapter<String, Binary::Data::Ptr> Translations;
     MapAdapter<String, boost::locale::gnu_gettext::messages_info> Locales;
   };
 }  // namespace

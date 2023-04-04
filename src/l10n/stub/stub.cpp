@@ -42,11 +42,11 @@ namespace
   class StubLibrary : public L10n::Library
   {
   public:
-    void AddTranslation(const L10n::Translation& /*trans*/) override {}
+    void AddTranslation(L10n::Translation /*trans*/) override {}
 
-    void SelectTranslation(const String& /*translation*/) override {}
+    void SelectTranslation(StringView /*translation*/) override {}
 
-    L10n::Vocabulary::Ptr GetVocabulary(const String& /*domain*/) const override
+    L10n::Vocabulary::Ptr GetVocabulary(StringView /*domain*/) const override
     {
       static StubVocabulary voc;
       return MakeSingletonPointer(voc);

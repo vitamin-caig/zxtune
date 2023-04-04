@@ -27,21 +27,21 @@ namespace
   class QtTranslationLibrary : public L10n::Library
   {
   public:
-    void AddTranslation(const L10n::Translation& trans) override
+    void AddTranslation(L10n::Translation trans) override
     {
       static const std::string QM_FILE("qm");
 
       if (trans.Type != QM_FILE)
       {
-        return L10n::Library::Instance().AddTranslation(trans);
+        return L10n::Library::Instance().AddTranslation(std::move(trans));
       }
-      Translations[trans.Language].insert(DumpPtr(new Binary::Dump(trans.Data)));
+      Translations[trans.Language].insert(std::move(trans.Data));
     }
 
-    void SelectTranslation(const std::string& translation) override
+    void SelectTranslation(StringView translation) override
     {
       UnloadTranslators();
-      const LangToDumpsSetMap::const_iterator it = Translations.find(translation);
+      const auto it = Translations.find(translation);
       if (it != Translations.end())
       {
         LoadTranslators(it->second);
@@ -49,9 +49,9 @@ namespace
       L10n::Library::Instance().SelectTranslation(translation);
     }
 
-    L10n::Vocabulary::Ptr GetVocabulary(const std::string& /*domain*/) const override
+    L10n::Vocabulary::Ptr GetVocabulary(StringView /*domain*/) const override
     {
-      return L10n::Vocabulary::Ptr();
+      return {};
     }
 
     std::vector<std::string> EnumerateLanguages() const
@@ -65,9 +65,8 @@ namespace
     }
 
   private:
-    typedef std::shared_ptr<const Binary::Dump> DumpPtr;
-    typedef std::set<DumpPtr> DumpsSet;
-    typedef std::map<std::string, DumpsSet> LangToDumpsSetMap;
+    typedef std::set<Binary::Data::Ptr> DumpsSet;
+    typedef std::map<String, DumpsSet, std::less<>> LangToDumpsSetMap;
     typedef std::shared_ptr<QTranslator> TranslatorPtr;
     typedef std::set<TranslatorPtr> TranslatorsSet;
 
@@ -86,7 +85,7 @@ namespace
       for (const auto& dump : dumps)
       {
         auto trans = std::make_shared<QTranslator>();
-        trans->load(&dump->front(), static_cast<int>(dump->size()));
+        trans->load(static_cast<const uchar*>(dump->Start()), static_cast<int>(dump->Size()));
         QCoreApplication::installTranslator(trans.get());
         newTranslators.emplace(std::move(trans));
       }

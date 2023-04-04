@@ -8,13 +8,17 @@
  *
  **/
 
+// common includes
+#include <pointers.h>
+// library includes
+#include <binary/container_factories.h>
+#include <l10n/api.h>
+#include <strings/format.h>
+// std includes
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <l10n/api.h>
-#include <pointers.h>
 #include <sstream>
-#include <strings/format.h>
 
 namespace
 {
@@ -99,10 +103,8 @@ int main()
   try
   {
     L10n::Library& library = L10n::Library::Instance();
-    const L10n::Translation eng = {Domain, "en", "mo", OpenFile("en/test.mo")};
-    library.AddTranslation(eng);
-    const L10n::Translation rus = {Domain, "ru", "mo", OpenFile("ru/test.mo")};
-    library.AddTranslation(rus);
+    library.AddTranslation({Domain, "en", "mo", Binary::CreateContainer(OpenFile("en/test.mo"))});
+    library.AddTranslation({Domain, "ru", "mo", Binary::CreateContainer(OpenFile("ru/test.mo"))});
 
     std::cout << "Test Default translation" << std::endl;
     Test(OpenFile("default.res"));
