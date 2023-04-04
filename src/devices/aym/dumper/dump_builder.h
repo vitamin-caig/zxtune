@@ -24,7 +24,7 @@ namespace Devices
 
       virtual void Initialize() = 0;
 
-      virtual void GetResult(Binary::Dump& result) const = 0;
+      virtual Binary::Data::Ptr GetResult() = 0;
     };
 
     class FramedDumpBuilder : public DumpBuilder
@@ -35,7 +35,7 @@ namespace Devices
       virtual void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) = 0;
     };
 
-    Dumper::Ptr CreateDumper(DumperParameters::Ptr params, FramedDumpBuilder::Ptr builder);
+    Dumper::Ptr CreateDumper(const DumperParameters& params, FramedDumpBuilder::Ptr builder);
 
     // internal factories
     FramedDumpBuilder::Ptr CreateRawDumpBuilder();

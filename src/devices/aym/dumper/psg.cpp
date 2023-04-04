@@ -10,10 +10,12 @@
 
 // local includes
 #include "devices/aym/dumper/dump_builder.h"
+// common includes
+#include <make_ptr.h>
+// library includes
+#include <binary/data_builder.h>
 // std includes
 #include <algorithm>
-#include <iterator>
-#include <make_ptr.h>
 
 namespace Devices::AYM
 {
@@ -35,51 +37,47 @@ namespace Devices::AYM
                                        0,      0,   0,   0,    0, 0, 0, 0, 0, 0,  // padding
                                        END_MUS};
       static_assert(sizeof(HEADER) == 16 + 1, "Invalid header layout");
-      Data.assign(HEADER, std::end(HEADER));
+      Data.Add(Binary::View{HEADER, sizeof(HEADER)});
     }
 
-    void GetResult(Binary::Dump& data) const override
+    Binary::Data::Ptr GetResult() override
     {
-      data = Data;
+      return Data.CaptureResult();
     }
 
     void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update) override
     {
-      assert(framesPassed);
-
-      Binary::Dump frame;
+      const auto sizeBefore = Data.Size();
       // SKIP_INTS code groups 4 skipped interrupts
       const uint_t SKIP_GROUP_SIZE = 4;
       const uint_t groupsSkipped = framesPassed / SKIP_GROUP_SIZE;
       const uint_t remainInts = framesPassed % SKIP_GROUP_SIZE;
-      frame.reserve(groupsSkipped + remainInts + 2 * Registers::TOTAL + 1);
-      std::back_insert_iterator<Binary::Dump> inserter(frame);
+      auto* end = static_cast<uint8_t*>(Data.Allocate((groupsSkipped ? 2 : 0) + remainInts + 2 * Registers::TOTAL + 1));
+      auto* target = end - 1;  // overwrite limiter
       if (groupsSkipped)
       {
-        *inserter = SKIP_INTS;
-        *inserter = static_cast<Binary::Dump::value_type>(groupsSkipped);
+        *target++ = SKIP_INTS;
+        *target++ = static_cast<uint8_t>(groupsSkipped);
       }
-      std::fill_n(inserter, remainInts, INTERRUPT);
+      target = std::fill_n(target, remainInts, INTERRUPT);
       // store data
       for (Registers::IndicesIterator it(update); it; ++it)
       {
-        *inserter = static_cast<Binary::Dump::value_type>(*it);
-        *inserter = update[*it];
+        *target++ = static_cast<uint8_t>(*it);
+        *target++ = update[*it];
       }
-      *inserter = END_MUS;
-      assert(!Data.empty());
-      Data.pop_back();  // delete limiter
-      Data.reserve(Data.size() + frame.size());
-      std::copy(frame.begin(), frame.end(), std::back_inserter(Data));
+      *target++ = END_MUS;
+      const auto frameSize = target - end;
+      Data.Resize(sizeBefore + frameSize);
     }
 
   private:
-    Binary::Dump Data;
+    Binary::DataBuilder Data;
   };
 
-  Dumper::Ptr CreatePSGDumper(DumperParameters::Ptr params)
+  Dumper::Ptr CreatePSGDumper(const DumperParameters& params)
   {
-    const FramedDumpBuilder::Ptr builder = MakePtr<PSGDumpBuilder>();
-    return CreateDumper(params, builder);
+    auto builder = MakePtr<PSGDumpBuilder>();
+    return CreateDumper(params, std::move(builder));
   }
 }  // namespace Devices::AYM

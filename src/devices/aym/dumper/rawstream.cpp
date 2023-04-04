@@ -12,9 +12,10 @@
 #include "devices/aym/dumper/dump_builder.h"
 // common includes
 #include <make_ptr.h>
+// library includes
+#include <binary/data_builder.h>
 // std includes
 #include <algorithm>
-#include <iterator>
 
 namespace Devices::AYM
 {
@@ -26,34 +27,22 @@ namespace Devices::AYM
       NO_R13 = 0xff
     };
 
-    void Initialize() override
-    {
-      Data.clear();
-    }
+    void Initialize() override {}
 
-    void GetResult(Binary::Dump& data) const override
+    Binary::Data::Ptr GetResult() override
     {
-      data = Data;
+      return Data.CaptureResult();
     }
 
     void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) override
     {
-      assert(framesPassed);
-      std::back_insert_iterator<Binary::Dump> inserter(Data);
       if (const uint_t toSkip = framesPassed - 1)
       {
-        Binary::Dump dup;
-        if (Data.empty())
+        const auto size = Data.Size();
+        auto* target = static_cast<uint8_t*>(Data.Allocate(Registers::TOTAL * toSkip));
+        if (size >= Registers::TOTAL)
         {
-          dup.resize(Registers::TOTAL);
-        }
-        else
-        {
-          dup.assign(Data.end() - Registers::TOTAL, Data.end());
-        }
-        for (uint_t skips = 0; skips < toSkip; ++skips)
-        {
-          std::copy(dup.begin(), dup.end(), inserter);
+          std::copy_n(&Data.Get<uint8_t>(size - Registers::TOTAL), Registers::TOTAL * toSkip, target);
         }
       }
       Registers fixedState(state);
@@ -62,11 +51,11 @@ namespace Devices::AYM
         fixedState[Registers::ENV] = NO_R13;
       }
       const uint8_t* const rawStart = &fixedState[Registers::TONEA_L];
-      std::copy(rawStart, rawStart + Registers::TOTAL, inserter);
+      Data.Add(Binary::View{rawStart, Registers::TOTAL});
     }
 
   private:
-    Binary::Dump Data;
+    Binary::DataBuilder Data;
   };
 
   FramedDumpBuilder::Ptr CreateRawDumpBuilder()
@@ -74,9 +63,9 @@ namespace Devices::AYM
     return MakePtr<RawDumpBuilder>();
   }
 
-  Dumper::Ptr CreateRawStreamDumper(DumperParameters::Ptr params)
+  Dumper::Ptr CreateRawStreamDumper(const DumperParameters& params)
   {
-    const FramedDumpBuilder::Ptr builder = CreateRawDumpBuilder();
-    return CreateDumper(params, builder);
+    auto builder = CreateRawDumpBuilder();
+    return CreateDumper(params, std::move(builder));
   }
 }  // namespace Devices::AYM

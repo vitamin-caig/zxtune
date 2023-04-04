@@ -110,55 +110,50 @@ namespace Module
     String errMessage;
 
     // convert to PSG
-    if (const PSGConvertParam* psg = parameter_cast<PSGConvertParam>(&spec))
+    if (const auto* psg = parameter_cast<PSGConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(psg->Optimization);
+      const BaseDumperParameters dumpParams(psg->Optimization);
       dumper = Devices::AYM::CreatePSGDumper(dumpParams);
       errMessage = translate("Failed to convert to PSG format.");
     }
     // convert to ZX50
-    else if (const ZX50ConvertParam* zx50 = parameter_cast<ZX50ConvertParam>(&spec))
+    else if (const auto* zx50 = parameter_cast<ZX50ConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(zx50->Optimization);
+      const BaseDumperParameters dumpParams(zx50->Optimization);
       dumper = Devices::AYM::CreateZX50Dumper(dumpParams);
       errMessage = translate("Failed to convert to ZX50 format.");
     }
     // convert to debugay
-    else if (const DebugAYConvertParam* dbg = parameter_cast<DebugAYConvertParam>(&spec))
+    else if (const auto* dbg = parameter_cast<DebugAYConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(dbg->Optimization);
+      const BaseDumperParameters dumpParams(dbg->Optimization);
       dumper = Devices::AYM::CreateDebugDumper(dumpParams);
       errMessage = translate("Failed to convert to debug ay format.");
     }
     // convert to aydump
-    else if (const AYDumpConvertParam* aydump = parameter_cast<AYDumpConvertParam>(&spec))
+    else if (const auto* aydump = parameter_cast<AYDumpConvertParam>(&spec))
     {
-      const Devices::AYM::DumperParameters::Ptr dumpParams = MakePtr<BaseDumperParameters>(aydump->Optimization);
+      const BaseDumperParameters dumpParams(aydump->Optimization);
       dumper = Devices::AYM::CreateRawStreamDumper(dumpParams);
       errMessage = translate("Failed to convert to raw ay dump.");
-      ;
     }
     // convert to fym
-    else if (const FYMConvertParam* fym = parameter_cast<FYMConvertParam>(&spec))
+    else if (const auto* fym = parameter_cast<FYMConvertParam>(&spec))
     {
-      const Devices::AYM::FYMDumperParameters::Ptr dumpParams =
-          MakePtr<FYMDumperParameters>(params, 0 /*LoopFrame - TODO*/, fym->Optimization);
-      dumper = Devices::AYM::CreateFYMDumper(dumpParams);
+      auto dumpParams = MakePtr<FYMDumperParameters>(params, 0 /*LoopFrame - TODO*/, fym->Optimization);
+      dumper = Devices::AYM::CreateFYMDumper(std::move(dumpParams));
       errMessage = translate("Failed to convert to FYM format.");
-      ;
     }
 
     if (!dumper)
     {
-      return Binary::Data::Ptr();
+      return {};
     }
 
     try
     {
       holder.Dump(*dumper);
-      std::unique_ptr<Binary::Dump> dst(new Binary::Dump());
-      dumper->GetDump(*dst);
-      return Binary::CreateContainer(std::move(dst));
+      return dumper->GetDump();
     }
     catch (const Error& err)
     {
@@ -173,6 +168,6 @@ namespace Module
     {
       return ConvertAYMFormat(*aymHolder, spec, std::move(params));
     }
-    return Binary::Data::Ptr();
+    return {};
   }
 }  // namespace Module

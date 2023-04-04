@@ -159,7 +159,7 @@ namespace Devices::AYM
       NextFrame += FrameDuration;
     }
 
-    void GetDump(Binary::Dump& result) const override
+    Binary::Data::Ptr GetDump() override
     {
       if (FramesToSkip)
       {
@@ -168,7 +168,7 @@ namespace Devices::AYM
         Builder->WriteFrame(FramesToSkip, State->GetBase(), delta);
         FramesToSkip = 0;
       }
-      Builder->GetResult(result);
+      return Builder->GetResult();
     }
 
   private:
@@ -190,14 +190,14 @@ namespace Devices::AYM
     const Time::Duration<TimeUnit> FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
     const RenderState::Ptr State;
-    mutable uint_t FramesToSkip;
+    uint_t FramesToSkip;
     Stamp NextFrame;
   };
 
-  Dumper::Ptr CreateDumper(DumperParameters::Ptr params, FramedDumpBuilder::Ptr builder)
+  Dumper::Ptr CreateDumper(const DumperParameters& params, FramedDumpBuilder::Ptr builder)
   {
     RenderState::Ptr state;
-    switch (params->OptimizationLevel())
+    switch (params.OptimizationLevel())
     {
     case DumperParameters::NONE:
       state = MakePtr<NotOptimizedRenderState>();
@@ -205,6 +205,6 @@ namespace Devices::AYM
     default:
       state = MakePtr<OptimizedRenderState>();
     }
-    return MakePtr<FrameDumper>(params->FrameDuration(), builder, state);
+    return MakePtr<FrameDumper>(params.FrameDuration(), std::move(builder), std::move(state));
   }
 }  // namespace Devices::AYM

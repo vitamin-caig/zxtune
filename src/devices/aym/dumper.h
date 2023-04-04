@@ -11,7 +11,7 @@
 #pragma once
 
 // library includes
-#include <binary/dump.h>
+#include <binary/data.h>
 #include <devices/aym.h>
 #include <time/duration.h>
 
@@ -26,13 +26,12 @@ namespace Devices
     public:
       typedef std::shared_ptr<Dumper> Ptr;
 
-      virtual void GetDump(Binary::Dump& result) const = 0;
+      virtual Binary::Data::Ptr GetDump() = 0;
     };
 
     class DumperParameters
     {
     public:
-      typedef std::shared_ptr<const DumperParameters> Ptr;
       virtual ~DumperParameters() = default;
 
       enum Optimization
@@ -45,15 +44,15 @@ namespace Devices
       virtual Optimization OptimizationLevel() const = 0;
     };
 
-    Dumper::Ptr CreatePSGDumper(DumperParameters::Ptr params);
-    Dumper::Ptr CreateZX50Dumper(DumperParameters::Ptr params);
-    Dumper::Ptr CreateDebugDumper(DumperParameters::Ptr params);
-    Dumper::Ptr CreateRawStreamDumper(DumperParameters::Ptr params);
+    Dumper::Ptr CreatePSGDumper(const DumperParameters& params);
+    Dumper::Ptr CreateZX50Dumper(const DumperParameters& params);
+    Dumper::Ptr CreateDebugDumper(const DumperParameters& params);
+    Dumper::Ptr CreateRawStreamDumper(const DumperParameters& params);
 
     class FYMDumperParameters : public DumperParameters
     {
     public:
-      typedef std::shared_ptr<const FYMDumperParameters> Ptr;
+      using Ptr = std::shared_ptr<const FYMDumperParameters>;
 
       virtual uint64_t ClockFreq() const = 0;
       virtual String Title() const = 0;

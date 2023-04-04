@@ -12,9 +12,8 @@
 #include "devices/aym/dumper/dump_builder.h"
 // common includes
 #include <make_ptr.h>
-// std includes
-#include <algorithm>
-#include <iterator>
+// library includes
+#include <binary/data_builder.h>
 
 namespace Devices::AYM
 {
@@ -23,45 +22,40 @@ namespace Devices::AYM
   public:
     void Initialize() override
     {
-      static const Binary::Dump::value_type HEADER[] = {'Z', 'X', '5', '0'};
-      Data.assign(HEADER, std::end(HEADER));
+      static const uint8_t HEADER[] = {'Z', 'X', '5', '0'};
+      Data.Add(Binary::View{HEADER, sizeof(HEADER)});
     }
 
-    void GetResult(Binary::Dump& data) const override
+    Binary::Data::Ptr GetResult() override
     {
-      data = Data;
+      return Data.CaptureResult();
     }
 
     void WriteFrame(uint_t framesPassed, const Registers& /*state*/, const Registers& update) override
     {
-      assert(framesPassed);
-
-      Binary::Dump frame;
-      frame.reserve(Registers::TOTAL);
-      std::back_insert_iterator<Binary::Dump> inserter(frame);
-      uint_t mask = 0;
+      const auto sizeBefore = Data.Size();
+      const auto skips = sizeof(uint16_t) * (framesPassed - 1);
+      auto* mask = static_cast<uint8_t*>(Data.Allocate(skips + sizeof(uint16_t) + Registers::TOTAL)) + skips;
+      auto* target = mask + sizeof(uint16_t);
+      uint_t bitmask = 0;
       for (Registers::IndicesIterator it(update); it; ++it)
       {
-        *inserter = update[*it];
-        mask |= 1 << *it;
+        *target++ = update[*it];
+        bitmask |= 1 << *it;
       }
-      // commit
-      Data.reserve(Data.size() + framesPassed * sizeof(uint16_t) + Registers::TOTAL);
-      std::back_insert_iterator<Binary::Dump> data(Data);
-      // skipped frames
-      std::fill_n(data, sizeof(uint16_t) * (framesPassed - 1), 0);
-      *data = static_cast<Binary::Dump::value_type>(mask & 0xff);
-      *data = static_cast<Binary::Dump::value_type>(mask >> 8);
-      std::copy(frame.begin(), frame.end(), data);
+      mask[0] = static_cast<uint8_t>(bitmask & 0xff);
+      mask[1] = static_cast<uint8_t>(bitmask >> 8);
+      const auto frameSize = target - mask;
+      Data.Resize(sizeBefore + skips + frameSize);
     }
 
   private:
-    Binary::Dump Data;
+    Binary::DataBuilder Data;
   };
 
-  Dumper::Ptr CreateZX50Dumper(DumperParameters::Ptr params)
+  Dumper::Ptr CreateZX50Dumper(const DumperParameters& params)
   {
-    const FramedDumpBuilder::Ptr builder = MakePtr<ZX50DumpBuilder>();
-    return CreateDumper(params, builder);
+    auto builder = MakePtr<ZX50DumpBuilder>();
+    return CreateDumper(params, std::move(builder));
   }
 }  // namespace Devices::AYM
