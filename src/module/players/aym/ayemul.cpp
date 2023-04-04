@@ -489,9 +489,7 @@ namespace Module::AYEMUL
 
     Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
     {
-      const uint8_t* const rawMemory = static_cast<const uint8_t*>(Memory->Start());
-      const Devices::Z80::Chip::Ptr result =
-          Devices::Z80::CreateChip(params, Binary::Dump(rawMemory, rawMemory + Memory->Size()), ports);
+      const auto result = Devices::Z80::CreateChip(params, *Memory, ports);
       Devices::Z80::Registers regs;
       regs.Mask = ~0;
       std::fill(regs.Data.begin(), regs.Data.end(), Registers);

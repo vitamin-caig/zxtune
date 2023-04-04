@@ -13,7 +13,7 @@
 // common includes
 #include <types.h>
 // library includes
-#include <binary/dump.h>
+#include <binary/view.h>
 #include <time/oscillator.h>
 // std includes
 #include <array>
@@ -92,6 +92,6 @@ namespace Devices
     };
 
     Chip::Ptr CreateChip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports);
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, const Binary::Dump& memory, ChipIO::Ptr ports);
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Binary::View memory, ChipIO::Ptr ports);
   }  // namespace Z80
 }  // namespace Devices

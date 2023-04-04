@@ -16,6 +16,8 @@
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
+// library includes
+#include <binary/dump.h>
 // boost includes
 #include <boost/format.hpp>
 

@@ -50,11 +50,11 @@ namespace Benchmark
 {
   namespace Z80
   {
-    Devices::Z80::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t intTicks, const Binary::Dump& memory,
+    Devices::Z80::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t intTicks, Binary::View memory,
                                          Devices::Z80::ChipIO::Ptr io)
     {
-      const Devices::Z80::ChipParameters::Ptr params = MakePtr<Z80Parameters>(clockFreq, intTicks);
-      return Devices::Z80::CreateChip(params, memory, io);
+      auto params = MakePtr<Z80Parameters>(clockFreq, intTicks);
+      return Devices::Z80::CreateChip(std::move(params), memory, std::move(io));
     }
 
     double Test(Devices::Z80::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration)

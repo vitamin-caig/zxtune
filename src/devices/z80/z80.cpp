@@ -13,6 +13,7 @@
 // common includes
 #include <make_ptr.h>
 // library includes
+#include <binary/dump.h>
 #include <parameters/tracking_helper.h>
 // 3rdparty includes
 #include <3rdparty/z80ex/include/z80ex.h>
@@ -93,9 +94,9 @@ namespace Devices::Z80
   class SimpleIOBus : public IOBus
   {
   public:
-    SimpleIOBus(const Oscillator& clock, Binary::Dump memory, ChipIO::Ptr ports)
+    SimpleIOBus(const Oscillator& clock, Binary::View memory, ChipIO::Ptr ports)
       : Clock(clock)
-      , Memory(std::move(memory))
+      , Memory(memory.As<uint8_t>(), memory.As<uint8_t>() + memory.Size())
       , RawMemory(Memory.data())
       , Ports(std::move(ports))
     {}
@@ -235,16 +236,16 @@ namespace Devices::Z80
   {
   public:
     Z80Chip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports)
-      : Params(params)
-      , Bus(new ExtendedIOBus(Clock.GetOscillator(), memory, ports))
+      : Params(std::move(params))
+      , Bus(new ExtendedIOBus(Clock.GetOscillator(), std::move(memory), std::move(ports)))
       , Context(Bus->ConnectCPU())
     {
       Z80Chip::Reset();
     }
 
-    Z80Chip(ChipParameters::Ptr params, const Binary::Dump& memory, ChipIO::Ptr ports)
-      : Params(params)
-      , Bus(new SimpleIOBus(Clock.GetOscillator(), memory, ports))
+    Z80Chip(ChipParameters::Ptr params, Binary::View memory, ChipIO::Ptr ports)
+      : Params(std::move(params))
+      , Bus(new SimpleIOBus(Clock.GetOscillator(), memory, std::move(ports)))
       , Context(Bus->ConnectCPU())
     {
       Z80Chip::Reset();
@@ -399,12 +400,12 @@ namespace Devices
   {
     Chip::Ptr CreateChip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports)
     {
-      return MakePtr<Z80Chip>(params, memory, ports);
+      return MakePtr<Z80Chip>(std::move(params), std::move(memory), std::move(ports));
     }
 
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, const Binary::Dump& memory, ChipIO::Ptr ports)
+    Chip::Ptr CreateChip(ChipParameters::Ptr params, Binary::View memory, ChipIO::Ptr ports)
     {
-      return MakePtr<Z80Chip>(params, memory, ports);
+      return MakePtr<Z80Chip>(std::move(params), memory, std::move(ports));
     }
   }  // namespace Z80
 }  // namespace Devices
