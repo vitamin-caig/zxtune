@@ -8,7 +8,7 @@
  *
  **/
 
-#include <binary/dump.h>
+#include <binary/data_builder.h>
 #include <cstring>
 #include <error.h>
 #include <fstream>
@@ -44,7 +44,7 @@ namespace
     }
   }
 
-  Binary::Dump OpenFile(const std::string& name)
+  Binary::Data::Ptr OpenFile(const std::string& name)
   {
     std::ifstream stream(name.c_str(), std::ios::binary);
     if (!stream)
@@ -54,9 +54,9 @@ namespace
     stream.seekg(0, std::ios_base::end);
     const std::size_t size = stream.tellg();
     stream.seekg(0);
-    Binary::Dump tmp(size);
-    stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
-    return tmp;
+    Binary::DataBuilder tmp(size);
+    stream.read(static_cast<char*>(tmp.Allocate(size)), size);
+    return tmp.CaptureResult();
   }
 
   class LoadEachFileVisitor : public Resource::Visitor
@@ -74,8 +74,8 @@ namespace
       Test("Test file exists", 1 == Etalons.count(name));
       const Binary::Container::Ptr data = Resource::Load(name);
       const auto& ref = Etalons[name];
-      TestEq("Test file is expected size", ref.size(), data->Size());
-      Test("Test file is expected content", 0 == std::memcmp(ref.data(), data->Start(), ref.size()));
+      TestEq("Test file is expected size", ref->Size(), data->Size());
+      Test("Test file is expected content", 0 == std::memcmp(ref->Start(), data->Start(), ref->Size()));
       Etalons.erase(name);
     }
 
@@ -91,7 +91,7 @@ namespace
     }
 
   private:
-    std::map<String, Binary::Dump> Etalons;
+    std::map<String, Binary::Data::Ptr> Etalons;
   };
 }  // namespace
 
