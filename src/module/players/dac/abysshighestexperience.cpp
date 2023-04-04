@@ -15,6 +15,7 @@
 #include <make_ptr.h>
 #include <pointers.h>
 // library includes
+#include <binary/container_factories.h>
 #include <debug/log.h>
 #include <formats/chiptune/digital/abysshighestexperience.h>
 #include <module/players/platforms.h>
@@ -272,7 +273,7 @@ namespace Module::AHX
   class Holder : public Module::Holder
   {
   public:
-    Holder(Binary::Dump tune, Parameters::Accessor::Ptr props)
+    Holder(Binary::Data::Ptr tune, Parameters::Accessor::Ptr props)
       : Tune(std::move(tune))
       , Properties(std::move(props))
     {}
@@ -281,7 +282,7 @@ namespace Module::AHX
     {
       if (!Info)
       {
-        Info = MakePtr<TrackInformation>(Tune);
+        Info = MakePtr<TrackInformation>(*Tune);
       }
       return Info;
     }
@@ -293,11 +294,11 @@ namespace Module::AHX
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr /*params*/) const override
     {
-      return MakePtr<Renderer>(MakePtr<HVL>(Tune, samplerate));
+      return MakePtr<Renderer>(MakePtr<HVL>(*Tune, samplerate));
     }
 
   private:
-    const Binary::Dump Tune;
+    const Binary::Data::Ptr Tune;
     const Parameters::Accessor::Ptr Properties;
     mutable Information::Ptr Info;
   };
@@ -337,9 +338,7 @@ namespace Module::AHX
           props.SetSource(*container);
           props.SetPlatform(Platforms::AMIGA);
 
-          // TODO: extract
-          const auto rawData = static_cast<const uint8_t*>(container->Start());
-          Binary::Dump tune(rawData, rawData + container->Size());
+          auto tune = Binary::CreateContainer(Binary::View(*container));
           return MakePtr<Holder>(std::move(tune), std::move(properties));
         }
       }

@@ -200,4 +200,3 @@ namespace Module::XSF
     return MakePtr<GenericFactory>(std::move(delegate));
   }
 }  // namespace Module::XSF
-

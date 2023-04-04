@@ -77,7 +77,7 @@ namespace Module::YMVTX
       Data->SetLoop(loop);
     }
 
-    void SetDigitalSample(uint_t /*idx*/, const Binary::Dump& /*data*/) override
+    void SetDigitalSample(uint_t /*idx*/, Binary::View /*data*/) override
     {
       // TODO:
     }
@@ -128,13 +128,14 @@ namespace Module::YMVTX
       Properties.SetProgram(editor);
     }
 
-    void AddData(const Binary::Dump& registers) override
+    void AddData(Binary::View registers) override
     {
       auto& data = Data->AddFrame();
-      const uint_t availRegs = std::min<uint_t>(registers.size(), Devices::AYM::Registers::ENV + 1);
+      const uint_t availRegs = std::min<uint_t>(registers.Size(), Devices::AYM::Registers::ENV + 1);
+      const auto* regs = registers.As<uint8_t>();
       for (uint_t reg = 0, mask = 1; reg != availRegs; ++reg, mask <<= 1)
       {
-        const uint8_t val = registers[reg];
+        const uint8_t val = regs[reg];
         if (reg != Devices::AYM::Registers::ENV || val != 0xff)
         {
           data[static_cast<Devices::AYM::Registers::Index>(reg)] = val;
