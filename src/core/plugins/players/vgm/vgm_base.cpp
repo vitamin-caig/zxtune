@@ -17,6 +17,7 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 // library includes
+#include <binary/container_factories.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
 #include <formats/chiptune/multidevice/sound98.h>
@@ -55,11 +56,11 @@ namespace Module::LibVGM
 
     Model(PlayerCreator create, Binary::View data)
       : CreatePlayer(create)
-      , Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
+      , Data(Binary::CreateContainer(data))
     {}
 
-    PlayerCreator CreatePlayer;
-    Binary::Dump Data;
+    const PlayerCreator CreatePlayer;
+    const Binary::Data::Ptr Data;
   };
 
   class LoaderAdapter
@@ -148,7 +149,7 @@ namespace Module::LibVGM
 
     VGMEngine(Model::Ptr tune, uint_t samplerate)
       : Tune(std::move(tune))
-      , Loader(Tune->Data)
+      , Loader(*Tune->Data)
       , Delegate(Tune->CreatePlayer())
     {
       Require(0 == Delegate->LoadFile(Loader.Get()));
@@ -371,7 +372,7 @@ namespace Module::VideoGameMusic
         {
           auto tune = MakePtr<LibVGM::Model>(&LibVGM::Create< ::VGMPlayer>, *container);
           // TODO: move to builder
-          props.SetPlatform(DetectPlatform(tune->Data));
+          props.SetPlatform(DetectPlatform(*tune->Data));
 
           props.SetSource(*container);
 

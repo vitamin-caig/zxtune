@@ -61,7 +61,7 @@ namespace Module::GME
     return EmuPtr(new EmuType());
   }
 
-  inline static void CheckError(::blargg_err_t err)
+  inline void CheckError(::blargg_err_t err)
   {
     if (err)
     {
@@ -75,15 +75,15 @@ namespace Module::GME
   {
     using Ptr = std::shared_ptr<GMETune>;
 
-    GMETune(EmuCreator create, Binary::Dump data, uint_t track)
+    GMETune(EmuCreator create, Binary::Data::Ptr data, uint_t track)
       : CreateEmu(create)
       , Data(std::move(data))
       , Track(track)
     {}
 
-    EmuCreator CreateEmu;
-    Binary::Dump Data;
-    uint_t Track;
+    const EmuCreator CreateEmu;
+    const Binary::Data::Ptr Data;
+    const uint_t Track;
     Time::Milliseconds Duration;
 
     ::track_info_t GetInfo() const
@@ -91,7 +91,7 @@ namespace Module::GME
       const uint_t FAKE_SOUND_FREQUENCY = 30000;
       const auto emu = CreateEmu();
       CheckError(emu->set_sample_rate(FAKE_SOUND_FREQUENCY));
-      CheckError(emu->load_mem(Data.data(), Data.size()));
+      CheckError(emu->load_mem(Data->Start(), Data->Size()));
       ::track_info_t info;
       CheckError(emu->track_info(&info, Track));
       return info;
@@ -123,7 +123,7 @@ namespace Module::GME
       , Track(tune.Track)
     {
       CheckError(Emu->set_sample_rate(samplerate));
-      CheckError(Emu->load_mem(tune.Data.data(), tune.Data.size()));
+      CheckError(Emu->load_mem(tune.Data->Start(), tune.Data->Size()));
       Reset();
     }
 
@@ -265,10 +265,9 @@ namespace Module::GME
   };
 
   // TODO: rework, extract GYM parsing code to Formats library
-  Binary::Dump DefaultDataCreator(Binary::View data)
+  Binary::Data::Ptr DefaultDataCreator(Binary::View data)
   {
-    return Binary::Dump(static_cast<const uint8_t*>(data.Start()),
-                        static_cast<const uint8_t*>(data.Start()) + data.Size());
+    return Binary::CreateContainer(data);
   }
 
   using PlatformDetector = StringView (*)(Binary::View);
@@ -284,7 +283,7 @@ namespace Module::GME
 
   namespace GYM
   {
-    Binary::Dump CreateData(Binary::View data)
+    Binary::Data::Ptr CreateData(Binary::View data)
     {
       Binary::DataInputStream input(data);
       Binary::DataBuilder output(data.Size());
@@ -300,9 +299,7 @@ namespace Module::GME
         output.Add<le_uint32_t>(0);
         output.Add(input.ReadRestData());
       }
-      Binary::Dump result;
-      output.CaptureResult(result);
-      return result;
+      return output.CaptureResult();
     }
   }  // namespace GYM
 
@@ -341,7 +338,7 @@ namespace Module::GME
       {
         PropertiesHelper props(*properties);
         auto data = Desc.CreateData(container);
-        props.SetPlatform(Desc.DetectPlatform(data));
+        props.SetPlatform(Desc.DetectPlatform(*data));
         auto tune = MakePtr<GMETune>(Desc.CreateEmu, std::move(data), container.StartTrackIndex());
 
         const auto info = tune->GetInfo();
@@ -375,7 +372,7 @@ namespace Module::GME
       {
         PropertiesHelper props(*properties);
         auto data = Desc.CreateData(container);
-        props.SetPlatform(Desc.DetectPlatform(data));
+        props.SetPlatform(Desc.DetectPlatform(*data));
         auto tune = MakePtr<GMETune>(Desc.CreateEmu, std::move(data), 0);
         const auto info = tune->GetInfo();
         GetProperties(info, props);

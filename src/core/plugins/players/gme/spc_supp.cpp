@@ -15,6 +15,7 @@
 #include <contract.h>
 #include <make_ptr.h>
 // library includes
+#include <binary/container_factories.h>
 #include <core/plugin_attrs.h>
 #include <core/plugins_parameters.h>
 #include <debug/log.h>
@@ -37,11 +38,11 @@ namespace Module::SPC
   {
     using Ptr = std::shared_ptr<const Model>;
 
-    const Binary::Dump Data;
+    const Binary::Data::Ptr Data;
     const Time::Milliseconds Duration;
 
-    Model(const Binary::Data& data, Time::Milliseconds duration)
-      : Data(static_cast<const uint8_t*>(data.Start()), static_cast<const uint8_t*>(data.Start()) + data.Size())
+    Model(Binary::View data, Time::Milliseconds duration)
+      : Data(Binary::CreateContainer(data))
       , Duration(duration)
     {}
   };
@@ -111,7 +112,7 @@ namespace Module::SPC
   public:
     Renderer(Model::Ptr tune, Sound::Converter::Ptr target)
       : Tune(std::move(tune))
-      , Engine(MakePtr<SPC>(Tune->Data))
+      , Engine(MakePtr<SPC>(*Tune->Data))
       , State(MakePtr<TimedState>(Tune->Duration))
       , Target(std::move(target))
     {}
