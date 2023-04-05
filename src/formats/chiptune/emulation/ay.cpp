@@ -20,6 +20,7 @@
 // library includes
 #include <binary/container_factories.h>
 #include <binary/crc.h>
+#include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <formats/chiptune.h>
@@ -310,7 +311,6 @@ namespace Formats::Chiptune
 
       void SetRoutines(uint16_t init, uint16_t play) override
       {
-        assert(init);
         if (play)
         {
           Im1Player player(init, play);
@@ -326,73 +326,42 @@ namespace Formats::Chiptune
       void AddBlock(uint16_t addr, Binary::View block) override
       {
         auto& data = AllocateData();
-        const std::size_t toCopy = std::min(block.Size(), data.size() - addr);
-        std::memcpy(&data[addr], block.Start(), toCopy);
+        const auto toCopy = block.SubView(0, data.Size() - addr);
+        std::memcpy(data.Get(addr), toCopy.Start(), toCopy.Size());
       }
 
       Binary::Container::Ptr Result() const override
       {
-        return Data ? Binary::CreateContainer(Data, 0, Data->size()) : Binary::Container::Ptr();
+        return Data.CaptureResult();
       }
 
     private:
-      Binary::Dump& AllocateData()
+      Binary::DataBuilder& AllocateData()
       {
-        if (!Data)
+        if (!Data.Size())
         {
-          Data.reset(new Binary::Dump(65536));
+          Data.Allocate(65536);
           InitializeBlock(0xc9, 0, 0x100);
           InitializeBlock(0xff, 0x100, 0x3f00);
           InitializeBlock(uint8_t(0x00), 0x4000, 0xc000);
-          Data->at(0x38) = 0xfb;
+          Data.Get<uint8_t>(0x38) = 0xfb;
         }
-        return *Data;
+        return Data;
       }
 
       void InitializeBlock(uint8_t src, std::size_t offset, std::size_t size)
       {
-        auto& data = *Data;
-        const std::size_t toFill = std::min(size, data.size() - offset);
-        std::memset(&data[offset], src, toFill);
+        auto& data = AllocateData();
+        const std::size_t toFill = std::min(size, data.Size() - offset);
+        std::memset(data.Get(offset), src, toFill);
       }
 
     private:
-      std::shared_ptr<Binary::Dump> Data;
+      mutable Binary::DataBuilder Data;
     };
 
     class FileBuilder : public BlobBuilder
     {
-      // as a container
-      class VariableDump : public Binary::Dump
-      {
-      public:
-        VariableDump()
-        {
-          reserve(MAX_SIZE);
-        }
-
-        template<class T>
-        T* Add(const T& obj)
-        {
-          return safe_ptr_cast<T*>(Add(&obj, sizeof(obj)));
-        }
-
-        char* Add(const String& str)
-        {
-          return static_cast<char*>(Add(str.c_str(), str.size() + 1));
-        }
-
-        void* Add(const void* src, std::size_t srcSize)
-        {
-          const std::size_t prevSize = size();
-          Require(prevSize + srcSize <= capacity());
-          resize(prevSize + srcSize);
-          void* const dst = data() + prevSize;
-          std::memcpy(dst, src, srcSize);
-          return dst;
-        }
-      };
-
       template<class T>
       static void SetPointer(be_int16_t* ptr, const T obj)
       {
@@ -447,55 +416,52 @@ namespace Formats::Chiptune
 
       void AddBlock(uint16_t addr, Binary::View block) override
       {
-        const auto* fromCopy = block.As<uint8_t>();
-        const std::size_t toCopy = std::min(block.Size(), std::size_t(0x10000 - addr));
-        Blocks.push_back(BlocksList::value_type(addr, Binary::Dump(fromCopy, fromCopy + toCopy)));
+        Blocks.emplace_back(addr, Binary::CreateContainer(block.SubView(0, std::size_t(0x10000 - addr))));
       }
 
       Binary::Container::Ptr Result() const override
       {
-        std::unique_ptr<VariableDump> result(new VariableDump());
+        Binary::DataBuilder result(MAX_SIZE);
         // init header
-        Header* const header = result->Add(Header());
-        std::memset(header, 0, sizeof(*header));
-        std::copy(SIGNATURE, std::end(SIGNATURE), header->Signature);
-        std::copy(EMUL::SIGNATURE, std::end(EMUL::SIGNATURE), header->Type);
-        SetPointer(&header->AuthorOffset, result->Add(Author));
-        SetPointer(&header->MiscOffset, result->Add(Comment));
+        auto& header = result.Add<Header>();
+        std::copy(SIGNATURE, std::end(SIGNATURE), header.Signature);
+        std::copy(EMUL::SIGNATURE, std::end(EMUL::SIGNATURE), header.Type);
+        SetPointer(&header.AuthorOffset, result.AddCString(Author));
+        SetPointer(&header.MiscOffset, result.AddCString(Comment));
         // init descr
-        ModuleDescription* const descr = result->Add(ModuleDescription());
-        SetPointer(&header->DescriptionsOffset, descr);
-        SetPointer(&descr->TitleOffset, result->Add(Title));
+        auto& descr = result.Add<ModuleDescription>();
+        SetPointer(&header.DescriptionsOffset, &descr);
+        SetPointer(&descr.TitleOffset, result.AddCString(Title));
         // init data
-        EMUL::ModuleData* const data = result->Add(EMUL::ModuleData());
-        SetPointer(&descr->DataOffset, data);
-        data->TotalLength = Duration;
-        data->FadeLength = Fadeout;
-        data->RegValue = Register;
+        auto& data = result.Add<EMUL::ModuleData>();
+        SetPointer(&descr.DataOffset, &data);
+        data.TotalLength = Duration;
+        data.FadeLength = Fadeout;
+        data.RegValue = Register;
         // init pointers
-        EMUL::ModulePointers* const pointers = result->Add(EMUL::ModulePointers());
-        SetPointer(&data->PointersOffset, pointers);
-        pointers->SP = StackPointer;
-        pointers->InitAddr = InitRoutine;
-        pointers->PlayAddr = PlayRoutine;
+        auto& pointers = result.Add<EMUL::ModulePointers>();
+        SetPointer(&data.PointersOffset, &pointers);
+        pointers.SP = StackPointer;
+        pointers.InitAddr = InitRoutine;
+        pointers.PlayAddr = PlayRoutine;
         // init blocks
         std::list<EMUL::ModuleBlock*> blockPtrs;
         // all blocks + limiter
         for (uint_t block = 0; block != Blocks.size() + 1; ++block)
         {
-          blockPtrs.push_back(result->Add(EMUL::ModuleBlock()));
+          blockPtrs.push_back(&result.Add<EMUL::ModuleBlock>());
         }
-        SetPointer(&data->BlocksOffset, blockPtrs.front());
+        SetPointer(&data.BlocksOffset, blockPtrs.front());
         // fill blocks
         for (auto it = Blocks.begin(), lim = Blocks.end(); it != lim; ++it, blockPtrs.pop_front())
         {
-          EMUL::ModuleBlock* const dst = blockPtrs.front();
+          auto* const dst = blockPtrs.front();
           dst->Address = it->first;
-          dst->Size = static_cast<uint16_t>(it->second.size());
-          SetPointer(&dst->Offset, result->Add(it->second.data(), it->second.size()));
+          dst->Size = static_cast<uint16_t>(it->second->Size());
+          SetPointer(&dst->Offset, result.Add(*it->second));
           Dbg("Stored block {} bytes at {} stored at {}", dst->Size, dst->Address, dst->Offset);
         }
-        return Binary::CreateContainer(std::unique_ptr<Binary::Dump>(std::move(result)));
+        return result.CaptureResult();
       }
 
     private:
@@ -508,7 +474,7 @@ namespace Formats::Chiptune
       uint16_t StackPointer;
       uint16_t InitRoutine;
       uint16_t PlayRoutine;
-      typedef std::list<std::pair<uint16_t, Binary::Dump> > BlocksList;
+      typedef std::list<std::pair<uint16_t, Binary::Data::Ptr> > BlocksList;
       BlocksList Blocks;
     };
 

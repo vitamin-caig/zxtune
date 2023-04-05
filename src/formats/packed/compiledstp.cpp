@@ -15,6 +15,7 @@
 #include <byteorder.h>
 #include <make_ptr.h>
 // library includes
+#include <binary/dump.h>
 #include <binary/format_factories.h>
 #include <debug/log.h>
 // std includes

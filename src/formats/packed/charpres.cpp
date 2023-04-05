@@ -182,8 +182,7 @@ namespace Formats::Packed
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
         , Stream(container.GetPackedData(), container.GetPackedSize())
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
+        , Decoded(MAX_DECODED_SIZE)
       {
         if (IsValid && !Stream.Eof())
         {
@@ -191,21 +190,21 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Decoded.CaptureResult() : Binary::Container::Ptr();
       }
 
     private:
       bool DecodeData()
       {
         // assume that first byte always exists due to header format
-        while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
+        while (!Stream.Eof() && Decoded.Size() < MAX_DECODED_SIZE)
         {
           const uint_t data = Stream.GetByte();
           if (data != Header.Marker)
           {
-            Decoded.push_back(data);
+            Decoded.AddByte(data);
           }
           else
           {
@@ -220,11 +219,11 @@ namespace Formats::Packed
             }
             else
             {
-              Decoded.push_back(data);
+              Decoded.AddByte(data);
             }
           }
         }
-        std::reverse(Decoded.begin(), Decoded.end());
+        Reverse(Decoded);
         return true;
       }
 
@@ -232,8 +231,7 @@ namespace Formats::Packed
       bool IsValid;
       const RawHeader& Header;
       ReverseByteStream Stream;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Decoded;
     };
   }  // namespace CharPres
 

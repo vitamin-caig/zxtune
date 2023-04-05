@@ -18,6 +18,7 @@
 #include <binary/compression/zlib_container.h>
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
+#include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -537,16 +538,14 @@ namespace Formats::Archived
           const std::size_t unpacked = GetSize();
           Require(unpacked != 0);
           Dbg("Decompressing '{}' ({} blocks, {} butes result)", Name, Blocks.size(), unpacked);
-          std::unique_ptr<Binary::Dump> result(new Binary::Dump(unpacked));
-          auto* target = result->data();
+          Binary::DataBuilder result(unpacked);
           for (const auto& block : Blocks)
           {
-            const Binary::Container::Ptr data = ExtractData(block);
+            const auto data = ExtractData(block);
             Require(data && data->Size() == block.UncompressedSize);
-            std::memcpy(target, data->Start(), block.UncompressedSize);
-            target += block.UncompressedSize;
+            result.Add(*data);
           }
-          return Binary::CreateContainer(std::move(result));
+          return result.CaptureResult();
         }
         catch (const std::exception&)
         {

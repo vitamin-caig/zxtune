@@ -15,6 +15,7 @@
 #include <make_ptr.h>
 #include <pointers.h>
 // library includes
+#include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 // std includes
@@ -101,9 +102,9 @@ namespace Formats::Packed
     {
       static const uint_t PAGE_NUM_TO_INDEX[] = {2, 3, 1, 4, 5, 0, 6, 7};
 
-      std::unique_ptr<Binary::Dump> result(new Binary::Dump(sizeof(ResultData)));
+      Binary::DataBuilder result(sizeof(ResultData));
       const Header& src = *data.As<Header>();
-      ResultData& dst = *safe_ptr_cast<ResultData*>(result->data());
+      auto& dst = result.Add<ResultData>();
       const uint_t curPage = src.Port7FFD & 7;
       dst[PAGE_NUM_TO_INDEX[5]] = src.Page5;
       dst[PAGE_NUM_TO_INDEX[2]] = src.Page2;
@@ -122,7 +123,7 @@ namespace Formats::Packed
         ++idx;
       }
       const std::size_t origSize = pageDuped ? sizeof(src) + sizeof(PageData) : sizeof(src);
-      return CreateContainer(std::move(result), origSize);
+      return CreateContainer(result.CaptureResult(), origSize);
     }
 
     const Char DESCRIPTION[] = "SNA 128k";

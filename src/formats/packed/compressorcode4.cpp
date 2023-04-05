@@ -216,12 +216,11 @@ namespace Formats::Packed
     class RawDataDecoder
     {
     public:
-      RawDataDecoder(const uint8_t* data, std::size_t size, uint_t chunksCount)
+      RawDataDecoder(const uint8_t* data, std::size_t dataSize, uint_t chunksCount)
         : IsValid(true)
-        , Stream(data, size)
+        , Stream(data, dataSize)
         , ChunksCount(chunksCount)
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
+        , Decoded(2 * ChunksCount)
       {
         if (IsValid && !Stream.Eof())
         {
@@ -229,9 +228,9 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Decoded.CaptureResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
@@ -245,11 +244,9 @@ namespace Formats::Packed
         try
         {
           uint_t chunksCount = ChunksCount;
-          Decoded.reserve(2 * chunksCount);
           StreamAdapter& source(Stream);
-          std::back_insert_iterator<Binary::Dump> target(Decoded);
           // assume that first byte always exists due to header format
-          while (chunksCount-- && Decoded.size() < MAX_DECODED_SIZE)
+          while (chunksCount-- && Decoded.Size() < MAX_DECODED_SIZE)
           {
             const uint8_t data = *source;
             const uint_t count = (data >> 5);
@@ -271,24 +268,24 @@ namespace Formats::Packed
             case 1:
               while (len--)
               {
-                *target = *source;
+                Decoded.AddByte(*source);
               }
               break;
             case 2:
               --len;
               [[fallthrough]];
             case 3:
-              std::fill_n(target, len, 0);
+              Fill(Decoded, len, 0);
               break;
             case 4:
               --len;
               [[fallthrough]];
             case 5:
-              std::fill_n(target, len, 0xff);
+              Fill(Decoded, len, 0xff);
               break;
             case 6:
             case 7:
-              std::fill_n(target, len, *source);
+              Fill(Decoded, len, *source);
               break;
             case 8:
               ++len;
@@ -296,7 +293,7 @@ namespace Formats::Packed
             case 9:
               for (uint8_t data = *source, delta = *source; len; --len, data += delta)
               {
-                *target = data;
+                Decoded.AddByte(data);
               }
               break;
             case 0xa:
@@ -305,8 +302,8 @@ namespace Formats::Packed
             case 0xb:
               for (const uint8_t data1 = *source, data2 = *source; len; --len)
               {
-                *target = data1;
-                *target = data2;
+                Decoded.AddByte(data1);
+                Decoded.AddByte(data2);
               }
               break;
             case 0xc:
@@ -315,26 +312,26 @@ namespace Formats::Packed
             case 0xd:
               for (const uint8_t data1 = *source, data2 = *source, data3 = *source; len; --len)
               {
-                *target = data1;
-                *target = data2;
-                *target = data3;
+                Decoded.AddByte(data1);
+                Decoded.AddByte(data2);
+                Decoded.AddByte(data3);
               }
               break;
             case 0xe:
             case 0xf:
               for (const uint8_t data = *source; len; --len)
               {
-                *target = data;
-                *target = *source;
+                Decoded.AddByte(data);
+                Decoded.AddByte(*source);
               }
               break;
             case 0x10:
             case 0x11:
               for (const uint8_t data = *source; len; --len)
               {
-                *target = data;
-                *target = *source;
-                *target = *source;
+                Decoded.AddByte(data);
+                Decoded.AddByte(*source);
+                Decoded.AddByte(*source);
               }
               break;
             case 0x12:
@@ -342,8 +339,8 @@ namespace Formats::Packed
               for (const uint8_t base = *source; len; --len)
               {
                 const uint8_t data = *source;
-                *target = static_cast<uint8_t>(base + (data >> 4));
-                *target = static_cast<uint8_t>(base + (data & 0x0f));
+                Decoded.AddByte(static_cast<uint8_t>(base + (data >> 4)));
+                Decoded.AddByte(static_cast<uint8_t>(base + (data & 0x0f)));
               }
               break;
             case 0x14:
@@ -384,8 +381,7 @@ namespace Formats::Packed
       bool IsValid;
       StreamAdapter Stream;
       const uint_t ChunksCount;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Decoded;
     };
 
     template<class Version>
@@ -404,9 +400,9 @@ namespace Formats::Packed
                        : nullptr)
       {}
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return Delegate.get() ? Delegate->GetResult() : std::unique_ptr<Binary::Dump>();
+        return Delegate.get() ? Delegate->GetResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
@@ -483,13 +479,13 @@ namespace Formats::Packed
       {
         if (container.FastCheck() && DecodeHuffman(container.GetAvailableData() - DataOffset))
         {
-          Delegate.reset(new RawDataDecoder(UnhuffmanData.data(), UnhuffmanData.size(), Header.ChunksCount));
+          Delegate.reset(new RawDataDecoder(&UnhuffmanData.Get<uint8_t>(0), UnhuffmanData.Size(), Header.ChunksCount));
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return Delegate.get() ? Delegate->GetResult() : std::unique_ptr<Binary::Dump>();
+        return Delegate.get() ? Delegate->GetResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
@@ -508,7 +504,7 @@ namespace Formats::Packed
           for (uint_t packedBytes = Header.PackedDataSize; packedBytes; --packedBytes)
           {
             const uint_t idx = stream.GetIndex();
-            UnhuffmanData.push_back(table[idx]);
+            UnhuffmanData.AddByte(table[idx]);
           }
           DataSize = stream.GetUsedData();
           return true;
@@ -523,7 +519,7 @@ namespace Formats::Packed
       const Version4Plus::RawHeader& Header;
       const uint_t DataOffset;
       std::size_t DataSize;
-      Binary::Dump UnhuffmanData;
+      Binary::DataBuilder UnhuffmanData;
       std::unique_ptr<RawDataDecoder> Delegate;
     };
   }  // namespace CompressorCode

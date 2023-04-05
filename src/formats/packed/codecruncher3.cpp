@@ -230,8 +230,7 @@ namespace Formats::Packed
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
         , Stream(Header.Data, container.GetSize() - offsetof(RawHeader, Data))
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
+        , Decoded(2 * Header.SizeOfPacked)
       {
         if (IsValid && !Stream.Eof())
         {
@@ -239,9 +238,9 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Decoded.CaptureResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
@@ -252,10 +251,8 @@ namespace Formats::Packed
     private:
       bool DecodeData()
       {
-        // The main concern is to decode data as much as possible, skipping defenitely invalid structure
-        Decoded.reserve(2 * Header.SizeOfPacked);
         // assume that first byte always exists due to header format
-        while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
+        while (!Stream.Eof() && Decoded.Size() < MAX_DECODED_SIZE)
         {
           const uint_t data = Stream.GetByte();
           if (IsFinishMarker(data))
@@ -293,29 +290,28 @@ namespace Formats::Packed
         const uint_t loNibble = data & 0x0f;
         const uint_t hiNibble = (data & 0xf0) >> 4;
 
-        std::back_insert_iterator<Binary::Dump> dst(Decoded);
         switch (loNibble)
         {
         case 0x01:  // long RLE
         {
           const uint_t len = 256 * hiNibble + Stream.GetByte() + 3;
-          std::fill_n(dst, len, Stream.GetByte());
+          Fill(Decoded, len, Stream.GetByte());
         }
           return true;
         // case 0x03://exit
         case 0x05:  // short copy
-          std::generate_n(dst, hiNibble + 1, std::bind(&ByteStream::GetByte, &Stream));
+          Generate(Decoded, hiNibble + 1, std::bind(&ByteStream::GetByte, &Stream));
           return true;
         case 0x09:  // short RLE
-          std::fill_n(dst, hiNibble + 3, Stream.GetByte());
+          Fill(Decoded, hiNibble + 3, Stream.GetByte());
           return true;
         case 0x0b:  // 2 bytes
-          std::fill_n(dst, 2, static_cast<uint8_t>(hiNibble - 1));
+          Fill(Decoded, 2, static_cast<uint8_t>(hiNibble - 1));
           return true;
         case 0x0d:  // long copy
         {
           const uint_t len = 256 * hiNibble + Stream.GetByte() + 1;
-          std::generate_n(dst, len, std::bind(&ByteStream::GetByte, &Stream));
+          Generate(Decoded, len, std::bind(&ByteStream::GetByte, &Stream));
         }
           return true;
         default:  // short backref
@@ -327,8 +323,7 @@ namespace Formats::Packed
       bool IsValid;
       const RawHeader& Header;
       ByteStream Stream;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Decoded;
     };
   }  // namespace CodeCruncher3
 

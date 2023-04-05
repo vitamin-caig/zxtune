@@ -181,12 +181,10 @@ int main(int argc, char* argv[])
     {
       return 0;
     }
-    std::unique_ptr<Binary::Dump> rawData(new Binary::Dump());
-    Test::OpenFile(argv[2], *rawData);
-    const Binary::Container::Ptr data = Binary::CreateContainer(std::move(rawData));
+    const auto data = Test::OpenFile(argv[2]);
     const std::string type(argv[1]);
     STDumpBuilder builder;
-    const Formats::Chiptune::SoundTracker::Decoder::Ptr decoder = CreateDecoder(type);
+    const auto decoder = CreateDecoder(type);
     decoder->Parse(*data, builder);
   }
   catch (const std::exception& e)

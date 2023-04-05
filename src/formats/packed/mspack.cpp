@@ -120,8 +120,6 @@ namespace Formats::Packed
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
         , Stream(Header.BitStream, Header.SizeOfPacked - sizeof(Header.DstAddress))
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
       {
         if (IsValid && !Stream.Eof())
         {
@@ -129,22 +127,22 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Decoded.CaptureResult() : Binary::Container::Ptr();
       }
 
     private:
       bool DecodeData()
       {
-        Decoded.reserve(MAX_DECODED_SIZE);
+        Decoded = Binary::DataBuilder(MAX_DECODED_SIZE);
 
-        while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
+        while (!Stream.Eof() && Decoded.Size() < MAX_DECODED_SIZE)
         {
           //%0 - put byte
           if (!Stream.GetBit())
           {
-            Decoded.push_back(Stream.GetByte());
+            Decoded.AddByte(Stream.GetByte());
             continue;
           }
           uint_t len = Stream.GetLen();
@@ -187,7 +185,7 @@ namespace Formats::Packed
         // last bytes are always copied from exact address
         const auto* lastBytes =
             static_cast<const uint8_t*>(Header.BitStream) + Header.SizeOfPacked - sizeof(Header.DstAddress);
-        std::copy(lastBytes, lastBytes + LAST_BYTES_COUNT, std::back_inserter(Decoded));
+        Decoded.Add(Binary::View{lastBytes, LAST_BYTES_COUNT});
         return true;
       }
 
@@ -226,8 +224,7 @@ namespace Formats::Packed
       bool IsValid;
       const RawHeader& Header;
       Hrust1Bitstream Stream;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Decoded;
     };
   }  // namespace MSPack
 

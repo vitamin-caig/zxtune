@@ -207,33 +207,31 @@ namespace Formats::Packed
         : Header(header)
         , Stream(Header.BitStream, rawSize - offsetof(RawHeader, BitStream))
         , IsValid(!Stream.Eof())
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
       {
         if (IsValid)
         {
-          Decoded.reserve(rawSize * 2);
+          Decoded = Binary::DataBuilder(rawSize * 2);
           IsValid = DecodeData();
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Decoded.CaptureResult() : Binary::Container::Ptr();
       }
 
     private:
       bool DecodeData()
       {
         // put first byte
-        Decoded.push_back(Header.FirstByte);
+        Decoded.AddByte(Header.FirstByte);
 
-        while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
+        while (!Stream.Eof() && Decoded.Size() < MAX_DECODED_SIZE)
         {
           //%1,byte
           if (Stream.GetBit())
           {
-            Decoded.push_back(Stream.GetByte());
+            Decoded.AddByte(Stream.GetByte());
             continue;
           }
           uint_t len = Stream.GetLen();
@@ -262,7 +260,7 @@ namespace Formats::Packed
             {
               for (len = 2 * (Stream.GetBits(4) + 6); len; --len)
               {
-                Decoded.push_back(Stream.GetByte());
+                Decoded.AddByte(Stream.GetByte());
               }
             }
           }
@@ -281,7 +279,7 @@ namespace Formats::Packed
             }
           }
         }
-        std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
+        Decoded.Add(Header.LastBytes);
         return true;
       }
 
@@ -289,8 +287,7 @@ namespace Formats::Packed
       const RawHeader& Header;
       Bitstream Stream;
       bool IsValid;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Decoded;
     };
 
     namespace Version1
@@ -379,14 +376,13 @@ namespace Formats::Packed
         explicit DataDecoder(const Container& container)
           : IsValid(container.FastCheck())
           , Header(container.GetHeader())
-          , Result(new Binary::Dump())
         {
           IsValid = IsValid && DecodeData();
         }
 
-        std::unique_ptr<Binary::Dump> GetResult()
+        Binary::Container::Ptr GetResult()
         {
-          return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+          return IsValid ? Binary::Container::Ptr(std::move(Result)) : Binary::Container::Ptr();
         }
 
       private:
@@ -396,19 +392,18 @@ namespace Formats::Packed
           if (0 != (Header.Flag & Header.NO_COMPRESSION))
           {
             // just copy
-            Result->resize(size);
-            std::memcpy(Result->data(), &Header.Stream, size);
+            Result = Binary::CreateContainer(Binary::View{&Header.Stream, size});
             return true;
           }
           RawDataDecoder decoder(Header.Stream, Header.PackedSize);
           Result = decoder.GetResult();
-          return nullptr != Result.get();
+          return !!Result;
         }
 
       private:
         bool IsValid;
         const FormatHeader& Header;
-        std::unique_ptr<Binary::Dump> Result;
+        Binary::Container::Ptr Result;
       };
     }  // namespace Version1
 
@@ -461,7 +456,7 @@ namespace Formats::Packed
         {
           if (Blocks.empty())
           {
-            return Binary::Container::Ptr();
+            return {};
           }
           if (1 == Blocks.size())
           {
@@ -470,14 +465,12 @@ namespace Formats::Packed
           const std::size_t totalSize =
               std::accumulate(Blocks.begin(), Blocks.end(), std::size_t(0),
                               [](std::size_t size, const Binary::Container::Ptr& data) { return size + data->Size(); });
-          std::unique_ptr<Binary::Dump> result(new Binary::Dump(totalSize));
-          auto* target = result->data();
+          Binary::DataBuilder result(totalSize);
           for (const auto& block : Blocks)
           {
-            std::memcpy(target, block->Start(), block->Size());
-            target += block->Size();
+            result.Add(*block);
           }
-          return Binary::CreateContainer(std::move(result));
+          return result.CaptureResult();
         }
 
       private:
@@ -490,11 +483,11 @@ namespace Formats::Packed
         {
           const RawHeader& block = *safe_ptr_cast<const RawHeader*>(data.Start());
           RawDataDecoder decoder(block, data.Size());
-          return Binary::CreateContainer(decoder.GetResult());
+          return decoder.GetResult();
         }
         else
         {
-          return Binary::Container::Ptr();
+          return {};
         }
       }
 

@@ -128,19 +128,17 @@ namespace Formats::Packed
       explicit DataDecoder(Binary::View data)
         : IsValid(data.Size() >= MIN_SIZE)
         , Stream(data.SubView(DEPACKER_SIZE))
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
       {
         if (IsValid)
         {
-          Decoded.reserve(data.Size() * 2);
+          Decoded = Binary::DataBuilder(data.Size() * 2);
           IsValid = DecodeData();
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Decoded.CaptureResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
@@ -153,12 +151,12 @@ namespace Formats::Packed
       {
         try
         {
-          Decoded.push_back(Stream.GetByte());
-          while (Decoded.size() < MAX_DECODED_SIZE)
+          Decoded.AddByte(Stream.GetByte());
+          while (Decoded.Size() < MAX_DECODED_SIZE)
           {
             if (Stream.GetBit())
             {
-              Decoded.push_back(Stream.GetByte());
+              Decoded.AddByte(Stream.GetByte());
               continue;
             }
             const uint_t code = Stream.GetBits(2);
@@ -182,7 +180,7 @@ namespace Formats::Packed
               const uint_t len = Stream.GetLen();
               if (len == 9)
               {
-                Require(Decoded.size() >= MIN_DECODED_SIZE);
+                Require(Decoded.Size() >= MIN_DECODED_SIZE);
                 return true;
               }
               else
@@ -202,8 +200,7 @@ namespace Formats::Packed
     private:
       bool IsValid;
       Bitstream Stream;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Decoded;
     };
   }  // namespace MegaLZ
 

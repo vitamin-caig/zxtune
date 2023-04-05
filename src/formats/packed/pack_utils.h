@@ -13,6 +13,7 @@
 // common includes
 #include <types.h>
 // library includes
+#include <binary/data_builder.h>
 #include <binary/dump.h>
 // std includes
 #include <algorithm>
@@ -79,19 +80,36 @@ void RecursiveCopy(ConstIterator srcBegin, ConstIterator srcEnd, Iterator dstBeg
   }
 }
 
-// offset to back
-inline bool CopyFromBack(std::size_t offset, Binary::Dump& dst, std::size_t count)
+inline void Reverse(Binary::DataBuilder& data)
 {
-  const std::size_t size = dst.size();
-  if (offset > size)
+  auto* start = &data.Get<uint8_t>(0);
+  auto* end = start + data.Size();
+  std::reverse(start, end);
+}
+
+inline void Fill(Binary::DataBuilder& data, std::size_t count, uint8_t byte)
+{
+  auto* dst = static_cast<uint8_t*>(data.Allocate(count));
+  std::fill_n(dst, count, byte);
+}
+
+template<class T>
+inline void Generate(Binary::DataBuilder& data, std::size_t count, T generator)
+{
+  auto* dst = static_cast<uint8_t*>(data.Allocate(count));
+  std::generate_n(dst, count, std::move(generator));
+}
+
+// offset to back
+inline bool CopyFromBack(std::size_t offset, Binary::DataBuilder& dst, std::size_t count)
+{
+  if (offset > dst.Size())
   {
     return false;  // invalid backref
   }
-  dst.resize(size + count);
-  const Binary::Dump::iterator dstStart = dst.begin() + size;
-  const Binary::Dump::const_iterator srcStart = dstStart - offset;
-  const Binary::Dump::const_iterator srcEnd = srcStart + count;
-  RecursiveCopy(srcStart, srcEnd, dstStart);
+  auto* dstStart = static_cast<uint8_t*>(dst.Allocate(count));
+  const auto* srcStart = dstStart - offset;
+  RecursiveCopy(srcStart, srcStart + count, dstStart);
   return true;
 }
 

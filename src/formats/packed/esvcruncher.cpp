@@ -306,8 +306,6 @@ namespace Formats::Packed
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
         , Stream(Header.Data, Header.SizeOfPacked)
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
       {
         if (IsValid && !Stream.Eof())
         {
@@ -315,28 +313,28 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Decoded.CaptureResult() : Binary::Container::Ptr();
       }
 
     private:
       bool DecodeData()
       {
         const uint_t unpackedSize = 1 + Header.LastOfDepacked - ((Header.DepackedLimit + 1) & 0xffff);
-        Decoded.reserve(unpackedSize);
-        while (!Stream.Eof() && Decoded.size() < unpackedSize)
+        Decoded = Binary::DataBuilder(unpackedSize);
+        while (!Stream.Eof() && Decoded.Size() < unpackedSize)
         {
           if (!Stream.GetBit())
           {
-            Decoded.push_back(Stream.GetByte());
+            Decoded.AddByte(Stream.GetByte());
           }
           else if (!DecodeCmd())
           {
             return false;
           }
         }
-        std::reverse(Decoded.begin(), Decoded.end());
+        Reverse(Decoded);
         return true;
       }
 
@@ -390,7 +388,7 @@ namespace Formats::Packed
             return 0x221 + Stream.GetBits(Header.WindowSize);
           }
           const uint_t size = 0x0a + Stream.GetBits(5);
-          std::generate_n(std::back_inserter(Decoded), size, std::bind(&Bitstream::GetByte, &Stream));
+          Generate(Decoded, size, std::bind(&Bitstream::GetByte, &Stream));
           return 0;
         }
         //%0
@@ -407,8 +405,7 @@ namespace Formats::Packed
       bool IsValid;
       const RawHeader& Header;
       Bitstream Stream;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Decoded;
     };
   }  // namespace ESVCruncher
 

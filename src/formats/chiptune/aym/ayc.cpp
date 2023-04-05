@@ -17,6 +17,7 @@
 #include <make_ptr.h>
 #include <pointers.h>
 // library includes
+#include <binary/dump.h>
 #include <binary/format_factories.h>
 // std includes
 #include <array>
@@ -56,7 +57,7 @@ namespace Formats::Chiptune
     public:
       void SetFrames(std::size_t /*count*/) override {}
       void StartChannel(uint_t /*idx*/) override {}
-      void AddValues(const Binary::Dump& /*values*/) override {}
+      void AddValues(Binary::View /*values*/) override {}
     };
 
     bool FastCheck(Binary::View rawData)

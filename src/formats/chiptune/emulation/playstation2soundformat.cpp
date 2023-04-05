@@ -16,6 +16,7 @@
 // library includes
 #include <binary/compression/zlib_container.h>
 #include <binary/container_factories.h>
+#include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -70,8 +71,7 @@ namespace Formats::Chiptune
 
       const void* Start() const override
       {
-        Flatten();
-        return Flattened->data();
+        return Merge().Start();
       }
 
       std::size_t Size() const override
@@ -81,12 +81,12 @@ namespace Formats::Chiptune
 
       Ptr GetSubcontainer(std::size_t offset, std::size_t size) const override
       {
-        if (!Flattened)
+        if (!Merged)
         {
           const auto it = Blocks.lower_bound(offset);
           if (it == Blocks.end() || it->first + it->second->Size() <= offset)
           {
-            return Ptr();
+            return {};
           }
           const auto& part = it->second;
           const auto partOffset = offset - it->first;
@@ -99,9 +99,8 @@ namespace Formats::Chiptune
           {
             return part->GetSubcontainer(partOffset, size);
           }
-          Flatten();
         }
-        return Binary::CreateContainer(Flattened, offset, size);
+        return Merge().GetSubcontainer(offset, size);
       }
 
       static Ptr Create(FileBlocks blocks, std::size_t totalSize)
@@ -118,26 +117,25 @@ namespace Formats::Chiptune
       }
 
     private:
-      void Flatten() const
+      const Binary::Container& Merge() const
       {
-        if (!Flattened)
+        if (!Merged)
         {
-          Flattened.reset(new Binary::Dump(TotalSize));
-          uint8_t* dst = Flattened->data();
+          Binary::DataBuilder res(TotalSize);
           for (const auto& blk : Blocks)
           {
-            const auto size = blk.second->Size();
-            std::memcpy(dst, blk.second->Start(), size);
-            dst += size;
+            res.Add(*blk.second);
           }
           Blocks.clear();
+          Merged = res.CaptureResult();
         }
+        return *Merged;
       }
 
     private:
       const std::size_t TotalSize;
       mutable FileBlocks Blocks;
-      mutable std::shared_ptr<Binary::Dump> Flattened;
+      mutable Binary::Container::Ptr Merged;
     };
 
     class Format

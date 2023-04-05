@@ -43,11 +43,5 @@ namespace Formats
     {
       return origSize && data && data->Size() ? MakePtr<PackedContainer>(std::move(data), origSize) : Container::Ptr();
     }
-
-    Container::Ptr CreateContainer(std::unique_ptr<Binary::Dump> data, std::size_t origSize)
-    {
-      auto container = Binary::CreateContainer(std::move(data));
-      return CreateContainer(std::move(container), origSize);
-    }
   }  // namespace Packed
 }  // namespace Formats

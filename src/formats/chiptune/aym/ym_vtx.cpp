@@ -16,6 +16,7 @@
 #include <contract.h>
 #include <make_ptr.h>
 // library includes
+#include <binary/dump.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -236,7 +237,7 @@ namespace Formats::Chiptune
       void SetChipType(bool /*ym*/) override {}
       void SetStereoMode(uint_t /*mode*/) override {}
       void SetLoop(uint_t /*loop*/) override {}
-      void SetDigitalSample(uint_t /*idx*/, const Binary::Dump& /*data*/) override {}
+      void SetDigitalSample(uint_t /*idx*/, Binary::View /*data*/) override {}
       void SetClockrate(uint64_t /*freq*/) override {}
       void SetIntFreq(uint_t /*freq*/) override {}
       void SetTitle(const String& /*title*/) override {}
@@ -246,7 +247,7 @@ namespace Formats::Chiptune
       void SetProgram(const String& /*program*/) override {}
       void SetEditor(const String& /*editor*/) override {}
 
-      void AddData(const Binary::Dump& /*registers*/) override {}
+      void AddData(Binary::View /*registers*/) override {}
     };
 
     bool FastCheck(const Binary::Container& rawData)
@@ -260,7 +261,7 @@ namespace Formats::Chiptune
     void ParseTransponedMatrix(Binary::View input, std::size_t rows, std::size_t columns, Builder& target)
     {
       Require(rows != 0);
-      const auto data = input.As<uint8_t>();
+      const auto* data = input.As<uint8_t>();
       for (std::size_t row = 0; row != rows; ++row)
       {
         Binary::Dump registers(columns);
@@ -274,23 +275,19 @@ namespace Formats::Chiptune
 
     void ParseMatrix(Binary::View input, std::size_t rows, std::size_t columns, Builder& target)
     {
+      static const uint8_t ZEROES[sizeof(Ver5::RegistersDump)] = {0};
       Require(rows != 0);
-      const auto *cursor = input.As<uint8_t>(), *limit = cursor + input.Size();
-      for (std::size_t row = 0; row != rows; ++row)
+      for (std::size_t row = 0, offset = 0; row != rows; ++row, offset += columns)
       {
-        const uint8_t* const nextCursor = cursor + columns;
-        if (nextCursor <= limit)
+        const auto line = input.SubView(offset, columns);
+        if (line.Size() == columns)
         {
-          const Binary::Dump registers(cursor, nextCursor);
-          target.AddData(registers);
+          target.AddData(line);
         }
         else
         {
-          Binary::Dump registers = cursor < limit ? Binary::Dump(cursor, limit) : Binary::Dump();
-          registers.resize(columns);
-          target.AddData(registers);
+          target.AddData({ZEROES, columns});
         }
-        cursor = nextCursor;
       }
     }
 

@@ -316,8 +316,6 @@ namespace Formats::Packed
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
         , Stream(Header.Data, Header.SizeOfPacked)
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
       {
         if (IsValid)
         {
@@ -325,30 +323,30 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Decoded.CaptureResult() : Binary::Container::Ptr();
       }
 
     private:
       bool DecodeData()
       {
         const uint_t unpackedSize = Header.LastOfDepacked - Header.DepackedLimit;
-        Decoded.reserve(unpackedSize);
+        Decoded = Binary::DataBuilder(unpackedSize);
         try
         {
-          while (Decoded.size() < unpackedSize)
+          while (Decoded.Size() < unpackedSize)
           {
             if (!Stream.GetBit())
             {
-              Decoded.push_back(Stream.Get8Bits());
+              Decoded.AddByte(Stream.Get8Bits());
             }
             else if (!DecodeCmd())
             {
               return false;
             }
           }
-          std::reverse(Decoded.begin(), Decoded.end());
+          Reverse(Decoded);
           return true;
         }
         catch (const std::exception&)
@@ -420,15 +418,14 @@ namespace Formats::Packed
       void CopySingleBytes()
       {
         const uint_t count = 14 + Stream.GetBits(5);
-        std::generate_n(std::back_inserter(Decoded), count, std::bind(&Bitstream::Get8Bits, &Stream));
+        Generate(Decoded, count, std::bind(&Bitstream::Get8Bits, &Stream));
       }
 
     private:
       bool IsValid;
       const RawHeader& Header;
       Bitstream Stream;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Decoded;
     };
   }  // namespace DataSquieezer
 

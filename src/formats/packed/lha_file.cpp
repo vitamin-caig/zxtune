@@ -46,14 +46,15 @@ namespace Formats::Packed::Lha
       Binary::InputStream input(rawData);
       const std::shared_ptr<LHADecoder> decoder(::lha_decoder_new(Type, &ReadData, &input, outputSize),
                                                 &::lha_decoder_free);
-      std::unique_ptr<Binary::Dump> result(new Binary::Dump(outputSize));
-      if (const std::size_t decoded = ::lha_decoder_read(decoder.get(), result->data(), outputSize))
+      Binary::DataBuilder result;
+      if (const std::size_t decoded =
+              ::lha_decoder_read(decoder.get(), static_cast<uint8_t*>(result.Allocate(outputSize)), outputSize))
       {
         const std::size_t originalSize = input.GetPosition();
         Dbg("Decoded {} -> {} bytes", originalSize, outputSize);
-        return CreateContainer(std::move(result), originalSize);
+        return CreateContainer(result.CaptureResult(), originalSize);
       }
-      return Formats::Packed::Container::Ptr();
+      return {};
     }
 
   private:

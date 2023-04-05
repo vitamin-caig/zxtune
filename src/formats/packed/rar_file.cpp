@@ -15,7 +15,6 @@
 // common includes
 #include <make_ptr.h>
 // library includes
-#include <binary/container_factories.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -175,15 +174,15 @@ namespace Formats::Packed
       {
         try
         {
-          std::unique_ptr<Binary::Dump> result(new Binary::Dump(outSize));
-          Stream.SetUnpackToMemory(result->data(), outSize);
+          Binary::DataBuilder result(outSize);
+          Stream.SetUnpackToMemory(static_cast<byte*>(result.Allocate(outSize)), outSize);
           Decoder.SetDestSize(outSize);
           Decoder.DoUnpack(method, isSolid);
           if (crc != Stream.GetUnpackedCrc())
           {
             Dbg("Crc mismatch: stored 0x{:08x}, calculated 0x{:08x}", crc, Stream.GetUnpackedCrc());
           }
-          return Binary::CreateContainer(std::move(result));
+          return result.CaptureResult();
         }
         catch (const std::exception& e)
         {

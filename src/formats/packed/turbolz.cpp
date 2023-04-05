@@ -309,19 +309,17 @@ namespace Formats::Packed
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
         , Stream(container.GetPackedData(), container.GetPackedDataSize())
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
       {
         if (IsValid && !Stream.Eof())
         {
-          typename Version::KeyFunc keyFunctor = container.GetKeyFunc();
+          auto keyFunctor = container.GetKeyFunc();
           IsValid = DecodeData(keyFunctor);
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Decoded.CaptureResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
@@ -333,13 +331,14 @@ namespace Formats::Packed
       template<class KeyFunc>
       bool DecodeData(KeyFunc& keyFunctor)
       {
-        while (!Stream.Eof() && Decoded.size() < MAX_DECODED_SIZE)
+        Decoded = Binary::DataBuilder(MAX_DECODED_SIZE);
+        while (!Stream.Eof() && Decoded.Size() < MAX_DECODED_SIZE)
         {
           const uint_t token = Stream.GetByte();
           if (!token)
           {
             //%00000000 - exit
-            Decoded.push_back(Header.LastByte);
+            Decoded.AddByte(Header.LastByte);
             Simple::KeyFunc noDecode;
             CopyNonPacked(Stream.GetRestBytes(), noDecode);
             return true;
@@ -365,7 +364,7 @@ namespace Formats::Packed
             uint8_t incMarker = 63 + 3;
             for (uint_t len = initCount + 3; len;)
             {
-              std::fill_n(std::back_inserter(Decoded), len, data);
+              Fill(Decoded, len, data);
               if (len != incMarker)
               {
                 break;
@@ -409,7 +408,7 @@ namespace Formats::Packed
         {
           const uint8_t data = Stream.GetByte();
           const uint8_t key = keyFunctor();
-          Decoded.push_back(data ^ key);
+          Decoded.AddByte(data ^ key);
         }
         return len == 0;
       }
@@ -418,8 +417,7 @@ namespace Formats::Packed
       bool IsValid;
       const typename Version::RawHeader& Header;
       ByteStream Stream;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Decoded;
     };
   }  // namespace TurboLZ
 

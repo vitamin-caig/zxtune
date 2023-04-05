@@ -15,6 +15,7 @@
 // library includes
 #include <binary/container_base.h>
 #include <binary/container_factories.h>
+#include <binary/data_builder.h>
 #include <strings/format.h>
 // std includes
 #include <cassert>
@@ -330,21 +331,17 @@ namespace TRDos
       {
         return Subfiles.front()->GetData();
       }
-      std::unique_ptr<Binary::Dump> res(new Binary::Dump(GetSize()));
-      auto* dst = res->data();
+      Binary::DataBuilder res(GetSize());
       for (const auto& file : Subfiles)
       {
-        const Binary::Container::Ptr data = file->GetData();
+        const auto data = file->GetData();
         if (!data)
         {
-          return data;
+          return {};
         }
-        const std::size_t size = data->Size();
-        assert(size == file->GetSize());
-        std::memcpy(dst, data->Start(), size);
-        dst += size;
+        res.Add(*data);
       }
-      return Binary::CreateContainer(std::move(res));
+      return res.CaptureResult();
     }
 
     std::size_t GetOffset() const override

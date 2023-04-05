@@ -14,7 +14,7 @@
 #include <types.h>
 // library includes
 #include <binary/container.h>
-#include <binary/dump.h>
+#include <binary/view.h>
 
 namespace Formats
 {
@@ -45,7 +45,7 @@ namespace Formats
     virtual ~ImageBuilder() = default;
 
     virtual void SetGeometry(const CHS& geometry) = 0;
-    virtual void SetSector(const CHS& location, Binary::Dump data) = 0;
+    virtual void SetSector(const CHS& location, Binary::View data) = 0;
 
     virtual Binary::Container::Ptr GetResult() const = 0;
   };

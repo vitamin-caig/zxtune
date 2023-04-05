@@ -307,15 +307,13 @@ namespace Formats::Packed
     public:
       BitstreamDecoder(const uint8_t* data, std::size_t size)
         : Stream(data, size)
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
       {
         assert(!Stream.Eof());
       }
 
       bool DecodeMainData()
       {
-        while (GetSingleBytes() && Decoded.size() < MAX_DECODED_SIZE)
+        while (GetSingleBytes() && Decoded.Size() < MAX_DECODED_SIZE)
         {
           const uint_t index = GetIndex();
           uint_t offset = 0;
@@ -355,7 +353,7 @@ namespace Formats::Packed
       {
         while (Stream.GetBit())
         {
-          Decoded.push_back(Stream.GetByte());
+          Decoded.AddByte(Stream.GetByte());
         }
         return !Stream.Eof();
       }
@@ -410,8 +408,7 @@ namespace Formats::Packed
 
     protected:
       Bitstream Stream;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Decoded;
     };
 
     template<class Version>
@@ -430,9 +427,9 @@ namespace Formats::Packed
         }
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Decoded.CaptureResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
@@ -443,13 +440,13 @@ namespace Formats::Packed
     private:
       bool DecodeData()
       {
-        Decoded.reserve(2 * Header.SizeOfPacked);
+        Decoded = Binary::DataBuilder(2 * Header.SizeOfPacked);
 
         if (!DecodeMainData())
         {
           return false;
         }
-        std::copy(Header.LastBytes, std::end(Header.LastBytes), std::back_inserter(Decoded));
+        Decoded.Add(Header.LastBytes);
         return true;
       }
 

@@ -126,7 +126,7 @@ namespace Formats::Chiptune
         {
           std::memcpy(res.data() + size1, data2.Start(), size2);
         }
-        Add(idx, loop, res);
+        Add(idx, loop, std::move(res));
       }
 
       void Add(uint_t idx, std::size_t loop, Binary::Dump data)

@@ -180,9 +180,8 @@ namespace Formats::Packed
           const std::size_t rawSectorSize = GetSectorDataSize(trackInfo.SectorSize);
           const std::size_t usedSectorSize = GetSectorDataSize(sectorInfo.Size);
           Require(rawSectorSize >= usedSectorSize);
-          const auto sectorData = trackStream.ReadData(rawSectorSize).As<uint8_t>();
-          Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector),
-                           Binary::Dump(sectorData, sectorData + usedSectorSize));
+          const auto sectorData = trackStream.ReadData(rawSectorSize);
+          Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector), sectorData);
         }
       }
 
@@ -199,7 +198,7 @@ namespace Formats::Packed
           {
             const auto sectorData = trackStream.ReadData(sectorSize).As<uint8_t>();
             Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector),
-                             Binary::Dump(sectorData, sectorData + sectorSize));
+                             Binary::View(sectorData, sectorSize));
           }
         }
       }

@@ -14,7 +14,7 @@ namespace
 {
   void TestArchive()
   {
-    const Formats::Archived::Decoder::Ptr archived = Formats::Archived::CreateLhaDecoder();
+    const auto archived = Formats::Archived::CreateLhaDecoder();
     std::vector<std::string> files;
     files.push_back("lh0");
     files.push_back("lh5");
@@ -23,7 +23,7 @@ namespace
 
   void TestArchiveWithPath()
   {
-    const Formats::Archived::Decoder::Ptr archived = Formats::Archived::CreateLhaDecoder();
+    const auto archived = Formats::Archived::CreateLhaDecoder();
     std::vector<std::string> files;
     files.push_back("test/lh0");
     files.push_back("test/lh5");
@@ -32,7 +32,7 @@ namespace
 
   void TestArchiveWithFolder()
   {
-    const Formats::Archived::Decoder::Ptr archived = Formats::Archived::CreateLhaDecoder();
+    const auto archived = Formats::Archived::CreateLhaDecoder();
     std::vector<std::string> files;
     files.push_back("test/lh0");
     files.push_back("test/lh5");

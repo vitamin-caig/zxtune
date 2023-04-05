@@ -150,23 +150,23 @@ namespace Formats::Packed
     public:
       virtual ~ImageVisitor() = default;
 
-      virtual void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type,
+      virtual void OnSector(const Formats::CHS& loc, Binary::View data, SectorDataType type,
                             std::size_t targetSize) = 0;
     };
 
     class StubImageVisitor : public ImageVisitor
     {
     public:
-      void OnSector(const Formats::CHS& /*loc*/, const uint8_t* /*rawData*/, std::size_t rawSize, SectorDataType type,
+      void OnSector(const Formats::CHS& /*loc*/, Binary::View data, SectorDataType type,
                     std::size_t targetSize) override
       {
         switch (type)
         {
         case RAW_SECTOR:
-          Require(rawSize == targetSize);
+          Require(data.Size() == targetSize);
           break;
         case R2P_SECTOR:
-          Require(rawSize % sizeof(R2PEntry) == 0);
+          Require(data.Size() % sizeof(R2PEntry) == 0);
           break;
         default:
           break;
@@ -174,27 +174,25 @@ namespace Formats::Packed
       }
     };
 
-    void DecodeR2P(const uint8_t* data, std::size_t size, Binary::Dump& result)
+    Binary::Container::Ptr DecodeR2P(Binary::View data)
     {
-      Require(size % sizeof(R2PEntry) == 0);
-      Binary::Dump tmp;
-      tmp.reserve(MAX_SECTOR_SIZE);
-      for (const R2PEntry *it = safe_ptr_cast<const R2PEntry*>(data), *lim = it + size / sizeof(*it); it != lim; ++it)
+      Require(data.Size() % sizeof(R2PEntry) == 0);
+      Binary::DataBuilder tmp(MAX_SECTOR_SIZE);
+      for (const R2PEntry *it = data.As<R2PEntry>(), *lim = it + data.Size() / sizeof(*it); it != lim; ++it)
       {
         const uint_t count = it->Count;
         Require(count != 0);
-        tmp.push_back(it->Data[0]);
-        tmp.push_back(it->Data[1]);
+        tmp.AddByte(it->Data[0]);
+        tmp.AddByte(it->Data[1]);
         Require(CopyFromBack(sizeof(it->Data), tmp, sizeof(it->Data) * (count - 1)));
       }
-      result.swap(tmp);
+      return tmp.CaptureResult();
     }
 
-    void DecodeRLE(const uint8_t* data, std::size_t size, Binary::Dump& result)
+    Binary::Container::Ptr DecodeRLE(Binary::View data)
     {
-      Binary::Dump tmp;
-      tmp.reserve(MAX_SECTOR_SIZE);
-      ByteStream stream(data, size);
+      Binary::DataBuilder tmp(MAX_SECTOR_SIZE);
+      ByteStream stream(data.As<uint8_t>(), data.Size());
       while (!stream.Eof())
       {
         const uint_t len = 2 * stream.GetByte();
@@ -207,14 +205,14 @@ namespace Formats::Packed
         Require(stream.GetRestBytes() >= blockSize);
         for (uint_t idx = 0; idx != blockSize; ++idx)
         {
-          tmp.push_back(stream.GetByte());
+          tmp.AddByte(stream.GetByte());
         }
         if (isRLE)
         {
           Require(CopyFromBack(len, tmp, len * (count - 1)));
         }
       }
-      result.swap(tmp);
+      return tmp.CaptureResult();
     }
 
     class ImageVisitorAdapter : public ImageVisitor
@@ -224,28 +222,30 @@ namespace Formats::Packed
         : Builder(std::move(builder))
       {}
 
-      void OnSector(const Formats::CHS& loc, const uint8_t* rawData, std::size_t rawSize, SectorDataType type,
-                    std::size_t targetSize) override
+      void OnSector(const Formats::CHS& loc, Binary::View data, SectorDataType type, std::size_t targetSize) override
       {
-        Binary::Dump result;
         switch (type)
         {
         case RAW_SECTOR:
-          result.assign(rawData, rawData + rawSize);
+          Require(targetSize == data.Size());
+          Builder->SetSector(loc, data);
           break;
         case R2P_SECTOR:
-          DecodeR2P(rawData, rawSize, result);
+          Sectors.push_back(DecodeR2P(data));
+          Require(targetSize == Sectors.back()->Size());
+          Builder->SetSector(loc, *Sectors.back());
           break;
         case RLE_SECTOR:
-          DecodeRLE(rawData, rawSize, result);
+          Sectors.push_back(DecodeRLE(data));
+          Require(targetSize == Sectors.back()->Size());
+          Builder->SetSector(loc, *Sectors.back());
           break;
         }
-        Require(result.size() == targetSize);
-        Builder->SetSector(loc, result);
       }
 
     private:
       const Formats::ImageBuilder::Ptr Builder;
+      std::vector<Binary::Container::Ptr> Sectors;
     };
 
     class SourceStream
@@ -303,7 +303,7 @@ namespace Formats::Packed
           if (!sector.NoId())
           {
             const Formats::CHS loc(sector.Cylinder, track.Head, sector.Number);
-            visitor.OnSector(loc, rawData, dataSize, static_cast<SectorDataType>(srcDataDesc.Method), sectorSize);
+            visitor.OnSector(loc, {rawData, dataSize}, static_cast<SectorDataType>(srcDataDesc.Method), sectorSize);
           }
         }
       }
@@ -337,15 +337,15 @@ namespace Formats::Packed
             return 0;
           }
           const std::size_t packedSize = rawData.Size() - sizeof(header);
-          const Binary::Container::Ptr packed = rawData.GetSubcontainer(sizeof(header), packedSize);
-          if (const Formats::Packed::Container::Ptr fullDecoded =
+          const auto packed = rawData.GetSubcontainer(sizeof(header), packedSize);
+          if (const auto fullDecoded =
                   Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, MAX_IMAGE_SIZE))
           {
             SourceStream subStream(*fullDecoded);
             ParseSectors(subStream, visitor);
             const std::size_t usedInPacked = subStream.GetOffset();
             Dbg("Used {} bytes in packed stream", usedInPacked);
-            if (const Formats::Packed::Container::Ptr decoded =
+            if (const auto decoded =
                     Formats::Packed::Lha::DecodeRawDataAtLeast(*packed, COMPRESSION_ALGORITHM, usedInPacked))
             {
               const std::size_t usedSize = decoded->PackedSize();

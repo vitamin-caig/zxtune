@@ -15,12 +15,14 @@
 #include <make_ptr.h>
 #include <pointers.h>
 // library includes
+#include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
 // std includes
 #include <cassert>
 #include <cstring>
+#include <map>
 #include <numeric>
 
 namespace Formats::Packed
@@ -65,28 +67,6 @@ namespace Formats::Packed
     const uint_t MIN_SIDES_COUNT = 1;
     const uint_t MAX_SIDES_COUNT = 2;
     const uint8_t FDI_ID[] = {'F', 'D', 'I'};
-
-    struct SectorDescr
-    {
-      SectorDescr()
-        : Num()
-        , Begin()
-        , End()
-      {}
-      SectorDescr(uint_t num, const uint8_t* beg, const uint8_t* end)
-        : Num(num)
-        , Begin(beg)
-        , End(end)
-      {}
-      uint_t Num;
-      const uint8_t* Begin;
-      const uint8_t* End;
-
-      bool operator<(const SectorDescr& rh) const
-      {
-        return Num < rh.Num;
-      }
-    };
 
     class Container
     {
@@ -149,16 +129,15 @@ namespace Formats::Packed
         : IsValid(container.FastCheck())
         , Header(container.GetHeader())
         , Limit(container.GetSize())
-        , Result(new Binary::Dump())
-        , Decoded(*Result)
+        , Result(FDI_MAX_SIZE)
         , UsedSize(0)
       {
         IsValid = DecodeData();
       }
 
-      std::unique_ptr<Binary::Dump> GetResult()
+      Binary::Container::Ptr GetResult()
       {
-        return IsValid ? std::move(Result) : std::unique_ptr<Binary::Dump>();
+        return IsValid ? Result.CaptureResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize()
@@ -174,8 +153,6 @@ namespace Formats::Packed
         const uint_t cylinders = Header.Cylinders;
         const uint_t sides = Header.Sides;
 
-        Binary::Dump result;
-        result.reserve(FDI_MAX_SIZE);
         std::size_t trackInfoOffset = sizeof(Header) + Header.InfoSize;
         std::size_t rawSize = dataOffset;
         for (uint_t cyl = 0; cyl != cylinders; ++cyl)
@@ -188,10 +165,8 @@ namespace Formats::Packed
             }
 
             const RawTrack* const trackInfo = safe_ptr_cast<const RawTrack*>(rawData + trackInfoOffset);
-            typedef std::vector<SectorDescr> SectorDescrs;
             // collect sectors reference
-            SectorDescrs sectors;
-            sectors.reserve(trackInfo->SectorsCount);
+            std::map<uint_t, Binary::View> sectors;
             for (std::size_t secNum = 0; secNum != trackInfo->SectorsCount; ++secNum)
             {
               const RawTrack::Sector* const sector = trackInfo->Sectors + secNum;
@@ -207,23 +182,20 @@ namespace Formats::Packed
               {
                 return false;
               }
-              sectors.push_back(SectorDescr(sector->Number, rawData + offset, rawData + offset + secSize));
+              sectors.emplace(sector->Number, Binary::View{rawData + offset, secSize});
               rawSize = std::max(rawSize, offset + secSize);
             }
 
-            // sort by number
-            std::sort(sectors.begin(), sectors.end());
             // and gather data
-            for (SectorDescrs::const_iterator it = sectors.begin(), lim = sectors.end(); it != lim; ++it)
+            for (const auto& s : sectors)
             {
-              result.insert(result.end(), it->Begin, it->End);
+              Result.Add(s.second);
             }
             // calculate next track by offset
             trackInfoOffset += sizeof(*trackInfo) + (trackInfo->SectorsCount - 1) * sizeof(trackInfo->Sectors);
           }
         }
         UsedSize = rawSize;
-        Decoded.swap(result);
         return true;
       }
 
@@ -231,8 +203,7 @@ namespace Formats::Packed
       bool IsValid;
       const RawHeader& Header;
       const std::size_t Limit;
-      std::unique_ptr<Binary::Dump> Result;
-      Binary::Dump& Decoded;
+      Binary::DataBuilder Result;
       std::size_t UsedSize;
     };
 

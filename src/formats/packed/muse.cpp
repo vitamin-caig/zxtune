@@ -69,7 +69,7 @@ namespace Formats::Packed
           const uint_t sign = input.Read<be_uint32_t>();
           Require(sign == 0xdeadbabe || sign == 0xdeadbeaf);
           const std::size_t fileSize = input.Read<le_uint32_t>();
-          /*const uint32_t crc = */input.Read<le_uint32_t>();
+          /*const uint32_t crc = */ input.Read<le_uint32_t>();
           const std::size_t packedSize = input.Read<le_uint32_t>();
           const std::size_t unpackedSize = input.Read<le_uint32_t>();
           const auto packedData = input.ReadData(packedSize);

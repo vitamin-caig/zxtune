@@ -16,7 +16,7 @@
 #include <make_ptr.h>
 // library includes
 #include <binary/crc.h>
-#include <binary/dump.h>
+#include <binary/data_builder.h>
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
@@ -720,19 +720,18 @@ namespace Formats::Chiptune
     public:
       Decompressor(Binary::View data, std::size_t offset, std::size_t targetSize)
         : Stream(data)
-        , Decoded()
       {
-        Decoded.reserve(targetSize);
+        Decoded = Binary::DataBuilder(targetSize);
         for (; offset; --offset)
         {
-          Decoded.push_back(Stream.GetByte());
+          Decoded.AddByte(Stream.GetByte());
         }
         DecodeData(targetSize);
       }
 
       Binary::View GetResult() const
       {
-        return Decoded;
+        return Decoded.GetView();
       }
 
       std::size_t GetUsedSize() const
@@ -746,7 +745,7 @@ namespace Formats::Chiptune
         // use more strict checking due to lack structure
         const uint_t MARKER = 0x80;
         int_t lastByte = -1;
-        while (Decoded.size() < targetSize)
+        while (Decoded.Size() < targetSize)
         {
           const uint_t sym = Stream.GetByte();
           if (sym == MARKER)
@@ -755,29 +754,26 @@ namespace Formats::Chiptune
             {
               Require(counter > 1);
               Require(lastByte != -1);
-              const std::size_t oldSize = Decoded.size();
-              const std::size_t newSize = oldSize + counter - 1;
-              Require(newSize <= targetSize);
-              Decoded.resize(newSize, lastByte);
+              std::memset(Decoded.Allocate(counter - 1), lastByte, counter - 1);
               // disable doubled sequences
               lastByte = -1;
             }
             else
             {
-              Decoded.push_back(MARKER);
+              Decoded.AddByte(MARKER);
             }
           }
           else
           {
-            Decoded.push_back(lastByte = sym);
+            Decoded.AddByte(lastByte = sym);
           }
         }
-        Require(Decoded.size() == targetSize);
+        Require(Decoded.Size() == targetSize);
       }
 
     private:
       ByteStream Stream;
-      Binary::Dump Decoded;
+      Binary::DataBuilder Decoded;
     };
 
     StringView Trim(StringView str)

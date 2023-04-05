@@ -123,14 +123,12 @@ namespace Formats::Chiptune
             const auto totalSize =
                 std::accumulate(Parts.begin(), Parts.end(), std::size_t(0),
                                 [](std::size_t sum, Binary::View part) { return sum + part.Size(); });
-            Buffer.resize(totalSize);
-            auto* target = Buffer.data();
+            Buffer = Binary::DataBuilder(totalSize);
             for (const auto& p : Parts)
             {
-              std::memcpy(target, p.Start(), p.Size());
-              target += p.Size();
+              Buffer.Add(p);
             }
-            return Buffer;
+            return Buffer.GetView();
           }
 
         private:
@@ -139,7 +137,7 @@ namespace Formats::Chiptune
           std::size_t Offset = 0;
           uint64_t Position = 0;
           std::vector<Binary::View> Parts;
-          Binary::Dump Buffer;
+          Binary::DataBuilder Buffer;
         };
         std::vector<StreamData> streams;
         StreamData* currentStream = nullptr;
