@@ -20,6 +20,7 @@
 #include <progress_callback.h>
 // library includes
 #include <binary/container_factories.h>
+#include <binary/data_builder.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
 #include <parameters/accessor.h>
@@ -141,9 +142,8 @@ namespace IO::Network
     // TODO: pass callback to handle progress and other
     Binary::Container::Ptr Download()
     {
-      std::unique_ptr<Binary::Dump> result(new Binary::Dump());
-      result->reserve(INITIAL_SIZE);
-      Object.SetOption<void*>(CURLOPT_WRITEDATA, result.get(), THIS_LINE);
+      Binary::DataBuilder result(INITIAL_SIZE);
+      Object.SetOption<void*>(CURLOPT_WRITEDATA, &result, THIS_LINE);
       Object.Perform(THIS_LINE);
       long retCode = 0;
       Object.GetInfo(CURLINFO_RESPONSE_CODE, &retCode, THIS_LINE);
@@ -151,7 +151,7 @@ namespace IO::Network
       {
         throw MakeFormattedError(THIS_LINE, translate("Http error happends: {}."), retCode);
       }
-      return Binary::CreateContainer(std::move(result));
+      return result.CaptureResult();
     }
 
   private:
@@ -182,12 +182,10 @@ namespace IO::Network
       return 0;
     }
 
-    static size_t WriteCallback(const char* ptr, size_t size, size_t nmemb, Binary::Dump* result)
+    static size_t WriteCallback(const char* ptr, size_t size, size_t nmemb, Binary::DataBuilder* result)
     {
       const std::size_t toSave = size * nmemb;
-      const std::size_t prevSize = result->size();
-      result->resize(prevSize + toSave);
-      std::memcpy(result->data() + prevSize, ptr, toSave);
+      result->Add(Binary::View{ptr, toSave});
       return toSave;
     }
 
@@ -393,4 +391,3 @@ namespace IO
     }
   }
 }  // namespace IO
-

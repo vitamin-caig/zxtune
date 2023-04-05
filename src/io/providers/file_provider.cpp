@@ -18,7 +18,7 @@
 #include <error_tools.h>
 #include <make_ptr.h>
 // library includes
-#include <binary/container_factories.h>
+#include <binary/data_builder.h>
 #include <debug/log.h>
 #include <io/providers_parameters.h>
 #include <parameters/accessor.h>
@@ -222,14 +222,13 @@ namespace IO::File
 
   Binary::Data::Ptr ReadFileToMemory(std::ifstream& stream, std::size_t size)
   {
-    std::unique_ptr<Binary::Dump> res(new Binary::Dump(size));
-    const std::streampos read = stream.read(safe_ptr_cast<char*>(res->data()), size).tellg();
+    Binary::DataBuilder res(size);
+    const std::streampos read = stream.read(static_cast<char*>(res.Allocate(size)), size).tellg();
     if (static_cast<std::size_t>(read) != size)
     {
       throw MakeFormattedError(THIS_LINE, translate("Failed to read {0} bytes. Actually got {1} bytes."), size, read);
     }
-    // TODO: Binary::CreateData
-    return Binary::CreateContainer(std::move(res));
+    return res.CaptureResult();
   }
 
   // since dingux platform does not support wide strings(???) that boost.filesystem v3 requires, specify adapters in
@@ -533,4 +532,3 @@ namespace IO
     enumerator.RegisterProvider(CreateFileDataProvider());
   }
 }  // namespace IO
-

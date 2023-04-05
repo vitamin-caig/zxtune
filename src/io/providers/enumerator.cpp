@@ -220,4 +220,3 @@ namespace IO
     return MakePtr<UnavailableProvider>(id, description, status);
   }
 }  // namespace IO
-
