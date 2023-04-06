@@ -329,4 +329,3 @@ namespace Sound
     return MakePtr<File::BackendWorker>(std::move(params), std::move(properties), std::move(factory));
   }
 }  // namespace Sound
-

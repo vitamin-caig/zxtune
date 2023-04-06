@@ -213,4 +213,3 @@ namespace Sound
     return result;
   }
 }  // namespace Sound
-

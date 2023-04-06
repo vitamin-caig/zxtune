@@ -53,4 +53,3 @@ namespace Sound
     return MakePtr<VolumeControlDelegate>(delegate);
   }
 }  // namespace Sound
-

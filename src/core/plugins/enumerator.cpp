@@ -94,4 +94,3 @@ namespace ZXTune
     AllPlugins::Instance().Enumerate(visitor);
   }
 }  // namespace ZXTune
-

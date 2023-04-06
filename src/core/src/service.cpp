@@ -347,4 +347,3 @@ namespace ZXTune
     return MakePtr<ServiceImpl>(std::move(parameters));
   }
 }  // namespace ZXTune
-

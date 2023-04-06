@@ -267,4 +267,3 @@ namespace Sound
     }
   }
 }  // namespace Sound
-

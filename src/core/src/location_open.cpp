@@ -98,4 +98,3 @@ namespace ZXTune
     return MakePtr<GeneratedLocation>(std::move(data), plugin, path);
   }
 }  // namespace ZXTune
-

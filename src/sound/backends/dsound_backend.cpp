@@ -633,4 +633,3 @@ namespace Sound
     }
   }  // namespace DirectSound
 }  // namespace Sound
-

@@ -1079,4 +1079,3 @@ namespace Sound
     }
   }  // namespace Alsa
 }  // namespace Sound
-

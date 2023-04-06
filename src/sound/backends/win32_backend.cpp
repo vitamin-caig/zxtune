@@ -627,4 +627,3 @@ namespace Sound
     }
   }  // namespace Win32
 }  // namespace Sound
-

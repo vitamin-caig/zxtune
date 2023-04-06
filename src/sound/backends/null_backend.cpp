@@ -61,4 +61,3 @@ namespace Sound
     storage.Register(Null::BACKEND_ID, Null::DESCRIPTION, CAP_TYPE_STUB, factory);
   }
 }  // namespace Sound
-

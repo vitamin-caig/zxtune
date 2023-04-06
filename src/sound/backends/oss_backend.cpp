@@ -386,4 +386,3 @@ namespace Sound
     storage.Register(Oss::BACKEND_ID, Oss::BACKEND_DESCRIPTION, Oss::CAPABILITIES, factory);
   }
 }  // namespace Sound
-

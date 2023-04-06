@@ -306,4 +306,3 @@ namespace Sound
     }
   }
 }  // namespace Sound
-

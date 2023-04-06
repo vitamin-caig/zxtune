@@ -113,7 +113,8 @@ namespace
       if (!Silent)
       {
         // May require encoding, so write via console
-        Console::Self().Write(InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
+        Console::Self().Write(
+            InformationTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::FillFieldsSource>(*props)));
         StdOut << Strings::Format(ITEM_INFO_ADDON, Time::ToString(TotalDuration), Time::ToString(info->LoopDuration()));
       }
       DynamicLines = 0;

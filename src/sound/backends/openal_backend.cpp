@@ -478,4 +478,3 @@ namespace Sound
     }
   }  // namespace OpenAl
 }  // namespace Sound
-

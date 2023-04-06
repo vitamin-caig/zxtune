@@ -269,4 +269,3 @@ namespace Sound
     storage.Register(Wav::BACKEND_ID, Wav::DESCRIPTION, CAP_TYPE_FILE, factory);
   }
 }  // namespace Sound
-

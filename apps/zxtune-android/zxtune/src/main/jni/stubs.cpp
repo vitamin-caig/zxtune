@@ -10,7 +10,8 @@
 
 #include <types.h>
 
-extern "C" char __cxa_demangle(const char*,char*,size_t*,int* status) {
+extern "C" char __cxa_demangle(const char*, char*, size_t*, int* status)
+{
   if (status)
   {
     *status = -1;
