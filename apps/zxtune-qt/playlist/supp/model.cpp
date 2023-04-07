@@ -11,6 +11,7 @@
 // local includes
 #include "model.h"
 #include "storage.h"
+#include "supp/ptr_utils.h"
 #include "supp/thread_utils.h"
 #include "ui/utils.h"
 // common includes
@@ -639,12 +640,14 @@ namespace
 
     void AsyncLoad(Playlist::Item::Data::Ptr item, const QModelIndex& index) const
     {
-      auto* self = const_cast<ModelImpl*>(this);
-      IOThread::Execute([item, self, index]() {
-        if (!item->IsLoaded())
+      IOThread::Execute([weakItem = toWeak(item), self = toWeak(const_cast<ModelImpl*>(this)), index]() {
+        if (auto item = weakItem.lock())
         {
-          item->GetModule();
-          SelfThread::Execute(self, &ModelImpl::NotifyRowChanged, index);
+          if (!item->IsLoaded())
+          {
+            item->GetModule();
+            SelfThread::Execute(self, &ModelImpl::NotifyRowChanged, index);
+          }
         }
       });
     }

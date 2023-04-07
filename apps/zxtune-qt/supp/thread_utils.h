@@ -17,6 +17,7 @@
 // qt includes
 #include <QtCore/QMetaObject>
 #include <QtCore/QObject>
+#include <QtCore/QPointer>
 
 class IOThread : public QObject
 {
@@ -41,6 +42,15 @@ public:
   static void Execute(Self* self, F&& func, P&&... p)
   {
     Require(QMetaObject::invokeMethod(self, std::bind(std::forward<F>(func), self, std::forward<P>(p)...)));
+  }
+
+  template<class Self, class F, class... P>
+  static void Execute(QPointer<Self> self, F&& func, P&&... p)
+  {
+    if (auto* ptr = self.data())
+    {
+      Execute(ptr, std::forward<F>(func), std::forward<P>(p)...);
+    }
   }
 };
 

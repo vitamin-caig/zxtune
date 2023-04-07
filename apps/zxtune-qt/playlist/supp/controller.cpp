@@ -12,6 +12,7 @@
 #include "controller.h"
 #include "model.h"
 #include "scanner.h"
+#include "supp/ptr_utils.h"
 #include "supp/thread_utils.h"
 #include "ui/utils.h"
 // common includes
@@ -116,9 +117,12 @@ namespace
       {
         if (!item->IsLoaded())
         {
-          IOThread::Execute([item, idx, this]() {
-            item->GetModule();
-            SelfThread::Execute(this, &ItemIteratorImpl::SetItem, idx, std::move(item));
+          IOThread::Execute([weakItem = toWeak(item), idx, self = toWeak(this)]() {
+            if (auto item = weakItem.lock())
+            {
+              item->GetModule();
+              SelfThread::Execute(self, &ItemIteratorImpl::SetItem, idx, std::move(item));
+            }
           });
           return true;
         }
