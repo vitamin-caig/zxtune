@@ -343,19 +343,26 @@ namespace Formats::Archived
       const std::size_t totalSize = sizeof(hdr) + hdr.NextHeaderOffset + hdr.NextHeaderSize;
       auto archiveData = rawData.GetSubcontainer(0, totalSize);
 
-      const SevenZip::Archive::Ptr archive = MakePtr<SevenZip::Archive>(archiveData);
-      const auto totalFiles = archive->GetFilesCount();
-      std::vector<File::Ptr> files;
-      files.reserve(totalFiles);
-      for (uint_t idx = 0; idx < totalFiles; ++idx)
+      try
       {
-        if (archive->IsDir(idx) || 0 == archive->GetFileSize(idx))
+        const SevenZip::Archive::Ptr archive = MakePtr<SevenZip::Archive>(archiveData);
+        const auto totalFiles = archive->GetFilesCount();
+        std::vector<File::Ptr> files;
+        files.reserve(totalFiles);
+        for (uint_t idx = 0; idx < totalFiles; ++idx)
         {
-          continue;
+          if (archive->IsDir(idx) || 0 == archive->GetFileSize(idx))
+          {
+            continue;
+          }
+          files.emplace_back(MakePtr<SevenZip::File>(archive, idx));
         }
-        files.emplace_back(MakePtr<SevenZip::File>(archive, idx));
+        return MakePtr<SevenZip::Container>(std::move(archiveData), std::move(files));
       }
-      return MakePtr<SevenZip::Container>(std::move(archiveData), std::move(files));
+      catch (const std::exception&)
+      {
+        return {};
+      }
     }
 
   private:
