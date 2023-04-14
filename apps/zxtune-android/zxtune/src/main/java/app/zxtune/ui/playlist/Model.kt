@@ -12,15 +12,11 @@ import app.zxtune.TimeStamp.Companion.fromMilliseconds
 import app.zxtune.core.Identifier.Companion.parse
 import app.zxtune.playlist.Database
 import app.zxtune.playlist.ProviderClient
+import app.zxtune.ui.utils.FilteredListState
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-private fun Entry.matches(filter: String) =
-    title.contains(filter, true) || author.contains(filter, true)
-
-private class ImmutableList<T>(private val inner: List<T>) : List<T> by inner
-
-private fun <T> List<T>.toImmutable(): List<T> = (this as? ImmutableList<T>) ?: ImmutableList(this)
+typealias State = FilteredListState<Entry>
 
 // public for provider
 class Model @VisibleForTesting internal constructor(
@@ -28,40 +24,6 @@ class Model @VisibleForTesting internal constructor(
     private val client: ProviderClient,
     private val async: ExecutorService
 ) : AndroidViewModel(application) {
-
-    class State(
-        private val fullEntries: List<Entry> = emptyList(),
-        // cannot be blank
-        val filter: String = "",
-        filtered: List<Entry>? = null,
-    ) {
-        private val filteredEntries = filtered?.toImmutable()
-
-        val entries
-            get() = filteredEntries ?: fullEntries
-
-        fun withContent(newContent: List<Entry>) =
-            if (filter.isEmpty() || newContent.isEmpty()) {
-                State(newContent)
-            } else {
-                State(newContent, filter, newContent.filter { it.matches(filter) })
-            }
-
-        fun withFilter(newFilter: String) = when {
-            newFilter.isBlank() || fullEntries.isEmpty() -> State(fullEntries)
-            newFilter == filter -> State(fullEntries, filter, filteredEntries)
-            filter.isNotEmpty() && newFilter.startsWith(filter) -> State(
-                fullEntries,
-                newFilter,
-                filteredEntries?.filter { it.matches(newFilter) })
-            else -> State(fullEntries, newFilter, fullEntries.filter { it.matches(newFilter) })
-        }
-
-        @VisibleForTesting
-        override fun equals(other: Any?) = true == (other as? State)?.let {
-            it.fullEntries == fullEntries && it.filter == filter && it.filteredEntries == filteredEntries
-        }
-    }
 
     private lateinit var mutableState: MutableLiveData<State>
 
@@ -84,7 +46,7 @@ class Model @VisibleForTesting internal constructor(
     val state: LiveData<State>
         get() {
             if (!this::mutableState.isInitialized) {
-                mutableState = MutableLiveData(State())
+                mutableState = MutableLiveData(createState())
                 loadAsync()
             }
             return mutableState
@@ -134,5 +96,10 @@ class Model @VisibleForTesting internal constructor(
             cursor.getString(Database.Tables.Playlist.Fields.author.ordinal),
             fromMilliseconds(cursor.getLong(Database.Tables.Playlist.Fields.duration.ordinal))
         )
+
+        @VisibleForTesting
+        fun createState() = State { entry, filter ->
+            entry.title.contains(filter, true) || entry.author.contains(filter, true)
+        }
     }
 }

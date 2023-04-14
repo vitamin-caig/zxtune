@@ -65,7 +65,7 @@ class PlaylistFragmentTest {
 
     @Test
     fun `initial state`() {
-        val testState = mock<LiveData<Model.State>>()
+        val testState = mock<LiveData<State>>()
         val testPlaybackState = mock<LiveData<PlaybackStateCompat?>>()
         val testMetadata = mock<LiveData<MediaMetadataCompat?>>()
         model.stub {
@@ -98,7 +98,7 @@ class PlaylistFragmentTest {
                 TimeStamp.fromSeconds(it + 10L)
             )
         }
-        val testState = MutableLiveData<Model.State>()
+        val testState = MutableLiveData<State>()
         val testPlaybackState = MutableLiveData<PlaybackStateCompat>()
         val testMetadata = MutableLiveData<MediaMetadataCompat>()
         model.stub {
@@ -112,10 +112,10 @@ class PlaylistFragmentTest {
             requireNotNull(it.view).run {
                 val listing = findViewById<RecyclerView>(R.id.playlist_content)
                 val stub = findViewById<TextView>(R.id.playlist_stub)
-                testState.value = Model.State()
+                testState.value = Model.createState()
                 assertEquals(View.GONE, listing.visibility)
                 assertEquals(View.VISIBLE, stub.visibility)
-                testState.value = Model.State(content)
+                testState.value = Model.createState().withContent(content)
                 Robolectric.flushForegroundThreadScheduler()
                 assertEquals(View.VISIBLE, listing.visibility)
                 assertEquals(View.GONE, stub.visibility)
@@ -132,7 +132,7 @@ class PlaylistFragmentTest {
             Entry(2, Identifier.EMPTY, "Second entry", "Author2", TimeStamp.EMPTY),
             Entry(3, Identifier.EMPTY, "Third entry", "second author", TimeStamp.EMPTY)
         )
-        val testState = MutableLiveData(Model.State(content))
+        val testState = MutableLiveData(Model.createState().withContent(content))
         val testPlaybackState = MutableLiveData<PlaybackStateCompat>()
         val testMetadata = MutableLiveData<MediaMetadataCompat>()
         model.stub {

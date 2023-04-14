@@ -16,6 +16,11 @@ import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
 import java.util.concurrent.ExecutorService
 
+private fun assertEquals(ref : State, test : State) {
+    assertEquals(ref.entries, test.entries)
+    assertEquals(ref.filter, test.filter)
+}
+
 @RunWith(RobolectricTestRunner::class)
 class ModelTest {
 
@@ -111,7 +116,7 @@ class ModelTest {
 
     @Test
     fun `state logic`() {
-        val initial = Model.State().apply {
+        val initial = Model.createState().apply {
             assertNull(entries as? MutableList<Entry>)
             assertEquals(0, entries.size)
             assertEquals("", filter)
@@ -132,7 +137,11 @@ class ModelTest {
             assertEquals("second", filter)
             assertEquals(arrayListOf(entry2), entries)
         }
-        assertEquals(initial, filtered2.withContent(arrayListOf()))
+        filtered2.withContent(arrayListOf()).apply {
+            assertNull(entries as? MutableList<Entry>)
+            assertEquals("second", filter)
+            assertEquals(0, entries.size)
+        }
 
         val filtered3 = filtered2.withContent(arrayListOf(entry3, entry1, entry2)).apply {
             assertNull(entries as? MutableList<Entry>)
@@ -140,7 +149,7 @@ class ModelTest {
             assertEquals(arrayListOf(entry3, entry2), entries)
         }
 
-        val filled3 = filtered3.withFilter(" ").apply {
+        /*val filled3 = */filtered3.withFilter(" ").apply {
             assertNotNull(entries as? MutableList<Entry>)
             assertEquals("", filter)
             assertEquals(arrayListOf(entry3, entry1, entry2), entries)
