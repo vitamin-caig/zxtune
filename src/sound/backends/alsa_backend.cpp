@@ -27,11 +27,9 @@
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+#include <strings/split.h>
 // std includes
 #include <functional>
-// boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 namespace Sound::Alsa
 {
@@ -167,15 +165,14 @@ namespace Sound::Alsa
   class Identifier
   {
   public:
-    explicit Identifier(const String& id)
+    explicit Identifier(StringView id)
     {
-      static const Char DELIMITERS[] = {':', ',', 0};
-      Strings::Array elements;
-      boost::algorithm::split(elements, id, boost::algorithm::is_any_of(DELIMITERS));
+      std::vector<StringView> elements;
+      Strings::Split(id, ":,"_sv, elements);
       elements.resize(3);
-      Interface = elements[0];
-      Card = elements[1];
-      Device = elements[2];
+      Interface = elements[0].to_string();
+      Card = elements[1].to_string();
+      Device = elements[2].to_string();
     }
 
     String GetCard() const

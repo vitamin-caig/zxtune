@@ -22,15 +22,14 @@
 #include <math/numeric.h>
 #include <strings/conversion.h>
 #include <strings/format.h>
+#include <strings/split.h>
 // std includes
 #include <array>
 #include <cctype>
 #include <sstream>
 // boost includes
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 namespace Formats::Chiptune
 {
@@ -366,7 +365,7 @@ namespace Formats::Chiptune
         const std::size_t NO_LOOP = ~std::size_t(0);
 
         std::vector<StringView> elems;
-        boost::algorithm::split(elems, str, boost::algorithm::is_from_range(',', ','));
+        Strings::Split(str, ',', elems);
         Parent::resize(elems.size());
         std::size_t resLoop = NO_LOOP;
         for (std::size_t idx = 0; idx != elems.size(); ++idx)
@@ -684,7 +683,7 @@ namespace Formats::Chiptune
           : Looped(false)
         {
           std::vector<StringView> fields;
-          boost::algorithm::split(fields, str, boost::algorithm::is_from_range(' ', ' '));
+          Strings::Split(str, ' ', fields);
           switch (fields.size())
           {
           case 5:
@@ -1015,7 +1014,7 @@ namespace Formats::Chiptune
       explicit ChannelObject(StringView str)
       {
         std::vector<StringView> fields;
-        boost::algorithm::split(fields, str, boost::algorithm::is_from_range(' ', ' '));
+        Strings::Split(str, ' ', fields);
         Require(fields.size() == 3);
         Note = NoteObject(fields[0]);
         Parameters = NoteParametersObject(fields[1]);
@@ -1047,7 +1046,7 @@ namespace Formats::Chiptune
       explicit PatternLineObject(StringView str)
       {
         std::vector<StringView> fields;
-        boost::algorithm::split(fields, str, boost::algorithm::is_from_range('|', '|'));
+        Strings::Split(str, '|', fields);
         Require(fields.size() == 5);
         Envelope = EnvelopeBase(fields[0]);
         Noise = NoiseBase(fields[1]);

@@ -18,9 +18,7 @@
 #include <binary/input_stream.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
-// boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
+#include <strings/split.h>
 
 namespace Formats::Chiptune
 {
@@ -209,8 +207,7 @@ namespace Formats::Chiptune
         target.SetAuthor(DispatchString(authorEn, DispatchString(authorJa, ripper)));
         const auto comment = ReadUTF16(input);
         Strings::Array strings;
-        boost::algorithm::split(strings, comment, boost::algorithm::is_any_of("\r\n"),
-                                boost::algorithm::token_compress_on);
+        Strings::Split(comment, "\r\n"_sv, strings);
         if (!strings.empty())
         {
           target.SetStrings(strings);

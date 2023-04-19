@@ -33,8 +33,6 @@
 #include <list>
 #include <sstream>
 // boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 

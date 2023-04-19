@@ -15,10 +15,9 @@
 #include <make_ptr.h>
 // library includes
 #include <formats/chiptune/emulation/portablesoundformat.h>
+#include <strings/split.h>
 // boost includes
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 namespace Module
 {
@@ -32,11 +31,9 @@ namespace Module
       {}
 
     public:
-      explicit FilePath(const String& str)
+      explicit FilePath(StringView str)
       {
-        static const String DELIMITERS("/\\");
-        boost::algorithm::split(Components, str, boost::algorithm::is_any_of(DELIMITERS),
-                                boost::algorithm::token_compress_on);
+        Strings::Split(str, "/\\"_sv, Components);
       }
 
       FilePath RelativeTo(const FilePath& rh) const

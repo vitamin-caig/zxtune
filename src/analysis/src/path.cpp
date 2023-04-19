@@ -14,22 +14,19 @@
 // library includes
 #include <analysis/path.h>
 #include <strings/array.h>
+#include <strings/split.h>
 // boost includes
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/join.hpp>
-#include <boost/algorithm/string/split.hpp>
 // std includes
-#include <cassert>
+#include <functional>
 
 namespace Analysis
 {
-  Strings::Array SplitPath(const String& str, Char separator)
+  Strings::Array SplitPath(StringView str, Char separator)
   {
-    const String delimiter(1, separator);
     Strings::Array parts;
-    boost::algorithm::split(parts, str, boost::algorithm::is_any_of(delimiter), boost::algorithm::token_compress_on);
-    const Strings::Array::iterator newEnd =
-        std::remove_if(parts.begin(), parts.end(), [](const String& element) { return element.empty(); });
+    Strings::Split(str, separator, parts);
+    const auto newEnd = std::remove_if(parts.begin(), parts.end(), std::mem_fn(&String::empty));
     parts.erase(newEnd, parts.end());
     return parts;
   }

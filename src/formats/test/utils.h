@@ -10,21 +10,23 @@
 
 #pragma once
 
+// common includes
+#include <pointers.h>
+#include <types.h>
+// library includes
 #include <binary/data_builder.h>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/lexical_cast.hpp>
-#include <cstring>
 #include <formats/archived/decoders.h>
 #include <formats/packed/decoders.h>
+#include <strings/split.h>
+// std includes
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <list>
 #include <map>
-#include <pointers.h>
 #include <sstream>
 #include <stdexcept>
-#include <types.h>
 
 namespace Test
 {
@@ -32,7 +34,7 @@ namespace Test
   Binary::Container::Ptr OpenFile(const std::string& name)
   {
     std::vector<std::string> elements;
-    boost::algorithm::split(elements, name, boost::algorithm::is_from_range(':', ':'));
+    Strings::Split(name, ':', elements);
     elements.resize(3);
     const std::string& filename = elements.at(0);
     const std::string& offsetStr = elements.at(1);

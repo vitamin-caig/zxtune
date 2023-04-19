@@ -15,15 +15,14 @@
 #include "sound/backends/storage.h"
 // common includes
 #include <error_tools.h>
+#include <locale_helpers.h>
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/service.h>
-// boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
+#include <strings/split.h>
 
 namespace Sound
 {
@@ -146,7 +145,8 @@ namespace Sound
       Parameters::StringType order;
       Options->FindValue(Parameters::ZXTune::Sound::Backends::ORDER, order);
       Strings::Array orderArray;
-      boost::algorithm::split(orderArray, order, !boost::algorithm::is_alnum());
+      Strings::Split(
+          order, [](Char c) { return !IsAlNum(c); }, orderArray);
       return orderArray;
     }
 

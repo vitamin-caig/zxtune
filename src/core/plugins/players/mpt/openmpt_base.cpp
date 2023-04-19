@@ -24,13 +24,11 @@
 #include <module/track_information.h>
 #include <module/track_state.h>
 #include <parameters/tracking_helper.h>
+#include <strings/split.h>
 #include <strings/trim.h>
 #include <time/duration.h>
 // std includes
 #include <utility>
-// boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 // 3rdparty includes
 #define BUILDING_STATIC
 #include <3rdparty/openmpt/libopenmpt/libopenmpt.hpp>
@@ -394,8 +392,7 @@ namespace Module::Mpt
     {
       const auto metadata = module.get_metadata("message_heuristic");
       Strings::Array strings;
-      using namespace boost::algorithm;
-      split(strings, metadata, is_any_of("\r\n"), token_compress_on);
+      Strings::Split(metadata, "\r\n"_sv, strings);
       if (!strings.empty())
       {
         props.SetStrings(strings);
