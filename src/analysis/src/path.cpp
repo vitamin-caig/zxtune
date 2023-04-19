@@ -75,25 +75,25 @@ namespace Analysis
       return CreateRangedObjectIteratorAdapter(Components.begin(), Components.end());
     }
 
-    Ptr Append(const String& element) const override
+    Ptr Append(StringView element) const override
     {
-      const Strings::Array& newOne = SplitPath(element, Separator);
+      const auto& newOne = SplitPath(element, Separator);
       Strings::Array result(Components.size() + newOne.size());
       std::copy(newOne.begin(), newOne.end(), std::copy(Components.begin(), Components.end(), result.begin()));
       return CreatePath(Separator, std::move(result));
     }
 
-    Ptr Extract(const String& startPath) const override
+    Ptr Extract(StringView startPath) const override
     {
       const auto& subSplitted = SplitPath(startPath, Separator);
       if (subSplitted.size() > Components.size())
       {
-        return Ptr();
+        return {};
       }
       const auto iters = std::mismatch(subSplitted.begin(), subSplitted.end(), Components.begin());
       if (iters.first != subSplitted.end())
       {
-        return Ptr();
+        return {};
       }
       return CreatePath(Separator, iters.second, Components.end());
     }
@@ -136,19 +136,19 @@ namespace Analysis
       return Iterator::CreateStub();
     }
 
-    Ptr Append(const String& element) const override
+    Ptr Append(StringView element) const override
     {
       return ParsePath(element, Separator);
     }
 
-    Ptr Extract(const String& startPath) const override
+    Ptr Extract(StringView startPath) const override
     {
       return startPath.empty() ? MakePtr<EmptyPath>(Separator) : Ptr();
     }
 
     Ptr GetParent() const override
     {
-      return Ptr();
+      return {};
     }
 
   private:
@@ -183,7 +183,7 @@ namespace Analysis
 
 namespace Analysis
 {
-  Path::Ptr ParsePath(const String& str, Char separator)
+  Path::Ptr ParsePath(StringView str, Char separator)
   {
     auto parsed = SplitPath(str, separator);
     return CreatePath(separator, std::move(parsed));
