@@ -16,9 +16,36 @@
 #include <strings/map.h>
 #include <strings/optimize.h>
 #include <strings/prefixed_index.h>
+#include <strings/split.h>
 #include <strings/template.h>
 
 #include <iostream>
+
+template<class T>
+std::ostream& operator<<(std::ostream& o, const std::vector<T>& arr)
+{
+  if (!arr.empty())
+  {
+    char delimiter = '[';
+    for (const auto& e : arr)
+    {
+      o << delimiter << e;
+      delimiter = ',';
+    }
+    o << ']';
+  }
+  else
+  {
+    o << "[]";
+  }
+  return o;
+}
+
+template<class T1, class T2, std::enable_if_t<!std::is_same_v<T1, T2>, int> = 0>
+bool operator==(const std::vector<T1>& lh, const std::vector<T2>& rh)
+{
+  return lh.size() == rh.size() && lh.end() == std::mismatch(lh.begin(), lh.end(), rh.begin()).first;
+}
 
 namespace
 {
@@ -40,7 +67,7 @@ namespace
     const Strings::Map& Map;
   };
 
-  void Test(bool result, const String& msg)
+  void Test(bool result, StringView msg)
   {
     if (result)
     {
@@ -53,57 +80,43 @@ namespace
     }
   }
 
-  void TestTemplate(const Strings::FieldsSource& source, const String& templ, const String& reference)
+  template<class T1, class T2>
+  void TestEquals(T1 ref, T2 val, StringView msg)
   {
-    const String res = Strings::Template::Instantiate(templ, source);
-    if (res == reference)
+    if (ref == val)
     {
-      std::cout << "Passed test for '" << templ << '\'' << std::endl;
+      std::cout << "Passed test for " << msg << std::endl;
     }
     else
     {
-      std::cout << "Failed test for '" << templ << "' (result is '" << res << "')" << std::endl;
+      std::cout << "Failed test for " << msg << ": ref=" << ref << " val=" << val << std::endl;
       throw 1;
     }
   }
 
+  void TestTemplate(const Strings::FieldsSource& source, const String& templ, StringView reference)
+  {
+    TestEquals(reference, Strings::Template::Instantiate(templ, source), "Template '" + templ + "'");
+  }
+
   template<class Policy>
-  void TestTemplate(const String& templ, const Strings::Map& params, const String& reference)
+  void TestTemplate(const String& templ, const Strings::Map& params, StringView reference)
   {
     const FieldsSourceFromMap<Policy> source(params);
     TestTemplate(source, templ, reference);
   }
 
-  void TestTranscode(const char* encoding, const String& str, const String& reference)
+  void TestTranscode(const String& encoding, StringView str, StringView reference)
   {
     const String& trans = Strings::ToAutoUtf8(str);
-    if (trans == reference)
-    {
-      std::cout << "Passed " << encoding << " test '" << str << "' => '" << reference << '\'' << std::endl;
-    }
-    else
-    {
-      std::cout << "Failed " << encoding << " test '" << str << "' => '" << reference << "' (result is '" << trans
-                << "')" << std::endl;
-    }
+    TestEquals(reference, trans, encoding + " for " + trans);
     const String& transTrans = Strings::ToAutoUtf8(trans);
-    if (transTrans != trans)
-    {
-      std::cout << "Failed repeated transcode" << std::endl;
-    }
+    TestEquals(trans, transTrans, "Repeated transcode");
   }
 
-  void TestOptimize(const String& str, const String& reference)
+  void TestOptimize(StringView str, const String& reference)
   {
-    const String& opt = Strings::OptimizeAscii(str);
-    if (opt == reference)
-    {
-      std::cout << "Passed test '" << str << "' => '" << reference << '\'' << std::endl;
-    }
-    else
-    {
-      std::cout << "Failed test '" << str << "' => '" << reference << "' (result is '" << opt << "')" << std::endl;
-    }
+    TestEquals(reference, Strings::OptimizeAscii(str), "Optimize " + reference);
   }
 
   template<class T>
@@ -120,6 +133,21 @@ namespace
       Test(Strings::ParsePartial<T>(strCopy) == reference, "ParsePartial " + msg);
       Test(strCopy == restPart, "ParsePartial rest " + msg);
     }
+  }
+
+  template<class T, class D>
+  void TestSplitImpl(const String& msg, StringView str, D delimiter, const std::vector<StringView>& reference)
+  {
+    std::vector<T> out;
+    Strings::Split(str, delimiter, out);
+    TestEquals(reference, out, msg);
+  }
+
+  template<class D>
+  void TestSplit(const String& msg, StringView str, D delimiter, const std::vector<StringView>& reference)
+  {
+    TestSplitImpl<StringView>(msg + " StringView", str, delimiter, reference);
+    TestSplitImpl<String>(msg + " String", str, delimiter, reference);
   }
 }  // namespace
 
@@ -244,6 +272,16 @@ int main()
       Test(Strings::Format("String: '{}'", "str") == "String: 'str'", "String arg");
       Test(Strings::Format("{1} positional {0}", "args", 2) == "2 positional args", "Positional args");
       Test(Strings::Format("Hex {:04x}", 0xbed) == "Hex 0bed", "Formatting");
+    }
+    std::cout << "---- Test for split ----" << std::endl;
+    {
+      TestSplit("Empty", "", ' ', {""});
+      TestSplit("Single", "single", ',', {"single"});
+      TestSplit("Double", "single,,double", ',', {"single", "double"});
+      TestSplit("Prefix", ",,str", ',', {"", "str"});
+      TestSplit("Suffix", "str,,", ',', {"str", ""});
+      TestSplit("MultiDelimiters", ":one,two/three;four.", ";/,.:"_sv, {"", "one", "two", "three", "four", ""});
+      TestSplit("Predicate", "a1bc2;d5", [](Char c) { return !std::isalpha(c); }, {"a", "bc", "d", ""});
     }
   }
   catch (int code)
