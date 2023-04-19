@@ -5,7 +5,6 @@ import android.util.SparseIntArray
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ViewGroup
-import android.widget.Filter
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.selection.ItemDetailsLookup
 import androidx.recyclerview.selection.ItemDetailsLookup.ItemDetails
@@ -20,7 +19,6 @@ import app.zxtune.databinding.BrowserListingEntryBinding
 internal class ListingViewAdapter :
     ListAdapter<ListingEntry, ListingViewAdapter.ViewHolder>(DiffCallback()) {
     private val positionsCache = SparseIntArray()
-    private val filter = SearchFilter()
     private lateinit var selection: Selection<Uri>
     private var lastContent: List<ListingEntry> = emptyList()
 
@@ -57,8 +55,6 @@ internal class ListingViewAdapter :
         }
         super.submitList(lastContent, cb)
     }
-
-    fun setFilter(pattern: String) = filter.filter(pattern)
 
     override fun submitList(entries: List<ListingEntry>?) {
         positionsCache.clear()
@@ -118,28 +114,6 @@ internal class ListingViewAdapter :
                 val holder = listing.getChildViewHolder(it) as ViewHolder
                 HolderItemDetails(holder)
             }
-    }
-
-    private inner class SearchFilter : Filter() {
-        override fun performFiltering(constraint: CharSequence) = FilterResults().apply {
-            val pattern = constraint.trim()
-            values = if (pattern.isEmpty()) {
-                lastContent
-            } else {
-                lastContent.filter {
-                    it.title.contains(
-                        pattern,
-                        ignoreCase = true
-                    ) || it.description.contains(pattern, ignoreCase = true)
-                }
-            }
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        override fun publishResults(constraint: CharSequence, results: FilterResults) =
-            (results.values as? List<ListingEntry>)?.let {
-                submitList(it)
-            } ?: Unit
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<ListingEntry>() {

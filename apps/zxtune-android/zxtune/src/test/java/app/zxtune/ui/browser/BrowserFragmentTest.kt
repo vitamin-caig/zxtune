@@ -16,8 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import app.zxtune.R
 import app.zxtune.ui.AsyncDifferInMainThreadRule
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -180,23 +179,26 @@ class BrowserFragmentTest {
 
     @Test
     fun `search filtering`() {
-        val listingState = makeState(5, 3, 4)
+        val listingState = MutableLiveData(makeState(5, 3, 4))
         model.stub {
-            on { state } doReturn MutableLiveData(listingState)
+            on { state } doReturn listingState
             on { progress } doReturn mock()
             on { notification } doReturn mock()
+            on { filter(any()) } doAnswer {
+                listingState.value = listingState.value!!.withFilter(it.getArgument(0))
+            }
         }
         persistentState.stub {
-            on { currentPath } doReturn listingState.uri
+            on { currentPath } doReturn listingState.value!!.uri
         }
         startScenario().onFragment {
             clearInvocations(*mocks)
             it.view!!.run {
                 val adapter = findViewById<RecyclerView>(R.id.browser_content).adapter!!
                 findViewById<SearchView>(R.id.browser_search).let { view ->
-                    Robolectric.flushForegroundThreadScheduler()
                     assertEquals(7, adapter.itemCount)
 
+                    assertTrue(view.requestFocus())
                     view.setQuery("Dir", false)
                     Robolectric.flushForegroundThreadScheduler()
                     assertEquals(3, adapter.itemCount)
@@ -213,7 +215,13 @@ class BrowserFragmentTest {
                 }
             }
         }
-        verify(model).search("Model query")
+        inOrder(model) {
+            verify(model).filter("Dir")
+            verify(model).filter("")
+            verify(model).filter("File ")
+            verify(model).filter("Model query")
+            verify(model).search("Model query")
+        }
     }
 
     /* TODO: investigate for touch events emulating

@@ -44,8 +44,6 @@ class BrowserFragment : Fragment() {
 
     private val controller
         get() = activity?.let { MediaControllerCompat.getMediaController(it) }
-    private val listingAdapter
-        get() = listing?.adapter as? ListingViewAdapter
     private val listingLayoutManager
         get() = listing?.layoutManager as? LinearLayoutManager
 
@@ -112,8 +110,10 @@ class BrowserFragment : Fragment() {
                 adapter = this
             }
             model.state.observe(viewLifecycleOwner) { state ->
-                adapter.submitList(state.breadcrumbs)
-                smoothScrollToPosition(state.breadcrumbs.size)
+                if (!isInSearchMode()) {
+                    adapter.submitList(state.breadcrumbs)
+                    smoothScrollToPosition(state.breadcrumbs.size)
+                }
             }
             val onClick = View.OnClickListener { v: View ->
                 val pos = getChildAdapterPosition(v)
@@ -156,10 +156,14 @@ class BrowserFragment : Fragment() {
             model.state.observe(viewLifecycleOwner) { state ->
                 val stub = view.findViewById<TextView>(R.id.browser_stub)
 
-                storeCurrentViewPosition()
-                adapter.submitList(state.entries) {
-                    stateStorage.currentPath = state.uri
-                    restoreCurrentViewPosition()
+                if (isInSearchMode()) {
+                    adapter.submitList(state.entries)
+                } else {
+                    storeCurrentViewPosition()
+                    adapter.submitList(state.entries) {
+                        stateStorage.currentPath = state.uri
+                        restoreCurrentViewPosition()
+                    }
                 }
                 if (state.entries.isEmpty()) {
                     visibility = View.GONE
@@ -222,7 +226,7 @@ class BrowserFragment : Fragment() {
                 }
 
                 override fun onQueryTextChange(query: String): Boolean {
-                    listingAdapter?.setFilter(query)
+                    model.filter(query)
                     return true
                 }
             })
@@ -300,6 +304,8 @@ class BrowserFragment : Fragment() {
         search?.takeIf { !it.isIconified }?.let { it.isIconified = true } ?: browseParent()
 
     private fun browseParent() = model.browseParent()
+
+    private fun isInSearchMode() = true == search?.isFocused
 
     companion object {
         private const val SEARCH_QUERY_KEY = "search_query"
