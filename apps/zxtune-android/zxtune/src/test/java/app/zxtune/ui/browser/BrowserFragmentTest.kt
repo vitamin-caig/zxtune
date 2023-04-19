@@ -66,8 +66,8 @@ class BrowserFragmentTest {
             on { state } doReturn listingState
             on { progress } doReturn operationProgress
             on { notification } doReturn mock()
-            on { browseAsync(any()) } doAnswer {
-                it.getArgument<() -> Uri>(0).invoke()
+            on { browse(any<Lazy<Uri>>()) } doAnswer {
+                it.getArgument<Lazy<Uri>>(0).value
                 Unit
             }
         }
@@ -76,7 +76,7 @@ class BrowserFragmentTest {
             on { currentPath } doReturn path
         }
         startScenario().onFragment {
-            verify(model).browseAsync(any())
+            verify(model).browse(any<Lazy<Uri>>())
             verify(persistentState).currentPath
             verify(model, atLeastOnce()).state
             verify(model).progress
@@ -230,7 +230,6 @@ class BrowserFragmentTest {
             depth: Int,
             dirs: Int,
             files: Int,
-            query: String? = null
         ): Model.State {
             val breadcrumbs = ArrayList<BreadcrumbsEntry>(depth).apply {
                 val builder = Uri.Builder().scheme("scheme")
@@ -243,8 +242,7 @@ class BrowserFragmentTest {
                 }
             }
             val uri = breadcrumbs.last().uri
-            return Model.State(
-                uri = uri,
+            return Model.State().withContent(
                 breadcrumbs = breadcrumbs,
                 entries = Array(dirs + files) { idx ->
                     val builder = uri.buildUpon()
@@ -266,7 +264,6 @@ class BrowserFragmentTest {
                         )
                     }
                 }.toList(),
-                query = query,
             )
         }
     }

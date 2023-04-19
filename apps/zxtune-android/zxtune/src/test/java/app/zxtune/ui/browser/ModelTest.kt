@@ -9,12 +9,14 @@ import app.zxtune.fs.provider.Schema
 import app.zxtune.fs.provider.VfsProviderClient
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
+import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -39,6 +41,7 @@ class ModelTest {
     )
 
     private val vfsClient = mock<VfsProviderClient>()
+    private val async = Executors.newSingleThreadExecutor()
     private val modelClient = mock<Model.Client>()
     private lateinit var underTest: Model
     private val stateObserver = mock<Observer<Model.State>>()
@@ -47,25 +50,19 @@ class ModelTest {
 
     @Before
     fun setUp() {
-        underTest = Model(mock(), vfsClient).apply {
+        underTest = Model(mock(), vfsClient, async).apply {
             setClient(modelClient)
             state.observeForever(stateObserver)
             progress.observeForever(progressObserver)
             notification.observeForever(notificationObserver)
-
         }
         reset(vfsClient, modelClient, stateObserver, progressObserver, notificationObserver)
     }
 
     @After
-    fun tearDown() =
-        verifyNoMoreInteractions(
-            vfsClient,
-            modelClient,
-            stateObserver,
-            progressObserver,
-            notificationObserver
-        )
+    fun tearDown() = verifyNoMoreInteractions(
+        vfsClient, modelClient, stateObserver, progressObserver, notificationObserver
+    )
 
     @Test
     fun `initial state`() = with(underTest) {
@@ -81,14 +78,26 @@ class ModelTest {
         }
     }
 
-    @Test
-    fun `browseAsync workflow`() {
-        execute {
-            browseAsync {
-                testUri
+    private fun waitForIdle() = with(ReentrantLock()) {
+        val signal = newCondition()
+        withLock {
+            async.submit {
+                withLock { signal.signalAll() }
             }
+            signal.awaitUninterruptibly()
         }
-        inOrder(vfsClient, modelClient, progressObserver) {
+    }
+
+    @Test
+    fun `browse workflow`() {
+        val thisThread = Thread.currentThread().id
+        execute {
+            browse(lazy {
+                assertNotEquals(thisThread, Thread.currentThread().id)
+                testUri
+            })
+        }
+        inOrder(vfsClient, progressObserver) {
             verify(progressObserver).onChanged(-1)
             verify(vfsClient).resolve(eq(testUri), any(), any())
             verify(progressObserver).onChanged(null)
@@ -216,7 +225,7 @@ class ModelTest {
             verify(vfsClient).parents(eq(testUri), any())
             verify(vfsClient).list(eq(testUri), any(), any())
             verify(progressObserver).onChanged(20)
-            verify(stateObserver).onChanged(Model.State(testUri, testParents, testContent))
+            verify(stateObserver).onChanged(matchState(testUri, testParents, testContent))
             verify(vfsClient).subscribeForNotifications(eq(testUri), any())
             verify(notificationObserver).onChanged(null)
             verify(progressObserver).onChanged(null)
@@ -288,13 +297,7 @@ class ModelTest {
                 verify(progressObserver).onChanged(-1)
                 verify(vfsClient).resolve(eq(parentUri), any(), any())
                 verify(vfsClient).list(eq(parentUri), any(), any())
-                verify(stateObserver).onChanged(
-                    Model.State(
-                        parentUri,
-                        testParents.subList(0, 2),
-                        listOf()
-                    )
-                )
+                verify(stateObserver).onChanged(matchState(parentUri, testParents.subList(0, 2)))
                 verify(vfsClient).subscribeForNotifications(eq(parentUri), any())
                 verify(notificationObserver).onChanged(notification)
                 verify(progressObserver).onChanged(null)
@@ -303,13 +306,7 @@ class ModelTest {
                 verify(progressObserver).onChanged(-1)
                 verify(vfsClient).resolve(eq(parentUri), any(), any())
                 verify(vfsClient).list(eq(parentUri), any(), any())
-                verify(stateObserver).onChanged(
-                    Model.State(
-                        parentUri,
-                        testParents.subList(0, 1),
-                        listOf()
-                    )
-                )
+                verify(stateObserver).onChanged(matchState(parentUri, testParents.subList(0, 1)))
                 verify(notificationHandle).release()
                 verify(vfsClient).subscribeForNotifications(eq(parentUri), any())
                 verify(notificationObserver).onChanged(notification)
@@ -342,7 +339,7 @@ class ModelTest {
 
     @Test
     fun `reload with state`() {
-        setState(listOf(), listOf())
+        setState(testParents, listOf())
         execute {
             reload()
         }
@@ -353,6 +350,7 @@ class ModelTest {
         }
     }
 
+    // Published state has no query field since it's for filtering
     @Test
     fun `search with state`() {
         val noResultQuery = "Unused"
@@ -371,37 +369,18 @@ class ModelTest {
         execute {
             search(testQuery)
         }
-        inOrder(vfsClient, modelClient, stateObserver, progressObserver) {
+        inOrder(vfsClient, stateObserver, progressObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(stateObserver).onChanged(
-                Model.State(
-                    testUri,
-                    testParents,
-                    listOf(),
-                    noResultQuery
-                )
-            )
+            verify(stateObserver).onChanged(matchState(testUri, testParents))
             verify(vfsClient).search(eq(testUri), eq(noResultQuery), any(), any())
             verify(progressObserver).onChanged(null)
 
             // TODO: mock captures references of mutable object, so only last version is available
             verify(progressObserver).onChanged(-1)
-            verify(stateObserver).onChanged(
-                Model.State(
-                    testUri,
-                    testParents,
-                    matchedContent,
-                    testQuery
-                )
-            )
+            verify(stateObserver).onChanged(matchState(testUri, testParents, matchedContent))
             verify(vfsClient).search(eq(testUri), eq(testQuery), any(), any())
             verify(stateObserver, times(2)).onChanged(
-                Model.State(
-                    testUri,
-                    testParents,
-                    matchedContent,
-                    testQuery
-                )
+                matchState(testUri, testParents, matchedContent)
             )
             verify(progressObserver).onChanged(null)
         }
@@ -420,7 +399,7 @@ class ModelTest {
         }
         inOrder(vfsClient, modelClient, stateObserver, progressObserver) {
             verify(progressObserver).onChanged(-1)
-            verify(stateObserver).onChanged(Model.State(testUri, testParents, listOf(), testQuery))
+            verify(stateObserver).onChanged(matchState(testUri, testParents, listOf()))
             verify(vfsClient).search(eq(testUri), eq(testQuery), any(), any())
             verify(modelClient).onError(err.message!!)
             verify(progressObserver).onChanged(null)
@@ -468,10 +447,50 @@ class ModelTest {
         }
     }
 
+    @Test
+    fun filtering() {
+        setState(testParents, testContent)
+        execute {
+            filter("Le")
+            waitForIdle()
+            filter("le2")
+            waitForIdle()
+            filter("e23")
+        }
+        inOrder(stateObserver) {
+            verify(stateObserver).onChanged(
+                matchState(testUri, testParents, testContent.takeLast(2), "Le")
+            )
+            verify(stateObserver).onChanged(
+                matchState(testUri, testParents, testContent.takeLast(1), "le2")
+            )
+            verify(stateObserver).onChanged(
+                matchState(testUri, testParents, filter = "e23")
+            )
+        }
+    }
+
     private fun setState(breadCrumbs: List<BreadcrumbsEntry>, entries: List<ListingEntry>) {
-        underTest.mutableState.value = Model.State(testUri, breadCrumbs, entries)
+        underTest.mutableState.value = makeState(breadCrumbs, entries)
         clearInvocations(stateObserver)
     }
+}
+
+private fun makeState(
+    breadCrumbs: List<BreadcrumbsEntry>, entry: List<ListingEntry>, filter: String? = null
+) = Model.State().withContent(breadCrumbs, entry).run {
+    filter?.let {
+        withFilter(it)
+    } ?: this
+}
+
+private fun matchState(
+    uri: Uri,
+    breadCrumbs: List<BreadcrumbsEntry>,
+    entries: List<ListingEntry> = listOf(),
+    filter: String = ""
+) = argThat<Model.State> {
+    uri == this.uri && breadCrumbs == this.breadcrumbs && entries == this.entries && filter == this.filter
 }
 
 private fun VfsProviderClient.ListingCallback.feed(entry: ListingEntry) = with(entry) {

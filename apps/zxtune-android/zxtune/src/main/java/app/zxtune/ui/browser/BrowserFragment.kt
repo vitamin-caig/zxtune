@@ -85,9 +85,9 @@ class BrowserFragment : Fragment() {
         setupProgress(model, view)
         setupNotification(model, view)
         if (model.state.value == null) {
-            model.browseAsync {
+            model.browse(lazy {
                 stateStorage.currentPath
-            }
+            })
         }
         model.setClient(object : Model.Client {
             override fun onFileBrowse(uri: Uri) =

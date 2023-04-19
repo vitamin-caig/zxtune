@@ -18,10 +18,10 @@ import app.zxtune.fs.provider.VfsProviderClient
 import app.zxtune.fs.provider.VfsProviderClient.ParentsCallback
 import app.zxtune.ui.browser.ListingEntry.Companion.makeFile
 import app.zxtune.ui.browser.ListingEntry.Companion.makeFolder
+import app.zxtune.ui.utils.FilteredListState
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 /*
 TODO:
@@ -32,7 +32,8 @@ TODO:
 // public for provider
 class Model @VisibleForTesting internal constructor(
     application: Application,
-    private val providerClient: VfsProviderClient
+    private val providerClient: VfsProviderClient,
+    private val async: ExecutorService,
 ) : AndroidViewModel(application) {
 
     interface Client {
@@ -40,19 +41,36 @@ class Model @VisibleForTesting internal constructor(
         fun onError(msg: String)
     }
 
-    data class State(
-        val uri: Uri,
+    class State private constructor(
         val breadcrumbs: List<BreadcrumbsEntry>,
-        val entries: List<ListingEntry>,
-        val query: String? = null,
-    )
+        private val listing: FilteredListState<ListingEntry>
+    ) {
+        constructor() : this(emptyList(), FilteredListState(Companion::matchEntry))
+
+        val uri: Uri
+            get() = breadcrumbs.lastOrNull()?.uri ?: Uri.EMPTY
+
+        val entries
+            get() = listing.entries
+
+        val filter
+            get() = listing.filter
+
+        fun withContent(
+            breadcrumbs: List<BreadcrumbsEntry>,
+            entries: List<ListingEntry>
+        ) = State(breadcrumbs, listing.withContent(entries))
+
+        fun withEntries(entries: List<ListingEntry>) =
+            State(breadcrumbs, listing.withContent(entries))
+
+        fun withFilter(filter: String) = State(breadcrumbs, listing.withFilter(filter))
+    }
 
     data class Notification(
         val message: String,
         val action: Intent?,
     )
-
-    private val async = Executors.newSingleThreadExecutor()
 
     @VisibleForTesting
     val mutableState = MutableLiveData<State>()
@@ -80,7 +98,11 @@ class Model @VisibleForTesting internal constructor(
     }
 
     @Suppress("UNUSED")
-    constructor(application: Application) : this(application, VfsProviderClient(application))
+    constructor(application: Application) : this(
+        application,
+        VfsProviderClient(application),
+        Executors.newSingleThreadExecutor()
+    )
 
     override fun onCleared() = mutableNotification.release()
 
@@ -99,19 +121,17 @@ class Model @VisibleForTesting internal constructor(
 
     fun browse(uri: Uri) {
         Analytics.sendBrowserEvent(uri, Analytics.BROWSER_ACTION_BROWSE)
-        executeAsync(BrowseTask(uri), "browse $uri")
+        executeAsync(BrowseTask(lazyOf(uri)))
     }
 
-    fun browseAsync(getUri: () -> Uri) = async.execute {
-        browse(getUri())
-    }
+    fun browse(uri: Lazy<Uri>) = executeAsync(BrowseTask(uri))
 
     fun browseParent() = state.value?.takeIf { it.breadcrumbs.size > 1 }?.run {
         Analytics.sendBrowserEvent(uri, Analytics.BROWSER_ACTION_BROWSE_PARENT)
-        executeAsync(BrowseParentTask(breadcrumbs), "browse parent")
+        executeAsync(BrowseParentTask(breadcrumbs))
     } ?: run {
         Analytics.sendBrowserEvent(Uri.EMPTY, Analytics.BROWSER_ACTION_BROWSE_PARENT)
-        executeAsync(BrowseTask(Uri.EMPTY), "browse root")
+        browse(Uri.EMPTY)
     }
 
     fun reload() = state.value?.run {
@@ -121,55 +141,61 @@ class Model @VisibleForTesting internal constructor(
     fun search(query: String) = state.value?.run {
         Analytics.sendBrowserEvent(uri, Analytics.BROWSER_ACTION_SEARCH)
         executeAsync(
-            SearchTask(this, query), "search for $query in $uri"
+            SearchTask(this, query)
         )
     } ?: Unit
 
-    @VisibleForTesting
-    fun waitForIdle() = with(ReentrantLock()) {
-        val signal = newCondition()
-        withLock {
-            async.submit {
-                withLock { signal.signalAll() }
+    fun filter(rawFilter: String) = state.value?.run {
+        async.execute {
+            val newFilter = rawFilter.trim()
+            if (filter != newFilter) {
+                updateState {
+                    withFilter(newFilter)
+                }
             }
-            signal.awaitUninterruptibly()
         }
     }
 
     private interface AsyncOperation {
+        val description: String
         fun execute(signal: CancellationSignal)
     }
 
-    private fun executeAsync(op: AsyncOperation, descr: String) {
+    private fun executeAsync(op: AsyncOperation) {
         val signal = CancellationSignal().apply {
             activeTaskSignal.getAndSet(this)?.cancel()
         }
         async.execute {
-            LOG.d { "Started $descr" }
+            LOG.d { "Started ${op.description}" }
             mutableProgress.postValue(-1)
             op.runCatching {
                 execute(signal)
             }.onFailure {
                 if (it is OperationCanceledException) {
-                    LOG.d { "Canceled $descr" }
+                    LOG.d { "Canceled ${op.description}" }
                 } else {
                     reportError(it)
                 }
             }
             if (activeTaskSignal.compareAndSet(signal, null)) {
                 mutableProgress.postValue(null)
-                LOG.d { "Finished $descr" }
+                LOG.d { "Finished ${op.description}" }
             }
         }
     }
 
-    private fun updateState(
-        uri: Uri,
+    private fun updateState(block: State.() -> State) = block(mutableState.value ?: State()).also {
+        mutableState.postValue(it)
+    }
+
+    private fun commitState(
         breadcrumbs: List<BreadcrumbsEntry>,
         entries: List<ListingEntry>,
     ) {
-        mutableState.postValue(State(uri, breadcrumbs, entries))
-        mutableNotification.watch(uri)
+        val newState = updateState {
+            withContent(breadcrumbs, entries)
+        }
+        mutableNotification.watch(newState.uri)
     }
 
     private fun updateProgress(done: Int, total: Int) =
@@ -179,29 +205,37 @@ class Model @VisibleForTesting internal constructor(
         client.onError(this)
     }
 
-    private inner class BrowseTask(private val uri: Uri) : AsyncOperation {
+    private inner class BrowseTask(private val uriSource: Lazy<Uri>) : AsyncOperation {
+
+        private val uri: Uri
+            get() = uriSource.value
+
+        override val description
+            get() = "browse ${uri.takeUnless { it == Uri.EMPTY }?.toString() ?: "root"}"
 
         override fun execute(signal: CancellationSignal) = when (resolve(uri, signal)) {
             ObjectType.FILE, ObjectType.DIR_WITH_FEED -> client.onFileBrowse(uri)
-            ObjectType.DIR -> updateState(uri, parents, getEntries(uri, signal))
+            ObjectType.DIR -> commitState(getParents(), getEntries(uri, signal))
             else -> Unit
         }
 
-        private val parents: List<BreadcrumbsEntry>
-            get() = ArrayList<BreadcrumbsEntry>().apply {
-                providerClient.parents(uri, object : ParentsCallback {
-                    override fun onObject(uri: Uri, name: String, icon: Int?) {
-                        add(BreadcrumbsEntry(uri, name, icon))
-                    }
+        private fun getParents() = ArrayList<BreadcrumbsEntry>().apply {
+            providerClient.parents(uri, object : ParentsCallback {
+                override fun onObject(uri: Uri, name: String, icon: Int?) {
+                    add(BreadcrumbsEntry(uri, name, icon))
+                }
 
-                    override fun onProgress(done: Int, total: Int) = updateProgress(done, total)
-                })
-            }
-
+                override fun onProgress(done: Int, total: Int) = updateProgress(done, total)
+            })
+        }
     }
 
     private inner class BrowseParentTask(private val items: List<BreadcrumbsEntry>) :
         AsyncOperation {
+
+        override val description
+            get() = "browse parent"
+
         override fun execute(signal: CancellationSignal) {
             for (idx in items.size - 2 downTo 0) {
                 if (tryBrowseAt(idx, signal)) {
@@ -215,7 +249,7 @@ class Model @VisibleForTesting internal constructor(
             try {
                 val type = resolve(uri, signal)
                 if (ObjectType.DIR == type || ObjectType.DIR_WITH_FEED == type) {
-                    updateState(uri, items.subList(0, idx + 1), getEntries(uri, signal))
+                    commitState(items.subList(0, idx + 1), getEntries(uri, signal))
                     return true
                 }
             } catch (e: OperationCanceledException) {
@@ -228,13 +262,16 @@ class Model @VisibleForTesting internal constructor(
     }
 
     private inner class SearchTask(state: State, private val query: String) : AsyncOperation {
+        private val uri = state.uri
         private val content = mutableListOf<ListingEntry>()
-        private val newState = State(state.uri, state.breadcrumbs, content, query)
+
+        override val description
+            get() = "search for $query at $uri"
 
         override fun execute(signal: CancellationSignal) {
             publishState()
             // assume already resolved
-            providerClient.search(newState.uri, query, object : VfsProviderClient.ListingCallback {
+            providerClient.search(uri, query, object : VfsProviderClient.ListingCallback {
                 override fun onDir(
                     uri: Uri,
                     name: String,
@@ -259,7 +296,9 @@ class Model @VisibleForTesting internal constructor(
             }, signal)
         }
 
-        private fun publishState() = mutableState.postValue(newState)
+        private fun publishState() = updateState {
+            withEntries(content)
+        }
     }
 
     internal enum class ObjectType {
@@ -322,5 +361,8 @@ class Model @VisibleForTesting internal constructor(
             owner,
             ViewModelProvider.AndroidViewModelFactory.getInstance(owner.requireActivity().application)
         )[Model::class.java]
+
+        private fun matchEntry(entry: ListingEntry, filter: String) =
+            entry.title.contains(filter, true) || entry.description.contains(filter, true)
     }
 }
