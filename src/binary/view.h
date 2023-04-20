@@ -19,6 +19,9 @@
 
 namespace Binary
 {
+  template<class T>
+  inline constexpr bool is_applicable_for_view = std::is_trivially_copyable_v<T> && !std::is_pointer_v<T>;
+
   class View
   {
   private:
@@ -32,16 +35,13 @@ namespace Binary
       , Length(Begin ? size : 0)
     {}
 
-    template<class T>
+    template<class T, std::enable_if_t<is_applicable_for_view<T>, int> = 0>
     View(const std::vector<T>& data)
       : View(data.data(), data.size() * sizeof(T))
     {}
 
     // is_trivially_copyable is not implemented in windows mingw
-    template<typename T,
-             typename std::enable_if_t<
-                 std::is_standard_layout_v<T> && std::is_trivial_v<T> && !std::is_pointer_v<T> && std::is_compound_v<T>,
-                 int> = 0>
+    template<class T, std::enable_if_t<is_applicable_for_view<T> && std::is_compound_v<T>, int> = 0>
     View(const T& data)
       : View(&data, sizeof(data))
     {}
@@ -81,8 +81,7 @@ namespace Binary
       }
     }
 
-    template<typename T, typename std::enable_if_t<
-                             std::is_standard_layout_v<T> && std::is_trivial_v<T> && !std::is_pointer_v<T>, int> = 0>
+    template<class T, std::enable_if_t<is_applicable_for_view<T>, int> = 0>
     const T* As() const
     {
       return sizeof(T) <= Length ? safe_ptr_cast<const T*>(Begin) : nullptr;
