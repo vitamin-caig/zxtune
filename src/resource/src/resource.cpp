@@ -88,7 +88,7 @@ namespace
       }
     }
 
-    Formats::Archived::File::Ptr FindFile(const String& name) const override
+    Formats::Archived::File::Ptr FindFile(StringView name) const override
     {
       for (const auto& delegate : Delegates)
       {

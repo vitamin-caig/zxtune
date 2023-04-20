@@ -24,10 +24,10 @@
 #include <debug/log.h>
 #include <formats/archived.h>
 #include <strings/format.h>
+#include <strings/map.h>
 // std includes
 #include <cstring>
 #include <list>
-#include <map>
 #include <numeric>
 #include <sstream>
 // boost includes
@@ -71,7 +71,7 @@ namespace Formats::Archived
       virtual bool Visit(const Chunk& ch) = 0;
       virtual bool Visit(const Chunk& ch, const DataBlockDescription& blk) = 0;
       virtual bool Visit(const Chunk& ch, uint_t idx, const DataBlockDescription& blk) = 0;
-      virtual bool Visit(const Chunk& ch, const String& suffix, const DataBlockDescription& blk) = 0;
+      virtual bool Visit(const Chunk& ch, StringView suffix, const DataBlockDescription& blk) = 0;
     };
 
     const Char RAM_SUFFIX[] = {'R', 'A', 'M', 0};
@@ -584,7 +584,7 @@ namespace Formats::Archived
       }
     }
 
-    typedef std::map<String, DataBlocks> NamedBlocksMap;
+    using NamedBlocksMap = Strings::ValueMap<DataBlocks>;
 
     class FilledBlocks
       : public NamedBlocksMap
@@ -599,7 +599,7 @@ namespace Formats::Archived
 
       bool Visit(const Chunk& ch, const DataBlockDescription& blk) override
       {
-        const String& name = GenerateChunkName(ch);
+        const auto& name = GenerateChunkName(ch);
         Dbg("Single block '{}'", name);
         (*this)[name].push_back(blk);
         return true;
@@ -607,16 +607,16 @@ namespace Formats::Archived
 
       bool Visit(const Chunk& ch, uint_t idx, const DataBlockDescription& blk) override
       {
-        const String& name = GenerateChunkName(ch, idx);
+        const auto& name = GenerateChunkName(ch, idx);
         Dbg("Single indexed block '{}'", name);
         DataBlocksAdapter blocks((*this)[name], ch.Id);
         blocks.Add(idx, blk);
         return true;
       }
 
-      bool Visit(const Chunk& ch, const String& suffix, const DataBlockDescription& blk) override
+      bool Visit(const Chunk& ch, StringView suffix, const DataBlockDescription& blk) override
       {
-        const String& name = GenerateChunkName(ch, suffix);
+        const auto& name = GenerateChunkName(ch, suffix);
         Dbg("Single suffixed block '{}'", name);
         (*this)[name].push_back(blk);
         return true;
@@ -666,15 +666,21 @@ namespace Formats::Archived
       {
         for (const auto& block : Blocks)
         {
-          const File::Ptr file = CreateFileOnBlocks(block.first, block.second);
+          const auto file = CreateFileOnBlocks(block.first, block.second);
           walker.OnFile(*file);
         }
       }
 
-      File::Ptr FindFile(const String& name) const override
+      File::Ptr FindFile(StringView name) const override
       {
-        const NamedBlocksMap::const_iterator it = Blocks.find(name);
-        return it != Blocks.end() ? CreateFileOnBlocks(it->first, it->second) : File::Ptr();
+        if (const auto* ptr = Blocks.FindPtr(name))
+        {
+          return CreateFileOnBlocks(name.to_string(), *ptr);
+        }
+        else
+        {
+          return {};
+        }
       }
 
       uint_t CountFiles() const override
@@ -683,15 +689,15 @@ namespace Formats::Archived
       }
 
     private:
-      File::Ptr CreateFileOnBlocks(const String& name, const DataBlocks& blocks) const
+      File::Ptr CreateFileOnBlocks(String name, const DataBlocks& blocks) const
       {
         if (blocks.size() == 1)
         {
-          return MakePtr<SingleBlockFile>(Delegate, name, blocks.front());
+          return MakePtr<SingleBlockFile>(Delegate, std::move(name), blocks.front());
         }
         else
         {
-          return MakePtr<MultiBlockFile>(Delegate, name, blocks);
+          return MakePtr<MultiBlockFile>(Delegate, std::move(name), blocks);
         }
       }
 

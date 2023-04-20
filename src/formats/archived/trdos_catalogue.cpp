@@ -160,7 +160,7 @@ namespace TRDos
       }
     }
 
-    Formats::Archived::File::Ptr FindFile(const String& name) const override
+    Formats::Archived::File::Ptr FindFile(StringView name) const override
     {
       for (const auto& file : Files)
       {
@@ -249,7 +249,7 @@ namespace TRDos
       }
     }
 
-    bool HasFile(const String& name) const
+    bool HasFile(StringView name) const
     {
       for (const auto& file : Files)
       {
@@ -471,14 +471,14 @@ namespace TRDos
     }
   };
 
-  File::Ptr File::Create(Binary::Container::Ptr data, const String& name, std::size_t off, std::size_t size)
+  File::Ptr File::Create(Binary::Container::Ptr data, StringView name, std::size_t off, std::size_t size)
   {
-    return MakePtr<GenericFile>(data, name, off, size);
+    return MakePtr<GenericFile>(data, name.to_string(), off, size);
   }
 
-  File::Ptr File::CreateReference(const String& name, std::size_t off, std::size_t size)
+  File::Ptr File::CreateReference(StringView name, std::size_t off, std::size_t size)
   {
-    return MakePtr<FlatFile>(name, off, size);
+    return MakePtr<FlatFile>(name.to_string(), off, size);
   }
 
   CatalogueBuilder::Ptr CatalogueBuilder::CreateGeneric()

@@ -18,8 +18,8 @@
 #include <formats/packed/decoders.h>
 #include <formats/packed/zip_supp.h>
 #include <strings/encoding.h>
+#include <strings/map.h>
 // std includes
-#include <map>
 #include <numeric>
 
 namespace Formats::Archived
@@ -239,15 +239,15 @@ namespace Formats::Archived
       void ExploreFiles(const Container::Walker& walker) const override
       {
         FillCache();
-        for (FilesMap::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+        for (const auto& entry : Files)
         {
-          walker.OnFile(*it->second);
+          walker.OnFile(*entry.second);
         }
       }
 
-      File::Ptr FindFile(const String& name) const override
+      File::Ptr FindFile(StringView name) const override
       {
-        if (const File::Ptr file = FindCachedFile(name))
+        if (auto file = FindCachedFile(name))
         {
           return file;
         }
@@ -262,23 +262,19 @@ namespace Formats::Archived
     private:
       void FillCache() const
       {
-        FindNonCachedFile(String());
+        FindNonCachedFile({});
       }
 
-      File::Ptr FindCachedFile(const String& name) const
+      File::Ptr FindCachedFile(StringView name) const
       {
         if (Iter.get())
         {
-          const FilesMap::const_iterator it = Files.find(name);
-          if (it != Files.end())
-          {
-            return it->second;
-          }
+          return Files.Get(name);
         }
-        return File::Ptr();
+        return {};
       }
 
-      File::Ptr FindNonCachedFile(const String& name) const
+      File::Ptr FindNonCachedFile(StringView name) const
       {
         CreateIterator();
         while (!Iter->IsEof())
@@ -291,15 +287,15 @@ namespace Formats::Archived
             continue;
           }
           Dbg("Found file '{}'", fileName);
-          const File::Ptr fileObject = Iter->GetFile();
-          Files.insert(FilesMap::value_type(fileName, fileObject));
+          auto fileObject = Iter->GetFile();
+          Files.emplace(fileName, fileObject);
           Iter->Next();
           if (fileName == name)
           {
             return fileObject;
           }
         }
-        return File::Ptr();
+        return {};
       }
 
       void CreateIterator() const
@@ -314,8 +310,7 @@ namespace Formats::Archived
       const Formats::Packed::Decoder::Ptr Decoder;
       const uint_t FilesCount;
       mutable std::unique_ptr<FileIterator> Iter;
-      typedef std::map<String, File::Ptr> FilesMap;
-      mutable FilesMap Files;
+      mutable Strings::ValueMap<File::Ptr> Files;
     };
   }  // namespace Zip
 

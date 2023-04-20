@@ -75,29 +75,28 @@ namespace Formats::Archived
         }
       }
 
-      File::Ptr FindFile(const String& name) const override
+      File::Ptr FindFile(StringView name) const override
       {
         const Strings::PrefixedIndex rawName("@"_sv, name);
         const auto ayIndex = MultitrackArchives::ParseFilename(name);
         if (!rawName.IsValid() && !ayIndex)
         {
-          return File::Ptr();
+          return {};
         }
         const uint_t index = rawName.IsValid() ? rawName.GetIndex() : *ayIndex;
         const uint_t subModules = Formats::Chiptune::AY::GetModulesCount(*Delegate);
         if (subModules < index)
         {
-          return File::Ptr();
+          return {};
         }
-        const Formats::Chiptune::AY::BlobBuilder::Ptr builder = rawName.IsValid()
-                                                                    ? Formats::Chiptune::AY::CreateMemoryDumpBuilder()
-                                                                    : Formats::Chiptune::AY::CreateFileBuilder();
+        const auto builder = rawName.IsValid() ? Formats::Chiptune::AY::CreateMemoryDumpBuilder()
+                                               : Formats::Chiptune::AY::CreateFileBuilder();
         if (!Formats::Chiptune::AY::Parse(*Delegate, index, *builder))
         {
           return File::Ptr();
         }
-        const Binary::Container::Ptr data = builder->Result();
-        return MakePtr<File>(name, data);
+        auto data = builder->Result();
+        return MakePtr<File>(name.to_string(), std::move(data));
       }
 
       uint_t CountFiles() const override

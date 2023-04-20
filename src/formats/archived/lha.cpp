@@ -20,12 +20,12 @@
 #include <formats/packed/lha_supp.h>
 #include <formats/packed/pack_utils.h>
 #include <strings/encoding.h>
+#include <strings/map.h>
 // 3rdparty includes
 #include <3rdparty/lhasa/lib/public/lhasa.h>
 // std includes
 #include <cstring>
 #include <list>
-#include <map>
 #include <numeric>
 
 namespace Formats::Archived
@@ -202,8 +202,8 @@ namespace Formats::Archived
       {
         for (It it = begin; it != end; ++it)
         {
-          const File::Ptr file = *it;
-          Files.insert(FilesMap::value_type(file->GetName(), file));
+          const auto file = *it;
+          Files.emplace(file->GetName(), file);
         }
       }
 
@@ -215,10 +215,9 @@ namespace Formats::Archived
         }
       }
 
-      File::Ptr FindFile(const String& name) const override
+      File::Ptr FindFile(StringView name) const override
       {
-        const FilesMap::const_iterator it = Files.find(name);
-        return it != Files.end() ? it->second : File::Ptr();
+        return Files.Get(name);
       }
 
       uint_t CountFiles() const override
@@ -227,8 +226,7 @@ namespace Formats::Archived
       }
 
     private:
-      typedef std::map<String, File::Ptr> FilesMap;
-      FilesMap Files;
+      Strings::ValueMap<File::Ptr> Files;
     };
   }  // namespace Lha
 

@@ -356,7 +356,7 @@ namespace Formats::Archived
         }
       }
 
-      File::Ptr FindFile(const String& name) const override
+      File::Ptr FindFile(StringView name) const override
       {
         for (FileIterator iter(Decoder, *Delegate); !iter.IsEof(); iter.Next())
         {
@@ -365,7 +365,7 @@ namespace Formats::Archived
             return iter.GetFile();
           }
         }
-        return File::Ptr();
+        return {};
       }
 
       uint_t CountFiles() const override
