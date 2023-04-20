@@ -22,12 +22,12 @@
 namespace Debug
 {
   //! @brief Unconditionally outputs debug message
-  void Message(const String& module, const String& msg);
+  void Message(StringView module, StringView msg);
 
   //! @brief Checks if debug logs are enabled for module
-  bool IsEnabledFor(const String& module);
+  bool IsEnabledFor(StringView module);
 
-  inline void Log(const String& module, const String& msg)
+  inline void Log(StringView module, StringView msg)
   {
     if (IsEnabledFor(module))
     {
@@ -46,8 +46,8 @@ namespace Debug
   class Stream
   {
   public:
-    explicit Stream(const char* module)
-      : Module(module)
+    explicit Stream(StringView module)
+      : Module(module.to_string())
       , Enabled(IsEnabledFor(Module))
     {}
 
