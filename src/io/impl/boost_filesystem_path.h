@@ -32,7 +32,7 @@ namespace IO
       return path.string<String>(GetFacet());
     }
 
-    inline boost::filesystem::path FromString(const String& str)
+    inline boost::filesystem::path FromString(StringView str)
     {
       return boost::filesystem::path(str, GetFacet());
     }

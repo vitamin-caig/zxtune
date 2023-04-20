@@ -16,7 +16,6 @@
 #include <io/identifier.h>
 
 // forward declarations
-class Error;
 namespace Parameters
 {
   class Accessor;
@@ -32,19 +31,19 @@ namespace IO
   //! @brief Resolve uri to identifier object
   //! @param uri Full data identifier
   //! @throw Error if failed to resolve
-  Identifier::Ptr ResolveUri(const String& uri);
+  Identifier::Ptr ResolveUri(StringView uri);
 
   //! @brief Performs opening specified uri
   //! @param path External data identifier
   //! @param params %Parameters accessor to setup providers' work
   //! @param cb Callback for long-time controllable operations
   //! @throw Error if failed to open
-  Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb);
+  Binary::Container::Ptr OpenData(StringView path, const Parameters::Accessor& params, Log::ProgressCallback& cb);
 
   //! @brief Performs creating output stream with specified path
   //! @param path Data identifier
   //! @param %Parameters accessor
   //! @param cb Callback for long-time operations
-  Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params,
+  Binary::OutputStream::Ptr CreateStream(StringView path, const Parameters::Accessor& params,
                                          Log::ProgressCallback& cb);
 }  // namespace IO

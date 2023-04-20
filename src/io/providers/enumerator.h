@@ -24,10 +24,10 @@ namespace IO
     typedef std::shared_ptr<const DataProvider> Ptr;
 
     virtual Strings::Set Schemes() const = 0;
-    virtual Identifier::Ptr Resolve(const String& uri) const = 0;
-    virtual Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& parameters,
+    virtual Identifier::Ptr Resolve(StringView uri) const = 0;
+    virtual Binary::Container::Ptr Open(StringView path, const Parameters::Accessor& parameters,
                                         Log::ProgressCallback& callback) const = 0;
-    virtual Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params,
+    virtual Binary::OutputStream::Ptr Create(StringView path, const Parameters::Accessor& params,
                                              Log::ProgressCallback& callback) const = 0;
   };
 
@@ -39,12 +39,12 @@ namespace IO
     // registration
     virtual void RegisterProvider(DataProvider::Ptr provider) = 0;
 
-    virtual Identifier::Ptr ResolveUri(const String& uri) const = 0;
+    virtual Identifier::Ptr ResolveUri(StringView uri) const = 0;
 
-    virtual Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params,
+    virtual Binary::Container::Ptr OpenData(StringView path, const Parameters::Accessor& params,
                                             Log::ProgressCallback& cb) const = 0;
 
-    virtual Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params,
+    virtual Binary::OutputStream::Ptr CreateStream(StringView path, const Parameters::Accessor& params,
                                                    Log::ProgressCallback& cb) const = 0;
 
     virtual Provider::Iterator::Ptr Enumerate() const = 0;
@@ -52,6 +52,6 @@ namespace IO
     static ProvidersEnumerator& Instance();
   };
 
-  DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description);
-  DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status);
+  DataProvider::Ptr CreateDisabledProviderStub(StringView id, const char* description);
+  DataProvider::Ptr CreateUnavailableProviderStub(StringView id, const char* description, const Error& status);
 }  // namespace IO
