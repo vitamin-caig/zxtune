@@ -41,7 +41,7 @@ namespace
     return false;
   }
 
-  Binary::Data::Ptr LoadResource(const String& name)
+  Binary::Data::Ptr LoadResource(StringView name)
   {
     return Resource::Load(name);
   }
@@ -53,7 +53,7 @@ namespace
       : Lib(lib)
     {}
 
-    void OnResource(const String& name) override
+    void OnResource(StringView name) override
     {
       L10n::Translation trans;
       if (ParseFilename(name, trans))

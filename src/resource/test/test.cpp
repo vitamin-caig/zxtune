@@ -8,14 +8,17 @@
  *
  **/
 
+// library includes
 #include <binary/data_builder.h>
-#include <cstring>
+#include <resource/api.h>
+#include <strings/map.h>
+// common includes
 #include <error.h>
+#include <pointers.h>
+// std includes
+#include <cstring>
 #include <fstream>
 #include <iostream>
-#include <map>
-#include <pointers.h>
-#include <resource/api.h>
 #include <stdexcept>
 
 namespace
@@ -68,11 +71,11 @@ namespace
       LoadFile("nested/dir/file");
     }
 
-    void OnResource(const String& name) override
+    void OnResource(StringView name) override
     {
       std::cout << "Found resource file " << name << std::endl;
       Test("Test file exists", 1 == Etalons.count(name));
-      const Binary::Container::Ptr data = Resource::Load(name);
+      const auto data = Resource::Load(name);
       const auto& ref = Etalons[name];
       TestEq("Test file is expected size", ref->Size(), data->Size());
       Test("Test file is expected content", 0 == std::memcmp(ref->Start(), data->Start(), ref->Size()));
@@ -91,7 +94,7 @@ namespace
     }
 
   private:
-    std::map<String, Binary::Data::Ptr> Etalons;
+    Strings::ValueMap<Binary::Data::Ptr> Etalons;
   };
 }  // namespace
 

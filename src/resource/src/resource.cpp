@@ -194,7 +194,7 @@ namespace
       : Archive(LoadEmbeddedArchive())
     {}
 
-    Binary::Container::Ptr Load(const String& name) const
+    Binary::Container::Ptr Load(StringView name) const
     {
       if (const auto file = Archive->FindFile(name))
       {
@@ -239,7 +239,7 @@ namespace
 
 namespace Resource
 {
-  Binary::Container::Ptr Load(const String& name)
+  Binary::Container::Ptr Load(StringView name)
   {
     return EmbeddedArchive::Instance().Load(name);
   }
