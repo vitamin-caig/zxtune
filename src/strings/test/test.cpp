@@ -283,6 +283,26 @@ int main()
       TestSplit("MultiDelimiters", ":one,two/three;four.", ";/,.:"_sv, {"", "one", "two", "three", "four", ""});
       TestSplit("Predicate", "a1bc2;d5", [](Char c) { return !std::isalpha(c); }, {"a", "bc", "d", ""});
     }
+    std::cout << "---- Test for ValueMap ----" << std::endl;
+    {
+      {
+        Strings::ValueMap<String> mapOfStrings{{"key", "value"}};
+        TestEquals("value", mapOfStrings["key"], "String.get_key");
+        Test("" == mapOfStrings["key2"] && mapOfStrings.size() == 2, "String.allocate_key");
+        TestEquals("", *mapOfStrings.FindPtr("key2"), "String.FindPtr.existing");
+        Test("" == mapOfStrings.Get("key3") && mapOfStrings.size() == 2, "String.get_with_default");
+        Test(!mapOfStrings.FindPtr("key3"), "String.FindPtr.nonexisting");
+      }
+      {
+        const auto value = std::make_shared<String>("value");
+        Strings::ValueMap<decltype(value)> mapOfPointers{{"key", value}};
+        TestEquals(value, mapOfPointers["key"], "Pointer.get_key");
+        Test(!mapOfPointers["key2"] && mapOfPointers.size() == 2, "Pointer.allocate_key");
+        TestEquals(value.get(), mapOfPointers.FindPtrValue("key"), "Pointer.FindPtrValue.filled");
+        Test(!mapOfPointers.Get("key3") && mapOfPointers.size() == 2, "Pointers.get_with_default");
+        Test(!mapOfPointers.FindPtrValue("key3"), "Pointer.FindPtr.nonexisting");
+      }
+    }
   }
   catch (int code)
   {
