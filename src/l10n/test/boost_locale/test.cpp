@@ -14,6 +14,7 @@
 #include <binary/container_factories.h>
 #include <l10n/api.h>
 #include <strings/format.h>
+#include <test/utils.h>
 // std includes
 #include <cstring>
 #include <fstream>
@@ -23,8 +24,8 @@
 namespace
 {
   const std::string Domain("test");
-
-  Binary::Dump OpenFile(const std::string& name)
+  
+  Binary::Container::Ptr ReadFile(const std::string& name)
   {
     std::ifstream stream(name.c_str(), std::ios::binary);
     if (!stream)
@@ -34,67 +35,52 @@ namespace
     stream.seekg(0, std::ios_base::end);
     const std::size_t size = stream.tellg();
     stream.seekg(0);
-    Binary::Dump tmp(size);
-    stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
-    return tmp;
+    auto tmp = std::make_unique<Binary::Dump>(size);
+    stream.read(safe_ptr_cast<char*>(tmp->data()), tmp->size());
+    return Binary::CreateContainer(std::move(tmp));
   }
 
-  std::string Test(const std::string& domain)
+  std::vector<std::string> ReadLines(const std::string& name)
+  {
+    std::ifstream stream(name.c_str(), std::ios::in);
+    if (!stream)
+    {
+      throw std::runtime_error("Failed to open " + name);
+    }
+    std::vector<std::string> result;
+    std::vector<char> buf(512);
+    while (stream.getline(buf.data(), buf.size()))
+    {
+      result.emplace_back(buf.data());
+    }
+    return result;
+  }
+
+  std::vector<std::string> Test(const std::string& domain)
   {
     const L10n::TranslateFunctor translate(domain);
-    std::ostringstream str;
-    str << translate("Just a message") << "\r\n";
-    str << translate("context", "Just a message with context") << "\r\n";
+    std::vector<std::string> result;
+    result.emplace_back(translate("Just a message"));
+    result.emplace_back(translate("context", "Just a message with context"));
     for (uint_t idx = 0; idx != 5; ++idx)
     {
-      str << Strings::Format(translate("Single form for {}", "Plural form for {}", idx), idx) << "\r\n";
-      str << Strings::Format(
-          translate("another context", "Single form for {} with context", "Plural form for {} with context", idx), idx)
-          << "\r\n";
+      result.emplace_back(Strings::Format(translate("Single form for {}", "Plural form for {}", idx), idx));
+      result.emplace_back(Strings::Format(
+          translate("another context", "Single form for {} with context", "Plural form for {} with context", idx),
+          idx));
     }
-    return str.str();
+    return result;
   }
 
-  void Test(const Binary::Dump& ref)
+  void Test(const std::vector<std::string>& ref)
   {
-    const std::string val = Test(Domain);
-    const std::string refStr(ref.begin(), ref.end());
-    std::cout << val.size() << " bytes:\n" << val;
-    if (val == refStr)
+    const auto& val = Test(Domain);
+    if (val == ref)
     {
       return;
     }
-    std::cout << "Failed!\n" << refStr.size() << " bytes:\n";
-    if (val.size() <= refStr.size())
-    {
-      const std::pair<std::string::const_iterator, std::string::const_iterator> mis =
-          std::mismatch(val.begin(), val.end(), refStr.begin());
-      if (mis.first == val.end())
-      {
-        std::cout << "missed tail " << refStr.end() - mis.second << " bytes:\n"
-                  << std::string(mis.second, refStr.end()) << std::endl;
-      }
-      else
-      {
-        std::cout << "mismatch at " << std::distance(val.begin(), mis.first) << ": res=" << unsigned(*mis.first)
-                  << " ref=" << unsigned(*mis.second) << std::endl;
-      }
-    }
-    else
-    {
-      const std::pair<std::string::const_iterator, std::string::const_iterator> mis =
-          std::mismatch(refStr.begin(), refStr.end(), val.begin());
-      if (mis.first == refStr.end())
-      {
-        std::cout << "redundand tail " << val.end() - mis.second << " bytes:\n"
-                  << std::string(mis.second, val.end()) << std::endl;
-      }
-      else
-      {
-        std::cout << "mismatch at " << std::distance(refStr.begin(), mis.first) << ": res=" << unsigned(*mis.first)
-                  << " ref=" << unsigned(*mis.second) << std::endl;
-      }
-    }
+    std::cout << "Failed!\n Ref: " << ref << "\n Tst: " << val << std::endl;
+    // throw 1;
   }
 }  // namespace
 
@@ -103,20 +89,20 @@ int main()
   try
   {
     L10n::Library& library = L10n::Library::Instance();
-    library.AddTranslation({Domain, "en", "mo", Binary::CreateContainer(OpenFile("en/test.mo"))});
-    library.AddTranslation({Domain, "ru", "mo", Binary::CreateContainer(OpenFile("ru/test.mo"))});
+    library.AddTranslation({Domain, "en", "mo", ReadFile("en/test.mo")});
+    library.AddTranslation({Domain, "ru", "mo", ReadFile("ru/test.mo")});
 
     std::cout << "Test Default translation" << std::endl;
-    Test(OpenFile("default.res"));
+    Test(ReadLines("default.res"));
     std::cout << "Test English translation" << std::endl;
     library.SelectTranslation("en");
-    Test(OpenFile("english.res"));
+    Test(ReadLines("english.res"));
     std::cout << "Test Russian translation" << std::endl;
     library.SelectTranslation("ru");
-    Test(OpenFile("russian.res"));
+    Test(ReadLines("russian.res"));
     std::cout << "Test nonexisting translation" << std::endl;
     library.SelectTranslation("zz");
-    Test(OpenFile("default.res"));
+    Test(ReadLines("default.res"));
     return 0;
   }
   catch (...)
