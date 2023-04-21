@@ -42,7 +42,7 @@ namespace Sound
     typedef std::shared_ptr<const FileStreamFactory> Ptr;
     virtual ~FileStreamFactory() = default;
 
-    virtual String GetId() const = 0;
+    virtual BackendId GetId() const = 0;
     virtual FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const = 0;
   };
 

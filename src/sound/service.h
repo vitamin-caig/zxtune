@@ -13,7 +13,8 @@
 // library includes
 #include <module/holder.h>
 #include <sound/backend.h>
-#include <strings/array.h>
+// std includes
+#include <vector>
 
 namespace Sound
 {
@@ -28,13 +29,13 @@ namespace Sound
     virtual BackendInformation::Iterator::Ptr EnumerateBackends() const = 0;
 
     //! Return list of available backends ordered by preferences
-    virtual Strings::Array GetAvailableBackends() const = 0;
+    virtual std::vector<BackendId> GetAvailableBackends() const = 0;
 
     //! @brief Create backend using specified parameters
     //! @param params %Backend-related parameters
     //! @return Result backend
     //! @throw Error in case of error
-    virtual Backend::Ptr CreateBackend(StringView backendId, Module::Holder::Ptr module,
+    virtual Backend::Ptr CreateBackend(BackendId id, Module::Holder::Ptr module,
                                        BackendCallback::Ptr callback) const = 0;
   };
 

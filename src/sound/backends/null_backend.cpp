@@ -19,7 +19,7 @@
 
 namespace Sound::Null
 {
-  const Char BACKEND_ID[] = "null";
+  const auto BACKEND_ID = "null"_id;
   const char* const DESCRIPTION = L10n::translate("Null output backend");
 
   class BackendWorker : public Sound::BackendWorker
@@ -57,7 +57,7 @@ namespace Sound
 {
   void RegisterNullBackend(BackendsStorage& storage)
   {
-    const BackendWorkerFactory::Ptr factory = MakePtr<Null::BackendWorkerFactory>();
-    storage.Register(Null::BACKEND_ID, Null::DESCRIPTION, CAP_TYPE_STUB, factory);
+    auto factory = MakePtr<Null::BackendWorkerFactory>();
+    storage.Register(Null::BACKEND_ID, Null::DESCRIPTION, CAP_TYPE_STUB, std::move(factory));
   }
 }  // namespace Sound

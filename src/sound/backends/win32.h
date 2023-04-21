@@ -15,12 +15,13 @@
 #include <types.h>
 // library includes
 #include <l10n/markup.h>
+#include <sound/backend_attrs.h>
 
 namespace Sound
 {
   namespace Win32
   {
-    constexpr const Char BACKEND_ID[] = "win32";
+    constexpr const auto BACKEND_ID = "win32"_id;
     constexpr auto BACKEND_DESCRIPTION = L10n::translate("Win32 sound system backend");
 
     class Device

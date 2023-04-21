@@ -92,7 +92,7 @@ namespace
   class Component : public SoundComponent
   {
     // Id => Options
-    typedef std::map<String, String> PerBackendOptions;
+    typedef Strings::ValueMap<String> PerBackendOptions;
 
   public:
     explicit Component(Parameters::Container::Ptr configParams)
@@ -103,15 +103,14 @@ namespace
     {
       using namespace boost::program_options;
       auto opt = OptionsDescription.add_options();
-      for (Sound::BackendInformation::Iterator::Ptr backends = Service->EnumerateBackends(); backends->IsValid();
-           backends->Next())
+      for (auto backends = Service->EnumerateBackends(); backends->IsValid(); backends->Next())
       {
-        const Sound::BackendInformation::Ptr info = backends->Get();
+        const auto info = backends->Get();
         if (info->Status())
         {
           continue;
         }
-        const String id = info->Id();
+        const auto id = info->Id().to_string();
         String& opts = BackendOptions[id];
         opts = NOTUSED_MARK;
         opt(id.c_str(), value<String>(&opts)->implicit_value(String(), "parameters"), info->Description().c_str());
@@ -130,7 +129,6 @@ namespace
 
     void ParseParameters() override
     {
-      Parameters::Container::Ptr soundParameters = Parameters::Container::Create();
       {
         for (auto it = BackendOptions.begin(), lim = BackendOptions.end(); it != lim;)
         {
@@ -144,7 +142,7 @@ namespace
           }
           else
           {
-            const PerBackendOptions::iterator toRemove = it;
+            const auto toRemove = it;
             ++it;
             BackendOptions.erase(toRemove);
           }
@@ -161,18 +159,17 @@ namespace
     {
       if (!typeHint.empty())
       {
-        return Service->CreateBackend(typeHint, module, callback);
+        return Service->CreateBackend(Sound::BackendId::FromString(typeHint), module, callback);
       }
       if (!UsedId.empty())
       {
         Dbg("Using previously succeed backend {}", UsedId);
-        return Service->CreateBackend(UsedId, module, callback);
+        return Service->CreateBackend(Sound::BackendId::FromString(UsedId), module, callback);
       }
-      for (Sound::BackendInformation::Iterator::Ptr backends = Service->EnumerateBackends(); backends->IsValid();
-           backends->Next())
+      for (auto backends = Service->EnumerateBackends(); backends->IsValid(); backends->Next())
       {
-        const Sound::BackendInformation::Ptr info = backends->Get();
-        const String id = info->Id();
+        const auto info = backends->Get();
+        const auto id = info->Id();
         if (BackendOptions.empty() || BackendOptions.count(id))
         {
           Dbg("Trying backend {}", id);

@@ -19,7 +19,6 @@
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -382,7 +381,7 @@ namespace Sound
 {
   void RegisterOssBackend(BackendsStorage& storage)
   {
-    const BackendWorkerFactory::Ptr factory = MakePtr<Oss::BackendWorkerFactory>();
-    storage.Register(Oss::BACKEND_ID, Oss::BACKEND_DESCRIPTION, Oss::CAPABILITIES, factory);
+    auto factory = MakePtr<Oss::BackendWorkerFactory>();
+    storage.Register(Oss::BACKEND_ID, Oss::BACKEND_DESCRIPTION, Oss::CAPABILITIES, std::move(factory));
   }
 }  // namespace Sound

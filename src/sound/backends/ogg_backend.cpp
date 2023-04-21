@@ -22,7 +22,6 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 // std includes
@@ -363,7 +362,7 @@ namespace Sound::Ogg
       , Params(std::move(params))
     {}
 
-    String GetId() const override
+    BackendId GetId() const override
     {
       return BACKEND_ID;
     }
@@ -432,12 +431,13 @@ namespace Sound
   {
     try
     {
-      const Ogg::Api::Ptr oggApi = Ogg::LoadDynamicApi();
-      const Vorbis::Api::Ptr vorbisApi = Vorbis::LoadDynamicApi();
-      const VorbisEnc::Api::Ptr vorbisEncApi = VorbisEnc::LoadDynamicApi();
+      auto oggApi = Ogg::LoadDynamicApi();
+      auto vorbisApi = Vorbis::LoadDynamicApi();
+      auto vorbisEncApi = VorbisEnc::LoadDynamicApi();
       Ogg::Dbg("Detected Vorbis library {}", vorbisApi->vorbis_version_string());
-      const BackendWorkerFactory::Ptr factory = MakePtr<Ogg::BackendWorkerFactory>(oggApi, vorbisApi, vorbisEncApi);
-      storage.Register(Ogg::BACKEND_ID, Ogg::BACKEND_DESCRIPTION, CAP_TYPE_FILE, factory);
+      auto factory =
+          MakePtr<Ogg::BackendWorkerFactory>(std::move(oggApi), std::move(vorbisApi), std::move(vorbisEncApi));
+      storage.Register(Ogg::BACKEND_ID, Ogg::BACKEND_DESCRIPTION, CAP_TYPE_FILE, std::move(factory));
     }
     catch (const Error& e)
     {

@@ -219,7 +219,7 @@ namespace
       const Sound::BackendCallback::Ptr cb(static_cast<Sound::BackendCallback*>(this),
                                            NullDeleter<Sound::BackendCallback>());
       std::list<Error> errors;
-      const Strings::Array systemBackends = Service->GetAvailableBackends();
+      const auto systemBackends = Service->GetAvailableBackends();
       for (const auto& id : systemBackends)
       {
         try

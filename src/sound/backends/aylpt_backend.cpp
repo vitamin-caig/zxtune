@@ -23,7 +23,6 @@
 #include <module/conversion/api.h>
 #include <module/conversion/types.h>
 #include <platform/shared_library.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 // std includes
 #include <algorithm>
@@ -256,9 +255,9 @@ namespace Sound
   {
     try
     {
-      const AyLpt::LptPort::Ptr port = AyLpt::LoadLptLibrary();
-      const BackendWorkerFactory::Ptr factory = MakePtr<AyLpt::BackendWorkerFactory>(port);
-      storage.Register(AyLpt::BACKEND_ID, AyLpt::BACKEND_DESCRIPTION, AyLpt::CAPABILITIES, factory);
+      auto port = AyLpt::LoadLptLibrary();
+      auto factory = MakePtr<AyLpt::BackendWorkerFactory>(std::move(port));
+      storage.Register(AyLpt::BACKEND_ID, AyLpt::BACKEND_DESCRIPTION, AyLpt::CAPABILITIES, std::move(factory));
     }
     catch (const Error& e)
     {

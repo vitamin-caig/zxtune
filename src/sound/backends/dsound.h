@@ -15,12 +15,13 @@
 #include <types.h>
 // library includes
 #include <l10n/markup.h>
+#include <sound/backend_attrs.h>
 
 namespace Sound
 {
   namespace DirectSound
   {
-    constexpr const Char BACKEND_ID[] = "dsound";
+    constexpr const auto BACKEND_ID = "dsound"_id;
     constexpr auto BACKEND_DESCRIPTION = L10n::translate("DirectSound support backend.");
 
     class Device

@@ -11,8 +11,6 @@
 // local includes
 #include "sound/backends/mp3.h"
 #include "sound/backends/storage.h"
-// library includes
-#include <sound/backend_attrs.h>
 
 namespace Sound
 {

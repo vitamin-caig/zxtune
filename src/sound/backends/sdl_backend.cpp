@@ -23,7 +23,6 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -294,11 +293,11 @@ namespace Sound
   {
     try
     {
-      const Sdl::Api::Ptr api = Sdl::LoadDynamicApi();
+      auto api = Sdl::LoadDynamicApi();
       const SDL_version* const vers = api->SDL_Linked_Version();
       Sdl::Dbg("Detected SDL {}.{}.{}", unsigned(vers->major), unsigned(vers->minor), unsigned(vers->patch));
-      const BackendWorkerFactory::Ptr factory = MakePtr<Sdl::BackendWorkerFactory>(api);
-      storage.Register(Sdl::BACKEND_ID, Sdl::BACKEND_DESCRIPTION, Sdl::CAPABILITIES, factory);
+      auto factory = MakePtr<Sdl::BackendWorkerFactory>(std::move(api));
+      storage.Register(Sdl::BACKEND_ID, Sdl::BACKEND_DESCRIPTION, Sdl::CAPABILITIES, std::move(factory));
     }
     catch (const Error& e)
     {

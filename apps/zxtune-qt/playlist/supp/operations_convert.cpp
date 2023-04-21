@@ -126,9 +126,10 @@ namespace
         const Module::Information::Ptr info = item->GetModuleInformation();
         Log::PercentProgressCallback framesProgress(info->Duration().Get(), curItemProgress);
         ConvertCallback cb(framesProgress);
-        const Sound::Backend::Ptr backend =
-            Service->CreateBackend(Type, item, Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
-        const Sound::PlaybackControl::Ptr control = backend->GetPlaybackControl();
+        const auto backend =
+            Service->CreateBackend(Sound::BackendId::FromString(Type), item,
+                                   Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
+        const auto control = backend->GetPlaybackControl();
         control->Play();
         cb.WaitForFinish();
         control->Stop();

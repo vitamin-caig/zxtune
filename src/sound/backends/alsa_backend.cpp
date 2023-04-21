@@ -23,7 +23,6 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -1035,12 +1034,12 @@ namespace Sound
   {
     try
     {
-      const Alsa::Api::Ptr api = Alsa::LoadDynamicApi();
+      auto api = Alsa::LoadDynamicApi();
       Alsa::Dbg("Detected Alsa {}", api->snd_asoundlib_version());
       if (Alsa::DeviceInfoIterator(api).IsValid())
       {
-        const BackendWorkerFactory::Ptr factory = MakePtr<Alsa::BackendWorkerFactory>(api);
-        storage.Register(Alsa::BACKEND_ID, Alsa::BACKEND_DESCRIPTION, Alsa::CAPABILITIES, factory);
+        auto factory = MakePtr<Alsa::BackendWorkerFactory>(std::move(api));
+        storage.Register(Alsa::BACKEND_ID, Alsa::BACKEND_DESCRIPTION, Alsa::CAPABILITIES, std::move(factory));
       }
       else
       {
@@ -1065,8 +1064,8 @@ namespace Sound
           but till alsa 1.0.24 this will lead to crash.
           TODO: check for previously called snd_lib_error_set_handler(NULL)
         */
-        const Api::Ptr api = LoadDynamicApi();
-        return MakePtr<DeviceInfoIterator>(api);
+        auto api = LoadDynamicApi();
+        return MakePtr<DeviceInfoIterator>(std::move(api));
       }
       catch (const Error& e)
       {

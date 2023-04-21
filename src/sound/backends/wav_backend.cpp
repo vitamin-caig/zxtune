@@ -28,7 +28,7 @@
 
 namespace Sound::Wav
 {
-  const Char BACKEND_ID[] = "wav";
+  const auto BACKEND_ID = "wav"_id;
   const char* const DESCRIPTION = L10n::translate("WAV support backend");
 
   // Standard .wav header
@@ -232,7 +232,7 @@ namespace Sound::Wav
       : Frequency(frequency)
     {}
 
-    String GetId() const override
+    BackendId GetId() const override
     {
       return BACKEND_ID;
     }
@@ -265,7 +265,7 @@ namespace Sound
 {
   void RegisterWavBackend(BackendsStorage& storage)
   {
-    const BackendWorkerFactory::Ptr factory = MakePtr<Wav::BackendWorkerFactory>();
-    storage.Register(Wav::BACKEND_ID, Wav::DESCRIPTION, CAP_TYPE_FILE, factory);
+    auto factory = MakePtr<Wav::BackendWorkerFactory>();
+    storage.Register(Wav::BACKEND_ID, Wav::DESCRIPTION, CAP_TYPE_FILE, std::move(factory));
   }
 }  // namespace Sound

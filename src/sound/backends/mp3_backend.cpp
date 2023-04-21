@@ -21,7 +21,6 @@
 #include <binary/dump.h>
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 // std includes
@@ -244,7 +243,7 @@ namespace Sound::Mp3
       , Params(std::move(params))
     {}
 
-    String GetId() const override
+    BackendId GetId() const override
     {
       return BACKEND_ID;
     }
@@ -350,10 +349,10 @@ namespace Sound
   {
     try
     {
-      const Mp3::Api::Ptr api = Mp3::LoadDynamicApi();
+      auto api = Mp3::LoadDynamicApi();
       Mp3::Dbg("Detected LAME library {}", api->get_lame_version());
-      const BackendWorkerFactory::Ptr factory = MakePtr<Mp3::BackendWorkerFactory>(api);
-      storage.Register(Mp3::BACKEND_ID, Mp3::BACKEND_DESCRIPTION, CAP_TYPE_FILE, factory);
+      auto factory = MakePtr<Mp3::BackendWorkerFactory>(std::move(api));
+      storage.Register(Mp3::BACKEND_ID, Mp3::BACKEND_DESCRIPTION, CAP_TYPE_FILE, std::move(factory));
     }
     catch (const Error& e)
     {

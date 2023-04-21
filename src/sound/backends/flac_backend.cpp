@@ -19,7 +19,6 @@
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 // std includes
@@ -236,7 +235,7 @@ namespace Sound::Flac
       , Params(std::move(params))
     {}
 
-    String GetId() const override
+    BackendId GetId() const override
     {
       return BACKEND_ID;
     }
@@ -300,10 +299,10 @@ namespace Sound
   {
     try
     {
-      const Flac::Api::Ptr api = Flac::LoadDynamicApi();
+      auto api = Flac::LoadDynamicApi();
       Flac::Dbg("Detected Flac library");
-      const BackendWorkerFactory::Ptr factory = MakePtr<Flac::BackendWorkerFactory>(api);
-      storage.Register(Flac::BACKEND_ID, Flac::BACKEND_DESCRIPTION, CAP_TYPE_FILE, factory);
+      auto factory = MakePtr<Flac::BackendWorkerFactory>(std::move(api));
+      storage.Register(Flac::BACKEND_ID, Flac::BACKEND_DESCRIPTION, CAP_TYPE_FILE, std::move(factory));
     }
     catch (const Error& e)
     {

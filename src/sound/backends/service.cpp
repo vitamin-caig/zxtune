@@ -22,6 +22,7 @@
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/service.h>
+#include <strings/array.h>
 #include <strings/split.h>
 
 namespace Sound
@@ -31,14 +32,14 @@ namespace Sound
   class StaticBackendInformation : public BackendInformation
   {
   public:
-    StaticBackendInformation(StringView id, const char* descr, uint_t caps, Error status)
-      : IdValue(id.to_string())
+    StaticBackendInformation(BackendId id, const char* descr, uint_t caps, Error status)
+      : IdValue(id)
       , DescrValue(descr)
       , CapsValue(caps)
       , StatusValue(std::move(status))
     {}
 
-    String Id() const override
+    BackendId Id() const override
     {
       return IdValue;
     }
@@ -59,7 +60,7 @@ namespace Sound
     }
 
   private:
-    const String IdValue;
+    const BackendId IdValue;
     const char* const DescrValue;
     const uint_t CapsValue;
     const Error StatusValue;
@@ -81,12 +82,11 @@ namespace Sound
       return CreateRangedObjectIteratorAdapter(Infos.begin(), Infos.end());
     }
 
-    Strings::Array GetAvailableBackends() const override
+    std::vector<BackendId> GetAvailableBackends() const override
     {
-      const Strings::Array order = GetOrder();
-      Strings::Array available = GetAvailable();
-      Strings::Array result;
-      for (const auto& id : order)
+      auto available = GetAvailable();
+      std::vector<BackendId> result;
+      for (const auto& id : GetOrder())
       {
         const auto avIt = std::find(available.begin(), available.end(), id);
         if (avIt != available.end())
@@ -99,7 +99,7 @@ namespace Sound
       return result;
     }
 
-    Backend::Ptr CreateBackend(StringView backendId, Module::Holder::Ptr module,
+    Backend::Ptr CreateBackend(BackendId backendId, Module::Holder::Ptr module,
                                BackendCallback::Ptr callback) const override
     {
       try
@@ -116,20 +116,20 @@ namespace Sound
       }
     }
 
-    void Register(StringView id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory) override
+    void Register(BackendId id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory) override
     {
-      Factories.emplace_back(id.to_string(), std::move(factory));
+      Factories.emplace_back(id, std::move(factory));
       Infos.emplace_back(MakePtr<StaticBackendInformation>(id, description, caps, Error()));
       Dbg("Service({}): Registered backend {}", static_cast<void*>(this), id);
     }
 
-    void Register(StringView id, const char* description, uint_t caps, const Error& status) override
+    void Register(BackendId id, const char* description, uint_t caps, const Error& status) override
     {
       Infos.emplace_back(MakePtr<StaticBackendInformation>(id, description, caps, status));
       Dbg("Service({}): Registered disabled backend {}", static_cast<void*>(this), id);
     }
 
-    void Register(StringView id, const char* description, uint_t caps) override
+    void Register(BackendId id, const char* description, uint_t caps) override
     {
       auto status = Error(THIS_LINE, translate("Not supported in current configuration"));
       Infos.emplace_back(MakePtr<StaticBackendInformation>(id, description, caps, std::move(status)));
@@ -147,9 +147,9 @@ namespace Sound
       return orderArray;
     }
 
-    Strings::Array GetAvailable() const
+    std::vector<BackendId> GetAvailable() const
     {
-      Strings::Array ids;
+      std::vector<BackendId> ids;
       for (const auto& info : Infos)
       {
         if (!info->Status())
@@ -160,7 +160,7 @@ namespace Sound
       return ids;
     }
 
-    BackendWorkerFactory::Ptr FindFactory(StringView id) const
+    BackendWorkerFactory::Ptr FindFactory(BackendId id) const
     {
       const auto it = std::find(Factories.begin(), Factories.end(), id);
       return it != Factories.end() ? it->Factory : BackendWorkerFactory::Ptr();
@@ -171,17 +171,15 @@ namespace Sound
     std::vector<BackendInformation::Ptr> Infos;
     struct FactoryWithId
     {
-      String Id;
+      BackendId Id;
       BackendWorkerFactory::Ptr Factory;
 
-      FactoryWithId() {}
-
-      FactoryWithId(String id, BackendWorkerFactory::Ptr factory)
+      FactoryWithId(BackendId id, BackendWorkerFactory::Ptr factory)
         : Id(std::move(id))
         , Factory(std::move(factory))
       {}
 
-      bool operator==(StringView id) const
+      bool operator==(BackendId id) const
       {
         return Id == id;
       }

@@ -10,8 +10,6 @@
 
 #include "sound/backends/storage.h"
 #include "sound/backends/win32.h"
-// library includes
-#include <sound/backend_attrs.h>
 
 namespace Sound
 {

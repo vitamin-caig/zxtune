@@ -21,7 +21,6 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <strings/encoding.h>
@@ -599,11 +598,12 @@ namespace Sound
   {
     try
     {
-      const DirectSound::Api::Ptr api = DirectSound::LoadDynamicApi();
+      auto api = DirectSound::LoadDynamicApi();
       if (DirectSound::DevicesIterator(api).IsValid())
       {
-        const BackendWorkerFactory::Ptr factory = MakePtr<DirectSound::BackendWorkerFactory>(api);
-        storage.Register(DirectSound::BACKEND_ID, DirectSound::BACKEND_DESCRIPTION, DirectSound::CAPABILITIES, factory);
+        auto factory = MakePtr<DirectSound::BackendWorkerFactory>(std::move(api));
+        storage.Register(DirectSound::BACKEND_ID, DirectSound::BACKEND_DESCRIPTION, DirectSound::CAPABILITIES,
+                         std::move(factory));
       }
       else
       {
@@ -622,8 +622,8 @@ namespace Sound
     {
       try
       {
-        const Api::Ptr api = LoadDynamicApi();
-        return MakePtr<DevicesIterator>(api);
+        auto api = LoadDynamicApi();
+        return MakePtr<DevicesIterator>(std::move(api));
       }
       catch (const Error& e)
       {

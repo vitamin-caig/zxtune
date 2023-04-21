@@ -127,7 +127,7 @@ namespace Sound::File
   class FileParameters
   {
   public:
-    FileParameters(Parameters::Accessor::Ptr params, String id)
+    FileParameters(Parameters::Accessor::Ptr params, BackendId id)
       : Params(std::move(params))
       , Id(std::move(id))
     {}
@@ -141,7 +141,7 @@ namespace Sound::File
         throw Error(THIS_LINE, translate("Output filename template is not specified."));
       }
       // check if required to add extension
-      const String extension = Char('.') + Id;
+      const String extension = String(1, '.').append(Id);
       const String::size_type extPos = nameTemplate.find(extension);
       if (String::npos == extPos || extPos + extension.size() != nameTemplate.size())
       {
@@ -181,7 +181,7 @@ namespace Sound::File
 
   private:
     const Parameters::Accessor::Ptr Params;
-    const String Id;
+    const BackendId Id;
   };
 
   String InstantiateModuleFields(StringView nameTemplate, const Parameters::Accessor& props)

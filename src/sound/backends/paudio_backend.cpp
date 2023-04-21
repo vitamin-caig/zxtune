@@ -22,7 +22,6 @@
 #include <debug/log.h>
 #include <module/attributes.h>
 #include <platform/version/api.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 // std includes
@@ -170,11 +169,12 @@ namespace Sound
   {
     try
     {
-      const PulseAudio::Api::Ptr api = PulseAudio::LoadDynamicApi();
+      auto api = PulseAudio::LoadDynamicApi();
       const char* const version = api->pa_get_library_version();
       PulseAudio::Dbg("Detected PulseAudio v{}", version);
-      const BackendWorkerFactory::Ptr factory = MakePtr<PulseAudio::BackendWorkerFactory>(api);
-      storage.Register(PulseAudio::BACKEND_ID, PulseAudio::BACKEND_DESCRIPTION, PulseAudio::CAPABILITIES, factory);
+      auto factory = MakePtr<PulseAudio::BackendWorkerFactory>(std::move(api));
+      storage.Register(PulseAudio::BACKEND_ID, PulseAudio::BACKEND_DESCRIPTION, PulseAudio::CAPABILITIES,
+                       std::move(factory));
     }
     catch (const Error& e)
     {
