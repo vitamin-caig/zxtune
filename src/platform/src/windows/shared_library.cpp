@@ -64,11 +64,11 @@ namespace Platform::Details
     return ::GetLastError();
   }
 
-  const String SUFFIX(".dll");
+  const auto SUFFIX = ".dll"_sv;
 
-  String BuildLibraryFilename(const String& name)
+  String BuildLibraryFilename(StringView name)
   {
-    return name + SUFFIX;
+    return String(name).append(SUFFIX);
   }
 
   Error LoadSharedLibrary(const String& fileName, SharedLibrary::Ptr& res)
@@ -82,17 +82,19 @@ namespace Platform::Details
                               fileName, GetWindowsError());
   }
 
-  String GetSharedLibraryFilename(const String& name)
+  String GetSharedLibraryFilename(StringView name)
   {
-    return name.find(SUFFIX) == name.npos ? BuildLibraryFilename(name) : name;
+    return name.find(SUFFIX) == name.npos ? BuildLibraryFilename(name) : name.to_string();
   }
 
   std::vector<String> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
   {
     std::vector<String> res;
-    res.push_back(GetSharedLibraryFilename(name.Base()));
-    const auto& alternatives = name.WindowsAlternatives();
-    std::transform(alternatives.begin(), alternatives.end(), std::back_inserter(res), &GetSharedLibraryFilename);
+    res.emplace_back(GetSharedLibraryFilename(name.Base()));
+    for (const auto& alt : name.WindowsAlternatives())
+    {
+      res.emplace_back(GetSharedLibraryFilename(alt));
+    }
     return res;
   }
 }  // namespace Platform::Details

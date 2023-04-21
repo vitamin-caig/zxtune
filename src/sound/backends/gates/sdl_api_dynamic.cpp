@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  SDL subsystem API gate implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  SDL subsystem API gate implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "sound/backends/gates/sdl_api.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 
@@ -23,25 +23,19 @@ namespace Sound
     class LibraryName : public Platform::SharedLibrary::Name
     {
     public:
-      LibraryName()
+      LibraryName() {}
+
+      StringView Base() const override
       {
+        return "SDL"_sv;
       }
-      
-      String Base() const override
+
+      std::vector<StringView> PosixAlternatives() const override
       {
-        return "SDL";
+        return {"libSDL-1.2.so.0"_sv};
       }
-      
-      std::vector<String> PosixAlternatives() const override
-      {
-        static const String ALTERNATIVES[] =
-        {
-          "libSDL-1.2.so.0",
-        };
-        return std::vector<String>(ALTERNATIVES, std::end(ALTERNATIVES));
-      }
-      
-      std::vector<String> WindowsAlternatives() const override
+
+      std::vector<StringView> WindowsAlternatives() const override
       {
         return {};
       }
@@ -52,7 +46,7 @@ namespace Sound
     {
     public:
       explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
-        : Lib(lib)
+        : Lib(std::move(lib))
       {
         Debug::Log("Sound::Backend::Sdl", "Library loaded");
       }
@@ -151,8 +145,8 @@ namespace Sound
     Api::Ptr LoadDynamicApi()
     {
       static const LibraryName NAME;
-      const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load(NAME);
-      return MakePtr<DynamicApi>(lib);
+      auto lib = Platform::SharedLibrary::Load(NAME);
+      return MakePtr<DynamicApi>(std::move(lib));
     }
-  }
-}
+  }  // namespace Sdl
+}  // namespace Sound

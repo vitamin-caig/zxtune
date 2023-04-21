@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Curl api dynamic gate implementation
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Curl api dynamic gate implementation
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
-//local includes
+// local includes
 #include "io/providers/gates/curl_api.h"
-//common includes
+// common includes
 #include <make_ptr.h>
-//library includes
+// library includes
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 
@@ -23,49 +23,37 @@ namespace IO
     class LibraryName : public Platform::SharedLibrary::Name
     {
     public:
-      LibraryName()
+      LibraryName() {}
+
+      StringView Base() const override
       {
+        return "curl"_sv;
       }
 
-      String Base() const override
+      std::vector<StringView> PosixAlternatives() const override
       {
-        return "curl";
+        return {"libcurl.so.3"_sv, "libcurl.so.4"_sv};
       }
-      
-      std::vector<String> PosixAlternatives() const override
+
+      std::vector<StringView> WindowsAlternatives() const override
       {
-        static const String ALTERNATIVES[] =
-        {
-          "libcurl.so.3",
-          "libcurl.so.4",
-        };
-        return std::vector<String>(ALTERNATIVES, std::end(ALTERNATIVES));
-      }
-      
-      std::vector<String> WindowsAlternatives() const override
-      {
-        static const String ALTERNATIVES[] =
-        {
-          "libcurl.dll",
-        };
-        return std::vector<String>(ALTERNATIVES, std::end(ALTERNATIVES));
+        return {"libcurl.dll"_sv};
       }
     };
 
-    const Debug::Stream Dbg("IO::Provider::Network");
 
     class DynamicApi : public Api
     {
     public:
       explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
-        : Lib(lib)
+        : Lib(std::move(lib))
       {
-        Dbg("Library loaded");
+        Debug::Log("IO::Provider::Network", "Library loaded");
       }
 
       ~DynamicApi() override
       {
-        Dbg("Library unloaded");
+        Debug::Log("IO::Provider::Network", "Library unloaded");
       }
 
       
@@ -149,8 +137,8 @@ namespace IO
     Api::Ptr LoadDynamicApi()
     {
       static const LibraryName NAME;
-      const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load(NAME);
-      return MakePtr<DynamicApi>(lib);
+      auto lib = Platform::SharedLibrary::Load(NAME);
+      return MakePtr<DynamicApi>(std::move(lib));
     }
-  }
-}
+  }  // namespace Curl
+}  // namespace IO

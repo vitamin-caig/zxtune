@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  MP3 subsystem API gate interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  MP3 subsystem API gate interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
-//platform-specific includes
+// platform-specific includes
 #include <lame/lame.h>
 
 namespace Sound
@@ -52,4 +52,4 @@ namespace Sound
     Api::Ptr LoadDynamicApi();
 
   }
-}
+}  // namespace Sound

@@ -25,7 +25,7 @@ namespace
 
 namespace Platform
 {
-  SharedLibrary::Ptr SharedLibrary::Load(const String& name)
+  SharedLibrary::Ptr SharedLibrary::Load(StringView name)
   {
     const auto fileName = Details::GetSharedLibraryFilename(name);
     SharedLibrary::Ptr res;

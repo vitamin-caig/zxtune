@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  PulseAudio subsystem API gate interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  PulseAudio subsystem API gate interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
-//platform-dependent includes
+// platform-dependent includes
 #include <pulse/simple.h>
 
 namespace Sound
@@ -38,4 +38,4 @@ namespace Sound
     Api::Ptr LoadDynamicApi();
 
   }
-}
+}  // namespace Sound

@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  FLAC subsystem API gate interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  FLAC subsystem API gate interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
-//platform-dependent includes
+// platform-dependent includes
 #include <FLAC/metadata.h>
 #include <FLAC/stream_encoder.h>
 
@@ -50,4 +50,4 @@ namespace Sound
     Api::Ptr LoadDynamicApi();
 
   }
-}
+}  // namespace Sound
