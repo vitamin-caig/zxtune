@@ -63,7 +63,7 @@ namespace Sound::File
   class TrackStateTemplate
   {
   public:
-    explicit TrackStateTemplate(const String& templ)
+    explicit TrackStateTemplate(StringView templ)
       : Template(Strings::Template::Create(templ))
       , CurPosition(HasField(templ, Module::ATTR_CURRENT_POSITION))
       , CurPattern(HasField(templ, Module::ATTR_CURRENT_PATTERN))
@@ -86,7 +86,7 @@ namespace Sound::File
     }
 
   private:
-    static bool HasField(const String& templ, StringView name)
+    static bool HasField(StringView templ, StringView name)
     {
       const String fullName = Strings::Template::FIELD_START + name.to_string() + Strings::Template::FIELD_END;
       return String::npos != templ.find(fullName);
@@ -184,12 +184,12 @@ namespace Sound::File
     const String Id;
   };
 
-  String InstantiateModuleFields(const String& nameTemplate, const Parameters::Accessor& props)
+  String InstantiateModuleFields(StringView nameTemplate, const Parameters::Accessor& props)
   {
     Dbg("Original filename template: '{}'", nameTemplate);
     const Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource> moduleFields(props);
-    const Strings::Template::Ptr templ = IO::CreateFilenameTemplate(nameTemplate);
-    const String nameTemplateWithRuntimeFields = templ->Instantiate(moduleFields);
+    const auto templ = IO::CreateFilenameTemplate(nameTemplate);
+    auto nameTemplateWithRuntimeFields = templ->Instantiate(moduleFields);
     Dbg("Fixed filename template: '{}'", nameTemplateWithRuntimeFields);
     return nameTemplateWithRuntimeFields;
   }
@@ -210,9 +210,9 @@ namespace Sound::File
       const String& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
       {
-        const Binary::OutputStream::Ptr stream = IO::CreateStream(newFilename, *Params, Log::ProgressCallback::Stub());
+        auto stream = IO::CreateStream(newFilename, *Params, Log::ProgressCallback::Stub());
         Filename = newFilename;
-        const FileStream::Ptr result = Factory->CreateStream(stream);
+        const auto result = Factory->CreateStream(std::move(stream));
         SetProperties(*result);
         if (const uint_t buffers = FileParams.GetBuffersCount())
         {
@@ -223,7 +223,7 @@ namespace Sound::File
           return result;
         }
       }
-      return Receiver::Ptr();
+      return {};
     }
 
   private:

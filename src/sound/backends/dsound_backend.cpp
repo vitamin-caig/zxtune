@@ -81,7 +81,7 @@ namespace Sound::DirectSound
     }
   }
 
-  std::unique_ptr<GUID> String2Guid(const String& str)
+  std::unique_ptr<GUID> String2Guid(StringView str)
   {
     if (str.empty())
     {
@@ -97,7 +97,7 @@ namespace Sound::DirectSound
   typedef std::shared_ptr<IDirectSound> DirectSoundPtr;
   typedef std::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
 
-  DirectSoundPtr OpenDevice(Api& api, const String& device)
+  DirectSoundPtr OpenDevice(Api& api, StringView device)
   {
     Dbg("OpenDevice({})", device);
     IDirectSound* raw = 0;
@@ -516,9 +516,9 @@ namespace Sound::DirectSound
   class DirectSoundDevice : public Device
   {
   public:
-    DirectSoundDevice(const String& id, const String& name)
-      : IdValue(id)
-      , NameValue(name)
+    DirectSoundDevice(StringView id, StringView name)
+      : IdValue(id.to_string())
+      , NameValue(name.to_string())
     {}
 
     virtual String Id() const

@@ -51,13 +51,13 @@ namespace Sound::Oss
       : Handle(-1)
     {}
 
-    explicit AutoDescriptor(String name)
-      : Name(std::move(name))
+    explicit AutoDescriptor(StringView name)
+      : Name(name.to_string())
       , Handle(-1)
     {}
 
-    AutoDescriptor(String name, int mode)
-      : Name(std::move(name))
+    AutoDescriptor(StringView name, int mode)
+      : Name(name.to_string())
       , Handle(::open(Name.c_str(), mode, 0))
     {
       CheckResult(Valid(), THIS_LINE);

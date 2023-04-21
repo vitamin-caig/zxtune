@@ -37,11 +37,11 @@ namespace Sound::PulseAudio
   class BackendWorker : public Sound::BackendWorker
   {
   public:
-    BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params, String stream)
+    BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params, StringView stream)
       : PaApi(std::move(api))
       , Params(std::move(params))
       , Client(Platform::Version::GetProgramTitle())  // TODO: think about another solution...
-      , Stream(std::move(stream))
+      , Stream(stream.to_string())
     {}
 
     void Startup() override
@@ -143,8 +143,8 @@ namespace Sound::PulseAudio
 
     BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const override
     {
-      const String& stream = GetStreamName(*holder);
-      return MakePtr<BackendWorker>(PaApi, params, stream);
+      const auto& stream = GetStreamName(*holder);
+      return MakePtr<BackendWorker>(PaApi, std::move(params), stream);
     }
 
   private:

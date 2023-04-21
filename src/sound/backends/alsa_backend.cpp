@@ -95,9 +95,9 @@ namespace Sound::Alsa
   class AutoHandle
   {
   public:
-    AutoHandle(Api::Ptr api, String name)
+    AutoHandle(Api::Ptr api, StringView name)
       : AlsaApi(std::move(api))
-      , Name(std::move(name))
+      , Name(name.to_string())
       , Handle(nullptr)
     {}
 
@@ -431,7 +431,7 @@ namespace Sound::Alsa
   class MixerDevice : public AutoHandle<snd_mixer_t>
   {
   public:
-    MixerDevice(Api::Ptr api, const String& card)
+    MixerDevice(Api::Ptr api, StringView card)
       : AutoHandle<snd_mixer_t>(api, card)
     {
       Open();
@@ -466,9 +466,9 @@ namespace Sound::Alsa
   class AttachedMixer
   {
   public:
-    AttachedMixer(Api::Ptr api, const String& card)
+    AttachedMixer(Api::Ptr api, StringView card)
       : AlsaApi(api)
-      , Name(card)
+      , Name(card.to_string())
       , MixDev(api, card)
     {
       Open();
@@ -520,7 +520,7 @@ namespace Sound::Alsa
   public:
     typedef std::shared_ptr<Mixer> Ptr;
 
-    Mixer(Api::Ptr api, const Identifier& id, const String& mixer)
+    Mixer(Api::Ptr api, const Identifier& id, StringView mixer)
       : AlsaApi(api)
       , Attached(api, id.GetCard())
       , MixerElement(nullptr)
@@ -921,11 +921,11 @@ namespace Sound::Alsa
   class DeviceInfo : public Device
   {
   public:
-    DeviceInfo(Api::Ptr api, String id, String name, String cardName)
+    DeviceInfo(Api::Ptr api, StringView id, StringView name, StringView cardName)
       : AlsaApi(std::move(api))
-      , IdValue(std::move(id))
-      , NameValue(std::move(name))
-      , CardNameValue(std::move(cardName))
+      , IdValue(id.to_string())
+      , NameValue(name.to_string())
+      , CardNameValue(cardName.to_string())
     {}
 
     String Id() const override
@@ -965,7 +965,7 @@ namespace Sound::Alsa
 
     static Ptr CreateDefault(Api::Ptr api)
     {
-      static const Char DEFAULT_DEVICE_NAME[] = "Default";
+      static const auto DEFAULT_DEVICE_NAME = "Default"_sv;
       return MakePtr<DeviceInfo>(api, Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT, DEFAULT_DEVICE_NAME,
                                  DEFAULT_DEVICE_NAME);
     }

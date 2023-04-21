@@ -31,8 +31,8 @@ namespace Sound
   class StaticBackendInformation : public BackendInformation
   {
   public:
-    StaticBackendInformation(String id, const char* descr, uint_t caps, Error status)
-      : IdValue(std::move(id))
+    StaticBackendInformation(StringView id, const char* descr, uint_t caps, Error status)
+      : IdValue(id.to_string())
       , DescrValue(descr)
       , CapsValue(caps)
       , StatusValue(std::move(status))
@@ -88,7 +88,7 @@ namespace Sound
       Strings::Array result;
       for (const auto& id : order)
       {
-        const Strings::Array::iterator avIt = std::find(available.begin(), available.end(), id);
+        const auto avIt = std::find(available.begin(), available.end(), id);
         if (avIt != available.end())
         {
           result.push_back(*avIt);
@@ -99,7 +99,7 @@ namespace Sound
       return result;
     }
 
-    Backend::Ptr CreateBackend(const String& backendId, Module::Holder::Ptr module,
+    Backend::Ptr CreateBackend(StringView backendId, Module::Holder::Ptr module,
                                BackendCallback::Ptr callback) const override
     {
       try
@@ -116,26 +116,23 @@ namespace Sound
       }
     }
 
-    void Register(const String& id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory) override
+    void Register(StringView id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory) override
     {
-      Factories.push_back(FactoryWithId(id, factory));
-      const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, Error());
-      Infos.push_back(info);
+      Factories.emplace_back(id.to_string(), std::move(factory));
+      Infos.emplace_back(MakePtr<StaticBackendInformation>(id, description, caps, Error()));
       Dbg("Service({}): Registered backend {}", static_cast<void*>(this), id);
     }
 
-    void Register(const String& id, const char* description, uint_t caps, const Error& status) override
+    void Register(StringView id, const char* description, uint_t caps, const Error& status) override
     {
-      const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, status);
-      Infos.push_back(info);
+      Infos.emplace_back(MakePtr<StaticBackendInformation>(id, description, caps, status));
       Dbg("Service({}): Registered disabled backend {}", static_cast<void*>(this), id);
     }
 
-    void Register(const String& id, const char* description, uint_t caps) override
+    void Register(StringView id, const char* description, uint_t caps) override
     {
-      const Error status = Error(THIS_LINE, translate("Not supported in current configuration"));
-      const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, status);
-      Infos.push_back(info);
+      auto status = Error(THIS_LINE, translate("Not supported in current configuration"));
+      Infos.emplace_back(MakePtr<StaticBackendInformation>(id, description, caps, std::move(status)));
       Dbg("Service({}): Registered stub backend {}", static_cast<void*>(this), id);
     }
 
@@ -163,9 +160,9 @@ namespace Sound
       return ids;
     }
 
-    BackendWorkerFactory::Ptr FindFactory(const String& id) const
+    BackendWorkerFactory::Ptr FindFactory(StringView id) const
     {
-      const std::vector<FactoryWithId>::const_iterator it = std::find(Factories.begin(), Factories.end(), id);
+      const auto it = std::find(Factories.begin(), Factories.end(), id);
       return it != Factories.end() ? it->Factory : BackendWorkerFactory::Ptr();
     }
 
@@ -184,7 +181,7 @@ namespace Sound
         , Factory(std::move(factory))
       {}
 
-      bool operator==(const String& id) const
+      bool operator==(StringView id) const
       {
         return Id == id;
       }

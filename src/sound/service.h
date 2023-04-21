@@ -34,7 +34,7 @@ namespace Sound
     //! @param params %Backend-related parameters
     //! @return Result backend
     //! @throw Error in case of error
-    virtual Backend::Ptr CreateBackend(const String& backendId, Module::Holder::Ptr module,
+    virtual Backend::Ptr CreateBackend(StringView backendId, Module::Holder::Ptr module,
                                        BackendCallback::Ptr callback) const = 0;
   };
 
