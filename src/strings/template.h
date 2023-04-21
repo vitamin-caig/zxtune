@@ -32,12 +32,12 @@ namespace Strings
     virtual String Instantiate(const class FieldsSource& source) const = 0;
 
     //! @brief Factory
-    static Ptr Create(const String& templ);
+    static Ptr Create(StringView templ);
 
     //! @param templ Input string
     //! @param source Fields provider
     //! @param beginMark Placeholders' start marker
     //! @param endMark Placeholders' end marker
-    static String Instantiate(const String& templ, const FieldsSource& source);
+    static String Instantiate(StringView templ, const FieldsSource& source);
   };
 }  // namespace Strings

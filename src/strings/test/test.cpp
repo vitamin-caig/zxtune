@@ -57,9 +57,9 @@ namespace
       : Map(map)
     {}
 
-    String GetFieldValue(const String& name) const override
+    String GetFieldValue(StringView name) const override
     {
-      const auto it = Map.find(name);
+      const auto it = Map.find(name.to_string());  // TODO
       return it == Map.end() ? Policy::GetFieldValue(name) : it->second;
     }
 
@@ -108,9 +108,9 @@ namespace
 
   void TestTranscode(const String& encoding, StringView str, StringView reference)
   {
-    const String& trans = Strings::ToAutoUtf8(str);
+    const auto& trans = Strings::ToAutoUtf8(str);
     TestEquals(reference, trans, encoding + " for " + trans);
-    const String& transTrans = Strings::ToAutoUtf8(trans);
+    const auto& transTrans = Strings::ToAutoUtf8(trans);
     TestEquals(trans, transTrans, "Repeated transcode");
   }
 
@@ -136,7 +136,7 @@ namespace
   }
 
   template<class T, class D>
-  void TestSplitImpl(const String& msg, StringView str, D delimiter, const std::vector<StringView>& reference)
+  void TestSplitImpl(StringView msg, StringView str, D delimiter, const std::vector<StringView>& reference)
   {
     std::vector<T> out;
     Strings::Split(str, delimiter, out);

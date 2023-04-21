@@ -39,7 +39,7 @@ namespace Sound::File
       : State(state)
     {}
 
-    String GetFieldValue(const String& fieldName) const override
+    String GetFieldValue(StringView fieldName) const override
     {
       if (fieldName == Module::ATTR_CURRENT_POSITION)
       {

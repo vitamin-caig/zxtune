@@ -714,12 +714,11 @@ namespace
       : Node(std::move(node))
     {}
 
-    String GetFieldValue(const String& name) const override
+    String GetFieldValue(StringView fieldName) const override
     {
       static const Char SUBPATH_DELIMITER[] = {'/', 0};
       static const Char FLATPATH_DELIMITER[] = {'_', 0};
 
-      const StringView fieldName(name);
       if (fieldName == TEMPLATE_FIELD_FILENAME)
       {
         const IO::Identifier& id = GetRootIdentifier();

@@ -29,14 +29,14 @@ namespace IO
       : Delegate(delegate)
     {}
 
-    String GetFieldValue(const String& fieldName) const override
+    String GetFieldValue(StringView fieldName) const override
     {
       const String res = Delegate.GetFieldValue(fieldName);
       return res.empty() ? res : FilterPath(res);
     }
 
   private:
-    static String FilterPath(const String& val)
+    static String FilterPath(StringView val)
     {
       static const Char DELIMITER[] = {'_', 0};
 
@@ -78,9 +78,9 @@ namespace IO
     const Strings::Template::Ptr Delegate;
   };
 
-  Strings::Template::Ptr CreateFilenameTemplate(const String& notation)
+  Strings::Template::Ptr CreateFilenameTemplate(StringView notation)
   {
-    Strings::Template::Ptr delegate = Strings::Template::Create(notation);
+    auto delegate = Strings::Template::Create(notation);
     return MakePtr<FilenameTemplate>(std::move(delegate));
   }
 }  // namespace IO
