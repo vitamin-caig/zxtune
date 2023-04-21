@@ -491,7 +491,7 @@ namespace Module::VGMStream
       return Model->GetUnresolved();
     }
 
-    void Resolve(const String& name, Binary::Container::Ptr data) override
+    void Resolve(StringView name, Binary::Container::Ptr data) override
     {
       Dbg("Resolving dependency '{}'", name);
       Model->Resolve(name, std::move(data));

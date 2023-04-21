@@ -161,7 +161,7 @@ namespace Module
         Result.Dependencies[num - 1] = FilePath(filename).ToString();
       }
 
-      void MakeDependenciesRelativeTo(const String& filename)
+      void MakeDependenciesRelativeTo(StringView filename)
       {
         const FilePath root(filename);
         for (auto& dep : Result.Dependencies)
@@ -201,11 +201,11 @@ namespace Module
       }
       else
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 
-    Formats::Chiptune::Container::Ptr Parse(const String& name, const Binary::Container& rawData, File& file)
+    Formats::Chiptune::Container::Ptr Parse(StringView name, const Binary::Container& rawData, File& file)
     {
       FileBuilder builder;
       if (auto source = Formats::Chiptune::PortableSoundFormat::Parse(rawData, builder))
@@ -216,7 +216,7 @@ namespace Module
       }
       else
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
   }  // namespace XSF

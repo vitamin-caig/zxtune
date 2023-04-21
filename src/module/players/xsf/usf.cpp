@@ -317,7 +317,7 @@ namespace Module::USF
       return Holder::Create(builder.CaptureResult(), std::move(properties));
     }
 
-    Holder::Ptr CreateMultifileModule(const XSF::File& file, const std::map<String, XSF::File>& additionalFiles,
+    Holder::Ptr CreateMultifileModule(const XSF::File& file, const XSF::FilesMap& additionalFiles,
                                       Parameters::Container::Ptr properties) const override
     {
       ModuleDataBuilder builder;
@@ -342,8 +342,8 @@ namespace Module::USF
     */
     static const uint_t MAX_LEVEL = 10;
 
-    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles,
-                              ModuleDataBuilder& dst, uint_t level = 1)
+    static void MergeSections(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
+                              uint_t level = 1)
     {
       if (!data.Dependencies.empty() && level < MAX_LEVEL)
       {
@@ -352,7 +352,7 @@ namespace Module::USF
       dst.AddSection(data.ReservedSection);
     }
 
-    void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles, ModuleDataBuilder& dst,
+    void MergeMeta(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
                    uint_t level = 1) const
     {
       if (level < MAX_LEVEL)

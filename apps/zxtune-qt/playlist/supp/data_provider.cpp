@@ -329,9 +329,9 @@ namespace
     }
 
     // AdditionalFilesSource
-    Binary::Container::Ptr Get(const String& name) const override
+    Binary::Container::Ptr Get(StringView name) const override
     {
-      return Provider->GetData(Dir + name);
+      return Provider->GetData(Dir + name.to_string());
     }
 
   private:
@@ -584,7 +584,7 @@ namespace
       , Source(MakePtr<DataSource>(provider, dataId))
     {}
 
-    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const override
+    Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const override
     {
       auto moduleId = DataId->WithSubpath(subpath);
       auto pathProps = Module::CreatePathProperties(std::move(moduleId));
@@ -630,13 +630,13 @@ namespace
       : Delegate(ZXTune::Service::Create(std::move(parameters)))
     {}
 
-    Binary::Container::Ptr OpenData(Binary::Container::Ptr data, const String& subpath) const override
+    Binary::Container::Ptr OpenData(Binary::Container::Ptr data, StringView subpath) const override
     {
       EnsureNotMainThread();
       return Delegate->OpenData(std::move(data), subpath);
     }
 
-    Module::Holder::Ptr OpenModule(Binary::Container::Ptr data, const String& subpath,
+    Module::Holder::Ptr OpenModule(Binary::Container::Ptr data, StringView subpath,
                                    Parameters::Container::Ptr initialProperties) const override
     {
       EnsureNotMainThread();
@@ -649,7 +649,7 @@ namespace
       return Delegate->DetectModules(std::move(data), callback);
     }
 
-    void OpenModule(Binary::Container::Ptr data, const String& subpath, Module::DetectCallback& callback) const override
+    void OpenModule(Binary::Container::Ptr data, StringView subpath, Module::DetectCallback& callback) const override
     {
       EnsureNotMainThread();
       return Delegate->OpenModule(std::move(data), subpath, callback);

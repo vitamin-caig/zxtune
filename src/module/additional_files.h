@@ -20,6 +20,6 @@ namespace Module
   {
   public:
     virtual Strings::Array Enumerate() const = 0;
-    virtual void Resolve(const String& name, Binary::Container::Ptr data) = 0;
+    virtual void Resolve(StringView name, Binary::Container::Ptr data) = 0;
   };
 }  // namespace Module

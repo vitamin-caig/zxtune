@@ -187,7 +187,7 @@ namespace
       , Log(log)
     {}
 
-    Parameters::Container::Ptr CreateInitialProperties(const String& /*subpath*/) const override
+    Parameters::Container::Ptr CreateInitialProperties(StringView /*subpath*/) const override
     {
       return Parameters::Container::Create();
     }

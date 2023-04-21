@@ -66,7 +66,7 @@ namespace Module::XSF
       return result;
     }
 
-    void Resolve(const String& name, Binary::Container::Ptr data) override
+    void Resolve(StringView name, Binary::Container::Ptr data) override
     {
       Dbg("Resolving dependency '{}'", name);
       auto& file = Files.at(name);
@@ -101,8 +101,7 @@ namespace Module::XSF
       {
         Require(!Files.empty());
         FillStrings();
-        Delegate = HolderFactory->CreateMultifileModule(Head, Files, std::move(Properties));
-        Files.clear();
+        Delegate = HolderFactory->CreateMultifileModule(Head, std::move(Files), std::move(Properties));
         Head = File();
       }
       return *Delegate;
@@ -131,7 +130,7 @@ namespace Module::XSF
     const XSF::Factory::Ptr HolderFactory;
     mutable Parameters::Container::Ptr Properties;
     mutable File Head;
-    mutable std::map<String, File> Files;
+    mutable FilesMap Files;
 
     mutable Holder::Ptr Delegate;
   };

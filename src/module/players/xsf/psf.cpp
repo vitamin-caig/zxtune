@@ -436,7 +436,7 @@ namespace Module::PSF
       return Holder::Create(builder.CaptureResult(file.Version), std::move(properties));
     }
 
-    Holder::Ptr CreateMultifileModule(const XSF::File& file, const std::map<String, XSF::File>& additionalFiles,
+    Holder::Ptr CreateMultifileModule(const XSF::File& file, const XSF::FilesMap& additionalFiles,
                                       Parameters::Container::Ptr properties) const override
     {
       ModuleDataBuilder builder;
@@ -472,8 +472,8 @@ namespace Module::PSF
     */
     static const uint_t MAX_LEVEL = 10;
 
-    static void MergeExe(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles,
-                         ModuleDataBuilder& dst, uint_t level = 1)
+    static void MergeExe(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
+                         uint_t level = 1)
     {
       auto it = data.Dependencies.begin();
       const auto lim = data.Dependencies.end();
@@ -503,8 +503,8 @@ namespace Module::PSF
     If there are conflicting or redundant filenames, they should be overwritten in memory in the order in which the
     filesystem data was parsed. Later takes priority.
     */
-    static void MergeVfs(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles,
-                         ModuleDataBuilder& dst, uint_t level = 1)
+    static void MergeVfs(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
+                         uint_t level = 1)
     {
       if (level < MAX_LEVEL)
       {
@@ -516,8 +516,8 @@ namespace Module::PSF
       dst.AddVfs(*data.ReservedSection);
     }
 
-    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles,
-                          ModuleDataBuilder& dst, uint_t level = 1)
+    static void MergeMeta(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
+                          uint_t level = 1)
     {
       if (level < MAX_LEVEL)
       {

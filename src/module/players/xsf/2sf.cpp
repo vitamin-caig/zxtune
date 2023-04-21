@@ -130,21 +130,21 @@ namespace Module::TwoSF
       }
     }
 
-    int* FindTagTarget(const String& name)
+    int* FindTagTarget(StringView name)
     {
-      if (name == "_frames")
+      if (name == "_frames"_sv)
       {
         return &State.initial_frames;
       }
-      else if (name == "_vio2sf_sync_type")
+      else if (name == "_vio2sf_sync_type"_sv)
       {
         return &State.sync_type;
       }
-      else if (name == "_vio2sf_arm9_clockdown_level")
+      else if (name == "_vio2sf_arm9_clockdown_level"_sv)
       {
         return &State.arm9_clockdown_level;
       }
-      else if (name == "_vio2sf_arm7_clockdown_level")
+      else if (name == "_vio2sf_arm7_clockdown_level"_sv)
       {
         return &State.arm7_clockdown_level;
       }
@@ -357,7 +357,7 @@ namespace Module::TwoSF
       return Holder::Create(builder.CaptureResult(), std::move(properties));
     }
 
-    Holder::Ptr CreateMultifileModule(const XSF::File& file, const std::map<String, XSF::File>& additionalFiles,
+    Holder::Ptr CreateMultifileModule(const XSF::File& file, const XSF::FilesMap& additionalFiles,
                                       Parameters::Container::Ptr properties) const override
     {
       ModuleDataBuilder builder;
@@ -369,8 +369,8 @@ namespace Module::TwoSF
   private:
     static const uint_t MAX_LEVEL = 10;
 
-    static void MergeSections(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles,
-                              ModuleDataBuilder& dst, uint_t level = 1)
+    static void MergeSections(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
+                              uint_t level = 1)
     {
       if (!data.Dependencies.empty() && level < MAX_LEVEL)
       {
@@ -386,8 +386,8 @@ namespace Module::TwoSF
       }
     }
 
-    static void MergeMeta(const XSF::File& data, const std::map<String, XSF::File>& additionalFiles,
-                          ModuleDataBuilder& dst, uint_t level = 1)
+    static void MergeMeta(const XSF::File& data, const XSF::FilesMap& additionalFiles, ModuleDataBuilder& dst,
+                          uint_t level = 1)
     {
       if (level < MAX_LEVEL)
       {

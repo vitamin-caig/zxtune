@@ -112,9 +112,9 @@ namespace
       , Dir(ExtractDir(id))
     {}
 
-    Binary::Container::Ptr Get(const String& name) const override
+    Binary::Container::Ptr Get(StringView name) const override
     {
-      return IO::OpenData(Dir + name, Params, Log::ProgressCallback::Stub());
+      return IO::OpenData(Dir + name.to_string(), Params, Log::ProgressCallback::Stub());
     }
 
   private:
@@ -142,7 +142,7 @@ namespace
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : nullptr)
     {}
 
-    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const
+    Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const
     {
       auto subId = Id->WithSubpath(subpath);
       auto moduleProperties = Module::CreatePathProperties(std::move(subId));

@@ -35,7 +35,7 @@ namespace Module
   public:
     virtual ~DetectCallback() = default;
 
-    virtual Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const = 0;
+    virtual Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const = 0;
     //! @brief Process module
     virtual void ProcessModule(const ZXTune::DataLocation& location, const ZXTune::Plugin& decoder,
                                Module::Holder::Ptr holder) = 0;
