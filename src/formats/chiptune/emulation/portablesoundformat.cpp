@@ -19,12 +19,12 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/chiptune/container.h>
+#include <strings/casing.h>
 #include <strings/encoding.h>
 #include <strings/prefixed_index.h>
 #include <strings/trim.h>
 #include <time/duration.h>
 // std includes
-#include <cctype>
 #include <set>
 
 namespace Formats::Chiptune::PortableSoundFormat
@@ -38,28 +38,22 @@ namespace Formats::Chiptune::PortableSoundFormat
     const uint8_t SIGNATURE[] = {'[', 'T', 'A', 'G', ']'};
     const auto LIB_PREFIX = "_lib"_sv;
 
-    const char UTF8[] = "utf8";
-    const char TITLE[] = "title";
-    const char ARTIST[] = "artist";
-    const char GAME[] = "game";
-    const char YEAR[] = "year";
-    const char GENRE[] = "genre";
-    const char COMMENT[] = "comment";
-    const char COPYRIGHT[] = "copyright";
-    const char XSFBY_SUFFIX[] = "sfby";
-    const char LENGTH[] = "length";
-    const char FADE[] = "fade";
-    const char VOLUME[] = "volume";
+    const auto UTF8 = "utf8"_sv;
+    const auto TITLE = "title"_sv;
+    const auto ARTIST = "artist"_sv;
+    const auto GAME = "game"_sv;
+    const auto YEAR = "year"_sv;
+    const auto GENRE = "genre"_sv;
+    const auto COMMENT = "comment"_sv;
+    const auto COPYRIGHT = "copyright"_sv;
+    const auto XSFBY_SUFFIX = "sfby"_sv;
+    const auto LENGTH = "length"_sv;
+    const auto FADE = "fade"_sv;
+    const auto VOLUME = "volume"_sv;
 
-    static String MakeName(StringView str)
+    bool Match(StringView str, StringView tag)
     {
-      String res;
-      res.reserve(str.size());
-      for (const auto sym : str)
-      {
-        res += std::tolower(sym);
-      }
-      return res;
+      return Strings::EqualNoCaseAscii(str, tag);
     }
   }  // namespace Tags
 
@@ -119,7 +113,7 @@ namespace Formats::Chiptune::PortableSoundFormat
       String comment;
       while (Stream.GetRestSize())
       {
-        String name;
+        StringView name;
         StringView valueView;
         if (!ReadTagVariable(name, valueView))
         {
@@ -138,27 +132,27 @@ namespace Formats::Chiptune::PortableSoundFormat
           continue;
         }
         const auto value = utf8 ? valueView.to_string() : Strings::ToAutoUtf8(valueView);
-        if (name == Tags::TITLE)
+        if (Tags::Match(name, Tags::TITLE))
         {
           target.SetTitle(value);
         }
-        else if (name == Tags::ARTIST)
+        else if (Tags::Match(name, Tags::ARTIST))
         {
           target.SetArtist(value);
         }
-        else if (name == Tags::GAME)
+        else if (Tags::Match(name, Tags::GAME))
         {
           target.SetGame(value);
         }
-        else if (name == Tags::YEAR)
+        else if (Tags::Match(name, Tags::YEAR))
         {
           target.SetYear(value);
         }
-        else if (name == Tags::GENRE)
+        else if (Tags::Match(name, Tags::GENRE))
         {
           target.SetGenre(value);
         }
-        else if (name == Tags::COMMENT)
+        else if (Tags::Match(name, Tags::COMMENT))
         {
           if (comment.empty())
           {
@@ -170,7 +164,7 @@ namespace Formats::Chiptune::PortableSoundFormat
             comment += value;
           }
         }
-        else if (name == Tags::COPYRIGHT)
+        else if (Tags::Match(name, Tags::COPYRIGHT))
         {
           target.SetCopyright(value);
         }
@@ -178,21 +172,21 @@ namespace Formats::Chiptune::PortableSoundFormat
         {
           target.SetDumper(value);
         }
-        else if (name == Tags::LENGTH)
+        else if (Tags::Match(name, Tags::LENGTH))
         {
           target.SetLength(ParseTime(value));
         }
-        else if (name == Tags::FADE)
+        else if (Tags::Match(name, Tags::FADE))
         {
           target.SetFade(ParseTime(value));
         }
-        else if (name == Tags::VOLUME)
+        else if (Tags::Match(name, Tags::VOLUME))
         {
           target.SetVolume(ParseVolume(value));
         }
         else
         {
-          target.SetTag(name, value);
+          target.SetTag(name.to_string(), value);
         }
       }
       if (!comment.empty())
@@ -217,13 +211,13 @@ namespace Formats::Chiptune::PortableSoundFormat
       return false;
     }
 
-    bool ReadTagVariable(String& name, StringView& value)
+    bool ReadTagVariable(StringView& name, StringView& value)
     {
       const auto line = Stream.ReadString();
       const auto eqPos = line.find('=');
       if (eqPos != line.npos)
       {
-        name = Tags::MakeName(Strings::TrimSpaces(line.substr(0, eqPos)));
+        name = Strings::TrimSpaces(line.substr(0, eqPos));
         value = Strings::TrimSpaces(line.substr(eqPos + 1));
         return true;
       }

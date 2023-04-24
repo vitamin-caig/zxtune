@@ -20,11 +20,10 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
+#include <strings/casing.h>
 #include <strings/map.h>
 // std includes
 #include <array>
-// boost includes
-#include <boost/algorithm/string/case_conv.hpp>
 
 namespace Formats::Archived
 {
@@ -79,8 +78,8 @@ namespace Formats::Archived
     {
       const String Name;
 
-      explicit ClassName(const String& name)
-        : Name(boost::algorithm::to_lower_copy(name))
+      explicit ClassName(StringView name)
+        : Name(Strings::ToLowerAscii(name))
       {}
 
       bool IsMusic() const
@@ -93,8 +92,8 @@ namespace Formats::Archived
     {
       const String Name;
 
-      explicit Property(const String& name)
-        : Name(boost::algorithm::to_lower_copy(name))
+      explicit Property(StringView name)
+        : Name(Strings::ToLowerAscii(name))
       {}
 
       bool IsLimiter() const

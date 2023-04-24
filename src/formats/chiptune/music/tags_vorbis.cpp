@@ -13,11 +13,11 @@
 // common includes
 #include <byteorder.h>
 // library includes
+#include <strings/casing.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
 // std includes
 #include <array>
-#include <cctype>
 
 namespace Formats::Chiptune
 {
@@ -38,22 +38,6 @@ namespace Formats::Chiptune
       return decoded.size() == trimmed.size() ? decoded : trimmed.to_string();
     }
 
-    bool CompareTag(StringView str, StringView tag)
-    {
-      if (str.size() != tag.size())
-      {
-        return false;
-      }
-      for (std::size_t idx = 0, lim = str.size(); idx != lim; ++idx)
-      {
-        if (std::toupper(str[idx]) != tag[idx])
-        {
-          return false;
-        }
-      }
-      return true;
-    }
-
     void ParseCommentField(StringView field, MetaBuilder& target)
     {
       const auto eqPos = field.find('=');
@@ -65,15 +49,15 @@ namespace Formats::Chiptune
       const auto name = field.substr(0, eqPos);
       const auto value = field.substr(eqPos + 1);
       Strings::Array strings;
-      if (CompareTag(name, "TITLE"_sv))
+      if (Strings::EqualNoCaseAscii(name, "TITLE"_sv))
       {
         target.SetTitle(Decode(value));
       }
-      else if (CompareTag(name, "ARTIST"_sv) || CompareTag(name, "PERFORMER"_sv))
+      else if (Strings::EqualNoCaseAscii(name, "ARTIST"_sv) || Strings::EqualNoCaseAscii(name, "PERFORMER"_sv))
       {
         target.SetAuthor(Decode(value));
       }
-      else if (CompareTag(name, "COPYRIGHT"_sv) || CompareTag(name, "DESCRIPTION"_sv))
+      else if (Strings::EqualNoCaseAscii(name, "COPYRIGHT"_sv) || Strings::EqualNoCaseAscii(name, "DESCRIPTION"_sv))
       {
         strings.emplace_back(Decode(value));
       }

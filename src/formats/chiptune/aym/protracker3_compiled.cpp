@@ -21,12 +21,11 @@
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/casing.h>
 #include <strings/optimize.h>
 // std includes
 #include <array>
 #include <cctype>
-// boost includes
-#include <boost/algorithm/string/predicate.hpp>
 
 namespace Formats::Chiptune
 {
@@ -45,10 +44,9 @@ namespace Formats::Chiptune
 
       bool HasAuthor() const
       {
-        const Char BY_DELIMITER[] = {'B', 'Y', 0};
-
+        const auto BY_DELIMITER = "BY"_sv;
         const auto trimId = Strings::TrimSpaces(Optional2);
-        return boost::algorithm::iequals(trimId, BY_DELIMITER);
+        return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
     };
 
@@ -70,9 +68,9 @@ namespace Formats::Chiptune
 
       StringView GetProgram() const
       {
-        const char COMPILATION_OF[] = "COMPILATION OF";
+        const auto COMPILATION_OF = "COMPILATION OF"_sv;
         const auto opt = Strings::TrimSpaces(Optional1);
-        return boost::algorithm::iequals(opt, COMPILATION_OF) ? StringView(Id.data(), Optional1.data())
+        return Strings::EqualNoCaseAscii(opt, COMPILATION_OF) ? StringView(Id.data(), Optional1.data())
                                                               : StringView(Id.data(), &Optional1.back() + 1);
       }
 

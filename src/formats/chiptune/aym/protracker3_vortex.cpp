@@ -20,6 +20,7 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/casing.h>
 #include <strings/conversion.h>
 #include <strings/format.h>
 #include <strings/split.h>
@@ -28,7 +29,6 @@
 #include <cctype>
 #include <sstream>
 // boost includes
-#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 namespace Formats::Chiptune
@@ -465,7 +465,7 @@ namespace Formats::Chiptune
         {
           Entry entry(line);
           Dbg(" {}={}", entry.Name, entry.Value);
-          if (boost::algorithm::iequals(entry.Name, "Version"))
+          if (Strings::EqualNoCaseAscii(entry.Name, "Version"))
           {
             static const String VERSION("3.");
             Require(boost::algorithm::starts_with(entry.Value, VERSION));
@@ -474,24 +474,24 @@ namespace Formats::Chiptune
             Require(minor < 10);
             Version = minor;
           }
-          else if (boost::algorithm::iequals(entry.Name, "Title"))
+          else if (Strings::EqualNoCaseAscii(entry.Name, "Title"))
           {
             Title = std::move(entry.Value);
           }
-          else if (boost::algorithm::iequals(entry.Name, "Author"))
+          else if (Strings::EqualNoCaseAscii(entry.Name, "Author"))
           {
             Author = std::move(entry.Value);
           }
-          else if (boost::algorithm::iequals(entry.Name, "NoteTable"))
+          else if (Strings::EqualNoCaseAscii(entry.Name, "NoteTable"))
           {
             const auto table = Strings::ConvertTo<uint_t>(entry.Value);
             Table = static_cast<NoteTable>(table);
           }
-          else if (boost::algorithm::iequals(entry.Name, "Speed"))
+          else if (Strings::EqualNoCaseAscii(entry.Name, "Speed"))
           {
             Tempo = Strings::ConvertTo<uint_t>(entry.Value);
           }
-          else if (boost::algorithm::iequals(entry.Name, "PlayOrder"))
+          else if (Strings::EqualNoCaseAscii(entry.Name, "PlayOrder"))
           {
             PlayOrder = LoopedList<uint_t>(entry.Value);
           }

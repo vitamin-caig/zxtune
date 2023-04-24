@@ -65,17 +65,23 @@ namespace Module::PSF
     }
 
   private:
-    bool PreloadFile(const char* path) const
+    bool PreloadFile(StringView path) const
     {
-      if (CachedName != path)
+      if (CachedName == path)
       {
-        if (!Vfs->Find(path, CachedData))
-        {
-          Dbg("Not found '{}'", path);
-          return false;
-        }
+        return true;
+      }
+      if (auto data = Vfs->Find(path))
+      {
         Dbg("Open '{}'", path);
-        CachedName = path;
+        CachedName = path.to_string();
+        CachedData = std::move(data);
+        return true;
+      }
+      else
+      {
+        Dbg("Not found '{}'", path);
+        return false;
       }
       return true;
     }

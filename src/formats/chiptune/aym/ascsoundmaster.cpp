@@ -22,13 +22,12 @@
 #include <binary/format_factories.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/casing.h>
 #include <strings/optimize.h>
 #include <strings/trim.h>
 // std includes
 #include <array>
 #include <cstring>
-// boost includes
-#include <boost/algorithm/string/predicate.hpp>
 
 namespace Formats::Chiptune
 {
@@ -86,8 +85,6 @@ namespace Formats::Chiptune
     const uint8_t ASC_ID_1[] = {'A', 'S', 'M', ' ', 'C', 'O', 'M', 'P', 'I', 'L',
                                 'A', 'T', 'I', 'O', 'N', ' ', 'O', 'F', ' '};
 
-    const Char BY_DELIMITER[] = {'B', 'Y', 0};
-
     struct RawId
     {
       uint8_t Identifier1[19];  //'ASM COMPILATION OF '
@@ -103,8 +100,9 @@ namespace Formats::Chiptune
 
       bool HasAuthor() const
       {
+        const auto BY_DELIMITER = "BY"_sv;
         const auto trimId = Strings::TrimSpaces(Identifier2);
-        return boost::algorithm::iequals(trimId, BY_DELIMITER);
+        return Strings::EqualNoCaseAscii(trimId, BY_DELIMITER);
       }
     };
 
