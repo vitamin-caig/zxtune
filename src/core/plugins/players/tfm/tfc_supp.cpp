@@ -20,12 +20,9 @@ namespace ZXTune
 {
   void RegisterTFCSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'T', 'F', 'C', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFCDecoder();
-    const Module::TFM::Factory::Ptr factory = Module::TFC::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateTFCDecoder();
+    auto factory = Module::TFC::CreateFactory();
+    auto plugin = CreateStreamPlayerPlugin("TFC"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

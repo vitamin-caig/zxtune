@@ -19,12 +19,9 @@ namespace ZXTune
 {
   void RegisterTFDSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'T', 'F', 'D', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateTFDDecoder();
-    const Module::TFM::Factory::Ptr factory = Module::TFD::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateTFDDecoder();
+    auto factory = Module::TFD::CreateFactory();
+    auto plugin = CreateStreamPlayerPlugin("TFD"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

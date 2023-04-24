@@ -274,7 +274,7 @@ namespace Module::GME
 
   struct PluginDescription
   {
-    const Char* const Id;
+    const ZXTune::PluginId Id;
     const uint_t ChiptuneCaps;
     const EmuCreator CreateEmu;
     const decltype(&DefaultDataCreator) CreateData;
@@ -399,13 +399,15 @@ namespace Module::GME
     const MultitrackDecoderCreator CreateMultitrackDecoder;
   };
 
+  using ZXTune::operator""_id;
+
   // clang-format off
   const MultitrackPluginDescription MULTITRACK_PLUGINS[] =
   {
     //nsf
     {
       {
-        "NSF",
+        "NSF"_id,
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
         &Create< ::Nsf_Emu>,
         &DefaultDataCreator,
@@ -416,7 +418,7 @@ namespace Module::GME
     //nsfe
     {
       {
-        "NSFE",
+        "NSFE"_id,
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::RP2A0X,
         &Create< ::Nsfe_Emu>,
         &DefaultDataCreator,
@@ -427,7 +429,7 @@ namespace Module::GME
     //gbs
     {
       {
-        "GBS",
+        "GBS"_id,
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::LR35902,
         &Create< ::Gbs_Emu>,
         &DefaultDataCreator,
@@ -438,7 +440,7 @@ namespace Module::GME
     //kssx
     {
       {
-        "KSSX",
+        "KSSX"_id,
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::MULTI,
         &Create< ::Kss_Emu>,
         &DefaultDataCreator,
@@ -449,7 +451,7 @@ namespace Module::GME
     //hes
     {
       {
-        "HES",
+        "HES"_id,
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::HUC6270,
         &Create< ::Hes_Emu>,
         &DefaultDataCreator,
@@ -474,7 +476,7 @@ namespace Module::GME
     //gym
     {
       {
-        "GYM",
+        "GYM"_id,
         ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI,
         &Create< ::Gym_Emu>,
         &GYM::CreateData,
@@ -485,7 +487,7 @@ namespace Module::GME
     //kss
     {
       {
-        "KSS",
+        "KSS"_id,
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::MULTI,
         &Create< ::Kss_Emu>,
         &DefaultDataCreator,

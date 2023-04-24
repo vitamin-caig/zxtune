@@ -19,12 +19,9 @@ namespace ZXTune
 {
   void RegisterFTCSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'F', 'T', 'C', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateFastTrackerDecoder();
-    const Module::AYM::Factory::Ptr factory = Module::FastTracker::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateFastTrackerDecoder();
+    auto factory = Module::FastTracker::CreateFactory();
+    auto plugin = CreateTrackPlayerPlugin("FTC"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

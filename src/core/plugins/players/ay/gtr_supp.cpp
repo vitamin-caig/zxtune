@@ -19,12 +19,9 @@ namespace ZXTune
 {
   void RegisterGTRSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'G', 'T', 'R', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateGlobalTrackerDecoder();
-    const Module::AYM::Factory::Ptr factory = Module::GlobalTracker::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateGlobalTrackerDecoder();
+    auto factory = Module::GlobalTracker::CreateFactory();
+    auto plugin = CreateTrackPlayerPlugin("GTR"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

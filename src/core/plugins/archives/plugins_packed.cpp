@@ -22,7 +22,7 @@ namespace ZXTune
 
   struct ArchivePluginDescription
   {
-    const char* const Id;
+    const PluginId Id;
     const CreatePackedDecoderFunc Create;
     const uint_t Caps;
   };
@@ -32,64 +32,64 @@ namespace ZXTune
   // clang-format off
   const ArchivePluginDescription DEPACKERS[] =
   {
-    {"HOBETA",   &CreateHobetaDecoder,                    Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::PLAIN},
-    {"HRUST1",   &CreateHrust1Decoder,                    Capabilities::Container::Type::COMPRESSOR},
-    {"HRUST2",   &CreateHrust21Decoder,                   Capabilities::Container::Type::COMPRESSOR},
-    {"HRUST23",  &CreateHrust23Decoder,                   Capabilities::Container::Type::COMPRESSOR},
-    {"FDI",      &CreateFullDiskImageDecoder,             Capabilities::Container::Type::DISKIMAGE},
-    {"DSQ",      &CreateDataSquieezerDecoder,             Capabilities::Container::Type::COMPRESSOR},
-    {"MSP",      &CreateMSPackDecoder,                    Capabilities::Container::Type::COMPRESSOR},
-    {"TRUSH",    &CreateTRUSHDecoder,                     Capabilities::Container::Type::COMPRESSOR},
-    {"LZS",      &CreateLZSDecoder,                       Capabilities::Container::Type::COMPRESSOR},
-    {"PCD61",    &CreatePowerfullCodeDecreaser61Decoder,  Capabilities::Container::Type::COMPRESSOR},
-    {"PCD61i",   &CreatePowerfullCodeDecreaser61iDecoder, Capabilities::Container::Type::COMPRESSOR},
-    {"PCD62",    &CreatePowerfullCodeDecreaser62Decoder,  Capabilities::Container::Type::COMPRESSOR},
-    {"HRUM",     &CreateHrumDecoder,                      Capabilities::Container::Type::COMPRESSOR},
-    {"CC3",      &CreateCodeCruncher3Decoder,             Capabilities::Container::Type::COMPRESSOR},
-    {"CC4",      &CreateCompressorCode4Decoder,           Capabilities::Container::Type::COMPRESSOR},
-    {"CC4PLUS",  &CreateCompressorCode4PlusDecoder,       Capabilities::Container::Type::COMPRESSOR},
-    {"ESV",      &CreateESVCruncherDecoder,               Capabilities::Container::Type::COMPRESSOR},
-    {"GAM",      &CreateGamePackerDecoder,                Capabilities::Container::Type::COMPRESSOR},
-    {"GAMPLUS",  &CreateGamePackerPlusDecoder,            Capabilities::Container::Type::COMPRESSOR},
-    {"TLZ",      &CreateTurboLZDecoder,                   Capabilities::Container::Type::COMPRESSOR},
-    {"TLZP",     &CreateTurboLZProtectedDecoder,          Capabilities::Container::Type::COMPRESSOR},
-    {"CHARPRES", &CreateCharPresDecoder,                  Capabilities::Container::Type::COMPRESSOR},
-    {"PACK2",    &CreatePack2Decoder,                     Capabilities::Container::Type::COMPRESSOR},
-    {"LZH1",     &CreateLZH1Decoder,                      Capabilities::Container::Type::COMPRESSOR},
-    {"LZH2",     &CreateLZH2Decoder,                      Capabilities::Container::Type::COMPRESSOR},
-    {"SNA128",   &CreateSna128Decoder,                    Capabilities::Container::Type::SNAPSHOT},
-    {"TD0",      &CreateTeleDiskImageDecoder,             Capabilities::Container::Type::DISKIMAGE},
-    {"Z80V145",  &CreateZ80V145Decoder ,                  Capabilities::Container::Type::SNAPSHOT},
-    {"Z80V20",   &CreateZ80V20Decoder,                    Capabilities::Container::Type::SNAPSHOT},
-    {"Z80V30",   &CreateZ80V30Decoder,                    Capabilities::Container::Type::SNAPSHOT},
-    {"MEGALZ",   &CreateMegaLZDecoder,                    Capabilities::Container::Type::COMPRESSOR},
-    {"DSK",      &CreateDSKDecoder,                       Capabilities::Container::Type::DISKIMAGE},
+    {"HOBETA"_id,   &CreateHobetaDecoder,                    Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::PLAIN},
+    {"HRUST1"_id,   &CreateHrust1Decoder,                    Capabilities::Container::Type::COMPRESSOR},
+    {"HRUST2"_id,   &CreateHrust21Decoder,                   Capabilities::Container::Type::COMPRESSOR},
+    {"HRUST23"_id,  &CreateHrust23Decoder,                   Capabilities::Container::Type::COMPRESSOR},
+    {"FDI"_id,      &CreateFullDiskImageDecoder,             Capabilities::Container::Type::DISKIMAGE},
+    {"DSQ"_id,      &CreateDataSquieezerDecoder,             Capabilities::Container::Type::COMPRESSOR},
+    {"MSP"_id,      &CreateMSPackDecoder,                    Capabilities::Container::Type::COMPRESSOR},
+    {"TRUSH"_id,    &CreateTRUSHDecoder,                     Capabilities::Container::Type::COMPRESSOR},
+    {"LZS"_id,      &CreateLZSDecoder,                       Capabilities::Container::Type::COMPRESSOR},
+    {"PCD61"_id,    &CreatePowerfullCodeDecreaser61Decoder,  Capabilities::Container::Type::COMPRESSOR},
+    {"PCD61i"_id,   &CreatePowerfullCodeDecreaser61iDecoder, Capabilities::Container::Type::COMPRESSOR},
+    {"PCD62"_id,    &CreatePowerfullCodeDecreaser62Decoder,  Capabilities::Container::Type::COMPRESSOR},
+    {"HRUM"_id,     &CreateHrumDecoder,                      Capabilities::Container::Type::COMPRESSOR},
+    {"CC3"_id,      &CreateCodeCruncher3Decoder,             Capabilities::Container::Type::COMPRESSOR},
+    {"CC4"_id,      &CreateCompressorCode4Decoder,           Capabilities::Container::Type::COMPRESSOR},
+    {"CC4PLUS"_id,  &CreateCompressorCode4PlusDecoder,       Capabilities::Container::Type::COMPRESSOR},
+    {"ESV"_id,      &CreateESVCruncherDecoder,               Capabilities::Container::Type::COMPRESSOR},
+    {"GAM"_id,      &CreateGamePackerDecoder,                Capabilities::Container::Type::COMPRESSOR},
+    {"GAMPLUS"_id,  &CreateGamePackerPlusDecoder,            Capabilities::Container::Type::COMPRESSOR},
+    {"TLZ"_id,      &CreateTurboLZDecoder,                   Capabilities::Container::Type::COMPRESSOR},
+    {"TLZP"_id,     &CreateTurboLZProtectedDecoder,          Capabilities::Container::Type::COMPRESSOR},
+    {"CHARPRES"_id, &CreateCharPresDecoder,                  Capabilities::Container::Type::COMPRESSOR},
+    {"PACK2"_id,    &CreatePack2Decoder,                     Capabilities::Container::Type::COMPRESSOR},
+    {"LZH1"_id,     &CreateLZH1Decoder,                      Capabilities::Container::Type::COMPRESSOR},
+    {"LZH2"_id,     &CreateLZH2Decoder,                      Capabilities::Container::Type::COMPRESSOR},
+    {"SNA128"_id,   &CreateSna128Decoder,                    Capabilities::Container::Type::SNAPSHOT},
+    {"TD0"_id,      &CreateTeleDiskImageDecoder,             Capabilities::Container::Type::DISKIMAGE},
+    {"Z80V145"_id,  &CreateZ80V145Decoder ,                  Capabilities::Container::Type::SNAPSHOT},
+    {"Z80V20"_id,   &CreateZ80V20Decoder,                    Capabilities::Container::Type::SNAPSHOT},
+    {"Z80V30"_id,   &CreateZ80V30Decoder,                    Capabilities::Container::Type::SNAPSHOT},
+    {"MEGALZ"_id,   &CreateMegaLZDecoder,                    Capabilities::Container::Type::COMPRESSOR},
+    {"DSK"_id,      &CreateDSKDecoder,                       Capabilities::Container::Type::DISKIMAGE},
   };
 
   const ArchivePluginDescription CHIPTUNE_PACKERS[] =
   {
-    {"GZIP",     &CreateGzipDecoder,                      Capabilities::Container::Type::ARCHIVE},//may contain source filename, so can be treated as archive
-    {"MUSE",     &CreateMUSEDecoder,                      Capabilities::Container::Type::COMPRESSOR},
+    {"GZIP"_id,     &CreateGzipDecoder,                      Capabilities::Container::Type::ARCHIVE},//may contain source filename, so can be treated as archive
+    {"MUSE"_id,     &CreateMUSEDecoder,                      Capabilities::Container::Type::COMPRESSOR},
   };
 
   const ArchivePluginDescription DECOMPILERS[] =
   {
-    {"COMPILEDASC0",  &CreateCompiledASC0Decoder,  Capabilities::Container::Type::DECOMPILER},
-    {"COMPILEDASC1",  &CreateCompiledASC1Decoder,  Capabilities::Container::Type::DECOMPILER},
-    {"COMPILEDASC2",  &CreateCompiledASC2Decoder,  Capabilities::Container::Type::DECOMPILER},
-    {"COMPILEDPT24",  &CreateCompiledPT24Decoder,  Capabilities::Container::Type::DECOMPILER},
-    {"COMPILEDPTU13", &CreateCompiledPTU13Decoder, Capabilities::Container::Type::DECOMPILER},
-    {"COMPILEDST3",   &CreateCompiledST3Decoder,   Capabilities::Container::Type::DECOMPILER},
-    {"COMPILEDSTP1",  &CreateCompiledSTP1Decoder,  Capabilities::Container::Type::DECOMPILER},
-    {"COMPILEDSTP2",  &CreateCompiledSTP2Decoder,  Capabilities::Container::Type::DECOMPILER},
+    {"COMPILEDASC0"_id,  &CreateCompiledASC0Decoder,  Capabilities::Container::Type::DECOMPILER},
+    {"COMPILEDASC1"_id,  &CreateCompiledASC1Decoder,  Capabilities::Container::Type::DECOMPILER},
+    {"COMPILEDASC2"_id,  &CreateCompiledASC2Decoder,  Capabilities::Container::Type::DECOMPILER},
+    {"COMPILEDPT24"_id,  &CreateCompiledPT24Decoder,  Capabilities::Container::Type::DECOMPILER},
+    {"COMPILEDPTU13"_id, &CreateCompiledPTU13Decoder, Capabilities::Container::Type::DECOMPILER},
+    {"COMPILEDST3"_id,   &CreateCompiledST3Decoder,   Capabilities::Container::Type::DECOMPILER},
+    {"COMPILEDSTP1"_id,  &CreateCompiledSTP1Decoder,  Capabilities::Container::Type::DECOMPILER},
+    {"COMPILEDSTP2"_id,  &CreateCompiledSTP2Decoder,  Capabilities::Container::Type::DECOMPILER},
   };
   // clang-format on
 
   void RegisterPlugin(const ArchivePluginDescription& desc, ArchivePluginsRegistrator& registrator)
   {
-    const Formats::Packed::Decoder::Ptr decoder = desc.Create();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(desc.Id, desc.Caps, decoder);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = desc.Create();
+    auto plugin = CreateArchivePlugin(desc.Id, desc.Caps, std::move(decoder));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune
 

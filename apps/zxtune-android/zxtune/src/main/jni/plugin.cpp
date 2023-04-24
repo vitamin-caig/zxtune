@@ -80,7 +80,7 @@ namespace Plugin
     void Visit(const ZXTune::Plugin& plug) override
     {
       const uint_t caps = plug.Capabilities();
-      const String id = plug.Id();
+      const String id = plug.Id().to_string();
       const String desc = plug.Description();
 
       // TODO: remove hardcode

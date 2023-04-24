@@ -20,12 +20,9 @@ namespace ZXTune
 {
   void RegisterDMMSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'D', 'M', 'M', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateDigitalMusicMakerDecoder();
-    const Module::DAC::Factory::Ptr factory = Module::DigitalMusicMaker::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateDigitalMusicMakerDecoder();
+    auto factory = Module::DigitalMusicMaker::CreateFactory();
+    auto plugin = CreatePlayerPlugin("DMM"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

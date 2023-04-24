@@ -275,8 +275,8 @@ namespace ZXTune::Raw
 
   const auto PLUGIN_PREFIX = "+"_sv;
 
-  const Char ID[] = {'R', 'A', 'W', 0};
-  const Char* const INFO = ID;
+  const auto ID = "RAW"_id;
+  const auto INFO = "Raw scaner"_sv;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::SCANER;
 
   const std::size_t SCAN_STEP = 1;
@@ -603,7 +603,7 @@ namespace ZXTune::Raw
       : Delegate(std::move(delegate))
     {}
 
-    String Id() const override
+    PluginId Id() const override
     {
       return Delegate->Id();
     }
@@ -761,14 +761,14 @@ namespace ZXTune::Raw
   public:
     Scaner() = default;
 
-    String Id() const override
+    PluginId Id() const override
     {
       return ID;
     }
 
     String Description() const override
     {
-      return INFO;
+      return INFO.to_string();
     }
 
     uint_t Capabilities() const override

@@ -318,12 +318,12 @@ namespace ZXTune
 {
   void RegisterSPCSupport(PlayerPluginsRegistrator& registrator)
   {
-    const Char ID[] = {'S', 'P', 'C', 0};
+    const auto ID = "SPC"_id;
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::SPC700;
 
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSPCDecoder();
-    const Module::SPC::Factory::Ptr factory = MakePtr<Module::SPC::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateSPCDecoder();
+    auto factory = MakePtr<Module::SPC::Factory>();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

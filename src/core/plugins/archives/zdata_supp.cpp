@@ -231,8 +231,8 @@ namespace ZXTune::Zdata
 
 namespace ZXTune::Zdata
 {
-  const Char ID[] = {'Z', 'D', 'A', 'T', 'A', 0};
-  const Char INFO[] = "Zdata";
+  const auto ID = "ZDATA"_id;
+  const auto INFO = "Zdata"_sv;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::ARCHIVE;
 }  // namespace ZXTune::Zdata
 
@@ -245,7 +245,8 @@ namespace ZXTune
     const Zdata::Header hdr = Zdata::Compress(input, builder);
     hdr.ToRaw(builder.Get<Zdata::RawHeader>(0));
     auto data = Zdata::Convert(builder.GetView());
-    return CreateLocation(std::move(data), Zdata::ID, Strings::PrefixedIndex(Zdata::PLUGIN_PREFIX, hdr.Crc).ToString());
+    return CreateLocation(std::move(data), Zdata::ID.to_string(),
+                          Strings::PrefixedIndex(Zdata::PLUGIN_PREFIX, hdr.Crc).ToString());
   }
 }  // namespace ZXTune
 
@@ -256,14 +257,14 @@ namespace ZXTune::Zdata
   public:
     Plugin() = default;
 
-    String Id() const override
+    PluginId Id() const override
     {
       return ID;
     }
 
     String Description() const override
     {
-      return INFO;
+      return INFO.to_string();
     }
 
     uint_t Capabilities() const override

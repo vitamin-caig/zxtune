@@ -25,15 +25,14 @@ namespace ZXTune
   class CommonPlayerPlugin : public PlayerPlugin
   {
   public:
-    CommonPlayerPlugin(StringView id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
-                       Module::Factory::Ptr factory)
-      : Identifier(id.to_string())
+    CommonPlayerPlugin(PluginId id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder, Module::Factory::Ptr factory)
+      : Identifier(id)
       , Caps(caps)
       , Decoder(std::move(decoder))
       , Factory(std::move(factory))
     {}
 
-    String Id() const override
+    PluginId Id() const override
     {
       return Identifier;
     }
@@ -89,13 +88,13 @@ namespace ZXTune
     }
 
   private:
-    const String Identifier;
+    const PluginId Identifier;
     const uint_t Caps;
     const Formats::Chiptune::Decoder::Ptr Decoder;
     const Module::Factory::Ptr Factory;
   };
 
-  PlayerPlugin::Ptr CreatePlayerPlugin(StringView id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
+  PlayerPlugin::Ptr CreatePlayerPlugin(PluginId id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
                                        Module::Factory::Ptr factory)
   {
     return MakePtr<CommonPlayerPlugin>(id, caps | Capabilities::Category::MODULE, std::move(decoder),
@@ -105,15 +104,15 @@ namespace ZXTune
   class ExternalParsingPlayerPlugin : public PlayerPlugin
   {
   public:
-    ExternalParsingPlayerPlugin(StringView id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
+    ExternalParsingPlayerPlugin(PluginId id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
                                 Module::ExternalParsingFactory::Ptr factory)
-      : Identifier(id.to_string())
+      : Identifier(id)
       , Caps(caps)
       , Decoder(std::move(decoder))
       , Factory(std::move(factory))
     {}
 
-    String Id() const override
+    PluginId Id() const override
     {
       return Identifier;
     }
@@ -170,13 +169,13 @@ namespace ZXTune
     }
 
   private:
-    const String Identifier;
+    const PluginId Identifier;
     const uint_t Caps;
     const Formats::Chiptune::Decoder::Ptr Decoder;
     const Module::ExternalParsingFactory::Ptr Factory;
   };
 
-  PlayerPlugin::Ptr CreatePlayerPlugin(StringView id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
+  PlayerPlugin::Ptr CreatePlayerPlugin(PluginId id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
                                        Module::ExternalParsingFactory::Ptr factory)
   {
     return MakePtr<ExternalParsingPlayerPlugin>(id, caps | Capabilities::Category::MODULE, std::move(decoder),

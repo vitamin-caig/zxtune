@@ -12,6 +12,7 @@
 
 // library includes
 #include <core/data_location.h>
+#include <core/plugin_attrs.h>
 
 namespace ZXTune
 {
@@ -21,7 +22,7 @@ namespace ZXTune
   //! @return Object if path is valid. No object elsewhere
   DataLocation::Ptr CreateLocation(Binary::Container::Ptr data);
 
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData,
-                                         const String& subPlugin, const String& subPath);
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, PluginId subPlugin,
+                                         const String& subPath);
   DataLocation::Ptr CreateLocation(Binary::Container::Ptr data, const String& plugin, const String& path);
 }  // namespace ZXTune

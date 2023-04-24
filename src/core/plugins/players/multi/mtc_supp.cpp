@@ -384,7 +384,7 @@ namespace ZXTune
 {
   void RegisterMTCSupport(PlayerPluginsRegistrator& registrator)
   {
-    const Char ID[] = {'M', 'T', 'C', 0};
+    const auto ID = "MTC"_id;
     const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::MULTI;
 
     auto decoder = Formats::Chiptune::CreateMultiTrackContainerDecoder();

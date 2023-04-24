@@ -19,13 +19,9 @@ namespace ZXTune
 {
   void RegisterPT2Support(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'P', 'T', '2', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateProTracker2Decoder();
-    const Module::AYM::Factory::Ptr factory = Module::ProTracker2::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
-    ;
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateProTracker2Decoder();
+    auto factory = Module::ProTracker2::CreateFactory();
+    auto plugin = CreateTrackPlayerPlugin("PT2"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

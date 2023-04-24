@@ -21,12 +21,12 @@ namespace ZXTune
   void RegisterCOPSupport(PlayerPluginsRegistrator& registrator)
   {
     // plugin attributes
-    const Char ID[] = {'C', 'O', 'P', 0};
+    const auto ID = "COP"_id;
     const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::SAA1099;
 
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateETrackerDecoder();
-    const Module::Factory::Ptr factory = Module::ETracker::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateETrackerDecoder();
+    auto factory = Module::ETracker::CreateFactory();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

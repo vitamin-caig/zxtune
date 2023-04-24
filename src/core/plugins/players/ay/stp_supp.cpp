@@ -19,13 +19,9 @@ namespace ZXTune
 {
   void RegisterSTPSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'S', 'T', 'P', 0};
-
-    const Formats::Chiptune::SoundTrackerPro::Decoder::Ptr decoder =
-        Formats::Chiptune::SoundTrackerPro::CreateCompiledModulesDecoder();
-    const Module::AYM::Factory::Ptr factory = Module::SoundTrackerPro::CreateFactory(decoder);
-    const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::SoundTrackerPro::CreateCompiledModulesDecoder();
+    auto factory = Module::SoundTrackerPro::CreateFactory(decoder);
+    auto plugin = CreateTrackPlayerPlugin("STP"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

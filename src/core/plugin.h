@@ -10,8 +10,8 @@
 
 #pragma once
 
-// common includes
-#include <types.h>
+// library includes
+#include <core/plugin_attrs.h>
 
 namespace ZXTune
 {
@@ -22,7 +22,7 @@ namespace ZXTune
     virtual ~Plugin() = default;
 
     //! Identification string
-    virtual String Id() const = 0;
+    virtual PluginId Id() const = 0;
     //! Textual description
     virtual String Description() const = 0;
     //! Plugin capabilities @see plugin_attrs.h

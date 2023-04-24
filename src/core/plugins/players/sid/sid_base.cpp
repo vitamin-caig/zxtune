@@ -365,7 +365,7 @@ namespace ZXTune
 {
   void RegisterSIDPlugins(PlayerPluginsRegistrator& players, ArchivePluginsRegistrator& archives)
   {
-    const Char ID[] = {'S', 'I', 'D', 0};
+    const auto ID = "SID"_id;
     auto decoder = Formats::Multitrack::CreateSIDDecoder();
     auto factory = MakePtr<Module::Sid::Factory>();
     {

@@ -20,13 +20,13 @@ namespace ZXTune
   void Register2SFSupport(PlayerPluginsRegistrator& registrator)
   {
     // plugin attributes
-    const Char ID[] = {'2', 'S', 'F', 0};
+    const auto ID = "2SF"_id;
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::DAC
                         | Capabilities::Module::Traits::MULTIFILE;
 
-    const auto factory = Module::TwoSF::CreateFactory();
-    const auto decoder = Formats::Chiptune::Create2SFDecoder();
-    const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto factory = Module::TwoSF::CreateFactory();
+    auto decoder = Formats::Chiptune::Create2SFDecoder();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

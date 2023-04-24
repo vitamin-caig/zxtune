@@ -23,20 +23,14 @@ namespace ZXTune
                         | Capabilities::Module::Traits::MULTIFILE;
     const auto factory = Module::SDSF::CreateFactory();
     {
-      // plugin attributes
-      const Char ID[] = {'S', 'S', 'F', 0};
-
-      const auto decoder = Formats::Chiptune::CreateSSFDecoder();
-      const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto decoder = Formats::Chiptune::CreateSSFDecoder();
+      auto plugin = CreatePlayerPlugin("SSF"_id, CAPS, std::move(decoder), factory);
+      registrator.RegisterPlugin(std::move(plugin));
     }
     {
-      // plugin attributes
-      const Char ID[] = {'D', 'S', 'F', 0};
-
-      const auto decoder = Formats::Chiptune::CreateDSFDecoder();
-      const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto decoder = Formats::Chiptune::CreateDSFDecoder();
+      auto plugin = CreatePlayerPlugin("DSF"_id, CAPS, std::move(decoder), factory);
+      registrator.RegisterPlugin(std::move(plugin));
     }
   }
 }  // namespace ZXTune

@@ -21,23 +21,23 @@ namespace ZXTune
   void RegisterAHXSupport(PlayerPluginsRegistrator& registrator)
   {
     {
-      const Char ID[] = {'A', 'H', 'X', 0};
+      const auto ID = "AHX"_id;
       const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
 
-      const auto decoder = Formats::Chiptune::AbyssHighestExperience::CreateDecoder();
-      const auto factory = Module::AHX::CreateFactory(decoder);
-      const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto decoder = Formats::Chiptune::AbyssHighestExperience::CreateDecoder();
+      auto factory = Module::AHX::CreateFactory(decoder);
+      auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+      registrator.RegisterPlugin(std::move(plugin));
     }
 
     {
-      const Char ID[] = {'H', 'V', 'L', 0};
+      const auto ID = "HVL"_id;
       const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
 
-      const auto decoder = Formats::Chiptune::AbyssHighestExperience::HivelyTracker::CreateDecoder();
-      const auto factory = Module::AHX::CreateFactory(decoder);
-      const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto decoder = Formats::Chiptune::AbyssHighestExperience::HivelyTracker::CreateDecoder();
+      auto factory = Module::AHX::CreateFactory(decoder);
+      auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+      registrator.RegisterPlugin(std::move(plugin));
     }
   }
 }  // namespace ZXTune

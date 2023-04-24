@@ -17,8 +17,8 @@
 
 namespace ZXTune
 {
-  ArchivePlugin::Ptr CreateArchivePlugin(StringView id, uint_t caps, Formats::Archived::Decoder::Ptr decoder);
+  ArchivePlugin::Ptr CreateArchivePlugin(PluginId id, uint_t caps, Formats::Archived::Decoder::Ptr decoder);
 
-  String ProgressMessage(const String& id, const String& path);
-  String ProgressMessage(const String& id, const String& path, const String& element);
+  String ProgressMessage(PluginId id, const String& path);
+  String ProgressMessage(PluginId id, const String& path, const String& element);
 }  // namespace ZXTune

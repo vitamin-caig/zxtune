@@ -79,23 +79,23 @@ namespace Module
 
 namespace ZXTune
 {
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
+  PlayerPlugin::Ptr CreatePlayerPlugin(PluginId id, uint_t caps, Formats::Chiptune::Decoder::Ptr decoder,
                                        Module::TFM::Factory::Ptr factory)
   {
-    const Module::Factory::Ptr modFactory = MakePtr<Module::TFMFactory>(factory);
+    auto modFactory = MakePtr<Module::TFMFactory>(std::move(factory));
     const uint_t tfmCaps = Capabilities::Module::Device::TURBOFM;
-    return CreatePlayerPlugin(id, caps | tfmCaps, decoder, modFactory);
+    return CreatePlayerPlugin(id, caps | tfmCaps, std::move(decoder), std::move(modFactory));
   }
 
-  PlayerPlugin::Ptr CreateTrackPlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder,
+  PlayerPlugin::Ptr CreateTrackPlayerPlugin(PluginId id, Formats::Chiptune::Decoder::Ptr decoder,
                                             Module::TFM::Factory::Ptr factory)
   {
-    return CreatePlayerPlugin(id, Capabilities::Module::Type::TRACK, decoder, factory);
+    return CreatePlayerPlugin(id, Capabilities::Module::Type::TRACK, std::move(decoder), std::move(factory));
   }
 
-  PlayerPlugin::Ptr CreateStreamPlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder,
+  PlayerPlugin::Ptr CreateStreamPlayerPlugin(PluginId id, Formats::Chiptune::Decoder::Ptr decoder,
                                              Module::TFM::Factory::Ptr factory)
   {
-    return CreatePlayerPlugin(id, Capabilities::Module::Type::STREAM, decoder, factory);
+    return CreatePlayerPlugin(id, Capabilities::Module::Type::STREAM, std::move(decoder), std::move(factory));
   }
 }  // namespace ZXTune

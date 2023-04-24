@@ -20,12 +20,9 @@ namespace ZXTune
 {
   void RegisterET1Support(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'E', 'T', '1', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateExtremeTracker1Decoder();
-    const Module::DAC::Factory::Ptr factory = Module::ExtremeTracker1::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateExtremeTracker1Decoder();
+    auto factory = Module::ExtremeTracker1::CreateFactory();
+    auto plugin = CreatePlayerPlugin("ET1"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

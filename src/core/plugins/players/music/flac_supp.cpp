@@ -466,12 +466,12 @@ namespace ZXTune
 {
   void RegisterFLACPlugin(PlayerPluginsRegistrator& registrator)
   {
-    const Char ID[] = {'F', 'L', 'A', 'C', 0};
+    const auto ID = "FLAC"_id;
     const uint_t CAPS = Capabilities::Module::Type::STREAM | Capabilities::Module::Device::DAC;
 
-    const auto decoder = Formats::Chiptune::CreateFLACDecoder();
-    const auto factory = MakePtr<Module::Flac::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateFLACDecoder();
+    auto factory = MakePtr<Module::Flac::Factory>();
+    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune
