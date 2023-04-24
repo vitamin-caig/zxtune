@@ -8,6 +8,7 @@
  *
  **/
 
+#include <strings/casing.h>
 #include <strings/conversion.h>
 #include <strings/encoding.h>
 #include <strings/fields.h>
@@ -302,6 +303,13 @@ int main()
         Test(!mapOfPointers.Get("key3") && mapOfPointers.size() == 2, "Pointers.get_with_default");
         Test(!mapOfPointers.FindPtrValue("key3"), "Pointer.FindPtr.nonexisting");
       }
+    }
+    std::cout << "---- Test for casing functions ----" << std::endl;
+    {
+      TestEquals("TEST", Strings::ToUpperAscii("tEst"), "ToUpper");
+      TestEquals("test", Strings::ToLowerAscii("TEsT"), "ToLower");
+      Test(Strings::EqualNoCaseAscii("tEst", "TesT"), "EqualNoCase");
+      Test(!Strings::EqualNoCaseAscii(" ", ""), "EqualNoCase false");
     }
   }
   catch (int code)
