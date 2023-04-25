@@ -69,16 +69,14 @@ namespace
       OnProgress(current, EMPTY);
     }
 
-    void OnProgress(uint_t current, const String& message) override
+    void OnProgress(uint_t current, StringView message) override
     {
       if (ReportTimeout())
       {
         CheckForExit();
         if (const uint_t currentWidth = GetCurrentWidth())
         {
-          String text = message;
-          text += Strings::Format(" [{}%]", current);
-          OutputString(currentWidth, text);
+          OutputString(currentWidth, Strings::Format("{} [{}%]", message, current));
         }
       }
     }

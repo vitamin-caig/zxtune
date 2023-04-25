@@ -23,7 +23,7 @@ namespace Log
     virtual ~ProgressCallback() = default;
 
     virtual void OnProgress(uint_t current) = 0;
-    virtual void OnProgress(uint_t current, const String& message) = 0;
+    virtual void OnProgress(uint_t current, StringView message) = 0;
 
     static ProgressCallback& Stub();
   };

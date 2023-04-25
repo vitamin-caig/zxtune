@@ -167,7 +167,7 @@ namespace
       }
     }
 
-    void OnProgress(uint_t current, const String&) override
+    void OnProgress(uint_t current, StringView) override
     {
       OnProgress(current);
     }
