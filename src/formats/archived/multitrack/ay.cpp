@@ -28,8 +28,8 @@ namespace Formats::Archived
     class File : public Archived::File
     {
     public:
-      File(String name, Binary::Container::Ptr data)
-        : Name(std::move(name))
+      File(StringView name, Binary::Container::Ptr data)
+        : Name(name.to_string())
         , Data(std::move(data))
       {}
 
@@ -64,12 +64,12 @@ namespace Formats::Archived
       {
         for (uint_t idx = 0, total = CountFiles(); idx < total; ++idx)
         {
-          const Formats::Chiptune::AY::BlobBuilder::Ptr builder = Formats::Chiptune::AY::CreateFileBuilder();
-          if (const Formats::Chiptune::Container::Ptr parsed = Formats::Chiptune::AY::Parse(*Delegate, idx, *builder))
+          const auto builder = Formats::Chiptune::AY::CreateFileBuilder();
+          if (const auto parsed = Formats::Chiptune::AY::Parse(*Delegate, idx, *builder))
           {
-            const String subPath = MultitrackArchives::CreateFilename(idx);
-            const Binary::Container::Ptr subData = builder->Result();
-            const File file(subPath, subData);
+            const auto& subPath = MultitrackArchives::CreateFilename(idx);
+            auto subData = builder->Result();
+            const File file(subPath, std::move(subData));
             walker.OnFile(file);
           }
         }
@@ -96,7 +96,7 @@ namespace Formats::Archived
           return File::Ptr();
         }
         auto data = builder->Result();
-        return MakePtr<File>(name.to_string(), std::move(data));
+        return MakePtr<File>(name, std::move(data));
       }
 
       uint_t CountFiles() const override
@@ -134,25 +134,25 @@ namespace Formats::Archived
       const uint_t subModules = Formats::Chiptune::AY::GetModulesCount(rawData);
       if (subModules < 2)
       {
-        return Container::Ptr();
+        return {};
       }
-      Formats::Chiptune::AY::Builder& stub = Formats::Chiptune::AY::GetStubBuilder();
+      auto& stub = Formats::Chiptune::AY::GetStubBuilder();
       std::size_t maxSize = 0;
       for (uint_t idx = subModules; idx; --idx)
       {
-        if (Formats::Chiptune::Container::Ptr ayData = Formats::Chiptune::AY::Parse(rawData, idx - 1, stub))
+        if (auto ayData = Formats::Chiptune::AY::Parse(rawData, idx - 1, stub))
         {
           maxSize = std::max(maxSize, ayData->Size());
         }
       }
       if (maxSize)
       {
-        const Binary::Container::Ptr ayData = rawData.GetSubcontainer(0, maxSize);
-        return MakePtr<MultiAY::Container>(ayData);
+        auto ayData = rawData.GetSubcontainer(0, maxSize);
+        return MakePtr<MultiAY::Container>(std::move(ayData));
       }
       else
       {
-        return Container::Ptr();
+        return {};
       }
     }
 

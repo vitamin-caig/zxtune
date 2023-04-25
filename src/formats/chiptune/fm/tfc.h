@@ -10,6 +10,8 @@
 
 #pragma once
 
+// local includes
+#include "formats/chiptune/builder_meta.h"
 // common includes
 #include <types.h>
 // library includes
@@ -27,11 +29,10 @@ namespace Formats
         typedef std::shared_ptr<Builder> Ptr;
         virtual ~Builder() = default;
 
-        virtual void SetVersion(const String& version) = 0;
+        virtual MetaBuilder& GetMetaBuilder() = 0;
+
+        virtual void SetVersion(StringView version) = 0;
         virtual void SetIntFreq(uint_t freq) = 0;
-        virtual void SetTitle(const String& title) = 0;
-        virtual void SetAuthor(const String& author) = 0;
-        virtual void SetComment(const String& comment) = 0;
 
         //! building channel->frame
         virtual void StartChannel(uint_t idx) = 0;

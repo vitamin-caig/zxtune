@@ -96,7 +96,7 @@ namespace Module
 
   void PropertiesHelper::SetPlatform(StringView platform)
   {
-    Delegate.SetValue(ATTR_PLATFORM, platform.to_string());
+    Delegate.SetValue(ATTR_PLATFORM, platform);
   }
 
   void PropertiesHelper::SetFadein(Time::Milliseconds fadein)

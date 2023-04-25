@@ -33,7 +33,7 @@ namespace Module
         : Vfs(vfs)
       {}
 
-      void OnFile(String path, Binary::Container::Ptr content) override
+      void OnFile(StringView path, Binary::Container::Ptr content) override
       {
         Vfs.Add(path, std::move(content));
       }

@@ -18,6 +18,7 @@
 #include <formats/chiptune/fm/tfc.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
+#include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
 // std includes
 #include <algorithm>
@@ -120,14 +121,20 @@ namespace Module::TFC
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Properties(props)
+      , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
       , Channel(0)
       , Frequency()
     {}
 
-    void SetVersion(const String& version) override
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
-      Properties.SetProgram(PROGRAM_PREFIX + version);
+      return Meta;
+    }
+
+    void SetVersion(StringView version) override
+    {
+      Properties.SetProgram(String(PROGRAM_PREFIX).append(version));
     }
 
     void SetIntFreq(uint_t freq) override
@@ -136,21 +143,6 @@ namespace Module::TFC
       {
         FrameDuration = Time::Microseconds::FromFrequency(freq);
       }
-    }
-
-    void SetTitle(const String& title) override
-    {
-      Properties.SetTitle(title);
-    }
-
-    void SetAuthor(const String& author) override
-    {
-      Properties.SetAuthor(author);
-    }
-
-    void SetComment(const String& comment) override
-    {
-      Properties.SetComment(comment);
     }
 
     void StartChannel(uint_t idx) override
@@ -223,6 +215,7 @@ namespace Module::TFC
 
   private:
     PropertiesHelper& Properties;
+    MetaProperties Meta;
     const ModuleData::RWPtr Data;
     uint_t Channel;
     std::array<uint_t, 6> Frequency;

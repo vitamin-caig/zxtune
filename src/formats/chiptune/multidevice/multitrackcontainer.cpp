@@ -158,9 +158,9 @@ namespace IFF
   class StringChunkSource : public BlobChunkSourceBase
   {
   public:
-    StringChunkSource(Identifier::Type id, String str)
+    StringChunkSource(Identifier::Type id, StringView str)
       : BlobChunkSourceBase(std::move(id))
-      , Data(std::move(str))
+      , Data(str.to_string())
     {}
 
   protected:
@@ -229,7 +229,7 @@ namespace IFF
 
     void OnString(const Identifier::Type& id, StringView str)
     {
-      AddSubSource(MakePtr<StringChunkSource>(id, str.to_string()));
+      AddSubSource(MakePtr<StringChunkSource>(id, str));
     }
 
     void OnChunk(const Identifier::Type& id, Binary::Container::Ptr content) override
@@ -270,7 +270,7 @@ namespace Formats::Chiptune
         "00 00-10 ? ?"  // max 1Mb
         ""_sv;
 
-    const String::value_type PROPERTY_DELIMITER = '=';
+    const auto PROPERTY_DELIMITER = "="_sv;
 
     class Decoder : public Formats::Chiptune::Decoder
     {
@@ -341,7 +341,7 @@ namespace Formats::Chiptune
         Require(name.npos == name.find_first_of(PROPERTY_DELIMITER));
         if (!value.empty())
         {
-          Context->OnString(IFF::Identifier::PROPERTY, name.to_string() + PROPERTY_DELIMITER + value.to_string());
+          Context->OnString(IFF::Identifier::PROPERTY, name.to_string().append(PROPERTY_DELIMITER).append(value));
         }
         else
         {

@@ -43,7 +43,7 @@ namespace Module
         }
       }
 
-      void SetRegion(String /*region*/, uint_t fps) override
+      void SetRegion(StringView /*region*/, uint_t fps) override
       {
         if (fps && !Exe.RefreshRate)
         {

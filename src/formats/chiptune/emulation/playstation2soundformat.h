@@ -26,7 +26,7 @@ namespace Formats
       public:
         virtual ~Builder() = default;
 
-        virtual void OnFile(String path, Binary::Container::Ptr content) = 0;
+        virtual void OnFile(StringView path, Binary::Container::Ptr content) = 0;
       };
 
       void ParseVFS(const Binary::Container& data, Builder& target);

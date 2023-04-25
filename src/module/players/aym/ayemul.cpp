@@ -23,6 +23,7 @@
 #include <formats/chiptune/emulation/ay.h>
 #include <module/players/duration.h>
 #include <module/players/properties_helper.h>
+#include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
 // std includes
 #include <algorithm>
@@ -616,23 +617,14 @@ namespace Module::AYEMUL
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Properties(props)
+      , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
       , Delegate(Formats::Chiptune::AY::CreateMemoryDumpBuilder())
     {}
 
-    void SetTitle(String title) override
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
-      Properties.SetTitle(std::move(title));
-    }
-
-    void SetAuthor(String author) override
-    {
-      Properties.SetAuthor(std::move(author));
-    }
-
-    void SetComment(String comment) override
-    {
-      Properties.SetComment(std::move(comment));
+      return Meta;
     }
 
     void SetDuration(uint_t duration, uint_t fadeout) override
@@ -677,6 +669,7 @@ namespace Module::AYEMUL
 
   private:
     PropertiesHelper& Properties;
+    MetaProperties Meta;
     const ModuleData::RWPtr Data;
     const Formats::Chiptune::AY::BlobBuilder::Ptr Delegate;
   };

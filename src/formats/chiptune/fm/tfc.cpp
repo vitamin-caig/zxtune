@@ -50,11 +50,13 @@ namespace Formats::Chiptune
     class StubBuilder : public Builder
     {
     public:
-      void SetVersion(const String& /*version*/) override {}
+      MetaBuilder& GetMetaBuilder() override
+      {
+        return GetStubMetaBuilder();
+      }
+
+      void SetVersion(StringView /*version*/) override {}
       void SetIntFreq(uint_t /*freq*/) override {}
-      void SetTitle(const String& /*title*/) override {}
-      void SetAuthor(const String& /*author*/) override {}
-      void SetComment(const String& /*comment*/) override {}
 
       void StartChannel(uint_t /*idx*/) override {}
       void StartFrame() override {}
@@ -284,7 +286,7 @@ namespace Formats::Chiptune
       const Binary::View data(rawData);
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
       try
       {
@@ -292,9 +294,10 @@ namespace Formats::Chiptune
         const auto& header = stream.Read<RawHeader>();
         target.SetVersion({header.Version.data(), header.Version.size()});
         target.SetIntFreq(header.IntFreq);
-        target.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
+        auto& meta = target.GetMetaBuilder();
+        meta.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        meta.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        meta.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
 
         const Container container(data);
         for (uint_t chan = 0; chan != 6; ++chan)

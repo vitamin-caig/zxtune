@@ -17,36 +17,56 @@ namespace
 {
   using namespace Formats::Chiptune;
 
-  class SpcBuilder : public SPC::Builder
+  class SpcBuilder
+    : public SPC::Builder
+    , public MetaBuilder
   {
   public:
+    void SetProgram(StringView program) override
+    {
+      std::cout << "Program: " << program << std::endl;
+    }
+
+    void SetTitle(StringView title) override
+    {
+      std::cout << "Title: " << title << std::endl;
+    }
+
+    void SetAuthor(StringView author) override
+    {
+      std::cout << "Author: " << author << std::endl;
+    }
+
+    void SetStrings(const Strings::Array& strings) override
+    {
+      for (const auto& str : strings)
+      {
+        std::cout << "Strings: " << str << std::endl;
+      }
+    }
+
+    void SetComment(StringView comment) override
+    {
+      std::cout << "Comment: " << comment << std::endl;
+    }
+
+    MetaBuilder& GetMetaBuilder() override
+    {
+      return *this;
+    }
+
     void SetRegisters(uint16_t pc, uint8_t a, uint8_t x, uint8_t y, uint8_t psw, uint8_t sp) override
     {
       std::cout << Strings::Format("Registers: PC=0x{:04x} A=0x{:02x} X=0x{:02x} Y=0x{:02x} PSW=0x{:02x} SP=0x{:02x}\n",
                                    uint_t(pc), uint_t(a), uint_t(x), uint_t(y), uint_t(psw), uint_t(sp));
     }
 
-    void SetTitle(String title) override
-    {
-      std::cout << "Title: " << title << std::endl;
-    }
-
-    void SetGame(String game) override
-    {
-      std::cout << "Game: " << game << std::endl;
-    }
-
-    void SetDumper(String dumper) override
+    void SetDumper(StringView dumper) override
     {
       std::cout << "Dumper: " << dumper << std::endl;
     }
 
-    void SetComment(String comment) override
-    {
-      std::cout << "Comment: " << comment << std::endl;
-    }
-
-    void SetDumpDate(String date) override
+    void SetDumpDate(StringView date) override
     {
       std::cout << "Dump date: " << date << std::endl;
     }
@@ -64,11 +84,6 @@ namespace
     void SetFade(Time::Milliseconds duration) override
     {
       std::cout << "Fade: " << Time::ToString(duration) << std::endl;
-    }
-
-    void SetArtist(String artist) override
-    {
-      std::cout << "Artist: " << artist << std::endl;
     }
 
     void SetRAM(Binary::View data) override

@@ -15,6 +15,7 @@
 #include <make_ptr.h>
 // library includes
 #include <formats/chiptune/emulation/portablesoundformat.h>
+#include <strings/conversion.h>
 #include <strings/split.h>
 // boost includes
 #include <boost/algorithm/string/join.hpp>
@@ -70,9 +71,16 @@ namespace Module
       Strings::Array Components;
     };
 
-    class FileBuilder : public Formats::Chiptune::PortableSoundFormat::Builder
+    class FileBuilder
+      : public Formats::Chiptune::PortableSoundFormat::Builder
+      , private Formats::Chiptune::MetaBuilder
     {
     public:
+      Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
+      {
+        return *this;
+      }
+
       void SetVersion(uint_t ver) override
       {
         Result.Version = ver;
@@ -88,44 +96,24 @@ namespace Module
         Result.PackedProgramSection = std::move(blob);
       }
 
-      void SetTitle(String title) override
+      void SetYear(StringView date) override
       {
-        GetMeta().Title = std::move(title);
+        GetMeta().Year = date.to_string();
       }
 
-      void SetArtist(String artist) override
+      void SetGenre(StringView genre) override
       {
-        GetMeta().Artist = std::move(artist);
+        GetMeta().Genre = genre.to_string();
       }
 
-      void SetGame(String game) override
+      void SetCopyright(StringView copyright) override
       {
-        GetMeta().Game = std::move(game);
+        GetMeta().Copyright = copyright.to_string();
       }
 
-      void SetYear(String date) override
+      void SetDumper(StringView dumper) override
       {
-        GetMeta().Year = std::move(date);
-      }
-
-      void SetGenre(String genre) override
-      {
-        GetMeta().Genre = std::move(genre);
-      }
-
-      void SetComment(String comment) override
-      {
-        GetMeta().Comment = std::move(comment);
-      }
-
-      void SetCopyright(String copyright) override
-      {
-        GetMeta().Copyright = std::move(copyright);
-      }
-
-      void SetDumper(String dumper) override
-      {
-        GetMeta().Dumper = std::move(dumper);
+        GetMeta().Dumper = dumper.to_string();
       }
 
       void SetLength(Time::Milliseconds duration) override
@@ -143,22 +131,43 @@ namespace Module
         GetMeta().Volume = vol;
       }
 
-      void SetTag(String name, String value) override
+      void SetTag(StringView name, StringView value) override
       {
-        if (name == "_refresh")
+        if (name == "_refresh"_sv)
         {
-          GetMeta().RefreshRate = std::atoi(value.c_str());
+          GetMeta().RefreshRate = Strings::ConvertTo<uint_t>(value);
         }
         else
         {
-          GetMeta().Tags.emplace_back(std::move(name), std::move(value));
+          GetMeta().Tags.emplace_back(name.to_string(), value.to_string());
         }
       }
 
-      void SetLibrary(uint_t num, String filename) override
+      void SetLibrary(uint_t num, StringView filename) override
       {
         Result.Dependencies.resize(std::max<std::size_t>(Result.Dependencies.size(), num));
         Result.Dependencies[num - 1] = FilePath(filename).ToString();
+      }
+
+      // MetaBuilder
+      void SetProgram(StringView program) override
+      {
+        GetMeta().Game = program.to_string();
+      }
+
+      void SetTitle(StringView title) override
+      {
+        GetMeta().Title = title.to_string();
+      }
+
+      void SetAuthor(StringView author) override
+      {
+        GetMeta().Artist = author.to_string();
+      }
+      void SetStrings(const Strings::Array& /*strings*/) override {}
+      void SetComment(StringView comment) override
+      {
+        GetMeta().Comment = comment.to_string();
       }
 
       void MakeDependenciesRelativeTo(StringView filename)

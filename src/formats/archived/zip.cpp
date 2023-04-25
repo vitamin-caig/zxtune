@@ -31,9 +31,9 @@ namespace Formats::Archived
     class File : public Archived::File
     {
     public:
-      File(const Packed::Decoder& decoder, String name, std::size_t size, Binary::Container::Ptr data)
+      File(const Packed::Decoder& decoder, StringView name, std::size_t size, Binary::Container::Ptr data)
         : Decoder(decoder)
-        , Name(std::move(name))
+        , Name(name.to_string())
         , Size(size)
         , Data(std::move(data))
       {}
@@ -182,20 +182,20 @@ namespace Formats::Archived
           return isUtf8 ? rawName.to_string() : Strings::ToAutoUtf8(rawName);
         }
         assert(!"Failed to get name");
-        return String();
+        return {};
       }
 
       File::Ptr GetFile() const
       {
         assert(IsValid());
-        const std::unique_ptr<const Packed::Zip::CompressedFile> file = Blocks.GetFile();
+        const auto file = Blocks.GetFile();
         if (file.get())
         {
-          const Binary::Container::Ptr data = Data.GetSubcontainer(Blocks.GetOffset(), file->GetPackedSize());
-          return MakePtr<File>(Decoder, GetName(), file->GetUnpackedSize(), data);
+          auto data = Data.GetSubcontainer(Blocks.GetOffset(), file->GetPackedSize());
+          return MakePtr<File>(Decoder, GetName(), file->GetUnpackedSize(), std::move(data));
         }
         assert(!"Failed to get file");
-        return File::Ptr();
+        return {};
       }
 
       void Next()

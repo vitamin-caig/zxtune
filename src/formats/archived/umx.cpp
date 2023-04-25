@@ -461,8 +461,8 @@ namespace Formats::Archived
     class File : public Archived::File
     {
     public:
-      File(String name, Binary::Container::Ptr data)
-        : Name(std::move(name))
+      File(StringView name, Binary::Container::Ptr data)
+        : Name(name.to_string())
         , Data(std::move(data))
       {}
 
@@ -509,7 +509,7 @@ namespace Formats::Archived
       {
         if (auto data = Files.Get(name))
         {
-          return MakePtr<File>(name.to_string(), std::move(data));
+          return MakePtr<File>(name, std::move(data));
         }
         else
         {

@@ -17,6 +17,7 @@
 #include <formats/chiptune/fm/tfd.h>
 #include <module/players/platforms.h>
 #include <module/players/properties_helper.h>
+#include <module/players/properties_meta.h>
 #include <module/players/streaming.h>
 
 namespace Module::TFD
@@ -79,23 +80,14 @@ namespace Module::TFD
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Properties(props)
+      , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
       , Chip(0)
     {}
 
-    void SetTitle(const String& title) override
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
     {
-      Properties.SetTitle(title);
-    }
-
-    void SetAuthor(const String& author) override
-    {
-      Properties.SetAuthor(author);
-    }
-
-    void SetComment(const String& comment) override
-    {
-      Properties.SetComment(comment);
+      return Meta;
     }
 
     void BeginFrames(uint_t count) override
@@ -126,6 +118,7 @@ namespace Module::TFD
 
   private:
     PropertiesHelper& Properties;
+    MetaProperties Meta;
     const ModuleData::RWPtr Data;
     uint_t Chip;
   };

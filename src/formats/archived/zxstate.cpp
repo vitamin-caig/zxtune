@@ -472,9 +472,9 @@ namespace Formats::Archived
     class SingleBlockFile : public Archived::File
     {
     public:
-      SingleBlockFile(Binary::Container::Ptr archive, String name, DataBlockDescription block)
+      SingleBlockFile(Binary::Container::Ptr archive, StringView name, DataBlockDescription block)
         : Data(std::move(archive))
-        , Name(std::move(name))
+        , Name(name.to_string())
         , Block(std::move(block))
       {
         Dbg("Created file '{}', size={}, packed size={}, compression={}", Name, Block.UncompressedSize, Block.Size,
@@ -513,9 +513,9 @@ namespace Formats::Archived
     class MultiBlockFile : public Archived::File
     {
     public:
-      MultiBlockFile(Binary::Container::Ptr archive, String name, DataBlocks blocks)
+      MultiBlockFile(Binary::Container::Ptr archive, StringView name, DataBlocks blocks)
         : Data(std::move(archive))
-        , Name(std::move(name))
+        , Name(name.to_string())
         , Blocks(std::move(blocks))
       {
         Dbg("Created file '{}', contains from {} parts", Name, Blocks.size());
@@ -675,7 +675,7 @@ namespace Formats::Archived
       {
         if (const auto* ptr = Blocks.FindPtr(name))
         {
-          return CreateFileOnBlocks(name.to_string(), *ptr);
+          return CreateFileOnBlocks(name, *ptr);
         }
         else
         {
@@ -689,15 +689,15 @@ namespace Formats::Archived
       }
 
     private:
-      File::Ptr CreateFileOnBlocks(String name, const DataBlocks& blocks) const
+      File::Ptr CreateFileOnBlocks(StringView name, const DataBlocks& blocks) const
       {
         if (blocks.size() == 1)
         {
-          return MakePtr<SingleBlockFile>(Delegate, std::move(name), blocks.front());
+          return MakePtr<SingleBlockFile>(Delegate, name, blocks.front());
         }
         else
         {
-          return MakePtr<MultiBlockFile>(Delegate, std::move(name), blocks);
+          return MakePtr<MultiBlockFile>(Delegate, name, blocks);
         }
       }
 
@@ -728,7 +728,7 @@ namespace Formats::Archived
       using namespace ZXState;
       if (!Format->Match(data))
       {
-        return ZXState::Container::Ptr();
+        return {};
       }
       const ChunksSet chunks(data);
       FilledBlocks blocks;
@@ -736,12 +736,12 @@ namespace Formats::Archived
       {
         if (!blocks.empty())
         {
-          const Binary::Container::Ptr archive = data.GetSubcontainer(0, size);
-          return MakePtr<ZXState::Container>(archive, blocks);
+          auto archive = data.GetSubcontainer(0, size);
+          return MakePtr<ZXState::Container>(std::move(archive), blocks);
         }
         Dbg("No files found");
       }
-      return ZXState::Container::Ptr();
+      return {};
     }
 
   private:

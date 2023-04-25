@@ -22,6 +22,7 @@ namespace Formats
       void SetTitle(StringView /*title*/) override {}
       void SetAuthor(StringView /*author*/) override {}
       void SetStrings(const Strings::Array& /*strings*/) override {}
+      void SetComment(StringView /*comment*/) override {}
     };
 
     MetaBuilder& GetStubMetaBuilder()

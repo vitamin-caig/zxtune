@@ -32,4 +32,9 @@ namespace Module
   {
     Delegate.SetStrings(strings);
   }
+
+  void MetaProperties::SetComment(StringView comment)
+  {
+    Delegate.SetComment(comment);
+  }
 }  // namespace Module

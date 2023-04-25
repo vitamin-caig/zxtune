@@ -449,7 +449,6 @@ namespace Formats::Chiptune
 
       void SetTempo(uint_t /*evenTempo*/, uint_t /*oddTempo*/, uint_t /*interleavePeriod*/) override {}
       void SetDate(const Date& /*created*/, const Date& /*saved*/) override {}
-      void SetComment(const String& /*comment*/) override {}
 
       void SetInstrument(uint_t /*index*/, Instrument /*instrument*/) override {}
       // patterns
@@ -511,11 +510,6 @@ namespace Formats::Chiptune
       void SetDate(const Date& created, const Date& saved) override
       {
         return Delegate.SetDate(created, saved);
-      }
-
-      void SetComment(const String& comment) override
-      {
-        return Delegate.SetComment(comment);
       }
 
       void SetInstrument(uint_t index, Instrument instrument) override
@@ -803,7 +797,7 @@ namespace Formats::Chiptune
         meta.SetProgram(Version::DESCRIPTION.to_string());
         meta.SetTitle(DecodeString(Source.Title));
         meta.SetAuthor(DecodeString(Source.Author));
-        builder.SetComment(DecodeString(Source.Comment));
+        meta.SetComment(DecodeString(Source.Comment));
         Strings::Array names;
         names.reserve(Source.InstrumentNames.size());
         for (const auto& name : Source.InstrumentNames)
