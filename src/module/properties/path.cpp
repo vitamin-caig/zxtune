@@ -23,8 +23,8 @@ namespace Module
   class UnresolvedPathPropertiesAccessor : public Parameters::Accessor
   {
   public:
-    explicit UnresolvedPathPropertiesAccessor(String uri)
-      : Uri(std::move(uri))
+    explicit UnresolvedPathPropertiesAccessor(StringView uri)
+      : Uri(uri.to_string())
     {}
 
     uint_t Version() const override
@@ -129,12 +129,12 @@ namespace Module
 
 namespace Module
 {
-  Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath)
+  Parameters::Accessor::Ptr CreatePathProperties(StringView fullpath)
   {
     try
     {
-      const IO::Identifier::Ptr id = IO::ResolveUri(fullpath);
-      return CreatePathProperties(id);
+      auto id = IO::ResolveUri(fullpath);
+      return CreatePathProperties(std::move(id));
     }
     catch (const Error&)
     {
@@ -144,6 +144,6 @@ namespace Module
 
   Parameters::Accessor::Ptr CreatePathProperties(IO::Identifier::Ptr id)
   {
-    return MakePtr<PathPropertiesAccessor>(id);
+    return MakePtr<PathPropertiesAccessor>(std::move(id));
   }
 }  // namespace Module

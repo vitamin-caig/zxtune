@@ -294,12 +294,12 @@ namespace Formats::Chiptune
       static const uint_t NO_INDEX = ~uint_t(0);
 
     public:
-      SectionHeader(const String& category, StringView hdr)
-        : Category(category)
+      SectionHeader(String category, StringView hdr)
+        : Category(std::move(category))
         , Index(NO_INDEX)
         , Valid(false)
       {
-        const String start = '[' + category;
+        const String start = '[' + Category;
         const String stop = "]";
         if (boost::algorithm::istarts_with(hdr, start) && boost::algorithm::ends_with(hdr, stop))
         {

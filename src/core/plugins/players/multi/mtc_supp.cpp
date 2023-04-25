@@ -200,7 +200,7 @@ namespace Module::MTC
 
       uint_t GetPenalty() const
       {
-        const String& type = GetType();
+        const auto& type = GetType();
         if (type == "STR")
         {
           // badly emulated

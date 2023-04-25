@@ -207,16 +207,16 @@ namespace Sound::File
 
     Receiver::Ptr GetStream(const Module::State& state) const
     {
-      const String& newFilename = FilenameTemplate.Instantiate(state);
+      const auto& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
       {
         auto stream = IO::CreateStream(newFilename, *Params, Log::ProgressCallback::Stub());
         Filename = newFilename;
-        const auto result = Factory->CreateStream(std::move(stream));
+        auto result = Factory->CreateStream(std::move(stream));
         SetProperties(*result);
         if (const uint_t buffers = FileParams.GetBuffersCount())
         {
-          return Async::DataReceiver<Chunk>::Create(1, buffers, result);
+          return Async::DataReceiver<Chunk>::Create(1, buffers, std::move(result));
         }
         else
         {

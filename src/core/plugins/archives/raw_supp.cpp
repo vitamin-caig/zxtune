@@ -86,7 +86,7 @@ namespace ZXTune
       return res;
     }
 
-    static String Widen(const String& str, std::size_t wid)
+    static String Widen(StringView str, std::size_t wid)
     {
       String res(wid, ' ');
       std::copy(str.begin(), str.end(), res.begin());
@@ -321,7 +321,7 @@ namespace ZXTune::Raw
   class ScanProgress
   {
   public:
-    ScanProgress(Log::ProgressCallback* delegate, std::size_t limit, const String& path)
+    ScanProgress(Log::ProgressCallback* delegate, std::size_t limit, StringView path)
       : Delegate(delegate)
       , ToPercent(limit, 100)
       , Text(ProgressMessage(ID, path))
@@ -836,7 +836,7 @@ namespace ZXTune::Raw
     DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr location,
                               const Analysis::Path& inPath) const override
     {
-      const String& pathComp = inPath.GetIterator()->Get();
+      const auto& pathComp = inPath.GetIterator()->Get();
       const Strings::PrefixedIndex pathIndex(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {

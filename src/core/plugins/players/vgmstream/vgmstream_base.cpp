@@ -64,7 +64,7 @@ namespace Module::VGMStream
       Content.emplace_back(rootName.to_string(), std::move(rootData));
     }
 
-    const String& Root() const
+    StringView Root() const
     {
       return Content.front().first;
     }
@@ -148,9 +148,10 @@ namespace Module::VGMStream
     {}
 
   private:
-    MemoryStream(Vfs::Ptr vfs, String filename, Binary::View raw)
-      : Fs(std::move(vfs))
-      , Filename(std::move(filename))
+    MemoryStream(Vfs::Ptr vfs, StringView filename, Binary::View raw)
+      : STREAMFILE()
+      , Fs(std::move(vfs))
+      , Filename(filename.to_string())
       , Raw(std::move(raw))
     {
       read = &Read;
@@ -207,10 +208,10 @@ namespace Module::VGMStream
         return nullptr;
       }
       auto* self = Cast(ctx);
-      String name(filename);
+      const StringView name(filename);
       if (auto blob = self->Fs->Request(name))
       {
-        auto* result = new MemoryStream(self->Fs, std::move(name), std::move(blob));
+        auto* result = new MemoryStream(self->Fs, name, std::move(blob));
         result->stream_index = self->stream_index;
         return result;
       }
@@ -226,7 +227,6 @@ namespace Module::VGMStream
     }
 
   private:
-    STREAMFILE Vfptr;
     const Vfs::Ptr Fs;
     const String Filename;
     const Binary::View Raw;  // owned by Fs
@@ -346,7 +346,7 @@ namespace Module::VGMStream
   class Information : public Module::Information
   {
   public:
-    Information(VGMStreamPtr stream)
+    explicit Information(VGMStreamPtr stream)
       : Total(stream->num_samples)
       , LoopStart(stream->loop_start_sample)
       , Samplerate(stream->sample_rate)
@@ -510,7 +510,8 @@ namespace Module::VGMStream
 
     void TryCreateDelegate() const
     {
-      if (Delegate = TryCreateModule(Model, Properties))
+      Delegate = TryCreateModule(Model, Properties);
+      if (Delegate)
       {
         Dbg("All dependencies resolved");
         Model->ClearUnresolved();  // for any

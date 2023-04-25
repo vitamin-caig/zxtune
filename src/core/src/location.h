@@ -23,6 +23,6 @@ namespace ZXTune
   DataLocation::Ptr CreateLocation(Binary::Container::Ptr data);
 
   DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, PluginId subPlugin,
-                                         const String& subPath);
-  DataLocation::Ptr CreateLocation(Binary::Container::Ptr data, const String& plugin, const String& path);
+                                         StringView subPath);
+  DataLocation::Ptr CreateLocation(Binary::Container::Ptr data, StringView pluginsChain, StringView path);
 }  // namespace ZXTune

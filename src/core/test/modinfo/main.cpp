@@ -21,10 +21,10 @@
 
 namespace
 {
-  Module::Holder::Ptr OpenModuleByPath(const String& fullPath)
+  Module::Holder::Ptr OpenModuleByPath(StringView fullPath)
   {
     const Parameters::Container::Ptr emptyParams = Parameters::Container::Create();
-    const String filename = fullPath;  // TODO: split if required
+    const auto filename = fullPath;  // TODO: split if required
     const Binary::Container::Ptr data = IO::OpenData(filename, *emptyParams, Log::ProgressCallback::Stub());
     return ZXTune::Service::Create(emptyParams)->OpenModule(data, {}, Parameters::Container::Create());
   }
@@ -59,7 +59,7 @@ namespace
     }
 
   private:
-    static void Write(StringView name, const String& value)
+    static void Write(StringView name, StringView value)
     {
       std::cout << name << ": " << value << std::endl;
     }

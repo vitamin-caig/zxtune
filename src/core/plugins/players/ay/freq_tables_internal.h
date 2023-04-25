@@ -17,5 +17,5 @@ namespace Module
 {
   // getting frequency table data by name
   // throw Error in case of problem
-  void GetFreqTable(const String& id, FrequencyTable& result);
+  void GetFreqTable(StringView id, FrequencyTable& result);
 }  // namespace Module

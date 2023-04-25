@@ -27,14 +27,14 @@ namespace ZXTune
   class LoggerHelper
   {
   public:
-    LoggerHelper(uint_t total, Log::ProgressCallback* delegate, PluginId plugin, String path)
+    LoggerHelper(uint_t total, Log::ProgressCallback* delegate, PluginId plugin, StringView path)
       : Delegate(path.empty() ? delegate : nullptr)  // track only toplevel container
       , ToPercent(total, 100)
       , Id(std::move(plugin))
-      , Path(std::move(path))
+      , Path(path.to_string())
     {}
 
-    void Report(const String& name)
+    void Report(StringView name)
     {
       if (Delegate)
       {
@@ -201,13 +201,13 @@ namespace ZXTune
     return MakePtr<ArchivedContainerPlugin>(id, caps | Capabilities::Category::CONTAINER, decoder);
   }
 
-  String ProgressMessage(PluginId id, const String& path)
+  String ProgressMessage(PluginId id, StringView path)
   {
     return path.empty() ? Strings::Format(translate("{} processing"), id)
                         : Strings::Format(translate("{0} processing at {1}"), id, path);
   }
 
-  String ProgressMessage(PluginId id, const String& path, const String& element)
+  String ProgressMessage(PluginId id, StringView path, StringView element)
   {
     return path.empty() ? Strings::Format(translate("{0} processing for {1}"), id, element)
                         : Strings::Format(translate("{0} processing for {1} at {2}"), id, element, path);

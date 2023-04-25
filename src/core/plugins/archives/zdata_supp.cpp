@@ -286,7 +286,7 @@ namespace ZXTune::Zdata
     DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr location,
                               const Analysis::Path& inPath) const override
     {
-      const String& pathComp = inPath.GetIterator()->Get();
+      const auto& pathComp = inPath.GetIterator()->Get();
       const Strings::PrefixedIndex pathIndex(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {
