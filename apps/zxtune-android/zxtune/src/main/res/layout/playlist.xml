@@ -6,19 +6,29 @@
         android:layout_height="match_parent"
         tools:ignore="RtlHardcoded">
 
+    <FrameLayout
+            android:id="@+id/playlist_top_panel"
+            style="@style/block"
+            android:layout_alignParentTop="true" />
+
     <TextView
             android:id="@+id/playlist_stub"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@id/playlist_top_panel"
+            android:layout_alignParentBottom="true"
             android:gravity="center"
             android:paddingLeft="@dimen/spacing_full"
             android:paddingRight="@dimen/spacing_full"
-            android:text="@string/playlist_empty" />
+            android:text="@string/playlist_empty"
+            tools:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/playlist_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@id/playlist_top_panel"
+            android:layout_alignParentBottom="true"
             app:fastScrollEnabled="true"
             app:fastScrollHorizontalThumbDrawable="@drawable/scroll_thumb"
             app:fastScrollHorizontalTrackDrawable="@drawable/scroll_track"
@@ -40,5 +50,4 @@
             android:iconifiedByDefault="true"
             android:imeOptions="actionNone|flagNoExtractUi"
             android:queryHint="@string/playlist_search_hint" />
-
 </RelativeLayout>

@@ -21,7 +21,6 @@ import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -164,10 +163,9 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
                     true
                 }.build().also {
                     adapter.setSelection(it.selection)
-                    // another class for test
-                    (activity as? AppCompatActivity)?.let { activity ->
-                        SelectionUtils.install(activity, it, SelectionClient(adapter))
-                    }
+                    SelectionUtils.install(
+                        view.findViewById(R.id.browser_top_panel), it, SelectionClient(adapter)
+                    )
                 }
             model.state.observe(viewLifecycleOwner) { state ->
                 val stub = view.findViewById<TextView>(R.id.browser_stub)
@@ -267,7 +265,8 @@ class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
             R.plurals.items, count, count
         )
 
-        override fun getAllItems() = adapter.currentList.map { it.uri }
+        override val allItems
+            get() = adapter.currentList.map(ListingEntry::uri)
 
         override fun fillMenu(inflater: MenuInflater, menu: Menu) =
             inflater.inflate(R.menu.browser, menu)

@@ -1,13 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:ignore="RtlHardcoded">
+
     <data>
-        <import type="android.view.View"/>
-        <variable name="entry" type="app.zxtune.ui.browser.BreadcrumbsEntry"/>
-        <variable name="isPlaying" type="boolean"/>
+
+        <import type="android.view.View" />
+
+        <variable
+                name="entry"
+                type="app.zxtune.ui.browser.BreadcrumbsEntry" />
+
+        <variable
+                name="isPlaying"
+                type="boolean" />
     </data>
+
     <Button
-      style="@style/Button.Breadcrumbs"
-      android:text="@{entry.icon == null ? entry.title : null}"
-      android:drawableLeft="@{entry.icon != null ? context.getResources().getDrawable(entry.icon) : null}"
-    />
+            style="@style/Button.Breadcrumbs"
+            android:drawableLeft="@{entry.icon != null ? context.getResources().getDrawable(entry.icon) : null}"
+            android:text="@{entry.icon == null ? entry.title : null}"
+            tools:text="Entry" />
 </layout>

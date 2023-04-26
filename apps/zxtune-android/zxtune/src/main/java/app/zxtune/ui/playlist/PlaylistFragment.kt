@@ -20,7 +20,6 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
@@ -100,10 +99,9 @@ class PlaylistFragment : Fragment() {
                     true
                 }.build().also {
                     adapter.setSelection(it.selection)
-                    // another class for test
-                    (activity as? AppCompatActivity)?.let { activity ->
-                        SelectionUtils.install(activity, it, SelectionClient(adapter))
-                    }
+                    SelectionUtils.install(
+                        view.findViewById(R.id.playlist_top_panel), it, SelectionClient(adapter)
+                    )
                 }
             model.state.observe(viewLifecycleOwner) { state ->
                 adapter.submitList(state.entries) {
@@ -179,7 +177,8 @@ class PlaylistFragment : Fragment() {
         override fun getTitle(count: Int) =
             resources.getQuantityString(R.plurals.tracks, count, count)
 
-        override fun getAllItems() = adapter.currentList.map(Entry::id)
+        override val allItems
+            get() = adapter.currentList.map(Entry::id)
 
         override fun fillMenu(inflater: MenuInflater, menu: Menu) =
             inflater.inflate(R.menu.playlist_items, menu)

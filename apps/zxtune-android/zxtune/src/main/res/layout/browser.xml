@@ -1,37 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        tools:ignore="RtlHardcoded">
 
-    <LinearLayout
+    <FrameLayout
             android:id="@+id/browser_top_panel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:orientation="horizontal">
+            style="@style/block"
+            android:layout_alignParentTop="true">
 
-        <SearchView
-                android:id="@+id/browser_search"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:iconifiedByDefault="true"
-                android:imeOptions="actionSearch|flagNoExtractUi|flagForceAscii"
-                android:queryHint="@string/browser_search_hint" />
-
-        <Button
-                android:id="@+id/browser_roots"
-                style="@style/Button.Breadcrumbs"
-                android:layout_width="wrap_content"
-                android:drawableLeft="@drawable/ic_browser_folder" />
-
-        <androidx.recyclerview.widget.RecyclerView xmlns:app="http://schemas.android.com/apk/res-auto"
-                android:id="@+id/browser_breadcrumb"
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="horizontal"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
-    </LinearLayout>
+                android:orientation="horizontal">
+
+            <SearchView
+                    android:id="@+id/browser_search"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:iconifiedByDefault="true"
+                    android:imeOptions="actionSearch|flagNoExtractUi|flagForceAscii"
+                    android:queryHint="@string/browser_search_hint" />
+
+            <Button
+                    android:id="@+id/browser_roots"
+                    style="@style/Button.Breadcrumbs"
+                    android:layout_width="wrap_content"
+                    android:drawableLeft="@drawable/ic_browser_folder" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/browser_breadcrumb"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:itemCount="4"
+                    tools:listitem="@layout/browser_breadcrumbs_entry" />
+        </LinearLayout>
+    </FrameLayout>
 
     <ProgressBar
             android:id="@+id/browser_loading"
@@ -41,7 +49,7 @@
             android:layout_below="@id/browser_top_panel"
             android:max="100" />
 
-    <androidx.recyclerview.widget.RecyclerView xmlns:app="http://schemas.android.com/apk/res-auto"
+    <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/browser_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -52,7 +60,9 @@
             app:fastScrollHorizontalTrackDrawable="@drawable/scroll_track"
             app:fastScrollVerticalThumbDrawable="@drawable/scroll_thumb"
             app:fastScrollVerticalTrackDrawable="@drawable/scroll_track"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:itemCount="20"
+            tools:listitem="@layout/browser_listing_entry" />
 
     <TextView
             android:id="@+id/browser_stub"
@@ -60,8 +70,7 @@
             android:layout_height="match_parent"
             android:layout_below="@id/browser_loading"
             android:layout_alignParentBottom="true"
-            android:layout_marginLeft="@dimen/spacing_full"
-            android:layout_marginRight="@dimen/spacing_full"
+            android:layout_marginHorizontal="@dimen/spacing_full"
             android:gravity="center"
             android:text="@string/browser_empty"
             android:visibility="invisible" />
@@ -69,7 +78,6 @@
     <TextView
             android:id="@+id/browser_notification"
             style="@style/text_main"
-            android:singleLine="false"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/browser_notification"
@@ -78,5 +86,6 @@
             android:background="?android:attr/colorBackground"
             android:gravity="center_horizontal"
             android:padding="@dimen/spacing_full"
+            android:singleLine="false"
             tools:text="Notification with long message" />
 </RelativeLayout>

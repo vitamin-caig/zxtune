@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.Toolbar xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:navigationIcon="@drawable/ic_close"
+        app:titleTextAppearance="@style/text_main"
+        app:titleMarginStart="@dimen/spacing_half"
+        app:titleMarginEnd="@dimen/spacing_half"
+        app:contentInsetLeft="@dimen/spacing_half"
+        app:contentInsetStart="@dimen/spacing_half"
+        app:contentInsetStartWithNavigation="@dimen/spacing_half"
+        app:contentInsetRight="@dimen/spacing_half"
+        app:contentInsetEnd="@dimen/spacing_half"
+        app:contentInsetEndWithActions="@dimen/spacing_half"
+        tools:menu="@menu/playlist_items"
+        tools:title="1 item selected" />

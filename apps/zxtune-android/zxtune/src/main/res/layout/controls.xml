@@ -25,7 +25,7 @@
           android:id="@+id/controls_sequence_mode"
           android:src="@drawable/ic_sequence_ordered"
           style="@style/Button"
-          android:layout_weight="1"
+          android:layout_weight="0"
           android:layout_marginLeft="@dimen/spacing_full"
     />
 </LinearLayout>

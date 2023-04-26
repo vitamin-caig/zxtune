@@ -1,39 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:ignore="RtlHardcoded">
+
     <data>
-        <import type="android.view.View"/>
-        <import type="android.text.TextUtils"/>
-        <variable name="entry" type="app.zxtune.ui.browser.ListingEntry"/>
+
+        <import type="android.view.View" />
+
+        <import type="android.text.TextUtils" />
+
+        <variable
+                name="entry"
+                type="app.zxtune.ui.browser.ListingEntry" />
     </data>
+
     <RelativeLayout
             style="@style/block"
-            android:background="@drawable/activable_background"
-    >
+            android:background="@drawable/activable_background">
+
         <ImageView
                 android:id="@+id/browser_entry_icon"
                 android:layout_width="@dimen/item_height"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/spacing_half"
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
+                android:layout_marginLeft="@dimen/spacing_half"
                 app:resource="@{entry.getDisplayIcon()}"
-                />
+                tools:src="@drawable/ic_browser_folder" />
+
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/spacing_half"
-                android:layout_marginRight="@dimen/spacing_half"
-                android:layout_toRightOf="@+id/browser_entry_icon"
-                android:layout_toLeftOf="@+id/browser_entry_details"
                 android:layout_centerVertical="true"
+                android:layout_marginHorizontal="@dimen/spacing_half"
+                android:layout_toLeftOf="@+id/browser_entry_details"
+                android:layout_toRightOf="@+id/browser_entry_icon"
                 android:orientation="vertical">
 
             <TextView
                     style="@style/text_main"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{entry.title}"/>
+                    android:text="@{entry.title}"
+                    tools:text="Title" />
 
             <TextView
                     android:id="@+id/list_item_text_aux"
@@ -41,7 +51,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@{entry.description}"
-                    android:visibility="@{TextUtils.isEmpty(entry.description) ? View.GONE : View.VISIBLE}"/>
+                    android:visibility="@{TextUtils.isEmpty(entry.description) ? View.GONE : View.VISIBLE}"
+                    tools:text="Subtitle" />
         </LinearLayout>
 
         <TextView
@@ -49,14 +60,12 @@
                 style="@style/text_main"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/spacing_half"
-                android:layout_marginRight="@dimen/spacing_half"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
+                android:layout_marginHorizontal="@dimen/spacing_half"
                 android:drawablePadding="@dimen/spacing_half"
                 android:text="@{entry.details}"
                 android:visibility="@{TextUtils.isEmpty(entry.details) ? View.GONE : View.VISIBLE}"
-        />
-
+                tools:text="Details" />
     </RelativeLayout>
 </layout>
