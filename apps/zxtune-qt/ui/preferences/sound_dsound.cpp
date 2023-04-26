@@ -61,7 +61,7 @@ namespace
 
     void DeviceChanged(const QString& name) override
     {
-      const String& id = FromQString(name);
+      const auto& id = FromQString(name);
       Dbg("Selecting device '{}'", id);
       const auto it = std::find_if(Devices.begin(), Devices.end(),
                                    [&name, &id](const Device& dev) { return dev.Name == name || dev.Id == id; });

@@ -45,7 +45,7 @@ namespace
     return dir + CONFIG_FILENAME;
   }
 
-  void ParseParametersString(Parameters::Identifier prefix, const String& str, Strings::Map& result)
+  void ParseParametersString(Parameters::Identifier prefix, StringView str, Strings::Map& result)
   {
     Strings::Map res;
 
@@ -65,7 +65,7 @@ namespace
       name is prepended with prefix before insert to result
     */
     String paramName, paramValue;
-    for (String::const_iterator it = str.begin(), lim = str.end(); it != lim; ++it)
+    for (auto it = str.begin(), lim = str.end(); it != lim; ++it)
     {
       bool doApply = false;
       const Char sym(*it);
@@ -138,7 +138,7 @@ namespace
     result.swap(res);
   }
 
-  void ParseConfigFile(const String& filename, String& params)
+  void ParseConfigFile(StringView filename, String& params)
   {
     const String configName(filename.empty() ? CONFIG_FILENAME : filename);
 
@@ -165,9 +165,8 @@ namespace
       configFile->getline(&buffer[0], buffer.size());
       if (const std::streamsize lineSize = configFile->gcount())
       {
-        std::vector<Char>::const_iterator endof(buffer.begin() + lineSize - 1);
-        auto beginof = std::find_if<std::vector<Char>::const_iterator>(buffer.begin(), endof,
-                                                                       [](Char c) { return !std::isspace(c); });
+        const auto endof = buffer.cbegin() + lineSize - 1;
+        const auto beginof = std::find_if(buffer.cbegin(), endof, [](Char c) { return !std::isspace(c); });
         if (beginof != endof && *beginof != Char('#'))
         {
           if (!lines.empty())
@@ -186,7 +185,7 @@ namespace
   }
 }  // namespace
 
-void ParseConfigFile(const String& filename, Parameters::Modifier& result)
+void ParseConfigFile(StringView filename, Parameters::Modifier& result)
 {
   String strVal;
   ParseConfigFile(filename, strVal);
@@ -196,7 +195,7 @@ void ParseConfigFile(const String& filename, Parameters::Modifier& result)
   }
 }
 
-void ParseParametersString(Parameters::Identifier pfx, const String& str, Parameters::Modifier& result)
+void ParseParametersString(Parameters::Identifier pfx, StringView str, Parameters::Modifier& result)
 {
   Strings::Map strMap;
   ParseParametersString(pfx, str, strMap);

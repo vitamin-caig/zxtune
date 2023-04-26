@@ -39,9 +39,9 @@ namespace
     return result;
   }
 
-  void SetComboValue(QComboBox& box, const String& val)
+  void SetComboValue(QComboBox& box, StringView val)
   {
-    const QString& str = ToQString(val);
+    const auto& str = ToQString(val);
     const int items = box.count();
     for (int idx = 0; idx != items; ++idx)
     {
@@ -89,7 +89,7 @@ namespace
 
     void DeviceChanged(const QString& name) override
     {
-      const String& id = FromQString(name);
+      const auto& id = FromQString(name);
       Dbg("Selecting device '{}'", id);
       const auto it = std::find_if(Devices.begin(), Devices.end(),
                                    [&name, &id](const Device& dev) { return dev.Name == name || dev.Id == id; });

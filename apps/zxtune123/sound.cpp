@@ -49,7 +49,7 @@ namespace
       : Params(std::move(config))
     {}
 
-    void SetBackendParameters(const String& id, const String& options)
+    void SetBackendParameters(StringView id, StringView options)
     {
       using namespace Parameters;
       ParseParametersString(static_cast<Parameters::Identifier>(ZXTune::Sound::Backends::PREFIX).Append(id), options,
@@ -154,12 +154,12 @@ namespace
 
     void Initialize() override {}
 
-    Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, const String& typeHint,
+    Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, StringView typeHint,
                                       Sound::BackendCallback::Ptr callback) override
     {
       if (!typeHint.empty())
       {
-        return Service->CreateBackend(Sound::BackendId::FromString(typeHint), module, callback);
+        return Service->CreateBackend(Sound::BackendId::FromString(typeHint.to_string()), module, callback);
       }
       if (!UsedId.empty())
       {

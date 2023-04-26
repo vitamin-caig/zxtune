@@ -157,7 +157,7 @@ namespace
     QString Get(const Parameters::Accessor& properties) const
     {
       const TooltipFieldsSourceAdapter adapter(properties);
-      const String& result = GetTemplate().Instantiate(adapter);
+      const auto& result = GetTemplate().Instantiate(adapter);
       return ToQString(result);
     }
 

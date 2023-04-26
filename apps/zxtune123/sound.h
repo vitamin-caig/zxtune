@@ -36,8 +36,8 @@ public:
   virtual void ParseParameters() = 0;
   virtual void Initialize() = 0;
   // functional part
-  virtual Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, const String& typeHint = String(),
-                                            Sound::BackendCallback::Ptr callback = Sound::BackendCallback::Ptr()) = 0;
+  virtual Sound::Backend::Ptr CreateBackend(Module::Holder::Ptr module, StringView typeHint = {},
+                                            Sound::BackendCallback::Ptr callback = {}) = 0;
 
   virtual Sound::BackendInformation::Iterator::Ptr EnumerateBackends() const = 0;
 

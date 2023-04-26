@@ -69,8 +69,8 @@ namespace Analysis
     virtual Ptr Parent() const = 0;
   };
 
-  Node::Ptr CreateRootNode(Binary::Container::Ptr data, const String& name);
-  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name);
+  Node::Ptr CreateRootNode(Binary::Container::Ptr data, StringView name);
+  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, StringView name);
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, std::size_t offset);
 }  // namespace Analysis
 
@@ -138,14 +138,14 @@ namespace
 namespace Analysis
 {
   // since data is required, place it first
-  Node::Ptr CreateRootNode(Binary::Container::Ptr data, const String& name)
+  Node::Ptr CreateRootNode(Binary::Container::Ptr data, StringView name)
   {
-    return MakePtr<RootNode>(std::move(data), name);
+    return MakePtr<RootNode>(std::move(data), name.to_string());
   }
 
-  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name)
+  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, StringView name)
   {
-    return MakePtr<SubNode>(std::move(parent), std::move(data), name);
+    return MakePtr<SubNode>(std::move(parent), std::move(data), name.to_string());
   }
 
   Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, std::size_t offset)
@@ -153,9 +153,9 @@ namespace Analysis
     return MakePtr<SubNode>(std::move(parent), std::move(data), Strings::Format("+{}", offset));
   }
 
-  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, const String& name, std::size_t offset)
+  Node::Ptr CreateSubnode(Node::Ptr parent, Binary::Container::Ptr data, StringView name, std::size_t offset)
   {
-    auto intermediate = CreateSubnode(parent, data, offset);
+    auto intermediate = CreateSubnode(std::move(parent), data, offset);
     return CreateSubnode(std::move(intermediate), std::move(data), name);
   }
 }  // namespace Analysis
@@ -311,7 +311,7 @@ namespace Parsing
     virtual Binary::Container::Ptr Data() const = 0;
   };
 
-  Result::Ptr CreateResult(const String& name, Binary::Container::Ptr data);
+  Result::Ptr CreateResult(StringView name, Binary::Container::Ptr data);
 
   typedef DataReceiver<Result::Ptr> Target;
 
@@ -347,9 +347,9 @@ namespace
 
 namespace Parsing
 {
-  Result::Ptr CreateResult(const String& name, Binary::Container::Ptr data)
+  Result::Ptr CreateResult(StringView name, Binary::Container::Ptr data)
   {
-    return MakePtr<StaticResult>(name, data);
+    return MakePtr<StaticResult>(name.to_string(), data);
   }
 }  // namespace Parsing
 
@@ -482,7 +482,7 @@ namespace
   class MatchedDataFilter : public Analysis::NodeReceiver
   {
   public:
-    MatchedDataFilter(const std::string& format, Analysis::NodeReceiver::Ptr target)
+    MatchedDataFilter(StringView format, Analysis::NodeReceiver::Ptr target)
       : Format(Binary::CreateFormat(format))
       , Target(std::move(target))
     {}
@@ -520,7 +520,7 @@ namespace Analysis
     return MakePtr<EmptyDataFilter>(target);
   }
 
-  NodeReceiver::Ptr CreateMatchFilter(const std::string& filter, NodeReceiver::Ptr target)
+  NodeReceiver::Ptr CreateMatchFilter(StringView filter, NodeReceiver::Ptr target)
   {
     return MakePtr<MatchedDataFilter>(filter, target);
   }
@@ -810,7 +810,7 @@ namespace
   class TargetNamePoint : public Analysis::NodeReceiver
   {
   public:
-    TargetNamePoint(const String& nameTemplate, Parsing::Target::Ptr target)
+    TargetNamePoint(StringView nameTemplate, Parsing::Target::Ptr target)
       : Template(Strings::Template::Create(nameTemplate))
       , Target(std::move(target))
     {}

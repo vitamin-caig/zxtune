@@ -133,7 +133,7 @@ namespace
       using namespace ZXTune::Capabilities::Module;
       // root
       const uint_t caps = plugin.Capabilities();
-      const String& title = Strings::Format("[{}] {}", plugin.Id(), plugin.Description());
+      const auto& title = Strings::Format("[{}] {}", plugin.Id(), plugin.Description());
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(title)));
       FillModuleType(caps & Type::MASK, *pluginItem);
       // conversion
@@ -193,7 +193,7 @@ namespace
     void AddContainerPluginItem(const ZXTune::Plugin& plugin, QTreeWidgetItem& root)
     {
       const uint_t caps = plugin.Capabilities();
-      const String& description = plugin.Description();
+      const auto& description = plugin.Description();
 
       // root
       QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
@@ -235,7 +235,7 @@ namespace
   }
 
   template<class T>
-  QTreeWidgetItem* CreateRootItem(T& root, const String& description, const Error& status)
+  QTreeWidgetItem* CreateRootItem(T& root, StringView description, const Error& status)
   {
     QTreeWidgetItem* const item = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
     item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);

@@ -18,4 +18,4 @@ namespace Parameters
   class Accessor;
 }
 
-String GetModuleTitle(const String& format, const Parameters::Accessor& props);
+String GetModuleTitle(StringView format, const Parameters::Accessor& props);

@@ -35,7 +35,7 @@ namespace
   class ContainerImpl : public Playlist::IO::Container
   {
   public:
-    ContainerImpl(const String& name, const Playlist::Item::Storage& storage)
+    ContainerImpl(StringView name, const Playlist::Item::Storage& storage)
       : Properties(Parameters::Container::Create())
       , Storage(storage)
     {

@@ -36,9 +36,9 @@ namespace Playlist
 
       virtual ~DataProvider() = default;
 
-      virtual void DetectModules(const String& path, DetectParameters& detectParams) const = 0;
+      virtual void DetectModules(StringView path, DetectParameters& detectParams) const = 0;
 
-      virtual void OpenModule(const String& path, DetectParameters& detectParams) const = 0;
+      virtual void OpenModule(StringView path, DetectParameters& detectParams) const = 0;
 
       static Ptr Create(Parameters::Accessor::Ptr parameters);
     };

@@ -59,7 +59,7 @@ namespace
 
     virtual ~DataProvider() = default;
 
-    virtual Binary::Container::Ptr GetData(const String& dataPath) const = 0;
+    virtual Binary::Container::Ptr GetData(StringView dataPath) const = 0;
   };
 
   class SimpleDataProvider : public DataProvider
@@ -69,7 +69,7 @@ namespace
       : Params(std::move(ioParams))
     {}
 
-    Binary::Container::Ptr GetData(const String& dataPath) const override
+    Binary::Container::Ptr GetData(StringView dataPath) const override
     {
       return IO::OpenData(dataPath, *Params, Log::ProgressCallback::Stub());
     }
@@ -112,8 +112,8 @@ namespace
         , Weight()
       {}
 
-      Item(String id, T val)
-        : Id(std::move(id))
+      Item(StringView id, T val)
+        : Id(id.to_string())
         , Value(val)
         , Weight(ObjectTraits<T>::Weight(val))
       {}
@@ -126,7 +126,7 @@ namespace
       : TotalWeight()
     {}
 
-    T Find(const String& id)
+    T Find(StringView id)
     {
       if (Item* res = FindItem(id))
       {
@@ -135,7 +135,7 @@ namespace
       return T();
     }
 
-    void Add(const String& id, T val)
+    void Add(StringView id, T val)
     {
       if (Item* res = FindItem(id))
       {
@@ -152,7 +152,7 @@ namespace
       }
     }
 
-    void Del(const String& id)
+    void Del(StringView id)
     {
       for (auto it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
@@ -192,7 +192,7 @@ namespace
     }
 
   private:
-    Item* FindItem(const String& id)
+    Item* FindItem(StringView id)
     {
       for (auto it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
@@ -249,7 +249,7 @@ namespace
       , Delegate(CreateSimpleDataProvider(ioParams))
     {}
 
-    Binary::Container::Ptr GetData(const String& dataPath) const override
+    Binary::Container::Ptr GetData(StringView dataPath) const override
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       const std::size_t filesLimit = Params.FilesLimit();
@@ -265,7 +265,7 @@ namespace
       }
     }
 
-    void FlushCachedData(const String& dataPath)
+    void FlushCachedData(StringView dataPath)
     {
       const std::lock_guard<std::mutex> lock(Mutex);
       if (Cache.GetItemsCount())
@@ -276,13 +276,13 @@ namespace
     }
 
   private:
-    Binary::Container::Ptr GetCachedData(const String& dataPath, std::size_t filesLimit, std::size_t memLimit) const
+    Binary::Container::Ptr GetCachedData(StringView dataPath, std::size_t filesLimit, std::size_t memLimit) const
     {
-      if (const Binary::Container::Ptr cached = Cache.Find(dataPath))
+      if (auto cached = Cache.Find(dataPath))
       {
         return cached;
       }
-      const Binary::Container::Ptr data = Delegate->GetData(dataPath);
+      const auto data = Delegate->GetData(dataPath);
       Cache.Add(dataPath, data);
       Cache.Fit(filesLimit, memLimit);
       ReportCache();
@@ -668,11 +668,11 @@ namespace
       , Attributes(MakePtr<DynamicAttributesProvider>())
     {}
 
-    void DetectModules(const String& path, Playlist::Item::DetectParameters& detectParams) const override
+    void DetectModules(StringView path, Playlist::Item::DetectParameters& detectParams) const override
     {
       auto id = IO::ResolveUri(path);
 
-      const String subPath = id->Subpath();
+      const auto subPath = id->Subpath();
       if (subPath.empty())
       {
         auto data = Provider->GetData(id->Path());
@@ -685,7 +685,7 @@ namespace
       }
     }
 
-    void OpenModule(const String& path, Playlist::Item::DetectParameters& detectParams) const override
+    void OpenModule(StringView path, Playlist::Item::DetectParameters& detectParams) const override
     {
       auto id = IO::ResolveUri(path);
 

@@ -43,7 +43,7 @@ public:
     Message(Strings::Format(msg, std::forward<P>(params)...));
   }
 
-  virtual void Message(const String& msg) = 0;
+  virtual void Message(StringView msg) = 0;
   virtual void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player) = 0;
 
   // begin frame, returns current position

@@ -10,7 +10,7 @@
 
 namespace
 {
-  QByteArray OpenFile(const std::string& name)
+  QByteArray OpenFile(StringView name)
   {
     QFile file(QString::fromStdString(name));
     if (!file.open(QIODevice::ReadOnly))
@@ -20,7 +20,7 @@ namespace
     return file.readAll();
   }
 
-  void SaveFile(const std::string& name, const QByteArray& data)
+  void SaveFile(StringView name, const QByteArray& data)
   {
     QFile file(QString::fromStdString(name));
     if (!file.open(QIODevice::WriteOnly))
@@ -87,7 +87,7 @@ namespace
     QTextStream Stream;
   };
 
-  void TestFeed(const std::string& name)
+  void TestFeed(const String& name)
   {
     std::cout << "Test for " << name << std::endl;
     const QByteArray feedContent = OpenFile(name + ".feed");

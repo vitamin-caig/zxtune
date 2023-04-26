@@ -41,9 +41,9 @@ namespace
 {
   const Char DELIMITERS[] = {',', ';', ':', '\0'};
 
-  void OutputString(uint_t width, const String& text)
+  void OutputString(uint_t width, StringView text)
   {
-    const String::size_type curSize = text.size();
+    const auto curSize = text.size();
     if (curSize < width)
     {
       StdOut << text << String(width - curSize - 1, ' ') << '\r';
@@ -247,11 +247,11 @@ namespace
     }
 
   private:
-    void ProcessItem(const String& uri, OnItemCallback& callback) const
+    void ProcessItem(StringView uri, OnItemCallback& callback) const
     {
       try
       {
-        const IO::Identifier::Ptr id = IO::ResolveUri(uri);
+        const auto id = IO::ResolveUri(uri);
 
         DetectCallback detectCallback(Params, id, callback, ShowProgress);
         auto data = IO::OpenData(id->Path(), *Params, Log::ProgressCallback::Stub());

@@ -38,7 +38,7 @@ public:
 
   virtual void WaitForKeyRelease() const = 0;
 
-  virtual void Write(const String& str) const = 0;
+  virtual void Write(StringView str) const = 0;
 
   static Console& Self();
 };
