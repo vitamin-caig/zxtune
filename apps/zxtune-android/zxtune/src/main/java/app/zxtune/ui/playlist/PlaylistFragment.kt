@@ -16,11 +16,13 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.Toolbar
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.selection.Selection
@@ -54,35 +56,42 @@ class PlaylistFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupToolbarMenu()
-        listing = setupListing(view)
-        search = setupSearchView(view)
+        val panel = view.findViewById<FrameLayout>(R.id.playlist_top_panel)
+        setupToolbarMenu(panel)
+        listing = setupListing(
+            panel, view.findViewById(R.id.playlist_content), view.findViewById(R.id.playlist_stub)
+        )
+        search = setupSearchView(view.findViewById(R.id.playlist_search))
     }
 
-    private fun setupToolbarMenu() = requireActivity().addMenuProvider(object : MenuProvider {
-        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) =
-            menuInflater.inflate(R.menu.playlist, menu)
+    private fun setupToolbarMenu(panel: FrameLayout) {
+        require(panel.childCount == 1)
+        val toolbar = panel.getChildAt(0) as Toolbar
+        toolbar.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) =
+                menuInflater.inflate(R.menu.playlist, menu)
 
-        override fun onPrepareMenu(menu: Menu) = menu.item(R.id.action_sort).subMenu.run {
-            for (sortBy in ProviderClient.SortBy.values()) {
-                for (sortOrder in ProviderClient.SortOrder.values()) {
-                    add(getMenuTitle(sortBy)).run {
-                        setOnMenuItemClickListener {
-                            model.sort(sortBy, sortOrder)
-                            true
+            override fun onPrepareMenu(menu: Menu) = menu.item(R.id.action_sort).subMenu.run {
+                for (sortBy in ProviderClient.SortBy.values()) {
+                    for (sortOrder in ProviderClient.SortOrder.values()) {
+                        add(getMenuTitle(sortBy)).run {
+                            setOnMenuItemClickListener {
+                                model.sort(sortBy, sortOrder)
+                                true
+                            }
+                            setIcon(getMenuIcon(sortOrder))
                         }
-                        setIcon(getMenuIcon(sortOrder))
                     }
                 }
             }
-        }
 
-        override fun onMenuItemSelected(menuItem: MenuItem) =
-            processMenuItem(menuItem.itemId, selectionTracker.selection)
-    })
+            override fun onMenuItemSelected(menuItem: MenuItem) =
+                processMenuItem(menuItem.itemId, selectionTracker.selection)
+        })
+    }
 
-    private fun setupListing(view: View) =
-        view.findViewById<RecyclerView>(R.id.playlist_content).apply {
+    private fun setupListing(panel: FrameLayout, listing: RecyclerView, stub: View) =
+        listing.apply {
             setHasFixedSize(true)
             val adapter = ViewAdapter(model::move).apply {
                 adapter = this
@@ -99,13 +108,10 @@ class PlaylistFragment : Fragment() {
                     true
                 }.build().also {
                     adapter.setSelection(it.selection)
-                    SelectionUtils.install(
-                        view.findViewById(R.id.playlist_top_panel), it, SelectionClient(adapter)
-                    )
+                    SelectionUtils.install(panel, it, SelectionClient(adapter))
                 }
             model.state.observe(viewLifecycleOwner) { state ->
                 adapter.submitList(state.entries) {
-                    val stub = view.findViewById<View>(R.id.playlist_stub)
                     if (0 == adapter.itemCount) {
                         visibility = View.GONE
                         stub.visibility = View.VISIBLE
@@ -128,28 +134,27 @@ class PlaylistFragment : Fragment() {
             }
         }
 
-    private fun setupSearchView(view: View) =
-        view.findViewById<SearchView>(R.id.playlist_search).apply {
-            isSubmitButtonEnabled = false
-            setOnCloseListener {
-                post {
-                    clearFocus()
-                }
-                false
+    private fun setupSearchView(view: SearchView) = view.apply {
+        isSubmitButtonEnabled = false
+        setOnCloseListener {
+            post {
+                clearFocus()
             }
-            setOnQueryTextFocusChangeListener { _, hasFocus ->
-                if (!hasFocus && query.isEmpty()) {
-                    isIconified = true
-                }
-            }
-            setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                override fun onQueryTextSubmit(query: String) = true
-                override fun onQueryTextChange(newText: String): Boolean {
-                    model.filter(newText)
-                    return true
-                }
-            })
+            false
         }
+        setOnQueryTextFocusChangeListener { _, hasFocus ->
+            if (!hasFocus && query.isEmpty()) {
+                isIconified = true
+            }
+        }
+        setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String) = true
+            override fun onQueryTextChange(newText: String): Boolean {
+                model.filter(newText)
+                return true
+            }
+        })
+    }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)

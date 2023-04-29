@@ -9,7 +9,13 @@
     <FrameLayout
             android:id="@+id/playlist_top_panel"
             style="@style/block"
-            android:layout_alignParentTop="true" />
+            android:layout_alignParentTop="true">
+
+        <androidx.appcompat.widget.Toolbar
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:menu="@menu/playlist" />
+    </FrameLayout>
 
     <TextView
             android:id="@+id/playlist_stub"
