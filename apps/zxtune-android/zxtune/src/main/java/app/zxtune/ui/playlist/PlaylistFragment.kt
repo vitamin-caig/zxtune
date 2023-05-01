@@ -16,12 +16,12 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SearchView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.selection.Selection
@@ -133,22 +133,14 @@ class PlaylistFragment : Fragment() {
     private fun setupSearchView(view: View) =
         view.findViewById<SearchView>(R.id.playlist_search).apply {
             isSubmitButtonEnabled = false
-            setOnSearchClickListener {
-                layoutParams = layoutParams.apply {
-                    width = ViewGroup.LayoutParams.MATCH_PARENT
-                }
-            }
             setOnCloseListener {
-                layoutParams = layoutParams.apply {
-                    width = ViewGroup.LayoutParams.WRAP_CONTENT
-                }
                 post {
                     clearFocus()
                 }
                 false
             }
-            onFocusChangeListener = View.OnFocusChangeListener { _, _ ->
-                if (!isIconified && query.isEmpty()) {
+            setOnQueryTextFocusChangeListener { _, hasFocus ->
+                if (!hasFocus && query.isEmpty()) {
                     isIconified = true
                 }
             }

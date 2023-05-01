@@ -1,37 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
-
-    <SearchView
-            android:id="@+id/playlist_search"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:iconifiedByDefault="true"
-            android:imeOptions="actionSearch|flagNoExtractUi"
-            android:queryHint="@string/playlist_search_hint" />
-
-    <androidx.recyclerview.widget.RecyclerView
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:id="@+id/playlist_content"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:fastScrollEnabled="true"
-            app:fastScrollHorizontalThumbDrawable="@drawable/scroll_thumb"
-            app:fastScrollHorizontalTrackDrawable="@drawable/scroll_track"
-            app:fastScrollVerticalThumbDrawable="@drawable/scroll_thumb"
-            app:fastScrollVerticalTrackDrawable="@drawable/scroll_track"
-    />
+        tools:ignore="RtlHardcoded">
 
     <TextView
             android:id="@+id/playlist_stub"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:gravity="center"
             android:paddingLeft="@dimen/spacing_full"
             android:paddingRight="@dimen/spacing_full"
-            android:gravity="center"
-            android:text="@string/playlist_empty"/>
-</LinearLayout>
+            android:text="@string/playlist_empty" />
+
+    <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/playlist_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:fastScrollEnabled="true"
+            app:fastScrollHorizontalThumbDrawable="@drawable/scroll_thumb"
+            app:fastScrollHorizontalTrackDrawable="@drawable/scroll_track"
+            app:fastScrollVerticalThumbDrawable="@drawable/scroll_thumb"
+            app:fastScrollVerticalTrackDrawable="@drawable/scroll_track"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:itemCount="30"
+            tools:listitem="@layout/playlist_entry" />
+
+    <androidx.appcompat.widget.SearchView
+            android:id="@+id/playlist_search"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginHorizontal="@dimen/item_half"
+            android:layout_marginBottom="@dimen/item_half"
+            android:background="@drawable/search_fab_background"
+            android:iconifiedByDefault="true"
+            android:imeOptions="actionNone|flagNoExtractUi"
+            android:queryHint="@string/playlist_search_hint" />
+
+</RelativeLayout>

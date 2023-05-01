@@ -1,37 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        tools:ignore="RtlHardcoded">
+
     <data>
-        <import type="android.view.View"/>
-        <variable name="entry" type="app.zxtune.ui.playlist.Entry"/>
-        <variable name="isPlaying" type="boolean"/>
+
+        <import type="android.view.View" />
+
+        <variable
+                name="entry"
+                type="app.zxtune.ui.playlist.Entry" />
+
+        <variable
+                name="isPlaying"
+                type="boolean" />
     </data>
+
     <RelativeLayout
             style="@style/block"
-            android:background="@drawable/activable_background"
-    >
+            android:background="@drawable/activable_background">
+
         <ImageView
                 android:id="@+id/playlist_entry_state"
                 android:layout_width="@dimen/item_height"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/spacing_half"
                 android:layout_alignParentLeft="true"
                 android:layout_centerVertical="true"
-                android:src="@{isPlaying ? @drawable/ic_playing : @drawable/ic_drag_handler}"/>
+                android:layout_marginLeft="@dimen/spacing_half"
+                android:src="@{isPlaying ? @drawable/ic_playing : @drawable/ic_drag_handler}"
+                tools:src="@drawable/ic_drag_handler" />
+
         <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
                 android:layout_marginLeft="@dimen/spacing_half"
                 android:layout_marginRight="@dimen/spacing_half"
-                android:layout_toRightOf="@+id/playlist_entry_state"
                 android:layout_toLeftOf="@+id/playlist_entry_duration"
-                android:layout_centerVertical="true"
+                android:layout_toRightOf="@+id/playlist_entry_state"
                 android:orientation="vertical">
 
             <TextView
                     style="@style/text_main"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@{entry.getTitle().isEmpty() ? entry.getLocation().getDisplayFilename() : entry.getTitle()}"/>
+                    android:text="@{entry.getTitle().isEmpty() ? entry.getLocation().getDisplayFilename() : entry.getTitle()}"
+                    tools:text="Title" />
 
             <TextView
                     android:id="@+id/list_item_text_aux"
@@ -39,7 +53,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@{entry.getAuthor()}"
-                    android:visibility="@{entry.getAuthor().isEmpty() ? View.GONE : View.VISIBLE}"/>
+                    android:visibility="@{entry.getAuthor().isEmpty() ? View.GONE : View.VISIBLE}"
+                    tools:text="Author" />
         </LinearLayout>
 
         <TextView
@@ -47,12 +62,13 @@
                 style="@style/text_main"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="@dimen/spacing_half"
-                android:layout_marginRight="@dimen/spacing_half"
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
+                android:layout_marginLeft="@dimen/spacing_half"
+                android:layout_marginRight="@dimen/spacing_half"
                 android:drawablePadding="@dimen/spacing_half"
-                android:text="@{entry.getDuration().toString()}"/>
+                android:text="@{entry.getDuration().toString()}"
+                tools:text="1:23" />
 
     </RelativeLayout>
 </layout>
