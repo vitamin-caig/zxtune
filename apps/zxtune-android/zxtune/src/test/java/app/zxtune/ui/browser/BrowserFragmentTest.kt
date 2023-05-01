@@ -101,6 +101,8 @@ class BrowserFragmentTest {
         }
         startScenario().onFragment {
             clearInvocations(*mocks)
+            // TODO: rework back pressing for tablets
+            it.onTabVisibilityChanged(true)
             it.view!!.run {
                 findViewById<Button>(R.id.browser_roots).callOnClick()
                 findViewById<RecyclerView>(R.id.browser_breadcrumb).let { rv ->
@@ -123,13 +125,13 @@ class BrowserFragmentTest {
                     assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, view.layoutParams.width)
                     view.isIconified = false
                     assertEquals(ViewGroup.LayoutParams.MATCH_PARENT, view.layoutParams.width)
-                    it.moveUp()
+                    it.requireActivity().onBackPressed()
                     assertEquals(true, view.isIconified)
                     assertEquals(ViewGroup.LayoutParams.WRAP_CONTENT, view.layoutParams.width)
                 }
             }
             Robolectric.flushForegroundThreadScheduler()
-            it.moveUp()
+            it.requireActivity().onBackPressed()
         }.close()
 
         inOrder(persistentState, model) {

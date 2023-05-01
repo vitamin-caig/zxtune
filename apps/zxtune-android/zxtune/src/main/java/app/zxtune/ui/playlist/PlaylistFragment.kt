@@ -10,7 +10,12 @@ import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.SearchView
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -65,13 +70,11 @@ class PlaylistFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = processMenuItem(
-        item.itemId,
-        selectionTracker.selection
+        item.itemId, selectionTracker.selection
     ) || super.onOptionsItemSelected(item)
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ) = container?.let { inflater.inflate(R.layout.playlist, it, false) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -92,8 +95,7 @@ class PlaylistFragment : Fragment() {
                 ViewAdapter.KeyProvider(adapter),
                 ViewAdapter.DetailsLookup(this, adapter),
                 StorageStrategy.createLongStorage()
-            )
-                .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+            ).withSelectionPredicate(SelectionPredicates.createSelectAnything())
                 .withOnItemActivatedListener { item, _ ->
                     item.selectionKey?.let { onItemClick(it) }
                     true
@@ -129,8 +131,8 @@ class PlaylistFragment : Fragment() {
             }
         }
 
-    private fun setupSearchView(view: View) = view.findViewById<SearchView>(R.id.playlist_search)
-        .apply {
+    private fun setupSearchView(view: View) =
+        view.findViewById<SearchView>(R.id.playlist_search).apply {
             isSubmitButtonEnabled = false
             setOnSearchClickListener {
                 layoutParams = layoutParams.apply {
@@ -214,12 +216,10 @@ class PlaylistFragment : Fragment() {
 
     // TODO: think about using DialogFragment - complicated lambda passing
     private fun deletionAlert(@StringRes message: Int, action: () -> Unit) =
-        AlertDialog.Builder(requireContext())
-            .setTitle(message)
+        AlertDialog.Builder(requireContext()).setTitle(message)
             .setPositiveButton(R.string.delete) { _, _ ->
                 action()
-            }
-            .show()
+            }.show()
 
     private fun savePlaylist(ids: LongArray?) =
         PlaylistSaveFragment.show(requireActivity(), PersistentStorage.instance, ids)
@@ -228,9 +228,6 @@ class PlaylistFragment : Fragment() {
         PlaylistStatisticsFragment.createInstance(ids).show(parentFragmentManager, "statistics")
 
     companion object {
-        @JvmStatic
-        fun createInstance(): Fragment = PlaylistFragment()
-
         @StringRes
         private fun getMenuTitle(by: ProviderClient.SortBy) = when (by) {
             ProviderClient.SortBy.title -> R.string.information_title

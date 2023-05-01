@@ -10,12 +10,17 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.media.session.MediaControllerCompat
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.View
 import android.view.View.OnFocusChangeListener
+import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.SearchView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -27,14 +32,23 @@ import androidx.recyclerview.selection.StorageStrategy
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.OnChildAttachStateChangeListener
+import app.zxtune.MainActivity
 import app.zxtune.MainService
 import app.zxtune.R
 import app.zxtune.ui.utils.SelectionUtils
 
-class BrowserFragment : Fragment() {
+class BrowserFragment : Fragment(), MainActivity.PagerTabListener {
     private lateinit var model: Model
     private val stateStorage by lazy {
         State.create(requireContext())
+    }
+
+    private val backHandler by lazy {
+        object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() = moveUp()
+        }.also {
+            requireActivity().onBackPressedDispatcher.addCallback(this, it)
+        }
     }
 
     private var listing: RecyclerView? = null
@@ -63,15 +77,17 @@ class BrowserFragment : Fragment() {
         }
     }
 
+    override fun onTabVisibilityChanged(isVisible: Boolean) {
+        backHandler.isEnabled = isVisible
+    }
+
     override fun onAttach(ctx: Context) {
         super.onAttach(ctx)
         model = Model.of(this)
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? = container?.let { inflater.inflate(R.layout.browser, it, false) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -138,11 +154,11 @@ class BrowserFragment : Fragment() {
             }
             selectionTracker = SelectionTracker.Builder(
                 "browser_selection",
-                this, ListingViewAdapter.KeyProvider(adapter),
+                this,
+                ListingViewAdapter.KeyProvider(adapter),
                 ListingViewAdapter.DetailsLookup(this),
                 StorageStrategy.createParcelableStorage(Uri::class.java)
-            )
-                .withSelectionPredicate(SelectionPredicates.createSelectAnything())
+            ).withSelectionPredicate(SelectionPredicates.createSelectAnything())
                 .withOnItemActivatedListener { item, _ ->
                     item.selectionKey?.let { browse(it) }
                     true
@@ -199,17 +215,14 @@ class BrowserFragment : Fragment() {
         }
     }
 
-    private fun storeCurrentViewPosition() =
-        listingLayoutManager?.findFirstVisibleItemPosition()
-            ?.takeIf { it != RecyclerView.NO_POSITION }?.let { pos ->
-                stateStorage.currentViewPosition = pos
-            }
+    private fun storeCurrentViewPosition() = listingLayoutManager?.findFirstVisibleItemPosition()
+        ?.takeIf { it != RecyclerView.NO_POSITION }?.let { pos ->
+            stateStorage.currentViewPosition = pos
+        }
 
-    private fun restoreCurrentViewPosition() =
-        listingLayoutManager?.scrollToPositionWithOffset(
-            stateStorage.currentViewPosition,
-            0
-        )
+    private fun restoreCurrentViewPosition() = listingLayoutManager?.scrollToPositionWithOffset(
+        stateStorage.currentViewPosition, 0
+    )
 
     private fun setupSearchView(model: Model, view: View) =
         view.findViewById<SearchView>(R.id.browser_search).apply {
@@ -251,8 +264,7 @@ class BrowserFragment : Fragment() {
     private inner class SelectionClient(private val adapter: ListingViewAdapter) :
         SelectionUtils.Client<Uri> {
         override fun getTitle(count: Int) = resources.getQuantityString(
-            R.plurals.items,
-            count, count
+            R.plurals.items, count, count
         )
 
         override fun getAllItems() = adapter.currentList.map { it.uri }
@@ -300,7 +312,7 @@ class BrowserFragment : Fragment() {
 
     private fun browse(uri: Uri) = model.browse(uri)
 
-    fun moveUp() =
+    private fun moveUp() =
         search?.takeIf { !it.isIconified }?.let { it.isIconified = true } ?: browseParent()
 
     private fun browseParent() = model.browseParent()
@@ -309,9 +321,6 @@ class BrowserFragment : Fragment() {
 
     companion object {
         private const val SEARCH_QUERY_KEY = "search_query"
-
-        @JvmStatic
-        fun createInstance() = BrowserFragment()
 
         private fun convertSelection(selection: Selection<Uri>) =
             selection.iterator().let { iterator ->

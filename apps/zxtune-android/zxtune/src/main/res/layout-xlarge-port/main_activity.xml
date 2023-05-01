@@ -1,25 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:orientation="vertical"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"
-  >
-  <FrameLayout
-    android:id="@+id/now_playing"
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="1"
-    />
-  <FrameLayout
-    android:id="@+id/playlist_view"
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="1"
-    />
-  <FrameLayout
-    android:id="@+id/browser_view"
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="1"
-  />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+    <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/now_playing"
+            android:name="app.zxtune.ui.NowPlayingFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+    <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/playlist_view"
+            android:name="app.zxtune.ui.playlist.PlaylistFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+    <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/browser_view"
+            android:name="app.zxtune.ui.browser.BrowserFragment"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 </LinearLayout>

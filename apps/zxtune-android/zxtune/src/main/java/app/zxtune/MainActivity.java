@@ -26,8 +26,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.viewpager.widget.ViewPager;
@@ -36,10 +34,8 @@ import app.zxtune.analytics.Analytics;
 import app.zxtune.device.Permission;
 import app.zxtune.device.media.MediaModel;
 import app.zxtune.ui.AboutFragment;
-import app.zxtune.ui.NowPlayingFragment;
 import app.zxtune.ui.ViewPagerAdapter;
 import app.zxtune.ui.browser.BrowserFragment;
-import app.zxtune.ui.playlist.PlaylistFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -62,14 +58,9 @@ public class MainActivity extends AppCompatActivity {
 
   }
 
-  private static final int NO_PAGE = -1;
   private static final Analytics.Trace TRACE = Analytics.Trace.create("MainActivity");
   @Nullable
   private ViewPager pager;
-  private int browserPageIndex;
-  @Nullable
-  private BrowserFragment browser;
-
   public static final int PENDING_INTENT_FLAG = Build.VERSION.SDK_INT >= 23
       ? PendingIntent.FLAG_IMMUTABLE : 0;
 
@@ -147,15 +138,6 @@ public class MainActivity extends AppCompatActivity {
     return true;
   }
 
-  @Override
-  public void onBackPressed() {
-    if (pager != null && pager.getCurrentItem() == browserPageIndex) {
-      browser.moveUp();
-    } else {
-      super.onBackPressed();
-    }
-  }
-
   private void subscribeForPendingOpenRequest(LiveData<MediaControllerCompat> ctrl) {
     final Intent intent = getIntent();
     if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
@@ -176,33 +158,10 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void fillPages() {
-    final FragmentManager manager = getSupportFragmentManager();
-    final FragmentTransaction transaction = manager.beginTransaction();
-    if (null == manager.findFragmentById(R.id.now_playing)) {
-      transaction.replace(R.id.now_playing, NowPlayingFragment.createInstance());
-    }
-    browser = (BrowserFragment) manager.findFragmentById(R.id.browser_view);
-    if (null == browser) {
-      browser = BrowserFragment.createInstance();
-      transaction.replace(R.id.browser_view, browser);
-    }
-    if (null == manager.findFragmentById(R.id.playlist_view)) {
-      transaction.replace(R.id.playlist_view, PlaylistFragment.createInstance());
-    }
-    transaction.commit();
-    setupViewPager();
-  }
-
-  private void setupViewPager() {
-    browserPageIndex = NO_PAGE;
     pager = findViewById(R.id.view_pager);
     if (null != pager) {
       final ViewPagerAdapter adapter = new ViewPagerAdapter(pager);
       pager.setAdapter(adapter);
-      browserPageIndex = adapter.getCount() - 1;
-      while (browserPageIndex >= 0 && ((View) adapter.instantiateItem(pager, browserPageIndex)).getId() != R.id.browser_view) {
-        --browserPageIndex;
-      }
       pager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
 
         private final SparseArray<PagerTabListener> listeners = new SparseArray<>();

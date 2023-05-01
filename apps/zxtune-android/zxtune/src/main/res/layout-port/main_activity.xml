@@ -1,37 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:orientation="vertical"
-  android:layout_width="match_parent"
-  android:layout_height="wrap_content"
-  >
-  <androidx.viewpager.widget.ViewPager
-    android:id="@+id/view_pager"
-    android:layout_width="match_parent"
-    android:layout_height="0px"
-    android:layout_weight="1"
-  >
-  <androidx.viewpager.widget.PagerTabStrip
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_gravity="top"
-  />
-  <FrameLayout
-    android:tag="@string/main"
-    android:id="@+id/now_playing"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-  />
-  <FrameLayout
-    android:tag="@string/playlist"
-    android:id="@+id/playlist_view"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-  />
-  <FrameLayout
-    android:tag="@string/browser"
-    android:id="@+id/browser_view"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-  />
-  </androidx.viewpager.widget.ViewPager>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+    <androidx.viewpager.widget.ViewPager
+            android:id="@+id/view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="0px"
+            android:layout_weight="1">
+
+        <androidx.viewpager.widget.PagerTabStrip
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top" />
+
+        <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/now_playing"
+                android:name="app.zxtune.ui.NowPlayingFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:tag="@string/main" />
+
+        <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/playlist_view"
+                android:name="app.zxtune.ui.playlist.PlaylistFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:tag="@string/playlist" />
+
+        <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/browser_view"
+                android:name="app.zxtune.ui.browser.BrowserFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:tag="@string/browser" />
+    </androidx.viewpager.widget.ViewPager>
 </LinearLayout>

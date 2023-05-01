@@ -46,10 +46,6 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
   @Nullable
   private TrackActionsMenu trackActionsMenu;
 
-  public static Fragment createInstance() {
-    return new NowPlayingFragment();
-  }
-
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
