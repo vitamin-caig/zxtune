@@ -330,7 +330,8 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
     private boolean canPlay(Pack pack) {
       final int key = pack.getId().hashCode();
       int donePlays = history.get(key, 0);
-      if (++donePlays > pack.getSongs()) {
+      ++donePlays;
+      if (donePlays > pack.getSongs()) {
         return false;
       }
       history.put(key, donePlays);
@@ -431,8 +432,8 @@ final class VfsRootVgmrips extends StubObject implements VfsRoot {
 
   private class TrackFile extends StubObject implements VfsFile {
 
-    private PackDir parent;
-    private Track track;
+    private final PackDir parent;
+    private final Track track;
 
     TrackFile(PackDir parent, Track track) {
       this.parent = parent;

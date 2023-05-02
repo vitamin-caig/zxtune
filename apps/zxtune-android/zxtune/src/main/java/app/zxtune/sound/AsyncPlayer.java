@@ -46,7 +46,7 @@ public final class AsyncPlayer implements Player {
     this.target = new AsyncSamplesTarget(target);
   }
 
-  public final int getSampleRate() {
+  public int getSampleRate() {
     return target.getSampleRate();
   }
 

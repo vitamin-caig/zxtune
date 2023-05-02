@@ -27,16 +27,16 @@ public final class VfsIterator {
     prefetch();
   }
 
-  public final boolean isValid() {
+  public boolean isValid() {
     return !files.isEmpty();
   }
 
-  public final void next() {
+  public void next() {
     files.remove();
     prefetch();
   }
 
-  public final VfsFile getFile() {
+  public VfsFile getFile() {
     return files.element();
   }
 

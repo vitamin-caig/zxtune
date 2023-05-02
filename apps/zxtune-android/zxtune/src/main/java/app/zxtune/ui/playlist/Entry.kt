@@ -1,7 +1,7 @@
-package app.zxtune.ui.playlist;
+package app.zxtune.ui.playlist
 
-import app.zxtune.TimeStamp;
-import app.zxtune.core.Identifier;
+import app.zxtune.TimeStamp
+import app.zxtune.core.Identifier
 
 // public for binding
 data class Entry(

@@ -299,7 +299,8 @@ final class VfsRootModarchive extends StubObject implements VfsRoot {
         Log.w(TAG, e, "Failed to load random tracks");
       }
       if (hash == newHash[0]) {
-        if (++count > MAX_REPEATS) {
+        ++count;
+        if (count > MAX_REPEATS) {
           Log.d(TAG, "Break feed loop");
           tracks.clear();
         }

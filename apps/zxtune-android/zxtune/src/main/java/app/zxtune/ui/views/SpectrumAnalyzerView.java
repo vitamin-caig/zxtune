@@ -217,7 +217,7 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
       this.values = new int[1];
     }
 
-    final void sizeChanged() {
+    void sizeChanged() {
       barRect.bottom = visibleRect.bottom;
       final int width = visibleRect.width();
       barWidth = Math.max(width / MAX_BANDS, MIN_BAR_WIDTH);
@@ -225,7 +225,7 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
       values = new int[bars];
     }
 
-    final void draw(Canvas canvas) {
+    void draw(Canvas canvas) {
       barRect.left = visibleRect.left;
       barRect.right = barRect.left + barWidth - BAR_PADDING;
       final int height = visibleRect.height();
@@ -238,13 +238,13 @@ public class SpectrumAnalyzerView extends SurfaceView implements SurfaceHolder.C
       }
     }
 
-    final void update(int channels, byte[] levels) {
+    void update(int channels, byte[] levels) {
       for (int band = 0, lim = Math.min(channels, values.length); band < lim; ++band) {
         values[band] = Math.max(values[band] - FALL_SPEED, levels[band]);
       }
     }
 
-    final boolean update() {
+    boolean update() {
       boolean result = false;
       for (int band = 0; band < values.length; ++band) {
         if (values[band] >= FALL_SPEED) {

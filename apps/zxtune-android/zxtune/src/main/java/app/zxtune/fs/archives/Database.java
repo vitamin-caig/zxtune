@@ -157,7 +157,7 @@ class Database {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
 
-      final void add(Archive obj) {
+      void add(Archive obj) {
         add(obj.path.toString(), obj.modules);
       }
     }
@@ -200,7 +200,7 @@ class Database {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
 
-      final void add(Track obj) {
+      void add(Track obj) {
         add(obj.path.toString(), obj.description, obj.duration.toMilliseconds());
       }
     }
@@ -253,7 +253,7 @@ class Database {
         super(helper, NAME, "INSERT", Fields.values().length);
       }
 
-      final void add(DirEntry dir) {
+      void add(DirEntry dir) {
         add(dir.path.toString(), dir.parent.toString());
       }
     }

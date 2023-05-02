@@ -16,7 +16,7 @@ final class JniPlayer implements Player {
   }
 
   @Override
-  public final void release() {
+  public void release() {
     close(handle);
   }
 

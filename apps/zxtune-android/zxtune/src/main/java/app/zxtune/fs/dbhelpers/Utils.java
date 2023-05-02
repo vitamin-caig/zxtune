@@ -75,7 +75,7 @@ public final class Utils {
     try {
       while (cursor.moveToNext()) {
         final String name = cursor.getString(0);
-        if (!name.equals("android_metadata")) {
+        if (!"android_metadata".equals(name)) {
           result.add(name);
         }
       }

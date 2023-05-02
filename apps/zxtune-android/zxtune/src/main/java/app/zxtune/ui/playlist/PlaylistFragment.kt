@@ -202,11 +202,13 @@ class PlaylistFragment : Fragment() {
             R.id.action_clear -> deletionAlert(R.string.delete_all_items_query) {
                 model.deleteAll()
             }
+
             R.id.action_delete -> convertSelection(selection)?.let {
                 deletionAlert(R.string.delete_selected_items_query) {
                     model.delete(it)
                 }
             }
+
             R.id.action_save -> savePlaylist(convertSelection(selection))
             R.id.action_statistics -> showStatistics(convertSelection(selection))
             else -> return false

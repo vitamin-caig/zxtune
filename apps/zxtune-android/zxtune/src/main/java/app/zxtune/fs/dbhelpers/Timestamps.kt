@@ -42,7 +42,7 @@ class Timestamps @VisibleForTesting internal constructor(
     private val queryStatement: SQLiteStatement = readable.compileStatement(Table.QUERY_STATEMENT)
     private val updateStatement: SQLiteStatement = writable.compileStatement(Table.INSERT_STATEMENT)
 
-    constructor(helper: DBProvider) : this(helper.readableDatabase, helper.writableDatabase) {}
+    constructor(helper: DBProvider) : this(helper.readableDatabase, helper.writableDatabase)
 
     fun getLifetime(id: String, ttl: TimeStamp): Lifetime = DbLifetime(id, ttl)
 

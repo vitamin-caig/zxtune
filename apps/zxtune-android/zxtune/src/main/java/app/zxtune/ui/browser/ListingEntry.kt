@@ -16,7 +16,7 @@ data class ListingEntry(
     var tracks: Int? = null,
     var cached: Boolean? = null,
 ) {
-    @kotlin.annotation.Retention(AnnotationRetention.SOURCE)
+    @Retention(AnnotationRetention.SOURCE)
     @IntDef(FOLDER, FILE)
     private annotation class Type
 

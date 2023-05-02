@@ -18,7 +18,7 @@ final class JniModule implements Module {
   }
 
   @Override
-  public final void release() {
+  public void release() {
     close(handle);
   }
 

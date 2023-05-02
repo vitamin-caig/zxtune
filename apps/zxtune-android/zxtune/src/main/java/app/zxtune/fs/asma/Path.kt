@@ -7,7 +7,7 @@ import app.zxtune.fs.httpdir.PathBase
 /*
  * 1) asma:/${FilePath} - direct access to files or folders starting from ASMA's root (e.g. Composers)
  */
-class Path private constructor(elements: kotlin.collections.List<String>, isDir: Boolean) :
+class Path private constructor(elements: List<String>, isDir: Boolean) :
     PathBase(elements, isDir) {
 
     override fun getRemoteUris() = getRemoteId().let { path ->

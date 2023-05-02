@@ -110,7 +110,8 @@ public class ArchivesService {
           module.release();
 
           db.addTrack(track);
-          final int doneTracks = ++report[0];
+          ++report[0];
+          final int doneTracks = report[0];
           final int period = report[1];
           if (0 == doneTracks % period) {
             Log.d(TAG, "Found tracks: %d", doneTracks);

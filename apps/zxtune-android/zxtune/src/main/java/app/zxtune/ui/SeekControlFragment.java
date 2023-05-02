@@ -104,7 +104,7 @@ public class SeekControlFragment extends Fragment {
       @Override
       public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
         if (ctrl != null && fromUser) {
-          ctrl.seekTo(progress * 1000);
+          ctrl.seekTo(progress * 1000L);
         }
       }
 

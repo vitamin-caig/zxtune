@@ -155,7 +155,8 @@ public class FileIterator implements Iterator {
       @Nullable
       @Override
       public VfsFile getNextFile() {
-        final int doneFiles = counter[0]++;
+        final int doneFiles = counter[0];
+        counter[0]++;
         final int itemsCount = counter[1];
         if ((itemsCount == 0 && doneFiles > 0) || !files.hasNext()) {
           finish();

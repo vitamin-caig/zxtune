@@ -10,7 +10,7 @@ class JniPluginsTest {
         val counts = intArrayOf(0, 0)
         val players = HashSet<String>()
         val containers = HashSet<String>()
-        val api = JniApi();
+        val api = JniApi()
         api.enumeratePlugins(object : Plugins.Visitor {
             override fun onPlayerPlugin(devices: Int, id: String, description: String) {
                 flags[0] = flags[0] or devices

@@ -37,9 +37,12 @@ class Dispatcher implements UrlsSink {
   }
 
   private void trySwitchToNetwork() throws IOException {
-    if (networkRetryCountdown > 0 && 0 == --networkRetryCountdown) {
-      offline.flushTo(online);
-      current = online;
+    if (networkRetryCountdown > 0) {
+      --networkRetryCountdown;
+      if (0 == networkRetryCountdown) {
+        offline.flushTo(online);
+        current = online;
+      }
     }
   }
 
