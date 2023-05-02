@@ -5,7 +5,6 @@ import app.zxtune.BuildConfig
 import app.zxtune.fs.http.HttpProviderFactory
 import app.zxtune.fs.http.MultisourceHttpProvider
 import app.zxtune.utils.ProgressCallback
-import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before

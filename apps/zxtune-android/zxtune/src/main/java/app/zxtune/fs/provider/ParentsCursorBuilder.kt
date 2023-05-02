@@ -4,7 +4,6 @@ import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
 import app.zxtune.fs.VfsObject
-import java.util.*
 
 internal object ParentsCursorBuilder {
     fun makeParents(obj: VfsObject?, schema: SchemaSource): Cursor {

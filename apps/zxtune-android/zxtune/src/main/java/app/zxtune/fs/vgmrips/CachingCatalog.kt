@@ -4,7 +4,6 @@ import app.zxtune.TimeStamp.Companion.fromDays
 import app.zxtune.fs.dbhelpers.CommandExecutor
 import app.zxtune.fs.dbhelpers.QueryCommand
 import app.zxtune.utils.ProgressCallback
-import java.util.*
 
 private val GROUPS_TTL = fromDays(1)
 private val GROUP_PACKS_TTL = fromDays(1)

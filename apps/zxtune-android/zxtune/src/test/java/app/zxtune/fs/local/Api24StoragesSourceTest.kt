@@ -6,13 +6,11 @@ import android.os.UserHandle
 import android.os.storage.StorageManager
 import android.os.storage.StorageVolume
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 import org.robolectric.shadows.StorageVolumeBuilder
 import java.io.File
 

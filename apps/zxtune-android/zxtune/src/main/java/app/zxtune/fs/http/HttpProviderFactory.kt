@@ -1,7 +1,6 @@
 package app.zxtune.fs.http
 
 import android.content.Context
-import android.net.ConnectivityManager
 import app.zxtune.R
 import app.zxtune.net.NetworkManager
 import java.io.IOException

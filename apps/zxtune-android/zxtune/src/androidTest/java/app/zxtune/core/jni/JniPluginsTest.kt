@@ -2,7 +2,6 @@ package app.zxtune.core.jni
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.util.*
 
 class JniPluginsTest {
     @Test

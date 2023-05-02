@@ -31,7 +31,6 @@ import app.zxtune.device.media.MediaSessionControl;
 import app.zxtune.device.media.NoisyAudioConnection;
 import app.zxtune.device.ui.StatusNotification;
 import app.zxtune.device.ui.WidgetHandler;
-import app.zxtune.playback.PlaybackService;
 import app.zxtune.playback.service.PlaybackServiceLocal;
 import app.zxtune.preferences.DataStore;
 import app.zxtune.preferences.SharedPreferencesBridge;

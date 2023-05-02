@@ -8,7 +8,6 @@ package app.zxtune.fs;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
 import android.text.TextUtils;
 
 import androidx.annotation.Nullable;

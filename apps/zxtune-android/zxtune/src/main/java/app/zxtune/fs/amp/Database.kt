@@ -12,7 +12,6 @@ import android.database.sqlite.SQLiteOpenHelper
 import app.zxtune.Logger
 import app.zxtune.TimeStamp
 import app.zxtune.fs.dbhelpers.*
-import app.zxtune.fs.dbhelpers.Timestamps.Lifetime
 
 /**
  * Version 1
