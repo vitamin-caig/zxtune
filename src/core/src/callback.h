@@ -23,7 +23,7 @@ namespace Module
       : Delegate(delegate)
     {}
 
-    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const override
+    Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const override
     {
       return Delegate.CreateInitialProperties(subpath);
     }

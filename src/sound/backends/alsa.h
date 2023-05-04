@@ -14,13 +14,14 @@
 #include <iterator.h>
 // library includes
 #include <l10n/markup.h>
+#include <sound/backend_attrs.h>
 #include <strings/array.h>
 
 namespace Sound
 {
   namespace Alsa
   {
-    constexpr const Char BACKEND_ID[] = "alsa";
+    constexpr const auto BACKEND_ID = "alsa"_id;
     constexpr auto BACKEND_DESCRIPTION = L10n::translate("ALSA sound system backend");
 
     class Device

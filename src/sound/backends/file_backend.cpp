@@ -39,7 +39,7 @@ namespace Sound::File
       : State(state)
     {}
 
-    String GetFieldValue(const String& fieldName) const override
+    String GetFieldValue(StringView fieldName) const override
     {
       if (fieldName == Module::ATTR_CURRENT_POSITION)
       {
@@ -63,7 +63,7 @@ namespace Sound::File
   class TrackStateTemplate
   {
   public:
-    explicit TrackStateTemplate(const String& templ)
+    explicit TrackStateTemplate(StringView templ)
       : Template(Strings::Template::Create(templ))
       , CurPosition(HasField(templ, Module::ATTR_CURRENT_POSITION))
       , CurPattern(HasField(templ, Module::ATTR_CURRENT_PATTERN))
@@ -86,7 +86,7 @@ namespace Sound::File
     }
 
   private:
-    static bool HasField(const String& templ, StringView name)
+    static bool HasField(StringView templ, StringView name)
     {
       const String fullName = Strings::Template::FIELD_START + name.to_string() + Strings::Template::FIELD_END;
       return String::npos != templ.find(fullName);
@@ -127,7 +127,7 @@ namespace Sound::File
   class FileParameters
   {
   public:
-    FileParameters(Parameters::Accessor::Ptr params, String id)
+    FileParameters(Parameters::Accessor::Ptr params, BackendId id)
       : Params(std::move(params))
       , Id(std::move(id))
     {}
@@ -141,7 +141,7 @@ namespace Sound::File
         throw Error(THIS_LINE, translate("Output filename template is not specified."));
       }
       // check if required to add extension
-      const String extension = Char('.') + Id;
+      const String extension = String(1, '.').append(Id);
       const String::size_type extPos = nameTemplate.find(extension);
       if (String::npos == extPos || extPos + extension.size() != nameTemplate.size())
       {
@@ -181,15 +181,15 @@ namespace Sound::File
 
   private:
     const Parameters::Accessor::Ptr Params;
-    const String Id;
+    const BackendId Id;
   };
 
-  String InstantiateModuleFields(const String& nameTemplate, const Parameters::Accessor& props)
+  String InstantiateModuleFields(StringView nameTemplate, const Parameters::Accessor& props)
   {
     Dbg("Original filename template: '{}'", nameTemplate);
     const Parameters::FieldsSourceAdapter<Strings::KeepFieldsSource> moduleFields(props);
-    const Strings::Template::Ptr templ = IO::CreateFilenameTemplate(nameTemplate);
-    const String nameTemplateWithRuntimeFields = templ->Instantiate(moduleFields);
+    const auto templ = IO::CreateFilenameTemplate(nameTemplate);
+    auto nameTemplateWithRuntimeFields = templ->Instantiate(moduleFields);
     Dbg("Fixed filename template: '{}'", nameTemplateWithRuntimeFields);
     return nameTemplateWithRuntimeFields;
   }
@@ -207,23 +207,23 @@ namespace Sound::File
 
     Receiver::Ptr GetStream(const Module::State& state) const
     {
-      const String& newFilename = FilenameTemplate.Instantiate(state);
+      const auto& newFilename = FilenameTemplate.Instantiate(state);
       if (Filename != newFilename)
       {
-        const Binary::OutputStream::Ptr stream = IO::CreateStream(newFilename, *Params, Log::ProgressCallback::Stub());
+        auto stream = IO::CreateStream(newFilename, *Params, Log::ProgressCallback::Stub());
         Filename = newFilename;
-        const FileStream::Ptr result = Factory->CreateStream(stream);
+        auto result = Factory->CreateStream(std::move(stream));
         SetProperties(*result);
         if (const uint_t buffers = FileParams.GetBuffersCount())
         {
-          return Async::DataReceiver<Chunk>::Create(1, buffers, result);
+          return Async::DataReceiver<Chunk>::Create(1, buffers, std::move(result));
         }
         else
         {
           return result;
         }
       }
-      return Receiver::Ptr();
+      return {};
     }
 
   private:

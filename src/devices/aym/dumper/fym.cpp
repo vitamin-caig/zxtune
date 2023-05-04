@@ -71,8 +71,8 @@ namespace Devices::AYM
       const uint_t storedRegisters = Registers::TOTAL;
       const auto* const input = static_cast<const uint8_t*>(rawDump->Start());
 
-      const String& title = Params->Title();
-      const String author = Params->Author();
+      const auto& title = Params->Title();
+      const auto& author = Params->Author();
       const uint32_t headerSize = sizeof(FYMHeader) + (title.size() + 1) + (author.size() + 1);
       const std::size_t contentSize = framesCount * storedRegisters;
 

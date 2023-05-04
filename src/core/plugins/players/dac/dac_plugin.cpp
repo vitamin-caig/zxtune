@@ -103,11 +103,11 @@ namespace Module
 
 namespace ZXTune
 {
-  PlayerPlugin::Ptr CreatePlayerPlugin(const String& id, Formats::Chiptune::Decoder::Ptr decoder,
+  PlayerPlugin::Ptr CreatePlayerPlugin(PluginId id, Formats::Chiptune::Decoder::Ptr decoder,
                                        Module::DAC::Factory::Ptr factory)
   {
-    const Module::Factory::Ptr modFactory = MakePtr<Module::DACFactory>(factory);
+    auto modFactory = MakePtr<Module::DACFactory>(std::move(factory));
     const uint_t caps = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
-    return CreatePlayerPlugin(id, caps, decoder, modFactory);
+    return CreatePlayerPlugin(id, caps, std::move(decoder), std::move(modFactory));
   }
 }  // namespace ZXTune

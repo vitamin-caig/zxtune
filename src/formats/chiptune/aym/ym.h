@@ -10,6 +10,8 @@
 
 #pragma once
 
+// local includes
+#include "formats/chiptune/builder_meta.h"
 // common includes
 #include <types.h>
 // library includes
@@ -28,8 +30,9 @@ namespace Formats
         typedef std::shared_ptr<Builder> Ptr;
         virtual ~Builder() = default;
 
+        virtual MetaBuilder& GetMetaBuilder() = 0;
         // YMx
-        virtual void SetVersion(const String& version) = 0;
+        virtual void SetVersion(StringView version) = 0;
         // Default: false
         virtual void SetChipType(bool ym) = 0;
         // Default: abc.
@@ -41,12 +44,8 @@ namespace Formats
         virtual void SetClockrate(uint64_t freq) = 0;
         // Default: 50
         virtual void SetIntFreq(uint_t freq) = 0;
-        virtual void SetTitle(const String& title) = 0;
-        virtual void SetAuthor(const String& author) = 0;
-        virtual void SetComment(const String& comment) = 0;
         virtual void SetYear(uint_t year) = 0;
-        virtual void SetProgram(const String& program) = 0;
-        virtual void SetEditor(const String& editor) = 0;
+        virtual void SetEditor(StringView editor) = 0;
 
         virtual void AddData(Binary::View registers) = 0;
       };

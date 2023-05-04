@@ -19,8 +19,7 @@
 #include <contract.h>
 // library includes
 #include <sound/service.h>
-// std includes
-#include <set>
+#include <strings/map.h>
 // qt includes
 #include <QtWidgets/QRadioButton>
 
@@ -31,12 +30,11 @@ namespace
   public:
     explicit FileBackendsSet(Parameters::Accessor::Ptr options)
     {
-      const Sound::Service::Ptr service = Sound::CreateFileService(options);
-      for (Sound::BackendInformation::Iterator::Ptr backends = service->EnumerateBackends(); backends->IsValid();
-           backends->Next())
+      const auto service = Sound::CreateFileService(std::move(options));
+      for (auto backends = service->EnumerateBackends(); backends->IsValid(); backends->Next())
       {
-        const Sound::BackendInformation::Ptr info = backends->Get();
-        Ids.insert(std::make_pair(info->Id(), info->Status()));
+        const auto info = backends->Get();
+        Ids.emplace(info->Id(), info->Status());
       }
     }
 
@@ -53,15 +51,13 @@ namespace
       return result;
     }
 
-    Error GetStatus(const String& id) const
+    Error GetStatus(StringView id) const
     {
-      const Id2Status::const_iterator it = Ids.find(id);
-      return it != Ids.end() ? it->second : Error();  // TODO
+      return Ids.Get(id);
     }
 
   private:
-    typedef std::map<String, Error> Id2Status;
-    Id2Status Ids;
+    Strings::ValueMap<Error> Ids;
   };
 
   const Char TYPE_WAV[] = {'w', 'a', 'v', 0};

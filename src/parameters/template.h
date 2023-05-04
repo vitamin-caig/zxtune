@@ -26,7 +26,7 @@ namespace Parameters
       : Params(params)
     {}
 
-    String GetFieldValue(const String& fieldName) const override
+    String GetFieldValue(StringView fieldName) const override
     {
       IntType intVal = 0;
       StringType strVal;

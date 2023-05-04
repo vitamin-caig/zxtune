@@ -50,9 +50,10 @@ namespace Formats::Chiptune
     class StubBuilder : public Builder
     {
     public:
-      void SetTitle(const String& /*title*/) override {}
-      void SetAuthor(const String& /*author*/) override {}
-      void SetComment(const String& /*comment*/) override {}
+      MetaBuilder& GetMetaBuilder() override
+      {
+        return GetStubMetaBuilder();
+      }
 
       void BeginFrames(uint_t /*count*/) override {}
       void SelectChip(uint_t /*idx*/) override {}
@@ -118,9 +119,10 @@ namespace Formats::Chiptune
       {
         Binary::InputStream stream(data);
         stream.Read<SignatureType>();
-        target.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
+        auto& meta = target.GetMetaBuilder();
+        meta.SetTitle(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        meta.SetAuthor(DecodeString(stream.ReadCString(MAX_STRING_SIZE)));
+        meta.SetComment(DecodeString(stream.ReadCString(MAX_COMMENT_SIZE)));
 
         const std::size_t fixedOffset = stream.GetPosition();
         std::size_t totalFrames = 0;

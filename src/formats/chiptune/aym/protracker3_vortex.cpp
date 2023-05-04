@@ -20,17 +20,16 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <math/numeric.h>
+#include <strings/casing.h>
 #include <strings/conversion.h>
 #include <strings/format.h>
+#include <strings/split.h>
 // std includes
 #include <array>
 #include <cctype>
 #include <sstream>
 // boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 namespace Formats::Chiptune
 {
@@ -39,6 +38,21 @@ namespace Formats::Chiptune
     const Debug::Stream Dbg("Formats::Chiptune::VortexTracker2");
 
     const Char EDITOR[] = "VortexTracker (Pro Tracker v{}.{})";
+
+    namespace Headers
+    {
+      const auto MODULE = "Module"_sv;
+      const auto ORNAMENT = "Ornament"_sv;
+      const auto SAMPLE = "Sample"_sv;
+      const auto PATTERN = "Pattern"_sv;
+
+      const auto VERSION = "Version"_sv;
+      const auto TITLE = "Title"_sv;
+      const auto AUTHOR = "Author"_sv;
+      const auto NOTETABLE = "NoteTable"_sv;
+      const auto SPEED = "Speed"_sv;
+      const auto PLAYORDER = "PlayOrder"_sv;
+    }  // namespace Headers
 
     /*
       Common module structure:
@@ -295,13 +309,13 @@ namespace Formats::Chiptune
       static const uint_t NO_INDEX = ~uint_t(0);
 
     public:
-      SectionHeader(const String& category, StringView hdr)
-        : Category(category)
+      SectionHeader(StringView category, StringView hdr)
+        : Category(category.to_string())
         , Index(NO_INDEX)
         , Valid(false)
       {
-        const String start = '[' + category;
-        const String stop = "]";
+        const auto start = '[' + Category;
+        const auto stop = "]"_sv;
         if (boost::algorithm::istarts_with(hdr, start) && boost::algorithm::ends_with(hdr, stop))
         {
           Valid = true;
@@ -310,14 +324,14 @@ namespace Formats::Chiptune
         }
       }
 
-      explicit SectionHeader(String category)
-        : Category(std::move(category))
+      explicit SectionHeader(StringView category)
+        : Category(category.to_string())
         , Index(NO_INDEX)
         , Valid(true)
       {}
 
-      SectionHeader(String category, int_t idx)
-        : Category(std::move(category))
+      SectionHeader(StringView category, int_t idx)
+        : Category(category.to_string())
         , Index(idx)
         , Valid(true)
       {}
@@ -366,7 +380,7 @@ namespace Formats::Chiptune
         const std::size_t NO_LOOP = ~std::size_t(0);
 
         std::vector<StringView> elems;
-        boost::algorithm::split(elems, str, boost::algorithm::is_from_range(',', ','));
+        Strings::Split(str, ',', elems);
         Parent::resize(elems.size());
         std::size_t resLoop = NO_LOOP;
         for (std::size_t idx = 0; idx != elems.size(); ++idx)
@@ -460,13 +474,13 @@ namespace Formats::Chiptune
         , Table(PROTRACKER)
         , Tempo(0)
       {
-        const SectionHeader hdr("Module", src.ReadString());
+        const SectionHeader hdr(Headers::MODULE, src.ReadString());
         Require(hdr);
         for (auto line = src.ReadString(); !line.empty(); line = src.ReadString())
         {
           Entry entry(line);
           Dbg(" {}={}", entry.Name, entry.Value);
-          if (boost::algorithm::iequals(entry.Name, "Version"))
+          if (Strings::EqualNoCaseAscii(entry.Name, Headers::VERSION))
           {
             static const String VERSION("3.");
             Require(boost::algorithm::starts_with(entry.Value, VERSION));
@@ -475,24 +489,24 @@ namespace Formats::Chiptune
             Require(minor < 10);
             Version = minor;
           }
-          else if (boost::algorithm::iequals(entry.Name, "Title"))
+          else if (Strings::EqualNoCaseAscii(entry.Name, Headers::TITLE))
           {
             Title = std::move(entry.Value);
           }
-          else if (boost::algorithm::iequals(entry.Name, "Author"))
+          else if (Strings::EqualNoCaseAscii(entry.Name, Headers::AUTHOR))
           {
             Author = std::move(entry.Value);
           }
-          else if (boost::algorithm::iequals(entry.Name, "NoteTable"))
+          else if (Strings::EqualNoCaseAscii(entry.Name, Headers::NOTETABLE))
           {
             const auto table = Strings::ConvertTo<uint_t>(entry.Value);
             Table = static_cast<NoteTable>(table);
           }
-          else if (boost::algorithm::iequals(entry.Name, "Speed"))
+          else if (Strings::EqualNoCaseAscii(entry.Name, Headers::SPEED))
           {
             Tempo = Strings::ConvertTo<uint_t>(entry.Value);
           }
-          else if (boost::algorithm::iequals(entry.Name, "PlayOrder"))
+          else if (Strings::EqualNoCaseAscii(entry.Name, Headers::PLAYORDER))
           {
             PlayOrder = LoopedList<uint_t>(entry.Value);
           }
@@ -510,13 +524,13 @@ namespace Formats::Chiptune
         Require(Tempo != 0);
         Require(!PlayOrder.empty());
 
-        SectionHeader("Module").Dump(str);
-        Entry("Version", "3." + Strings::ConvertFrom(Version)).Dump(str);
-        Entry("Title", Title).Dump(str);
-        Entry("Author", Author).Dump(str);
-        Entry("NoteTable", Strings::ConvertFrom(static_cast<uint_t>(Table))).Dump(str);
-        Entry("Speed", Strings::ConvertFrom(Tempo)).Dump(str);
-        str << "PlayOrder=";
+        SectionHeader(Headers::MODULE).Dump(str);
+        Entry(Headers::VERSION, "3." + Strings::ConvertFrom(Version)).Dump(str);
+        Entry(Headers::TITLE, Title).Dump(str);
+        Entry(Headers::AUTHOR, Author).Dump(str);
+        Entry(Headers::NOTETABLE, Strings::ConvertFrom(static_cast<uint_t>(Table))).Dump(str);
+        Entry(Headers::SPEED, Strings::ConvertFrom(Tempo)).Dump(str);
+        str << Headers::PLAYORDER << '=';
         PlayOrder.Dump(str);
         str << '\n';
         for (const auto& field : OtherFields)
@@ -541,9 +555,9 @@ namespace Formats::Chiptune
           Value = Strings::TrimSpaces(second).to_string();
         }
 
-        Entry(String name, String value)
-          : Name(std::move(name))
-          , Value(std::move(value))
+        Entry(StringView name, StringView value)
+          : Name(name.to_string())
+          , Value(value.to_string())
         {}
 
         Entry(Entry&& rh) noexcept  // = default
@@ -600,14 +614,14 @@ namespace Formats::Chiptune
 
       void Dump(std::ostream& str) const
       {
-        SectionHeader("Ornament", Index).Dump(str);
+        SectionHeader(Headers::ORNAMENT, Index).Dump(str);
         LoopedList<int_t>(Loop, Lines).Dump(str);
         str << "\n\n";
       }
 
       static SectionHeader ParseHeader(StringView hdr)
       {
-        return SectionHeader("Ornament", hdr);
+        return SectionHeader(Headers::ORNAMENT, hdr);
       }
 
     private:
@@ -659,7 +673,7 @@ namespace Formats::Chiptune
 
       void Dump(std::ostream& str) const
       {
-        SectionHeader("Sample", Index).Dump(str);
+        SectionHeader(Headers::SAMPLE, Index).Dump(str);
         if (Lines.empty())
         {
           LineObject(Line(), true).Dump(str);
@@ -673,7 +687,7 @@ namespace Formats::Chiptune
 
       static SectionHeader ParseHeader(StringView hdr)
       {
-        return SectionHeader("Sample", hdr);
+        return SectionHeader(Headers::SAMPLE, hdr);
       }
 
     private:
@@ -684,7 +698,7 @@ namespace Formats::Chiptune
           : Looped(false)
         {
           std::vector<StringView> fields;
-          boost::algorithm::split(fields, str, boost::algorithm::is_from_range(' ', ' '));
+          Strings::Split(str, ' ', fields);
           switch (fields.size())
           {
           case 5:
@@ -1015,7 +1029,7 @@ namespace Formats::Chiptune
       explicit ChannelObject(StringView str)
       {
         std::vector<StringView> fields;
-        boost::algorithm::split(fields, str, boost::algorithm::is_from_range(' ', ' '));
+        Strings::Split(str, ' ', fields);
         Require(fields.size() == 3);
         Note = NoteObject(fields[0]);
         Parameters = NoteParametersObject(fields[1]);
@@ -1047,7 +1061,7 @@ namespace Formats::Chiptune
       explicit PatternLineObject(StringView str)
       {
         std::vector<StringView> fields;
-        boost::algorithm::split(fields, str, boost::algorithm::is_from_range('|', '|'));
+        Strings::Split(str, '|', fields);
         Require(fields.size() == 5);
         Envelope = EnvelopeBase(fields[0]);
         Noise = NoiseBase(fields[1]);
@@ -1125,7 +1139,7 @@ namespace Formats::Chiptune
 
       void Dump(std::ostream& str) const
       {
-        SectionHeader("Pattern", Index).Dump(str);
+        SectionHeader(Headers::PATTERN, Index).Dump(str);
         for (const auto& line : Lines)
         {
           line.Dump(str);
@@ -1151,7 +1165,7 @@ namespace Formats::Chiptune
 
       static SectionHeader ParseHeader(StringView str)
       {
-        return SectionHeader("Pattern", str);
+        return SectionHeader(Headers::PATTERN, str);
       }
 
     private:
@@ -1330,6 +1344,8 @@ namespace Formats::Chiptune
       }
 
       void SetStrings(const Strings::Array& /*strings*/) override {}
+
+      void SetComment(StringView /*comment*/) override {}
 
       void SetVersion(uint_t version) override
       {

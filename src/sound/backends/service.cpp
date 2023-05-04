@@ -15,15 +15,15 @@
 #include "sound/backends/storage.h"
 // common includes
 #include <error_tools.h>
+#include <locale_helpers.h>
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
 #include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/service.h>
-// boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
+#include <strings/array.h>
+#include <strings/split.h>
 
 namespace Sound
 {
@@ -32,14 +32,14 @@ namespace Sound
   class StaticBackendInformation : public BackendInformation
   {
   public:
-    StaticBackendInformation(String id, const char* descr, uint_t caps, Error status)
-      : IdValue(std::move(id))
+    StaticBackendInformation(BackendId id, const char* descr, uint_t caps, Error status)
+      : IdValue(id)
       , DescrValue(descr)
       , CapsValue(caps)
       , StatusValue(std::move(status))
     {}
 
-    String Id() const override
+    BackendId Id() const override
     {
       return IdValue;
     }
@@ -60,7 +60,7 @@ namespace Sound
     }
 
   private:
-    const String IdValue;
+    const BackendId IdValue;
     const char* const DescrValue;
     const uint_t CapsValue;
     const Error StatusValue;
@@ -82,14 +82,13 @@ namespace Sound
       return CreateRangedObjectIteratorAdapter(Infos.begin(), Infos.end());
     }
 
-    Strings::Array GetAvailableBackends() const override
+    std::vector<BackendId> GetAvailableBackends() const override
     {
-      const Strings::Array order = GetOrder();
-      Strings::Array available = GetAvailable();
-      Strings::Array result;
-      for (const auto& id : order)
+      auto available = GetAvailable();
+      std::vector<BackendId> result;
+      for (const auto& id : GetOrder())
       {
-        const Strings::Array::iterator avIt = std::find(available.begin(), available.end(), id);
+        const auto avIt = std::find(available.begin(), available.end(), id);
         if (avIt != available.end())
         {
           result.push_back(*avIt);
@@ -100,7 +99,7 @@ namespace Sound
       return result;
     }
 
-    Backend::Ptr CreateBackend(const String& backendId, Module::Holder::Ptr module,
+    Backend::Ptr CreateBackend(BackendId backendId, Module::Holder::Ptr module,
                                BackendCallback::Ptr callback) const override
     {
       try
@@ -117,26 +116,23 @@ namespace Sound
       }
     }
 
-    void Register(const String& id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory) override
+    void Register(BackendId id, const char* description, uint_t caps, BackendWorkerFactory::Ptr factory) override
     {
-      Factories.push_back(FactoryWithId(id, factory));
-      const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, Error());
-      Infos.push_back(info);
+      Factories.emplace_back(id, std::move(factory));
+      Infos.emplace_back(MakePtr<StaticBackendInformation>(id, description, caps, Error()));
       Dbg("Service({}): Registered backend {}", static_cast<void*>(this), id);
     }
 
-    void Register(const String& id, const char* description, uint_t caps, const Error& status) override
+    void Register(BackendId id, const char* description, uint_t caps, const Error& status) override
     {
-      const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, status);
-      Infos.push_back(info);
+      Infos.emplace_back(MakePtr<StaticBackendInformation>(id, description, caps, status));
       Dbg("Service({}): Registered disabled backend {}", static_cast<void*>(this), id);
     }
 
-    void Register(const String& id, const char* description, uint_t caps) override
+    void Register(BackendId id, const char* description, uint_t caps) override
     {
-      const Error status = Error(THIS_LINE, translate("Not supported in current configuration"));
-      const BackendInformation::Ptr info = MakePtr<StaticBackendInformation>(id, description, caps, status);
-      Infos.push_back(info);
+      auto status = Error(THIS_LINE, translate("Not supported in current configuration"));
+      Infos.emplace_back(MakePtr<StaticBackendInformation>(id, description, caps, std::move(status)));
       Dbg("Service({}): Registered stub backend {}", static_cast<void*>(this), id);
     }
 
@@ -146,13 +142,14 @@ namespace Sound
       Parameters::StringType order;
       Options->FindValue(Parameters::ZXTune::Sound::Backends::ORDER, order);
       Strings::Array orderArray;
-      boost::algorithm::split(orderArray, order, !boost::algorithm::is_alnum());
+      Strings::Split(
+          order, [](Char c) { return !IsAlNum(c); }, orderArray);
       return orderArray;
     }
 
-    Strings::Array GetAvailable() const
+    std::vector<BackendId> GetAvailable() const
     {
-      Strings::Array ids;
+      std::vector<BackendId> ids;
       for (const auto& info : Infos)
       {
         if (!info->Status())
@@ -163,9 +160,9 @@ namespace Sound
       return ids;
     }
 
-    BackendWorkerFactory::Ptr FindFactory(const String& id) const
+    BackendWorkerFactory::Ptr FindFactory(BackendId id) const
     {
-      const std::vector<FactoryWithId>::const_iterator it = std::find(Factories.begin(), Factories.end(), id);
+      const auto it = std::find(Factories.begin(), Factories.end(), id);
       return it != Factories.end() ? it->Factory : BackendWorkerFactory::Ptr();
     }
 
@@ -174,17 +171,15 @@ namespace Sound
     std::vector<BackendInformation::Ptr> Infos;
     struct FactoryWithId
     {
-      String Id;
+      BackendId Id;
       BackendWorkerFactory::Ptr Factory;
 
-      FactoryWithId() {}
-
-      FactoryWithId(String id, BackendWorkerFactory::Ptr factory)
+      FactoryWithId(BackendId id, BackendWorkerFactory::Ptr factory)
         : Id(std::move(id))
         , Factory(std::move(factory))
       {}
 
-      bool operator==(const String& id) const
+      bool operator==(BackendId id) const
       {
         return Id == id;
       }

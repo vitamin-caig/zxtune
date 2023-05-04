@@ -19,12 +19,9 @@ namespace ZXTune
 {
   void RegisterSTRSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'S', 'T', 'R', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSampleTrackerDecoder();
-    const Module::DAC::Factory::Ptr factory = Module::SampleTracker::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateSampleTrackerDecoder();
+    auto factory = Module::SampleTracker::CreateFactory();
+    auto plugin = CreatePlayerPlugin("STR"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

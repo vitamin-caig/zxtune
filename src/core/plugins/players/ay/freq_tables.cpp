@@ -259,11 +259,11 @@ namespace Module
   };
   // clang-format on
 
-  void GetFreqTable(const String& id, FrequencyTable& result)
+  void GetFreqTable(StringView id, FrequencyTable& result)
   {
     // check if required to revert table
     const bool doRevert = !id.empty() && *id.begin() == REVERT_TABLE_MARK;
-    const String idNormal = doRevert ? id.substr(1) : id;
+    const auto idNormal = doRevert ? id.substr(1) : id;
     // find if table is supported
     const auto* entry = std::find_if(TABLES, std::end(TABLES),
                                      [&idNormal](const FreqTableEntry& entry) { return entry.Name == idNormal; });

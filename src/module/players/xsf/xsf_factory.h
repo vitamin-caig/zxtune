@@ -14,13 +14,14 @@
 #include "module/players/xsf/xsf_file.h"
 // library includes
 #include <module/players/factory.h>
-// std includes
-#include <map>
+#include <strings/map.h>
 
 namespace Module
 {
   namespace XSF
   {
+    using FilesMap = Strings::ValueMap<File>;
+
     class Factory
     {
     public:
@@ -28,7 +29,7 @@ namespace Module
       virtual ~Factory() = default;
 
       virtual Holder::Ptr CreateSinglefileModule(const File& file, Parameters::Container::Ptr properties) const = 0;
-      virtual Holder::Ptr CreateMultifileModule(const File& file, const std::map<String, File>& additionalFiles,
+      virtual Holder::Ptr CreateMultifileModule(const File& file, const FilesMap& additionalFiles,
                                                 Parameters::Container::Ptr properties) const = 0;
     };
 

@@ -23,7 +23,7 @@ namespace ZXTune
 
   struct ContainerPluginDescription
   {
-    const char* const Id;
+    const PluginId Id;
     const CreateArchivedDecoderFunc Create;
     const uint_t Caps;
   };
@@ -33,33 +33,33 @@ namespace ZXTune
   // clang-format off
   const ContainerPluginDescription UNARCHIVES[] =
   {
-    {"ZIP",     &CreateZipDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
-    {"RAR",     &CreateRarDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
-    {"LHA",     &CreateLhaDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
-    {"UMX",     &CreateUMXDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::PLAIN},
-    {"7ZIP",    &Create7zipDecoder,    Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"ZIP"_id,     &CreateZipDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"RAR"_id,     &CreateRarDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"LHA"_id,     &CreateLhaDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
+    {"UMX"_id,     &CreateUMXDecoder,     Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::PLAIN},
+    {"7ZIP"_id,    &Create7zipDecoder,    Capabilities::Container::Type::ARCHIVE | Capabilities::Container::Traits::DIRECTORIES},
   };
 
   const ContainerPluginDescription ZXUNARCHIVES[] =
   {
-    {"TRD",     &CreateTRDDecoder,     Capabilities::Container::Type::DISKIMAGE | Capabilities::Container::Traits::PLAIN},
-    {"SCL",     &CreateSCLDecoder,     Capabilities::Container::Type::DISKIMAGE | Capabilities::Container::Traits::PLAIN},
-    {"HRIP",    &CreateHripDecoder,    Capabilities::Container::Type::ARCHIVE},
-    {"ZXZIP",   &CreateZXZipDecoder,   Capabilities::Container::Type::ARCHIVE},
-    {"ZXSTATE", &CreateZXStateDecoder, Capabilities::Container::Type::SNAPSHOT},
+    {"TRD"_id,     &CreateTRDDecoder,     Capabilities::Container::Type::DISKIMAGE | Capabilities::Container::Traits::PLAIN},
+    {"SCL"_id,     &CreateSCLDecoder,     Capabilities::Container::Type::DISKIMAGE | Capabilities::Container::Traits::PLAIN},
+    {"HRIP"_id,    &CreateHripDecoder,    Capabilities::Container::Type::ARCHIVE},
+    {"ZXZIP"_id,   &CreateZXZipDecoder,   Capabilities::Container::Type::ARCHIVE},
+    {"ZXSTATE"_id, &CreateZXStateDecoder, Capabilities::Container::Type::SNAPSHOT},
   };
 
   const ContainerPluginDescription MULTITRACKS[] =
   {
-    {"AY",      &CreateAYDecoder,      Capabilities::Container::Type::MULTITRACK},
+    {"AY"_id,      &CreateAYDecoder,      Capabilities::Container::Type::MULTITRACK},
   };
   // clang-format on
 
   void RegisterPlugin(const ContainerPluginDescription& desc, ArchivePluginsRegistrator& registrator)
   {
-    const Formats::Archived::Decoder::Ptr decoder = desc.Create();
-    const ArchivePlugin::Ptr plugin = CreateArchivePlugin(desc.Id, desc.Caps, decoder);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = desc.Create();
+    auto plugin = CreateArchivePlugin(desc.Id, desc.Caps, std::move(decoder));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune
 

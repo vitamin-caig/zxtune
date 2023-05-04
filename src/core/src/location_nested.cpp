@@ -20,11 +20,11 @@ namespace ZXTune
   class NestedLocation : public DataLocation
   {
   public:
-    NestedLocation(DataLocation::Ptr parent, String subPlugin, Binary::Container::Ptr subData, String subPath)
+    NestedLocation(DataLocation::Ptr parent, PluginId subPlugin, Binary::Container::Ptr subData, StringView subPath)
       : Parent(std::move(parent))
       , SubData(std::move(subData))
       , SubPlugin(std::move(subPlugin))
-      , Subpath(std::move(subPath))
+      , Subpath(subPath.to_string())
     {}
 
     Binary::Container::Ptr GetData() const override
@@ -45,17 +45,17 @@ namespace ZXTune
   private:
     const DataLocation::Ptr Parent;
     const Binary::Container::Ptr SubData;
-    const String SubPlugin;
+    const PluginId SubPlugin;
     const String Subpath;
   };
 }  // namespace ZXTune
 
 namespace ZXTune
 {
-  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData,
-                                         const String& subPlugin, const String& subPath)
+  DataLocation::Ptr CreateNestedLocation(DataLocation::Ptr parent, Binary::Container::Ptr subData, PluginId subPlugin,
+                                         StringView subPath)
   {
     assert(subData);
-    return MakePtr<NestedLocation>(parent, subPlugin, subData, subPath);
+    return MakePtr<NestedLocation>(std::move(parent), subPlugin, std::move(subData), subPath);
   }
 }  // namespace ZXTune

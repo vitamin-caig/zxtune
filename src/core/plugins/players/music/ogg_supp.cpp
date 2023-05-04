@@ -418,12 +418,12 @@ namespace ZXTune
 {
   void RegisterOGGPlugin(PlayerPluginsRegistrator& registrator)
   {
-    const Char ID[] = {'O', 'G', 'G', 0};
+    const auto ID = "OGG"_id;
     const uint_t CAPS = Capabilities::Module::Type::STREAM | Capabilities::Module::Device::DAC;
 
-    const auto decoder = Formats::Chiptune::CreateOGGDecoder();
-    const auto factory = MakePtr<Module::Ogg::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateOGGDecoder();
+    auto factory = MakePtr<Module::Ogg::Factory>();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

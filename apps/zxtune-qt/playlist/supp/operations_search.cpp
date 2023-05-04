@@ -105,7 +105,7 @@ namespace
     typedef std::shared_ptr<const StringPredicate> Ptr;
     virtual ~StringPredicate() = default;
 
-    virtual bool Match(const String& str) const = 0;
+    virtual bool Match(StringView str) const = 0;
   };
 
   class ScopePredicateDispatcher : public Predicate
@@ -134,7 +134,7 @@ namespace
   class EmptyStringPredicate : public StringPredicate
   {
   public:
-    bool Match(const String& str) const override
+    bool Match(StringView str) const override
     {
       return str.empty();
     }
@@ -148,7 +148,7 @@ namespace
       , Mode(caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive)
     {}
 
-    bool Match(const String& str) const override
+    bool Match(StringView str) const override
     {
       return ToQString(str).contains(Pattern, Mode);
     }
@@ -165,7 +165,7 @@ namespace
       : Pattern(val, caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive)
     {}
 
-    bool Match(const String& str) const override
+    bool Match(StringView str) const override
     {
       return ToQString(str).contains(Pattern);
     }

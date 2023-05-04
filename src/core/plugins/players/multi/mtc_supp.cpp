@@ -200,7 +200,7 @@ namespace Module::MTC
 
       uint_t GetPenalty() const
       {
-        const String& type = GetType();
+        const auto& type = GetType();
         if (type == "STR")
         {
           // badly emulated
@@ -384,7 +384,7 @@ namespace ZXTune
 {
   void RegisterMTCSupport(PlayerPluginsRegistrator& registrator)
   {
-    const Char ID[] = {'M', 'T', 'C', 0};
+    const auto ID = "MTC"_id;
     const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::MULTI;
 
     auto decoder = Formats::Chiptune::CreateMultiTrackContainerDecoder();

@@ -143,7 +143,7 @@ namespace ZXTune
   void RegisterTSSupport(PlayerPluginsRegistrator& registrator)
   {
     // plugin attributes
-    const Char ID[] = {'T', 'S', 0};
+    const auto ID = "TS"_id;
     const uint_t CAPS = Capabilities::Module::Type::MULTI | Capabilities::Module::Device::TURBOSOUND;
 
     auto decoder = Formats::Chiptune::TurboSound::CreateDecoder();

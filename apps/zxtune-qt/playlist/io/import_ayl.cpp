@@ -73,12 +73,11 @@ namespace
     const QTextCodec* const Codec;
   };
 
-  int CheckAYLBySignature(const String& signature)
+  int CheckAYLBySignature(StringView signature)
   {
-    const String strSignature(AYL::SIGNATURE);
-    if (0 == signature.find(strSignature))
+    if (0 == signature.find(AYL::SIGNATURE))
     {
-      const Char versChar = signature[strSignature.size()];
+      const auto versChar = signature[AYL::SIGNATURE.size()];
       if (std::isdigit(versChar))
       {
         return versChar - '0';
@@ -244,26 +243,24 @@ namespace
       return true;
     }
 
-    static bool CheckForParametersBegin(const String& line)
+    static bool CheckForParametersBegin(StringView line)
     {
-      static const Char PARAMETERS_BEGIN[] = {'<', 0};
-      return line == PARAMETERS_BEGIN;
+      return line == "<"_sv;
     }
 
-    static bool CheckForParametersEnd(const String& line)
+    static bool CheckForParametersEnd(StringView line)
     {
-      static const Char PARAMETERS_END[] = {'>', 0};
-      return line == PARAMETERS_END;
+      return line == ">"_sv;
     }
 
-    static void SplitParametersString(const String& line, Strings::Map& parameters)
+    static void SplitParametersString(StringView line, Strings::Map& parameters)
     {
-      const String::size_type delim = line.find_first_of('=');
-      if (delim != String::npos)
+      const auto delim = line.find_first_of('=');
+      if (delim != line.npos)
       {
-        const String& name = line.substr(0, delim);
-        const String& value = line.substr(delim + 1);
-        parameters.insert(Strings::Map::value_type(name, value));
+        const auto& name = line.substr(0, delim);
+        const auto& value = line.substr(delim + 1);
+        parameters.emplace(name, value);
       }
     }
 
@@ -416,16 +413,16 @@ namespace
     return properties;
   }
 
-  String AppendSubpath(const String& path, const String& subpath)
+  String AppendSubpath(StringView path, StringView subpath)
   {
     try
     {
-      const IO::Identifier::Ptr id = IO::ResolveUri(path);
+      const auto id = IO::ResolveUri(path);
       return id->WithSubpath(subpath)->Full();
     }
     catch (const Error&)
     {
-      return path;
+      return path.to_string();
     }
   }
 
@@ -458,7 +455,7 @@ namespace
     const Playlist::IO::ContainerItems::RWPtr items = MakeRWPtr<Playlist::IO::ContainerItems>();
     for (AYLContainer::Iterator iter = aylItems.GetIterator(); iter.IsValid(); iter.Next())
     {
-      const String& itemPath = iter.GetPath();
+      const auto& itemPath = iter.GetPath();
       Dbg("Processing '{}'", itemPath);
       Playlist::IO::ContainerItem item;
       const Parameters::Container::Ptr adjustedParams = Parameters::Container::Create();

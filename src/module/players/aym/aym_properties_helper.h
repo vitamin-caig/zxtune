@@ -24,7 +24,7 @@ namespace Module
         : Module::PropertiesHelper(delegate)
       {}
 
-      void SetFrequencyTable(const String& freqTable);
+      void SetFrequencyTable(StringView freqTable);
       void SetChipType(uint_t type);
       void SetChannelsLayout(uint_t type);
       void SetChipFrequency(uint64_t freq);

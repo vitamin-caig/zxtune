@@ -23,15 +23,12 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
+#include <strings/split.h>
 // std includes
 #include <functional>
-// boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 
 namespace Sound::Alsa
 {
@@ -97,9 +94,9 @@ namespace Sound::Alsa
   class AutoHandle
   {
   public:
-    AutoHandle(Api::Ptr api, String name)
+    AutoHandle(Api::Ptr api, StringView name)
       : AlsaApi(std::move(api))
-      , Name(std::move(name))
+      , Name(name.to_string())
       , Handle(nullptr)
     {}
 
@@ -167,15 +164,14 @@ namespace Sound::Alsa
   class Identifier
   {
   public:
-    explicit Identifier(const String& id)
+    explicit Identifier(StringView id)
     {
-      static const Char DELIMITERS[] = {':', ',', 0};
-      Strings::Array elements;
-      boost::algorithm::split(elements, id, boost::algorithm::is_any_of(DELIMITERS));
+      std::vector<StringView> elements;
+      Strings::Split(id, ":,"_sv, elements);
       elements.resize(3);
-      Interface = elements[0];
-      Card = elements[1];
-      Device = elements[2];
+      Interface = elements[0].to_string();
+      Card = elements[1].to_string();
+      Device = elements[2].to_string();
     }
 
     String GetCard() const
@@ -434,7 +430,7 @@ namespace Sound::Alsa
   class MixerDevice : public AutoHandle<snd_mixer_t>
   {
   public:
-    MixerDevice(Api::Ptr api, const String& card)
+    MixerDevice(Api::Ptr api, StringView card)
       : AutoHandle<snd_mixer_t>(api, card)
     {
       Open();
@@ -469,9 +465,9 @@ namespace Sound::Alsa
   class AttachedMixer
   {
   public:
-    AttachedMixer(Api::Ptr api, const String& card)
+    AttachedMixer(Api::Ptr api, StringView card)
       : AlsaApi(api)
-      , Name(card)
+      , Name(card.to_string())
       , MixDev(api, card)
     {
       Open();
@@ -523,7 +519,7 @@ namespace Sound::Alsa
   public:
     typedef std::shared_ptr<Mixer> Ptr;
 
-    Mixer(Api::Ptr api, const Identifier& id, const String& mixer)
+    Mixer(Api::Ptr api, const Identifier& id, StringView mixer)
       : AlsaApi(api)
       , Attached(api, id.GetCard())
       , MixerElement(nullptr)
@@ -924,11 +920,11 @@ namespace Sound::Alsa
   class DeviceInfo : public Device
   {
   public:
-    DeviceInfo(Api::Ptr api, String id, String name, String cardName)
+    DeviceInfo(Api::Ptr api, StringView id, StringView name, StringView cardName)
       : AlsaApi(std::move(api))
-      , IdValue(std::move(id))
-      , NameValue(std::move(name))
-      , CardNameValue(std::move(cardName))
+      , IdValue(id.to_string())
+      , NameValue(name.to_string())
+      , CardNameValue(cardName.to_string())
     {}
 
     String Id() const override
@@ -968,7 +964,7 @@ namespace Sound::Alsa
 
     static Ptr CreateDefault(Api::Ptr api)
     {
-      static const Char DEFAULT_DEVICE_NAME[] = "Default";
+      static const auto DEFAULT_DEVICE_NAME = "Default"_sv;
       return MakePtr<DeviceInfo>(api, Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT, DEFAULT_DEVICE_NAME,
                                  DEFAULT_DEVICE_NAME);
     }
@@ -1038,12 +1034,12 @@ namespace Sound
   {
     try
     {
-      const Alsa::Api::Ptr api = Alsa::LoadDynamicApi();
+      auto api = Alsa::LoadDynamicApi();
       Alsa::Dbg("Detected Alsa {}", api->snd_asoundlib_version());
       if (Alsa::DeviceInfoIterator(api).IsValid())
       {
-        const BackendWorkerFactory::Ptr factory = MakePtr<Alsa::BackendWorkerFactory>(api);
-        storage.Register(Alsa::BACKEND_ID, Alsa::BACKEND_DESCRIPTION, Alsa::CAPABILITIES, factory);
+        auto factory = MakePtr<Alsa::BackendWorkerFactory>(std::move(api));
+        storage.Register(Alsa::BACKEND_ID, Alsa::BACKEND_DESCRIPTION, Alsa::CAPABILITIES, std::move(factory));
       }
       else
       {
@@ -1068,8 +1064,8 @@ namespace Sound
           but till alsa 1.0.24 this will lead to crash.
           TODO: check for previously called snd_lib_error_set_handler(NULL)
         */
-        const Api::Ptr api = LoadDynamicApi();
-        return MakePtr<DeviceInfoIterator>(api);
+        auto api = LoadDynamicApi();
+        return MakePtr<DeviceInfoIterator>(std::move(api));
       }
       catch (const Error& e)
       {

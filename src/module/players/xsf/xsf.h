@@ -21,6 +21,6 @@ namespace Module
   namespace XSF
   {
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, File& file);
-    Formats::Chiptune::Container::Ptr Parse(const String& name, const Binary::Container& data, File& file);
+    Formats::Chiptune::Container::Ptr Parse(StringView name, const Binary::Container& data, File& file);
   }  // namespace XSF
 }  // namespace Module

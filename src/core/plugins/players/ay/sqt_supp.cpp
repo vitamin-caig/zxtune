@@ -19,12 +19,9 @@ namespace ZXTune
 {
   void RegisterSQTSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'S', 'Q', 'T', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSQTrackerDecoder();
-    const Module::AYM::Factory::Ptr factory = Module::SQTracker::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateSQTrackerDecoder();
+    auto factory = Module::SQTracker::CreateFactory();
+    auto plugin = CreateTrackPlayerPlugin("SQT"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

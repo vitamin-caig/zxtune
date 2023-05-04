@@ -193,9 +193,10 @@ namespace Formats::Chiptune
     class StubBuilder : public Builder
     {
     public:
-      void SetTitle(String /*title*/) override {}
-      void SetAuthor(String /*author*/) override {}
-      void SetComment(String /*comment*/) override {}
+      MetaBuilder& GetMetaBuilder() override
+      {
+        return GetStubMetaBuilder();
+      }
       void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) override {}
       void SetRegisters(uint16_t /*reg*/, uint16_t /*sp*/) override {}
       void SetRoutines(uint16_t /*init*/, uint16_t /*play*/) override {}
@@ -299,11 +300,10 @@ namespace Formats::Chiptune
       };
 
     public:
-      void SetTitle(String /*title*/) override {}
-
-      void SetAuthor(String /*author*/) override {}
-
-      void SetComment(String /*comment*/) override {}
+      MetaBuilder& GetMetaBuilder() override
+      {
+        return GetStubMetaBuilder();
+      }
 
       void SetDuration(uint_t /*total*/, uint_t /*fadeout*/) override {}
 
@@ -360,7 +360,9 @@ namespace Formats::Chiptune
       mutable Binary::DataBuilder Data;
     };
 
-    class FileBuilder : public BlobBuilder
+    class FileBuilder
+      : public BlobBuilder
+      , private MetaBuilder
     {
       template<class T>
       static void SetPointer(be_int16_t* ptr, const T obj)
@@ -381,19 +383,27 @@ namespace Formats::Chiptune
         , PlayRoutine()
       {}
 
-      void SetTitle(String title) override
+      void SetTitle(StringView title) override
       {
-        Title = std::move(title);
+        Title = title.to_string();
       }
 
-      void SetAuthor(String author) override
+      void SetAuthor(StringView author) override
       {
-        Author = std::move(author);
+        Author = author.to_string();
       }
 
-      void SetComment(String comment) override
+      void SetComment(StringView comment) override
       {
-        Comment = std::move(comment);
+        Comment = comment.to_string();
+      }
+
+      void SetProgram(StringView /*program*/) override {}
+      void SetStrings(const Strings::Array& /*strings*/) override {}
+
+      MetaBuilder& GetMetaBuilder() override
+      {
+        return *this;
       }
 
       void SetDuration(uint_t total, uint_t fadeout) override
@@ -535,10 +545,11 @@ namespace Formats::Chiptune
         Dbg("Parse idx={}, totalSize={}", idx, container.Size());
         const Parser data(container);
         const auto& header = data.GetField<Header>(std::size_t(0));
-        target.SetAuthor(data.GetString(&header.AuthorOffset));
-        target.SetComment(data.GetString(&header.MiscOffset));
-        const ModuleDescription& description = data.GetField<ModuleDescription>(&header.DescriptionsOffset, idx);
-        target.SetTitle(data.GetString(&description.TitleOffset));
+        auto& meta = target.GetMetaBuilder();
+        meta.SetAuthor(data.GetString(&header.AuthorOffset));
+        meta.SetComment(data.GetString(&header.MiscOffset));
+        const auto& description = data.GetField<ModuleDescription>(&header.DescriptionsOffset, idx);
+        meta.SetTitle(data.GetString(&description.TitleOffset));
 
         const auto& moddata = data.GetField<EMUL::ModuleData>(&description.DataOffset);
         if (const uint_t duration = moddata.TotalLength)

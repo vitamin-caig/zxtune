@@ -22,8 +22,7 @@
 #include <core/service.h>
 #include <debug/log.h>
 #include <module/attributes.h>
-// std includes
-#include <map>
+#include <strings/map.h>
 
 namespace ZXTune
 {
@@ -35,7 +34,7 @@ namespace ZXTune
   public:
     virtual ~LocationSource() = default;
 
-    virtual DataLocation::Ptr OpenLocation(Binary::Container::Ptr data, const String& subpath) const = 0;
+    virtual DataLocation::Ptr OpenLocation(Binary::Container::Ptr data, StringView subpath) const = 0;
   };
 
   class ResolveAdditionalFilesAdapter : public Module::DetectCallbackDelegate
@@ -80,7 +79,7 @@ namespace ZXTune
         , Delegate(delegate)
       {}
 
-      Binary::Container::Ptr Get(const String& name) const override
+      Binary::Container::Ptr Get(StringView name) const override
       {
         const auto subpath = Dir->Append(name)->AsString();
         Dbg("Resolve '{}' as '{}'", name, subpath);
@@ -99,7 +98,7 @@ namespace ZXTune
         : Delegate(std::move(delegate))
       {}
 
-      Binary::Container::Ptr Get(const String& name) const override
+      Binary::Container::Ptr Get(StringView name) const override
       {
         auto& cached = Cache[name];
         if (!cached)
@@ -115,7 +114,7 @@ namespace ZXTune
 
     private:
       const std::unique_ptr<const AdditionalFilesSource> Delegate;
-      mutable std::map<String, Binary::Container::Ptr> Cache;
+      mutable Strings::ValueMap<Binary::Container::Ptr> Cache;
     };
 
     class FullpathFilesSource : public Module::AdditionalFilesSource
@@ -126,7 +125,7 @@ namespace ZXTune
         , Data(std::move(data))
       {}
 
-      Binary::Container::Ptr Get(const String& name) const override
+      Binary::Container::Ptr Get(StringView name) const override
       {
         const auto location = Src.OpenLocation(Data, name);
         return location->GetData();
@@ -149,7 +148,7 @@ namespace ZXTune
       , Properties(std::move(properties))
     {}
 
-    Parameters::Container::Ptr CreateInitialProperties(const String& /*subpath*/) const override
+    Parameters::Container::Ptr CreateInitialProperties(StringView /*subpath*/) const override
     {
       // May be called multiple times, so do not destruct
       return Properties;
@@ -184,12 +183,12 @@ namespace ZXTune
       : Params(std::move(params))
     {}
 
-    Binary::Container::Ptr OpenData(Binary::Container::Ptr data, const String& subpath) const override
+    Binary::Container::Ptr OpenData(Binary::Container::Ptr data, StringView subpath) const override
     {
       return OpenLocation(std::move(data), subpath)->GetData();
     }
 
-    Module::Holder::Ptr OpenModule(Binary::Container::Ptr data, const String& subpath,
+    Module::Holder::Ptr OpenModule(Binary::Container::Ptr data, StringView subpath,
                                    Parameters::Container::Ptr initialProperties) const override
     {
       if (subpath.empty())
@@ -210,7 +209,7 @@ namespace ZXTune
       DetectModules(CreateLocation(data), adapter);
     }
 
-    void OpenModule(Binary::Container::Ptr data, const String& subpath, Module::DetectCallback& callback) const override
+    void OpenModule(Binary::Container::Ptr data, StringView subpath, Module::DetectCallback& callback) const override
     {
       ResolveAdditionalFilesAdapter adapter(*this, data, callback);
       auto location = OpenLocation(std::move(data), subpath);
@@ -221,7 +220,7 @@ namespace ZXTune
     }
 
   private:
-    DataLocation::Ptr OpenLocation(Binary::Container::Ptr data, const String& subpath) const override
+    DataLocation::Ptr OpenLocation(Binary::Container::Ptr data, StringView subpath) const override
     {
       auto resolvedLocation = CreateLocation(std::move(data));
       const auto sourcePath = Analysis::ParsePath(subpath, Module::SUBPATH_DELIMITER);
@@ -283,7 +282,7 @@ namespace ZXTune
         , Delegate(delegate)
         , Progress(useProgress ? Delegate.GetProgress() : nullptr)
       {}
-      Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const override
+      Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const override
       {
         return Delegate.CreateInitialProperties(subpath);
       }

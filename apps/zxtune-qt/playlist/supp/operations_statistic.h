@@ -24,10 +24,10 @@ namespace Playlist
 
       virtual void AddInvalid() = 0;
       virtual void AddValid() = 0;
-      virtual void AddType(const String& type) = 0;
+      virtual void AddType(StringView type) = 0;
       virtual void AddDuration(const Time::Milliseconds& duration) = 0;
       virtual void AddSize(std::size_t size) = 0;
-      virtual void AddPath(const String& path) = 0;
+      virtual void AddPath(StringView path) = 0;
     };
 
     TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result);

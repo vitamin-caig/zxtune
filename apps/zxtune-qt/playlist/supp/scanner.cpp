@@ -326,7 +326,7 @@ namespace
       }
     }
 
-    void OnProgress(uint_t current, const String& message) override
+    void OnProgress(uint_t current, StringView message) override
     {
       if (ReportTimeout())
       {

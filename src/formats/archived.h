@@ -65,7 +65,7 @@ namespace Formats
       //! @brief Search archived file by name
       //! @param name Full file name as can be retrieved via File::GetName
       //! @return Non-null object if file is found
-      virtual File::Ptr FindFile(const String& name) const = 0;
+      virtual File::Ptr FindFile(StringView name) const = 0;
       //! @brief Count archived files
       //! @return Stored files count, may be 0
       virtual uint_t CountFiles() const = 0;

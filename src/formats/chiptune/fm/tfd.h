@@ -10,6 +10,8 @@
 
 #pragma once
 
+// local includes
+#include "formats/chiptune/builder_meta.h"
 // common includes
 #include <types.h>
 // library includes
@@ -27,9 +29,7 @@ namespace Formats
         typedef std::shared_ptr<Builder> Ptr;
         virtual ~Builder() = default;
 
-        virtual void SetTitle(const String& title) = 0;
-        virtual void SetAuthor(const String& author) = 0;
-        virtual void SetComment(const String& comment) = 0;
+        virtual MetaBuilder& GetMetaBuilder() = 0;
 
         virtual void BeginFrames(uint_t count) = 0;
         virtual void SelectChip(uint_t idx) = 0;

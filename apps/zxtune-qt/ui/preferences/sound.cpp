@@ -27,9 +27,7 @@
 #include <sound/backends_parameters.h>
 #include <sound/service.h>
 #include <sound/sound_parameters.h>
-#include <strings/array.h>
-// boost includes
-#include <boost/algorithm/string/join.hpp>
+#include <strings/map.h>
 // std includes
 #include <utility>
 
@@ -37,7 +35,7 @@ namespace
 {
   static const uint_t FREQUENCES[] = {8000, 12000, 16000, 22000, 24000, 32000, 44100, 48000};
 
-  Strings::Array GetSystemBackends(Parameters::Accessor::Ptr params)
+  auto GetSystemBackends(Parameters::Accessor::Ptr params)
   {
     return Sound::CreateSystemService(params)->GetAvailableBackends();
   }
@@ -83,8 +81,8 @@ namespace
 
     void SelectBackend(int idx) override
     {
-      const String id = Backends[idx];
-      for (std::map<String, QWidget*>::const_iterator it = SetupPages.begin(), lim = SetupPages.end(); it != lim; ++it)
+      const auto& id = Backends[idx];
+      for (auto it = SetupPages.begin(), lim = SetupPages.end(); it != lim; ++it)
       {
         it->second->setVisible(it->first == id);
       }
@@ -165,8 +163,15 @@ namespace
 
     void SaveBackendsOrder()
     {
-      static const Char DELIMITER[] = {';', 0};
-      const String value = boost::algorithm::join(Backends, DELIMITER);
+      String value;
+      for (const auto& id : Backends)
+      {
+        if (!value.empty())
+        {
+          value += ';';
+        }
+        value.append(id);
+      }
       Options->SetValue(Parameters::ZXTune::Sound::Backends::ORDER, value);
     }
 
@@ -178,8 +183,8 @@ namespace
       {
         const QString firstText = first->text();
         const QString secondText = second->text();
-        String& firstId = Backends[lh];
-        String& secondId = Backends[rh];
+        auto& firstId = Backends[lh];
+        auto& secondId = Backends[rh];
         assert(FromQString(firstText) == firstId);
         assert(FromQString(secondText) == secondId);
         first->setText(secondText);
@@ -191,8 +196,8 @@ namespace
 
   private:
     const Parameters::Container::Ptr Options;
-    Strings::Array Backends;
-    std::map<String, QWidget*> SetupPages;
+    std::vector<Sound::BackendId> Backends;
+    Strings::ValueMap<QWidget*> SetupPages;
   };
 }  // namespace
 namespace UI

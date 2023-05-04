@@ -16,6 +16,7 @@
 // library includes
 #include <module/state.h>
 #include <sound/analyzer.h>
+#include <sound/backend_attrs.h>
 #include <sound/gain.h>
 
 namespace Sound
@@ -32,7 +33,7 @@ namespace Sound
     virtual ~BackendInformation() = default;
 
     //! Short spaceless identifier
-    virtual String Id() const = 0;
+    virtual BackendId Id() const = 0;
     //! Textual description
     virtual String Description() const = 0;
     //! Backend capabilities @see backend_attrs.h

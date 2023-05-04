@@ -27,17 +27,17 @@ namespace Playlist
       typedef std::shared_ptr<ConversionResultNotification> Ptr;
 
       virtual void AddSucceed() = 0;
-      virtual void AddFailedToOpen(const String& path) = 0;
-      virtual void AddFailedToConvert(const String& path, const Error& err) = 0;
+      virtual void AddFailedToOpen(StringView path) = 0;
+      virtual void AddFailedToConvert(StringView path, const Error& err) = 0;
     };
 
-    TextResultOperation::Ptr CreateSoundFormatConvertOperation(Playlist::Model::IndexSet::Ptr items, const String& type,
+    TextResultOperation::Ptr CreateSoundFormatConvertOperation(Playlist::Model::IndexSet::Ptr items, StringView type,
                                                                Sound::Service::Ptr service,
                                                                ConversionResultNotification::Ptr result);
 
-    TextResultOperation::Ptr CreateExportOperation(const String& nameTemplate, Parameters::Accessor::Ptr params,
+    TextResultOperation::Ptr CreateExportOperation(StringView nameTemplate, Parameters::Accessor::Ptr params,
                                                    ConversionResultNotification::Ptr result);
-    TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSet::Ptr items, const String& nameTemplate,
+    TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSet::Ptr items, StringView nameTemplate,
                                                    Parameters::Accessor::Ptr params,
                                                    ConversionResultNotification::Ptr result);
 

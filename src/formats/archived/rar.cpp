@@ -208,7 +208,7 @@ namespace Formats::Archived
       Binary::Container::Ptr DecodeSingleBlock(const FileBlock& block) const
       {
         Dbg(" Decoding block @{} (chained={}, hasParent={})", block.Offset, block.IsChained(), block.HasParent());
-        const Binary::Container::Ptr blockContent = Data->GetSubcontainer(block.Offset, block.Size);
+        const auto blockContent = Data->GetSubcontainer(block.Offset, block.Size);
         return StatefulDecoder->Decode(*blockContent);
       }
 
@@ -216,7 +216,7 @@ namespace Formats::Archived
       {
         Dbg(" Decoding parent block @{} (chained={}, hasParent={})", block.Offset, block.IsChained(),
             block.HasParent());
-        const Binary::Container::Ptr blockContent = Data->GetSubcontainer(block.Offset, block.Size);
+        const auto blockContent = Data->GetSubcontainer(block.Offset, block.Size);
         StatefulDecoder->Decode(*blockContent);
       }
 
@@ -234,10 +234,10 @@ namespace Formats::Archived
     class File : public Archived::File
     {
     public:
-      File(ChainDecoder::Ptr decoder, FileBlock block, String name)
+      File(ChainDecoder::Ptr decoder, FileBlock block, StringView name)
         : Decoder(std::move(decoder))
         , Block(std::move(block))
-        , Name(std::move(name))
+        , Name(name.to_string())
       {}
 
       String GetName() const override
@@ -280,13 +280,13 @@ namespace Formats::Archived
       bool IsValid() const
       {
         assert(!IsEof());
-        const Formats::Packed::Rar::FileBlockHeader& file = *Blocks.GetFileHeader();
+        const auto& file = *Blocks.GetFileHeader();
         return file.IsSupported();
       }
 
       String GetName() const
       {
-        const Formats::Packed::Rar::FileBlockHeader& file = *Blocks.GetFileHeader();
+        const auto& file = *Blocks.GetFileHeader();
         String name = file.GetName();
         std::replace(name.begin(), name.end(), '\\', '/');
         return name;
@@ -294,7 +294,7 @@ namespace Formats::Archived
 
       File::Ptr GetFile() const
       {
-        const Formats::Packed::Rar::FileBlockHeader& file = *Blocks.GetFileHeader();
+        const auto& file = *Blocks.GetFileHeader();
         if (file.IsSupported() && !Current)
         {
           const FileBlock block(&file, Blocks.GetOffset(), Blocks.GetBlockSize());
@@ -356,7 +356,7 @@ namespace Formats::Archived
         }
       }
 
-      File::Ptr FindFile(const String& name) const override
+      File::Ptr FindFile(StringView name) const override
       {
         for (FileIterator iter(Decoder, *Delegate); !iter.IsEof(); iter.Next())
         {
@@ -365,7 +365,7 @@ namespace Formats::Archived
             return iter.GetFile();
           }
         }
-        return File::Ptr();
+        return {};
       }
 
       uint_t CountFiles() const override

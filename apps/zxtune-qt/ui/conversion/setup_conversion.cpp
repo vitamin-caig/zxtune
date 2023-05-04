@@ -50,10 +50,10 @@ namespace
     return QThread::idealThreadCount() > 1;
   }
 
-  Playlist::Item::Conversion::Options::Ptr CreateOptions(const String& type, const QString& filenameTemplate,
+  Playlist::Item::Conversion::Options::Ptr CreateOptions(StringView type, const QString& filenameTemplate,
                                                          Parameters::Accessor::Ptr params)
   {
-    return MakePtr<Playlist::Item::Conversion::Options>(type, FromQString(filenameTemplate), params);
+    return MakePtr<Playlist::Item::Conversion::Options>(type.to_string(), FromQString(filenameTemplate), params);
   }
 
   class SetupConversionDialogImpl
@@ -176,8 +176,8 @@ namespace
 
   QString GetDefaultFilename(Playlist::Item::Data::Ptr item)
   {
-    const String& filePath = item->GetFilePath();
-    const IO::Identifier::Ptr id = IO::ResolveUri(filePath);
+    const auto& filePath = item->GetFilePath();
+    const auto id = IO::ResolveUri(filePath);
     return ToQString(id->Filename());
   }
 

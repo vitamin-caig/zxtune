@@ -144,7 +144,7 @@ namespace
       }
     }
 
-    void Write(const String& str) const override
+    void Write(StringView str) const override
     {
       StdOut << str;
     }

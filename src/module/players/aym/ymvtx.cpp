@@ -17,6 +17,7 @@
 #include <make_ptr.h>
 // library includes
 #include <core/core_parameters.h>
+#include <module/players/properties_meta.h>
 // std includes
 #include <utility>
 // boost includes
@@ -54,10 +55,16 @@ namespace Module::YMVTX
   public:
     explicit DataBuilder(AYM::PropertiesHelper& props)
       : Properties(props)
+      , Meta(props)
       , Data(MakePtr<AYM::MutableStreamModel>())
     {}
 
-    void SetVersion(const String& version) override
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
+    {
+      return Meta;
+    }
+
+    void SetVersion(StringView version) override
     {
       Properties.SetVersion(version);
     }
@@ -95,21 +102,6 @@ namespace Module::YMVTX
       }
     }
 
-    void SetTitle(const String& title) override
-    {
-      Properties.SetTitle(title);
-    }
-
-    void SetAuthor(const String& author) override
-    {
-      Properties.SetAuthor(author);
-    }
-
-    void SetComment(const String& comment) override
-    {
-      Properties.SetComment(comment);
-    }
-
     void SetYear(uint_t year) override
     {
       if (year)
@@ -118,12 +110,7 @@ namespace Module::YMVTX
       }
     }
 
-    void SetProgram(const String& /*program*/) override
-    {
-      // TODO
-    }
-
-    void SetEditor(const String& editor) override
+    void SetEditor(StringView editor) override
     {
       Properties.SetProgram(editor);
     }
@@ -155,6 +142,7 @@ namespace Module::YMVTX
 
   private:
     AYM::PropertiesHelper& Properties;
+    MetaProperties Meta;
     AYM::MutableStreamModel::Ptr Data;
     Time::Microseconds FrameDuration = AYM::BASE_FRAME_DURATION;
   };

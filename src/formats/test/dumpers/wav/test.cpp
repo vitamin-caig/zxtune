@@ -61,6 +61,11 @@ namespace
       }
     }
 
+    void SetComment(StringView comment) override
+    {
+      std::cout << "Comment: " << comment << std::endl;
+    }
+
     MetaBuilder& GetMetaBuilder() override
     {
       return *this;

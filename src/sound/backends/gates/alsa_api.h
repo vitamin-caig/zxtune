@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  ALSA subsystem API gate interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  ALSA subsystem API gate interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
-//platform-specific includes
+// platform-specific includes
 #include <alsa/asoundlib.h>
 #include <alsa/pcm.h>
 
@@ -83,4 +83,4 @@ namespace Sound
     Api::Ptr LoadDynamicApi();
 
   }
-}
+}  // namespace Sound

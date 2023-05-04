@@ -20,13 +20,13 @@ namespace ZXTune
   void RegisterNCSFSupport(PlayerPluginsRegistrator& registrator)
   {
     // plugin attributes
-    const Char ID[] = {'N', 'C', 'S', 'F', 0};
+    const auto ID = "NCSF"_id;
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::DAC
                         | Capabilities::Module::Traits::MULTIFILE;
 
-    const auto factory = Module::NCSF::CreateFactory();
-    const auto decoder = Formats::Chiptune::CreateNCSFDecoder();
-    const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto factory = Module::NCSF::CreateFactory();
+    auto decoder = Formats::Chiptune::CreateNCSFDecoder();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

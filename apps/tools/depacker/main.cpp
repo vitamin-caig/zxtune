@@ -13,7 +13,7 @@ namespace
 
   struct DecoderTraits
   {
-    const char* const Id;
+    const StringView Id;
     const CreateDecoderFunc Create;
   };
 
@@ -21,39 +21,39 @@ namespace
 
   const DecoderTraits DECODERS[] = {
       // depackers
-      {"HOBETA", &CreateHobetaDecoder},
-      {"HRUST1", &CreateHrust1Decoder},
-      {"HRUST2", &CreateHrust21Decoder},
-      {"HRUST23", &CreateHrust23Decoder},
-      {"FDI", &CreateFullDiskImageDecoder},
-      {"DSQ", &CreateDataSquieezerDecoder},
-      {"MSP", &CreateMSPackDecoder},
-      {"TRUSH", &CreateTRUSHDecoder},
-      {"LZS", &CreateLZSDecoder},
-      {"PCD61", &CreatePowerfullCodeDecreaser61Decoder},
-      {"PCD61i", &CreatePowerfullCodeDecreaser61iDecoder},
-      {"PCD62", &CreatePowerfullCodeDecreaser62Decoder},
-      {"HRUM", &CreateHrumDecoder},
-      {"CC3", &CreateCodeCruncher3Decoder},
-      {"CC4", &CreateCompressorCode4Decoder},
-      {"CC4PLUS", &CreateCompressorCode4PlusDecoder},
-      {"ESV", &CreateESVCruncherDecoder},
-      {"GAM", &CreateGamePackerDecoder},
-      {"GAMPLUS", &CreateGamePackerPlusDecoder},
-      {"TLZ", &CreateTurboLZDecoder},
-      {"TLZP", &CreateTurboLZProtectedDecoder},
-      {"CHARPRES", &CreateCharPresDecoder},
-      {"PACK2", &CreatePack2Decoder},
-      {"LZH1", &CreateLZH1Decoder},
-      {"LZH2", &CreateLZH2Decoder},
-      {"SNA128", &CreateSna128Decoder},
-      {"TD0", &CreateTeleDiskImageDecoder},
-      {"Z80V145", &CreateZ80V145Decoder},
-      {"Z80V20", &CreateZ80V20Decoder},
-      {"Z80V30", &CreateZ80V30Decoder},
-      {"MEGALZ", &CreateMegaLZDecoder},
-      {"DSK", &CreateDSKDecoder},
-      {"GZIP", &CreateGzipDecoder},
+      {"HOBETA"_sv, &CreateHobetaDecoder},
+      {"HRUST1"_sv, &CreateHrust1Decoder},
+      {"HRUST2"_sv, &CreateHrust21Decoder},
+      {"HRUST23"_sv, &CreateHrust23Decoder},
+      {"FDI"_sv, &CreateFullDiskImageDecoder},
+      {"DSQ"_sv, &CreateDataSquieezerDecoder},
+      {"MSP"_sv, &CreateMSPackDecoder},
+      {"TRUSH"_sv, &CreateTRUSHDecoder},
+      {"LZS"_sv, &CreateLZSDecoder},
+      {"PCD61"_sv, &CreatePowerfullCodeDecreaser61Decoder},
+      {"PCD61i"_sv, &CreatePowerfullCodeDecreaser61iDecoder},
+      {"PCD62"_sv, &CreatePowerfullCodeDecreaser62Decoder},
+      {"HRUM"_sv, &CreateHrumDecoder},
+      {"CC3"_sv, &CreateCodeCruncher3Decoder},
+      {"CC4"_sv, &CreateCompressorCode4Decoder},
+      {"CC4PLUS"_sv, &CreateCompressorCode4PlusDecoder},
+      {"ESV"_sv, &CreateESVCruncherDecoder},
+      {"GAM"_sv, &CreateGamePackerDecoder},
+      {"GAMPLUS"_sv, &CreateGamePackerPlusDecoder},
+      {"TLZ"_sv, &CreateTurboLZDecoder},
+      {"TLZP"_sv, &CreateTurboLZProtectedDecoder},
+      {"CHARPRES"_sv, &CreateCharPresDecoder},
+      {"PACK2"_sv, &CreatePack2Decoder},
+      {"LZH1"_sv, &CreateLZH1Decoder},
+      {"LZH2"_sv, &CreateLZH2Decoder},
+      {"SNA128"_sv, &CreateSna128Decoder},
+      {"TD0"_sv, &CreateTeleDiskImageDecoder},
+      {"Z80V145"_sv, &CreateZ80V145Decoder},
+      {"Z80V20"_sv, &CreateZ80V20Decoder},
+      {"Z80V30"_sv, &CreateZ80V30Decoder},
+      {"MEGALZ"_sv, &CreateMegaLZDecoder},
+      {"DSK"_sv, &CreateDSKDecoder},
+      {"GZIP"_sv, &CreateGzipDecoder},
   };
 
   class AutoDecoder : public Formats::Packed::Decoder
@@ -73,8 +73,8 @@ namespace
     {
       for (const auto& trait : DECODERS)
       {
-        const Formats::Packed::Decoder::Ptr delegate = (trait.Create)();
-        if (const Formats::Packed::Container::Ptr result = delegate->Decode(rawData))
+        const auto delegate = (trait.Create)();
+        if (auto result = delegate->Decode(rawData))
         {
           std::cerr << "Detected " << delegate->GetDescription() << std::endl;
           return result;
@@ -84,16 +84,16 @@ namespace
     }
   };
 
-  std::string GetType(int argc, const char* argv[])
+  StringView GetType(int argc, const char* argv[])
   {
     switch (argc)
     {
     case 1:
-      return std::string();
+      return {};
     case 2:
-      return std::string(argv[1]);
+      return argv[1];
     default:
-      return "--help";
+      return "--help"_sv;
     }
   }
 
@@ -113,13 +113,13 @@ namespace
     }
   }
 
-  Formats::Packed::Decoder::Ptr CreateDecoder(const std::string& type)
+  Formats::Packed::Decoder::Ptr CreateDecoder(StringView type)
   {
-    if (type == "")
+    if (type == ""_sv)
     {
       return MakePtr<AutoDecoder>();
     }
-    else if (type == "--help")
+    else if (type == "--help"_sv)
     {
       ShowHelp();
     }
@@ -175,11 +175,11 @@ int main(int argc, const char* argv[])
 {
   try
   {
-    const std::string type = GetType(argc, argv);
-    const Formats::Packed::Decoder::Ptr decoder = CreateDecoder(type);
-    const Binary::Container::Ptr input = ReadInput();
+    const auto type = GetType(argc, argv);
+    const auto decoder = CreateDecoder(type);
+    const auto input = ReadInput();
     std::cerr << "Input: " << input->Size() << std::endl;
-    if (const Formats::Packed::Container::Ptr output = decoder->Decode(*input))
+    if (const auto output = decoder->Decode(*input))
     {
       std::cerr << "Payload: " << output->PackedSize() << std::endl;
       WriteOutput(*output);

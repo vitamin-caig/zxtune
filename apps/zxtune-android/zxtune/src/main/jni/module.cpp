@@ -127,7 +127,7 @@ namespace
 
 namespace
 {
-  Module::Holder::Ptr CreateModule(Binary::Container::Ptr data, const String& subpath)
+  Module::Holder::Ptr CreateModule(Binary::Container::Ptr data, StringView subpath)
   {
     try
     {
@@ -167,7 +167,7 @@ namespace
       }
     }
 
-    void OnProgress(uint_t current, const String&) override
+    void OnProgress(uint_t current, StringView) override
     {
       OnProgress(current);
     }
@@ -187,7 +187,7 @@ namespace
       , Log(log)
     {}
 
-    Parameters::Container::Ptr CreateInitialProperties(const String& /*subpath*/) const override
+    Parameters::Container::Ptr CreateInitialProperties(StringView /*subpath*/) const override
     {
       return Parameters::Container::Create();
     }
@@ -230,7 +230,7 @@ JNIEXPORT jobject JNICALL Java_app_zxtune_core_jni_JniApi_loadModule(JNIEnv* env
                                                                      jstring subpath)
 {
   return Jni::Call(env, [=]() {
-    auto module = CreateModule(Binary::CreateByteBufferContainer(env, buffer), Jni::MakeString(env, subpath));
+    auto module = CreateModule(Binary::CreateByteBufferContainer(env, buffer), Jni::JstringView(env, subpath));
     return CreateJniObject(env, std::move(module));
   });
 }
@@ -329,6 +329,6 @@ JNIEXPORT void JNICALL Java_app_zxtune_core_jni_JniModule_resolveAdditionalFile(
     const auto moduleHandle = NativeModuleJni::GetHandle(env, self);
     const auto module = Module::Storage::Instance().Get(moduleHandle);
     auto& files = const_cast<Module::AdditionalFiles&>(dynamic_cast<const Module::AdditionalFiles&>(*module));
-    files.Resolve(Jni::MakeString(env, fileName), Binary::CreateByteBufferContainer(env, data));
+    files.Resolve(Jni::JstringView(env, fileName), Binary::CreateByteBufferContainer(env, data));
   });
 }

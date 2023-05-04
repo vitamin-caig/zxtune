@@ -24,7 +24,7 @@
 namespace
 {
   const std::string Domain("test");
-  
+
   Binary::Container::Ptr ReadFile(const std::string& name)
   {
     std::ifstream stream(name.c_str(), std::ios::binary);

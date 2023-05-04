@@ -18,10 +18,10 @@
 // library includes
 #include <debug/log.h>
 #include <io/api.h>
+#include <strings/map.h>
 // std includes
 #include <algorithm>
 #include <list>
-#include <map>
 
 namespace IO
 {
@@ -49,7 +49,7 @@ namespace IO
       }
     }
 
-    Identifier::Ptr ResolveUri(const String& uri) const override
+    Identifier::Ptr ResolveUri(StringView uri) const override
     {
       Dbg("Resolving uri '{}'", uri);
       if (const Identifier::Ptr id = Resolve(uri))
@@ -60,7 +60,7 @@ namespace IO
       throw MakeFormattedError(THIS_LINE, translate("Failed to resolve uri '{}'."), uri);
     }
 
-    Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params,
+    Binary::Container::Ptr OpenData(StringView path, const Parameters::Accessor& params,
                                     Log::ProgressCallback& cb) const override
     {
       Dbg("Opening path '{}'", path);
@@ -76,7 +76,7 @@ namespace IO
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
-    Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params,
+    Binary::OutputStream::Ptr CreateStream(StringView path, const Parameters::Accessor& params,
                                            Log::ProgressCallback& cb) const override
     {
       Dbg("Creating stream '{}'", path);
@@ -100,35 +100,33 @@ namespace IO
     }
 
   private:
-    Identifier::Ptr Resolve(const String& uri) const
+    Identifier::Ptr Resolve(StringView uri) const
     {
       for (const auto& provider : Providers)
       {
-        if (const Identifier::Ptr res = provider->Resolve(uri))
+        if (auto res = provider->Resolve(uri))
         {
           return res;
         }
       }
-      return Identifier::Ptr();
+      return {};
     }
 
-    const DataProvider* FindProvider(const String& scheme) const
+    const DataProvider* FindProvider(StringView scheme) const
     {
-      const SchemeToProviderMap::const_iterator it = Schemes.find(scheme);
-      return it != Schemes.end() ? it->second.get() : nullptr;
+      return Schemes.FindPtrValue(scheme);
     }
 
   private:
     ProvidersList Providers;
-    typedef std::map<String, DataProvider::Ptr> SchemeToProviderMap;
-    SchemeToProviderMap Schemes;
+    Strings::ValueMap<DataProvider::Ptr> Schemes;
   };
 
   class UnavailableProvider : public DataProvider
   {
   public:
-    UnavailableProvider(String id, const char* descr, Error status)
-      : IdValue(std::move(id))
+    UnavailableProvider(StringView id, const char* descr, Error status)
+      : IdValue(id.to_string())
       , DescrValue(descr)
       , StatusValue(std::move(status))
     {}
@@ -148,17 +146,12 @@ namespace IO
       return StatusValue;
     }
 
-    virtual bool Check(const String&) const
-    {
-      return false;
-    }
-
-    Binary::Container::Ptr Open(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const override
+    Binary::Container::Ptr Open(StringView, const Parameters::Accessor&, Log::ProgressCallback&) const override
     {
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
 
-    Binary::OutputStream::Ptr Create(const String&, const Parameters::Accessor&, Log::ProgressCallback&) const override
+    Binary::OutputStream::Ptr Create(StringView, const Parameters::Accessor&, Log::ProgressCallback&) const override
     {
       throw Error(THIS_LINE, translate("Specified uri scheme is not supported."));
     }
@@ -168,9 +161,9 @@ namespace IO
       return Strings::Set();
     }
 
-    Identifier::Ptr Resolve(const String& /*uri*/) const override
+    Identifier::Ptr Resolve(StringView /*uri*/) const override
     {
-      return Identifier::Ptr();
+      return {};
     }
 
   private:
@@ -188,18 +181,17 @@ namespace IO
     return instance;
   }
 
-  Identifier::Ptr ResolveUri(const String& uri)
+  Identifier::Ptr ResolveUri(StringView uri)
   {
     return ProvidersEnumerator::Instance().ResolveUri(uri);
   }
 
-  Binary::Container::Ptr OpenData(const String& path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
+  Binary::Container::Ptr OpenData(StringView path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
   {
     return ProvidersEnumerator::Instance().OpenData(path, params, cb);
   }
 
-  Binary::OutputStream::Ptr CreateStream(const String& path, const Parameters::Accessor& params,
-                                         Log::ProgressCallback& cb)
+  Binary::OutputStream::Ptr CreateStream(StringView path, const Parameters::Accessor& params, Log::ProgressCallback& cb)
   {
     return ProvidersEnumerator::Instance().CreateStream(path, params, cb);
   }
@@ -209,13 +201,13 @@ namespace IO
     return ProvidersEnumerator::Instance().Enumerate();
   }
 
-  DataProvider::Ptr CreateDisabledProviderStub(const String& id, const char* description)
+  DataProvider::Ptr CreateDisabledProviderStub(StringView id, const char* description)
   {
     return CreateUnavailableProviderStub(id, description,
                                          Error(THIS_LINE, translate("Not supported in current configuration")));
   }
 
-  DataProvider::Ptr CreateUnavailableProviderStub(const String& id, const char* description, const Error& status)
+  DataProvider::Ptr CreateUnavailableProviderStub(StringView id, const char* description, const Error& status)
   {
     return MakePtr<UnavailableProvider>(id, description, status);
   }

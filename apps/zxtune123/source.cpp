@@ -34,8 +34,6 @@
 #include <iomanip>
 #include <iostream>
 // boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
 
@@ -43,9 +41,9 @@ namespace
 {
   const Char DELIMITERS[] = {',', ';', ':', '\0'};
 
-  void OutputString(uint_t width, const String& text)
+  void OutputString(uint_t width, StringView text)
   {
-    const String::size_type curSize = text.size();
+    const auto curSize = text.size();
     if (curSize < width)
     {
       StdOut << text << String(width - curSize - 1, ' ') << '\r';
@@ -71,16 +69,14 @@ namespace
       OnProgress(current, EMPTY);
     }
 
-    void OnProgress(uint_t current, const String& message) override
+    void OnProgress(uint_t current, StringView message) override
     {
       if (ReportTimeout())
       {
         CheckForExit();
         if (const uint_t currentWidth = GetCurrentWidth())
         {
-          String text = message;
-          text += Strings::Format(" [{}%]", current);
-          OutputString(currentWidth, text);
+          OutputString(currentWidth, Strings::Format("{} [{}%]", message, current));
         }
       }
     }
@@ -114,9 +110,9 @@ namespace
       , Dir(ExtractDir(id))
     {}
 
-    Binary::Container::Ptr Get(const String& name) const override
+    Binary::Container::Ptr Get(StringView name) const override
     {
-      return IO::OpenData(Dir + name, Params, Log::ProgressCallback::Stub());
+      return IO::OpenData(Dir + name.to_string(), Params, Log::ProgressCallback::Stub());
     }
 
   private:
@@ -144,7 +140,7 @@ namespace
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : nullptr)
     {}
 
-    Parameters::Container::Ptr CreateInitialProperties(const String& subpath) const
+    Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const
     {
       auto subId = Id->WithSubpath(subpath);
       auto moduleProperties = Module::CreatePathProperties(std::move(subId));
@@ -251,11 +247,11 @@ namespace
     }
 
   private:
-    void ProcessItem(const String& uri, OnItemCallback& callback) const
+    void ProcessItem(StringView uri, OnItemCallback& callback) const
     {
       try
       {
-        const IO::Identifier::Ptr id = IO::ResolveUri(uri);
+        const auto id = IO::ResolveUri(uri);
 
         DetectCallback detectCallback(Params, id, callback, ShowProgress);
         auto data = IO::OpenData(id->Path(), *Params, Log::ProgressCallback::Stub());

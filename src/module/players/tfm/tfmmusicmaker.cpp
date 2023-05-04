@@ -115,11 +115,6 @@ namespace Module::TFMMusicMaker
                  const Formats::Chiptune::TFMMusicMaker::Date& /*saved*/) override
     {}
 
-    void SetComment(const String& comment) override
-    {
-      Properties.SetComment(comment);
-    }
-
     void SetInstrument(uint_t index, Formats::Chiptune::TFMMusicMaker::Instrument instrument) override
     {
       Data->Instruments.Add(index, std::move(instrument));

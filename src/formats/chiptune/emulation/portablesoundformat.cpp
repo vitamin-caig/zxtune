@@ -19,12 +19,12 @@
 #include <binary/input_stream.h>
 #include <debug/log.h>
 #include <formats/chiptune/container.h>
+#include <strings/casing.h>
 #include <strings/encoding.h>
 #include <strings/prefixed_index.h>
 #include <strings/trim.h>
 #include <time/duration.h>
 // std includes
-#include <cctype>
 #include <set>
 
 namespace Formats::Chiptune::PortableSoundFormat
@@ -38,28 +38,22 @@ namespace Formats::Chiptune::PortableSoundFormat
     const uint8_t SIGNATURE[] = {'[', 'T', 'A', 'G', ']'};
     const auto LIB_PREFIX = "_lib"_sv;
 
-    const char UTF8[] = "utf8";
-    const char TITLE[] = "title";
-    const char ARTIST[] = "artist";
-    const char GAME[] = "game";
-    const char YEAR[] = "year";
-    const char GENRE[] = "genre";
-    const char COMMENT[] = "comment";
-    const char COPYRIGHT[] = "copyright";
-    const char XSFBY_SUFFIX[] = "sfby";
-    const char LENGTH[] = "length";
-    const char FADE[] = "fade";
-    const char VOLUME[] = "volume";
+    const auto UTF8 = "utf8"_sv;
+    const auto TITLE = "title"_sv;
+    const auto ARTIST = "artist"_sv;
+    const auto GAME = "game"_sv;
+    const auto YEAR = "year"_sv;
+    const auto GENRE = "genre"_sv;
+    const auto COMMENT = "comment"_sv;
+    const auto COPYRIGHT = "copyright"_sv;
+    const auto XSFBY_SUFFIX = "sfby"_sv;
+    const auto LENGTH = "length"_sv;
+    const auto FADE = "fade"_sv;
+    const auto VOLUME = "volume"_sv;
 
-    static String MakeName(StringView str)
+    bool Match(StringView str, StringView tag)
     {
-      String res;
-      res.reserve(str.size());
-      for (const auto sym : str)
-      {
-        res += std::tolower(sym);
-      }
-      return res;
+      return Strings::EqualNoCaseAscii(str, tag);
     }
   }  // namespace Tags
 
@@ -109,68 +103,108 @@ namespace Formats::Chiptune::PortableSoundFormat
       }
     }
 
+    class TagsParser
+    {
+    public:
+      bool Parse(StringView line)
+      {
+        const auto eqPos = line.find('=');
+        if (eqPos != line.npos)
+        {
+          Name = Strings::TrimSpaces(line.substr(0, eqPos));
+          Value = Strings::TrimSpaces(line.substr(eqPos + 1));
+          if (!IsUtf8)
+          {
+            ValueUtf8 = Strings::ToAutoUtf8(Value);
+          }
+          return true;
+        }
+        else
+        {
+          return false;
+        }
+      }
+
+      void SetUtf8()
+      {
+        IsUtf8 = true;
+      }
+
+      StringView GetName() const
+      {
+        return Name;
+      }
+
+      StringView GetValue() const
+      {
+        return IsUtf8 ? Value : ValueUtf8;
+      }
+
+    private:
+      bool IsUtf8 = false;
+      StringView Name;
+      StringView Value;
+      String ValueUtf8;
+    };
+
     void ParseTags(Builder& target)
     {
       if (!ReadTagSignature())
       {
         return;
       };
-      bool utf8 = false;
+      TagsParser tag;
       String comment;
+      auto& meta = target.GetMetaBuilder();
       while (Stream.GetRestSize())
       {
-        String name;
-        StringView valueView;
-        if (!ReadTagVariable(name, valueView))
+        if (!tag.Parse(Stream.ReadString()))
         {
           // Blank lines, or lines not of the form "variable=value", are ignored.
           continue;
         }
-        Dbg("tags[{}]={}", name, valueView);
+        const auto name = tag.GetName();
+        const auto value = tag.GetValue();
+        Dbg("tags[{}]={}", name, value);
         if (const auto num = FindLibraryNumber(name))
         {
-          target.SetLibrary(num, valueView.to_string());
+          target.SetLibrary(num, value);
           continue;
         }
         else if (name == Tags::UTF8)
         {
-          utf8 = true;
+          tag.SetUtf8();
           continue;
         }
-        const auto value = utf8 ? valueView.to_string() : Strings::ToAutoUtf8(valueView);
-        if (name == Tags::TITLE)
+        if (Tags::Match(name, Tags::TITLE))
         {
-          target.SetTitle(value);
+          meta.SetTitle(value);
         }
-        else if (name == Tags::ARTIST)
+        else if (Tags::Match(name, Tags::ARTIST))
         {
-          target.SetArtist(value);
+          meta.SetTitle(value);
         }
-        else if (name == Tags::GAME)
+        else if (Tags::Match(name, Tags::GAME))
         {
-          target.SetGame(value);
+          meta.SetProgram(value);
         }
-        else if (name == Tags::YEAR)
+        else if (Tags::Match(name, Tags::YEAR))
         {
           target.SetYear(value);
         }
-        else if (name == Tags::GENRE)
+        else if (Tags::Match(name, Tags::GENRE))
         {
           target.SetGenre(value);
         }
-        else if (name == Tags::COMMENT)
+        else if (Tags::Match(name, Tags::COMMENT))
         {
-          if (comment.empty())
-          {
-            comment = value;
-          }
-          else
+          if (!comment.empty())
           {
             comment += '\n';
-            comment += value;
           }
+          comment.append(value);
         }
-        else if (name == Tags::COPYRIGHT)
+        else if (Tags::Match(name, Tags::COPYRIGHT))
         {
           target.SetCopyright(value);
         }
@@ -178,17 +212,17 @@ namespace Formats::Chiptune::PortableSoundFormat
         {
           target.SetDumper(value);
         }
-        else if (name == Tags::LENGTH)
+        else if (Tags::Match(name, Tags::LENGTH))
         {
-          target.SetLength(ParseTime(value));
+          target.SetLength(ParseTime(value.to_string()));
         }
-        else if (name == Tags::FADE)
+        else if (Tags::Match(name, Tags::FADE))
         {
-          target.SetFade(ParseTime(value));
+          target.SetFade(ParseTime(value.to_string()));
         }
-        else if (name == Tags::VOLUME)
+        else if (Tags::Match(name, Tags::VOLUME))
         {
-          target.SetVolume(ParseVolume(value));
+          target.SetVolume(ParseVolume(value.to_string()));
         }
         else
         {
@@ -197,7 +231,7 @@ namespace Formats::Chiptune::PortableSoundFormat
       }
       if (!comment.empty())
       {
-        target.SetComment(std::move(comment));
+        meta.SetComment(comment);
       }
     }
 
@@ -215,22 +249,6 @@ namespace Formats::Chiptune::PortableSoundFormat
       }
       Stream.Seek(currentPosition);
       return false;
-    }
-
-    bool ReadTagVariable(String& name, StringView& value)
-    {
-      const auto line = Stream.ReadString();
-      const auto eqPos = line.find('=');
-      if (eqPos != line.npos)
-      {
-        name = Tags::MakeName(Strings::TrimSpaces(line.substr(0, eqPos)));
-        value = Strings::TrimSpaces(line.substr(eqPos + 1));
-        return true;
-      }
-      else
-      {
-        return false;
-      }
     }
 
     static uint_t FindLibraryNumber(StringView tagName)

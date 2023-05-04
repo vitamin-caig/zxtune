@@ -22,7 +22,6 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
@@ -593,11 +592,11 @@ namespace Sound
   {
     try
     {
-      const Win32::Api::Ptr api = Win32::LoadDynamicApi();
+      auto api = Win32::LoadDynamicApi();
       if (Win32::DevicesIterator(api).IsValid())
       {
-        const BackendWorkerFactory::Ptr factory = MakePtr<Win32::BackendWorkerFactory>(api);
-        storage.Register(Win32::BACKEND_ID, Win32::BACKEND_DESCRIPTION, Win32::CAPABILITIES, factory);
+        auto factory = MakePtr<Win32::BackendWorkerFactory>(std::move(api));
+        storage.Register(Win32::BACKEND_ID, Win32::BACKEND_DESCRIPTION, Win32::CAPABILITIES, std::move(factory));
       }
       else
       {
@@ -616,8 +615,8 @@ namespace Sound
     {
       try
       {
-        const Api::Ptr api = LoadDynamicApi();
-        return MakePtr<DevicesIterator>(api);
+        auto api = LoadDynamicApi();
+        return MakePtr<DevicesIterator>(std::move(api));
       }
       catch (const Error& e)
       {

@@ -22,7 +22,6 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 // std includes
@@ -439,14 +438,14 @@ namespace Sound
   {
     try
     {
-      const OpenAl::Api::Ptr api = OpenAl::LoadDynamicApi();
+      auto api = OpenAl::LoadDynamicApi();
       const char* const version = api->alGetString(AL_VERSION);
       const char* const vendor = api->alGetString(AL_VENDOR);
       const char* const renderer = api->alGetString(AL_RENDERER);
       OpenAl::Dbg("Detected OpenAL v{} by '{}' (renderer '{}')", version, vendor,
                   renderer);  // usually empty strings...
-      const BackendWorkerFactory::Ptr factory = MakePtr<OpenAl::BackendWorkerFactory>(api);
-      storage.Register(OpenAl::BACKEND_ID, OpenAl::BACKEND_DESCRIPTION, OpenAl::CAPABILITIES, factory);
+      auto factory = MakePtr<OpenAl::BackendWorkerFactory>(std::move(api));
+      storage.Register(OpenAl::BACKEND_ID, OpenAl::BACKEND_DESCRIPTION, OpenAl::CAPABILITIES, std::move(factory));
     }
     catch (const Error& e)
     {

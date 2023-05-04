@@ -40,25 +40,25 @@ namespace
 {
 // TODO
 #ifdef _WIN32
-  String ApplyOSFilenamesRestrictions(const String& in)
+  String ApplyOSFilenamesRestrictions(StringView in)
   {
-    static const String DEPRECATED_NAMES[] = {"CON",  "PRN",  "AUX",  "NUL",  "COM1", "COM2", "COM3", "COM4",
-                                              "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3",
-                                              "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
+    static const StringView DEPRECATED_NAMES[] = {"CON",  "PRN",  "AUX",  "NUL",  "COM1", "COM2", "COM3", "COM4",
+                                                  "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3",
+                                                  "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
     const auto dotPos = in.find('.');
     const auto filename = in.substr(0, dotPos);
     if (std::end(DEPRECATED_NAMES) != std::find(DEPRECATED_NAMES, std::end(DEPRECATED_NAMES), filename))
     {
-      const auto restPart = dotPos != String::npos ? in.substr(dotPos) : String();
-      return filename + '~' + restPart;
+      const auto restPart = dotPos != in.npos ? in.substr(dotPos) : StringView();
+      return (filename.to_string() + '~').append(restPart);
     }
-    return in;
+    return in.to_string();
   }
 
 #else
-  String ApplyOSFilenamesRestrictions(const String& in)
+  String ApplyOSFilenamesRestrictions(StringView in)
   {
-    return in;
+    return in.to_string();
   }
 #endif
 
@@ -119,16 +119,16 @@ namespace IO::File
   };
 
   // uri-related constants
-  const Char SCHEME_SIGN[] = {':', '/', '/', 0};
-  const Char SCHEME_FILE[] = {'f', 'i', 'l', 'e', 0};
+  const auto SCHEME_SIGN = "://"_sv;
+  const auto SCHEME_FILE = "file"_sv;
   const Char SUBPATH_DELIMITER = '\?';
 
   class FileIdentifier : public Identifier
   {
   public:
-    FileIdentifier(boost::filesystem::path path, String subpath)
+    FileIdentifier(boost::filesystem::path path, StringView subpath)
       : PathValue(std::move(path))
-      , SubpathValue(std::move(subpath))
+      , SubpathValue(subpath.to_string())
       , FullValue(Serialize())
     {
       Require(!PathValue.empty());
@@ -141,7 +141,7 @@ namespace IO::File
 
     String Scheme() const override
     {
-      return SCHEME_FILE;
+      return SCHEME_FILE.to_string();
     }
 
     String Path() const override
@@ -165,7 +165,7 @@ namespace IO::File
       return SubpathValue;
     }
 
-    Ptr WithSubpath(const String& subpath) const override
+    Ptr WithSubpath(StringView subpath) const override
     {
       return MakePtr<FileIdentifier>(PathValue, subpath);
     }
@@ -282,9 +282,9 @@ namespace IO::File
     }
   }
 
-  Binary::Data::Ptr OpenData(const String& path, std::size_t mmapThreshold)
+  Binary::Data::Ptr OpenData(StringView path, std::size_t mmapThreshold)
   {
-    const boost::filesystem::path fileName = Details::FromString(path);
+    const auto fileName = Details::FromString(path);
     const boost::uintmax_t size = FileSize(fileName, THIS_LINE);
     if (size == 0)
     {
@@ -373,10 +373,10 @@ namespace IO::File
     return ApplyOSFilenamesRestrictions(result);
   }
 
-  boost::filesystem::path CreateSanitizedPath(const String& fileName)
+  boost::filesystem::path CreateSanitizedPath(StringView fileName)
   {
-    const boost::filesystem::path initial = Details::FromString(fileName);
-    boost::filesystem::path::const_iterator it = initial.begin(), lim = initial.end();
+    const auto initial = Details::FromString(fileName);
+    auto it = initial.begin(), lim = initial.end();
     boost::filesystem::path result;
     for (const boost::filesystem::path root(initial.root_path()); result != root && it != lim; ++it)
     {
@@ -384,7 +384,7 @@ namespace IO::File
     }
     for (; it != lim; ++it)
     {
-      const boost::filesystem::path sanitized = Details::FromString(SanitizePathComponent(Details::ToString(*it)));
+      const auto sanitized = Details::FromString(SanitizePathComponent(Details::ToString(*it)));
       result /= sanitized;
     }
     if (initial != result)
@@ -394,12 +394,11 @@ namespace IO::File
     return result;
   }
 
-  Binary::SeekableOutputStream::Ptr CreateStream(const String& fileName, const FileCreatingParameters& params)
+  Binary::SeekableOutputStream::Ptr CreateStream(StringView fileName, const FileCreatingParameters& params)
   {
     try
     {
-      boost::filesystem::path path = params.SanitizeNames() ? CreateSanitizedPath(fileName)
-                                                            : Details::FromString(fileName);
+      auto path = params.SanitizeNames() ? CreateSanitizedPath(fileName) : Details::FromString(fileName);
       Dbg("CreateStream: input='{}' path='{}'", fileName, Details::ToString(path));
       if (params.CreateDirectories() && path.has_parent_path())
       {
@@ -462,32 +461,32 @@ namespace IO::File
 
     Strings::Set Schemes() const override
     {
-      static const Char* SCHEMES[] = {SCHEME_FILE};
-      return Strings::Set(SCHEMES, std::end(SCHEMES));
+      Strings::Set res;
+      res.insert(SCHEME_FILE.to_string());
+      return res;
     }
 
-    Identifier::Ptr Resolve(const String& uri) const override
+    Identifier::Ptr Resolve(StringView uri) const override
     {
-      const String schemeSign(SCHEME_SIGN);
-      const String::size_type schemePos = uri.find(schemeSign);
-      const String::size_type hierPos = String::npos == schemePos ? 0 : schemePos + schemeSign.size();
-      const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER, hierPos);
+      const auto schemePos = uri.find(SCHEME_SIGN);
+      const auto hierPos = uri.npos == schemePos ? 0 : schemePos + SCHEME_SIGN.size();
+      const auto subPos = uri.find_first_of(SUBPATH_DELIMITER, hierPos);
 
-      const String scheme = String::npos == schemePos ? String(SCHEME_FILE) : uri.substr(0, schemePos);
-      const String path = String::npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
-      const String subpath = String::npos == subPos ? String() : uri.substr(subPos + 1);
+      const auto scheme = uri.npos == schemePos ? SCHEME_FILE : uri.substr(0, schemePos);
+      const auto path = uri.npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
+      const auto subpath = uri.npos == subPos ? StringView() : uri.substr(subPos + 1);
       return !path.empty() && scheme == SCHEME_FILE ? MakePtr<FileIdentifier>(Details::FromString(path), subpath)
                                                     : Identifier::Ptr();
     }
 
-    Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params,
+    Binary::Container::Ptr Open(StringView path, const Parameters::Accessor& params,
                                 Log::ProgressCallback& /*cb*/) const override
     {
       const ProviderParameters parameters(params);
       return Binary::CreateContainer(OpenLocalFile(path, parameters.MemoryMappingThreshold()));
     }
 
-    Binary::OutputStream::Ptr Create(const String& path, const Parameters::Accessor& params,
+    Binary::OutputStream::Ptr Create(StringView path, const Parameters::Accessor& params,
                                      Log::ProgressCallback&) const override
     {
       const ProviderParameters parameters(params);
@@ -498,7 +497,7 @@ namespace IO::File
 
 namespace IO
 {
-  Binary::Data::Ptr OpenLocalFile(const String& path, std::size_t mmapThreshold)
+  Binary::Data::Ptr OpenLocalFile(StringView path, std::size_t mmapThreshold)
   {
     try
     {
@@ -510,7 +509,7 @@ namespace IO
     }
   }
 
-  Binary::SeekableOutputStream::Ptr CreateLocalFile(const String& path, const FileCreatingParameters& params)
+  Binary::SeekableOutputStream::Ptr CreateLocalFile(StringView path, const FileCreatingParameters& params)
   {
     try
     {

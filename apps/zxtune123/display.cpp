@@ -85,7 +85,7 @@ namespace
       return Options;
     }
 
-    void Message(const String& msg) override
+    void Message(StringView msg) override
     {
       if (!Silent)
       {
@@ -96,8 +96,8 @@ namespace
 
     void SetModule(Module::Holder::Ptr module, Sound::Backend::Ptr player) override
     {
-      const Module::Information::Ptr info = module->GetModuleInformation();
-      const Parameters::Accessor::Ptr props = module->GetModuleProperties();
+      const auto info = module->GetModuleInformation();
+      const auto props = module->GetModuleProperties();
       TotalDuration = info->Duration();
       State = player->GetState();
       TrackState = dynamic_cast<const Module::TrackState*>(State.get());

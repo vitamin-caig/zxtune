@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  DirectSound subsystem API gate interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  DirectSound subsystem API gate interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
-//platform-dependent includes
+// platform-dependent includes
 #define NOMINMAX
 #include <dsound.h>
 
@@ -35,4 +35,4 @@ namespace Sound
     Api::Ptr LoadDynamicApi();
 
   }
-}
+}  // namespace Sound

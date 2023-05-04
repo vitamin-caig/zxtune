@@ -44,7 +44,7 @@ namespace
     return data.CaptureResult();
   }
 
-  void Write(uint_t level, const char* msg)
+  void Write(uint_t level, StringView msg)
   {
     if (level)
     {
@@ -146,7 +146,7 @@ namespace
         Write(3, "Stack: {0} (0x{0:08x}) bytes at 0x{1:08x}", size, head);
       }
 
-      void SetRegion(String region, uint_t fps) override
+      void SetRegion(StringView region, uint_t fps) override
       {
         Write(3, "Region: {} ({} fps)", region, fps);
       }
@@ -184,7 +184,7 @@ namespace
     class PSF2VFSDumper : public Formats::Chiptune::Playstation2SoundFormat::Builder
     {
     public:
-      void OnFile(String path, Binary::Container::Ptr content) override
+      void OnFile(StringView path, Binary::Container::Ptr content) override
       {
         const auto fileSize = content ? content->Size() : std::size_t(0);
         Write(3, "{}: {} bytes", path, fileSize);
@@ -349,9 +349,45 @@ namespace
     };
   };
 
-  class PSFDumper : public Formats::Chiptune::PortableSoundFormat::Builder
+  class PSFDumper
+    : public Formats::Chiptune::PortableSoundFormat::Builder
+    , public Formats::Chiptune::MetaBuilder
   {
   public:
+    void SetProgram(StringView program) override
+    {
+      Write(1, "Program: {}", program);
+    }
+
+    void SetTitle(StringView title) override
+    {
+      Write(1, "Title: {}", title);
+    }
+
+    void SetAuthor(StringView author) override
+    {
+      Write(1, "Author: {}", author);
+    }
+
+    void SetStrings(const Strings::Array& strings) override
+    {
+      Write(1, "Strings:");
+      for (const auto& str : strings)
+      {
+        Write(2, str);
+      }
+    }
+
+    void SetComment(StringView comment) override
+    {
+      Write(1, "Comment: {}", comment);
+    }
+
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
+    {
+      return *this;
+    }
+
     void SetVersion(uint_t ver) override
     {
       Write(1, "Type: {} (id=0x{:02x})", DecodeVersion(ver), ver);
@@ -373,42 +409,22 @@ namespace
       Dumper->DumpProgram(*unpacked);
     }
 
-    void SetTitle(String title) override
-    {
-      Write(1, "Title: {}", title);
-    }
-
-    virtual void SetArtist(String artist) override
-    {
-      Write(1, "Artist: {}", artist);
-    }
-
-    void SetGame(String game) override
-    {
-      Write(1, "Game: {}", game);
-    }
-
-    void SetYear(String date) override
+    void SetYear(StringView date) override
     {
       Write(1, "Year: {}", date);
     }
 
-    void SetGenre(String genre) override
+    void SetGenre(StringView genre) override
     {
       Write(1, "Genre: {}", genre);
     }
 
-    void SetComment(String comment) override
-    {
-      Write(1, "Comment: {}", comment);
-    }
-
-    void SetCopyright(String copyright) override
+    void SetCopyright(StringView copyright) override
     {
       Write(1, "Copyright: {}", copyright);
     }
 
-    void SetDumper(String dumper) override
+    void SetDumper(StringView dumper) override
     {
       Write(1, "Dumper: {}", dumper);
     }
@@ -428,12 +444,12 @@ namespace
       Write(1, "Volume: {}", vol);
     }
 
-    void SetTag(String name, String value) override
+    void SetTag(StringView name, StringView value) override
     {
       Write(1, "{}: {}", name, value);
     }
 
-    void SetLibrary(uint_t num, String filename) override
+    void SetLibrary(uint_t num, StringView filename) override
     {
       Write(1, "Library #{}: {}", num, filename);
     }

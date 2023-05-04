@@ -87,7 +87,6 @@ namespace Formats
         virtual MetaBuilder& GetMetaBuilder() = 0;
         virtual void SetTempo(uint_t evenTempo, uint_t oddTempo, uint_t interleavePeriod) = 0;
         virtual void SetDate(const Date& created, const Date& saved) = 0;
-        virtual void SetComment(const String& comment) = 0;
 
         virtual void SetInstrument(uint_t index, Instrument instrument) = 0;
         // patterns

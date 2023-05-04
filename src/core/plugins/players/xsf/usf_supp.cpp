@@ -20,13 +20,13 @@ namespace ZXTune
   void RegisterUSFSupport(PlayerPluginsRegistrator& registrator)
   {
     // plugin attributes
-    const Char ID[] = {'U', 'S', 'F', 0};
+    const auto ID = "USF"_id;
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::DAC
                         | Capabilities::Module::Traits::MULTIFILE;
 
-    const auto factory = Module::USF::CreateFactory();
-    const auto decoder = Formats::Chiptune::CreateUSFDecoder();
-    const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto factory = Module::USF::CreateFactory();
+    auto decoder = Formats::Chiptune::CreateUSFDecoder();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

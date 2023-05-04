@@ -88,10 +88,10 @@ namespace
       try
       {
         const Parameters::Accessor::Ptr props = data.Holder->GetModuleProperties();
-        const String& id = GetModuleId(*props);
-        const String& filename =
+        const auto& id = GetModuleId(*props);
+        const auto& filename =
             FileNameTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(*props));
-        const Binary::OutputStream::Ptr stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
+        const auto stream = IO::CreateStream(filename, Params, Log::ProgressCallback::Stub());
         stream->ApplyData(*data.Data);
         Display.Message("Converted '{0}' => '{1}'", id, filename);
       }
@@ -109,33 +109,33 @@ namespace
     const Strings::Template::Ptr FileNameTemplate;
   };
 
-  std::unique_ptr<Module::Conversion::Parameter> CreateConversionParameters(const String& mode,
+  std::unique_ptr<Module::Conversion::Parameter> CreateConversionParameters(StringView mode,
                                                                             const Parameters::Accessor& modeParams)
   {
     Parameters::IntType optimization = Module::Conversion::DEFAULT_OPTIMIZATION;
-    modeParams.FindValue(String("optimization"), optimization);
+    modeParams.FindValue("optimization"_sv, optimization);
     std::unique_ptr<Module::Conversion::Parameter> param;
-    if (mode == "psg")
+    if (mode == "psg"_sv)
     {
       param.reset(new Module::Conversion::PSGConvertParam(optimization));
     }
-    else if (mode == "zx50")
+    else if (mode == "zx50"_sv)
     {
       param.reset(new Module::Conversion::ZX50ConvertParam(optimization));
     }
-    else if (mode == "txt")
+    else if (mode == "txt"_sv)
     {
       param.reset(new Module::Conversion::TXTConvertParam());
     }
-    else if (mode == "debugay")
+    else if (mode == "debugay"_sv)
     {
       param.reset(new Module::Conversion::DebugAYConvertParam(optimization));
     }
-    else if (mode == "aydump")
+    else if (mode == "aydump"_sv)
     {
       param.reset(new Module::Conversion::AYDumpConvertParam(optimization));
     }
-    else if (mode == "fym")
+    else if (mode == "fym"_sv)
     {
       param.reset(new Module::Conversion::FYMConvertParam(optimization));
     }
@@ -178,7 +178,7 @@ namespace
   class ConvertEndpoint : public HolderAndData::Receiver
   {
   public:
-    ConvertEndpoint(DisplayComponent& display, const String& mode, const Parameters::Accessor& modeParams, Ptr saver)
+    ConvertEndpoint(DisplayComponent& display, StringView mode, const Parameters::Accessor& modeParams, Ptr saver)
       : Display(display)
       , ConversionParameter(CreateConversionParameters(mode, modeParams))
       , Saver(std::move(saver))
@@ -186,8 +186,8 @@ namespace
 
     void ApplyData(HolderAndData data) override
     {
-      const Module::Holder::Ptr holder = data.Holder;
-      const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
+      const auto holder = data.Holder;
+      const auto props = holder->GetModuleProperties();
       if (const Binary::Data::Ptr result = Module::Convert(*holder, *ConversionParameter, props))
       {
         Saver->ApplyData({holder, result});
@@ -196,7 +196,7 @@ namespace
       {
         Parameters::StringType type;
         props->FindValue(Module::ATTR_TYPE, type);
-        const String& id = GetModuleId(*props);
+        const auto& id = GetModuleId(*props);
         Display.Message("Skipping '{0}' (type '{1}') due to convert impossibility.", id, type);
       }
     }
@@ -303,7 +303,7 @@ namespace
       }
     }
 
-    void ProcessUnknownData(const String& path, const String& container, Binary::Data::Ptr data) override
+    void ProcessUnknownData(StringView path, StringView container, Binary::Data::Ptr data) override
     {
       if (DumpUnknownData)
       {
@@ -312,7 +312,7 @@ namespace
     }
 
   private:
-    void BenchmarkFail(const String& path, const String& type, std::string msg) const
+    void BenchmarkFail(StringView path, StringView type, StringView msg) const
     {
       Display.Message("Fail\t({1})\t{0}\t[{2}]", path, type, msg);
     }

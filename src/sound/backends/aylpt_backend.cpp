@@ -23,7 +23,6 @@
 #include <module/conversion/api.h>
 #include <module/conversion/types.h>
 #include <platform/shared_library.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 // std includes
 #include <algorithm>
@@ -205,28 +204,27 @@ namespace Sound::AyLpt
   class DllName : public Platform::SharedLibrary::Name
   {
   public:
-    virtual String Base() const
+    StringView Base() const
     {
-      return "dlportio";
+      return "dlportio"_sv;
     }
 
-    virtual std::vector<String> PosixAlternatives() const
+    virtual std::vector<StringView> PosixAlternatives() const
     {
-      return std::vector<String>();
+      return {};
     }
 
-    virtual std::vector<String> WindowsAlternatives() const
+    virtual std::vector<StringView> WindowsAlternatives() const
     {
-      static const String ALTERNATIVES[] = {"inpout32.dll", "inpoutx64.dll"};
-      return std::vector<String>(ALTERNATIVES, std::end(ALTERNATIVES));
+      return {"inpout32.dll"_sv, "inpoutx64.dll"_sv};
     }
   };
 
   LptPort::Ptr LoadLptLibrary()
   {
     static const DllName NAME;
-    const Platform::SharedLibrary::Ptr lib = Platform::SharedLibrary::Load(NAME);
-    return MakePtr<DlPortIO>(lib);
+    auto lib = Platform::SharedLibrary::Load(NAME);
+    return MakePtr<DlPortIO>(std::move(lib));
   }
 
   class BackendWorkerFactory : public Sound::BackendWorkerFactory
@@ -257,9 +255,9 @@ namespace Sound
   {
     try
     {
-      const AyLpt::LptPort::Ptr port = AyLpt::LoadLptLibrary();
-      const BackendWorkerFactory::Ptr factory = MakePtr<AyLpt::BackendWorkerFactory>(port);
-      storage.Register(AyLpt::BACKEND_ID, AyLpt::BACKEND_DESCRIPTION, AyLpt::CAPABILITIES, factory);
+      auto port = AyLpt::LoadLptLibrary();
+      auto factory = MakePtr<AyLpt::BackendWorkerFactory>(std::move(port));
+      storage.Register(AyLpt::BACKEND_ID, AyLpt::BACKEND_DESCRIPTION, AyLpt::CAPABILITIES, std::move(factory));
     }
     catch (const Error& e)
     {

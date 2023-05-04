@@ -18,22 +18,17 @@ namespace ZXTune
 {
   void RegisterTFESupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
     {
-      const Char ID[] = {'T', 'F', '0', 0};
-      const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder =
-          Formats::Chiptune::TFMMusicMaker::Ver05::CreateDecoder();
-      const Module::TFM::Factory::Ptr factory = Module::TFMMusicMaker::CreateFactory(decoder);
-      const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto decoder = Formats::Chiptune::TFMMusicMaker::Ver05::CreateDecoder();
+      auto factory = Module::TFMMusicMaker::CreateFactory(decoder);
+      auto plugin = CreateTrackPlayerPlugin("TF0"_id, std::move(decoder), std::move(factory));
+      registrator.RegisterPlugin(std::move(plugin));
     }
     {
-      const Char ID[] = {'T', 'F', 'E', 0};
-      const Formats::Chiptune::TFMMusicMaker::Decoder::Ptr decoder =
-          Formats::Chiptune::TFMMusicMaker::Ver13::CreateDecoder();
-      const Module::TFM::Factory::Ptr factory = Module::TFMMusicMaker::CreateFactory(decoder);
-      const PlayerPlugin::Ptr plugin = CreateTrackPlayerPlugin(ID, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto decoder = Formats::Chiptune::TFMMusicMaker::Ver13::CreateDecoder();
+      auto factory = Module::TFMMusicMaker::CreateFactory(decoder);
+      auto plugin = CreateTrackPlayerPlugin("TFE"_id, std::move(decoder), std::move(factory));
+      registrator.RegisterPlugin(std::move(plugin));
     }
   }
 }  // namespace ZXTune

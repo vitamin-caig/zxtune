@@ -205,7 +205,7 @@ namespace IO::Network
   };
 
   // uri-related constants
-  const Char SCHEME_SIGN[] = {':', '/', '/', 0};
+  const auto SCHEME_SIGN = "://"_sv;
   const Char SCHEME_HTTP[] = {'h', 't', 't', 'p', 0};
   const Char SCHEME_HTTPS[] = {'h', 't', 't', 'p', 's', 0};
   const Char SCHEME_FTP[] = {'f', 't', 'p', 0};
@@ -220,10 +220,10 @@ namespace IO::Network
   class RemoteIdentifier : public Identifier
   {
   public:
-    RemoteIdentifier(String scheme, String path, String subpath)
-      : SchemeValue(std::move(scheme))
-      , PathValue(std::move(path))
-      , SubpathValue(std::move(subpath))
+    RemoteIdentifier(StringView scheme, StringView path, StringView subpath)
+      : SchemeValue(scheme.to_string())
+      , PathValue(path.to_string())
+      , SubpathValue(subpath.to_string())
       , FullValue(Serialize())
     {
       Require(!SchemeValue.empty() && !PathValue.empty());
@@ -261,7 +261,7 @@ namespace IO::Network
       return SubpathValue;
     }
 
-    Ptr WithSubpath(const String& subpath) const override
+    Ptr WithSubpath(StringView subpath) const override
     {
       return MakePtr<RemoteIdentifier>(SchemeValue, PathValue, subpath);
     }
@@ -314,39 +314,38 @@ namespace IO::Network
       return SupportedSchemes;
     }
 
-    Identifier::Ptr Resolve(const String& uri) const override
+    Identifier::Ptr Resolve(StringView uri) const override
     {
-      const String schemeSign(SCHEME_SIGN);
-      const String::size_type schemePos = uri.find(schemeSign);
-      if (String::npos == schemePos)
+      const auto schemePos = uri.find(SCHEME_SIGN);
+      if (uri.npos == schemePos)
       {
         // scheme is required
-        return Identifier::Ptr();
+        return {};
       }
-      const String::size_type hierPos = schemePos + schemeSign.size();
-      const String::size_type subPos = uri.find_first_of(SUBPATH_DELIMITER, hierPos);
+      const auto hierPos = schemePos + SCHEME_SIGN.size();
+      const auto subPos = uri.find_first_of(SUBPATH_DELIMITER, hierPos);
 
-      const String scheme = uri.substr(0, schemePos);
-      const String hier = String::npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
-      if (hier.empty() || !SupportedSchemes.count(scheme))
+      const auto scheme = uri.substr(0, schemePos);
+      const auto hier = uri.npos == subPos ? uri.substr(hierPos) : uri.substr(hierPos, subPos - hierPos);
+      if (hier.empty() || !SupportedSchemes.count(scheme.to_string()))  // TODO
       {
         // scheme and hierarchy part is mandatory
-        return Identifier::Ptr();
+        return {};
       }
       // Path should include scheme and all possible parameters
-      const String path = String::npos == subPos ? uri : uri.substr(0, subPos);
-      const String subpath = String::npos == subPos ? String() : uri.substr(subPos + 1);
+      const auto path = uri.npos == subPos ? uri : uri.substr(0, subPos);
+      const auto subpath = uri.npos == subPos ? StringView() : uri.substr(subPos + 1);
       return MakePtr<RemoteIdentifier>(scheme, path, subpath);
     }
 
-    Binary::Container::Ptr Open(const String& path, const Parameters::Accessor& params,
+    Binary::Container::Ptr Open(StringView path, const Parameters::Accessor& params,
                                 Log::ProgressCallback& cb) const override
     {
       try
       {
         const ProviderParameters options(params);
         RemoteResource resource(Api);
-        resource.SetSource(path);
+        resource.SetSource(path.to_string());
         resource.SetOptions(options);
         resource.SetProgressCallback(cb);
         return resource.Download();
@@ -357,7 +356,7 @@ namespace IO::Network
       }
     }
 
-    Binary::OutputStream::Ptr Create(const String& /*path*/, const Parameters::Accessor& /*params*/,
+    Binary::OutputStream::Ptr Create(StringView /*path*/, const Parameters::Accessor& /*params*/,
                                      Log::ProgressCallback& /*cb*/) const override
     {
       throw Error(THIS_LINE, translate("Not supported."));

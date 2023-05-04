@@ -40,15 +40,15 @@ namespace Analysis
     //! @return New path object
     //! @invariant Result is always not null
     //! @invariant Current object is not changed
-    virtual Ptr Append(const String& element) const = 0;
+    virtual Ptr Append(StringView element) const = 0;
     //! @brief Extract subpath from current
     //! @param startPath Part of current path starting from beginning
     //! @return Not-null object is AsString() is started of startPath (even in full match case), null elsewhere
-    virtual Ptr Extract(const String& startPath) const = 0;
+    virtual Ptr Extract(StringView startPath) const = 0;
     //! @brief Return all the path elements but the last one
     //! @return Ptr() if this->Empty(), non-null (but may be empty) object instead
     virtual Ptr GetParent() const = 0;
   };
 
-  Path::Ptr ParsePath(const String& str, Char separator);
+  Path::Ptr ParsePath(StringView str, Char separator);
 }  // namespace Analysis

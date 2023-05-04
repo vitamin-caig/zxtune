@@ -26,7 +26,7 @@ namespace Strings
   class FilterFieldsSource : public FieldsSource
   {
   public:
-    FilterFieldsSource(const FieldsSource& delegate, const String& src, const String& tgt)
+    FilterFieldsSource(const FieldsSource& delegate, StringView src, StringView tgt)
       : Delegate(delegate)
       , Table(1 << (8 * sizeof(Char)))
     {
@@ -39,7 +39,7 @@ namespace Strings
       }
     }
 
-    FilterFieldsSource(const FieldsSource& delegate, const String& src, const Char tgt)
+    FilterFieldsSource(const FieldsSource& delegate, StringView src, const Char tgt)
       : Delegate(delegate)
       , Table(1 << (8 * sizeof(Char)))
     {
@@ -51,7 +51,7 @@ namespace Strings
       }
     }
 
-    String GetFieldValue(const String& fieldName) const override
+    String GetFieldValue(StringView fieldName) const override
     {
       auto val = Delegate.GetFieldValue(fieldName);
       for (auto& it : val)

@@ -16,6 +16,6 @@
 
 namespace Module
 {
-  Parameters::Accessor::Ptr CreatePathProperties(const String& fullpath);
+  Parameters::Accessor::Ptr CreatePathProperties(StringView fullpath);
   Parameters::Accessor::Ptr CreatePathProperties(IO::Identifier::Ptr id);
 }  // namespace Module

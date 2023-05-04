@@ -88,7 +88,7 @@ namespace
       {}
     }
 
-    void Write(const String& str) const override
+    void Write(StringView str) const override
     {
       std::vector<wchar_t> wide(str.size());
       const auto wideSize = ::MultiByteToWideChar(CP_UTF8, 0, str.data(), str.size(), wide.data(), wide.size());

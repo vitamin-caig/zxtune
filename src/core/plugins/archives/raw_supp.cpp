@@ -86,7 +86,7 @@ namespace ZXTune
       return res;
     }
 
-    static String Widen(const String& str, std::size_t wid)
+    static String Widen(StringView str, std::size_t wid)
     {
       String res(wid, ' ');
       std::copy(str.begin(), str.end(), res.begin());
@@ -275,8 +275,8 @@ namespace ZXTune::Raw
 
   const auto PLUGIN_PREFIX = "+"_sv;
 
-  const Char ID[] = {'R', 'A', 'W', 0};
-  const Char* const INFO = ID;
+  const auto ID = "RAW"_id;
+  const auto INFO = "Raw scaner"_sv;
   const uint_t CAPS = Capabilities::Category::CONTAINER | Capabilities::Container::Type::SCANER;
 
   const std::size_t SCAN_STEP = 1;
@@ -321,7 +321,7 @@ namespace ZXTune::Raw
   class ScanProgress
   {
   public:
-    ScanProgress(Log::ProgressCallback* delegate, std::size_t limit, const String& path)
+    ScanProgress(Log::ProgressCallback* delegate, std::size_t limit, StringView path)
       : Delegate(delegate)
       , ToPercent(limit, 100)
       , Text(ProgressMessage(ID, path))
@@ -603,7 +603,7 @@ namespace ZXTune::Raw
       : Delegate(std::move(delegate))
     {}
 
-    String Id() const override
+    PluginId Id() const override
     {
       return Delegate->Id();
     }
@@ -761,14 +761,14 @@ namespace ZXTune::Raw
   public:
     Scaner() = default;
 
-    String Id() const override
+    PluginId Id() const override
     {
       return ID;
     }
 
     String Description() const override
     {
-      return INFO;
+      return INFO.to_string();
     }
 
     uint_t Capabilities() const override
@@ -836,7 +836,7 @@ namespace ZXTune::Raw
     DataLocation::Ptr TryOpen(const Parameters::Accessor& /*params*/, DataLocation::Ptr location,
                               const Analysis::Path& inPath) const override
     {
-      const String& pathComp = inPath.GetIterator()->Get();
+      const auto& pathComp = inPath.GetIterator()->Get();
       const Strings::PrefixedIndex pathIndex(PLUGIN_PREFIX, pathComp);
       if (pathIndex.IsValid())
       {

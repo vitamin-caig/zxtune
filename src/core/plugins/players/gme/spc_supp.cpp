@@ -186,47 +186,26 @@ namespace Module::SPC
   public:
     explicit DataBuilder(PropertiesHelper& props)
       : Properties(props)
+      , Meta(props)
     {}
+
+    Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
+    {
+      return Meta;
+    }
 
     void SetRegisters(uint16_t /*pc*/, uint8_t /*a*/, uint8_t /*x*/, uint8_t /*y*/, uint8_t /*psw*/,
                       uint8_t /*sp*/) override
     {}
 
-    void SetTitle(String title) override
+    void SetDumper(StringView dumper) override
     {
-      if (Title.empty())
-      {
-        Properties.SetTitle(Title = std::move(title));
-      }
+      Meta.SetStrings({dumper.to_string()});
     }
 
-    void SetGame(String game) override
+    void SetDumpDate(StringView date) override
     {
-      if (Program.empty())
-      {
-        Properties.SetProgram(Program = std::move(game));
-      }
-    }
-
-    void SetDumper(String dumper) override
-    {
-      if (Author.empty())
-      {
-        Properties.SetAuthor(Author = std::move(dumper));
-      }
-    }
-
-    void SetComment(String comment) override
-    {
-      if (Comment.empty())
-      {
-        Properties.SetComment(Comment = std::move(comment));
-      }
-    }
-
-    void SetDumpDate(String date) override
-    {
-      Properties.SetDate(std::move(date));
+      Properties.SetDate(date);
     }
 
     void SetIntro(Time::Milliseconds duration) override
@@ -253,11 +232,6 @@ namespace Module::SPC
       }
     }
 
-    void SetArtist(String artist) override
-    {
-      Properties.SetAuthor(Author = std::move(artist));
-    }
-
     void SetRAM(Binary::View /*data*/) override {}
 
     void SetDSPRegisters(Binary::View /*data*/) override {}
@@ -271,10 +245,7 @@ namespace Module::SPC
 
   private:
     PropertiesHelper& Properties;
-    String Title;
-    String Program;
-    String Author;
-    String Comment;
+    MetaProperties Meta;
     Time::Milliseconds Intro;
     Time::Milliseconds Loop;
     Time::Milliseconds Fade;
@@ -318,12 +289,12 @@ namespace ZXTune
 {
   void RegisterSPCSupport(PlayerPluginsRegistrator& registrator)
   {
-    const Char ID[] = {'S', 'P', 'C', 0};
+    const auto ID = "SPC"_id;
     const uint_t CAPS = Capabilities::Module::Type::MEMORYDUMP | Capabilities::Module::Device::SPC700;
 
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSPCDecoder();
-    const Module::SPC::Factory::Ptr factory = MakePtr<Module::SPC::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateSPCDecoder();
+    auto factory = MakePtr<Module::SPC::Factory>();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

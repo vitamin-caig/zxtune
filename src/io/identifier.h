@@ -43,6 +43,6 @@ namespace IO
     virtual String Subpath() const = 0;
 
     //! Builders
-    virtual Ptr WithSubpath(const String& subpath) const = 0;
+    virtual Ptr WithSubpath(StringView subpath) const = 0;
   };
 }  // namespace IO

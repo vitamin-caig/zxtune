@@ -339,7 +339,7 @@ namespace Module::Xmp
 
   struct PluginDescription
   {
-    const char* const Id;
+    const ZXTune::PluginId Id;
     const StringView Format;
     const struct format_loader* const Loader;
   };
@@ -442,14 +442,16 @@ namespace Module::Xmp
     const PluginDescription& Desc;
   };
 
+  using ZXTune::operator""_id;
+
   // clang-format off
   const PluginDescription PLUGINS[] =
   {
-    //{"ARCH", &arch_loader},
-    //{"COCO", &coco_loader},
+    //{"ARCH"_id, &arch_loader},
+    //{"COCO"_id, &coco_loader},
     //Desktop Tracker
     {
-      "DTT"
+      "DTT"_id
       ,
       "'D's'k'T"_sv
       ,
@@ -457,7 +459,7 @@ namespace Module::Xmp
     },
     //Quadra Composer
     {
-      "EMOD"
+      "EMOD"_id
       ,
       "'F'O'R'M"
       "????"
@@ -468,7 +470,7 @@ namespace Module::Xmp
     },
     //Funktracker
     {
-      "FNK"
+      "FNK"_id
       ,
       "'F'u'n'k"
       "?"
@@ -481,7 +483,7 @@ namespace Module::Xmp
     },
     //Graoumf Tracker
     {
-      "GTK"
+      "GTK"_id
       ,
       "'G'T'K"
       "00-03"
@@ -491,7 +493,7 @@ namespace Module::Xmp
     },
     //Images Music System
     {
-      "IMS"
+      "IMS"_id
       ,
       "?{20}"
       "("                  //instruments
@@ -513,7 +515,7 @@ namespace Module::Xmp
     },
     //Liquid Tracker
     {
-      "LIQ"
+      "LIQ"_id
       ,
       "'L'i'q'u'i'd' 'M'o'd'u'l'e':"
       ""_sv
@@ -522,7 +524,7 @@ namespace Module::Xmp
     },
     //MED 1.12 MED2
     {
-      "MED"
+      "MED"_id
       ,
       "'M'E'D"
       "02"
@@ -532,7 +534,7 @@ namespace Module::Xmp
     },
     //MED 2.00 MED3
     {
-      "MED"
+      "MED"_id
       ,
       "'M'E'D"
       "03"
@@ -541,7 +543,7 @@ namespace Module::Xmp
       &med3_loader
     },
     {
-      "MED"
+      "MED"_id
       ,
       "'M'E'D"
       "04"
@@ -549,11 +551,11 @@ namespace Module::Xmp
       ,
       &med4_loader
     },
-    //{"MFP", &mfp_loader},//requires additional files
-    //{"MGT", &mgt_loader},experimental
+    //{"MFP"_id, &mfp_loader},//requires additional files
+    //{"MGT"_id, &mgt_loader},experimental
     //Liquid Tracker NO
     {
-      "LIQ"
+      "LIQ"_id
       ,
       "'N'O"
       "0000"
@@ -561,11 +563,11 @@ namespace Module::Xmp
       ,
       &no_loader
     },
-    //{"MOD", &polly_loader},//rle packed, too weak structure
-    //{"MOD", &pw_loader},//requires depacking
+    //{"MOD"_id, &polly_loader},//rle packed, too weak structure
+    //{"MOD"_id, &pw_loader},//requires depacking
     //Real Tracker
     {
-      "RTM"
+      "RTM"_id
       ,
       "'R'T'M'M"
       "20"
@@ -573,10 +575,10 @@ namespace Module::Xmp
       ,
       &rtm_loader
     },
-    //{"MTP", &mtp_loader},//experimental
+    //{"MTP"_id, &mtp_loader},//experimental
     //Slamtilt
     {
-      "STIM"
+      "STIM"_id
       ,
       "'S'T'I'M"         //signature
       "00???"            //BE samples offsets (assume 16Mb is enough)
@@ -590,7 +592,7 @@ namespace Module::Xmp
     },
     //STMIK 0.2
     {
-      "STX"
+      "STX"_id
       ,
       "?{20}"
       "('!|'B)"
@@ -609,10 +611,10 @@ namespace Module::Xmp
       ,
       &stx_loader
     },
-    //{"SYM", &sym_loader},
+    //{"SYM"_id, &sym_loader},
     //TCB Tracker
     {
-      "TCB"
+      "TCB"_id
       ,
       "'A'N' 'C'O'O'L('.|'!)"
       ""_sv

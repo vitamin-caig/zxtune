@@ -20,11 +20,10 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <debug/log.h>
+#include <strings/casing.h>
+#include <strings/map.h>
 // std includes
 #include <array>
-#include <map>
-// boost includes
-#include <boost/algorithm/string/case_conv.hpp>
 
 namespace Formats::Archived
 {
@@ -79,8 +78,8 @@ namespace Formats::Archived
     {
       const String Name;
 
-      explicit ClassName(const String& name)
-        : Name(boost::algorithm::to_lower_copy(name))
+      explicit ClassName(StringView name)
+        : Name(Strings::ToLowerAscii(name))
       {}
 
       bool IsMusic() const
@@ -93,8 +92,8 @@ namespace Formats::Archived
     {
       const String Name;
 
-      explicit Property(const String& name)
-        : Name(boost::algorithm::to_lower_copy(name))
+      explicit Property(StringView name)
+        : Name(Strings::ToLowerAscii(name))
       {}
 
       bool IsLimiter() const
@@ -462,8 +461,8 @@ namespace Formats::Archived
     class File : public Archived::File
     {
     public:
-      File(String name, Binary::Container::Ptr data)
-        : Name(std::move(name))
+      File(StringView name, Binary::Container::Ptr data)
+        : Name(name.to_string())
         , Data(std::move(data))
       {}
 
@@ -487,7 +486,7 @@ namespace Formats::Archived
       const Binary::Container::Ptr Data;
     };
 
-    typedef std::map<String, Binary::Container::Ptr> NamedDataMap;
+    using NamedDataMap = Strings::ValueMap<Binary::Container::Ptr>;
 
     class Container : public Binary::BaseContainer<Archived::Container>
     {
@@ -506,10 +505,16 @@ namespace Formats::Archived
         }
       }
 
-      File::Ptr FindFile(const String& name) const override
+      File::Ptr FindFile(StringView name) const override
       {
-        const auto it = Files.find(name);
-        return it != Files.end() ? MakePtr<File>(it->first, it->second) : File::Ptr();
+        if (auto data = Files.Get(name))
+        {
+          return MakePtr<File>(name, std::move(data));
+        }
+        else
+        {
+          return {};
+        }
       }
 
       uint_t CountFiles() const override
@@ -543,16 +548,16 @@ namespace Formats::Archived
     {
       if (!Format->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const UMX::Format format(data);
       UMX::NamedDataMap datas;
       for (uint_t idx = 0, lim = format.GetEntriesCount(); idx != lim; ++idx)
       {
-        if (const Binary::Container::Ptr data = format.GetEntryData(idx))
+        if (auto data = format.GetEntryData(idx))
         {
-          const String& name = format.GetEntryName(idx);
-          datas[name] = data;
+          const auto& name = format.GetEntryName(idx);
+          datas.emplace(name, std::move(data));
         }
       }
       if (!datas.empty())
@@ -561,7 +566,7 @@ namespace Formats::Archived
         return MakePtr<UMX::Container>(std::move(archive), std::move(datas));
       }
       UMX::Dbg("No files found");
-      return Container::Ptr();
+      return {};
     }
 
   private:

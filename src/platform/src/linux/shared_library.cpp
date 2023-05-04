@@ -56,11 +56,11 @@ namespace Platform::Details
     void* const Handle;
   };
 
-  const String SUFFIX(".so");
+  const auto SUFFIX = ".so"_sv;
 
-  String BuildLibraryFilename(const String& name)
+  String BuildLibraryFilename(StringView name)
   {
-    return "lib" + name + SUFFIX;
+    return String("lib").append(name).append(SUFFIX);
   }
 
   Error LoadSharedLibrary(const String& fileName, SharedLibrary::Ptr& res)
@@ -73,17 +73,19 @@ namespace Platform::Details
     return MakeFormattedError(THIS_LINE, translate("Failed to load shared object '{0}' ({1})."), fileName, ::dlerror());
   }
 
-  String GetSharedLibraryFilename(const String& name)
+  String GetSharedLibraryFilename(StringView name)
   {
-    return name.find(SUFFIX) == name.npos ? BuildLibraryFilename(name) : name;
+    return name.find(SUFFIX) == name.npos ? BuildLibraryFilename(name) : name.to_string();
   }
 
   std::vector<String> GetSharedLibraryFilenames(const SharedLibrary::Name& name)
   {
     std::vector<String> res;
-    res.push_back(GetSharedLibraryFilename(name.Base()));
-    const auto& alternatives = name.PosixAlternatives();
-    std::copy(alternatives.begin(), alternatives.end(), std::back_inserter(res));
+    res.emplace_back(GetSharedLibraryFilename(name.Base()));
+    for (const auto& alt : name.PosixAlternatives())
+    {
+      res.emplace_back(alt.to_string());
+    }
     return res;
   }
 }  // namespace Platform::Details

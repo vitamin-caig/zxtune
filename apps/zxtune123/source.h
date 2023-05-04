@@ -36,7 +36,7 @@ public:
   virtual ~OnItemCallback() = default;
 
   virtual void ProcessItem(Binary::Data::Ptr data, Module::Holder::Ptr holder) = 0;
-  virtual void ProcessUnknownData(const String& path, const String& container, Binary::Data::Ptr data){};
+  virtual void ProcessUnknownData(StringView path, StringView container, Binary::Data::Ptr data){};
 };
 
 class SourceComponent

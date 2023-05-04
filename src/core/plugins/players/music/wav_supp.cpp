@@ -232,12 +232,12 @@ namespace ZXTune
 {
   void RegisterWAVPlugin(PlayerPluginsRegistrator& registrator)
   {
-    const Char ID[] = {'W', 'A', 'V', 0};
+    const auto ID = "WAV"_id;
     const uint_t CAPS = Capabilities::Module::Type::STREAM | Capabilities::Module::Device::DAC;
 
-    const auto decoder = Formats::Chiptune::CreateWAVDecoder();
-    const auto factory = MakePtr<Module::Wav::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateWAVDecoder();
+    auto factory = MakePtr<Module::Wav::Factory>();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

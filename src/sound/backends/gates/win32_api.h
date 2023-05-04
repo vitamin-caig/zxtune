@@ -1,18 +1,18 @@
 /**
-*
-* @file
-*
-* @brief  Win32 subsystem API gate interface
-*
-* @author vitamin.caig@gmail.com
-*
-**/
+ *
+ * @file
+ *
+ * @brief  Win32 subsystem API gate interface
+ *
+ * @author vitamin.caig@gmail.com
+ *
+ **/
 
 #pragma once
 
-//std includes
+// std includes
 #include <memory>
-//platform-dependent includes
+// platform-dependent includes
 #include <windows.h>
 
 namespace Sound
@@ -45,4 +45,4 @@ namespace Sound
     Api::Ptr LoadDynamicApi();
 
   }
-}
+}  // namespace Sound

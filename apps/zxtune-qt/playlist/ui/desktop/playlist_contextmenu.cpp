@@ -30,6 +30,7 @@
 #include <error.h>
 #include <make_ptr.h>
 // library includes
+#include <strings/map.h>
 #include <time/serialize.h>
 // qt includes
 #include <QtGui/QClipboard>
@@ -202,7 +203,7 @@ namespace
       ++Processed;
     }
 
-    void AddType(const String& type) override
+    void AddType(StringView type) override
     {
       ++Types[type];
     }
@@ -217,9 +218,9 @@ namespace
       Size += size;
     }
 
-    void AddPath(const String& path) override
+    void AddPath(StringView path) override
     {
-      Paths.insert(path);
+      Paths.insert(path.to_string());  // TODO
     }
 
   private:
@@ -227,7 +228,7 @@ namespace
     std::size_t Invalids;
     Time::Duration<Time::BaseUnit<uint64_t, 1000>> Duration;
     uint64_t Size;
-    std::map<String, std::size_t> Types;
+    Strings::ValueMap<std::size_t> Types;
     std::set<String> Paths;
   };
 
@@ -265,12 +266,12 @@ namespace
       ++Succeeds;
     }
 
-    void AddFailedToOpen(const String& path) override
+    void AddFailedToOpen(StringView path) override
     {
       Errors.append(Playlist::UI::ItemsContextMenu::tr("Failed to open '%1' for conversion").arg(ToQString(path)));
     }
 
-    void AddFailedToConvert(const String& path, const Error& err) override
+    void AddFailedToConvert(StringView path, const Error& err) override
     {
       Errors.append(Playlist::UI::ItemsContextMenu::tr("Failed to convert '%1': %2")
                         .arg(ToQString(path))

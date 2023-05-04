@@ -13,25 +13,17 @@
 // common includes
 #include <contract.h>
 #include <make_ptr.h>
-// std includes
-#include <cctype>
 // library includes
 #include <formats/chiptune/emulation/playstation2soundformat.h>
+#include <strings/casing.h>
 
 namespace Module
 {
   namespace PSF
   {
-    String PsxVfs::ToUpper(const char* str)
+    String PsxVfs::Normalize(StringView str)
     {
-      String res;
-      res.reserve(256);
-      while (*str)
-      {
-        res.push_back(std::toupper(*str));
-        ++str;
-      }
-      return res;
+      return Strings::ToUpperAscii(str);
     }
 
     class VfsParser : public Formats::Chiptune::Playstation2SoundFormat::Builder
@@ -41,7 +33,7 @@ namespace Module
         : Vfs(vfs)
       {}
 
-      void OnFile(String path, Binary::Container::Ptr content) override
+      void OnFile(StringView path, Binary::Container::Ptr content) override
       {
         Vfs.Add(path, std::move(content));
       }

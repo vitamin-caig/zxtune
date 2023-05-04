@@ -21,7 +21,6 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
-#include <sound/backend_attrs.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
 #include <strings/encoding.h>
@@ -81,7 +80,7 @@ namespace Sound::DirectSound
     }
   }
 
-  std::unique_ptr<GUID> String2Guid(const String& str)
+  std::unique_ptr<GUID> String2Guid(StringView str)
   {
     if (str.empty())
     {
@@ -97,7 +96,7 @@ namespace Sound::DirectSound
   typedef std::shared_ptr<IDirectSound> DirectSoundPtr;
   typedef std::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
 
-  DirectSoundPtr OpenDevice(Api& api, const String& device)
+  DirectSoundPtr OpenDevice(Api& api, StringView device)
   {
     Dbg("OpenDevice({})", device);
     IDirectSound* raw = 0;
@@ -516,9 +515,9 @@ namespace Sound::DirectSound
   class DirectSoundDevice : public Device
   {
   public:
-    DirectSoundDevice(const String& id, const String& name)
-      : IdValue(id)
-      , NameValue(name)
+    DirectSoundDevice(StringView id, StringView name)
+      : IdValue(id.to_string())
+      , NameValue(name.to_string())
     {}
 
     virtual String Id() const
@@ -599,11 +598,12 @@ namespace Sound
   {
     try
     {
-      const DirectSound::Api::Ptr api = DirectSound::LoadDynamicApi();
+      auto api = DirectSound::LoadDynamicApi();
       if (DirectSound::DevicesIterator(api).IsValid())
       {
-        const BackendWorkerFactory::Ptr factory = MakePtr<DirectSound::BackendWorkerFactory>(api);
-        storage.Register(DirectSound::BACKEND_ID, DirectSound::BACKEND_DESCRIPTION, DirectSound::CAPABILITIES, factory);
+        auto factory = MakePtr<DirectSound::BackendWorkerFactory>(std::move(api));
+        storage.Register(DirectSound::BACKEND_ID, DirectSound::BACKEND_DESCRIPTION, DirectSound::CAPABILITIES,
+                         std::move(factory));
       }
       else
       {
@@ -622,8 +622,8 @@ namespace Sound
     {
       try
       {
-        const Api::Ptr api = LoadDynamicApi();
-        return MakePtr<DevicesIterator>(api);
+        auto api = LoadDynamicApi();
+        return MakePtr<DevicesIterator>(std::move(api));
       }
       catch (const Error& e)
       {

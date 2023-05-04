@@ -20,12 +20,9 @@ namespace ZXTune
 {
   void RegisterSQDSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'S', 'Q', 'D', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateSQDigitalTrackerDecoder();
-    const Module::DAC::Factory::Ptr factory = Module::SQDigitalTracker::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateSQDigitalTrackerDecoder();
+    auto factory = Module::SQDigitalTracker::CreateFactory();
+    auto plugin = CreatePlayerPlugin("SQD"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

@@ -19,12 +19,9 @@ namespace ZXTune
 {
   void RegisterAYCSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'A', 'Y', 'C', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateAYCDecoder();
-    const Module::AYM::Factory::Ptr factory = Module::AYC::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateAYCDecoder();
+    auto factory = Module::AYC::CreateFactory();
+    auto plugin = CreateStreamPlayerPlugin("AYC"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

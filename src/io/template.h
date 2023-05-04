@@ -15,5 +15,5 @@
 
 namespace IO
 {
-  Strings::Template::Ptr CreateFilenameTemplate(const String& notation);
+  Strings::Template::Ptr CreateFilenameTemplate(StringView notation);
 }

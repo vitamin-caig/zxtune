@@ -116,7 +116,7 @@ namespace
       : Parent(props)
     {}
 
-    String GetFieldValue(const String& fieldName) const override
+    String GetFieldValue(StringView fieldName) const override
     {
       static const Char AMPERSAND[] = {'&', 0};
       static const Char AMPERSAND_ESCAPED[] = {'&', 'a', 'm', 'p', ';', 0};
@@ -157,7 +157,7 @@ namespace
     QString Get(const Parameters::Accessor& properties) const
     {
       const TooltipFieldsSourceAdapter adapter(properties);
-      const String& result = GetTemplate().Instantiate(adapter);
+      const auto& result = GetTemplate().Instantiate(adapter);
       return ToQString(result);
     }
 

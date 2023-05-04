@@ -3,7 +3,7 @@
     {
     public:
       explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
-        : Lib(lib)
+        : Lib(std::move(lib))
       {
         Debug::Log("<TMPL_VAR NAME=DEBUGMODULE>", "Library loaded");
       }

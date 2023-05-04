@@ -13,11 +13,11 @@
 #include <parameters/template.h>
 #include <strings/template.h>
 
-String GetModuleTitle(const String& format, const Parameters::Accessor& props)
+String GetModuleTitle(StringView format, const Parameters::Accessor& props)
 {
-  const Strings::Template::Ptr fmtTemplate = Strings::Template::Create(format);
-  const String& emptyTitle = fmtTemplate->Instantiate(Strings::SkipFieldsSource());
-  String curTitle = fmtTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(props));
+  const auto fmtTemplate = Strings::Template::Create(format);
+  const auto& emptyTitle = fmtTemplate->Instantiate(Strings::SkipFieldsSource());
+  auto curTitle = fmtTemplate->Instantiate(Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>(props));
   if (curTitle == emptyTitle)
   {
     props.FindValue(Module::ATTR_FULLPATH, curTitle);

@@ -20,12 +20,9 @@ namespace ZXTune
 {
   void RegisterDSTSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'D', 'S', 'T', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateDigitalStudioDecoder();
-    const Module::DAC::Factory::Ptr factory = Module::DigitalStudio::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateDigitalStudioDecoder();
+    auto factory = Module::DigitalStudio::CreateFactory();
+    auto plugin = CreatePlayerPlugin("DST"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

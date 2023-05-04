@@ -18,32 +18,27 @@ namespace ZXTune
 {
   void RegisterVTXSupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'V', 'T', 'X', 0};
-
-    const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateVTXDecoder();
-    const Module::AYM::Factory::Ptr factory = Module::YMVTX::CreateFactory(decoder);
-    const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
-    ;
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::YM::CreateVTXDecoder();
+    auto factory = Module::YMVTX::CreateFactory(decoder);
+    auto plugin = CreateStreamPlayerPlugin("VTX"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 
   void RegisterYMSupport(PlayerPluginsRegistrator& registrator)
   {
     // plugin attributes
-    const Char ID[] = {'Y', 'M', 0};
+    const auto ID = "YM"_id;
     {
-      const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreatePackedYMDecoder();
-      const Module::AYM::Factory::Ptr factory = Module::YMVTX::CreateFactory(decoder);
-      const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
-      registrator.RegisterPlugin(plugin);
+      auto decoder = Formats::Chiptune::YM::CreatePackedYMDecoder();
+      auto factory = Module::YMVTX::CreateFactory(decoder);
+      auto plugin = CreateStreamPlayerPlugin(ID, std::move(decoder), std::move(factory));
+      registrator.RegisterPlugin(std::move(plugin));
     }
     {
-      const Formats::Chiptune::YM::Decoder::Ptr decoder = Formats::Chiptune::YM::CreateYMDecoder();
-      const Module::AYM::Factory::Ptr factory = Module::YMVTX::CreateFactory(decoder);
-      const PlayerPlugin::Ptr plugin = CreateStreamPlayerPlugin(ID, decoder, factory);
-      ;
-      registrator.RegisterPlugin(plugin);
+      auto decoder = Formats::Chiptune::YM::CreateYMDecoder();
+      auto factory = Module::YMVTX::CreateFactory(decoder);
+      auto plugin = CreateStreamPlayerPlugin(ID, std::move(decoder), std::move(factory));
+      registrator.RegisterPlugin(std::move(plugin));
     }
   }
 }  // namespace ZXTune

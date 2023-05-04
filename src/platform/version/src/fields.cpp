@@ -19,31 +19,31 @@ namespace Platform
     class VersionFieldsSource : public Strings::FieldsSource
     {
     public:
-      String GetFieldValue(const String& fieldName) const override
+      String GetFieldValue(StringView fieldName) const override
       {
-        if (fieldName == "Program")
+        if (fieldName == "Program"_sv)
         {
           return GetProgramTitle();
         }
-        else if (fieldName == "Version")
+        else if (fieldName == "Version"_sv)
         {
           return GetProgramVersion();
         }
-        else if (fieldName == "Date")
+        else if (fieldName == "Date"_sv)
         {
           return GetBuildDate();
         }
-        else if (fieldName == "Platform")
+        else if (fieldName == "Platform"_sv)
         {
           return GetBuildPlatform();
         }
-        else if (fieldName == "Arch")
+        else if (fieldName == "Arch"_sv)
         {
           return GetBuildArchitecture();
         }
         else
         {
-          return String();
+          return {};
         }
       }
     };

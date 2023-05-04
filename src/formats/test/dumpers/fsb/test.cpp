@@ -95,7 +95,7 @@ namespace
       Write(2, "Channels: {}", channels);
     }
 
-    void SetName(String name) override
+    void SetName(StringView name) override
     {
       Write(2, "Name: {}", name);
     }

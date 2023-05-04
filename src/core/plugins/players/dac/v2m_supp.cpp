@@ -20,12 +20,12 @@ namespace ZXTune
 {
   void RegisterV2MSupport(PlayerPluginsRegistrator& registrator)
   {
-    const Char ID[] = {'V', '2', 'M', 0};
+    const auto ID = "V2M"_id;
     const uint_t CAPS = Capabilities::Module::Type::TRACK | Capabilities::Module::Device::DAC;
 
-    const auto decoder = Formats::Chiptune::CreateV2MDecoder();
-    const auto factory = Module::V2M::CreateFactory();
-    const auto plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateV2MDecoder();
+    auto factory = Module::V2M::CreateFactory();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

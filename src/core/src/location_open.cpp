@@ -58,7 +58,7 @@ namespace ZXTune
   class GeneratedLocation : public DataLocation
   {
   public:
-    GeneratedLocation(Binary::Container::Ptr data, const String& plugin, const String& path)
+    GeneratedLocation(Binary::Container::Ptr data, StringView plugin, StringView path)
       : Data(std::move(data))
       , Path(Analysis::ParsePath(path, Module::SUBPATH_DELIMITER))
       , Plugins(Analysis::ParsePath(plugin, Module::CONTAINERS_DELIMITER))
@@ -93,7 +93,7 @@ namespace ZXTune
     return MakePtr<UnresolvedLocation>(std::move(data));
   }
 
-  DataLocation::Ptr CreateLocation(Binary::Container::Ptr data, const String& plugin, const String& path)
+  DataLocation::Ptr CreateLocation(Binary::Container::Ptr data, StringView plugin, StringView path)
   {
     return MakePtr<GeneratedLocation>(std::move(data), plugin, path);
   }

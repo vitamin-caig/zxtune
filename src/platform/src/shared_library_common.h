@@ -19,7 +19,7 @@ namespace Platform
 {
   namespace Details
   {
-    String GetSharedLibraryFilename(const String& name);
+    String GetSharedLibraryFilename(StringView name);
     std::vector<String> GetSharedLibraryFilenames(const SharedLibrary::Name& name);
     Error LoadSharedLibrary(const String& fileName, SharedLibrary::Ptr& res);
   }  // namespace Details

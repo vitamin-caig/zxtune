@@ -10,6 +10,9 @@
 
 #pragma once
 
+// common includes
+#include <types.h>
+
 namespace Sound
 {
   //! @brief Set of backend capabilities
@@ -31,4 +34,24 @@ namespace Sound
     //! Hardware volume control
     CAP_FEAT_HWVOLUME = 0x100
   };
+
+  class BackendId : public StringView
+  {
+    constexpr BackendId(const char* str, std::size_t size)
+      : StringView(str, size)
+    {}
+
+  public:
+    friend constexpr BackendId operator""_id(const char*, std::size_t) noexcept;
+
+    static BackendId FromString(StringView s)
+    {
+      return BackendId(s.data(), s.size());
+    }
+  };
+
+  constexpr BackendId operator"" _id(const char* str, std::size_t size) noexcept
+  {
+    return BackendId(str, size);
+  }
 }  // namespace Sound

@@ -19,6 +19,7 @@
 #include <binary/input_stream.h>
 #include <formats/chiptune/container.h>
 #include <math/numeric.h>
+#include <strings/casing.h>
 #include <strings/encoding.h>
 #include <strings/trim.h>
 
@@ -97,20 +98,14 @@ namespace Formats::Chiptune
     namespace Tags
     {
       const uint8_t SIGNATURE[] = {'[', 'S', '9', '8', ']'};
-      const char TITLE[] = "title";
-      const char ARTIST[] = "artist";
-      const char GAME[] = "game";
-      const char COMMENT[] = "comment";
+      const auto TITLE = "title"_sv;
+      const auto ARTIST = "artist"_sv;
+      const auto GAME = "game"_sv;
+      const auto COMMENT = "comment"_sv;
 
-      static String MakeName(StringView str)
+      bool Match(StringView str, StringView tag)
       {
-        String res;
-        res.reserve(str.size());
-        for (const auto sym : str)
-        {
-          res += std::tolower(sym);
-        }
-        return res;
+        return Strings::EqualNoCaseAscii(str, tag);
       }
     }  // namespace Tags
 
@@ -217,42 +212,42 @@ namespace Formats::Chiptune
         bool result = false;
         while (str.GetRestSize())
         {
-          String name;
-          String value;
+          StringView name;
+          StringView value;
           if (!ReadTagVariable(str, name, value))
           {
             // blank lines or invalid form
             continue;
           }
-          else if (name == Tags::TITLE)
+          else if (Tags::Match(name, Tags::TITLE))
           {
             target.SetTitle(value);
           }
-          else if (name == Tags::GAME)
+          else if (Tags::Match(name, Tags::GAME))
           {
             target.SetProgram(value);
           }
-          else if (name == Tags::ARTIST)
+          else if (Tags::Match(name, Tags::ARTIST))
           {
             target.SetAuthor(value);
           }
-          else if (name == Tags::COMMENT)
+          else if (Tags::Match(name, Tags::COMMENT))
           {
-            target.SetStrings({std::move(value)});
+            target.SetStrings({value.to_string()});
           }
           result = true;
         }
         return result;
       }
 
-      static bool ReadTagVariable(Binary::DataInputStream& str, String& name, String& value)
+      static bool ReadTagVariable(Binary::DataInputStream& str, StringView& name, StringView& value)
       {
         const auto line = str.ReadString();
         const auto eqPos = line.find('=');
         if (eqPos != line.npos)
         {
-          name = Tags::MakeName(Strings::TrimSpaces(line.substr(0, eqPos)));
-          value = Strings::TrimSpaces(line.substr(eqPos + 1)).to_string();
+          name = Strings::TrimSpaces(line.substr(0, eqPos));
+          value = Strings::TrimSpaces(line.substr(eqPos + 1));
           return true;
         }
         else

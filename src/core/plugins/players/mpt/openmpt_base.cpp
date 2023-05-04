@@ -24,13 +24,11 @@
 #include <module/track_information.h>
 #include <module/track_state.h>
 #include <parameters/tracking_helper.h>
+#include <strings/split.h>
 #include <strings/trim.h>
 #include <time/duration.h>
 // std includes
 #include <utility>
-// boost includes
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
 // 3rdparty includes
 #define BUILDING_STATIC
 #include <3rdparty/openmpt/libopenmpt/libopenmpt.hpp>
@@ -315,7 +313,7 @@ namespace Module::Mpt
 
   struct PluginDescription
   {
-    const char* const Id;
+    const ZXTune::PluginId Id;
     const StringView Format;
     const char* const Description;
   };
@@ -394,8 +392,7 @@ namespace Module::Mpt
     {
       const auto metadata = module.get_metadata("message_heuristic");
       Strings::Array strings;
-      using namespace boost::algorithm;
-      split(strings, metadata, is_any_of("\r\n"), token_compress_on);
+      Strings::Split(metadata, "\r\n"_sv, strings);
       if (!strings.empty())
       {
         props.SetStrings(strings);
@@ -453,11 +450,13 @@ namespace Module::Mpt
     std::map<std::string, std::string> Controls;
   };
 
+  using ZXTune::operator""_id;
+
   // clang-format off
   const PluginDescription PLUGINS[] =
   {
     {
-      "XM"
+      "XM"_id
       ,
       "'E'x't'e'n'd'e'd' 'M'o'd'u'l'e':' "_sv
       ,
@@ -465,7 +464,7 @@ namespace Module::Mpt
       //, "XM"
     },
     {
-      "IT"
+      "IT"_id
       ,
       "'I | 't"
       "'M | 'p"
@@ -477,7 +476,7 @@ namespace Module::Mpt
       //, "IT"
     },
     {
-      "S3M"
+      "S3M"_id
       ,
       "?{28}"    // title
       "?"        // eof
@@ -492,7 +491,7 @@ namespace Module::Mpt
       //, "S3M"
     },
     {
-      "STM"
+      "STM"_id
       ,
       "?{20}"    // songname
       "20-7e{8}" // trackername
@@ -509,7 +508,7 @@ namespace Module::Mpt
       //, STM
     },
     {
-      "MED"
+      "MED"_id
       ,
       "'M'M'D '0-'3" // signature
       ""_sv
@@ -518,7 +517,7 @@ namespace Module::Mpt
       //, MED
     },
     {
-      "MTM"
+      "MTM"_id
       ,
       "'M'T'M" // signature
       "00-1f"  // version
@@ -536,7 +535,7 @@ namespace Module::Mpt
       //, MTM
     },
     {
-      "MDL"
+      "MDL"_id
       ,
       "'D'M'D'L" // signature
       "00-1f"    // version
@@ -546,7 +545,7 @@ namespace Module::Mpt
       //, "MDL"
     },
     {
-      "DBM"
+      "DBM"_id
       ,
       "'D'B'M'0" // signagure
       "00-03"    // trkVerHi
@@ -556,7 +555,7 @@ namespace Module::Mpt
       //, "DBM"
     },
     {
-      "FAR"
+      "FAR"_id
       ,
       "'F'A'R fe"  // signature
       "?{40}"      // songName
@@ -567,7 +566,7 @@ namespace Module::Mpt
       //, "FAR"
     },
     {
-      "AMS"
+      "AMS"_id
       ,
       "'E'x't'r'e'm'e"
       "?"  // versionLow
@@ -578,7 +577,7 @@ namespace Module::Mpt
       //, "AMS"
     },
     {
-      "AMS"
+      "AMS"_id
       ,
       "'A'M'S'h'd'r 1a"_sv
       ,
@@ -586,7 +585,7 @@ namespace Module::Mpt
       //, "AMS2"
     },
     {
-      "OKT"
+      "OKT"_id
       ,
       "'O'K'T'A'S'O'N'G" // signature
       "(20-7f){4}"  // iff id
@@ -596,7 +595,7 @@ namespace Module::Mpt
       //, "OKT"
     },
     {
-      "PTM"
+      "PTM"_id
       ,
       "?{28}"    // songname
       "1a"       // dosEOF
@@ -614,7 +613,7 @@ namespace Module::Mpt
       //, "PTM"
     },
     {
-      "ULT"
+      "ULT"_id
       ,
       "'M'A'S'_'U'T'r'a'c'k'_'V'0'0"
       "'1-'4"
@@ -624,7 +623,7 @@ namespace Module::Mpt
       //, "ULT"
     },
     {
-      "DMF"
+      "DMF"_id
       ,
       "'D'D'M'F"  // signature
       "01-0a"     // version
@@ -634,7 +633,7 @@ namespace Module::Mpt
       //, "DMF"
     },
     {
-      "DSM"
+      "DSM"_id
       ,
       // "RIFF ???? DSMF SONG"
       // no examples for second variant with "DSMF 0000/RIFF ????" 
@@ -657,7 +656,7 @@ namespace Module::Mpt
       //, "DSM"
     },
     {
-      "AMF"
+      "AMF"_id
       ,
       "'A'S'Y'L'U'M' 'M'u's'i'c' 'F'o'r'm'a't' 'V'1'.'0 00" // signature
       "? ?"   // speed, tempo
@@ -668,7 +667,7 @@ namespace Module::Mpt
       //, "AMF_Asylum"
     },
     {
-      "AMF"
+      "AMF"_id
       ,
       "'A'M'F"  // signature
       "08-0e"   // version
@@ -681,7 +680,7 @@ namespace Module::Mpt
       //, "AMF_DSMI"
     },
     {
-      "PSM"
+      "PSM"_id
       ,
       "'P'S'M' " // signature
       "????"     // fileSize
@@ -692,7 +691,7 @@ namespace Module::Mpt
       //, "PSM"
     },
     {
-      "PSM"
+      "PSM"_id
       ,
       "'P'S'M fe"  // formatID
       "?{59}"      // songTitle
@@ -710,7 +709,7 @@ namespace Module::Mpt
       //, "PSM16"
     },
     {
-      "MT2"
+      "MT2"_id
       ,
       "'M'T'2'0"  // signature
       "????"      // userID
@@ -728,7 +727,7 @@ namespace Module::Mpt
     },
     // ITP not supported due to external files
     {
-      "GDM"
+      "GDM"_id
       ,
       "'G'D'M fe"  // magic
       "?{32}"      // songTitle
@@ -746,7 +745,7 @@ namespace Module::Mpt
       //, "GDM"
     },
     {
-      "IMF"
+      "IMF"_id
       ,
       "?{32}"   // title
       "? 00-01" // ordNum
@@ -763,7 +762,7 @@ namespace Module::Mpt
       //, "IMF"
     },
     {
-      "DBM"
+      "DBM"_id
       ,
       "'D'I'G'I' 'B'o'o's't'e'r' 'm'o'd'u'l'e 00"
       "?{4} ?" // version + int
@@ -774,7 +773,7 @@ namespace Module::Mpt
       //, "DIGI"
     },
     {
-      "DTM"
+      "DTM"_id
       ,
       "'D'.'T'." // magic
       "00 00 00 0e-ff" // headerSize
@@ -785,7 +784,7 @@ namespace Module::Mpt
       //, "DTM"
     },
     {
-      "PLM"
+      "PLM"_id
       ,
       "'P'L'M 1a" // signature
       "60-ff"     // header size 96+
@@ -798,7 +797,7 @@ namespace Module::Mpt
       //, "PLM"
     },
     {
-      "J2B"
+      "J2B"_id
       ,
       "'R'I'F'F ????"
       "'A'M 'F|'  'F|' "
@@ -808,7 +807,7 @@ namespace Module::Mpt
       //, "AM"
     },
     {
-      "MOD"
+      "MOD"_id
       ,
       "'F'O'R'M"
       "????"
@@ -820,7 +819,7 @@ namespace Module::Mpt
     },
     // no examples for MUS_KM
     {
-      "FMT"
+      "FMT"_id
       ,
       "'F'M'T'r'a'c'k'e'r 01 01" // magic
       "?{20}" // trackerName
@@ -832,7 +831,7 @@ namespace Module::Mpt
       //, "FMT"
     },
     {
-      "SFX"
+      "SFX"_id
       ,
       "(00 00-02 ?? ){15}" // samples offsets up to 131072 BE
       "'S 'O 'N 'G" // magic
@@ -842,7 +841,7 @@ namespace Module::Mpt
       //, "SFX"
     },
     {
-      "SFX"
+      "SFX"_id
       ,
       "(00 00-02 ?? ){31}" // samples offsets up to 131072 BE
       "'S 'O '3 '1" // magic
@@ -852,7 +851,7 @@ namespace Module::Mpt
       //, "SFX"
     },
     {
-      "STP"
+      "STP"_id
       ,
       "'S'T'P'3"
       "00 00-02" // be version
@@ -868,7 +867,7 @@ namespace Module::Mpt
       //, "STP"
     },
     {
-      "MOD"
+      "MOD"_id
       ,
       "?{1080}" // skip
       "('M      |'P|'N|'L|'F|'N|'O   |'C   |'M|'8|'F   |'F|'E|'1-'9|'0-'9|'T)"
@@ -881,7 +880,7 @@ namespace Module::Mpt
       //, "MOD"
     },
     {
-      "MOD"
+      "MOD"_id
       ,
       "?{1464}"
       "'M'T'N"
@@ -892,7 +891,7 @@ namespace Module::Mpt
       //, "ICE"
     },
     {
-      "MOD"
+      "MOD"_id
       ,
       "?{1464}"
       "'I'T'1'0"
@@ -902,7 +901,7 @@ namespace Module::Mpt
       //, "ICE"
     },
     {
-      "669"
+      "669"_id
       ,
       "'i|'J 'f|'N" // magic
       "?{108}"      // message
@@ -918,7 +917,7 @@ namespace Module::Mpt
       //, "669"
     },
     {
-      "C67"
+      "C67"_id
       ,
       "01-0f"  // speed 1..15
       "?"      // restart pos
@@ -938,7 +937,7 @@ namespace Module::Mpt
       //, "C67"
     },
     {
-      "MO3"
+      "MO3"_id
       ,
       "'M'O'3" // signature
       "00-05"  // version
@@ -948,7 +947,7 @@ namespace Module::Mpt
       //, "MO3"
     },
     {
-      "MOD"
+      "MOD"_id
       ,
       "(00|08|20-7f){20}"  //name
       "("                  //instruments
@@ -968,7 +967,7 @@ namespace Module::Mpt
       //, "M15"
     },
     {
-      "DSYM"
+      "DSYM"_id
       ,
       "020113131412010b"  //magic
       "00-01"             //version
@@ -981,7 +980,7 @@ namespace Module::Mpt
       //, "DSYM"
     },
     {
-      "SYMMOD"
+      "SYMMOD"_id
       ,
       "'S'y'm'M"          //magic
       "00000001"          //be version==1

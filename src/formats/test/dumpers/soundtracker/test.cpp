@@ -59,6 +59,11 @@ namespace
 
     void SetStrings(const Strings::Array& /*strings*/) override {}
 
+    void SetComment(StringView comment) override
+    {
+      std::cout << "Comment: " << comment << std::endl;
+    }
+
     // Builder
     void SetInitialTempo(uint_t tempo) override
     {

@@ -20,12 +20,9 @@ namespace ZXTune
 {
   void RegisterCHISupport(PlayerPluginsRegistrator& registrator)
   {
-    // plugin attributes
-    const Char ID[] = {'C', 'H', 'I', 0};
-
-    const Formats::Chiptune::Decoder::Ptr decoder = Formats::Chiptune::CreateChipTrackerDecoder();
-    const Module::DAC::Factory::Ptr factory = Module::ChipTracker::CreateFactory();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateChipTrackerDecoder();
+    auto factory = Module::ChipTracker::CreateFactory();
+    auto plugin = CreatePlayerPlugin("CHI"_id, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

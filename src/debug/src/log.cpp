@@ -20,20 +20,31 @@ namespace
   // environment variable used to switch on logging
   const char DEBUG_LOG_VARIABLE[] = "ZXTUNE_DEBUG_LOG";
 
+  StringView GetDebugLogVariable()
+  {
+    if (const auto* str = ::getenv(DEBUG_LOG_VARIABLE))
+    {
+      return StringView(str);
+    }
+    else
+    {
+      return {};
+    }
+  }
+
   // mask for all logging output
   const char DEBUG_ALL = '*';
 
   class DebugSwitch
   {
     DebugSwitch()
-      : Variable(::getenv(DEBUG_LOG_VARIABLE))
-      , VariableSize(Variable ? std::strlen(Variable) : 0)
+      : Variable(GetDebugLogVariable())
     {}
 
   public:
-    bool EnabledFor(const String& module) const
+    bool EnabledFor(StringView module) const
     {
-      return Variable && (*Variable == DEBUG_ALL || 0 == module.compare(0, VariableSize, Variable));
+      return !Variable.empty() && (Variable[0] == DEBUG_ALL || module.starts_with(Variable));
     }
 
     static DebugSwitch& Instance()
@@ -43,19 +54,18 @@ namespace
     }
 
   private:
-    const char* const Variable;
-    const std::size_t VariableSize;
+    const StringView Variable;
   };
 }  // namespace
 
 namespace Debug
 {
-  void Message(const String& module, const String& msg)
+  void Message(StringView module, StringView msg)
   {
     std::cerr << '[' << module << "]: " << msg << std::endl;
   }
 
-  bool IsEnabledFor(const String& module)
+  bool IsEnabledFor(StringView module)
   {
     return DebugSwitch::Instance().EnabledFor(module);
   }

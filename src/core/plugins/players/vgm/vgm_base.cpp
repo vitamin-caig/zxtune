@@ -452,20 +452,20 @@ namespace ZXTune
   void RegisterVGMPlugins(PlayerPluginsRegistrator& registrator)
   {
     {
-      const Char ID[] = {'V', 'G', 'M', 0};
+      const auto ID = "VGM"_id;
       const uint_t CAPS = ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI;
       auto decoder = Formats::Chiptune::CreateVideoGameMusicDecoder();
       auto factory = MakePtr<Module::VideoGameMusic::Factory>();
       auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
-      registrator.RegisterPlugin(plugin);
+      registrator.RegisterPlugin(std::move(plugin));
     }
     {
-      const Char ID[] = {'S', '9', '8', 0};
+      const auto ID = "S98"_id;
       const uint_t CAPS = ZXTune::Capabilities::Module::Type::STREAM | ZXTune::Capabilities::Module::Device::MULTI;
       auto decoder = Formats::Chiptune::CreateSound98Decoder();
       auto factory = MakePtr<Module::Sound98::Factory>();
       auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
-      registrator.RegisterPlugin(plugin);
+      registrator.RegisterPlugin(std::move(plugin));
     }
   }
 }  // namespace ZXTune

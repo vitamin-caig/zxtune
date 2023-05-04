@@ -32,7 +32,7 @@ namespace Log
       Delegate.OnProgress(ToPercent(current));
     }
 
-    void OnProgress(uint_t current, const String& message) override
+    void OnProgress(uint_t current, StringView message) override
     {
       Delegate.OnProgress(ToPercent(current), message);
     }
@@ -57,7 +57,7 @@ namespace Log
       Delegate.OnProgress(Scale(current));
     }
 
-    void OnProgress(uint_t current, const String& message) override
+    void OnProgress(uint_t current, StringView message) override
     {
       Delegate.OnProgress(Scale(current), message);
     }

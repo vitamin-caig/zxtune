@@ -24,8 +24,8 @@ namespace TRDos
 
     virtual std::size_t GetOffset() const = 0;
 
-    static Ptr Create(Binary::Container::Ptr data, const String& name, std::size_t off, std::size_t size);
-    static Ptr CreateReference(const String& name, std::size_t off, std::size_t size);
+    static Ptr Create(Binary::Container::Ptr data, StringView name, std::size_t off, std::size_t size);
+    static Ptr CreateReference(StringView name, std::size_t off, std::size_t size);
   };
 
   class CatalogueBuilder

@@ -397,12 +397,12 @@ namespace ZXTune
 {
   void RegisterMP3Plugin(PlayerPluginsRegistrator& registrator)
   {
-    const Char ID[] = {'M', 'P', '3', 0};
+    const auto ID = "MP3"_id;
     const uint_t CAPS = Capabilities::Module::Type::STREAM | Capabilities::Module::Device::DAC;
 
-    const auto decoder = Formats::Chiptune::CreateMP3Decoder();
-    const auto factory = MakePtr<Module::Mp3::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, decoder, factory);
-    registrator.RegisterPlugin(plugin);
+    auto decoder = Formats::Chiptune::CreateMP3Decoder();
+    auto factory = MakePtr<Module::Mp3::Factory>();
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

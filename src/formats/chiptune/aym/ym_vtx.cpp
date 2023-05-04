@@ -233,19 +233,20 @@ namespace Formats::Chiptune
     class StubBuilder : public Builder
     {
     public:
-      void SetVersion(const String& /*version*/) override {}
+      MetaBuilder& GetMetaBuilder() override
+      {
+        return GetStubMetaBuilder();
+      }
+
+      void SetVersion(StringView /*version*/) override {}
       void SetChipType(bool /*ym*/) override {}
       void SetStereoMode(uint_t /*mode*/) override {}
       void SetLoop(uint_t /*loop*/) override {}
       void SetDigitalSample(uint_t /*idx*/, Binary::View /*data*/) override {}
       void SetClockrate(uint64_t /*freq*/) override {}
       void SetIntFreq(uint_t /*freq*/) override {}
-      void SetTitle(const String& /*title*/) override {}
-      void SetAuthor(const String& /*author*/) override {}
-      void SetComment(const String& /*comment*/) override {}
       void SetYear(uint_t /*year*/) override {}
-      void SetProgram(const String& /*program*/) override {}
-      void SetEditor(const String& /*editor*/) override {}
+      void SetEditor(StringView /*editor*/) override {}
 
       void AddData(Binary::View /*registers*/) override {}
     };
@@ -330,9 +331,10 @@ namespace Formats::Chiptune
           target.SetClockrate(header.Clockrate);
           target.SetIntFreq(header.IntFreq);
           target.SetLoop(header.Loop);
-          target.SetTitle(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
-          target.SetAuthor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
-          target.SetComment(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+          auto& meta = target.GetMetaBuilder();
+          meta.SetTitle(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+          meta.SetAuthor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+          meta.SetComment(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
 
           const std::size_t dumpOffset = stream.GetPosition();
           const std::size_t dumpSize = size - sizeof(Ver5::Footer) - dumpOffset;
@@ -603,13 +605,14 @@ namespace Formats::Chiptune
           target.SetYear(stream.Read<le_uint16_t>());
         }
         const uint_t unpackedSize = stream.Read<le_uint32_t>();
-        target.SetTitle(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
-        target.SetAuthor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+        auto& meta = target.GetMetaBuilder();
+        meta.SetTitle(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+        meta.SetAuthor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
         if (newVersion)
         {
-          target.SetProgram(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+          meta.SetProgram(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
           target.SetEditor(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
-          target.SetComment(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
+          meta.SetComment(Strings::OptimizeAscii(stream.ReadCString(MAX_STRING_SIZE)));
         }
 
         const std::size_t packedOffset = stream.GetPosition();

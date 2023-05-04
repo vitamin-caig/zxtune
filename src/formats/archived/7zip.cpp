@@ -19,13 +19,13 @@
 #include <debug/log.h>
 #include <formats/archived.h>
 #include <strings/encoding.h>
+#include <strings/map.h>
 // 3rdparty includes
 #include <3rdparty/lzma/C/7z.h>
 #include <3rdparty/lzma/C/7zCrc.h>
 // std includes
 #include <cstring>
 #include <list>
-#include <map>
 #include <numeric>
 
 namespace Formats::Archived
@@ -285,7 +285,7 @@ namespace Formats::Archived
       {
         for (const auto& file : Files)
         {
-          Lookup.insert(FilesMap::value_type(file->GetName(), file));
+          Lookup.emplace(file->GetName(), file);
         }
       }
 
@@ -297,10 +297,9 @@ namespace Formats::Archived
         }
       }
 
-      File::Ptr FindFile(const String& name) const override
+      File::Ptr FindFile(StringView name) const override
       {
-        const auto it = Lookup.find(name);
-        return it != Lookup.end() ? it->second : File::Ptr();
+        return Lookup.Get(name);
       }
 
       uint_t CountFiles() const override
@@ -310,8 +309,7 @@ namespace Formats::Archived
 
     private:
       std::vector<File::Ptr> Files;
-      typedef std::map<String, File::Ptr> FilesMap;
-      FilesMap Lookup;
+      Strings::ValueMap<File::Ptr> Lookup;
     };
   }  // namespace SevenZip
 

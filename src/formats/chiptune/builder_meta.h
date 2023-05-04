@@ -28,6 +28,7 @@ namespace Formats
       virtual void SetTitle(StringView title) = 0;
       virtual void SetAuthor(StringView author) = 0;
       virtual void SetStrings(const Strings::Array& strings) = 0;
+      virtual void SetComment(StringView comment) = 0;
     };
 
     MetaBuilder& GetStubMetaBuilder();

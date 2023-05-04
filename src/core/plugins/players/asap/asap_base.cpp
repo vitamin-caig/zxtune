@@ -46,15 +46,15 @@ namespace Module::ASAP
   public:
     using Ptr = std::shared_ptr<AsapTune>;
 
-    AsapTune(const String& id, Binary::View data, int track)
+    AsapTune(StringView id, Binary::View data, int track)
       : Module(::ASAP_New())
       , Info()
       , Track(track)
       , Channels()
     {
-      CheckError(
-          ::ASAP_Load(Module, ("dummy." + id).c_str(), static_cast<const unsigned char*>(data.Start()), data.Size()),
-          "ASAP_Load");
+      CheckError(::ASAP_Load(Module, String("dummy.").append(id).c_str(),
+                             static_cast<const unsigned char*>(data.Start()), data.Size()),
+                 "ASAP_Load");
       Reset();  // required for subsequential calls
       Info = ::ASAP_GetInfo(Module);
       Require(Track == ::ASAPInfo_GetDefaultSong(Info));
@@ -257,9 +257,11 @@ namespace Module::ASAP
 
   struct PluginDescription
   {
-    const Char* const Id;
+    const ZXTune::PluginId Id;
     const uint_t ChiptuneCaps;
   };
+
+  using ZXTune::operator""_id;
 
   class MultitrackFactory : public Module::MultitrackFactory
   {
@@ -308,7 +310,7 @@ namespace Module::ASAP
     {
       //sap
       {
-        "SAP",
+        "SAP"_id,
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
       },
       &Formats::Multitrack::CreateSAPDecoder,
@@ -365,7 +367,7 @@ namespace Module::ASAP
     //rmt
     {
       {
-        "RMT",
+        "RMT"_id,
         ZXTune::Capabilities::Module::Type::MEMORYDUMP | ZXTune::Capabilities::Module::Device::CO12294,
       },
       &Formats::Chiptune::CreateRasterMusicTrackerDecoder

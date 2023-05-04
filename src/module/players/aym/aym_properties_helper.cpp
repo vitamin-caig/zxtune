@@ -19,7 +19,7 @@ namespace Module
 {
   namespace AYM
   {
-    void PropertiesHelper::SetFrequencyTable(const String& freqTable)
+    void PropertiesHelper::SetFrequencyTable(StringView freqTable)
     {
       assert(!freqTable.empty());
       Delegate.SetValue(Parameters::ZXTune::Core::AYM::TABLE, freqTable);
