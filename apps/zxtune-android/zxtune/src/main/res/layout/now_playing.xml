@@ -1,22 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
->
-    <fragment android:name="app.zxtune.ui.VisualizerFragment"
-              android:id="@+id/visualizer"
-              style="@style/block"
-    />
-    <include layout="@layout/information"/>
-    <fragment android:name="app.zxtune.ui.SeekControlFragment"
-              android:id="@+id/seek_controls"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-    />
-    <fragment android:name="app.zxtune.ui.PlaybackControlsFragment"
-              android:id="@+id/playback_controls"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content"
-    />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+    <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/visualizer"
+            android:name="app.zxtune.ui.VisualizerFragment"
+            style="@style/block" />
+
+    <include layout="@layout/information" />
+
+    <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/seek_controls"
+            android:name="app.zxtune.ui.SeekControlFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/playback_controls"
+            android:name="app.zxtune.ui.PlaybackControlsFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 </LinearLayout>
