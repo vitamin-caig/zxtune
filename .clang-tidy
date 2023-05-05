@@ -1,0 +1,8 @@
+---
+  Checks:          '-*,
+                    clang-analyzer-cplusplus.*,
+                    clang-analyzer-nullability.*,
+                    clang-analyzer-core.*,
+                    '
+  FormatStyle:      file
+...
