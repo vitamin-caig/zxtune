@@ -1,12 +1,17 @@
+// library includes
+#include <binary/dump.h>
 #include <binary/format_factories.h>
-#include <bitset>
 #include <debug/log.h>
+#include <strings/format.h>
+// common includes
+#include <pointers.h>
+#include <types.h>
+// std includes
+#include <algorithm>
+#include <bitset>
 #include <fstream>
 #include <iostream>
-#include <pointers.h>
 #include <sstream>
-#include <strings/format.h>
-#include <types.h>
 
 namespace
 {
@@ -216,7 +221,7 @@ namespace
       }
     }
 
-    void Apply(const Dump& data)
+    void Apply(const Binary::Dump& data)
     {
       const std::size_t toApply = std::min(data.size(), Ranges.size());
       for (std::size_t idx = 0; idx < toApply; ++idx)
@@ -300,7 +305,7 @@ namespace
     std::vector<Bitmask> Bitmasks;
   };
 
-  Dump Read(const std::string& name)
+  Binary::Dump Read(const std::string& name)
   {
     std::ifstream stream(name.c_str(), std::ios::binary);
     if (!stream)
@@ -310,7 +315,7 @@ namespace
     stream.seekg(0, std::ios_base::end);
     const std::size_t size = stream.tellg();
     stream.seekg(0);
-    Dump tmp(size);
+    Binary::Dump tmp(size);
     stream.read(safe_ptr_cast<char*>(tmp.data()), tmp.size());
     return tmp;
   }
@@ -330,7 +335,7 @@ int main(int argc, char* argv[])
     for (int idx = 1 + bitMask; idx < argc; ++idx)
     {
       const std::string filename = argv[idx];
-      const Dump& data = Read(filename);
+      const auto& data = Read(filename);
       if (!result.Add(data))
       {
         throw std::runtime_error("Data is too different");
@@ -355,7 +360,7 @@ int main(int argc, char* argv[])
       for (int idx = 1; idx < argc; ++idx)
       {
         const std::string filename = argv[idx];
-        const Dump& data = Read(filename);
+        const auto& data = Read(filename);
         if (!check->Match(data))
         {
           throw std::runtime_error(Strings::Format("Not matched for {}", filename));
