@@ -8,12 +8,15 @@
  *
  **/
 
-#include <boost/range/size.hpp>
-#include <error_tools.h>
-#include <iomanip>
-#include <iostream>
+// library includes
 #include <math/numeric.h>
 #include <sound/gainer.h>
+// common includes
+#include <contract.h>
+#include <error_tools.h>
+// std includes
+#include <algorithm>
+#include <iostream>
 
 namespace Sound
 {
@@ -85,67 +88,25 @@ namespace Sound
       Sample::MAX,
   };
 
-  bool ShowIfError(const Error& e)
+  bool Check(Sample::Type data, Sample::Type ref)
   {
-    if (e)
-    {
-      std::cerr << e.ToString();
-    }
-    return e;
+    return Math::Absolute(int_t(data) - ref) <= THRESHOLD;
   }
 
-  class Target : public Receiver
+  void Test(const Chunk& data, Sample::Type ref)
   {
-  public:
-    Target() {}
-
-    void ApplyData(Chunk data) override
+    Require(data.size() == 1);
+    if (Check(data.front().Left(), ref) && Check(data.front().Right(), ref))
     {
-      if (Check(data.front().Left(), ToCompare.Left()) && Check(data.front().Right(), ToCompare.Right()))
-      {
-        std::cout << "passed\n";
-      }
-      else
-      {
-        std::cout << "failed\n";
-        throw MakeFormattedError(THIS_LINE, "Failed. Value=<{},{}> while expected=<{},{}>", data.front().Left(),
-                                 data.front().Right(), ToCompare.Left(), ToCompare.Right());
-      }
+      std::cout << "passed\n";
     }
-
-    void Flush() override {}
-
-    void SetData(const Sample::Type& tc)
+    else
     {
-      ToCompare = Sample(tc, tc);
+      std::cout << "failed\n";
+      throw MakeFormattedError(THIS_LINE, "Failed. Value=<{},{}> while expected=<{},{}>", data.front().Left(),
+                               data.front().Right(), ref, ref);
     }
-
-  private:
-    static bool Check(Sample::Type data, Sample::Type ref)
-    {
-      return Math::Absolute(int_t(data) - ref) <= THRESHOLD;
-    }
-
-  private:
-    Sample ToCompare;
-  };
-
-  class Source : public GainSource
-  {
-  public:
-    void SetGain(Gain::Type gain)
-    {
-      Value = gain;
-    }
-
-    Gain::Type Get() const override
-    {
-      return Value;
-    }
-
-  private:
-    Gain::Type Value = Gain::Type();
-  };
+  }
 }  // namespace Sound
 
 int main()
@@ -154,23 +115,19 @@ int main()
 
   try
   {
-    Source* src = nullptr;
-    Target* tgt = nullptr;
-    const auto gainer = CreateGainer(GainSource::Ptr(src = new Source), Receiver::Ptr(tgt = new Target));
-
+    const auto gainer = CreateGainer();
     const Sample::Type* result(OUTS);
-    for (unsigned matrix = 0; matrix != boost::size(GAINS); ++matrix)
+    for (unsigned matrix = 0; matrix != std::size(GAINS); ++matrix)
     {
       std::cout << "--- Test for " << GAIN_NAMES[matrix] << " gain ---\n";
-      src->SetGain(GAINS[matrix]);
-      for (unsigned input = 0; input != boost::size(INPUTS); ++input, ++result)
+      gainer->SetGain(GAINS[matrix]);
+      for (unsigned input = 0; input != std::size(INPUTS); ++input, ++result)
       {
         std::cout << "Checking for " << INPUT_NAMES[input] << " input: ";
-        tgt->SetData(*result);
-        Chunk chunk;
-        chunk.reserve(1);
-        chunk.push_back(Sample(INPUTS[input], INPUTS[input]));
-        gainer->ApplyData(std::move(chunk));
+        Sound::Chunk chunk;
+        chunk.emplace_back(INPUTS[input], INPUTS[input]);
+        const auto output = gainer->Apply(std::move(chunk));
+        Test(output, *result);
       }
     }
     std::cout << " Succeed!" << std::endl;
