@@ -185,7 +185,10 @@ namespace Formats::Chiptune
             currentStream->AddPart(offset, position, Stream.ReadData(std::min(payloadSize, Stream.GetRestSize())));
           }
         }
-        currentStream->Flush(target);
+        if (currentStream)
+        {
+          currentStream->Flush(target);
+        }
         return Stream.GetReadContainer();
       }
 

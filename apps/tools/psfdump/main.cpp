@@ -75,7 +75,7 @@ namespace
     const auto DUMP_SIZE = std::min<std::size_t>(size, 256);
     for (std::size_t offset = 0; offset < DUMP_SIZE;)
     {
-      const auto in = static_cast<const uint8_t*>(data) + offset;
+      const auto* const in = static_cast<const uint8_t*>(data) + offset;
       const auto toPrint = std::min(size - offset, LINE_SIZE);
       std::string msg(5 + 2 + LINE_SIZE * 3 + 2 + LINE_SIZE, ' ');
       msg[0] = ToHex((offset >> 12) & 15);
@@ -103,6 +103,8 @@ namespace
   {
   public:
     using Ptr = std::unique_ptr<const SectionDumper>;
+
+    virtual ~SectionDumper() = default;
 
     virtual void DumpReserved(const Binary::Container& blob) const
     {

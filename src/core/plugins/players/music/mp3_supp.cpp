@@ -89,17 +89,24 @@ namespace Module::Mp3
 
     void Finalize(uint_t resultSamples, const mp3dec_frame_info_t& info)
     {
-      if (1 == info.channels)
+      if (resultSamples)
       {
-        const auto pcm = GetTarget();
-        for (std::size_t idx = resultSamples; idx != 0; --idx)
+        if (1 == info.channels)
         {
-          const auto mono = pcm[idx - 1];
-          Data[idx - 1] = Sound::Sample(mono, mono);
+          const auto pcm = GetTarget();
+          for (std::size_t idx = resultSamples; idx != 0; --idx)
+          {
+            const auto mono = pcm[idx - 1];
+            Data[idx - 1] = Sound::Sample(mono, mono);
+          }
         }
+        Data.resize(resultSamples);
+        Frequency = info.hz;
       }
-      Data.resize(resultSamples);
-      Frequency = info.hz;
+      else
+      {
+        Data.clear();
+      }
     }
   };
 
