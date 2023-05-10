@@ -4,8 +4,10 @@
 #include <make_ptr.h>
 #include <stdexcept>
 
+#ifdef _WIN32
 #include <fcntl.h>
 #include <io.h>
+#endif
 
 namespace
 {
@@ -140,10 +142,12 @@ namespace
 
   Binary::Container::Ptr ReadInput()
   {
+#ifdef _WIN32
     if (_setmode(_fileno(stdin), O_BINARY) == -1)
     {
       throw std::runtime_error("Failed to set binary mode to stdin");
     }
+#endif
     Binary::DataBuilder builder(1024);
     std::size_t total = 0;
     for (;;)
@@ -163,10 +167,12 @@ namespace
 
   void WriteOutput(Binary::View data)
   {
+#ifdef _WIN32
     if (_setmode(_fileno(stdout), _O_BINARY) == -1)
     {
       throw std::runtime_error("Failed to set binary mode to stdout");
     }
+#endif
     std::cout.write(static_cast<const char*>(data.Start()), data.Size());
   }
 }  // namespace
