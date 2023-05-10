@@ -5,8 +5,8 @@
 #include <stdexcept>
 
 #ifdef _WIN32
-#include <fcntl.h>
-#include <io.h>
+#  include <fcntl.h>
+#  include <io.h>
 #endif
 
 namespace

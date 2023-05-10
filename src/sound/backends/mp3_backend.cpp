@@ -23,9 +23,6 @@
 #include <math/numeric.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
-// std includes
-#include <algorithm>
-#include <functional>
 
 namespace Sound::Mp3
 {
@@ -250,10 +247,9 @@ namespace Sound::Mp3
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
-      const LameContextPtr context =
-          LameContextPtr(LameApi->lame_init(), std::bind(&Api::lame_close, LameApi, std::placeholders::_1));
+      auto context = LameContextPtr(LameApi->lame_init(), [api = LameApi](auto&& arg) { api->lame_close(arg); });
       SetupContext(*context);
-      return MakePtr<FileStream>(LameApi, context, stream);
+      return MakePtr<FileStream>(LameApi, std::move(context), std::move(stream));
     }
 
   private:

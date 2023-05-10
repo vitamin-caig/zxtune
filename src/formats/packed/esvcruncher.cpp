@@ -21,11 +21,6 @@
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-// std includes
-#include <algorithm>
-#include <functional>
-#include <iterator>
-#include <numeric>
 
 namespace Formats::Packed
 {
@@ -388,7 +383,7 @@ namespace Formats::Packed
             return 0x221 + Stream.GetBits(Header.WindowSize);
           }
           const uint_t size = 0x0a + Stream.GetBits(5);
-          Generate(Decoded, size, std::bind(&Bitstream::GetByte, &Stream));
+          Generate(Decoded, size, [stream = &Stream] { return stream->GetByte(); });
           return 0;
         }
         //%0

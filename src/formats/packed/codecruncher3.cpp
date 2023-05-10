@@ -20,9 +20,6 @@
 // library includes
 #include <binary/format_factories.h>
 #include <formats/packed.h>
-// std includes
-#include <functional>
-#include <iterator>
 
 namespace Formats::Packed
 {
@@ -300,7 +297,7 @@ namespace Formats::Packed
           return true;
         // case 0x03://exit
         case 0x05:  // short copy
-          Generate(Decoded, hiNibble + 1, std::bind(&ByteStream::GetByte, &Stream));
+          Generate(Decoded, hiNibble + 1, [stream = &Stream] { return stream->GetByte(); });
           return true;
         case 0x09:  // short RLE
           Fill(Decoded, hiNibble + 3, Stream.GetByte());
@@ -311,7 +308,7 @@ namespace Formats::Packed
         case 0x0d:  // long copy
         {
           const uint_t len = 256 * hiNibble + Stream.GetByte() + 1;
-          Generate(Decoded, len, std::bind(&ByteStream::GetByte, &Stream));
+          Generate(Decoded, len, [stream = &Stream] { return stream->GetByte(); });
         }
           return true;
         default:  // short backref

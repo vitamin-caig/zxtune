@@ -3,6 +3,7 @@
                     clang-analyzer-cplusplus.*,
                     clang-analyzer-nullability.*,
                     clang-analyzer-core.*,
+                    modernize-avoid-bind,
                     '
   FormatStyle:      file
 ...

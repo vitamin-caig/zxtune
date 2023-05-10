@@ -27,8 +27,6 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <strings/split.h>
-// std includes
-#include <functional>
 
 namespace Sound::Alsa
 {
@@ -273,7 +271,8 @@ namespace Sound::Alsa
   {
     T* res = nullptr;
     CheckResult(*api, ((*api).*allocFunc)(&res), THIS_LINE);
-    return res ? std::shared_ptr<T>(res, std::bind(freeFunc, api, std::placeholders::_1)) : std::shared_ptr<T>();
+    return res ? std::shared_ptr<T>(res, [api, freeFunc](auto&& arg) { ((*api).*freeFunc)(arg); })
+               : std::shared_ptr<T>();
   }
 
   class DeviceWrapper
@@ -300,14 +299,14 @@ namespace Sound::Alsa
 
     void SetParameters(Time::Milliseconds lat, const RenderParameters& params)
     {
-      const std::shared_ptr<snd_pcm_hw_params_t> hwParams =
+      const auto hwParams =
           Allocate<snd_pcm_hw_params_t>(AlsaApi, &Api::snd_pcm_hw_params_malloc, &Api::snd_pcm_hw_params_free);
       Pcm.CheckedCall(&Api::snd_pcm_hw_params_any, hwParams.get(), THIS_LINE);
 
       const bool canPause = AlsaApi->snd_pcm_hw_params_can_pause(hwParams.get()) != 0;
       Dbg(canPause ? "Hardware support pause" : "Hardware doesn't support pause");
 
-      const std::shared_ptr<snd_pcm_format_mask_t> fmtMask =
+      const auto fmtMask =
           Allocate<snd_pcm_format_mask_t>(AlsaApi, &Api::snd_pcm_format_mask_malloc, &Api::snd_pcm_format_mask_free);
       AlsaApi->snd_pcm_hw_params_get_format_mask(hwParams.get(), fmtMask.get());
 
@@ -791,7 +790,7 @@ namespace Sound::Alsa
   {
     snd_ctl_t* ctl = nullptr;
     return api->snd_ctl_open(&ctl, deviceName.c_str(), 0) >= 0
-               ? std::shared_ptr<snd_ctl_t>(ctl, std::bind(&Api::snd_ctl_close, api, std::placeholders::_1))
+               ? std::shared_ptr<snd_ctl_t>(ctl, [api](auto&& arg) { api->snd_ctl_close(arg); })
                : std::shared_ptr<snd_ctl_t>();
   }
 
@@ -830,7 +829,7 @@ namespace Sound::Alsa
       CurHandle = std::shared_ptr<snd_ctl_t>();
       CurName.clear();
       CurId.clear();
-      const std::shared_ptr<snd_ctl_card_info_t> cardInfo =
+      const auto cardInfo =
           Allocate<snd_ctl_card_info_t>(AlsaApi, &Api::snd_ctl_card_info_malloc, &Api::snd_ctl_card_info_free);
 
       for (; AlsaApi->snd_card_next(&Index) >= 0 && Index >= 0;)

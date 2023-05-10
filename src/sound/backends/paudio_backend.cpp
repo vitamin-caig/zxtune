@@ -24,8 +24,6 @@
 #include <platform/version/api.h>
 #include <sound/backends_parameters.h>
 #include <sound/render_params.h>
-// std includes
-#include <functional>
 
 namespace Sound::PulseAudio
 {
@@ -53,7 +51,7 @@ namespace Sound::PulseAudio
     void Shutdown() override
     {
       Dbg("Shutdown");
-      Device = std::shared_ptr<pa_simple>();
+      Device = {};
     }
 
     void Pause() override
@@ -92,10 +90,10 @@ namespace Sound::PulseAudio
     {
       const pa_sample_spec format = GetFormat();
       int error = 0;
-      if (pa_simple* result = PaApi->pa_simple_new(nullptr, Client.c_str(), PA_STREAM_PLAYBACK, nullptr, Stream.c_str(),
-                                                   &format, nullptr, nullptr, &error))
+      if (auto* result = PaApi->pa_simple_new(nullptr, Client.c_str(), PA_STREAM_PLAYBACK, nullptr, Stream.c_str(),
+                                              &format, nullptr, nullptr, &error))
       {
-        return std::shared_ptr<pa_simple>(result, std::bind(&Api::pa_simple_free, PaApi, std::placeholders::_1));
+        return std::shared_ptr<pa_simple>(result, [api = PaApi](auto&& arg) { api->pa_simple_free(arg); });
       }
       throw MakeError(error, THIS_LINE);
     }

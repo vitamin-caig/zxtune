@@ -22,9 +22,9 @@
 #include <parameters/tools.h>
 #include <parameters/tracking.h>
 // std includes
-#include <functional>
 #include <mutex>
 #include <set>
+#include <utility>
 // qt includes
 #include <QtCore/QCoreApplication>
 #include <QtCore/QSettings>
@@ -336,7 +336,7 @@ namespace
     {
       const std::lock_guard<std::mutex> lock(Guard);
       Delegates.insert(delegate);
-      return Subscription(this, std::bind(&CompositeModifier::Unsubscribe, std::placeholders::_1, delegate));
+      return Subscription(this, [delegate](auto&& owner) { owner->Unsubscribe(delegate); });
     }
 
     void SetValue(Identifier name, IntType val) override

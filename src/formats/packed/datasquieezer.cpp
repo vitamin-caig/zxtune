@@ -22,11 +22,6 @@
 #include <binary/format_factories.h>
 #include <formats/packed.h>
 #include <math/numeric.h>
-// std includes
-#include <algorithm>
-#include <functional>
-#include <iterator>
-#include <numeric>
 
 namespace Formats::Packed
 {
@@ -418,7 +413,7 @@ namespace Formats::Packed
       void CopySingleBytes()
       {
         const uint_t count = 14 + Stream.GetBits(5);
-        Generate(Decoded, count, std::bind(&Bitstream::Get8Bits, &Stream));
+        Generate(Decoded, count, [stream = &Stream] { return stream->Get8Bits(); });
       }
 
     private:

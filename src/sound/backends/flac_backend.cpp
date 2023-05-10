@@ -23,7 +23,6 @@
 #include <sound/render_params.h>
 // std includes
 #include <algorithm>
-#include <functional>
 #include <optional>
 
 namespace Sound::Flac
@@ -62,7 +61,7 @@ namespace Sound::Flac
     explicit MetaData(Api::Ptr api)
       : FlacApi(std::move(api))
       , Tags(FlacApi->FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT),
-             std::bind(&Api::FLAC__metadata_object_delete, FlacApi, std::placeholders::_1))
+             [api = FlacApi](auto&& arg) { api->FLAC__metadata_object_delete(arg); })
     {}
 
     void AddTag(const String& name, const String& value)
@@ -115,8 +114,7 @@ namespace Sound::Flac
     {
       Meta.Encode(*Encoder);
       // real stream initializing should be performed after all set functions
-      if (const Binary::SeekableOutputStream::Ptr seekableStream =
-              std::dynamic_pointer_cast<Binary::SeekableOutputStream>(Stream))
+      if (const auto seekableStream = std::dynamic_pointer_cast<Binary::SeekableOutputStream>(Stream))
       {
         Dbg("Using seekable stream for FLAC output");
         CheckFlacCall(FLAC__STREAM_ENCODER_INIT_STATUS_OK
@@ -242,10 +240,10 @@ namespace Sound::Flac
 
     FileStream::Ptr CreateStream(Binary::OutputStream::Ptr stream) const override
     {
-      const EncoderPtr encoder(FlacApi->FLAC__stream_encoder_new(),
-                               std::bind(&Api::FLAC__stream_encoder_delete, FlacApi, std::placeholders::_1));
+      auto encoder = EncoderPtr(FlacApi->FLAC__stream_encoder_new(),
+                                [api = FlacApi](auto&& arg) { api->FLAC__stream_encoder_delete(arg); });
       SetupEncoder(*encoder);
-      return MakePtr<FileStream>(FlacApi, encoder, stream);
+      return MakePtr<FileStream>(FlacApi, std::move(encoder), std::move(stream));
     }
 
   private:
