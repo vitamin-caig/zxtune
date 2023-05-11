@@ -24,7 +24,7 @@ libraries.3rdparty = asap atrac9 ffmpeg FLAC gme he ht hvl lazyusf2 lhasa lzma m
 #platform
 libraries.windows = advapi32 ole32 oldnames shell32 user32
 libraries.mingw = ole32
-libraries.boost = filesystem program_options system
+libraries.boost = program_options
 
 manual_format := txt
 manual_file = $(binary_name)_$(pkg_lang).$(manual_format)

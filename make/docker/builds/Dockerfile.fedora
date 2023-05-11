@@ -1,9 +1,9 @@
-FROM fedora:29
+FROM fedora:38
 RUN yum update -y && \
     yum install -y git zip make gcc-c++ rpmdevtools \
         alsa-lib-devel pulseaudio-libs-devel \
         boost-devel \
-        qt5-devel && \
+        qt5-qtbase-devel && \
     rm -Rf /var/cache/yum && \
     useradd -m -s /bin/bash -U -G users -d /build build
 

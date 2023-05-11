@@ -36,15 +36,6 @@ namespace
   const char INVALID_NAME[] = "Invalid?Name!";
   const char EMPTY_FILE[] = "empty";
 
-  bool ShowIfError(const Error& e)
-  {
-    if (e)
-    {
-      std::cerr << e.ToString();
-    }
-    return e;
-  }
-
   void Test(const Error& res, const String& text, unsigned line)
   {
     std::cout << (res ? "Failed" : "Passed") << " test '" << text << "' at " << line << std::endl;
@@ -112,7 +103,7 @@ int main()
     CheckError(OpenData(EMPTY_FILE, *params), "Open empty file in shared mode", __LINE__);
     std::cout << "------ test for creators ---------\n";
     params->SetValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, 0);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, STOP_IF_EXISTS);
+    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteMode::STOP_IF_EXISTS);
     const String fileName = "file1";
     const String folder = "folder1";
     const String nestedFile = folder + '/' + "folder2" + '/' + "file2";
@@ -124,10 +115,10 @@ int main()
     CheckError(CreateData(nestedFile, *params), "Create existing non-overwritable file with intermediate dirs",
                __LINE__);
     CheckError(CreateData(folder, *params), "Create file as existing folder", __LINE__);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OVERWRITE_EXISTING);
+    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteMode::OVERWRITE_EXISTING);
     Test(CreateData(fileName, *params), "Overwrite file", __LINE__);
     Test(CreateData(nestedFile, *params), "Overwrite file with intermediate dirs", __LINE__);
-    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, RENAME_NEW);
+    params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteMode::RENAME_NEW);
     for (uint_t retry = 0; retry != 3; ++retry)
     {
       Test(CreateData(fileName, *params), "Renamed new file file step", __LINE__);
@@ -137,9 +128,9 @@ int main()
     CheckError(CreateData(dirOnFile, *params), "Create file nested to file", __LINE__);
     {
       params->SetValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, 0);
-      params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, STOP_IF_EXISTS);
+      params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteMode::STOP_IF_EXISTS);
       CheckError(CreateData(INVALID_NAME, *params), "Create file with invalid name", __LINE__);
-      params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OVERWRITE_EXISTING);
+      params->SetValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, OverwriteMode::OVERWRITE_EXISTING);
       CheckError(CreateData(INVALID_NAME, *params), "Overwrite file with invalid name", __LINE__);
       params->SetValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, 1);
       Test(CreateData(INVALID_NAME, *params), "Create file with invalid name (sanitized)", __LINE__);

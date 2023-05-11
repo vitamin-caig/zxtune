@@ -23,7 +23,7 @@
 #include <formats/image/decoders.h>
 #include <formats/packed/decoders.h>
 #include <io/api.h>
-#include <io/impl/boost_filesystem_path.h>
+#include <io/impl/filesystem_path.h>
 #include <io/providers_parameters.h>
 #include <parameters/container.h>
 #include <platform/application.h>
@@ -40,7 +40,6 @@
 #include <set>
 // boost includes
 #include <boost/algorithm/string/join.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
 namespace
@@ -721,38 +720,43 @@ namespace
 
       if (fieldName == TEMPLATE_FIELD_FILENAME)
       {
-        const IO::Identifier& id = GetRootIdentifier();
+        const auto& id = GetRootIdentifier();
         return id.Filename();
       }
       else if (fieldName == TEMPLATE_FIELD_PATH)
       {
-        const IO::Identifier& id = GetRootIdentifier();
+        const auto& id = GetRootIdentifier();
         return id.Path();
       }
       else if (fieldName == TEMPLATE_FIELD_FLATPATH)
       {
         // TODO: use IO::FilenameTemplate
-        const IO::Identifier& id = GetRootIdentifier();
-        const boost::filesystem::path path(id.Path());
-        const boost::filesystem::path root(path.root_directory());
-        Strings::Array components;
-        for (boost::filesystem::path::const_iterator it = path.begin(), lim = path.end(); it != lim; ++it)
+        const auto& id = GetRootIdentifier();
+        const auto path = IO::Details::FromString(id.Path());
+        const auto root = path.root_directory();
+        String result;
+        for (const auto& it : path)
         {
-          if (*it != root)
+          if (it == root)
           {
-            components.push_back(IO::Details::ToString(*it));
+            continue;
           }
+          if (!result.empty())
+          {
+            result += FLATPATH_DELIMITER;
+          }
+          result += IO::Details::ToString(it);
         }
-        return boost::algorithm::join(components, FLATPATH_DELIMITER);
+        return result;
       }
       else if (fieldName == TEMPLATE_FIELD_SUBPATH)
       {
-        const Strings::Array& subPath = GetSubpath();
+        const auto& subPath = GetSubpath();
         return boost::algorithm::join(subPath, SUBPATH_DELIMITER);
       }
       else if (fieldName == TEMPLATE_FIELD_FLATSUBPATH)
       {
-        const Strings::Array& subPath = GetSubpath();
+        const auto& subPath = GetSubpath();
         return boost::algorithm::join(subPath, FLATPATH_DELIMITER);
       }
       else
@@ -875,8 +879,8 @@ namespace
 
     void ApplyData(String filename) override
     {
-      const boost::filesystem::path path(filename);
-      if (boost::filesystem::is_directory(path))
+      const auto path = IO::Details::FromString(filename);
+      if (std::filesystem::is_directory(path))
       {
         ApplyRecursive(path);
       }
@@ -897,14 +901,15 @@ namespace
     }
 
   private:
-    void ApplyRecursive(const boost::filesystem::path& path) const
+    void ApplyRecursive(const std::filesystem::path& path) const
     {
-      for (boost::filesystem::recursive_directory_iterator iter(path /*, boost::filesystem::symlink_option::recurse*/),
-           lim = boost::filesystem::recursive_directory_iterator();
+      for (std::filesystem::recursive_directory_iterator
+               iter(path /*, std::filesystem::directory_options::follow_directory_symlink*/),
+           lim = std::filesystem::recursive_directory_iterator();
            iter != lim; ++iter)
       {
-        const boost::filesystem::path subpath = iter->path();
-        if (!boost::filesystem::is_directory(iter->status()))
+        const auto& subpath = iter->path();
+        if (!std::filesystem::is_directory(iter->status()))
         {
           const String subPathString = subpath.string();
           Target->ApplyData(subPathString);
@@ -1039,8 +1044,8 @@ namespace
                           AnalysisDataQueueSizeValue)
               .c_str());
       opt("target-name-template", value<String>(&TargetNameTemplateValue),
-          Strings::Format("target name template. Default is %s. "
-                          "Applicable fields: [%s],[%s],[%s],[%s],[%s]",
+          Strings::Format("target name template. Default is {0}. "
+                          "Applicable fields: [{1}],[{2}],[{3}],[{4}],[{5}]",
                           DEFAULT_TARGET_NAME_TEMPLATE, TEMPLATE_FIELD_FILENAME, TEMPLATE_FIELD_PATH,
                           TEMPLATE_FIELD_FLATPATH, TEMPLATE_FIELD_SUBPATH, TEMPLATE_FIELD_FLATSUBPATH)
               .c_str());

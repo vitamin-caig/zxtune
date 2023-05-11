@@ -1,4 +1,4 @@
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 ARG cores=12
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates wget xz-utils bzip2 git make zip nano less sudo \
@@ -17,17 +17,18 @@ WORKDIR /build
 
 ENV prebuilt=/build/prebuilt
 
-ENV boost=1.77.0
+ENV boost=1.82.0
 RUN bash -c "wget -q https://boostorg.jfrog.io/artifactory/main/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
     cd boost_* && ./bootstrap.sh && \
     ./b2 toolset=gcc link=static threading=multi target-os=linux variant=release --layout=system \
-      --with-filesystem --with-locale --with-program_options --with-system -j${cores} \
+      --with-locale --with-program_options -j${cores} \
       --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-linux-x86_64/lib install && \
     cd .. && rm -Rf boost_*
 
 ENV qt=5.15.2
-RUN bash -c "wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/single/qt-everywhere-src-${qt}.tar.xz -O - | tar -xJ" && \
-    cd qt-everywhere* && \
+RUN bash -c "git clone --depth=1 --branch=${qt} https://github.com/qt/qt5.git" && \
+    cd qt5 && \
+     ./init-repository --module-subset=qtbase,qtimageformats,qtrepotools,qttools && \
      ./configure -v -platform linux-g++-64 -prefix ${prebuilt}/qt-${qt}-linux-x86_64 -release -opensource -static -confirm-license -no-rpath \
       -no-opengl -no-openvg -no-sql-sqlite \
       -no-ico -no-gif -no-libjpeg -no-openssl -no-cups -no-pch -no-glib \
@@ -40,7 +41,7 @@ RUN bash -c "wget -q http://download.qt.io/archive/qt/${qt%.*}/${qt}/single/qt-e
       -skip qtwebengine -skip qtwebglplugin -skip qtwebsockets -skip qtwebview -skip qtwinextras -skip qtxmlpatterns \
       -make libs && \
      make -j${cores} install && \
-     cd .. && rm -Rf qt-everywhere*
+     cd .. && rm -Rf qt5*
 
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \

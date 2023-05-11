@@ -34,8 +34,6 @@ libraries.3rdparty = asap atrac9 ffmpeg FLAC gme he ht hvl lazyusf2 lhasa lzma m
 libraries += playlist_ui playlist_supp playlist_io ui_common
 depends += $(addprefix apps/zxtune-qt/,playlist/supp playlist/ui playlist/io ui)
 
-libraries.boost = filesystem system
-
 libraries.qt = Gui Core Network Widgets
 
 libraries.common += l10n debug

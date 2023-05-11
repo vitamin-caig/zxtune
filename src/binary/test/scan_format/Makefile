@@ -4,8 +4,4 @@ source_dirs := .
 
 libraries.common = binary binary_format debug io l10n_stub parameters platform strings tools 
 
-libraries.boost = filesystem system
-
-libraries.windows = advapi32
-
 include $(dirs.root)/makefile.mak

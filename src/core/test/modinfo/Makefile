@@ -17,8 +17,4 @@ libraries.common = analysis \
 #3rdparty
 libraries.3rdparty = asap atrac9 FLAC ffmpeg gme he ht hvl lazyusf2 lhasa lzma mgba mpg123 ogg openmpt sidplayfp sseqplayer snesspc unrar v2m vgm vgmstream vio2sf vorbis xmp z80ex zlib
 
-libraries.boost += filesystem system
-
-windows_libraries := advapi32
-
 include $(dirs.root)/makefile.mak
