@@ -10,7 +10,7 @@
 
 // local includes
 #include "io/providers/file_provider.h"
-#include "io/impl/boost_filesystem_path.h"
+#include "io/impl/filesystem_path.h"
 #include "io/impl/l10n.h"
 #include "io/providers/enumerator.h"
 // common includes
@@ -26,11 +26,9 @@
 #include <strings/format.h>
 // std includes
 #include <cctype>
+#include <fstream>
 // boost includes
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
 #include <boost/interprocess/file_mapping.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
@@ -62,9 +60,8 @@ namespace
   }
 #endif
 
-  String GetErrorMessage(const boost::system::system_error& err)
+  String GetErrorMessage(const std::filesystem::filesystem_error& err)
   {
-    // TODO: remove when BOOST_NO_ANSI_APIS will be applied
     return Strings::ToAutoUtf8(err.code().message());
   }
 
@@ -88,29 +85,33 @@ namespace IO::File
 
     std::size_t MemoryMappingThreshold() const
     {
-      Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::MMAP_THRESHOLD, intVal);
+      using namespace Parameters::ZXTune::IO::Providers::File;
+      Parameters::IntType intVal = MMAP_THRESHOLD_DEFAULT;
+      Accessor.FindValue(MMAP_THRESHOLD, intVal);
       return static_cast<std::size_t>(intVal);
     }
 
     OverwriteMode Overwrite() const override
     {
-      Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::OVERWRITE_EXISTING, intVal);
+      using namespace Parameters::ZXTune::IO::Providers::File;
+      Parameters::IntType intVal = OVERWRITE_EXISTING_DEFAULT;
+      Accessor.FindValue(OVERWRITE_EXISTING, intVal);
       return static_cast<OverwriteMode>(intVal);
     }
 
     bool CreateDirectories() const override
     {
-      Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::CREATE_DIRECTORIES, intVal);
+      using namespace Parameters::ZXTune::IO::Providers::File;
+      Parameters::IntType intVal = CREATE_DIRECTORIES_DEFAULT;
+      Accessor.FindValue(CREATE_DIRECTORIES, intVal);
       return intVal != 0;
     }
 
     bool SanitizeNames() const override
     {
-      Parameters::IntType intVal = Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::IO::Providers::File::SANITIZE_NAMES, intVal);
+      using namespace Parameters::ZXTune::IO::Providers::File;
+      Parameters::IntType intVal = SANITIZE_NAMES_DEFAULT;
+      Accessor.FindValue(SANITIZE_NAMES, intVal);
       return intVal != 0;
     }
 
@@ -126,7 +127,7 @@ namespace IO::File
   class FileIdentifier : public Identifier
   {
   public:
-    FileIdentifier(boost::filesystem::path path, StringView subpath)
+    FileIdentifier(std::filesystem::path path, StringView subpath)
       : PathValue(std::move(path))
       , SubpathValue(subpath.to_string())
       , FullValue(Serialize())
@@ -184,7 +185,7 @@ namespace IO::File
     }
 
   private:
-    const boost::filesystem::path PathValue;
+    const std::filesystem::path PathValue;
     const String SubpathValue;
     const String FullValue;
   };
@@ -192,7 +193,7 @@ namespace IO::File
   class MemoryMappedData : public Binary::Data
   {
   public:
-    explicit MemoryMappedData(const String& path)
+    explicit MemoryMappedData(const std::filesystem::path& path)
     try : File(path.c_str(), boost::interprocess::read_only), Region(File, boost::interprocess::read_only)
     {}
     catch (const boost::interprocess::interprocess_exception& e)
@@ -215,7 +216,7 @@ namespace IO::File
     const boost::interprocess::mapped_region Region;
   };
 
-  Binary::Data::Ptr OpenMemoryMappedFile(const String& path)
+  Binary::Data::Ptr OpenMemoryMappedFile(const std::filesystem::path& path)
   {
     return MakePtr<MemoryMappedData>(path);
   }
@@ -223,7 +224,7 @@ namespace IO::File
   Binary::Data::Ptr ReadFileToMemory(std::ifstream& stream, std::size_t size)
   {
     Binary::DataBuilder res(size);
-    const std::streampos read = stream.read(static_cast<char*>(res.Allocate(size)), size).tellg();
+    const auto read = stream.read(static_cast<char*>(res.Allocate(size)), size).tellg();
     if (static_cast<std::size_t>(read) != size)
     {
       throw MakeFormattedError(THIS_LINE, translate("Failed to read {0} bytes. Actually got {1} bytes."), size, read);
@@ -233,50 +234,50 @@ namespace IO::File
 
   // since dingux platform does not support wide strings(???) that boost.filesystem v3 requires, specify adapters in
   // return-style
-  boost::uintmax_t FileSize(const boost::filesystem::path& filePath, Error::LocationRef loc)
+  boost::uintmax_t FileSize(const std::filesystem::path& filePath, Error::LocationRef loc)
   {
     try
     {
-      return boost::filesystem::file_size(filePath);
+      return std::filesystem::file_size(filePath);
     }
-    catch (const boost::system::system_error& err)
+    catch (const std::filesystem::filesystem_error& err)
     {
       throw Error(loc, GetErrorMessage(err));
     }
   }
 
-  bool IsDirectory(const boost::filesystem::path& filePath)
+  bool IsDirectory(const std::filesystem::path& filePath)
   {
     try
     {
-      return boost::filesystem::is_directory(filePath);
+      return std::filesystem::is_directory(filePath);
     }
-    catch (const boost::system::system_error&)
+    catch (const std::filesystem::filesystem_error&)
     {
       return false;
     }
   }
 
-  bool IsExists(const boost::filesystem::path& filePath)
+  bool IsExists(const std::filesystem::path& filePath)
   {
     try
     {
-      return boost::filesystem::exists(filePath);
+      return std::filesystem::exists(filePath);
     }
-    catch (const boost::system::system_error&)
+    catch (const std::filesystem::filesystem_error&)
     {
       return false;
     }
   }
 
-  void CreateDirectory(const boost::filesystem::path& path, Error::LocationRef loc)
+  void CreateDirectoryRecursive(const std::filesystem::path& path, Error::LocationRef loc)
   {
     try
     {
       // do not check result
-      boost::filesystem::create_directory(path);
+      std::filesystem::create_directories(path);
     }
-    catch (const boost::system::system_error& err)
+    catch (const std::filesystem::filesystem_error& err)
     {
       throw Error(loc, GetErrorMessage(err));
     }
@@ -285,7 +286,7 @@ namespace IO::File
   Binary::Data::Ptr OpenData(StringView path, std::size_t mmapThreshold)
   {
     const auto fileName = Details::FromString(path);
-    const boost::uintmax_t size = FileSize(fileName, THIS_LINE);
+    const auto size = FileSize(fileName, THIS_LINE);
     if (size == 0)
     {
       throw Error(THIS_LINE, translate("File is empty."));
@@ -294,12 +295,12 @@ namespace IO::File
     {
       Dbg("Using memory-mapped i/o for '{}'.", path);
       // use local encoding here
-      return OpenMemoryMappedFile(fileName.string());
+      return OpenMemoryMappedFile(fileName);
     }
     else
     {
       Dbg("Reading '{}' to memory.", path);
-      boost::filesystem::ifstream stream(fileName, std::ios::binary);
+      std::ifstream stream(fileName, std::ios::binary);
       return ReadFileToMemory(stream, static_cast<std::size_t>(size));
     }
   }
@@ -307,7 +308,7 @@ namespace IO::File
   class OutputFileStream : public Binary::SeekableOutputStream
   {
   public:
-    explicit OutputFileStream(const boost::filesystem::path& name)
+    explicit OutputFileStream(const std::filesystem::path& name)
       : Name(Details::ToString(name))
       , Stream(name, std::ios::binary | std::ios_base::out)
     {
@@ -343,28 +344,13 @@ namespace IO::File
 
     uint64_t Position() const override
     {
-      return const_cast<boost::filesystem::ofstream&>(Stream).tellp();
+      return const_cast<std::ofstream&>(Stream).tellp();
     }
 
   private:
     const String Name;
-    boost::filesystem::ofstream Stream;
+    std::ofstream Stream;
   };
-
-  // standard implementation does not work in mingw
-  void CreateDirectoryRecursive(const boost::filesystem::path& dir)
-  {
-    if (IsDirectory(dir))
-    {
-      return;
-    }
-    const boost::filesystem::path& parent = dir.parent_path();
-    if (!parent.empty())
-    {
-      CreateDirectoryRecursive(parent);
-    }
-    CreateDirectory(dir, THIS_LINE);
-  }
 
   String SanitizePathComponent(const String& input)
   {
@@ -373,12 +359,12 @@ namespace IO::File
     return ApplyOSFilenamesRestrictions(result);
   }
 
-  boost::filesystem::path CreateSanitizedPath(StringView fileName)
+  std::filesystem::path CreateSanitizedPath(StringView fileName)
   {
     const auto initial = Details::FromString(fileName);
     auto it = initial.begin(), lim = initial.end();
-    boost::filesystem::path result;
-    for (const boost::filesystem::path root(initial.root_path()); result != root && it != lim; ++it)
+    std::filesystem::path result;
+    for (const auto root = initial.root_path(); result != root && it != lim; ++it)
     {
       result /= *it;
     }
@@ -402,17 +388,17 @@ namespace IO::File
       Dbg("CreateStream: input='{}' path='{}'", fileName, Details::ToString(path));
       if (params.CreateDirectories() && path.has_parent_path())
       {
-        CreateDirectoryRecursive(path.parent_path());
+        CreateDirectoryRecursive(path.parent_path(), THIS_LINE);
       }
       switch (params.Overwrite())
       {
-      case STOP_IF_EXISTS:
+      case OverwriteMode::STOP_IF_EXISTS:
         if (IsExists(path))
         {
           throw Error(THIS_LINE, translate("File already exists."));
         }
         break;
-      case RENAME_NEW:
+      case OverwriteMode::RENAME_NEW:
       {
         const auto oldStem = path.stem();
         const auto extension = path.extension();
@@ -425,14 +411,14 @@ namespace IO::File
           path /= newFilename;
         }
       }
-      case OVERWRITE_EXISTING:
+      case OverwriteMode::OVERWRITE_EXISTING:
         break;
       default:
         Require(false);
       }
       return MakePtr<OutputFileStream>(path);
     }
-    catch (const boost::system::system_error& err)
+    catch (const std::filesystem::filesystem_error& err)
     {
       throw Error(THIS_LINE, GetErrorMessage(err));
     }

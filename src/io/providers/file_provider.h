@@ -23,7 +23,7 @@ namespace IO
 {
   Binary::Data::Ptr OpenLocalFile(StringView path, std::size_t mmapThreshold);
 
-  enum OverwriteMode
+  enum class OverwriteMode
   {
     STOP_IF_EXISTS,
     OVERWRITE_EXISTING,
