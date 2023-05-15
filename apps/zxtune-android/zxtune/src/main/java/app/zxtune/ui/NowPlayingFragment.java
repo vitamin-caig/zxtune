@@ -42,8 +42,6 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
   private static final String EXTRA_ITEM_LOCATION = TAG + ".EXTRA_LOCATION";
 
   @Nullable
-  private InformationView info;
-  @Nullable
   private TrackActionsMenu trackActionsMenu;
 
   @Override
@@ -86,12 +84,6 @@ public class NowPlayingFragment extends Fragment implements MainActivity.PagerTa
   public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                            @Nullable Bundle savedInstanceState) {
     return container != null ? inflater.inflate(R.layout.now_playing, container, false) : null;
-  }
-
-  @Override
-  public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-    super.onViewCreated(view, savedInstanceState);
-    info = new InformationView(getActivity(), view);
   }
 
   private void pickAndSend(Intent data, CharSequence title, int code) {
