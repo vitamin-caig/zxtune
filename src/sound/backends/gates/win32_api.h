@@ -25,7 +25,8 @@ namespace Sound
       typedef std::shared_ptr<Api> Ptr;
       virtual ~Api() = default;
 
-      
+// clang-format off
+
       virtual UINT waveOutGetNumDevs() = 0;
       virtual MMRESULT waveOutGetDevCapsW(UINT_PTR uDeviceID, LPWAVEOUTCAPSW pwoc, UINT cbwoc) = 0;
       virtual MMRESULT waveOutOpen(LPHWAVEOUT phwo, UINT uDeviceID, LPCWAVEFORMATEX pwfx, DWORD_PTR dwCallback, DWORD_PTR dwInstance, DWORD fdwOpen) = 0;
@@ -39,10 +40,10 @@ namespace Sound
       virtual MMRESULT waveOutReset(HWAVEOUT hwo) = 0;
       virtual MMRESULT waveOutGetVolume(HWAVEOUT hwo, LPDWORD pdwVolume) = 0;
       virtual MMRESULT waveOutSetVolume(HWAVEOUT hwo, DWORD dwVolume) = 0;
+// clang-format on
     };
 
     //throw exception in case of error
     Api::Ptr LoadDynamicApi();
-
   }
 }  // namespace Sound

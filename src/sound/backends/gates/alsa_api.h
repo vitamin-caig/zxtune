@@ -26,7 +26,8 @@ namespace Sound
       typedef std::shared_ptr<Api> Ptr;
       virtual ~Api() = default;
 
-      
+// clang-format off
+
       virtual const char * snd_asoundlib_version (void) = 0;
       virtual const char * snd_strerror (int errnum) = 0;
       virtual int snd_config_update_free_global (void) = 0;
@@ -77,10 +78,10 @@ namespace Sound
       virtual int snd_ctl_pcm_next_device (snd_ctl_t * ctl, int * device) = 0;
       virtual int snd_ctl_pcm_info (snd_ctl_t *ctl, snd_pcm_info_t *info) = 0;
       virtual const char * snd_pcm_info_get_name (const snd_pcm_info_t *obj) = 0;
+// clang-format on
     };
 
     //throw exception in case of error
     Api::Ptr LoadDynamicApi();
-
   }
 }  // namespace Sound

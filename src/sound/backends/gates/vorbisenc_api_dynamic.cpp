@@ -41,7 +41,6 @@ namespace Sound
       }
     };
 
-
     class DynamicApi : public Api
     {
     public:
@@ -56,27 +55,26 @@ namespace Sound
         Debug::Log("Sound::Backend::Ogg", "Library unloaded");
       }
 
-      
+// clang-format off
+
       int vorbis_encode_init(vorbis_info *vi, long channels, long rate, long max_bitrate, long nominal_bitrate, long min_bitrate) override
       {
-        static const char NAME[] = "vorbis_encode_init";
-        typedef int ( *FunctionType)(vorbis_info *, long, long, long, long, long);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_encode_init);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_encode_init");
         return func(vi, channels, rate, max_bitrate, nominal_bitrate, min_bitrate);
       }
-      
+
       int vorbis_encode_init_vbr(vorbis_info *vi, long channels, long rate, float base_quality) override
       {
-        static const char NAME[] = "vorbis_encode_init_vbr";
-        typedef int ( *FunctionType)(vorbis_info *, long, long, float);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_encode_init_vbr);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_encode_init_vbr");
         return func(vi, channels, rate, base_quality);
       }
-      
+
+// clang-format on
     private:
       const Platform::SharedLibraryAdapter Lib;
     };
-
 
     Api::Ptr LoadDynamicApi()
     {

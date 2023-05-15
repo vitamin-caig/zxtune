@@ -41,7 +41,6 @@ namespace Sound
       }
     };
 
-
     class DynamicApi : public Api
     {
     public:
@@ -56,59 +55,54 @@ namespace Sound
         Debug::Log("Sound::Backend::Ogg", "Library unloaded");
       }
 
-      
+// clang-format off
+
       int ogg_stream_init(ogg_stream_state *os, int serialno) override
       {
-        static const char NAME[] = "ogg_stream_init";
-        typedef int ( *FunctionType)(ogg_stream_state *, int);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::ogg_stream_init);
+        const auto func = Lib.GetSymbol<FunctionType>("ogg_stream_init");
         return func(os, serialno);
       }
-      
+
       int ogg_stream_clear(ogg_stream_state *os) override
       {
-        static const char NAME[] = "ogg_stream_clear";
-        typedef int ( *FunctionType)(ogg_stream_state *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::ogg_stream_clear);
+        const auto func = Lib.GetSymbol<FunctionType>("ogg_stream_clear");
         return func(os);
       }
-      
+
       int ogg_stream_packetin(ogg_stream_state *os, ogg_packet *op) override
       {
-        static const char NAME[] = "ogg_stream_packetin";
-        typedef int ( *FunctionType)(ogg_stream_state *, ogg_packet *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::ogg_stream_packetin);
+        const auto func = Lib.GetSymbol<FunctionType>("ogg_stream_packetin");
         return func(os, op);
       }
-      
+
       int ogg_stream_pageout(ogg_stream_state *os, ogg_page *og) override
       {
-        static const char NAME[] = "ogg_stream_pageout";
-        typedef int ( *FunctionType)(ogg_stream_state *, ogg_page *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::ogg_stream_pageout);
+        const auto func = Lib.GetSymbol<FunctionType>("ogg_stream_pageout");
         return func(os, og);
       }
-      
+
       int ogg_stream_flush(ogg_stream_state *os, ogg_page *og) override
       {
-        static const char NAME[] = "ogg_stream_flush";
-        typedef int ( *FunctionType)(ogg_stream_state *, ogg_page *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::ogg_stream_flush);
+        const auto func = Lib.GetSymbol<FunctionType>("ogg_stream_flush");
         return func(os, og);
       }
-      
+
       int ogg_page_eos(const ogg_page *og) override
       {
-        static const char NAME[] = "ogg_page_eos";
-        typedef int ( *FunctionType)(const ogg_page *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::ogg_page_eos);
+        const auto func = Lib.GetSymbol<FunctionType>("ogg_page_eos");
         return func(og);
       }
-      
+
+// clang-format on
     private:
       const Platform::SharedLibraryAdapter Lib;
     };
-
 
     Api::Ptr LoadDynamicApi()
     {

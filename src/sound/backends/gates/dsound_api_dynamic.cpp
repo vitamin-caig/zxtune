@@ -20,7 +20,6 @@ namespace Sound
 {
   namespace DirectSound
   {
-
     class DynamicApi : public Api
     {
     public:
@@ -35,27 +34,26 @@ namespace Sound
         Debug::Log("Sound::Backend::DirectSound", "Library unloaded");
       }
 
-      
+// clang-format off
+
       HRESULT DirectSoundEnumerateW(LPDSENUMCALLBACKW cb, LPVOID param) override
       {
-        static const char NAME[] = "DirectSoundEnumerateW";
-        typedef HRESULT (WINAPI *FunctionType)(LPDSENUMCALLBACKW, LPVOID);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::DirectSoundEnumerateW);
+        const auto func = Lib.GetSymbol<FunctionType>("DirectSoundEnumerateW");
         return func(cb, param);
       }
-      
+
       HRESULT DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter) override
       {
-        static const char NAME[] = "DirectSoundCreate";
-        typedef HRESULT (WINAPI *FunctionType)(LPCGUID, LPDIRECTSOUND*, LPUNKNOWN);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::DirectSoundCreate);
+        const auto func = Lib.GetSymbol<FunctionType>("DirectSoundCreate");
         return func(pcGuidDevice, ppDS, pUnkOuter);
       }
-      
+
+// clang-format on
     private:
       const Platform::SharedLibraryAdapter Lib;
     };
-
 
     Api::Ptr LoadDynamicApi()
     {

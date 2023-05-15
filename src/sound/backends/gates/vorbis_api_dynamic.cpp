@@ -41,7 +41,6 @@ namespace Sound
       }
     };
 
-
     class DynamicApi : public Api
     {
     public:
@@ -56,147 +55,131 @@ namespace Sound
         Debug::Log("Sound::Backend::Ogg", "Library unloaded");
       }
 
-      
+// clang-format off
+
       int vorbis_block_clear(vorbis_block *vb) override
       {
-        static const char NAME[] = "vorbis_block_clear";
-        typedef int ( *FunctionType)(vorbis_block *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_block_clear);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_block_clear");
         return func(vb);
       }
-      
+
       int vorbis_block_init(vorbis_dsp_state *v, vorbis_block *vb) override
       {
-        static const char NAME[] = "vorbis_block_init";
-        typedef int ( *FunctionType)(vorbis_dsp_state *, vorbis_block *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_block_init);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_block_init");
         return func(v, vb);
       }
-      
+
       void vorbis_dsp_clear(vorbis_dsp_state *v) override
       {
-        static const char NAME[] = "vorbis_dsp_clear";
-        typedef void ( *FunctionType)(vorbis_dsp_state *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_dsp_clear);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_dsp_clear");
         return func(v);
       }
-      
+
       void vorbis_info_clear(vorbis_info *vi) override
       {
-        static const char NAME[] = "vorbis_info_clear";
-        typedef void ( *FunctionType)(vorbis_info *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_info_clear);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_info_clear");
         return func(vi);
       }
-      
+
       void vorbis_info_init(vorbis_info *vi) override
       {
-        static const char NAME[] = "vorbis_info_init";
-        typedef void ( *FunctionType)(vorbis_info *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_info_init);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_info_init");
         return func(vi);
       }
-      
+
       const char *vorbis_version_string(void) override
       {
-        static const char NAME[] = "vorbis_version_string";
-        typedef const char *( *FunctionType)();
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_version_string);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_version_string");
         return func();
       }
-      
+
       int vorbis_analysis(vorbis_block *vb, ogg_packet *op) override
       {
-        static const char NAME[] = "vorbis_analysis";
-        typedef int ( *FunctionType)(vorbis_block *, ogg_packet *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_analysis);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_analysis");
         return func(vb, op);
       }
-      
+
       int vorbis_analysis_blockout(vorbis_dsp_state *v, vorbis_block *vb) override
       {
-        static const char NAME[] = "vorbis_analysis_blockout";
-        typedef int ( *FunctionType)(vorbis_dsp_state *, vorbis_block *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_analysis_blockout);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_analysis_blockout");
         return func(v, vb);
       }
-      
+
       float** vorbis_analysis_buffer(vorbis_dsp_state *v, int vals) override
       {
-        static const char NAME[] = "vorbis_analysis_buffer";
-        typedef float** ( *FunctionType)(vorbis_dsp_state *, int);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_analysis_buffer);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_analysis_buffer");
         return func(v, vals);
       }
-      
+
       int vorbis_analysis_headerout(vorbis_dsp_state *v, vorbis_comment *vc, ogg_packet *op, ogg_packet *op_comm, ogg_packet *op_code) override
       {
-        static const char NAME[] = "vorbis_analysis_headerout";
-        typedef int ( *FunctionType)(vorbis_dsp_state *, vorbis_comment *, ogg_packet *, ogg_packet *, ogg_packet *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_analysis_headerout);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_analysis_headerout");
         return func(v, vc, op, op_comm, op_code);
       }
-      
+
       int vorbis_analysis_init(vorbis_dsp_state *v, vorbis_info *vi) override
       {
-        static const char NAME[] = "vorbis_analysis_init";
-        typedef int ( *FunctionType)(vorbis_dsp_state *, vorbis_info *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_analysis_init);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_analysis_init");
         return func(v, vi);
       }
-      
+
       int vorbis_analysis_wrote(vorbis_dsp_state *v,int vals) override
       {
-        static const char NAME[] = "vorbis_analysis_wrote";
-        typedef int ( *FunctionType)(vorbis_dsp_state *, int);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_analysis_wrote);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_analysis_wrote");
         return func(v, vals);
       }
-      
+
       int vorbis_bitrate_addblock(vorbis_block *vb) override
       {
-        static const char NAME[] = "vorbis_bitrate_addblock";
-        typedef int ( *FunctionType)(vorbis_block *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_bitrate_addblock);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_bitrate_addblock");
         return func(vb);
       }
-      
+
       int vorbis_bitrate_flushpacket(vorbis_dsp_state *vd, ogg_packet *op) override
       {
-        static const char NAME[] = "vorbis_bitrate_flushpacket";
-        typedef int ( *FunctionType)(vorbis_dsp_state *, ogg_packet *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_bitrate_flushpacket);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_bitrate_flushpacket");
         return func(vd, op);
       }
-      
+
       void vorbis_comment_add_tag(vorbis_comment *vc, const char *tag, const char *contents) override
       {
-        static const char NAME[] = "vorbis_comment_add_tag";
-        typedef void ( *FunctionType)(vorbis_comment *, const char *, const char *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_comment_add_tag);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_comment_add_tag");
         return func(vc, tag, contents);
       }
-      
+
       void vorbis_comment_clear(vorbis_comment *vc) override
       {
-        static const char NAME[] = "vorbis_comment_clear";
-        typedef void ( *FunctionType)(vorbis_comment *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_comment_clear);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_comment_clear");
         return func(vc);
       }
-      
+
       void vorbis_comment_init(vorbis_comment *vc) override
       {
-        static const char NAME[] = "vorbis_comment_init";
-        typedef void ( *FunctionType)(vorbis_comment *);
-        const FunctionType func = Lib.GetSymbol<FunctionType>(NAME);
+        using FunctionType = decltype(&::vorbis_comment_init);
+        const auto func = Lib.GetSymbol<FunctionType>("vorbis_comment_init");
         return func(vc);
       }
-      
+
+// clang-format on
     private:
       const Platform::SharedLibraryAdapter Lib;
     };
-
 
     Api::Ptr LoadDynamicApi()
     {

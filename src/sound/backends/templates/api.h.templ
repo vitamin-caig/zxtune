@@ -4,8 +4,10 @@
       typedef std::shared_ptr<Api> Ptr;
       virtual ~Api() = default;
 
-      <TMPL_LOOP NAME=FUNCTIONS>
+// clang-format off
+<TMPL_LOOP NAME=FUNCTIONS>
       virtual <TMPL_VAR NAME=DECLARATION> = 0;</TMPL_LOOP>
+// clang-format on
     };
 
     //throw exception in case of error

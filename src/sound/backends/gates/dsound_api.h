@@ -26,13 +26,14 @@ namespace Sound
       typedef std::shared_ptr<Api> Ptr;
       virtual ~Api() = default;
 
-      
+// clang-format off
+
       virtual HRESULT DirectSoundEnumerateW(LPDSENUMCALLBACKW cb, LPVOID param) = 0;
       virtual HRESULT DirectSoundCreate(LPCGUID pcGuidDevice, LPDIRECTSOUND* ppDS, LPUNKNOWN pUnkOuter) = 0;
+// clang-format on
     };
 
     //throw exception in case of error
     Api::Ptr LoadDynamicApi();
-
   }
 }  // namespace Sound
