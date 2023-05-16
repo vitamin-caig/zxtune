@@ -1,6 +1,7 @@
 #include "apps/zxtune-qt/update/downloads.h"
 #include "apps/zxtune-qt/update/product.h"
 #include "apps/zxtune-qt/update/rss.h"
+#include <types.h>
 #include <QtCore/QByteArray>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>

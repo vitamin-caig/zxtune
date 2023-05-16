@@ -13,6 +13,7 @@
 // common includes
 #include <types.h>
 // std includes
+#include <memory>
 #include <vector>
 
 namespace Platform

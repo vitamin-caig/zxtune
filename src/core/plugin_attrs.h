@@ -10,6 +10,9 @@
 
 #pragma once
 
+// common includes
+#include <types.h>
+
 namespace ZXTune
 {
   class PluginId : public StringView
