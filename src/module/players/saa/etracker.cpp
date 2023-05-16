@@ -45,7 +45,7 @@ namespace Module::ETracker
     typedef std::shared_ptr<const ModuleData> Ptr;
     typedef std::shared_ptr<ModuleData> RWPtr;
 
-    ModuleData() {}
+    ModuleData() = default;
 
     uint_t GetChannelsCount() const override
     {
@@ -216,7 +216,7 @@ namespace Module::ETracker
   // enabled state via sample
   struct ChannelState
   {
-    ChannelState() {}
+    ChannelState() = default;
 
     uint_t Note = 0;
     ObjectLinesIterator<Sample> SampleIterator;
@@ -348,7 +348,7 @@ namespace Module::ETracker
     class Note
     {
     public:
-      Note() {}
+      Note() = default;
 
       void Set(uint_t halfTones)
       {

@@ -26,7 +26,7 @@ namespace Formats::Chiptune
 
     struct SampleLine
     {
-      SampleLine() {}
+      SampleLine() = default;
 
       uint_t Level = 0;  // 0-15
       int_t VolumeSlideAddon = 0;

@@ -71,7 +71,7 @@ namespace Formats::Multitrack
       typedef std::shared_ptr<const DataBuilder> Ptr;
       typedef std::shared_ptr<DataBuilder> RWPtr;
 
-      DataBuilder() {}
+      DataBuilder() = default;
 
       void SetProperty(StringView name, StringView value) override
       {

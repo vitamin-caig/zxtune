@@ -760,7 +760,7 @@ namespace Strings
     }
 
   private:
-    Codepage8Bit() {}
+    Codepage8Bit() = default;
   };
 
   // https://en.wikipedia.org/wiki/Shift_JIS
@@ -840,7 +840,7 @@ namespace Strings
     }
 
   private:
-    ShiftJIS() {}
+    ShiftJIS() = default;
 
     static uint32_t GetUnicode(uint_t s1, uint_t s2)
     {

@@ -69,7 +69,7 @@ namespace Sound::AyLpt
   {
   public:
     typedef std::shared_ptr<LptPort> Ptr;
-    virtual ~LptPort() {}
+    virtual ~LptPort() = default;
 
     virtual void Control(uint_t val) = 0;
     virtual void Data(uint_t val) = 0;
@@ -83,7 +83,7 @@ namespace Sound::AyLpt
       , Port(std::move(port))
     {}
 
-    virtual ~BackendWorker() {}
+    virtual ~BackendWorker() = default;
 
     virtual VolumeControl::Ptr GetVolumeControl() const
     {

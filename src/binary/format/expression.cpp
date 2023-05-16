@@ -32,7 +32,7 @@ namespace Binary::FormatDSL
   class AnyValuePredicate : public Predicate
   {
   public:
-    AnyValuePredicate() {}
+    AnyValuePredicate() = default;
 
     bool Match(uint_t /*val*/) const override
     {

@@ -44,7 +44,7 @@ namespace Parameters
     IntType Min = 0;
     IntType Max = 0;
 
-    IntegerTraits() {}
+    IntegerTraits() = default;
 
     IntegerTraits(Identifier name, IntType def, IntType min, IntType max)
       : Name(std::move(name))

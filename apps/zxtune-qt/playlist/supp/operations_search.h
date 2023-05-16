@@ -38,7 +38,7 @@ namespace Playlist::Item
       uint_t Scope = ALL;
       uint_t Options = 0;
 
-      Data() {}
+      Data() = default;
     };
   }  // namespace Search
 

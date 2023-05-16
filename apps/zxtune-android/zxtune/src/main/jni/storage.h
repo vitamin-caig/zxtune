@@ -24,7 +24,7 @@ class ObjectsStorage
 public:
   typedef int32_t HandleType;
 
-  ObjectsStorage() {}
+  ObjectsStorage() = default;
 
   HandleType Add(PtrType obj)
   {

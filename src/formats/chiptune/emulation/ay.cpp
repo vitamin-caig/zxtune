@@ -374,7 +374,7 @@ namespace Formats::Chiptune
       }
 
     public:
-      FileBuilder() {}
+      FileBuilder() = default;
 
       void SetTitle(StringView title) override
       {

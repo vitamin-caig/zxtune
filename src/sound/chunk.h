@@ -22,7 +22,7 @@ namespace Sound
   //! @brief Block of sound data
   struct Chunk : public std::vector<Sample>
   {
-    Chunk() {}
+    Chunk() = default;
 
     explicit Chunk(std::size_t size)
       : std::vector<Sample>(size)

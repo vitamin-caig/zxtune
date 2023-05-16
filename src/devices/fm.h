@@ -29,7 +29,7 @@ namespace Devices::FM
   class Register
   {
   public:
-    Register() {}
+    Register() = default;
 
     Register(uint_t idx, uint_t val)
       : Val((idx << 8) | val)

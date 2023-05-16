@@ -163,7 +163,7 @@ namespace
 
     struct Device
     {
-      Device() {}
+      Device() = default;
 
       Device(const Sound::Alsa::Device& in)
         : Name(QString::fromLatin1("%1 (%2)").arg(ToQString(in.Name())).arg(ToQString(in.CardName())))

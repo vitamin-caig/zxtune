@@ -28,7 +28,7 @@ namespace LexicalAnalysis
   class TokenTypesSet
   {
   public:
-    TokenTypesSet() {}
+    TokenTypesSet() = default;
 
     void Add(TokenType type)
     {

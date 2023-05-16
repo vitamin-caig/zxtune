@@ -477,7 +477,7 @@ namespace Binary::FormatDSL
         , End(end)
       {}
 
-      Group() {}
+      Group() = default;
 
       std::size_t Size() const
       {

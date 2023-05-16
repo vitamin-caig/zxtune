@@ -46,7 +46,7 @@ namespace Sound::Oss
   class AutoDescriptor
   {
   public:
-    AutoDescriptor() {}
+    AutoDescriptor() = default;
 
     explicit AutoDescriptor(StringView name)
       : Name(name.to_string())

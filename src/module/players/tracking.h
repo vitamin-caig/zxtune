@@ -100,7 +100,7 @@ namespace Module
   class MultichannelMutableLine : public MutableLine
   {
   public:
-    MultichannelMutableLine() {}
+    MultichannelMutableLine() = default;
 
     const Cell* GetChannel(uint_t idx) const override
     {

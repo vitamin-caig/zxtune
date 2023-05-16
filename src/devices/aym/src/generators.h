@@ -152,7 +152,7 @@ namespace Devices::AYM
   class CountingGenerator
   {
   public:
-    CountingGenerator() {}
+    CountingGenerator() = default;
 
     void Reset()
     {
@@ -229,7 +229,7 @@ namespace Devices::AYM
   class EnvelopeGenerator : public CountingGenerator
   {
   public:
-    EnvelopeGenerator() {}
+    EnvelopeGenerator() = default;
 
     void Reset()
     {

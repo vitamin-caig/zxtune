@@ -87,7 +87,7 @@ namespace
   class Header
   {
   public:
-    Header() {}
+    Header() = default;
 
     void Parse(Stream& stream)
     {

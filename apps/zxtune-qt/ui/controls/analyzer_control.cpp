@@ -34,7 +34,7 @@ namespace
   struct BandLevel
   {
   public:
-    BandLevel() {}
+    BandLevel() = default;
 
     void Fall(uint_t delta)
     {

@@ -36,7 +36,7 @@ namespace Formats::Archived
       std::size_t Offset = 0;
       std::size_t Size = 0;
 
-      FileBlock() {}
+      FileBlock() = default;
 
       FileBlock(const Packed::Rar::FileBlockHeader* header, std::size_t offset, std::size_t size)
         : Header(header)

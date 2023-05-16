@@ -155,7 +155,7 @@ namespace Module::ProSoundMaker
 
   struct SampleState
   {
-    SampleState() {}
+    SampleState() = default;
 
     const Sample* Current = nullptr;
     uint_t Position = 0;
@@ -165,7 +165,7 @@ namespace Module::ProSoundMaker
 
   struct OrnamentState
   {
-    OrnamentState() {}
+    OrnamentState() = default;
 
     const Ornament* Current = nullptr;
     uint_t Position = 0;
@@ -175,7 +175,7 @@ namespace Module::ProSoundMaker
 
   struct EnvelopeState
   {
-    EnvelopeState() {}
+    EnvelopeState() = default;
 
     bool Reinit = false;
     uint_t Type = 0;
@@ -209,7 +209,7 @@ namespace Module::ProSoundMaker
 
   struct ChannelState
   {
-    ChannelState() {}
+    ChannelState() = default;
     bool Enabled = false;
     EnvelopeState Envelope;
     uint_t Note = 0;

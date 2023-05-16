@@ -65,7 +65,7 @@ namespace Devices::FM::Details
   class ChipAdapterHelper
   {
   public:
-    ChipAdapterHelper() {}
+    ChipAdapterHelper() = default;
 
     bool SetNewParams(uint64_t clock, uint_t sndFreq)
     {

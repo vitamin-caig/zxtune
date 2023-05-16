@@ -193,7 +193,7 @@ namespace Module::ProTracker3
 
   class StubLine : public Line
   {
-    StubLine() {}
+    StubLine() = default;
 
   public:
     const Cell* GetChannel(uint_t /*idx*/) const override

@@ -23,7 +23,7 @@ namespace Formats::Chiptune
   {
     struct SampleLine
     {
-      SampleLine() {}
+      SampleLine() = default;
 
       uint_t Level = 0;    // 0-15
       int_t VolSlide = 0;  // 0/+1/-1
@@ -42,7 +42,7 @@ namespace Formats::Chiptune
 
     struct OrnamentLine
     {
-      OrnamentLine() {}
+      OrnamentLine() = default;
 
       int_t NoteAddon = 0;
       bool KeepNoteAddon = false;
@@ -54,7 +54,7 @@ namespace Formats::Chiptune
 
     struct PositionEntry
     {
-      PositionEntry() {}
+      PositionEntry() = default;
 
       uint_t PatternIndex = 0;
       int_t Transposition = 0;

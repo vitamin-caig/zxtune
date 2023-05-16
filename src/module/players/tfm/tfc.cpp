@@ -30,7 +30,7 @@ namespace Module::TFC
   class ChannelData
   {
   public:
-    ChannelData() {}
+    ChannelData() = default;
 
     void AddFrame()
     {

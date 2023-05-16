@@ -79,7 +79,7 @@ namespace Module::DigitalMusicMaker
       MutableCell Mixin;
       uint_t Period = 0;
 
-      MixedChannel() {}
+      MixedChannel() = default;
     };
 
     std::array<MixedChannel, 64> Mixes;

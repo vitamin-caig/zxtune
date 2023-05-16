@@ -130,7 +130,7 @@ namespace Module::ProDigiTracker
 
   struct OrnamentState
   {
-    OrnamentState() {}
+    OrnamentState() = default;
     const Ornament* Object = nullptr;
     std::size_t Position = 0;
 

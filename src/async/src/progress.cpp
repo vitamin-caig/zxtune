@@ -21,7 +21,7 @@ namespace Async
   class SynchronizedProgress : public Progress
   {
   public:
-    SynchronizedProgress() {}
+    SynchronizedProgress() = default;
 
     void Produce(uint_t items) override
     {

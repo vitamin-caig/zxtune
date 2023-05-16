@@ -129,7 +129,7 @@ namespace Sound::Sdl
     std::condition_variable FilledEvent, PlayedEvent;
     struct Buffer
     {
-      Buffer() {}
+      Buffer() = default;
       uint_t BytesToPlay = 0;
       Chunk Data;
     };

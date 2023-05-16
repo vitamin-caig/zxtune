@@ -29,7 +29,7 @@ namespace
   class QTApplication : public Platform::Application
   {
   public:
-    QTApplication() {}
+    QTApplication() = default;
 
     int Run(Strings::Array argv) override
     {

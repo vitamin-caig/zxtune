@@ -112,7 +112,7 @@ namespace
 
     struct Device
     {
-      Device() {}
+      Device() = default;
 
       explicit Device(const Sound::DirectSound::Device& in)
         : Name(ToQString(in.Name()))

@@ -22,7 +22,7 @@ namespace Devices::AYM
   class MultiVolumeTable
   {
   public:
-    MultiVolumeTable() {}
+    MultiVolumeTable() = default;
 
     void SetParameters(ChipType type, LayoutType layout, const MixerType& mixer)
     {

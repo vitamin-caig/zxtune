@@ -131,7 +131,7 @@ namespace Module::SQDigitalTracker
 
   struct VolumeState
   {
-    VolumeState() {}
+    VolumeState() = default;
 
     int_t Value = 16;
     int_t SlideDirection = 0;

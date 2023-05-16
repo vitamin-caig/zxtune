@@ -89,7 +89,7 @@ namespace Formats::Packed
       {
         KeyFunc(const uint8_t* /*data*/, std::size_t /*size*/) {}
 
-        KeyFunc() {}
+        KeyFunc() = default;
 
         uint8_t operator()()
         {

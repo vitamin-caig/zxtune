@@ -30,7 +30,7 @@ namespace
 {
   struct Device
   {
-    Device() {}
+    Device() = default;
 
     explicit Device(const Sound::Win32::Device& in)
       : Name(ToQString(in.Name()))

@@ -27,7 +27,7 @@ namespace Module::TFD
   public:
     typedef std::shared_ptr<ModuleData> RWPtr;
 
-    ModuleData() {}
+    ModuleData() = default;
 
     uint_t GetTotalFrames() const override
     {

@@ -111,7 +111,7 @@ namespace Formats::Chiptune
     class SamplesSet
     {
     public:
-      SamplesSet() {}
+      SamplesSet() = default;
 
       void Add(uint_t idx, std::size_t loop, Binary::View data1, Binary::View data2 = Binary::View(nullptr, 0))
       {

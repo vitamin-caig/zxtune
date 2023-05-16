@@ -388,7 +388,7 @@ namespace
   class StatisticTarget : public Parsing::Target
   {
   public:
-    StatisticTarget() {}
+    StatisticTarget() = default;
 
     void ApplyData(Parsing::Result::Ptr data) override
     {
@@ -1122,7 +1122,7 @@ namespace
 class MainApplication : public Platform::Application
 {
 public:
-  MainApplication() {}
+  MainApplication() = default;
 
   int Run(Strings::Array args) override
   {

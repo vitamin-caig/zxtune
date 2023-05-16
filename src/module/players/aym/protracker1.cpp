@@ -144,7 +144,7 @@ namespace Module::ProTracker1
 
   struct ChannelState
   {
-    ChannelState() {}
+    ChannelState() = default;
     bool Enabled = false;
     bool Envelope = false;
     uint_t Note = 0;

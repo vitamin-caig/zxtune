@@ -103,7 +103,7 @@ namespace ZXTune
     using TimeUnit = Time::Timer::NativeUnit;
 
   public:
-    Statistic() {}
+    Statistic() = default;
 
     ~Statistic()
     {
@@ -491,7 +491,7 @@ namespace ZXTune::Raw
         : Plugin(std::move(plugin))
       {}
 
-      PluginEntry() {}
+      PluginEntry() = default;
     };
     typedef typename std::vector<PluginEntry> PluginsList;
 

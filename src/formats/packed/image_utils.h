@@ -21,7 +21,7 @@ namespace Formats
   struct CHS
   {
     // all elements are 0-based
-    CHS() {}
+    CHS() = default;
 
     CHS(uint_t c, uint_t h, uint_t s)
       : Cylinder(c)

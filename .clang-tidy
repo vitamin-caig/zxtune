@@ -12,6 +12,7 @@
                     modernize-use-auto,
                     modernize-use-default-member-init,
                     modernize-use-emplace,
+                    modernize-use-equals-default,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

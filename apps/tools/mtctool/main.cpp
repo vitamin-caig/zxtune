@@ -199,7 +199,7 @@ namespace
   class Extractor : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
-    Extractor() {}
+    Extractor() = default;
 
     void SetAuthor(StringView /*author*/) override {}
     void SetTitle(StringView /*title*/) override {}

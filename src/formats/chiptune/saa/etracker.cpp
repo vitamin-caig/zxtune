@@ -279,7 +279,7 @@ namespace Formats::Chiptune
       };
       std::vector<CodeAndLen> Lenghts;
 
-      DecodeTable() {}
+      DecodeTable() = default;
 
       uint_t DecodeLen(uint_t code) const
       {
@@ -438,7 +438,7 @@ namespace Formats::Chiptune
           std::size_t Offset = 0;
           uint_t Counter = 0;
 
-          ChannelState() {}
+          ChannelState() = default;
 
           void Skip(uint_t toSkip)
           {

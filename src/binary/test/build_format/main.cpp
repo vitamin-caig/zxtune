@@ -20,7 +20,7 @@ namespace
     uint_t Min = 255;
     uint_t Max = 0;
 
-    Range() {}
+    Range() = default;
 
     void Apply(uint_t val)
     {
@@ -67,7 +67,7 @@ namespace
     uint_t Zeroes = 0;
     uint_t Ones = 0;
 
-    BinaryMask() {}
+    BinaryMask() = default;
 
     void Apply(uint_t val)
     {

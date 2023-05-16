@@ -125,7 +125,7 @@ namespace Formats::Chiptune
       std::size_t RetAddr = 0;
       std::size_t RepeatFrames = 0;
 
-      Context() {}
+      Context() = default;
     };
 
     class Container

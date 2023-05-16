@@ -239,7 +239,7 @@ namespace Module::SoundTracker
     int_t CountDown = -1;
     uint_t Position = 0;
 
-    StateCursor() {}
+    StateCursor() = default;
 
     void Next(const Sample& sample)
     {

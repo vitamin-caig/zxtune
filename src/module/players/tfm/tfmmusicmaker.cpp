@@ -77,7 +77,7 @@ namespace Module::TFMMusicMaker
     typedef std::shared_ptr<const ModuleData> Ptr;
     typedef std::shared_ptr<ModuleData> RWPtr;
 
-    ModuleData() {}
+    ModuleData() = default;
 
     uint_t EvenInitialTempo = 0;
     uint_t OddInitialTempo = 0;
@@ -375,7 +375,7 @@ namespace Module::TFMMusicMaker
   struct SlideState
   {
   public:
-    SlideState() {}
+    SlideState() = default;
 
     void Disable()
     {
@@ -426,7 +426,7 @@ namespace Module::TFMMusicMaker
   struct VibratoState
   {
   public:
-    VibratoState() {}
+    VibratoState() = default;
 
     void Disable()
     {
@@ -917,7 +917,7 @@ namespace Module::TFMMusicMaker
 
     struct RawNote
     {
-      RawNote() {}
+      RawNote() = default;
 
       RawNote(uint_t octave, uint_t freq)
         : Octave(octave)
@@ -1005,7 +1005,7 @@ namespace Module::TFMMusicMaker
   // TODO: refactor with common code and remove C&P
   class StubPattern : public Pattern
   {
-    StubPattern() {}
+    StubPattern() = default;
 
   public:
     const Line* GetLine(uint_t /*row*/) const override
@@ -1037,7 +1037,7 @@ namespace Module::TFMMusicMaker
     uint_t TempoInterleavePeriod = 0;
     uint_t TempoInterleaveCounter = 0;
 
-    PlainTrackState() {}
+    PlainTrackState() = default;
 
     uint_t GetTempo() const
     {
@@ -1058,7 +1058,7 @@ namespace Module::TFMMusicMaker
   struct LoopState
   {
   public:
-    LoopState() {}
+    LoopState() = default;
 
     void Start(const PlainTrackState& state)
     {

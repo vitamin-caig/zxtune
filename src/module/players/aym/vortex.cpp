@@ -60,7 +60,7 @@ namespace Module::Vortex
   // helper for sliding processing
   struct Slider
   {
-    Slider() {}
+    Slider() = default;
     uint_t Period = 0;
     int_t Value = 0;
     uint_t Counter = 0;
@@ -117,7 +117,7 @@ namespace Module::Vortex
   // internal common state type
   struct CommonState
   {
-    CommonState() {}
+    CommonState() = default;
 
     uint_t EnvBase = 0;
     Slider EnvSlider;

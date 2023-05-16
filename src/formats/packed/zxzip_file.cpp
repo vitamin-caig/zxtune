@@ -408,7 +408,7 @@ namespace Formats::Packed
       uint8_t Value = '\0';
       bool IsFree = false;
 
-      LZWEntry() {}
+      LZWEntry() = default;
 
       explicit LZWEntry(uint_t value)
         : Parent(LIMITER)

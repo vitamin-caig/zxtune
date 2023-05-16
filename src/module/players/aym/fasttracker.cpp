@@ -226,7 +226,7 @@ namespace Module::FastTracker
   class Accumulator
   {
   public:
-    Accumulator() {}
+    Accumulator() = default;
 
     void Reset()
     {
@@ -250,7 +250,7 @@ namespace Module::FastTracker
   class ToneSlider
   {
   public:
-    ToneSlider() {}
+    ToneSlider() = default;
 
     void SetSlide(int_t slide)
     {
@@ -291,7 +291,7 @@ namespace Module::FastTracker
 
   struct ChannelState
   {
-    ChannelState() {}
+    ChannelState() = default;
 
     uint_t Note = 0;
     uint_t Envelope = 0;

@@ -23,7 +23,7 @@ namespace Formats::Chiptune
   {
     struct SampleLine
     {
-      SampleLine() {}
+      SampleLine() = default;
 
       uint_t LeftLevel = 0;   // 0-15
       uint_t RightLevel = 0;  // 0-15
@@ -39,7 +39,7 @@ namespace Formats::Chiptune
 
     struct PositionEntry
     {
-      PositionEntry() {}
+      PositionEntry() = default;
 
       uint_t PatternIndex = 0;
       uint_t Transposition = 0;

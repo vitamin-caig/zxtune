@@ -184,7 +184,7 @@ namespace Sound::Win32
   {
   public:
     typedef std::shared_ptr<WaveTarget> Ptr;
-    virtual ~WaveTarget() {}
+    virtual ~WaveTarget() = default;
 
     virtual void Write(const Chunk& buf) = 0;
   };

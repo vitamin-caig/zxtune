@@ -141,7 +141,7 @@ namespace Module::ChipTracker
 
   struct GlissData
   {
-    GlissData() {}
+    GlissData() = default;
     int_t Sliding = 0;
     int_t Glissade = 0;
 

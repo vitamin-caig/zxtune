@@ -48,7 +48,7 @@ namespace
       : UserAgent(std::move(userAgent))
     {}
 
-    IOParameters() {}
+    IOParameters() = default;
 
     uint_t Version() const override
     {

@@ -28,7 +28,7 @@ namespace Devices::SAA
   class FastSample
   {
   public:
-    FastSample() {}
+    FastSample() = default;
 
     FastSample(uint_t left, uint_t right)
       : Value(left | (right << 16))
@@ -175,7 +175,7 @@ namespace Devices::SAA
   class CountingGenerator
   {
   public:
-    CountingGenerator() {}
+    CountingGenerator() = default;
 
     void Reset()
     {
@@ -229,7 +229,7 @@ namespace Devices::SAA
   class NoiseGenerator : public CountingGenerator
   {
   public:
-    NoiseGenerator() {}
+    NoiseGenerator() = default;
 
     void Reset()
     {
@@ -324,7 +324,7 @@ namespace Devices::SAA
   class EnvelopeGenerator : public CountingGenerator
   {
   public:
-    EnvelopeGenerator() {}
+    EnvelopeGenerator() = default;
 
     void Reset()
     {

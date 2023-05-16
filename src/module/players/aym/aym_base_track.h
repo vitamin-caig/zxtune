@@ -94,7 +94,7 @@ namespace Module::AYM
     typedef std::shared_ptr<const ModuleData> Ptr;
     typedef std::shared_ptr<ModuleData> RWPtr;
 
-    ModuleData() {}
+    ModuleData() = default;
 
     uint_t GetChannelsCount() const override
     {

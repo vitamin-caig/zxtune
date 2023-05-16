@@ -26,7 +26,7 @@ namespace Module
   class WideSample
   {
   public:
-    WideSample() {}
+    WideSample() = default;
 
     explicit WideSample(const Sound::Sample& rh)
       : Left(rh.Left())

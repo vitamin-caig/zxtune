@@ -127,7 +127,7 @@ namespace Formats::Chiptune
     class BoolObject
     {
     public:
-      BoolObject() {}
+      BoolObject() = default;
 
       explicit BoolObject(char val)
         : Value(val)
@@ -202,7 +202,7 @@ namespace Formats::Chiptune
     class UnsignedHexObject
     {
     public:
-      UnsignedHexObject() {}
+      UnsignedHexObject() = default;
 
       explicit UnsignedHexObject(StringView val)
       {
@@ -249,7 +249,7 @@ namespace Formats::Chiptune
     class SignedHexObject
     {
     public:
-      SignedHexObject() {}
+      SignedHexObject() = default;
 
       explicit SignedHexObject(StringView val)
       {
@@ -362,7 +362,7 @@ namespace Formats::Chiptune
     {
       typedef std::vector<T> Parent;
 
-      LoopedList() {}
+      LoopedList() = default;
 
       explicit LoopedList(StringView str)
       {
@@ -452,7 +452,7 @@ namespace Formats::Chiptune
     struct ModuleHeader
     {
     public:
-      ModuleHeader() {}
+      ModuleHeader() = default;
 
       explicit ModuleHeader(StringStream& src)
       {
@@ -858,7 +858,7 @@ namespace Formats::Chiptune
     class NoteParametersObject
     {
     public:
-      NoteParametersObject() {}
+      NoteParametersObject() = default;
 
       explicit NoteParametersObject(StringView str)
       {
@@ -932,7 +932,7 @@ namespace Formats::Chiptune
       static const uint_t ENVSLIDE_DOWN = 10;
       static const uint_t TEMPO = 11;
 
-      NoteCommandObject() {}
+      NoteCommandObject() = default;
 
       explicit NoteCommandObject(StringView str)
       {
@@ -1006,7 +1006,7 @@ namespace Formats::Chiptune
     class ChannelObject
     {
     public:
-      ChannelObject() {}
+      ChannelObject() = default;
 
       explicit ChannelObject(StringView str)
       {
@@ -1038,7 +1038,7 @@ namespace Formats::Chiptune
     class PatternLineObject
     {
     public:
-      PatternLineObject() {}
+      PatternLineObject() = default;
 
       explicit PatternLineObject(StringView str)
       {
@@ -1085,7 +1085,7 @@ namespace Formats::Chiptune
     class PatternObject
     {
     public:
-      PatternObject() {}
+      PatternObject() = default;
 
       explicit PatternObject(uint_t idx)
         : Index(idx)

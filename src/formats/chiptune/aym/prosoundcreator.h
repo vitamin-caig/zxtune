@@ -23,7 +23,7 @@ namespace Formats::Chiptune
   {
     struct SampleLine
     {
-      SampleLine() {}
+      SampleLine() = default;
 
       uint_t Level = 0;  // 0-15
       uint_t Tone = 0;
@@ -40,7 +40,7 @@ namespace Formats::Chiptune
 
     struct OrnamentLine
     {
-      OrnamentLine() {}
+      OrnamentLine() = default;
       int_t NoteAddon = 0;
       int_t NoiseAddon = 0;
       bool LoopBegin = false;

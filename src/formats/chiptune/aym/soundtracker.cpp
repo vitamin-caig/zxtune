@@ -236,7 +236,7 @@ namespace Formats::Chiptune
         uint_t Type = 0;
         uint_t Tone = 0;
 
-        EnvState() {}
+        EnvState() = default;
       };
 
       struct ChanState
@@ -244,7 +244,7 @@ namespace Formats::Chiptune
         uint_t Sample = 0;
         uint_t Ornament = 0;
 
-        ChanState() {}
+        ChanState() = default;
       };
 
       void ParsePattern(uint_t patIndex, Builder& builder) const

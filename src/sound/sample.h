@@ -26,7 +26,7 @@ namespace Sound
     static const Type MID = 0;
     static const Type MAX = 32767;
 
-    Sample() {}
+    Sample() = default;
 
     template<class T>
     Sample(T left, T right)

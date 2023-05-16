@@ -21,7 +21,7 @@ namespace Parameters
   class StorageContainer : public Container
   {
   public:
-    StorageContainer() {}
+    StorageContainer() = default;
 
     StorageContainer(const StorageContainer& src)
       : VersionValue(src.VersionValue)

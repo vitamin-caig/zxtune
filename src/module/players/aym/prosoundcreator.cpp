@@ -125,7 +125,7 @@ namespace Module::ProSoundCreator
   class ToneSlider
   {
   public:
-    ToneSlider() {}
+    ToneSlider() = default;
 
     void SetSliding(int_t sliding)
     {
@@ -178,7 +178,7 @@ namespace Module::ProSoundCreator
   class VolumeSlider
   {
   public:
-    VolumeSlider() {}
+    VolumeSlider() = default;
 
     void Reset()
     {
@@ -352,7 +352,7 @@ namespace Module::ProSoundCreator
 
   struct ChannelState
   {
-    ChannelState() {}
+    ChannelState() = default;
 
     ObjectLinesIterator<Sample> SampleIterator;
     ObjectLinesIterator<Ornament> OrnamentIterator;

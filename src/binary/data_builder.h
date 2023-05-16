@@ -23,7 +23,7 @@ namespace Binary
   class DataBuilder
   {
   public:
-    DataBuilder() {}
+    DataBuilder() = default;
 
     explicit DataBuilder(std::size_t reserve)
     {

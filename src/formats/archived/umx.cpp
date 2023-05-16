@@ -69,7 +69,7 @@ namespace Formats::Archived
     {
       int_t Value = 0;
 
-      Index() {}
+      Index() = default;
     };
 
     struct ClassName
@@ -105,7 +105,7 @@ namespace Formats::Archived
       String Name;
       uint32_t Flags = 0;
 
-      NameEntry() {}
+      NameEntry() = default;
     };
 
     struct ExportEntry
@@ -118,7 +118,7 @@ namespace Formats::Archived
       Index SerialSize;
       Index SerialOffset;
 
-      ExportEntry() {}
+      ExportEntry() = default;
     };
 
     struct ImportEntry
@@ -128,7 +128,7 @@ namespace Formats::Archived
       uint32_t Package = 0;
       Index ObjectName;
 
-      ImportEntry() {}
+      ImportEntry() = default;
     };
 
     class InputStream

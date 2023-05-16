@@ -55,7 +55,7 @@ namespace Formats::Archived
       bool IsCompressed = false;
       std::size_t UncompressedSize = 0;
 
-      DataBlockDescription() {}
+      DataBlockDescription() = default;
     };
 
     class ChunksVisitor

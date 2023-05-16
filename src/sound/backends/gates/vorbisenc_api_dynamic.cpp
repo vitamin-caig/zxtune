@@ -21,7 +21,7 @@ namespace Sound::VorbisEnc
   class LibraryName : public Platform::SharedLibrary::Name
   {
   public:
-    LibraryName() {}
+    LibraryName() = default;
 
     StringView Base() const override
     {

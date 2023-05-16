@@ -27,7 +27,7 @@ namespace Formats::Chiptune
     {
       struct Operator
       {
-        Operator() {}
+        Operator() = default;
 
         uint_t Multiple = 0;
         int_t Detune = 0;
@@ -41,7 +41,7 @@ namespace Formats::Chiptune
         uint_t EnvelopeType = 0;
       };
 
-      Instrument() {}
+      Instrument() = default;
 
       uint_t Algorithm = 0;
       uint_t Feedback = 0;
@@ -50,7 +50,7 @@ namespace Formats::Chiptune
 
     struct Date
     {
-      Date() {}
+      Date() = default;
 
       uint_t Year = 0;
       uint_t Month = 0;

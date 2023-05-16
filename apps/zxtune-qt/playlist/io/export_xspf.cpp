@@ -318,7 +318,7 @@ namespace
   class ItemFullLocationWriter : public ItemWriter
   {
   public:
-    ItemFullLocationWriter() {}
+    ItemFullLocationWriter() = default;
 
     void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
@@ -345,7 +345,7 @@ namespace
   class ItemContentLocationWriter : public ItemWriter
   {
   public:
-    ItemContentLocationWriter() {}
+    ItemContentLocationWriter() = default;
 
     void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
@@ -377,7 +377,7 @@ namespace
   class ItemShortPropertiesWriter : public ItemWriter
   {
   public:
-    ItemShortPropertiesWriter() {}
+    ItemShortPropertiesWriter() = default;
 
     void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {
@@ -390,7 +390,7 @@ namespace
   class ItemFullPropertiesWriter : public ItemWriter
   {
   public:
-    ItemFullPropertiesWriter() {}
+    ItemFullPropertiesWriter() = default;
 
     void Save(const Playlist::Item::Data& item, ItemPropertiesSaver& saver) const override
     {

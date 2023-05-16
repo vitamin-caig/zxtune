@@ -22,7 +22,7 @@ namespace Module
 {
   struct Command
   {
-    Command() {}
+    Command() = default;
 
     Command(uint_t type, int_t p1, int_t p2, int_t p3)
       : Type(type)

@@ -93,8 +93,7 @@ namespace
     typedef std::shared_ptr<BufferRender> Ptr;
 
     BufferRender()
-      : Buffer(32768)
-    {}
+      : Buffer(32768) = default;
 
     void ApplyData(Sound::Chunk data) override
     {

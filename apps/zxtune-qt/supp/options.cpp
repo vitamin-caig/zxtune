@@ -38,7 +38,7 @@ namespace
   class SettingsContainer : public Container
   {
   public:
-    SettingsContainer() {}
+    SettingsContainer() = default;
 
     uint_t Version() const override
     {

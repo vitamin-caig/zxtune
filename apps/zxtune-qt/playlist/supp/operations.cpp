@@ -498,7 +498,7 @@ namespace
   class SelectUnavailableOperation : public Playlist::Item::SelectionOperation
   {
   public:
-    SelectUnavailableOperation() {}
+    SelectUnavailableOperation() = default;
 
     explicit SelectUnavailableOperation(Playlist::Model::IndexSet::Ptr items)
       : SelectedItems(std::move(items))

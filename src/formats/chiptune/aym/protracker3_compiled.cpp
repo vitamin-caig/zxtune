@@ -514,7 +514,7 @@ namespace Formats::Chiptune
           uint_t Period = 0;
           uint_t Counter = 0;
 
-          ChannelState() {}
+          ChannelState() = default;
 
           void Skip(uint_t toSkip)
           {

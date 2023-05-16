@@ -24,7 +24,7 @@ namespace Async
       : Value(ToMask(val))
     {}
 
-    Event() {}
+    Event() = default;
 
     void Set(Type val)
     {

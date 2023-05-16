@@ -57,7 +57,7 @@ namespace
   class TempWorker : public Worker
   {
   public:
-    TempWorker() {}
+    TempWorker() = default;
 
     void Initialize() override
     {

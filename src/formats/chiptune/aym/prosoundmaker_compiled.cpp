@@ -659,7 +659,7 @@ namespace Formats::Chiptune
 
       struct ChannelState
       {
-        ChannelState() {}
+        ChannelState() = default;
 
         void UpdateNote(uint_t delta)
         {

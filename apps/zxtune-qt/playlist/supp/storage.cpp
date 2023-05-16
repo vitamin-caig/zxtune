@@ -38,7 +38,7 @@ namespace
     using Parent::end;
     using Parent::sort;
 
-    ItemsContainer() {}
+    ItemsContainer() = default;
 
     ItemsContainer(const ItemsContainer& rh) = default;
 

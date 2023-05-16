@@ -24,7 +24,7 @@ namespace Formats::Chiptune
   public:
     typedef LineType Line;
 
-    LinesObject() {}
+    LinesObject() = default;
 
     LinesObject(const LinesObject&) = delete;
     LinesObject& operator=(const LinesObject&) = delete;

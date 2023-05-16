@@ -166,7 +166,7 @@ namespace Devices::Z80
   class ClockSource
   {
   public:
-    ClockSource() {}
+    ClockSource() = default;
 
     void Reset()
     {

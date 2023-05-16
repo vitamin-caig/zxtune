@@ -237,7 +237,7 @@ namespace
   class ExportResult : public Playlist::Item::ConversionResultNotification
   {
   public:
-    ExportResult() {}
+    ExportResult() = default;
 
     QString Category() const override
     {

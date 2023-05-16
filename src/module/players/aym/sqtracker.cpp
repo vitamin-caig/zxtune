@@ -66,7 +66,7 @@ namespace Module::SQTracker
     {
       std::size_t Hash = 0;
 
-      HashedPosition() {}
+      HashedPosition() = default;
 
       explicit HashedPosition(const Formats::Chiptune::SQTracker::PositionEntry& pos)
         : Formats::Chiptune::SQTracker::PositionEntry(pos)
@@ -517,7 +517,7 @@ namespace Module::SQTracker
 
   struct ChannelState
   {
-    ChannelState() {}
+    ChannelState() = default;
     uint_t Note = 0;
     uint_t Attenuation = 0;
     int_t Transposition = 0;

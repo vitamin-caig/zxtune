@@ -131,7 +131,7 @@ namespace Formats::Chiptune
       uint_t Code = 0;
       uint_t Parameter = 0;
 
-      Effect() {}
+      Effect() = default;
 
       Effect(uint_t code, uint_t parameter)
         : Code(code)
@@ -184,7 +184,7 @@ namespace Formats::Chiptune
       uint_t Instrument = 0;
       std::array<Effect, EFFECTS_COUNT> Effects;
 
-      Cell() {}
+      Cell() = default;
 
       bool IsEmpty() const
       {

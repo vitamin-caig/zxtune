@@ -20,7 +20,7 @@ namespace Module
 {
   class StubPattern : public Pattern
   {
-    StubPattern() {}
+    StubPattern() = default;
 
   public:
     const Line* GetLine(uint_t /*row*/) const override
@@ -49,7 +49,7 @@ namespace Module
     uint_t Quirk = 0;
     uint_t Tempo = 0;
 
-    PlainTrackState() {}
+    PlainTrackState() = default;
   };
 
   class TrackStateCursor : public TrackModelState

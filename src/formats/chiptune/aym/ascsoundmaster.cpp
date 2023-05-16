@@ -738,7 +738,7 @@ namespace Formats::Chiptune
           uint_t Counter = 0;
           bool Envelope = false;
 
-          ChannelState() {}
+          ChannelState() = default;
 
           void Skip(uint_t toSkip)
           {
