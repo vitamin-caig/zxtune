@@ -225,13 +225,11 @@ namespace Formats::Archived
       struct UnpackCache
       {
         UInt32 BlockIndex;
-        Byte* OutBuffer;
-        size_t OutBufferSize;
+        Byte* OutBuffer = nullptr;
+        size_t OutBufferSize = 0;
 
         UnpackCache()
           : BlockIndex(~UInt32(0))
-          , OutBuffer(nullptr)
-          , OutBufferSize(0)
         {}
       };
 

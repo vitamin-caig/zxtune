@@ -42,21 +42,14 @@ namespace Module
 
   struct PlainTrackState
   {
-    uint_t Frame;
-    uint_t Position;
-    uint_t Pattern;
-    uint_t Line;
-    uint_t Quirk;
-    uint_t Tempo;
+    uint_t Frame = 0;
+    uint_t Position = 0;
+    uint_t Pattern = 0;
+    uint_t Line = 0;
+    uint_t Quirk = 0;
+    uint_t Tempo = 0;
 
-    PlainTrackState()
-      : Frame()
-      , Position()
-      , Pattern()
-      , Line()
-      , Quirk()
-      , Tempo()
-    {}
+    PlainTrackState() {}
   };
 
   class TrackStateCursor : public TrackModelState

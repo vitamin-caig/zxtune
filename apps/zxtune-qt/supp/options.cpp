@@ -38,9 +38,7 @@ namespace
   class SettingsContainer : public Container
   {
   public:
-    SettingsContainer()
-      : VersionValue()
-    {}
+    SettingsContainer() {}
 
     uint_t Version() const override
     {
@@ -214,7 +212,7 @@ namespace
     };
 
   private:
-    uint_t VersionValue;
+    uint_t VersionValue = 0;
     mutable SettingsStorage Storage;
   };
 

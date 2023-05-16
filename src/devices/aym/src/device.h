@@ -21,8 +21,7 @@ namespace Devices::AYM
   {
   public:
     AYMDevice()
-      : Levels()
-      , NoiseMask(HIGH_LEVEL)
+      : NoiseMask(HIGH_LEVEL)
       , EnvelopeMask(LOW_LEVEL)
     {}
 
@@ -145,7 +144,7 @@ namespace Devices::AYM
     ToneGenerator GenC;
     NoiseGenerator GenN;
     EnvelopeGenerator GenE;
-    uint_t Levels;
+    uint_t Levels = 0;
     uint_t NoiseMask;
     uint_t EnvelopeMask;
   };

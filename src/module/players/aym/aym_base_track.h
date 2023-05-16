@@ -94,9 +94,7 @@ namespace Module::AYM
     typedef std::shared_ptr<const ModuleData> Ptr;
     typedef std::shared_ptr<ModuleData> RWPtr;
 
-    ModuleData()
-      : InitialTempo()
-    {}
+    ModuleData() {}
 
     uint_t GetChannelsCount() const override
     {
@@ -118,7 +116,7 @@ namespace Module::AYM
       return *Patterns;
     }
 
-    uint_t InitialTempo;
+    uint_t InitialTempo = 0;
     typename OrderListType::Ptr Order;
     PatternsSet::Ptr Patterns;
     SparsedObjectsStorage<SampleType> Samples;

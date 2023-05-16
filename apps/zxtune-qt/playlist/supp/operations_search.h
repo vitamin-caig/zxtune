@@ -35,13 +35,10 @@ namespace Playlist::Item
     struct Data
     {
       QString Pattern;
-      uint_t Scope;
-      uint_t Options;
+      uint_t Scope = ALL;
+      uint_t Options = 0;
 
-      Data()
-        : Scope(ALL)
-        , Options()
-      {}
+      Data() {}
     };
   }  // namespace Search
 

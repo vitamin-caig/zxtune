@@ -25,15 +25,7 @@ namespace Devices::DAC
   struct ChannelData
   {
     ChannelData()
-      : Channel()
-      , Mask()
-      , Enabled()
-      , Note()
-      , NoteSlide()
-      , FreqSlideHz()
-      , SampleNum()
-      , PosInSample()
-      , Level()
+      : Level()
     {}
 
     enum Flags
@@ -51,14 +43,14 @@ namespace Devices::DAC
 
     using LevelType = Math::FixedPoint<uint8_t, 100>;
 
-    uint_t Channel;
-    uint_t Mask;
-    bool Enabled;
-    uint_t Note;
-    int_t NoteSlide;
-    int_t FreqSlideHz;
-    uint_t SampleNum;
-    uint_t PosInSample;
+    uint_t Channel = 0;
+    uint_t Mask = 0;
+    bool Enabled = false;
+    uint_t Note = 0;
+    int_t NoteSlide = 0;
+    int_t FreqSlideHz = 0;
+    uint_t SampleNum = 0;
+    uint_t PosInSample = 0;
     LevelType Level;
 
     const bool* GetEnabled() const

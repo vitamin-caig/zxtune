@@ -26,27 +26,17 @@ namespace Formats::Chiptune
 
     struct SampleLine
     {
-      SampleLine()
-        : Level()
-        , VolumeSlideAddon()
-        , ToneMask(true)
-        , ToneOffset()
-        , KeepToneOffset()
-        , NoiseMask(true)
-        , EnvMask(true)
-        , NoiseOrEnvelopeOffset()
-        , KeepNoiseOrEnvelopeOffset()
-      {}
+      SampleLine() {}
 
-      uint_t Level;  // 0-15
-      int_t VolumeSlideAddon;
-      bool ToneMask;
-      int_t ToneOffset;
-      bool KeepToneOffset;
-      bool NoiseMask;
-      bool EnvMask;
-      int_t NoiseOrEnvelopeOffset;
-      bool KeepNoiseOrEnvelopeOffset;
+      uint_t Level = 0;  // 0-15
+      int_t VolumeSlideAddon = 0;
+      bool ToneMask = true;
+      int_t ToneOffset = 0;
+      bool KeepToneOffset = false;
+      bool NoiseMask = true;
+      bool EnvMask = true;
+      int_t NoiseOrEnvelopeOffset = 0;
+      bool KeepNoiseOrEnvelopeOffset = false;
     };
 
     typedef LinesObject<SampleLine> Sample;

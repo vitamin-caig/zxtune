@@ -29,9 +29,7 @@ namespace Devices::FM
   class Register
   {
   public:
-    Register()
-      : Val()
-    {}
+    Register() {}
 
     Register(uint_t idx, uint_t val)
       : Val((idx << 8) | val)
@@ -48,7 +46,7 @@ namespace Devices::FM
     }
 
   protected:
-    uint_t Val;
+    uint_t Val = 0;
   };
 
   typedef std::vector<Register> Registers;

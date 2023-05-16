@@ -48,8 +48,7 @@ namespace Devices::DAC
     FastSample()
       : Index(NO_INDEX)
       , Data(new Sound::Sample::Type[2])
-      , Size(1)
-      , Loop(1)
+
     {
       Data[0] = Data[1] = 0;
     }
@@ -65,8 +64,7 @@ namespace Devices::DAC
     {
     public:
       Iterator()
-        : Data()
-        , Step()
+        : Step()
         , Limit()
         , Loop()
         , Pos()
@@ -145,7 +143,7 @@ namespace Devices::DAC
       }
 
     private:
-      const Sound::Sample::Type* Data;
+      const Sound::Sample::Type* Data = nullptr;
       Position Step;
       Position Limit;
       Position Loop;
@@ -156,16 +154,14 @@ namespace Devices::DAC
     friend class Iterator;
     const uint_t Index;
     const std::unique_ptr<Sound::Sample::Type[]> Data;
-    const std::size_t Size;
-    const std::size_t Loop;
+    const std::size_t Size = 1;
+    const std::size_t Loop = 1;
   };
 
   class ClockSource
   {
   public:
     ClockSource()
-      : SampleFreq()
-      , SoundFreq()
     {
       Reset();
     }
@@ -204,8 +200,8 @@ namespace Devices::DAC
     }
 
   private:
-    uint_t SampleFreq;
-    uint_t SoundFreq;
+    uint_t SampleFreq = 0;
+    uint_t SoundFreq = 0;
     Stamp CurrentTime;
   };
 
@@ -242,28 +238,20 @@ namespace Devices::DAC
   struct ChannelState
   {
     ChannelState()
-      : Enabled()
-      , Note()
-      , NoteSlide()
-      , FreqSlide()
-      , Level(1)
+      : Level(1)
     {}
 
     explicit ChannelState(FastSample::Ptr sample)
-      : Enabled()
-      , Note()
-      , NoteSlide()
-      , FreqSlide()
-      , Source(std::move(sample))
+      : Source(std::move(sample))
       , Level(1)
     {}
 
-    bool Enabled;
-    uint_t Note;
+    bool Enabled = false;
+    uint_t Note = 0;
     // current slide in halftones
-    int_t NoteSlide;
+    int_t NoteSlide = 0;
     // current slide in Hz
-    int_t FreqSlide;
+    int_t FreqSlide = 0;
     // sample
     FastSample::Ptr Source;
     FastSample::Iterator Iterator;

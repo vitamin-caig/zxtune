@@ -199,10 +199,7 @@ namespace
   class Extractor : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
-    Extractor()
-      : LastTrackIdx()
-      , LastDataIdx()
-    {}
+    Extractor() {}
 
     void SetAuthor(StringView /*author*/) override {}
     void SetTitle(StringView /*title*/) override {}
@@ -245,8 +242,8 @@ namespace
   private:
     Binary::Container::Ptr LastData;
     String LastDataName;
-    uint_t LastTrackIdx;
-    uint_t LastDataIdx;
+    uint_t LastTrackIdx = 0;
+    uint_t LastDataIdx = 0;
   };
 
   void Extract(CmdlineIterator& arg)

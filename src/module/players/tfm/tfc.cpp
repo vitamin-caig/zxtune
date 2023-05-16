@@ -30,9 +30,7 @@ namespace Module::TFC
   class ChannelData
   {
   public:
-    ChannelData()
-      : Loop()
-    {}
+    ChannelData() {}
 
     void AddFrame()
     {
@@ -74,7 +72,7 @@ namespace Module::TFC
   private:
     std::vector<std::size_t> Offsets;
     Devices::FM::Registers Data;
-    std::size_t Loop;
+    std::size_t Loop = 0;
   };
 
   class ModuleData : public TFM::StreamModel

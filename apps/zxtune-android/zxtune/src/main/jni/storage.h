@@ -24,9 +24,7 @@ class ObjectsStorage
 public:
   typedef int32_t HandleType;
 
-  ObjectsStorage()
-    : NextHandle()
-  {}
+  ObjectsStorage() {}
 
   HandleType Add(PtrType obj)
   {
@@ -80,6 +78,6 @@ private:
 private:
   typedef std::map<HandleType, PtrType> StorageType;
   StorageType Storage;
-  HandleType NextHandle;
+  HandleType NextHandle = 0;
   mutable std::mutex Lock;
 };

@@ -23,61 +23,41 @@ namespace Formats::Chiptune
   {
     struct SampleLine
     {
-      SampleLine()
-        : Level()
-        , VolSlide()
-        , Noise()
-        , AccumulateNoise()
-        , NoiseMask(true)
-        , Tone()
-        , AccumulateTone()
-        , ToneMask(true)
-        , EnvelopeAddon()
-        , AccumulateEnvelope()
-        , EnableEnvelope()
-      {}
+      SampleLine() {}
 
-      uint_t Level;    // 0-15
-      int_t VolSlide;  // 0/+1/-1
-      uint_t Noise;
-      bool AccumulateNoise;
-      bool NoiseMask;
-      uint_t Tone;
-      bool AccumulateTone;
-      bool ToneMask;
-      int_t EnvelopeAddon;
-      bool AccumulateEnvelope;
-      bool EnableEnvelope;
+      uint_t Level = 0;    // 0-15
+      int_t VolSlide = 0;  // 0/+1/-1
+      uint_t Noise = 0;
+      bool AccumulateNoise = false;
+      bool NoiseMask = true;
+      uint_t Tone = 0;
+      bool AccumulateTone = false;
+      bool ToneMask = true;
+      int_t EnvelopeAddon = 0;
+      bool AccumulateEnvelope = false;
+      bool EnableEnvelope = false;
     };
 
     typedef LinesObject<SampleLine> Sample;
 
     struct OrnamentLine
     {
-      OrnamentLine()
-        : NoteAddon()
-        , KeepNoteAddon()
-        , NoiseAddon()
-        , KeepNoiseAddon()
-      {}
+      OrnamentLine() {}
 
-      int_t NoteAddon;
-      bool KeepNoteAddon;
-      int_t NoiseAddon;
-      bool KeepNoiseAddon;
+      int_t NoteAddon = 0;
+      bool KeepNoteAddon = false;
+      int_t NoiseAddon = 0;
+      bool KeepNoiseAddon = false;
     };
 
     typedef LinesObject<OrnamentLine> Ornament;
 
     struct PositionEntry
     {
-      PositionEntry()
-        : PatternIndex()
-        , Transposition()
-      {}
+      PositionEntry() {}
 
-      uint_t PatternIndex;
-      int_t Transposition;
+      uint_t PatternIndex = 0;
+      int_t Transposition = 0;
     };
 
     typedef LinesObject<PositionEntry> Positions;

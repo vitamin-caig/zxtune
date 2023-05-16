@@ -482,11 +482,7 @@ namespace Module::AYEMUL
     typedef std::shared_ptr<const ModuleData> Ptr;
     typedef std::shared_ptr<ModuleData> RWPtr;
 
-    ModuleData()
-      : Frames()
-      , Registers()
-      , StackPointer()
-    {}
+    ModuleData() {}
 
     Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
     {
@@ -501,10 +497,10 @@ namespace Module::AYEMUL
       return result;
     }
 
-    uint_t Frames;
+    uint_t Frames = 0;
     Time::Microseconds FrameDuration;
-    uint16_t Registers;
-    uint16_t StackPointer;
+    uint16_t Registers = 0;
+    uint16_t StackPointer = 0;
     Binary::Data::Ptr Memory;
   };
 

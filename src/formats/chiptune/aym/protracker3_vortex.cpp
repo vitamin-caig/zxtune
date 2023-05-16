@@ -127,9 +127,7 @@ namespace Formats::Chiptune
     class BoolObject
     {
     public:
-      BoolObject()
-        : Value(false)
-      {}
+      BoolObject() {}
 
       explicit BoolObject(char val)
         : Value(val)
@@ -152,7 +150,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      const char Value;
+      const char Value = false;
     };
 
     typedef BoolObject<'+', '-'> SignFlag;
@@ -204,12 +202,9 @@ namespace Formats::Chiptune
     class UnsignedHexObject
     {
     public:
-      UnsignedHexObject()
-        : Value(0)
-      {}
+      UnsignedHexObject() {}
 
       explicit UnsignedHexObject(StringView val)
-        : Value(0)
       {
         Require(val.size() == Width);
         for (const auto sym : val)
@@ -247,19 +242,16 @@ namespace Formats::Chiptune
       }
 
     private:
-      uint_t Value;
+      uint_t Value = 0;
     };
 
     template<uint_t Width>
     class SignedHexObject
     {
     public:
-      SignedHexObject()
-        : Value(0)
-      {}
+      SignedHexObject() {}
 
       explicit SignedHexObject(StringView val)
-        : Value(0)
       {
         Require(val.size() == Width + 1);
         auto it = val.begin();
@@ -297,7 +289,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      int_t Value;
+      int_t Value = 0;
     };
 
     /*
@@ -370,12 +362,9 @@ namespace Formats::Chiptune
     {
       typedef std::vector<T> Parent;
 
-      LoopedList()
-        : Loop(0)
-      {}
+      LoopedList() {}
 
       explicit LoopedList(StringView str)
-        : Loop(0)
       {
         const std::size_t NO_LOOP = ~std::size_t(0);
 
@@ -427,7 +416,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      uint_t Loop;
+      uint_t Loop = 0;
     };
 
     class StringStream
@@ -463,16 +452,9 @@ namespace Formats::Chiptune
     struct ModuleHeader
     {
     public:
-      ModuleHeader()
-        : Version(0)
-        , Table(PROTRACKER)
-        , Tempo(0)
-      {}
+      ModuleHeader() {}
 
       explicit ModuleHeader(StringStream& src)
-        : Version(0)
-        , Table(PROTRACKER)
-        , Tempo(0)
       {
         const SectionHeader hdr(Headers::MODULE, src.ReadString());
         Require(hdr);
@@ -571,11 +553,11 @@ namespace Formats::Chiptune
         }
       };
 
-      uint_t Version;
+      uint_t Version = 0;
       String Title;
       String Author;
-      NoteTable Table;
-      uint_t Tempo;
+      NoteTable Table = PROTRACKER;
+      uint_t Tempo = 0;
       LoopedList<uint_t> PlayOrder;
       std::vector<Entry> OtherFields;
     };
@@ -1103,9 +1085,7 @@ namespace Formats::Chiptune
     class PatternObject
     {
     public:
-      PatternObject()
-        : Index()
-      {}
+      PatternObject() {}
 
       explicit PatternObject(uint_t idx)
         : Index(idx)
@@ -1169,7 +1149,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      uint_t Index;
+      uint_t Index = 0;
       std::vector<PatternLineObject> Lines;
     };
 

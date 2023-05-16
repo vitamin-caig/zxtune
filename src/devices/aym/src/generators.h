@@ -60,11 +60,7 @@ namespace Devices::AYM
   {
   public:
     ToneGenerator()
-      : Masked(true)
-      , DoublePeriod(2)
-      , DutyCycle(NO_DUTYCYCLE)
-      , MiddlePeriod(1)
-      , Counter()
+      : DutyCycle(NO_DUTYCYCLE)
     {}
 
     void Reset()
@@ -146,21 +142,17 @@ namespace Devices::AYM
     }
 
   private:
-    bool Masked;
-    uint_t DoublePeriod;
+    bool Masked = true;
+    uint_t DoublePeriod = 2;
     uint_t DutyCycle;
-    uint_t MiddlePeriod;
-    mutable uint_t Counter;
+    uint_t MiddlePeriod = 1;
+    mutable uint_t Counter = 0;
   };
 
   class CountingGenerator
   {
   public:
-    CountingGenerator()
-      : Period(1)
-      , Counter(0)
-      , Index(0)
-    {}
+    CountingGenerator() {}
 
     void Reset()
     {
@@ -206,9 +198,9 @@ namespace Devices::AYM
     }
 
   protected:
-    uint_t Period;
-    mutable uint_t Counter;
-    mutable uint_t Index;
+    uint_t Period = 1;
+    mutable uint_t Counter = 0;
+    mutable uint_t Index = 0;
   };
 
   class NoiseGenerator : public CountingGenerator
@@ -237,11 +229,7 @@ namespace Devices::AYM
   class EnvelopeGenerator : public CountingGenerator
   {
   public:
-    EnvelopeGenerator()
-      : Type()
-      , Level()
-      , Decay()
-    {}
+    EnvelopeGenerator() {}
 
     void Reset()
     {
@@ -325,8 +313,8 @@ namespace Devices::AYM
     }
 
   private:
-    uint_t Type;
-    mutable uint_t Level;
-    mutable int_t Decay;
+    uint_t Type = 0;
+    mutable uint_t Level = 0;
+    mutable int_t Decay = 0;
   };
 }  // namespace Devices::AYM

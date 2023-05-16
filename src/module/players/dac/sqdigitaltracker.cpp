@@ -131,17 +131,12 @@ namespace Module::SQDigitalTracker
 
   struct VolumeState
   {
-    VolumeState()
-      : Value(16)
-      , SlideDirection(0)
-      , SlideCounter(0)
-      , SlidePeriod(0)
-    {}
+    VolumeState() {}
 
-    int_t Value;
-    int_t SlideDirection;
-    uint_t SlideCounter;
-    uint_t SlidePeriod;
+    int_t Value = 16;
+    int_t SlideDirection = 0;
+    uint_t SlideCounter = 0;
+    uint_t SlidePeriod = 0;
 
     bool Update()
     {

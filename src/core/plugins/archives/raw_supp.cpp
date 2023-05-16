@@ -103,11 +103,7 @@ namespace ZXTune
     using TimeUnit = Time::Timer::NativeUnit;
 
   public:
-    Statistic()
-      : TotalData(0)
-      , ArchivedData(0)
-      , ModulesData(0)
-    {}
+    Statistic() {}
 
     ~Statistic()
     {
@@ -182,18 +178,15 @@ namespace ZXTune
     struct StatItem
     {
       String Name;
-      std::size_t Index;
-      std::size_t Aimed;
-      std::size_t Missed;
+      std::size_t Index = 0;
+      std::size_t Aimed = 0;
+      std::size_t Missed = 0;
       Time::Duration<TimeUnit> AimedTime;
       Time::Duration<TimeUnit> MissedTime;
       Time::Duration<TimeUnit> ScanTime;
 
       StatItem()
-        : Index()
-        , Aimed()
-        , Missed()
-        , AimedTime()
+        : AimedTime()
         , MissedTime()
         , ScanTime()
       {}
@@ -261,9 +254,9 @@ namespace ZXTune
 
   private:
     const Time::Timer Timer;
-    uint64_t TotalData;
-    uint64_t ArchivedData;
-    uint64_t ModulesData;
+    uint64_t TotalData = 0;
+    uint64_t ArchivedData = 0;
+    uint64_t ModulesData = 0;
     typedef std::map<const void*, StatItem> DetectMap;
     DetectMap Detection;
   };
@@ -492,16 +485,13 @@ namespace ZXTune::Raw
     struct PluginEntry
     {
       typename P::Ptr Plugin;
-      std::size_t Offset;
+      std::size_t Offset = 0;
 
       explicit PluginEntry(typename P::Ptr plugin)
         : Plugin(std::move(plugin))
-        , Offset()
       {}
 
-      PluginEntry()
-        : Offset()
-      {}
+      PluginEntry() {}
     };
     typedef typename std::vector<PluginEntry> PluginsList;
 

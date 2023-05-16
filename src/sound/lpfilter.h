@@ -26,7 +26,6 @@ namespace Sound
       : A()
       , B()
       , C()
-      , DCShift()
       , In1()
       , In2()
       , Out1()
@@ -119,7 +118,7 @@ namespace Sound
   private:
     typedef Math::FixedPoint<int_t, 16384> Coeff;
     Coeff A, B, C;
-    uint_t DCShift;
+    uint_t DCShift = 0;
     Sample In1, In2;
     Sample Out1, Out2;
   };

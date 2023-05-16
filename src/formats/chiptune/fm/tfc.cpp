@@ -122,13 +122,10 @@ namespace Formats::Chiptune
 
     struct Context
     {
-      std::size_t RetAddr;
-      std::size_t RepeatFrames;
+      std::size_t RetAddr = 0;
+      std::size_t RepeatFrames = 0;
 
-      Context()
-        : RetAddr()
-        , RepeatFrames()
-      {}
+      Context() {}
     };
 
     class Container

@@ -23,19 +23,13 @@ namespace Formats::Chiptune
   {
     struct SampleLine
     {
-      SampleLine()
-        : Level()
-        , Noise()
-        , ToneMask(true)
-        , NoiseMask(true)
-        , Gliss()
-      {}
+      SampleLine() {}
 
-      uint_t Level;  // 0-15
-      uint_t Noise;  // 0-31
-      bool ToneMask;
-      bool NoiseMask;
-      int_t Gliss;
+      uint_t Level = 0;  // 0-15
+      uint_t Noise = 0;  // 0-31
+      bool ToneMask = true;
+      bool NoiseMask = true;
+      int_t Gliss = 0;
     };
 
     class Sample : public LinesObject<SampleLine>
@@ -43,8 +37,6 @@ namespace Formats::Chiptune
     public:
       Sample()
         : LinesObject<SampleLine>()
-        , VolumeDeltaPeriod()
-        , VolumeDeltaValue()
       {}
 
       Sample(const Sample&) = delete;
@@ -64,21 +56,18 @@ namespace Formats::Chiptune
         return *this;
       }
 
-      uint_t VolumeDeltaPeriod;
-      uint_t VolumeDeltaValue;
+      uint_t VolumeDeltaPeriod = 0;
+      uint_t VolumeDeltaValue = 0;
     };
 
     typedef LinesObject<int_t> Ornament;
 
     struct PositionEntry
     {
-      PositionEntry()
-        : PatternIndex()
-        , Transposition()
-      {}
+      PositionEntry() {}
 
-      uint_t PatternIndex;
-      int_t Transposition;
+      uint_t PatternIndex = 0;
+      int_t Transposition = 0;
     };
 
     typedef LinesObject<PositionEntry> Positions;

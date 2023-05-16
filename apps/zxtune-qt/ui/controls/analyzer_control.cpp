@@ -34,10 +34,7 @@ namespace
   struct BandLevel
   {
   public:
-    BandLevel()
-      : Value(0)
-      , Changed(false)
-    {}
+    BandLevel() {}
 
     void Fall(uint_t delta)
     {
@@ -64,8 +61,8 @@ namespace
       return oldc ? &Value : nullptr;
     }
 
-    uint_t Value;
-    bool Changed;
+    uint_t Value = 0;
+    bool Changed = false;
   };
 
   typedef std::array<BandLevel, MAX_BANDS> Analyzed;

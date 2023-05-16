@@ -236,13 +236,10 @@ namespace Module::SoundTracker
 
   struct StateCursor
   {
-    int_t CountDown;
-    uint_t Position;
+    int_t CountDown = -1;
+    uint_t Position = 0;
 
-    StateCursor()
-      : CountDown(-1)
-      , Position(0)
-    {}
+    StateCursor() {}
 
     void Next(const Sample& sample)
     {

@@ -65,10 +65,9 @@ namespace Module::Vortex
 
     ModuleData()
       : AYM::ModuleData<OrderList, Sample, Ornament>()
-      , Version(6)
     {}
 
-    uint_t Version;
+    uint_t Version = 6;
   };
 
   AYM::DataRenderer::Ptr CreateDataRenderer(ModuleData::Ptr data, uint_t trackChannelStart);

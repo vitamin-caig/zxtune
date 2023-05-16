@@ -28,9 +28,7 @@ namespace Devices::SAA
   class FastSample
   {
   public:
-    FastSample()
-      : Value()
-    {}
+    FastSample() {}
 
     FastSample(uint_t left, uint_t right)
       : Value(left | (right << 16))
@@ -63,7 +61,7 @@ namespace Devices::SAA
     }
 
   private:
-    uint_t Value;
+    uint_t Value = 0;
   };
 
   // PSG-related functionality
@@ -71,12 +69,6 @@ namespace Devices::SAA
   {
   public:
     ToneGenerator()
-      : Masked(true)
-      , Frequency()
-      , Octave()
-      , HalfPeriod(1)
-      , FullPeriod(2)
-      , Counter()
     {
       UpdatePeriod();
     }
@@ -172,22 +164,18 @@ namespace Devices::SAA
     }
 
   private:
-    bool Masked;
-    uint_t Frequency;
-    uint_t Octave;
-    uint_t HalfPeriod;
-    uint_t FullPeriod;
-    mutable uint_t Counter;
+    bool Masked = true;
+    uint_t Frequency = 0;
+    uint_t Octave = 0;
+    uint_t HalfPeriod = 1;
+    uint_t FullPeriod = 2;
+    mutable uint_t Counter = 0;
   };
 
   class CountingGenerator
   {
   public:
-    CountingGenerator()
-      : Period(1)
-      , Counter(0)
-      , Index(0)
-    {}
+    CountingGenerator() {}
 
     void Reset()
     {
@@ -233,20 +221,15 @@ namespace Devices::SAA
     }
 
   protected:
-    uint_t Period;
-    mutable uint_t Counter;
-    mutable uint_t Index;
+    uint_t Period = 1;
+    mutable uint_t Counter = 0;
+    mutable uint_t Index = 0;
   };
 
   class NoiseGenerator : public CountingGenerator
   {
   public:
-    NoiseGenerator()
-      : Mode()
-      , ExternalPeriod(1)
-      , Mixer()
-      , Seed(0)
-    {}
+    NoiseGenerator() {}
 
     void Reset()
     {
@@ -321,10 +304,10 @@ namespace Devices::SAA
     }
 
   private:
-    uint_t Mode;
-    uint_t ExternalPeriod;
-    uint_t Mixer;
-    mutable uint_t Seed;
+    uint_t Mode = 0;
+    uint_t ExternalPeriod = 1;
+    uint_t Mixer = 0;
+    mutable uint_t Seed = 0;
   };
 
   /*
@@ -341,13 +324,7 @@ namespace Devices::SAA
   class EnvelopeGenerator : public CountingGenerator
   {
   public:
-    EnvelopeGenerator()
-      : Enabled(false)
-      , Type()
-      , Level()
-      , Decay()
-      , XorValue()
-    {}
+    EnvelopeGenerator() {}
 
     void Reset()
     {
@@ -477,10 +454,10 @@ namespace Devices::SAA
     }
 
   private:
-    bool Enabled;
-    uint_t Type;
-    mutable uint_t Level;
-    mutable int_t Decay;
-    uint_t XorValue;
+    bool Enabled = false;
+    uint_t Type = 0;
+    mutable uint_t Level = 0;
+    mutable int_t Decay = 0;
+    uint_t XorValue = 0;
   };
 }  // namespace Devices::SAA

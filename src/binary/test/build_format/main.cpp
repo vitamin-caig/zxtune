@@ -17,13 +17,10 @@ namespace
 {
   struct Range
   {
-    uint_t Min;
-    uint_t Max;
+    uint_t Min = 255;
+    uint_t Max = 0;
 
-    Range()
-      : Min(255)
-      , Max(0)
-    {}
+    Range() {}
 
     void Apply(uint_t val)
     {
@@ -67,13 +64,10 @@ namespace
 
   struct BinaryMask
   {
-    uint_t Zeroes;
-    uint_t Ones;
+    uint_t Zeroes = 0;
+    uint_t Ones = 0;
 
-    BinaryMask()
-      : Zeroes()
-      , Ones()
-    {}
+    BinaryMask() {}
 
     void Apply(uint_t val)
     {

@@ -23,43 +23,28 @@ namespace Formats::Chiptune
   {
     struct SampleLine
     {
-      SampleLine()
-        : Level()
-        , Tone()
-        , ToneMask(true)
-        , NoiseMask(true)
-        , Adding()
-        , EnableEnvelope()
-        , VolumeDelta()
-        , LoopBegin()
-        , LoopEnd()
-      {}
+      SampleLine() {}
 
-      uint_t Level;  // 0-15
-      uint_t Tone;
-      bool ToneMask;
-      bool NoiseMask;
-      int_t Adding;
-      bool EnableEnvelope;
-      int_t VolumeDelta;  // 0/+1/-1
-      bool LoopBegin;
-      bool LoopEnd;
+      uint_t Level = 0;  // 0-15
+      uint_t Tone = 0;
+      bool ToneMask = true;
+      bool NoiseMask = true;
+      int_t Adding = 0;
+      bool EnableEnvelope = false;
+      int_t VolumeDelta = 0;  // 0/+1/-1
+      bool LoopBegin = false;
+      bool LoopEnd = false;
     };
 
     typedef LinesObject<SampleLine> Sample;
 
     struct OrnamentLine
     {
-      OrnamentLine()
-        : NoteAddon()
-        , NoiseAddon()
-        , LoopBegin()
-        , LoopEnd()
-      {}
-      int_t NoteAddon;
-      int_t NoiseAddon;
-      bool LoopBegin;
-      bool LoopEnd;
+      OrnamentLine() {}
+      int_t NoteAddon = 0;
+      int_t NoiseAddon = 0;
+      bool LoopBegin = false;
+      bool LoopEnd = false;
     };
 
     typedef LinesObject<OrnamentLine> Ornament;

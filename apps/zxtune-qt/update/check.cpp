@@ -181,7 +181,6 @@ namespace
   public:
     Version()
       : AsDate()
-      , AsRev()
     {}
 
     explicit Version(const QString& ver, const QDate& date)
@@ -232,7 +231,7 @@ namespace
 
   private:
     QDate AsDate;
-    unsigned short AsRev;
+    unsigned short AsRev = 0;
   };
 
   class UpdateState : public Downloads::Visitor

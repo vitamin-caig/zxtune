@@ -40,15 +40,11 @@ namespace Parameters
   struct IntegerTraits
   {
     Identifier Name = ""_id;
-    IntType Default;
-    IntType Min;
-    IntType Max;
+    IntType Default = 0;
+    IntType Min = 0;
+    IntType Max = 0;
 
-    IntegerTraits()
-      : Default()
-      , Min()
-      , Max()
-    {}
+    IntegerTraits() {}
 
     IntegerTraits(Identifier name, IntType def, IntType min, IntType max)
       : Name(std::move(name))

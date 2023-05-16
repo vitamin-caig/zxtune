@@ -50,17 +50,12 @@ namespace Formats::Archived
 
     struct DataBlockDescription
     {
-      const void* Content;
-      std::size_t Size;
-      bool IsCompressed;
-      std::size_t UncompressedSize;
+      const void* Content = nullptr;
+      std::size_t Size = 0;
+      bool IsCompressed = false;
+      std::size_t UncompressedSize = 0;
 
-      DataBlockDescription()
-        : Content()
-        , Size()
-        , IsCompressed()
-        , UncompressedSize()
-      {}
+      DataBlockDescription() {}
     };
 
     class ChunksVisitor

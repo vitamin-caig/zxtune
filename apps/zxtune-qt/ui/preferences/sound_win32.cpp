@@ -30,9 +30,7 @@ namespace
 {
   struct Device
   {
-    Device()
-      : Id()
-    {}
+    Device() {}
 
     explicit Device(const Sound::Win32::Device& in)
       : Name(ToQString(in.Name()))
@@ -40,7 +38,7 @@ namespace
     {}
 
     QString Name;
-    int_t Id;
+    int_t Id = 0;
   };
 
   class Win32OptionsWidget

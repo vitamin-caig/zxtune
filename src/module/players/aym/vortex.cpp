@@ -60,16 +60,11 @@ namespace Module::Vortex
   // helper for sliding processing
   struct Slider
   {
-    Slider()
-      : Period()
-      , Value()
-      , Counter()
-      , Delta()
-    {}
-    uint_t Period;
-    int_t Value;
-    uint_t Counter;
-    int_t Delta;
+    Slider() {}
+    uint_t Period = 0;
+    int_t Value = 0;
+    uint_t Counter = 0;
+    int_t Delta = 0;
 
     bool Update()
     {
@@ -93,59 +88,41 @@ namespace Module::Vortex
   struct ChannelState
   {
     ChannelState()
-      : Enabled(false)
-      , Envelope(false)
-      , Note()
-      , SampleNum(Formats::Chiptune::ProTracker3::DEFAULT_SAMPLE)
-      , PosInSample(0)
+      : SampleNum(Formats::Chiptune::ProTracker3::DEFAULT_SAMPLE)
       , OrnamentNum(Formats::Chiptune::ProTracker3::DEFAULT_ORNAMENT)
-      , PosInOrnament(0)
-      , Volume(15)
-      , VolSlide(0)
       , ToneSlider()
       , SlidingTargetNote(LIMITER)
-      , SlidingDelta(0)
-      , ToneAccumulator(0)
-      , EnvSliding()
-      , NoiseSliding()
-      , VibrateCounter(0)
-      , VibrateOn()
-      , VibrateOff()
     {}
 
-    bool Enabled;
-    bool Envelope;
-    uint_t Note;
+    bool Enabled = false;
+    bool Envelope = false;
+    uint_t Note = 0;
     uint_t SampleNum;
-    uint_t PosInSample;
+    uint_t PosInSample = 0;
     uint_t OrnamentNum;
-    uint_t PosInOrnament;
-    uint_t Volume;
-    int_t VolSlide;
+    uint_t PosInOrnament = 0;
+    uint_t Volume = 15;
+    int_t VolSlide = 0;
     Slider ToneSlider;
     uint_t SlidingTargetNote;
-    int_t SlidingDelta;
-    int_t ToneAccumulator;
-    int_t EnvSliding;
-    int_t NoiseSliding;
-    uint_t VibrateCounter;
-    uint_t VibrateOn;
-    uint_t VibrateOff;
+    int_t SlidingDelta = 0;
+    int_t ToneAccumulator = 0;
+    int_t EnvSliding = 0;
+    int_t NoiseSliding = 0;
+    uint_t VibrateCounter = 0;
+    uint_t VibrateOn = 0;
+    uint_t VibrateOff = 0;
   };
 
   // internal common state type
   struct CommonState
   {
-    CommonState()
-      : EnvBase()
-      , NoiseBase()
-      , NoiseAddon()
-    {}
+    CommonState() {}
 
-    uint_t EnvBase;
+    uint_t EnvBase = 0;
     Slider EnvSlider;
-    uint_t NoiseBase;
-    uint_t NoiseAddon;
+    uint_t NoiseBase = 0;
+    uint_t NoiseAddon = 0;
   };
 
   struct State

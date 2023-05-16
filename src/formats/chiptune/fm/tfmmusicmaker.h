@@ -27,52 +27,34 @@ namespace Formats::Chiptune
     {
       struct Operator
       {
-        Operator()
-          : Multiple()
-          , Detune()
-          , TotalLevel()
-          , RateScaling()
-          , Attack()
-          , Decay()
-          , Sustain()
-          , Release()
-          , SustainLevel()
-          , EnvelopeType()
-        {}
+        Operator() {}
 
-        uint_t Multiple;
-        int_t Detune;
-        uint_t TotalLevel;
-        uint_t RateScaling;
-        uint_t Attack;
-        uint_t Decay;
-        uint_t Sustain;
-        uint_t Release;
-        uint_t SustainLevel;
-        uint_t EnvelopeType;
+        uint_t Multiple = 0;
+        int_t Detune = 0;
+        uint_t TotalLevel = 0;
+        uint_t RateScaling = 0;
+        uint_t Attack = 0;
+        uint_t Decay = 0;
+        uint_t Sustain = 0;
+        uint_t Release = 0;
+        uint_t SustainLevel = 0;
+        uint_t EnvelopeType = 0;
       };
 
-      Instrument()
-        : Algorithm()
-        , Feedback()
-      {}
+      Instrument() {}
 
-      uint_t Algorithm;
-      uint_t Feedback;
+      uint_t Algorithm = 0;
+      uint_t Feedback = 0;
       std::array<Operator, 4> Operators;
     };
 
     struct Date
     {
-      Date()
-        : Year()
-        , Month()
-        , Day()
-      {}
+      Date() {}
 
-      uint_t Year;
-      uint_t Month;
-      uint_t Day;
+      uint_t Year = 0;
+      uint_t Month = 0;
+      uint_t Day = 0;
     };
 
     typedef LinesObject<uint_t> Positions;

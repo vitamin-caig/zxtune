@@ -144,7 +144,6 @@ namespace Module::Sid
     SidEngine()
       : Builder("resid")
       , Config(Player.config())
-      , UseFilter()
     {}
 
     void Init(uint_t samplerate, const Parameters::Accessor& params)
@@ -212,7 +211,7 @@ namespace Module::Sid
     SidConfig Config;
 
     // cache filter flag
-    bool UseFilter;
+    bool UseFilter = false;
   };
 
   const auto FRAME_DURATION = Time::Milliseconds(100);

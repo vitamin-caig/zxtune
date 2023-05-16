@@ -21,11 +21,7 @@ namespace Formats
   struct CHS
   {
     // all elements are 0-based
-    CHS()
-      : Cylinder()
-      , Head()
-      , Sector()
-    {}
+    CHS() {}
 
     CHS(uint_t c, uint_t h, uint_t s)
       : Cylinder(c)
@@ -33,9 +29,9 @@ namespace Formats
       , Sector(s)
     {}
 
-    uint_t Cylinder;
-    uint_t Head;
-    uint_t Sector;
+    uint_t Cylinder = 0;
+    uint_t Head = 0;
+    uint_t Sector = 0;
   };
 
   class ImageBuilder

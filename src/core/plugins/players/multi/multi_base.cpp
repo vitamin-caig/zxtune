@@ -26,10 +26,7 @@ namespace Module
   class WideSample
   {
   public:
-    WideSample()
-      : Left()
-      , Right()
-    {}
+    WideSample() {}
 
     explicit WideSample(const Sound::Sample& rh)
       : Left(rh.Left())
@@ -49,8 +46,8 @@ namespace Module
     }
 
   private:
-    Sound::Sample::WideType Left;
-    Sound::Sample::WideType Right;
+    Sound::Sample::WideType Left = 0;
+    Sound::Sample::WideType Right = 0;
   };
 
   class CumulativeChunk

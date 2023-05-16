@@ -65,10 +65,6 @@ namespace
   public:
     DisplayComponentImpl()
       : Options("Display-related options")
-      , Silent(false)
-      , Quiet(false)
-      , ShowAnalyze(false)
-      , Updatefps(10)
       , InformationTemplate(Strings::Template::Create(ITEM_INFO.to_string()))
       , ScrSize(Console::Self().GetSize())
     {
@@ -244,10 +240,10 @@ namespace
 
   private:
     boost::program_options::options_description Options;
-    bool Silent;
-    bool Quiet;
-    bool ShowAnalyze;
-    uint_t Updatefps;
+    bool Silent = false;
+    bool Quiet = false;
+    bool ShowAnalyze = false;
+    uint_t Updatefps = 10;
     const Strings::Template::Ptr InformationTemplate;
     // context
     std::chrono::time_point<std::chrono::steady_clock> NextFrameStart;

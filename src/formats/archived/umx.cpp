@@ -67,11 +67,9 @@ namespace Formats::Archived
 
     struct Index
     {
-      int_t Value;
+      int_t Value = 0;
 
-      Index()
-        : Value()
-      {}
+      Index() {}
     };
 
     struct ClassName
@@ -105,39 +103,32 @@ namespace Formats::Archived
     struct NameEntry
     {
       String Name;
-      uint32_t Flags;
+      uint32_t Flags = 0;
 
-      NameEntry()
-        : Flags()
-      {}
+      NameEntry() {}
     };
 
     struct ExportEntry
     {
       Index Class;
       Index Super;
-      uint32_t Group;
+      uint32_t Group = 0;
       Index ObjectName;
-      uint32_t ObjectFlags;
+      uint32_t ObjectFlags = 0;
       Index SerialSize;
       Index SerialOffset;
 
-      ExportEntry()
-        : Group()
-        , ObjectFlags()
-      {}
+      ExportEntry() {}
     };
 
     struct ImportEntry
     {
       Index ClassPackage;
       Index ClassName;
-      uint32_t Package;
+      uint32_t Package = 0;
       Index ObjectName;
 
-      ImportEntry()
-        : Package()
-      {}
+      ImportEntry() {}
     };
 
     class InputStream

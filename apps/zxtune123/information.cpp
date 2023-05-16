@@ -490,12 +490,6 @@ namespace
   public:
     Information()
       : OptionsDescription("Information keys")
-      , EnumPlugins()
-      , EnumBackends()
-      , EnumProviders()
-      , EnumOptions()
-      , EnumAttributes()
-      , EnumFreqtables()
     {
       using namespace boost::program_options;
       auto opt = OptionsDescription.add_options();
@@ -543,12 +537,12 @@ namespace
 
   private:
     boost::program_options::options_description OptionsDescription;
-    bool EnumPlugins;
-    bool EnumBackends;
-    bool EnumProviders;
-    bool EnumOptions;
-    bool EnumAttributes;
-    bool EnumFreqtables;
+    bool EnumPlugins = false;
+    bool EnumBackends = false;
+    bool EnumProviders = false;
+    bool EnumOptions = false;
+    bool EnumAttributes = false;
+    bool EnumFreqtables = false;
   };
 }  // namespace
 

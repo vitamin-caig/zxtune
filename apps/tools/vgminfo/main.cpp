@@ -87,10 +87,7 @@ namespace
   class Header
   {
   public:
-    Header()
-      : Version()
-      , Framerate()
-    {}
+    Header() {}
 
     void Parse(Stream& stream)
     {
@@ -339,10 +336,10 @@ namespace
     }
 
   private:
-    uint_t Version;
+    uint_t Version = 0;
     uint_t Samples;
     uint_t LoopSamples;
-    uint_t Framerate;
+    uint_t Framerate = 0;
     Strings::ValueMap<String> Tags;
     Strings::ValueMap<uint_t> Devices;
   };

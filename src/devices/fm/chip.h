@@ -65,10 +65,7 @@ namespace Devices::FM::Details
   class ChipAdapterHelper
   {
   public:
-    ChipAdapterHelper()
-      : LastClockrate()
-      , LastSoundFreq()
-    {}
+    ChipAdapterHelper() {}
 
     bool SetNewParams(uint64_t clock, uint_t sndFreq)
     {
@@ -100,8 +97,8 @@ namespace Devices::FM::Details
     }
 
   private:
-    uint64_t LastClockrate;
-    uint_t LastSoundFreq;
+    uint64_t LastClockrate = 0;
+    uint_t LastSoundFreq = 0;
   };
 
   template<class ChipTraits>

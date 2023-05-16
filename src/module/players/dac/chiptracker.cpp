@@ -141,12 +141,9 @@ namespace Module::ChipTracker
 
   struct GlissData
   {
-    GlissData()
-      : Sliding()
-      , Glissade()
-    {}
-    int_t Sliding;
-    int_t Glissade;
+    GlissData() {}
+    int_t Sliding = 0;
+    int_t Glissade = 0;
 
     void Reset()
     {

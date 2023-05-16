@@ -374,14 +374,7 @@ namespace Formats::Chiptune
       }
 
     public:
-      FileBuilder()
-        : Duration()
-        , Fadeout()
-        , Register()
-        , StackPointer()
-        , InitRoutine()
-        , PlayRoutine()
-      {}
+      FileBuilder() {}
 
       void SetTitle(StringView title) override
       {
@@ -478,12 +471,12 @@ namespace Formats::Chiptune
       String Title;
       String Author;
       String Comment;
-      uint16_t Duration;
-      uint16_t Fadeout;
-      uint16_t Register;
-      uint16_t StackPointer;
-      uint16_t InitRoutine;
-      uint16_t PlayRoutine;
+      uint16_t Duration = 0;
+      uint16_t Fadeout = 0;
+      uint16_t Register = 0;
+      uint16_t StackPointer = 0;
+      uint16_t InitRoutine = 0;
+      uint16_t PlayRoutine = 0;
       typedef std::list<std::pair<uint16_t, Binary::Data::Ptr> > BlocksList;
       BlocksList Blocks;
     };

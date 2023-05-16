@@ -187,7 +187,6 @@ namespace Module::FastTracker
   public:
     ObjectLinesIterator()
       : Obj()
-      , Position()
     {}
 
     void Set(const Object& obj)
@@ -221,15 +220,13 @@ namespace Module::FastTracker
 
   private:
     const Object* Obj;
-    uint_t Position;
+    uint_t Position = 0;
   };
 
   class Accumulator
   {
   public:
-    Accumulator()
-      : Value()
-    {}
+    Accumulator() {}
 
     void Reset()
     {
@@ -247,17 +244,13 @@ namespace Module::FastTracker
     }
 
   private:
-    int_t Value;
+    int_t Value = 0;
   };
 
   class ToneSlider
   {
   public:
-    ToneSlider()
-      : Sliding()
-      , Glissade()
-      , Direction()
-    {}
+    ToneSlider() {}
 
     void SetSlide(int_t slide)
     {
@@ -291,29 +284,21 @@ namespace Module::FastTracker
     }
 
   private:
-    int_t Sliding;
-    int_t Glissade;
-    int_t Direction;
+    int_t Sliding = 0;
+    int_t Glissade = 0;
+    int_t Direction = 0;
   };
 
   struct ChannelState
   {
-    ChannelState()
-      : Note()
-      , Envelope()
-      , EnvelopeEnabled()
-      , Volume(15)
-      , VolumeSlide()
-      , Noise()
-      , ToneAddon()
-    {}
+    ChannelState() {}
 
-    uint_t Note;
-    uint_t Envelope;
-    bool EnvelopeEnabled;
-    uint_t Volume;
-    int_t VolumeSlide;
-    int_t Noise;
+    uint_t Note = 0;
+    uint_t Envelope = 0;
+    bool EnvelopeEnabled = false;
+    uint_t Volume = 15;
+    int_t VolumeSlide = 0;
+    int_t Noise = 0;
     ObjectLinesIterator<Sample> SampleIterator;
     ObjectLinesIterator<Ornament> OrnamentIterator;
     Accumulator NoteAccumulator;
@@ -321,7 +306,7 @@ namespace Module::FastTracker
     Accumulator NoiseAccumulator;
     Accumulator SampleNoiseAccumulator;
     Accumulator EnvelopeAccumulator;
-    int_t ToneAddon;
+    int_t ToneAddon = 0;
     ToneSlider ToneSlide;
   };
 

@@ -659,12 +659,7 @@ namespace Formats::Chiptune
 
       struct ChannelState
       {
-        ChannelState()
-          : Offset()
-          , Period()
-          , Counter()
-          , Note()
-        {}
+        ChannelState() {}
 
         void UpdateNote(uint_t delta)
         {
@@ -678,10 +673,10 @@ namespace Formats::Chiptune
           }
         }
 
-        std::size_t Offset;
-        uint_t Period;
-        uint_t Counter;
-        uint_t Note;
+        std::size_t Offset = 0;
+        uint_t Period = 0;
+        uint_t Counter = 0;
+        uint_t Note = 0;
       };
 
       struct ParserState

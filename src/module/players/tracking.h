@@ -100,9 +100,7 @@ namespace Module
   class MultichannelMutableLine : public MutableLine
   {
   public:
-    MultichannelMutableLine()
-      : Tempo()
-    {}
+    MultichannelMutableLine() {}
 
     const Cell* GetChannel(uint_t idx) const override
     {
@@ -131,7 +129,7 @@ namespace Module
     }
 
   private:
-    uint_t Tempo;
+    uint_t Tempo = 0;
     typedef std::array<MutableCell, ChannelsCount> ChannelsArray;
     ChannelsArray Channels;
   };

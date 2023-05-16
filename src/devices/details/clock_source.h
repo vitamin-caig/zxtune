@@ -23,9 +23,7 @@ namespace Devices::Details
     typedef Math::FixedPoint<typename StampType::ValueType, 65536u> FixedPoint;
     typedef FixedPoint FastStamp;
 
-    ClockSource()
-      : SoundFreq()
-    {}
+    ClockSource() {}
 
     void SetFrequency(uint64_t clockFreq, uint_t soundFreq)
     {
@@ -124,7 +122,7 @@ namespace Devices::Details
     }
 
   private:
-    uint_t SoundFreq;
+    uint_t SoundFreq = 0;
     FastStamp NextSampleTime;
     FixedPoint SamplePeriod;
     FixedPoint SampleFreq;

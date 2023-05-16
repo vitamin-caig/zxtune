@@ -25,19 +25,13 @@ namespace Formats::Chiptune
   {
     struct SampleLine
     {
-      SampleLine()
-        : Level()
-        , Noise()
-        , ToneDeviation()
-        , EnableNoise()
-        , EnableTone()
-      {}
+      SampleLine() {}
 
-      uint_t Level;  // 0-15
-      uint_t Noise;  // 0-31
-      int_t ToneDeviation;
-      bool EnableNoise;
-      bool EnableTone;
+      uint_t Level = 0;  // 0-15
+      uint_t Noise = 0;  // 0-31
+      int_t ToneDeviation = 0;
+      bool EnableNoise = false;
+      bool EnableTone = false;
     };
 
     typedef LinesObjectWithLoopLimit<SampleLine> Sample;
@@ -46,26 +40,19 @@ namespace Formats::Chiptune
 
     struct PositionEntry
     {
-      PositionEntry()
-        : Tempo()
-      {}
+      PositionEntry() {}
 
       struct Channel
       {
-        Channel()
-          : Pattern()
-          , Transposition()
-          , Attenuation()
-          , EnabledEffects(true)
-        {}
+        Channel() {}
 
-        uint_t Pattern;
-        int_t Transposition;
-        uint_t Attenuation;
-        bool EnabledEffects;
+        uint_t Pattern = 0;
+        int_t Transposition = 0;
+        uint_t Attenuation = 0;
+        bool EnabledEffects = true;
       };
 
-      uint_t Tempo;
+      uint_t Tempo = 0;
       std::array<Channel, 3> Channels;
     };
 

@@ -71,10 +71,7 @@ namespace Formats::Multitrack
       typedef std::shared_ptr<const DataBuilder> Ptr;
       typedef std::shared_ptr<DataBuilder> RWPtr;
 
-      DataBuilder()
-        : TracksCount(1)
-        , DefaultTrack(0)
-      {}
+      DataBuilder() {}
 
       void SetProperty(StringView name, StringView value) override
       {
@@ -124,8 +121,8 @@ namespace Formats::Multitrack
 
     private:
       Strings::Array Lines;
-      uint_t TracksCount;
-      uint_t DefaultTrack;
+      uint_t TracksCount = 1;
+      uint_t DefaultTrack = 0;
       std::map<uint_t, Binary::View> Blocks;
     };
 

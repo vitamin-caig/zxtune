@@ -22,10 +22,7 @@ namespace Devices::AYM
   class MultiVolumeTable
   {
   public:
-    MultiVolumeTable()
-      : Table(nullptr)
-      , Layout(nullptr)
-    {}
+    MultiVolumeTable() {}
 
     void SetParameters(ChipType type, LayoutType layout, const MixerType& mixer)
     {
@@ -127,8 +124,8 @@ namespace Devices::AYM
     }
 
   private:
-    const Sound::Sample::Type* Table;
-    const LayoutData* Layout;
+    const Sound::Sample::Type* Table = nullptr;
+    const LayoutData* Layout = nullptr;
     std::array<Sound::Sample, 1 << SOUND_CHANNELS * BITS_PER_LEVEL> Lookup;
   };
 }  // namespace Devices::AYM

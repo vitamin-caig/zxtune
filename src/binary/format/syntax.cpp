@@ -243,12 +243,10 @@ namespace Binary::FormatDSL
   public:
     Operator()
       : Val()
-      , Prec(0)
     {}
 
     explicit Operator(StringView op)
       : Val(std::move(op))
-      , Prec(0)
     {
       Require(!Val.empty());
       switch (Val[0])
@@ -292,7 +290,7 @@ namespace Binary::FormatDSL
 
   private:
     const StringView Val;
-    std::size_t Prec;
+    std::size_t Prec = 0;
   };
 
   class RPNTranslation : public FormatTokensVisitor
@@ -479,18 +477,15 @@ namespace Binary::FormatDSL
         , End(end)
       {}
 
-      Group()
-        : Begin()
-        , End()
-      {}
+      Group() {}
 
       std::size_t Size() const
       {
         return End - Begin;
       }
 
-      std::size_t Begin;
-      std::size_t End;
+      std::size_t Begin = 0;
+      std::size_t End = 0;
     };
 
   private:

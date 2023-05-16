@@ -67,8 +67,7 @@ namespace Devices::AYM
     };
 
     Registers()
-      : Mask()
-      , Data()
+      : Data()
     {}
 
     bool Empty() const
@@ -156,7 +155,7 @@ namespace Devices::AYM
     };
 
   private:
-    uint16_t Mask;
+    uint16_t Mask = 0;
     std::array<uint8_t, TOTAL> Data;
   };
 

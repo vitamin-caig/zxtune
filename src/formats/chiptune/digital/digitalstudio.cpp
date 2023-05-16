@@ -111,10 +111,7 @@ namespace Formats::Chiptune
     class SamplesSet
     {
     public:
-      SamplesSet()
-        : SamplesTotal()
-        , Samples4Bit()
-      {}
+      SamplesSet() {}
 
       void Add(uint_t idx, std::size_t loop, Binary::View data1, Binary::View data2 = Binary::View(nullptr, 0))
       {
@@ -171,14 +168,12 @@ namespace Formats::Chiptune
 
       struct Description
       {
-        std::size_t Loop;
+        std::size_t Loop = 0;
         Binary::Dump Content;
-        bool Is4Bit;
+        bool Is4Bit = false;
 
         Description()
-          : Loop()
-          , Content()
-          , Is4Bit()
+          : Content()
         {}
 
         Description(std::size_t loop, Binary::Dump content)
@@ -188,8 +183,8 @@ namespace Formats::Chiptune
         {}
       };
       std::array<Description, SAMPLES_COUNT> Samples;
-      uint_t SamplesTotal;
-      uint_t Samples4Bit;
+      uint_t SamplesTotal = 0;
+      uint_t Samples4Bit = 0;
     };
 
     class Format

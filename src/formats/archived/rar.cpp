@@ -32,15 +32,11 @@ namespace Formats::Archived
 
     struct FileBlock
     {
-      const Packed::Rar::FileBlockHeader* Header;
-      std::size_t Offset;
-      std::size_t Size;
+      const Packed::Rar::FileBlockHeader* Header = nullptr;
+      std::size_t Offset = 0;
+      std::size_t Size = 0;
 
-      FileBlock()
-        : Header()
-        , Offset()
-        , Size()
-      {}
+      FileBlock() {}
 
       FileBlock(const Packed::Rar::FileBlockHeader* header, std::size_t offset, std::size_t size)
         : Header(header)

@@ -24,9 +24,7 @@ namespace Formats::Chiptune
   public:
     typedef LineType Line;
 
-    LinesObject()
-      : Loop()
-    {}
+    LinesObject() {}
 
     LinesObject(const LinesObject&) = delete;
     LinesObject& operator=(const LinesObject&) = delete;
@@ -66,7 +64,7 @@ namespace Formats::Chiptune
     }
 
     std::vector<LineType> Lines;
-    uint_t Loop;
+    uint_t Loop = 0;
   };
 
   template<class LineType>
@@ -75,7 +73,6 @@ namespace Formats::Chiptune
   public:
     LinesObjectWithLoopLimit()
       : LinesObject<LineType>()
-      , LoopLimit()
     {}
 
     LinesObjectWithLoopLimit(LinesObjectWithLoopLimit&& rh) noexcept  // = default
@@ -95,6 +92,6 @@ namespace Formats::Chiptune
       return LoopLimit;
     }
 
-    uint_t LoopLimit;
+    uint_t LoopLimit = 0;
   };
 }  // namespace Formats::Chiptune

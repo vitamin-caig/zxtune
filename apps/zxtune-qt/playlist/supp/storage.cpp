@@ -38,9 +38,7 @@ namespace
     using Parent::end;
     using Parent::sort;
 
-    ItemsContainer()
-      : Size()
-    {}
+    ItemsContainer() {}
 
     ItemsContainer(const ItemsContainer& rh) = default;
 
@@ -102,7 +100,7 @@ namespace
     }
 
   private:
-    std::size_t Size;
+    std::size_t Size = 0;
   };
 
   template<class IteratorType>
@@ -240,14 +238,12 @@ namespace
   {
   public:
     LinearStorage()
-      : Version(0)
     {
       Dbg("Created at {}", Self());
     }
 
     LinearStorage(const LinearStorage& rh)
-      : Version(0)
-      , Items(rh.Items)
+      : Items(rh.Items)
     {
       Dbg("Created at {} (cloned from {} with {} items)", Self(), rh.Self(), Items.size());
     }
@@ -567,7 +563,7 @@ namespace
     }
 
   private:
-    unsigned Version;
+    unsigned Version = 0;
     mutable ItemsContainer Items;
     mutable IndexToIterator IteratorsCache;
   };

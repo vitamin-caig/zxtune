@@ -28,9 +28,7 @@ namespace LexicalAnalysis
   class TokenTypesSet
   {
   public:
-    TokenTypesSet()
-      : Mask()
-    {}
+    TokenTypesSet() {}
 
     void Add(TokenType type)
     {
@@ -65,7 +63,7 @@ namespace LexicalAnalysis
     }
 
   private:
-    uint_t Mask;
+    uint_t Mask = 0;
   };
 
   class Tokenizer

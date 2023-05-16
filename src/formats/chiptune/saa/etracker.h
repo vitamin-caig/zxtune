@@ -23,21 +23,14 @@ namespace Formats::Chiptune
   {
     struct SampleLine
     {
-      SampleLine()
-        : LeftLevel()
-        , RightLevel()
-        , ToneEnabled()
-        , NoiseEnabled()
-        , ToneDeviation()
-        , NoiseFreq()
-      {}
+      SampleLine() {}
 
-      uint_t LeftLevel;   // 0-15
-      uint_t RightLevel;  // 0-15
-      bool ToneEnabled;
-      bool NoiseEnabled;
-      uint_t ToneDeviation;
-      uint_t NoiseFreq;
+      uint_t LeftLevel = 0;   // 0-15
+      uint_t RightLevel = 0;  // 0-15
+      bool ToneEnabled = false;
+      bool NoiseEnabled = false;
+      uint_t ToneDeviation = 0;
+      uint_t NoiseFreq = 0;
     };
 
     typedef LinesObject<SampleLine> Sample;
@@ -46,13 +39,10 @@ namespace Formats::Chiptune
 
     struct PositionEntry
     {
-      PositionEntry()
-        : PatternIndex()
-        , Transposition()
-      {}
+      PositionEntry() {}
 
-      uint_t PatternIndex;
-      uint_t Transposition;
+      uint_t PatternIndex = 0;
+      uint_t Transposition = 0;
     };
 
     typedef LinesObject<PositionEntry> Positions;

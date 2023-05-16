@@ -271,7 +271,7 @@ namespace Formats::Chiptune
 
     struct DecodeTable
     {
-      uint_t Marker;
+      uint_t Marker = 0;
       struct CodeAndLen
       {
         uint_t Code;
@@ -279,9 +279,7 @@ namespace Formats::Chiptune
       };
       std::vector<CodeAndLen> Lenghts;
 
-      DecodeTable()
-        : Marker()
-      {}
+      DecodeTable() {}
 
       uint_t DecodeLen(uint_t code) const
       {
@@ -437,13 +435,10 @@ namespace Formats::Chiptune
       {
         struct ChannelState
         {
-          std::size_t Offset;
-          uint_t Counter;
+          std::size_t Offset = 0;
+          uint_t Counter = 0;
 
-          ChannelState()
-            : Offset()
-            , Counter()
-          {}
+          ChannelState() {}
 
           void Skip(uint_t toSkip)
           {

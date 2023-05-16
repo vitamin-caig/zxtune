@@ -57,9 +57,7 @@ namespace
   class TempWorker : public Worker
   {
   public:
-    TempWorker()
-      : Finished(true)
-    {}
+    TempWorker() {}
 
     void Initialize() override
     {
@@ -106,7 +104,7 @@ namespace
     Error SuspendError;
     Error ResumeError;
     Error ExecError;
-    bool Finished;
+    bool Finished = true;
   };
 
   void CheckActive(const Job& job, Error::LocationRef loc)

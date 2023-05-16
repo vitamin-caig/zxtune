@@ -61,9 +61,6 @@ namespace Module::ProSoundCreator
   public:
     ObjectLinesIterator()
       : Obj()
-      , Position()
-      , LoopPosition()
-      , Break()
     {}
 
     void Set(const Object& obj)
@@ -120,19 +117,15 @@ namespace Module::ProSoundCreator
 
   private:
     const Object* Obj;
-    uint_t Position;
-    uint_t LoopPosition;
-    bool Break;
+    uint_t Position = 0;
+    uint_t LoopPosition = 0;
+    bool Break = false;
   };
 
   class ToneSlider
   {
   public:
-    ToneSlider()
-      : Sliding()
-      , Glissade()
-      , Steps()
-    {}
+    ToneSlider() {}
 
     void SetSliding(int_t sliding)
     {
@@ -177,19 +170,15 @@ namespace Module::ProSoundCreator
     }
 
   private:
-    int_t Sliding;
-    int_t Glissade;
-    uint_t Steps;
+    int_t Sliding = 0;
+    int_t Glissade = 0;
+    uint_t Steps = 0;
   };
 
   class VolumeSlider
   {
   public:
-    VolumeSlider()
-      : Counter()
-      , Period()
-      , Delta()
-    {}
+    VolumeSlider() {}
 
     void Reset()
     {
@@ -216,9 +205,9 @@ namespace Module::ProSoundCreator
     }
 
   private:
-    uint_t Counter;
-    uint_t Period;
-    int_t Delta;
+    uint_t Counter = 0;
+    uint_t Period = 0;
+    int_t Delta = 0;
   };
 
   using ModuleData = AYM::ModuleData<OrderList, Sample, Ornament>;
@@ -363,25 +352,18 @@ namespace Module::ProSoundCreator
 
   struct ChannelState
   {
-    ChannelState()
-      : Note()
-      , ToneAccumulator()
-      , Volume()
-      , Attenuation()
-      , NoiseAccumulator()
-      , EnvelopeEnabled()
-    {}
+    ChannelState() {}
 
     ObjectLinesIterator<Sample> SampleIterator;
     ObjectLinesIterator<Ornament> OrnamentIterator;
     ToneSlider ToneSlide;
     VolumeSlider VolumeSlide;
-    int_t Note;
-    int16_t ToneAccumulator;
-    uint_t Volume;
-    int_t Attenuation;
-    uint_t NoiseAccumulator;
-    bool EnvelopeEnabled;
+    int_t Note = 0;
+    int16_t ToneAccumulator = 0;
+    uint_t Volume = 0;
+    int_t Attenuation = 0;
+    uint_t NoiseAccumulator = 0;
+    bool EnvelopeEnabled = false;
   };
 
   class DataRenderer : public AYM::DataRenderer

@@ -182,31 +182,22 @@ namespace Module::ProTracker2
   struct ChannelState
   {
     ChannelState()
-      : Enabled(false)
-      , Envelope(false)
-      , Note()
-      , SampleNum(Formats::Chiptune::ProTracker2::DEFAULT_SAMPLE)
-      , PosInSample(0)
+      : SampleNum(Formats::Chiptune::ProTracker2::DEFAULT_SAMPLE)
       , OrnamentNum(Formats::Chiptune::ProTracker2::DEFAULT_ORNAMENT)
-      , PosInOrnament(0)
-      , Volume(15)
-      , NoiseAdd(0)
-      , Sliding(0)
       , SlidingTargetNote(LIMITER)
-      , Glissade(0)
     {}
-    bool Enabled;
-    bool Envelope;
-    uint_t Note;
+    bool Enabled = false;
+    bool Envelope = false;
+    uint_t Note = 0;
     uint_t SampleNum;
-    uint_t PosInSample;
+    uint_t PosInSample = 0;
     uint_t OrnamentNum;
-    uint_t PosInOrnament;
-    uint_t Volume;
-    int_t NoiseAdd;
-    int_t Sliding;
+    uint_t PosInOrnament = 0;
+    uint_t Volume = 15;
+    int_t NoiseAdd = 0;
+    int_t Sliding = 0;
     uint_t SlidingTargetNote;
-    int_t Glissade;
+    int_t Glissade = 0;
   };
 
   class DataRenderer : public AYM::DataRenderer

@@ -22,12 +22,7 @@ namespace Module
 {
   struct Command
   {
-    Command()
-      : Type()
-      , Param1()
-      , Param2()
-      , Param3()
-    {}
+    Command() {}
 
     Command(uint_t type, int_t p1, int_t p2, int_t p3)
       : Type(type)
@@ -41,10 +36,10 @@ namespace Module
       return Type == type;
     }
 
-    uint_t Type;
-    int_t Param1;
-    int_t Param2;
-    int_t Param3;
+    uint_t Type = 0;
+    int_t Param1 = 0;
+    int_t Param2 = 0;
+    int_t Param3 = 0;
   };
 
   typedef std::vector<Command> CommandsArray;
@@ -54,13 +49,7 @@ namespace Module
   {
   public:
     Cell()
-      : Mask()
-      , Enabled()
-      , Note()
-      , SampleNum()
-      , OrnamentNum()
-      , Volume()
-      , Commands()
+      : Commands()
     {}
 
     bool HasData() const
@@ -108,12 +97,12 @@ namespace Module
       VOLUME = 16
     };
 
-    uint_t Mask;
-    bool Enabled;
-    uint_t Note;
-    uint_t SampleNum;
-    uint_t OrnamentNum;
-    uint_t Volume;
+    uint_t Mask = 0;
+    bool Enabled = false;
+    uint_t Note = 0;
+    uint_t SampleNum = 0;
+    uint_t OrnamentNum = 0;
+    uint_t Volume = 0;
     CommandsArray Commands;
   };
 

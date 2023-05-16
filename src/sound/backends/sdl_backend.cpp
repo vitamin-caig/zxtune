@@ -129,10 +129,8 @@ namespace Sound::Sdl
     std::condition_variable FilledEvent, PlayedEvent;
     struct Buffer
     {
-      Buffer()
-        : BytesToPlay()
-      {}
-      uint_t BytesToPlay;
+      Buffer() {}
+      uint_t BytesToPlay = 0;
       Chunk Data;
     };
     std::vector<Buffer> Buffers;

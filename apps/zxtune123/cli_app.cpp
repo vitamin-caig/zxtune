@@ -379,7 +379,6 @@ namespace
       , Sourcer(SourceComponent::Create(ConfigParams))
       , Sounder(SoundComponent::Create(ConfigParams))
       , Display(DisplayComponent::Create())
-      , SeekStep(10)
       , BenchmarkIterations(NO_BENCHMARK)
     {}
 
@@ -591,7 +590,7 @@ namespace
     std::unique_ptr<SourceComponent> Sourcer;
     std::unique_ptr<SoundComponent> Sounder;
     std::unique_ptr<DisplayComponent> Display;
-    uint_t SeekStep;
+    uint_t SeekStep = 10;
     uint_t BenchmarkIterations;
     bool DumpUnknownData = false;
   };

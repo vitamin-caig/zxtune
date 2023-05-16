@@ -21,9 +21,7 @@ namespace Parameters
   class StorageContainer : public Container
   {
   public:
-    StorageContainer()
-      : VersionValue(0)
-    {}
+    StorageContainer() {}
 
     StorageContainer(const StorageContainer& src)
       : VersionValue(src.VersionValue)
@@ -159,7 +157,7 @@ namespace Parameters
     };
 
   private:
-    uint_t VersionValue;
+    uint_t VersionValue = 0;
     TransientMap<IntType> Integers;
     TransientMap<StringType> Strings;
     TransientMap<DataType> Datas;

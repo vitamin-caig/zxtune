@@ -128,13 +128,10 @@ namespace Formats::Chiptune
 
     struct Effect
     {
-      uint_t Code;
-      uint_t Parameter;
+      uint_t Code = 0;
+      uint_t Parameter = 0;
 
-      Effect()
-        : Code()
-        , Parameter()
-      {}
+      Effect() {}
 
       Effect(uint_t code, uint_t parameter)
         : Code(code)
@@ -182,16 +179,12 @@ namespace Formats::Chiptune
 
     struct Cell
     {
-      uint_t Note;
-      uint_t Volume;
-      uint_t Instrument;
+      uint_t Note = 0;
+      uint_t Volume = 0;
+      uint_t Instrument = 0;
       std::array<Effect, EFFECTS_COUNT> Effects;
 
-      Cell()
-        : Note()
-        , Volume()
-        , Instrument()
-      {}
+      Cell() {}
 
       bool IsEmpty() const
       {

@@ -27,9 +27,7 @@ namespace Module::TFD
   public:
     typedef std::shared_ptr<ModuleData> RWPtr;
 
-    ModuleData()
-      : LoopPos()
-    {}
+    ModuleData() {}
 
     uint_t GetTotalFrames() const override
     {
@@ -70,7 +68,7 @@ namespace Module::TFD
     }
 
   private:
-    uint_t LoopPos;
+    uint_t LoopPos = 0;
     Devices::TFM::Registers Data;
     std::vector<std::size_t> Offsets;
   };

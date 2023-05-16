@@ -155,43 +155,30 @@ namespace Module::ProSoundMaker
 
   struct SampleState
   {
-    SampleState()
-      : Current(nullptr)
-      , Position(0)
-      , LoopsCount(0)
-      , Finished(false)
-    {}
+    SampleState() {}
 
-    const Sample* Current;
-    uint_t Position;
-    uint_t LoopsCount;
-    bool Finished;
+    const Sample* Current = nullptr;
+    uint_t Position = 0;
+    uint_t LoopsCount = 0;
+    bool Finished = false;
   };
 
   struct OrnamentState
   {
-    OrnamentState()
-      : Current(nullptr)
-      , Position(0)
-      , Finished()
-      , KeepFinished()
-    {}
+    OrnamentState() {}
 
-    const Ornament* Current;
-    uint_t Position;
-    bool Finished;
-    bool KeepFinished;
+    const Ornament* Current = nullptr;
+    uint_t Position = 0;
+    bool Finished = false;
+    bool KeepFinished = false;
   };
 
   struct EnvelopeState
   {
-    EnvelopeState()
-      : Reinit(false)
-      , Type()
-    {}
+    EnvelopeState() {}
 
-    bool Reinit;
-    uint_t Type;
+    bool Reinit = false;
+    uint_t Type = 0;
     std::optional<uint_t> Note;
     std::optional<uint_t> Tone;
 
@@ -222,21 +209,15 @@ namespace Module::ProSoundMaker
 
   struct ChannelState
   {
-    ChannelState()
-      : Enabled(false)
-      , Note()
-      , VolumeDelta()
-      , BaseVolumeDelta()
-      , Slide()
-    {}
-    bool Enabled;
+    ChannelState() {}
+    bool Enabled = false;
     EnvelopeState Envelope;
-    uint_t Note;
+    uint_t Note = 0;
     SampleState Smp;
     OrnamentState Orn;
-    uint_t VolumeDelta;
-    uint_t BaseVolumeDelta;
-    int_t Slide;
+    uint_t VolumeDelta = 0;
+    uint_t BaseVolumeDelta = 0;
+    int_t Slide = 0;
   };
 
   class DataRenderer : public AYM::DataRenderer

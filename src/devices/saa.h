@@ -61,11 +61,10 @@ namespace Devices::SAA
     };
 
     Registers()
-      : Mask()
-      , Data()
+      : Data()
     {}
 
-    uint32_t Mask;
+    uint32_t Mask = 0;
     std::array<uint8_t, TOTAL> Data;
   };
 

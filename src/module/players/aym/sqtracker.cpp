@@ -64,15 +64,12 @@ namespace Module::SQTracker
   private:
     struct HashedPosition : Formats::Chiptune::SQTracker::PositionEntry
     {
-      std::size_t Hash;
+      std::size_t Hash = 0;
 
-      HashedPosition()
-        : Hash()
-      {}
+      HashedPosition() {}
 
       explicit HashedPosition(const Formats::Chiptune::SQTracker::PositionEntry& pos)
         : Formats::Chiptune::SQTracker::PositionEntry(pos)
-        , Hash()
       {
         boost::hash_combine(Hash, pos.Tempo);
         for (uint_t chan = 0; chan != 3; ++chan)
@@ -520,33 +517,20 @@ namespace Module::SQTracker
 
   struct ChannelState
   {
-    ChannelState()
-      : Note()
-      , Attenuation()
-      , Transposition()
-      , CurSample()
-      , SampleTick()
-      , SamplePos()
-      , CurOrnament()
-      , OrnamentTick()
-      , OrnamentPos()
-      , Envelope()
-      , Sliding()
-      , Glissade()
-    {}
-    uint_t Note;
-    uint_t Attenuation;
-    int_t Transposition;
+    ChannelState() {}
+    uint_t Note = 0;
+    uint_t Attenuation = 0;
+    int_t Transposition = 0;
     // ornament presence means enabled channel
-    const Sample* CurSample;
-    uint_t SampleTick;
-    uint_t SamplePos;
-    const Ornament* CurOrnament;
-    uint_t OrnamentTick;
-    uint_t OrnamentPos;
-    bool Envelope;
-    int_t Sliding;
-    int_t Glissade;
+    const Sample* CurSample = nullptr;
+    uint_t SampleTick = 0;
+    uint_t SamplePos = 0;
+    const Ornament* CurOrnament = nullptr;
+    uint_t OrnamentTick = 0;
+    uint_t OrnamentPos = 0;
+    bool Envelope = false;
+    int_t Sliding = 0;
+    int_t Glissade = 0;
 
     void AddAttenuation(int_t delta)
     {

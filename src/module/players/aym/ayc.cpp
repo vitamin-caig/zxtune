@@ -27,9 +27,7 @@ namespace Module::AYC
   {
   public:
     DataBuilder()
-      : Register(Devices::AYM::Registers::TOTAL)
-      , Frame(0)
-      , Data(MakePtr<AYM::MutableStreamModel>())
+      : Data(MakePtr<AYM::MutableStreamModel>())
     {}
 
     void SetFrames(std::size_t count) override
@@ -68,8 +66,8 @@ namespace Module::AYC
     }
 
   private:
-    Devices::AYM::Registers::Index Register;
-    uint_t Frame;
+    Devices::AYM::Registers::Index Register = Devices::AYM::Registers::TOTAL;
+    uint_t Frame = 0;
     AYM::MutableStreamModel::Ptr Data;
   };
 

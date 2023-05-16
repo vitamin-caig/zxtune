@@ -10,6 +10,10 @@
                     modernize-make-unique,
                     modernize-pass-by-value,
                     modernize-use-auto,
+                    modernize-use-default-member-init,
                     '
+  CheckOptions:
+    - key:          modernize-use-default-member-init.UseAssignment
+      value:        1
   FormatStyle:      file
 ...

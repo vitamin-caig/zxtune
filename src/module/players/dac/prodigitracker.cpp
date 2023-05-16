@@ -130,12 +130,9 @@ namespace Module::ProDigiTracker
 
   struct OrnamentState
   {
-    OrnamentState()
-      : Object()
-      , Position()
-    {}
-    const Ornament* Object;
-    std::size_t Position;
+    OrnamentState() {}
+    const Ornament* Object = nullptr;
+    std::size_t Position = 0;
 
     int_t GetOffset() const
     {

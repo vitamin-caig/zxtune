@@ -94,7 +94,6 @@ namespace
 
     BufferRender()
       : Buffer(32768)
-      , DoneSamples()
     {}
 
     void ApplyData(Sound::Chunk data) override
@@ -144,7 +143,7 @@ namespace
 
   private:
     CycleBuffer<Sound::Sample> Buffer;
-    std::size_t DoneSamples;
+    std::size_t DoneSamples = 0;
   };
 
   class PlayerWrapper

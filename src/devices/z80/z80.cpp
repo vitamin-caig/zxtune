@@ -166,10 +166,7 @@ namespace Devices::Z80
   class ClockSource
   {
   public:
-    ClockSource()
-      : ClockFreq()
-      , IntDuration()
-    {}
+    ClockSource() {}
 
     void Reset()
     {
@@ -227,8 +224,8 @@ namespace Devices::Z80
     }
 
   private:
-    uint64_t ClockFreq;
-    uint_t IntDuration;
+    uint64_t ClockFreq = 0;
+    uint_t IntDuration = 0;
     Oscillator Clock;
   };
 

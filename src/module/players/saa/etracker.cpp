@@ -45,9 +45,7 @@ namespace Module::ETracker
     typedef std::shared_ptr<const ModuleData> Ptr;
     typedef std::shared_ptr<ModuleData> RWPtr;
 
-    ModuleData()
-      : InitialTempo()
-    {}
+    ModuleData() {}
 
     uint_t GetChannelsCount() const override
     {
@@ -69,7 +67,7 @@ namespace Module::ETracker
       return *Patterns;
     }
 
-    uint_t InitialTempo;
+    uint_t InitialTempo = 0;
     OrderListWithTransposition::Ptr Order;
     PatternsSet::Ptr Patterns;
     SparsedObjectsStorage<Sample> Samples;
@@ -179,7 +177,6 @@ namespace Module::ETracker
   public:
     ObjectLinesIterator()
       : Obj()
-      , Position()
     {}
 
     void Set(const Object& obj)
@@ -213,23 +210,19 @@ namespace Module::ETracker
 
   private:
     const Object* Obj;
-    uint_t Position;
+    uint_t Position = 0;
   };
 
   // enabled state via sample
   struct ChannelState
   {
-    ChannelState()
-      : Note()
-      , Attenuation()
-      , SwapSampleChannels()
-    {}
+    ChannelState() {}
 
-    uint_t Note;
+    uint_t Note = 0;
     ObjectLinesIterator<Sample> SampleIterator;
     ObjectLinesIterator<Ornament> OrnamentIterator;
-    uint_t Attenuation;
-    bool SwapSampleChannels;
+    uint_t Attenuation = 0;
+    bool SwapSampleChannels = false;
   };
 
   class DataRenderer : public SAA::DataRenderer
@@ -355,9 +348,7 @@ namespace Module::ETracker
     class Note
     {
     public:
-      Note()
-        : Value(0x7ff)
-      {}
+      Note() {}
 
       void Set(uint_t halfTones)
       {
@@ -383,7 +374,7 @@ namespace Module::ETracker
       }
 
     private:
-      uint_t Value;
+      uint_t Value = 0x7ff;
     };
 
     void SynthesizeChannel(uint_t idx, SAA::ChannelBuilder& channel)

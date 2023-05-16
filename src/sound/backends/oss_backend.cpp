@@ -46,13 +46,10 @@ namespace Sound::Oss
   class AutoDescriptor
   {
   public:
-    AutoDescriptor()
-      : Handle(-1)
-    {}
+    AutoDescriptor() {}
 
     explicit AutoDescriptor(StringView name)
       : Name(name.to_string())
-      , Handle(-1)
     {}
 
     AutoDescriptor(StringView name, int mode)
@@ -142,7 +139,7 @@ namespace Sound::Oss
   private:
     String Name;
     // leave handle as int
-    int Handle;
+    int Handle = -1;
   };
 
   class SoundFormat

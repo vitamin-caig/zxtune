@@ -160,10 +160,7 @@ namespace
   {
   public:
     StatisticNotification()
-      : Processed()
-      , Invalids()
-      , Duration()
-      , Size()
+      : Duration()
     {}
 
     QString Category() const override
@@ -224,10 +221,10 @@ namespace
     }
 
   private:
-    std::size_t Processed;
-    std::size_t Invalids;
+    std::size_t Processed = 0;
+    std::size_t Invalids = 0;
     Time::Duration<Time::BaseUnit<uint64_t, 1000>> Duration;
-    uint64_t Size;
+    uint64_t Size = 0;
     Strings::ValueMap<std::size_t> Types;
     std::set<String> Paths;
   };
@@ -240,9 +237,7 @@ namespace
   class ExportResult : public Playlist::Item::ConversionResultNotification
   {
   public:
-    ExportResult()
-      : Succeeds()
-    {}
+    ExportResult() {}
 
     QString Category() const override
     {
@@ -279,7 +274,7 @@ namespace
     }
 
   private:
-    std::size_t Succeeds;
+    std::size_t Succeeds = 0;
     QStringList Errors;
   };
 

@@ -404,15 +404,11 @@ namespace Formats::Packed
     {
       static const uint_t LIMITER = 256;
 
-      uint_t Parent;
-      uint8_t Value;
-      bool IsFree;
+      uint_t Parent = 0;
+      uint8_t Value = '\0';
+      bool IsFree = false;
 
-      LZWEntry()
-        : Parent()
-        , Value()
-        , IsFree()
-      {}
+      LZWEntry() {}
 
       explicit LZWEntry(uint_t value)
         : Parent(LIMITER)

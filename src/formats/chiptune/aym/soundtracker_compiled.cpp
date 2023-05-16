@@ -381,15 +381,11 @@ namespace Formats::Chiptune
       {
         struct ChannelState
         {
-          std::size_t Offset;
-          uint_t Period;
-          uint_t Counter;
+          std::size_t Offset = 0;
+          uint_t Period = 0;
+          uint_t Counter = 0;
 
-          ChannelState()
-            : Offset()
-            , Period()
-            , Counter()
-          {}
+          ChannelState() {}
 
           void Skip(uint_t toSkip)
           {

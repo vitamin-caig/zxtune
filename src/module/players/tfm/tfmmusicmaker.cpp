@@ -77,15 +77,11 @@ namespace Module::TFMMusicMaker
     typedef std::shared_ptr<const ModuleData> Ptr;
     typedef std::shared_ptr<ModuleData> RWPtr;
 
-    ModuleData()
-      : EvenInitialTempo()
-      , OddInitialTempo()
-      , InitialTempoInterleave()
-    {}
+    ModuleData() {}
 
-    uint_t EvenInitialTempo;
-    uint_t OddInitialTempo;
-    uint_t InitialTempoInterleave;
+    uint_t EvenInitialTempo = 0;
+    uint_t OddInitialTempo = 0;
+    uint_t InitialTempoInterleave = 0;
     OrderList::Ptr Order;
     PatternsSet::Ptr Patterns;
     SparsedObjectsStorage<Instrument> Instruments;
@@ -330,9 +326,7 @@ namespace Module::TFMMusicMaker
   {
   public:
     ArpeggioState()
-      : Position()
-      , Addons()
-      , Value()
+      : Addons()
     {}
 
     void Reset()
@@ -372,20 +366,16 @@ namespace Module::TFMMusicMaker
     }
 
   private:
-    uint_t Position;
+    uint_t Position = 0;
     std::array<uint_t, 3> Addons;
-    uint_t Value;
+    uint_t Value = 0;
   };
 
   template<class Category>
   struct SlideState
   {
   public:
-    SlideState()
-      : Enabled()
-      , UpDelta()
-      , DownDelta()
-    {}
+    SlideState() {}
 
     void Disable()
     {
@@ -426,9 +416,9 @@ namespace Module::TFMMusicMaker
     }
 
   private:
-    bool Enabled;
-    int_t UpDelta;
-    int_t DownDelta;
+    bool Enabled = false;
+    int_t UpDelta = 0;
+    int_t DownDelta = 0;
   };
 
   typedef SlideState<Halftones> ToneSlideState;
@@ -436,13 +426,7 @@ namespace Module::TFMMusicMaker
   struct VibratoState
   {
   public:
-    VibratoState()
-      : Enabled()
-      , Position()
-      , Speed()
-      , Depth()
-      , Value()
-    {}
+    VibratoState() {}
 
     void Disable()
     {
@@ -499,11 +483,11 @@ namespace Module::TFMMusicMaker
     }
 
   private:
-    bool Enabled;
-    uint_t Position;
-    uint_t Speed;
-    int_t Depth;
-    int_t Value;
+    bool Enabled = false;
+    uint_t Position = 0;
+    uint_t Speed = 0;
+    int_t Depth = 0;
+    int_t Value = 0;
   };
 
   typedef SlideState<Level> VolumeSlideState;
@@ -512,8 +496,7 @@ namespace Module::TFMMusicMaker
   {
   public:
     PortamentoState()
-      : Enabled()
-      , Step()
+      : Step()
       , Target(Halftones::Stub())
     {}
 
@@ -568,7 +551,7 @@ namespace Module::TFMMusicMaker
     }
 
   private:
-    bool Enabled;
+    bool Enabled = false;
     Halftones::Type Step;
     Halftones::Type Target;
   };
@@ -580,13 +563,10 @@ namespace Module::TFMMusicMaker
   struct ChannelState
   {
     ChannelState()
-      : CurInstrument(nullptr)
-      , Algorithm(NO_VALUE)
+      : Algorithm(NO_VALUE)
       , TotalLevel()
       , Note(Halftones::Stub())
       , Volume(Level::Max())
-      , HasToneChange(false)
-      , HasVolumeChange(false)
       , Arpeggio()
       , ToneSlide()
       , Vibrato()
@@ -597,13 +577,13 @@ namespace Module::TFMMusicMaker
       , NoteDelay(NO_VALUE)
     {}
 
-    const Instrument* CurInstrument;
+    const Instrument* CurInstrument = nullptr;
     uint_t Algorithm;
     std::array<uint_t, OPERATORS_COUNT> TotalLevel;
     Halftones::Type Note;
     Level::Type Volume;
-    bool HasToneChange;
-    bool HasVolumeChange;
+    bool HasToneChange = false;
+    bool HasVolumeChange = false;
 
     ArpeggioState Arpeggio;
     ToneSlideState ToneSlide;
@@ -618,11 +598,10 @@ namespace Module::TFMMusicMaker
   struct PlayerState
   {
     PlayerState()
-      : SpecialMode(false)
-      , ToneOffset()
+      : ToneOffset()
     {}
 
-    bool SpecialMode;
+    bool SpecialMode = false;
     std::array<int_t, OPERATORS_COUNT> ToneOffset;
     std::array<ChannelState, TFM::TRACK_CHANNELS> Channels;
   };
@@ -938,18 +917,15 @@ namespace Module::TFMMusicMaker
 
     struct RawNote
     {
-      RawNote()
-        : Octave()
-        , Freq()
-      {}
+      RawNote() {}
 
       RawNote(uint_t octave, uint_t freq)
         : Octave(octave)
         , Freq(freq)
       {}
 
-      uint_t Octave;
-      uint_t Freq;
+      uint_t Octave = 0;
+      uint_t Freq = 0;
     };
 
     void SetTone(uint_t idx, const ChannelState& state, TFM::ChannelBuilder& channel) const
@@ -1051,27 +1027,17 @@ namespace Module::TFMMusicMaker
 
   struct PlainTrackState
   {
-    uint_t Frame;
-    uint_t Position;
-    uint_t Pattern;
-    uint_t Line;
-    uint_t Quirk;
-    uint_t EvenTempo;
-    uint_t OddTempo;
-    uint_t TempoInterleavePeriod;
-    uint_t TempoInterleaveCounter;
+    uint_t Frame = 0;
+    uint_t Position = 0;
+    uint_t Pattern = 0;
+    uint_t Line = 0;
+    uint_t Quirk = 0;
+    uint_t EvenTempo = 0;
+    uint_t OddTempo = 0;
+    uint_t TempoInterleavePeriod = 0;
+    uint_t TempoInterleaveCounter = 0;
 
-    PlainTrackState()
-      : Frame()
-      , Position()
-      , Pattern()
-      , Line()
-      , Quirk()
-      , EvenTempo()
-      , OddTempo()
-      , TempoInterleavePeriod()
-      , TempoInterleaveCounter()
-    {}
+    PlainTrackState() {}
 
     uint_t GetTempo() const
     {
@@ -1092,9 +1058,7 @@ namespace Module::TFMMusicMaker
   struct LoopState
   {
   public:
-    LoopState()
-      : Counter()
-    {}
+    LoopState() {}
 
     void Start(const PlainTrackState& state)
     {
@@ -1124,7 +1088,7 @@ namespace Module::TFMMusicMaker
 
   private:
     std::unique_ptr<const PlainTrackState> Begin;
-    uint_t Counter;
+    uint_t Counter = 0;
   };
 
   class TrackStateCursor : public TrackModelState

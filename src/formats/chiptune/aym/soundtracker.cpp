@@ -233,24 +233,18 @@ namespace Formats::Chiptune
 
       struct EnvState
       {
-        uint_t Type;
-        uint_t Tone;
+        uint_t Type = 0;
+        uint_t Tone = 0;
 
-        EnvState()
-          : Type()
-          , Tone()
-        {}
+        EnvState() {}
       };
 
       struct ChanState
       {
-        uint_t Sample;
-        uint_t Ornament;
+        uint_t Sample = 0;
+        uint_t Ornament = 0;
 
-        ChanState()
-          : Sample()
-          , Ornament()
-        {}
+        ChanState() {}
       };
 
       void ParsePattern(uint_t patIndex, Builder& builder) const

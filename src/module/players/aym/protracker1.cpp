@@ -144,22 +144,14 @@ namespace Module::ProTracker1
 
   struct ChannelState
   {
-    ChannelState()
-      : Enabled(false)
-      , Envelope(false)
-      , Note()
-      , SampleNum(0)
-      , PosInSample(0)
-      , OrnamentNum(0)
-      , Volume(15)
-    {}
-    bool Enabled;
-    bool Envelope;
-    uint_t Note;
-    uint_t SampleNum;
-    uint_t PosInSample;
-    uint_t OrnamentNum;
-    uint_t Volume;
+    ChannelState() {}
+    bool Enabled = false;
+    bool Envelope = false;
+    uint_t Note = 0;
+    uint_t SampleNum = 0;
+    uint_t PosInSample = 0;
+    uint_t OrnamentNum = 0;
+    uint_t Volume = 15;
   };
 
   class DataRenderer : public AYM::DataRenderer
