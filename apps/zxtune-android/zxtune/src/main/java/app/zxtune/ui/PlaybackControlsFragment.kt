@@ -15,7 +15,6 @@ import android.widget.ImageButton
 import androidx.fragment.app.Fragment
 import app.zxtune.R
 import app.zxtune.device.media.MediaModel
-import app.zxtune.playback.PlaybackControl.SequenceMode
 import app.zxtune.ui.utils.UiUtils
 
 class PlaybackControlsFragment : Fragment() {
@@ -83,7 +82,6 @@ class PlaybackControlsFragment : Fragment() {
         }
     }
 
-    // TODO: use PlaybackStateCompat.SHUFFLE_*
     private class ShuffleModeControl(view: View) {
         private val button = view.findViewById<ImageButton>(R.id.controls_sequence_mode)
         private var shuffleMode = PlaybackStateCompat.SHUFFLE_MODE_INVALID
@@ -93,8 +91,8 @@ class PlaybackControlsFragment : Fragment() {
                     isEnabled = value != PlaybackStateCompat.SHUFFLE_MODE_INVALID
                     setImageResource(
                         when (value) {
-                            SequenceMode.LOOPED.ordinal -> R.drawable.ic_sequence_looped
-                            SequenceMode.SHUFFLE.ordinal -> R.drawable.ic_sequence_shuffle
+                            PlaybackStateCompat.SHUFFLE_MODE_ALL -> R.drawable.ic_sequence_shuffle
+                            PlaybackStateCompat.SHUFFLE_MODE_GROUP -> R.drawable.ic_sequence_looped
                             else -> R.drawable.ic_sequence_ordered
                         }
                     )
@@ -118,7 +116,9 @@ class PlaybackControlsFragment : Fragment() {
         }
 
         private fun getNextMode() = when (shuffleMode) {
-            SequenceMode.ORDERED.ordinal, SequenceMode.SHUFFLE.ordinal, SequenceMode.LOOPED.ordinal -> (shuffleMode + 1) % SequenceMode.values().size
+            PlaybackStateCompat.SHUFFLE_MODE_NONE -> PlaybackStateCompat.SHUFFLE_MODE_GROUP
+            PlaybackStateCompat.SHUFFLE_MODE_GROUP -> PlaybackStateCompat.SHUFFLE_MODE_ALL
+            PlaybackStateCompat.SHUFFLE_MODE_ALL -> PlaybackStateCompat.SHUFFLE_MODE_NONE
             else -> null
         }
     }

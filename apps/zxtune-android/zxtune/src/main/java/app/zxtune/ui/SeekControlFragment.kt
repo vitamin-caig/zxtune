@@ -27,8 +27,6 @@ import app.zxtune.Logger
 import app.zxtune.R
 import app.zxtune.TimeStamp
 import app.zxtune.device.media.MediaModel
-import app.zxtune.playback.PlaybackControl
-import app.zxtune.playback.PlaybackControl.TrackMode
 import app.zxtune.ui.utils.UiUtils
 
 class SeekControlFragment : Fragment() {
@@ -109,7 +107,7 @@ class SeekControlFragment : Fragment() {
                     isEnabled = value != PlaybackStateCompat.REPEAT_MODE_INVALID
                     setImageResource(
                         when (value) {
-                            TrackMode.LOOPED.ordinal -> R.drawable.ic_track_looped
+                            PlaybackStateCompat.REPEAT_MODE_ONE -> R.drawable.ic_track_looped
                             else -> R.drawable.ic_track_regular
                         }
                     )
@@ -120,7 +118,6 @@ class SeekControlFragment : Fragment() {
             bindController(null)
         }
 
-        // TODO: use PlaybackStateCompat.REPEAT_MODE_*
         fun bindController(controller: MediaControllerCompat?) {
             repeatMode = controller?.repeatMode ?: PlaybackStateCompat.REPEAT_MODE_INVALID
             button.setOnClickListener(controller?.transportControls?.let { transport ->
@@ -134,7 +131,8 @@ class SeekControlFragment : Fragment() {
         }
 
         private fun getNextMode() = when (repeatMode) {
-            TrackMode.LOOPED.ordinal, TrackMode.REGULAR.ordinal -> (repeatMode + 1) % PlaybackControl.TrackMode.values().size
+            PlaybackStateCompat.REPEAT_MODE_NONE -> PlaybackStateCompat.REPEAT_MODE_ONE
+            PlaybackStateCompat.REPEAT_MODE_ONE -> PlaybackStateCompat.REPEAT_MODE_NONE
             else -> null
         }
     }

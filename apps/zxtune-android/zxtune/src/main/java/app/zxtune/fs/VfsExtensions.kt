@@ -55,6 +55,9 @@ object VfsExtensions {
     }
 }
 
+val VfsObject.shareUrl
+    get() = getExtension(VfsExtensions.SHARE_URL) as? String
+
 val VfsDir.searchEngine
     get() = getExtension(VfsExtensions.SEARCH_ENGINE) as? VfsExtensions.SearchEngine
 
