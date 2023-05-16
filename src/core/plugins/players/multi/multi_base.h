@@ -15,13 +15,10 @@
 // std includes
 #include <vector>
 
-namespace Module
+namespace Module::Multi
 {
-  namespace Multi
-  {
-    using HoldersArray = std::vector<Module::Holder::Ptr>;
+  using HoldersArray = std::vector<Module::Holder::Ptr>;
 
-    // first holder is used as a main one
-    Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr tuneProperties, HoldersArray holders);
-  }  // namespace Multi
-}  // namespace Module
+  // first holder is used as a main one
+  Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr tuneProperties, HoldersArray holders);
+}  // namespace Module::Multi

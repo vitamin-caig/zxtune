@@ -569,18 +569,15 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
-  {
-    ItemsContextMenu::ItemsContextMenu(QObject& parent)
-      : QObject(&parent)
-    {}
+  ItemsContextMenu::ItemsContextMenu(QObject& parent)
+    : QObject(&parent)
+  {}
 
-    void ExecuteContextMenu(const QPoint& pos, TableView& view, Controller& playlist)
-    {
-      ItemsContextMenuImpl menu(view, playlist);
-      menu.Exec(pos);
-    }
-  }  // namespace UI
-}  // namespace Playlist
+  void ExecuteContextMenu(const QPoint& pos, TableView& view, Controller& playlist)
+  {
+    ItemsContextMenuImpl menu(view, playlist);
+    menu.Exec(pos);
+  }
+}  // namespace Playlist::UI

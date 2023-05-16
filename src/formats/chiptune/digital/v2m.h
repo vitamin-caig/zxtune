@@ -16,25 +16,19 @@
 #include <formats/chiptune.h>
 #include <time/duration.h>
 
-namespace Formats
+namespace Formats::Chiptune::V2m
 {
-  namespace Chiptune
+  // Use simplified parsing due to thirdparty library used
+  class Builder
   {
-    namespace V2m
-    {
-      // Use simplified parsing due to thirdparty library used
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+  public:
+    virtual ~Builder() = default;
 
-        virtual MetaBuilder& GetMetaBuilder() = 0;
+    virtual MetaBuilder& GetMetaBuilder() = 0;
 
-        virtual void SetTotalDuration(Time::Milliseconds duration) = 0;
-      };
+    virtual void SetTotalDuration(Time::Milliseconds duration) = 0;
+  };
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-      Builder& GetStubBuilder();
-    }  // namespace V2m
-  }    // namespace Chiptune
-}  // namespace Formats
+  Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+  Builder& GetStubBuilder();
+}  // namespace Formats::Chiptune::V2m

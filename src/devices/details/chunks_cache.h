@@ -13,41 +13,38 @@
 // std includes
 #include <vector>
 
-namespace Devices
+namespace Devices::Details
 {
-  namespace Details
+  template<class ChunkType, class StampType>
+  class ChunksCache
   {
-    template<class ChunkType, class StampType>
-    class ChunksCache
+  public:
+    void Add(const ChunkType& src)
     {
-    public:
-      void Add(const ChunkType& src)
-      {
-        Buffer.push_back(src);
-      }
+      Buffer.push_back(src);
+    }
 
-      const ChunkType* GetBegin() const
-      {
-        return Buffer.data();
-      }
+    const ChunkType* GetBegin() const
+    {
+      return Buffer.data();
+    }
 
-      const ChunkType* GetEnd() const
-      {
-        return GetBegin() + Buffer.size();
-      }
+    const ChunkType* GetEnd() const
+    {
+      return GetBegin() + Buffer.size();
+    }
 
-      void Reset()
-      {
-        Buffer.clear();
-      }
+    void Reset()
+    {
+      Buffer.clear();
+    }
 
-      StampType GetTillTime() const
-      {
-        return Buffer.empty() ? StampType() : Buffer.back().TimeStamp;
-      }
+    StampType GetTillTime() const
+    {
+      return Buffer.empty() ? StampType() : Buffer.back().TimeStamp;
+    }
 
-    private:
-      std::vector<ChunkType> Buffer;
-    };
-  }  // namespace Details
-}  // namespace Devices
+  private:
+    std::vector<ChunkType> Buffer;
+  };
+}  // namespace Devices::Details

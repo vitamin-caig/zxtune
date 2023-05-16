@@ -394,18 +394,15 @@ namespace Devices::Z80
   };
 }  // namespace Devices::Z80
 
-namespace Devices
+namespace Devices::Z80
 {
-  namespace Z80
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports)
   {
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, ChipIO::Ptr memory, ChipIO::Ptr ports)
-    {
-      return MakePtr<Z80Chip>(std::move(params), std::move(memory), std::move(ports));
-    }
+    return MakePtr<Z80Chip>(std::move(params), std::move(memory), std::move(ports));
+  }
 
-    Chip::Ptr CreateChip(ChipParameters::Ptr params, Binary::View memory, ChipIO::Ptr ports)
-    {
-      return MakePtr<Z80Chip>(std::move(params), memory, std::move(ports));
-    }
-  }  // namespace Z80
-}  // namespace Devices
+  Chip::Ptr CreateChip(ChipParameters::Ptr params, Binary::View memory, ChipIO::Ptr ports)
+  {
+    return MakePtr<Z80Chip>(std::move(params), memory, std::move(ports));
+  }
+}  // namespace Devices::Z80

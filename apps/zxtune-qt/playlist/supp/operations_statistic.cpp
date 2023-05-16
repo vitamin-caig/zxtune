@@ -65,19 +65,16 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result)
   {
-    TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result)
-    {
-      return MakePtr<CollectStatisticOperation>(result);
-    }
+    return MakePtr<CollectStatisticOperation>(result);
+  }
 
-    TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSet::Ptr items,
-                                                             StatisticTextNotification::Ptr result)
-    {
-      return MakePtr<CollectStatisticOperation>(items, result);
-    }
-  }  // namespace Item
-}  // namespace Playlist
+  TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSet::Ptr items,
+                                                           StatisticTextNotification::Ptr result)
+  {
+    return MakePtr<CollectStatisticOperation>(items, result);
+  }
+}  // namespace Playlist::Item

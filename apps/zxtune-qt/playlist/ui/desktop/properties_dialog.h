@@ -17,26 +17,23 @@
 #include <QtWidgets/QDialog>
 
 class QAbstractButton;
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
+  class PropertiesDialog : public QDialog
   {
-    class PropertiesDialog : public QDialog
-    {
-      Q_OBJECT
-    protected:
-      explicit PropertiesDialog(QWidget& parent);
+    Q_OBJECT
+  protected:
+    explicit PropertiesDialog(QWidget& parent);
 
-    public:
-      typedef std::shared_ptr<PropertiesDialog> Ptr;
+  public:
+    typedef std::shared_ptr<PropertiesDialog> Ptr;
 
-      static Ptr Create(QWidget& parent, Item::Data::Ptr item);
-    private slots:
-      virtual void ButtonClicked(QAbstractButton* button) = 0;
-    signals:
-      void ResetToDefaults();
-    };
+    static Ptr Create(QWidget& parent, Item::Data::Ptr item);
+  private slots:
+    virtual void ButtonClicked(QAbstractButton* button) = 0;
+  signals:
+    void ResetToDefaults();
+  };
 
-    void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Playlist::Model::IndexSet::Ptr scope);
-  }  // namespace UI
-}  // namespace Playlist
+  void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Playlist::Model::IndexSet::Ptr scope);
+}  // namespace Playlist::UI

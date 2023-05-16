@@ -13,10 +13,7 @@
 // library includes
 #include <binary/view.h>
 
-namespace Module
+namespace Module::PSF
 {
-  namespace PSF
-  {
-    Binary::View GetSCPH10000HeBios();
-  }
-}  // namespace Module
+  Binary::View GetSCPH10000HeBios();
+}  // namespace Module::PSF

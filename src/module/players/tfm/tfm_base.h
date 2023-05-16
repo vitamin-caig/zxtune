@@ -15,11 +15,8 @@
 // library includes
 #include <module/renderer.h>
 
-namespace Module
+namespace Module::TFM
 {
-  namespace TFM
-  {
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
-                                 Devices::TFM::Chip::Ptr device);
-  }
-}  // namespace Module
+  Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
+                               Devices::TFM::Chip::Ptr device);
+}  // namespace Module::TFM

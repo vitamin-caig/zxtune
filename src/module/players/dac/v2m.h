@@ -13,10 +13,7 @@
 // library includes
 #include <module/players/factory.h>
 
-namespace Module
+namespace Module::V2M
 {
-  namespace V2M
-  {
-    Factory::Ptr CreateFactory();
-  }
-}  // namespace Module
+  Factory::Ptr CreateFactory();
+}  // namespace Module::V2M

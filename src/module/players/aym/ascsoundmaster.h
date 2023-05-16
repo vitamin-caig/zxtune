@@ -15,10 +15,7 @@
 // library includes
 #include <formats/chiptune/aym/ascsoundmaster.h>
 
-namespace Module
+namespace Module::ASCSoundMaster
 {
-  namespace ASCSoundMaster
-  {
-    AYM::Factory::Ptr CreateFactory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder);
-  }
-}  // namespace Module
+  AYM::Factory::Ptr CreateFactory(Formats::Chiptune::ASCSoundMaster::Decoder::Ptr decoder);
+}  // namespace Module::ASCSoundMaster

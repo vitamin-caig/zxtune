@@ -797,16 +797,13 @@ namespace Formats::Chiptune
     };
   }  // namespace SoundTrackerCompiled
 
-  namespace SoundTracker
+  namespace SoundTracker::Ver1
   {
-    namespace Ver1
+    Decoder::Ptr CreateCompiledDecoder()
     {
-      Decoder::Ptr CreateCompiledDecoder()
-      {
-        return MakePtr<SoundTrackerCompiled::Decoder>();
-      }
-    }  // namespace Ver1
-  }    // namespace SoundTracker
+      return MakePtr<SoundTrackerCompiled::Decoder>();
+    }
+  }  // namespace SoundTracker::Ver1
 
   Formats::Chiptune::Decoder::Ptr CreateSoundTrackerCompiledDecoder()
   {

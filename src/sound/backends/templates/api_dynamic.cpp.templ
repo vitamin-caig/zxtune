@@ -1,27 +1,27 @@
-    class DynamicApi : public Api
+  class DynamicApi : public Api
+  {
+  public:
+    explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
+      : Lib(std::move(lib))
     {
-    public:
-      explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
-        : Lib(std::move(lib))
-      {
-        Debug::Log("<TMPL_VAR NAME=DEBUGMODULE>", "Library loaded");
-      }
+      Debug::Log("<TMPL_VAR NAME=DEBUGMODULE>", "Library loaded");
+    }
 
-      ~DynamicApi() override
-      {
-        Debug::Log("<TMPL_VAR NAME=DEBUGMODULE>", "Library unloaded");
-      }
+    ~DynamicApi() override
+    {
+      Debug::Log("<TMPL_VAR NAME=DEBUGMODULE>", "Library unloaded");
+    }
 
 // clang-format off
 <TMPL_LOOP NAME=FUNCTIONS>
-      <TMPL_VAR NAME=DECLARATION> override
-      {
-        using FunctionType = decltype(&::<TMPL_VAR NAME=NAME>);
-        const auto func = Lib.GetSymbol<FunctionType>("<TMPL_VAR NAME=NAME>");
-        return func(<TMPL_VAR NAME=PARAMNAMES>);
-      }
+    <TMPL_VAR NAME=DECLARATION> override
+    {
+      using FunctionType = decltype(&::<TMPL_VAR NAME=NAME>);
+      const auto func = Lib.GetSymbol<FunctionType>("<TMPL_VAR NAME=NAME>");
+      return func(<TMPL_VAR NAME=PARAMNAMES>);
+    }
 </TMPL_LOOP>
 // clang-format on
-    private:
-      const Platform::SharedLibraryAdapter Lib;
-    };
+  private:
+    const Platform::SharedLibraryAdapter Lib;
+  };

@@ -15,32 +15,26 @@
 #elif defined(_M_ARM) || defined(__arm__) || defined(__aarch64__)
 #  include "arm.h"
 #else
-namespace Platform
+namespace Platform::Version::Details
 {
-  namespace Version
-  {
-    namespace Details
-    {
 #  if defined(_M_AMD64) || defined(__amd64__)
-      static const char ARCH[] = "x86_64";
-      static const char ARCH_VERSION[] = "";
+  static const char ARCH[] = "x86_64";
+  static const char ARCH_VERSION[] = "";
 #  elif defined(_M_IA64) || defined(__ia64__)
-      static const char ARCH[] = "ia64";
-      static const char ARCH_VERSION[] = "";
+  static const char ARCH[] = "ia64";
+  static const char ARCH_VERSION[] = "";
 #  elif defined(_MIPSEL)
-      static const char ARCH[] = "mipsel";
-      static const char ARCH_VERSION[] = "";
+  static const char ARCH[] = "mipsel";
+  static const char ARCH_VERSION[] = "";
 #  elif defined(__powerpc64__)
-      static const char ARCH[] = "ppc64";
-      static const char ARCH_VERSION[] = "";
+  static const char ARCH[] = "ppc64";
+  static const char ARCH_VERSION[] = "";
 #  elif defined(_M_PPC) || defined(__powerpc__)
-      static const char ARCH[] = "ppc";
-      static const char ARCH_VERSION[] = "";
+  static const char ARCH[] = "ppc";
+  static const char ARCH_VERSION[] = "";
 #  else
-      static const char ARCH[] = "unknown-arch";
-      static const char ARCH_VERSION[] = "";
+  static const char ARCH[] = "unknown-arch";
+  static const char ARCH_VERSION[] = "";
 #  endif
-    }  // namespace Details
-  }    // namespace Version
-}  // namespace Platform
+}  // namespace Platform::Version::Details
 #endif

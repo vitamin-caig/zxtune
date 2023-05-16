@@ -361,18 +361,15 @@ namespace
   }
 }  // namespace
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
   {
-    Container::Ptr OpenXSPF(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
+    const QFileInfo info(filename);
+    if (!info.isFile() || !info.isReadable() || !CheckXSPFByName(info.fileName()))
     {
-      const QFileInfo info(filename);
-      if (!info.isFile() || !info.isReadable() || !CheckXSPFByName(info.fileName()))
-      {
-        return Container::Ptr();
-      }
-      return CreateXSPFPlaylist(provider, info, cb);
+      return Container::Ptr();
     }
-  }  // namespace IO
-}  // namespace Playlist
+    return CreateXSPFPlaylist(provider, info, cb);
+  }
+}  // namespace Playlist::IO

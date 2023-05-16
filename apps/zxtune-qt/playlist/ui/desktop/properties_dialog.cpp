@@ -235,31 +235,28 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
+  PropertiesDialog::PropertiesDialog(QWidget& parent)
+    : QDialog(&parent)
+  {}
+
+  PropertiesDialog::Ptr PropertiesDialog::Create(QWidget& parent, Item::Data::Ptr item)
   {
-    PropertiesDialog::PropertiesDialog(QWidget& parent)
-      : QDialog(&parent)
-    {}
+    return MakePtr<PropertiesDialogImpl>(parent, item);
+  }
 
-    PropertiesDialog::Ptr PropertiesDialog::Create(QWidget& parent, Item::Data::Ptr item)
+  void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Model::IndexSet::Ptr scope)
+  {
+    if (scope->size() != 1)
     {
-      return MakePtr<PropertiesDialogImpl>(parent, item);
+      return;
     }
-
-    void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Model::IndexSet::Ptr scope)
+    const Item::Data::Ptr item = model->GetItem(*scope->begin());
+    if (!item->GetState())
     {
-      if (scope->size() != 1)
-      {
-        return;
-      }
-      const Item::Data::Ptr item = model->GetItem(*scope->begin());
-      if (!item->GetState())
-      {
-        const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(parent, item);
-        dialog->exec();
-      }
+      const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(parent, item);
+      dialog->exec();
     }
-  }  // namespace UI
-}  // namespace Playlist
+  }
+}  // namespace Playlist::UI

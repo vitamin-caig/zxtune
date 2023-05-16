@@ -17,23 +17,20 @@
 // qt includes
 #include <QtWidgets/QDialog>
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
+  class SearchDialog : public QDialog
   {
-    class SearchDialog : public QDialog
-    {
-      Q_OBJECT
-    protected:
-      explicit SearchDialog(QWidget& parent);
+    Q_OBJECT
+  protected:
+    explicit SearchDialog(QWidget& parent);
 
-    public:
-      typedef std::shared_ptr<SearchDialog> Ptr;
-      static Ptr Create(QWidget& parent);
+  public:
+    typedef std::shared_ptr<SearchDialog> Ptr;
+    static Ptr Create(QWidget& parent);
 
-      virtual bool Execute(Playlist::Item::Search::Data& res) = 0;
-    };
+    virtual bool Execute(Playlist::Item::Search::Data& res) = 0;
+  };
 
-    Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent, Playlist::Model::IndexSet::Ptr scope);
-  }  // namespace UI
-}  // namespace Playlist
+  Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent, Playlist::Model::IndexSet::Ptr scope);
+}  // namespace Playlist::UI

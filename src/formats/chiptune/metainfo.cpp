@@ -116,13 +116,10 @@ namespace Formats::Chiptune
   };
 }  // namespace Formats::Chiptune
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  PatchedDataBuilder::Ptr PatchedDataBuilder::Create(Binary::View data)
   {
-    PatchedDataBuilder::Ptr PatchedDataBuilder::Create(Binary::View data)
-    {
-      return MakePtr<Patcher>(data);
-    }
-  }  // namespace Chiptune
-}  // namespace Formats
+    return MakePtr<Patcher>(data);
+  }
+}  // namespace Formats::Chiptune

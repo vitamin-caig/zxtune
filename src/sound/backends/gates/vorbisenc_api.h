@@ -15,24 +15,21 @@
 // platform-specific includes
 #include <vorbis/vorbisenc.h>
 
-namespace Sound
+namespace Sound::VorbisEnc
 {
-  namespace VorbisEnc
+  class Api
   {
-    class Api
-    {
-    public:
-      typedef std::shared_ptr<Api> Ptr;
-      virtual ~Api() = default;
+  public:
+    typedef std::shared_ptr<Api> Ptr;
+    virtual ~Api() = default;
 
 // clang-format off
 
-      virtual int vorbis_encode_init(vorbis_info *vi, long channels, long rate, long max_bitrate, long nominal_bitrate, long min_bitrate) = 0;
-      virtual int vorbis_encode_init_vbr(vorbis_info *vi, long channels, long rate, float base_quality) = 0;
+    virtual int vorbis_encode_init(vorbis_info *vi, long channels, long rate, long max_bitrate, long nominal_bitrate, long min_bitrate) = 0;
+    virtual int vorbis_encode_init_vbr(vorbis_info *vi, long channels, long rate, float base_quality) = 0;
 // clang-format on
-    };
+  };
 
-    //throw exception in case of error
-    Api::Ptr LoadDynamicApi();
-  }
-}  // namespace Sound
+  //throw exception in case of error
+  Api::Ptr LoadDynamicApi();
+}  // namespace Sound::VorbisEnc

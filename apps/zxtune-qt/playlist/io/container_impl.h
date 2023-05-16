@@ -16,23 +16,20 @@
 // library includes
 #include <parameters/accessor.h>
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  struct ContainerItem
   {
-    struct ContainerItem
-    {
-      String Path;
-      Parameters::Accessor::Ptr AdjustedParameters;
-    };
+    String Path;
+    Parameters::Accessor::Ptr AdjustedParameters;
+  };
 
-    struct ContainerItems : std::vector<ContainerItem>
-    {
-      typedef std::shared_ptr<const ContainerItems> Ptr;
-      typedef std::shared_ptr<ContainerItems> RWPtr;
-    };
+  struct ContainerItems : std::vector<ContainerItem>
+  {
+    typedef std::shared_ptr<const ContainerItems> Ptr;
+    typedef std::shared_ptr<ContainerItems> RWPtr;
+  };
 
-    Container::Ptr CreateContainer(Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr properties,
-                                   ContainerItems::Ptr items);
-  }  // namespace IO
-}  // namespace Playlist
+  Container::Ptr CreateContainer(Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr properties,
+                                 ContainerItems::Ptr items);
+}  // namespace Playlist::IO

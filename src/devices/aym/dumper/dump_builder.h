@@ -13,31 +13,28 @@
 // library includes
 #include <devices/aym/dumper.h>
 
-namespace Devices
+namespace Devices::AYM
 {
-  namespace AYM
+  class DumpBuilder
   {
-    class DumpBuilder
-    {
-    public:
-      virtual ~DumpBuilder() = default;
+  public:
+    virtual ~DumpBuilder() = default;
 
-      virtual void Initialize() = 0;
+    virtual void Initialize() = 0;
 
-      virtual Binary::Data::Ptr GetResult() = 0;
-    };
+    virtual Binary::Data::Ptr GetResult() = 0;
+  };
 
-    class FramedDumpBuilder : public DumpBuilder
-    {
-    public:
-      typedef std::shared_ptr<FramedDumpBuilder> Ptr;
+  class FramedDumpBuilder : public DumpBuilder
+  {
+  public:
+    typedef std::shared_ptr<FramedDumpBuilder> Ptr;
 
-      virtual void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) = 0;
-    };
+    virtual void WriteFrame(uint_t framesPassed, const Registers& state, const Registers& update) = 0;
+  };
 
-    Dumper::Ptr CreateDumper(const DumperParameters& params, FramedDumpBuilder::Ptr builder);
+  Dumper::Ptr CreateDumper(const DumperParameters& params, FramedDumpBuilder::Ptr builder);
 
-    // internal factories
-    FramedDumpBuilder::Ptr CreateRawDumpBuilder();
-  }  // namespace AYM
-}  // namespace Devices
+  // internal factories
+  FramedDumpBuilder::Ptr CreateRawDumpBuilder();
+}  // namespace Devices::AYM

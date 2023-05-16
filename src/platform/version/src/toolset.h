@@ -10,25 +10,19 @@
 
 #pragma once
 
-namespace Platform
+namespace Platform::Version::Details
 {
-  namespace Version
-  {
-    namespace Details
-    {
-      static const char TOOLSET[] =
+  static const char TOOLSET[] =
 #if defined(_MSC_VER)
-          "msvs"
+      "msvs"
 #elif defined(__MINGW32__)
-          "mingw"
+      "mingw"
 #elif defined(__clang__)
-          "clang"
+      "clang"
 #elif defined(__GNUC__)
-          "gnuc"
+      "gnuc"
 #else
-          "unknown-toolset"
+      "unknown-toolset"
 #endif
-          ;
-    }  // namespace Details
-  }    // namespace Version
-}  // namespace Platform
+      ;
+}  // namespace Platform::Version::Details

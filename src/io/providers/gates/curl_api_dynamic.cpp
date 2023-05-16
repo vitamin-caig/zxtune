@@ -16,120 +16,117 @@
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 
-namespace IO
+namespace IO::Curl
 {
-  namespace Curl
+  class LibraryName : public Platform::SharedLibrary::Name
   {
-    class LibraryName : public Platform::SharedLibrary::Name
+  public:
+    LibraryName() {}
+
+    StringView Base() const override
     {
-    public:
-      LibraryName() {}
+      return "curl"_sv;
+    }
 
-      StringView Base() const override
-      {
-        return "curl"_sv;
-      }
-
-      std::vector<StringView> PosixAlternatives() const override
-      {
-        return {"libcurl.so.3"_sv, "libcurl.so.4"_sv};
-      }
-
-      std::vector<StringView> WindowsAlternatives() const override
-      {
-        return {"libcurl.dll"_sv};
-      }
-    };
-
-    class DynamicApi : public Api
+    std::vector<StringView> PosixAlternatives() const override
     {
-    public:
-      explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
-        : Lib(std::move(lib))
-      {
-        Debug::Log("IO::Provider::Network", "Library loaded");
-      }
+      return {"libcurl.so.3"_sv, "libcurl.so.4"_sv};
+    }
 
-      ~DynamicApi() override
-      {
-        Debug::Log("IO::Provider::Network", "Library unloaded");
-      }
+    std::vector<StringView> WindowsAlternatives() const override
+    {
+      return {"libcurl.dll"_sv};
+    }
+  };
+
+  class DynamicApi : public Api
+  {
+  public:
+    explicit DynamicApi(Platform::SharedLibrary::Ptr lib)
+      : Lib(std::move(lib))
+    {
+      Debug::Log("IO::Provider::Network", "Library loaded");
+    }
+
+    ~DynamicApi() override
+    {
+      Debug::Log("IO::Provider::Network", "Library unloaded");
+    }
 
 // clang-format off
 
-      char* curl_version() override
-      {
-        using FunctionType = decltype(&::curl_version);
-        const auto func = Lib.GetSymbol<FunctionType>("curl_version");
-        return func();
-      }
+    char* curl_version() override
+    {
+      using FunctionType = decltype(&::curl_version);
+      const auto func = Lib.GetSymbol<FunctionType>("curl_version");
+      return func();
+    }
 
-      CURL *curl_easy_init() override
-      {
-        using FunctionType = decltype(&::curl_easy_init);
-        const auto func = Lib.GetSymbol<FunctionType>("curl_easy_init");
-        return func();
-      }
+    CURL *curl_easy_init() override
+    {
+      using FunctionType = decltype(&::curl_easy_init);
+      const auto func = Lib.GetSymbol<FunctionType>("curl_easy_init");
+      return func();
+    }
 
-      void curl_easy_cleanup(CURL *curl) override
-      {
-        using FunctionType = decltype(&::curl_easy_cleanup);
-        const auto func = Lib.GetSymbol<FunctionType>("curl_easy_cleanup");
-        return func(curl);
-      }
+    void curl_easy_cleanup(CURL *curl) override
+    {
+      using FunctionType = decltype(&::curl_easy_cleanup);
+      const auto func = Lib.GetSymbol<FunctionType>("curl_easy_cleanup");
+      return func(curl);
+    }
 
-      CURLcode curl_easy_perform(CURL *curl) override
-      {
-        using FunctionType = decltype(&::curl_easy_perform);
-        const auto func = Lib.GetSymbol<FunctionType>("curl_easy_perform");
-        return func(curl);
-      }
+    CURLcode curl_easy_perform(CURL *curl) override
+    {
+      using FunctionType = decltype(&::curl_easy_perform);
+      const auto func = Lib.GetSymbol<FunctionType>("curl_easy_perform");
+      return func(curl);
+    }
 
-      const char *curl_easy_strerror(CURLcode errornum) override
-      {
-        using FunctionType = decltype(&::curl_easy_strerror);
-        const auto func = Lib.GetSymbol<FunctionType>("curl_easy_strerror");
-        return func(errornum);
-      }
+    const char *curl_easy_strerror(CURLcode errornum) override
+    {
+      using FunctionType = decltype(&::curl_easy_strerror);
+      const auto func = Lib.GetSymbol<FunctionType>("curl_easy_strerror");
+      return func(errornum);
+    }
 
-      CURLcode curl_easy_setopt(CURL *curl, CURLoption option, int intParam) override
-      {
-        using FunctionType = decltype(&::curl_easy_setopt);
-        const auto func = Lib.GetSymbol<FunctionType>("curl_easy_setopt");
-        return func(curl, option, intParam);
-      }
+    CURLcode curl_easy_setopt(CURL *curl, CURLoption option, int intParam) override
+    {
+      using FunctionType = decltype(&::curl_easy_setopt);
+      const auto func = Lib.GetSymbol<FunctionType>("curl_easy_setopt");
+      return func(curl, option, intParam);
+    }
 
-      CURLcode curl_easy_setopt(CURL *curl, CURLoption option, const char* strParam) override
-      {
-        using FunctionType = decltype(&::curl_easy_setopt);
-        const auto func = Lib.GetSymbol<FunctionType>("curl_easy_setopt");
-        return func(curl, option, strParam);
-      }
+    CURLcode curl_easy_setopt(CURL *curl, CURLoption option, const char* strParam) override
+    {
+      using FunctionType = decltype(&::curl_easy_setopt);
+      const auto func = Lib.GetSymbol<FunctionType>("curl_easy_setopt");
+      return func(curl, option, strParam);
+    }
 
-      CURLcode curl_easy_setopt(CURL *curl, CURLoption option, void* opaqueParam) override
-      {
-        using FunctionType = decltype(&::curl_easy_setopt);
-        const auto func = Lib.GetSymbol<FunctionType>("curl_easy_setopt");
-        return func(curl, option, opaqueParam);
-      }
+    CURLcode curl_easy_setopt(CURL *curl, CURLoption option, void* opaqueParam) override
+    {
+      using FunctionType = decltype(&::curl_easy_setopt);
+      const auto func = Lib.GetSymbol<FunctionType>("curl_easy_setopt");
+      return func(curl, option, opaqueParam);
+    }
 
-      CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, void* opaqueResult) override
-      {
-        using FunctionType = decltype(&::curl_easy_getinfo);
-        const auto func = Lib.GetSymbol<FunctionType>("curl_easy_getinfo");
-        return func(curl, info, opaqueResult);
-      }
+    CURLcode curl_easy_getinfo(CURL *curl, CURLINFO info, void* opaqueResult) override
+    {
+      using FunctionType = decltype(&::curl_easy_getinfo);
+      const auto func = Lib.GetSymbol<FunctionType>("curl_easy_getinfo");
+      return func(curl, info, opaqueResult);
+    }
 
 // clang-format on
-    private:
-      const Platform::SharedLibraryAdapter Lib;
-    };
+  private:
+    const Platform::SharedLibraryAdapter Lib;
+  };
 
-    Api::Ptr LoadDynamicApi()
-    {
-      static const LibraryName NAME;
-      auto lib = Platform::SharedLibrary::Load(NAME);
-      return MakePtr<DynamicApi>(std::move(lib));
-    }
-  }  // namespace Curl
-}  // namespace IO
+  Api::Ptr LoadDynamicApi()
+  {
+    static const LibraryName NAME;
+    auto lib = Platform::SharedLibrary::Load(NAME);
+    return MakePtr<DynamicApi>(std::move(lib));
+  }
+}  // namespace IO::Curl

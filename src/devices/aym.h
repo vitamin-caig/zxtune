@@ -20,173 +20,170 @@
 #include <vector>
 
 // supporting for AY/YM-based modules
-namespace Devices
+namespace Devices::AYM
 {
-  namespace AYM
+  const uint_t VOICES = 5;
+
+  using TimeUnit = Time::Microsecond;
+  using Stamp = Time::Instant<TimeUnit>;
+
+  class Registers
   {
-    const uint_t VOICES = 5;
+  public:
+    // registers offsets in data
+    enum Index
+    {
+      TONEA_L,
+      TONEA_H,
+      TONEB_L,
+      TONEB_H,
+      TONEC_L,
+      TONEC_H,
+      TONEN,
+      MIXER,
+      VOLA,
+      VOLB,
+      VOLC,
+      TONEE_L,
+      TONEE_H,
+      ENV,
+      // limiter
+      TOTAL
+    };
 
-    using TimeUnit = Time::Microsecond;
-    using Stamp = Time::Instant<TimeUnit>;
+    // masks
+    enum
+    {
+      // bits in REG_VOL*
+      MASK_VOL = 0x0f,
+      MASK_ENV = 0x10,
+      // bits in REG_MIXER
+      MASK_TONEA = 0x01,
+      MASK_NOISEA = 0x08,
+      MASK_TONEB = 0x02,
+      MASK_NOISEB = 0x10,
+      MASK_TONEC = 0x04,
+      MASK_NOISEC = 0x20,
+    };
 
-    class Registers
+    Registers()
+      : Mask()
+      , Data()
+    {}
+
+    bool Empty() const
+    {
+      return 0 == Mask;
+    }
+
+    bool Has(Index reg) const
+    {
+      return 0 != (Mask & (1 << reg));
+    }
+
+    uint8_t& operator[](Index reg)
+    {
+      Mask |= 1 << reg;
+      return Data[reg];
+    }
+
+    void Reset(Index reg)
+    {
+      Mask &= ~(1 << reg);
+    }
+
+    uint8_t operator[](Index reg) const
+    {
+      return Data[reg];
+    }
+
+    class IndicesIterator
     {
     public:
-      // registers offsets in data
-      enum Index
+      explicit IndicesIterator(const Registers& regs)
+        : Mask(regs.Mask & ((1 << TOTAL) - 1))
+        , Idx(0)
       {
-        TONEA_L,
-        TONEA_H,
-        TONEB_L,
-        TONEB_H,
-        TONEC_L,
-        TONEC_H,
-        TONEN,
-        MIXER,
-        VOLA,
-        VOLB,
-        VOLC,
-        TONEE_L,
-        TONEE_H,
-        ENV,
-        // limiter
-        TOTAL
-      };
-
-      // masks
-      enum
-      {
-        // bits in REG_VOL*
-        MASK_VOL = 0x0f,
-        MASK_ENV = 0x10,
-        // bits in REG_MIXER
-        MASK_TONEA = 0x01,
-        MASK_NOISEA = 0x08,
-        MASK_TONEB = 0x02,
-        MASK_NOISEB = 0x10,
-        MASK_TONEC = 0x04,
-        MASK_NOISEC = 0x20,
-      };
-
-      Registers()
-        : Mask()
-        , Data()
-      {}
-
-      bool Empty() const
-      {
-        return 0 == Mask;
+        SkipUnset();
       }
 
-      bool Has(Index reg) const
+      typedef bool (IndicesIterator::*BoolType)() const;
+
+      operator BoolType() const
       {
-        return 0 != (Mask & (1 << reg));
+        return IsValid() ? &IndicesIterator::IsValid : nullptr;
       }
 
-      uint8_t& operator[](Index reg)
+      Index operator*() const
       {
-        Mask |= 1 << reg;
-        return Data[reg];
+        return static_cast<Index>(Idx);
       }
 
-      void Reset(Index reg)
+      void operator++()
       {
-        Mask &= ~(1 << reg);
+        Next();
+        SkipUnset();
       }
-
-      uint8_t operator[](Index reg) const
-      {
-        return Data[reg];
-      }
-
-      class IndicesIterator
-      {
-      public:
-        explicit IndicesIterator(const Registers& regs)
-          : Mask(regs.Mask & ((1 << TOTAL) - 1))
-          , Idx(0)
-        {
-          SkipUnset();
-        }
-
-        typedef bool (IndicesIterator::*BoolType)() const;
-
-        operator BoolType() const
-        {
-          return IsValid() ? &IndicesIterator::IsValid : nullptr;
-        }
-
-        Index operator*() const
-        {
-          return static_cast<Index>(Idx);
-        }
-
-        void operator++()
-        {
-          Next();
-          SkipUnset();
-        }
-
-      private:
-        bool IsValid() const
-        {
-          return Mask != 0;
-        }
-
-        bool HasValue() const
-        {
-          return 0 != (Mask & 1);
-        }
-
-        void Next()
-        {
-          ++Idx;
-          Mask >>= 1;
-        }
-
-        void SkipUnset()
-        {
-          while (IsValid() && !HasValue())
-          {
-            Next();
-          }
-        }
-
-      private:
-        uint_t Mask;
-        uint_t Idx;
-      };
 
     private:
-      uint16_t Mask;
-      std::array<uint8_t, TOTAL> Data;
+      bool IsValid() const
+      {
+        return Mask != 0;
+      }
+
+      bool HasValue() const
+      {
+        return 0 != (Mask & 1);
+      }
+
+      void Next()
+      {
+        ++Idx;
+        Mask >>= 1;
+      }
+
+      void SkipUnset()
+      {
+        while (IsValid() && !HasValue())
+        {
+          Next();
+        }
+      }
+
+    private:
+      uint_t Mask;
+      uint_t Idx;
     };
 
-    struct DataChunk
-    {
-      DataChunk()
-        : TimeStamp()
-        , Data()
-      {}
+  private:
+    uint16_t Mask;
+    std::array<uint8_t, TOTAL> Data;
+  };
 
-      Stamp TimeStamp;
-      Registers Data;
-    };
+  struct DataChunk
+  {
+    DataChunk()
+      : TimeStamp()
+      , Data()
+    {}
 
-    class Device
-    {
-    public:
-      typedef std::shared_ptr<Device> Ptr;
-      virtual ~Device() = default;
+    Stamp TimeStamp;
+    Registers Data;
+  };
 
-      /// Render single data chunk
-      virtual void RenderData(const DataChunk& src) = 0;
+  class Device
+  {
+  public:
+    typedef std::shared_ptr<Device> Ptr;
+    virtual ~Device() = default;
 
-      /// Render multiple data chunks
-      virtual void RenderData(const std::vector<DataChunk>& src) = 0;
+    /// Render single data chunk
+    virtual void RenderData(const DataChunk& src) = 0;
 
-      /// reset internal state to initial
-      virtual void Reset() = 0;
-    };
-  }  // namespace AYM
-}  // namespace Devices
+    /// Render multiple data chunks
+    virtual void RenderData(const std::vector<DataChunk>& src) = 0;
+
+    /// reset internal state to initial
+    virtual void Reset() = 0;
+  };
+}  // namespace Devices::AYM

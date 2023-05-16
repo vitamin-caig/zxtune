@@ -14,28 +14,25 @@
 #include <binary/view.h>
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace PlaystationSoundFormat
   {
-    namespace PlaystationSoundFormat
+    const uint_t VERSION_ID = 1;
+
+    class Builder
     {
-      const uint_t VERSION_ID = 1;
+    public:
+      virtual ~Builder() = default;
 
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+      virtual void SetRegisters(uint32_t pc, uint32_t gp) = 0;
+      virtual void SetStackRegion(uint32_t head, uint32_t size) = 0;
+      virtual void SetRegion(StringView region, uint_t fps) = 0;
+      virtual void SetTextSection(uint32_t address, Binary::View content) = 0;
+    };
 
-        virtual void SetRegisters(uint32_t pc, uint32_t gp) = 0;
-        virtual void SetStackRegion(uint32_t head, uint32_t size) = 0;
-        virtual void SetRegion(StringView region, uint_t fps) = 0;
-        virtual void SetTextSection(uint32_t address, Binary::View content) = 0;
-      };
+    void ParsePSXExe(Binary::View data, Builder& target);
+  }  // namespace PlaystationSoundFormat
 
-      void ParsePSXExe(Binary::View data, Builder& target);
-    }  // namespace PlaystationSoundFormat
-
-    Decoder::Ptr CreatePSFDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreatePSFDecoder();
+}  // namespace Formats::Chiptune

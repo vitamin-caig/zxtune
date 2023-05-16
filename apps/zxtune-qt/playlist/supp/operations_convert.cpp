@@ -264,51 +264,47 @@ namespace
   }
 }  // namespace
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  TextResultOperation::Ptr CreateSoundFormatConvertOperation(Playlist::Model::IndexSet::Ptr items, StringView type,
+                                                             Sound::Service::Ptr service,
+                                                             ConversionResultNotification::Ptr result)
   {
-    TextResultOperation::Ptr CreateSoundFormatConvertOperation(Playlist::Model::IndexSet::Ptr items, StringView type,
-                                                               Sound::Service::Ptr service,
-                                                               ConversionResultNotification::Ptr result)
-    {
-      return MakePtr<SoundFormatConvertOperation>(std::move(items), type.to_string(), std::move(service),
-                                                  std::move(result));
-    }
+    return MakePtr<SoundFormatConvertOperation>(std::move(items), type.to_string(), std::move(service),
+                                                std::move(result));
+  }
 
-    TextResultOperation::Ptr CreateExportOperation(StringView nameTemplate, Parameters::Accessor::Ptr params,
-                                                   ConversionResultNotification::Ptr result)
-    {
-      return MakePtr<ExportOperation>(nameTemplate, std::move(params), std::move(result));
-    }
+  TextResultOperation::Ptr CreateExportOperation(StringView nameTemplate, Parameters::Accessor::Ptr params,
+                                                 ConversionResultNotification::Ptr result)
+  {
+    return MakePtr<ExportOperation>(nameTemplate, std::move(params), std::move(result));
+  }
 
-    TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSet::Ptr items, StringView nameTemplate,
-                                                   Parameters::Accessor::Ptr params,
-                                                   ConversionResultNotification::Ptr result)
-    {
-      return MakePtr<ExportOperation>(std::move(items), nameTemplate, std::move(params), std::move(result));
-    }
+  TextResultOperation::Ptr CreateExportOperation(Playlist::Model::IndexSet::Ptr items, StringView nameTemplate,
+                                                 Parameters::Accessor::Ptr params,
+                                                 ConversionResultNotification::Ptr result)
+  {
+    return MakePtr<ExportOperation>(std::move(items), nameTemplate, std::move(params), std::move(result));
+  }
 
-    TextResultOperation::Ptr CreateConvertOperation(Playlist::Model::IndexSet::Ptr items,
-                                                    const Conversion::Options& opts,
-                                                    ConversionResultNotification::Ptr result)
+  TextResultOperation::Ptr CreateConvertOperation(Playlist::Model::IndexSet::Ptr items, const Conversion::Options& opts,
+                                                  ConversionResultNotification::Ptr result)
+  {
+    if (opts.Type.empty())
     {
-      if (opts.Type.empty())
-      {
-        return CreateExportOperation(std::move(items), opts.FilenameTemplate, opts.Params, std::move(result));
-      }
-      else
-      {
-        auto soundParams = CreateSoundParameters(opts);
-        auto service = Sound::CreateFileService(std::move(soundParams));
-        return CreateSoundFormatConvertOperation(std::move(items), opts.Type, std::move(service), std::move(result));
-      }
+      return CreateExportOperation(std::move(items), opts.FilenameTemplate, opts.Params, std::move(result));
     }
+    else
+    {
+      auto soundParams = CreateSoundParameters(opts);
+      auto service = Sound::CreateFileService(std::move(soundParams));
+      return CreateSoundFormatConvertOperation(std::move(items), opts.Type, std::move(service), std::move(result));
+    }
+  }
 
-    TextResultOperation::Ptr CreateConvertOperation(const Conversion::Options& opts,
-                                                    ConversionResultNotification::Ptr result)
-    {
-      return CreateConvertOperation({}, opts, std::move(result));
-    }
-  }  // namespace Item
-}  // namespace Playlist
+  TextResultOperation::Ptr CreateConvertOperation(const Conversion::Options& opts,
+                                                  ConversionResultNotification::Ptr result)
+  {
+    return CreateConvertOperation({}, opts, std::move(result));
+  }
+}  // namespace Playlist::Item

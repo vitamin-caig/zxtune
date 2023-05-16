@@ -38,24 +38,21 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  void ExecuteOperation(const Storage& stor, Model::IndexSet::Ptr selectedItems, Visitor& visitor,
+                        Log::ProgressCallback& cb)
   {
-    void ExecuteOperation(const Storage& stor, Model::IndexSet::Ptr selectedItems, Visitor& visitor,
-                          Log::ProgressCallback& cb)
+    const std::size_t totalItems = selectedItems ? selectedItems->size() : stor.CountItems();
+    Log::PercentProgressCallback progress(static_cast<uint_t>(totalItems), cb);
+    ProgressModelVisitor progressed(visitor, progress);
+    if (selectedItems)
     {
-      const std::size_t totalItems = selectedItems ? selectedItems->size() : stor.CountItems();
-      Log::PercentProgressCallback progress(static_cast<uint_t>(totalItems), cb);
-      ProgressModelVisitor progressed(visitor, progress);
-      if (selectedItems)
-      {
-        stor.ForSpecifiedItems(*selectedItems, progressed);
-      }
-      else
-      {
-        stor.ForAllItems(progressed);
-      }
+      stor.ForSpecifiedItems(*selectedItems, progressed);
     }
-  }  // namespace Item
-}  // namespace Playlist
+    else
+    {
+      stor.ForAllItems(progressed);
+    }
+  }
+}  // namespace Playlist::Item

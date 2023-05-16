@@ -701,13 +701,10 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  DataProvider::Ptr DataProvider::Create(Parameters::Accessor::Ptr parameters)
   {
-    DataProvider::Ptr DataProvider::Create(Parameters::Accessor::Ptr parameters)
-    {
-      return MakePtr<DataProviderImpl>(parameters);
-    }
-  }  // namespace Item
-}  // namespace Playlist
+    return MakePtr<DataProviderImpl>(parameters);
+  }
+}  // namespace Playlist::Item

@@ -393,14 +393,11 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  Container::Ptr CreateContainer(Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr properties,
+                                 ContainerItems::Ptr items)
   {
-    Container::Ptr CreateContainer(Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr properties,
-                                   ContainerItems::Ptr items)
-    {
-      return MakePtr<ContainerImpl>(provider, properties, items);
-    }
-  }  // namespace IO
-}  // namespace Playlist
+    return MakePtr<ContainerImpl>(provider, properties, items);
+  }
+}  // namespace Playlist::IO

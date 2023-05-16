@@ -16,27 +16,24 @@
 #include <binary/view.h>
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace AYC
   {
-    namespace AYC
+    class Builder
     {
-      class Builder
-      {
-      public:
-        typedef std::shared_ptr<Builder> Ptr;
-        virtual ~Builder() = default;
+    public:
+      typedef std::shared_ptr<Builder> Ptr;
+      virtual ~Builder() = default;
 
-        virtual void SetFrames(std::size_t count) = 0;
-        virtual void StartChannel(uint_t idx) = 0;
-        virtual void AddValues(Binary::View values) = 0;
-      };
+      virtual void SetFrames(std::size_t count) = 0;
+      virtual void StartChannel(uint_t idx) = 0;
+      virtual void AddValues(Binary::View values) = 0;
+    };
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-      Builder& GetStubBuilder();
-    }  // namespace AYC
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+    Builder& GetStubBuilder();
+  }  // namespace AYC
 
-    Decoder::Ptr CreateAYCDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateAYCDecoder();
+}  // namespace Formats::Chiptune

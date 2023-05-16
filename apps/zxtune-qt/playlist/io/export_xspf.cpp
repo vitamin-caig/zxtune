@@ -515,22 +515,19 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  void SaveXSPF(Container::Ptr container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags)
   {
-    void SaveXSPF(Container::Ptr container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags)
+    QFile device(filename);
+    if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
     {
-      QFile device(filename);
-      if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
-      {
-        throw Error(THIS_LINE, FromQString(QFile::tr("Cannot create %1 for output").arg(filename)));
-      }
-      const std::unique_ptr<const ItemWriter> itemWriter = CreateWriter(filename, flags);
-      XSPFWriter writer(device, *itemWriter);
-      const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
-      writer.WriteProperties(*playlistProperties, container->GetItemsCount());
-      writer.WriteItems(*container, cb);
+      throw Error(THIS_LINE, FromQString(QFile::tr("Cannot create %1 for output").arg(filename)));
     }
-  }  // namespace IO
-}  // namespace Playlist
+    const std::unique_ptr<const ItemWriter> itemWriter = CreateWriter(filename, flags);
+    XSPFWriter writer(device, *itemWriter);
+    const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
+    writer.WriteProperties(*playlistProperties, container->GetItemsCount());
+    writer.WriteItems(*container, cb);
+  }
+}  // namespace Playlist::IO

@@ -485,39 +485,36 @@ namespace
   }
 }  // namespace
 
-namespace Playlist
+namespace Playlist::IO
 {
-  namespace IO
+  Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
   {
-    Container::Ptr OpenAYL(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
+    const QFileInfo info(filename);
+    if (!info.isFile() || !info.isReadable() || !CheckAYLByName(info.fileName()))
     {
-      const QFileInfo info(filename);
-      if (!info.isFile() || !info.isReadable() || !CheckAYLByName(info.fileName()))
-      {
-        return Container::Ptr();
-      }
-      QFile device(filename);
-      if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
-      {
-        assert(!"Failed to open playlist");
-        return Container::Ptr();
-      }
-      QTextStream stream(&device);
-      const String header = FromQString(stream.readLine(0).simplified());
-      const int vers = CheckAYLBySignature(header);
-      if (vers < 0)
-      {
-        return Container::Ptr();
-      }
-      Dbg("Processing AYL version {}", vers);
-      const VersionLayer version(vers);
-      LinesSource lines(stream, version);
-      const AYLContainer aylItems(lines, cb);
-      const QString basePath = info.absolutePath();
-      const ContainerItems::Ptr items = CreateItems(basePath, version, aylItems);
-      const Parameters::Container::Ptr properties = CreateProperties(version, aylItems);
-      properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
-      return Playlist::IO::CreateContainer(provider, properties, items);
+      return Container::Ptr();
     }
-  }  // namespace IO
-}  // namespace Playlist
+    QFile device(filename);
+    if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+      assert(!"Failed to open playlist");
+      return Container::Ptr();
+    }
+    QTextStream stream(&device);
+    const String header = FromQString(stream.readLine(0).simplified());
+    const int vers = CheckAYLBySignature(header);
+    if (vers < 0)
+    {
+      return Container::Ptr();
+    }
+    Dbg("Processing AYL version {}", vers);
+    const VersionLayer version(vers);
+    LinesSource lines(stream, version);
+    const AYLContainer aylItems(lines, cb);
+    const QString basePath = info.absolutePath();
+    const ContainerItems::Ptr items = CreateItems(basePath, version, aylItems);
+    const Parameters::Container::Ptr properties = CreateProperties(version, aylItems);
+    properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
+    return Playlist::IO::CreateContainer(provider, properties, items);
+  }
+}  // namespace Playlist::IO

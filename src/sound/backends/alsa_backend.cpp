@@ -663,23 +663,25 @@ namespace Sound::Alsa
 
     String GetDeviceName() const
     {
-      Parameters::StringType strVal = Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::DEVICE, strVal);
+      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
+      Parameters::StringType strVal = DEVICE_DEFAULT;
+      Accessor.FindValue(DEVICE, strVal);
       return strVal;
     }
 
     String GetMixerName() const
     {
+      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
       Parameters::StringType strVal;
-      Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::MIXER, strVal);
+      Accessor.FindValue(MIXER, strVal);
       return strVal;
     }
 
     Time::Milliseconds GetLatency() const
     {
-      Parameters::IntType val = Parameters::ZXTune::Sound::Backends::Alsa::LATENCY_DEFAULT;
-      if (Accessor.FindValue(Parameters::ZXTune::Sound::Backends::Alsa::LATENCY, val)
-          && !Math::InRange<Parameters::IntType>(val, LATENCY_MIN, LATENCY_MAX))
+      using namespace Parameters::ZXTune::Sound::Backends::Alsa;
+      Parameters::IntType val = LATENCY_DEFAULT;
+      if (Accessor.FindValue(LATENCY, val) && !Math::InRange<Parameters::IntType>(val, LATENCY_MIN, LATENCY_MAX))
       {
         throw MakeFormattedError(THIS_LINE, translate("ALSA backend error: latency ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(val), LATENCY_MIN, LATENCY_MAX);

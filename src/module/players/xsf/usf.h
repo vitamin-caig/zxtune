@@ -13,10 +13,7 @@
 // library includes
 #include <module/players/factory.h>
 
-namespace Module
+namespace Module::USF
 {
-  namespace USF
-  {
-    Factory::Ptr CreateFactory();
-  }
-}  // namespace Module
+  Factory::Ptr CreateFactory();
+}  // namespace Module::USF

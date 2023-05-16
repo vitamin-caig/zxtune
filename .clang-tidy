@@ -4,6 +4,7 @@
                     clang-analyzer-nullability.*,
                     clang-analyzer-core.*,
                     modernize-avoid-bind,
+                    modernize-concat-nested-namespaces,
                     '
   FormatStyle:      file
 ...

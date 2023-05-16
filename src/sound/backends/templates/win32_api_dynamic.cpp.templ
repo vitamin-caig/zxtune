@@ -16,16 +16,13 @@
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 
-namespace Sound
+namespace Sound::Win32
 {
-  namespace Win32
-  {
 <TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
 
-    Api::Ptr LoadDynamicApi()
-    {
-      auto lib = Platform::SharedLibrary::Load("winmm"_sv);
-      return MakePtr<DynamicApi>(std::move(lib));
-    }
-  }  // namespace Win32
-}  // namespace Sound
+  Api::Ptr LoadDynamicApi()
+  {
+    auto lib = Platform::SharedLibrary::Load("winmm"_sv);
+    return MakePtr<DynamicApi>(std::move(lib));
+  }
+}  // namespace Sound::Win32

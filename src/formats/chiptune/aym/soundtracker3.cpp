@@ -754,111 +754,108 @@ namespace Formats::Chiptune
     };
   }  // namespace SoundTracker3
 
-  namespace SoundTracker
+  namespace SoundTracker::Ver3
   {
-    namespace Ver3
+    Decoder::Ptr CreateDecoder()
     {
-      Decoder::Ptr CreateDecoder()
+      return MakePtr<SoundTracker3::Decoder>();
+    }
+
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
+    {
+      using namespace SoundTracker3;
+
+      const auto data = MakeContainer(rawData);
+
+      if (!FastCheck(data))
       {
-        return MakePtr<SoundTracker3::Decoder>();
-      }
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, Builder& target)
-      {
-        using namespace SoundTracker3;
-
-        const auto data = MakeContainer(rawData);
-
-        if (!FastCheck(data))
-        {
-          return {};
-        }
-
-        try
-        {
-          const Format format(data);
-
-          format.ParseCommonProperties(target);
-
-          StatisticCollectingBuilder statistic(target);
-          format.ParsePositions(statistic);
-          const Indices& usedPatterns = statistic.GetUsedPatterns();
-          format.ParsePatterns(usedPatterns, statistic);
-          Require(statistic.HasNonEmptyPatterns());
-          const Indices& usedSamples = statistic.GetUsedSamples();
-          format.ParseSamples(usedSamples, statistic);
-          Require(statistic.HasNonEmptySamples());
-          const Indices& usedOrnaments = statistic.GetUsedOrnaments();
-          format.ParseOrnaments(usedOrnaments, target);
-
-          Require(format.GetSize() >= MIN_SIZE);
-          auto subData = rawData.GetSubcontainer(0, format.GetSize());
-          const auto fixedRange = format.GetFixedArea();
-          return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
-                                               fixedRange.second - fixedRange.first);
-        }
-        catch (const std::exception&)
-        {
-          Dbg("Failed to create");
-          return {};
-        }
-      }
-
-      Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, Binary::View info)
-      {
-        using namespace SoundTracker3;
-        StatisticCollectingBuilder statistic(GetStubBuilder());
-        if (const auto parsed = Parse(rawData, statistic))
-        {
-          const auto parsedData = MakeContainer(*parsed);
-          const auto& header = *parsedData.As<RawHeader>();
-          const std::size_t headerSize = sizeof(header);
-          const std::size_t infoSize = info.Size();
-          const auto patch = PatchedDataBuilder::Create(*parsed);
-          const auto* id = parsedData.SubView(headerSize).As<RawId>();
-          if (id && id->Check())
-          {
-            patch->OverwriteData(headerSize, info);
-          }
-          else
-          {
-            patch->InsertData(headerSize, info);
-            const int_t delta = static_cast<int_t>(infoSize);
-            patch->FixLEWord(offsetof(RawHeader, PositionsOffset), delta);
-            patch->FixLEWord(offsetof(RawHeader, SamplesOffset), delta);
-            patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);
-            patch->FixLEWord(offsetof(RawHeader, PatternsOffset), delta);
-            const std::size_t patternsStart = header.PatternsOffset;
-            const Indices& usedPatterns = statistic.GetUsedPatterns();
-            for (Indices::Iterator it = usedPatterns.Items(); it; ++it)
-            {
-              const std::size_t patOffsets = patternsStart + *it * sizeof(RawPattern);
-              patch->FixLEWord(patOffsets + 0, delta);
-              patch->FixLEWord(patOffsets + 2, delta);
-              patch->FixLEWord(patOffsets + 4, delta);
-            }
-            // fix all samples and ornaments
-            const std::size_t ornamentsStart = header.OrnamentsOffset;
-            const auto& orns = *parsedData.SubView(ornamentsStart).As<RawOrnaments>();
-            for (uint_t idx = 0; idx != orns.Count; ++idx)
-            {
-              const std::size_t ornOffset = ornamentsStart + offsetof(RawOrnaments, Offsets) + idx * sizeof(uint16_t);
-              patch->FixLEWord(ornOffset, delta);
-            }
-            const std::size_t samplesStart = header.SamplesOffset;
-            const auto& sams = *parsedData.SubView(samplesStart).As<RawSamples>();
-            for (uint_t idx = 0; idx != sams.Count; ++idx)
-            {
-              const std::size_t samOffset = samplesStart + offsetof(RawSamples, Offsets) + idx * sizeof(uint16_t);
-              patch->FixLEWord(samOffset, delta);
-            }
-          }
-          return patch->GetResult();
-        }
         return {};
       }
-    }  // namespace Ver3
-  }    // namespace SoundTracker
+
+      try
+      {
+        const Format format(data);
+
+        format.ParseCommonProperties(target);
+
+        StatisticCollectingBuilder statistic(target);
+        format.ParsePositions(statistic);
+        const Indices& usedPatterns = statistic.GetUsedPatterns();
+        format.ParsePatterns(usedPatterns, statistic);
+        Require(statistic.HasNonEmptyPatterns());
+        const Indices& usedSamples = statistic.GetUsedSamples();
+        format.ParseSamples(usedSamples, statistic);
+        Require(statistic.HasNonEmptySamples());
+        const Indices& usedOrnaments = statistic.GetUsedOrnaments();
+        format.ParseOrnaments(usedOrnaments, target);
+
+        Require(format.GetSize() >= MIN_SIZE);
+        auto subData = rawData.GetSubcontainer(0, format.GetSize());
+        const auto fixedRange = format.GetFixedArea();
+        return CreateCalculatingCrcContainer(std::move(subData), fixedRange.first,
+                                             fixedRange.second - fixedRange.first);
+      }
+      catch (const std::exception&)
+      {
+        Dbg("Failed to create");
+        return {};
+      }
+    }
+
+    Binary::Container::Ptr InsertMetainformation(const Binary::Container& rawData, Binary::View info)
+    {
+      using namespace SoundTracker3;
+      StatisticCollectingBuilder statistic(GetStubBuilder());
+      if (const auto parsed = Parse(rawData, statistic))
+      {
+        const auto parsedData = MakeContainer(*parsed);
+        const auto& header = *parsedData.As<RawHeader>();
+        const std::size_t headerSize = sizeof(header);
+        const std::size_t infoSize = info.Size();
+        const auto patch = PatchedDataBuilder::Create(*parsed);
+        const auto* id = parsedData.SubView(headerSize).As<RawId>();
+        if (id && id->Check())
+        {
+          patch->OverwriteData(headerSize, info);
+        }
+        else
+        {
+          patch->InsertData(headerSize, info);
+          const int_t delta = static_cast<int_t>(infoSize);
+          patch->FixLEWord(offsetof(RawHeader, PositionsOffset), delta);
+          patch->FixLEWord(offsetof(RawHeader, SamplesOffset), delta);
+          patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);
+          patch->FixLEWord(offsetof(RawHeader, PatternsOffset), delta);
+          const std::size_t patternsStart = header.PatternsOffset;
+          const Indices& usedPatterns = statistic.GetUsedPatterns();
+          for (Indices::Iterator it = usedPatterns.Items(); it; ++it)
+          {
+            const std::size_t patOffsets = patternsStart + *it * sizeof(RawPattern);
+            patch->FixLEWord(patOffsets + 0, delta);
+            patch->FixLEWord(patOffsets + 2, delta);
+            patch->FixLEWord(patOffsets + 4, delta);
+          }
+          // fix all samples and ornaments
+          const std::size_t ornamentsStart = header.OrnamentsOffset;
+          const auto& orns = *parsedData.SubView(ornamentsStart).As<RawOrnaments>();
+          for (uint_t idx = 0; idx != orns.Count; ++idx)
+          {
+            const std::size_t ornOffset = ornamentsStart + offsetof(RawOrnaments, Offsets) + idx * sizeof(uint16_t);
+            patch->FixLEWord(ornOffset, delta);
+          }
+          const std::size_t samplesStart = header.SamplesOffset;
+          const auto& sams = *parsedData.SubView(samplesStart).As<RawSamples>();
+          for (uint_t idx = 0; idx != sams.Count; ++idx)
+          {
+            const std::size_t samOffset = samplesStart + offsetof(RawSamples, Offsets) + idx * sizeof(uint16_t);
+            patch->FixLEWord(samOffset, delta);
+          }
+        }
+        return patch->GetResult();
+      }
+      return {};
+    }
+  }  // namespace SoundTracker::Ver3
 
   Formats::Chiptune::Decoder::Ptr CreateSoundTracker3Decoder()
   {

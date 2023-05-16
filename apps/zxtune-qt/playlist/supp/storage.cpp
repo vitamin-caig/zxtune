@@ -574,13 +574,10 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  Storage::Ptr Storage::Create()
   {
-    Storage::Ptr Storage::Create()
-    {
-      return MakePtr<LinearStorage>();
-    }
-  }  // namespace Item
-}  // namespace Playlist
+    return MakePtr<LinearStorage>();
+  }
+}  // namespace Playlist::Item

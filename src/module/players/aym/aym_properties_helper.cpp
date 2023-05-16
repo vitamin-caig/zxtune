@@ -15,29 +15,26 @@
 // std includes
 #include <cassert>
 
-namespace Module
+namespace Module::AYM
 {
-  namespace AYM
+  void PropertiesHelper::SetFrequencyTable(StringView freqTable)
   {
-    void PropertiesHelper::SetFrequencyTable(StringView freqTable)
-    {
-      assert(!freqTable.empty());
-      Delegate.SetValue(Parameters::ZXTune::Core::AYM::TABLE, freqTable);
-    }
+    assert(!freqTable.empty());
+    Delegate.SetValue(Parameters::ZXTune::Core::AYM::TABLE, freqTable);
+  }
 
-    void PropertiesHelper::SetChipType(uint_t type)
-    {
-      Delegate.SetValue(Parameters::ZXTune::Core::AYM::TYPE, type);
-    }
+  void PropertiesHelper::SetChipType(uint_t type)
+  {
+    Delegate.SetValue(Parameters::ZXTune::Core::AYM::TYPE, type);
+  }
 
-    void PropertiesHelper::SetChannelsLayout(uint_t layout)
-    {
-      Delegate.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, layout);
-    }
+  void PropertiesHelper::SetChannelsLayout(uint_t layout)
+  {
+    Delegate.SetValue(Parameters::ZXTune::Core::AYM::LAYOUT, layout);
+  }
 
-    void PropertiesHelper::SetChipFrequency(uint64_t freq)
-    {
-      Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, freq);
-    }
-  }  // namespace AYM
-}  // namespace Module
+  void PropertiesHelper::SetChipFrequency(uint64_t freq)
+  {
+    Delegate.SetValue(Parameters::ZXTune::Core::AYM::CLOCKRATE, freq);
+  }
+}  // namespace Module::AYM

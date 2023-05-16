@@ -516,58 +516,55 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  SelectionOperation::Ptr CreateSelectAllRipOffsOperation()
   {
-    SelectionOperation::Ptr CreateSelectAllRipOffsOperation()
-    {
-      return MakePtr<SelectAllRipOffsOperation>();
-    }
+    return MakePtr<SelectAllRipOffsOperation>();
+  }
 
-    SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-    {
-      return MakePtr<SelectRipOffsOfSelectedOperation>(items);
-    }
+  SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
+  {
+    return MakePtr<SelectRipOffsOfSelectedOperation>(items);
+  }
 
-    SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-    {
-      return MakePtr<SelectRipOffsInSelectedOperation>(items);
-    }
+  SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
+  {
+    return MakePtr<SelectRipOffsInSelectedOperation>(items);
+  }
 
-    SelectionOperation::Ptr CreateSelectAllDuplicatesOperation()
-    {
-      return MakePtr<SelectAllDupsOperation>();
-    }
+  SelectionOperation::Ptr CreateSelectAllDuplicatesOperation()
+  {
+    return MakePtr<SelectAllDupsOperation>();
+  }
 
-    SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-    {
-      return MakePtr<SelectDupsOfSelectedOperation>(items);
-    }
+  SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
+  {
+    return MakePtr<SelectDupsOfSelectedOperation>(items);
+  }
 
-    SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-    {
-      return MakePtr<SelectDupsInSelectedOperation>(items);
-    }
+  SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
+  {
+    return MakePtr<SelectDupsInSelectedOperation>(items);
+  }
 
-    SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-    {
-      return MakePtr<SelectTypesOfSelectedOperation>(items);
-    }
+  SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
+  {
+    return MakePtr<SelectTypesOfSelectedOperation>(items);
+  }
 
-    SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-    {
-      return MakePtr<SelectFilesOfSelectedOperation>(items);
-    }
+  SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
+  {
+    return MakePtr<SelectFilesOfSelectedOperation>(items);
+  }
 
-    SelectionOperation::Ptr CreateSelectAllUnavailableOperation()
-    {
-      return MakePtr<SelectUnavailableOperation>();
-    }
+  SelectionOperation::Ptr CreateSelectAllUnavailableOperation()
+  {
+    return MakePtr<SelectUnavailableOperation>();
+  }
 
-    SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
-    {
-      return MakePtr<SelectUnavailableOperation>(items);
-    }
-  }  // namespace Item
-}  // namespace Playlist
+  SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
+  {
+    return MakePtr<SelectUnavailableOperation>(items);
+  }
+}  // namespace Playlist::Item

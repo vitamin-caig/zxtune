@@ -158,65 +158,62 @@ namespace Module
   };
 }  // namespace Module
 
-namespace Module
+namespace Module::SAA
 {
-  namespace SAA
+  ChannelBuilder::ChannelBuilder(uint_t chan, Devices::SAA::Registers& regs)
+    : Channel(chan)
+    , Regs(regs)
   {
-    ChannelBuilder::ChannelBuilder(uint_t chan, Devices::SAA::Registers& regs)
-      : Channel(chan)
-      , Regs(regs)
-    {
-      SetRegister(Devices::SAA::Registers::TONEMIXER, 0, 1 << chan);
-      SetRegister(Devices::SAA::Registers::NOISEMIXER, 0, 1 << chan);
-    }
+    SetRegister(Devices::SAA::Registers::TONEMIXER, 0, 1 << chan);
+    SetRegister(Devices::SAA::Registers::NOISEMIXER, 0, 1 << chan);
+  }
 
-    void ChannelBuilder::SetVolume(int_t left, int_t right)
-    {
-      SetRegister(Devices::SAA::Registers::LEVEL0 + Channel,
-                  16 * Math::Clamp<int_t>(right, 0, 15) + Math::Clamp<int_t>(left, 0, 15));
-    }
+  void ChannelBuilder::SetVolume(int_t left, int_t right)
+  {
+    SetRegister(Devices::SAA::Registers::LEVEL0 + Channel,
+                16 * Math::Clamp<int_t>(right, 0, 15) + Math::Clamp<int_t>(left, 0, 15));
+  }
 
-    void ChannelBuilder::SetTone(uint_t octave, uint_t note)
-    {
-      SetRegister(Devices::SAA::Registers::TONENUMBER0 + Channel, note);
-      AddRegister(Devices::SAA::Registers::TONEOCTAVE01 + Channel / 2, 0 != (Channel & 1) ? (octave << 4) : octave);
-    }
+  void ChannelBuilder::SetTone(uint_t octave, uint_t note)
+  {
+    SetRegister(Devices::SAA::Registers::TONENUMBER0 + Channel, note);
+    AddRegister(Devices::SAA::Registers::TONEOCTAVE01 + Channel / 2, 0 != (Channel & 1) ? (octave << 4) : octave);
+  }
 
-    void ChannelBuilder::SetNoise(uint_t type)
-    {
-      const uint_t shift = Channel >= 3 ? 4 : 0;
-      SetRegister(Devices::SAA::Registers::NOISECLOCK, type << shift, 0x7 << shift);
-    }
+  void ChannelBuilder::SetNoise(uint_t type)
+  {
+    const uint_t shift = Channel >= 3 ? 4 : 0;
+    SetRegister(Devices::SAA::Registers::NOISECLOCK, type << shift, 0x7 << shift);
+  }
 
-    void ChannelBuilder::AddNoise(uint_t type)
-    {
-      const uint_t shift = Channel >= 3 ? 4 : 0;
-      AddRegister(Devices::SAA::Registers::NOISECLOCK, type << shift);
-    }
+  void ChannelBuilder::AddNoise(uint_t type)
+  {
+    const uint_t shift = Channel >= 3 ? 4 : 0;
+    AddRegister(Devices::SAA::Registers::NOISECLOCK, type << shift);
+  }
 
-    void ChannelBuilder::SetEnvelope(uint_t type)
-    {
-      SetRegister(Devices::SAA::Registers::ENVELOPE0 + (Channel >= 3), type);
-    }
+  void ChannelBuilder::SetEnvelope(uint_t type)
+  {
+    SetRegister(Devices::SAA::Registers::ENVELOPE0 + (Channel >= 3), type);
+  }
 
-    void ChannelBuilder::EnableTone()
-    {
-      AddRegister(Devices::SAA::Registers::TONEMIXER, 1 << Channel);
-    }
+  void ChannelBuilder::EnableTone()
+  {
+    AddRegister(Devices::SAA::Registers::TONEMIXER, 1 << Channel);
+  }
 
-    void ChannelBuilder::EnableNoise()
-    {
-      AddRegister(Devices::SAA::Registers::NOISEMIXER, 1 << Channel);
-    }
+  void ChannelBuilder::EnableNoise()
+  {
+    AddRegister(Devices::SAA::Registers::NOISEMIXER, 1 << Channel);
+  }
 
-    DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
-    {
-      return MakePtr<SAADataIterator>(std::move(iterator), std::move(renderer));
-    }
+  DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)
+  {
+    return MakePtr<SAADataIterator>(std::move(iterator), std::move(renderer));
+  }
 
-    Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
-    {
-      return MakePtr<SAAHolder>(std::move(chiptune));
-    }
-  }  // namespace SAA
-}  // namespace Module
+  Holder::Ptr CreateHolder(Chiptune::Ptr chiptune)
+  {
+    return MakePtr<SAAHolder>(std::move(chiptune));
+  }
+}  // namespace Module::SAA

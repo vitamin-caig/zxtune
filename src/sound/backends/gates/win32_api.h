@@ -15,35 +15,32 @@
 // platform-dependent includes
 #include <windows.h>
 
-namespace Sound
+namespace Sound::Win32
 {
-  namespace Win32
+  class Api
   {
-    class Api
-    {
-    public:
-      typedef std::shared_ptr<Api> Ptr;
-      virtual ~Api() = default;
+  public:
+    typedef std::shared_ptr<Api> Ptr;
+    virtual ~Api() = default;
 
 // clang-format off
 
-      virtual UINT waveOutGetNumDevs() = 0;
-      virtual MMRESULT waveOutGetDevCapsW(UINT_PTR uDeviceID, LPWAVEOUTCAPSW pwoc, UINT cbwoc) = 0;
-      virtual MMRESULT waveOutOpen(LPHWAVEOUT phwo, UINT uDeviceID, LPCWAVEFORMATEX pwfx, DWORD_PTR dwCallback, DWORD_PTR dwInstance, DWORD fdwOpen) = 0;
-      virtual MMRESULT waveOutClose(HWAVEOUT hwo) = 0;
-      virtual MMRESULT waveOutPrepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh) = 0;
-      virtual MMRESULT waveOutUnprepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh) = 0;
-      virtual MMRESULT waveOutWrite(HWAVEOUT hwo, LPWAVEHDR pwh, IN UINT cbwh) = 0;
-      virtual MMRESULT waveOutGetErrorTextA(MMRESULT mmrError, LPSTR pszText, UINT cchText) = 0;
-      virtual MMRESULT waveOutPause(HWAVEOUT hwo) = 0;
-      virtual MMRESULT waveOutRestart(HWAVEOUT hwo) = 0;
-      virtual MMRESULT waveOutReset(HWAVEOUT hwo) = 0;
-      virtual MMRESULT waveOutGetVolume(HWAVEOUT hwo, LPDWORD pdwVolume) = 0;
-      virtual MMRESULT waveOutSetVolume(HWAVEOUT hwo, DWORD dwVolume) = 0;
+    virtual UINT waveOutGetNumDevs() = 0;
+    virtual MMRESULT waveOutGetDevCapsW(UINT_PTR uDeviceID, LPWAVEOUTCAPSW pwoc, UINT cbwoc) = 0;
+    virtual MMRESULT waveOutOpen(LPHWAVEOUT phwo, UINT uDeviceID, LPCWAVEFORMATEX pwfx, DWORD_PTR dwCallback, DWORD_PTR dwInstance, DWORD fdwOpen) = 0;
+    virtual MMRESULT waveOutClose(HWAVEOUT hwo) = 0;
+    virtual MMRESULT waveOutPrepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh) = 0;
+    virtual MMRESULT waveOutUnprepareHeader(HWAVEOUT hwo, LPWAVEHDR pwh, UINT cbwh) = 0;
+    virtual MMRESULT waveOutWrite(HWAVEOUT hwo, LPWAVEHDR pwh, IN UINT cbwh) = 0;
+    virtual MMRESULT waveOutGetErrorTextA(MMRESULT mmrError, LPSTR pszText, UINT cchText) = 0;
+    virtual MMRESULT waveOutPause(HWAVEOUT hwo) = 0;
+    virtual MMRESULT waveOutRestart(HWAVEOUT hwo) = 0;
+    virtual MMRESULT waveOutReset(HWAVEOUT hwo) = 0;
+    virtual MMRESULT waveOutGetVolume(HWAVEOUT hwo, LPDWORD pdwVolume) = 0;
+    virtual MMRESULT waveOutSetVolume(HWAVEOUT hwo, DWORD dwVolume) = 0;
 // clang-format on
-    };
+  };
 
-    //throw exception in case of error
-    Api::Ptr LoadDynamicApi();
-  }
-}  // namespace Sound
+  //throw exception in case of error
+  Api::Ptr LoadDynamicApi();
+}  // namespace Sound::Win32

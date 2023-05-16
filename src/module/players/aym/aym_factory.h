@@ -16,18 +16,15 @@
 #include <binary/container.h>
 #include <parameters/container.h>
 
-namespace Module
+namespace Module::AYM
 {
-  namespace AYM
+  class Factory
   {
-    class Factory
-    {
-    public:
-      typedef std::shared_ptr<const Factory> Ptr;
-      virtual ~Factory() = default;
+  public:
+    typedef std::shared_ptr<const Factory> Ptr;
+    virtual ~Factory() = default;
 
-      virtual Chiptune::Ptr CreateChiptune(const Binary::Container& data,
-                                           Parameters::Container::Ptr properties) const = 0;
-    };
-  }  // namespace AYM
-}  // namespace Module
+    virtual Chiptune::Ptr CreateChiptune(const Binary::Container& data,
+                                         Parameters::Container::Ptr properties) const = 0;
+  };
+}  // namespace Module::AYM

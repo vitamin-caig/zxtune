@@ -15,17 +15,14 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace SampleTracker
   {
-    namespace SampleTracker
-    {
-      typedef Digital::Builder Builder;
+    typedef Digital::Builder Builder;
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-    }  // namespace SampleTracker
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+  }  // namespace SampleTracker
 
-    Decoder::Ptr CreateSampleTrackerDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateSampleTrackerDecoder();
+}  // namespace Formats::Chiptune

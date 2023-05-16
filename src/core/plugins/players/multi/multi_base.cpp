@@ -227,15 +227,12 @@ namespace Module
   };
 }  // namespace Module
 
-namespace Module
+namespace Module::Multi
 {
-  namespace Multi
+  Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr tuneProperties, HoldersArray holders)
   {
-    Module::Holder::Ptr CreateHolder(Parameters::Accessor::Ptr tuneProperties, HoldersArray holders)
-    {
-      Require(!holders.empty());
-      return holders.size() == 1 ? std::move(holders.front())
-                                 : MakePtr<MultiHolder>(std::move(tuneProperties), std::move(holders));
-    }
-  }  // namespace Multi
-}  // namespace Module
+    Require(!holders.empty());
+    return holders.size() == 1 ? std::move(holders.front())
+                               : MakePtr<MultiHolder>(std::move(tuneProperties), std::move(holders));
+  }
+}  // namespace Module::Multi

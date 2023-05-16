@@ -18,30 +18,27 @@
 // std includes
 #include <cassert>
 
-namespace Formats
+namespace Formats::Packed
 {
-  namespace Packed
+  class PackedContainer : public Binary::BaseContainer<Container>
   {
-    class PackedContainer : public Binary::BaseContainer<Container>
+  public:
+    PackedContainer(Binary::Container::Ptr delegate, std::size_t origSize)
+      : BaseContainer(std::move(delegate))
+      , OriginalSize(origSize)
+    {}
+
+    std::size_t PackedSize() const override
     {
-    public:
-      PackedContainer(Binary::Container::Ptr delegate, std::size_t origSize)
-        : BaseContainer(std::move(delegate))
-        , OriginalSize(origSize)
-      {}
-
-      std::size_t PackedSize() const override
-      {
-        return OriginalSize;
-      }
-
-    private:
-      const std::size_t OriginalSize;
-    };
-
-    Container::Ptr CreateContainer(Binary::Container::Ptr data, std::size_t origSize)
-    {
-      return origSize && data && data->Size() ? MakePtr<PackedContainer>(std::move(data), origSize) : Container::Ptr();
+      return OriginalSize;
     }
-  }  // namespace Packed
-}  // namespace Formats
+
+  private:
+    const std::size_t OriginalSize;
+  };
+
+  Container::Ptr CreateContainer(Binary::Container::Ptr data, std::size_t origSize)
+  {
+    return origSize && data && data->Size() ? MakePtr<PackedContainer>(std::move(data), origSize) : Container::Ptr();
+  }
+}  // namespace Formats::Packed

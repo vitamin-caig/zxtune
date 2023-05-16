@@ -13,10 +13,7 @@
 // local includes
 #include "module/players/dac/dac_factory.h"
 
-namespace Module
+namespace Module::DigitalStudio
 {
-  namespace DigitalStudio
-  {
-    DAC::Factory::Ptr CreateFactory();
-  }
-}  // namespace Module
+  DAC::Factory::Ptr CreateFactory();
+}  // namespace Module::DigitalStudio

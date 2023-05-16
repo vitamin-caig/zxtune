@@ -15,18 +15,15 @@
 // std includes
 #include <filesystem>
 
-namespace IO
+namespace IO::Details
 {
-  namespace Details
+  inline String ToString(const std::filesystem::path& path)
   {
-    inline String ToString(const std::filesystem::path& path)
-    {
-      return path.u8string();
-    }
+    return path.u8string();
+  }
 
-    inline std::filesystem::path FromString(StringView str)
-    {
-      return std::filesystem::u8path(str.begin(), str.end());
-    }
-  }  // namespace Details
-}  // namespace IO
+  inline std::filesystem::path FromString(StringView str)
+  {
+    return std::filesystem::u8path(str.begin(), str.end());
+  }
+}  // namespace IO::Details

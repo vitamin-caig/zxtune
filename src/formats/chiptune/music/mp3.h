@@ -15,46 +15,43 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace Mp3
   {
-    namespace Mp3
+    struct Frame
     {
-      struct Frame
+      struct DataLocation
       {
-        struct DataLocation
-        {
-          std::size_t Offset = 0;
-          std::size_t Size = 0;
-        };
-
-        struct SoundProperties
-        {
-          uint_t Samplerate = 0;
-          uint_t SamplesCount = 0;
-          bool Mono = false;
-        };
-
-        DataLocation Location;
-        SoundProperties Properties;
+        std::size_t Offset = 0;
+        std::size_t Size = 0;
       };
 
-      // Use simplified parsing due to thirdparty library used
-      class Builder
+      struct SoundProperties
       {
-      public:
-        virtual ~Builder() = default;
-
-        virtual MetaBuilder& GetMetaBuilder() = 0;
-
-        virtual void AddFrame(const Frame& frame) = 0;
+        uint_t Samplerate = 0;
+        uint_t SamplesCount = 0;
+        bool Mono = false;
       };
 
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-      Builder& GetStubBuilder();
-    }  // namespace Mp3
+      DataLocation Location;
+      SoundProperties Properties;
+    };
 
-    Decoder::Ptr CreateMP3Decoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+    // Use simplified parsing due to thirdparty library used
+    class Builder
+    {
+    public:
+      virtual ~Builder() = default;
+
+      virtual MetaBuilder& GetMetaBuilder() = 0;
+
+      virtual void AddFrame(const Frame& frame) = 0;
+    };
+
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+    Builder& GetStubBuilder();
+  }  // namespace Mp3
+
+  Decoder::Ptr CreateMP3Decoder();
+}  // namespace Formats::Chiptune

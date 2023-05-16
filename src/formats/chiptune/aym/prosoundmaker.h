@@ -17,105 +17,102 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace ProSoundMaker
   {
-    namespace ProSoundMaker
+    struct SampleLine
     {
-      struct SampleLine
+      SampleLine()
+        : Level()
+        , Noise()
+        , ToneMask(true)
+        , NoiseMask(true)
+        , Gliss()
+      {}
+
+      uint_t Level;  // 0-15
+      uint_t Noise;  // 0-31
+      bool ToneMask;
+      bool NoiseMask;
+      int_t Gliss;
+    };
+
+    class Sample : public LinesObject<SampleLine>
+    {
+    public:
+      Sample()
+        : LinesObject<SampleLine>()
+        , VolumeDeltaPeriod()
+        , VolumeDeltaValue()
+      {}
+
+      Sample(const Sample&) = delete;
+      Sample& operator=(const Sample&) = delete;
+
+      Sample(Sample&& rh) noexcept  // = default
+        : LinesObject<SampleLine>(std::move(rh))
+        , VolumeDeltaPeriod(rh.VolumeDeltaPeriod)
+        , VolumeDeltaValue(rh.VolumeDeltaValue)
+      {}
+
+      Sample& operator=(Sample&& rh) noexcept  // = default
       {
-        SampleLine()
-          : Level()
-          , Noise()
-          , ToneMask(true)
-          , NoiseMask(true)
-          , Gliss()
-        {}
+        VolumeDeltaPeriod = rh.VolumeDeltaPeriod;
+        VolumeDeltaValue = rh.VolumeDeltaValue;
+        LinesObject<SampleLine>::operator=(std::move(rh));
+        return *this;
+      }
 
-        uint_t Level;  // 0-15
-        uint_t Noise;  // 0-31
-        bool ToneMask;
-        bool NoiseMask;
-        int_t Gliss;
-      };
+      uint_t VolumeDeltaPeriod;
+      uint_t VolumeDeltaValue;
+    };
 
-      class Sample : public LinesObject<SampleLine>
-      {
-      public:
-        Sample()
-          : LinesObject<SampleLine>()
-          , VolumeDeltaPeriod()
-          , VolumeDeltaValue()
-        {}
+    typedef LinesObject<int_t> Ornament;
 
-        Sample(const Sample&) = delete;
-        Sample& operator=(const Sample&) = delete;
+    struct PositionEntry
+    {
+      PositionEntry()
+        : PatternIndex()
+        , Transposition()
+      {}
 
-        Sample(Sample&& rh) noexcept  // = default
-          : LinesObject<SampleLine>(std::move(rh))
-          , VolumeDeltaPeriod(rh.VolumeDeltaPeriod)
-          , VolumeDeltaValue(rh.VolumeDeltaValue)
-        {}
+      uint_t PatternIndex;
+      int_t Transposition;
+    };
 
-        Sample& operator=(Sample&& rh) noexcept  // = default
-        {
-          VolumeDeltaPeriod = rh.VolumeDeltaPeriod;
-          VolumeDeltaValue = rh.VolumeDeltaValue;
-          LinesObject<SampleLine>::operator=(std::move(rh));
-          return *this;
-        }
+    typedef LinesObject<PositionEntry> Positions;
 
-        uint_t VolumeDeltaPeriod;
-        uint_t VolumeDeltaValue;
-      };
+    class Builder
+    {
+    public:
+      virtual ~Builder() = default;
 
-      typedef LinesObject<int_t> Ornament;
+      virtual MetaBuilder& GetMetaBuilder() = 0;
+      // samples+ornaments
+      virtual void SetSample(uint_t index, Sample sample) = 0;
+      virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
+      // patterns
+      virtual void SetPositions(Positions positions) = 0;
 
-      struct PositionEntry
-      {
-        PositionEntry()
-          : PatternIndex()
-          , Transposition()
-        {}
+      virtual PatternBuilder& StartPattern(uint_t index) = 0;
 
-        uint_t PatternIndex;
-        int_t Transposition;
-      };
+      //! @invariant Channels are built sequentally
+      virtual void StartChannel(uint_t index) = 0;
+      virtual void SetRest() = 0;
+      virtual void SetNote(uint_t note) = 0;
+      virtual void SetSample(uint_t sample) = 0;
+      virtual void SetOrnament(uint_t ornament) = 0;
+      virtual void SetVolume(uint_t volume) = 0;
+      virtual void DisableOrnament() = 0;
+      virtual void SetEnvelopeReinit(bool enabled) = 0;
+      virtual void SetEnvelopeTone(uint_t type, uint_t tone) = 0;
+      virtual void SetEnvelopeNote(uint_t type, uint_t note) = 0;
+    };
 
-      typedef LinesObject<PositionEntry> Positions;
+    Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
+    Builder& GetStubBuilder();
+  }  // namespace ProSoundMaker
 
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
-
-        virtual MetaBuilder& GetMetaBuilder() = 0;
-        // samples+ornaments
-        virtual void SetSample(uint_t index, Sample sample) = 0;
-        virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
-        // patterns
-        virtual void SetPositions(Positions positions) = 0;
-
-        virtual PatternBuilder& StartPattern(uint_t index) = 0;
-
-        //! @invariant Channels are built sequentally
-        virtual void StartChannel(uint_t index) = 0;
-        virtual void SetRest() = 0;
-        virtual void SetNote(uint_t note) = 0;
-        virtual void SetSample(uint_t sample) = 0;
-        virtual void SetOrnament(uint_t ornament) = 0;
-        virtual void SetVolume(uint_t volume) = 0;
-        virtual void DisableOrnament() = 0;
-        virtual void SetEnvelopeReinit(bool enabled) = 0;
-        virtual void SetEnvelopeTone(uint_t type, uint_t tone) = 0;
-        virtual void SetEnvelopeNote(uint_t type, uint_t note) = 0;
-      };
-
-      Formats::Chiptune::Container::Ptr ParseCompiled(const Binary::Container& data, Builder& target);
-      Builder& GetStubBuilder();
-    }  // namespace ProSoundMaker
-
-    Decoder::Ptr CreateProSoundMakerCompiledDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateProSoundMakerCompiledDecoder();
+}  // namespace Formats::Chiptune

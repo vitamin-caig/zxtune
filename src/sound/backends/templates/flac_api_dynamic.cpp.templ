@@ -16,38 +16,35 @@
 #include <debug/log.h>
 #include <platform/shared_library_adapter.h>
 
-namespace Sound
+namespace Sound::Flac
 {
-  namespace Flac
+  class LibraryName : public Platform::SharedLibrary::Name
   {
-    class LibraryName : public Platform::SharedLibrary::Name
+  public:
+    LibraryName() {}
+
+    StringView Base() const override
     {
-    public:
-      LibraryName() {}
+      return "FLAC"_sv;
+    }
 
-      StringView Base() const override
-      {
-        return "FLAC"_sv;
-      }
+    std::vector<StringView> PosixAlternatives() const override
+    {
+      return {"libFLAC.so.7"_sv, "libFLAC.so.8"_sv};
+    }
 
-      std::vector<StringView> PosixAlternatives() const override
-      {
-        return {"libFLAC.so.7"_sv, "libFLAC.so.8"_sv};
-      }
-
-      std::vector<StringView> WindowsAlternatives() const override
-      {
-        return {};
-      }
-    };
+    std::vector<StringView> WindowsAlternatives() const override
+    {
+      return {};
+    }
+  };
 
 <TMPL_INCLUDE NAME="api_dynamic.cpp.templ">
 
-    Api::Ptr LoadDynamicApi()
-    {
-      static const LibraryName NAME;
-      auto lib = Platform::SharedLibrary::Load(NAME);
-      return MakePtr<DynamicApi>(std::move(lib));
-    }
-  }  // namespace Flac
-}  // namespace Sound
+  Api::Ptr LoadDynamicApi()
+  {
+    static const LibraryName NAME;
+    auto lib = Platform::SharedLibrary::Load(NAME);
+    return MakePtr<DynamicApi>(std::move(lib));
+  }
+}  // namespace Sound::Flac

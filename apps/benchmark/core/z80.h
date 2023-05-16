@@ -14,12 +14,9 @@
 #include <devices/z80.h>
 #include <time/duration.h>
 
-namespace Benchmark
+namespace Benchmark::Z80
 {
-  namespace Z80
-  {
-    Devices::Z80::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t intTicks, Binary::View memory,
-                                         Devices::Z80::ChipIO::Ptr io);
-    double Test(Devices::Z80::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration);
-  }  // namespace Z80
-}  // namespace Benchmark
+  Devices::Z80::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t intTicks, Binary::View memory,
+                                       Devices::Z80::ChipIO::Ptr io);
+  double Test(Devices::Z80::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration);
+}  // namespace Benchmark::Z80

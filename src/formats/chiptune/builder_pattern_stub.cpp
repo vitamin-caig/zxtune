@@ -11,22 +11,19 @@
 // local includes
 #include "formats/chiptune/builder_pattern.h"
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  class StubPatternBuilder : public PatternBuilder
   {
-    class StubPatternBuilder : public PatternBuilder
-    {
-    public:
-      void Finish(uint_t /*size*/) override {}
-      void StartLine(uint_t /*index*/) override {}
-      void SetTempo(uint_t /*tempo*/) override {}
-    };
+  public:
+    void Finish(uint_t /*size*/) override {}
+    void StartLine(uint_t /*index*/) override {}
+    void SetTempo(uint_t /*tempo*/) override {}
+  };
 
-    PatternBuilder& GetStubPatternBuilder()
-    {
-      static StubPatternBuilder instance;
-      return instance;
-    }
-  }  // namespace Chiptune
-}  // namespace Formats
+  PatternBuilder& GetStubPatternBuilder()
+  {
+    static StubPatternBuilder instance;
+    return instance;
+  }
+}  // namespace Formats::Chiptune

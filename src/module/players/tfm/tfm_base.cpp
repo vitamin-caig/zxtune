@@ -77,14 +77,11 @@ namespace Module
   };
 }  // namespace Module
 
-namespace Module
+namespace Module::TFM
 {
-  namespace TFM
+  Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
+                               Devices::TFM::Chip::Ptr device)
   {
-    Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
-                                 Devices::TFM::Chip::Ptr device)
-    {
-      return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device));
-    }
-  }  // namespace TFM
-}  // namespace Module
+    return MakePtr<TFMRenderer>(frameDuration, std::move(iterator), std::move(device));
+  }
+}  // namespace Module::TFM

@@ -17,79 +17,76 @@
 #include <contract.h>
 // library includes
 
-namespace Module
+namespace Module::AYM
 {
-  namespace AYM
+  class StreamModel : public Module::StreamModel
   {
-    class StreamModel : public Module::StreamModel
+  public:
+    using Ptr = std::shared_ptr<const StreamModel>;
+
+    uint_t GetTotalFrames() const override
     {
-    public:
-      using Ptr = std::shared_ptr<const StreamModel>;
+      return static_cast<uint_t>(Data.size());
+    }
 
-      uint_t GetTotalFrames() const override
-      {
-        return static_cast<uint_t>(Data.size());
-      }
-
-      uint_t GetLoopFrame() const override
-      {
-        return Loop;
-      }
-
-      const Devices::AYM::Registers& Get(uint_t pos) const
-      {
-        return Data[pos];
-      }
-
-    protected:
-      uint_t Loop = 0;
-      std::vector<Devices::AYM::Registers> Data;
-    };
-
-    class MutableStreamModel : public StreamModel
+    uint_t GetLoopFrame() const override
     {
-    public:
-      using Ptr = std::shared_ptr<MutableStreamModel>;
+      return Loop;
+    }
 
-      bool IsEmpty() const
-      {
-        return Data.empty();
-      }
+    const Devices::AYM::Registers& Get(uint_t pos) const
+    {
+      return Data[pos];
+    }
 
-      void SetLoop(uint_t frame)
-      {
-        Loop = frame;
-      }
+  protected:
+    uint_t Loop = 0;
+    std::vector<Devices::AYM::Registers> Data;
+  };
 
-      void Resize(std::size_t size)
-      {
-        Require(Data.empty());
-        Data.resize(size);
-      }
+  class MutableStreamModel : public StreamModel
+  {
+  public:
+    using Ptr = std::shared_ptr<MutableStreamModel>;
 
-      void Append(std::size_t count)
-      {
-        Data.resize(Data.size() + count);
-      }
+    bool IsEmpty() const
+    {
+      return Data.empty();
+    }
 
-      Devices::AYM::Registers& Frame(uint_t pos)
-      {
-        return Data.at(pos);
-      }
+    void SetLoop(uint_t frame)
+    {
+      Loop = frame;
+    }
 
-      Devices::AYM::Registers* LastFrame()
-      {
-        return Data.empty() ? nullptr : &Data.back();
-      }
+    void Resize(std::size_t size)
+    {
+      Require(Data.empty());
+      Data.resize(size);
+    }
 
-      Devices::AYM::Registers& AddFrame()
-      {
-        Data.push_back({});
-        return Data.back();
-      }
-    };
+    void Append(std::size_t count)
+    {
+      Data.resize(Data.size() + count);
+    }
 
-    Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model,
-                                         Parameters::Accessor::Ptr properties);
-  }  // namespace AYM
-}  // namespace Module
+    Devices::AYM::Registers& Frame(uint_t pos)
+    {
+      return Data.at(pos);
+    }
+
+    Devices::AYM::Registers* LastFrame()
+    {
+      return Data.empty() ? nullptr : &Data.back();
+    }
+
+    Devices::AYM::Registers& AddFrame()
+    {
+      Data.push_back({});
+      return Data.back();
+    }
+  };
+
+  Chiptune::Ptr CreateStreamedChiptune(Time::Microseconds frameDuration, StreamModel::Ptr model,
+                                       Parameters::Accessor::Ptr properties);
+}  // namespace Module::AYM

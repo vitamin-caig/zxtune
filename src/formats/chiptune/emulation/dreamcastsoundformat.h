@@ -13,15 +13,12 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace DreamcastSoundFormat
   {
-    namespace DreamcastSoundFormat
-    {
-      const uint_t VERSION_ID = 0x12;
-    }
+    const uint_t VERSION_ID = 0x12;
+  }
 
-    Decoder::Ptr CreateDSFDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateDSFDecoder();
+}  // namespace Formats::Chiptune

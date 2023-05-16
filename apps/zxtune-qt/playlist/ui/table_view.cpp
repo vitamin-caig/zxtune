@@ -297,27 +297,24 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
+  TableViewItem::TableViewItem(QWidget& parent)
+    : QItemDelegate(&parent)
+  {}
+
+  TableViewItem* TableViewItem::Create(QWidget& parent, const Item::StateCallback& callback)
   {
-    TableViewItem::TableViewItem(QWidget& parent)
-      : QItemDelegate(&parent)
-    {}
+    return new TableViewItemImpl(parent, callback);
+  }
 
-    TableViewItem* TableViewItem::Create(QWidget& parent, const Item::StateCallback& callback)
-    {
-      return new TableViewItemImpl(parent, callback);
-    }
+  TableView::TableView(QWidget& parent)
+    : QTableView(&parent)
+  {}
 
-    TableView::TableView(QWidget& parent)
-      : QTableView(&parent)
-    {}
-
-    TableView* TableView::Create(QWidget& parent, const Item::StateCallback& callback, QAbstractItemModel& model)
-    {
-      REGISTER_METATYPE(Playlist::Model::IndexSet::Ptr);
-      return new TableViewImpl(parent, callback, model);
-    }
-  }  // namespace UI
-}  // namespace Playlist
+  TableView* TableView::Create(QWidget& parent, const Item::StateCallback& callback, QAbstractItemModel& model)
+  {
+    REGISTER_METATYPE(Playlist::Model::IndexSet::Ptr);
+    return new TableViewImpl(parent, callback, model);
+  }
+}  // namespace Playlist::UI

@@ -15,24 +15,21 @@
 #include <devices/aym/chip.h>
 #include <parameters/accessor.h>
 
-namespace Module
+namespace Module::AYM
 {
-  namespace AYM
+  Devices::AYM::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params);
+
+  class TrackParameters
   {
-    Devices::AYM::ChipParameters::Ptr CreateChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params);
+  public:
+    typedef std::shared_ptr<const TrackParameters> Ptr;
 
-    class TrackParameters
-    {
-    public:
-      typedef std::shared_ptr<const TrackParameters> Ptr;
+    virtual ~TrackParameters() = default;
 
-      virtual ~TrackParameters() = default;
+    virtual uint_t Version() const = 0;
+    virtual void FreqTable(FrequencyTable& table) const = 0;
 
-      virtual uint_t Version() const = 0;
-      virtual void FreqTable(FrequencyTable& table) const = 0;
-
-      static Ptr Create(Parameters::Accessor::Ptr params);
-      static Ptr Create(Parameters::Accessor::Ptr params, uint_t idx);
-    };
-  }  // namespace AYM
-}  // namespace Module
+    static Ptr Create(Parameters::Accessor::Ptr params);
+    static Ptr Create(Parameters::Accessor::Ptr params, uint_t idx);
+  };
+}  // namespace Module::AYM

@@ -196,20 +196,17 @@ namespace
   }
 }  // namespace
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  SelectionOperation::Ptr CreateSearchOperation(const Search::Data& data)
   {
-    SelectionOperation::Ptr CreateSearchOperation(const Search::Data& data)
-    {
-      const Predicate::Ptr pred = CreatePredicate(data);
-      return MakePtr<SearchOperation>(pred);
-    }
+    const Predicate::Ptr pred = CreatePredicate(data);
+    return MakePtr<SearchOperation>(pred);
+  }
 
-    SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSet::Ptr items, const Search::Data& data)
-    {
-      const Predicate::Ptr pred = CreatePredicate(data);
-      return MakePtr<SearchOperation>(items, pred);
-    }
-  }  // namespace Item
-}  // namespace Playlist
+  SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSet::Ptr items, const Search::Data& data)
+  {
+    const Predicate::Ptr pred = CreatePredicate(data);
+    return MakePtr<SearchOperation>(items, pred);
+  }
+}  // namespace Playlist::Item

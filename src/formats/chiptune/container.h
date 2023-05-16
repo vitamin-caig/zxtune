@@ -11,11 +11,8 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
-  {
-    Container::Ptr CreateKnownCrcContainer(Binary::Container::Ptr data, uint_t crc);
-    Container::Ptr CreateCalculatingCrcContainer(Binary::Container::Ptr data, std::size_t offset, std::size_t size);
-  }  // namespace Chiptune
-}  // namespace Formats
+  Container::Ptr CreateKnownCrcContainer(Binary::Container::Ptr data, uint_t crc);
+  Container::Ptr CreateCalculatingCrcContainer(Binary::Container::Ptr data, std::size_t offset, std::size_t size);
+}  // namespace Formats::Chiptune

@@ -13,10 +13,7 @@
 // library includes
 #include <binary/view.h>
 
-namespace Module
+namespace Module::VideoGameMusic
 {
-  namespace VideoGameMusic
-  {
-    StringView DetectPlatform(Binary::View blob);
-  }
-}  // namespace Module
+  StringView DetectPlatform(Binary::View blob);
+}  // namespace Module::VideoGameMusic

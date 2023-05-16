@@ -21,41 +21,38 @@
 #include <parameters/container.h>
 #include <time/duration.h>
 
-namespace Playlist
+namespace Playlist::Item
 {
-  namespace Item
+  class Data
   {
-    class Data
-    {
-    public:
-      typedef std::shared_ptr<const Data> Ptr;
+  public:
+    typedef std::shared_ptr<const Data> Ptr;
 
-      virtual ~Data() = default;
+    virtual ~Data() = default;
 
-      virtual bool IsLoaded() const = 0;
-      // common
-      //  eager objects
-      virtual Module::Holder::Ptr GetModule() const = 0;
-      virtual Binary::Data::Ptr GetModuleData() const = 0;
-      //  lightweight objects
-      virtual Parameters::Accessor::Ptr GetModuleProperties() const = 0;
-      virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
-      virtual Capabilities GetCapabilities() const = 0;
-      // playlist-related
-      virtual Error GetState() const = 0;
-      virtual String GetFullPath() const = 0;
-      virtual String GetFilePath() const = 0;
-      virtual String GetType() const = 0;
-      virtual String GetDisplayName() const = 0;
-      virtual Time::Milliseconds GetDuration() const = 0;
-      virtual String GetAuthor() const = 0;
-      virtual String GetTitle() const = 0;
-      virtual String GetComment() const = 0;
-      virtual uint32_t GetChecksum() const = 0;
-      virtual uint32_t GetCoreChecksum() const = 0;
-      virtual std::size_t GetSize() const = 0;
-    };
+    virtual bool IsLoaded() const = 0;
+    // common
+    //  eager objects
+    virtual Module::Holder::Ptr GetModule() const = 0;
+    virtual Binary::Data::Ptr GetModuleData() const = 0;
+    //  lightweight objects
+    virtual Parameters::Accessor::Ptr GetModuleProperties() const = 0;
+    virtual Parameters::Container::Ptr GetAdjustedParameters() const = 0;
+    virtual Capabilities GetCapabilities() const = 0;
+    // playlist-related
+    virtual Error GetState() const = 0;
+    virtual String GetFullPath() const = 0;
+    virtual String GetFilePath() const = 0;
+    virtual String GetType() const = 0;
+    virtual String GetDisplayName() const = 0;
+    virtual Time::Milliseconds GetDuration() const = 0;
+    virtual String GetAuthor() const = 0;
+    virtual String GetTitle() const = 0;
+    virtual String GetComment() const = 0;
+    virtual uint32_t GetChecksum() const = 0;
+    virtual uint32_t GetCoreChecksum() const = 0;
+    virtual std::size_t GetSize() const = 0;
+  };
 
-    typedef ObjectIterator<Data::Ptr> Collection;
-  }  // namespace Item
-}  // namespace Playlist
+  typedef ObjectIterator<Data::Ptr> Collection;
+}  // namespace Playlist::Item

@@ -13,18 +13,15 @@
 // local includes
 #include <module/players/properties_helper.h>
 
-namespace Module
+namespace Module::DAC
 {
-  namespace DAC
+  class PropertiesHelper : public Module::PropertiesHelper
   {
-    class PropertiesHelper : public Module::PropertiesHelper
-    {
-    public:
-      explicit PropertiesHelper(Parameters::Modifier& delegate)
-        : Module::PropertiesHelper(delegate)
-      {}
+  public:
+    explicit PropertiesHelper(Parameters::Modifier& delegate)
+      : Module::PropertiesHelper(delegate)
+    {}
 
-      void SetSamplesFrequency(uint_t freq);
-    };
-  }  // namespace DAC
-}  // namespace Module
+    void SetSamplesFrequency(uint_t freq);
+  };
+}  // namespace Module::DAC

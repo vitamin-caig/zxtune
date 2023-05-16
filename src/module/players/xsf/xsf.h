@@ -16,11 +16,8 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Module
+namespace Module::XSF
 {
-  namespace XSF
-  {
-    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, File& file);
-    Formats::Chiptune::Container::Ptr Parse(StringView name, const Binary::Container& data, File& file);
-  }  // namespace XSF
-}  // namespace Module
+  Formats::Chiptune::Container::Ptr Parse(const Binary::Container& rawData, File& file);
+  Formats::Chiptune::Container::Ptr Parse(StringView name, const Binary::Container& data, File& file);
+}  // namespace Module::XSF

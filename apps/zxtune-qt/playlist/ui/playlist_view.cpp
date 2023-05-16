@@ -738,17 +738,14 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
-  {
-    View::View(QWidget& parent)
-      : QWidget(&parent)
-    {}
+  View::View(QWidget& parent)
+    : QWidget(&parent)
+  {}
 
-    View* View::Create(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params)
-    {
-      return new ViewImpl(parent, playlist, params);
-    }
-  }  // namespace UI
-}  // namespace Playlist
+  View* View::Create(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params)
+  {
+    return new ViewImpl(parent, playlist, params);
+  }
+}  // namespace Playlist::UI

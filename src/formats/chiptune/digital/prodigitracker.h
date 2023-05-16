@@ -17,44 +17,41 @@
 // library includes
 #include <formats/chiptune.h>
 
-namespace Formats
+namespace Formats::Chiptune
 {
-  namespace Chiptune
+  namespace ProDigiTracker
   {
-    namespace ProDigiTracker
+    typedef LinesObject<int_t> Ornament;
+
+    typedef LinesObject<uint_t> Positions;
+
+    class Builder
     {
-      typedef LinesObject<int_t> Ornament;
+    public:
+      virtual ~Builder() = default;
 
-      typedef LinesObject<uint_t> Positions;
+      virtual MetaBuilder& GetMetaBuilder() = 0;
+      // common properties
+      virtual void SetInitialTempo(uint_t tempo) = 0;
+      // samples
+      virtual void SetSample(uint_t index, std::size_t loop, Binary::View sample) = 0;
+      virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
+      // patterns
+      virtual void SetPositions(Positions positions) = 0;
 
-      class Builder
-      {
-      public:
-        virtual ~Builder() = default;
+      virtual PatternBuilder& StartPattern(uint_t index) = 0;
 
-        virtual MetaBuilder& GetMetaBuilder() = 0;
-        // common properties
-        virtual void SetInitialTempo(uint_t tempo) = 0;
-        // samples
-        virtual void SetSample(uint_t index, std::size_t loop, Binary::View sample) = 0;
-        virtual void SetOrnament(uint_t index, Ornament ornament) = 0;
-        // patterns
-        virtual void SetPositions(Positions positions) = 0;
+      //! @invariant Channels are built sequentally
+      virtual void StartChannel(uint_t index) = 0;
+      virtual void SetRest() = 0;
+      virtual void SetNote(uint_t note) = 0;
+      virtual void SetSample(uint_t sample) = 0;
+      virtual void SetOrnament(uint_t ornament) = 0;
+    };
 
-        virtual PatternBuilder& StartPattern(uint_t index) = 0;
+    Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
+    Builder& GetStubBuilder();
+  }  // namespace ProDigiTracker
 
-        //! @invariant Channels are built sequentally
-        virtual void StartChannel(uint_t index) = 0;
-        virtual void SetRest() = 0;
-        virtual void SetNote(uint_t note) = 0;
-        virtual void SetSample(uint_t sample) = 0;
-        virtual void SetOrnament(uint_t ornament) = 0;
-      };
-
-      Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
-      Builder& GetStubBuilder();
-    }  // namespace ProDigiTracker
-
-    Decoder::Ptr CreateProDigiTrackerDecoder();
-  }  // namespace Chiptune
-}  // namespace Formats
+  Decoder::Ptr CreateProDigiTrackerDecoder();
+}  // namespace Formats::Chiptune

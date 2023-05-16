@@ -16,23 +16,20 @@
 #include <module/players/factory.h>
 #include <strings/map.h>
 
-namespace Module
+namespace Module::XSF
 {
-  namespace XSF
+  using FilesMap = Strings::ValueMap<File>;
+
+  class Factory
   {
-    using FilesMap = Strings::ValueMap<File>;
+  public:
+    using Ptr = std::shared_ptr<const Factory>;
+    virtual ~Factory() = default;
 
-    class Factory
-    {
-    public:
-      using Ptr = std::shared_ptr<const Factory>;
-      virtual ~Factory() = default;
+    virtual Holder::Ptr CreateSinglefileModule(const File& file, Parameters::Container::Ptr properties) const = 0;
+    virtual Holder::Ptr CreateMultifileModule(const File& file, const FilesMap& additionalFiles,
+                                              Parameters::Container::Ptr properties) const = 0;
+  };
 
-      virtual Holder::Ptr CreateSinglefileModule(const File& file, Parameters::Container::Ptr properties) const = 0;
-      virtual Holder::Ptr CreateMultifileModule(const File& file, const FilesMap& additionalFiles,
-                                                Parameters::Container::Ptr properties) const = 0;
-    };
-
-    Module::Factory::Ptr CreateFactory(XSF::Factory::Ptr delegate);
-  }  // namespace XSF
-}  // namespace Module
+  Module::Factory::Ptr CreateFactory(XSF::Factory::Ptr delegate);
+}  // namespace Module::XSF

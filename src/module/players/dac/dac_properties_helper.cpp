@@ -13,13 +13,10 @@
 // core includes
 #include <core/core_parameters.h>
 
-namespace Module
+namespace Module::DAC
 {
-  namespace DAC
+  void PropertiesHelper::SetSamplesFrequency(uint_t freq)
   {
-    void PropertiesHelper::SetSamplesFrequency(uint_t freq)
-    {
-      Delegate.SetValue(Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY, freq);
-    }
-  }  // namespace DAC
-}  // namespace Module
+    Delegate.SetValue(Parameters::ZXTune::Core::DAC::SAMPLES_FREQUENCY, freq);
+  }
+}  // namespace Module::DAC

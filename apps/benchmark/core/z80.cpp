@@ -46,31 +46,28 @@ namespace
   };
 }  // namespace
 
-namespace Benchmark
+namespace Benchmark::Z80
 {
-  namespace Z80
+  Devices::Z80::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t intTicks, Binary::View memory,
+                                       Devices::Z80::ChipIO::Ptr io)
   {
-    Devices::Z80::Chip::Ptr CreateDevice(uint64_t clockFreq, uint_t intTicks, Binary::View memory,
-                                         Devices::Z80::ChipIO::Ptr io)
-    {
-      auto params = MakePtr<Z80Parameters>(clockFreq, intTicks);
-      return Devices::Z80::CreateChip(std::move(params), memory, std::move(io));
-    }
+    auto params = MakePtr<Z80Parameters>(clockFreq, intTicks);
+    return Devices::Z80::CreateChip(std::move(params), memory, std::move(io));
+  }
 
-    double Test(Devices::Z80::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration)
+  double Test(Devices::Z80::Chip& dev, const Time::Milliseconds& duration, const Time::Microseconds& frameDuration)
+  {
+    using namespace Devices::Z80;
+    const Time::Timer timer;
+    const auto period = frameDuration.CastTo<TimeUnit>();
+    const auto frames = duration.Divide<uint_t>(frameDuration);
+    Stamp stamp;
+    for (uint_t frame = 0; frame != frames; ++frame)
     {
-      using namespace Devices::Z80;
-      const Time::Timer timer;
-      const auto period = frameDuration.CastTo<TimeUnit>();
-      const auto frames = duration.Divide<uint_t>(frameDuration);
-      Stamp stamp;
-      for (uint_t frame = 0; frame != frames; ++frame)
-      {
-        dev.Interrupt();
-        dev.Execute(stamp += period);
-      }
-      const auto elapsed = timer.Elapsed();
-      return (frameDuration * frames).Divide<double>(elapsed);
+      dev.Interrupt();
+      dev.Execute(stamp += period);
     }
-  }  // namespace Z80
-}  // namespace Benchmark
+    const auto elapsed = timer.Elapsed();
+    return (frameDuration * frames).Divide<double>(elapsed);
+  }
+}  // namespace Benchmark::Z80

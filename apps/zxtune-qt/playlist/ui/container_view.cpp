@@ -510,18 +510,15 @@ namespace
   };
 }  // namespace
 
-namespace Playlist
+namespace Playlist::UI
 {
-  namespace UI
-  {
-    ContainerView::ContainerView(QWidget& parent)
-      : QWidget(&parent)
-    {}
+  ContainerView::ContainerView(QWidget& parent)
+    : QWidget(&parent)
+  {}
 
-    ContainerView* ContainerView::Create(QWidget& parent, Parameters::Container::Ptr parameters)
-    {
-      REGISTER_METATYPE(Playlist::Controller::Ptr);
-      return new ContainerViewImpl(parent, parameters);
-    }
-  }  // namespace UI
-}  // namespace Playlist
+  ContainerView* ContainerView::Create(QWidget& parent, Parameters::Container::Ptr parameters)
+  {
+    REGISTER_METATYPE(Playlist::Controller::Ptr);
+    return new ContainerViewImpl(parent, parameters);
+  }
+}  // namespace Playlist::UI
