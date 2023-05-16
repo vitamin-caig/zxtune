@@ -358,7 +358,7 @@ namespace
       iters.reserve(Items.size());
       for (auto it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
-        iters.push_back(it);
+        iters.emplace_back(it);
       }
       std::random_shuffle(iters.begin(), iters.end());
       ItemsContainer newOne;

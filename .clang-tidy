@@ -11,6 +11,7 @@
                     modernize-pass-by-value,
                     modernize-use-auto,
                     modernize-use-default-member-init,
+                    modernize-use-emplace,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

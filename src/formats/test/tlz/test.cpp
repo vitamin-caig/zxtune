@@ -16,7 +16,7 @@ namespace
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateTurboLZDecoder();
     std::vector<std::string> tests;
-    tests.push_back("packed1.bin");
+    tests.emplace_back("packed1.bin");
     Test::TestPacked(*decoder, "etalon.bin", tests);
   }
 
@@ -24,7 +24,7 @@ namespace
   {
     const Formats::Packed::Decoder::Ptr decoder = Formats::Packed::CreateTurboLZProtectedDecoder();
     std::vector<std::string> tests;
-    tests.push_back("packed2.bin");
+    tests.emplace_back("packed2.bin");
     Test::TestPacked(*decoder, "etalon.bin", tests);
   }
 }  // namespace

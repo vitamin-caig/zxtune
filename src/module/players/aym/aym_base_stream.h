@@ -82,7 +82,7 @@ namespace Module::AYM
 
     Devices::AYM::Registers& AddFrame()
     {
-      Data.push_back({});
+      Data.emplace_back();
       return Data.back();
     }
   };

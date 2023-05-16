@@ -13,8 +13,8 @@
 int main()
 {
   std::vector<std::string> tests;
-  tests.push_back("slow.msp:229");
-  tests.push_back("fast.msp:229");
+  tests.emplace_back("slow.msp:229");
+  tests.emplace_back("fast.msp:229");
 
   try
   {

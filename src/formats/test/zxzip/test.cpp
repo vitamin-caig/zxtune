@@ -13,9 +13,9 @@
 int main()
 {
   std::vector<std::string> tests;
-  tests.push_back("none.bin");    // 0
-  tests.push_back("normal.bin");  // 3
-  tests.push_back("fast.bin");    // 2
+  tests.emplace_back("none.bin");    // 0
+  tests.emplace_back("normal.bin");  // 3
+  tests.emplace_back("fast.bin");    // 2
   // tests.push_back("slow.bin");   //1
 
   try

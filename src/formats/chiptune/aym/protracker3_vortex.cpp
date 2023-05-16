@@ -1102,7 +1102,7 @@ namespace Formats::Chiptune
         for (auto line = src.ReadString(); !line.empty();
              line = 0 != src.GetRestSize() ? src.ReadString() : StringView())
         {
-          Lines.push_back(PatternLineObject(line));
+          Lines.emplace_back(line);
         }
       }
 
@@ -1346,14 +1346,14 @@ namespace Formats::Chiptune
 
       void SetSample(uint_t index, Sample sample) override
       {
-        Samples.push_back(SampleObject(std::move(sample), index));
+        Samples.emplace_back(std::move(sample), index);
       }
 
       void SetOrnament(uint_t index, Ornament ornament) override
       {
         if (index != DEFAULT_ORNAMENT)
         {
-          Ornaments.push_back(OrnamentObject(std::move(ornament), index));
+          Ornaments.emplace_back(std::move(ornament), index);
         }
       }
 
@@ -1531,7 +1531,7 @@ namespace Formats::Chiptune
 
         void SetPattern(uint_t idx)
         {
-          Patterns.push_back(PatternObject(idx));
+          Patterns.emplace_back(idx);
           CurPattern = &Patterns.back();
           CurLine = nullptr;
           CurChannel = nullptr;

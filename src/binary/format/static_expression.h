@@ -116,7 +116,7 @@ namespace Binary::FormatDSL
       Data.reserve(pat.size());
       for (const auto& pred : pat)
       {
-        Data.push_back(StaticPredicate(*pred));
+        Data.emplace_back(*pred);
       }
     }
 

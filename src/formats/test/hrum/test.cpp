@@ -13,8 +13,8 @@
 int main()
 {
   std::vector<std::string> tests;
-  tests.push_back("packed1.bin");
-  tests.push_back("packed2.bin");
+  tests.emplace_back("packed1.bin");
+  tests.emplace_back("packed2.bin");
 
   try
   {
