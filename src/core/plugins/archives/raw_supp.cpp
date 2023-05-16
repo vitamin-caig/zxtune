@@ -123,10 +123,10 @@ namespace ZXTune
       builder.Add(MakeStatLine(), 0);
       StatItem total;
       total.Name = "Total";
-      for (DetectMap::const_iterator it = Detection.begin(), lim = Detection.end(); it != lim; ++it)
+      for (const auto& it : Detection)
       {
-        builder.Add(MakeStatLine(it->second), 1 + it->second.Index);
-        total += it->second;
+        builder.Add(MakeStatLine(it.second), 1 + it.second.Index);
+        total += it.second;
       }
       builder.Add(MakeStatLine(total), 1 + Detection.size());
       Dbg(builder.Get().c_str());

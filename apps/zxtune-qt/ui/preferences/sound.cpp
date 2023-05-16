@@ -82,9 +82,9 @@ namespace
     void SelectBackend(int idx) override
     {
       const auto& id = Backends[idx];
-      for (auto it = SetupPages.begin(), lim = SetupPages.end(); it != lim; ++it)
+      for (const auto& page : SetupPages)
       {
-        it->second->setVisible(it->first == id);
+        page.second->setVisible(page.first == id);
       }
       settingsHint->setVisible(0 == SetupPages.count(id));
     }

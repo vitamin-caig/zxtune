@@ -96,9 +96,8 @@ namespace
 
     void Load(Playlist::Container::Ptr container) override
     {
-      for (QStringList::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      for (const auto& fileName : Files)
       {
-        const QString& fileName = *it;
         const QString& fullPath = SourceDir.absoluteFilePath(fileName);
         Dbg("Loading stored playlist '{}'", FromQString(fullPath));
         container->OpenPlaylist(fullPath);

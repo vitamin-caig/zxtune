@@ -115,13 +115,11 @@ namespace
     void AddPlayerPlugin(const ZXTune::Plugin& plugin)
     {
       const uint_t deviceType = plugin.Capabilities() & ZXTune::Capabilities::Module::Device::MASK;
-      for (std::map<uint_t, QTreeWidgetItem*>::const_iterator it = PlayersByDeviceType.begin(),
-                                                              lim = PlayersByDeviceType.end();
-           it != lim; ++it)
+      for (const auto& it : PlayersByDeviceType)
       {
-        if (0 != (deviceType & it->first))
+        if (0 != (deviceType & it.first))
         {
-          AddPlayerPluginItem(plugin, *it->second);
+          AddPlayerPluginItem(plugin, *it.second);
           return;
         }
       }

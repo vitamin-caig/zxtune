@@ -295,9 +295,9 @@ namespace Sound::Win32
       : Buffers(count)
       , Cursor()
     {
-      for (BuffersArray::iterator it = Buffers.begin(), lim = Buffers.end(); it != lim; ++it)
+      for (auto& buf : Buffers)
       {
-        *it = MakePtr<WaveBuffer>(device);
+        buf = MakePtr<WaveBuffer>(device);
       }
     }
 

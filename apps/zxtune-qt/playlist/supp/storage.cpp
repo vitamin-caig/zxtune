@@ -316,9 +316,9 @@ namespace
 
     void ForAllItems(Item::Visitor& visitor) const override
     {
-      for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
+      for (const auto& item : Items)
       {
-        visitor.OnItem(it->second, it->first);
+        visitor.OnItem(item.second, item.first);
       }
     }
 
@@ -366,10 +366,9 @@ namespace
       }
       std::random_shuffle(iters.begin(), iters.end());
       ItemsContainer newOne;
-      for (std::vector<ItemsContainer::const_iterator>::const_iterator it = iters.begin(), lim = iters.end(); it != lim;
-           ++it)
+      for (const auto& it : iters)
       {
-        newOne.push_back(**it);
+        newOne.push_back(*it);
       }
       newOne.swap(Items);
       ClearCache();

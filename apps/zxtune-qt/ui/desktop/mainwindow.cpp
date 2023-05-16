@@ -276,10 +276,10 @@ namespace
     void FillLayoutMenu()
     {
       menuLayout->clear();
-      for (std::vector<WidgetOnToolbar>::const_iterator it = Toolbars.begin(), lim = Toolbars.end(); it != lim; ++it)
+      for (const auto& toolbar : Toolbars)
       {
-        it->second->setWindowTitle(it->first->windowTitle());
-        menuLayout->addAction(it->second->toggleViewAction());
+        toolbar.second->setWindowTitle(toolbar.first->windowTitle());
+        menuLayout->addAction(toolbar.second->toggleViewAction());
       }
     }
 

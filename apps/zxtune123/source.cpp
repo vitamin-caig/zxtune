@@ -240,9 +240,9 @@ namespace
 
     void ProcessItems(OnItemCallback& callback) override
     {
-      for (Strings::Array::const_iterator it = Files.begin(), lim = Files.end(); it != lim; ++it)
+      for (const auto& file : Files)
       {
-        ProcessItem(*it, callback);
+        ProcessItem(file, callback);
       }
     }
 
