@@ -313,7 +313,7 @@ namespace
       , Dir(ExtractDir(*DataId))
     {}
 
-    ~DataSource()
+    ~DataSource() override
     {
       Provider->FlushCachedData(DataId->Path());
     }

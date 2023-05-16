@@ -198,7 +198,7 @@ namespace
       return Service->EnumerateBackends();
     }
 
-    uint_t GetSamplerate() const
+    uint_t GetSamplerate() const override
     {
       return Sound::GetSoundFrequency(*Params->GetDefaultParameters());
     }

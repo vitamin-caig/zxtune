@@ -197,7 +197,7 @@ namespace Sound::Win32
       , Header()
     {}
 
-    virtual ~WaveBuffer()
+    ~WaveBuffer() override
     {
       try
       {
@@ -209,7 +209,7 @@ namespace Sound::Win32
       }
     }
 
-    virtual void Write(const Chunk& buf)
+    void Write(const Chunk& buf) override
     {
       PrepareBuffer(buf.size());
       /*
@@ -302,7 +302,7 @@ namespace Sound::Win32
       }
     }
 
-    virtual ~CycledWaveBuffer()
+    ~CycledWaveBuffer() override
     {
       try
       {
@@ -314,7 +314,7 @@ namespace Sound::Win32
       }
     }
 
-    virtual void Write(const Chunk& buf)
+    void Write(const Chunk& buf) override
     {
       Buffers[Cursor]->Write(buf);
       Cursor = (Cursor + 1) % Buffers.size();
@@ -343,14 +343,14 @@ namespace Sound::Win32
       Dbg("Created volume controller");
     }
 
-    virtual Gain GetVolume() const
+    Gain GetVolume() const override
     {
       DWORD buffer = 0;
       Device->GetVolume(&buffer);
       return Gain(DecodeVolume(uint16_t(buffer & 0xffff)), DecodeVolume(uint16_t(buffer >> 16)));
     }
 
-    virtual void SetVolume(const Gain& volume)
+    void SetVolume(const Gain& volume) override
     {
       if (!volume.IsNormalized())
       {
@@ -415,19 +415,19 @@ namespace Sound::Win32
       , RenderingParameters(RenderParameters::Create(BackendParams))
     {}
 
-    virtual ~BackendWorker()
+    ~BackendWorker() override
     {
       assert(!Objects.Device || !"Win32Backend::Stop should be called before exit");
     }
 
-    virtual void Startup()
+    void Startup() override
     {
       Dbg("Starting");
       Objects = OpenDevices();
       Dbg("Started");
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       Dbg("Stopping");
       Objects.Volume.reset();
@@ -436,24 +436,24 @@ namespace Sound::Win32
       Dbg("Stopped");
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Objects.Device->Pause();
     }
 
-    virtual void Resume()
+    void Resume() override
     {
       Objects.Device->Resume();
     }
 
-    virtual void FrameStart(const Module::State& /*state*/) {}
+    void FrameStart(const Module::State& /*state*/) override {}
 
-    virtual void FrameFinish(Chunk buffer)
+    void FrameFinish(Chunk buffer) override
     {
       Objects.Target->Write(buffer);
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return CreateVolumeControlDelegate(Objects.Volume);
     }
@@ -503,7 +503,7 @@ namespace Sound::Win32
       : WinApi(std::move(api))
     {}
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       return MakePtr<BackendWorker>(WinApi, params);
     }
@@ -520,12 +520,12 @@ namespace Sound::Win32
       , IdValue(id)
     {}
 
-    virtual int_t Id() const
+    int_t Id() const override
     {
       return IdValue;
     }
 
-    virtual String Name() const
+    String Name() const override
     {
       WAVEOUTCAPSW caps;
       if (MMSYSERR_NOERROR != WinApi->waveOutGetDevCapsW(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
@@ -562,17 +562,17 @@ namespace Sound::Win32
       }
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Current != Limit;
     }
 
-    virtual Device::Ptr Get() const
+    Device::Ptr Get() const override
     {
       return IsValid() ? MakePtr<WaveDevice>(WinApi, Current) : Device::Ptr();
     }
 
-    virtual void Next()
+    void Next() override
     {
       if (IsValid())
       {

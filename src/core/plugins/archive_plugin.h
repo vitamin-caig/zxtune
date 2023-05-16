@@ -27,7 +27,7 @@ namespace ZXTune
   class ArchiveCallback : public Module::DetectCallback
   {
   public:
-    virtual ~ArchiveCallback() = default;
+    ~ArchiveCallback() override = default;
 
     virtual void ProcessData(DataLocation::Ptr data) = 0;
   };

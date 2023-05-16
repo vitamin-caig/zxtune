@@ -336,13 +336,13 @@ namespace Sound::OpenAl
       : Src(src)
     {}
 
-    virtual Gain GetVolume() const
+    Gain GetVolume() const override
     {
       const Gain::Type val(Src.GetGain());
       return Gain(val, val);
     }
 
-    virtual void SetVolume(const Gain& vol)
+    void SetVolume(const Gain& vol) override
     {
       const float val = ALfloat(vol.Left().Raw() + vol.Right().Raw()) / (2 * Gain::Type::PRECISION);
       Src.SetGain(val);
@@ -373,7 +373,7 @@ namespace Sound::OpenAl
       , Params(std::move(params))
     {}
 
-    virtual void Startup()
+    void Startup() override
     {
       Dbg("Starting playback");
 
@@ -381,32 +381,32 @@ namespace Sound::OpenAl
       Stat = std::make_unique<State>(*OalApi, params);
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       Dbg("Shutdown");
       Stat.reset();
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Dbg("Pause");
       Stat->Src->Pause();
     }
 
-    virtual void Resume()
+    void Resume() override
     {
       Dbg("Resume");
       Stat->Src->Play();
     }
 
-    virtual void FrameStart(const Module::State& /*state*/) {}
+    void FrameStart(const Module::State& /*state*/) override {}
 
-    virtual void FrameFinish(Chunk buffer)
+    void FrameFinish(Chunk buffer) override
     {
       Stat->Src->Write(buffer);
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return CreateVolumeControlDelegate(Stat->Vol);
     }
@@ -424,7 +424,7 @@ namespace Sound::OpenAl
       : OalApi(std::move(api))
     {}
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       return MakePtr<BackendWorker>(OalApi, params);
     }

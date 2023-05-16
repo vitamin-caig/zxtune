@@ -158,7 +158,7 @@ namespace Sound::Sdl
       }
     }
 
-    virtual ~BackendWorker()
+    ~BackendWorker() override
     {
       if (0 == WasInitialized)
       {
@@ -172,7 +172,7 @@ namespace Sound::Sdl
       }
     }
 
-    virtual void Startup()
+    void Startup() override
     {
       Dbg("Starting playback");
 
@@ -213,32 +213,32 @@ namespace Sound::Sdl
       SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       Dbg("Shutdown");
       SdlApi->SDL_CloseAudio();
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Dbg("Pause");
       SdlApi->SDL_PauseAudio(1);
     }
 
-    virtual void Resume()
+    void Resume() override
     {
       Dbg("Resume");
       SdlApi->SDL_PauseAudio(0);
     }
 
-    virtual void FrameStart(const Module::State& /*state*/) {}
+    void FrameStart(const Module::State& /*state*/) override {}
 
-    virtual void FrameFinish(Chunk buffer)
+    void FrameFinish(Chunk buffer) override
     {
       Queue.AddData(buffer);
     }
 
-    virtual VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return VolumeControl::Ptr();
     }
@@ -276,7 +276,7 @@ namespace Sound::Sdl
       : SdlApi(std::move(api))
     {}
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       return MakePtr<BackendWorker>(SdlApi, params);
     }

@@ -316,7 +316,7 @@ namespace Sound::DirectSound
       , Buffer(std::move(buffer))
     {}
 
-    virtual Gain GetVolume() const
+    Gain GetVolume() const override
     {
       const VolPan vols = GetVolumeImpl();
       static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
@@ -328,7 +328,7 @@ namespace Sound::DirectSound
       return volume;
     }
 
-    virtual void SetVolume(const Gain& volume)
+    void SetVolume(const Gain& volume) override
     {
       if (!volume.IsNormalized())
       {
@@ -405,30 +405,30 @@ namespace Sound::DirectSound
       , RenderingParameters(RenderParameters::Create(BackendParams))
     {}
 
-    virtual void Startup()
+    void Startup() override
     {
       Dbg("Starting");
       Objects = OpenDevices();
       Dbg("Started");
     }
 
-    virtual void Shutdown()
+    void Shutdown() override
     {
       Dbg("Stopping");
       Objects = DSObjects();
       Dbg("Stopped");
     }
 
-    virtual void Pause()
+    void Pause() override
     {
       Objects.Stream->Pause();
     }
 
-    virtual void Resume() {}
+    void Resume() override {}
 
-    virtual void FrameStart(const Module::State& /*state*/) {}
+    void FrameStart(const Module::State& /*state*/) override {}
 
-    virtual void FrameFinish(Chunk buffer)
+    void FrameFinish(Chunk buffer) override
     {
       /*
 
@@ -448,7 +448,7 @@ namespace Sound::DirectSound
       Objects.Stream->Add(buffer);
     }
 
-    VolumeControl::Ptr GetVolumeControl() const
+    VolumeControl::Ptr GetVolumeControl() const override
     {
       return CreateVolumeControlDelegate(Objects.Volume);
     }
@@ -504,7 +504,7 @@ namespace Sound::DirectSound
       : DsApi(std::move(api))
     {}
 
-    virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
+    BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const override
     {
       return MakePtr<BackendWorker>(DsApi, params);
     }
@@ -521,12 +521,12 @@ namespace Sound::DirectSound
       , NameValue(name.to_string())
     {}
 
-    virtual String Id() const
+    String Id() const override
     {
       return IdValue;
     }
 
-    virtual String Name() const
+    String Name() const override
     {
       return NameValue;
     }
@@ -554,17 +554,17 @@ namespace Sound::DirectSound
       }
     }
 
-    virtual bool IsValid() const
+    bool IsValid() const override
     {
       return Current != Devices.end();
     }
 
-    virtual Device::Ptr Get() const
+    Device::Ptr Get() const override
     {
       return IsValid() ? MakePtr<DirectSoundDevice>(Current->first, Current->second) : Device::Ptr();
     }
 
-    virtual void Next()
+    void Next() override
     {
       if (IsValid())
       {

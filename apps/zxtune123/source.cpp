@@ -140,7 +140,7 @@ namespace
       , ProgressCallback(showLogs ? new ProgressCallbackImpl() : nullptr)
     {}
 
-    Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const
+    Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const override
     {
       auto subId = Id->WithSubpath(subpath);
       auto moduleProperties = Module::CreatePathProperties(std::move(subId));

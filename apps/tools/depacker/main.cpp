@@ -61,17 +61,17 @@ namespace
   class AutoDecoder : public Formats::Packed::Decoder
   {
   public:
-    virtual String GetDescription() const
+    String GetDescription() const override
     {
       return "Autodetect";
     }
 
-    virtual Binary::Format::Ptr GetFormat() const
+    Binary::Format::Ptr GetFormat() const override
     {
       throw std::runtime_error("Should not be called");
     }
 
-    virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const
+    Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData) const override
     {
       for (const auto& trait : DECODERS)
       {

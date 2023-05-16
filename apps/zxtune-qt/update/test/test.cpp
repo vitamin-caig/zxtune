@@ -46,7 +46,7 @@ namespace
       : Stream(&dump)
     {}
 
-    virtual void OnEntry(const RSS::Entry& entry)
+    void OnEntry(const RSS::Entry& entry) override
     {
       Stream << QString(
                     "Entry %1\n"
@@ -73,7 +73,7 @@ namespace
       : Stream(&dump)
     {}
 
-    virtual void OnDownload(Product::Update::Ptr update)
+    void OnDownload(Product::Update::Ptr update) override
     {
       Stream << QString(
                     "Download %1\n"

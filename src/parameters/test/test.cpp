@@ -111,19 +111,19 @@ namespace
   class CountingVisitor : public Parameters::Visitor
   {
   public:
-    void SetValue(Parameters::Identifier name, Parameters::IntType val)
+    void SetValue(Parameters::Identifier name, Parameters::IntType val) override
     {
       Names.emplace_back(name.AsString());
       Integers.push_back(val);
     }
 
-    void SetValue(Parameters::Identifier name, StringView val)
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
       Names.emplace_back(name.AsString());
       Strings.emplace_back(val.to_string());
     }
 
-    void SetValue(Parameters::Identifier name, Binary::View val)
+    void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       Names.emplace_back(name.AsString());
       const auto* raw = val.As<uint8_t>();

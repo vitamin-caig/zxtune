@@ -54,7 +54,7 @@ namespace
       return *this;
     }
 
-    void SetTimings(Time::Milliseconds total, Time::Milliseconds loop)
+    void SetTimings(Time::Milliseconds total, Time::Milliseconds loop) override
     {
       std::cout << "Duration: " << Time::ToString(total) << "\nLoop: " << Time::ToString(loop) << std::endl;
     }

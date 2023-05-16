@@ -153,7 +153,7 @@ namespace
         Write(3, "Region: {} ({} fps)", region, fps);
       }
 
-      void SetTextSection(uint32_t address, Binary::View content)
+      void SetTextSection(uint32_t address, Binary::View content) override
       {
         Write(3, "Text section: {0} (0x{0:08x}) bytes at 0x{1:08x}", content.Size(), address);
         DumpHex(4, content.Start(), content.Size());

@@ -48,12 +48,12 @@ namespace
       Write(name, Parameters::ConvertToString(val));
     }
 
-    virtual void SetValue(Parameters::Identifier name, StringView val) override
+    void SetValue(Parameters::Identifier name, StringView val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }
 
-    virtual void SetValue(Parameters::Identifier name, Binary::View val) override
+    void SetValue(Parameters::Identifier name, Binary::View val) override
     {
       Write(name, Parameters::ConvertToString(val));
     }
