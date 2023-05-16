@@ -22,6 +22,7 @@
 #include <sound/sound_parameters.h>
 #include <zxtune.h>
 // std includes
+#include <memory>
 #include <set>
 // qt includes
 #include <QtCore/QDir>
@@ -162,7 +163,7 @@ namespace
     {
       if (!Saver)
       {
-        Saver.reset(new StringPropertySaver(XML));
+        Saver = std::make_unique<StringPropertySaver>(XML);
       }
       const String strVal = Parameters::ConvertToString(value);
       Saver->SaveProperty(name, strVal);
@@ -434,26 +435,26 @@ namespace
     std::unique_ptr<ItemWriter> props;
     if (0 != (flags & Playlist::IO::SAVE_CONTENT))
     {
-      location.reset(new ItemContentLocationWriter());
-      props.reset(new ItemShortPropertiesWriter());
+      location = std::make_unique<ItemContentLocationWriter>();
+      props = std::make_unique<ItemShortPropertiesWriter>();
     }
     else
     {
       if (0 != (flags & Playlist::IO::SAVE_ATTRIBUTES))
       {
-        props.reset(new ItemFullPropertiesWriter());
+        props = std::make_unique<ItemFullPropertiesWriter>();
       }
       else
       {
-        props.reset(new ItemShortPropertiesWriter());
+        props = std::make_unique<ItemShortPropertiesWriter>();
       }
       if (0 != (flags & Playlist::IO::RELATIVE_PATHS))
       {
-        location.reset(new ItemRelativeLocationWriter(QFileInfo(filename).absolutePath()));
+        location = std::make_unique<ItemRelativeLocationWriter>(QFileInfo(filename).absolutePath());
       }
       else
       {
-        location.reset(new ItemFullLocationWriter());
+        location = std::make_unique<ItemFullLocationWriter>();
       }
     }
     return std::unique_ptr<const ItemWriter>(new ItemCompositeWriter(std::move(location), std::move(props)));

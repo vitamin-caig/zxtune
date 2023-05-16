@@ -20,6 +20,7 @@
 #include <strings/encoding.h>
 #include <strings/map.h>
 // std includes
+#include <memory>
 #include <numeric>
 
 namespace Formats::Archived
@@ -302,7 +303,7 @@ namespace Formats::Archived
       {
         if (!Iter.get())
         {
-          Iter.reset(new FileIterator(*Decoder, *Delegate));
+          Iter = std::make_unique<FileIterator>(*Decoder, *Delegate);
         }
       }
 

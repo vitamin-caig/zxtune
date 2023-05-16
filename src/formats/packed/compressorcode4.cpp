@@ -24,6 +24,7 @@
 // std includes
 #include <algorithm>
 #include <iterator>
+#include <memory>
 
 namespace Formats::Packed
 {
@@ -479,7 +480,8 @@ namespace Formats::Packed
       {
         if (container.FastCheck() && DecodeHuffman(container.GetAvailableData() - DataOffset))
         {
-          Delegate.reset(new RawDataDecoder(&UnhuffmanData.Get<uint8_t>(0), UnhuffmanData.Size(), Header.ChunksCount));
+          Delegate = std::make_unique<RawDataDecoder>(&UnhuffmanData.Get<uint8_t>(0), UnhuffmanData.Size(),
+                                                      Header.ChunksCount);
         }
       }
 

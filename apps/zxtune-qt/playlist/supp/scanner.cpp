@@ -21,6 +21,7 @@
 #include <debug/log.h>
 #include <time/elapsed.h>
 // std includes
+#include <memory>
 #include <mutex>
 // qt includes
 #include <QtCore/QDirIterator>
@@ -117,7 +118,7 @@ namespace
     void OpenDir(const QString& name)
     {
       const QDir::Filters filter = QDir::Files | QDir::NoDotAndDotDot | QDir::Hidden;
-      CurDir.reset(new QDirIterator(name, filter, QDirIterator::Subdirectories));
+      CurDir = std::make_unique<QDirIterator>(name, filter, QDirIterator::Subdirectories);
     }
 
     void CloseDir()

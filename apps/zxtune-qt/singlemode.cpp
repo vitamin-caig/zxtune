@@ -22,6 +22,7 @@
 #include <QtCore/QDir>
 #include <QtNetwork/QLocalServer>
 #include <QtNetwork/QLocalSocket>
+#include <memory>
 
 namespace
 {
@@ -198,7 +199,7 @@ namespace
 
     void StartLocalServer()
     {
-      Server.reset(new QLocalServer(this));
+      Server = std::make_unique<QLocalServer>(this);
       Require(connect(Server.get(), SIGNAL(newConnection()), SLOT(SlaveStarted())));
       while (!Server->listen(SERVER_NAME))
       {

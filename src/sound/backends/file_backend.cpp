@@ -25,6 +25,8 @@
 #include <parameters/convert.h>
 #include <parameters/template.h>
 #include <sound/backends_parameters.h>
+// std includes
+#include <memory>
 
 namespace Sound::File
 {
@@ -272,7 +274,7 @@ namespace Sound::File
     // BackendWorker
     void Startup() override
     {
-      Source.reset(new StreamSource(Params, Properties, Factory));
+      Source = std::make_unique<StreamSource>(Params, Properties, Factory);
     }
 
     void Shutdown() override

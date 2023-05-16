@@ -26,6 +26,7 @@
 #include <sound/render_params.h>
 // std includes
 #include <functional>
+#include <memory>
 #include <thread>
 
 namespace Sound::OpenAl
@@ -175,7 +176,7 @@ namespace Sound::OpenAl
       OalApi.alGetError();
       OalApi.alGenSources(1, &SrcId);
       CheckError(THIS_LINE);
-      Queue.reset(new Buffers(OalApi, buffersCount));
+      Queue = std::make_unique<Buffers>(OalApi, buffersCount);
       StartPlayback(buffersCount);
     }
 
@@ -281,7 +282,7 @@ namespace Sound::OpenAl
       {
         RaiseError(THIS_LINE);
       }
-      Context.reset(new ActiveContext(OalApi, *Dev));
+      Context = std::make_unique<ActiveContext>(OalApi, *Dev);
     }
 
   private:
@@ -376,7 +377,7 @@ namespace Sound::OpenAl
       Dbg("Starting playback");
 
       const BackendParameters params(Params);
-      Stat.reset(new State(*OalApi, params));
+      Stat = std::make_unique<State>(*OalApi, params);
     }
 
     virtual void Shutdown()

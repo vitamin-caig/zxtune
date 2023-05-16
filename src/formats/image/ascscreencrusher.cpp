@@ -16,6 +16,8 @@
 // library includes
 #include <binary/format_factories.h>
 #include <formats/image.h>
+// std includes
+#include <memory>
 
 namespace Formats::Image
 {
@@ -179,7 +181,7 @@ namespace Formats::Image
             }
           }
           Require(target == decoded.size());
-          Result.reset(new Binary::Dump());
+          Result = std::make_unique<Binary::Dump>();
           Result->swap(decoded);
           return true;
         }

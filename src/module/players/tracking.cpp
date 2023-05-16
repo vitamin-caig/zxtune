@@ -13,6 +13,8 @@
 // common includes
 #include <make_ptr.h>
 #include <pointers.h>
+// std includes
+#include <memory>
 
 namespace Module
 {
@@ -306,7 +308,7 @@ namespace Module
       {
         Cursor->Seek(Model->GetOrder().GetLoopPosition());
         const PlainTrackState& loop = Cursor->GetState();
-        LoopState.reset(new PlainTrackState(loop));
+        LoopState = std::make_unique<PlainTrackState>(loop);
       }
       Cursor->DoneLoop();
     }

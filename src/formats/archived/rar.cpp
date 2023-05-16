@@ -21,6 +21,7 @@
 // std includes
 #include <cstring>
 #include <deque>
+#include <memory>
 #include <numeric>
 
 namespace Formats::Archived
@@ -183,7 +184,7 @@ namespace Formats::Archived
         if (ChainIterator->GetOffset() > offset)
         {
           Dbg(" Reset caching iterator to beginning");
-          ChainIterator.reset(new BlocksIterator(*Data));
+          ChainIterator = std::make_unique<BlocksIterator>(*Data);
         }
         while (ChainIterator->GetOffset() <= offset && !ChainIterator->IsEof())
         {

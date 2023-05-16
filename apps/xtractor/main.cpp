@@ -36,6 +36,7 @@
 #include <iostream>
 #include <locale>
 #include <map>
+#include <memory>
 #include <numeric>
 #include <set>
 // boost includes
@@ -799,7 +800,7 @@ namespace
         {
           const String fileName = node->Name();
           RootIdentifier = IO::ResolveUri(fileName);
-          Subpath.reset(new Strings::Array(subpath.rbegin(), subpath.rend()));
+          Subpath = std::make_unique<Strings::Array>(subpath.rbegin(), subpath.rend());
           break;
         }
       }

@@ -43,6 +43,7 @@
 #include <cctype>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <numeric>
 // boost includes
 #include <boost/program_options.hpp>
@@ -117,27 +118,27 @@ namespace
     std::unique_ptr<Module::Conversion::Parameter> param;
     if (mode == "psg"_sv)
     {
-      param.reset(new Module::Conversion::PSGConvertParam(optimization));
+      param = std::make_unique<Module::Conversion::PSGConvertParam>(optimization);
     }
     else if (mode == "zx50"_sv)
     {
-      param.reset(new Module::Conversion::ZX50ConvertParam(optimization));
+      param = std::make_unique<Module::Conversion::ZX50ConvertParam>(optimization);
     }
     else if (mode == "txt"_sv)
     {
-      param.reset(new Module::Conversion::TXTConvertParam());
+      param = std::make_unique<Module::Conversion::TXTConvertParam>();
     }
     else if (mode == "debugay"_sv)
     {
-      param.reset(new Module::Conversion::DebugAYConvertParam(optimization));
+      param = std::make_unique<Module::Conversion::DebugAYConvertParam>(optimization);
     }
     else if (mode == "aydump"_sv)
     {
-      param.reset(new Module::Conversion::AYDumpConvertParam(optimization));
+      param = std::make_unique<Module::Conversion::AYDumpConvertParam>(optimization);
     }
     else if (mode == "fym"_sv)
     {
-      param.reset(new Module::Conversion::FYMConvertParam(optimization));
+      param = std::make_unique<Module::Conversion::FYMConvertParam>(optimization);
     }
     else
     {

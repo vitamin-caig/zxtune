@@ -5,6 +5,7 @@
 #include <devices/aym/chip.h>
 #include <iostream>
 #include <make_ptr.h>
+#include <memory>
 #include <mutex>
 #include <parameters/container.h>
 #include <sound/backends/backends_list.h>
@@ -286,7 +287,7 @@ int ay_open()
 {
   try
   {
-    GateInstance.reset(new Gate());
+    GateInstance = std::make_unique<Gate>();
     return 0;
   }
   catch (const Error& e)

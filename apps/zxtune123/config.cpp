@@ -20,6 +20,7 @@
 #include <cassert>
 #include <cctype>
 #include <fstream>
+#include <memory>
 
 namespace
 {
@@ -150,7 +151,7 @@ namespace
       {
         throw Error(THIS_LINE, "Failed to open configuration file " + configName);
       }
-      configFile.reset(new FileStream(GetDefaultConfigFile().c_str()));
+      configFile = std::make_unique<FileStream>(GetDefaultConfigFile().c_str());
     }
     if (!*configFile)
     {

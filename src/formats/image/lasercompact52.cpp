@@ -17,6 +17,8 @@
 #include <binary/format_factories.h>
 #include <binary/input_stream.h>
 #include <formats/image.h>
+// std includes
+#include <memory>
 
 namespace Formats::Image
 {
@@ -249,7 +251,7 @@ namespace Formats::Image
               } while (--len > 0);
             }
           }
-          Result.reset(new Binary::Dump());
+          Result = std::make_unique<Binary::Dump>();
           if (target <= PIXELS_SIZE)
           {
             decoded.resize(PIXELS_SIZE);

@@ -19,6 +19,8 @@
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
 #include <module/players/simple_orderlist.h>
+// std includes
+#include <memory>
 
 namespace Module::TFMMusicMaker
 {
@@ -1098,7 +1100,7 @@ namespace Module::TFMMusicMaker
     {
       if (!Begin.get() || Begin->Line != state.Line || Begin->Position != state.Position)
       {
-        Begin.reset(new PlainTrackState(state));
+        Begin = std::make_unique<PlainTrackState>(state);
         Counter = 0;
       }
     }
@@ -1438,7 +1440,7 @@ namespace Module::TFMMusicMaker
       {
         Cursor->Seek(Data->Order->GetLoopPosition());
         const PlainTrackState& loop = Cursor->GetState();
-        LoopState.reset(new PlainTrackState(loop));
+        LoopState = std::make_unique<PlainTrackState>(loop);
       }
       Cursor->DoneLoop();
     }
