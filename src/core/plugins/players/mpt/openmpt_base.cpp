@@ -28,6 +28,7 @@
 #include <strings/trim.h>
 #include <time/duration.h>
 // std includes
+#include <memory>
 #include <utility>
 // 3rdparty includes
 #define BUILDING_STATIC
@@ -419,8 +420,8 @@ namespace Module::Mpt
       try
       {
         // TODO: specify type filter
-        auto track = ModulePtr(
-            new openmpt::module(static_cast<const uint8_t*>(container.Start()), container.Size(), LOG, Controls));
+        auto track = std::make_shared<openmpt::module>(static_cast<const uint8_t*>(container.Start()), container.Size(),
+                                                       LOG, Controls);
 
         // play all subsongs
         track->select_subsong(-1);

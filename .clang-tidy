@@ -6,6 +6,7 @@
                     modernize-avoid-bind,
                     modernize-concat-nested-namespaces,
                     modernize-loop-convert,
+                    modernize-make-shared,
                     '
   FormatStyle:      file
 ...
