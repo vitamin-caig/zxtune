@@ -166,7 +166,7 @@ namespace Formats::Archived
       bool IsValid() const
       {
         assert(!IsEof());
-        if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
+        if (const auto* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
         {
           return header->IsSupported();
         }
@@ -176,7 +176,7 @@ namespace Formats::Archived
       String GetName() const
       {
         assert(!IsEof());
-        if (const Packed::Zip::LocalFileHeader* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
+        if (const auto* header = Blocks.GetBlock<Packed::Zip::LocalFileHeader>())
         {
           const StringView rawName(header->Name, header->NameSize);
           const bool isUtf8 = 0 != (header->Flags & Packed::Zip::FILE_UTF8);
@@ -343,7 +343,7 @@ namespace Formats::Archived
       Zip::BlocksIterator iter(data);
       for (; !iter.IsEof(); iter.Next())
       {
-        if (const Packed::Zip::LocalFileHeader* file = iter.GetBlock<Packed::Zip::LocalFileHeader>())
+        if (const auto* file = iter.GetBlock<Packed::Zip::LocalFileHeader>())
         {
           filesCount += file->IsSupported();
         }

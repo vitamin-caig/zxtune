@@ -194,7 +194,7 @@ namespace
         const QString fullKey = GetKeyName(FullName);
         const QString rootNamespace = fullKey.section(PATH_SEPARATOR, 0, 0);
         ParamName = fullKey.section(PATH_SEPARATOR, 1);
-        const SettingsStorage::const_iterator it = Storage.find(rootNamespace);
+        const auto it = Storage.find(rootNamespace);
         if (it != Storage.end())
         {
           Setup = it->second;

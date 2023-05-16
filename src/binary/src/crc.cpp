@@ -86,7 +86,7 @@ namespace Binary
   uint32_t Crc32(View data, uint32_t initial)
   {
     uint32_t crc = initial ^ 0xFFFFFFFF;
-    const uint8_t* const buf = static_cast<const uint8_t*>(data.Start());
+    const auto* const buf = static_cast<const uint8_t*>(data.Start());
     for (std::size_t idx = 0; idx != data.Size(); ++idx)
     {
       const uint32_t data = buf[idx];

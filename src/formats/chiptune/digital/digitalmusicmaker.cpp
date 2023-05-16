@@ -330,7 +330,7 @@ namespace Formats::Chiptune
             continue;
           }
           const std::size_t bankSize = bankEnd - SAMPLES_ADDR;
-          const std::size_t alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
+          const auto alignedBankSize = Math::Align<std::size_t>(bankSize, 256);
           if (is4bitSamples)
           {
             const std::size_t realSize = 256 * (1 + alignedBankSize / 512);

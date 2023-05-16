@@ -91,8 +91,8 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        const auto* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
 
@@ -432,7 +432,7 @@ namespace Formats::Chiptune
 
       void ParsePositions(Builder& builder) const
       {
-        const uint8_t* const begin = safe_ptr_cast<const uint8_t*>(&Source);
+        const auto* const begin = safe_ptr_cast<const uint8_t*>(&Source);
         const uint8_t* const posStart = Source.Positions;
         const uint8_t* const posEnd = posStart + Source.Length;
         Ranges.AddService(posStart - begin, posEnd - posStart);

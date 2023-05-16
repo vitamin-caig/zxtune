@@ -56,7 +56,7 @@ namespace Module::SQTracker
   public:
     uint_t Add(const Formats::Chiptune::SQTracker::PositionEntry& pos)
     {
-      const uint_t newIdx = static_cast<uint_t>(Storage.size());
+      const auto newIdx = static_cast<uint_t>(Storage.size());
       const HashedPosition hashedPos(pos);
       return Storage.insert(std::make_pair(hashedPos, newIdx)).first->second;
     }

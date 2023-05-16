@@ -58,7 +58,7 @@ namespace Binary
       {
         return size;
       }
-      const uint8_t* const typedData = static_cast<const uint8_t*>(data.Start());
+      const auto* const typedData = static_cast<const uint8_t*>(data.Start());
       const std::size_t endOfPat = Offset + Pat.size();
       const uint8_t* const scanStart = typedData + endOfPat - 1;
       const uint8_t* const scanStop = typedData + size;
@@ -195,7 +195,7 @@ namespace Binary
       }
       const uint8_t* const patternStart = &Pattern.front();
       const uint8_t* const patternEnd = patternStart + Pattern.size();
-      const uint8_t* const typedDataStart = static_cast<const uint8_t*>(data.Start());
+      const auto* const typedDataStart = static_cast<const uint8_t*>(data.Start());
       const uint8_t* const typedDataEnd = typedDataStart + size;
       const uint8_t* const matched = std::search(typedDataStart + Offset + 1, typedDataEnd, patternStart, patternEnd);
       return matched != typedDataEnd ? matched - typedDataStart - Offset : size;

@@ -408,7 +408,7 @@ namespace Formats::Chiptune
           }
           else
           {
-            const RawPosEntry::Channel& partialEntry = GetServiceObject<RawPosEntry::Channel>(posOffset);
+            const auto& partialEntry = GetServiceObject<RawPosEntry::Channel>(posOffset);
             Require(0 == partialEntry.GetPattern());
             const std::size_t tailSize = std::min(sizeof(RawPosEntry), Data.Size() - posOffset);
             Ranges.Add(posOffset, tailSize);

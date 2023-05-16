@@ -489,7 +489,7 @@ namespace Module::FastTracker
         }
         // apply level
         dst.VolumeSlide += curSampleLine->VolSlide;
-        const int_t volume = Math::Clamp<int_t>(curSampleLine->Level + dst.VolumeSlide, 0, 15);
+        const auto volume = Math::Clamp<int_t>(curSampleLine->Level + dst.VolumeSlide, 0, 15);
         const uint_t level = ((dst.Volume * 17 + (dst.Volume > 7)) * volume + 128) / 256;
         channel.SetLevel(level);
 

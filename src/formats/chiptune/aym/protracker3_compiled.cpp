@@ -187,9 +187,9 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        const auto* const src = safe_ptr_cast<const int8_t*>(this + 1);
         // using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
     };
@@ -719,7 +719,7 @@ namespace Formats::Chiptune
             builder.SetSample(num);
           }
         }
-        for (std::vector<uint_t>::const_reverse_iterator it = commands.rbegin(), lim = commands.rend(); it != lim; ++it)
+        for (auto it = commands.rbegin(), lim = commands.rend(); it != lim; ++it)
         {
           switch (*it)
           {

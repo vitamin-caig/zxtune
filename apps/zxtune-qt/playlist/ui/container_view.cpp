@@ -70,7 +70,7 @@ namespace
   private:
     void GetNext()
     {
-      if (Playlist::UI::View* view = static_cast<Playlist::UI::View*>(Container.widget(++Index)))
+      if (auto* view = static_cast<Playlist::UI::View*>(Container.widget(++Index)))
       {
         Current = view->GetPlaylist();
       }
@@ -263,7 +263,7 @@ namespace
 
     void ClosePlaylist(int index) override
     {
-      Playlist::UI::View* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
+      auto* const view = static_cast<Playlist::UI::View*>(widgetsContainer->widget(index));
       view->hide();  // to save layout
       view->GetPlaylist()->Shutdown();
       widgetsContainer->removeTab(index);
@@ -316,7 +316,7 @@ namespace
       if (QObject* sender = this->sender())
       {
         // assert(dynamic_cast<QWidget*>(sender));
-        QWidget* const widget = static_cast<QWidget*>(sender);
+        auto* const widget = static_cast<QWidget*>(sender);
         const int idx = widgetsContainer->indexOf(widget);
         if (idx != -1)
         {
@@ -330,7 +330,7 @@ namespace
       if (QObject* sender = this->sender())
       {
         // assert(dynamic_cast<Playlist::UI::View*>(sender));
-        Playlist::UI::View* const newView = static_cast<Playlist::UI::View*>(sender);
+        auto* const newView = static_cast<Playlist::UI::View*>(sender);
         if (newView != ActivePlaylistView)
         {
           ActivePlaylistView->Stop();  // just update state
@@ -427,7 +427,7 @@ namespace
 
     Playlist::UI::View& GetVisiblePlaylist()
     {
-      if (Playlist::UI::View* view = static_cast<Playlist::UI::View*>(widgetsContainer->currentWidget()))
+      if (auto* view = static_cast<Playlist::UI::View*>(widgetsContainer->currentWidget()))
       {
         return *view;
       }

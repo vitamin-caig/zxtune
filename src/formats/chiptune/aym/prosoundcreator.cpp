@@ -922,7 +922,7 @@ namespace Formats::Chiptune
 
       Sample ParseSample(std::size_t offset) const
       {
-        const RawSample& src = GetObject<RawSample>(offset);
+        const auto& src = GetObject<RawSample>(offset);
         Sample result;
         const std::size_t availSize = (Data.Size() - offset) / sizeof(RawSample::Line);
         for (std::size_t idx = 0, lim = std::min(availSize, MAX_SAMPLE_SIZE); idx != lim; ++idx)
@@ -956,7 +956,7 @@ namespace Formats::Chiptune
 
       Ornament ParseOrnament(std::size_t offset) const
       {
-        const RawOrnament& src = GetObject<RawOrnament>(offset);
+        const auto& src = GetObject<RawOrnament>(offset);
         Ornament result;
         const std::size_t availSize = (Data.Size() - offset) / sizeof(RawOrnament::Line);
         for (std::size_t idx = 0, lim = std::min(availSize, MAX_ORNAMENT_SIZE); idx != lim; ++idx)

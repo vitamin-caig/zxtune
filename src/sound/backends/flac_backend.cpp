@@ -155,7 +155,7 @@ namespace Sound::Flac
                                                         const FLAC__byte buffer[], size_t bytes, unsigned /*samples*/,
                                                         unsigned /*current_frame*/, void* client_data)
     {
-      Binary::OutputStream* const stream = static_cast<Binary::OutputStream*>(client_data);
+      auto* const stream = static_cast<Binary::OutputStream*>(client_data);
       stream->ApplyData(Binary::View(buffer, bytes));
       return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     }
@@ -163,7 +163,7 @@ namespace Sound::Flac
     static FLAC__StreamEncoderSeekStatus SeekCallback(const FLAC__StreamEncoder* /*encoder*/,
                                                       FLAC__uint64 absolute_byte_offset, void* client_data)
     {
-      Binary::SeekableOutputStream* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
+      auto* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
       stream->Seek(absolute_byte_offset);
       return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
     }
@@ -171,7 +171,7 @@ namespace Sound::Flac
     static FLAC__StreamEncoderTellStatus TellCallback(const FLAC__StreamEncoder* /*encoder*/,
                                                       FLAC__uint64* absolute_byte_offset, void* client_data)
     {
-      Binary::SeekableOutputStream* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
+      auto* const stream = static_cast<Binary::SeekableOutputStream*>(client_data);
       *absolute_byte_offset = stream->Position();
       return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
     }

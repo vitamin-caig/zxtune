@@ -65,7 +65,7 @@ namespace Module
 
     Command* FindCommand(uint_t type)
     {
-      const CommandsArray::iterator it = std::find(Commands.begin(), Commands.end(), type);
+      const auto it = std::find(Commands.begin(), Commands.end(), type);
       return it != Commands.end() ? &*it : nullptr;
     }
   };

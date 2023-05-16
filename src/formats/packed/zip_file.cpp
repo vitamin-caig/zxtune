@@ -256,9 +256,9 @@ namespace Formats::Packed
       assert(0 != (header.Flags & FILE_ATTRIBUTES_IN_FOOTER));
 
       const uint32_t signature = LocalFileFooter::SIGNATURE;
-      const uint8_t* const rawSignature = safe_ptr_cast<const uint8_t*>(&signature);
+      const auto* const rawSignature = safe_ptr_cast<const uint8_t*>(&signature);
 
-      const uint8_t* const seekStart = safe_ptr_cast<const uint8_t*>(&header);
+      const auto* const seekStart = safe_ptr_cast<const uint8_t*>(&header);
       const uint8_t* const seekEnd = seekStart + size;
       for (const uint8_t* seekPos = seekStart; seekPos < seekEnd;)
       {

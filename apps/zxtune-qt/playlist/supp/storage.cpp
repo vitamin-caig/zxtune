@@ -286,7 +286,7 @@ namespace
 
     void Add(Item::Collection::Ptr items) override
     {
-      for (Model::IndexType idx = static_cast<Model::IndexType>(Items.size()); items->IsValid(); items->Next(), ++idx)
+      for (auto idx = static_cast<Model::IndexType>(Items.size()); items->IsValid(); items->Next(), ++idx)
       {
         const IndexedItem idxItem(items->Get(), idx);
         Items.push_back(idxItem);
@@ -305,7 +305,7 @@ namespace
       {
         return Item::Data::Ptr();
       }
-      const ItemsContainer::const_iterator it = GetIteratorByIndex(idx);
+      const auto it = GetIteratorByIndex(idx);
       return it->first;
     }
 
@@ -360,7 +360,7 @@ namespace
     {
       std::vector<ItemsContainer::const_iterator> iters;
       iters.reserve(Items.size());
-      for (ItemsContainer::const_iterator it = Items.begin(), lim = Items.end(); it != lim; ++it)
+      for (auto it = Items.begin(), lim = Items.end(); it != lim; ++it)
       {
         iters.push_back(it);
       }
@@ -459,7 +459,7 @@ namespace
     IndexToIterator::value_type GetNearestPredefinedIterator(Model::IndexType idx) const
     {
       const Model::IndexType firstIndex = 0;
-      const Model::IndexType lastIndex = Model::IndexType(Items.size() - 1);
+      const auto lastIndex = Model::IndexType(Items.size() - 1);
       const std::size_t toFirst = idx - firstIndex;
       const std::size_t toLast = lastIndex - idx;
       if (toFirst <= toLast)
@@ -475,12 +475,12 @@ namespace
     IndexToIterator::value_type GetNearestCachedIterator(Model::IndexType idx) const
     {
       assert(!IteratorsCache.empty());
-      const IndexToIterator::const_iterator upper = IteratorsCache.upper_bound(idx);
+      const auto upper = IteratorsCache.upper_bound(idx);
       if (upper == IteratorsCache.begin())
       {
         return *upper;
       }
-      IndexToIterator::const_iterator lower = upper;
+      auto lower = upper;
       --lower;
       if (upper == IteratorsCache.end())
       {

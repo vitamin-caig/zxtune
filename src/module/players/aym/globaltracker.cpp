@@ -260,7 +260,7 @@ namespace Module::GlobalTracker
       const Ornament& curOrnament = Data->Ornaments.Get(dst.OrnamentNum);
 
       // apply tone
-      const int_t halftones = Math::Clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament), 0, 95);
+      const auto halftones = Math::Clamp<int_t>(int_t(dst.Note) + curOrnament.GetLine(dst.PosInOrnament), 0, 95);
       const uint_t freq = (track.GetFrequency(halftones) + curSampleLine.Vibrato) & 0xfff;
       channel.SetTone(freq);
 
@@ -268,7 +268,7 @@ namespace Module::GlobalTracker
       {
         channel.DisableTone();
       }
-      const int_t level = Math::Clamp<int_t>(int_t(curSampleLine.Level) - dst.Volume, 0, 255);
+      const auto level = Math::Clamp<int_t>(int_t(curSampleLine.Level) - dst.Volume, 0, 255);
       // apply level
       channel.SetLevel(level & 0xf);
       // apply envelope

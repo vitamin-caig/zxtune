@@ -119,8 +119,8 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        const auto* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
 
@@ -739,7 +739,7 @@ namespace Formats::Chiptune
         const std::size_t idOffset = sizeof(header);
         if (idOffset + sizeof(RawId) <= size)
         {
-          const RawId* const id = safe_ptr_cast<const RawId*>(&header + 1);
+          const auto* const id = safe_ptr_cast<const RawId*>(&header + 1);
           if (id->Check())
           {
             AddArea(IDENTIFIER, sizeof(header));
@@ -978,7 +978,7 @@ namespace Formats::Chiptune
         else
         {
           patch->InsertData(headerSize, info);
-          const int_t delta = static_cast<int_t>(infoSize);
+          const auto delta = static_cast<int_t>(infoSize);
           patch->FixLEWord(offsetof(RawHeader, PositionsOffset), delta);
           patch->FixLEWord(offsetof(RawHeader, PatternsOffset), delta);
           patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);

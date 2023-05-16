@@ -159,7 +159,7 @@ namespace Formats::Packed
       Binary::Container::Ptr GetDecodedData() override
       {
         const uint_t packedSize = Header.PackedSize;
-        const uint8_t* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
+        const auto* const sourceData = safe_ptr_cast<const uint8_t*>(&Header + 1);
         return Binary::CreateContainer(Binary::View{sourceData, packedSize});
       }
 

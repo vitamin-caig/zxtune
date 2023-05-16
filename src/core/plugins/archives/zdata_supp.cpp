@@ -173,7 +173,7 @@ namespace ZXTune::Zdata
 
   Layout FindLayout(Binary::View raw, const Marker& marker)
   {
-    const uint8_t* const rawStart = static_cast<const uint8_t*>(raw.Start());
+    const auto* const rawStart = static_cast<const uint8_t*>(raw.Start());
     const uint8_t* const rawEnd = rawStart + raw.Size();
     const TxtMarker lookup = marker.Encode();
     const uint8_t* const res = std::search(rawStart, rawEnd, lookup.begin(), lookup.end());

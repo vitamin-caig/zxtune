@@ -224,7 +224,7 @@ namespace Formats::Packed
 
     String FileBlockHeader::GetName() const
     {
-      const uint8_t* const self = safe_ptr_cast<const uint8_t*>(this);
+      const auto* const self = safe_ptr_cast<const uint8_t*>(this);
       const uint8_t* const filename = self + (IsBigFile() ? sizeof(BigFileBlockHeader) : sizeof(FileBlockHeader));
       return String(filename, filename + NameSize);
     }

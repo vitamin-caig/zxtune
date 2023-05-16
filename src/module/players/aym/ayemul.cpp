@@ -65,7 +65,7 @@ namespace Module::AYEMUL
     {
       if (IsRegisterSelected())
       {
-        const Devices::AYM::Registers::Index idx = static_cast<Devices::AYM::Registers::Index>(Register);
+        const auto idx = static_cast<Devices::AYM::Registers::Index>(Register);
         if (Devices::AYM::DataChunk* chunk = GetChunk(timeStamp))
         {
           chunk->Data[idx] = val;

@@ -251,7 +251,7 @@ namespace
     std::string HomogeniousToString(const std::vector<T>& vals) const
     {
       std::string result;
-      for (typename std::vector<T>::const_iterator it = vals.begin(), lim = vals.end(); it != lim; ++it)
+      for (auto it = vals.begin(), lim = vals.end(); it != lim; ++it)
       {
         result += it->ToString();
       }

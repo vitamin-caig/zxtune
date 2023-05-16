@@ -27,7 +27,7 @@ namespace Platform
     template<class F>
     F GetSymbol(const char* name) const
     {
-      const NameToSymbol::const_iterator it = Symbols.find(name);
+      const auto it = Symbols.find(name);
       if (it != Symbols.end())
       {
         return reinterpret_cast<F>(it->second);

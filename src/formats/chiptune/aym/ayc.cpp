@@ -147,7 +147,7 @@ namespace Formats::Chiptune
 
       uint_t ReadCounter()
       {
-        const uint8_t val = static_cast<uint8_t>(-ReadByte());
+        const auto val = static_cast<uint8_t>(-ReadByte());
         return val ? val : 256;
       }
 

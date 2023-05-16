@@ -193,8 +193,8 @@ namespace IO::Network
     {
       if (dlTotal)  // 0 for source files with unknown size
       {
-        Log::ProgressCallback* const cb = static_cast<Log::ProgressCallback*>(data);
-        const uint_t progress = static_cast<uint_t>(dlNow * 100 / dlTotal);
+        auto* const cb = static_cast<Log::ProgressCallback*>(data);
+        const auto progress = static_cast<uint_t>(dlNow * 100 / dlTotal);
         cb->OnProgress(progress);
       }
       return 0;

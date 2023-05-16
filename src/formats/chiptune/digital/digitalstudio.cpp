@@ -268,7 +268,7 @@ namespace Formats::Chiptune
       Binary::View GetSampleData(std::size_t offset, std::size_t size) const
       {
         const auto total = RawData.SubView(offset, size);
-        const uint8_t* const start = total.As<uint8_t>();
+        const auto* const start = total.As<uint8_t>();
         const uint8_t* const end = start + total.Size();
         const uint8_t* const sampleEnd = std::find(start, end, 0xff);
         if (const std::size_t newSize = sampleEnd - start)

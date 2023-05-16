@@ -281,7 +281,7 @@ namespace Formats::Chiptune
       template<class RawHeader>
       static HeaderTraits Create(Binary::View data)
       {
-        const RawHeader* const hdr = data.As<RawHeader>();
+        const auto* const hdr = data.As<RawHeader>();
         Require(hdr != nullptr);
         return HeaderTraits(*hdr);
       }
@@ -646,7 +646,7 @@ namespace Formats::Chiptune
       {
         Dbg("Samples: {} to parse", samples.Count());
         const std::size_t baseOffset = Header.SamplesOffset;
-        const RawSamplesList& list = GetServiceObject<RawSamplesList>(baseOffset);
+        const auto& list = GetServiceObject<RawSamplesList>(baseOffset);
         std::size_t prevOffset = list.Offsets[0] - sizeof(RawSample::Line);
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
@@ -664,7 +664,7 @@ namespace Formats::Chiptune
       {
         Dbg("Ornaments: {} to parse", ornaments.Count());
         const std::size_t baseOffset = Header.OrnamentsOffset;
-        const RawOrnamentsList& list = GetServiceObject<RawOrnamentsList>(baseOffset);
+        const auto& list = GetServiceObject<RawOrnamentsList>(baseOffset);
         std::size_t prevOffset = list.Offsets[0] - sizeof(RawOrnament::Line);
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
         {
@@ -783,7 +783,7 @@ namespace Formats::Chiptune
 
       bool ParsePattern(std::size_t baseOffset, uint_t patIndex, Builder& builder) const
       {
-        const RawPattern& pat = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
+        const auto& pat = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         const DataCursors rangesStarts(pat, baseOffset);
         ParserState state(rangesStarts);
@@ -957,7 +957,7 @@ namespace Formats::Chiptune
 
       Sample ParseSample(std::size_t offset) const
       {
-        const RawSample& src = GetObject<RawSample>(offset);
+        const auto& src = GetObject<RawSample>(offset);
         Sample result;
         const std::size_t availSize = (Data.Size() - offset) / sizeof(RawSample::Line);
         for (std::size_t idx = 0, lim = std::min(availSize, MAX_SAMPLE_SIZE); idx != lim; ++idx)

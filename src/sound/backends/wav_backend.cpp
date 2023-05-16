@@ -131,7 +131,7 @@ namespace Sound::Wav
       if (empty())
       {
         resize(sizeof(ListHeader));
-        ListHeader* const hdr = safe_ptr_cast<ListHeader*>(data());
+        auto* const hdr = safe_ptr_cast<ListHeader*>(data());
         std::memcpy(hdr->Id, LIST, sizeof(LIST));
         std::memcpy(hdr->Type, INFO, sizeof(INFO));
         hdr->Size = 0;
@@ -143,7 +143,7 @@ namespace Sound::Wav
     InfoElement* AddElement(std::size_t contentSize)
     {
       const std::size_t oldSize = size();
-      const std::size_t elemSize = Math::Align<std::size_t>(offsetof(InfoElement, Content) + contentSize, 2);
+      const auto elemSize = Math::Align<std::size_t>(offsetof(InfoElement, Content) + contentSize, 2);
       resize(oldSize + elemSize);
       return safe_ptr_cast<InfoElement*>(&at(oldSize));
     }

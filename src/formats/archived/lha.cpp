@@ -75,7 +75,7 @@ namespace Formats::Archived
 
       static int Skip(void* handle, size_t bytes)
       {
-        Binary::InputStream* const stream = static_cast<Binary::InputStream*>(handle);
+        auto* const stream = static_cast<Binary::InputStream*>(handle);
         const std::size_t rest = stream->GetRestSize();
         if (rest >= bytes)
         {

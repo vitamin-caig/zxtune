@@ -115,7 +115,7 @@ namespace IFF
     void GetResult(Binary::DataBuilder& builder) const override
     {
       const std::size_t size = Size();
-      ChunkHeader& hdr = builder.Add<ChunkHeader>();
+      auto& hdr = builder.Add<ChunkHeader>();
       hdr.Id = Id;
       hdr.DataSize = size;
       if (size)
@@ -201,7 +201,7 @@ namespace IFF
 
     void GetResult(Binary::DataBuilder& builder) const override
     {
-      ChunkHeader& hdr = builder.Add<ChunkHeader>();
+      auto& hdr = builder.Add<ChunkHeader>();
       hdr.Id = Id;
       hdr.DataSize = TotalSize;
       for (const auto& src : Sources)

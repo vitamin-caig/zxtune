@@ -74,7 +74,7 @@ namespace Module::AYM
 
   void ChannelBuilder::SetTone(int_t halfTones, int_t offset)
   {
-    const int_t halftone = Math::Clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
+    const auto halftone = Math::Clamp<int_t>(halfTones, 0, static_cast<int_t>(Table.size()) - 1);
     const uint_t tone = (Table[halftone] + offset) & 0xfff;
     SetTone(tone);
   }
@@ -134,8 +134,8 @@ namespace Module::AYM
 
   int_t TrackBuilder::GetSlidingDifference(int_t halfToneFrom, int_t halfToneTo) const
   {
-    const int_t halfFrom = Math::Clamp<int_t>(halfToneFrom, 0, static_cast<int_t>(Table.size()) - 1);
-    const int_t halfTo = Math::Clamp<int_t>(halfToneTo, 0, static_cast<int_t>(Table.size()) - 1);
+    const auto halfFrom = Math::Clamp<int_t>(halfToneFrom, 0, static_cast<int_t>(Table.size()) - 1);
+    const auto halfTo = Math::Clamp<int_t>(halfToneTo, 0, static_cast<int_t>(Table.size()) - 1);
     const int_t toneFrom = Table[halfFrom];
     const int_t toneTo = Table[halfTo];
     return toneTo - toneFrom;

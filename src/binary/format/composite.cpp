@@ -65,7 +65,7 @@ namespace Binary
 
     std::size_t NextMatchOffset(View data) const override
     {
-      const uint8_t* const start = static_cast<const uint8_t*>(data.Start());
+      const auto* const start = static_cast<const uint8_t*>(data.Start());
       const std::size_t limit = data.Size();
       for (std::size_t headerCursor = 1;;)
       {

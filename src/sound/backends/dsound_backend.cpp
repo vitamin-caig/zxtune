@@ -176,7 +176,7 @@ namespace Sound::DirectSound
     void Add(const Chunk& buffer)
     {
       std::size_t inputSize = buffer.size() * sizeof(buffer.front());
-      const uint8_t* inputStart = safe_ptr_cast<const uint8_t*>(buffer.data());
+      const auto* inputStart = safe_ptr_cast<const uint8_t*>(buffer.data());
 
       while (inputSize)
       {

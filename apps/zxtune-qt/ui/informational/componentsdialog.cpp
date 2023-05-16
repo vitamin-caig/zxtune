@@ -132,7 +132,7 @@ namespace
       // root
       const uint_t caps = plugin.Capabilities();
       const auto& title = Strings::Format("[{}] {}", plugin.Id(), plugin.Description());
-      QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(title)));
+      auto* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(title)));
       FillModuleType(caps & Type::MASK, *pluginItem);
       // conversion
       if (const uint_t convCaps = caps & Conversion::MASK)
@@ -194,7 +194,7 @@ namespace
       const auto& description = plugin.Description();
 
       // root
-      QTreeWidgetItem* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
+      auto* const pluginItem = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
       // capabilities
       FillContainerTraits(caps, *pluginItem);
     }
@@ -235,7 +235,7 @@ namespace
   template<class T>
   QTreeWidgetItem* CreateRootItem(T& root, StringView description, const Error& status)
   {
-    QTreeWidgetItem* const item = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
+    auto* const item = new QTreeWidgetItem(&root, QStringList(ToQString(description)));
     item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     if (status)
     {

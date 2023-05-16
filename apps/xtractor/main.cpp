@@ -461,7 +461,7 @@ namespace
     void ApplyData(Analysis::Node::Ptr result) override
     {
       const Binary::Container::Ptr data = result->Data();
-      const uint8_t* const begin = static_cast<const uint8_t*>(data->Start());
+      const auto* const begin = static_cast<const uint8_t*>(data->Start());
       const uint8_t* const end = begin + data->Size();
       const auto first = *begin;
       if (std::any_of(begin, end, [first](auto b) { return first != b; }))

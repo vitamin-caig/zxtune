@@ -51,7 +51,7 @@ namespace
 
     bool IsLast() const
     {
-      ContainerType::const_iterator cur = Current;
+      auto cur = Current;
       return cur != Container.end() && ++cur == Container.end();
     }
 

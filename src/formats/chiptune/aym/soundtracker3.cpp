@@ -220,7 +220,7 @@ namespace Formats::Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        const RawSamples& table = GetObject<RawSamples>(Source.SamplesOffset);
+        const auto& table = GetObject<RawSamples>(Source.SamplesOffset);
         const uint_t availSamples = table.Count;
         Require(samples.Maximum() < availSamples);
         for (Indices::Iterator it = samples.Items(); it; ++it)
@@ -228,14 +228,14 @@ namespace Formats::Chiptune
           const uint_t samIdx = *it;
           const std::size_t samOffset = table.Offsets[samIdx];
           Dbg("Parse sample {} at {}", samIdx, samOffset);
-          const RawSample& src = GetObject<RawSample>(samOffset);
+          const auto& src = GetObject<RawSample>(samOffset);
           builder.SetSample(samIdx, ParseSample(src));
         }
       }
 
       void ParseOrnaments(const Indices& ornaments, Builder& builder) const
       {
-        const RawOrnaments& table = GetObject<RawOrnaments>(Source.OrnamentsOffset);
+        const auto& table = GetObject<RawOrnaments>(Source.OrnamentsOffset);
         const uint_t availOrnaments = table.Count;
         Require(ornaments.Maximum() < availOrnaments);
         for (Indices::Iterator it = ornaments.Items(); it; ++it)
@@ -243,7 +243,7 @@ namespace Formats::Chiptune
           const uint_t ornIdx = *it;
           const std::size_t ornOffset = table.Offsets[ornIdx];
           Dbg("Parse ornament {} at {}", ornIdx, ornOffset);
-          const RawOrnament& src = GetObject<RawOrnament>(ornOffset);
+          const auto& src = GetObject<RawOrnament>(ornOffset);
           builder.SetOrnament(ornIdx, ParseOrnament(src));
         }
       }
@@ -545,7 +545,7 @@ namespace Formats::Chiptune
         const std::size_t idOffset = sizeof(header);
         if (idOffset + sizeof(RawId) <= size)
         {
-          const RawId* const id = safe_ptr_cast<const RawId*>(&header + 1);
+          const auto* const id = safe_ptr_cast<const RawId*>(&header + 1);
           if (id->Check())
           {
             AddArea(IDENTIFIER, sizeof(header));
@@ -821,7 +821,7 @@ namespace Formats::Chiptune
         else
         {
           patch->InsertData(headerSize, info);
-          const int_t delta = static_cast<int_t>(infoSize);
+          const auto delta = static_cast<int_t>(infoSize);
           patch->FixLEWord(offsetof(RawHeader, PositionsOffset), delta);
           patch->FixLEWord(offsetof(RawHeader, SamplesOffset), delta);
           patch->FixLEWord(offsetof(RawHeader, OrnamentsOffset), delta);

@@ -396,8 +396,8 @@ namespace Module::ProSoundMaker
       const Sample::Line& curSampleLine = curSample.GetLine(dst.Smp.Position);
 
       dst.Slide += curSampleLine.Gliss;
-      const int_t halftones = Math::Clamp<int_t>(int_t(dst.Note) + ornamentLine, 0, 95);
-      const int_t tone = Math::Clamp<int_t>(track.GetFrequency(halftones) + dst.Slide, 0, 4095);
+      const auto halftones = Math::Clamp<int_t>(int_t(dst.Note) + ornamentLine, 0, 95);
+      const auto tone = Math::Clamp<int_t>(track.GetFrequency(halftones) + dst.Slide, 0, 4095);
       channel.SetTone(tone);
 
       // emulate level construction due to possibility of envelope bit reset

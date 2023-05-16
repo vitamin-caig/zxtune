@@ -312,7 +312,7 @@ namespace Sound::Oss
       }
       assert(DevHandle.Valid());
       std::size_t toWrite(buffer.size() * sizeof(buffer.front()));
-      const uint8_t* data(safe_ptr_cast<const uint8_t*>(buffer.data()));
+      const auto* data(safe_ptr_cast<const uint8_t*>(buffer.data()));
       while (toWrite)
       {
         const int res = DevHandle.WriteAsync(data, toWrite * sizeof(*data));

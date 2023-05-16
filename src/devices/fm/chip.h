@@ -95,7 +95,7 @@ namespace Devices::FM::Details
     static Sound::Sample ConvertToSample(YM2203SampleType level)
     {
       using namespace Sound;
-      const Sample::WideType val = Math::Clamp<Sample::WideType>(level + Sample::MID, Sample::MIN, Sample::MAX);
+      const auto val = Math::Clamp<Sample::WideType>(level + Sample::MID, Sample::MIN, Sample::MAX);
       return Sound::Sample(val, val);
     }
 

@@ -255,8 +255,7 @@ namespace
       const Product::Update::TypeTag type =
           Product::GetUpdateType(update->Platform(), update->Architecture(), update->Packaging());
       Dbg("Update {}, type {}", FromQString(update->Title()), int(type));
-      const std::vector<Product::Update::TypeTag>::const_iterator it =
-          std::find(CurTypes.begin(), CurTypes.end(), type);
+      const auto it = std::find(CurTypes.begin(), CurTypes.end(), type);
       if (CurTypes.end() == it)
       {
         Dbg(" unsupported");

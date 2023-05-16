@@ -61,7 +61,7 @@ namespace Formats::Packed
           return false;
         }
         const uint8_t RET_CODE = 0xc9;
-        const uint8_t* const depacker = safe_ptr_cast<const uint8_t*>(&header);
+        const auto* const depacker = safe_ptr_cast<const uint8_t*>(&header);
         return depacker[depackerSize - 1] == RET_CODE;
       }
 

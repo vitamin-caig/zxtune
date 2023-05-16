@@ -153,9 +153,9 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(this + 1);
+        const auto* const src = safe_ptr_cast<const uint8_t*>(this + 1);
         // using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         Line res;
         res.LevelAndFlags = src[offset++];
         res.NoiseHiShift = src[offset++];
@@ -191,9 +191,9 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        const auto* const src = safe_ptr_cast<const int8_t*>(this + 1);
         // using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
     };

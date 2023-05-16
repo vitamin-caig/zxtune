@@ -9,6 +9,7 @@
                     modernize-make-shared,
                     modernize-make-unique,
                     modernize-pass-by-value,
+                    modernize-use-auto,
                     '
   FormatStyle:      file
 ...

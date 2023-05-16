@@ -444,7 +444,7 @@ namespace Module::ProSoundCreator
 
     void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
-      const uint16_t oldTone =
+      const auto oldTone =
           static_cast<uint16_t>(track.GetFrequency(dst.Note) + dst.ToneAccumulator + dst.ToneSlide.GetSliding());
       if (const bool* enabled = src.GetEnabled())
       {
@@ -585,7 +585,7 @@ namespace Module::ProSoundCreator
 
       // apply level
       dst.Attenuation += curSampleLine->VolumeDelta + dst.VolumeSlide.Update();
-      const int_t level = Math::Clamp<int_t>(dst.Attenuation + dst.Volume, 0, 15);
+      const auto level = Math::Clamp<int_t>(dst.Attenuation + dst.Volume, 0, 15);
       dst.Attenuation = level - dst.Volume;
       const uint_t vol = 1 + static_cast<uint_t>(level);
       channel.SetLevel(vol * curSampleLine->Level >> 4);

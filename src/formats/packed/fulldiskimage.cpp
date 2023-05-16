@@ -148,7 +148,7 @@ namespace Formats::Packed
     private:
       bool DecodeData()
       {
-        const uint8_t* const rawData = static_cast<const uint8_t*>(Header.ID);
+        const auto* const rawData = static_cast<const uint8_t*>(Header.ID);
         const std::size_t dataOffset = Header.DataOffset;
         const uint_t cylinders = Header.Cylinders;
         const uint_t sides = Header.Sides;
@@ -164,7 +164,7 @@ namespace Formats::Packed
               return false;
             }
 
-            const RawTrack* const trackInfo = safe_ptr_cast<const RawTrack*>(rawData + trackInfoOffset);
+            const auto* const trackInfo = safe_ptr_cast<const RawTrack*>(rawData + trackInfoOffset);
             // collect sectors reference
             std::map<uint_t, Binary::View> sectors;
             for (std::size_t secNum = 0; secNum != trackInfo->SectorsCount; ++secNum)

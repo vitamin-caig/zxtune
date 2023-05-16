@@ -324,7 +324,7 @@ namespace Formats::Chiptune
             {
               break;
             }
-            const std::size_t alignedSize = Math::Align<std::size_t>(size, 256);
+            const auto alignedSize = Math::Align<std::size_t>(size, 256);
             sampleStart += alignedSize;
             memLeft -= alignedSize;
           }

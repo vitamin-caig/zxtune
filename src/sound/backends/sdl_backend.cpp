@@ -97,7 +97,7 @@ namespace Sound::Sdl
         }
         const uint_t inBuffer = PlayIter->Data.size() * sizeof(PlayIter->Data.front());
         const uint_t toCopy = std::min<uint_t>(len, PlayIter->BytesToPlay);
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(PlayIter->Data.data());
+        const auto* const src = safe_ptr_cast<const uint8_t*>(PlayIter->Data.data());
         std::memcpy(stream, src + (inBuffer - PlayIter->BytesToPlay), toCopy);
         PlayIter->BytesToPlay -= toCopy;
         stream += toCopy;
@@ -260,7 +260,7 @@ namespace Sound::Sdl
 
     static void OnBuffer(void* param, ::Uint8* stream, int len)
     {
-      BuffersQueue* const queue = static_cast<BuffersQueue*>(param);
+      auto* const queue = static_cast<BuffersQueue*>(param);
       queue->GetData(stream, len);
     }
 

@@ -559,7 +559,7 @@ namespace Formats::Chiptune
         const std::size_t positionsStart = sizeof(Source);
         for (uint_t posIdx = 0;; ++posIdx)
         {
-          const RawPosition& pos = GetServiceObject<RawPosition>(positionsStart + sizeof(RawPosition) * posIdx);
+          const auto& pos = GetServiceObject<RawPosition>(positionsStart + sizeof(RawPosition) * posIdx);
           const uint_t patIdx = pos.PatternIndex;
           if (patIdx == 0xff)
           {
@@ -758,7 +758,7 @@ namespace Formats::Chiptune
 
       bool ParsePattern(std::size_t baseOffset, std::size_t minOffset, uint_t patIndex, Builder& builder) const
       {
-        const RawPattern& pat = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
+        const auto& pat = GetServiceObject<RawPattern>(baseOffset + patIndex * sizeof(RawPattern));
         PatternBuilder& patBuilder = builder.StartPattern(patIndex);
         const DataCursors rangesStarts(pat, BaseAddr);
         Require(

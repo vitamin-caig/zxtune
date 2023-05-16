@@ -152,7 +152,7 @@ namespace
   {
     if (const int size = blob.size())
     {
-      const uint8_t* const rawData = safe_ptr_cast<const uint8_t*>(blob.data());
+      const auto* const rawData = safe_ptr_cast<const uint8_t*>(blob.data());
       const Parameters::DataType data(rawData, rawData + size);
       options.SetValue(name, data);
     }
@@ -455,31 +455,31 @@ namespace
 
     void AddWidget(QWidget& wid) override
     {
-      if (QMainWindow* mainWnd = dynamic_cast<QMainWindow*>(&wid))
+      if (auto* mainWnd = dynamic_cast<QMainWindow*>(&wid))
       {
         Substates.push_back(MakePtr<MainWindowState>(mainWnd, Options));
       }
-      else if (QFileDialog* fileDialog = dynamic_cast<QFileDialog*>(&wid))
+      else if (auto* fileDialog = dynamic_cast<QFileDialog*>(&wid))
       {
         Substates.push_back(MakePtr<FileDialogState>(fileDialog, Options));
       }
-      else if (QDialog* dialog = dynamic_cast<QDialog*>(&wid))
+      else if (auto* dialog = dynamic_cast<QDialog*>(&wid))
       {
         Substates.push_back(MakePtr<DialogState>(dialog, Options));
       }
-      else if (QTabWidget* tabs = dynamic_cast<QTabWidget*>(&wid))
+      else if (auto* tabs = dynamic_cast<QTabWidget*>(&wid))
       {
         Substates.push_back(MakePtr<TabWidgetState>(tabs, Options));
       }
-      else if (QComboBox* combo = dynamic_cast<QComboBox*>(&wid))
+      else if (auto* combo = dynamic_cast<QComboBox*>(&wid))
       {
         Substates.push_back(MakePtr<ComboBoxState>(combo, Options));
       }
-      else if (QHeaderView* headerView = dynamic_cast<QHeaderView*>(&wid))
+      else if (auto* headerView = dynamic_cast<QHeaderView*>(&wid))
       {
         Substates.push_back(MakePtr<HeaderViewState>(headerView, Options));
       }
-      else if (QAbstractButton* button = dynamic_cast<QAbstractButton*>(&wid))
+      else if (auto* button = dynamic_cast<QAbstractButton*>(&wid))
       {
         Substates.push_back(MakePtr<ButtonState>(button, Options));
       }

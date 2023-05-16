@@ -123,7 +123,7 @@ namespace Module::GSF
 
     static void OnRenderComplete(struct mAVStream* in, blip_t* left, blip_t* right)
     {
-      AVStream* const self = safe_ptr_cast<AVStream*>(in);
+      auto* const self = safe_ptr_cast<AVStream*>(in);
       const auto ready = self->Result.size() - self->SamplesToRender;
       const auto dst = safe_ptr_cast<int16_t*>(&self->Result[ready]);
       const auto done = std::min(blip_read_samples(left, dst, self->SamplesToRender, true),
@@ -137,7 +137,7 @@ namespace Module::GSF
 
     static void OnSkipComplete(struct mAVStream* in, blip_t* left, blip_t* right)
     {
-      AVStream* const self = safe_ptr_cast<AVStream*>(in);
+      auto* const self = safe_ptr_cast<AVStream*>(in);
       int16_t dummy[AUDIO_BUFFER_SIZE];
       const auto toSkip = std::min<uint_t>(self->SamplesToSkip, AUDIO_BUFFER_SIZE);
       const auto done =

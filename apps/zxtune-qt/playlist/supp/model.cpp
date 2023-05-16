@@ -760,7 +760,7 @@ namespace Playlist
 
   const Model::IndexType* Model::OldToNewIndexMap::FindNewIndex(IndexType oldIdx) const
   {
-    const const_iterator it = find(oldIdx);
+    const auto it = find(oldIdx);
     if (it != end())
     {
       return &it->second;

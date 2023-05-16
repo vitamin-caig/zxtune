@@ -183,7 +183,7 @@ namespace Devices::DAC
 
     FastSample::Position GetStep(int_t halftones, int_t slideHz) const
     {
-      const int_t halftonesLim = Math::Clamp<int_t>(halftones, 0, Details::FreqTable::SIZE - 1);
+      const auto halftonesLim = Math::Clamp<int_t>(halftones, 0, Details::FreqTable::SIZE - 1);
       const Details::Frequency baseFreq = Details::FreqTable::GetHalftoneFrequency(0);
       const Details::Frequency freq =
           Details::FreqTable::GetHalftoneFrequency(halftonesLim) + Details::Frequency(slideHz);

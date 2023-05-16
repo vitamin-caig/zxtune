@@ -32,7 +32,7 @@ namespace Binary::Base64
   inline String Encode(View input)
   {
     String result(CalculateConvertedSize(input.Size()), ' ');
-    const uint8_t* const in = input.As<uint8_t>();
+    const auto* const in = input.As<uint8_t>();
     char* const out = &result[0];
     Encode(in, in + input.Size(), out, out + result.size());
     return result;

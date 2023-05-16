@@ -131,9 +131,9 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const uint8_t* const src = safe_ptr_cast<const uint8_t*>(this + 1);
+        const auto* const src = safe_ptr_cast<const uint8_t*>(this + 1);
         // using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         Line res;
         res.NoiseAndFlags = src[offset++];
         res.LevelHiVibrato = src[offset++];
@@ -153,9 +153,9 @@ namespace Formats::Chiptune
 
       Line GetLine(uint_t idx) const
       {
-        const int8_t* const src = safe_ptr_cast<const int8_t*>(this + 1);
+        const auto* const src = safe_ptr_cast<const int8_t*>(this + 1);
         // using 8-bit offsets
-        uint8_t offset = static_cast<uint8_t>(idx * sizeof(Line));
+        auto offset = static_cast<uint8_t>(idx * sizeof(Line));
         return src[offset];
       }
     };
@@ -775,7 +775,7 @@ namespace Formats::Chiptune
           }
           else if (cmd == 0x0e)  // gliss
           {
-            const int8_t val = static_cast<int8_t>(PeekByte(state.Offset++));
+            const auto val = static_cast<int8_t>(PeekByte(state.Offset++));
             builder.SetGlissade(val);
           }
           else if (cmd == 0x0d)  // note gliss

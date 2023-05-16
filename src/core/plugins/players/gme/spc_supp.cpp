@@ -77,7 +77,7 @@ namespace Module::SPC
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       Sound::Chunk result(samples);
-      ::SNES_SPC::sample_t* const buffer = safe_ptr_cast< ::SNES_SPC::sample_t*>(result.data());
+      auto* const buffer = safe_ptr_cast< ::SNES_SPC::sample_t*>(result.data());
       CheckError(Spc.play(samples * Sound::Sample::CHANNELS, buffer));
       Filter.run(buffer, samples * Sound::Sample::CHANNELS);
       return result;
