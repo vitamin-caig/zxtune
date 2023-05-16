@@ -28,6 +28,7 @@
 #include <functional>
 #include <memory>
 #include <thread>
+#include <utility>
 
 namespace Sound::OpenAl
 {
@@ -368,8 +369,8 @@ namespace Sound::OpenAl
   {
   public:
     BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : OalApi(api)
-      , Params(params)
+      : OalApi(std::move(api))
+      , Params(std::move(params))
     {}
 
     virtual void Startup()
@@ -420,7 +421,7 @@ namespace Sound::OpenAl
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : OalApi(api)
+      : OalApi(std::move(api))
     {}
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const

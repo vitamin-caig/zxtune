@@ -28,6 +28,7 @@
 #include <sound/sound_parameters.h>
 // std includes
 #include <condition_variable>
+#include <utility>
 
 namespace Sound::Sdl
 {
@@ -142,8 +143,8 @@ namespace Sound::Sdl
   {
   public:
     BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : SdlApi(api)
-      , Params(params)
+      : SdlApi(std::move(api))
+      , Params(std::move(params))
       , WasInitialized(SdlApi->SDL_WasInit(SDL_INIT_EVERYTHING))
       , Queue(Parameters::ZXTune::Sound::Backends::Sdl::BUFFERS_DEFAULT)
     {
@@ -274,7 +275,7 @@ namespace Sound::Sdl
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : SdlApi(api)
+      : SdlApi(std::move(api))
     {}
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const

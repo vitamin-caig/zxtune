@@ -21,6 +21,7 @@
 #include <strings/trim.h>
 // std includes
 #include <array>
+#include <utility>
 
 namespace Formats::Chiptune
 {
@@ -300,8 +301,8 @@ namespace Formats::Chiptune
     class VersionedDecoder : public Decoder
     {
     public:
-      explicit VersionedDecoder(const FormatTraits& traits)
-        : Traits(traits)
+      explicit VersionedDecoder(FormatTraits traits)
+        : Traits(std::move(traits))
         , Header(Binary::CreateFormat(Traits.Format, MIN_SIZE))
       {}
 

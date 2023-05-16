@@ -23,6 +23,7 @@
 // std includes
 #include <cstring>
 #include <numeric>
+#include <utility>
 
 namespace Module::AYM
 {
@@ -92,7 +93,7 @@ namespace Module::AYM
   public:
     ChipParametersImpl(uint_t samplerate, Parameters::Accessor::Ptr params)
       : Samplerate(samplerate)
-      , Params(params)
+      , Params(std::move(params))
     {}
 
     uint_t Version() const override

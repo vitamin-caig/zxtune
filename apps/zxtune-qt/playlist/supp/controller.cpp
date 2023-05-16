@@ -21,6 +21,8 @@
 #include <make_ptr.h>
 // library includes
 #include <debug/log.h>
+// std includes
+#include <utility>
 // qt includes
 #include <QtWidgets/QMessageBox>
 
@@ -198,8 +200,8 @@ namespace
   class ControllerImpl : public Playlist::Controller
   {
   public:
-    ControllerImpl(const QString& name, Playlist::Item::DataProvider::Ptr provider)
-      : Name(name)
+    ControllerImpl(QString name, Playlist::Item::DataProvider::Ptr provider)
+      : Name(std::move(name))
       , Scanner(Playlist::Scanner::Create(*this, provider))
       , Model(Playlist::Model::Create(*this))
       , Iterator(new ItemIteratorImpl(*this, Model))

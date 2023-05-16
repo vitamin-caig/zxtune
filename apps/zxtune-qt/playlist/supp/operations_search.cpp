@@ -17,6 +17,8 @@
 #include <make_ptr.h>
 // library includes
 #include <tools/progress_callback_helpers.h>
+// std includes
+#include <utility>
 // qt includes
 #include <QtCore/QRegExp>
 
@@ -143,8 +145,8 @@ namespace
   class SimpleStringPredicate : public StringPredicate
   {
   public:
-    SimpleStringPredicate(const QString& pat, bool caseSensitive)
-      : Pattern(pat)
+    SimpleStringPredicate(QString pat, bool caseSensitive)
+      : Pattern(std::move(pat))
       , Mode(caseSensitive ? Qt::CaseSensitive : Qt::CaseInsensitive)
     {}
 

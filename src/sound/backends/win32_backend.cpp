@@ -29,6 +29,7 @@
 // std includes
 #include <algorithm>
 #include <cstring>
+#include <utility>
 
 namespace Sound::Win32
 {
@@ -78,7 +79,7 @@ namespace Sound::Win32
     typedef std::shared_ptr<WaveOutDevice> Ptr;
 
     WaveOutDevice(Api::Ptr api, const ::WAVEFORMATEX& format, UINT device)
-      : WinApi(api)
+      : WinApi(std::move(api))
       , Handle(0)
     {
       Dbg("Opening device {} ({} Hz)", device, format.nSamplesPerSec);
@@ -192,7 +193,7 @@ namespace Sound::Win32
   {
   public:
     explicit WaveBuffer(WaveOutDevice::Ptr device)
-      : Device(device)
+      : Device(std::move(device))
       , Header()
     {}
 
@@ -337,7 +338,7 @@ namespace Sound::Win32
   {
   public:
     explicit VolumeControl(WaveOutDevice::Ptr device)
-      : Device(device)
+      : Device(std::move(device))
     {
       Dbg("Created volume controller");
     }
@@ -409,8 +410,8 @@ namespace Sound::Win32
   {
   public:
     BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : WinApi(api)
-      , BackendParams(params)
+      : WinApi(std::move(api))
+      , BackendParams(std::move(params))
       , RenderingParameters(RenderParameters::Create(BackendParams))
     {}
 
@@ -499,7 +500,7 @@ namespace Sound::Win32
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : WinApi(api)
+      : WinApi(std::move(api))
     {}
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
@@ -515,7 +516,7 @@ namespace Sound::Win32
   {
   public:
     WaveDevice(Api::Ptr api, int_t id)
-      : WinApi(api)
+      : WinApi(std::move(api))
       , IdValue(id)
     {}
 
@@ -546,7 +547,7 @@ namespace Sound::Win32
   {
   public:
     explicit DevicesIterator(Api::Ptr api)
-      : WinApi(api)
+      : WinApi(std::move(api))
       , Limit(WinApi->waveOutGetNumDevs())
       , Current()
     {

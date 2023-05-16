@@ -23,6 +23,8 @@
 #include <module/players/aym/aym_base.h>
 // boost includes
 #include <boost/algorithm/string.hpp>
+// std includes
+#include <utility>
 
 namespace Module
 {
@@ -54,7 +56,7 @@ namespace Module
   public:
     FYMDumperParameters(Parameters::Accessor::Ptr params, uint_t loopFrame, uint_t opt)
       : Base(opt)
-      , Params(params)
+      , Params(std::move(params))
       , Loop(loopFrame)
     {}
 

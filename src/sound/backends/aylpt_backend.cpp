@@ -28,6 +28,7 @@
 #include <algorithm>
 #include <cstring>
 #include <thread>
+#include <utility>
 
 namespace Sound::AyLpt
 {
@@ -78,8 +79,8 @@ namespace Sound::AyLpt
   {
   public:
     BackendWorker(Binary::Data::Ptr data, LptPort::Ptr port)
-      : Data(data)
-      , Port(port)
+      : Data(std::move(data))
+      , Port(std::move(port))
     {}
 
     virtual ~BackendWorker() {}
@@ -181,7 +182,7 @@ namespace Sound::AyLpt
   {
   public:
     explicit DlPortIO(Platform::SharedLibrary::Ptr lib)
-      : Lib(lib)
+      : Lib(std::move(lib))
       , WriteByte(reinterpret_cast<WriteFunctionType>(Lib->GetSymbol("DlPortWritePortUchar")))
     {}
 
@@ -231,7 +232,7 @@ namespace Sound::AyLpt
   {
   public:
     explicit BackendWorkerFactory(LptPort::Ptr port)
-      : Port(port)
+      : Port(std::move(port))
     {}
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const

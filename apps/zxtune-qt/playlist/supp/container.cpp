@@ -22,6 +22,8 @@
 #include <make_ptr.h>
 // library includes
 #include <platform/version/api.h>
+// std includes
+#include <utility>
 
 namespace
 {
@@ -66,9 +68,9 @@ namespace
   class SavePlaylistOperation : public Playlist::Item::StorageAccessOperation
   {
   public:
-    SavePlaylistOperation(const QString& name, const QString& filename, Playlist::IO::ExportFlags flags)
+    SavePlaylistOperation(const QString& name, QString filename, Playlist::IO::ExportFlags flags)
       : Name(FromQString(name))
-      , Filename(filename)
+      , Filename(std::move(filename))
       , Flags(flags)
     {}
 
@@ -94,10 +96,9 @@ namespace
   class LoadPlaylistOperation : public Playlist::Item::StorageModifyOperation
   {
   public:
-    LoadPlaylistOperation(Playlist::Item::DataProvider::Ptr provider, const QString& filename,
-                          Playlist::Controller& ctrl)
+    LoadPlaylistOperation(Playlist::Item::DataProvider::Ptr provider, QString filename, Playlist::Controller& ctrl)
       : Provider(std::move(provider))
-      , Filename(filename)
+      , Filename(std::move(filename))
       , Controller(ctrl)
     {}
 

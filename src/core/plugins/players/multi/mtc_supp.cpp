@@ -29,6 +29,7 @@
 // std includes
 #include <algorithm>
 #include <list>
+#include <utility>
 
 namespace Module::MTC
 {
@@ -255,7 +256,7 @@ namespace Module::MTC
     public:
       Track(const Parameters::Accessor& params, Parameters::Accessor::Ptr tuneProperties)
         : Params(params)
-        , TuneProperties(tuneProperties)
+        , TuneProperties(std::move(tuneProperties))
         , SelectedStream()
       {}
 

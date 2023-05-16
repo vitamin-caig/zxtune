@@ -144,7 +144,7 @@ namespace
     public:
       Value(SettingsStorage& storage, Identifier name)
         : Storage(storage)
-        , FullName(name)
+        , FullName(std::move(name))
       {}
 
       bool IsValid() const

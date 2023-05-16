@@ -14,6 +14,8 @@
 #include <make_ptr.h>
 // library includes
 #include <core/core_parameters.h>
+// std includes
+#include <utility>
 
 namespace Module::SAA
 {
@@ -22,7 +24,7 @@ namespace Module::SAA
   public:
     ChipParameters(uint_t samplerate, Parameters::Accessor::Ptr params)
       : Samplerate(samplerate)
-      , Params(params)
+      , Params(std::move(params))
     {}
 
     uint_t Version() const override

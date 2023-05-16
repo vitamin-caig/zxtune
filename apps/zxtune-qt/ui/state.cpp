@@ -19,6 +19,8 @@
 // library includes
 #include <debug/log.h>
 #include <parameters/convert.h>
+// std includes
+#include <utility>
 // qt includes
 #include <QtCore/QByteArray>
 #include <QtWidgets/QAbstractButton>
@@ -105,7 +107,7 @@ namespace
     {
     public:
       NamespacedVisitor(Parameters::Identifier prefix, Parameters::Visitor& delegate)
-        : Prefix(prefix)
+        : Prefix(std::move(prefix))
         , Delegate(delegate)
       {}
 

@@ -26,6 +26,7 @@
 #include <strings/encoding.h>
 // std includes
 #include <thread>
+#include <utility>
 // boost includes
 #include <boost/range/size.hpp>
 
@@ -158,7 +159,7 @@ namespace Sound::DirectSound
     typedef std::shared_ptr<StreamBuffer> Ptr;
 
     explicit StreamBuffer(DirectSoundBufferPtr buff)
-      : Buff(buff)
+      : Buff(std::move(buff))
       , SleepPeriod(1)
       , BuffSize(0)
       , Cursor(0)
@@ -311,8 +312,8 @@ namespace Sound::DirectSound
   public:
     // buffer depends of device
     VolumeControl(DirectSoundPtr device, DirectSoundBufferPtr buffer)
-      : Device(device)
-      , Buffer(buffer)
+      : Device(std::move(device))
+      , Buffer(std::move(buffer))
     {}
 
     virtual Gain GetVolume() const
@@ -399,8 +400,8 @@ namespace Sound::DirectSound
   {
   public:
     BackendWorker(Api::Ptr api, Parameters::Accessor::Ptr params)
-      : DsApi(api)
-      , BackendParams(params)
+      : DsApi(std::move(api))
+      , BackendParams(std::move(params))
       , RenderingParameters(RenderParameters::Create(BackendParams))
     {}
 
@@ -500,7 +501,7 @@ namespace Sound::DirectSound
   {
   public:
     explicit BackendWorkerFactory(Api::Ptr api)
-      : DsApi(api)
+      : DsApi(std::move(api))
     {}
 
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr /*holder*/) const
