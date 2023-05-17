@@ -176,7 +176,7 @@ namespace
       QStringList MixerNames;
     };
 
-    typedef std::vector<Device> DevicesArray;
+    using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
 }  // namespace

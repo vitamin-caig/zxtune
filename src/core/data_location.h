@@ -20,7 +20,7 @@ namespace ZXTune
   class DataLocation
   {
   public:
-    typedef std::shared_ptr<const DataLocation> Ptr;
+    using Ptr = std::shared_ptr<const DataLocation>;
     virtual ~DataLocation() = default;
 
     virtual Binary::Container::Ptr GetData() const = 0;

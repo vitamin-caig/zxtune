@@ -55,7 +55,7 @@ namespace
   class DataProvider
   {
   public:
-    typedef std::shared_ptr<const DataProvider> Ptr;
+    using Ptr = std::shared_ptr<const DataProvider>;
 
     virtual ~DataProvider() = default;
 
@@ -89,7 +89,7 @@ namespace
   template<>
   struct ObjectTraits<Binary::Container::Ptr>
   {
-    typedef std::size_t WeightType;
+    using WeightType = std::size_t;
 
     static WeightType Weight(Binary::Container::Ptr obj)
     {
@@ -119,7 +119,7 @@ namespace
       {}
     };
 
-    typedef std::deque<Item> ItemsList;
+    using ItemsList = std::deque<Item>;
 
   public:
     ObjectsCache()
@@ -242,7 +242,7 @@ namespace
   class CachedDataProvider : public DataProvider
   {
   public:
-    typedef std::shared_ptr<CachedDataProvider> Ptr;
+    using Ptr = std::shared_ptr<CachedDataProvider>;
 
     explicit CachedDataProvider(Parameters::Accessor::Ptr ioParams)
       : Params(ioParams)
@@ -305,7 +305,7 @@ namespace
   class DataSource : public Module::AdditionalFilesSource
   {
   public:
-    typedef std::shared_ptr<const DataSource> Ptr;
+    using Ptr = std::shared_ptr<const DataSource>;
 
     DataSource(CachedDataProvider::Ptr provider, IO::Identifier::Ptr id)
       : Provider(std::move(provider))
@@ -421,7 +421,7 @@ namespace
   class DynamicAttributesProvider
   {
   public:
-    typedef std::shared_ptr<const DynamicAttributesProvider> Ptr;
+    using Ptr = std::shared_ptr<const DynamicAttributesProvider>;
 
     DynamicAttributesProvider()
       : DisplayNameTemplate(Strings::Template::Create("[Author] - [Title]"))
@@ -450,7 +450,7 @@ namespace
   class DataImpl : public Playlist::Item::Data
   {
   public:
-    typedef Playlist::Item::Data::Ptr Ptr;
+    using Ptr = Playlist::Item::Data::Ptr;
 
     DataImpl(DynamicAttributesProvider::Ptr attributes, ModuleSource source, Parameters::Accessor::Ptr moduleProps,
              Parameters::Container::Ptr adjustedParams, Time::Milliseconds duration, uint_t caps)

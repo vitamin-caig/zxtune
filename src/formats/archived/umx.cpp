@@ -42,7 +42,7 @@ namespace Formats::Archived
         "??0000 ????"  // imports
         ""_sv;
 
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
 
     const SignatureType SIGNATURE = {{0xc1, 0x83, 0x2a, 0x9e}};
 

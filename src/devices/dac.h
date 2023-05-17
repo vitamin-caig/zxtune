@@ -89,7 +89,7 @@ namespace Devices::DAC
     }
   };
 
-  typedef std::vector<ChannelData> Channels;
+  using Channels = std::vector<ChannelData>;
 
   struct DataChunk
   {
@@ -100,7 +100,7 @@ namespace Devices::DAC
   class Chip
   {
   public:
-    typedef std::shared_ptr<Chip> Ptr;
+    using Ptr = std::shared_ptr<Chip>;
 
     virtual ~Chip() = default;
 
@@ -123,7 +123,7 @@ namespace Devices::DAC
   class ChipParameters
   {
   public:
-    typedef std::shared_ptr<const ChipParameters> Ptr;
+    using Ptr = std::shared_ptr<const ChipParameters>;
 
     virtual ~ChipParameters() = default;
 

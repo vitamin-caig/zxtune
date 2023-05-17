@@ -143,7 +143,7 @@ namespace
   {
     const String configName(filename.empty() ? CONFIG_FILENAME : filename);
 
-    typedef std::basic_ifstream<Char> FileStream;
+    using FileStream = std::basic_ifstream<Char>;
     std::unique_ptr<FileStream> configFile(new FileStream(configName.c_str()));
     if (!*configFile)
     {

@@ -58,7 +58,7 @@ namespace Analysis
   class Node
   {
   public:
-    typedef std::shared_ptr<const Node> Ptr;
+    using Ptr = std::shared_ptr<const Node>;
     virtual ~Node() = default;
 
     //! Name to distinguish. Can be empty
@@ -162,9 +162,9 @@ namespace Analysis
 
 namespace Analysis
 {
-  typedef DataReceiver<Node::Ptr> NodeReceiver;
-  typedef DataTransmitter<Node::Ptr> NodeTransmitter;
-  typedef DataTransceiver<Node::Ptr> NodeTransceiver;
+  using NodeReceiver = DataReceiver<Node::Ptr>;
+  using NodeTransmitter = DataTransmitter<Node::Ptr>;
+  using NodeTransceiver = DataTransceiver<Node::Ptr>;
 }  // namespace Analysis
 
 namespace Formats
@@ -304,7 +304,7 @@ namespace Parsing
   class Result
   {
   public:
-    typedef std::unique_ptr<const Result> Ptr;
+    using Ptr = std::unique_ptr<const Result>;
     virtual ~Result() = default;
 
     virtual String Name() const = 0;
@@ -313,10 +313,10 @@ namespace Parsing
 
   Result::Ptr CreateResult(StringView name, Binary::Container::Ptr data);
 
-  typedef DataReceiver<Result::Ptr> Target;
+  using Target = DataReceiver<Result::Ptr>;
 
-  typedef DataTransmitter<Result::Ptr> Source;
-  typedef DataTransceiver<Result::Ptr> Pipe;
+  using Source = DataTransmitter<Result::Ptr>;
+  using Pipe = DataTransceiver<Result::Ptr>;
 }  // namespace Parsing
 
 namespace
@@ -661,9 +661,9 @@ namespace
   const auto DEFAULT_TARGET_NAME_TEMPLATE =
       Strings::Format("XTractor/[{0}]/[{1}]", TEMPLATE_FIELD_FILENAME, TEMPLATE_FIELD_SUBPATH);
 
-  typedef DataReceiver<String> StringsReceiver;
+  using StringsReceiver = DataReceiver<String>;
 
-  typedef DataTransceiver<String, Analysis::Node::Ptr> OpenPoint;
+  using OpenPoint = DataTransceiver<String, Analysis::Node::Ptr>;
 
   class OpenPointImpl : public OpenPoint
   {

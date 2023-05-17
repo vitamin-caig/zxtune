@@ -33,7 +33,7 @@ extern "C"
 #endif
 
   // universal handle type
-  typedef const void* ZXTuneHandle;
+  using ZXTuneHandle = const void*;
 
   // Common functions
   ZXTUNE_API const char* ZXTune_GetVersion();
@@ -46,14 +46,14 @@ extern "C"
   ZXTUNE_API ZXTuneHandle ZXTune_OpenModule(ZXTuneHandle data);
   ZXTUNE_API void ZXTune_CloseModule(ZXTuneHandle module);
 
-  typedef struct
+  using ZXTuneModuleInfo = struct
   {
     int Positions;
     int LoopPosition;
     int Frames;
     int LoopFrame;
     int Channels;
-  } ZXTuneModuleInfo;
+  };
 
   ZXTUNE_API bool ZXTune_GetModuleInfo(ZXTuneHandle module, ZXTuneModuleInfo* info);
 

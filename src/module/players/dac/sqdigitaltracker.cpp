@@ -40,7 +40,7 @@ namespace Module::SQDigitalTracker
     VOLUME_SLIDE,
   };
 
-  typedef DAC::SimpleModuleData ModuleData;
+  using ModuleData = DAC::SimpleModuleData;
 
   class DataBuilder : public Formats::Chiptune::SQDigitalTracker::Builder
   {

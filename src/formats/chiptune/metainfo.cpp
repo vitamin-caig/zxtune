@@ -107,8 +107,8 @@ namespace Formats::Chiptune
 
   private:
     const Binary::View Source;
-    typedef std::map<std::size_t, Binary::View> BlobsMap;
-    typedef std::map<std::size_t, int_t> FixesMap;
+    using BlobsMap = std::map<std::size_t, Binary::View>;
+    using FixesMap = std::map<std::size_t, int_t>;
     BlobsMap Insertions;
     BlobsMap Overwrites;
     FixesMap LEWordFixes;

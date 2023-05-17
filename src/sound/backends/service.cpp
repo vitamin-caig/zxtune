@@ -71,7 +71,7 @@ namespace Sound
     , public BackendsStorage
   {
   public:
-    typedef std::shared_ptr<ServiceImpl> RWPtr;
+    using RWPtr = std::shared_ptr<ServiceImpl>;
 
     explicit ServiceImpl(Parameters::Accessor::Ptr options)
       : Options(std::move(options))

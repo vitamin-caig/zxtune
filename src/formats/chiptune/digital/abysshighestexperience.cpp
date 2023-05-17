@@ -27,7 +27,7 @@ namespace Formats::Chiptune
 {
   namespace AbyssHighestExperience
   {
-    typedef std::array<uint8_t, 3> IdentifierType;
+    using IdentifierType = std::array<uint8_t, 3>;
 
     const IdentifierType ID_AHX = {{'T', 'H', 'X'}};
     const IdentifierType ID_HVL = {{'H', 'V', 'L'}};

@@ -24,7 +24,7 @@ namespace Formats::Archived
   class File
   {
   public:
-    typedef std::shared_ptr<const File> Ptr;
+    using Ptr = std::shared_ptr<const File>;
 
     virtual ~File() = default;
 
@@ -44,7 +44,7 @@ namespace Formats::Archived
   class Container : public Binary::Container
   {
   public:
-    typedef std::shared_ptr<const Container> Ptr;
+    using Ptr = std::shared_ptr<const Container>;
 
     //! @brief DIP interface used to get all files inside archive
     class Walker
@@ -73,7 +73,7 @@ namespace Formats::Archived
   class Decoder
   {
   public:
-    typedef std::shared_ptr<const Decoder> Ptr;
+    using Ptr = std::shared_ptr<const Decoder>;
     virtual ~Decoder() = default;
 
     //! @brief Get short decoder description

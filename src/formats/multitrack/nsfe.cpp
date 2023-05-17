@@ -29,14 +29,14 @@ namespace Formats::Multitrack
 {
   namespace NSFE
   {
-    typedef std::array<uint8_t, 4> ChunkIdType;
+    using ChunkIdType = std::array<uint8_t, 4>;
 
     const ChunkIdType NSFE = {{'N', 'S', 'F', 'E'}};
     const ChunkIdType INFO = {{'I', 'N', 'F', 'O'}};
     const ChunkIdType DATA = {{'D', 'A', 'T', 'A'}};
     const ChunkIdType NEND = {{'N', 'E', 'N', 'D'}};
 
-    typedef std::array<char, 32> StringType;
+    using StringType = std::array<char, 32>;
 
     struct ChunkHeader
     {

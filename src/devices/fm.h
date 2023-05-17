@@ -49,7 +49,7 @@ namespace Devices::FM
     uint_t Val = 0;
   };
 
-  typedef std::vector<Register> Registers;
+  using Registers = std::vector<Register>;
 
   struct DataChunk
   {
@@ -64,7 +64,7 @@ namespace Devices::FM
   class Device
   {
   public:
-    typedef std::shared_ptr<Device> Ptr;
+    using Ptr = std::shared_ptr<Device>;
     virtual ~Device() = default;
 
     /// render single data chunk
@@ -87,7 +87,7 @@ namespace Devices::FM
   class ChipParameters
   {
   public:
-    typedef std::shared_ptr<const ChipParameters> Ptr;
+    using Ptr = std::shared_ptr<const ChipParameters>;
 
     virtual ~ChipParameters() = default;
 

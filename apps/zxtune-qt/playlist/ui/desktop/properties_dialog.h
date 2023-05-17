@@ -26,7 +26,7 @@ namespace Playlist::UI
     explicit PropertiesDialog(QWidget& parent);
 
   public:
-    typedef std::shared_ptr<PropertiesDialog> Ptr;
+    using Ptr = std::shared_ptr<PropertiesDialog>;
 
     static Ptr Create(QWidget& parent, Item::Data::Ptr item);
   private slots:

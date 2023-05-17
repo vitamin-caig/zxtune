@@ -25,7 +25,7 @@ namespace UI
     explicit SetupConversionDialog(QWidget& parent);
 
   public:
-    typedef std::shared_ptr<SetupConversionDialog> Ptr;
+    using Ptr = std::shared_ptr<SetupConversionDialog>;
 
     static Ptr Create(QWidget& parent);
 

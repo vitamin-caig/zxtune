@@ -41,7 +41,7 @@ namespace Formats::Chiptune
     class BlobBuilder : public Builder
     {
     public:
-      typedef std::shared_ptr<BlobBuilder> Ptr;
+      using Ptr = std::shared_ptr<BlobBuilder>;
 
       virtual Binary::Container::Ptr Result() const = 0;
     };

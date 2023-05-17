@@ -60,8 +60,8 @@ namespace Module::Vortex
   class ModuleData : public AYM::ModuleData<OrderList, Sample, Ornament>
   {
   public:
-    typedef std::shared_ptr<ModuleData> RWPtr;
-    typedef std::shared_ptr<const ModuleData> Ptr;
+    using RWPtr = std::shared_ptr<ModuleData>;
+    using Ptr = std::shared_ptr<const ModuleData>;
 
     ModuleData()
       : AYM::ModuleData<OrderList, Sample, Ornament>()

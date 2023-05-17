@@ -21,9 +21,9 @@ namespace Formats::Chiptune
 {
   namespace ProDigiTracker
   {
-    typedef LinesObject<int_t> Ornament;
+    using Ornament = LinesObject<int_t>;
 
-    typedef LinesObject<uint_t> Positions;
+    using Positions = LinesObject<uint_t>;
 
     class Builder
     {

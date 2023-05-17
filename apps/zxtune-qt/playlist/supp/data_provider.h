@@ -30,7 +30,7 @@ namespace Playlist::Item
   class DataProvider
   {
   public:
-    typedef std::shared_ptr<const DataProvider> Ptr;
+    using Ptr = std::shared_ptr<const DataProvider>;
 
     virtual ~DataProvider() = default;
 

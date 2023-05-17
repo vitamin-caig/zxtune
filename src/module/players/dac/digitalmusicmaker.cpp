@@ -67,8 +67,8 @@ namespace Module::DigitalMusicMaker
   class ModuleData : public DAC::SimpleModuleData
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     ModuleData()
       : DAC::SimpleModuleData(CHANNELS_COUNT)
@@ -584,7 +584,7 @@ namespace Module::DigitalMusicMaker
     Cell OldData;
     Devices::DAC::ChannelData DacState;
 
-    typedef void (ChannelState::*EffectFunc)(DAC::ChannelDataBuilder&);
+    using EffectFunc = void (ChannelState::*)(DAC::ChannelDataBuilder&);
     EffectFunc Effect;
   };
 

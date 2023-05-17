@@ -22,7 +22,7 @@ namespace Module::AYM
   class TrackParameters
   {
   public:
-    typedef std::shared_ptr<const TrackParameters> Ptr;
+    using Ptr = std::shared_ptr<const TrackParameters>;
 
     virtual ~TrackParameters() = default;
 

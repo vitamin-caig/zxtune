@@ -23,8 +23,8 @@ namespace LexicalAnalysis
   class TokensSet
   {
   public:
-    typedef std::unique_ptr<const TokensSet> Ptr;
-    typedef std::unique_ptr<TokensSet> RWPtr;
+    using Ptr = std::unique_ptr<const TokensSet>;
+    using RWPtr = std::unique_ptr<TokensSet>;
 
     explicit TokensSet(StringView lexeme)
       : Lexeme(std::move(lexeme))

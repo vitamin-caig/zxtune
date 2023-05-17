@@ -25,8 +25,8 @@ namespace Sound::Alsa
   class Device
   {
   public:
-    typedef std::shared_ptr<const Device> Ptr;
-    typedef ObjectIterator<Ptr> Iterator;
+    using Ptr = std::shared_ptr<const Device>;
+    using Iterator = ObjectIterator<Ptr>;
     virtual ~Device() = default;
 
     virtual String Id() const = 0;

@@ -68,7 +68,7 @@ namespace Sound::AyLpt
   class LptPort
   {
   public:
-    typedef std::shared_ptr<LptPort> Ptr;
+    using Ptr = std::shared_ptr<LptPort>;
     virtual ~LptPort() = default;
 
     virtual void Control(uint_t val) = 0;

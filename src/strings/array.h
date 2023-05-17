@@ -17,5 +17,5 @@
 
 namespace Strings
 {
-  typedef std::vector<String> Array;
+  using Array = std::vector<String>;
 }

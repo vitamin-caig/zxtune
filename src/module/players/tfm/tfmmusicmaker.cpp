@@ -69,13 +69,13 @@ namespace Module::TFMMusicMaker
     LOOP_STOP
   };
 
-  typedef Formats::Chiptune::TFMMusicMaker::Instrument Instrument;
+  using Instrument = Formats::Chiptune::TFMMusicMaker::Instrument;
 
   class ModuleData
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     ModuleData() = default;
 
@@ -269,7 +269,7 @@ namespace Module::TFMMusicMaker
 
   struct Halftones
   {
-    typedef Math::FixedPoint<int_t, 32> Type;
+    using Type = Math::FixedPoint<int_t, 32>;
 
     static Type Min()
     {
@@ -299,7 +299,7 @@ namespace Module::TFMMusicMaker
 
   struct Level
   {
-    typedef Math::FixedPoint<int_t, 8> Type;
+    using Type = Math::FixedPoint<int_t, 8>;
 
     static Type Min()
     {
@@ -421,7 +421,7 @@ namespace Module::TFMMusicMaker
     int_t DownDelta = 0;
   };
 
-  typedef SlideState<Halftones> ToneSlideState;
+  using ToneSlideState = SlideState<Halftones>;
 
   struct VibratoState
   {
@@ -490,7 +490,7 @@ namespace Module::TFMMusicMaker
     int_t Value = 0;
   };
 
-  typedef SlideState<Level> VolumeSlideState;
+  using VolumeSlideState = SlideState<Level>;
 
   struct PortamentoState
   {
@@ -1094,7 +1094,7 @@ namespace Module::TFMMusicMaker
   class TrackStateCursor : public TrackModelState
   {
   public:
-    typedef std::shared_ptr<TrackStateCursor> Ptr;
+    using Ptr = std::shared_ptr<TrackStateCursor>;
 
     TrackStateCursor(Time::Microseconds frameDuration, ModuleData::Ptr data)
       : FrameDuration(frameDuration)

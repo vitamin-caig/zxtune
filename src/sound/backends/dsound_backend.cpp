@@ -94,8 +94,8 @@ namespace Sound::DirectSound
     return res;
   }
 
-  typedef std::shared_ptr<IDirectSound> DirectSoundPtr;
-  typedef std::shared_ptr<IDirectSoundBuffer> DirectSoundBufferPtr;
+  using DirectSoundPtr = std::shared_ptr<IDirectSound>;
+  using DirectSoundBufferPtr = std::shared_ptr<IDirectSoundBuffer>;
 
   DirectSoundPtr OpenDevice(Api& api, StringView device)
   {
@@ -156,7 +156,7 @@ namespace Sound::DirectSound
   class StreamBuffer
   {
   public:
-    typedef std::shared_ptr<StreamBuffer> Ptr;
+    using Ptr = std::shared_ptr<StreamBuffer>;
 
     explicit StreamBuffer(DirectSoundBufferPtr buff)
       : Buff(std::move(buff))
@@ -344,7 +344,7 @@ namespace Sound::DirectSound
     }
 
   private:
-    typedef std::pair<LONG, LONG> VolPan;
+    using VolPan = std::pair<LONG, LONG>;
 
     VolPan GetVolumeImpl() const
     {
@@ -586,8 +586,8 @@ namespace Sound::DirectSound
     }
 
   private:
-    typedef std::pair<String, String> IdAndName;
-    typedef std::vector<IdAndName> DevicesArray;
+    using IdAndName = std::pair<String, String>;
+    using DevicesArray = std::vector<IdAndName>;
     DevicesArray Devices;
     DevicesArray::const_iterator Current;
   };

@@ -28,7 +28,7 @@ namespace IFF
 {
   namespace Identifier
   {
-    typedef std::array<uint8_t, 4> Type;
+    using Type = std::array<uint8_t, 4>;
 
     // Generic
     const Type AUTHOR = {{'A', 'U', 'T', 'H'}};
@@ -86,7 +86,7 @@ namespace IFF
   class ChunkSource
   {
   public:
-    typedef std::shared_ptr<const ChunkSource> Ptr;
+    using Ptr = std::shared_ptr<const ChunkSource>;
     virtual ~ChunkSource() = default;
 
     virtual std::size_t GetSize() const = 0;
@@ -221,7 +221,7 @@ namespace IFF
     , public CompositeChunkSource
   {
   public:
-    typedef std::shared_ptr<DataBuilder> Ptr;
+    using Ptr = std::shared_ptr<DataBuilder>;
 
     explicit DataBuilder(const Identifier::Type& id)
       : CompositeChunkSource(id)

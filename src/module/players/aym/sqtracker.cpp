@@ -106,15 +106,15 @@ namespace Module::SQTracker
     };
 
   private:
-    typedef std::unordered_map<HashedPosition, uint_t, PositionHash> StorageType;
+    using StorageType = std::unordered_map<HashedPosition, uint_t, PositionHash>;
     StorageType Storage;
   };
 
   class ModuleData : public TrackModel
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     uint_t GetChannelsCount() const override
     {
@@ -399,9 +399,9 @@ namespace Module::SQTracker
 
     static SingleChannelPatternsBuilder Create()
     {
-      typedef MultichannelMutableLine<1> LineType;
-      typedef SparsedMutablePattern<LineType> PatternType;
-      typedef SparsedMutablePatternsSet<PatternType> PatternsSetType;
+      using LineType = MultichannelMutableLine<1>;
+      using PatternType = SparsedMutablePattern<LineType>;
+      using PatternsSetType = SparsedMutablePatternsSet<PatternType>;
       return SingleChannelPatternsBuilder(MakePtr<PatternsSetType>());
     }
   };

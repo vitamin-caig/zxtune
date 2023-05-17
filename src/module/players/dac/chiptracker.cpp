@@ -50,7 +50,7 @@ namespace Module::ChipTracker
     SLIDE
   };
 
-  typedef DAC::SimpleModuleData ModuleData;
+  using ModuleData = DAC::SimpleModuleData;
 
   class DataBuilder : public Formats::Chiptune::ChipTracker::Builder
   {

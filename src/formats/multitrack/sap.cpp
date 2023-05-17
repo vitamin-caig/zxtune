@@ -45,13 +45,13 @@ namespace Formats::Multitrack
 
     const Char DESCRIPTION[] = "Slight Atari Player Sound Format";
 
-    typedef std::array<uint8_t, 5> TextSignatureType;
+    using TextSignatureType = std::array<uint8_t, 5>;
 
     const TextSignatureType TEXT_SIGNATURE = {{'S', 'A', 'P', 0x0d, 0x0a}};
     const auto SONGS = "SONGS"_sv;
     const auto DEFSONG = "DEFSONG"_sv;
 
-    typedef std::array<uint8_t, 2> BinarySignatureType;
+    using BinarySignatureType = std::array<uint8_t, 2>;
     const BinarySignatureType BINARY_SIGNATURE = {{0xff, 0xff}};
 
     const std::size_t MIN_SIZE = 256;
@@ -68,8 +68,8 @@ namespace Formats::Multitrack
     class DataBuilder : public Builder
     {
     public:
-      typedef std::shared_ptr<const DataBuilder> Ptr;
-      typedef std::shared_ptr<DataBuilder> RWPtr;
+      using Ptr = std::shared_ptr<const DataBuilder>;
+      using RWPtr = std::shared_ptr<DataBuilder>;
 
       DataBuilder() = default;
 

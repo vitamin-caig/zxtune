@@ -28,9 +28,9 @@ namespace Formats::Multitrack
 {
   namespace GBS
   {
-    typedef std::array<uint8_t, 3> SignatureType;
+    using SignatureType = std::array<uint8_t, 3>;
 
-    typedef std::array<char, 32> StringType;
+    using StringType = std::array<char, 32>;
 
     const SignatureType SIGNATURE = {{'G', 'B', 'S'}};
 

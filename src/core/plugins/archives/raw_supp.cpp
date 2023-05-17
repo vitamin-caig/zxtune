@@ -40,7 +40,7 @@ namespace ZXTune
   class StatisticBuilder
   {
   public:
-    typedef std::array<String, Fields> Line;
+    using Line = std::array<String, Fields>;
 
     StatisticBuilder()
       : Lines()
@@ -257,7 +257,7 @@ namespace ZXTune
     uint64_t TotalData = 0;
     uint64_t ArchivedData = 0;
     uint64_t ModulesData = 0;
-    typedef std::map<const void*, StatItem> DetectMap;
+    using DetectMap = std::map<const void*, StatItem>;
     DetectMap Detection;
   };
 }  // namespace ZXTune
@@ -337,7 +337,7 @@ namespace ZXTune::Raw
   class ScanDataContainer : public Binary::Container
   {
   public:
-    typedef std::shared_ptr<ScanDataContainer> Ptr;
+    using Ptr = std::shared_ptr<ScanDataContainer>;
 
     ScanDataContainer(Binary::Container::Ptr delegate, std::size_t offset)
       : Delegate(delegate)
@@ -386,7 +386,7 @@ namespace ZXTune::Raw
   class ScanDataLocation : public DataLocation
   {
   public:
-    typedef std::shared_ptr<ScanDataLocation> Ptr;
+    using Ptr = std::shared_ptr<ScanDataLocation>;
 
     ScanDataLocation(DataLocation::Ptr parent, std::size_t offset)
       : Parent(std::move(parent))
@@ -493,7 +493,7 @@ namespace ZXTune::Raw
 
       PluginEntry() = default;
     };
-    typedef typename std::vector<PluginEntry> PluginsList;
+    using PluginsList = typename std::vector<PluginEntry>;
 
   public:
     class Iterator

@@ -23,14 +23,14 @@
 
 namespace Devices::FM::Details
 {
-  typedef int32_t YM2203SampleType;
-  typedef std::shared_ptr<void> ChipPtr;
+  using YM2203SampleType = int32_t;
+  using ChipPtr = std::shared_ptr<void>;
 
   static_assert(sizeof(YM2203SampleType) == sizeof(Sound::Sample), "Incompatible sample types");
 
   class ClockSource
   {
-    typedef Math::FixedPoint<Stamp::ValueType, Stamp::PER_SECOND> FixedPoint;
+    using FixedPoint = Math::FixedPoint<Stamp::ValueType, Stamp::PER_SECOND>;
 
   public:
     void SetFrequency(uint_t sndFreq)

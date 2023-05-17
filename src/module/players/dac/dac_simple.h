@@ -21,8 +21,8 @@ namespace Module::DAC
   class SimpleModuleData : public TrackModel
   {
   public:
-    typedef std::shared_ptr<const SimpleModuleData> Ptr;
-    typedef std::shared_ptr<SimpleModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const SimpleModuleData>;
+    using RWPtr = std::shared_ptr<SimpleModuleData>;
 
     explicit SimpleModuleData(uint_t channels)
       : ChannelsCount(channels)
@@ -59,7 +59,7 @@ namespace Module::DAC
   class SimpleDataBuilder : public Formats::Chiptune::Digital::Builder
   {
   public:
-    typedef std::unique_ptr<SimpleDataBuilder> Ptr;
+    using Ptr = std::unique_ptr<SimpleDataBuilder>;
 
     virtual SimpleModuleData::Ptr CaptureResult() = 0;
 

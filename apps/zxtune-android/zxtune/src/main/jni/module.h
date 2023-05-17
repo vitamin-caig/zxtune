@@ -19,7 +19,7 @@
 
 namespace Module
 {
-  typedef ObjectsStorage<Module::Holder::Ptr> Storage;
+  using Storage = ObjectsStorage<Module::Holder::Ptr>;
 
   void InitJni(JNIEnv*);
   void CleanupJni(JNIEnv*);

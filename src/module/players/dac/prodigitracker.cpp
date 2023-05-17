@@ -36,8 +36,8 @@ namespace Module::ProDigiTracker
   class ModuleData : public DAC::SimpleModuleData
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     ModuleData()
       : DAC::SimpleModuleData(CHANNELS_COUNT)

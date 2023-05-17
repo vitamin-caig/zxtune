@@ -21,7 +21,7 @@
 
 namespace Module
 {
-  typedef std::vector<Renderer::Ptr> RenderersArray;
+  using RenderersArray = std::vector<Renderer::Ptr>;
 
   class WideSample
   {

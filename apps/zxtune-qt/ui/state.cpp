@@ -38,7 +38,7 @@ namespace
   class WidgetState
   {
   public:
-    typedef std::shared_ptr<const WidgetState> Ptr;
+    using Ptr = std::shared_ptr<const WidgetState>;
     virtual ~WidgetState() = default;
 
     virtual void Load() const = 0;

@@ -23,7 +23,7 @@ namespace Formats::Chiptune
   class PatchedDataBuilder
   {
   public:
-    typedef std::unique_ptr<PatchedDataBuilder> Ptr;
+    using Ptr = std::unique_ptr<PatchedDataBuilder>;
     virtual ~PatchedDataBuilder() = default;
 
     virtual void InsertData(std::size_t offset, Binary::View data) = 0;

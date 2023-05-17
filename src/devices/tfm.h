@@ -46,7 +46,7 @@ namespace Devices::TFM
     }
   };
 
-  typedef std::vector<Register> Registers;
+  using Registers = std::vector<Register>;
 
   struct DataChunk
   {
@@ -61,7 +61,7 @@ namespace Devices::TFM
   class Device
   {
   public:
-    typedef std::shared_ptr<Device> Ptr;
+    using Ptr = std::shared_ptr<Device>;
     virtual ~Device() = default;
 
     virtual void RenderData(const DataChunk& src) = 0;

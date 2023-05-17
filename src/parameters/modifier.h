@@ -19,7 +19,7 @@ namespace Parameters
   {
   public:
     //! Pointer type
-    typedef std::shared_ptr<Modifier> Ptr;
+    using Ptr = std::shared_ptr<Modifier>;
 
     //! Remove parameter
     virtual void RemoveValue(Identifier name) = 0;

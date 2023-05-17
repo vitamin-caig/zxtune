@@ -27,7 +27,7 @@ namespace
   class Predicate
   {
   public:
-    typedef std::shared_ptr<const Predicate> Ptr;
+    using Ptr = std::shared_ptr<const Predicate>;
     virtual ~Predicate() = default;
 
     virtual bool Match(const Playlist::Item::Data& data) const = 0;
@@ -104,7 +104,7 @@ namespace
   class StringPredicate
   {
   public:
-    typedef std::shared_ptr<const StringPredicate> Ptr;
+    using Ptr = std::shared_ptr<const StringPredicate>;
     virtual ~StringPredicate() = default;
 
     virtual bool Match(StringView str) const = 0;

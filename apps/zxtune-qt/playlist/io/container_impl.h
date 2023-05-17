@@ -26,8 +26,8 @@ namespace Playlist::IO
 
   struct ContainerItems : std::vector<ContainerItem>
   {
-    typedef std::shared_ptr<const ContainerItems> Ptr;
-    typedef std::shared_ptr<ContainerItems> RWPtr;
+    using Ptr = std::shared_ptr<const ContainerItems>;
+    using RWPtr = std::shared_ptr<ContainerItems>;
   };
 
   Container::Ptr CreateContainer(Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr properties,

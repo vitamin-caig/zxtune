@@ -53,7 +53,7 @@ namespace Product
   class Update : public Release
   {
   public:
-    typedef std::shared_ptr<const Update> Ptr;
+    using Ptr = std::shared_ptr<const Update>;
 
     enum PackagingTag
     {

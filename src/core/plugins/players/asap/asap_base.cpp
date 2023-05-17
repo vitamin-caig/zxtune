@@ -298,7 +298,7 @@ namespace Module::ASAP
 
   struct MultitrackPluginDescription
   {
-    typedef Formats::Multitrack::Decoder::Ptr (*MultitrackDecoderCreator)();
+    using MultitrackDecoderCreator = Formats::Multitrack::Decoder::Ptr (*)();
 
     PluginDescription Desc;
     const MultitrackDecoderCreator CreateMultitrackDecoder;
@@ -355,7 +355,7 @@ namespace Module::ASAP
 
   struct SingletrackPluginDescription
   {
-    typedef Formats::Chiptune::Decoder::Ptr (*ChiptuneDecoderCreator)();
+    using ChiptuneDecoderCreator = Formats::Chiptune::Decoder::Ptr (*)();
 
     PluginDescription Desc;
     const ChiptuneDecoderCreator CreateChiptuneDecoder;

@@ -36,7 +36,7 @@ namespace Playlist
     class Container
     {
     public:
-      typedef std::shared_ptr<const Container> Ptr;
+      using Ptr = std::shared_ptr<const Container>;
 
       virtual ~Container() = default;
 

@@ -27,7 +27,7 @@ namespace boost::program_options
 class DisplayComponent
 {
 public:
-  typedef std::unique_ptr<DisplayComponent> Ptr;
+  using Ptr = std::unique_ptr<DisplayComponent>;
 
   virtual ~DisplayComponent() = default;
 

@@ -73,7 +73,7 @@ namespace Module
   class MutableLine : public Line
   {
   public:
-    typedef std::unique_ptr<MutableLine> Ptr;
+    using Ptr = std::unique_ptr<MutableLine>;
 
     virtual void SetTempo(uint_t val) = 0;
     virtual MutableCell& AddChannel(uint_t idx) = 0;
@@ -82,7 +82,7 @@ namespace Module
   class MutablePattern : public Pattern
   {
   public:
-    typedef std::unique_ptr<MutablePattern> Ptr;
+    using Ptr = std::unique_ptr<MutablePattern>;
 
     virtual MutableLine& AddLine(uint_t row) = 0;
     virtual void SetSize(uint_t size) = 0;
@@ -91,7 +91,7 @@ namespace Module
   class MutablePatternsSet : public PatternsSet
   {
   public:
-    typedef std::unique_ptr<MutablePatternsSet> Ptr;
+    using Ptr = std::unique_ptr<MutablePatternsSet>;
 
     virtual MutablePattern& AddPattern(uint_t idx) = 0;
   };
@@ -130,7 +130,7 @@ namespace Module
 
   private:
     uint_t Tempo = 0;
-    typedef std::array<MutableCell, ChannelsCount> ChannelsArray;
+    using ChannelsArray = std::array<MutableCell, ChannelsCount>;
     ChannelsArray Channels;
   };
 
@@ -246,7 +246,7 @@ namespace Module
   class TrackStateIterator : public Iterator
   {
   public:
-    typedef std::shared_ptr<TrackStateIterator> Ptr;
+    using Ptr = std::shared_ptr<TrackStateIterator>;
 
     virtual TrackModelState::Ptr GetStateObserver() const = 0;
   };
@@ -331,9 +331,9 @@ namespace Module
     template<uint_t ChannelsCount>
     static PatternsBuilder Create()
     {
-      typedef MultichannelMutableLine<ChannelsCount> LineType;
-      typedef SparsedMutablePattern<LineType> PatternType;
-      typedef SparsedMutablePatternsSet<PatternType> PatternsSetType;
+      using LineType = MultichannelMutableLine<ChannelsCount>;
+      using PatternType = SparsedMutablePattern<LineType>;
+      using PatternsSetType = SparsedMutablePatternsSet<PatternType>;
       return PatternsBuilder(MakePtr<PatternsSetType>());
     }
 

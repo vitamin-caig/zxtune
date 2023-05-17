@@ -278,7 +278,7 @@ namespace Sound::Alsa
   class DeviceWrapper
   {
   public:
-    typedef std::shared_ptr<DeviceWrapper> Ptr;
+    using Ptr = std::shared_ptr<DeviceWrapper>;
 
     DeviceWrapper(Api::Ptr api, const Identifier& id)
       : AlsaApi(api)
@@ -516,7 +516,7 @@ namespace Sound::Alsa
   class Mixer
   {
   public:
-    typedef std::shared_ptr<Mixer> Ptr;
+    using Ptr = std::shared_ptr<Mixer>;
 
     Mixer(Api::Ptr api, const Identifier& id, StringView mixer)
       : AlsaApi(api)

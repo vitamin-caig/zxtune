@@ -62,7 +62,7 @@ namespace Devices::AYM
   class ChipParameters
   {
   public:
-    typedef std::shared_ptr<const ChipParameters> Ptr;
+    using Ptr = std::shared_ptr<const ChipParameters>;
 
     virtual ~ChipParameters() = default;
 
@@ -78,7 +78,7 @@ namespace Devices::AYM
   };
 
   const uint_t SOUND_CHANNELS = 3;
-  typedef Sound::ThreeChannelsMixer MixerType;
+  using MixerType = Sound::ThreeChannelsMixer;
 
   /// Virtual constructors
   Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer);

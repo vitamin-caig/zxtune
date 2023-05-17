@@ -22,7 +22,7 @@ namespace Module
   {
   public:
     //! @brief Pointer type
-    typedef std::shared_ptr<const Holder> Ptr;
+    using Ptr = std::shared_ptr<const Holder>;
 
     virtual ~Holder() = default;
 

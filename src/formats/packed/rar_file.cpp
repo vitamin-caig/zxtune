@@ -114,7 +114,7 @@ namespace Formats::Packed
     class CompressedFile
     {
     public:
-      typedef std::unique_ptr<const CompressedFile> Ptr;
+      using Ptr = std::unique_ptr<const CompressedFile>;
       virtual ~CompressedFile() = default;
 
       virtual Binary::Container::Ptr Decompress(const Container& container) const = 0;

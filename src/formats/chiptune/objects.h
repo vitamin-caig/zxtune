@@ -22,7 +22,7 @@ namespace Formats::Chiptune
   class LinesObject
   {
   public:
-    typedef LineType Line;
+    using Line = LineType;
 
     LinesObject() = default;
 

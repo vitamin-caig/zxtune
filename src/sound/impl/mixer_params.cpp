@@ -20,7 +20,7 @@
 
 namespace Sound
 {
-  typedef std::array<Gain::Type, Sample::CHANNELS> MultiConfigValue;
+  using MultiConfigValue = std::array<Gain::Type, Sample::CHANNELS>;
 
   void GetMatrixRow(const Parameters::Accessor& params, uint_t channels, uint_t inChan, MultiConfigValue& out)
   {

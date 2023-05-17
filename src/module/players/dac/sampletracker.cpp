@@ -21,8 +21,8 @@ namespace Module::SampleTracker
 {
   const std::size_t CHANNELS_COUNT = 3;
 
-  typedef DAC::SimpleModuleData ModuleData;
-  typedef DAC::SimpleDataBuilder DataBuilder;
+  using ModuleData = DAC::SimpleModuleData;
+  using DataBuilder = DAC::SimpleDataBuilder;
 
   /*
     0x0016 0x0017 0x0019 0x001a 0x001c 0x001e 0x001f 0x0021 0x0023 0x0025 0x0027 0x002a

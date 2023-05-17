@@ -25,7 +25,7 @@
 
 namespace Module::ProTracker3
 {
-  typedef Vortex::ModuleData ModuleData;
+  using ModuleData = Vortex::ModuleData;
 
   const Char TURBOSOUND_COMMENT[] = "TurboSound module";
 
@@ -263,7 +263,7 @@ namespace Module::ProTracker3
     class Line : public Module::Line
     {
     public:
-      typedef std::unique_ptr<Line> Ptr;
+      using Ptr = std::unique_ptr<Line>;
 
       Line(const Module::Line* first, const Module::Line* second)
         : First(first ? first : StubLine::Create())
@@ -297,7 +297,7 @@ namespace Module::ProTracker3
     class Pattern : public Module::Pattern
     {
     public:
-      typedef std::unique_ptr<Pattern> Ptr;
+      using Ptr = std::unique_ptr<Pattern>;
 
       Pattern(const Module::Pattern& first, const Module::Pattern& second)
         : First(first)

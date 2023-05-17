@@ -21,8 +21,8 @@ namespace Module::DigitalStudio
 {
   const std::size_t CHANNELS_COUNT = 3;
 
-  typedef DAC::SimpleModuleData ModuleData;
-  typedef DAC::SimpleDataBuilder DataBuilder;
+  using ModuleData = DAC::SimpleModuleData;
+  using DataBuilder = DAC::SimpleDataBuilder;
 
   class Factory : public DAC::Factory
   {

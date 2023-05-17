@@ -33,7 +33,7 @@ namespace Sound::Mp3
   const uint_t QUALITY_MIN = 0;
   const uint_t QUALITY_MAX = 9;
 
-  typedef std::shared_ptr<lame_global_flags> LameContextPtr;
+  using LameContextPtr = std::shared_ptr<lame_global_flags>;
 
   void CheckLameCall(int res, Error::LocationRef loc)
   {

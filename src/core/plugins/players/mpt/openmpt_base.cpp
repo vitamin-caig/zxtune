@@ -49,7 +49,7 @@ namespace Module::Mpt
   class Information : public Module::TrackInformation
   {
   public:
-    typedef std::shared_ptr<const Information> Ptr;
+    using Ptr = std::shared_ptr<const Information>;
 
     Information(ModulePtr track)
       : Track(std::move(track))

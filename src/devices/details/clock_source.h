@@ -17,11 +17,11 @@ namespace Devices::Details
   template<class StampType>
   class ClockSource
   {
-    typedef Math::FixedPoint<uint_t, 65536u> FastFixedPoint;
+    using FastFixedPoint = Math::FixedPoint<uint_t, 65536U>;
 
   public:
-    typedef Math::FixedPoint<typename StampType::ValueType, 65536u> FixedPoint;
-    typedef FixedPoint FastStamp;
+    using FixedPoint = Math::FixedPoint<typename StampType::ValueType, 65536U>;
+    using FastStamp = FixedPoint;
 
     ClockSource() = default;
 

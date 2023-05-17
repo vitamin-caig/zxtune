@@ -65,7 +65,7 @@ namespace
     bool Changed = false;
   };
 
-  typedef std::array<BandLevel, MAX_BANDS> Analyzed;
+  using Analyzed = std::array<BandLevel, MAX_BANDS>;
 
   class AnalyzerControlImpl : public AnalyzerControl
   {

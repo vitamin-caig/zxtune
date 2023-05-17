@@ -24,7 +24,7 @@ namespace Playlist::Item
   {
     Q_OBJECT
   public:
-    typedef std::shared_ptr<SelectionOperation> Ptr;
+    using Ptr = std::shared_ptr<SelectionOperation>;
   signals:
     void ResultAcquired(Playlist::Model::IndexSet::Ptr);
   };
@@ -35,7 +35,7 @@ namespace Playlist::Item
   {
     Q_OBJECT
   public:
-    typedef std::shared_ptr<TextResultOperation> Ptr;
+    using Ptr = std::shared_ptr<TextResultOperation>;
   signals:
     void ResultAcquired(Playlist::TextNotification::Ptr);
   };

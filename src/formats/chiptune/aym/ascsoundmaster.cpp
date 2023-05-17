@@ -287,7 +287,7 @@ namespace Formats::Chiptune
       }
     };
 
-    typedef HeaderTraits (*CreateHeaderFunc)(Binary::View);
+    using CreateHeaderFunc = HeaderTraits (*)(Binary::View);
 
     struct VersionTraits
     {
@@ -306,7 +306,7 @@ namespace Formats::Chiptune
     struct Version0
     {
       static const VersionTraits TRAITS;
-      typedef RawHeaderVer0 RawHeader;
+      using RawHeader = RawHeaderVer0;
     };
 
     const VersionTraits Version0::TRAITS = {255, 0x2400,  //~9k
@@ -323,7 +323,7 @@ namespace Formats::Chiptune
     struct Version1
     {
       static const VersionTraits TRAITS;
-      typedef RawHeaderVer1 RawHeader;
+      using RawHeader = RawHeaderVer1;
     };
 
     const VersionTraits Version1::TRAITS = {256, 0x3a00,  //~15k

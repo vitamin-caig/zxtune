@@ -21,7 +21,7 @@ namespace Formats::Chiptune
 {
   namespace ExtremeTracker1
   {
-    typedef LinesObject<uint_t> Positions;
+    using Positions = LinesObject<uint_t>;
 
     class Builder
     {

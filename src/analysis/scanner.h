@@ -22,8 +22,8 @@ namespace Analysis
   class Scanner
   {
   public:
-    typedef std::shared_ptr<const Scanner> Ptr;
-    typedef std::shared_ptr<Scanner> RWPtr;
+    using Ptr = std::shared_ptr<const Scanner>;
+    using RWPtr = std::shared_ptr<Scanner>;
 
     virtual ~Scanner() = default;
 

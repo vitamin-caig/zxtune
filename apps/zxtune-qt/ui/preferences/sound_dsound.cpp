@@ -123,7 +123,7 @@ namespace
       String Id;
     };
 
-    typedef std::vector<Device> DevicesArray;
+    using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
 }  // namespace

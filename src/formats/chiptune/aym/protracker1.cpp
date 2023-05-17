@@ -145,7 +145,7 @@ namespace Formats::Chiptune
 
     struct RawOrnament
     {
-      typedef int8_t Line;
+      using Line = int8_t;
       Line Data[1];
 
       std::size_t GetSize() const

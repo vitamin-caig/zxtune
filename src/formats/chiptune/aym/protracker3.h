@@ -39,9 +39,9 @@ namespace Formats::Chiptune
       bool KeepNoiseOrEnvelopeOffset = false;
     };
 
-    typedef LinesObject<SampleLine> Sample;
-    typedef LinesObject<int_t> Ornament;
-    typedef LinesObject<uint_t> Positions;
+    using Sample = LinesObject<SampleLine>;
+    using Ornament = LinesObject<int_t>;
+    using Positions = LinesObject<uint_t>;
 
     enum NoteTable
     {
@@ -96,7 +96,7 @@ namespace Formats::Chiptune
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
-      typedef std::shared_ptr<const Decoder> Ptr;
+      using Ptr = std::shared_ptr<const Decoder>;
 
       virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
     };
@@ -104,7 +104,7 @@ namespace Formats::Chiptune
     class ChiptuneBuilder : public Builder
     {
     public:
-      typedef std::shared_ptr<ChiptuneBuilder> Ptr;
+      using Ptr = std::shared_ptr<ChiptuneBuilder>;
       virtual Binary::Data::Ptr GetResult() const = 0;
     };
 

@@ -16,7 +16,7 @@
 namespace Devices::Details
 {
   // in centiHz
-  typedef Math::FixedPoint<int_t, 100> Frequency;
+  using Frequency = Math::FixedPoint<int_t, 100>;
 
   class FreqTable
   {

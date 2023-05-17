@@ -24,7 +24,7 @@ namespace Formats::Chiptune
   {
     const Char DESCRIPTION[] = "Nitro Composer Sound Format";
 
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
     const SignatureType SAVESTATE_SIGNATURE = {{'S', 'A', 'V', 'E'}};
 
     void ParseRom(Binary::View data, Builder& target)

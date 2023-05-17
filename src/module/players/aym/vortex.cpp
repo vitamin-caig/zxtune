@@ -21,7 +21,7 @@ namespace Module::Vortex
 {
   const uint_t LIMITER = ~uint_t(0);
 
-  typedef std::array<uint8_t, 256> VolumeTable;
+  using VolumeTable = std::array<uint8_t, 256>;
 
   // Volume table of Pro Tracker 3.3x - 3.4x
   const VolumeTable Vol33_34 = {

@@ -27,7 +27,7 @@ namespace Module
   class FramedStreamStateCursor : public State
   {
   public:
-    typedef std::shared_ptr<FramedStreamStateCursor> Ptr;
+    using Ptr = std::shared_ptr<FramedStreamStateCursor>;
 
     explicit FramedStreamStateCursor(FramedStream stream)
       : Stream(std::move(stream))

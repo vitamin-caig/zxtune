@@ -136,7 +136,7 @@ public:
     , Lim(std::move(to))
   {}
 
-  typedef void (RangeIterator<C>::*BoolType)() const;
+  using BoolType = void (RangeIterator<C>::*)() const;
 
   operator BoolType() const
   {
@@ -172,7 +172,7 @@ template<class T>
 class ObjectIterator
 {
 public:
-  typedef typename std::shared_ptr<ObjectIterator<T> > Ptr;
+  using Ptr = typename std::shared_ptr<ObjectIterator<T>>;
 
   //! Virtual destructor
   virtual ~ObjectIterator() = default;

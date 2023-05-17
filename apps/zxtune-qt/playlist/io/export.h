@@ -25,7 +25,7 @@ namespace Playlist::IO
     SAVE_CONTENT = 4
   };
 
-  typedef uint_t ExportFlags;
+  using ExportFlags = uint_t;
 
   void SaveXSPF(Container::Ptr container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags);
 }  // namespace Playlist::IO

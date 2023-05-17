@@ -78,7 +78,7 @@ namespace Module::SAA
   class DataRenderer
   {
   public:
-    typedef std::shared_ptr<DataRenderer> Ptr;
+    using Ptr = std::shared_ptr<DataRenderer>;
 
     virtual ~DataRenderer() = default;
 
@@ -89,7 +89,7 @@ namespace Module::SAA
   class DataIterator : public Iterator
   {
   public:
-    typedef std::shared_ptr<DataIterator> Ptr;
+    using Ptr = std::shared_ptr<DataIterator>;
 
     virtual State::Ptr GetStateObserver() const = 0;
 
@@ -99,7 +99,7 @@ namespace Module::SAA
   class Chiptune
   {
   public:
-    typedef std::shared_ptr<const Chiptune> Ptr;
+    using Ptr = std::shared_ptr<const Chiptune>;
     virtual ~Chiptune() = default;
 
     virtual Time::Microseconds GetFrameDuration() const = 0;

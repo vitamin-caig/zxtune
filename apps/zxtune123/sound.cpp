@@ -92,7 +92,7 @@ namespace
   class Component : public SoundComponent
   {
     // Id => Options
-    typedef Strings::ValueMap<String> PerBackendOptions;
+    using PerBackendOptions = Strings::ValueMap<String>;
 
   public:
     explicit Component(Parameters::Container::Ptr configParams)

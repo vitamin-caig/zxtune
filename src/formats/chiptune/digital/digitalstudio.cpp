@@ -72,7 +72,7 @@ namespace Formats::Chiptune
       std::array<char, 8> Name;
     };
 
-    typedef std::array<uint8_t, 0x38> ZeroesArray;
+    using ZeroesArray = std::array<uint8_t, 56>;
 
     // Usually located at #7e00
     struct Header

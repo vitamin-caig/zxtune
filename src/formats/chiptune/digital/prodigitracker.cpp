@@ -44,7 +44,7 @@ namespace Formats::Chiptune
     const std::size_t ZX_PAGE_SIZE = 0x4000;
     const std::size_t PAGES_START = 0xc000;
 
-    typedef std::array<int8_t, 16> RawOrnament;
+    using RawOrnament = std::array<int8_t, 16>;
 
     struct RawOrnamentLoop
     {
@@ -116,9 +116,9 @@ namespace Formats::Chiptune
       uint8_t ParamSample;
     };
 
-    typedef std::array<RawNote, CHANNELS_COUNT> RawLine;
+    using RawLine = std::array<RawNote, CHANNELS_COUNT>;
 
-    typedef std::array<RawLine, PATTERN_SIZE> RawPattern;
+    using RawPattern = std::array<RawLine, PATTERN_SIZE>;
 
     struct RawHeader
     {

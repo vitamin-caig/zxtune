@@ -24,7 +24,7 @@ namespace IO
   class Identifier
   {
   public:
-    typedef std::shared_ptr<const Identifier> Ptr;
+    using Ptr = std::shared_ptr<const Identifier>;
 
     virtual ~Identifier() = default;
 

@@ -36,8 +36,8 @@ namespace Formats::Chiptune
       int_t Vibrato = 0;
     };
 
-    typedef LinesObject<SampleLine> Sample;
-    typedef LinesObject<int_t> Ornament;
+    using Sample = LinesObject<SampleLine>;
+    using Ornament = LinesObject<int_t>;
 
     struct PositionEntry
     {
@@ -47,7 +47,7 @@ namespace Formats::Chiptune
       int_t Transposition = 0;
     };
 
-    typedef LinesObject<PositionEntry> Positions;
+    using Positions = LinesObject<PositionEntry>;
 
     class Builder
     {
@@ -81,7 +81,7 @@ namespace Formats::Chiptune
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
-      typedef std::shared_ptr<const Decoder> Ptr;
+      using Ptr = std::shared_ptr<const Decoder>;
 
       virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
     };

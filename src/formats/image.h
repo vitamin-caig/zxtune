@@ -22,7 +22,7 @@ namespace Formats::Image
   class Container : public Binary::Container
   {
   public:
-    typedef std::shared_ptr<const Container> Ptr;
+    using Ptr = std::shared_ptr<const Container>;
 
     //! @brief Getting size of source data this container was extracted from
     //! @return Size in bytes
@@ -34,7 +34,7 @@ namespace Formats::Image
   class Decoder
   {
   public:
-    typedef std::shared_ptr<const Decoder> Ptr;
+    using Ptr = std::shared_ptr<const Decoder>;
     virtual ~Decoder() = default;
 
     //! @brief Get short decoder description

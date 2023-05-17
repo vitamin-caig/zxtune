@@ -22,18 +22,18 @@ namespace Binary::FormatDSL
   class Predicate
   {
   public:
-    typedef std::shared_ptr<const Predicate> Ptr;
+    using Ptr = std::shared_ptr<const Predicate>;
     virtual ~Predicate() = default;
 
     virtual bool Match(uint_t val) const = 0;
   };
 
-  typedef std::vector<Predicate::Ptr> Pattern;
+  using Pattern = std::vector<Predicate::Ptr>;
 
   class Expression
   {
   public:
-    typedef std::unique_ptr<const Expression> Ptr;
+    using Ptr = std::unique_ptr<const Expression>;
     virtual ~Expression() = default;
 
     virtual std::size_t StartOffset() const = 0;

@@ -30,17 +30,17 @@ using std::int64_t;
 using std::uint64_t;
 
 /// Unsigned integer type
-typedef unsigned int uint_t;
+using uint_t = unsigned int;
 /// Signed integer type
-typedef signed int int_t;
+using int_t = signed int;
 //@}
 
 /// String-related types
 
 //! @brief %String type
-typedef std::basic_string<Char> String;
+using String = std::basic_string<Char>;
 
-typedef basic_string_view<Char> StringView;
+using StringView = basic_string_view<Char>;
 
 // assertions
 static_assert(sizeof(uint_t) >= sizeof(uint32_t), "Invalid uint_t type");

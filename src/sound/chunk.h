@@ -40,8 +40,8 @@ namespace Sound
       return *this;
     }
 
-    typedef Sample* iterator;
-    typedef const Sample* const_iterator;
+    using iterator = Sample*;
+    using const_iterator = const Sample*;
 
     iterator begin()
     {

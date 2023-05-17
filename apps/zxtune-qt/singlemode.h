@@ -21,7 +21,7 @@ class SingleModeDispatcher : public QObject
 {
   Q_OBJECT
 public:
-  typedef QPointer<SingleModeDispatcher> Ptr;
+  using Ptr = QPointer<SingleModeDispatcher>;
   static Ptr Create(Parameters::Accessor::Ptr params, Strings::Array argv);
 
   virtual bool StartMaster() = 0;

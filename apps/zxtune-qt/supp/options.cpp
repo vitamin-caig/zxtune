@@ -134,8 +134,8 @@ namespace
     }
 
   private:
-    typedef std::shared_ptr<QSettings> SettingsPtr;
-    typedef std::map<QString, SettingsPtr> SettingsStorage;
+    using SettingsPtr = std::shared_ptr<QSettings>;
+    using SettingsStorage = std::map<QString, SettingsPtr>;
 
     class Value
     {
@@ -328,7 +328,7 @@ namespace
   class CompositeModifier : public Modifier
   {
   public:
-    typedef std::shared_ptr<void> Subscription;
+    using Subscription = std::shared_ptr<void>;
 
     Subscription Subscribe(Modifier::Ptr delegate)
     {
@@ -382,7 +382,7 @@ namespace
 
   private:
     mutable std::mutex Guard;
-    typedef std::set<Modifier::Ptr> ModifiersSet;
+    using ModifiersSet = std::set<Modifier::Ptr>;
     mutable ModifiersSet Delegates;
   };
 

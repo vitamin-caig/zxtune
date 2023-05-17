@@ -477,7 +477,7 @@ namespace Formats::Chiptune
       uint16_t StackPointer = 0;
       uint16_t InitRoutine = 0;
       uint16_t PlayRoutine = 0;
-      typedef std::list<std::pair<uint16_t, Binary::Data::Ptr> > BlocksList;
+      using BlocksList = std::list<std::pair<uint16_t, Binary::Data::Ptr>>;
       BlocksList Blocks;
     };
 

@@ -29,7 +29,7 @@ namespace Module::AHX
 {
   const Debug::Stream Dbg("Core::AHXSupp");
 
-  typedef std::shared_ptr<hvl_tune> HvlPtr;
+  using HvlPtr = std::shared_ptr<hvl_tune>;
 
   enum StereoSeparation
   {
@@ -184,7 +184,7 @@ namespace Module::AHX
   class HVL
   {
   public:
-    typedef std::shared_ptr<HVL> Ptr;
+    using Ptr = std::shared_ptr<HVL>;
 
     HVL(Binary::View data, uint_t samplerate)
       : Hvl(LoadModule(data, samplerate))

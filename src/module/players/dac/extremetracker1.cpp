@@ -44,7 +44,7 @@ namespace Module::ExtremeTracker1
     return step * 3270 / int_t(C_1_STEP_GLISS * 100);
   }
 
-  typedef DAC::SimpleModuleData ModuleData;
+  using ModuleData = DAC::SimpleModuleData;
 
   class DataBuilder : public Formats::Chiptune::ExtremeTracker1::Builder
   {

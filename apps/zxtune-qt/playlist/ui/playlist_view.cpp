@@ -109,7 +109,7 @@ namespace
 
   class TooltipFieldsSourceAdapter : public Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>
   {
-    typedef Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource> Parent;
+    using Parent = Parameters::FieldsSourceAdapter<Strings::SkipFieldsSource>;
 
   public:
     explicit TooltipFieldsSourceAdapter(const Parameters::Accessor& props)
@@ -141,7 +141,7 @@ namespace
     {
       static const Char NEWLINE[] = {'\n', 0};
       static const Char ELLIPSIS[] = {'\n', '<', '.', '.', '.', '>', 0};
-      typedef boost::iterator_range<String::iterator> Range;
+      using Range = boost::iterator_range<String::iterator>;
       const Range head = boost::algorithm::find_nth(result, NEWLINE, maxLines / 2 - 1);
       const Range tail = boost::algorithm::find_nth(result, NEWLINE, -maxLines / 2);
       if (head.begin() < tail.begin())

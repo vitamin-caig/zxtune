@@ -34,7 +34,7 @@ namespace Formats::Chiptune
       int_t VolSlide = 0;  // 0/+1/-1
     };
 
-    typedef LinesObjectWithLoopLimit<SampleLine> Sample;
+    using Sample = LinesObjectWithLoopLimit<SampleLine>;
 
     struct OrnamentLine
     {
@@ -43,9 +43,9 @@ namespace Formats::Chiptune
       int_t NoiseAddon = 0;
     };
 
-    typedef LinesObjectWithLoopLimit<OrnamentLine> Ornament;
+    using Ornament = LinesObjectWithLoopLimit<OrnamentLine>;
 
-    typedef LinesObject<uint_t> Positions;
+    using Positions = LinesObject<uint_t>;
 
     class Builder
     {
@@ -87,7 +87,7 @@ namespace Formats::Chiptune
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
-      typedef std::shared_ptr<const Decoder> Ptr;
+      using Ptr = std::shared_ptr<const Decoder>;
 
       virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
     };

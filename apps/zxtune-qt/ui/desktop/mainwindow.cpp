@@ -243,7 +243,7 @@ namespace
     }
 
   private:
-    typedef std::pair<QWidget*, QToolBar*> WidgetOnToolbar;
+    using WidgetOnToolbar = std::pair<QWidget*, QToolBar*>;
 
     WidgetOnToolbar AddWidgetOnToolbar(QWidget* widget, bool lastInRow)
     {

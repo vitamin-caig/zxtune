@@ -26,7 +26,7 @@ namespace Async
   class Coroutine
   {
   public:
-    typedef std::shared_ptr<Coroutine> Ptr;
+    using Ptr = std::shared_ptr<Coroutine>;
     virtual ~Coroutine() = default;
 
     virtual void Initialize() = 0;

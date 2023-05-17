@@ -23,9 +23,9 @@ namespace Devices::AYM
 
   struct Traits
   {
-    typedef DataChunk DataChunkType;
-    typedef PSG PSGType;
-    typedef Chip ChipBaseType;
+    using DataChunkType = DataChunk;
+    using PSGType = PSG;
+    using ChipBaseType = Chip;
     static const uint_t VOICES = AYM::VOICES;
   };
 

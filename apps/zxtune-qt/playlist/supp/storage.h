@@ -18,7 +18,7 @@ namespace Playlist::Item
   class Comparer
   {
   public:
-    typedef std::shared_ptr<const Comparer> Ptr;
+    using Ptr = std::shared_ptr<const Comparer>;
     virtual ~Comparer() = default;
 
     virtual bool CompareItems(const Data& lh, const Data& rh) const = 0;
@@ -35,7 +35,7 @@ namespace Playlist::Item
   class Storage
   {
   public:
-    typedef std::shared_ptr<Storage> Ptr;
+    using Ptr = std::shared_ptr<Storage>;
 
     virtual ~Storage() = default;
 

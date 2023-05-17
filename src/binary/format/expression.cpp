@@ -27,7 +27,7 @@
 
 namespace Binary::FormatDSL
 {
-  typedef RangeIterator<StringView::const_iterator> PatternIterator;
+  using PatternIterator = RangeIterator<StringView::const_iterator>;
 
   class AnyValuePredicate : public Predicate
   {

@@ -27,7 +27,7 @@ namespace Formats::Chiptune
   {
     const Char DESCRIPTION[] = "KSS Music Format";
 
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
 
     struct RawHeader
     {

@@ -120,7 +120,7 @@ namespace Module::MTC
     class TrackEntity
     {
     public:
-      typedef std::shared_ptr<TrackEntity> Ptr;
+      using Ptr = std::shared_ptr<TrackEntity>;
 
       virtual ~TrackEntity() = default;
 

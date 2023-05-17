@@ -22,7 +22,7 @@ namespace Formats::Multitrack
   class Container : public Chiptune::Container
   {
   public:
-    typedef std::shared_ptr<const Container> Ptr;
+    using Ptr = std::shared_ptr<const Container>;
 
     //! @return total tracks count
     virtual uint_t TracksCount() const = 0;
@@ -34,7 +34,7 @@ namespace Formats::Multitrack
   class Decoder
   {
   public:
-    typedef std::shared_ptr<const Decoder> Ptr;
+    using Ptr = std::shared_ptr<const Decoder>;
     virtual ~Decoder() = default;
 
     //! @brief Get short decoder description

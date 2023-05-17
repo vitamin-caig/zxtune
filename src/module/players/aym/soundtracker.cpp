@@ -30,7 +30,7 @@ namespace Module::SoundTracker
   using Formats::Chiptune::SoundTracker::Sample;
   using Formats::Chiptune::SoundTracker::Ornament;
 
-  typedef SimpleOrderListWithTransposition<Formats::Chiptune::SoundTracker::PositionEntry> OrderListWithTransposition;
+  using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::SoundTracker::PositionEntry>;
 
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 

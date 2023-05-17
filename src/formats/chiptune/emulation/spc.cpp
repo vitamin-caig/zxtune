@@ -36,7 +36,7 @@ namespace Formats::Chiptune
 
     const Char DESCRIPTION[] = "SNES SPC700";
 
-    typedef std::array<uint8_t, 28> SignatureType;
+    using SignatureType = std::array<uint8_t, 28>;
     const SignatureType SIGNATURE = {{'S', 'N', 'E', 'S', '-', 'S', 'P', 'C', '7', '0', '0', ' ', 'S', 'o',
                                       'u', 'n', 'd', ' ', 'F', 'i', 'l', 'e', ' ', 'D', 'a', 't', 'a', ' '}};
 
@@ -270,7 +270,7 @@ namespace Formats::Chiptune
       uint8_t DSPRegisters[128];
     };
 
-    typedef std::array<uint8_t, 4> IFFId;
+    using IFFId = std::array<uint8_t, 4>;
     const IFFId XID6 = {{'x', 'i', 'd', '6'}};
 
     struct IFFChunkHeader

@@ -98,7 +98,7 @@ namespace Formats::Chiptune
       uint8_t NoteCmd;
     };
 
-    typedef std::array<Note, CHANNELS_COUNT> NoteRow;
+    using NoteRow = std::array<Note, CHANNELS_COUNT>;
 
     // format commands
     enum
@@ -127,7 +127,7 @@ namespace Formats::Chiptune
       uint8_t SampParam;
     };
 
-    typedef std::array<NoteParam, CHANNELS_COUNT> NoteParamRow;
+    using NoteParamRow = std::array<NoteParam, CHANNELS_COUNT>;
 
     struct Pattern
     {

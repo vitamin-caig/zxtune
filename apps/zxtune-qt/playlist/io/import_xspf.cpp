@@ -59,7 +59,7 @@ namespace
   class PropertiesFilter : public Parameters::Visitor
   {
   public:
-    typedef bool (*PropertyFilter)(Parameters::Identifier);
+    using PropertyFilter = bool (*)(Parameters::Identifier);
 
     PropertiesFilter(Parameters::Visitor& delegate, PropertyFilter filter, bool match)
       : Delegate(delegate)

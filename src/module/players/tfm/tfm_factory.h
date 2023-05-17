@@ -21,7 +21,7 @@ namespace Module::TFM
   class Factory
   {
   public:
-    typedef std::shared_ptr<const Factory> Ptr;
+    using Ptr = std::shared_ptr<const Factory>;
     virtual ~Factory() = default;
 
     virtual Chiptune::Ptr CreateChiptune(const Binary::Container& data,

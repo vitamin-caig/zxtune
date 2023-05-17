@@ -25,7 +25,7 @@ namespace Formats::Packed
 {
   namespace DSK
   {
-    typedef std::array<uint8_t, 34> DiskSignatureType;
+    using DiskSignatureType = std::array<uint8_t, 34>;
 
     const DiskSignatureType DISK_SIGNATURE = {{'M', 'V', ' ', '-', ' ', 'C', 'P', 'C', 'E',  'M',  'U',  ' ',
                                                'D', 'i', 's', 'k', '-', 'F', 'i', 'l', 'e',  '\r', '\n', 'D',
@@ -46,7 +46,7 @@ namespace Formats::Packed
       }
     };
 
-    typedef std::array<uint8_t, 12> TrackSignatureType;
+    using TrackSignatureType = std::array<uint8_t, 12>;
 
     const TrackSignatureType TRACK_SIGNATURE = {{'T', 'r', 'a', 'c', 'k', '-', 'I', 'n', 'f', 'o', '\r', '\n'}};
 

@@ -22,7 +22,7 @@ namespace Playlist::Item
   class ConversionResultNotification : public Playlist::TextNotification
   {
   public:
-    typedef std::shared_ptr<ConversionResultNotification> Ptr;
+    using Ptr = std::shared_ptr<ConversionResultNotification>;
 
     virtual void AddSucceed() = 0;
     virtual void AddFailedToOpen(StringView path) = 0;

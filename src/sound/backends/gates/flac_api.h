@@ -21,7 +21,7 @@ namespace Sound::Flac
   class Api
   {
   public:
-    typedef std::shared_ptr<Api> Ptr;
+    using Ptr = std::shared_ptr<Api>;
     virtual ~Api() = default;
 
 // clang-format off

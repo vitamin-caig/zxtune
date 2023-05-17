@@ -42,8 +42,8 @@ namespace Module
     int_t Param3 = 0;
   };
 
-  typedef std::vector<Command> CommandsArray;
-  typedef RangeIterator<CommandsArray::const_iterator> CommandsIterator;
+  using CommandsArray = std::vector<Command>;
+  using CommandsIterator = RangeIterator<CommandsArray::const_iterator>;
 
   class Cell
   {
@@ -128,7 +128,7 @@ namespace Module
   class PatternsSet
   {
   public:
-    typedef std::unique_ptr<const PatternsSet> Ptr;
+    using Ptr = std::unique_ptr<const PatternsSet>;
     virtual ~PatternsSet() = default;
 
     virtual const class Pattern* Get(uint_t idx) const = 0;
@@ -138,7 +138,7 @@ namespace Module
   class OrderList
   {
   public:
-    typedef std::unique_ptr<const OrderList> Ptr;
+    using Ptr = std::unique_ptr<const OrderList>;
     virtual ~OrderList() = default;
 
     virtual uint_t GetSize() const = 0;
@@ -149,7 +149,7 @@ namespace Module
   class TrackModel
   {
   public:
-    typedef std::shared_ptr<const TrackModel> Ptr;
+    using Ptr = std::shared_ptr<const TrackModel>;
     virtual ~TrackModel() = default;
 
     virtual uint_t GetChannelsCount() const = 0;
@@ -161,7 +161,7 @@ namespace Module
   class TrackModelState : public TrackState
   {
   public:
-    typedef std::shared_ptr<const TrackModelState> Ptr;
+    using Ptr = std::shared_ptr<const TrackModelState>;
 
     virtual const class Pattern* PatternObject() const = 0;
     virtual const class Line* LineObject() const = 0;

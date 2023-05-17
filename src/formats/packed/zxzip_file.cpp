@@ -417,7 +417,7 @@ namespace Formats::Packed
       {}
     };
 
-    typedef std::array<LZWEntry, 8192> LZWTree;
+    using LZWTree = std::array<LZWEntry, 8192>;
 
     class ShrinkDataDecoder : public DataDecoder
     {

@@ -44,7 +44,7 @@ namespace Module::FastTracker
   using Formats::Chiptune::FastTracker::Sample;
   using Formats::Chiptune::FastTracker::Ornament;
 
-  typedef SimpleOrderListWithTransposition<Formats::Chiptune::FastTracker::PositionEntry> OrderListWithTransposition;
+  using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::FastTracker::PositionEntry>;
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 
   class DataBuilder : public Formats::Chiptune::FastTracker::Builder

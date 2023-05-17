@@ -15,5 +15,5 @@
 typedef wchar_t Char;
 #else
 //! @brief Character type used for strings
-typedef char Char;
+using Char = char;
 #endif

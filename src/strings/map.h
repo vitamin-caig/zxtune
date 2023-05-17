@@ -18,7 +18,7 @@
 
 namespace Strings
 {
-  typedef std::map<String, String> Map;
+  using Map = std::map<String, String>;
 
   template<class T>
   class ValueMap : public std::map<String, T, std::less<>>

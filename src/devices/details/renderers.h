@@ -46,7 +46,7 @@ namespace Devices::Details
   template<class StampType, class PSGType>
   class BaseRenderer : public Renderer<StampType>
   {
-    typedef typename ClockSource<StampType>::FastStamp FastStamp;
+    using FastStamp = typename ClockSource<StampType>::FastStamp;
 
   public:
     template<class ParameterType>
@@ -230,9 +230,9 @@ namespace Devices::Details
   };
 
   template<class StampType, class PSGType>
-  class LQRenderer : public BaseRenderer<StampType, LQWrapper<PSGType> >
+  class LQRenderer : public BaseRenderer<StampType, LQWrapper<PSGType>>
   {
-    typedef BaseRenderer<StampType, LQWrapper<PSGType> > Parent;
+    using Parent = BaseRenderer<StampType, LQWrapper<PSGType>>;
 
   public:
     LQRenderer(ClockSource<StampType>& clock, PSGType& psg)
@@ -241,9 +241,9 @@ namespace Devices::Details
   };
 
   template<class StampType, class PSGType>
-  class MQRenderer : public BaseRenderer<StampType, MQWrapper<PSGType> >
+  class MQRenderer : public BaseRenderer<StampType, MQWrapper<PSGType>>
   {
-    typedef BaseRenderer<StampType, MQWrapper<PSGType> > Parent;
+    using Parent = BaseRenderer<StampType, MQWrapper<PSGType>>;
 
   public:
     MQRenderer(ClockSource<StampType>& clock, PSGType& psg)
@@ -254,9 +254,9 @@ namespace Devices::Details
   };
 
   template<class StampType, class PSGType>
-  class HQRenderer : public BaseRenderer<StampType, HQWrapper<PSGType> >
+  class HQRenderer : public BaseRenderer<StampType, HQWrapper<PSGType>>
   {
-    typedef BaseRenderer<StampType, HQWrapper<PSGType> > Parent;
+    using Parent = BaseRenderer<StampType, HQWrapper<PSGType>>;
 
   public:
     HQRenderer(ClockSource<StampType>& clock, PSGType& psg)

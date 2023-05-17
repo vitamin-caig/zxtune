@@ -100,7 +100,7 @@ namespace Binary::FormatDSL
     }
 
   private:
-    typedef uint_t ElementType;
+    using ElementType = uint_t;
     static const std::size_t BitsPerElement = 8 * sizeof(ElementType);
     static const std::size_t ElementsCount = 256 / BitsPerElement;
     std::array<ElementType, ElementsCount> Mask;

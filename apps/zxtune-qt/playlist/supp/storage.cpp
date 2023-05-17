@@ -22,12 +22,12 @@ namespace
 {
   const Debug::Stream Dbg("Playlist::Storage");
 
-  typedef std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType> IndexedItem;
+  using IndexedItem = std::pair<Playlist::Item::Data::Ptr, Playlist::Model::IndexType>;
 
   // simple std::list wrapper that guarantees contstant complexivity of size() method
   class ItemsContainer : private std::list<IndexedItem>
   {
-    typedef std::list<IndexedItem> Parent;
+    using Parent = std::list<IndexedItem>;
 
   public:
     using Parent::value_type;
@@ -417,7 +417,7 @@ namespace
       const Item::Comparer& Cmp;
     };
 
-    typedef std::map<Model::IndexType, ItemsContainer::iterator> IndexToIterator;
+    using IndexToIterator = std::map<Model::IndexType, ItemsContainer::iterator>;
 
     ItemsContainer::iterator GetIteratorByIndex(Model::IndexType idx) const
     {

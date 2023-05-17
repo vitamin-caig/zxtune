@@ -39,7 +39,7 @@ namespace Platform
 
   private:
     const SharedLibrary::Ptr Library;
-    typedef std::map<const char*, void*> NameToSymbol;
+    using NameToSymbol = std::map<const char*, void*>;
     mutable NameToSymbol Symbols;
   };
 }  // namespace Platform

@@ -37,13 +37,13 @@ namespace Module::ETracker
   using Formats::Chiptune::ETracker::Sample;
   using Formats::Chiptune::ETracker::Ornament;
 
-  typedef SimpleOrderListWithTransposition<Formats::Chiptune::ETracker::PositionEntry> OrderListWithTransposition;
+  using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::ETracker::PositionEntry>;
 
   class ModuleData : public TrackModel
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     ModuleData() = default;
 

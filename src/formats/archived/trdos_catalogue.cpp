@@ -65,12 +65,12 @@ namespace TRDos
     return false;
   }
 
-  typedef std::vector<File::Ptr> FilesList;
+  using FilesList = std::vector<File::Ptr>;
 
   class MultiFile : public File
   {
   public:
-    typedef std::shared_ptr<MultiFile> Ptr;
+    using Ptr = std::shared_ptr<MultiFile>;
 
     virtual bool Merge(File::Ptr other) = 0;
 
@@ -181,7 +181,7 @@ namespace TRDos
     const FilesList Files;
   };
 
-  typedef std::vector<MultiFile::Ptr> MultiFilesList;
+  using MultiFilesList = std::vector<MultiFile::Ptr>;
 
   class BaseCatalogueBuilder : public CatalogueBuilder
   {

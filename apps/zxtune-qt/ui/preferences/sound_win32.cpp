@@ -126,7 +126,7 @@ namespace
 
   private:
     const Parameters::Container::Ptr Options;
-    typedef std::vector<Device> DevicesArray;
+    using DevicesArray = std::vector<Device>;
     DevicesArray Devices;
   };
 }  // namespace

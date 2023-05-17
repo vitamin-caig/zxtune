@@ -53,7 +53,7 @@ namespace Formats::Chiptune
     class ContainerBuilder : public Builder
     {
     public:
-      typedef std::shared_ptr<ContainerBuilder> Ptr;
+      using Ptr = std::shared_ptr<ContainerBuilder>;
       virtual Binary::Data::Ptr GetResult() = 0;
     };
 

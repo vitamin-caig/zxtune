@@ -263,7 +263,7 @@ namespace Formats::Archived
 
       static bool ParseSingleBlockChunk(const ChunkIF1& ch, ChunksVisitor& visitor)
       {
-        typedef ChunkTraits<ChunkIF1> Traits;
+        using Traits = ChunkTraits<ChunkIF1>;
         if (const std::size_t targetSize = Traits::GetTargetSize(ch))
         {
           if (targetSize != 0x4000 && targetSize != 0x2000)
@@ -286,7 +286,7 @@ namespace Formats::Archived
 
       static bool ParseSingleBlockChunk(const ChunkIF2ROM& ch, ChunksVisitor& visitor)
       {
-        typedef ChunkTraits<ChunkIF2ROM> Traits;
+        using Traits = ChunkTraits<ChunkIF2ROM>;
         DataBlockDescription blk;
         blk.Content = Traits::GetData(ch);
         blk.Size = Traits::GetDataSize(ch);
@@ -298,7 +298,7 @@ namespace Formats::Archived
       template<class ChunkType>
       static bool ParseSingleBlockChunk(const ChunkType& ch, ChunksVisitor& visitor)
       {
-        typedef ChunkTraits<ChunkType> Traits;
+        using Traits = ChunkTraits<ChunkType>;
         if (const std::size_t targetSize = Traits::GetTargetSize(ch))
         {
           DataBlockDescription blk;
@@ -337,7 +337,7 @@ namespace Formats::Archived
       template<class ChunkType>
       static bool ParseMergedBlocksChunk(const ChunkType& ch, ChunksVisitor& visitor)
       {
-        typedef ChunkTraits<ChunkType> Traits;
+        using Traits = ChunkTraits<ChunkType>;
         DataBlockDescription ramBlk;
         ramBlk.Content = Traits::GetData(ch);
         ramBlk.Size = ch.RamDataSize;
@@ -365,7 +365,7 @@ namespace Formats::Archived
       template<class ChunkType>
       static bool ParseMultiBlockChunk(const ChunkType& ch, ChunksVisitor& visitor)
       {
-        typedef ChunkTraits<ChunkType> Traits;
+        using Traits = ChunkTraits<ChunkType>;
         if (const std::size_t targetSize = Traits::GetTargetSize(ch))
         {
           DataBlockDescription blk;
@@ -498,7 +498,7 @@ namespace Formats::Archived
       const DataBlockDescription Block;
     };
 
-    typedef std::vector<DataBlockDescription> DataBlocks;
+    using DataBlocks = std::vector<DataBlockDescription>;
 
     std::size_t SumBlocksSize(std::size_t sum, const DataBlockDescription& descr)
     {

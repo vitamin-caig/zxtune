@@ -81,7 +81,7 @@ namespace Devices::AYM
              + val * (Sound::Sample::MAX - Sound::Sample::MID) / (Sound::Sample::MAX - Sound::Sample::MIN);
     }
 
-    typedef std::array<uint_t, SOUND_CHANNELS> LayoutData;
+    using LayoutData = std::array<uint_t, SOUND_CHANNELS>;
 
     static const LayoutData* GetLayout(LayoutType type)
     {
@@ -96,7 +96,7 @@ namespace Devices::AYM
       return type == LAYOUT_MONO ? nullptr : LAYOUTS + type;
     }
 
-    typedef MixerType::InDataType MultiSample;
+    using MultiSample = MixerType::InDataType;
 
     void FillLookupTable(const MixerType& mixer)
     {

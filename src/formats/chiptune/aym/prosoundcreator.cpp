@@ -549,9 +549,9 @@ namespace Formats::Chiptune
         return newIdx;
       }
 
-      typedef std::vector<RawPattern> ContainerType;
+      using ContainerType = std::vector<RawPattern>;
 
-      typedef RangeIterator<ContainerType::const_iterator> Iterator;
+      using Iterator = RangeIterator<ContainerType::const_iterator>;
 
       Iterator Get() const
       {

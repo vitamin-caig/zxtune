@@ -76,7 +76,7 @@ namespace Module::AYM
   class DataRenderer
   {
   public:
-    typedef std::shared_ptr<DataRenderer> Ptr;
+    using Ptr = std::shared_ptr<DataRenderer>;
 
     virtual ~DataRenderer() = default;
 
@@ -91,8 +91,8 @@ namespace Module::AYM
   class ModuleData : public TrackModel
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     ModuleData() = default;
 

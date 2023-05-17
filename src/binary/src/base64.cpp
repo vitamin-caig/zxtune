@@ -75,7 +75,7 @@ namespace Binary::Base64
     out[3] = STUB_SYMBOL;
   }
 
-  typedef RangeIterator<const char*> StrIterator;
+  using StrIterator = RangeIterator<const char*>;
 
   inline uint8_t ReadAcceptableChar(StrIterator& in)
   {

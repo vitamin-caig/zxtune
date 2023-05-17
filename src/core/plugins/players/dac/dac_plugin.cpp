@@ -26,7 +26,7 @@ namespace Module
   template<unsigned Channels>
   Devices::DAC::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params)
   {
-    typedef Sound::FixedChannelsMatrixMixer<Channels> MixerType;
+    using MixerType = Sound::FixedChannelsMatrixMixer<Channels>;
     auto mixer = MixerType::Create();
     auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
     auto chipParams = Module::DAC::CreateChipParameters(samplerate, std::move(pollParams));

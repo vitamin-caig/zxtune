@@ -83,7 +83,7 @@ namespace Parameters
   class Integer
   {
   public:
-    typedef std::shared_ptr<Integer> Ptr;
+    using Ptr = std::shared_ptr<Integer>;
     virtual ~Integer() = default;
 
     virtual int Get() const = 0;

@@ -76,12 +76,12 @@ namespace
     }
 
   private:
-    typedef std::map<ZXTuneHandle, PtrType> Handle2Object;
+    using Handle2Object = std::map<ZXTuneHandle, PtrType>;
     Handle2Object Handles;
   };
 
-  typedef HandlesCache<Binary::Container::Ptr> ContainersCache;
-  typedef HandlesCache<Module::Holder::Ptr> ModulesCache;
+  using ContainersCache = HandlesCache<Binary::Container::Ptr>;
+  using ModulesCache = HandlesCache<Module::Holder::Ptr>;
 
   static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
   static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");
@@ -90,7 +90,7 @@ namespace
   class BufferRender : public Sound::Receiver
   {
   public:
-    typedef std::shared_ptr<BufferRender> Ptr;
+    using Ptr = std::shared_ptr<BufferRender>;
 
     BufferRender()
       : Buffer(32768) = default;
@@ -148,7 +148,7 @@ namespace
   class PlayerWrapper
   {
   public:
-    typedef std::shared_ptr<PlayerWrapper> Ptr;
+    using Ptr = std::shared_ptr<PlayerWrapper>;
 
     PlayerWrapper(Parameters::Container::Ptr params, Module::Renderer::Ptr renderer, BufferRender::Ptr buffer)
       : Params(params)
@@ -221,11 +221,11 @@ namespace
     const BufferRender::Ptr Buffer;
   };
 
-  typedef HandlesCache<PlayerWrapper::Ptr> PlayersCache;
+  using PlayersCache = HandlesCache<PlayerWrapper::Ptr>;
 
   bool FindDefaultValue(const Parameters::NameType& name, Parameters::IntType& value)
   {
-    typedef std::pair<Parameters::NameType, Parameters::IntType> Name2Val;
+    using Name2Val = std::pair<Parameters::NameType, Parameters::IntType>;
     static const Name2Val DEFAULTS[] = {
         Name2Val(Parameters::ZXTune::Sound::FREQUENCY, Parameters::ZXTune::Sound::FREQUENCY_DEFAULT),
         Name2Val(Parameters::ZXTune::Core::AYM::CLOCKRATE, Parameters::ZXTune::Core::AYM::CLOCKRATE_DEFAULT),

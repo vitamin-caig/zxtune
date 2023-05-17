@@ -20,7 +20,7 @@ namespace Devices::AYM
   class RenderState
   {
   public:
-    typedef std::shared_ptr<RenderState> Ptr;
+    using Ptr = std::shared_ptr<RenderState>;
     virtual ~RenderState() = default;
 
     virtual void Reset() = 0;

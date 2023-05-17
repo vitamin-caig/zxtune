@@ -36,7 +36,7 @@ namespace Formats::Chiptune
       bool LoopEnd = false;
     };
 
-    typedef LinesObject<SampleLine> Sample;
+    using Sample = LinesObject<SampleLine>;
 
     struct OrnamentLine
     {
@@ -47,9 +47,9 @@ namespace Formats::Chiptune
       bool LoopEnd = false;
     };
 
-    typedef LinesObject<OrnamentLine> Ornament;
+    using Ornament = LinesObject<OrnamentLine>;
 
-    typedef LinesObject<uint_t> Positions;
+    using Positions = LinesObject<uint_t>;
 
     class Builder
     {

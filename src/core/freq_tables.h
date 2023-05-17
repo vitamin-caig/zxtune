@@ -18,7 +18,7 @@
 namespace Module
 {
   //! @brief Frequency table type- 96 words
-  typedef std::array<uint16_t, 96> FrequencyTable;
+  using FrequencyTable = std::array<uint16_t, 96>;
 
   // clang-format off
   //! %Sound Tracker frequency table

@@ -25,7 +25,7 @@ namespace Module::TFD
   class ModuleData : public TFM::StreamModel
   {
   public:
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     ModuleData() = default;
 

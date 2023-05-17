@@ -34,9 +34,9 @@ namespace Formats::Chiptune
       bool EnableTone = false;
     };
 
-    typedef LinesObjectWithLoopLimit<SampleLine> Sample;
+    using Sample = LinesObjectWithLoopLimit<SampleLine>;
 
-    typedef LinesObjectWithLoopLimit<int_t> Ornament;
+    using Ornament = LinesObjectWithLoopLimit<int_t>;
 
     struct PositionEntry
     {
@@ -56,7 +56,7 @@ namespace Formats::Chiptune
       std::array<Channel, 3> Channels;
     };
 
-    typedef LinesObject<PositionEntry> Positions;
+    using Positions = LinesObject<PositionEntry>;
 
     class Builder
     {

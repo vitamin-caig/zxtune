@@ -272,7 +272,7 @@ namespace Formats::Chiptune
         }
       };
 
-      typedef RawPatternType<RawCell> RawPattern;
+      using RawPattern = RawPatternType<RawCell>;
 
       struct RawHeader
       {
@@ -354,7 +354,7 @@ namespace Formats::Chiptune
         }
       };
 
-      typedef RawPatternType<RawCell> RawPattern;
+      using RawPattern = RawPatternType<RawCell>;
 
       struct RawHeader
       {

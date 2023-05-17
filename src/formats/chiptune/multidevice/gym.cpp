@@ -27,8 +27,8 @@ namespace Formats::Chiptune
   {
     const Char DESCRIPTION[] = "Genesis YM2612 (unpacked)";
 
-    typedef std::array<uint8_t, 4> SignatureType;
-    typedef std::array<uint8_t, 32> StringType;
+    using SignatureType = std::array<uint8_t, 4>;
+    using StringType = std::array<uint8_t, 32>;
 
     struct RawHeader
     {

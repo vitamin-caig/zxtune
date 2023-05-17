@@ -24,9 +24,9 @@ namespace IO
   {
   public:
     //! Pointer type
-    typedef std::shared_ptr<const Provider> Ptr;
+    using Ptr = std::shared_ptr<const Provider>;
     //! Iterator type
-    typedef ObjectIterator<Provider::Ptr> Iterator;
+    using Iterator = ObjectIterator<Provider::Ptr>;
 
     //! Virtual destructor
     virtual ~Provider() = default;

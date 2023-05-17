@@ -152,7 +152,7 @@ namespace Formats::Archived
     class ChainDecoder
     {
     public:
-      typedef std::shared_ptr<const ChainDecoder> Ptr;
+      using Ptr = std::shared_ptr<const ChainDecoder>;
 
       explicit ChainDecoder(Binary::Container::Ptr data)
         : Data(std::move(data))

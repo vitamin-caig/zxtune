@@ -112,11 +112,11 @@ namespace Devices::SAA
     SAADevice Device;
   };
 
-  typedef Details::ClockSource<Stamp> ClockSource;
+  using ClockSource = Details::ClockSource<Stamp>;
 
-  typedef Details::Renderer<Stamp> Renderer;
-  typedef Details::LQRenderer<Stamp, SAARenderer> LQRenderer;
-  typedef Details::MQRenderer<Stamp, SAARenderer> MQRenderer;
+  using Renderer = Details::Renderer<Stamp>;
+  using LQRenderer = Details::LQRenderer<Stamp, SAARenderer>;
+  using MQRenderer = Details::MQRenderer<Stamp, SAARenderer>;
 
   class HQWrapper
   {
@@ -159,7 +159,7 @@ namespace Devices::SAA
 
   class HQRenderer : public Details::BaseRenderer<Stamp, HQWrapper>
   {
-    typedef Details::BaseRenderer<Stamp, HQWrapper> Parent;
+    using Parent = Details::BaseRenderer<Stamp, HQWrapper>;
 
   public:
     HQRenderer(ClockSource& clock, SAARenderer& psg)

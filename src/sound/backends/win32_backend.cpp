@@ -76,7 +76,7 @@ namespace Sound::Win32
   class WaveOutDevice
   {
   public:
-    typedef std::shared_ptr<WaveOutDevice> Ptr;
+    using Ptr = std::shared_ptr<WaveOutDevice>;
 
     WaveOutDevice(Api::Ptr api, const ::WAVEFORMATEX& format, UINT device)
       : WinApi(std::move(api))
@@ -183,7 +183,7 @@ namespace Sound::Win32
   class WaveTarget
   {
   public:
-    typedef std::shared_ptr<WaveTarget> Ptr;
+    using Ptr = std::shared_ptr<WaveTarget>;
     virtual ~WaveTarget() = default;
 
     virtual void Write(const Chunk& buf) = 0;
@@ -328,7 +328,7 @@ namespace Sound::Win32
     }
 
   private:
-    typedef std::vector<WaveTarget::Ptr> BuffersArray;
+    using BuffersArray = std::vector<WaveTarget::Ptr>;
     BuffersArray Buffers;
     std::size_t Cursor;
   };

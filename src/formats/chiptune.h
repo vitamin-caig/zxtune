@@ -24,7 +24,7 @@ namespace Formats::Chiptune
   class Container : public Binary::Container
   {
   public:
-    typedef std::shared_ptr<const Container> Ptr;
+    using Ptr = std::shared_ptr<const Container>;
 
     //! @brief Internal structures simple fingerprint
     //! @return Some integer value at least 32-bit
@@ -35,7 +35,7 @@ namespace Formats::Chiptune
   class Decoder
   {
   public:
-    typedef std::shared_ptr<const Decoder> Ptr;
+    using Ptr = std::shared_ptr<const Decoder>;
     virtual ~Decoder() = default;
 
     //! @brief Get short decoder description

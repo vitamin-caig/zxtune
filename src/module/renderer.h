@@ -21,7 +21,7 @@ namespace Module
   {
   public:
     //! @brief Generic pointer type
-    typedef std::shared_ptr<Renderer> Ptr;
+    using Ptr = std::shared_ptr<Renderer>;
 
     virtual ~Renderer() = default;
 

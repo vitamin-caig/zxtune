@@ -43,7 +43,7 @@ namespace Module::ProSoundMaker
   using Formats::Chiptune::ProSoundMaker::Sample;
   using Formats::Chiptune::ProSoundMaker::Ornament;
 
-  typedef SimpleOrderListWithTransposition<Formats::Chiptune::ProSoundMaker::PositionEntry> OrderListWithTransposition;
+  using OrderListWithTransposition = SimpleOrderListWithTransposition<Formats::Chiptune::ProSoundMaker::PositionEntry>;
 
   using ModuleData = AYM::ModuleData<OrderListWithTransposition, Sample, Ornament>;
 

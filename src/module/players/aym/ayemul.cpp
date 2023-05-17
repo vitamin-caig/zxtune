@@ -185,7 +185,7 @@ namespace Module::AYEMUL
   class DataChannel
   {
   public:
-    typedef std::shared_ptr<DataChannel> Ptr;
+    using Ptr = std::shared_ptr<DataChannel>;
 
     DataChannel(Devices::AYM::Chip::Ptr ay, Devices::Beeper::Chip::Ptr beep)
       : Ay(std::move(ay))
@@ -388,7 +388,7 @@ namespace Module::AYEMUL
       , CPC(channel)
       , Current()
     {}
-    typedef std::shared_ptr<PortsPlexer> Ptr;
+    using Ptr = std::shared_ptr<PortsPlexer>;
 
     static Ptr Create(DataChannel::Ptr ayData)
     {
@@ -479,8 +479,8 @@ namespace Module::AYEMUL
   class ModuleData
   {
   public:
-    typedef std::shared_ptr<const ModuleData> Ptr;
-    typedef std::shared_ptr<ModuleData> RWPtr;
+    using Ptr = std::shared_ptr<const ModuleData>;
+    using RWPtr = std::shared_ptr<ModuleData>;
 
     ModuleData() = default;
 
@@ -507,7 +507,7 @@ namespace Module::AYEMUL
   class Computer
   {
   public:
-    typedef std::shared_ptr<Computer> Ptr;
+    using Ptr = std::shared_ptr<Computer>;
 
     Computer(ModuleData::Ptr data, Devices::Z80::ChipParameters::Ptr params, PortsPlexer::Ptr cpuPorts)
       : Data(std::move(data))

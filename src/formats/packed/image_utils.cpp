@@ -57,7 +57,7 @@ namespace Formats
     }
 
   private:
-    typedef std::map<CHS, Binary::View, bool (*)(const CHS&, const CHS&)> SectorsMap;
+    using SectorsMap = std::map<CHS, Binary::View, bool (*)(const CHS&, const CHS&)>;
     SectorsMap Sectors;
     std::size_t TotalSize = 0;
   };

@@ -29,7 +29,7 @@ namespace Devices::DAC
   class FastSample
   {
   public:
-    typedef std::shared_ptr<const FastSample> Ptr;
+    using Ptr = std::shared_ptr<const FastSample>;
 
     // use additional sample for interpolation
     explicit FastSample(std::size_t idx, Sample::Ptr in)
@@ -58,7 +58,7 @@ namespace Devices::DAC
       return Index;
     }
 
-    typedef Math::FixedPoint<uint_t, 256> Position;
+    using Position = Math::FixedPoint<uint_t, 256>;
 
     class Iterator
     {
@@ -232,7 +232,7 @@ namespace Devices::DAC
     std::vector<FastSample::Ptr> Content;
   };
 
-  typedef Math::FixedPoint<int, ChannelData::LevelType::PRECISION> SignedLevelType;
+  using SignedLevelType = Math::FixedPoint<int, ChannelData::LevelType::PRECISION>;
 
   // channel state type
   struct ChannelState

@@ -38,7 +38,7 @@ namespace Formats::Chiptune
       bool EnableEnvelope = false;
     };
 
-    typedef LinesObject<SampleLine> Sample;
+    using Sample = LinesObject<SampleLine>;
 
     struct OrnamentLine
     {
@@ -50,7 +50,7 @@ namespace Formats::Chiptune
       bool KeepNoiseAddon = false;
     };
 
-    typedef LinesObject<OrnamentLine> Ornament;
+    using Ornament = LinesObject<OrnamentLine>;
 
     struct PositionEntry
     {
@@ -60,7 +60,7 @@ namespace Formats::Chiptune
       int_t Transposition = 0;
     };
 
-    typedef LinesObject<PositionEntry> Positions;
+    using Positions = LinesObject<PositionEntry>;
 
     enum class NoteTable
     {

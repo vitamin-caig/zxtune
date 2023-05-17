@@ -16,7 +16,7 @@
 
 namespace Devices::AYM
 {
-  typedef Details::ClockSource<Stamp> ClockSource;
+  using ClockSource = Details::ClockSource<Stamp>;
 
   template<class PSGType>
   class RenderersSet

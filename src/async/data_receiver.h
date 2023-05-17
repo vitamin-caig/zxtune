@@ -136,7 +136,7 @@ namespace Async
     const typename Queue<T>::Ptr QueueObject;
     const Progress::Ptr Statistic;
     const typename ::DataReceiver<T>::Ptr Delegate;
-    typedef std::list<typename Activity::Ptr> ActivitiesList;
+    using ActivitiesList = std::list<typename Activity::Ptr>;
     ActivitiesList Activities;
   };
 }  // namespace Async

@@ -39,7 +39,7 @@ namespace
 
   const unsigned XSPF_VERSION = 1;
 
-  typedef bool (*AttributesFilter)(Parameters::Identifier);
+  using AttributesFilter = bool (*)(Parameters::Identifier);
 
   QString DataToQString(const QByteArray& data)
   {

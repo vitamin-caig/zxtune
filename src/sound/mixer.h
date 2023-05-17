@@ -19,15 +19,15 @@ namespace Sound
   class FixedChannelsMixer
   {
   public:
-    typedef typename MultichannelSample<Channels>::Type InDataType;
-    typedef std::shared_ptr<const FixedChannelsMixer<Channels> > Ptr;
+    using InDataType = typename MultichannelSample<Channels>::Type;
+    using Ptr = std::shared_ptr<const FixedChannelsMixer<Channels>>;
     virtual ~FixedChannelsMixer() = default;
 
     virtual Sample ApplyData(const InDataType& in) const = 0;
   };
 
-  typedef FixedChannelsMixer<1> OneChannelMixer;
-  typedef FixedChannelsMixer<2> TwoChannelsMixer;
-  typedef FixedChannelsMixer<3> ThreeChannelsMixer;
-  typedef FixedChannelsMixer<4> FourChannelsMixer;
+  using OneChannelMixer = FixedChannelsMixer<1>;
+  using TwoChannelsMixer = FixedChannelsMixer<2>;
+  using ThreeChannelsMixer = FixedChannelsMixer<3>;
+  using FourChannelsMixer = FixedChannelsMixer<4>;
 }  // namespace Sound

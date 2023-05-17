@@ -34,7 +34,7 @@ namespace Formats::Chiptune
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
-      typedef std::shared_ptr<const Decoder> Ptr;
+      using Ptr = std::shared_ptr<const Decoder>;
 
       virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
     };

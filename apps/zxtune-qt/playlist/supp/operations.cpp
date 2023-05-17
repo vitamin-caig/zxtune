@@ -46,7 +46,7 @@ namespace
   class VisitorAdapter : public Playlist::Item::Visitor
   {
   public:
-    typedef T (Playlist::Item::Data::*GetFunctionType)() const;
+    using GetFunctionType = T (Playlist::Item::Data::*)() const;
 
     VisitorAdapter(const GetFunctionType getter, typename PropertyModel<T>::Visitor& delegate)
       : Getter(getter)
@@ -270,7 +270,7 @@ namespace
     }
 
   private:
-    typedef typename std::map<T, Playlist::Model::IndexType> PropToIndex;
+    using PropToIndex = typename std::map<T, Playlist::Model::IndexType>;
     PropToIndex Visited;
     const Playlist::Model::IndexSet::RWPtr Result;
   };

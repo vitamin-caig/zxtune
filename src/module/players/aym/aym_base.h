@@ -20,7 +20,7 @@ namespace Module::AYM
   class Holder : public Module::Holder
   {
   public:
-    typedef std::shared_ptr<const Holder> Ptr;
+    using Ptr = std::shared_ptr<const Holder>;
 
     using Module::Holder::CreateRenderer;
     virtual AYM::Chiptune::Ptr GetChiptune() const = 0;

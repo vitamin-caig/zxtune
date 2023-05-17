@@ -20,7 +20,7 @@ namespace Binary::FormatDSL
   class FormatTokensVisitor
   {
   public:
-    typedef std::unique_ptr<FormatTokensVisitor> Ptr;
+    using Ptr = std::unique_ptr<FormatTokensVisitor>;
     virtual ~FormatTokensVisitor() = default;
 
     virtual void Match(StringView val) = 0;

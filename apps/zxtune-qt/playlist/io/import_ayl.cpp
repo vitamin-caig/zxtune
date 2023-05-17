@@ -145,8 +145,8 @@ namespace
     };
     struct AYLEntries : public std::vector<AYLEntry>
     {
-      typedef std::shared_ptr<const AYLEntries> Ptr;
-      typedef std::shared_ptr<AYLEntries> RWPtr;
+      using Ptr = std::shared_ptr<const AYLEntries>;
+      using RWPtr = std::shared_ptr<AYLEntries>;
     };
 
   public:

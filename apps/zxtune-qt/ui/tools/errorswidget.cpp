@@ -94,7 +94,7 @@ namespace
     }
 
   private:
-    typedef std::list<Error> ContainerType;
+    using ContainerType = std::list<Error>;
     ContainerType Container;
     ContainerType::iterator Current;
   };

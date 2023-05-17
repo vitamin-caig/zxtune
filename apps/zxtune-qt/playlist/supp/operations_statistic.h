@@ -18,7 +18,7 @@ namespace Playlist::Item
   class StatisticTextNotification : public Playlist::TextNotification
   {
   public:
-    typedef std::shared_ptr<StatisticTextNotification> Ptr;
+    using Ptr = std::shared_ptr<StatisticTextNotification>;
 
     virtual void AddInvalid() = 0;
     virtual void AddValid() = 0;

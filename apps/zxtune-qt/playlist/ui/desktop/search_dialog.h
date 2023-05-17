@@ -26,7 +26,7 @@ namespace Playlist::UI
     explicit SearchDialog(QWidget& parent);
 
   public:
-    typedef std::shared_ptr<SearchDialog> Ptr;
+    using Ptr = std::shared_ptr<SearchDialog>;
     static Ptr Create(QWidget& parent);
 
     virtual bool Execute(Playlist::Item::Search::Data& res) = 0;

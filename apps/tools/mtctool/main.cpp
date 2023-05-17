@@ -255,7 +255,7 @@ namespace
     extractor.Flush();
   }
 
-  typedef void (*ModeFunc)(CmdlineIterator&);
+  using ModeFunc = void (*)(CmdlineIterator&);
 
   struct ModeEntry
   {

@@ -20,7 +20,7 @@ namespace Devices::DAC
   class Sample
   {
   public:
-    typedef std::shared_ptr<const Sample> Ptr;
+    using Ptr = std::shared_ptr<const Sample>;
     virtual ~Sample() = default;
 
     virtual Sound::Sample::Type Get(std::size_t pos) const = 0;

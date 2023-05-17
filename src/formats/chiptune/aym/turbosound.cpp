@@ -111,7 +111,7 @@ namespace Formats::Chiptune
     class FooterFormat : public Binary::Format
     {
     public:
-      typedef std::shared_ptr<const FooterFormat> Ptr;
+      using Ptr = std::shared_ptr<const FooterFormat>;
 
       FooterFormat()
         : Delegate(Binary::CreateFormat(FOOTER_FORMAT))

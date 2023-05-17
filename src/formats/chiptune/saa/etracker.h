@@ -33,9 +33,9 @@ namespace Formats::Chiptune
       uint_t NoiseFreq = 0;
     };
 
-    typedef LinesObject<SampleLine> Sample;
+    using Sample = LinesObject<SampleLine>;
 
-    typedef LinesObject<uint_t> Ornament;
+    using Ornament = LinesObject<uint_t>;
 
     struct PositionEntry
     {
@@ -45,7 +45,7 @@ namespace Formats::Chiptune
       uint_t Transposition = 0;
     };
 
-    typedef LinesObject<PositionEntry> Positions;
+    using Positions = LinesObject<PositionEntry>;
 
     class Builder
     {

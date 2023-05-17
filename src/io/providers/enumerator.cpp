@@ -27,7 +27,7 @@ namespace IO
 {
   const Debug::Stream Dbg("IO::Enumerator");
 
-  typedef std::vector<DataProvider::Ptr> ProvidersList;
+  using ProvidersList = std::vector<DataProvider::Ptr>;
 
   // implementation of IO providers enumerator
   class ProvidersEnumeratorImpl : public ProvidersEnumerator

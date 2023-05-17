@@ -24,7 +24,7 @@ namespace Formats::Chiptune
     class Builder
     {
     public:
-      typedef std::shared_ptr<Builder> Ptr;
+      using Ptr = std::shared_ptr<Builder>;
       virtual ~Builder() = default;
 
       virtual MetaBuilder& GetMetaBuilder() = 0;

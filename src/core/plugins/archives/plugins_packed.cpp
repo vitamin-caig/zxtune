@@ -18,7 +18,7 @@
 
 namespace ZXTune
 {
-  typedef Formats::Packed::Decoder::Ptr (*CreatePackedDecoderFunc)();
+  using CreatePackedDecoderFunc = Formats::Packed::Decoder::Ptr (*)();
 
   struct ArchivePluginDescription
   {

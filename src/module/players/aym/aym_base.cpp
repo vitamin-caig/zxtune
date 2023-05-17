@@ -148,7 +148,7 @@ namespace Module::AYM
 
   Devices::AYM::Chip::Ptr CreateChip(uint_t samplerate, Parameters::Accessor::Ptr params)
   {
-    typedef Sound::ThreeChannelsMatrixMixer MixerType;
+    using MixerType = Sound::ThreeChannelsMatrixMixer;
     auto mixer = MixerType::Create();
     auto pollParams = Sound::CreateMixerNotificationParameters(std::move(params), mixer);
     auto chipParams = AYM::CreateChipParameters(samplerate, std::move(pollParams));

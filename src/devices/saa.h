@@ -83,7 +83,7 @@ namespace Devices::SAA
   class Device
   {
   public:
-    typedef std::shared_ptr<Device> Ptr;
+    using Ptr = std::shared_ptr<Device>;
     virtual ~Device() = default;
 
     /// render single data chunk
@@ -112,7 +112,7 @@ namespace Devices::SAA
   class ChipParameters
   {
   public:
-    typedef std::shared_ptr<const ChipParameters> Ptr;
+    using Ptr = std::shared_ptr<const ChipParameters>;
 
     virtual ~ChipParameters() = default;
 

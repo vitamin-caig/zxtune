@@ -35,7 +35,7 @@ namespace ZXTune
   class ArchivePlugin : public Plugin
   {
   public:
-    typedef std::shared_ptr<const ArchivePlugin> Ptr;
+    using Ptr = std::shared_ptr<const ArchivePlugin>;
 
     static const std::vector<Ptr>& Enumerate();
 

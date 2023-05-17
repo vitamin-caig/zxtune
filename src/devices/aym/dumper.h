@@ -22,7 +22,7 @@ namespace Devices::AYM
   class Dumper : public Device
   {
   public:
-    typedef std::shared_ptr<Dumper> Ptr;
+    using Ptr = std::shared_ptr<Dumper>;
 
     virtual Binary::Data::Ptr GetDump() = 0;
   };

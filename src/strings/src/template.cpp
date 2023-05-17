@@ -106,8 +106,8 @@ namespace Strings
     const String Value;
     std::vector<StringView> FixedStrings;
     std::vector<StringView> Fields;
-    typedef std::pair<std::size_t, bool> PartEntry;  // index => isField
-    typedef std::vector<PartEntry> PartEntries;
+    using PartEntry = std::pair<std::size_t, bool>;  // index => isField
+    using PartEntries = std::vector<PartEntry>;
     PartEntries Entries;
   };
 

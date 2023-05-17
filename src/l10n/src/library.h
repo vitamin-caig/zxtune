@@ -25,7 +25,7 @@ namespace L10n
   class Vocabulary
   {
   public:
-    typedef std::shared_ptr<const Vocabulary> Ptr;
+    using Ptr = std::shared_ptr<const Vocabulary>;
     virtual ~Vocabulary() = default;
 
     //! @brief Retreiving translated or converted text message

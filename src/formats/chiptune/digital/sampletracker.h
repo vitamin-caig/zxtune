@@ -19,7 +19,7 @@ namespace Formats::Chiptune
 {
   namespace SampleTracker
   {
-    typedef Digital::Builder Builder;
+    using Builder = Digital::Builder;
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
   }  // namespace SampleTracker

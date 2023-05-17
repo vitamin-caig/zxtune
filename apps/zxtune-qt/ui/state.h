@@ -21,7 +21,7 @@ namespace UI
   class State
   {
   public:
-    typedef std::unique_ptr<State> Ptr;
+    using Ptr = std::unique_ptr<State>;
     virtual ~State() = default;
 
     virtual void AddWidget(QWidget& w) = 0;

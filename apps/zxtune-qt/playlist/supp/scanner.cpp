@@ -207,7 +207,7 @@ namespace
     , public Playlist::ScanStatus
   {
   public:
-    typedef std::shared_ptr<FilesQueue> Ptr;
+    using Ptr = std::shared_ptr<FilesQueue>;
 
     FilesQueue()
       : Resolved(Source)
@@ -348,7 +348,7 @@ namespace
     , public Async::Coroutine
   {
   public:
-    typedef std::shared_ptr<ScanRoutine> Ptr;
+    using Ptr = std::shared_ptr<ScanRoutine>;
 
     ScanRoutine(ScannerCallback& cb, Playlist::Item::DataProvider::Ptr provider)
       : Callback(cb)

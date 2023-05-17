@@ -106,7 +106,7 @@ namespace Devices::AYM
         SkipUnset();
       }
 
-      typedef bool (IndicesIterator::*BoolType)() const;
+      using BoolType = bool (IndicesIterator::*)() const;
 
       operator BoolType() const
       {
@@ -173,7 +173,7 @@ namespace Devices::AYM
   class Device
   {
   public:
-    typedef std::shared_ptr<Device> Ptr;
+    using Ptr = std::shared_ptr<Device>;
     virtual ~Device() = default;
 
     /// Render single data chunk

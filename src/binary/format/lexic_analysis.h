@@ -20,7 +20,7 @@
 
 namespace LexicalAnalysis
 {
-  typedef uint_t TokenType;
+  using TokenType = uint_t;
 
   const TokenType INVALID_TOKEN = TokenType(-1);
   const TokenType INCOMPLETE_TOKEN = TokenType(-2);
@@ -69,7 +69,7 @@ namespace LexicalAnalysis
   class Tokenizer
   {
   public:
-    typedef std::unique_ptr<const Tokenizer> Ptr;
+    using Ptr = std::unique_ptr<const Tokenizer>;
     virtual ~Tokenizer() = default;
 
     virtual TokenType Parse(StringView lexeme) const = 0;
@@ -78,8 +78,8 @@ namespace LexicalAnalysis
   class Grammar
   {
   public:
-    typedef std::shared_ptr<const Grammar> Ptr;
-    typedef std::shared_ptr<Grammar> RWPtr;
+    using Ptr = std::shared_ptr<const Grammar>;
+    using RWPtr = std::shared_ptr<Grammar>;
     virtual ~Grammar() = default;
 
     virtual void AddTokenizer(Tokenizer::Ptr src) = 0;

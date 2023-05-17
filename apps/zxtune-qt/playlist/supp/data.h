@@ -26,7 +26,7 @@ namespace Playlist::Item
   class Data
   {
   public:
-    typedef std::shared_ptr<const Data> Ptr;
+    using Ptr = std::shared_ptr<const Data>;
 
     virtual ~Data() = default;
 
@@ -54,5 +54,5 @@ namespace Playlist::Item
     virtual std::size_t GetSize() const = 0;
   };
 
-  typedef ObjectIterator<Data::Ptr> Collection;
+  using Collection = ObjectIterator<Data::Ptr>;
 }  // namespace Playlist::Item

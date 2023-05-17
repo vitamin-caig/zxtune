@@ -27,7 +27,7 @@ namespace Formats::Multitrack
 {
   namespace KSSX
   {
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
 
     struct RawHeader
     {

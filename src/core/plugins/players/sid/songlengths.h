@@ -13,7 +13,7 @@
 
 namespace Module::Sid
 {
-  typedef Time::Milliseconds TimeType;
+  using TimeType = Time::Milliseconds;
 
   TimeType GetSongLength(const char* md5digest, uint_t idx);
 }  // namespace Module::Sid

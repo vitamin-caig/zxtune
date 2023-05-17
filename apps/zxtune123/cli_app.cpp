@@ -72,7 +72,7 @@ namespace
     Module::Holder::Ptr Holder;
     Binary::Data::Ptr Data;
 
-    typedef DataReceiver<HolderAndData> Receiver;
+    using Receiver = DataReceiver<HolderAndData>;
   };
 
   class SaveEndpoint : public HolderAndData::Receiver

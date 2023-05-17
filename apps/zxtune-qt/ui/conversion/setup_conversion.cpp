@@ -170,7 +170,7 @@ namespace
     UI::State::Ptr State;
     UI::FilenameTemplateWidget* const TargetTemplate;
     UI::SupportedFormatsWidget* const TargetFormat;
-    typedef std::map<String, UI::BackendSettingsWidget*> BackendIdToSettings;
+    using BackendIdToSettings = std::map<String, UI::BackendSettingsWidget*>;
     BackendIdToSettings BackendSettings;
   };
 

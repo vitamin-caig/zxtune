@@ -168,7 +168,7 @@ namespace
   class DelayLoadItemProvider
   {
   public:
-    typedef std::unique_ptr<const DelayLoadItemProvider> Ptr;
+    using Ptr = std::unique_ptr<const DelayLoadItemProvider>;
 
     DelayLoadItemProvider(Playlist::Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr playlistParams,
                           const Playlist::IO::ContainerItem& item)

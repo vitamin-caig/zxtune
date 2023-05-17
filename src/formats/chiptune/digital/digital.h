@@ -19,7 +19,7 @@
 
 namespace Formats::Chiptune::Digital
 {
-  typedef LinesObject<uint_t> Positions;
+  using Positions = LinesObject<uint_t>;
 
   class Builder
   {

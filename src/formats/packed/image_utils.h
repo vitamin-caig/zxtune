@@ -37,7 +37,7 @@ namespace Formats
   class ImageBuilder
   {
   public:
-    typedef std::shared_ptr<ImageBuilder> Ptr;
+    using Ptr = std::shared_ptr<ImageBuilder>;
     virtual ~ImageBuilder() = default;
 
     virtual void SetGeometry(const CHS& geometry) = 0;

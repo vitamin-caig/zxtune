@@ -28,7 +28,7 @@ namespace Formats::Chiptune
   {
     const Char DESCRIPTION[] = "TurboFM Compiled Dump";
 
-    typedef std::array<uint8_t, 6> SignatureType;
+    using SignatureType = std::array<uint8_t, 6>;
 
     const SignatureType SIGNATURE = {{'T', 'F', 'M', 'c', 'o', 'm'}};
 

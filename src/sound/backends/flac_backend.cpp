@@ -29,7 +29,7 @@ namespace Sound::Flac
 {
   const Debug::Stream Dbg("Sound::Backend::Flac");
 
-  typedef std::shared_ptr<FLAC__StreamEncoder> EncoderPtr;
+  using EncoderPtr = std::shared_ptr<FLAC__StreamEncoder>;
 
   void CheckFlacCall(FLAC__bool res, Error::LocationRef loc)
   {
@@ -47,7 +47,7 @@ namespace Sound::Flac
    FLAC__stream_encoder_set_bits_per_sample().  For example, if the resolution
    is 16 bits per sample, the samples should all be in the range [-32768,32767].
   */
-  typedef std::pair<FLAC__int32, FLAC__int32> FlacSample;
+  using FlacSample = std::pair<FLAC__int32, FLAC__int32>;
 
   inline FlacSample ConvertSample(Sample in)
   {

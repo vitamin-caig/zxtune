@@ -28,7 +28,7 @@ namespace Formats::Packed::Lha
   class Decompressor
   {
   public:
-    typedef std::shared_ptr<const Decompressor> Ptr;
+    using Ptr = std::shared_ptr<const Decompressor>;
     virtual ~Decompressor() = default;
 
     virtual Formats::Packed::Container::Ptr Decode(const Binary::Container& rawData, std::size_t outputSize) const = 0;

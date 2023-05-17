@@ -408,7 +408,7 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_core_jni_JniPlayer_render(JNIEnv* env
 {
   return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
-    typedef AutoArray<jshortArray, int16_t> ArrayType;
+    using ArrayType = AutoArray<jshortArray, int16_t>;
     ArrayType buf(env, buffer);
     Jni::CheckArgument(buf, "Empty render buffer");
     if (const auto player = Player::Storage::Instance().Find(playerHandle))
@@ -428,7 +428,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze(JNIEnv* env, j
     // Should be before AutoArray calls - else causes 'using JNI after critical get' error
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto player = Player::Storage::Instance().Find(playerHandle);
-    typedef AutoArray<jbyteArray, uint8_t> ArrayType;
+    using ArrayType = AutoArray<jbyteArray, uint8_t>;
     ArrayType rawLevels(env, levels);
     if (rawLevels && player)
     {

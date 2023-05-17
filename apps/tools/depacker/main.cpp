@@ -11,7 +11,7 @@
 
 namespace
 {
-  typedef Formats::Packed::Decoder::Ptr (*CreateDecoderFunc)();
+  using CreateDecoderFunc = Formats::Packed::Decoder::Ptr (*)();
 
   struct DecoderTraits
   {

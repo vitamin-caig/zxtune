@@ -163,7 +163,7 @@ namespace Formats::Archived
     class Archive
     {
     public:
-      typedef std::shared_ptr<const Archive> Ptr;
+      using Ptr = std::shared_ptr<const Archive>;
 
       explicit Archive(Binary::Data::Ptr data)
         : Stream(std::move(data))

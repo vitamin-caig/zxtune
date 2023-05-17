@@ -134,7 +134,7 @@ namespace
   class TypedPlayitemsComparer : public Playlist::Item::Comparer
   {
   public:
-    typedef T (Playlist::Item::Data::*Functor)() const;
+    using Functor = T (Playlist::Item::Data::*)() const;
     TypedPlayitemsComparer(Functor fn, bool ascending)
       : Getter(fn)
       , Ascending(ascending)
@@ -340,7 +340,7 @@ namespace
     MutexType WriterLock;
   };
 
-  typedef RWMutexType<std::mutex> RWMutex;
+  using RWMutex = RWMutexType<std::mutex>;
 
   class ModelImpl
     : public Playlist::Model

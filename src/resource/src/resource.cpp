@@ -56,7 +56,7 @@ namespace
     const Binary::View Data;
   };
 
-  typedef std::vector<Formats::Archived::Container::Ptr> ArchivesSet;
+  using ArchivesSet = std::vector<Formats::Archived::Container::Ptr>;
 
   class CompositeArchive : public Formats::Archived::Container
   {

@@ -21,7 +21,7 @@
 class RangeChecker
 {
 public:
-  typedef std::unique_ptr<RangeChecker> Ptr;
+  using Ptr = std::unique_ptr<RangeChecker>;
 
   virtual ~RangeChecker() = default;
 
@@ -32,7 +32,7 @@ public:
   virtual bool AddRange(std::size_t offset, std::size_t size) = 0;
 
   //! @brief Helper type
-  typedef std::pair<std::size_t, std::size_t> Range;
+  using Range = std::pair<std::size_t, std::size_t>;
   //! @brief Calculating affected range using
   //! @return Cumulative range
   virtual Range GetAffectedRange() const = 0;
@@ -65,9 +65,9 @@ public:
 //! @endcode
 class AreaController
 {
-  typedef std::size_t KeyType;
-  typedef std::size_t AddrType;
-  typedef std::vector<AddrType> Area2AddrMap;
+  using KeyType = std::size_t;
+  using AddrType = std::size_t;
+  using Area2AddrMap = std::vector<AddrType>;
 
 public:
   enum

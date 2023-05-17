@@ -19,7 +19,7 @@ namespace Formats::Chiptune
 {
   namespace DigitalStudio
   {
-    typedef Digital::Builder Builder;
+    using Builder = Digital::Builder;
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target);
   }  // namespace DigitalStudio

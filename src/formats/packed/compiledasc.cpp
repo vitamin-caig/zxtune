@@ -32,7 +32,7 @@ namespace Formats::Packed
     const std::size_t MAX_MODULE_SIZE = 0x3a00;
     const std::size_t MAX_PLAYER_SIZE = 1700;
 
-    typedef std::array<uint8_t, 63> InfoData;
+    using InfoData = std::array<uint8_t, 63>;
 
     struct PlayerVer0
     {
@@ -99,10 +99,10 @@ namespace Formats::Packed
       }
     };
 
-    typedef PlayerTraits (*CreatePlayerFunc)(Binary::View);
-    typedef Formats::Chiptune::Container::Ptr (*ParseFunc)(const Binary::Container&,
-                                                           Formats::Chiptune::ASCSoundMaster::Builder&);
-    typedef Binary::Container::Ptr (*InsertMetaInfoFunc)(const Binary::Container&, Binary::View);
+    using CreatePlayerFunc = PlayerTraits (*)(Binary::View);
+    using ParseFunc = Formats::Chiptune::Container::Ptr (*)(const Binary::Container&,
+                                                            Formats::Chiptune::ASCSoundMaster::Builder&);
+    using InsertMetaInfoFunc = Binary::Container::Ptr (*)(const Binary::Container&, Binary::View);
 
     struct VersionTraits
     {

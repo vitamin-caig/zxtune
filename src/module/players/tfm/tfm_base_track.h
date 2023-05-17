@@ -71,7 +71,7 @@ namespace Module::TFM
   class DataRenderer
   {
   public:
-    typedef std::shared_ptr<DataRenderer> Ptr;
+    using Ptr = std::shared_ptr<DataRenderer>;
 
     virtual ~DataRenderer() = default;
 

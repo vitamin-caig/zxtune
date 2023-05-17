@@ -29,7 +29,7 @@ namespace Devices::Z80
   class ChipIO
   {
   public:
-    typedef std::shared_ptr<ChipIO> Ptr;
+    using Ptr = std::shared_ptr<ChipIO>;
     virtual ~ChipIO() = default;
 
     virtual uint8_t Read(uint16_t addr) = 0;
@@ -57,7 +57,7 @@ namespace Devices::Z80
       REG_LAST
     };
 
-    typedef std::array<uint16_t, REG_LAST> Dump;
+    using Dump = std::array<uint16_t, REG_LAST>;
     Dump Data;
     uint32_t Mask;
   };
@@ -65,7 +65,7 @@ namespace Devices::Z80
   class Chip
   {
   public:
-    typedef std::shared_ptr<Chip> Ptr;
+    using Ptr = std::shared_ptr<Chip>;
     virtual ~Chip() = default;
 
     virtual void Reset() = 0;
@@ -81,7 +81,7 @@ namespace Devices::Z80
   class ChipParameters
   {
   public:
-    typedef std::shared_ptr<const ChipParameters> Ptr;
+    using Ptr = std::shared_ptr<const ChipParameters>;
     virtual ~ChipParameters() = default;
 
     virtual uint_t Version() const = 0;

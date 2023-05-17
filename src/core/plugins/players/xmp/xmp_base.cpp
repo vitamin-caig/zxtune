@@ -98,7 +98,7 @@ namespace Module::Xmp
   class Context : public BaseContext
   {
   public:
-    typedef std::shared_ptr<Context> Ptr;
+    using Ptr = std::shared_ptr<Context>;
 
     Context(const Binary::Container& rawData, const struct format_loader* loader)
     {
@@ -117,7 +117,7 @@ namespace Module::Xmp
   class Information : public Module::TrackInformation
   {
   public:
-    typedef std::shared_ptr<const Information> Ptr;
+    using Ptr = std::shared_ptr<const Information>;
 
     Information(xmp_module module, DurationType duration)
       : Info(std::move(module))
@@ -154,7 +154,7 @@ namespace Module::Xmp
     const DurationType TotalDuration;
   };
 
-  typedef std::shared_ptr<xmp_frame_info> StatePtr;
+  using StatePtr = std::shared_ptr<xmp_frame_info>;
 
   class TrackState : public Module::TrackState
   {

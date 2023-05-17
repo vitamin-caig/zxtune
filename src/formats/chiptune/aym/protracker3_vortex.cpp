@@ -153,7 +153,7 @@ namespace Formats::Chiptune
       const char Value = false;
     };
 
-    typedef BoolObject<'+', '-'> SignFlag;
+    using SignFlag = BoolObject<'+', '-'>;
 
     template<char Max, char AltZero>
     class NibbleObject
@@ -195,8 +195,8 @@ namespace Formats::Chiptune
       char Value;
     };
 
-    typedef NibbleObject<'F', '0'> SimpleNibble;
-    typedef NibbleObject<'F', '.'> DottedNibble;
+    using SimpleNibble = NibbleObject<'F', '0'>;
+    using DottedNibble = NibbleObject<'F', '.'>;
 
     template<uint_t Width, char AltZero>
     class UnsignedHexObject
@@ -360,7 +360,7 @@ namespace Formats::Chiptune
     template<class T>
     struct LoopedList : std::vector<T>
     {
-      typedef std::vector<T> Parent;
+      using Parent = std::vector<T>;
 
       LoopedList() = default;
 
@@ -719,13 +719,13 @@ namespace Formats::Chiptune
         }
 
       private:
-        typedef BoolObject<'t', 'T'> ToneFlag;
-        typedef BoolObject<'n', 'N'> NoiseFlag;
-        typedef BoolObject<'e', 'E'> EnvelopeFlag;
-        typedef BoolObject<'^', '_'> AccumulatorFlag;
-        typedef SignedHexObject<3> ToneValue;
-        typedef SignedHexObject<2> NoiseEnvelopeValue;
-        typedef SimpleNibble VolumeValue;
+        using ToneFlag = BoolObject<'t', 'T'>;
+        using NoiseFlag = BoolObject<'n', 'N'>;
+        using EnvelopeFlag = BoolObject<'e', 'E'>;
+        using AccumulatorFlag = BoolObject<'^', '_'>;
+        using ToneValue = SignedHexObject<3>;
+        using NoiseEnvelopeValue = SignedHexObject<2>;
+        using VolumeValue = SimpleNibble;
 
         void ParseMasks(StringView str)
         {
@@ -908,10 +908,10 @@ namespace Formats::Chiptune
         return res;
       }
 
-      typedef NibbleObject<'Z', '.'> SampleNumber;
-      typedef DottedNibble EnvelopeType;
-      typedef DottedNibble OrnamentNumber;
-      typedef DottedNibble VolumeLevel;
+      using SampleNumber = NibbleObject<'Z', '.'>;
+      using EnvelopeType = DottedNibble;
+      using OrnamentNumber = DottedNibble;
+      using VolumeLevel = DottedNibble;
 
       SampleNumber Sample;
       EnvelopeType Envelope;
@@ -994,9 +994,9 @@ namespace Formats::Chiptune
         return res;
       }
 
-      typedef DottedNibble CommandCode;
-      typedef DottedNibble CommandPeriod;
-      typedef UnsignedHexObject<2, '.'> CommandParameter;
+      using CommandCode = DottedNibble;
+      using CommandPeriod = DottedNibble;
+      using CommandParameter = UnsignedHexObject<2, '.'>;
 
       CommandCode Command;
       CommandPeriod Period;
@@ -1074,8 +1074,8 @@ namespace Formats::Chiptune
         str << '\n';
       }
 
-      typedef UnsignedHexObject<4, '.'> EnvelopeBase;
-      typedef UnsignedHexObject<2, '.'> NoiseBase;
+      using EnvelopeBase = UnsignedHexObject<4, '.'>;
+      using NoiseBase = UnsignedHexObject<2, '.'>;
 
       EnvelopeBase Envelope;
       NoiseBase Noise;

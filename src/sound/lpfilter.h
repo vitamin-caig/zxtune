@@ -116,7 +116,7 @@ namespace Sound
     }
 
   private:
-    typedef Math::FixedPoint<int_t, 16384> Coeff;
+    using Coeff = Math::FixedPoint<int_t, 16384>;
     Coeff A, B, C;
     uint_t DCShift = 0;
     Sample In1, In2;

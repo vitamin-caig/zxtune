@@ -25,7 +25,7 @@ namespace Module
   {
   public:
     //! Pointer type
-    typedef std::shared_ptr<const State> Ptr;
+    using Ptr = std::shared_ptr<const State>;
 
     virtual ~State() = default;
 

@@ -19,7 +19,7 @@ namespace Binary
   {
   public:
     //! @brief Pointer type
-    typedef std::shared_ptr<const Container> Ptr;
+    using Ptr = std::shared_ptr<const Container>;
 
     //! @brief Provides isolated access to nested subcontainers should be able even after parent container destruction
     virtual Ptr GetSubcontainer(std::size_t offset, std::size_t size) const = 0;

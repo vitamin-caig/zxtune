@@ -109,7 +109,7 @@ public:
       SkipSparsed();
     }
 
-    typedef bool (Iterator::*BoolType)() const;
+    using BoolType = bool (Iterator::*)() const;
 
     operator BoolType() const
     {

@@ -55,7 +55,7 @@ namespace Module
   class TrackStateCursor : public TrackModelState
   {
   public:
-    typedef std::shared_ptr<TrackStateCursor> Ptr;
+    using Ptr = std::shared_ptr<TrackStateCursor>;
 
     TrackStateCursor(Time::Microseconds frameDuration, TrackModel::Ptr model)
       : FrameDuration(frameDuration)

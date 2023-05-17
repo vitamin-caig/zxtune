@@ -27,7 +27,7 @@ namespace Formats::Packed
 {
   namespace Gzip
   {
-    typedef std::array<uint8_t, 2> SignatureType;
+    using SignatureType = std::array<uint8_t, 2>;
 
     const SignatureType SIGNATURE = {{0x1f, 0x8b}};
 

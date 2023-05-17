@@ -96,7 +96,7 @@ namespace Async
     mutable std::mutex Locker;
     std::condition_variable CanPutDataEvent;
     std::condition_variable CanGetDataEvent;
-    typedef std::deque<T> ContainerType;
+    using ContainerType = std::deque<T>;
     ContainerType Container;
   };
 }  // namespace Async

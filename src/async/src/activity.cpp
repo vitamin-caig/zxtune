@@ -32,7 +32,7 @@ namespace Async
   class ThreadActivity : public Activity
   {
   public:
-    typedef std::shared_ptr<ThreadActivity> Ptr;
+    using Ptr = std::shared_ptr<ThreadActivity>;
 
     explicit ThreadActivity(Operation::Ptr op)
       : Oper(std::move(op))

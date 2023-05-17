@@ -19,7 +19,7 @@ namespace Math
   class FixedPoint
   {
   public:
-    typedef T ValueType;
+    using ValueType = T;
     static const T PRECISION = Precision;
 
     FixedPoint()

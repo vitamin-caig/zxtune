@@ -41,7 +41,7 @@
 
 namespace
 {
-  typedef std::pair<uint_t, StringView> CapsPair;
+  using CapsPair = std::pair<uint_t, StringView>;
   String SerializeBitmask(uint_t caps, const CapsPair* from)
   {
     String result;
@@ -264,7 +264,7 @@ namespace
     }
   }
 
-  typedef std::variant<Parameters::IntType, Parameters::StringType> ValueType;
+  using ValueType = std::variant<Parameters::IntType, Parameters::StringType>;
 
   struct OptionDesc
   {
@@ -439,7 +439,7 @@ namespace
     }
   }
 
-  typedef std::pair<StringView, const Char*> AttrType;
+  using AttrType = std::pair<StringView, const Char*>;
   void ShowAttribute(const AttrType& arg)
   {
     StdOut << Strings::Format(" {0:<20}- {1}", arg.first, arg.second) << std::endl;

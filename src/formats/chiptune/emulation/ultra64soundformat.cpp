@@ -23,7 +23,7 @@ namespace Formats::Chiptune
   {
     const Char DESCRIPTION[] = "Ultra64 Sound Format";
 
-    typedef std::array<uint8_t, 4> SignatureType;
+    using SignatureType = std::array<uint8_t, 4>;
     const SignatureType EMPTY_SIGNATURE = {{0, 0, 0, 0}};
     const SignatureType SR64_SIGNATURE = {{'S', 'R', '6', '4'}};
 

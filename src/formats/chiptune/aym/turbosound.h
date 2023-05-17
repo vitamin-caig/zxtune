@@ -22,7 +22,7 @@ namespace Formats::Chiptune
     class Builder
     {
     public:
-      typedef std::shared_ptr<Builder> Ptr;
+      using Ptr = std::shared_ptr<Builder>;
       virtual ~Builder() = default;
 
       virtual void SetFirstSubmoduleLocation(std::size_t offset, std::size_t size) = 0;
@@ -34,7 +34,7 @@ namespace Formats::Chiptune
     class Decoder : public Formats::Chiptune::Decoder
     {
     public:
-      typedef std::shared_ptr<const Decoder> Ptr;
+      using Ptr = std::shared_ptr<const Decoder>;
 
       virtual Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target) const = 0;
     };

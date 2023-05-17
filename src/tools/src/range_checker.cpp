@@ -52,7 +52,7 @@ namespace
   // range checker implementation
   class RangeCheckerImpl : public RangeChecker
   {
-    typedef std::map<std::size_t, std::size_t> RangeMap;
+    using RangeMap = std::map<std::size_t, std::size_t>;
 
   public:
     explicit RangeCheckerImpl(std::size_t limit)
@@ -146,7 +146,7 @@ namespace
 
   class SharedRangeChecker : public RangeChecker
   {
-    typedef std::map<std::size_t, std::size_t> RangeMap;
+    using RangeMap = std::map<std::size_t, std::size_t>;
 
   public:
     explicit SharedRangeChecker(std::size_t limit)

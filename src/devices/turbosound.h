@@ -21,7 +21,7 @@ namespace Devices::TurboSound
   using AYM::TimeUnit;
   using AYM::Stamp;
 
-  typedef std::array<AYM::Registers, CHIPS> Registers;
+  using Registers = std::array<AYM::Registers, CHIPS>;
 
   struct DataChunk
   {
@@ -37,7 +37,7 @@ namespace Devices::TurboSound
   class Device
   {
   public:
-    typedef std::shared_ptr<Device> Ptr;
+    using Ptr = std::shared_ptr<Device>;
     virtual ~Device() = default;
 
     virtual void RenderData(const DataChunk& src) = 0;

@@ -60,7 +60,7 @@ namespace Formats::Chiptune
       uint_t VolumeDeltaValue = 0;
     };
 
-    typedef LinesObject<int_t> Ornament;
+    using Ornament = LinesObject<int_t>;
 
     struct PositionEntry
     {
@@ -70,7 +70,7 @@ namespace Formats::Chiptune
       int_t Transposition = 0;
     };
 
-    typedef LinesObject<PositionEntry> Positions;
+    using Positions = LinesObject<PositionEntry>;
 
     class Builder
     {

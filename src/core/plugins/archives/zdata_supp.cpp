@@ -34,7 +34,7 @@ namespace ZXTune::Zdata
 
   const String PLUGIN_PREFIX("zdata:");
 
-  typedef std::array<uint8_t, 2> SignatureType;
+  using SignatureType = std::array<uint8_t, 2>;
 
   struct UInt24LE
   {
@@ -76,8 +76,8 @@ namespace ZXTune::Zdata
     UInt24LE PackedSize;
   };
 
-  typedef std::array<char, 8> TxtMarker;
-  typedef std::array<char, 16> TxtHeader;
+  using TxtMarker = std::array<char, 8>;
+  using TxtHeader = std::array<char, 16>;
 
   struct Marker
   {

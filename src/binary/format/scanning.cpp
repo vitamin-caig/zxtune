@@ -28,8 +28,8 @@ namespace Binary
   class FuzzyFormat : public FormatDetails
   {
   public:
-    typedef std::array<uint8_t, 256> PatternRow;
-    typedef std::vector<PatternRow> PatternMatrix;
+    using PatternRow = std::array<uint8_t, 256>;
+    using PatternMatrix = std::vector<PatternRow>;
 
     FuzzyFormat(PatternMatrix mtx, std::size_t offset, std::size_t minSize, std::size_t minScanStep)
       : Offset(offset)
@@ -166,7 +166,7 @@ namespace Binary
   class ExactFormat : public FormatDetails
   {
   public:
-    typedef std::vector<uint8_t> PatternMatrix;
+    using PatternMatrix = std::vector<uint8_t>;
 
     ExactFormat(PatternMatrix mtx, std::size_t offset, std::size_t minSize)
       : Offset(offset)

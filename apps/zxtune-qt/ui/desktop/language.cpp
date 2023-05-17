@@ -65,10 +65,10 @@ namespace
     }
 
   private:
-    typedef std::set<Binary::Data::Ptr> DumpsSet;
-    typedef std::map<String, DumpsSet, std::less<>> LangToDumpsSetMap;
-    typedef std::shared_ptr<QTranslator> TranslatorPtr;
-    typedef std::set<TranslatorPtr> TranslatorsSet;
+    using DumpsSet = std::set<Binary::Data::Ptr>;
+    using LangToDumpsSetMap = std::map<String, DumpsSet, std::less<>>;
+    using TranslatorPtr = std::shared_ptr<QTranslator>;
+    using TranslatorsSet = std::set<TranslatorPtr>;
 
     void UnloadTranslators()
     {

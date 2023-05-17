@@ -42,7 +42,7 @@ namespace Module::LibVGM
 
   using PlayerPtr = std::unique_ptr< ::PlayerBase>;
 
-  typedef PlayerPtr (*PlayerCreator)();
+  using PlayerCreator = PlayerPtr (*)();
 
   template<class PlayerType>
   PlayerPtr Create()

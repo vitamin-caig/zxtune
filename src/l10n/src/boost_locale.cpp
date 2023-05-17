@@ -23,7 +23,7 @@ namespace
 {
   const Debug::Stream Dbg("L10n");
 
-  typedef std::shared_ptr<std::locale> LocalePtr;
+  using LocalePtr = std::shared_ptr<std::locale>;
 
   class DomainVocabulary : public L10n::Vocabulary
   {
