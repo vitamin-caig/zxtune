@@ -61,6 +61,10 @@
         <activity
                 android:name=".ResultActivity"
                 android:exported="false" />
+        <activity
+                android:name=".SharingActivity"
+                android:exported="false"
+                android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <service
                 android:name=".MainService"
