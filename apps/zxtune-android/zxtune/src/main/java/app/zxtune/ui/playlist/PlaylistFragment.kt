@@ -22,6 +22,7 @@ import androidx.annotation.StringRes
 import androidx.annotation.VisibleForTesting
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.selection.Selection
 import androidx.recyclerview.selection.SelectionPredicates
@@ -47,41 +48,38 @@ class PlaylistFragment : Fragment() {
     private val mediaController
         get() = MediaControllerCompat.getMediaController(requireActivity())
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.playlist, menu)
-        val sortMenuRoot = requireNotNull(menu.findItem(R.id.action_sort)).subMenu
-        for (sortBy in ProviderClient.SortBy.values()) {
-            for (sortOrder in ProviderClient.SortOrder.values()) {
-                sortMenuRoot.add(getMenuTitle(sortBy)).run {
-                    setOnMenuItemClickListener {
-                        model.sort(sortBy, sortOrder)
-                        true
-                    }
-                    setIcon(getMenuIcon(sortOrder))
-                }
-            }
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem) = processMenuItem(
-        item.itemId, selectionTracker.selection
-    ) || super.onOptionsItemSelected(item)
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ) = container?.let { inflater.inflate(R.layout.playlist, it, false) }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupToolbarMenu()
         listing = setupListing(view)
         search = setupSearchView(view)
     }
+
+    private fun setupToolbarMenu() = requireActivity().addMenuProvider(object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) =
+            menuInflater.inflate(R.menu.playlist, menu)
+
+        override fun onPrepareMenu(menu: Menu) = menu.findItem(R.id.action_sort).subMenu.run {
+            for (sortBy in ProviderClient.SortBy.values()) {
+                for (sortOrder in ProviderClient.SortOrder.values()) {
+                    add(getMenuTitle(sortBy)).run {
+                        setOnMenuItemClickListener {
+                            model.sort(sortBy, sortOrder)
+                            true
+                        }
+                        setIcon(getMenuIcon(sortOrder))
+                    }
+                }
+            }
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem) =
+            processMenuItem(menuItem.itemId, selectionTracker.selection)
+    })
 
     private fun setupListing(view: View) =
         view.findViewById<RecyclerView>(R.id.playlist_content).apply {
