@@ -15,6 +15,10 @@
                     modernize-use-equals-default,
                     modernize-use-override,
                     modernize-use-using,
+                    performance-for-range-copy,
+                    performance-inefficient-algorithm,
+                    performance-inefficient-vector-operation,
+                    performance-trivially-destructible,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment
