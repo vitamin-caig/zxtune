@@ -62,7 +62,7 @@ namespace Module::AYC
 
     AYM::StreamModel::Ptr CaptureResult() const
     {
-      return Data->IsEmpty() ? AYM::StreamModel::Ptr() : AYM::StreamModel::Ptr(std::move(Data));
+      return Data->IsEmpty() ? AYM::StreamModel::Ptr() : AYM::StreamModel::Ptr(Data);
     }
 
   private:

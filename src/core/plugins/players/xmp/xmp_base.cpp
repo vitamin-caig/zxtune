@@ -120,7 +120,7 @@ namespace Module::Xmp
     using Ptr = std::shared_ptr<const Information>;
 
     Information(xmp_module module, DurationType duration)
-      : Info(std::move(module))
+      : Info(module)
       , TotalDuration(duration)
     {}
 

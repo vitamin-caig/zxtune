@@ -132,7 +132,7 @@ namespace Formats::Chiptune
         {
           names.push_back(Strings::OptimizeAscii(name));
         }
-        meta.SetStrings(std::move(names));
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const

@@ -115,7 +115,7 @@ namespace Module::TFMMusicMaker
 
     void SetInstrument(uint_t index, Formats::Chiptune::TFMMusicMaker::Instrument instrument) override
     {
-      Data->Instruments.Add(index, std::move(instrument));
+      Data->Instruments.Add(index, instrument);
     }
 
     void SetPositions(Formats::Chiptune::TFMMusicMaker::Positions positions) override

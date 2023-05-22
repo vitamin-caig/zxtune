@@ -152,7 +152,7 @@ namespace Module::VGMStream
       : STREAMFILE()
       , Fs(std::move(vfs))
       , Filename(filename.to_string())
-      , Raw(std::move(raw))
+      , Raw(raw)
     {
       read = &Read;
       get_size = &Length;
@@ -211,7 +211,7 @@ namespace Module::VGMStream
       const StringView name(filename);
       if (auto blob = self->Fs->Request(name))
       {
-        auto* result = new MemoryStream(self->Fs, name, std::move(blob));
+        auto* result = new MemoryStream(self->Fs, name, blob);
         result->stream_index = self->stream_index;
         return result;
       }

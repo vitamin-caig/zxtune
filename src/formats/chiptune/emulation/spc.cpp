@@ -557,7 +557,7 @@ namespace Formats::Chiptune
         meta.SetProgram(tag.Game);
         target.SetDumper(tag.Dumper);
         meta.SetComment(tag.Comments);
-        target.SetDumpDate(std::move(tag.DumpDate));
+        target.SetDumpDate(tag.DumpDate);
         target.SetLoop(tag.FadeTime);
         target.SetFade(tag.FadeDuration);
         meta.SetAuthor(tag.Artist);

@@ -27,7 +27,7 @@ namespace LexicalAnalysis
     using RWPtr = std::unique_ptr<TokensSet>;
 
     explicit TokensSet(StringView lexeme)
-      : Lexeme(std::move(lexeme))
+      : Lexeme(lexeme)
     {}
 
     void Add(TokenType type)

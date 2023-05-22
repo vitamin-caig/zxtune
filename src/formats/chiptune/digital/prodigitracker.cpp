@@ -282,7 +282,7 @@ namespace Formats::Chiptune
         {
           names[idx] = Strings::OptimizeAscii(Source.Samples[idx].Name);
         }
-        meta.SetStrings(std::move(names));
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& target) const

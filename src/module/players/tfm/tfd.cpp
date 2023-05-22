@@ -111,7 +111,7 @@ namespace Module::TFD
 
     TFM::StreamModel::Ptr CaptureResult() const
     {
-      return std::move(Data);
+      return Data;
     }
 
   private:

@@ -131,7 +131,7 @@ namespace Sound::File
   public:
     FileParameters(Parameters::Accessor::Ptr params, BackendId id)
       : Params(std::move(params))
-      , Id(std::move(id))
+      , Id(id)
     {}
 
     String GetFilenameTemplate() const

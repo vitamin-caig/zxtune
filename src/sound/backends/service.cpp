@@ -175,7 +175,7 @@ namespace Sound
       BackendWorkerFactory::Ptr Factory;
 
       FactoryWithId(BackendId id, BackendWorkerFactory::Ptr factory)
-        : Id(std::move(id))
+        : Id(id)
         , Factory(std::move(factory))
       {}
 

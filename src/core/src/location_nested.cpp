@@ -23,7 +23,7 @@ namespace ZXTune
     NestedLocation(DataLocation::Ptr parent, PluginId subPlugin, Binary::Container::Ptr subData, StringView subPath)
       : Parent(std::move(parent))
       , SubData(std::move(subData))
-      , SubPlugin(std::move(subPlugin))
+      , SubPlugin(subPlugin)
       , Subpath(subPath.to_string())
     {}
 

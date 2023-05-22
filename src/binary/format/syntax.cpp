@@ -47,7 +47,7 @@ namespace Binary::FormatDSL
 
     Token(LexicalAnalysis::TokenType type, StringView lexeme)
       : Type(type)
-      , Value(std::move(lexeme))
+      , Value(lexeme)
     {}
   };
 
@@ -246,7 +246,7 @@ namespace Binary::FormatDSL
     {}
 
     explicit Operator(StringView op)
-      : Val(std::move(op))
+      : Val(op)
     {
       Require(!Val.empty());
       switch (Val[0])

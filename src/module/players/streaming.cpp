@@ -30,7 +30,7 @@ namespace Module
     using Ptr = std::shared_ptr<FramedStreamStateCursor>;
 
     explicit FramedStreamStateCursor(FramedStream stream)
-      : Stream(std::move(stream))
+      : Stream(stream)
       , CurFrame()
       , Loops()
     {
@@ -97,7 +97,7 @@ namespace Module
   {
   public:
     FramedStreamInfo(FramedStream stream)
-      : Stream(std::move(stream))
+      : Stream(stream)
     {}
 
     Time::Milliseconds Duration() const override
@@ -118,7 +118,7 @@ namespace Module
   {
   public:
     explicit FramedStreamStateIterator(FramedStream stream)
-      : Cursor(MakePtr<FramedStreamStateCursor>(std::move(stream)))
+      : Cursor(MakePtr<FramedStreamStateCursor>(stream))
     {}
 
     // iterator functions
@@ -156,7 +156,7 @@ namespace Module
     stream.FrameDuration = frameDuration;
     stream.TotalFrames = model->GetTotalFrames();
     stream.LoopFrame = model->GetLoopFrame();
-    return MakePtr<FramedStreamInfo>(std::move(stream));
+    return MakePtr<FramedStreamInfo>(stream);
   }
 
   StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, StreamModel::Ptr model)
@@ -165,7 +165,7 @@ namespace Module
     stream.FrameDuration = frameDuration;
     stream.TotalFrames = model->GetTotalFrames();
     stream.LoopFrame = model->GetLoopFrame();
-    return MakePtr<FramedStreamStateIterator>(std::move(stream));
+    return MakePtr<FramedStreamStateIterator>(stream);
   }
 
   class TimedInfo : public Module::Information

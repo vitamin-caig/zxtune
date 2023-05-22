@@ -349,7 +349,7 @@ namespace Module::VideoGameMusic
 
     Module::Information::Ptr CaptureResult() const
     {
-      return std::move(Info);
+      return Info;
     }
 
   private:
@@ -410,7 +410,7 @@ namespace Module::Sound98
 
     Module::Information::Ptr CaptureResult() const
     {
-      return std::move(Info);
+      return Info;
     }
 
   private:

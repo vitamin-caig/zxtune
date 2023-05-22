@@ -208,8 +208,8 @@ namespace
   {
   public:
     ItemsCollection(ItemsContainer::const_iterator begin, ItemsContainer::const_iterator end)
-      : Current(std::move(begin))
-      , Limit(std::move(end))
+      : Current(begin)
+      , Limit(end)
     {}
 
     bool IsValid() const override

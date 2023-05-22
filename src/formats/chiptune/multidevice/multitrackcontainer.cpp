@@ -104,7 +104,7 @@ namespace IFF
   {
   public:
     explicit BlobChunkSourceBase(Identifier::Type id)
-      : Id(std::move(id))
+      : Id(id)
     {}
 
     std::size_t GetSize() const override
@@ -136,7 +136,7 @@ namespace IFF
   {
   public:
     DataChunkSource(Identifier::Type id, Binary::Data::Ptr data)
-      : BlobChunkSourceBase(std::move(id))
+      : BlobChunkSourceBase(id)
       , Data(std::move(data))
     {}
 
@@ -159,7 +159,7 @@ namespace IFF
   {
   public:
     StringChunkSource(Identifier::Type id, StringView str)
-      : BlobChunkSourceBase(std::move(id))
+      : BlobChunkSourceBase(id)
       , Data(str.to_string())
     {}
 
@@ -182,7 +182,7 @@ namespace IFF
   {
   public:
     explicit CompositeChunkSource(Identifier::Type id)
-      : Id(std::move(id))
+      : Id(id)
       , TotalSize()
     {}
 

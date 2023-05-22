@@ -269,7 +269,7 @@ namespace
   struct OptionDesc
   {
     OptionDesc(StringView name)
-      : Name(std::move(name))
+      : Name(name)
     {}
 
     OptionDesc(Parameters::Identifier name, const Char* descr, ValueType def)

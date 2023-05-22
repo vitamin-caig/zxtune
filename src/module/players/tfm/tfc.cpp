@@ -197,7 +197,7 @@ namespace Module::TFC
 
     TFM::StreamModel::Ptr CaptureResult() const
     {
-      return std::move(Data);
+      return Data;
     }
 
     Time::Microseconds GetFrameDuration() const

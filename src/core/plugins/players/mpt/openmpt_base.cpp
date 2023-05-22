@@ -303,7 +303,7 @@ namespace Module::Mpt
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
       Require(!!Track);  // TODO
-      return MakePtr<Renderer>(std::move(Track), samplerate, std::move(params));
+      return MakePtr<Renderer>(Track, samplerate, std::move(params));
     }
 
   private:

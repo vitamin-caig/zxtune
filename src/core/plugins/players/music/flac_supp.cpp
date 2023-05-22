@@ -471,7 +471,7 @@ namespace ZXTune
 
     auto decoder = Formats::Chiptune::CreateFLACDecoder();
     auto factory = MakePtr<Module::Flac::Factory>();
-    const PlayerPlugin::Ptr plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
+    auto plugin = CreatePlayerPlugin(ID, CAPS, std::move(decoder), std::move(factory));
     registrator.RegisterPlugin(std::move(plugin));
   }
 }  // namespace ZXTune

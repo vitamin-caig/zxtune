@@ -219,7 +219,7 @@ namespace Formats::Chiptune
           const auto name = Strings::TrimSpaces(Stream.ReadCString(Stream.GetRestSize()));
           names[smp] = Strings::ToAutoUtf8(name);
         }
-        meta.SetStrings(std::move(names));
+        meta.SetStrings(names);
       }
 
       void ParseProgram(MetaBuilder& meta)

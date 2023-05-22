@@ -508,7 +508,7 @@ namespace Formats::Chiptune
       void SetInstrument(uint_t index, Instrument instrument) override
       {
         assert(UsedInstruments.Contain(index));
-        return Delegate.SetInstrument(index, std::move(instrument));
+        return Delegate.SetInstrument(index, instrument);
       }
 
       void SetPositions(Positions positions) override
@@ -797,7 +797,7 @@ namespace Formats::Chiptune
         {
           names.push_back(DecodeString(name));
         }
-        meta.SetStrings(std::move(names));
+        meta.SetStrings(names);
       }
 
       void ParsePositions(Builder& builder) const

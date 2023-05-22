@@ -117,7 +117,7 @@ private:
     using Ptr = std::shared_ptr<Meta>;
 
     Meta(Location src, String txt)
-      : Source(std::move(src))
+      : Source(src)
       , Text(std::move(txt))
     {}
 

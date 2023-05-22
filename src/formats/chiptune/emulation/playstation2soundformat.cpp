@@ -171,13 +171,13 @@ namespace Formats::Chiptune
           else if (0 == entry.Size)
           {
             // empty file may have zero offset
-            target.OnFile(std::move(entryPath), Binary::Container::Ptr());
+            target.OnFile(entryPath, Binary::Container::Ptr());
           }
           else
           {
             Require(entryPos < entry.Offset);
             auto blocks = ParseFileBlocks(entry.Size, entry.BlockSize);
-            target.OnFile(std::move(entryPath), ScatteredContainer::Create(std::move(blocks), entry.Size));
+            target.OnFile(entryPath, ScatteredContainer::Create(std::move(blocks), entry.Size));
           }
           Stream.Seek(entryPos + DirectoryEntry::RAW_SIZE);
         }

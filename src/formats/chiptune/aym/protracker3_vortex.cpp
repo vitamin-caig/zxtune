@@ -699,7 +699,7 @@ namespace Formats::Chiptune
         }
 
         LineObject(Line src, bool looped)
-          : Sample::Line(std::move(src))
+          : Sample::Line(src)
           , Looped(looped)
         {}
 

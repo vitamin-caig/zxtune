@@ -245,7 +245,7 @@ namespace
       : BigIntegerValue(parent)
       , Parent(parent)
       , Storage(ctr)
-      , Traits(std::move(traits))
+      , Traits(traits)
     {
       BigIntegerValueImpl::Reload();
       Require(connect(&parent, SIGNAL(textChanged(const QString&)), SLOT(Set(const QString&))));

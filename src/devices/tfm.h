@@ -29,7 +29,7 @@ namespace Devices::TFM
     {}
 
     Register(uint_t chip, FM::Register reg)
-      : FM::Register(std::move(reg))
+      : FM::Register(reg)
     {
       Val |= chip << 16;
     }

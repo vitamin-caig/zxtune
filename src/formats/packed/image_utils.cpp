@@ -39,7 +39,7 @@ namespace Formats
 
     void SetSector(const CHS& location, Binary::View data) override
     {
-      const auto res = Sectors.insert(SectorsMap::value_type(location, std::move(data)));
+      const auto res = Sectors.insert(SectorsMap::value_type(location, data));
       if (res.second)
       {
         TotalSize += res.first->second.Size();

@@ -470,7 +470,7 @@ namespace Formats::Archived
       SingleBlockFile(Binary::Container::Ptr archive, StringView name, DataBlockDescription block)
         : Data(std::move(archive))
         , Name(name.to_string())
-        , Block(std::move(block))
+        , Block(block)
       {
         Dbg("Created file '{}', size={}, packed size={}, compression={}", Name, Block.UncompressedSize, Block.Size,
             Block.IsCompressed);

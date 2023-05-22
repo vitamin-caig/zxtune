@@ -30,7 +30,7 @@ namespace ZXTune
     LoggerHelper(uint_t total, Log::ProgressCallback* delegate, PluginId plugin, StringView path)
       : Delegate(path.empty() ? delegate : nullptr)  // track only toplevel container
       , ToPercent(total, 100)
-      , Id(std::move(plugin))
+      , Id(plugin)
       , Path(path.to_string())
     {}
 
@@ -58,7 +58,7 @@ namespace ZXTune
                             ArchiveCallback& callback)
       : MaxSize(maxSize)
       , BaseLocation(std::move(location))
-      , SubPlugin(std::move(plugin))
+      , SubPlugin(plugin)
       , Logger(count, callback.GetProgress(), SubPlugin, BaseLocation->GetPath()->AsString())
       , Callback(callback)
     {}
@@ -101,7 +101,7 @@ namespace ZXTune
   {
   public:
     ArchivedContainerPlugin(PluginId id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
-      : Identifier(std::move(id))
+      : Identifier(id)
       , Caps(caps)
       , Decoder(std::move(decoder))
     {}

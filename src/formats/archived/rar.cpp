@@ -233,7 +233,7 @@ namespace Formats::Archived
     public:
       File(ChainDecoder::Ptr decoder, FileBlock block, StringView name)
         : Decoder(std::move(decoder))
-        , Block(std::move(block))
+        , Block(block)
         , Name(name.to_string())
       {}
 
