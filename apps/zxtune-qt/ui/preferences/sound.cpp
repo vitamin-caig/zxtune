@@ -37,7 +37,7 @@ namespace
 
   auto GetSystemBackends(Parameters::Accessor::Ptr params)
   {
-    return Sound::CreateSystemService(params)->GetAvailableBackends();
+    return Sound::CreateSystemService(std::move(params))->GetAvailableBackends();
   }
 
   class SoundOptionsWidget

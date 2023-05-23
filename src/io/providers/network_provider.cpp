@@ -26,6 +26,7 @@
 #include <parameters/accessor.h>
 // std includes
 #include <cstring>
+#include <utility>
 
 namespace IO::Network
 {
@@ -110,7 +111,7 @@ namespace IO::Network
   {
   public:
     explicit RemoteResource(Curl::Api::Ptr api)
-      : Object(api)
+      : Object(std::move(api))
     {
       Object.SetOption(CURLOPT_DEBUGFUNCTION, reinterpret_cast<void*>(&DebugCallback), THIS_LINE);
       Object.SetOption(CURLOPT_VERBOSE, 1, THIS_LINE);
@@ -372,16 +373,16 @@ namespace IO
 {
   DataProvider::Ptr CreateNetworkDataProvider(Curl::Api::Ptr api)
   {
-    return MakePtr<Network::DataProvider>(api);
+    return MakePtr<Network::DataProvider>(std::move(api));
   }
 
   void RegisterNetworkProvider(ProvidersEnumerator& enumerator)
   {
     try
     {
-      const Curl::Api::Ptr api = Curl::LoadDynamicApi();
+      auto api = Curl::LoadDynamicApi();
       Network::Dbg("Detected CURL library {}", api->curl_version());
-      enumerator.RegisterProvider(CreateNetworkDataProvider(api));
+      enumerator.RegisterProvider(CreateNetworkDataProvider(std::move(api)));
     }
     catch (const Error& e)
     {

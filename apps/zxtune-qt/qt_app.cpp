@@ -43,7 +43,7 @@ namespace
       qapp.setApplicationVersion(ToQString(Platform::Version::GetProgramVersionString()));
       qapp.setOrganizationDomain(ToQString(Urls::Site()));
       const Parameters::Container::Ptr params = GlobalOptions::Instance().Get();
-      const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(params, std::move(argv));
+      const SingleModeDispatcher::Ptr mode = SingleModeDispatcher::Create(*params, std::move(argv));
       if (mode->StartMaster())
       {
         const MainWindow::Ptr win = WidgetsFactory::Instance().CreateMainWindow(params);

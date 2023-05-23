@@ -22,7 +22,7 @@ class SingleModeDispatcher : public QObject
   Q_OBJECT
 public:
   using Ptr = QPointer<SingleModeDispatcher>;
-  static Ptr Create(Parameters::Accessor::Ptr params, Strings::Array argv);
+  static Ptr Create(const Parameters::Accessor& params, Strings::Array argv);
 
   virtual bool StartMaster() = 0;
   virtual QStringList GetCmdline() const = 0;

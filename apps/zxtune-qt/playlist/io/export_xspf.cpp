@@ -9,6 +9,7 @@
  **/
 
 // local includes
+#include "container.h"
 #include "export.h"
 #include "tags/xspf.h"
 #include "ui/utils.h"
@@ -492,7 +493,7 @@ namespace
       for (Playlist::Item::Collection::Ptr items = container.GetItems(); items->IsValid(); items->Next())
       {
         const Playlist::Item::Data::Ptr item = items->Get();
-        WriteItem(item);
+        WriteItem(*item);
         cb.OnProgress((PERCENTS * ++doneItems / totalItems));
       }
     }
@@ -503,11 +504,11 @@ namespace
     }
 
   private:
-    void WriteItem(Playlist::Item::Data::Ptr item)
+    void WriteItem(const Playlist::Item::Data& item)
     {
       Dbg("Save playitem");
       ItemPropertiesSaver saver(XML);
-      Writer.Save(*item, saver);
+      Writer.Save(item, saver);
     }
 
   private:
@@ -518,7 +519,7 @@ namespace
 
 namespace Playlist::IO
 {
-  void SaveXSPF(Container::Ptr container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags)
+  void SaveXSPF(const Container& container, const QString& filename, Log::ProgressCallback& cb, ExportFlags flags)
   {
     QFile device(filename);
     if (!device.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
@@ -527,8 +528,8 @@ namespace Playlist::IO
     }
     const std::unique_ptr<const ItemWriter> itemWriter = CreateWriter(filename, flags);
     XSPFWriter writer(device, *itemWriter);
-    const Parameters::Accessor::Ptr playlistProperties = container->GetProperties();
-    writer.WriteProperties(*playlistProperties, container->GetItemsCount());
-    writer.WriteItems(*container, cb);
+    const Parameters::Accessor::Ptr playlistProperties = container.GetProperties();
+    writer.WriteProperties(*playlistProperties, container.GetItemsCount());
+    writer.WriteItems(container, cb);
   }
 }  // namespace Playlist::IO

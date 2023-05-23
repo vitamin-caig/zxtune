@@ -19,7 +19,7 @@ namespace Sound
   class VolumeControlDelegate : public VolumeControl
   {
   public:
-    explicit VolumeControlDelegate(VolumeControl::Ptr delegate)
+    explicit VolumeControlDelegate(const VolumeControl::Ptr& delegate)
       : Delegate(delegate)
     {}
 
@@ -48,7 +48,7 @@ namespace Sound
 
 namespace Sound
 {
-  VolumeControl::Ptr CreateVolumeControlDelegate(VolumeControl::Ptr delegate)
+  VolumeControl::Ptr CreateVolumeControlDelegate(const VolumeControl::Ptr& delegate)
   {
     return MakePtr<VolumeControlDelegate>(delegate);
   }

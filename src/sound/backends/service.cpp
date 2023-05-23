@@ -189,21 +189,21 @@ namespace Sound
 
   Service::Ptr CreateSystemService(Parameters::Accessor::Ptr options)
   {
-    const ServiceImpl::RWPtr result = MakeRWPtr<ServiceImpl>(options);
+    auto result = MakeRWPtr<ServiceImpl>(std::move(options));
     RegisterSystemBackends(*result);
     return result;
   }
 
   Service::Ptr CreateFileService(Parameters::Accessor::Ptr options)
   {
-    const ServiceImpl::RWPtr result = MakeRWPtr<ServiceImpl>(options);
+    auto result = MakeRWPtr<ServiceImpl>(std::move(options));
     RegisterFileBackends(*result);
     return result;
   }
 
   Service::Ptr CreateGlobalService(Parameters::Accessor::Ptr options)
   {
-    const ServiceImpl::RWPtr result = MakeRWPtr<ServiceImpl>(options);
+    auto result = MakeRWPtr<ServiceImpl>(std::move(options));
     RegisterAllBackends(*result);
     return result;
   }

@@ -79,7 +79,7 @@ namespace
       const Playlist::IO::Container::Ptr container = MakePtr<ContainerImpl>(Name, storage);
       try
       {
-        Playlist::IO::SaveXSPF(container, Filename, cb, Flags);
+        Playlist::IO::SaveXSPF(*container, Filename, cb, Flags);
       }
       catch (const Error& e)
       {
@@ -157,13 +157,13 @@ namespace Playlist
 {
   Container::Ptr Container::Create(Parameters::Accessor::Ptr parameters)
   {
-    return MakePtr<PlaylistContainer>(parameters);
+    return MakePtr<PlaylistContainer>(std::move(parameters));
   }
 
-  void Save(Controller::Ptr ctrl, const QString& filename, uint_t flags)
+  void Save(Controller& ctrl, const QString& filename, uint_t flags)
   {
-    const QString name = ctrl->GetName();
-    const Playlist::Item::StorageAccessOperation::Ptr op = MakePtr<SavePlaylistOperation>(name, filename, flags);
-    ctrl->GetModel()->PerformOperation(op);
+    const QString name = ctrl.GetName();
+    auto op = MakePtr<SavePlaylistOperation>(name, filename, flags);
+    ctrl.GetModel()->PerformOperation(std::move(op));
   }
 }  // namespace Playlist

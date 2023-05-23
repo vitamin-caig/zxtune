@@ -334,7 +334,7 @@ namespace
     {
       const std::lock_guard<std::mutex> lock(Guard);
       Delegates.insert(delegate);
-      return Subscription(this, [delegate](auto&& owner) { owner->Unsubscribe(delegate); });
+      return Subscription(this, [delegate = std::move(delegate)](auto&& owner) { owner->Unsubscribe(delegate); });
     }
 
     void SetValue(Identifier name, IntType val) override
@@ -374,7 +374,7 @@ namespace
     }
 
   private:
-    void Unsubscribe(Modifier::Ptr delegate)
+    void Unsubscribe(const Modifier::Ptr& delegate)
     {
       const std::lock_guard<std::mutex> lock(Guard);
       Delegates.erase(delegate);
@@ -451,10 +451,10 @@ namespace
 
     static Accessor::Ptr Create(Accessor::Ptr stored, CompositeModifier& modifiers)
     {
-      const Container::Ptr changed = Container::Create();
-      const Accessor::Ptr delegate = CreateMergedAccessor(changed, stored);
-      const Modifier::Ptr callback = MakePtr<CopyOnWrite>(stored, changed);
-      return MakePtr<SettingsSnapshot>(delegate, modifiers.Subscribe(callback));
+      auto changed = Container::Create();
+      auto delegate = CreateMergedAccessor(std::move(changed), stored);
+      auto callback = MakePtr<CopyOnWrite>(std::move(stored), std::move(changed));
+      return MakePtr<SettingsSnapshot>(std::move(delegate), modifiers.Subscribe(std::move(callback)));
     }
 
   public:

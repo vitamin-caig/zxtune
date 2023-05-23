@@ -296,7 +296,7 @@ namespace Sound::OpenAl
   public:
     explicit BackendParameters(Parameters::Accessor::Ptr accessor)
       : Accessor(*accessor)
-      , RenderingParameters(RenderParameters::Create(accessor))
+      , RenderingParameters(RenderParameters::Create(std::move(accessor)))
     {}
 
     String GetDeviceName() const

@@ -175,7 +175,7 @@ namespace Module
       Target.Reset();
     }
 
-    static Ptr Create(uint_t samplerate, Parameters::Accessor::Ptr params, const Multi::HoldersArray& holders)
+    static Ptr Create(uint_t samplerate, const Parameters::Accessor::Ptr& params, const Multi::HoldersArray& holders)
     {
       const auto count = holders.size();
       Require(count > 1);
@@ -214,7 +214,7 @@ namespace Module
 
     Renderer::Ptr CreateRenderer(uint_t samplerate, Parameters::Accessor::Ptr params) const override
     {
-      return MultiRenderer::Create(samplerate, std::move(params), Delegates);
+      return MultiRenderer::Create(samplerate, params, Delegates);
     }
 
   private:

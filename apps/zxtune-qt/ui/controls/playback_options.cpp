@@ -20,6 +20,8 @@
 #include <core/core_parameters.h>
 #include <parameters/merged_accessor.h>
 #include <sound/sound_parameters.h>
+// std includes
+#include <utility>
 
 namespace
 {
@@ -110,5 +112,5 @@ PlaybackOptions::PlaybackOptions(QWidget& parent)
 
 PlaybackOptions* PlaybackOptions::Create(QWidget& parent, PlaybackSupport& supp, Parameters::Container::Ptr params)
 {
-  return new PlaybackOptionsImpl(parent, supp, params);
+  return new PlaybackOptionsImpl(parent, supp, std::move(params));
 }

@@ -127,7 +127,7 @@ namespace
         Log::PercentProgressCallback framesProgress(info->Duration().Get(), curItemProgress);
         ConvertCallback cb(framesProgress);
         const auto backend =
-            Service->CreateBackend(Sound::BackendId::FromString(Type), item,
+            Service->CreateBackend(Sound::BackendId::FromString(Type), std::move(item),
                                    Sound::BackendCallback::Ptr(&cb, NullDeleter<Sound::BackendCallback>()));
         const auto control = backend->GetPlaybackControl();
         control->Play();

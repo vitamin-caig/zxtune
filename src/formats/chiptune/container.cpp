@@ -17,6 +17,7 @@
 #include <binary/crc.h>
 // std includes
 #include <cassert>
+#include <utility>
 
 namespace Formats::Chiptune
 {
@@ -32,7 +33,7 @@ namespace Formats::Chiptune
   {
   public:
     KnownCrcContainer(Binary::Container::Ptr delegate, uint_t crc)
-      : BaseDelegateContainer(delegate)
+      : BaseDelegateContainer(std::move(delegate))
       , Crc(crc)
     {}
 
@@ -49,7 +50,7 @@ namespace Formats::Chiptune
   {
   public:
     CalculatingCrcContainer(Binary::Container::Ptr delegate, std::size_t offset, std::size_t size)
-      : BaseDelegateContainer(delegate)
+      : BaseDelegateContainer(std::move(delegate))
       , FixedOffset(offset)
       , FixedSize(size)
     {}
@@ -66,11 +67,11 @@ namespace Formats::Chiptune
 
   Container::Ptr CreateKnownCrcContainer(Binary::Container::Ptr data, uint_t crc)
   {
-    return data && data->Size() ? MakePtr<KnownCrcContainer>(data, crc) : Container::Ptr();
+    return data && data->Size() ? MakePtr<KnownCrcContainer>(std::move(data), crc) : Container::Ptr();
   }
 
   Container::Ptr CreateCalculatingCrcContainer(Binary::Container::Ptr data, std::size_t offset, std::size_t size)
   {
-    return data && data->Size() ? MakePtr<CalculatingCrcContainer>(data, offset, size) : Container::Ptr();
+    return data && data->Size() ? MakePtr<CalculatingCrcContainer>(std::move(data), offset, size) : Container::Ptr();
   }
 }  // namespace Formats::Chiptune

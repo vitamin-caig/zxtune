@@ -197,7 +197,7 @@ namespace Formats::Archived
     {
     public:
       template<class It>
-      Container(Binary::Container::Ptr data, It begin, It end)
+      Container(Binary::Container::Ptr&& data, It begin, It end)
         : BaseContainer(std::move(data))
       {
         for (It it = begin; it != end; ++it)
@@ -265,8 +265,8 @@ namespace Formats::Archived
       }
       if (const std::size_t totalSize = iter.GetOffset())
       {
-        const Binary::Container::Ptr archive = data.GetSubcontainer(0, totalSize);
-        return MakePtr<Lha::Container>(archive, files.begin(), files.end());
+        auto archive = data.GetSubcontainer(0, totalSize);
+        return MakePtr<Lha::Container>(std::move(archive), files.begin(), files.end());
       }
       else
       {

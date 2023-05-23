@@ -449,7 +449,7 @@ namespace Formats::Packed
       public:
         void AddBlock(Binary::Container::Ptr block)
         {
-          Blocks.push_back(block);
+          Blocks.emplace_back(std::move(block));
         }
 
         Binary::Container::Ptr GetResult() const

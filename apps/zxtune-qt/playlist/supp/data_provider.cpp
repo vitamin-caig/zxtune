@@ -80,7 +80,7 @@ namespace
 
   DataProvider::Ptr CreateSimpleDataProvider(Parameters::Accessor::Ptr ioParams)
   {
-    return MakePtr<SimpleDataProvider>(ioParams);
+    return MakePtr<SimpleDataProvider>(std::move(ioParams));
   }
 
   template<class T>
@@ -91,7 +91,7 @@ namespace
   {
     using WeightType = std::size_t;
 
-    static WeightType Weight(Binary::Container::Ptr obj)
+    static WeightType Weight(const Binary::Container::Ptr& obj)
     {
       return obj->Size();
     }
@@ -246,7 +246,7 @@ namespace
 
     explicit CachedDataProvider(Parameters::Accessor::Ptr ioParams)
       : Params(ioParams)
-      , Delegate(CreateSimpleDataProvider(ioParams))
+      , Delegate(CreateSimpleDataProvider(std::move(ioParams)))
     {}
 
     Binary::Container::Ptr GetData(StringView dataPath) const override
@@ -581,7 +581,7 @@ namespace
       , Attributes(std::move(attributes))
       , Service(std::move(service))
       , DataId(dataId)
-      , Source(MakePtr<DataSource>(provider, dataId))
+      , Source(MakePtr<DataSource>(std::move(provider), std::move(dataId)))
     {}
 
     Parameters::Container::Ptr CreateInitialProperties(StringView subpath) const override
@@ -664,7 +664,7 @@ namespace
   public:
     explicit DataProviderImpl(Parameters::Accessor::Ptr parameters)
       : Provider(MakePtr<CachedDataProvider>(parameters))
-      , Service(MakePtr<ThreadCheckingService>(parameters))
+      , Service(MakePtr<ThreadCheckingService>(std::move(parameters)))
       , Attributes(MakePtr<DynamicAttributesProvider>())
     {}
 
@@ -705,6 +705,6 @@ namespace Playlist::Item
 {
   DataProvider::Ptr DataProvider::Create(Parameters::Accessor::Ptr parameters)
   {
-    return MakePtr<DataProviderImpl>(parameters);
+    return MakePtr<DataProviderImpl>(std::move(parameters));
   }
 }  // namespace Playlist::Item

@@ -150,7 +150,7 @@ namespace Module
     const FramedStreamStateCursor::Ptr Cursor;
   };
 
-  Information::Ptr CreateStreamInfo(Time::Microseconds frameDuration, StreamModel::Ptr model)
+  Information::Ptr CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel::Ptr& model)
   {
     FramedStream stream;
     stream.FrameDuration = frameDuration;
@@ -159,7 +159,7 @@ namespace Module
     return MakePtr<FramedStreamInfo>(stream);
   }
 
-  StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, StreamModel::Ptr model)
+  StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, const StreamModel::Ptr& model)
   {
     FramedStream stream;
     stream.FrameDuration = frameDuration;

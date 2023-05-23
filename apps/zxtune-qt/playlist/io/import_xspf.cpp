@@ -32,6 +32,7 @@
 #include <QtCore/QString>
 #include <QtCore/QUrl>
 #include <QtCore/QXmlStreamReader>
+#include <utility>
 
 namespace
 {
@@ -349,10 +350,10 @@ namespace
       return Playlist::IO::Container::Ptr();
     }
 
-    const Playlist::IO::ContainerItems::Ptr items = reader.GetItems();
-    const Parameters::Accessor::Ptr properties = reader.GetProperties();
+    auto items = reader.GetItems();
+    auto properties = reader.GetProperties();
     Dbg("Parsed {} items", items->size());
-    return Playlist::IO::CreateContainer(provider, properties, items);
+    return Playlist::IO::CreateContainer(std::move(provider), std::move(properties), std::move(items));
   }
 
   bool CheckXSPFByName(const QString& filename)
@@ -370,6 +371,6 @@ namespace Playlist::IO
     {
       return Container::Ptr();
     }
-    return CreateXSPFPlaylist(provider, info, cb);
+    return CreateXSPFPlaylist(std::move(provider), info, cb);
   }
 }  // namespace Playlist::IO

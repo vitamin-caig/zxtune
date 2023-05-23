@@ -28,12 +28,12 @@ namespace Playlist::UI
   public:
     using Ptr = std::shared_ptr<PropertiesDialog>;
 
-    static Ptr Create(QWidget& parent, Item::Data::Ptr item);
+    static Ptr Create(QWidget& parent, const Item::Data& item);
   private slots:
     virtual void ButtonClicked(QAbstractButton* button) = 0;
   signals:
     void ResetToDefaults();
   };
 
-  void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Playlist::Model::IndexSet::Ptr scope);
+  void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, const Playlist::Model::IndexSet& scope);
 }  // namespace Playlist::UI

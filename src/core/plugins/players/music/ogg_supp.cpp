@@ -225,7 +225,7 @@ namespace Module::Ogg
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, Sound::Converter::Ptr target)
+    Renderer(const Model::Ptr& data, Sound::Converter::Ptr target)
       : Tune(data)
       , State(MakePtr<SampledState>(data->TotalSamples, data->Frequency))
       , Target(std::move(target))
@@ -339,7 +339,7 @@ namespace Module::Ogg
       }
     }
 
-    void SetContent(Binary::Data::Ptr data)
+    void SetContent(const Binary::Data::Ptr& data)
     {
       for (auto& stream : Streams)
       {

@@ -42,6 +42,6 @@ namespace Sound
     virtual BackendWorker::Ptr CreateWorker(Parameters::Accessor::Ptr params, Module::Holder::Ptr holder) const = 0;
   };
 
-  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr globalParams, Module::Holder::Ptr holder,
+  Backend::Ptr CreateBackend(Parameters::Accessor::Ptr globalParams, const Module::Holder::Ptr& holder,
                              BackendCallback::Ptr callback, BackendWorker::Ptr worker);
 }  // namespace Sound

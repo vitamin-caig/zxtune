@@ -349,7 +349,7 @@ namespace Parsing
 {
   Result::Ptr CreateResult(StringView name, Binary::Container::Ptr data)
   {
-    return MakePtr<StaticResult>(name.to_string(), data);
+    return MakePtr<StaticResult>(name.to_string(), std::move(data));
   }
 }  // namespace Parsing
 
@@ -509,17 +509,17 @@ namespace Analysis
 {
   NodeReceiver::Ptr CreateSizeFilter(std::size_t minSize, NodeReceiver::Ptr target)
   {
-    return MakePtr<SizeFilter>(minSize, target);
+    return MakePtr<SizeFilter>(minSize, std::move(target));
   }
 
   NodeReceiver::Ptr CreateEmptyDataFilter(NodeReceiver::Ptr target)
   {
-    return MakePtr<EmptyDataFilter>(target);
+    return MakePtr<EmptyDataFilter>(std::move(target));
   }
 
   NodeReceiver::Ptr CreateMatchFilter(StringView filter, NodeReceiver::Ptr target)
   {
-    return MakePtr<MatchedDataFilter>(filter, target);
+    return MakePtr<MatchedDataFilter>(filter, std::move(target));
   }
 }  // namespace Analysis
 

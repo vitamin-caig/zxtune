@@ -112,7 +112,7 @@ namespace Async
 {
   Activity::Ptr Activity::Create(Operation::Ptr operation)
   {
-    const ThreadActivity::Ptr result = MakePtr<ThreadActivity>(operation);
+    auto result = MakePtr<ThreadActivity>(std::move(operation));
     result->Start();
     return result;
   }

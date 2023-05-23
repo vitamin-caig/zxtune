@@ -32,11 +32,11 @@ namespace Playlist::IO
 {
   Container::Ptr Open(Item::DataProvider::Ptr provider, const QString& filename, Log::ProgressCallback& cb)
   {
-    if (const Container::Ptr ayl = OpenAYL(provider, filename, cb))
+    if (auto ayl = OpenAYL(provider, filename, cb))
     {
       return ayl;
     }
-    else if (const Container::Ptr xspf = OpenXSPF(provider, filename, cb))
+    else if (auto xspf = OpenXSPF(std::move(provider), filename, cb))
     {
       return xspf;
     }
@@ -45,10 +45,10 @@ namespace Playlist::IO
 
   Container::Ptr OpenPlainList(Item::DataProvider::Ptr provider, const QStringList& uris)
   {
-    const ContainerItems::RWPtr items = MakeRWPtr<ContainerItems>();
+    auto items = MakeRWPtr<ContainerItems>();
     std::transform(uris.begin(), uris.end(), std::back_inserter(*items), &CreateContainerItem);
-    const Parameters::Container::Ptr props = Parameters::Container::Create();
+    auto props = Parameters::Container::Create();
     props->SetValue(ATTRIBUTE_ITEMS, items->size());
-    return CreateContainer(provider, props, items);
+    return CreateContainer(std::move(provider), std::move(props), std::move(items));
   }
 }  // namespace Playlist::IO

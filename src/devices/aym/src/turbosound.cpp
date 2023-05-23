@@ -94,7 +94,7 @@ namespace Devices::TurboSound
 
   Chip::Ptr CreateChip(ChipParameters::Ptr params, MixerType::Ptr mixer)
   {
-    auto halfMixer = MakePtr<HalfLevelMixer>(mixer);
+    auto halfMixer = MakePtr<HalfLevelMixer>(std::move(mixer));
     return MakePtr<AYM::SoundChip<Traits> >(std::move(params), std::move(halfMixer));
   }
 }  // namespace Devices::TurboSound

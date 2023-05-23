@@ -33,6 +33,7 @@
 // std includes
 #include <iomanip>
 #include <iostream>
+#include <utility>
 // boost includes
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -286,5 +287,5 @@ namespace
 
 std::unique_ptr<SourceComponent> SourceComponent::Create(Parameters::Container::Ptr configParams)
 {
-  return std::unique_ptr<SourceComponent>(new Source(configParams));
+  return std::unique_ptr<SourceComponent>(new Source(std::move(configParams)));
 }

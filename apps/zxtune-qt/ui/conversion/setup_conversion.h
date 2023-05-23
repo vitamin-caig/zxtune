@@ -39,5 +39,5 @@ namespace UI
   // sound formats (TBD dumps)
   Playlist::Item::Conversion::Options::Ptr GetConvertParameters(QWidget& parent);
   // universal for single item
-  Playlist::Item::Conversion::Options::Ptr GetSaveAsParameters(Playlist::Item::Data::Ptr item);
+  Playlist::Item::Conversion::Options::Ptr GetSaveAsParameters(const Playlist::Item::Data& item);
 }  // namespace UI

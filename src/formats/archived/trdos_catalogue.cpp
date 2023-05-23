@@ -21,6 +21,7 @@
 #include <cassert>
 #include <cstring>
 #include <numeric>
+#include <utility>
 
 namespace TRDos
 {
@@ -147,8 +148,8 @@ namespace TRDos
   {
   public:
     template<class T>
-    CommonCatalogue(Binary::Container::Ptr data, T from, T to)
-      : BaseContainer(std::move(data))
+    CommonCatalogue(const Binary::Container::Ptr& data, T from, T to)
+      : BaseContainer(data)
       , Files(from, to)
     {}
 
@@ -221,7 +222,7 @@ namespace TRDos
   private:
     bool Merge(File::Ptr newOne) const
     {
-      return !Files.empty() && Files.back()->Merge(newOne);
+      return !Files.empty() && Files.back()->Merge(std::move(newOne));
     }
 
     void AddNewOne(File::Ptr newOne)

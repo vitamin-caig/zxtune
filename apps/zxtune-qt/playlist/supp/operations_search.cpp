@@ -208,7 +208,7 @@ namespace Playlist::Item
 
   SelectionOperation::Ptr CreateSearchOperation(Playlist::Model::IndexSet::Ptr items, const Search::Data& data)
   {
-    const Predicate::Ptr pred = CreatePredicate(data);
-    return MakePtr<SearchOperation>(items, pred);
+    auto pred = CreatePredicate(data);
+    return MakePtr<SearchOperation>(std::move(items), std::move(pred));
   }
 }  // namespace Playlist::Item

@@ -188,8 +188,8 @@ namespace IFF
 
     void AddSubSource(ChunkSource::Ptr src)
     {
-      Sources.push_back(src);
       const std::size_t subSize = src->GetSize();
+      Sources.emplace_back(std::move(src));
       Require(0 == subSize % ALIGNMENT);
       TotalSize += subSize;
     }

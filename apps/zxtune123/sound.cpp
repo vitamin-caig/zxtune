@@ -32,6 +32,7 @@
 #include <iostream>
 #include <list>
 #include <sstream>
+#include <utility>
 // boost includes
 #include <boost/program_options/options_description.hpp>
 #include <boost/program_options/value_semantic.hpp>
@@ -97,7 +98,7 @@ namespace
   public:
     explicit Component(Parameters::Container::Ptr configParams)
       : Service(Sound::CreateGlobalService(configParams))
-      , Params(new CommonBackendParameters(configParams))
+      , Params(new CommonBackendParameters(std::move(configParams)))
       , OptionsDescription("Sound options")
       , Looped(false)
     {
@@ -224,5 +225,5 @@ namespace
 
 std::unique_ptr<SoundComponent> SoundComponent::Create(Parameters::Container::Ptr configParams)
 {
-  return std::unique_ptr<SoundComponent>(new Component(configParams));
+  return std::unique_ptr<SoundComponent>(new Component(std::move(configParams)));
 }

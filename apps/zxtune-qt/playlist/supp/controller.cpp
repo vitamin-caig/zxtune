@@ -145,7 +145,7 @@ namespace
       else
       {
         State = Playlist::Item::STOPPED;
-        emit ItemActivated(item);
+        emit ItemActivated(std::move(item));
         emit ItemActivated(Index);
       }
     }
@@ -202,7 +202,7 @@ namespace
   public:
     ControllerImpl(QString name, Playlist::Item::DataProvider::Ptr provider)
       : Name(std::move(name))
-      , Scanner(Playlist::Scanner::Create(*this, provider))
+      , Scanner(Playlist::Scanner::Create(*this, std::move(provider)))
       , Model(Playlist::Model::Create(*this))
       , Iterator(new ItemIteratorImpl(*this, Model))
     {
@@ -287,6 +287,6 @@ namespace Playlist
   Controller::Ptr Controller::Create(const QString& name, Playlist::Item::DataProvider::Ptr provider)
   {
     REGISTER_METATYPE(Playlist::TextNotification::Ptr);
-    return MakePtr<ControllerImpl>(name, provider);
+    return MakePtr<ControllerImpl>(name, std::move(provider));
   }
 }  // namespace Playlist

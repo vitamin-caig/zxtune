@@ -27,6 +27,8 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 #include <strings/split.h>
+// std includes
+#include <utility>
 
 namespace Sound::Alsa
 {
@@ -210,7 +212,7 @@ namespace Sound::Alsa
   {
   public:
     PCMDevice(Api::Ptr api, const Identifier& id)
-      : AutoHandle<snd_pcm_t>(api, id.GetPCM())
+      : AutoHandle<snd_pcm_t>(std::move(api), id.GetPCM())
     {
       Open();
     }
@@ -271,7 +273,7 @@ namespace Sound::Alsa
   {
     T* res = nullptr;
     CheckResult(*api, ((*api).*allocFunc)(&res), THIS_LINE);
-    return res ? std::shared_ptr<T>(res, [api, freeFunc](auto&& arg) { ((*api).*freeFunc)(arg); })
+    return res ? std::shared_ptr<T>(res, [api = std::move(api), freeFunc](auto&& arg) { ((*api).*freeFunc)(arg); })
                : std::shared_ptr<T>();
   }
 
@@ -281,8 +283,8 @@ namespace Sound::Alsa
     using Ptr = std::shared_ptr<DeviceWrapper>;
 
     DeviceWrapper(Api::Ptr api, const Identifier& id)
-      : AlsaApi(api)
-      , Pcm(api, id)
+      : AlsaApi(std::move(api))
+      , Pcm(AlsaApi, id)
       , CanPause(false)
       , Format(SND_PCM_FORMAT_UNKNOWN)
     {}
@@ -430,7 +432,7 @@ namespace Sound::Alsa
   {
   public:
     MixerDevice(Api::Ptr api, StringView card)
-      : AutoHandle<snd_mixer_t>(api, card)
+      : AutoHandle<snd_mixer_t>(std::move(api), card)
     {
       Open();
     }
@@ -465,9 +467,9 @@ namespace Sound::Alsa
   {
   public:
     AttachedMixer(Api::Ptr api, StringView card)
-      : AlsaApi(api)
+      : AlsaApi(std::move(api))
       , Name(card.to_string())
-      , MixDev(api, card)
+      , MixDev(AlsaApi, card)
     {
       Open();
     }
@@ -519,8 +521,8 @@ namespace Sound::Alsa
     using Ptr = std::shared_ptr<Mixer>;
 
     Mixer(Api::Ptr api, const Identifier& id, StringView mixer)
-      : AlsaApi(api)
-      , Attached(api, id.GetCard())
+      : AlsaApi(std::move(api))
+      , Attached(AlsaApi, id.GetCard())
       , MixerElement(nullptr)
     {
 
@@ -625,7 +627,7 @@ namespace Sound::Alsa
   class VolumeControl : public Sound::VolumeControl
   {
   public:
-    explicit VolumeControl(Mixer::Ptr mixer)
+    explicit VolumeControl(const Mixer::Ptr& mixer)
       : Mix(mixer)
     {}
 
@@ -792,7 +794,7 @@ namespace Sound::Alsa
   {
     snd_ctl_t* ctl = nullptr;
     return api->snd_ctl_open(&ctl, deviceName.c_str(), 0) >= 0
-               ? std::shared_ptr<snd_ctl_t>(ctl, [api](auto&& arg) { api->snd_ctl_close(arg); })
+               ? std::shared_ptr<snd_ctl_t>(ctl, [api = std::move(api)](auto&& arg) { api->snd_ctl_close(arg); })
                : std::shared_ptr<snd_ctl_t>();
   }
 
@@ -966,13 +968,13 @@ namespace Sound::Alsa
     static Ptr CreateDefault(Api::Ptr api)
     {
       static const auto DEFAULT_DEVICE_NAME = "Default"_sv;
-      return MakePtr<DeviceInfo>(api, Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT, DEFAULT_DEVICE_NAME,
-                                 DEFAULT_DEVICE_NAME);
+      return MakePtr<DeviceInfo>(std::move(api), Parameters::ZXTune::Sound::Backends::Alsa::DEVICE_DEFAULT,
+                                 DEFAULT_DEVICE_NAME, DEFAULT_DEVICE_NAME);
     }
 
     static Ptr Create(Api::Ptr api, const CardsIterator& card, const DevicesIterator& dev)
     {
-      return MakePtr<DeviceInfo>(api, dev.Id(), dev.Name(), card.Name());
+      return MakePtr<DeviceInfo>(std::move(api), dev.Id(), dev.Name(), card.Name());
     }
 
   private:
@@ -986,10 +988,10 @@ namespace Sound::Alsa
   {
   public:
     explicit DeviceInfoIterator(Api::Ptr api)
-      : AlsaApi(api)
-      , Cards(api)
-      , Devices(api, Cards)
-      , Current(Cards.IsValid() && Devices.IsValid() ? DeviceInfo::CreateDefault(api) : Device::Ptr())
+      : AlsaApi(std::move(api))
+      , Cards(AlsaApi)
+      , Devices(AlsaApi, Cards)
+      , Current(Cards.IsValid() && Devices.IsValid() ? DeviceInfo::CreateDefault(AlsaApi) : Device::Ptr())
     {}
 
     bool IsValid() const override

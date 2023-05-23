@@ -34,5 +34,5 @@ namespace Playlist
     void PlaylistCreated(Playlist::Controller::Ptr);
   };
 
-  void Save(Controller::Ptr ctrl, const QString& filename, uint_t flags);
+  void Save(Controller& ctrl, const QString& filename, uint_t flags);
 }  // namespace Playlist

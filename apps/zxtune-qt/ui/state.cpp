@@ -175,7 +175,7 @@ namespace
   Parameters::Container::Ptr CreateSubcontainer(Parameters::Container::Ptr parent, QObject& obj)
   {
     const QString name = obj.objectName();
-    return name.size() == 0 ? parent : MakePtr<NamespaceContainer>(parent, name.toStdString());
+    return name.size() == 0 ? parent : MakePtr<NamespaceContainer>(std::move(parent), name.toStdString());
   }
 
   class MainWindowState : public WidgetState
@@ -257,7 +257,7 @@ namespace
   public:
     TabWidgetState(QTabWidget* tabs, Parameters::Container::Ptr ctr)
       : Wid(*tabs)
-      , Container(CreateSubcontainer(ctr, Wid))
+      , Container(CreateSubcontainer(std::move(ctr), Wid))
     {}
 
     void Load() const override
@@ -282,7 +282,7 @@ namespace
   public:
     ComboBoxState(QComboBox* tabs, Parameters::Container::Ptr ctr)
       : Wid(*tabs)
-      , Container(CreateSubcontainer(ctr, Wid))
+      , Container(CreateSubcontainer(std::move(ctr), Wid))
     {}
 
     void Load() const override
@@ -361,7 +361,7 @@ namespace
   public:
     HeaderViewState(QHeaderView* view, Parameters::Container::Ptr ctr)
       : View(*view)
-      , Container(CreateSubcontainer(ctr, View))
+      , Container(CreateSubcontainer(std::move(ctr), View))
     {}
 
     void Load() const override
@@ -419,7 +419,7 @@ namespace
   public:
     AnyWidgetState(QWidget* wid, Parameters::Container::Ptr ctr)
       : Wid(*wid)
-      , Container(CreateSubcontainer(ctr, Wid))
+      , Container(CreateSubcontainer(std::move(ctr), Wid))
     {}
 
     void Load() const override

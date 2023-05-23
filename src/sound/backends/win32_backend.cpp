@@ -192,8 +192,8 @@ namespace Sound::Win32
   class WaveBuffer : public WaveTarget
   {
   public:
-    explicit WaveBuffer(WaveOutDevice::Ptr device)
-      : Device(std::move(device))
+    explicit WaveBuffer(WaveOutDevice& device)
+      : Device(device)
       , Header()
     {}
 
@@ -228,7 +228,7 @@ namespace Sound::Win32
         buf.ToU8(Header.lpData);
       }
       Header.dwFlags &= ~WHDR_DONE;
-      Device->Write(Header);
+      Device.Write(Header);
     }
 
   private:
@@ -253,7 +253,7 @@ namespace Sound::Win32
       Header.lpData = ::LPSTR(Buffer.data());
       Header.dwBufferLength = ::DWORD(Buffer.size()) * sizeof(Buffer.front());
       Header.dwUser = Header.dwLoops = Header.dwFlags = 0;
-      Device->PrepareHeader(Header);
+      Device.PrepareHeader(Header);
       Require(IsPrepared());
       // mark as free
       Header.dwFlags |= WHDR_DONE;
@@ -265,7 +265,7 @@ namespace Sound::Win32
       {
         WaitForBufferDone();
         // safe to call more than once
-        Device->UnprepareHeader(Header);
+        Device.UnprepareHeader(Header);
         Require(!IsPrepared());
       }
     }
@@ -274,7 +274,7 @@ namespace Sound::Win32
     {
       while (!(Header.dwFlags & WHDR_DONE))
       {
-        Device->WaitForBufferComplete();
+        Device.WaitForBufferComplete();
       }
     }
 
@@ -284,7 +284,7 @@ namespace Sound::Win32
     }
 
   private:
-    const WaveOutDevice::Ptr Device;
+    WaveOutDevice& Device;
     Chunk Buffer;
     ::WAVEHDR Header;
   };
@@ -293,12 +293,13 @@ namespace Sound::Win32
   {
   public:
     CycledWaveBuffer(WaveOutDevice::Ptr device, std::size_t count)
-      : Buffers(count)
+      : Device(std::move(device))
+      , Buffers(count)
       , Cursor()
     {
       for (auto& buf : Buffers)
       {
-        buf = MakePtr<WaveBuffer>(device);
+        buf = MakePtr<WaveBuffer>(*Device);
       }
     }
 
@@ -328,6 +329,7 @@ namespace Sound::Win32
     }
 
   private:
+    const WaveOutDevice::Ptr Device;
     using BuffersArray = std::vector<WaveTarget::Ptr>;
     BuffersArray Buffers;
     std::size_t Cursor;

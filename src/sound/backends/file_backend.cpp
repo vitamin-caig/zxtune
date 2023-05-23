@@ -27,6 +27,7 @@
 #include <sound/backends_parameters.h>
 // std includes
 #include <memory>
+#include <utility>
 
 namespace Sound::File
 {
@@ -311,7 +312,7 @@ namespace Sound::File
     void SetStream(Receiver::Ptr str)
     {
       Stream->Flush();
-      Stream = str;
+      Stream = std::move(str);
     }
 
   private:

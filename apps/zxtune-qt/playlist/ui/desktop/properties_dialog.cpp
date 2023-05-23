@@ -97,16 +97,16 @@ namespace
     , public Playlist::UI::Ui_PropertiesDialog
   {
   public:
-    explicit PropertiesDialogImpl(QWidget& parent, Playlist::Item::Data::Ptr item)
+    explicit PropertiesDialogImpl(QWidget& parent, const Playlist::Item::Data& item)
       : Playlist::UI::PropertiesDialog(parent)
     {
       // setup self
       setupUi(this);
-      setWindowTitle(ToQString(item->GetFullPath()));
+      setWindowTitle(ToQString(item.GetFullPath()));
 
-      Properties = MakePtr<ItemPropertiesContainer>(item->GetAdjustedParameters(), item->GetModuleProperties());
+      Properties = MakePtr<ItemPropertiesContainer>(item.GetAdjustedParameters(), item.GetModuleProperties());
 
-      FillProperties(item->GetCapabilities());
+      FillProperties(item.GetCapabilities());
       itemsLayout->addItem(new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding),
                            itemsLayout->rowCount(), 0);
 
@@ -241,21 +241,21 @@ namespace Playlist::UI
     : QDialog(&parent)
   {}
 
-  PropertiesDialog::Ptr PropertiesDialog::Create(QWidget& parent, Item::Data::Ptr item)
+  PropertiesDialog::Ptr PropertiesDialog::Create(QWidget& parent, const Item::Data& item)
   {
     return MakePtr<PropertiesDialogImpl>(parent, item);
   }
 
-  void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, Model::IndexSet::Ptr scope)
+  void ExecutePropertiesDialog(QWidget& parent, Model::Ptr model, const Model::IndexSet& scope)
   {
-    if (scope->size() != 1)
+    if (scope.size() != 1)
     {
       return;
     }
-    const Item::Data::Ptr item = model->GetItem(*scope->begin());
+    const Item::Data::Ptr item = model->GetItem(*scope.begin());
     if (!item->GetState())
     {
-      const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(parent, item);
+      const PropertiesDialog::Ptr dialog = PropertiesDialog::Create(parent, *item);
       dialog->exec();
     }
   }

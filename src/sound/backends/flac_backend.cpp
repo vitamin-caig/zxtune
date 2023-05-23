@@ -89,9 +89,9 @@ namespace Sound::Flac
   {
   public:
     FileStream(Api::Ptr api, EncoderPtr encoder, Binary::OutputStream::Ptr stream)
-      : FlacApi(api)
+      : FlacApi(std::move(api))
       , Encoder(std::move(encoder))
-      , Meta(api)
+      , Meta(FlacApi)
       , Stream(std::move(stream))
     {}
 

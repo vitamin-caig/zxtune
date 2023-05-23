@@ -29,6 +29,7 @@
 #include <debug/log.h>
 // std includes
 #include <cassert>
+#include <utility>
 // qt includes
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
@@ -103,8 +104,8 @@ namespace
   public:
     ContainerViewImpl(QWidget& parent, Parameters::Container::Ptr parameters)
       : Playlist::UI::ContainerView(parent)
-      , Options(parameters)
-      , Container(Playlist::Container::Create(parameters))
+      , Options(std::move(parameters))
+      , Container(Playlist::Container::Create(Options))
       , Session(Playlist::Session::Create())
       , ActionsMenu(new QMenu(this))
       , ActivePlaylistView(nullptr)
@@ -308,7 +309,7 @@ namespace
 
     void CreatePlaylist(Playlist::Controller::Ptr ctrl) override
     {
-      RegisterPlaylist(ctrl);
+      RegisterPlaylist(std::move(ctrl));
     }
 
     void RenamePlaylist(const QString& name) override
@@ -362,8 +363,8 @@ namespace
     Playlist::UI::View& CreateAnonymousPlaylist()
     {
       Dbg("Create default playlist");
-      const Playlist::Controller::Ptr pl = Container->CreatePlaylist(Playlist::UI::ContainerView::tr("Default"));
-      return RegisterPlaylist(pl);
+      auto pl = Container->CreatePlaylist(Playlist::UI::ContainerView::tr("Default"));
+      return RegisterPlaylist(std::move(pl));
     }
 
     Playlist::UI::View& GetEmptyPlaylist()
@@ -380,8 +381,8 @@ namespace
 
     Playlist::UI::View& RegisterPlaylist(Playlist::Controller::Ptr playlist)
     {
-      Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, playlist, Options);
-      widgetsContainer->addTab(plView, playlist->GetName());
+      Playlist::UI::View* const plView = Playlist::UI::View::Create(*this, std::move(playlist), Options);
+      widgetsContainer->addTab(plView, plView->GetPlaylist()->GetName());
       Require(connect(plView, SIGNAL(Renamed(const QString&)), SLOT(RenamePlaylist(const QString&))));
       Require(connect(plView, SIGNAL(ItemActivated(Playlist::Item::Data::Ptr)),
                       SLOT(ActivateItem(Playlist::Item::Data::Ptr))));
@@ -519,6 +520,6 @@ namespace Playlist::UI
   ContainerView* ContainerView::Create(QWidget& parent, Parameters::Container::Ptr parameters)
   {
     REGISTER_METATYPE(Playlist::Controller::Ptr);
-    return new ContainerViewImpl(parent, parameters);
+    return new ContainerViewImpl(parent, std::move(parameters));
   }
 }  // namespace Playlist::UI

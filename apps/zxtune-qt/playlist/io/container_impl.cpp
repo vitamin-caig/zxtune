@@ -18,6 +18,8 @@
 #include <debug/log.h>
 #include <module/properties/path.h>
 #include <parameters/merged_accessor.h>
+// std includes
+#include <utility>
 
 namespace
 {
@@ -174,7 +176,7 @@ namespace
                           const Playlist::IO::ContainerItem& item)
       : Provider(std::move(provider))
       , Params(Parameters::CreateMergedAccessor(Module::CreatePathProperties(item.Path), item.AdjustedParameters,
-                                                playlistParams))
+                                                std::move(playlistParams)))
       , Path(item.Path)
     {}
 
@@ -398,6 +400,6 @@ namespace Playlist::IO
   Container::Ptr CreateContainer(Item::DataProvider::Ptr provider, Parameters::Accessor::Ptr properties,
                                  ContainerItems::Ptr items)
   {
-    return MakePtr<ContainerImpl>(provider, properties, items);
+    return MakePtr<ContainerImpl>(std::move(provider), std::move(properties), std::move(items));
   }
 }  // namespace Playlist::IO

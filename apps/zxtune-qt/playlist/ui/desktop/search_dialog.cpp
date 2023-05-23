@@ -98,7 +98,7 @@ namespace Playlist::UI
     return ExecuteSearchDialog(parent, Model::IndexSet::Ptr());
   }
 
-  Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent, Model::IndexSet::Ptr scope)
+  Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent, const Model::IndexSet::Ptr& scope)
   {
     const SearchDialog::Ptr dialog = SearchDialog::Create(parent);
     Playlist::Item::Search::Data data;

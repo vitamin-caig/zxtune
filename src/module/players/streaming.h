@@ -19,8 +19,8 @@
 
 namespace Module
 {
-  Information::Ptr CreateStreamInfo(Time::Microseconds frameDuration, StreamModel::Ptr model);
-  StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, StreamModel::Ptr model);
+  Information::Ptr CreateStreamInfo(Time::Microseconds frameDuration, const StreamModel::Ptr& model);
+  StateIterator::Ptr CreateStreamStateIterator(Time::Microseconds frameDuration, const StreamModel::Ptr& model);
 
   Information::Ptr CreateTimedInfo(Time::Milliseconds duration);
   Information::Ptr CreateTimedInfo(Time::Milliseconds duration, Time::Milliseconds loopDuration);

@@ -281,7 +281,7 @@ namespace Formats::Chiptune::PortableSoundFormat
       return Time::Milliseconds(result * 60 + 1000 * std::atof(val.c_str() + start));
     }
 
-    static float ParseVolume(String val)
+    static float ParseVolume(const String& val)
     {
       return std::atof(val.c_str());
     }

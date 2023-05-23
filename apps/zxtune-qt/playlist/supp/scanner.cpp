@@ -26,6 +26,7 @@
 // qt includes
 #include <QtCore/QDirIterator>
 #include <QtCore/QStringList>
+#include <utility>
 
 namespace
 {
@@ -451,7 +452,7 @@ namespace
     ScannerImpl(QObject& parent, Playlist::Item::DataProvider::Ptr provider)
       : Playlist::Scanner(parent)
       , Provider(provider)
-      , Routine(MakePtr<ScanRoutine>(static_cast<ScannerCallback&>(*this), provider))
+      , Routine(MakePtr<ScanRoutine>(static_cast<ScannerCallback&>(*this), std::move(provider)))
       , ScanJob(Async::CreateJob(Routine))
     {
       Dbg("Created at {}", Self());
@@ -555,6 +556,6 @@ namespace Playlist
     REGISTER_METATYPE(Playlist::Item::Data::Ptr);
     REGISTER_METATYPE(Playlist::Item::Collection::Ptr);
     REGISTER_METATYPE(Playlist::ScanStatus::Ptr);
-    return new ScannerImpl(parent, provider);
+    return new ScannerImpl(parent, std::move(provider));
   }
 }  // namespace Playlist

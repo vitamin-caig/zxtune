@@ -58,5 +58,5 @@ namespace Devices::AYM
     virtual uint_t LoopFrame() const = 0;
   };
 
-  Dumper::Ptr CreateFYMDumper(FYMDumperParameters::Ptr params);
+  Dumper::Ptr CreateFYMDumper(const FYMDumperParameters::Ptr& params);
 }  // namespace Devices::AYM

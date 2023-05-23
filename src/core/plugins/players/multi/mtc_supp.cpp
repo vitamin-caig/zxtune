@@ -37,23 +37,25 @@ namespace Module::MTC
 
   Parameters::Accessor::Ptr CombineProps(Parameters::Accessor::Ptr first, Parameters::Accessor::Ptr second)
   {
-    return first ? (second ? Parameters::CreateMergedAccessor(first, second) : first) : second;
+    return first ? (second ? Parameters::CreateMergedAccessor(std::move(first), std::move(second)) : first) : second;
   }
 
   Parameters::Accessor::Ptr CombineProps(Parameters::Accessor::Ptr first, Parameters::Accessor::Ptr second,
                                          Parameters::Accessor::Ptr third)
   {
-    return first ? (second
-                        ? (third ? Parameters::CreateMergedAccessor(first, second, third) : CombineProps(first, second))
-                        : CombineProps(first, third))
-                 : CombineProps(second, third);
+    return first
+               ? (second
+                      ? (third ? Parameters::CreateMergedAccessor(std::move(first), std::move(second), std::move(third))
+                               : CombineProps(std::move(first), std::move(second)))
+                      : CombineProps(std::move(first), std::move(third)))
+               : CombineProps(std::move(second), std::move(third));
   }
 
   class DataBuilder : public Formats::Chiptune::MultiTrackContainer::Builder
   {
   public:
     DataBuilder(const Parameters::Accessor& params, Parameters::Container::Ptr props)
-      : Module(params, props)
+      : Module(params, std::move(props))
       , CurTrack()
       , CurStream()
       , CurEntity(&Module)
@@ -224,17 +226,17 @@ namespace Module::MTC
         if (Data)
         {
           auto initialProperties = CombineProps(GetProperties(), std::move(TrackProperties), std::move(TuneProperties));
-          Holder = OpenModule(std::move(Data), std::move(initialProperties));
+          Holder = OpenModule(*Data, std::move(initialProperties));
         }
       }
 
-      Module::Holder::Ptr OpenModule(Binary::Container::Ptr data, Parameters::Accessor::Ptr baseProperties) const
+      Module::Holder::Ptr OpenModule(const Binary::Container& data, Parameters::Accessor::Ptr baseProperties) const
       {
         const auto initialProperties =
             Parameters::CreateMergedContainer(std::move(baseProperties), Parameters::Container::Create());
         for (const auto& plugin : ZXTune::PlayerPlugin::Enumerate())
         {
-          if (auto result = plugin->TryOpen(Params, *data, initialProperties))
+          if (auto result = plugin->TryOpen(Params, data, initialProperties))
           {
             return result;
           }
@@ -339,7 +341,7 @@ namespace Module::MTC
       }
 
     private:
-      static bool CompareByDuration(Module::Holder::Ptr lh, Module::Holder::Ptr rh)
+      static bool CompareByDuration(const Module::Holder::Ptr& lh, const Module::Holder::Ptr& rh)
       {
         return lh->GetModuleInformation()->Duration() < rh->GetModuleInformation()->Duration();
       }

@@ -37,6 +37,8 @@
 // boost includes
 #include <boost/algorithm/string/find.hpp>
 #include <boost/algorithm/string/replace.hpp>
+// std includes
+#include <utility>
 // qt includes
 #include <QtCore/QIdentityProxyModel>
 #include <QtCore/QMimeData>
@@ -331,7 +333,7 @@ namespace
       : Playlist::UI::View(parent)
       , LayoutState(UI::State::Create(Parameters::ZXTuneQT::Playlist::NAMESPACE_NAME))
       , Controller(std::move(playlist))
-      , Options(PlaylistOptionsWrapper(params))
+      , Options(PlaylistOptionsWrapper(std::move(params)))
       , State(*Controller->GetModel(), *Controller->GetIterator())
       , View(Playlist::UI::TableView::Create(*this, State, *new RetranslateModel(*Controller->GetModel())))
       , OperationProgress(OverlayProgress::Create(*this))
@@ -493,7 +495,7 @@ namespace
                              &saveCase))
       {
         const Playlist::IO::ExportFlags flags = GetSavePlaylistFlags(saveCase);
-        Playlist::Save(Controller, filename, flags);
+        Playlist::Save(*Controller, filename, flags);
       }
     }
 
@@ -746,6 +748,6 @@ namespace Playlist::UI
 
   View* View::Create(QWidget& parent, Playlist::Controller::Ptr playlist, Parameters::Accessor::Ptr params)
   {
-    return new ViewImpl(parent, playlist, params);
+    return new ViewImpl(parent, std::move(playlist), std::move(params));
   }
 }  // namespace Playlist::UI

@@ -12,6 +12,7 @@
 #include <sound/backends/storage.h>
 #include <sound/mixer_factory.h>
 #include <sound/sound_parameters.h>
+#include <utility>
 
 namespace
 {
@@ -180,7 +181,7 @@ namespace
     virtual void Register(const String& /*id*/, const char* /*description*/, uint_t /*caps*/,
                           Sound::BackendWorkerFactory::Ptr factory)
     {
-      Factory = factory;
+      Factory = std::move(factory);
     }
 
     virtual void Register(const String& /*id*/, const char* /*description*/, uint_t /*caps*/, const Error& /*status*/)
@@ -199,7 +200,7 @@ namespace
     Sound::BackendWorkerFactory::Ptr Factory;
   };
 
-  Async::Job::Ptr CreatePlayer(State::Ptr state)
+  Async::Job::Ptr CreatePlayer(const State::Ptr& state)
   {
     BackendFactoryHandle factory;
     Sound::RegisterDirectSoundBackend(factory);

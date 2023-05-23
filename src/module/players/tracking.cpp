@@ -267,8 +267,8 @@ namespace Module
   {
   public:
     TrackStateIteratorImpl(Time::Microseconds frameDuration, TrackModel::Ptr model)
-      : Model(model)
-      , Cursor(MakePtr<TrackStateCursor>(frameDuration, model))
+      : Model(std::move(model))
+      , Cursor(MakePtr<TrackStateCursor>(frameDuration, Model))
     {}
 
     // iterator functions

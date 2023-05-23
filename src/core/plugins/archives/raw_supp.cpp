@@ -340,9 +340,9 @@ namespace ZXTune::Raw
     using Ptr = std::shared_ptr<ScanDataContainer>;
 
     ScanDataContainer(Binary::Container::Ptr delegate, std::size_t offset)
-      : Delegate(delegate)
-      , OriginalSize(delegate->Size())
-      , OriginalData(static_cast<const uint8_t*>(delegate->Start()))
+      : Delegate(std::move(delegate))
+      , OriginalSize(Delegate->Size())
+      , OriginalData(static_cast<const uint8_t*>(Delegate->Start()))
       , Offset(offset)
     {}
 
@@ -680,7 +680,7 @@ namespace ZXTune::Raw
         Statistic::Self().AddModule(matched);
         return {matched, true};
       }
-      const auto detectedArchives = DetectIn(Archives, input, callback);
+      const auto detectedArchives = DetectIn(Archives, std::move(input), callback);
       if (const auto matched = detectedArchives->GetMatchedDataSize())
       {
         Statistic::Self().AddArchived(matched);

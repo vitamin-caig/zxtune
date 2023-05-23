@@ -221,10 +221,10 @@ namespace
   };
 }  // namespace
 
-SingleModeDispatcher::Ptr SingleModeDispatcher::Create(Parameters::Accessor::Ptr params, Strings::Array argv)
+SingleModeDispatcher::Ptr SingleModeDispatcher::Create(const Parameters::Accessor& params, Strings::Array argv)
 {
   Parameters::IntType val = Parameters::ZXTuneQT::SINGLE_INSTANCE_DEFAULT;
-  params->FindValue(Parameters::ZXTuneQT::SINGLE_INSTANCE, val);
+  params.FindValue(Parameters::ZXTuneQT::SINGLE_INSTANCE, val);
   auto cmdBegin = argv.begin();
   ++cmdBegin;
   const auto cmdEnd = argv.end();

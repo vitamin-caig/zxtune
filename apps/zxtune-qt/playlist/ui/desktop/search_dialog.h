@@ -32,5 +32,6 @@ namespace Playlist::UI
     virtual bool Execute(Playlist::Item::Search::Data& res) = 0;
   };
 
-  Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent, Playlist::Model::IndexSet::Ptr scope);
+  Playlist::Item::SelectionOperation::Ptr ExecuteSearchDialog(QWidget& parent,
+                                                              const Playlist::Model::IndexSet::Ptr& scope);
 }  // namespace Playlist::UI

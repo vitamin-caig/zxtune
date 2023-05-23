@@ -193,7 +193,7 @@ namespace ZXTune
     {
       if (subpath.empty())
       {
-        return OpenModule(*data, std::move(initialProperties));
+        return OpenModule(*data, initialProperties);
       }
       else
       {
@@ -242,7 +242,7 @@ namespace ZXTune
       return resolvedLocation;
     }
 
-    DataLocation::Ptr TryToOpenLocation(DataLocation::Ptr location, const Analysis::Path& subPath) const
+    DataLocation::Ptr TryToOpenLocation(const DataLocation::Ptr& location, const Analysis::Path& subPath) const
     {
       for (const auto& plugin : ArchivePlugin::Enumerate())
       {
@@ -254,7 +254,8 @@ namespace ZXTune
       return {};
     }
 
-    Module::Holder::Ptr OpenModule(const Binary::Container& data, Parameters::Container::Ptr initialProperties) const
+    Module::Holder::Ptr OpenModule(const Binary::Container& data,
+                                   const Parameters::Container::Ptr& initialProperties) const
     {
       for (const auto& plugin : PlayerPlugin::Enumerate())
       {
@@ -266,7 +267,7 @@ namespace ZXTune
       throw Error(THIS_LINE, translate("Failed to find module at specified location."));
     }
 
-    void DetectModules(DataLocation::Ptr location, Module::DetectCallback& callback) const
+    void DetectModules(const DataLocation::Ptr& location, Module::DetectCallback& callback) const
     {
       if (!DetectInArchives(location, callback) && !DetectBy(PlayerPlugin::Enumerate(), location, callback))
       {
@@ -305,7 +306,7 @@ namespace ZXTune
       void ProcessData(DataLocation::Ptr data) override
       {
         // TODO: proper progress
-        Svc.DetectModules(std::move(data), Delegate);
+        Svc.DetectModules(data, Delegate);
       }
 
     private:

@@ -32,6 +32,7 @@
 #include <QtCore/QMimeData>
 #include <QtCore/QSet>
 #include <QtCore/QStringList>
+#include <utility>
 
 namespace
 {
@@ -640,7 +641,7 @@ namespace
 
     void AsyncLoad(Playlist::Item::Data::Ptr item, const QModelIndex& index) const
     {
-      IOThread::Execute([weakItem = toWeak(item), self = toWeak(const_cast<ModelImpl*>(this)), index]() {
+      IOThread::Execute([weakItem = toWeak(std::move(item)), self = toWeak(const_cast<ModelImpl*>(this)), index]() {
         if (auto item = weakItem.lock())
         {
           if (!item->IsLoaded())

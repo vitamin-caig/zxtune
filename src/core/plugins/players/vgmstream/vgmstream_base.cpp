@@ -49,6 +49,7 @@ extern "C"
 #include <array>
 #include <map>
 #include <set>
+#include <utility>
 
 namespace Module::VGMStream
 {
@@ -143,7 +144,7 @@ namespace Module::VGMStream
   class MemoryStream : public STREAMFILE
   {
   public:
-    explicit MemoryStream(Vfs::Ptr vfs)
+    explicit MemoryStream(const Vfs::Ptr& vfs)
       : MemoryStream(vfs, vfs->Root(), vfs->Request(vfs->Root()))
     {}
 
@@ -346,7 +347,7 @@ namespace Module::VGMStream
   class Information : public Module::Information
   {
   public:
-    explicit Information(VGMStreamPtr stream)
+    explicit Information(const VGMStreamPtr& stream)
       : Total(stream->num_samples)
       , LoopStart(stream->loop_start_sample)
       , Samplerate(stream->sample_rate)
@@ -417,7 +418,7 @@ namespace Module::VGMStream
     const Parameters::Accessor::Ptr Properties;
   };
 
-  VGMStreamPtr TryOpenStream(Vfs::Ptr vfs, int subtrackIndex = -1)
+  VGMStreamPtr TryOpenStream(const Vfs::Ptr& vfs, int subtrackIndex = -1)
   {
     // Streams are reopened for further seeking and partial decoding
     MemoryStream stream(vfs);
@@ -697,7 +698,7 @@ namespace Module::VGMStream
         {
           auto data = rawData.GetSubcontainer(0, rawData.Size());
           auto vfs = MakePtr<Vfs>(Desc.Suffix, data);
-          if (auto stream = TryOpenStream(std::move(vfs)))
+          if (auto stream = TryOpenStream(vfs))
           {
             // Formats clashing
             if (stream->num_streams)

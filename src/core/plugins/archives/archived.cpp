@@ -198,7 +198,7 @@ namespace ZXTune
 {
   ArchivePlugin::Ptr CreateArchivePlugin(PluginId id, uint_t caps, Formats::Archived::Decoder::Ptr decoder)
   {
-    return MakePtr<ArchivedContainerPlugin>(id, caps | Capabilities::Category::CONTAINER, decoder);
+    return MakePtr<ArchivedContainerPlugin>(id, caps | Capabilities::Category::CONTAINER, std::move(decoder));
   }
 
   String ProgressMessage(PluginId id, StringView path)

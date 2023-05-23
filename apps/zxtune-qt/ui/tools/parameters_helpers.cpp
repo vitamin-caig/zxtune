@@ -408,7 +408,7 @@ namespace Parameters
 
   Value* IntegerValue::Bind(QComboBox& combo, Integer::Ptr val)
   {
-    return new IntegerValueControl<QComboBox>(combo, val);
+    return new IntegerValueControl<QComboBox>(combo, std::move(val));
   }
 
   Value* BigIntegerValue::Bind(QLineEdit& edit, Container& ctr, const IntegerTraits& traits)

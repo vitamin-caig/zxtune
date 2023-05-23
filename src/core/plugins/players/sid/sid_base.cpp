@@ -219,7 +219,7 @@ namespace Module::Sid
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr tune, uint_t samplerate, Parameters::Accessor::Ptr params)
+    Renderer(Model::Ptr tune, uint_t samplerate, const Parameters::Accessor::Ptr& params)
       : Tune(std::move(tune))
       , State(MakePtr<TimedState>(Tune->GetDuration()))
       , Engine(MakePtr<SidEngine>())

@@ -63,7 +63,7 @@ namespace Async
 {
   Job::Ptr CreateJob(Worker::Ptr worker)
   {
-    const Coroutine::Ptr routine = MakePtr<WorkerCoroutine>(worker);
-    return CreateJob(routine);
+    auto routine = MakePtr<WorkerCoroutine>(std::move(worker));
+    return CreateJob(std::move(routine));
   }
 }  // namespace Async

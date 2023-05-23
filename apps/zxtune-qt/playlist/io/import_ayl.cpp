@@ -512,9 +512,9 @@ namespace Playlist::IO
     LinesSource lines(stream, version);
     const AYLContainer aylItems(lines, cb);
     const QString basePath = info.absolutePath();
-    const ContainerItems::Ptr items = CreateItems(basePath, version, aylItems);
-    const Parameters::Container::Ptr properties = CreateProperties(version, aylItems);
+    auto items = CreateItems(basePath, version, aylItems);
+    auto properties = CreateProperties(version, aylItems);
     properties->SetValue(Playlist::ATTRIBUTE_NAME, FromQString(info.baseName()));
-    return Playlist::IO::CreateContainer(provider, properties, items);
+    return Playlist::IO::CreateContainer(std::move(provider), std::move(properties), std::move(items));
   }
 }  // namespace Playlist::IO

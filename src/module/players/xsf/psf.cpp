@@ -31,6 +31,8 @@
 #include <3rdparty/he/Core/psx.h>
 #include <3rdparty/he/Core/r3000.h>
 #include <3rdparty/he/Core/spu.h>
+// std includes
+#include <utility>
 
 namespace Module::PSF
 {
@@ -259,7 +261,7 @@ namespace Module::PSF
 
     void SetupIo(PsxVfs::Ptr vfs)
     {
-      Io = VfsIO(vfs);
+      Io = VfsIO(std::move(vfs));
       ::psx_set_readfile(Emu.get(), &ReadCallback, &Io);
     }
 

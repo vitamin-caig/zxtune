@@ -358,7 +358,7 @@ namespace Module::Mpt
     const Binary::Format::Ptr Fmt;
   };
 
-  String DecodeString(String str)
+  String DecodeString(const String& str)
   {
     const auto out = Strings::TrimSpaces(str);
     return out == str ? str : out.to_string();

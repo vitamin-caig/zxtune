@@ -231,7 +231,7 @@ namespace Module::Mp3
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(Model::Ptr data, uint_t samplerate)
+    Renderer(const Model::Ptr& data, uint_t samplerate)
       : Tune(data)
       , State(MakePtr<TimedState>(data->Duration))
       , Target(samplerate)

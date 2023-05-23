@@ -69,12 +69,12 @@ namespace Playlist::Item
 {
   TextResultOperation::Ptr CreateCollectStatisticOperation(StatisticTextNotification::Ptr result)
   {
-    return MakePtr<CollectStatisticOperation>(result);
+    return MakePtr<CollectStatisticOperation>(std::move(result));
   }
 
   TextResultOperation::Ptr CreateCollectStatisticOperation(Playlist::Model::IndexSet::Ptr items,
                                                            StatisticTextNotification::Ptr result)
   {
-    return MakePtr<CollectStatisticOperation>(items, result);
+    return MakePtr<CollectStatisticOperation>(std::move(items), std::move(result));
   }
 }  // namespace Playlist::Item

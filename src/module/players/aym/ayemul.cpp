@@ -27,6 +27,7 @@
 #include <module/players/streaming.h>
 // std includes
 #include <algorithm>
+#include <utility>
 
 namespace Module::AYEMUL
 {
@@ -385,14 +386,14 @@ namespace Module::AYEMUL
     explicit PortsPlexer(DataChannel::Ptr channel)
       : Channel(channel)
       , ZX(channel)
-      , CPC(channel)
+      , CPC(std::move(channel))
       , Current()
     {}
     using Ptr = std::shared_ptr<PortsPlexer>;
 
     static Ptr Create(DataChannel::Ptr ayData)
     {
-      return MakePtr<PortsPlexer>(ayData);
+      return MakePtr<PortsPlexer>(std::move(ayData));
     }
 
     void Reset()
@@ -486,7 +487,7 @@ namespace Module::AYEMUL
 
     Devices::Z80::Chip::Ptr CreateCPU(Devices::Z80::ChipParameters::Ptr params, Devices::Z80::ChipIO::Ptr ports) const
     {
-      const auto result = Devices::Z80::CreateChip(params, *Memory, ports);
+      const auto result = Devices::Z80::CreateChip(std::move(params), *Memory, std::move(ports));
       Devices::Z80::Registers regs;
       regs.Mask = ~0;
       std::fill(regs.Data.begin(), regs.Data.end(), Registers);
@@ -760,7 +761,7 @@ namespace Module::AYEMUL
     Renderer::Ptr CreateRenderer(Parameters::Accessor::Ptr params, Devices::AYM::Chip::Ptr ay,
                                  Devices::Beeper::Chip::Ptr beep) const
     {
-      auto cpuParams = MakePtr<CPUParameters>(params);
+      auto cpuParams = MakePtr<CPUParameters>(std::move(params));
       auto channel = MakePtr<DataChannel>(std::move(ay), std::move(beep));
       auto cpuPorts = PortsPlexer::Create(channel);
       auto comp = MakePtr<Computer>(Data, std::move(cpuParams), std::move(cpuPorts));

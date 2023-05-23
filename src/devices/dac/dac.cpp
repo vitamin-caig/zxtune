@@ -32,15 +32,15 @@ namespace Devices::DAC
     using Ptr = std::shared_ptr<const FastSample>;
 
     // use additional sample for interpolation
-    explicit FastSample(std::size_t idx, Sample::Ptr in)
+    explicit FastSample(std::size_t idx, const Sample& in)
       : Index(static_cast<uint_t>(idx))
-      , Data(new Sound::Sample::Type[in->Size() + 1])
-      , Size(in->Size())
-      , Loop(std::min(Size, in->Loop()))
+      , Data(new Sound::Sample::Type[in.Size() + 1])
+      , Size(in.Size())
+      , Loop(std::min(Size, in.Loop()))
     {
       for (std::size_t pos = 0; pos != Size; ++pos)
       {
-        Data[pos] = in->Get(pos);
+        Data[pos] = in.Get(pos);
       }
       Data[Size] = Data[Size - 1];
     }
@@ -208,13 +208,12 @@ namespace Devices::DAC
   class SamplesStorage
   {
   public:
-    void Add(std::size_t idx, Sample::Ptr sample)
+    void Add(std::size_t idx, const Sample::Ptr& sample)
     {
       if (sample)
       {
         Content.resize(std::max(Content.size(), idx + 1));
-        const FastSample::Ptr fast = MakePtr<FastSample>(idx, sample);
-        Content[idx] = fast;
+        Content[idx] = MakePtr<FastSample>(idx, *sample);
       }
     }
 

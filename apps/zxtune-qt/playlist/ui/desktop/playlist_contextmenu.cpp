@@ -464,7 +464,7 @@ namespace
     void SaveAsSelected() const override
     {
       const Playlist::Item::Data::Ptr item = GetSelectedItem();
-      if (const Playlist::Item::Conversion::Options::Ptr params = UI::GetSaveAsParameters(item))
+      if (const Playlist::Item::Conversion::Options::Ptr params = UI::GetSaveAsParameters(*item))
       {
         ExecuteConvertOperation(*params);
       }
@@ -488,7 +488,7 @@ namespace
 
     void ShowPropertiesOfSelected() const override
     {
-      Playlist::UI::ExecutePropertiesDialog(View, Controller.GetModel(), SelectedItems);
+      Playlist::UI::ExecutePropertiesDialog(View, Controller.GetModel(), *SelectedItems);
     }
 
     void ShuffleAll() const override
@@ -516,7 +516,7 @@ namespace
       const Playlist::Model::Ptr model = Controller.GetModel();
       Require(model->connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)),
                              SLOT(RemoveItems(Playlist::Model::IndexSet::Ptr))));
-      model->PerformOperation(op);
+      model->PerformOperation(std::move(op));
     }
 
     void ExecuteSelectOperation(Playlist::Item::SelectionOperation::Ptr op) const
@@ -524,7 +524,7 @@ namespace
       const Playlist::Model::Ptr model = Controller.GetModel();
       Require(View.connect(op.get(), SIGNAL(ResultAcquired(Playlist::Model::IndexSet::Ptr)),
                            SLOT(SelectItems(Playlist::Model::IndexSet::Ptr))));
-      model->PerformOperation(op);
+      model->PerformOperation(std::move(op));
     }
 
     void ExecuteNotificationOperation(Playlist::Item::TextResultOperation::Ptr op) const
@@ -532,7 +532,7 @@ namespace
       const Playlist::Model::Ptr model = Controller.GetModel();
       Require(Controller.connect(op.get(), SIGNAL(ResultAcquired(Playlist::TextNotification::Ptr)),
                                  SLOT(ShowNotification(Playlist::TextNotification::Ptr))));
-      model->PerformOperation(op);
+      model->PerformOperation(std::move(op));
     }
 
     void ExecuteConvertAllOperation(const Playlist::Item::Conversion::Options& opts) const

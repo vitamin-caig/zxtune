@@ -15,6 +15,6 @@
 
 namespace Playlist::Item
 {
-  void ExecuteOperation(const class Storage& stor, Model::IndexSet::Ptr selectedItems, class Visitor& visitor,
+  void ExecuteOperation(const class Storage& stor, const Model::IndexSet::Ptr& selectedItems, class Visitor& visitor,
                         Log::ProgressCallback& cb);
 }  // namespace Playlist::Item

@@ -40,7 +40,7 @@ namespace
 
 namespace Playlist::Item
 {
-  void ExecuteOperation(const Storage& stor, Model::IndexSet::Ptr selectedItems, Visitor& visitor,
+  void ExecuteOperation(const Storage& stor, const Model::IndexSet::Ptr& selectedItems, Visitor& visitor,
                         Log::ProgressCallback& cb)
   {
     const std::size_t totalItems = selectedItems ? selectedItems->size() : stor.CountItems();

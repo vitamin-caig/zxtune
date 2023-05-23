@@ -525,12 +525,12 @@ namespace Playlist::Item
 
   SelectionOperation::Ptr CreateSelectRipOffsOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
   {
-    return MakePtr<SelectRipOffsOfSelectedOperation>(items);
+    return MakePtr<SelectRipOffsOfSelectedOperation>(std::move(items));
   }
 
   SelectionOperation::Ptr CreateSelectRipOffsInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
   {
-    return MakePtr<SelectRipOffsInSelectedOperation>(items);
+    return MakePtr<SelectRipOffsInSelectedOperation>(std::move(items));
   }
 
   SelectionOperation::Ptr CreateSelectAllDuplicatesOperation()
@@ -540,22 +540,22 @@ namespace Playlist::Item
 
   SelectionOperation::Ptr CreateSelectDuplicatesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
   {
-    return MakePtr<SelectDupsOfSelectedOperation>(items);
+    return MakePtr<SelectDupsOfSelectedOperation>(std::move(items));
   }
 
   SelectionOperation::Ptr CreateSelectDuplicatesInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
   {
-    return MakePtr<SelectDupsInSelectedOperation>(items);
+    return MakePtr<SelectDupsInSelectedOperation>(std::move(items));
   }
 
   SelectionOperation::Ptr CreateSelectTypesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
   {
-    return MakePtr<SelectTypesOfSelectedOperation>(items);
+    return MakePtr<SelectTypesOfSelectedOperation>(std::move(items));
   }
 
   SelectionOperation::Ptr CreateSelectFilesOfSelectedOperation(Playlist::Model::IndexSet::Ptr items)
   {
-    return MakePtr<SelectFilesOfSelectedOperation>(items);
+    return MakePtr<SelectFilesOfSelectedOperation>(std::move(items));
   }
 
   SelectionOperation::Ptr CreateSelectAllUnavailableOperation()
@@ -565,6 +565,6 @@ namespace Playlist::Item
 
   SelectionOperation::Ptr CreateSelectUnavailableInSelectedOperation(Playlist::Model::IndexSet::Ptr items)
   {
-    return MakePtr<SelectUnavailableOperation>(items);
+    return MakePtr<SelectUnavailableOperation>(std::move(items));
   }
 }  // namespace Playlist::Item

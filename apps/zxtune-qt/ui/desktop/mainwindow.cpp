@@ -65,8 +65,8 @@ namespace
   {
   public:
     explicit DesktopMainWindowImpl(Parameters::Container::Ptr options)
-      : Options(options)
-      , Language(CreateLanguage(*options))
+      : Options(std::move(options))
+      , Language(CreateLanguage(*Options))
       , Playback(PlaybackSupport::Create(*this, Options))
       , Controls(PlaybackControls::Create(*this, *Playback))
       , FastOptions(PlaybackOptions::Create(*this, *Playback, Options))
@@ -302,7 +302,7 @@ namespace
 
 MainWindow::Ptr DesktopMainWindow::Create(Parameters::Container::Ptr options)
 {
-  const MainWindow::Ptr res = new DesktopMainWindowImpl(options);
+  const MainWindow::Ptr res = new DesktopMainWindowImpl(std::move(options));
   res->show();
   return res;
 }

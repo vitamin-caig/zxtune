@@ -408,7 +408,7 @@ namespace
         : Cmp(cmp)
       {}
 
-      result_type operator()(first_argument_type lh, second_argument_type rh) const
+      result_type operator()(const first_argument_type& lh, const second_argument_type& rh) const
       {
         return Cmp.CompareItems(*lh.first, *rh.first);
       }
