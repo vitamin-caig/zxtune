@@ -387,9 +387,7 @@ namespace Module::SQTracker
     {}
 
   public:
-    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh) noexcept  // = default
-      : PatternsBuilder(std::move(rh))
-    {}
+    SingleChannelPatternsBuilder(SingleChannelPatternsBuilder&& rh) noexcept = default;
 
     void StartLine(uint_t index) override
     {

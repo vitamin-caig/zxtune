@@ -30,7 +30,7 @@ public:
 
   Lazy(const Lazy&) = delete;
   Lazy& operator=(const Lazy&) = delete;
-  Lazy(Lazy&&) = default;
+  Lazy(Lazy&&) noexcept = default;
 
   operator bool() const
   {

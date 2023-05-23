@@ -29,17 +29,8 @@ namespace Formats::Chiptune
     LinesObject(const LinesObject&) = delete;
     LinesObject& operator=(const LinesObject&) = delete;
 
-    LinesObject(LinesObject&& rh) noexcept  // = default
-      : Lines(std::move(rh.Lines))
-      , Loop(rh.Loop)
-    {}
-
-    LinesObject& operator=(LinesObject&& rh) noexcept  // = default
-    {
-      Lines = std::move(rh.Lines);
-      Loop = rh.Loop;
-      return *this;
-    }
+    LinesObject(LinesObject&& rh) noexcept = default;
+    LinesObject& operator=(LinesObject&& rh) noexcept = default;
 
     uint_t GetLoop() const
     {
@@ -75,17 +66,8 @@ namespace Formats::Chiptune
       : LinesObject<LineType>()
     {}
 
-    LinesObjectWithLoopLimit(LinesObjectWithLoopLimit&& rh) noexcept  // = default
-      : LinesObject<LineType>(std::move(rh))
-      , LoopLimit(rh.LoopLimit)
-    {}
-
-    LinesObjectWithLoopLimit& operator=(LinesObjectWithLoopLimit&& rh) noexcept  // = default
-    {
-      LinesObject<LineType>::operator=(std::move(rh));
-      LoopLimit = rh.LoopLimit;
-      return *this;
-    }
+    LinesObjectWithLoopLimit(LinesObjectWithLoopLimit&& rh) noexcept = default;
+    LinesObjectWithLoopLimit& operator=(LinesObjectWithLoopLimit&& rh) noexcept = default;
 
     uint_t GetLoopLimit() const
     {

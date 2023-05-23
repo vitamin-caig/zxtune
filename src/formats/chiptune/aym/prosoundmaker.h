@@ -42,19 +42,8 @@ namespace Formats::Chiptune
       Sample(const Sample&) = delete;
       Sample& operator=(const Sample&) = delete;
 
-      Sample(Sample&& rh) noexcept  // = default
-        : LinesObject<SampleLine>(std::move(rh))
-        , VolumeDeltaPeriod(rh.VolumeDeltaPeriod)
-        , VolumeDeltaValue(rh.VolumeDeltaValue)
-      {}
-
-      Sample& operator=(Sample&& rh) noexcept  // = default
-      {
-        VolumeDeltaPeriod = rh.VolumeDeltaPeriod;
-        VolumeDeltaValue = rh.VolumeDeltaValue;
-        LinesObject<SampleLine>::operator=(std::move(rh));
-        return *this;
-      }
+      Sample(Sample&& rh) noexcept = default;
+      Sample& operator=(Sample&& rh) noexcept = default;
 
       uint_t VolumeDeltaPeriod = 0;
       uint_t VolumeDeltaValue = 0;

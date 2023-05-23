@@ -542,10 +542,7 @@ namespace Formats::Chiptune
           , Value(value.to_string())
         {}
 
-        Entry(Entry&& rh) noexcept  // = default
-          : Name(std::move(rh.Name))
-          , Value(std::move(rh.Value))
-        {}
+        Entry(Entry&& rh) noexcept = default;
 
         void Dump(std::ostream& str) const
         {
@@ -584,10 +581,7 @@ namespace Formats::Chiptune
       OrnamentObject(const OrnamentObject&) = delete;
       OrnamentObject& operator=(const OrnamentObject&) = delete;
 
-      OrnamentObject(OrnamentObject&& rh) noexcept  // = default
-        : Ornament(std::move(rh))
-        , Index(rh.Index)
-      {}
+      OrnamentObject(OrnamentObject&& rh) noexcept = default;
 
       uint_t GetIndex() const
       {
@@ -643,10 +637,7 @@ namespace Formats::Chiptune
       SampleObject(const SampleObject&) = delete;
       SampleObject& operator=(const SampleObject&) = delete;
 
-      SampleObject(SampleObject&& rh) noexcept  // = default
-        : Sample(std::move(rh))
-        , Index(rh.Index)
-      {}
+      SampleObject(SampleObject&& rh) noexcept = default;
 
       uint_t GetIndex() const
       {

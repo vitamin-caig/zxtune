@@ -30,15 +30,8 @@ namespace Sound
 
     Chunk(const Chunk&) = delete;
     Chunk& operator=(const Chunk&) = delete;
-    Chunk(Chunk&& rh) noexcept  // = default
-      : std::vector<Sample>(std::move(rh))
-    {}
-
-    Chunk& operator=(Chunk&& rh) noexcept  // = default
-    {
-      std::vector<Sample>::operator=(std::move(rh));
-      return *this;
-    }
+    Chunk(Chunk&& rh) noexcept = default;
+    Chunk& operator=(Chunk&& rh) noexcept = default;
 
     using iterator = Sample*;
     using const_iterator = const Sample*;

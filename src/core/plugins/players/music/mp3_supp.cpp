@@ -70,16 +70,8 @@ namespace Module::Mp3
     FrameSound() = default;
     FrameSound(const FrameSound&) = delete;
     FrameSound& operator=(const FrameSound&) = delete;
-    FrameSound(FrameSound&& rh) noexcept  // = default
-      : Frequency(rh.Frequency)
-      , Data(std::move(rh.Data))
-    {}
-    FrameSound& operator=(FrameSound&& rh) noexcept
-    {
-      Frequency = rh.Frequency;
-      Data = std::move(rh.Data);
-      return *this;
-    }
+    FrameSound(FrameSound&& rh) noexcept = default;
+    FrameSound& operator=(FrameSound&& rh) noexcept = default;
 
     Sound::Sample::Type* GetTarget()
     {

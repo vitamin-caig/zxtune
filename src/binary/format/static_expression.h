@@ -122,15 +122,8 @@ namespace Binary::FormatDSL
 
     StaticPattern(const StaticPattern&) = delete;
     StaticPattern& operator=(const StaticPattern&) = delete;
-    StaticPattern& operator=(StaticPattern&& rh) noexcept
-    {
-      Data = std::move(rh.Data);
-      return *this;
-    }
-
-    StaticPattern(StaticPattern&& rh) noexcept  // = default;
-      : Data(std::move(rh.Data))
-    {}
+    StaticPattern& operator=(StaticPattern&& rh) noexcept = default;
+    StaticPattern(StaticPattern&& rh) noexcept = default;
 
     std::size_t GetSize() const
     {

@@ -35,16 +35,10 @@ public:
   {}
 
   Error(const Error&) = default;
-  Error(Error&& rh)  // = default
-    : ErrorMeta(std::move(rh.ErrorMeta))
-  {}
+  Error(Error&& rh) noexcept = default;
 
   Error& operator=(const Error&) = default;
-  Error& operator=(Error&& rh)  // = default;
-  {
-    ErrorMeta = std::move(rh.ErrorMeta);
-    return *this;
-  }
+  Error& operator=(Error&& rh) noexcept = default;
   //@}
 
   //@{
