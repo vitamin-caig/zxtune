@@ -21,6 +21,7 @@
                     performance-trivially-destructible,
                     performance-move-const-arg,
                     performance-noexcept-move-constructor,
+                    performance-unnecessary-copy-initialization,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

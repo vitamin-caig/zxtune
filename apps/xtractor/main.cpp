@@ -954,7 +954,7 @@ namespace
     const Parsing::Target::Ptr save = opts.StatisticOutput() ? Parsing::CreateStatisticTarget()
                                                              : Parsing::CreateSaveTarget();
     const Analysis::NodeReceiver::Ptr makeName = MakePtr<TargetNamePoint>(opts.TargetNameTemplate(), save);
-    const Analysis::NodeReceiver::Ptr storeAll = makeName;
+    const Analysis::NodeReceiver::Ptr& storeAll = makeName;
     const Analysis::NodeReceiver::Ptr storeNoEmpty = opts.IgnoreEmptyData() ? Analysis::CreateEmptyDataFilter(storeAll)
                                                                             : storeAll;
     const std::size_t minSize = opts.MinDataSize();
@@ -963,7 +963,7 @@ namespace
     const std::string filter = opts.FormatFilter();
     const Analysis::NodeReceiver::Ptr storeMatchedFilter =
         !filter.empty() ? Analysis::CreateMatchFilter(filter, storeEnoughSize) : storeEnoughSize;
-    const Analysis::NodeReceiver::Ptr result = storeMatchedFilter;
+    const Analysis::NodeReceiver::Ptr& result = storeMatchedFilter;
     return AsyncWrap<Analysis::Node::Ptr>(opts.SaveThreadsCount(), opts.SaveDataQueueSize(), result);
   }
 
