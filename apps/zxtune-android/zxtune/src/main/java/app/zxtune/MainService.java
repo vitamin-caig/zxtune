@@ -118,7 +118,16 @@ public class MainService extends MediaBrowserServiceCompat {
   public int onStartCommand(@Nullable Intent intent, int flags, int startId) {
     Log.d(TAG, "onStartCommand(%s)", intent);
     MediaButtonReceiver.handleIntent(session, intent);
+    if (intent != null) {
+      handleCommand(intent);
+    }
     return super.onStartCommand(intent, flags, startId);
+  }
+
+  private void handleCommand(Intent intent) {
+    if (CUSTOM_ACTION_ADD_CURRENT.equals(intent.getAction())) {
+      session.getController().getTransportControls().sendCustomAction(CUSTOM_ACTION_ADD_CURRENT,null);
+    }
   }
 
   @Nullable
