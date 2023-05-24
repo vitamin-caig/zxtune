@@ -1,38 +1,33 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="wrap_content"
-  android:layout_height="wrap_content"
-  android:orientation="vertical"
-  >
-  <LinearLayout
-    android:id="@+id/ringtone_durations"
-    style="@style/block_buttons"
-    android:layout_width="match_parent"
-    android:orientation="horizontal"
-  >
-  <Button
-    android:layout_weight="1"
-    android:text="0:30"
-    android:tag="30"
-    style="@style/Button"
-    />
-  <Button
-    android:layout_weight="1"
-    android:text="1:00"
-    android:tag="60"
-    style="@style/Button"
-    />
-  <Button
-    android:layout_weight="1"
-    android:text="2:00"
-    android:tag="120"
-    style="@style/Button"
-    />
-  <Button
-    android:layout_weight="1"
-    android:text="3:00"
-    android:tag="180"
-    style="@style/Button"
-    />
-  </LinearLayout>
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/ringtone_durations"
+        style="@style/block_buttons"
+        android:layout_width="wrap_content"
+        android:orientation="horizontal"
+        tools:ignore="HardcodedText">
+
+    <Button
+            style="@style/Button"
+            android:layout_weight="1"
+            android:tag="30"
+            android:text="0:30" />
+
+    <Button
+            style="@style/Button"
+            android:layout_weight="1"
+            android:tag="60"
+            android:text="1:00" />
+
+    <Button
+            style="@style/Button"
+            android:layout_weight="1"
+            android:tag="120"
+            android:text="2:00" />
+
+    <Button
+            style="@style/Button"
+            android:layout_weight="1"
+            android:tag="180"
+            android:text="3:00" />
 </LinearLayout>

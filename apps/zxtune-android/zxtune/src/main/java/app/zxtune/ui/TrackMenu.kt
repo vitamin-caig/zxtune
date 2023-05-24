@@ -36,19 +36,14 @@ class TrackMenu(private val fragment: Fragment) : MenuProvider {
                 SharingActivity.maybeCreateSendIntent(activity, metadata)
             item(R.id.action_share).action =
                 SharingActivity.maybeCreateShareIntent(activity, metadata)
+            item(R.id.action_make_ringtone).action =
+                metadata.description?.mediaUri?.let { fullId ->
+                    RingtoneActivity.createIntent(activity, fullId)
+                }
         }
     }
 
-    override fun onMenuItemSelected(menuItem: MenuItem) = when (menuItem.itemId) {
-        R.id.action_make_ringtone -> model.metadata.value?.description?.mediaUri?.let { fullPath ->
-            RingtoneFragment.createInstance(activity, fullPath)
-        }?.let {
-            it.show(activity.supportFragmentManager, "ringtone")
-            true
-        } ?: false
-
-        else -> false
-    }
+    override fun onMenuItemSelected(menuItem: MenuItem) = false
 }
 
 private fun maybeCreateAddCurrentTrackIntent(ctx: Context, metadata: MediaMetadataCompat) =
