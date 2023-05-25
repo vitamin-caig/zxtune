@@ -24,7 +24,6 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
@@ -33,9 +32,8 @@ import androidx.viewpager.widget.ViewPager;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.device.Permission;
 import app.zxtune.device.media.MediaModel;
-import app.zxtune.ui.AboutFragment;
+import app.zxtune.ui.AboutActivity;
 import app.zxtune.ui.ViewPagerAdapter;
-import app.zxtune.ui.browser.BrowserFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -61,8 +59,7 @@ public class MainActivity extends AppCompatActivity {
   private static final Analytics.Trace TRACE = Analytics.Trace.create("MainActivity");
   @Nullable
   private ViewPager pager;
-  public static final int PENDING_INTENT_FLAG = Build.VERSION.SDK_INT >= 23
-      ? PendingIntent.FLAG_IMMUTABLE : 0;
+  public static final int PENDING_INTENT_FLAG = Build.VERSION.SDK_INT >= 23 ? PendingIntent.FLAG_IMMUTABLE : 0;
 
   public static PendingIntent createPendingIntent(Context ctx) {
     final Intent intent = new Intent(ctx, MainActivity.class);
@@ -114,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
   public boolean onCreateOptionsMenu(Menu menu) {
     super.onCreateOptionsMenu(menu);
     getMenuInflater().inflate(R.menu.main, menu);
+    menu.findItem(R.id.action_about).setIntent(AboutActivity.createIntent(this));
     return true;
   }
 
@@ -122,9 +120,6 @@ public class MainActivity extends AppCompatActivity {
     switch (item.getItemId()) {
       case R.id.action_prefs:
         showPreferences();
-        break;
-      case R.id.action_about:
-        showAbout();
         break;
       case R.id.action_rate:
         rateApplication();
@@ -143,16 +138,15 @@ public class MainActivity extends AppCompatActivity {
     if (intent != null && Intent.ACTION_VIEW.equals(intent.getAction())) {
       final Uri uri = intent.getData();
       if (uri != null) {
-        ctrl.observe(this,
-            new Observer<MediaControllerCompat>() {
-              @Override
-              public void onChanged(@Nullable MediaControllerCompat mediaControllerCompat) {
-                if (mediaControllerCompat != null) {
-                  mediaControllerCompat.getTransportControls().playFromUri(uri, null);
-                  ctrl.removeObserver(this);
-                }
-              }
-            });
+        ctrl.observe(this, new Observer<MediaControllerCompat>() {
+          @Override
+          public void onChanged(@Nullable MediaControllerCompat mediaControllerCompat) {
+            if (mediaControllerCompat != null) {
+              mediaControllerCompat.getTransportControls().playFromUri(uri, null);
+              ctrl.removeObserver(this);
+            }
+          }
+        });
       }
     }
   }
@@ -232,12 +226,6 @@ public class MainActivity extends AppCompatActivity {
     } catch (ActivityNotFoundException e) {
       return false;
     }
-  }
-
-  private void showAbout() {
-    final DialogFragment fragment = AboutFragment.createInstance();
-    fragment.show(getSupportFragmentManager(), "about");
-    Analytics.sendUiEvent(Analytics.UI_ACTION_ABOUT);
   }
 
   private void quit() {

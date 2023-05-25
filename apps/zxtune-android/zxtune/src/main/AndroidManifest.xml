@@ -70,6 +70,10 @@
                 android:exported="false"
                 android:label="@string/ringtone_create_title"
                 android:theme="@style/Theme.AppCompat.Dialog" />
+        <activity
+                android:name=".ui.AboutActivity"
+                android:exported="false"
+                android:theme="@style/CustomDialog.NoTitle" />
 
         <service
                 android:name=".MainService"

@@ -35,4 +35,7 @@
   <style name="CustomDialog" parent="@style/Theme.AppCompat.Dialog">
     <item name="windowNoTitle">false</item>
   </style>
+  <style name="CustomDialog.NoTitle">
+    <item name="windowNoTitle">true</item>
+  </style>
 </resources>
