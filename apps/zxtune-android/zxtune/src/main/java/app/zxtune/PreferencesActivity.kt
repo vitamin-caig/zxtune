@@ -23,6 +23,11 @@ import app.zxtune.preferences.DataStore
 class PreferencesActivity : AppCompatActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
 
+    companion object {
+        @JvmStatic
+        fun createIntent(ctx: Context) = Intent(ctx, PreferencesActivity::class.java)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

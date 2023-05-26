@@ -112,15 +112,13 @@ public class MainActivity extends AppCompatActivity {
     super.onCreateOptionsMenu(menu);
     getMenuInflater().inflate(R.menu.main, menu);
     menu.findItem(R.id.action_about).setIntent(AboutActivity.createIntent(this));
+    menu.findItem(R.id.action_prefs).setIntent(PreferencesActivity.createIntent(this));
     return true;
   }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
-      case R.id.action_prefs:
-        showPreferences();
-        break;
       case R.id.action_rate:
         rateApplication();
         break;
@@ -196,12 +194,6 @@ public class MainActivity extends AppCompatActivity {
         }
       });
     }
-  }
-
-  private void showPreferences() {
-    final Intent intent = new Intent(this, PreferencesActivity.class);
-    startActivity(intent);
-    Analytics.sendUiEvent(Analytics.UI_ACTION_PREFERENCES);
   }
 
   private void rateApplication() {
