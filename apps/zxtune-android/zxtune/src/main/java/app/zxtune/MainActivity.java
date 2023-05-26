@@ -8,7 +8,6 @@ package app.zxtune;
 
 import android.Manifest;
 import android.app.PendingIntent;
-import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -17,10 +16,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.v4.media.session.MediaControllerCompat;
 import android.util.SparseArray;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,7 +28,7 @@ import androidx.viewpager.widget.ViewPager;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.device.Permission;
 import app.zxtune.device.media.MediaModel;
-import app.zxtune.ui.AboutActivity;
+import app.zxtune.ui.ApplicationMenu;
 import app.zxtune.ui.ViewPagerAdapter;
 
 public class MainActivity extends AppCompatActivity {
@@ -97,6 +93,8 @@ public class MainActivity extends AppCompatActivity {
       StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().build());
     }
 
+    addMenuProvider(new ApplicationMenu(this));
+
     TRACE.endMethod();
   }
 
@@ -105,30 +103,6 @@ public class MainActivity extends AppCompatActivity {
     super.onDestroy();
 
     Analytics.sendUiEvent(Analytics.UI_ACTION_CLOSE);
-  }
-
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu) {
-    super.onCreateOptionsMenu(menu);
-    getMenuInflater().inflate(R.menu.main, menu);
-    menu.findItem(R.id.action_about).setIntent(AboutActivity.createIntent(this));
-    menu.findItem(R.id.action_prefs).setIntent(PreferencesActivity.createIntent(this));
-    return true;
-  }
-
-  @Override
-  public boolean onOptionsItemSelected(MenuItem item) {
-    switch (item.getItemId()) {
-      case R.id.action_rate:
-        rateApplication();
-        break;
-      case R.id.action_quit:
-        quit();
-        break;
-      default:
-        return super.onOptionsItemSelected(item);
-    }
-    return true;
   }
 
   private void subscribeForPendingOpenRequest(LiveData<MediaControllerCompat> ctrl) {
@@ -194,36 +168,5 @@ public class MainActivity extends AppCompatActivity {
         }
       });
     }
-  }
-
-  private void rateApplication() {
-    final Intent intent = new Intent(Intent.ACTION_VIEW);
-    intent.setData(Uri.parse("market://details?id=" + getPackageName()));
-    if (safeStartActivity(intent)) {
-      Analytics.sendUiEvent(Analytics.UI_ACTION_RATE);
-    } else {
-      intent.setData(Uri.parse("https://play.google.com/store/apps/details?id=" + getPackageName()));
-      if (safeStartActivity(intent)) {
-        Analytics.sendUiEvent(Analytics.UI_ACTION_RATE);
-      } else {
-        Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
-      }
-    }
-  }
-
-  private boolean safeStartActivity(Intent intent) {
-    try {
-      startActivity(intent);
-      return true;
-    } catch (ActivityNotFoundException e) {
-      return false;
-    }
-  }
-
-  private void quit() {
-    Analytics.sendUiEvent(Analytics.UI_ACTION_QUIT);
-    final Intent intent = MainService.createIntent(this, null);
-    stopService(intent);
-    finish();
   }
 }

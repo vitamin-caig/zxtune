@@ -1,0 +1,72 @@
+package app.zxtune.ui
+
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import androidx.annotation.IdRes
+import androidx.core.view.MenuProvider
+import androidx.fragment.app.FragmentActivity
+import app.zxtune.MainService
+import app.zxtune.PreferencesActivity
+import app.zxtune.R
+import app.zxtune.analytics.Analytics
+import kotlin.system.exitProcess
+
+class ApplicationMenu(private val activity: FragmentActivity) : MenuProvider {
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) =
+        menuInflater.inflate(R.menu.main, menu)
+
+    override fun onPrepareMenu(menu: Menu) = menu.run {
+        item(R.id.action_about).intent = AboutActivity.createIntent(activity)
+        item(R.id.action_prefs).intent = PreferencesActivity.createIntent(activity)
+    }
+
+    override fun onMenuItemSelected(menuItem: MenuItem) = when (menuItem.itemId) {
+        R.id.action_rate -> {
+            rate()
+            true
+        }
+
+        R.id.action_quit -> {
+            quit()
+            true
+        }
+
+        else -> false
+    }
+
+    // TODO: find proper intent or hide menuitem if no sutable
+    private fun rate() {
+        if (tryOpenIntent(makeGooglePlayIntent()) || tryOpenIntent(makeMarketIntent())) {
+            Analytics.sendUiEvent(Analytics.UI_ACTION_RATE)
+        }
+    }
+
+    private fun tryOpenIntent(intent: Intent) = try {
+        activity.startActivity(intent)
+        true
+    } catch (e: ActivityNotFoundException) {
+        false
+    }
+
+    private fun makeGooglePlayIntent() = Intent(Intent.ACTION_VIEW).apply {
+        data = Uri.parse("https://play.google.com/store/apps/details?id=${activity.packageName}")
+        `package` = "com.android.vending"
+    }
+
+    private fun makeMarketIntent() = Intent(Intent.ACTION_VIEW).apply {
+        data = Uri.parse("market://details?id=${activity.packageName}")
+    }
+
+    private fun quit(): Unit = activity.run {
+        Analytics.sendUiEvent(Analytics.UI_ACTION_QUIT)
+        stopService(MainService.createIntent(this, null))
+        finishAffinity()
+        exitProcess(0)
+    }
+}
+
+private fun Menu.item(@IdRes id: Int) = requireNotNull(findItem(id))
