@@ -6,13 +6,13 @@ import android.net.Uri
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import androidx.annotation.IdRes
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.FragmentActivity
 import app.zxtune.MainService
 import app.zxtune.PreferencesActivity
 import app.zxtune.R
 import app.zxtune.analytics.Analytics
+import app.zxtune.ui.utils.item
 import kotlin.system.exitProcess
 
 class ApplicationMenu(private val activity: FragmentActivity) : MenuProvider {
@@ -68,5 +68,3 @@ class ApplicationMenu(private val activity: FragmentActivity) : MenuProvider {
         exitProcess(0)
     }
 }
-
-private fun Menu.item(@IdRes id: Int) = requireNotNull(findItem(id))

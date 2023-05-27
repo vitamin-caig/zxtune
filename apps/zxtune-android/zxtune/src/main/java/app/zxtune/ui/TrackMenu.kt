@@ -15,6 +15,8 @@ import app.zxtune.R
 import app.zxtune.ResultActivity
 import app.zxtune.SharingActivity
 import app.zxtune.device.media.MediaModel
+import app.zxtune.ui.utils.enableIf
+import app.zxtune.ui.utils.item
 
 class TrackMenu(private val fragment: Fragment) : MenuProvider {
     private val activity
@@ -31,12 +33,13 @@ class TrackMenu(private val fragment: Fragment) : MenuProvider {
             if (metadata == null) {
                 return@observe
             }
-            item(R.id.action_add).action = maybeCreateAddCurrentTrackIntent(activity, metadata)
-            item(R.id.action_send).action =
+            item(R.id.action_add).enableIf =
+                maybeCreateAddCurrentTrackIntent(activity, metadata)
+            item(R.id.action_send).enableIf =
                 SharingActivity.maybeCreateSendIntent(activity, metadata)
-            item(R.id.action_share).action =
+            item(R.id.action_share).enableIf =
                 SharingActivity.maybeCreateShareIntent(activity, metadata)
-            item(R.id.action_make_ringtone).action =
+            item(R.id.action_make_ringtone).enableIf =
                 metadata.description?.mediaUri?.let { fullId ->
                     RingtoneActivity.createIntent(activity, fullId)
                 }
@@ -57,12 +60,3 @@ private fun maybeCreateAddCurrentTrackIntent(ctx: Context, metadata: MediaMetada
 
 private fun isFromProvider(metadata: MediaMetadataCompat) =
     metadata.description.mediaId?.startsWith(ContentResolver.SCHEME_CONTENT)
-
-private var MenuItem.action: Intent?
-    get() = intent
-    set(data) {
-        isEnabled = data != null
-        intent = data
-    }
-
-private fun Menu.item(@IdRes id: Int) = requireNotNull(findItem(id))

@@ -34,6 +34,7 @@ import app.zxtune.device.PersistentStorage
 import app.zxtune.device.media.MediaModel
 import app.zxtune.playlist.ProviderClient
 import app.zxtune.ui.utils.SelectionUtils
+import app.zxtune.ui.utils.item
 
 class PlaylistFragment : Fragment() {
     private lateinit var listing: RecyclerView
@@ -63,7 +64,7 @@ class PlaylistFragment : Fragment() {
         override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) =
             menuInflater.inflate(R.menu.playlist, menu)
 
-        override fun onPrepareMenu(menu: Menu) = menu.findItem(R.id.action_sort).subMenu.run {
+        override fun onPrepareMenu(menu: Menu) = menu.item(R.id.action_sort).subMenu.run {
             for (sortBy in ProviderClient.SortBy.values()) {
                 for (sortOrder in ProviderClient.SortOrder.values()) {
                     add(getMenuTitle(sortBy)).run {
