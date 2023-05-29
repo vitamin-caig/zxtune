@@ -15,6 +15,6 @@ source_files += platform/portable/memory
                 
 source_files := $(addprefix src/,$(addsuffix .c,$(source_files)))
 
-includes.files += 3rdparty/mgba/defines.h
+includes.files += defines.h
 
 include $(dirs.root)/makefile.mak
