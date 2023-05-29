@@ -152,6 +152,9 @@ private class InfoBuilder constructor(private val context: Context) {
             addWord(getLayoutSize(config.screenLayout))
             addWord(getLayoutRatio(config.screenLayout))
             addWord(getOrientation(config.orientation))
+            addWord(getScreenTrait("w", config.screenWidthDp))
+            addWord(getScreenTrait("h", config.screenHeightDp))
+            addWord(getScreenTrait("sw", config.smallestScreenWidthDp))
             addWord(getDensity(metrics.densityDpi))
             if (Build.VERSION.SDK_INT >= 24) {
                 addWord(config.locales.toLanguageTags())
@@ -187,6 +190,8 @@ private class InfoBuilder constructor(private val context: Context) {
             Configuration.ORIENTATION_SQUARE -> "square"
             else -> "orientation-undef"
         }
+
+        private fun getScreenTrait(trait: String, value: Int) = "${trait}${value}dp"
 
         private fun getDensity(density: Int) = when (density) {
             DisplayMetrics.DENSITY_LOW -> "ldpi"

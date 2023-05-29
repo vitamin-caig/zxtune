@@ -105,6 +105,9 @@ public final class Provider extends ContentProvider {
       builder.addParam("locale", cfg.locale.toString());
     }
     builder.addParam("density", metrics.densityDpi);
+    builder.addParam("width", cfg.screenWidthDp);
+    builder.addParam("height", cfg.screenHeightDp);
+    builder.addParam("sw", cfg.smallestScreenWidthDp);
 
     doPush(builder.getResult());
   }
