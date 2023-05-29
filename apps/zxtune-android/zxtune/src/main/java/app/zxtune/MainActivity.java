@@ -124,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
   }
 
   private void fillPages() {
+    setRequestedOrientation(getResources().getInteger(R.integer.screen_orientation));
     pager = findViewById(R.id.view_pager);
     if (null != pager) {
       final ViewPagerAdapter adapter = new ViewPagerAdapter(pager);
