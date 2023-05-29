@@ -9,19 +9,26 @@
             android:name="app.zxtune.ui.NowPlayingFragment"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="2" />
 
-    <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/playlist_view"
-            android:name="app.zxtune.ui.playlist.PlaylistFragment"
+    <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="3"
+            android:orientation="horizontal">
 
-    <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/browser_view"
-            android:name="app.zxtune.ui.browser.BrowserFragment"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+        <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/playlist_view"
+                android:name="app.zxtune.ui.playlist.PlaylistFragment"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+        <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/browser_view"
+                android:name="app.zxtune.ui.browser.BrowserFragment"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+    </LinearLayout>
 </LinearLayout>
