@@ -34,7 +34,7 @@ namespace Module::V2M
   using DataPtr = std::shared_ptr<const uint8_t>;
 
   // Different versions of stdlib has different traits...
-  void Deleter(uint8_t* data)
+  void Deleter(const uint8_t* data)
   {
     delete[] data;
   }

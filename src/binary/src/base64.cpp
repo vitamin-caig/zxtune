@@ -144,7 +144,7 @@ namespace Binary::Base64
     return TXT_GROUP_SIZE * ((size + BIN_GROUP_SIZE - 1) / BIN_GROUP_SIZE);
   }
 
-  char* Encode(const uint8_t* inBegin, const uint8_t* inEnd, char* outBegin, char* outEnd)
+  char* Encode(const uint8_t* inBegin, const uint8_t* inEnd, char* outBegin, const char* outEnd)
   {
     std::size_t rest = inEnd - inBegin;
     const uint8_t* in = inBegin;
@@ -170,7 +170,7 @@ namespace Binary::Base64
     return out;
   }
 
-  uint8_t* Decode(const char* inBegin, const char* inEnd, uint8_t* outBegin, uint8_t* outEnd)
+  uint8_t* Decode(const char* inBegin, const char* inEnd, uint8_t* outBegin, const uint8_t* outEnd)
   {
     StrIterator in(inBegin, inEnd);
     uint8_t* out = outBegin;

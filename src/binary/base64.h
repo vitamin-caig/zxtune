@@ -22,11 +22,11 @@ namespace Binary::Base64
 
   //! @throws std::exception in case of error
   //! @return End of encoded data
-  char* Encode(const uint8_t* inBegin, const uint8_t* inEnd, char* outBegin, char* outEnd);
+  char* Encode(const uint8_t* inBegin, const uint8_t* inEnd, char* outBegin, const char* outEnd);
 
   //! @throws std::exception in case of error
   //! @return End of decoded data
-  uint8_t* Decode(const char* inBegin, const char* inEnd, uint8_t* outBegin, uint8_t* outEnd);
+  uint8_t* Decode(const char* inBegin, const char* inEnd, uint8_t* outBegin, const uint8_t* outEnd);
 
   // easy-to-use wrappers
   inline String Encode(View input)
