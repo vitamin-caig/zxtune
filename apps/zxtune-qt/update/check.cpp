@@ -203,15 +203,8 @@ namespace
       {
         const bool thisValid = AsRev || AsDate.isValid();
         const bool rhValid = rh.AsRev || rh.AsDate.isValid();
-        if (thisValid && !rhValid)
-        {
-          // prefer much more valid
-          return true;
-        }
-        else
-        {
-          return false;
-        }
+        // prefer much more valid
+        return thisValid && !rhValid;
       }
     }
 

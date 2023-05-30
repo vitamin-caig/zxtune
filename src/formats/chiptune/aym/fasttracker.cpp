@@ -1039,11 +1039,7 @@ namespace Formats::Chiptune
 
       bool CheckHeader() const
       {
-        if (sizeof(RawHeader) > GetAreaSize(HEADER) || Undefined != GetAreaSize(END))
-        {
-          return false;
-        }
-        return true;
+        return GetAreaSize(HEADER) >= sizeof(RawHeader) && Undefined == GetAreaSize(END);
       }
 
       bool CheckPositions() const

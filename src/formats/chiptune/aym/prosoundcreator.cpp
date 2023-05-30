@@ -1049,11 +1049,7 @@ namespace Formats::Chiptune
           return false;
         }
         const std::size_t samplesSize = GetAreaSize(SAMPLES);
-        if (samplesSize == Undefined || samplesSize < sizeof(RawSample))
-        {
-          return false;
-        }
-        return true;
+        return samplesSize != Undefined && samplesSize >= sizeof(RawSample);
       }
 
       bool CheckOrnaments() const
@@ -1064,11 +1060,7 @@ namespace Formats::Chiptune
           return false;
         }
         const std::size_t samplesSize = GetAreaSize(ORNAMENTS);
-        if (samplesSize == Undefined || samplesSize < sizeof(RawOrnament))
-        {
-          return false;
-        }
-        return true;
+        return samplesSize != Undefined && samplesSize >= sizeof(RawOrnament);
       }
 
       bool CheckPositions() const

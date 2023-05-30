@@ -477,11 +477,7 @@ namespace Formats::Chiptune
     bool FastCheck(Binary::View rawData)
     {
       const auto* header = rawData.As<RawHeader>();
-      if (!header || header->Loop > header->Length)
-      {
-        return false;
-      }
-      return true;
+      return header && header->Loop <= header->Length;
     }
 
     const auto FORMAT =

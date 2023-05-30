@@ -115,11 +115,7 @@ namespace Formats::Packed
           return false;
         }
         const uint_t usedSize = GetUsedSize();
-        if (usedSize > Size)
-        {
-          return false;
-        }
-        return true;
+        return usedSize <= Size;
       }
 
       uint_t GetUsedSize() const

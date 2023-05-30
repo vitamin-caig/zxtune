@@ -447,11 +447,7 @@ namespace Formats::Chiptune
       }
       const uint_t patternsCount =
           1 + *std::max_element(header->Positions.begin(), header->Positions.begin() + header->Length + 1);
-      if (sizeof(*header) + patternsCount * sizeof(Pattern) > data.Size())
-      {
-        return false;
-      }
-      return true;
+      return sizeof(*header) + patternsCount * sizeof(Pattern) <= data.Size();
     }
 
     const auto FORMAT =

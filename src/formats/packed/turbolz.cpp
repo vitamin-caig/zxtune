@@ -257,11 +257,7 @@ namespace Formats::Packed
         {
           return false;
         }
-        if (GetPackedDataSize())
-        {
-          return true;
-        }
-        return false;
+        return GetPackedDataSize() != 0;
       }
 
       std::size_t GetPackedDataOffset() const

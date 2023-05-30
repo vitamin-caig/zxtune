@@ -245,11 +245,7 @@ namespace Formats::Packed
           return false;
         }
         const typename Version::RawHeader& header = GetHeader();
-        if (header.SizeOfPacked <= sizeof(header.LastBytes))
-        {
-          return false;
-        }
-        return true;
+        return header.SizeOfPacked > sizeof(header.LastBytes);
       }
 
       const typename Version::RawHeader& GetHeader() const

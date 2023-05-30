@@ -1090,11 +1090,7 @@ namespace Formats::Chiptune
           return false;
         }
         const std::size_t idSize = GetAreaSize(IDENTIFIER);
-        if (idSize != 0 && idSize < sizeof(RawId))
-        {
-          return false;
-        }
-        return true;
+        return idSize == 0 || idSize >= sizeof(RawId);
       }
 
       bool CheckSamples() const

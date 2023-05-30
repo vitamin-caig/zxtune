@@ -99,11 +99,7 @@ namespace Formats::Packed
           return false;
         }
         const uint_t sides = header.Sides;
-        if (!Math::InRange(sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT))
-        {
-          return false;
-        }
-        return true;
+        return Math::InRange(sides, MIN_SIDES_COUNT, MAX_SIDES_COUNT);
       }
 
       const RawHeader& GetHeader() const

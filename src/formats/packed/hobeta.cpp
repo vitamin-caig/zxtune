@@ -57,11 +57,7 @@ namespace Formats::Packed
         return false;
       }
       // check for crc
-      if (header->CRC == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff))
-      {
-        return true;
-      }
-      return false;
+      return header->CRC == ((105 + 257 * std::accumulate(data, data + 15, 0u)) & 0xffff);
     }
 
     const Char DESCRIPTION[] = "Hobeta";

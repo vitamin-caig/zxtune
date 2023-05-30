@@ -557,13 +557,9 @@ namespace Formats::Chiptune
     bool FastCheck(Binary::View data)
     {
       const auto* header = data.As<Header>();
-      if (!header
-          || !(header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32
-               || header->PatternSize == 24))
-      {
-        return false;
-      }
-      return true;
+      return header
+             && (header->PatternSize == 64 || header->PatternSize == 48 || header->PatternSize == 32
+                 || header->PatternSize == 24);
     }
 
     const auto FORMAT =
