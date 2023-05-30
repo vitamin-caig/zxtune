@@ -775,7 +775,7 @@ namespace
 
     const Strings::Array& GetSubpath() const
     {
-      if (!Subpath.get())
+      if (!Subpath)
       {
         FillCache();
       }

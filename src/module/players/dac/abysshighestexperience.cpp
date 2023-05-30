@@ -47,7 +47,7 @@ namespace Module::AHX
     }
     const HvlPtr result =
         HvlPtr(hvl_ParseTune(static_cast<const uint8*>(data.Start()), data.Size(), samplerate, MONO), &hvl_FreeTune);
-    Require(result.get() != nullptr);
+    Require(result != nullptr);
     return result;
   }
 

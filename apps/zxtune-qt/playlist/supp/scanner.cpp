@@ -108,7 +108,7 @@ namespace
   private:
     bool NoCurrentDir() const
     {
-      return nullptr == CurDir.get() || !CurDir->hasNext();
+      return nullptr == CurDir || !CurDir->hasNext();
     }
 
     static bool IsDir(const QString& name)

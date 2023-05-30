@@ -113,7 +113,7 @@ namespace Formats::Archived
         if (const auto* header = GetBlock<LocalFileHeader>())
         {
           const auto file = CompressedFile::Create(*header, Stream.GetRestSize());
-          return file.get() ? file->GetPackedSize() : 0;
+          return file ? file->GetPackedSize() : 0;
         }
         else if (const auto* footer = GetBlock<LocalFileFooter>())
         {
@@ -190,7 +190,7 @@ namespace Formats::Archived
       {
         assert(IsValid());
         const auto file = Blocks.GetFile();
-        if (file.get())
+        if (file)
         {
           auto data = Data.GetSubcontainer(Blocks.GetOffset(), file->GetPackedSize());
           return MakePtr<File>(Decoder, GetName(), file->GetUnpackedSize(), std::move(data));
@@ -268,7 +268,7 @@ namespace Formats::Archived
 
       File::Ptr FindCachedFile(StringView name) const
       {
-        if (Iter.get())
+        if (Iter)
         {
           return Files.Get(name);
         }
@@ -301,7 +301,7 @@ namespace Formats::Archived
 
       void CreateIterator() const
       {
-        if (!Iter.get())
+        if (!Iter)
         {
           Iter = std::make_unique<FileIterator>(*Decoder, *Delegate);
         }

@@ -403,12 +403,12 @@ namespace Formats::Packed
 
       Binary::Container::Ptr GetResult()
       {
-        return Delegate.get() ? Delegate->GetResult() : Binary::Container::Ptr();
+        return Delegate ? Delegate->GetResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
       {
-        return Delegate.get() ? DataOffset + Delegate->GetUsedSize() : 0;
+        return Delegate ? DataOffset + Delegate->GetUsedSize() : 0;
       }
 
     private:
@@ -487,12 +487,12 @@ namespace Formats::Packed
 
       Binary::Container::Ptr GetResult()
       {
-        return Delegate.get() ? Delegate->GetResult() : Binary::Container::Ptr();
+        return Delegate ? Delegate->GetResult() : Binary::Container::Ptr();
       }
 
       std::size_t GetUsedSize() const
       {
-        return Delegate.get() ? DataOffset + DataSize : 0;
+        return Delegate ? DataOffset + DataSize : 0;
       }
 
     private:

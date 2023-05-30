@@ -293,7 +293,7 @@ namespace Module
   private:
     void MoveToLoop()
     {
-      if (LoopState.get())
+      if (LoopState)
       {
         Cursor->SetState(*LoopState);
       }

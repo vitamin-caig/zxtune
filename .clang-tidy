@@ -31,6 +31,7 @@
                     readability-non-const-parameter,
                     readability-qualified-auto,
                     readability-redundant-member-init,
+                    readability-redundant-smartptr-get,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

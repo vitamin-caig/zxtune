@@ -1056,7 +1056,7 @@ namespace Module::TFMMusicMaker
 
     void Start(const PlainTrackState& state)
     {
-      if (!Begin.get() || Begin->Line != state.Line || Begin->Position != state.Position)
+      if (!Begin || Begin->Line != state.Line || Begin->Position != state.Position)
       {
         Begin = std::make_unique<PlainTrackState>(state);
         Counter = 0;
@@ -1390,7 +1390,7 @@ namespace Module::TFMMusicMaker
   private:
     void MoveToLoop()
     {
-      if (LoopState.get())
+      if (LoopState)
       {
         Cursor->SetState(*LoopState);
       }
