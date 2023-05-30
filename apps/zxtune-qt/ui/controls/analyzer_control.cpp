@@ -73,7 +73,6 @@ namespace
     AnalyzerControlImpl(QWidget& parent, PlaybackSupport& supp)
       : AnalyzerControl(parent)
       , Palette()
-      , Levels()
     {
       setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
       setMinimumSize(64, 32);

@@ -28,12 +28,7 @@ namespace Devices::SAA
   class SAASubDevice
   {
   public:
-    SAASubDevice()
-      : Tones()
-      , Noise()
-      , Envelope()
-      , Levels()
-    {}
+    SAASubDevice() = default;
 
     void SetLevel(uint_t generator, uint_t left, uint_t right)
     {
@@ -137,9 +132,7 @@ namespace Devices::SAA
   class SAADevice
   {
   public:
-    SAADevice()
-      : Subdevices()
-    {}
+    SAADevice() = default;
 
     void SetLevel(uint_t generator, uint_t left, uint_t right)
     {

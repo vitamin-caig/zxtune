@@ -48,9 +48,7 @@ namespace Module
   class Cell
   {
   public:
-    Cell()
-      : Commands()
-    {}
+    Cell() = default;
 
     bool HasData() const
     {

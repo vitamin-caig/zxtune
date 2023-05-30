@@ -25,10 +25,7 @@ namespace Devices::TurboSound
 
   struct DataChunk
   {
-    DataChunk()
-      : TimeStamp()
-      , Data()
-    {}
+    DataChunk() = default;
 
     Stamp TimeStamp;
     Registers Data;

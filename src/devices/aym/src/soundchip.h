@@ -26,7 +26,6 @@ namespace Devices::AYM
       : Params(std::move(params))
       , Mixer(std::move(mixer))
       , PSG(VolTable)
-      , Clock()
       , Renderers(Clock, PSG)
     {
       SoundChip::Reset();

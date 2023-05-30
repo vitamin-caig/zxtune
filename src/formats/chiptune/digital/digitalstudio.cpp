@@ -172,9 +172,7 @@ namespace Formats::Chiptune
         Binary::Dump Content;
         bool Is4Bit = false;
 
-        Description()
-          : Content()
-        {}
+        Description() = default;
 
         Description(std::size_t loop, Binary::Dump content)
           : Loop(loop)

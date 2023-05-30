@@ -63,9 +63,7 @@ namespace Module::Vortex
     using RWPtr = std::shared_ptr<ModuleData>;
     using Ptr = std::shared_ptr<const ModuleData>;
 
-    ModuleData()
-      : AYM::ModuleData<OrderList, Sample, Ornament>()
-    {}
+    ModuleData() = default;
 
     uint_t Version = 6;
   };

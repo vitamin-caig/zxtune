@@ -730,7 +730,7 @@ namespace Formats::Chiptune
         std::array<ChannelState, 3> Channels;
 
         explicit ParserState(const DataCursors& src)
-          : Channels()
+
         {
           for (std::size_t idx = 0; idx != src.size(); ++idx)
           {

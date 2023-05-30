@@ -128,7 +128,6 @@ namespace Devices::AYM
       , Builder(std::move(builder))
       , State(std::move(state))
       , FramesToSkip(0)
-      , NextFrame()
     {
       Reset();
     }

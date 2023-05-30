@@ -227,7 +227,6 @@ namespace
     TableViewItemImpl(QWidget& parent, const Playlist::Item::StateCallback& callback)
       : Playlist::UI::TableViewItem(parent)
       , Callback(callback)
-      , Palette()
     {}
 
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override

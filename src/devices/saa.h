@@ -71,10 +71,7 @@ namespace Devices::SAA
   struct DataChunk
   {
 
-    DataChunk()
-      : TimeStamp()
-      , Data()
-    {}
+    DataChunk() = default;
 
     Stamp TimeStamp;
     Registers Data;

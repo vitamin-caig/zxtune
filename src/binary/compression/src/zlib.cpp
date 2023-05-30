@@ -61,9 +61,7 @@ namespace Binary::Compression::Zlib
   class DecompressStream : public Stream
   {
   public:
-    DecompressStream()
-      : Stream()
-    {}
+    DecompressStream() = default;
 
     DecompressStream(View input, void* output, std::size_t maxOutputSize)
       : Stream(input, output, maxOutputSize)

@@ -144,8 +144,7 @@ namespace ZXTune
   {
   public:
     explicit OpenModuleCallback(Parameters::Container::Ptr properties)
-      : DetectCallback()
-      , Properties(std::move(properties))
+      : Properties(std::move(properties))
     {}
 
     Parameters::Container::Ptr CreateInitialProperties(StringView /*subpath*/) const override

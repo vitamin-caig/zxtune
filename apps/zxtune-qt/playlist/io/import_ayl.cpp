@@ -152,7 +152,6 @@ namespace
   public:
     AYLContainer(LinesSource& source, Log::ProgressCallback& cb)
       : Container(MakeRWPtr<AYLEntries>())
-      , Parameters()
     {
       Log::PercentProgressCallback progress(source.GetSize(), cb);
       const uint_t REPORT_PERIOD_ITEMS = 1000;

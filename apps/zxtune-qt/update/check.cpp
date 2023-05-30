@@ -179,9 +179,7 @@ namespace
   class Version
   {
   public:
-    Version()
-      : AsDate()
-    {}
+    Version() = default;
 
     explicit Version(const QString& ver, const QDate& date)
       : AsDate(VersionToDate(ver, date))

@@ -161,10 +161,7 @@ namespace Devices::AYM
 
   struct DataChunk
   {
-    DataChunk()
-      : TimeStamp()
-      , Data()
-    {}
+    DataChunk() = default;
 
     Stamp TimeStamp;
     Registers Data;

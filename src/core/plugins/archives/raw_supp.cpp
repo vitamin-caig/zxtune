@@ -185,11 +185,7 @@ namespace ZXTune
       Time::Duration<TimeUnit> MissedTime;
       Time::Duration<TimeUnit> ScanTime;
 
-      StatItem()
-        : AimedTime()
-        , MissedTime()
-        , ScanTime()
-      {}
+      StatItem() = default;
 
       StatItem& operator+=(const StatItem& rh)
       {

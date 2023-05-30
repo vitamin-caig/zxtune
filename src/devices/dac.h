@@ -24,9 +24,7 @@ namespace Devices::DAC
 
   struct ChannelData
   {
-    ChannelData()
-      : Level()
-    {}
+    ChannelData() = default;
 
     enum Flags
     {

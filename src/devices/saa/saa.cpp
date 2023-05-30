@@ -240,7 +240,6 @@ namespace Devices::SAA
   public:
     explicit RegularSAAChip(ChipParameters::Ptr params)
       : Params(std::move(params))
-      , Clock()
       , Renderers(Clock, PSG)
     {
       RegularSAAChip::Reset();

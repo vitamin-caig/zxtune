@@ -90,7 +90,6 @@ namespace Module::Vortex
     ChannelState()
       : SampleNum(Formats::Chiptune::ProTracker3::DEFAULT_SAMPLE)
       , OrnamentNum(Formats::Chiptune::ProTracker3::DEFAULT_ORNAMENT)
-      , ToneSlider()
       , SlidingTargetNote(LIMITER)
     {}
 

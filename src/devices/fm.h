@@ -53,9 +53,7 @@ namespace Devices::FM
 
   struct DataChunk
   {
-    DataChunk()
-      : TimeStamp()
-    {}
+    DataChunk() = default;
 
     Stamp TimeStamp;
     Registers Data;

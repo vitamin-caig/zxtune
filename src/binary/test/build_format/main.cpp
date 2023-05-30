@@ -140,9 +140,7 @@ namespace
   {
     std::bitset<256> Values;
 
-    Bitmask()
-      : Values()
-    {}
+    Bitmask() = default;
 
     void Apply(uint_t val)
     {
@@ -166,11 +164,7 @@ namespace
   class CumulativeFormat
   {
   public:
-    CumulativeFormat()
-      : Ranges()
-      , Binaries()
-      , Bitmasks()
-    {}
+    CumulativeFormat() = default;
 
     bool Add(const Binary::Dump& data)
     {

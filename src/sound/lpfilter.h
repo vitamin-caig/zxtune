@@ -22,15 +22,7 @@ namespace Sound
   class LPFilter
   {
   public:
-    LPFilter()
-      : A()
-      , B()
-      , C()
-      , In1()
-      , In2()
-      , Out1()
-      , Out2()
-    {}
+    LPFilter() = default;
 
     void SetParameters(uint64_t sampleFreq, uint64_t cutOffFreq)
     {

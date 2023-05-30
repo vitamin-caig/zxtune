@@ -67,9 +67,7 @@ namespace Binary::FormatDSL
   class InitialStateType : public State
   {
   public:
-    InitialStateType()
-      : State()
-    {}
+    InitialStateType() = default;
 
     const State* Transition(const Token& tok, FormatTokensVisitor& visitor) const override
     {
@@ -136,9 +134,7 @@ namespace Binary::FormatDSL
   class QuantorStateType : public State
   {
   public:
-    QuantorStateType()
-      : State()
-    {}
+    QuantorStateType() = default;
 
     const State* Transition(const Token& tok, FormatTokensVisitor& visitor) const override
     {
@@ -158,9 +154,7 @@ namespace Binary::FormatDSL
   class QuantorEndType : public State
   {
   public:
-    QuantorEndType()
-      : State()
-    {}
+    QuantorEndType() = default;
 
     const State* Transition(const Token& tok, FormatTokensVisitor& /*visitor*/) const override
     {
@@ -173,9 +167,7 @@ namespace Binary::FormatDSL
   class ErrorStateType : public State
   {
   public:
-    ErrorStateType()
-      : State()
-    {}
+    ErrorStateType() = default;
 
     const State* Transition(const Token& /*token*/, FormatTokensVisitor& /*visitor*/) const override
     {

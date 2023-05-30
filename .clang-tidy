@@ -30,6 +30,7 @@
                     readability-make-member-function-const,
                     readability-non-const-parameter,
                     readability-qualified-auto,
+                    readability-redundant-member-init,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

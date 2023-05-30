@@ -45,7 +45,6 @@ namespace
   public:
     explicit ConvertCallback(Log::ProgressCallback& callback)
       : Callback(callback)
-      , Event()
     {}
 
     void OnStart() override

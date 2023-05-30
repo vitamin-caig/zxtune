@@ -1019,7 +1019,6 @@ namespace
   public:
     Options()
       : TargetNameTemplateValue(DEFAULT_TARGET_NAME_TEMPLATE)
-      , FormatFilterValue()
       , OptionsDescription("Target options")
     {
       using namespace boost::program_options;

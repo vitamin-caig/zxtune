@@ -21,10 +21,7 @@ namespace Sound
     using Type = Math::FixedPoint<int_t, 256>;
     static const uint_t CHANNELS = 2;
 
-    Gain()
-      : LeftVal()
-      , RightVal()
-    {}
+    Gain() = default;
 
     Gain(Type l, Type r)
       : LeftVal(l)

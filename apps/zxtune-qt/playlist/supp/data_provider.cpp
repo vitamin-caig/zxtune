@@ -107,8 +107,7 @@ namespace
       W Weight;
 
       Item()
-        : Id()
-        , Value()
+        : Value()
         , Weight()
       {}
 

@@ -159,9 +159,7 @@ namespace
   class StatisticNotification : public Playlist::Item::StatisticTextNotification
   {
   public:
-    StatisticNotification()
-      : Duration()
-    {}
+    StatisticNotification() = default;
 
     QString Category() const override
     {

@@ -35,9 +35,7 @@ namespace Formats::Chiptune
     class Sample : public LinesObject<SampleLine>
     {
     public:
-      Sample()
-        : LinesObject<SampleLine>()
-      {}
+      Sample() = default;
 
       Sample(const Sample&) = delete;
       Sample& operator=(const Sample&) = delete;

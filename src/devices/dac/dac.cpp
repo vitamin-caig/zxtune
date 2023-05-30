@@ -63,12 +63,7 @@ namespace Devices::DAC
     class Iterator
     {
     public:
-      Iterator()
-        : Step()
-        , Limit()
-        , Loop()
-        , Pos()
-      {}
+      Iterator() = default;
 
       bool IsValid() const
       {
@@ -480,7 +475,6 @@ namespace Devices::DAC
     FixedChannelsChip(ChipParameters::Ptr params, typename Sound::FixedChannelsMixer<Channels>::Ptr mixer)
       : Params(std::move(params))
       , Mixer(std::move(mixer))
-      , Clock()
       , Renderers(*Mixer, State.data())
     {
       FixedChannelsChip::Reset();

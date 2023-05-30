@@ -82,7 +82,6 @@ namespace Module::USF
   {
   public:
     explicit USFEngine(const ModuleData& data)
-      : Emu()
     {
       SetupSections(data.Sections);
       if (data.Meta)

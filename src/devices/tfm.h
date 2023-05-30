@@ -24,9 +24,7 @@ namespace Devices::TFM
   class Register : public FM::Register
   {
   public:
-    Register()
-      : FM::Register()
-    {}
+    Register() = default;
 
     Register(uint_t chip, FM::Register reg)
       : FM::Register(reg)
@@ -50,9 +48,7 @@ namespace Devices::TFM
 
   struct DataChunk
   {
-    DataChunk()
-      : TimeStamp()
-    {}
+    DataChunk() = default;
 
     Stamp TimeStamp;
     Registers Data;

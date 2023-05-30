@@ -496,8 +496,7 @@ namespace Module::TFMMusicMaker
   {
   public:
     PortamentoState()
-      : Step()
-      , Target(Halftones::Stub())
+      : Target(Halftones::Stub())
     {}
 
     void Disable()
@@ -567,11 +566,6 @@ namespace Module::TFMMusicMaker
       , TotalLevel()
       , Note(Halftones::Stub())
       , Volume(Level::Max())
-      , Arpeggio()
-      , ToneSlide()
-      , Vibrato()
-      , VolumeSlide()
-      , Portamento()
       , NoteRetrig(NO_VALUE)
       , NoteCut(NO_VALUE)
       , NoteDelay(NO_VALUE)
