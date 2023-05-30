@@ -17,7 +17,9 @@ namespace
   {
     std::cout << (res ? "Passed" : "Failed") << " test '" << text << "' " << std::endl;
     if (!res)
+    {
       throw 1;
+    }
   }
 
   void TestPath(const String& context, const Analysis::Path& path, const String& val, const String& first = String(),

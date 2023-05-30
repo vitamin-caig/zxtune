@@ -21,7 +21,9 @@ namespace
   {
     std::cout << (val ? "Passed" : "Failed") << " test for " << msg << std::endl;
     if (!val)
+    {
       throw 1;
+    }
   }
 
   template<class T1, class T2>

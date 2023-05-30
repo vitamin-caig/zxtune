@@ -23,6 +23,7 @@
                     performance-noexcept-move-constructor,
                     performance-unnecessary-copy-initialization,
                     performance-unnecessary-value-param,
+                    readability-braces-around-statements,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

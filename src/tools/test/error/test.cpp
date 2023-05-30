@@ -30,7 +30,9 @@ namespace
   {
     std::cout << (res ? "Passed" : "Failed") << " test '" << text << "' at " << line << std::endl;
     if (!res)
+    {
       throw 1;
+    }
   }
 
   Error GetError()
