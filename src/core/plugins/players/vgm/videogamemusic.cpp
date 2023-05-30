@@ -429,7 +429,7 @@ namespace Module::VideoGameMusic
     StringView GetResult()
     {
       const auto fromTags = GetFromTags();
-      if (fromTags.size())
+      if (!fromTags.empty())
       {
         return fromTags;
       }
@@ -437,7 +437,7 @@ namespace Module::VideoGameMusic
       {
         const auto byClocks = GuessByClocks();
         const auto singleName = byClocks.FindSingleName();
-        if (singleName.size())
+        if (!singleName.empty())
         {
           return singleName;
         }
@@ -449,7 +449,7 @@ namespace Module::VideoGameMusic
             return byClocks.GetBaseName();
           }
           const auto singleName = byCommands.FindSingleName();
-          if (singleName.size())
+          if (!singleName.empty())
           {
             return singleName;
           }

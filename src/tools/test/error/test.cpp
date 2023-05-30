@@ -44,7 +44,7 @@ namespace
   {
     Test(!err, "Success checking test", __LINE__);
     Test(err.GetLocation() == Error::Location(), "Success location test", __LINE__);
-    Test(err.GetText() == String(), "Success text test", __LINE__);
+    Test(err.GetText().empty(), "Success text test", __LINE__);
   }
 
   void TestError(unsigned idx, const Error& err)

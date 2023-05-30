@@ -289,9 +289,9 @@ int main()
       {
         Strings::ValueMap<String> mapOfStrings{{"key", "value"}};
         TestEquals("value", mapOfStrings["key"], "String.get_key");
-        Test("" == mapOfStrings["key2"] && mapOfStrings.size() == 2, "String.allocate_key");
+        Test(mapOfStrings["key2"].empty() && mapOfStrings.size() == 2, "String.allocate_key");
         TestEquals("", *mapOfStrings.FindPtr("key2"), "String.FindPtr.existing");
-        Test("" == mapOfStrings.Get("key3") && mapOfStrings.size() == 2, "String.get_with_default");
+        Test(mapOfStrings.Get("key3").empty() && mapOfStrings.size() == 2, "String.get_with_default");
         Test(!mapOfStrings.FindPtr("key3"), "String.FindPtr.nonexisting");
       }
       {

@@ -24,6 +24,7 @@
                     performance-unnecessary-copy-initialization,
                     performance-unnecessary-value-param,
                     readability-braces-around-statements,
+                    #readability-container-size-empty,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment
