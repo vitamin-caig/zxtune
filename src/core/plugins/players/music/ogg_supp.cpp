@@ -146,7 +146,7 @@ namespace Module::Ogg
       return self->Position;
     }
 
-    void Convert(float** in, Sound::Sample* out, std::size_t samples)
+    void Convert(float** in, Sound::Sample* out, std::size_t samples) const
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound sample channels count");
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound sample bits count");

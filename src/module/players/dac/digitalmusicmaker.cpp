@@ -385,7 +385,7 @@ namespace Module::DigitalMusicMaker
       }
     }
 
-    void GetState(DAC::ChannelDataBuilder& builder)
+    void GetState(DAC::ChannelDataBuilder& builder) const
     {
       builder.SetNote(Note);
       builder.SetNoteSlide(NoteSlide);

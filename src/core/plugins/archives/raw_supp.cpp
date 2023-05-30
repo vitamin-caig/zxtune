@@ -366,7 +366,7 @@ namespace ZXTune::Raw
       return Offset + minSize <= OriginalSize;
     }
 
-    std::size_t GetOffset()
+    std::size_t GetOffset() const
     {
       return Offset;
     }

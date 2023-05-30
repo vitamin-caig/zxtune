@@ -103,7 +103,7 @@ namespace Module::NCSF
       return res;
     }
 
-    uint32_t GetSampleFrequency()
+    uint32_t GetSampleFrequency() const
     {
       return SoundFrequency;
     }

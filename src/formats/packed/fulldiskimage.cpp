@@ -140,7 +140,7 @@ namespace Formats::Packed
         return IsValid ? Result.CaptureResult() : Binary::Container::Ptr();
       }
 
-      std::size_t GetUsedSize()
+      std::size_t GetUsedSize() const
       {
         return UsedSize;
       }
