@@ -412,14 +412,16 @@ namespace Formats::Archived
         const uint_t version = Header.PackageVersion;
         if (version >= 120)
         {
-          uint32_t flags, aux;
+          uint32_t flags;
+          uint32_t aux;
           stream.Read(format);
           stream.Read(flags);
           stream.Read(aux);
         }
         else if (version >= 100)
         {
-          uint32_t flags, aux;
+          uint32_t flags;
+          uint32_t aux;
           stream.Read(flags);
           stream.Read(format);
           stream.Read(aux);

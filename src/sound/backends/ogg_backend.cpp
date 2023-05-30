@@ -270,7 +270,9 @@ namespace Sound::Ogg
 
     void FlushMetadata() override
     {
-      ogg_packet id, meta, code;
+      ogg_packet id;
+      ogg_packet meta;
+      ogg_packet code;
       CheckVorbisCall(VorbisApi->vorbis_analysis_headerout(State->Get(), Meta->Get(), &id, &meta, &code), THIS_LINE);
       Stream->AddPacket(&id);
       Stream->AddPacket(&meta);

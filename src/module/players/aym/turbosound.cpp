@@ -108,7 +108,8 @@ namespace Module::TurboSound
 
     bool FindValue(Parameters::Identifier name, Parameters::StringType& val) const override
     {
-      String val1, val2;
+      String val1;
+      String val2;
       const bool res1 = First->FindValue(name, val1);
       const bool res2 = Second->FindValue(name, val2);
       if (res1 && res2)

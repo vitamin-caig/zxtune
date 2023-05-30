@@ -362,7 +362,8 @@ namespace IO::File
   std::filesystem::path CreateSanitizedPath(StringView fileName)
   {
     const auto initial = Details::FromString(fileName);
-    auto it = initial.begin(), lim = initial.end();
+    auto it = initial.begin();
+    auto lim = initial.end();
     std::filesystem::path result;
     for (const auto root = initial.root_path(); result != root && it != lim; ++it)
     {

@@ -463,7 +463,8 @@ namespace Formats::Chiptune
 
       void ParseSamples(const Indices& samples, Builder& builder) const
       {
-        bool hasValidSamples = false, hasPartialSamples = false;
+        bool hasValidSamples = false;
+        bool hasPartialSamples = false;
         Dbg("Samples: {} to parse", samples.Count());
         const std::size_t minOffset = HeaderSize;
         const std::size_t maxOffset = Data.Size();

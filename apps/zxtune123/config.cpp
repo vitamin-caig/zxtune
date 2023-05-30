@@ -65,7 +65,8 @@ namespace
       value ::= [^,]*
       name is prepended with prefix before insert to result
     */
-    String paramName, paramValue;
+    String paramName;
+    String paramValue;
     for (auto it = str.begin(), lim = str.end(); it != lim; ++it)
     {
       bool doApply = false;

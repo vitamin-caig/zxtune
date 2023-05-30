@@ -535,7 +535,8 @@ namespace Formats::Chiptune
     public:
       uint_t Add(const RawPattern& pat)
       {
-        const auto begin = Container.begin(), end = Container.end();
+        const auto begin = Container.begin();
+        const auto end = Container.end();
         const auto it = std::find_if(
             begin, end, [&pat](const RawPattern& rh) { return pat.Size == rh.Size && pat.Offsets == rh.Offsets; });
         if (it != end)

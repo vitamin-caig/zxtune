@@ -577,12 +577,14 @@ namespace Sound::Alsa
       else
       {
         static_assert(Gain::CHANNELS == 2, "Invalid channels count");
-        long minVol = 0, maxVol = 0;
+        long minVol = 0;
+        long maxVol = 0;
         CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol),
                     THIS_LINE);
         const long volRange = maxVol - minVol;
 
-        long leftVol = 0, rightVol = 0;
+        long leftVol = 0;
+        long rightVol = 0;
         CheckResult(*AlsaApi,
                     AlsaApi->snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_LEFT, &leftVol),
                     THIS_LINE);
@@ -602,7 +604,8 @@ namespace Sound::Alsa
       if (MixerElement)
       {
         static_assert(Gain::CHANNELS == 2, "Invalid channels count");
-        long minVol = 0, maxVol = 0;
+        long minVol = 0;
+        long maxVol = 0;
         CheckResult(*AlsaApi, AlsaApi->snd_mixer_selem_get_playback_volume_range(MixerElement, &minVol, &maxVol),
                     THIS_LINE);
         const long volRange = maxVol - minVol;

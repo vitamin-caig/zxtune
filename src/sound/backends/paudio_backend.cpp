@@ -148,7 +148,8 @@ namespace Sound::PulseAudio
     static String GetStreamName(const Module::Holder& holder)
     {
       const Parameters::Accessor::Ptr props = holder.GetModuleProperties();
-      String author, title;
+      String author;
+      String title;
       props->FindValue(Module::ATTR_AUTHOR, author);
       props->FindValue(Module::ATTR_TITLE, title);
       const bool hasAuthor = !author.empty();

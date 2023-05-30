@@ -216,7 +216,8 @@ namespace Formats::Multitrack
             break;
           }
           stream.Seek(pos);
-          StringView name, value;
+          StringView name;
+          StringView value;
           const auto line = stream.ReadString();
           auto spacePos = line.find(' ');
           if (spacePos != line.npos)

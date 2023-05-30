@@ -382,7 +382,9 @@ namespace Formats::Packed
         assert(InvertBits(1) == 0x8000);
         assert(InvertBits(0x180) == 0x180);
         assert(InvertBits(0x8000) == 1);
-        uint_t code = 0, codeIncrement = 0, lastBits = 0;
+        uint_t code = 0;
+        uint_t codeIncrement = 0;
+        uint_t lastBits = 0;
         for (auto it = tree.rbegin(), lim = tree.rend(); it != lim; ++it)
         {
           code += codeIncrement;

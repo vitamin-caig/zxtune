@@ -317,7 +317,8 @@ namespace Module::ASCSoundMaster
       }
       dst.VolSlideCounter = 0;
       dst.SlidingSteps = 0;
-      bool contSample = false, contOrnament = false;
+      bool contSample = false;
+      bool contOrnament = false;
       bool reloadNote = false;
       for (CommandsIterator it = src.GetCommands(); it; ++it)
       {

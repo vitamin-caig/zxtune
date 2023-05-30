@@ -184,8 +184,10 @@ namespace Sound::DirectSound
           return;
         }
 
-        LPVOID part1Data = 0, part2Data = 0;
-        DWORD part1Size = 0, part2Size = 0;
+        LPVOID part1Data = 0;
+        LPVOID part2Data = 0;
+        DWORD part1Size = 0;
+        DWORD part2Size = 0;
 
         for (;;)
         {
@@ -215,8 +217,10 @@ namespace Sound::DirectSound
 
     void Pause()
     {
-      LPVOID part1Data = 0, part2Data = 0;
-      DWORD part1Size = 0, part2Size = 0;
+      LPVOID part1Data = 0;
+      LPVOID part2Data = 0;
+      DWORD part1Size = 0;
+      DWORD part2Size = 0;
       for (;;)
       {
         const HRESULT res = Buff->Lock(0, 0, &part1Data, &part1Size, &part2Data, &part2Size, DSBLOCK_ENTIREBUFFER);

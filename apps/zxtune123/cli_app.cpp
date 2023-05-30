@@ -258,7 +258,8 @@ namespace
     {
       const Module::Information::Ptr info = holder->GetModuleInformation();
       const Parameters::Accessor::Ptr props = holder->GetModuleProperties();
-      String path, type;
+      String path;
+      String type;
       props->FindValue(Module::ATTR_FULLPATH, path);
       props->FindValue(Module::ATTR_TYPE, type);
 

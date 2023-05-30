@@ -385,7 +385,8 @@ namespace Formats::Chiptune
       {
         Dbg("Samples: {} to parse", samples.Count());
         // samples are mandatory
-        bool hasValidSamples = false, hasPartialSamples = false;
+        bool hasValidSamples = false;
+        bool hasPartialSamples = false;
         for (Indices::Iterator it = samples.Items(); it; ++it)
         {
           const uint_t samIdx = *it;

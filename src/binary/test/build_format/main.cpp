@@ -337,7 +337,8 @@ int main(int argc, char* argv[])
     }
     if (bitMask)
     {
-      std::string hi, lo;
+      std::string hi;
+      std::string lo;
       for (int idx = 255; idx >= 0; --idx)
       {
         hi += ToHex(idx >> 4);

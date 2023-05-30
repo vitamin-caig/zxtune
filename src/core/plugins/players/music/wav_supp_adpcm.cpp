@@ -194,7 +194,8 @@ namespace Module::Wav
     void ConvertStereo(const uint8_t* data, std::size_t blockSize, Sound::Chunk* chunk)
     {
       Require(data[2] < STEPS.size() && data[6] < STEPS.size());
-      Decoder left, right;
+      Decoder left;
+      Decoder right;
       left.Predictor = ReadS16(data);
       left.Index = data[2];
       right.Predictor = ReadS16(data + 4);

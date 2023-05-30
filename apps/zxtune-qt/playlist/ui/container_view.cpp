@@ -459,7 +459,8 @@ namespace
     void RestorePlaylistSession()
     {
       Session->Load(Container);
-      Parameters::IntType idx = 0, trk = 0;
+      Parameters::IntType idx = 0;
+      Parameters::IntType trk = 0;
       Options->FindValue(Parameters::ZXTuneQT::Playlist::INDEX, idx);
       Options->FindValue(Parameters::ZXTuneQT::Playlist::TRACK, trk);
       Dbg("Restore current playlist {} with track {}", idx, trk);

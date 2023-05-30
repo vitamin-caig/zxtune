@@ -148,7 +148,9 @@ namespace Module::Sid
 
     void Init(uint_t samplerate, const Parameters::Accessor& params)
     {
-      Parameters::DataType kernal, basic, chargen;
+      Parameters::DataType kernal;
+      Parameters::DataType basic;
+      Parameters::DataType chargen;
       params.FindValue(Parameters::ZXTune::Core::Plugins::SID::KERNAL, kernal);
       params.FindValue(Parameters::ZXTune::Core::Plugins::SID::BASIC, basic);
       params.FindValue(Parameters::ZXTune::Core::Plugins::SID::CHARGEN, chargen);
