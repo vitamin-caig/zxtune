@@ -33,7 +33,7 @@
 
 namespace
 {
-  static const uint_t FREQUENCES[] = {8000, 12000, 16000, 22000, 24000, 32000, 44100, 48000};
+  const uint_t FREQUENCES[] = {8000, 12000, 16000, 22000, 24000, 32000, 44100, 48000};
 
   auto GetSystemBackends(Parameters::Accessor::Ptr params)
   {

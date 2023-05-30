@@ -154,7 +154,7 @@ namespace
     }
   };
 
-  static const QLatin1String LINE_BREAK("\n");
+  const QLatin1String LINE_BREAK("\n");
 
   class StatisticNotification : public Playlist::Item::StatisticTextNotification
   {

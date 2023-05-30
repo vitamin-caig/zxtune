@@ -41,7 +41,7 @@ namespace
 {
   const Debug::Stream Dbg("zxtune123::Sound");
 
-  static const String NOTUSED_MARK("\x01\x02");
+  const String NOTUSED_MARK("\x01\x02");
 
   class CommonBackendParameters
   {

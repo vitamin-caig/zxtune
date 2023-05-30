@@ -24,9 +24,9 @@
 
 namespace
 {
-  static const Char PARAMETERS_DELIMITER = ',';
+  const Char PARAMETERS_DELIMITER = ',';
 
-  static const Char CONFIG_FILENAME[] = "zxtune.conf";
+  const Char CONFIG_FILENAME[] = "zxtune.conf";
 
   // try to search config in homedir, if defined
   String GetDefaultConfigFile()

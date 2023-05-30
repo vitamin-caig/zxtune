@@ -33,6 +33,7 @@
                     readability-redundant-member-init,
                     readability-redundant-smartptr-get,
                     readability-simplify-boolean-expr,
+                    readability-static-definition-in-anonymous-namespace,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

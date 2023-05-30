@@ -26,7 +26,7 @@
 
 namespace
 {
-  static const uint64_t PRESETS[] = {
+  const uint64_t PRESETS[] = {
       1773400, 1750000, 3500000, 2000000, 1000000,
   };
 
