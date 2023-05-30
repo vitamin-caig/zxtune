@@ -169,7 +169,7 @@ namespace Formats::Chiptune
           currentStream->StartPage(Stream.Read<le_uint32_t>());
           /*const auto crc = */ Stream.Read<le_uint32_t>();
           const auto segmentsCount = Stream.ReadByte();
-          const auto segmentsSizes = Stream.PeekRawData(segmentsCount);
+          const auto* const segmentsSizes = Stream.PeekRawData(segmentsCount);
           if (!segmentsSizes)
           {
             Stream.Seek(offset);

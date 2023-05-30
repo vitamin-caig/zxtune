@@ -154,7 +154,7 @@ namespace Module::SDSF
         const auto unpackedSection = Binary::Compression::Zlib::Decompress(*packed);
         const auto rawSize = unpackedSection->Size();
         Require(rawSize > sizeof(le_uint32_t));
-        const auto rawStart = static_cast<le_uint32_t*>(const_cast<void*>(unpackedSection->Start()));
+        auto* const rawStart = static_cast<le_uint32_t*>(const_cast<void*>(unpackedSection->Start()));
         const auto toCopy = FixupSection(rawStart, rawSize);
         // TODO: make input const
         Dbg("Section {} -> {}  @ 0x{:08x}", packed->Size(), toCopy, *rawStart);

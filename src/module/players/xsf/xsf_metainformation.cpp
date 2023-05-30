@@ -47,7 +47,7 @@ namespace Module::XSF
   void MetaInformation::Dump(Parameters::Modifier& out) const
   {
     PropertiesHelper props(out);
-    auto game = Game.empty() ? nullptr : &Game;
+    const auto* game = Game.empty() ? nullptr : &Game;
     if (!Title.empty())
     {
       props.SetTitle(Title);
@@ -58,8 +58,8 @@ namespace Module::XSF
       game = nullptr;
     }
 
-    auto copyright = Copyright.empty() ? nullptr : &Copyright;
-    auto dumper = Dumper.empty() ? nullptr : &Dumper;
+    const auto* copyright = Copyright.empty() ? nullptr : &Copyright;
+    const auto* dumper = Dumper.empty() ? nullptr : &Dumper;
     if (!Artist.empty())
     {
       props.SetAuthor(Artist);

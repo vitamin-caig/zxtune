@@ -230,7 +230,7 @@ namespace Module::Flac
       const auto bits = frame->header.bits_per_sample;
       const auto samplesBefore = self.Chunk.size();
       self.Chunk.resize(samplesBefore + samples);
-      const auto target = self.Chunk.data() + samplesBefore;
+      auto* const target = self.Chunk.data() + samplesBefore;
       switch (frame->header.channels)
       {
       case 1:

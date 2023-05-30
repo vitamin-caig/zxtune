@@ -153,7 +153,7 @@ namespace
     {
       if (location.GetPath()->Empty())
       {
-        if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
+        if (const auto* const files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
         {
           const RealFilesSource source(*Params, *Id);
           Module::ResolveAdditionalFiles(source, *files);

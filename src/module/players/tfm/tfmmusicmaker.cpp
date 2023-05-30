@@ -632,11 +632,11 @@ namespace Module::TFMMusicMaker
     void GetNewLineState(const TrackModelState& state, TFM::TrackBuilder& track)
     {
       ResetOneLineEffects();
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != State.Channels.size(); ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             TFM::ChannelBuilder channel = track.GetChannel(chan);
             GetNewChannelState(*src, State.Channels[chan], track, channel);
@@ -1320,7 +1320,7 @@ namespace Module::TFMMusicMaker
     {
       for (uint_t idx = 0; idx != TFM::TRACK_CHANNELS; ++idx)
       {
-        if (const auto chan = CurLineObject->GetChannel(idx))
+        if (const auto* const chan = CurLineObject->GetChannel(idx))
         {
           LoadNewLoopTempoParameters(*chan);
         }

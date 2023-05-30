@@ -307,7 +307,7 @@ namespace Formats::Chiptune
       void ParseSamples(const Indices& sams, Builder& target) const
       {
         const auto samplesData = RawData.SubView(sizeof(Source));
-        const auto samplesStart = samplesData.As<uint8_t>();
+        const auto* const samplesStart = samplesData.As<uint8_t>();
         for (Indices::Iterator it = sams.Items(); it; ++it)
         {
           const uint_t samIdx = *it;

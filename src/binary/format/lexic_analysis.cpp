@@ -95,13 +95,13 @@ namespace LexicalAnalysis
       std::vector<const Tokenizer*> candidates(Sources.size());
       std::transform(Sources.begin(), Sources.end(), candidates.begin(),
                      [](const Tokenizer::Ptr& obj) { return obj.get(); });
-      for (auto lexemeEnd = lexemeStart + 1; !candidates.empty(); ++lexemeEnd)
+      for (const auto* lexemeEnd = lexemeStart + 1; !candidates.empty(); ++lexemeEnd)
       {
         const StringView lexeme(lexemeStart, lexemeEnd);
         auto tokens = MakeRWPtr<TokensSet>(lexeme);
         std::vector<const Tokenizer*> passedCandidates;
         passedCandidates.reserve(candidates.size());
-        for (const auto tokenizer : candidates)
+        for (const auto* const tokenizer : candidates)
         {
           switch (const TokenType result = tokenizer->Parse(lexeme))
           {

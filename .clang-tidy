@@ -29,9 +29,12 @@
                     readability-isolate-declaration,
                     readability-make-member-function-const,
                     readability-non-const-parameter,
+                    readability-qualified-auto,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment
       value:        1
+    - key:          readability-qualified-auto.AddConstToQualified
+      value:        0
   FormatStyle:      file
 ...

@@ -23,7 +23,7 @@ namespace Binary
 {
   std::size_t GetSize(const Format& format)
   {
-    if (const auto dtl = dynamic_cast<const FormatDetails*>(&format))
+    if (const auto* const dtl = dynamic_cast<const FormatDetails*>(&format))
     {
       return dtl->GetMinSize();
     }

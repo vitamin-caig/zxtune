@@ -99,7 +99,7 @@ namespace Module::ASAP
       Strings::Array instruments;
       for (int idx = 0;; ++idx)
       {
-        if (const auto ins =
+        if (const auto* const ins =
                 ::ASAPInfo_GetInstrumentName(Info, static_cast<const unsigned char*>(data.Start()), data.Size(), idx))
         {
           instruments.push_back(Strings::OptimizeAscii(ins));
@@ -123,7 +123,7 @@ namespace Module::ASAP
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
       Sound::Chunk result(samples);
       const auto fmt = isLE() ? ASAPSampleFormat_S16_L_E : ASAPSampleFormat_S16_B_E;
-      const auto stereo = result.data();
+      auto* const stereo = result.data();
       if (Channels == 2)
       {
         const int bytes = samples * sizeof(*stereo);
@@ -132,7 +132,7 @@ namespace Module::ASAP
       }
       else
       {
-        const auto mono = safe_ptr_cast<Sound::Sample::Type*>(stereo) + samples;
+        auto* const mono = safe_ptr_cast<Sound::Sample::Type*>(stereo) + samples;
         const int bytes = samples * sizeof(*mono);
         CheckError(bytes == ::ASAP_Generate(Module, safe_ptr_cast<unsigned char*>(mono), bytes, fmt), "ASAP_Generate");
         std::transform(mono, mono + samples, stereo, [](Sound::Sample::Type val) { return Sound::Sample(val, val); });

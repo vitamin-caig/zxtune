@@ -137,7 +137,7 @@ namespace Binary
   private:
     std::size_t SearchBackward(const uint8_t* data) const
     {
-      auto it = PatRBegin;
+      const auto* it = PatRBegin;
       if (const std::size_t offset = (*it)[*data])
       {
         return offset;

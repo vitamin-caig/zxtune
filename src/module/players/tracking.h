@@ -217,7 +217,7 @@ namespace Module
       uint_t res = 0;
       for (uint_t idx = 0; idx != Storage.Size(); ++idx)
       {
-        if (const auto pat = Storage.Get(idx).get())
+        if (auto* const pat = Storage.Get(idx).get())
         {
           res += pat->GetSize() != 0;
         }

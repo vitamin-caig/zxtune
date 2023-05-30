@@ -440,7 +440,7 @@ namespace Formats::Packed
           LZWTree tree;
           ResetTree(tree);
 
-          auto lastFree = tree.begin() + LZWEntry::LIMITER;
+          auto* lastFree = tree.begin() + LZWEntry::LIMITER;
 
           uint_t codeSize = 9;
           uint_t oldCode = stream.GetBits(codeSize);

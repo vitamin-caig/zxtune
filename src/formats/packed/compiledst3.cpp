@@ -88,9 +88,9 @@ namespace Formats::Packed
       assert(info.Size() == 55);
       // 28 is fixed
       // 27 is title
-      const auto start = info.As<Char>();
-      const auto end = start + info.Size();
-      const auto titleStart = start + 28;
+      const auto* const start = info.As<Char>();
+      const auto* const end = start + info.Size();
+      const auto* const titleStart = start + 28;
       return std::none_of(titleStart, end, [](auto c) { return c > ' '; });
     }
   }  // namespace CompiledST3

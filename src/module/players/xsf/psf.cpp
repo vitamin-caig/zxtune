@@ -247,14 +247,14 @@ namespace Module::PSF
 
     void SetRAM(const MemoryRegion& mem)
     {
-      const auto iop = ::psx_get_iop_state(Emu.get());
+      auto* const iop = ::psx_get_iop_state(Emu.get());
       ::iop_upload_to_ram(iop, mem.Start, mem.Data.data(), mem.Data.size());
     }
 
     void SetRegisters(uint32_t pc, uint32_t sp)
     {
-      const auto iop = ::psx_get_iop_state(Emu.get());
-      const auto cpu = ::iop_get_r3000_state(iop);
+      auto* const iop = ::psx_get_iop_state(Emu.get());
+      auto* const cpu = ::iop_get_r3000_state(iop);
       ::r3000_setreg(cpu, R3000_REG_PC, pc);
       ::r3000_setreg(cpu, R3000_REG_GEN + 29, sp);
     }
@@ -267,7 +267,7 @@ namespace Module::PSF
 
     static sint32 ReadCallback(void* context, const char* path, sint32 offset, char* buffer, sint32 length)
     {
-      const auto io = static_cast<VfsIO*>(context);
+      auto* const io = static_cast<VfsIO*>(context);
       return io->Read(path, offset, buffer, length);
     }
 

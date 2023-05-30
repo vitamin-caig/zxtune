@@ -31,7 +31,7 @@ namespace
 
   void ShowModuleInfo(const Module::Information& info)
   {
-    if (const auto trackInfo = dynamic_cast<const Module::TrackInformation*>(&info))
+    if (const auto* const trackInfo = dynamic_cast<const Module::TrackInformation*>(&info))
     {
       std::cout << "Positions: " << trackInfo->PositionsCount() << " (" << trackInfo->LoopPosition() << ')'
                 << std::endl;

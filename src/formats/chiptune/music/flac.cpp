@@ -136,9 +136,9 @@ namespace Formats::Chiptune
       std::size_t FindFrameHeader()
       {
         const auto limit = Stream.GetRestSize();
-        const auto start = Stream.PeekRawData(limit);
-        const auto end = start + limit;
-        for (auto cursor = start; cursor + MAX_HEADER_SIZE < end;)
+        const auto* const start = Stream.PeekRawData(limit);
+        const auto* const end = start + limit;
+        for (const auto* cursor = start; cursor + MAX_HEADER_SIZE < end;)
         {
           const auto headerSize = GetFrameHeaderSize(cursor);
           if (headerSize >= MIN_HEADER_SIZE)
@@ -146,7 +146,7 @@ namespace Formats::Chiptune
             Stream.Skip(cursor - start);
             return headerSize;
           }
-          const auto match = std::find(cursor + 1, end, 0xff);
+          const auto* const match = std::find(cursor + 1, end, 0xff);
           if (match == end)
           {
             return 0;

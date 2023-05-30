@@ -51,8 +51,8 @@ namespace Binary
     StringView ReadCString(std::size_t maxSize)
     {
       static_assert(sizeof(StringView::value_type) == sizeof(uint8_t), "Invalid char size");
-      const auto limit = std::min(Cursor + maxSize, Finish);
-      const auto strEnd = std::find(Cursor, limit, 0);
+      const auto* const limit = std::min(Cursor + maxSize, Finish);
+      const auto* const strEnd = std::find(Cursor, limit, 0);
       Require(strEnd != limit);
       StringView res(safe_ptr_cast<const Char*>(Cursor), safe_ptr_cast<const Char*>(strEnd));
       Cursor = strEnd + 1;
@@ -68,8 +68,8 @@ namespace Binary
       static const uint8_t EOLCODES[3] = {CR, LF, EOT};
 
       Require(Cursor != Finish);
-      const auto eolPos = std::find_first_of(Cursor, Finish, EOLCODES, EOLCODES + 3);
-      auto nextLine = eolPos;
+      const auto* const eolPos = std::find_first_of(Cursor, Finish, EOLCODES, EOLCODES + 3);
+      const auto* nextLine = eolPos;
       if (nextLine != Finish && CR == *nextLine++)
       {
         if (nextLine != Finish && LF == *nextLine)

@@ -81,7 +81,7 @@ namespace Formats::Chiptune
       {
         static const std::size_t HEADER_SIZE = 32;
         static const uint8_t SIGNATURE[] = {'A', 'P', 'E', 'T', 'A', 'G', 'E', 'X'};
-        const auto hdr = stream.PeekRawData(HEADER_SIZE);
+        const auto* const hdr = stream.PeekRawData(HEADER_SIZE);
         if (!hdr || 0 != std::memcmp(hdr, SIGNATURE, sizeof(SIGNATURE)))
         {
           return false;
@@ -305,7 +305,7 @@ namespace Formats::Chiptune
         for (auto freeFormatFrameSize = Synchronize(); Stream.GetRestSize() != 0;)
         {
           const auto offset = Stream.GetPosition();
-          if (const auto inFrame = ReadFrame(freeFormatFrameSize))
+          if (const auto* const inFrame = ReadFrame(freeFormatFrameSize))
           {
             Frame out;
             out.Location.Offset = offset;
@@ -355,7 +355,7 @@ namespace Formats::Chiptune
       std::size_t Synchronize()
       {
         const std::size_t FREEFORMAT_SYNC_FRAMES_COUNT = 10;
-        while (const auto firstFrame = SkipToNextFrame(0))
+        while (const auto* const firstFrame = SkipToNextFrame(0))
         {
           if (!firstFrame->IsFreeFormat())
           {
@@ -363,7 +363,7 @@ namespace Formats::Chiptune
           }
           const auto startOffset = Stream.GetPosition();
           std::size_t frameSize = 0;
-          while (const auto nextFrame = SkipToNextFrame(sizeof(*firstFrame)))
+          while (const auto* const nextFrame = SkipToNextFrame(sizeof(*firstFrame)))
           {
             if (nextFrame->Matches(*firstFrame))
             {
@@ -374,7 +374,7 @@ namespace Formats::Chiptune
           for (std::size_t validFrames = 2;
                frameSize > MIN_FREEFORMAT_FRAME_SIZE && frameSize < MAX_FREEFORMAT_FRAME_SIZE; ++validFrames)
           {
-            const auto nextFrame = SkipToNextFrame(frameSize);
+            const auto* const nextFrame = SkipToNextFrame(frameSize);
             if (!nextFrame || validFrames >= FREEFORMAT_SYNC_FRAMES_COUNT)
             {
               Stream.Seek(startOffset);
@@ -392,7 +392,7 @@ namespace Formats::Chiptune
 
       const FrameHeader* ReadFrame(std::size_t freeFormatSize)
       {
-        const auto frame = safe_ptr_cast<const FrameHeader*>(Stream.PeekRawData(sizeof(FrameHeader)));
+        const auto* const frame = safe_ptr_cast<const FrameHeader*>(Stream.PeekRawData(sizeof(FrameHeader)));
         if (frame && frame->IsValid())
         {
           if (frame->IsFreeFormat())
@@ -402,7 +402,7 @@ namespace Formats::Chiptune
             {
               return nullptr;
             }
-            else if (const auto nextFrameStart = Stream.PeekRawData(freeFormatSize + freeFormatSize))
+            else if (const auto* const nextFrameStart = Stream.PeekRawData(freeFormatSize + freeFormatSize))
             {
               if (!safe_ptr_cast<const FrameHeader*>(nextFrameStart)->Matches(*frame))
               {
@@ -433,11 +433,11 @@ namespace Formats::Chiptune
         {
           return nullptr;
         }
-        const auto data = Stream.PeekRawData(restSize);
-        const auto end = data + restSize - sizeof(FrameHeader);
+        const auto* const data = Stream.PeekRawData(restSize);
+        const auto* const end = data + restSize - sizeof(FrameHeader);
         for (std::size_t offset = startOffset;;)
         {
-          const auto match = std::find(data + offset, end, 0xff);
+          const auto* const match = std::find(data + offset, end, 0xff);
           if (match == end)
           {
             break;

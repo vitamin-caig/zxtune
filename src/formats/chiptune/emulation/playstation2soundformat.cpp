@@ -42,8 +42,8 @@ namespace Formats::Chiptune
 
       explicit DirectoryEntry(Binary::InputStream& stream)
       {
-        const auto nameBegin = stream.PeekRawData(36);
-        const auto nameEnd = std::find(nameBegin, nameBegin + 36, 0);
+        const auto* const nameBegin = stream.PeekRawData(36);
+        const auto* const nameEnd = std::find(nameBegin, nameBegin + 36, 0);
         Name.assign(nameBegin, nameEnd);
         stream.Skip(36);
         Offset = stream.Read<le_uint32_t>();

@@ -247,7 +247,7 @@ namespace
 
     WidgetOnToolbar AddWidgetOnToolbar(QWidget* widget, bool lastInRow)
     {
-      const auto toolBar = new QToolBar(this);
+      auto* const toolBar = new QToolBar(this);
       toolBar->setObjectName(widget->objectName());
       QSizePolicy sizePolicy(QSizePolicy::Maximum, QSizePolicy::MinimumExpanding);
       sizePolicy.setHorizontalStretch(0);

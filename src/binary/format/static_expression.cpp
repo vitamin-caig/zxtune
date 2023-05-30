@@ -70,10 +70,10 @@ namespace Binary::FormatDSL
 
   std::size_t StaticPattern::FindMaxSuffixMatchSize(std::size_t offset) const
   {
-    const auto begin = Begin();
+    const auto* const begin = Begin();
     std::size_t size = 0;
-    auto suffix = End() - 1;
-    auto pattern = suffix - offset;
+    const auto* suffix = End() - 1;
+    const auto* pattern = suffix - offset;
     while (pattern >= begin && StaticPredicate::AreIntersected(*suffix, *pattern))
     {
       --pattern;

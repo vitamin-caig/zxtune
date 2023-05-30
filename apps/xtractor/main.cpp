@@ -1160,9 +1160,9 @@ private:
   bool ParseCmdline(Strings::Array args, Strings::Array& paths) const
   {
     using namespace boost::program_options;
-    const auto helpKey = "help";
-    const auto inputKey = "input";
-    const auto versionKey = "version";
+    const auto* const helpKey = "help";
+    const auto* const inputKey = "input";
+    const auto* const versionKey = "version";
     options_description options(Strings::Format("Usage:\n{0} [options] [--{1}] <input paths>", args[0], inputKey));
     auto opt = options.add_options();
     opt(helpKey, "show this message");

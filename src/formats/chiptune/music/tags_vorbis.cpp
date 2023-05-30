@@ -24,7 +24,7 @@ namespace Formats::Chiptune::Vorbis
   StringView ReadString(Binary::DataInputStream& payload)
   {
     const std::size_t size = payload.Read<le_uint32_t>();
-    const auto utf8 = safe_ptr_cast<const char*>(payload.ReadData(size).Start());
+    const auto* const utf8 = safe_ptr_cast<const char*>(payload.ReadData(size).Start());
     return StringView(utf8, size);
   }
 

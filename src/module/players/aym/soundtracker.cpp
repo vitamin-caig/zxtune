@@ -408,17 +408,17 @@ namespace Module::SoundTracker
     void SwitchToNewLine(const TrackModelState& state)
     {
       assert(0 == state.Quirk());
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
-        if (const auto chan = line->GetChannel(0))
+        if (const auto* const chan = line->GetChannel(0))
         {
           StateA.SetNewState(*chan);
         }
-        if (const auto chan = line->GetChannel(1))
+        if (const auto* const chan = line->GetChannel(1))
         {
           StateB.SetNewState(*chan);
         }
-        if (const auto chan = line->GetChannel(2))
+        if (const auto* const chan = line->GetChannel(2))
         {
           StateC.SetNewState(*chan);
         }

@@ -273,7 +273,7 @@ namespace Formats::Packed
 
     void DecodeBlock(Binary::InputStream& stream, std::size_t srcSize, void* dst, std::size_t dstSize)
     {
-      const auto src = stream.PeekRawData(srcSize);
+      const auto* const src = stream.PeekRawData(srcSize);
       const auto used = DecodeBlock(src, srcSize, static_cast<uint8_t*>(dst), dstSize);
       stream.Skip(used);
     }

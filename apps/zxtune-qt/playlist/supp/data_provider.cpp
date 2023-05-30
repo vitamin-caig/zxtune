@@ -370,7 +370,7 @@ namespace
       const auto module = Service->OpenModule(std::move(data), subpath, std::move(initialProperties));
       if (subpath.empty())
       {
-        if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
+        if (const auto* const files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))
         {
           Module::ResolveAdditionalFiles(*Source, *files);
         }
@@ -597,7 +597,7 @@ namespace
       const String subPath = location.GetPath()->AsString();
       if (subPath.empty())
       {
-        if (const auto files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
+        if (const auto* const files = dynamic_cast<const Module::AdditionalFiles*>(holder.get()))
         {
           Module::ResolveAdditionalFiles(*Source, *files);
         }

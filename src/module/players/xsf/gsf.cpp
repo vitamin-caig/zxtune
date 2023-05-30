@@ -125,7 +125,7 @@ namespace Module::GSF
     {
       auto* const self = safe_ptr_cast<AVStream*>(in);
       const auto ready = self->Result.size() - self->SamplesToRender;
-      const auto dst = safe_ptr_cast<int16_t*>(&self->Result[ready]);
+      auto* const dst = safe_ptr_cast<int16_t*>(&self->Result[ready]);
       const auto done = std::min(blip_read_samples(left, dst, self->SamplesToRender, true),
                                  blip_read_samples(right, dst + 1, self->SamplesToRender, true));
       self->SamplesToRender -= done;
@@ -176,7 +176,7 @@ namespace Module::GSF
       Core->init(Core);
       mCoreInitConfig(Core, NULL);
       // core owns rom file memory, so copy it
-      const auto romFile = VFileMemChunk(rom.Content.Data.data(), rom.Content.Data.size());
+      auto* const romFile = VFileMemChunk(rom.Content.Data.data(), rom.Content.Data.size());
       Require(romFile != 0);
       Core->loadROM(Core, romFile);
       Reset();

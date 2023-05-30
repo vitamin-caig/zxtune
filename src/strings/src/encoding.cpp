@@ -568,7 +568,7 @@ namespace Strings
 
     void AddLanguage(LanguagesMask lang, const Letter* alphabet)
     {
-      for (auto it = alphabet; *it != LIMITER; ++it)
+      for (const auto* it = alphabet; *it != LIMITER; ++it)
       {
         const auto letter = *it;
         Traits.at(letter.Upper) = CharTraits::Alphabetic | letter.Traits | CharTraits::Capital;
@@ -769,7 +769,7 @@ namespace Strings
   public:
     bool Check(StringView str) const override
     {
-      for (auto it = str.begin(); it != str.end(); ++it)
+      for (const auto* it = str.begin(); it != str.end(); ++it)
       {
         const uint8_t s1 = *it;
         if (s1 == 0x80 || s1 == 0xa0 || s1 >= 0xf0)
@@ -805,7 +805,7 @@ namespace Strings
     {
       std::vector<uint32_t> result;
       result.reserve(str.size());
-      for (auto it = str.begin(); it != str.end(); ++it)
+      for (const auto* it = str.begin(); it != str.end(); ++it)
       {
         const uint8_t s1 = *it;
         if (s1 == 0x5c)
@@ -867,7 +867,7 @@ namespace Strings
 
     std::vector<uint32_t> bestUnicode;
     uint_t minPenalty = std::numeric_limits<uint_t>::max();
-    for (const auto cp : CODEPAGES)
+    for (const auto* const cp : CODEPAGES)
     {
       if (!cp->Check(str))
       {
@@ -921,7 +921,7 @@ namespace Strings
     Strings::Utf8Builder builder;
     builder.Reserve(str.size());
     bool needSwap = false;
-    for (auto it = str.begin(); it != str.end();)
+    for (const auto* it = str.begin(); it != str.end();)
     {
       const uint32_t sym = needSwap ? swapBytes(*it) : (*it);
       ++it;

@@ -48,7 +48,7 @@ namespace Binary
   private:
     static const uint8_t* GetData(JNIEnv* env, jobject byteBuffer)
     {
-      if (const auto addr = env->GetDirectBufferAddress(byteBuffer))
+      if (const auto* const addr = env->GetDirectBufferAddress(byteBuffer))
       {
         return static_cast<const uint8_t*>(addr);
       }

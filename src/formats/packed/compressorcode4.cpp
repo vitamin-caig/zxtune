@@ -100,7 +100,7 @@ namespace Formats::Packed
         {
           return false;
         }
-        const auto retPos = static_cast<const uint8_t*>(header.Padding1) + depackerSize - 256 - 1;
+        const auto* const retPos = static_cast<const uint8_t*>(header.Padding1) + depackerSize - 256 - 1;
         return *retPos == 0xc9;
       }
 

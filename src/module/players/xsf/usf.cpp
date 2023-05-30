@@ -109,8 +109,8 @@ namespace Module::USF
       for (uint32_t doneSamples = 0; doneSamples < samples;)
       {
         const auto toRender = std::min<uint32_t>(samples - doneSamples, 1024);
-        const auto dst = safe_ptr_cast<short int*>(&result[doneSamples]);
-        if (const auto res = ::usf_render(Emu.GetRaw(), dst, toRender, nullptr))
+        auto* const dst = safe_ptr_cast<short int*>(&result[doneSamples]);
+        if (const auto* const res = ::usf_render(Emu.GetRaw(), dst, toRender, nullptr))
         {
           throw MakeFormattedError(THIS_LINE, "USF: failed to render: {}", res);
         }
@@ -124,7 +124,7 @@ namespace Module::USF
       for (uint32_t skippedSamples = 0; skippedSamples < samples;)
       {
         const auto toSkip = std::min<uint32_t>(samples - skippedSamples, 1024);
-        if (const auto res = ::usf_render(Emu.GetRaw(), nullptr, toSkip, nullptr))
+        if (const auto* const res = ::usf_render(Emu.GetRaw(), nullptr, toSkip, nullptr))
         {
           throw MakeFormattedError(THIS_LINE, "USF: failed to skip: {}", res);
         }
@@ -163,7 +163,7 @@ namespace Module::USF
     void DetectSoundFrequency()
     {
       int32_t freq = 0;
-      if (const auto res = ::usf_render(Emu.GetRaw(), nullptr, 0, &freq))
+      if (const auto* const res = ::usf_render(Emu.GetRaw(), nullptr, 0, &freq))
       {
         throw MakeFormattedError(THIS_LINE, "USF: failed to detect frequency: {}", res);
       }

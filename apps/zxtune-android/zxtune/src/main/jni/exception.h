@@ -86,7 +86,7 @@ namespace Jni
 
   inline void Throw(JNIEnv* env, const char* clsName, const char* msg)
   {
-    const auto cls = env->FindClass(clsName);
+    auto* const cls = env->FindClass(clsName);
     env->ThrowNew(cls, msg);
   }
 

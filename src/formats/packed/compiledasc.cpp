@@ -199,10 +199,10 @@ namespace Formats::Packed
       // 20 - author
       // 4  - ignore
       // 20 - title
-      const auto authorStart = info.As<char>() + 19;
-      const auto ignoreStart = authorStart + 20;
-      const auto titleStart = ignoreStart + 4;
-      const auto end = titleStart + 20;
+      const auto* const authorStart = info.As<char>() + 19;
+      const auto* const ignoreStart = authorStart + 20;
+      const auto* const titleStart = ignoreStart + 4;
+      const auto* const end = titleStart + 20;
       const auto isVisible = [](Char c) { return c > ' '; };
       return std::none_of(authorStart, ignoreStart, isVisible) && std::none_of(titleStart, end, isVisible);
     }

@@ -306,14 +306,14 @@ namespace Module::ProTracker3
 
       const Line* GetLine(uint_t row) const override
       {
-        if (const auto cached = Lines.Get(row).get())
+        if (auto* const cached = Lines.Get(row).get())
         {
           return cached;
         }
         else
         {
-          const auto first = First.GetLine(row);
-          const auto second = Second.GetLine(row);
+          const auto* const first = First.GetLine(row);
+          const auto* const second = Second.GetLine(row);
           return Lines.Add(row, MakePtr<Line>(first, second)).get();
         }
       }
@@ -339,14 +339,14 @@ namespace Module::ProTracker3
 
       const Pattern* Get(uint_t idx) const override
       {
-        if (const auto cached = Patterns.Get(idx).get())
+        if (auto* const cached = Patterns.Get(idx).get())
         {
           return cached;
         }
         else
         {
-          const auto first = Delegate->Get(idx);
-          const auto second = Delegate->Get(Base - 1 - idx);
+          const auto* const first = Delegate->Get(idx);
+          const auto* const second = Delegate->Get(Base - 1 - idx);
           return Patterns.Add(idx, MakePtr<Pattern>(*first, *second)).get();
         }
       }

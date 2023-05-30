@@ -197,12 +197,12 @@ namespace Module::ChipTracker
     void GetNewLineState(const TrackModelState& state, DAC::TrackBuilder& track)
     {
       Gliss.fill(GlissData());
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
         {
           DAC::ChannelDataBuilder builder = track.GetChannel(chan);
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, Gliss[chan], builder);
           }

@@ -85,7 +85,7 @@ namespace Module::Mp3
       {
         if (1 == info.channels)
         {
-          const auto pcm = GetTarget();
+          auto* const pcm = GetTarget();
           for (std::size_t idx = resultSamples; idx != 0; --idx)
           {
             const auto mono = pcm[idx - 1];

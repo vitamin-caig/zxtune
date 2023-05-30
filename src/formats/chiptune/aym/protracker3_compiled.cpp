@@ -291,10 +291,10 @@ namespace Formats::Chiptune
     {
       if (const auto* hdr = data.As<RawHeader>())
       {
-        const auto dataBegin = safe_ptr_cast<const uint8_t*>(hdr->Id.data());
-        const auto dataEnd =
+        const auto* const dataBegin = safe_ptr_cast<const uint8_t*>(hdr->Id.data());
+        const auto* const dataEnd =
             dataBegin + std::min(data.Size(), MAX_POSITIONS_COUNT + offsetof(RawHeader, Positions) + 1);
-        const auto lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
+        const auto* const lastPosition = std::find(hdr->Positions, dataEnd, POS_END_MARKER);
         if (lastPosition != dataEnd && std::all_of(hdr->Positions, lastPosition, [](auto b) { return 0 == b % 3; }))
         {
           return lastPosition + 1 - dataBegin;

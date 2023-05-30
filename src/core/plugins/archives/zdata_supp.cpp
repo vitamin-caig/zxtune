@@ -88,9 +88,9 @@ namespace ZXTune::Zdata
     TxtMarker Encode() const
     {
       const RawMarker in = {SIGNATURE, Value};
-      const auto inData = in.Signature.data();
+      const auto* const inData = in.Signature.data();
       TxtMarker out;
-      const auto outData = out.data();
+      auto* const outData = out.data();
       Binary::Base64::Encode(inData, inData + sizeof(in), outData, outData + out.size());
       return out;
     }
@@ -109,8 +109,8 @@ namespace ZXTune::Zdata
     static Header Decode(const TxtHeader& in)
     {
       RawHeader out;
-      const auto inData = in.data();
-      const auto outData = out.Signature.data();
+      const auto* const inData = in.data();
+      auto* const outData = out.Signature.data();
       Binary::Base64::Decode(inData, inData + in.size(), outData, outData + sizeof(out));
       Require(out.Signature == SIGNATURE);
       return Header(out.Crc, out.OriginalSize, out.PackedSize);

@@ -20,7 +20,7 @@ namespace Formats::Chiptune::Id3
 {
   StringView CutValid(StringView str)
   {
-    const auto end =
+    const auto* const end =
         std::find_if(str.begin(), str.end(), [](Char c) { return c < ' ' && c != '\t' && c != '\r' && c != '\n'; });
     return {str.begin(), end};
   }
@@ -236,7 +236,7 @@ namespace Formats::Chiptune::Id3
     {
       return false;
     }
-    const auto sign = stream.PeekRawData(SIGNATURE_SIZE);
+    const auto* const sign = stream.PeekRawData(SIGNATURE_SIZE);
     if (0 == std::memcmp(sign, V1_SIGNATURE, sizeof(V1_SIGNATURE)))
     {
       return ParseV1(stream, target);

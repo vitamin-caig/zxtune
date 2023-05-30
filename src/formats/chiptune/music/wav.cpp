@@ -61,7 +61,7 @@ namespace Formats::Chiptune
       Binary::InputStream stream(data);
       Chunks::Id id;
       static const std::size_t HEADER_SIZE = 8;
-      while (const auto hdr = stream.PeekRawData(HEADER_SIZE))
+      while (const auto* const hdr = stream.PeekRawData(HEADER_SIZE))
       {
         std::memcpy(&id, hdr, sizeof(id));
         const auto size = ReadLE<uint32_t>(hdr + sizeof(id));

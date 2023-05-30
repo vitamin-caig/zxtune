@@ -473,7 +473,7 @@ namespace Formats::Chiptune
           }
           if (titleBegin < gapEnd)
           {
-            const auto titleStart = PeekObject<char>(titleBegin);
+            const auto* const titleStart = PeekObject<char>(titleBegin);
             const StringView title(titleStart, titleStart + gapEnd - titleBegin);
             meta.SetTitle(Strings::OptimizeAscii(title));
           }

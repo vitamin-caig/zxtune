@@ -196,7 +196,7 @@ namespace Formats::Packed
           const TrackInformationBlock::SectorInfo& sectorInfo = trackInfo.Sectors[sector];
           if (const std::size_t sectorSize = sectorInfo.ActualDataSize)
           {
-            const auto sectorData = trackStream.ReadData(sectorSize).As<uint8_t>();
+            const auto* const sectorData = trackStream.ReadData(sectorSize).As<uint8_t>();
             Target.SetSector(Formats::CHS(sectorInfo.Track, sectorInfo.Side, sectorInfo.Sector),
                              Binary::View(sectorData, sectorSize));
           }

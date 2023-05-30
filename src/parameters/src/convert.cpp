@@ -42,7 +42,7 @@ namespace
   inline void DataFromString(StringView val, DataType& res)
   {
     res.resize((val.size() - 1) / 2);
-    auto src = val.begin();
+    const auto* src = val.begin();
     for (auto& re : res)
     {
       const auto highNibble = FromHex(*++src);

@@ -204,7 +204,7 @@ namespace Formats::Chiptune
 
       bool FastCheck(Binary::View data)
       {
-        if (const auto hdr = data.As<RawHeader>())
+        if (const auto* const hdr = data.As<RawHeader>())
         {
           const std::size_t hdrLen = hdr->GetDataOffset();
           if (hdrLen + hdr->PackedSize + FOOTER_SIZE > data.Size())

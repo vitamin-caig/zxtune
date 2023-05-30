@@ -269,11 +269,11 @@ namespace Module::ETracker
   private:
     void GetNewLineState(const TrackModelState& state, SAA::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             SAA::ChannelBuilder channel = track.GetChannel(chan);
             GetNewChannelState(chan, *src, PlayerState[chan], channel);

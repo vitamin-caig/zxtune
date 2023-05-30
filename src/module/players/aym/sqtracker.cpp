@@ -312,14 +312,14 @@ namespace Module::SQTracker
       for (uint_t idx = 0; idx != patAttrs.Channels.size(); ++idx)
       {
         const uint_t chan = patAttrs.Channels.size() - idx - 1;
-        if (const auto line = inLine.GetSubline(chan))
+        if (const auto* const line = inLine.GetSubline(chan))
         {
           const bool enabledEffects = patAttrs.Channels[chan].EnabledEffects;
           if (const uint_t newTempo = enabledEffects ? line->GetTempo() : 0)
           {
             tempo = newTempo;
           }
-          if (const auto inCell = line->GetChannel(0))
+          if (const auto* const inCell = line->GetChannel(0))
           {
             MutableCell& outCell = outLine.AddChannel(chan);
             if (const uint_t tempoAddon = ConvertChannel(*inCell, enabledEffects, outCell))
@@ -573,12 +573,12 @@ namespace Module::SQTracker
 
     void GetNewLineState(const TrackModelState& state, AYM::TrackBuilder& track)
     {
-      if (const auto line = state.LineObject())
+      if (const auto* const line = state.LineObject())
       {
         for (uint_t idx = 0; idx != PlayerState.size(); ++idx)
         {
           const uint_t chan = PlayerState.size() - idx - 1;
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             GetNewChannelState(*src, PlayerState[chan], track);
           }

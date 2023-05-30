@@ -88,7 +88,7 @@ namespace Formats::Chiptune
           return false;
         }
         Stream.Skip(patchMapSize);
-        if (const auto speech = Stream.PeekRawData(sizeof(uint32_t)))
+        if (const auto* const speech = Stream.PeekRawData(sizeof(uint32_t)))
         {
           const auto pos = Stream.GetPosition();
           const uint_t speechSize = Stream.Read<le_uint32_t>();

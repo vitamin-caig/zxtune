@@ -37,7 +37,7 @@ namespace
   public:
     static void Init(JNIEnv* env)
     {
-      const auto tmpClass = env->FindClass("app/zxtune/core/jni/JniPlayer");
+      auto* const tmpClass = env->FindClass("app/zxtune/core/jni/JniPlayer");
       Class = static_cast<jclass>(env->NewGlobalRef(tmpClass));
       Require(Class);
       Constructor = env->GetMethodID(Class, "<init>", "(I)V");

@@ -604,7 +604,7 @@ namespace Module::DigitalMusicMaker
 
     void SynthesizeData(const TrackModelState& state, DAC::TrackBuilder& track) override
     {
-      const auto line = 0 == state.Quirk() ? state.LineObject() : nullptr;
+      const auto* const line = 0 == state.Quirk() ? state.LineObject() : nullptr;
       for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
       {
         DAC::ChannelDataBuilder builder = track.GetChannel(chan);
@@ -614,7 +614,7 @@ namespace Module::DigitalMusicMaker
         // begin note
         if (line)
         {
-          if (const auto src = line->GetChannel(chan))
+          if (const auto* const src = line->GetChannel(chan))
           {
             chanState.OnNote(*src, *Data, builder);
           }

@@ -76,7 +76,7 @@ namespace Sound::File
 
     String Instantiate(const Module::State& state) const
     {
-      if (const auto track = dynamic_cast<const Module::TrackState*>(&state))
+      if (const auto* const track = dynamic_cast<const Module::TrackState*>(&state))
       {
         if (CurPosition.Update(track->Position()) || CurPattern.Update(track->Pattern())
             || CurLine.Update(track->Line()))

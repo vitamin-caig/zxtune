@@ -409,7 +409,7 @@ namespace Module::VideoGameMusic
       : Input(data)
     {
       Input.Seek(0x8);
-      const auto vers = Input.PeekRawData(4);
+      const auto* const vers = Input.PeekRawData(4);
       Version = (vers[0] & 15) + 10 * (vers[0] >> 4) + 100 * (vers[1] & 15) + 1000 * (vers[1] >> 4);
 
       {
@@ -507,7 +507,7 @@ namespace Module::VideoGameMusic
     {
       const auto symbolsAvailable = Input.GetRestSize() / sizeof(le_uint16_t);
       const auto* begin = safe_ptr_cast<const le_uint16_t*>(Input.PeekRawData(symbolsAvailable * sizeof(le_uint16_t)));
-      auto end = std::find(begin, begin + symbolsAvailable, 0);
+      const auto* end = std::find(begin, begin + symbolsAvailable, 0);
       Require(end != begin + symbolsAvailable);
       Input.Skip((end + 1 - begin) * sizeof(*begin));
       return basic_string_view<le_uint16_t>(begin, end);
