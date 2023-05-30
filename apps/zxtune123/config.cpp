@@ -196,9 +196,9 @@ void ParseConfigFile(StringView filename, Parameters::Modifier& result)
   }
 }
 
-void ParseParametersString(Parameters::Identifier pfx, StringView str, Parameters::Modifier& result)
+void ParseParametersString(Parameters::Identifier prefix, StringView str, Parameters::Modifier& result)
 {
   Strings::Map strMap;
-  ParseParametersString(pfx, str, strMap);
+  ParseParametersString(prefix, str, strMap);
   Parameters::Convert(strMap, result);
 }

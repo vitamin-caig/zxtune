@@ -17,5 +17,5 @@
 
 namespace Formats::Chiptune::Vorbis
 {
-  void ParseComment(Binary::DataInputStream& stream, MetaBuilder& target);
+  void ParseComment(Binary::DataInputStream& payload, MetaBuilder& target);
 }  // namespace Formats::Chiptune::Vorbis

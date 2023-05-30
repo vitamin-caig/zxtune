@@ -63,7 +63,7 @@ namespace Parameters
   public:
     static Value* Bind(QAction& action, Container& ctr, Identifier name, bool defValue);
     static Value* Bind(QAbstractButton& button, Container& ctr, Identifier name, bool defValue, IntType oneValue = 1);
-    static Value* Bind(QGroupBox& button, Container& ctr, Identifier name, bool defValue, IntType oneValue = 1);
+    static Value* Bind(QGroupBox& box, Container& ctr, Identifier name, bool defValue, IntType oneValue = 1);
   private slots:
     virtual void Set(bool value) = 0;
   };
@@ -113,7 +113,7 @@ namespace Parameters
     explicit BigIntegerValue(QObject& parent);
 
   public:
-    static Value* Bind(QLineEdit& line, Container& ctr, const IntegerTraits& traits);
+    static Value* Bind(QLineEdit& edit, Container& ctr, const IntegerTraits& traits);
   private slots:
     virtual void Set(const QString& value) = 0;
   };
@@ -125,7 +125,7 @@ namespace Parameters
     explicit StringValue(QObject& parent);
 
   public:
-    static Value* Bind(QLineEdit& line, Container& ctr, Identifier name, StringView defValue);
+    static Value* Bind(QLineEdit& edit, Container& ctr, Identifier name, StringView defValue);
   private slots:
     virtual void Set(const QString& value) = 0;
   };

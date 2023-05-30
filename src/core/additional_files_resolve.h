@@ -25,5 +25,5 @@ namespace Module
   };
 
   //! @throws Error
-  void ResolveAdditionalFiles(const AdditionalFilesSource& source, const AdditionalFiles& target);
+  void ResolveAdditionalFiles(const AdditionalFilesSource& source, const AdditionalFiles& files);
 }  // namespace Module

@@ -107,5 +107,5 @@ namespace Module::DAC
   DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer);
 
   Renderer::Ptr CreateRenderer(Time::Microseconds frameDuration, DataIterator::Ptr iterator,
-                               Devices::DAC::Chip::Ptr chip);
+                               Devices::DAC::Chip::Ptr device);
 }  // namespace Module::DAC
