@@ -188,7 +188,8 @@ namespace Formats::Chiptune
 
       NibbleObject<Max, AltZero>& operator=(uint_t val)
       {
-        return *this = NibbleObject<Max, AltZero>(val);
+        *this = NibbleObject<Max, AltZero>(val);
+        return *this;
       }
 
     private:
