@@ -31,7 +31,7 @@
 namespace Test
 {
   // name is filename[:offset[:size]]
-  Binary::Container::Ptr OpenFile(const std::string& name)
+  inline Binary::Container::Ptr OpenFile(const std::string& name)
   {
     std::vector<std::string> elements;
     Strings::Split(name, ':', elements);
@@ -59,8 +59,8 @@ namespace Test
     // std::cout << "Read " << size << " bytes from " << name << std::endl;
   }
 
-  void TestPacked(const Formats::Packed::Decoder& decoder, const Binary::Container& etalon,
-                  const std::map<std::string, Binary::Container::Ptr>& tests, bool checkCorrupted = true)
+  inline void TestPacked(const Formats::Packed::Decoder& decoder, const Binary::Container& etalon,
+                         const std::map<std::string, Binary::Container::Ptr>& tests, bool checkCorrupted = true)
   {
     std::cout << "Test for packed '" << decoder.GetDescription() << "'" << std::endl;
     for (const auto& test : tests)
@@ -128,8 +128,8 @@ namespace Test
     }
   }
 
-  void TestPacked(const Formats::Packed::Decoder& decoder, const std::string& etalon,
-                  const std::vector<std::string>& tests, bool checkCorrupted = true)
+  inline void TestPacked(const Formats::Packed::Decoder& decoder, const std::string& etalon,
+                         const std::vector<std::string>& tests, bool checkCorrupted = true)
   {
     const auto reference = OpenFile(etalon);
     std::map<std::string, Binary::Container::Ptr> testData;
@@ -181,8 +181,8 @@ namespace Test
     const Binary::View Etalon;
   };
 
-  void TestArchived(const Formats::Archived::Decoder& decoder, const Binary::Container& reference,
-                    const Binary::Container& archive, const std::vector<std::string>& testNames)
+  inline void TestArchived(const Formats::Archived::Decoder& decoder, const Binary::Container& reference,
+                           const Binary::Container& archive, const std::vector<std::string>& testNames)
   {
     std::cout << "Test for container '" << decoder.GetDescription() << "'" << std::endl;
 
@@ -216,8 +216,8 @@ namespace Test
     }
   }
 
-  void TestArchived(const Formats::Archived::Decoder& decoder, const std::string& etalon, const std::string& archive,
-                    const std::vector<std::string>& testNames)
+  inline void TestArchived(const Formats::Archived::Decoder& decoder, const std::string& etalon,
+                           const std::string& archive, const std::vector<std::string>& testNames)
   {
     TestArchived(decoder, *OpenFile(etalon), *OpenFile(archive), testNames);
   }
