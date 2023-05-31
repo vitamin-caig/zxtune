@@ -28,7 +28,7 @@ namespace
   bool ParseFilename(StringView path, L10n::Translation& trans)
   {
     std::vector<StringView> elements;
-    Strings::Split(path, "/\\"_sv, elements);
+    Strings::Split(path, R"(/\)"_sv, elements);
     if (elements.size() == PATH_ELEMENTS)
     {
       const auto& filename = elements[FILENAME_POS];

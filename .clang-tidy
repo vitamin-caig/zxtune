@@ -10,6 +10,7 @@
                     modernize-make-shared,
                     modernize-make-unique,
                     modernize-pass-by-value,
+                    modernize-raw-string-literal,
                     modernize-use-auto,
                     modernize-use-default-member-init,
                     modernize-use-emplace,

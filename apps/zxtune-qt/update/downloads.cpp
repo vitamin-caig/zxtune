@@ -27,7 +27,7 @@ namespace
 
 namespace
 {
-  const QLatin1String CONTENT_FORMAT("([\\w\\d]+)\\s+(revision|version)\\s+(\\d+)");
+  const QLatin1String CONTENT_FORMAT(R"(([\w\d]+)\s+(revision|version)\s+(\d+))");
 
   enum
   {

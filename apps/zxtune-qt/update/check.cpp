@@ -161,7 +161,7 @@ namespace
 
   unsigned short VersionToRevision(const QString& str)
   {
-    static const QLatin1String REV_FORMAT("(\?:r(\?:ev)\?)\?(\\d{4,5}).*");
+    static const QLatin1String REV_FORMAT(R"((?:r(?:ev)?)?(\d{4,5}).*)");
     QRegExp expr(REV_FORMAT);
     if (expr.exactMatch(str))
     {
