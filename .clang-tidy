@@ -48,6 +48,7 @@
                     misc-throw-by-value-catch-by-reference,
                     misc-unconventional-assign-operator,
                     misc-unused-parameters,
+                    misc-unused-using-decls,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

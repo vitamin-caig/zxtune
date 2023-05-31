@@ -25,7 +25,6 @@
 namespace ZXTune
 {
   const Debug::Stream EnumeratorDbg("Core::Enumerator");
-  using Module::translate;
 
   class AllPlugins
     : private ArchivePluginsRegistrator
