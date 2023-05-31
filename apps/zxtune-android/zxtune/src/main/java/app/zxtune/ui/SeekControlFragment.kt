@@ -6,11 +6,7 @@
 package app.zxtune.ui
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.SystemClock
 import android.support.v4.media.MediaMetadataCompat
-import android.support.v4.media.MediaMetadataCompat.METADATA_KEY_DURATION
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.view.LayoutInflater
@@ -21,12 +17,11 @@ import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import app.zxtune.Logger
 import app.zxtune.R
 import app.zxtune.TimeStamp
 import app.zxtune.device.media.MediaModel
+import app.zxtune.device.media.getDuration
+import app.zxtune.device.media.toMediaTime
 import app.zxtune.ui.utils.UiUtils
 
 class SeekControlFragment : Fragment() {
@@ -38,7 +33,6 @@ class SeekControlFragment : Fragment() {
         MediaModel.of(requireActivity()).run {
             val position = PositionControl(view)
             val looping = RepeatModeControl(view)
-            val updating = StateUpdate(position)
 
             controller.observe(viewLifecycleOwner) { controller ->
                 UiUtils.setViewEnabled(view, controller != null)
@@ -46,12 +40,7 @@ class SeekControlFragment : Fragment() {
                 looping.bindController(controller)
             }
             metadata.observe(viewLifecycleOwner, position::initTrack)
-            playbackState.observe(viewLifecycleOwner, updating::update)
-            viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
-                override fun onStop(owner: LifecycleOwner) {
-                    updating.update(null)
-                }
-            })
+            playbackPosition.observe(viewLifecycleOwner, position::update)
         }
 
     private class PositionControl(view: View) {
@@ -65,10 +54,10 @@ class SeekControlFragment : Fragment() {
         }
 
         fun initTrack(metadata: MediaMetadataCompat?) = if (metadata != null) {
-            TimeStamp.fromMilliseconds(metadata.getLong(METADATA_KEY_DURATION)).run {
+            metadata.getDuration().run {
                 totalTime.text = toString()
                 // TODO: use secondary progress to show loop
-                currentPosition.max = toSeconds().toInt()
+                currentPosition.max = toSeekBarItem()
             }
         } else {
             totalTime.setText(R.string.stub_time)
@@ -82,7 +71,7 @@ class SeekControlFragment : Fragment() {
                         seekBar: SeekBar?, progress: Int, fromUser: Boolean
                     ) {
                         if (fromUser) {
-                            transportControls.seekTo(progress * 1000L)
+                            transportControls.seekTo(fromSeekBarItem(progress).toMediaTime())
                         }
                     }
 
@@ -92,9 +81,14 @@ class SeekControlFragment : Fragment() {
             })
         }
 
-        fun update(pos: TimeStamp) {
-            currentPosition.progress = pos.toSeconds().toInt()
-            currentTime.text = pos.toString()
+        fun update(pos: TimeStamp?) {
+            currentPosition.isEnabled = pos != null
+            if (pos != null) {
+                currentPosition.progress = pos.toSeekBarItem()
+                currentTime.text = pos.toString()
+            } else {
+                currentTime.setText(R.string.stub_time)
+            }
         }
     }
 
@@ -136,38 +130,7 @@ class SeekControlFragment : Fragment() {
             else -> null
         }
     }
-
-    private class StateUpdate(pos: PositionControl) {
-        private var posMs = 0L
-        private var speed = 0f
-        private var ts = 0L
-        private val handler = Handler(Looper.getMainLooper())
-        private val task = object : Runnable {
-            override fun run() {
-                try {
-                    val now = SystemClock.elapsedRealtime()
-                    val newPosMs = posMs + ((now - ts) * speed).toLong()
-                    pos.update(TimeStamp.fromMilliseconds(newPosMs))
-                    handler.postDelayed(this, 1000)
-                } catch (e: Exception) {
-                    LOG.w(e) { "updateViewTask.run()" }
-                }
-            }
-        }
-
-        // TODO: also process seeking at StatusCallback.sendState
-        fun update(state: PlaybackStateCompat?) =
-            state?.takeIf { it.state == PlaybackStateCompat.STATE_PLAYING }?.run {
-                posMs = position
-                speed = playbackSpeed
-                ts = lastPositionUpdateTime
-                task.run()
-            } ?: run {
-                handler.removeCallbacks(task)
-            }
-    }
-
-    companion object {
-        private val LOG = Logger(SeekControlFragment::class.java.name)
-    }
 }
+
+private fun TimeStamp.toSeekBarItem() = toSeconds().toInt()
+private fun fromSeekBarItem(pos: Int) = TimeStamp.fromSeconds(pos.toLong())
