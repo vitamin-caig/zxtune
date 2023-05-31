@@ -16,6 +16,7 @@
                     modernize-use-default-member-init,
                     modernize-use-emplace,
                     modernize-use-equals-default,
+                    modernize-use-equals-delete,
                     modernize-use-override,
                     modernize-use-using,
                     performance-for-range-copy,

@@ -47,6 +47,9 @@ namespace Module::Xmp
       ::xmp_free_context(Data);
     }
 
+    BaseContext(const BaseContext& rh) = delete;
+    BaseContext& operator=(const BaseContext& rh) = delete;
+
     void Call(void (*func)(xmp_context))
     {
       func(Data);
@@ -82,9 +85,6 @@ namespace Module::Xmp
     }
 
   private:
-    BaseContext(const BaseContext& rh);
-    void operator=(const BaseContext& rh);
-
     static void CheckError(int code)
     {
       // TODO
