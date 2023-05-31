@@ -182,7 +182,7 @@ namespace
         return Delegate;
       }
 
-      const String GetPath() const
+      String GetPath() const
       {
         return Delegate->Path;
       }

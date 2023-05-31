@@ -329,7 +329,7 @@ namespace Module::VideoGameMusic
       return Value == 0;
     }
 
-    const StringView FindSingleName() const
+    StringView FindSingleName() const
     {
       uint_t mask = 1;
       for (const auto& plat : PLATFORMS)
