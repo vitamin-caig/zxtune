@@ -37,6 +37,12 @@
                     bugprone-branch-clone,
                     bugprone-forward-declaration-namespace,
                     bugprone-forwarding-reference-overload,
+                    bugprone-move-forwarding-reference,
+                    bugprone-parent-virtual-call,
+                    bugprone-sizeof-*,
+                    bugprone-string-constructor,
+                    bugprone-stringview-nullptr,
+                    bugprone-use-after-move,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment
