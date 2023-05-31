@@ -315,12 +315,7 @@ namespace Formats::Chiptune
             out.Properties.Mono = inFrame->GetIsMono();
             target.AddFrame(out);
           }
-          else if (Id3::Parse(Stream, *metaTarget))
-          {
-            metaTarget = &GetStubMetaBuilder();
-            continue;
-          }
-          else if (ApeTag::Parse(Stream, *metaTarget))
+          else if (Id3::Parse(Stream, *metaTarget) || ApeTag::Parse(Stream, *metaTarget))
           {
             metaTarget = &GetStubMetaBuilder();
             continue;

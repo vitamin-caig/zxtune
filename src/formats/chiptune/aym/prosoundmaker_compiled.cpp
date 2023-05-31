@@ -766,11 +766,7 @@ namespace Formats::Chiptune
           {
             continue;
           }
-          if (chan.Offset >= Data.Size())
-          {
-            return false;
-          }
-          else if (PeekByte(chan.Offset) >= 0xfc)
+          if (chan.Offset >= Data.Size() || PeekByte(chan.Offset) >= 0xfc)
           {
             return false;
           }

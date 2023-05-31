@@ -121,15 +121,8 @@ namespace Module::AHX
 
     Time::AtMillisecond At() const override
     {
-      if (Hvl->ht_SongEndReached)
-      {
-        // TODO: investigate
-        return Time::AtMillisecond() + Total();
-      }
-      else
-      {
-        return Time::AtMillisecond() + Total();
-      }
+      // TODO: investigate for Hvl->ht_SongEndReached
+      return Time::AtMillisecond() + Total();
     }
 
     Time::Milliseconds Total() const override

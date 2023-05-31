@@ -80,15 +80,8 @@ namespace Formats::Packed
         const uint_t bitStreamAddr = lastBytesAddr - header.SizeOfPacked;
 
         const uint_t srcPacked = header.SrcPacked;
-        if (bitStreamAddr == srcPacked)
-        {
-          // move forward
-        }
-        else if (lastBytesAddr == srcPacked + 1)
-        {
-          // move backward
-        }
-        else
+        if (bitStreamAddr != srcPacked &&    // move forward
+            lastBytesAddr != srcPacked + 1)  // move backward
         {
           return false;
         }

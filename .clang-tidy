@@ -34,6 +34,7 @@
                     readability-redundant-smartptr-get,
                     readability-simplify-boolean-expr,
                     readability-static-definition-in-anonymous-namespace,
+                    bugprone-branch-clone,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

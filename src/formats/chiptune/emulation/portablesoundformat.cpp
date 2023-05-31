@@ -182,7 +182,7 @@ namespace Formats::Chiptune::PortableSoundFormat
         }
         else if (Tags::Match(name, Tags::ARTIST))
         {
-          meta.SetTitle(value);
+          meta.SetAuthor(value);
         }
         else if (Tags::Match(name, Tags::GAME))
         {
