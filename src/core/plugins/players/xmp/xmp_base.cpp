@@ -228,7 +228,7 @@ namespace Module::Xmp
   class Renderer : public Module::Renderer
   {
   public:
-    Renderer(uint_t channels, Context::Ptr ctx, uint_t samplerate, Parameters::Accessor::Ptr params)
+    Renderer(uint_t /*channels*/, Context::Ptr ctx, uint_t samplerate, Parameters::Accessor::Ptr params)
       : Ctx(std::move(ctx))
       , State(new xmp_frame_info())
       , Params(std::move(params))
