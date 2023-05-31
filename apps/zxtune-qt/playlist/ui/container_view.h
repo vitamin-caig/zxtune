@@ -23,8 +23,6 @@ class QStringList;
 
 namespace Playlist::UI
 {
-  class View;
-
   class ContainerView : public QWidget
   {
     Q_OBJECT
