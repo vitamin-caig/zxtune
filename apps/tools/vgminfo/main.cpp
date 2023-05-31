@@ -663,7 +663,7 @@ namespace
       return true;
     }
 
-    bool ParseBuggyCommand(uint8_t code, Stream& stream)
+    static bool ParseBuggyCommand(uint8_t code, Stream& stream)
     {
       if (code >= 0x40 && code <= 0x4e)
       {

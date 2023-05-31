@@ -278,7 +278,7 @@ namespace
       }
     }
 
-    QVariant GetHeaderText(unsigned column) const
+    static QVariant GetHeaderText(unsigned column)
     {
       switch (column)
       {
@@ -707,7 +707,7 @@ namespace
       }
     }
 
-    Playlist::IO::ExportFlags GetSavePlaylistFlags(int saveCase) const
+    static Playlist::IO::ExportFlags GetSavePlaylistFlags(int saveCase)
     {
       const Parameters::Accessor::Ptr options = GlobalOptions::Instance().Get();
       Parameters::IntType val = Parameters::ZXTuneQT::Playlist::Store::PROPERTIES_DEFAULT;

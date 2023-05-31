@@ -251,7 +251,7 @@ namespace Module::Flac
       self.Chunk.clear();
     }
 
-    void RenderMono(const int32_t* mono, Sound::Sample* target, uint_t samples, uint_t width)
+    static void RenderMono(const int32_t* mono, Sound::Sample* target, uint_t samples, uint_t width)
     {
       switch (width)
       {
@@ -275,7 +275,8 @@ namespace Module::Flac
       }
     }
 
-    void RenderStereo(const int32_t* left, const int32_t* right, Sound::Sample* target, uint_t samples, uint_t width)
+    static void RenderStereo(const int32_t* left, const int32_t* right, Sound::Sample* target, uint_t samples,
+                             uint_t width)
     {
       switch (width)
       {

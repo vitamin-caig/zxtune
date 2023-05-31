@@ -210,7 +210,7 @@ namespace Module::ChipTracker
       }
     };
 
-    void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
     {
       if (const bool* enabled = src.GetEnabled())
       {

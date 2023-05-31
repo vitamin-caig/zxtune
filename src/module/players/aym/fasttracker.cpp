@@ -446,7 +446,7 @@ namespace Module::FastTracker
       }
     }
 
-    void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
+    static void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
     {
       const Ornament::Line& curOrnamentLine = *dst.OrnamentIterator.GetLine();
       const int_t noteAddon = dst.NoteAccumulator.Update(curOrnamentLine.NoteAddon, curOrnamentLine.KeepNoteAddon);

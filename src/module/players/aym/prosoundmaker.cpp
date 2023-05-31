@@ -368,7 +368,7 @@ namespace Module::ProSoundMaker
       }
     }
 
-    void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
+    static void SynthesizeChannel(ChannelState& dst, AYM::ChannelBuilder& channel, AYM::TrackBuilder& track)
     {
       const bool hasEnvelope = dst.Envelope.Enabled();
       const Ornament& curOrnament = *dst.Orn.Current;

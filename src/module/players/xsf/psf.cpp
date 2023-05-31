@@ -153,7 +153,7 @@ namespace Module::PSF
     }
 
   public:
-    std::unique_ptr<uint8_t[]> CreatePSX(int version) const
+    static std::unique_ptr<uint8_t[]> CreatePSX(int version)
     {
       std::unique_ptr<uint8_t[]> res(new uint8_t[::psx_get_state_size(version)]);
       ::psx_clear_state(res.get(), version);

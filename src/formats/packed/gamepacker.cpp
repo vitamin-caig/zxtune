@@ -97,7 +97,7 @@ namespace Formats::Packed
           return PackedSource - selfAddr;
         }
 
-        uint_t GetPackedDataSize() const
+        static uint_t GetPackedDataSize()
         {
           return 0;
         }

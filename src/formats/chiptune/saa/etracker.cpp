@@ -306,7 +306,7 @@ namespace Formats::Chiptune
         ReadSampleDecodeTable();
       }
 
-      void ParseCommonProperties(Builder& builder) const
+      static void ParseCommonProperties(Builder& builder)
       {
         builder.SetInitialTempo(6);
         MetaBuilder& meta = builder.GetMetaBuilder();

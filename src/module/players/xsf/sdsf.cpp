@@ -72,7 +72,7 @@ namespace Module::SDSF
       Dreamcast = 2,
     };
 
-    std::unique_ptr<uint8_t[]> CreateSega(Version version) const
+    static std::unique_ptr<uint8_t[]> CreateSega(Version version)
     {
       std::unique_ptr<uint8_t[]> res(new uint8_t[::sega_get_state_size(static_cast<uint8>(version))]);
       ::sega_clear_state(res.get(), static_cast<uint8>(version));

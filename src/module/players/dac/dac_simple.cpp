@@ -137,7 +137,7 @@ namespace Module::DAC
       }
     }
 
-    void GetNewChannelState(const Cell& src, ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, ChannelDataBuilder& builder)
     {
       if (const bool* enabled = src.GetEnabled())
       {

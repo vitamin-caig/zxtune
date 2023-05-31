@@ -210,7 +210,7 @@ namespace Module::SQDigitalTracker
       }
     }
 
-    void GetNewChannelState(const Cell& src, VolumeState& vol, DAC::ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, VolumeState& vol, DAC::ChannelDataBuilder& builder)
     {
       if (const bool* enabled = src.GetEnabled())
       {

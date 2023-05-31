@@ -825,7 +825,7 @@ namespace Module::TFMMusicMaker
       }
     }
 
-    void LoadInstrument(const int_t* multiplies[], ChannelState& dst, TFM::ChannelBuilder& channel)
+    static void LoadInstrument(const int_t* multiplies[], ChannelState& dst, TFM::ChannelBuilder& channel)
     {
       const Instrument& ins = *dst.CurInstrument;
       channel.SetupConnection(dst.Algorithm = ins.Algorithm, ins.Feedback);
@@ -966,7 +966,7 @@ namespace Module::TFMMusicMaker
       return RawNote(octave, freq);
     }
 
-    void SetLevel(const ChannelState& state, TFM::ChannelBuilder& channel) const
+    static void SetLevel(const ChannelState& state, TFM::ChannelBuilder& channel)
     {
       static const uint_t MIXER_TABLE[8] = {0x8, 0x8, 0x8, 0x8, 0x0c, 0xe, 0xe, 0x0f};
       static const uint_t LEVELS_TABLE[32] = {0x00, 0x00, 0x58, 0x5a, 0x5b, 0x5d, 0x5f, 0x60, 0x61, 0x62, 0x64,

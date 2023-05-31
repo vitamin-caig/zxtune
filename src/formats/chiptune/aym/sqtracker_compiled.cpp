@@ -374,7 +374,7 @@ namespace Formats::Chiptune
         Ranges.AddService(0, sizeof(Source));
       }
 
-      void ParseCommonProperties(Builder& builder) const
+      static void ParseCommonProperties(Builder& builder)
       {
         builder.GetMetaBuilder().SetProgram(PROGRAM);
       }

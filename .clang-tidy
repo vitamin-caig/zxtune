@@ -11,6 +11,7 @@
                     readability-avoid-const-params-in-decls,
                     readability-braces-around-statements,
                     readability-const-return-type,
+                    -readability-convert-member-functions-to-static,
                     #readability-container-size-empty,
                     readability-inconsistent-declaration-parameter-name,
                     readability-isolate-declaration,

@@ -146,7 +146,7 @@ namespace Module::ASAP
     }
 
   private:
-    void CheckError(bool ok, const char* msg)
+    static void CheckError(bool ok, const char* msg)
     {
       if (!ok)
       {

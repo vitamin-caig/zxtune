@@ -75,7 +75,7 @@ namespace Devices::Z80
       return 0xff;
     }
 
-    Z80EX_BYTE Read(ChipIO& io, Z80EX_WORD addr) const
+    static Z80EX_BYTE Read(ChipIO& io, Z80EX_WORD addr)
     {
       return io.Read(addr);
     }

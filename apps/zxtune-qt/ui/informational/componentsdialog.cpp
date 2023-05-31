@@ -148,7 +148,7 @@ namespace
       }
     }
 
-    void FillModuleType(uint_t type, QTreeWidgetItem& root)
+    static void FillModuleType(uint_t type, QTreeWidgetItem& root)
     {
       using namespace ZXTune::Capabilities::Module::Type;
       AddCapability(1 << type, 1 << TRACK, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Track structure"));
@@ -157,7 +157,7 @@ namespace
       AddCapability(1 << type, 1 << MULTI, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Multistructure"));
     }
 
-    void FillConversionCapabilities(uint_t caps, QTreeWidgetItem& root)
+    static void FillConversionCapabilities(uint_t caps, QTreeWidgetItem& root)
     {
       using namespace ZXTune::Capabilities::Module::Conversion;
       AddCapability(caps, OUT, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Streamed .out format"));
@@ -169,7 +169,7 @@ namespace
       AddCapability(caps, FYM, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Compressed .fym format"));
     }
 
-    void FillModuleTraits(uint_t traits, QTreeWidgetItem& root)
+    static void FillModuleTraits(uint_t traits, QTreeWidgetItem& root)
     {
       using namespace ZXTune::Capabilities::Module::Traits;
       AddCapability(traits, MULTIFILE, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Multiple files layout"));
@@ -199,7 +199,7 @@ namespace
       FillContainerTraits(caps, *pluginItem);
     }
 
-    void FillContainerTraits(uint_t caps, QTreeWidgetItem& root) const
+    static void FillContainerTraits(uint_t caps, QTreeWidgetItem& root)
     {
       using namespace ZXTune::Capabilities::Container::Traits;
       AddCapability(caps, DIRECTORIES, root, QT_TRANSLATE_NOOP("ComponentsDialog", "Directories support"));
@@ -297,7 +297,7 @@ namespace
       }
     }
 
-    void FillBackendFeatures(uint_t feats, QTreeWidgetItem& root)
+    static void FillBackendFeatures(uint_t feats, QTreeWidgetItem& root)
     {
       AddCapability(feats, Sound::CAP_FEAT_HWVOLUME, root,
                     QT_TRANSLATE_NOOP("ComponentsDialog", "Hardware volume control"));

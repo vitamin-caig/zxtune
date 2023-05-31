@@ -325,7 +325,7 @@ namespace Module::AYEMUL
       Selector = 0;
     }
 
-    uint8_t Read(uint16_t /*port*/)
+    static uint8_t Read(uint16_t /*port*/)
     {
       return 0xff;
     }

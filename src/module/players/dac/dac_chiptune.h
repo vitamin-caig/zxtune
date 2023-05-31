@@ -36,7 +36,7 @@ namespace Module::DAC
     using Ptr = std::shared_ptr<const Chiptune>;
     virtual ~Chiptune() = default;
 
-    Time::Microseconds GetFrameDuration() const
+    static Time::Microseconds GetFrameDuration()
     {
       return BASE_FRAME_DURATION;
     }

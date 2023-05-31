@@ -51,7 +51,7 @@ namespace
       return Time::AtMillisecond() + SliderPositionToTime(pos);
     }
 
-    Time::Milliseconds SliderPositionToTime(int pos) const
+    static Time::Milliseconds SliderPositionToTime(int pos)
     {
       return PRECISION * pos;
     }

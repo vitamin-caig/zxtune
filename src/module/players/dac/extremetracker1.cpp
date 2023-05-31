@@ -201,7 +201,7 @@ namespace Module::ExtremeTracker1
       }
     }
 
-    void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
+    static void GetNewChannelState(const Cell& src, GlissData& gliss, DAC::ChannelDataBuilder& builder)
     {
       if (src.HasData())
       {

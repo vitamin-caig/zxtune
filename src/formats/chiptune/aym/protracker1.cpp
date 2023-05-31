@@ -148,12 +148,12 @@ namespace Formats::Chiptune
       using Line = int8_t;
       Line Data[1];
 
-      std::size_t GetSize() const
+      static std::size_t GetSize()
       {
         return MAX_SAMPLE_SIZE;
       }
 
-      std::size_t GetUsedSize() const
+      static std::size_t GetUsedSize()
       {
         return MAX_SAMPLE_SIZE;
       }

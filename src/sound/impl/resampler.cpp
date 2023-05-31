@@ -97,7 +97,7 @@ namespace Sound
       Require(freqIn == freqOut);
     }
 
-    Chunk Apply(Chunk data)
+    static Chunk Apply(Chunk data)
     {
       return Chunk(std::move(data));
     }

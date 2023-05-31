@@ -236,7 +236,7 @@ namespace Module::ProTracker2
       }
     }
 
-    void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
+    static void GetNewChannelState(const Cell& src, ChannelState& dst, AYM::TrackBuilder& track)
     {
       if (const bool* enabled = src.GetEnabled())
       {

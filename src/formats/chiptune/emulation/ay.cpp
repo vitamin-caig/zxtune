@@ -170,7 +170,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      const uint8_t* GetPointerNocheck(const be_int16_t* beField) const
+      static const uint8_t* GetPointerNocheck(const be_int16_t* beField)
       {
         const int16_t relOffset = *beField;
         return safe_ptr_cast<const uint8_t*>(beField) + relOffset;

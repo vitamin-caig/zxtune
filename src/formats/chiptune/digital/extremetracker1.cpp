@@ -496,7 +496,7 @@ namespace Formats::Chiptune
         }
       }
 
-      std::size_t GetSize() const
+      static std::size_t GetSize()
       {
         return MODULE_SIZE;
       }

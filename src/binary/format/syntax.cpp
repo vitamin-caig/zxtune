@@ -270,12 +270,12 @@ namespace Binary::FormatDSL
       return Prec;
     }
 
-    std::size_t Parameters() const
+    static std::size_t Parameters()
     {
       return 2;
     }
 
-    bool LeftAssoc() const
+    static bool LeftAssoc()
     {
       return true;
     }

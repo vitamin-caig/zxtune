@@ -223,7 +223,7 @@ namespace Formats::Archived
         Read(res.ObjectName);
       }
 
-      void Read(Property& res)
+      static void Read(Property& res)
       {
         Require(!res.IsLimiter());
         // TODO: implement
