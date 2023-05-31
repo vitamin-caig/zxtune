@@ -174,10 +174,10 @@ namespace Module::GSF
       : Core(GBACoreCreate())
     {
       Core->init(Core);
-      mCoreInitConfig(Core, NULL);
+      mCoreInitConfig(Core, nullptr);
       // core owns rom file memory, so copy it
       auto* const romFile = VFileMemChunk(rom.Content.Data.data(), rom.Content.Data.size());
-      Require(romFile != 0);
+      Require(romFile != nullptr);
       Core->loadROM(Core, romFile);
       Reset();
     }

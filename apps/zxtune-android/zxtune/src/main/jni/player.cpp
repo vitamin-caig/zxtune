@@ -340,7 +340,7 @@ namespace
       : Env(env)
       , Storage(storage)
       , Length(Env->GetArrayLength(Storage))
-      , Content(static_cast<ResultType*>(Env->GetPrimitiveArrayCritical(Storage, 0)))
+      , Content(static_cast<ResultType*>(Env->GetPrimitiveArrayCritical(Storage, nullptr)))
     {}
 
     ~AutoArray()
@@ -353,12 +353,12 @@ namespace
 
     operator bool() const
     {
-      return Length != 0 && Content != 0;
+      return Length != 0 && Content != nullptr;
     }
 
     ResultType* Data() const
     {
-      return Length ? Content : 0;
+      return Length ? Content : nullptr;
     }
 
     std::size_t Size() const

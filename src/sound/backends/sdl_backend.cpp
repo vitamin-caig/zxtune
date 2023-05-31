@@ -209,7 +209,7 @@ namespace Sound::Sdl
       format.callback = OnBuffer;
       format.userdata = &Queue;
       Queue.SetSize(backend.GetBuffersCount());
-      CheckCall(SdlApi->SDL_OpenAudio(&format, 0) >= 0, THIS_LINE);
+      CheckCall(SdlApi->SDL_OpenAudio(&format, nullptr) >= 0, THIS_LINE);
       SdlApi->SDL_PauseAudio(0);
     }
 

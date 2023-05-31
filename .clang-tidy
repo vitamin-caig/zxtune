@@ -17,6 +17,7 @@
                     modernize-use-emplace,
                     modernize-use-equals-default,
                     modernize-use-equals-delete,
+                    modernize-use-nullptr,
                     modernize-use-override,
                     modernize-use-using,
                     performance-for-range-copy,

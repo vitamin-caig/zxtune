@@ -72,7 +72,7 @@ namespace Sound::OpenAl
     ActiveContext(Api& api, ALCdevice& device)
       : ApiRef(api)
       , Previous(OalApi.alcGetCurrentContext())
-      , Current(OalApi.alcCreateContext(&device, 0), [&api](ALCcontext* ctx) { api.alcDestroyContext(ctx); })
+      , Current(OalApi.alcCreateContext(&device, nullptr), [&api](ALCcontext* ctx) { api.alcDestroyContext(ctx); })
     {
       Dbg("Create context instead of current {}", static_cast<void*>(Previous));
       if (!Current)
@@ -275,7 +275,7 @@ namespace Sound::OpenAl
   public:
     Device(Api& api, const String& deviceName)
       : ApiRef(api)
-      , Dev(OalApi.alcOpenDevice(deviceName.empty() ? 0 : deviceName.c_str()),
+      , Dev(OalApi.alcOpenDevice(deviceName.empty() ? nullptr : deviceName.c_str()),
             [&api](ALCdevice* dev) { api.alcCloseDevice(dev); })
     {
       Dbg("Open device {}", deviceName);
@@ -463,7 +463,7 @@ namespace Sound
       try
       {
         const Api::Ptr api = LoadDynamicApi();
-        if (const char* str = api->alcGetString(0, ALC_DEVICE_SPECIFIER))
+        if (const char* str = api->alcGetString(nullptr, ALC_DEVICE_SPECIFIER))
         {
           while (*str)
           {

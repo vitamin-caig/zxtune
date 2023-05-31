@@ -80,7 +80,7 @@ namespace Sound::Win32
 
     WaveOutDevice(Api::Ptr api, const ::WAVEFORMATEX& format, UINT device)
       : WinApi(std::move(api))
-      , Handle(0)
+      , Handle(nullptr)
     {
       Dbg("Opening device {} ({} Hz)", device, format.nSamplesPerSec);
       CheckMMResult(
@@ -107,7 +107,7 @@ namespace Sound::Win32
         Dbg("Closing device");
         CheckMMResult(WinApi->waveOutReset(Handle), THIS_LINE);
         CheckMMResult(WinApi->waveOutClose(Handle), THIS_LINE);
-        Handle = 0;
+        Handle = nullptr;
       }
     }
 

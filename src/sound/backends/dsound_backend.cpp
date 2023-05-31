@@ -100,9 +100,9 @@ namespace Sound::DirectSound
   DirectSoundPtr OpenDevice(Api& api, StringView device)
   {
     Dbg("OpenDevice({})", device);
-    IDirectSound* raw = 0;
+    IDirectSound* raw = nullptr;
     const std::unique_ptr<GUID> deviceUuid = String2Guid(device);
-    CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, NULL), THIS_LINE);
+    CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, nullptr), THIS_LINE);
     const DirectSoundPtr result = DirectSoundPtr(raw, &ReleaseRef);
     CheckWin32Error(result->SetCooperativeLevel(GetWindowHandle(), DSSCL_PRIORITY), THIS_LINE);
     Dbg("Opened");
@@ -129,8 +129,8 @@ namespace Sound::DirectSound
     buffer.dwBufferBytes = format.nAvgBytesPerSec * bufferInMs / 1000;
     buffer.lpwfxFormat = &format;
 
-    LPDIRECTSOUNDBUFFER rawSecondary = 0;
-    CheckWin32Error(device.CreateSoundBuffer(&buffer, &rawSecondary, NULL), THIS_LINE);
+    LPDIRECTSOUNDBUFFER rawSecondary = nullptr;
+    CheckWin32Error(device.CreateSoundBuffer(&buffer, &rawSecondary, nullptr), THIS_LINE);
     assert(rawSecondary);
     Dbg("Created");
     return std::shared_ptr<IDirectSoundBuffer>(rawSecondary, &ReleaseRef);
@@ -144,8 +144,8 @@ namespace Sound::DirectSound
     buffer.dwSize = sizeof(buffer);
     buffer.dwFlags = DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_PRIMARYBUFFER;
 
-    LPDIRECTSOUNDBUFFER rawPrimary = 0;
-    CheckWin32Error(device.CreateSoundBuffer(&buffer, &rawPrimary, NULL), THIS_LINE);
+    LPDIRECTSOUNDBUFFER rawPrimary = nullptr;
+    CheckWin32Error(device.CreateSoundBuffer(&buffer, &rawPrimary, nullptr), THIS_LINE);
     assert(rawPrimary);
     Dbg("Created");
     return std::shared_ptr<IDirectSoundBuffer>(rawPrimary, &ReleaseRef);
@@ -184,8 +184,8 @@ namespace Sound::DirectSound
           return;
         }
 
-        LPVOID part1Data = 0;
-        LPVOID part2Data = 0;
+        LPVOID part1Data = nullptr;
+        LPVOID part2Data = nullptr;
         DWORD part1Size = 0;
         DWORD part2Size = 0;
 
@@ -217,8 +217,8 @@ namespace Sound::DirectSound
 
     void Pause()
     {
-      LPVOID part1Data = 0;
-      LPVOID part2Data = 0;
+      LPVOID part1Data = nullptr;
+      LPVOID part2Data = nullptr;
       DWORD part1Size = 0;
       DWORD part2Size = 0;
       for (;;)
@@ -267,7 +267,7 @@ namespace Sound::DirectSound
     std::size_t GetBytesToWrite() const
     {
       DWORD playCursor = 0;
-      CheckWin32Error(Buff->GetCurrentPosition(&playCursor, NULL), THIS_LINE);
+      CheckWin32Error(Buff->GetCurrentPosition(&playCursor, nullptr), THIS_LINE);
       if (Cursor > playCursor)  // go ahead
       {
         return BuffSize - (Cursor - playCursor);
