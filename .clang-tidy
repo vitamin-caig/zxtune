@@ -44,6 +44,7 @@
                     bugprone-stringview-nullptr,
                     bugprone-use-after-move,
                     misc-definitions-in-headers,
+                    misc-redundant-expression,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

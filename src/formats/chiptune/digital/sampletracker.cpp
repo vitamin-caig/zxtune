@@ -263,7 +263,7 @@ namespace Formats::Chiptune
         const SampleInfo& info = Source.SampleDescriptions[samIdx];
         const std::size_t absAddr = 256 * info.AddrHi;
         const std::size_t maxSize = 128 * info.SizeHiDoubled;
-        if (!absAddr || absAddr < SAMPLES_ADDR || absAddr + maxSize > SAMPLES_LIMIT_ADDR)
+        if (absAddr < SAMPLES_ADDR || absAddr + maxSize > SAMPLES_LIMIT_ADDR)
         {
           return Binary::View(nullptr, 0);
         }
