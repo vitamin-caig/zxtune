@@ -15,13 +15,13 @@
 // library includes
 #include <platform/application.h>
 // platform-dependent includes
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
 // std includes
+#include <cerrno>
+#include <cstdio>
+#include <cstring>
 #include <iostream>
 
 namespace

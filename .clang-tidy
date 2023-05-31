@@ -5,6 +5,7 @@
                     clang-analyzer-core.*,
                     modernize-avoid-bind,
                     modernize-concat-nested-namespaces,
+                    modernize-deprecated-headers,
                     modernize-loop-convert,
                     modernize-make-shared,
                     modernize-make-unique,

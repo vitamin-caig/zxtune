@@ -23,7 +23,6 @@
 #include <sound/render_params.h>
 #include <sound/sound_parameters.h>
 // platform-specific includes
-#include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <sys/poll.h>
@@ -32,6 +31,7 @@
 #include <unistd.h>
 // std includes
 #include <algorithm>
+#include <cerrno>
 #include <cstring>
 #include <mutex>
 
