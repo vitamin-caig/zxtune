@@ -46,9 +46,9 @@ public:
 
   //! @brief Adding suberror
   //! @param e Reference to other object. Empty objects are ignored
-  //! @return Modified current object
+  //! @return Lightweight copy of current possibly modified object
   //! @note Error uses shared references scheme, so it's safe to use parameter again
-  Error& AddSuberror(const Error& e) noexcept
+  Error AddSuberror(const Error& e) noexcept
   {
     // do not add/add to 'success' error
     if (e && *this)
@@ -60,7 +60,7 @@ public:
       }
       ptr->Suberror = e.ErrorMeta;
     }
-    return *this;
+    return Error(ErrorMeta);
   }
 
   Error GetSuberror() const noexcept
