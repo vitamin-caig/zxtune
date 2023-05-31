@@ -52,7 +52,7 @@ namespace IO
     Identifier::Ptr ResolveUri(StringView uri) const override
     {
       Dbg("Resolving uri '{}'", uri);
-      if (const Identifier::Ptr id = Resolve(uri))
+      if (auto id = Resolve(uri))
       {
         return id;
       }

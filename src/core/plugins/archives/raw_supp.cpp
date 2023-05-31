@@ -396,7 +396,7 @@ namespace ZXTune::Raw
 
     Analysis::Path::Ptr GetPath() const override
     {
-      const Analysis::Path::Ptr parentPath = Parent->GetPath();
+      auto parentPath = Parent->GetPath();
       if (std::size_t offset = Subdata->GetOffset())
       {
         const auto subPath = CreateFilename(offset);
@@ -407,7 +407,7 @@ namespace ZXTune::Raw
 
     Analysis::Path::Ptr GetPluginsChain() const override
     {
-      const Analysis::Path::Ptr parentPlugins = Parent->GetPluginsChain();
+      auto parentPlugins = Parent->GetPluginsChain();
       if (Subdata->GetOffset())
       {
         return parentPlugins->Append(ID);
@@ -706,7 +706,7 @@ namespace ZXTune::Raw
       {
         const Time::Timer detectTimer;
         const auto& plugin = iter.GetPlugin();
-        const auto result = plugin.Detect(Params, input, callback);
+        auto result = plugin.Detect(Params, input, callback);
         const auto id = plugin.Id();
         if (const auto usedSize = result->GetMatchedDataSize())
         {

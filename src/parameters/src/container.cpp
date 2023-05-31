@@ -235,7 +235,7 @@ namespace Parameters
     {
       return MakePtr<StorageContainer>(*storage);
     }
-    const auto res = Container::Create();
+    auto res = Container::Create();
     source.Process(*res);
     return res;
   }

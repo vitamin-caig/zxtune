@@ -315,7 +315,7 @@ namespace Formats::Archived
           ReadProperties(stream);
           const ClassName& cls = GetClass(exp.Class);
           Dbg("Entry[{}] data at {} size={} class={}", idx, offset, size, cls.Name);
-          const Binary::Container::Ptr result = cls.IsMusic() ? ExtractMusicData(stream) : stream.ReadRestContainer();
+          auto result = cls.IsMusic() ? ExtractMusicData(stream) : stream.ReadRestContainer();
           UsedSize = std::max(UsedSize, offset + stream.GetMaxUsedSize());
           return result;
         }

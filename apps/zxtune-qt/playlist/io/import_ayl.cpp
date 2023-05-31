@@ -405,7 +405,7 @@ namespace
 
   Parameters::Container::Ptr CreateProperties(const VersionLayer& version, const AYLContainer& aylItems)
   {
-    const Parameters::Container::Ptr properties = Parameters::Container::Create();
+    auto properties = Parameters::Container::Create();
     ParametersFilter filter(version, *properties);
     const Strings::Map& listParams = aylItems.GetParameters();
     Parameters::Convert(listParams, filter);

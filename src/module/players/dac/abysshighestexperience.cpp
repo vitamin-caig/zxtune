@@ -45,7 +45,7 @@ namespace Module::AHX
       hvl_InitReplayer();
       initialized = true;
     }
-    const HvlPtr result =
+    auto result =
         HvlPtr(hvl_ParseTune(static_cast<const uint8*>(data.Start()), data.Size(), samplerate, MONO), &hvl_FreeTune);
     Require(result != nullptr);
     return result;

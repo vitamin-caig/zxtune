@@ -79,7 +79,7 @@ namespace
 
     QString GetFilenameTemplate() const override
     {
-      const QString name = FileTemplate->currentText();
+      auto name = FileTemplate->currentText();
       if (0 == name.size())
       {
         return name;

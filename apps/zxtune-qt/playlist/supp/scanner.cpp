@@ -90,7 +90,7 @@ namespace
     {
       while (NoCurrentDir())
       {
-        const QString res = Delegate.GetNext();
+        auto res = Delegate.GetNext();
         if (IsDir(res))
         {
           OpenDir(res);

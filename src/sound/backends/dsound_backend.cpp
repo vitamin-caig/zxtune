@@ -103,7 +103,7 @@ namespace Sound::DirectSound
     IDirectSound* raw = nullptr;
     const std::unique_ptr<GUID> deviceUuid = String2Guid(device);
     CheckWin32Error(api.DirectSoundCreate(deviceUuid.get(), &raw, nullptr), THIS_LINE);
-    const DirectSoundPtr result = DirectSoundPtr(raw, &ReleaseRef);
+    auto result = DirectSoundPtr(raw, &ReleaseRef);
     CheckWin32Error(result->SetCooperativeLevel(GetWindowHandle(), DSSCL_PRIORITY), THIS_LINE);
     Dbg("Opened");
     return result;

@@ -226,7 +226,7 @@ namespace Formats::Archived::Fmod
   {
     try
     {
-      if (const auto result = Ver5::Format(rawData).Parse(target))
+      if (auto result = Ver5::Format(rawData).Parse(target))
       {
         return result;
       }

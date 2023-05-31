@@ -506,9 +506,8 @@ namespace Formats::Chiptune
 
     Traits GetOldVersionTraits(const RawHeader& hdr)
     {
-      const String programName = hdr.Id.Check() ? Strings::Format(EDITOR, StringView(hdr.Id.Version)) : EDITOR_OLD;
-      const Traits res = {programName, 0, 0};
-      return res;
+      String programName = hdr.Id.Check() ? Strings::Format(EDITOR, StringView(hdr.Id.Version)) : EDITOR_OLD;
+      return {std::move(programName), 0, 0};
     }
 
     Traits GetNewVersionTraits(const RawHeader& hdr)

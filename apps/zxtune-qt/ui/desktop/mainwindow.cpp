@@ -32,6 +32,7 @@
 #include "urls.h"
 // common includes
 #include <contract.h>
+#include <make_ptr.h>
 // library includes
 #include <debug/log.h>
 #include <platform/version/api.h>
@@ -52,7 +53,7 @@ namespace
 
   UI::Language::Ptr CreateLanguage(const Parameters::Container& options)
   {
-    const UI::Language::Ptr res = UI::Language::Create();
+    auto res = UI::Language::Create();
     Parameters::StringType lang = FromQString(res->GetSystem());
     options.FindValue(Parameters::ZXTuneQT::UI::LANGUAGE, lang);
     res->Set(ToQString(lang));
@@ -302,7 +303,7 @@ namespace
 
 MainWindow::Ptr DesktopMainWindow::Create(Parameters::Container::Ptr options)
 {
-  const MainWindow::Ptr res = new DesktopMainWindowImpl(std::move(options));
+  auto res = MakePtr<DesktopMainWindowImpl>(std::move(options));
   res->show();
   return res;
 }

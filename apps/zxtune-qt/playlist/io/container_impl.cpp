@@ -201,7 +201,7 @@ namespace
 
     Parameters::Container::Ptr GetParameters() const
     {
-      const Parameters::Container::Ptr res = Parameters::Container::Create();
+      auto res = Parameters::Container::Create();
       Params->Process(*res);
       return res;
     }

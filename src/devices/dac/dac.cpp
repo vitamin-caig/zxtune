@@ -215,7 +215,7 @@ namespace Devices::DAC
     FastSample::Ptr Get(std::size_t idx) const
     {
       static FastSample STUB;
-      if (const FastSample::Ptr val = idx < Content.size() ? Content[idx] : FastSample::Ptr())
+      if (auto val = idx < Content.size() ? Content[idx] : FastSample::Ptr())
       {
         return val;
       }

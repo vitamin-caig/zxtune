@@ -555,6 +555,7 @@ namespace Formats::Archived
       const DataBlocks Blocks;
     };
 
+    // TODO: StringView
     String GenerateChunkName(const Chunk& ch)
     {
       std::array<char, sizeof(ch.Id)> syms;
@@ -565,7 +566,7 @@ namespace Formats::Archived
     template<class T>
     String GenerateChunkName(const Chunk& ch, const T& suffix)
     {
-      const String base = GenerateChunkName(ch);
+      auto base = GenerateChunkName(ch);
       if (ch.Id == ChunkATASPRAM::SIGNATURE || ch.Id == ChunkCFRAM::SIGNATURE || ch.Id == ChunkDIVIDERAMPAGE::SIGNATURE
           || ch.Id == ChunkDOCK::SIGNATURE || ch.Id == ChunkGSRAMPAGE::SIGNATURE || ch.Id == ChunkRAMPAGE::SIGNATURE)
       {

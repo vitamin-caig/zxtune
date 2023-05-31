@@ -176,7 +176,7 @@ namespace
           Dbg("Trying backend {}", id);
           try
           {
-            const Sound::Backend::Ptr result = Service->CreateBackend(id, module, callback);
+            auto result = Service->CreateBackend(id, module, callback);
             Dbg("Success!");
             UsedId = id;
             return result;

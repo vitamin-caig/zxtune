@@ -281,7 +281,7 @@ namespace
       {
         return cached;
       }
-      const auto data = Delegate->GetData(dataPath);
+      auto data = Delegate->GetData(dataPath);
       Cache.Add(dataPath, data);
       Cache.Fit(filesLimit, memLimit);
       ReportCache();
@@ -366,7 +366,7 @@ namespace
           Parameters::CreateMergedContainer(std::move(forcedProperties), Parameters::Container::Create());
       auto data = Source->GetData();
       const auto& subpath = ModuleId->Subpath();
-      const auto module = Service->OpenModule(std::move(data), subpath, std::move(initialProperties));
+      auto module = Service->OpenModule(std::move(data), subpath, std::move(initialProperties));
       if (subpath.empty())
       {
         if (const auto* const files = dynamic_cast<const Module::AdditionalFiles*>(module.get()))

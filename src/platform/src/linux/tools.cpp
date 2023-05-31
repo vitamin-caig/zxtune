@@ -31,7 +31,7 @@ namespace
     Dl_info info;
     if (::dladdr(reinterpret_cast<void*>(&GetSharedLibraryName), &info) && info.dli_sname && info.dli_saddr)
     {
-      const String result(info.dli_fname);
+      String result(info.dli_fname);
       Dbg("Shared library name: {}", result);
       return result;
     }
@@ -75,7 +75,7 @@ namespace
         break;
       }
     }
-    const String result(filename.data());
+    String result(filename.data());
     Dbg("Executable name: {}", result);
     return result;
   }

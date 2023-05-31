@@ -41,8 +41,9 @@ namespace Platform::Version
 
   String GetBuildPlatform()
   {
-    const String os = Details::OS;
-    const String toolset = Details::TOOLSET;
+    // TODO: StringView
+    String os = Details::OS;
+    String toolset = Details::TOOLSET;
     // some business-logic
     if (os == "windows" && toolset == "mingw")
     {

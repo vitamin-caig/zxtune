@@ -47,7 +47,7 @@ namespace Analysis
 
     DecoderPtrType FetchDecoder()
     {
-      const DecoderPtrType result = Storage.front().Decoder;
+      auto result = Storage.front().Decoder;
       Storage.pop_front();
       return result;
     }

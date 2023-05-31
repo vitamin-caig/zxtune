@@ -133,9 +133,8 @@ namespace
 
     Playlist::Controller::Ptr CreatePlaylist(const QString& name) const override
     {
-      const Playlist::Item::DataProvider::Ptr provider = Playlist::Item::DataProvider::Create(Params);
-      const Playlist::Controller::Ptr ctrl = Playlist::Controller::Create(name, provider);
-      return ctrl;
+      auto provider = Playlist::Item::DataProvider::Create(Params);
+      return Playlist::Controller::Create(name, std::move(provider));
     }
 
     void OpenPlaylist(const QString& filename) override

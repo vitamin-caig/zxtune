@@ -146,11 +146,11 @@ namespace UI
   {
     // use slight caching to prevent heavy parsing
     static std::weak_ptr<Language> instance;
-    if (Language::Ptr res = instance.lock())
+    if (auto res = instance.lock())
     {
       return res;
     }
-    const Language::Ptr res = MakePtr<LanguageInResources>();
+    auto res = MakePtr<LanguageInResources>();
     instance = res;
     return res;
   }
