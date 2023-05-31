@@ -8,6 +8,7 @@
                     -modernize-use-nodiscard,
                     -modernize-use-trailing-return-type,
                     performance-*,
+                    readability-avoid-const-params-in-decls,
                     readability-braces-around-statements,
                     #readability-container-size-empty,
                     readability-inconsistent-declaration-parameter-name,

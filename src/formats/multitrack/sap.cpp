@@ -62,7 +62,7 @@ namespace Formats::Multitrack
       virtual ~Builder() = default;
 
       virtual void SetProperty(StringView name, StringView value) = 0;
-      virtual void SetBlock(const uint_t start, Binary::View data) = 0;
+      virtual void SetBlock(uint_t start, Binary::View data) = 0;
     };
 
     class DataBuilder : public Builder
