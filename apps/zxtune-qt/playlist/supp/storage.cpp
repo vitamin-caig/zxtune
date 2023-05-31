@@ -15,6 +15,8 @@
 // library includes
 #include <debug/log.h>
 #include <math/numeric.h>
+// std includes
+#include <random>
 // boost includes
 #include <boost/iterator/counting_iterator.hpp>
 
@@ -360,7 +362,7 @@ namespace
       {
         iters.emplace_back(it);
       }
-      std::random_shuffle(iters.begin(), iters.end());
+      std::shuffle(iters.begin(), iters.end(), std::mt19937(std::random_device()()));
       ItemsContainer newOne;
       for (const auto& it : iters)
       {
