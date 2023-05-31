@@ -26,7 +26,7 @@ namespace Sound::Flac
 
 // clang-format off
 
-    virtual FLAC__StreamEncoder* FLAC__stream_encoder_new(void) = 0;
+    virtual FLAC__StreamEncoder* FLAC__stream_encoder_new() = 0;
     virtual void FLAC__stream_encoder_delete(FLAC__StreamEncoder *encoder) = 0;
     virtual FLAC__bool FLAC__stream_encoder_set_verify(FLAC__StreamEncoder *encoder, FLAC__bool value) = 0;
     virtual FLAC__bool FLAC__stream_encoder_set_channels(FLAC__StreamEncoder *encoder, unsigned value) = 0;

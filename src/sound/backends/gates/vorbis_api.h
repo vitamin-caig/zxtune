@@ -30,7 +30,7 @@ namespace Sound::Vorbis
     virtual void vorbis_dsp_clear(vorbis_dsp_state *v) = 0;
     virtual void vorbis_info_clear(vorbis_info *vi) = 0;
     virtual void vorbis_info_init(vorbis_info *vi) = 0;
-    virtual const char *vorbis_version_string(void) = 0;
+    virtual const char *vorbis_version_string() = 0;
     virtual int vorbis_analysis(vorbis_block *vb, ogg_packet *op) = 0;
     virtual int vorbis_analysis_blockout(vorbis_dsp_state *v, vorbis_block *vb) = 0;
     virtual float** vorbis_analysis_buffer(vorbis_dsp_state *v, int vals) = 0;

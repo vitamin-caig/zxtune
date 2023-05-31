@@ -55,14 +55,14 @@ namespace Sound::Sdl
 
 // clang-format off
 
-    char* SDL_GetError(void) override
+    char* SDL_GetError() override
     {
       using FunctionType = decltype(&::SDL_GetError);
       const auto func = Lib.GetSymbol<FunctionType>("SDL_GetError");
       return func();
     }
 
-    const SDL_version* SDL_Linked_Version(void) override
+    const SDL_version* SDL_Linked_Version() override
     {
       using FunctionType = decltype(&::SDL_Linked_Version);
       const auto func = Lib.GetSymbol<FunctionType>("SDL_Linked_Version");
@@ -97,7 +97,7 @@ namespace Sound::Sdl
       return func(flags);
     }
 
-    void SDL_Quit(void) override
+    void SDL_Quit() override
     {
       using FunctionType = decltype(&::SDL_Quit);
       const auto func = Lib.GetSymbol<FunctionType>("SDL_Quit");
@@ -118,7 +118,7 @@ namespace Sound::Sdl
       return func(pause_on);
     }
 
-    void SDL_CloseAudio(void) override
+    void SDL_CloseAudio() override
     {
       using FunctionType = decltype(&::SDL_CloseAudio);
       const auto func = Lib.GetSymbol<FunctionType>("SDL_CloseAudio");

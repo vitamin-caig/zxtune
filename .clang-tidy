@@ -10,6 +10,7 @@
                     modernize-make-shared,
                     modernize-make-unique,
                     modernize-pass-by-value,
+                    modernize-redundant-void-arg,
                     modernize-replace-random-shuffle,
                     modernize-raw-string-literal,
                     modernize-use-auto,

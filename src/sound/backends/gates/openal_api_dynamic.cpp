@@ -202,7 +202,7 @@ namespace Sound::OpenAl
       return func(device, param);
     }
 
-    ALenum alGetError(void) override
+    ALenum alGetError() override
     {
       using FunctionType = decltype(&::alGetError);
       const auto func = Lib.GetSymbol<FunctionType>("alGetError");

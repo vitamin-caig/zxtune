@@ -25,7 +25,7 @@ namespace Sound::PulseAudio
 
 // clang-format off
 
-    virtual const char* pa_get_library_version(void) = 0;
+    virtual const char* pa_get_library_version() = 0;
     virtual const char* pa_strerror(int error) = 0;
     virtual pa_simple* pa_simple_new(const char* server, const char* name, pa_stream_direction_t dir, const char* dev, const char* stream, const pa_sample_spec* ss, const pa_channel_map* map, const pa_buffer_attr* attr, int* error) = 0;
     virtual int pa_simple_write(pa_simple* s, const void* data, size_t bytes, int* error) = 0;

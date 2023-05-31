@@ -55,7 +55,7 @@ namespace Sound::Flac
 
 // clang-format off
 
-    FLAC__StreamEncoder* FLAC__stream_encoder_new(void) override
+    FLAC__StreamEncoder* FLAC__stream_encoder_new() override
     {
       using FunctionType = decltype(&::FLAC__stream_encoder_new);
       const auto func = Lib.GetSymbol<FunctionType>("FLAC__stream_encoder_new");

@@ -1,8 +1,8 @@
 DEBUGMODULE=Sound::Backend::Alsa
 #common
-const char * snd_asoundlib_version (void)
+const char * snd_asoundlib_version ()
 const char * snd_strerror (int errnum)
-int snd_config_update_free_global (void)
+int snd_config_update_free_global ()
 #mixer
 int snd_mixer_open (snd_mixer_t **mixer, int mode)
 int snd_mixer_close (snd_mixer_t *mixer)

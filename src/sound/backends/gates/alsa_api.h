@@ -26,9 +26,9 @@ namespace Sound::Alsa
 
 // clang-format off
 
-    virtual const char * snd_asoundlib_version (void) = 0;
+    virtual const char * snd_asoundlib_version () = 0;
     virtual const char * snd_strerror (int errnum) = 0;
-    virtual int snd_config_update_free_global (void) = 0;
+    virtual int snd_config_update_free_global () = 0;
     virtual int snd_mixer_open (snd_mixer_t **mixer, int mode) = 0;
     virtual int snd_mixer_close (snd_mixer_t *mixer) = 0;
     virtual snd_mixer_elem_t * snd_mixer_first_elem (snd_mixer_t *mixer) = 0;

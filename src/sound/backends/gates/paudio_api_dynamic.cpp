@@ -57,7 +57,7 @@ namespace Sound::PulseAudio
 
 // clang-format off
 
-    const char* pa_get_library_version(void) override
+    const char* pa_get_library_version() override
     {
       using FunctionType = decltype(&::pa_get_library_version);
       const auto func = Lib.GetSymbol<FunctionType>("pa_get_library_version");

@@ -90,7 +90,7 @@ namespace Sound::Vorbis
       return func(vi);
     }
 
-    const char *vorbis_version_string(void) override
+    const char *vorbis_version_string() override
     {
       using FunctionType = decltype(&::vorbis_version_string);
       const auto func = Lib.GetSymbol<FunctionType>("vorbis_version_string");

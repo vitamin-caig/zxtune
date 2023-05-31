@@ -47,7 +47,7 @@ namespace Sound::OpenAl
     virtual void alGetSourcef(ALuint source, ALenum pname, ALfloat* value) = 0;
     virtual const ALchar* alGetString(ALenum param) = 0;
     virtual const ALCchar* alcGetString(ALCdevice* device, ALenum param) = 0;
-    virtual ALenum alGetError(void) = 0;
+    virtual ALenum alGetError() = 0;
 // clang-format on
   };
 

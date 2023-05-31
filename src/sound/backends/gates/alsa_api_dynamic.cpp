@@ -56,7 +56,7 @@ namespace Sound::Alsa
 
 // clang-format off
 
-    const char * snd_asoundlib_version (void) override
+    const char * snd_asoundlib_version () override
     {
       using FunctionType = decltype(&::snd_asoundlib_version);
       const auto func = Lib.GetSymbol<FunctionType>("snd_asoundlib_version");
@@ -70,7 +70,7 @@ namespace Sound::Alsa
       return func(errnum);
     }
 
-    int snd_config_update_free_global (void) override
+    int snd_config_update_free_global () override
     {
       using FunctionType = decltype(&::snd_config_update_free_global);
       const auto func = Lib.GetSymbol<FunctionType>("snd_config_update_free_global");
