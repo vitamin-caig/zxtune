@@ -59,8 +59,8 @@ namespace Sound
       // specify gain to avoid overload
       const float gain = 1.0f;  // 0.98f;
 
-      const float sinus = sin(w0);
-      const float cosine = cos(w0);
+      const float sinus = std::sin(w0);
+      const float cosine = std::cos(w0);
       const float alpha = sinus / (2.0f * q);
 
       const float a0 = (1.0f + alpha) / gain;

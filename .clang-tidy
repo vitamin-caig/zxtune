@@ -11,6 +11,7 @@
                     performance-inefficient-algorithm,
                     performance-inefficient-vector-operation,
                     performance-trivially-destructible,
+                    performance-type-promotion-in-math-fn,
                     performance-move-const-arg,
                     performance-noexcept-move-constructor,
                     performance-unnecessary-copy-initialization,
