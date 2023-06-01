@@ -92,14 +92,7 @@ namespace Module::VGMStream
 
     bool HasUnresolved() const
     {
-      for (const auto& entry : Content)
-      {
-        if (!entry.second)
-        {
-          return true;
-        }
-      }
-      return false;
+      return std::any_of(Content.begin(), Content.end(), [](const auto& entry) { return !entry.second; });
     }
 
     Strings::Array GetUnresolved() const

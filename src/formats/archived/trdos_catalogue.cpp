@@ -18,6 +18,7 @@
 #include <binary/data_builder.h>
 #include <strings/format.h>
 // std includes
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <numeric>
@@ -252,14 +253,7 @@ namespace TRDos
 
     bool HasFile(StringView name) const
     {
-      for (const auto& file : Files)
-      {
-        if (file->GetName() == name)
-        {
-          return true;
-        }
-      }
-      return false;
+      return std::any_of(Files.begin(), Files.end(), [name](auto file) { return file->GetName() == name; });
     }
 
   private:

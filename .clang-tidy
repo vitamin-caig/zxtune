@@ -24,6 +24,7 @@
                     readability-simplify-boolean-expr,
                     readability-static-definition-in-anonymous-namespace,
                     readability-uppercase-literal-suffix,
+                    readability-use-anyofallof,
                     bugprone-branch-clone,
                     bugprone-forward-declaration-namespace,
                     bugprone-forwarding-reference-overload,
