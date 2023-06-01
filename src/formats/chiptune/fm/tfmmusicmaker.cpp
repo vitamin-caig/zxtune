@@ -897,9 +897,8 @@ namespace Formats::Chiptune
         {
           target.SetVolume(cell.Volume);
         }
-        for (uint_t idx = 0; idx != cell.Effects.size(); ++idx)
+        for (const auto& eff : cell.Effects)
         {
-          const Effect& eff = cell.Effects[idx];
           if (!eff.IsEmpty())
           {
             ParseEffect(eff, target);

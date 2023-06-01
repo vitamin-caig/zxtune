@@ -36,11 +36,11 @@ namespace Devices::AYM
     NoiseLookup()
     {
       uint_t seed = 0xffff;
-      for (std::size_t idx = 0; idx != Lookup.size(); ++idx)
+      for (auto& out : Lookup)
       {
         const bool level = 0 != (seed & 0x10000);
         seed = (seed * 2 + (level != (0 != (seed & 0x2000)))) & INDEX_MASK;
-        Lookup[idx] = level ? HIGH_LEVEL : LOW_LEVEL;
+        out = level ? HIGH_LEVEL : LOW_LEVEL;
       }
     }
 

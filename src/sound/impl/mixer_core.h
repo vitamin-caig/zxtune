@@ -29,9 +29,9 @@ namespace Sound
       for (uint_t inChan = 0; inChan != ChannelsCount; ++inChan)
       {
         CoeffRow& row = Matrix[inChan];
-        for (uint_t outChan = 0; outChan != row.size(); ++outChan)
+        for (auto& outChan : row)
         {
-          row[outChan] = val;
+          outChan = val;
         }
       }
     }

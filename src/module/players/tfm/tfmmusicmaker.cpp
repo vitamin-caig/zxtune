@@ -641,9 +641,8 @@ namespace Module::TFMMusicMaker
 
     void ResetOneLineEffects()
     {
-      for (uint_t chan = 0; chan != State.Channels.size(); ++chan)
+      for (auto& dst : State.Channels)
       {
-        ChannelState& dst = State.Channels[chan];
         // portamento, vibrato, volume and tone slide are applicable only when effect is specified
         dst.ToneSlide.Disable();
         dst.Vibrato.Disable();

@@ -26,6 +26,7 @@
 #include <strings/format.h>
 #include <strings/optimize.h>
 // std includes
+#include <algorithm>
 #include <array>
 #include <cstring>
 
@@ -340,15 +341,9 @@ namespace Formats::Chiptune
         {
           return false;
         }
-        for (uint_t idx = 0; idx != smp.Lines.size(); ++idx)
-        {
-          const Sample::Line& line = smp.Lines[idx];
-          if ((!line.ToneMask && line.Level) || !line.NoiseMask)
-          {
-            return true;  // has envelope or tone with volume
-          }
-        }
-        return false;
+        // has envelope or tone with volume
+        return std::any_of(smp.Lines.begin(), smp.Lines.end(),
+                           [](const auto& line) { return (!line.ToneMask && line.Level) || !line.NoiseMask; });
       }
 
     private:

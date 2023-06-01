@@ -231,9 +231,8 @@ namespace Module::ProSoundMaker
 
     void Reset() override
     {
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      for (auto& state : PlayerState)
       {
-        ChannelState& state = PlayerState[chan];
         state = ChannelState();
         state.Smp.Current = &Data->Samples.Get(0);
         state.Orn.Current = &Data->Ornaments.Get(0);

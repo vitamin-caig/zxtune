@@ -351,25 +351,25 @@ namespace Formats::Chiptune
     private:
       void Analyze(const Header& hdr)
       {
-        for (uint_t pat = 0; pat != hdr.Patterns.size(); ++pat)
+        for (const auto& pat : hdr.Patterns)
         {
-          Analyze(hdr.Patterns[pat]);
+          Analyze(pat);
         }
       }
 
       void Analyze(const Pattern& pat)
       {
-        for (uint_t line = 0; line != MAX_PATTERN_SIZE; ++line)
+        for (const auto& line : pat.Lines)
         {
-          Analyze(pat.Lines[line]);
+          Analyze(line);
         }
       }
 
       void Analyze(const Pattern::Line& line)
       {
-        for (uint_t chan = 0; chan != CHANNELS_COUNT; ++chan)
+        for (const auto& chan : line.Channels)
         {
-          Analyze(line.Channels[chan]);
+          Analyze(chan);
         }
       }
 

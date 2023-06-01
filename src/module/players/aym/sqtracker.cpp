@@ -633,9 +633,9 @@ namespace Module::SQTracker
           // global
           if (it->Param2)
           {
-            for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+            for (auto& chan : PlayerState)
             {
-              PlayerState[chan].Attenuation = it->Param1;
+              chan.Attenuation = it->Param1;
             }
           }
           else
@@ -647,9 +647,9 @@ namespace Module::SQTracker
           // global
           if (it->Param2)
           {
-            for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+            for (auto& chan : PlayerState)
             {
-              PlayerState[chan].AddAttenuation(it->Param1);
+              chan.AddAttenuation(it->Param1);
             }
           }
           else

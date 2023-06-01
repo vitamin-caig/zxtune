@@ -15,6 +15,7 @@
 // common includes
 #include <indices.h>
 // std includes
+#include <algorithm>
 #include <cassert>
 
 namespace Formats::Chiptune::SoundTracker
@@ -163,15 +164,9 @@ namespace Formats::Chiptune::SoundTracker
       {
         return false;
       }
-      for (uint_t idx = 0; idx != smp.Lines.size(); ++idx)
-      {
-        const Sample::Line& line = smp.Lines[idx];
-        if (line.EnvelopeMask || line.Level)
-        {
-          return true;  // has envelope or tone with volume
-        }
-      }
-      return false;
+      // has envelope or tone with volume
+      return std::any_of(smp.Lines.begin(), smp.Lines.end(),
+                         [](const auto& line) { return line.EnvelopeMask || line.Level; });
     }
 
   private:

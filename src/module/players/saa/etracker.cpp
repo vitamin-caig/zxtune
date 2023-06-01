@@ -240,9 +240,8 @@ namespace Module::ETracker
     {
       static const Sample STUB_SAMPLE;
       static const Ornament STUB_ORNAMENT;
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      for (auto& dst : PlayerState)
       {
-        ChannelState& dst = PlayerState[chan];
         dst = ChannelState();
         dst.SampleIterator.Set(STUB_SAMPLE);
         dst.SampleIterator.Disable();

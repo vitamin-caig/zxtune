@@ -381,9 +381,8 @@ namespace Module::ProSoundCreator
     {
       const Sample& stubSample = Data->Samples.Get(0);
       const Ornament& stubOrnament = Data->Ornaments.Get(0);
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      for (auto& dst : PlayerState)
       {
-        ChannelState& dst = PlayerState[chan];
         dst = ChannelState();
         dst.SampleIterator.Set(stubSample);
         dst.SampleIterator.SetBreakLoop(false);
@@ -418,9 +417,9 @@ namespace Module::ProSoundCreator
           }
         }
       }
-      for (uint_t chan = 0; chan != PlayerState.size(); ++chan)
+      for (auto& chan : PlayerState)
       {
-        PlayerState[chan].NoiseAccumulator += NoiseBase;
+        chan.NoiseAccumulator += NoiseBase;
       }
     }
 
