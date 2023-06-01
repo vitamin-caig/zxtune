@@ -126,14 +126,14 @@ namespace Module::ASAP
       auto* const stereo = result.data();
       if (Channels == 2)
       {
-        const int bytes = samples * sizeof(*stereo);
+        const auto bytes = static_cast<int>(samples * sizeof(*stereo));
         CheckError(bytes == ::ASAP_Generate(Module, safe_ptr_cast<unsigned char*>(stereo), bytes, fmt),
                    "ASAP_Generate");
       }
       else
       {
         auto* const mono = safe_ptr_cast<Sound::Sample::Type*>(stereo) + samples;
-        const int bytes = samples * sizeof(*mono);
+        const auto bytes = static_cast<int>(samples * sizeof(*mono));
         CheckError(bytes == ::ASAP_Generate(Module, safe_ptr_cast<unsigned char*>(mono), bytes, fmt), "ASAP_Generate");
         std::transform(mono, mono + samples, stereo, [](Sound::Sample::Type val) { return Sound::Sample(val, val); });
       }

@@ -283,7 +283,7 @@ namespace Formats::Chiptune::PortableSoundFormat
 
     static float ParseVolume(const String& val)
     {
-      return std::atof(val.c_str());
+      return static_cast<float>(std::atof(val.c_str()));
     }
 
   private:

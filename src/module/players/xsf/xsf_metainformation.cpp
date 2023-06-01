@@ -103,7 +103,7 @@ namespace Module::XSF
 
     props.SetDate(Year);
 
-    if (Volume)
+    if (Volume > 1.f / Parameters::ZXTune::Sound::GAIN_PRECISION)
     {
       out.SetValue(Parameters::ZXTune::Sound::GAIN, Parameters::ZXTune::Sound::GAIN_PRECISION * Volume);
     }

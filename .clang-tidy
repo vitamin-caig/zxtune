@@ -26,6 +26,7 @@
                     bugprone-string-constructor,
                     bugprone-stringview-nullptr,
                     bugprone-use-after-move,
+                    bugprone-narrowing-conversions,
                     misc-definitions-in-headers,
                     misc-redundant-expression,
                     misc-throw-by-value-catch-by-reference,

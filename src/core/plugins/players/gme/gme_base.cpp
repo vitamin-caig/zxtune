@@ -138,7 +138,7 @@ namespace Module::GME
       static_assert(Sound::Sample::BITS == 16, "Incompatible sound bits count");
       Sound::Chunk result(samples);
       auto* const buffer = safe_ptr_cast< ::Music_Emu::sample_t*>(result.data());
-      CheckError(Emu->play(samples * Sound::Sample::CHANNELS, buffer));
+      CheckError(Emu->play(static_cast<int>(samples * Sound::Sample::CHANNELS), buffer));
       return result;
     }
 

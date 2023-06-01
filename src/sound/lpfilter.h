@@ -76,7 +76,7 @@ namespace Sound
       // 2 bits- scale for A (4)
       DCShift = Math::Log2(static_cast<uint_t>(1.0f / a)) - 3;
 
-      A = a * (1 << DCShift);
+      A = a * float(1 << DCShift);
       B = b;
       C = c;
 
