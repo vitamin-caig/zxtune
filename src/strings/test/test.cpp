@@ -259,7 +259,7 @@ int main()
       TestParse<int>("zero", "0", 0, "");
       TestParse<uint8_t>("positive overflow", "123456", uint8_t(123456), "");
       TestParse<uint_t>("positive", "123456", 123456, "");
-      TestParse<uint64_t>("max positive", "18446744073709551615", 18446744073709551615ULL, "");
+      TestParse<uint64_t>("max positive", "18446744073709551615", 18446744073709551615uLL, "");
       TestParse<int_t>("negative", "-123456", -123456, "");
       TestParse<uint_t>("plus positive", "+123456", 123456, "");
       TestParse<uint_t>("with suffix", "1234M", 1234, "M");

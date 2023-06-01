@@ -23,6 +23,7 @@
                     readability-redundant-smartptr-get,
                     readability-simplify-boolean-expr,
                     readability-static-definition-in-anonymous-namespace,
+                    readability-uppercase-literal-suffix,
                     bugprone-branch-clone,
                     bugprone-forward-declaration-namespace,
                     bugprone-forwarding-reference-overload,
@@ -44,5 +45,7 @@
       value:        1
     - key:          readability-qualified-auto.AddConstToQualified
       value:        0
+    - key:          readability-uppercase-literal-suffix.NewSuffixes
+      value:        'L;LL;LU;LLU;u;uL;uLL'
   FormatStyle:      file
 ...

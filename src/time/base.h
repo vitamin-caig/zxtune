@@ -28,7 +28,7 @@ namespace Time
   using Second = BaseUnit<uint32_t, 1>;
   using Millisecond = BaseUnit<uint32_t, 1000>;
   using Microsecond = BaseUnit<uint64_t, 1000000>;
-  using Nanosecond = BaseUnit<uint64_t, 1000000000ull>;
+  using Nanosecond = BaseUnit<uint64_t, 1000000000uLL>;
 
   struct InstantTag
   {};

@@ -32,7 +32,7 @@ namespace Formats::Chiptune
   namespace Ogg
   {
     const uint8_t SIGNATURE[] = {'O', 'g', 'g', 'S', 0};
-    const uint64_t UNFINISHED_PAGE_POSITION = ~0ull;
+    const uint64_t UNFINISHED_PAGE_POSITION = ~0uLL;
     const uint_t MAX_SEGMENT_SIZE = 255;
     const uint_t MAX_PAGE_SIZE = 32768;
     const uint_t CONTINUED_PACKET = 1;

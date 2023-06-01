@@ -85,7 +85,7 @@ int main()
   {
     std::cout << "---- Test for time instant ----" << std::endl;
     {
-      constexpr const Time::AtNanosecond ns(10000000ull);
+      constexpr const Time::AtNanosecond ns(10000000uLL);
       {
         constexpr const Time::AtNanosecond ons(ns);
         Test<uint64_t>("Ns => Ns", ons.Get(), ns.Get());

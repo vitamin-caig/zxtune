@@ -103,7 +103,7 @@ namespace Formats::Chiptune
         // big endian:
         // ffffffff ffffffff ffffcccb bbbbssss ssssssss ssssssss ssssssss ssssssss
         const uint64_t params = input.Read<be_uint64_t>();
-        const auto totalSamples = params & 0xfffffffffull;
+        const auto totalSamples = params & 0xfffffffffuLL;
         const auto bitsPerSample = 1 + uint_t((params >> 36) & 0x1f);
         const auto channels = 1 + uint_t((params >> 41) & 7);
         const auto sampleRate = uint_t(params >> 44);
