@@ -22,12 +22,10 @@
                     -bugprone-reserved-identifier,
                     -bugprone-signed-char-misuse,
                     -bugprone-suspicious-enum-usage,
-                    misc-definitions-in-headers,
-                    misc-redundant-expression,
-                    misc-throw-by-value-catch-by-reference,
-                    misc-unconventional-assign-operator,
-                    misc-unused-parameters,
-                    misc-unused-using-decls,
+                    misc-*,
+                    -misc-misplaced-const,
+                    -misc-no-recursion,
+                    -misc-non-private-member-variables-in-classes,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment
