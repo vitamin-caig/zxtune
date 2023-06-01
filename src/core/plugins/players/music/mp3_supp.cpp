@@ -18,7 +18,6 @@
 // library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/mp3.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>

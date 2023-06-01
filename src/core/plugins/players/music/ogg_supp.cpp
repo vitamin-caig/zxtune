@@ -18,7 +18,6 @@
 // library includes
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/oggvorbis.h>
 #include <math/numeric.h>
 #include <module/players/properties_helper.h>

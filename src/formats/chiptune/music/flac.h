@@ -39,5 +39,5 @@ namespace Formats::Chiptune
     Builder& GetStubBuilder();
   }  // namespace Flac
 
-  Decoder::Ptr CreateFlacDecoder();
+  Decoder::Ptr CreateFLACDecoder();
 }  // namespace Formats::Chiptune

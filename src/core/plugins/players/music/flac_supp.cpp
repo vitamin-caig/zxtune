@@ -19,7 +19,6 @@
 #include <binary/input_stream.h>
 #include <core/plugin_attrs.h>
 #include <debug/log.h>
-#include <formats/chiptune/decoders.h>
 #include <formats/chiptune/music/flac.h>
 #include <module/players/properties_helper.h>
 #include <module/players/properties_meta.h>
