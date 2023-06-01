@@ -175,7 +175,14 @@ namespace
   Parameters::Container::Ptr CreateSubcontainer(Parameters::Container::Ptr parent, QObject& obj)
   {
     const QString name = obj.objectName();
-    return name.size() == 0 ? parent : MakePtr<NamespaceContainer>(std::move(parent), name.toStdString());
+    if (name.size() == 0)
+    {
+      return parent;
+    }
+    else
+    {
+      return MakePtr<NamespaceContainer>(std::move(parent), name.toStdString());
+    }
   }
 
   class MainWindowState : public WidgetState

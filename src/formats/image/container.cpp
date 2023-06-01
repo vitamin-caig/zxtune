@@ -39,7 +39,14 @@ namespace Formats::Image
 
   Container::Ptr CreateContainer(Binary::Container::Ptr data, std::size_t origSize)
   {
-    return origSize && data && data->Size() ? MakePtr<ImageContainer>(std::move(data), origSize) : Container::Ptr();
+    if (origSize && data && data->Size())
+    {
+      return MakePtr<ImageContainer>(std::move(data), origSize);
+    }
+    else
+    {
+      return {};
+    }
   }
 
   Container::Ptr CreateContainer(std::unique_ptr<Binary::Dump> data, std::size_t origSize)

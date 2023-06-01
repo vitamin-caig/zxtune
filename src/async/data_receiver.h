@@ -57,10 +57,16 @@ namespace Async
       Delegate->Flush();
     }
 
-    static typename ::DataReceiver<T>::Ptr Create(std::size_t workersCount, std::size_t queueSize,
-                                                  typename ::DataReceiver<T>::Ptr delegate)
+    static auto Create(std::size_t workersCount, std::size_t queueSize, typename ::DataReceiver<T>::Ptr delegate)
     {
-      return workersCount ? MakePtr<DataReceiver>(workersCount, queueSize, delegate) : delegate;
+      if (workersCount)
+      {
+        return MakePtr<DataReceiver>(workersCount, queueSize, std::move(delegate));
+      }
+      else
+      {
+        return delegate;
+      }
     }
 
   private:

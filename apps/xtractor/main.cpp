@@ -923,7 +923,7 @@ namespace
   typename DataReceiver<Object>::Ptr AsyncWrap(std::size_t threads, std::size_t queueSize,
                                                typename DataReceiver<Object>::Ptr target)
   {
-    return Async::DataReceiver<Object>::Create(threads, queueSize, target);
+    return Async::DataReceiver<Object>::Create(threads, queueSize, std::move(target));
   }
 
   class TargetOptions
@@ -949,22 +949,67 @@ namespace
     virtual std::size_t AnalysisDataQueueSize() const = 0;
   };
 
+  class PipelineBuilder
+  {
+  public:
+    explicit PipelineBuilder(const TargetOptions& opts)
+    {
+      Target = MakePtr<TargetNamePoint>(opts.TargetNameTemplate(), CreateTarget(opts.StatisticOutput()));
+    }
+
+    void AddEmptyDataFilter()
+    {
+      Target = Analysis::CreateEmptyDataFilter(std::move(Target));
+    }
+
+    void AddMinSizeFilter(std::size_t minSize)
+    {
+      Target = Analysis::CreateSizeFilter(minSize, std::move(Target));
+    }
+
+    void AddFormatFilter(StringView format)
+    {
+      Target = Analysis::CreateMatchFilter(format, std::move(Target));
+    }
+
+    Analysis::NodeReceiver::Ptr CaptureResult()
+    {
+      return {std::move(Target)};
+    }
+
+  private:
+    Parsing::Target::Ptr CreateTarget(bool statistics)
+    {
+      if (statistics)
+      {
+        return Parsing::CreateStatisticTarget();
+      }
+      else
+      {
+        return Parsing::CreateSaveTarget();
+      }
+    }
+
+  private:
+    Analysis::NodeReceiver::Ptr Target;
+  };
+
   Analysis::NodeReceiver::Ptr CreateTarget(const TargetOptions& opts)
   {
-    const Parsing::Target::Ptr save = opts.StatisticOutput() ? Parsing::CreateStatisticTarget()
-                                                             : Parsing::CreateSaveTarget();
-    const Analysis::NodeReceiver::Ptr makeName = MakePtr<TargetNamePoint>(opts.TargetNameTemplate(), save);
-    const Analysis::NodeReceiver::Ptr& storeAll = makeName;
-    const Analysis::NodeReceiver::Ptr storeNoEmpty = opts.IgnoreEmptyData() ? Analysis::CreateEmptyDataFilter(storeAll)
-                                                                            : storeAll;
-    const std::size_t minSize = opts.MinDataSize();
-    const Analysis::NodeReceiver::Ptr storeEnoughSize = minSize ? Analysis::CreateSizeFilter(minSize, storeNoEmpty)
-                                                                : storeNoEmpty;
-    const std::string filter = opts.FormatFilter();
-    const Analysis::NodeReceiver::Ptr storeMatchedFilter =
-        !filter.empty() ? Analysis::CreateMatchFilter(filter, storeEnoughSize) : storeEnoughSize;
-    const Analysis::NodeReceiver::Ptr& result = storeMatchedFilter;
-    return AsyncWrap<Analysis::Node::Ptr>(opts.SaveThreadsCount(), opts.SaveDataQueueSize(), result);
+    PipelineBuilder builder(opts);
+    if (opts.IgnoreEmptyData())
+    {
+      builder.AddEmptyDataFilter();
+    }
+    if (const auto minSize = opts.MinDataSize())
+    {
+      builder.AddMinSizeFilter(minSize);
+    }
+    if (const auto& filter = opts.FormatFilter(); !filter.empty())
+    {
+      builder.AddFormatFilter(filter);
+    }
+    return AsyncWrap<Analysis::Node::Ptr>(opts.SaveThreadsCount(), opts.SaveDataQueueSize(), builder.CaptureResult());
   }
 
   template<class InType, class OutType = InType>
@@ -1140,12 +1185,12 @@ public:
                                        factory      +<-converted-+                            factory directory
 
     */
-    const Analysis::NodeReceiver::Ptr result = CreateTarget(Opts);
-    const Analysis::NodeTransceiver::Ptr analyse = CreateAnalyser(Opts);
+    auto result = CreateTarget(Opts);
+    auto analyse = CreateAnalyser(Opts);
     const OpenPoint::Ptr input = CreateSource();
 
-    input->SetTarget(analyse);
-    analyse->SetTarget(result);
+    analyse->SetTarget(std::move(result));
+    input->SetTarget(std::move(analyse));
 
     for (const auto& p : paths)
     {
