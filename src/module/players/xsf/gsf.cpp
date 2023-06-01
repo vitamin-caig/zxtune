@@ -64,9 +64,8 @@ namespace Module::GSF
     };
 
     AVStream()
-    {
-      std::memset(this, 0, sizeof(mAVStream));
-    }
+      : mAVStream()
+    {}
 
     void RenderSamples(uint_t count)
     {
