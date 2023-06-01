@@ -87,7 +87,7 @@ namespace Binary
 
     View GetView() const
     {
-      return View(Content);
+      return {Content};
     }
 
     void Resize(std::size_t size)

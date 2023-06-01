@@ -545,7 +545,7 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       try
       {
@@ -554,7 +554,7 @@ namespace Formats::Packed
       }
       catch (const std::exception&)
       {
-        return Container::Ptr();
+        return {};
       }
     }
 

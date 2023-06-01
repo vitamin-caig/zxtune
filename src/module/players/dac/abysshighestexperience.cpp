@@ -339,7 +339,7 @@ namespace Module::AHX
       {
         Dbg("Failed to create AHX: {}", e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
 
   private:

@@ -42,7 +42,7 @@ namespace Module
     Sound::Sample Convert(int_t divisor) const
     {
       static_assert(Sound::Sample::MID == 0, "Sound samples should be signed");
-      return Sound::Sample(Left / divisor, Right / divisor);
+      return {Left / divisor, Right / divisor};
     }
 
   private:

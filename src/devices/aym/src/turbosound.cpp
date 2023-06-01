@@ -84,7 +84,7 @@ namespace Devices::TurboSound
     Sound::Sample ApplyData(const MixerType::InDataType& in) const override
     {
       const Sound::Sample out = DelegateRef.ApplyData(in);
-      return Sound::Sample(out.Left() / 2, out.Right() / 2);
+      return {out.Left() / 2, out.Right() / 2};
     }
 
   private:

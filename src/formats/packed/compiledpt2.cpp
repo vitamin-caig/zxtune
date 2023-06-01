@@ -117,14 +117,14 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Player->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto& rawPlayer = *data.As<RawPlayer>();
       const uint_t dataAddr = rawPlayer.DataAddr;
       if (dataAddr < PLAYER_SIZE)
       {
         Dbg("Invalid compile addr");
-        return Container::Ptr();
+        return {};
       }
       const auto modData = data.SubView(PLAYER_SIZE, MAX_MODULE_SIZE);
       const auto& rawHeader = *modData.As<RawHeader>();
@@ -132,7 +132,7 @@ namespace Formats::Packed
       if (!patternsCount)
       {
         Dbg("Invalid patterns count");
-        return Container::Ptr();
+        return {};
       }
       const uint_t compileAddr = dataAddr - PLAYER_SIZE;
       Dbg("Detected player compiled at #{:04x} with {} patterns", compileAddr, patternsCount);
@@ -154,7 +154,7 @@ namespace Formats::Packed
         return CreateContainer(std::move(fixedParsed), totalSize);
       }
       Dbg("Failed to parse fixed module");
-      return Container::Ptr();
+      return {};
     }
 
   private:

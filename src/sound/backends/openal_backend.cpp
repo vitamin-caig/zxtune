@@ -339,7 +339,7 @@ namespace Sound::OpenAl
     Gain GetVolume() const override
     {
       const Gain::Type val(Src.GetGain());
-      return Gain(val, val);
+      return {val, val};
     }
 
     void SetVolume(const Gain& vol) override

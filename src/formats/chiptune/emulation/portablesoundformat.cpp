@@ -278,7 +278,7 @@ namespace Formats::Chiptune::PortableSoundFormat
         result = result * 60 + 1000 * std::atoi(val.c_str() + start);
         end = val.find_first_of(':', start = end + 1);
       }
-      return Time::Milliseconds(result * 60 + 1000 * std::atof(val.c_str() + start));
+      return Time::Milliseconds{result * 60 + static_cast<uint_t>(1000 * std::atof(val.c_str() + start))};
     }
 
     static float ParseVolume(const String& val)
@@ -298,7 +298,7 @@ namespace Formats::Chiptune::PortableSoundFormat
     }
     catch (const std::exception&)
     {
-      return Container::Ptr();
+      return {};
     }
   }
 }  // namespace Formats::Chiptune::PortableSoundFormat

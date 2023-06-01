@@ -21,6 +21,6 @@ namespace Module
     using namespace Parameters::ZXTune::Core::Plugins;
     Parameters::IntType duration = DEFAULT_DURATION_DEFAULT;
     params.FindValue(DEFAULT_DURATION, duration);
-    return Time::Seconds(duration);
+    return Time::Seconds{static_cast<uint_t>(duration)};
   }
 }  // namespace Module

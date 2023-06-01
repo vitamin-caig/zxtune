@@ -40,7 +40,7 @@ namespace Module::DigitalStudio
       }
       else
       {
-        return DAC::Chiptune::Ptr();
+        return {};
       }
     }
   };

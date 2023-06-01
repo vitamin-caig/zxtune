@@ -155,7 +155,7 @@ namespace Formats::Chiptune
         {
           Dbg("Out of range {}..{} ({})", static_cast<const void*>(Start), static_cast<const void*>(Finish),
               static_cast<const void*>(ptr));
-          return Binary::View(nullptr, 0);
+          return {nullptr, 0};
         }
         const std::size_t offset = ptr - Start;
         const std::size_t maxSize = Finish - ptr;

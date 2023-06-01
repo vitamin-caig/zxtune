@@ -113,7 +113,7 @@ namespace Formats::Archived
       const Binary::View data(rawData);
       if (!FastCheck(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto* header = data.As<Header>();
 

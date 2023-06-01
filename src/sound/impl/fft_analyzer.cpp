@@ -129,7 +129,7 @@ namespace Sound
       static Complex Polar(uint_t val)
       {
         const auto& sinus = Instance().Sinus;
-        return Complex(sinus[(val + WindowSize / 4) % WindowSize], sinus[val]);
+        return {sinus[(val + WindowSize / 4) % WindowSize], sinus[val]};
       }
 
     private:

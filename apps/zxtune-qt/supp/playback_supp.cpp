@@ -234,7 +234,7 @@ namespace
         }
       }
       ReportErrors(errors);
-      return Sound::Backend::Ptr();
+      return {};
     }
 
     void ReportErrors(const std::list<Error>& errors)

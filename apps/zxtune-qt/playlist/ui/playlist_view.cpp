@@ -223,7 +223,7 @@ namespace
     {
       if (!index.isValid())
       {
-        return QVariant();
+        return {};
       }
       else if (Qt::ToolTipRole == role)
       {
@@ -262,7 +262,7 @@ namespace
           return Playlist::UI::View::tr("Loading...");
         }
       }
-      return QVariant();
+      return {};
     }
 
     QVariant GetTooltip(const Playlist::Item::Data& item) const
@@ -303,7 +303,7 @@ namespace
       case Playlist::Model::COLUMN_FIXEDCRC:
         return Playlist::UI::View::tr("FixedCRC");
       default:
-        return QVariant();
+        return {};
       };
     }
 

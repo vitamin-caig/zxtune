@@ -78,7 +78,7 @@ namespace Formats::Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         const std::size_t realSize = std::min(rawData.Size(), MAX_SIZE);
         const Binary::Container::Ptr data = rawData.GetSubcontainer(0, realSize);

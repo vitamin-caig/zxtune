@@ -99,7 +99,7 @@ namespace Sound
 
     static Chunk Apply(Chunk data)
     {
-      return Chunk(std::move(data));
+      return data;
     }
   };
 

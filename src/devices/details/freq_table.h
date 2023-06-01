@@ -54,7 +54,7 @@ namespace Devices::Details
   private:
     static inline Frequency CHz(uint_t frq)
     {
-      return Frequency(frq, Frequency::PRECISION);
+      return {frq, Frequency::PRECISION};
     }
   };
 }  // namespace Devices::Details

@@ -63,7 +63,7 @@ namespace Module::SAA
   public:
     ChannelBuilder GetChannel(uint_t chan)
     {
-      return ChannelBuilder(chan, Regs);
+      return {chan, Regs};
     }
 
     void GetResult(Devices::SAA::Registers& result) const

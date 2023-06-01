@@ -341,12 +341,12 @@ namespace Formats::Chiptune
         }
         else
         {
-          return Container::Ptr();
+          return {};
         }
       }
       catch (const std::exception&)
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 
@@ -413,7 +413,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
       }
 

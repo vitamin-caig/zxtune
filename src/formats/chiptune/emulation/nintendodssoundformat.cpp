@@ -88,7 +88,7 @@ namespace Formats::Chiptune
 
       Formats::Chiptune::Container::Ptr Decode(const Binary::Container& /*rawData*/) const override
       {
-        return Formats::Chiptune::Container::Ptr();  // TODO
+        return {};  // TODO
       }
 
     private:

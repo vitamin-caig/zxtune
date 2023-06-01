@@ -25,7 +25,7 @@ namespace Formats::Chiptune::Vorbis
   {
     const std::size_t size = payload.Read<le_uint32_t>();
     const auto* const utf8 = safe_ptr_cast<const char*>(payload.ReadData(size).Start());
-    return StringView(utf8, size);
+    return {utf8, size};
   }
 
   String Decode(StringView str)

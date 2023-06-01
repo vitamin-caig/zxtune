@@ -543,7 +543,7 @@ namespace Formats::Packed
       case SHRINK:
         return std::unique_ptr<DataDecoder>(new ShrinkDataDecoder(header));
       default:
-        return std::unique_ptr<DataDecoder>();
+        return {};
       };
     };
 
@@ -610,12 +610,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const ZXZip::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       ZXZip::DispatchedDataDecoder decoder(container);
       return CreateContainer(decoder.GetDecodedData(), container.GetUsedSize());

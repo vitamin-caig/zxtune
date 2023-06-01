@@ -682,7 +682,7 @@ namespace Module::DigitalMusicMaker
       }
       else
       {
-        return DAC::Chiptune::Ptr();
+        return {};
       }
     }
   };

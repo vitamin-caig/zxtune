@@ -503,7 +503,7 @@ namespace Formats::Chiptune
 
       RangeChecker::Range GetFixedArea() const
       {
-        return RangeChecker::Range(offsetof(Header, Patterns), sizeof(Source.Patterns));
+        return {offsetof(Header, Patterns), sizeof(Source.Patterns)};
       }
 
     private:
@@ -641,7 +641,7 @@ namespace Formats::Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = GetStubBuilder();
         return Parse(rawData, stub);
@@ -674,7 +674,7 @@ namespace Formats::Chiptune
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 

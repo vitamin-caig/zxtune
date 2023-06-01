@@ -42,7 +42,7 @@ namespace Formats::Chiptune
 
     inline StringView GetTrimmed(const char* begin, const char* end)
     {
-      return StringView(begin, std::find(begin, end, '\0'));
+      return {begin, std::find(begin, end, '\0')};
     }
 
     template<std::size_t D>
@@ -161,14 +161,14 @@ namespace Formats::Chiptune
       {
         const auto str = GetTrimmed(FadeTimeSec);
         const auto val = ToInt(str);
-        return Time::Seconds(val);
+        return Time::Seconds{val};
       }
 
       Time::Milliseconds GetFadeDuration() const
       {
         const auto str = GetTrimmed(FadeDurationMs);
         const auto val = ToInt(str);
-        return Time::Milliseconds(val);
+        return Time::Milliseconds{val};
       }
     };
 
@@ -234,12 +234,12 @@ namespace Formats::Chiptune
       Time::Seconds GetFadeTime() const
       {
         const uint_t val = uint_t(FadeTimeSec[0]) | (uint_t(FadeTimeSec[1]) << 8) | (uint_t(FadeTimeSec[2]) << 16);
-        return Time::Seconds(val);
+        return Time::Seconds{val};
       }
 
       Time::Milliseconds GetFadeDuration() const
       {
-        return Time::Milliseconds(FadeDurationMs);
+        return Time::Milliseconds{FadeDurationMs};
       }
     };
 
@@ -372,7 +372,7 @@ namespace Formats::Chiptune
         else
         {
           // assert(!"Invalid subchunk type");
-          return String();
+          return {};
         }
       }
     };

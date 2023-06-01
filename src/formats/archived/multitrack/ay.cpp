@@ -93,7 +93,7 @@ namespace Formats::Archived
                                                : Formats::Chiptune::AY::CreateFileBuilder();
         if (!Formats::Chiptune::AY::Parse(*Delegate, index, *builder))
         {
-          return File::Ptr();
+          return {};
         }
         auto data = builder->Result();
         return MakePtr<File>(name, std::move(data));

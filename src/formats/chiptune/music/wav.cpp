@@ -245,7 +245,7 @@ namespace Formats::Chiptune
       }
       catch (const std::exception&)
       {}
-      return Formats::Chiptune::Container::Ptr();
+      return {};
     }
 
     class StubBuilder : public Builder
@@ -317,7 +317,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
       }
 

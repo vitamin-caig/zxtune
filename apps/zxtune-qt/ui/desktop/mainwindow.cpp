@@ -265,7 +265,7 @@ namespace
       {
         addToolBarBreak();
       }
-      return WidgetOnToolbar(widget, toolBar);
+      return {widget, toolBar};
     }
 
     QWidget* AddWidgetOnLayout(QWidget* widget)

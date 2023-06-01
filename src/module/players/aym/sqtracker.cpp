@@ -227,7 +227,7 @@ namespace Module::SQTracker
 
       MultiLine GetLine(uint_t row) const
       {
-        return MultiLine(Delegates[0]->GetLine(row), Delegates[1]->GetLine(row), Delegates[2]->GetLine(row));
+        return {Delegates[0]->GetLine(row), Delegates[1]->GetLine(row), Delegates[2]->GetLine(row)};
       }
 
     private:

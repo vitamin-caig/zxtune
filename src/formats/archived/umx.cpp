@@ -321,7 +321,7 @@ namespace Formats::Archived
         }
         catch (const std::exception&)
         {
-          return Binary::Container::Ptr();
+          return {};
         }
       }
 

@@ -441,7 +441,7 @@ namespace Formats::Archived
       {
         Dbg("Failed to decompress");
       }
-      return Binary::Container::Ptr();
+      return {};
     }
 
     Binary::Container::Ptr ExtractData(const DataBlockDescription& blk)
@@ -460,7 +460,7 @@ namespace Formats::Archived
       }
       else
       {
-        return Binary::Container::Ptr();
+        return {};
       }
     }
 
@@ -545,7 +545,7 @@ namespace Formats::Archived
         catch (const std::exception&)
         {
           Dbg("Failed to decompress");
-          return Binary::Container::Ptr();
+          return {};
         }
       }
 
@@ -560,7 +560,7 @@ namespace Formats::Archived
     {
       std::array<char, sizeof(ch.Id)> syms;
       std::memcpy(syms.data(), &ch.Id, sizeof(ch.Id));
-      return String(syms.data(), syms.size());
+      return {syms.data(), syms.size()};
     }
 
     template<class T>

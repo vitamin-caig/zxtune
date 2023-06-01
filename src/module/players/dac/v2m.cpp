@@ -64,7 +64,7 @@ namespace Module::V2M
       int outSize = 0;
       ::ConvertV2M(static_cast<const uint8_t*>(in.Start()), in.Size(), &outData, &outSize);
       Require(outData != nullptr && outSize != 0);
-      return DataPtr(outData, &Deleter);
+      return {outData, &Deleter};
     }
 
     explicit V2mEngine(DataPtr data)
@@ -111,7 +111,7 @@ namespace Module::V2M
     static Sound::Sample ConvertSample(const FloatPair& input)
     {
       static_assert(Sound::Sample::CHANNELS == 2, "Incompatible sound channels count");
-      return Sound::Sample(ConvertSingleSample(input[0]), ConvertSingleSample(input[1]));
+      return {ConvertSingleSample(input[0]), ConvertSingleSample(input[1])};
     }
 
     static Sound::Sample::Type ConvertSingleSample(float input)
@@ -262,7 +262,7 @@ namespace Module::V2M
       {
         Dbg("Failed to create V2M: {}", e.what());
       }
-      return Module::Holder::Ptr();
+      return {};
     }
   };
 

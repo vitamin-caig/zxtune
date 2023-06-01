@@ -37,7 +37,7 @@ namespace
 
   Error GetError()
   {
-    return Error(LOCATIONS[2], TEXTS[2]);
+    return {LOCATIONS[2], TEXTS[2]};
   }
 
   void TestSuccess(const Error& err)

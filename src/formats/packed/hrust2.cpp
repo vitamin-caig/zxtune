@@ -594,12 +594,12 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Hrust2::Version1::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       Hrust2::Version1::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());
@@ -630,12 +630,12 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Hrust2::Version3::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       Hrust2::Version3::DataDecoder decoder(rawData);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

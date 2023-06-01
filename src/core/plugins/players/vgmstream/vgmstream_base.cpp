@@ -401,7 +401,7 @@ namespace Module::VGMStream
       {
         Require(!!Stream);  // TODO
       }
-      return VGMStreamPtr(std::move(Stream));
+      return {std::move(Stream)};
     }
 
   private:

@@ -331,7 +331,7 @@ namespace Formats::Chiptune
       {
         if (!Check(data))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
 
         try
@@ -342,7 +342,7 @@ namespace Formats::Chiptune
         }
         catch (const std::exception&)
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
       }
 

@@ -268,12 +268,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Pack2::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       Pack2::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSize());

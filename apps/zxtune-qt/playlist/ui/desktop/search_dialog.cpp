@@ -104,7 +104,7 @@ namespace Playlist::UI
     Playlist::Item::Search::Data data;
     if (!dialog->Execute(data))
     {
-      return Playlist::Item::SelectionOperation::Ptr();
+      return {};
     }
     return scope ? Playlist::Item::CreateSearchOperation(scope, data) : Playlist::Item::CreateSearchOperation(data);
   }

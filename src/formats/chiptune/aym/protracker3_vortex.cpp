@@ -598,7 +598,7 @@ namespace Formats::Chiptune
 
       static SectionHeader ParseHeader(StringView hdr)
       {
-        return SectionHeader(Headers::ORNAMENT, hdr);
+        return {Headers::ORNAMENT, hdr};
       }
 
     private:
@@ -661,7 +661,7 @@ namespace Formats::Chiptune
 
       static SectionHeader ParseHeader(StringView hdr)
       {
-        return SectionHeader(Headers::SAMPLE, hdr);
+        return {Headers::SAMPLE, hdr};
       }
 
     private:
@@ -1137,7 +1137,7 @@ namespace Formats::Chiptune
 
       static SectionHeader ParseHeader(StringView str)
       {
-        return SectionHeader(Headers::PATTERN, str);
+        return {Headers::PATTERN, str};
       }
 
     private:

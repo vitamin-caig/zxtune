@@ -140,7 +140,7 @@ namespace
       }
       else
       {
-        return QString();
+        return {};
       }
     }
 

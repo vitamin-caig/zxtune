@@ -251,7 +251,7 @@ namespace Formats::Archived
     {
       if (!Format->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       Lha::FilesIterator iter(data);
       std::list<File::Ptr> files;
@@ -270,7 +270,7 @@ namespace Formats::Archived
       }
       else
       {
-        return Container::Ptr();
+        return {};
       }
     }
 

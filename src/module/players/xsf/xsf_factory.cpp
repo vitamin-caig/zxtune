@@ -187,7 +187,7 @@ namespace Module::XSF
       {
         Dbg("Failed to parse");
       }
-      return Module::Holder::Ptr();
+      return {};
     }
 
   private:

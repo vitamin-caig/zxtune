@@ -164,7 +164,7 @@ namespace
         Dbg("Loading message {} with encoding {}", file, encoding);
         const auto* rawStart = static_cast<const char*>((*data)->Start());
         const auto rawSize = (*data)->Size();
-        return std::vector<char>(rawStart, rawStart + rawSize);
+        return {rawStart, rawStart + rawSize};
       }
       else
       {

@@ -68,7 +68,7 @@ namespace Platform::Details
     if (void* handle = ::dlopen(fileName.c_str(), RTLD_LAZY))
     {
       res = MakePtr<LinuxSharedLibrary>(handle);
-      return Error();
+      return {};
     }
     return MakeFormattedError(THIS_LINE, translate("Failed to load shared object '{0}' ({1})."), fileName, ::dlerror());
   }

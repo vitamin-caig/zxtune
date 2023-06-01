@@ -158,7 +158,7 @@ namespace IO
 
     Strings::Set Schemes() const override
     {
-      return Strings::Set();
+      return {};
     }
 
     Identifier::Ptr Resolve(StringView /*uri*/) const override

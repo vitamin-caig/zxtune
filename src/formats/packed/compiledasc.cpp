@@ -232,13 +232,13 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Player->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto rawPlayer = Version.CreatePlayer(data);
       if (rawPlayer.Size >= std::min(data.Size(), MAX_PLAYER_SIZE))
       {
         Dbg("Invalid player");
-        return Container::Ptr();
+        return {};
       }
       Dbg("Detected player in first {} bytes", rawPlayer.Size);
       const auto modData = rawData.GetSubcontainer(rawPlayer.Size, MAX_MODULE_SIZE);
@@ -263,7 +263,7 @@ namespace Formats::Packed
         Dbg("Failed to parse fixed module");
       }
       Dbg("Failed to find module after player");
-      return Container::Ptr();
+      return {};
     }
 
   private:

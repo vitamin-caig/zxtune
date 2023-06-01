@@ -84,7 +84,7 @@ namespace Module::ASAP
 
     Time::Duration<TimeUnit> GetDuration() const
     {
-      return Time::Duration<TimeUnit>(::ASAPInfo_GetDuration(Info, Track));
+      return Time::Duration<TimeUnit>{static_cast<unsigned>(::ASAPInfo_GetDuration(Info, Track))};
     }
 
     void GetProperties(Binary::View data, PropertiesHelper& props) const

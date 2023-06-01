@@ -49,7 +49,7 @@ namespace Sound
         }
       }
       static_assert(Sample::CHANNELS == 2, "Incompatible sound channels count");
-      return Sample(out[0].Integer(), out[1].Integer());
+      return {out[0].Integer(), out[1].Integer()};
     }
 
     void SetMatrix(const MatrixType& matrix)

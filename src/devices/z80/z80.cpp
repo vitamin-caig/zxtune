@@ -40,9 +40,8 @@ namespace Devices::Z80
     std::shared_ptr<Z80EX_CONTEXT> ConnectCPU() const override
     {
       auto* const self = const_cast<ExtendedIOBus*>(this);
-      return std::shared_ptr<Z80EX_CONTEXT>(
-          z80ex_create(&ReadByte, self, &WriteByte, self, &InByte, self, &OutByte, self, &IntRead, self),
-          &z80ex_destroy);
+      return {z80ex_create(&ReadByte, self, &WriteByte, self, &InByte, self, &OutByte, self, &IntRead, self),
+              &z80ex_destroy};
     }
 
   private:
@@ -107,8 +106,7 @@ namespace Devices::Z80
       const bool isLimited = Memory.size() < 65536;
       const z80ex_mread_cb read = isLimited ? &ReadByteLimited : &ReadByteUnlimited;
       const z80ex_mwrite_cb write = isLimited ? &WriteByteLimited : &WriteByteUnlimited;
-      return std::shared_ptr<Z80EX_CONTEXT>(
-          z80ex_create(read, self, write, self, &InByte, self, &OutByte, self, &IntRead, self), &z80ex_destroy);
+      return {z80ex_create(read, self, write, self, &InByte, self, &OutByte, self, &IntRead, self), &z80ex_destroy};
     }
 
   private:

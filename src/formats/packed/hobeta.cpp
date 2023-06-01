@@ -95,11 +95,11 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Format->Match(data))
       {
-        return Formats::Packed::Container::Ptr();
+        return {};
       }
       if (!Hobeta::Check(data))
       {
-        return Formats::Packed::Container::Ptr();
+        return {};
       }
       const auto* header = data.As<Hobeta::Header>();
       const std::size_t dataSize = header->Length;

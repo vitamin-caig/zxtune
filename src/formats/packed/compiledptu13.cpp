@@ -131,7 +131,7 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Player->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const std::size_t playerSize = CompiledPTU13::PLAYER_SIZE;
       const auto& rawPlayer = *data.As<CompiledPTU13::RawPlayer>();
@@ -139,7 +139,7 @@ namespace Formats::Packed
       if (positionsAddr < playerSize + offsetof(CompiledPTU13::RawHeader, Positions))
       {
         Dbg("Invalid compile addr");
-        return Container::Ptr();
+        return {};
       }
       const uint_t dataAddr = positionsAddr - offsetof(CompiledPTU13::RawHeader, Positions);
       const auto modData = data.SubView(playerSize, CompiledPTU13::MAX_MODULE_SIZE);
@@ -148,7 +148,7 @@ namespace Formats::Packed
       if (!patternsCount)
       {
         Dbg("Invalid patterns count");
-        return Container::Ptr();
+        return {};
       }
       const uint_t compileAddr = dataAddr - playerSize;
       Dbg("Detected player compiled at #%{:04x}) with {} patterns", compileAddr, patternsCount);
@@ -171,7 +171,7 @@ namespace Formats::Packed
         return CreateContainer(std::move(fixedParsed), totalSize);
       }
       Dbg("Failed to parse fixed module");
-      return Container::Ptr();
+      return {};
     }
 
   private:

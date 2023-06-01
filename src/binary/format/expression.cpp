@@ -347,7 +347,7 @@ namespace Binary::FormatDSL
       }
     }
     Require(false);
-    return Predicate::Ptr();
+    return {};
   }
 
   class PredicatesFactory : public FormatTokensVisitor

@@ -336,7 +336,7 @@ namespace Formats::Archived
     {
       if (!FileDecoder->GetFormat()->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
 
       uint_t filesCount = 0;
@@ -355,7 +355,7 @@ namespace Formats::Archived
       }
       else
       {
-        return Container::Ptr();
+        return {};
       }
     }
 

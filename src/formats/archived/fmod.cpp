@@ -233,6 +233,6 @@ namespace Formats::Archived::Fmod
     }
     catch (const std::exception&)
     {}
-    return Binary::Container::Ptr();
+    return {};
   }
 }  // namespace Formats::Archived::Fmod

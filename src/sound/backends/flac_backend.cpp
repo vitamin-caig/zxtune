@@ -52,7 +52,7 @@ namespace Sound::Flac
   inline FlacSample ConvertSample(Sample in)
   {
     static_assert(Sample::MID == 0, "Incompatible sound sample type");
-    return FlacSample(in.Left(), in.Right());
+    return {in.Left(), in.Right()};
   }
 
   class MetaData

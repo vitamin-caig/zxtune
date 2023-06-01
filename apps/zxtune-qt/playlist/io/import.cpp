@@ -40,7 +40,7 @@ namespace Playlist::IO
     {
       return xspf;
     }
-    return Container::Ptr();
+    return {};
   }
 
   Container::Ptr OpenPlainList(Item::DataProvider::Ptr provider, const QStringList& uris)

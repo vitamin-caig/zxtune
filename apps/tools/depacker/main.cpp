@@ -82,7 +82,7 @@ namespace
           return result;
         }
       }
-      return Formats::Packed::Container::Ptr();
+      return {};
     }
   };
 

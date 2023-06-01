@@ -27,7 +27,7 @@ namespace Module::Wav
 
   Sound::Sample MakeSample(int16_t val)
   {
-    return Sound::Sample(val, val);
+    return {val, val};
   }
 
   int_t ReadS16(const uint8_t* data)

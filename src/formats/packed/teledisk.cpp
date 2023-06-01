@@ -405,7 +405,7 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Formats::ImageBuilder::Ptr builder = CreateSparsedImageBuilder();
       TeleDiskImage::ImageVisitorAdapter visitor(builder);
@@ -413,7 +413,7 @@ namespace Formats::Packed
       {
         return CreateContainer(builder->GetResult(), usedSize);
       }
-      return Container::Ptr();
+      return {};
     }
 
   private:

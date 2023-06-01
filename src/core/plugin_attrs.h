@@ -27,7 +27,7 @@ namespace ZXTune
 
   constexpr PluginId operator"" _id(const char* str, std::size_t size) noexcept
   {
-    return PluginId(str, size);
+    return {str, size};
   }
 
   /*

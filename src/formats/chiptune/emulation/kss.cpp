@@ -82,7 +82,7 @@ namespace Formats::Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         const RawHeader& hdr = *safe_ptr_cast<const RawHeader*>(rawData.Start());
         const std::size_t bankSize = 0 != (hdr.ExtraBanks & 0x80) ? 8192 : 16384;

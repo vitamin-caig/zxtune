@@ -96,7 +96,7 @@ namespace
 
     Analysis::Node::Ptr Parent() const override
     {
-      return Analysis::Node::Ptr();
+      return {};
     }
 
   private:
@@ -759,7 +759,7 @@ namespace
       }
       else
       {
-        return String();
+        return {};
       }
     }
 

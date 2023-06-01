@@ -58,7 +58,7 @@ namespace Formats::Packed
 
       Binary::View GetInfo() const
       {
-        return Binary::View(Information, 55);
+        return {Information, 55};
       }
     };
 
@@ -119,14 +119,14 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Player->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto& rawPlayer = *data.As<RawPlayer>();
       const std::size_t playerSize = rawPlayer.GetSize();
       if (playerSize >= std::min(data.Size(), MAX_PLAYER_SIZE))
       {
         Dbg("Invalid compile addr");
-        return Container::Ptr();
+        return {};
       }
       const uint_t compileAddr = rawPlayer.GetCompileAddr();
       Dbg("Detected player compiled at #{:04x} in first {} bytes", compileAddr, playerSize);
@@ -152,7 +152,7 @@ namespace Formats::Packed
         Dbg("Failed to parse fixed module");
       }
       Dbg("Failed to find module after player");
-      return Container::Ptr();
+      return {};
     }
 
   private:

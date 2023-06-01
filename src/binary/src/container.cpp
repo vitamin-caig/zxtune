@@ -68,7 +68,7 @@ namespace Binary
       }
       else
       {
-        return Ptr();
+        return {};
       }
     }
 
@@ -93,7 +93,7 @@ namespace Binary
     }
     else
     {
-      return Container::Ptr();
+      return {};
     }
   }
 
@@ -117,7 +117,7 @@ namespace Binary
     }
     else
     {
-      return Container::Ptr();
+      return {};
     }
   }
 
@@ -130,7 +130,7 @@ namespace Binary
     }
     else
     {
-      return Container::Ptr();
+      return {};
     }
   }
 }  // namespace Binary

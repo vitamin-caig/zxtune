@@ -271,7 +271,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          return Binary::View(nullptr, 0);
+          return {nullptr, 0};
         }
       }
 
@@ -482,7 +482,7 @@ namespace Formats::Chiptune
       {
         if (!Format->Match(rawData))
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
         Builder& stub = Digital::GetStubBuilder();
         return Parse(rawData, stub);
@@ -497,7 +497,7 @@ namespace Formats::Chiptune
       const Binary::View data(rawData);
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
 
       try
@@ -527,7 +527,7 @@ namespace Formats::Chiptune
       catch (const std::exception&)
       {
         Dbg("Failed to create");
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
   }  // namespace DigitalStudio

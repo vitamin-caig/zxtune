@@ -248,12 +248,12 @@ namespace Formats::Image
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const LaserCompact40::Container container(rawData);
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       LaserCompact40::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

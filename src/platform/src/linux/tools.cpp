@@ -37,7 +37,7 @@ namespace
     }
     else
     {
-      return String();
+      return {};
     }
   }
 
@@ -48,12 +48,12 @@ namespace
     if (-1 == ::lstat(selfPath.c_str(), &sb))
     {
       Dbg("Failed to stat {} (errno {})", selfPath, errno);
-      return String();
+      return {};
     }
     if (!S_ISLNK(sb.st_mode))
     {
       Dbg("{} is not a symlink", selfPath);
-      return String();
+      return {};
     }
 
     std::vector<char> filename(1024);
@@ -63,7 +63,7 @@ namespace
       if (len == -1)
       {
         Dbg("Failed to readlink '{}' (errno {})", selfPath, errno);
-        return String();
+        return {};
       }
       else if (len == static_cast<int>(filename.size()) - 1)
       {

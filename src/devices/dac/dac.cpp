@@ -179,7 +179,7 @@ namespace Devices::DAC
       const Details::Frequency freq =
           Details::FreqTable::GetHalftoneFrequency(halftonesLim) + Details::Frequency(slideHz);
       // step 1 is for first note
-      return FastSample::Position(int64_t((freq * SampleFreq).Integer()), (baseFreq * SoundFreq).Integer());
+      return {int64_t((freq * SampleFreq).Integer()), (baseFreq * SoundFreq).Integer()};
     }
 
     Stamp GetCurrentTime() const

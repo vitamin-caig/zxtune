@@ -349,7 +349,7 @@ namespace Sound::Win32
     {
       DWORD buffer = 0;
       Device->GetVolume(&buffer);
-      return Gain(DecodeVolume(uint16_t(buffer & 0xffff)), DecodeVolume(uint16_t(buffer >> 16)));
+      return {DecodeVolume(uint16_t(buffer & 0xffff)), DecodeVolume(uint16_t(buffer >> 16))};
     }
 
     void SetVolume(const Gain& volume) override
@@ -533,7 +533,7 @@ namespace Sound::Win32
       if (MMSYSERR_NOERROR != WinApi->waveOutGetDevCapsW(static_cast<UINT>(IdValue), &caps, sizeof(caps)))
       {
         Dbg("Failed to get device name");
-        return String();
+        return {};
       }
       const auto* const name = caps.szPname;
       static_assert(sizeof(*name) == sizeof(uint16_t), "Wide char size mismatch");

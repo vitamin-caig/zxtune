@@ -49,7 +49,7 @@ namespace Module::SampleTracker
       }
       else
       {
-        return DAC::Chiptune::Ptr();
+        return {};
       }
     }
   };

@@ -24,7 +24,7 @@ namespace
   {
     if (const auto* str = ::getenv(DEBUG_LOG_VARIABLE))
     {
-      return StringView(str);
+      return {str};
     }
     else
     {

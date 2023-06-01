@@ -297,13 +297,13 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
 
       const GamePacker::Container<Version> container(rawData.Start(), rawData.Size());
       if (!container.Check())
       {
-        return Container::Ptr();
+        return {};
       }
       GamePacker::DataDecoder<Version> decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

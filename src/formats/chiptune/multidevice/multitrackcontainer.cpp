@@ -527,7 +527,7 @@ namespace Formats::Chiptune
     {
       if (!FastCheck(data))
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
       try
       {
@@ -540,7 +540,7 @@ namespace Formats::Chiptune
       }
       catch (const std::exception& /*e*/)
       {}
-      return Formats::Chiptune::Container::Ptr();
+      return {};
     }
 
     Builder& GetStubBuilder()

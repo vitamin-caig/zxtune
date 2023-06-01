@@ -80,7 +80,7 @@ namespace Devices::FM::Details
 
     ChipPtr CreateChip() const
     {
-      return ChipPtr(::YM2203Init(LastClockrate, LastSoundFreq), &::YM2203Shutdown);
+      return {::YM2203Init(LastClockrate, LastSoundFreq), &::YM2203Shutdown};
     }
 
     static void ConvertSamples(const YM2203SampleType* inBegin, const YM2203SampleType* inEnd, Sound::Sample* out)
@@ -93,7 +93,7 @@ namespace Devices::FM::Details
     {
       using namespace Sound;
       const auto val = Math::Clamp<Sample::WideType>(level + Sample::MID, Sample::MIN, Sample::MAX);
-      return Sound::Sample(val, val);
+      return {val, val};
     }
 
   private:

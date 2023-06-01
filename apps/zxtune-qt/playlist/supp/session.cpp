@@ -69,8 +69,8 @@ namespace
   // does not exists), but store only to actual.
   QDir GetOutdatedPlaylistsDir()
   {
-    return QDir(QStandardPaths::locate(QStandardPaths::DataLocation, "", QStandardPaths::LocateDirectory) + "/"
-                + QCoreApplication::applicationName() + "/Playlists");
+    return {QStandardPaths::locate(QStandardPaths::DataLocation, "", QStandardPaths::LocateDirectory) + "/"
+            + QCoreApplication::applicationName() + "/Playlists"};
   }
 
   QStringList GetPlaylistFiles(const QDir& dir)

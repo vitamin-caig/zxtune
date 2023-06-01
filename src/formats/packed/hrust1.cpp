@@ -430,12 +430,12 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Hrust1::Container container(rawData.Start(), rawData.Size());
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       Hrust1::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSizeWithPadding());

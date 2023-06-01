@@ -58,7 +58,7 @@ namespace
 
     Time::Milliseconds GetPlayed() const
     {
-      return Time::Milliseconds(State->At().CastTo<Time::Millisecond>().Get());
+      return Time::Milliseconds{State->At().CastTo<Time::Millisecond>().Get()};
     }
 
   private:

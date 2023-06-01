@@ -219,7 +219,7 @@ namespace Formats::Image
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       ASCScreenCrusher::DataDecoder decoder(rawData);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

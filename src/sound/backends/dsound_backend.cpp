@@ -68,7 +68,7 @@ namespace Sound::DirectSound
   {
     if (!guid)
     {
-      return String();
+      return {};
     }
     OLECHAR strGuid[39] = {0};
     if (const int chars = ::StringFromGUID2(*guid, strGuid, boost::size(strGuid)))
@@ -77,7 +77,7 @@ namespace Sound::DirectSound
     }
     else
     {
-      return String();
+      return {};
     }
   }
 
@@ -85,7 +85,7 @@ namespace Sound::DirectSound
   {
     if (str.empty())
     {
-      return std::unique_ptr<GUID>();
+      return {};
     }
     std::vector<OLECHAR> strGuid(str.begin(), str.end());
     strGuid.push_back(0);
@@ -133,7 +133,7 @@ namespace Sound::DirectSound
     CheckWin32Error(device.CreateSoundBuffer(&buffer, &rawSecondary, nullptr), THIS_LINE);
     assert(rawSecondary);
     Dbg("Created");
-    return std::shared_ptr<IDirectSoundBuffer>(rawSecondary, &ReleaseRef);
+    return {rawSecondary, &ReleaseRef};
   }
 
   DirectSoundBufferPtr CreatePrimaryBuffer(IDirectSound& device)
@@ -148,7 +148,7 @@ namespace Sound::DirectSound
     CheckWin32Error(device.CreateSoundBuffer(&buffer, &rawPrimary, nullptr), THIS_LINE);
     assert(rawPrimary);
     Dbg("Created");
-    return std::shared_ptr<IDirectSoundBuffer>(rawPrimary, &ReleaseRef);
+    return {rawPrimary, &ReleaseRef};
   }
 
   class StreamBuffer

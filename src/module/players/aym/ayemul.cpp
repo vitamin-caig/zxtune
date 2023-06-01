@@ -244,7 +244,7 @@ namespace Module::AYEMUL
   private:
     static Sound::Sample MixSamples(Sound::Sample lh, Sound::Sample rh)
     {
-      return Sound::Sample((lh.Left() + rh.Left()) / 2, (lh.Right() + rh.Right()) / 2);
+      return {(lh.Left() + rh.Left()) / 2, (lh.Right() + rh.Right()) / 2};
     }
 
   private:

@@ -248,7 +248,7 @@ namespace Formats::Archived
       const Binary::View data(rawData);
       if (!Format->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto builder = TRDos::CatalogueBuilder::CreateFlat();
       TRD::BuildVisitorAdapter visitor(*builder);
@@ -257,7 +257,7 @@ namespace Formats::Archived
         builder->SetRawData(rawData.GetSubcontainer(0, size));
         return builder->GetResult();
       }
-      return Container::Ptr();
+      return {};
     }
 
   private:

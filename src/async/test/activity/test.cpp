@@ -24,12 +24,12 @@ namespace
 
   Error FailedToPrepareError()
   {
-    return Error(THIS_LINE, "Failed to prepare");
+    return {THIS_LINE, "Failed to prepare"};
   }
 
   Error FailedToExecuteError()
   {
-    return Error(THIS_LINE, "Failed to execute");
+    return {THIS_LINE, "Failed to execute"};
   }
 
   class InvalidOperation : public Operation

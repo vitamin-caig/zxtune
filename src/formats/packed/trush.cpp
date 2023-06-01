@@ -311,12 +311,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Trush::Container container(rawData.Start(), rawData.Size(), DepackerBody->NextMatchOffset(rawData));
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       Trush::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), container.GetUsedSize());

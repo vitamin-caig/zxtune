@@ -303,7 +303,7 @@ namespace Module::ExtremeTracker1
       }
       else
       {
-        return DAC::Chiptune::Ptr();
+        return {};
       }
     }
   };

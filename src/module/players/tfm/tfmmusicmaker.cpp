@@ -288,7 +288,7 @@ namespace Module::TFMMusicMaker
 
     static Type FromFraction(int_t val)
     {
-      return Type(val, Type::PRECISION);
+      return {val, Type::PRECISION};
     }
 
     static Type FromInteger(int_t val)
@@ -313,7 +313,7 @@ namespace Module::TFMMusicMaker
 
     static Type FromFraction(int_t val)
     {
-      return Type(val, Type::PRECISION);
+      return {val, Type::PRECISION};
     }
 
     static Type FromInteger(int_t val)
@@ -963,7 +963,7 @@ namespace Module::TFMMusicMaker
       const uint_t freq =
           FREQS[halftone]
           + ((FREQS[halftone + 1] - FREQS[halftone]) * note.Fraction() /* + note.PRECISION / 2*/) / note.PRECISION;
-      return RawNote(octave, freq);
+      return {octave, freq};
     }
 
     static void SetLevel(const ChannelState& state, TFM::ChannelBuilder& channel)

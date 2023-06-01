@@ -51,7 +51,7 @@ namespace Devices::SAA
 
     Sound::Sample Convert() const
     {
-      return Sound::Sample(ToSample(Left()), ToSample(Right()));
+      return {ToSample(Left()), ToSample(Right())};
     }
 
   private:
@@ -375,7 +375,7 @@ namespace Devices::SAA
       if (Enabled)
       {
         Update();
-        return FastSample(Scale(in.Left(), Level), Scale(in.Right(), Level ^ XorValue));
+        return {Scale(in.Left(), Level), Scale(in.Right(), Level ^ XorValue)};
       }
       else
       {

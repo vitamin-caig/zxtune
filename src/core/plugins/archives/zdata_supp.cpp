@@ -113,7 +113,7 @@ namespace ZXTune::Zdata
       auto* const outData = out.Signature.data();
       Binary::Base64::Decode(inData, inData + in.size(), outData, outData + sizeof(out));
       Require(out.Signature == SIGNATURE);
-      return Header(out.Crc, out.OriginalSize, out.PackedSize);
+      return {out.Crc, out.OriginalSize, out.PackedSize};
     }
 
     void ToRaw(RawHeader& res) const
@@ -177,7 +177,7 @@ namespace ZXTune::Zdata
     const uint8_t* const rawEnd = rawStart + raw.Size();
     const TxtMarker lookup = marker.Encode();
     const uint8_t* const res = std::search(rawStart, rawEnd, lookup.begin(), lookup.end());
-    return Layout(res, rawEnd);
+    return {res, rawEnd};
   }
 
   Binary::Container::Ptr Decode(Binary::View raw, const Marker& marker)
@@ -197,12 +197,12 @@ namespace ZXTune::Zdata
     catch (const std::exception&)
     {
       Dbg("Failed to decode");
-      return Binary::Container::Ptr();
+      return {};
     }
     catch (const Error& e)
     {
       Dbg("Error: {}", e.ToString());
-      return Binary::Container::Ptr();
+      return {};
     }
   }
 
@@ -215,7 +215,7 @@ namespace ZXTune::Zdata
       Binary::Compression::Zlib::Compress(inputStream, output);
     }
     const auto packedSize = output.Size() - prevOutputSize;
-    return Header(Binary::Crc32(input), inSize, packedSize);
+    return {Binary::Crc32(input), inSize, packedSize};
   }
 
   Binary::Container::Ptr Convert(Binary::View input)

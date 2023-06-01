@@ -333,7 +333,7 @@ namespace Formats::Archived
       const Binary::View data(rawData);
       if (!Format->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       const auto& hdr = *data.As<SevenZip::Header>();
       const std::size_t totalSize = sizeof(hdr) + hdr.NextHeaderOffset + hdr.NextHeaderSize;

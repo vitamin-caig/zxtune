@@ -87,7 +87,7 @@ namespace Binary
         }
         else
         {
-          return Ptr();
+          return {};
         }
       }
       return MakePtr<ExactMatchOnlyFormat>(std::move(tmp), startOffset, minSize);

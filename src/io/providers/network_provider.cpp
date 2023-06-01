@@ -248,13 +248,13 @@ namespace IO::Network
     String Filename() const override
     {
       // filename usually is useless on remote schemes
-      return String();
+      return {};
     }
 
     String Extension() const override
     {
       // filename usually is useless on remote schemes
-      return String();
+      return {};
     }
 
     String Subpath() const override
@@ -307,7 +307,7 @@ namespace IO::Network
 
     Error Status() const override
     {
-      return Error();
+      return {};
     }
 
     Strings::Set Schemes() const override

@@ -112,7 +112,7 @@ namespace Module::GSF
 
     Sound::Chunk CaptureResult()
     {
-      return Sound::Chunk(std::move(Result));
+      return {std::move(Result)};
     }
 
   private:

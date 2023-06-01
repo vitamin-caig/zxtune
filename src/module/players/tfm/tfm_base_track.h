@@ -56,7 +56,7 @@ namespace Module::TFM
   public:
     ChannelBuilder GetChannel(uint_t chan)
     {
-      return ChannelBuilder(chan, Data);
+      return {chan, Data};
     }
 
     void CaptureResult(Devices::TFM::Registers& res)

@@ -310,7 +310,7 @@ namespace Module::SQDigitalTracker
       }
       else
       {
-        return DAC::Chiptune::Ptr();
+        return {};
       }
     }
   };

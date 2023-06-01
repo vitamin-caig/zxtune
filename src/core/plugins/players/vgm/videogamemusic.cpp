@@ -510,7 +510,7 @@ namespace Module::VideoGameMusic
       const auto* end = std::find(begin, begin + symbolsAvailable, 0);
       Require(end != begin + symbolsAvailable);
       Input.Skip((end + 1 - begin) * sizeof(*begin));
-      return basic_string_view<le_uint16_t>(begin, end);
+      return {begin, end};
     }
 
     static StringView ConvertPlatform(StringView str)

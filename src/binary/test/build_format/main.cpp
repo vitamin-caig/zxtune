@@ -51,7 +51,7 @@ namespace
       else
       {
         assert(!"Invalid case");
-        return std::string();
+        return {};
       }
     }
   };

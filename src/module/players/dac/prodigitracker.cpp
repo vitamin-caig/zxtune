@@ -285,7 +285,7 @@ namespace Module::ProDigiTracker
       }
       else
       {
-        return DAC::Chiptune::Ptr();
+        return {};
       }
     }
   };

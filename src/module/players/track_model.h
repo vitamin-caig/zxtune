@@ -82,7 +82,7 @@ namespace Module
 
     CommandsIterator GetCommands() const
     {
-      return CommandsIterator(Commands.begin(), Commands.end());
+      return {Commands.begin(), Commands.end()};
     }
 
   protected:

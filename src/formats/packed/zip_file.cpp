@@ -291,7 +291,7 @@ namespace Formats::Packed
         {
           return std::unique_ptr<const CompressedFile>(new StreamedFile(hdr, *footer));
         }
-        return std::unique_ptr<const CompressedFile>();
+        return {};
       }
       else
       {
@@ -321,12 +321,12 @@ namespace Formats::Packed
     {
       if (!Depacker->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const Zip::Container container(rawData);
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       Zip::DispatchedDataDecoder decoder(container);
       return CreateContainer(decoder.Decompress(), container.GetFile().GetPackedSize());

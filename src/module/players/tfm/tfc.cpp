@@ -61,7 +61,7 @@ namespace Module::TFC
       }
       const std::size_t start = Offsets[row];
       const std::size_t end = row != Offsets.size() - 1 ? Offsets[row + 1] : Data.size();
-      return RangeIterator<Devices::FM::Registers::const_iterator>(Data.begin() + start, Data.begin() + end);
+      return {Data.begin() + start, Data.begin() + end};
     }
 
     std::size_t GetSize() const

@@ -301,7 +301,7 @@ namespace
     {
       if (idx >= Model::IndexType(Items.size()))
       {
-        return Item::Data::Ptr();
+        return {};
       }
       const auto it = GetIteratorByIndex(idx);
       return it->first;
@@ -395,12 +395,12 @@ namespace
 
     static Model::OldToNewIndexMap::value_type MakeIndexPair(const IndexedItem& item, Model::IndexType idx)
     {
-      return Model::OldToNewIndexMap::value_type(item.second, idx);
+      return {item.second, idx};
     }
 
     static IndexedItem UpdateItemIndex(const IndexedItem& item, Model::IndexType idx)
     {
-      return IndexedItem(item.first, idx);
+      return {item.first, idx};
     }
 
     class ComparerWrapper : public std::binary_function<ItemsContainer::value_type, ItemsContainer::value_type, bool>
@@ -462,11 +462,11 @@ namespace
       const std::size_t toLast = lastIndex - idx;
       if (toFirst <= toLast)
       {
-        return IndexToIterator::value_type(firstIndex, Items.begin());
+        return {firstIndex, Items.begin()};
       }
       else
       {
-        return IndexToIterator::value_type(lastIndex, --Items.end());
+        return {lastIndex, --Items.end()};
       }
     }
 

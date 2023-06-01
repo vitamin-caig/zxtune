@@ -213,7 +213,7 @@ namespace TRDos
       }
       else
       {
-        return Formats::Archived::Container::Ptr();
+        return {};
       }
     }
 

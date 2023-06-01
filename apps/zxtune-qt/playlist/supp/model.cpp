@@ -59,7 +59,7 @@ namespace
 
     QVariant GetData(const Playlist::Item::Data& /*item*/, unsigned /*column*/) const override
     {
-      return QVariant();
+      return {};
     }
   };
 
@@ -102,7 +102,7 @@ namespace
       case Playlist::Model::COLUMN_FIXEDCRC:
         return ToHex(item.GetCoreChecksum());
       default:
-        return QVariant();
+        return {};
       };
     }
   };
@@ -184,7 +184,7 @@ namespace
     case Playlist::Model::COLUMN_FIXEDCRC:
       return CreateComparer(&Playlist::Item::Data::GetCoreChecksum, ascending);
     default:
-      return Playlist::Item::Comparer::Ptr();
+      return {};
     }
   }
 
@@ -593,16 +593,16 @@ namespace
       if (Qt::Vertical == orientation && Qt::DisplayRole == role)
       {
         // item number is 1-based
-        return QVariant(section + 1);
+        return {section + 1};
       }
-      return QVariant();
+      return {};
     }
 
     QVariant data(const QModelIndex& index, int role) const override
     {
       if (!index.isValid())
       {
-        return QVariant();
+        return {};
       }
       const int_t fieldNum = index.column();
       const int_t itemNum = index.row();
@@ -619,7 +619,7 @@ namespace
           AsyncLoad(std::move(item), index);
         }
       }
-      return QVariant();
+      return {};
     }
 
     void sort(int column, Qt::SortOrder order) override

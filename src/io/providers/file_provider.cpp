@@ -443,7 +443,7 @@ namespace IO::File
 
     Error Status() const override
     {
-      return Error();
+      return {};
     }
 
     Strings::Set Schemes() const override

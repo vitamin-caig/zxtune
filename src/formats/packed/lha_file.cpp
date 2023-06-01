@@ -74,7 +74,7 @@ namespace Formats::Packed::Lha
     {
       return MakePtr<LHADecompressor>(type);
     }
-    return Decompressor::Ptr();
+    return {};
   }
 
   Formats::Packed::Container::Ptr DecodeRawData(const Binary::Container& input, const String& method,
@@ -90,7 +90,7 @@ namespace Formats::Packed::Lha
       const std::size_t originalSize = result->PackedSize();
       Dbg("Output size mismatch while decoding {} -> {} ({} required)", originalSize, decoded, outputSize);
     }
-    return Formats::Packed::Container::Ptr();
+    return {};
   }
 
   Formats::Packed::Container::Ptr DecodeRawDataAtLeast(const Binary::Container& input, const String& method,
@@ -100,6 +100,6 @@ namespace Formats::Packed::Lha
     {
       return decompressor->Decode(input, sizeHint);
     }
-    return Formats::Packed::Container::Ptr();
+    return {};
   }
 }  // namespace Formats::Packed::Lha

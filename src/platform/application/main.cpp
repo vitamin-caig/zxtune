@@ -47,7 +47,7 @@ Strings::Array ParseArgv(int, const char**)
 #else
 Strings::Array ParseArgv(int argc, const char* argv[])
 {
-  return Strings::Array(argv, argv + argc);
+  return {argv, argv + argc};
 }
 #endif
 

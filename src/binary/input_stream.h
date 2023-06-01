@@ -110,7 +110,7 @@ namespace Binary
 
     View ReadData(std::size_t size)
     {
-      return View(ReadRawData(size), size);
+      return {ReadRawData(size), size};
     }
 
     View ReadRestData()

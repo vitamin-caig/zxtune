@@ -227,7 +227,7 @@ namespace Module::LibVGM
 
     static Sound::Sample ConvertSample(WAVE_32BS data)
     {
-      return Sound::Sample(Convert(data.L), Convert(data.R));
+      return {Convert(data.L), Convert(data.R)};
     }
 
     static Sound::Sample::Type Convert(DEV_SMPL in)

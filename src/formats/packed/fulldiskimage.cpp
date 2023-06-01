@@ -236,7 +236,7 @@ namespace Formats::Packed
       const FullDiskImage::Container container(data, availSize);
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       FullDiskImage::Decoder decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

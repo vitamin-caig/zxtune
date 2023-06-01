@@ -305,7 +305,7 @@ namespace Module::ChipTracker
         props.SetPlatform(Platforms::ZX_SPECTRUM);
         return MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
       }
-      return DAC::Chiptune::Ptr();
+      return {};
     }
   };
 

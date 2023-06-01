@@ -131,7 +131,7 @@ namespace Formats::Chiptune
 
       ModuleTraits GetTraits(Binary::View data) const
       {
-        return ModuleTraits(data, Delegate->NextMatchOffset(data));
+        return {data, Delegate->NextMatchOffset(data)};
       }
 
     private:

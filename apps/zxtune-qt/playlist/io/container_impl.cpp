@@ -77,12 +77,12 @@ namespace
     // common
     Module::Holder::Ptr GetModule() const override
     {
-      return Module::Holder::Ptr();
+      return {};
     }
 
     Binary::Data::Ptr GetModuleData() const override
     {
-      return Binary::Data::Ptr();
+      return {};
     }
 
     Parameters::Accessor::Ptr GetModuleProperties() const override
@@ -118,7 +118,7 @@ namespace
 
     String GetType() const override
     {
-      return String();
+      return {};
     }
 
     String GetDisplayName() const override
@@ -133,17 +133,17 @@ namespace
 
     String GetAuthor() const override
     {
-      return String();
+      return {};
     }
 
     String GetTitle() const override
     {
-      return String();
+      return {};
     }
 
     String GetComment() const override
     {
-      return String();
+      return {};
     }
 
     uint32_t GetChecksum() const override

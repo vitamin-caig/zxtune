@@ -42,7 +42,7 @@ namespace Module::Mpt
 
   Time::Milliseconds ToDuration(double seconds)
   {
-    return Time::Milliseconds(seconds * Time::Milliseconds::PER_SECOND);
+    return Time::Milliseconds{static_cast<uint_t>(seconds * Time::Milliseconds::PER_SECOND)};
   }
 
   // TODO: implement proper loop-related calculations after https://bugs.openmpt.org/view.php?id=1675 fix

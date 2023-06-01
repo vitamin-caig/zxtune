@@ -406,7 +406,7 @@ namespace
     {
       return val;
     }
-    return String();
+    return {};
   }
 
   Parameters::IntType GetIntProperty(const Parameters::Accessor& props, StringView propName,

@@ -331,7 +331,7 @@ namespace Formats::Chiptune
             }
             if (skip > MAX_SYNC_GAP_NOTLOST && ++syncLostsCount > MAX_SYNC_LOSTS_COUNT)
             {
-              return Container::Ptr();
+              return {};
             }
           }
         }
@@ -341,7 +341,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          return Container::Ptr();
+          return {};
         }
       }
 
@@ -462,7 +462,7 @@ namespace Formats::Chiptune
       }
       catch (const std::exception&)
       {
-        return Formats::Chiptune::Container::Ptr();
+        return {};
       }
     }
 
@@ -518,7 +518,7 @@ namespace Formats::Chiptune
         }
         else
         {
-          return Formats::Chiptune::Container::Ptr();
+          return {};
         }
       }
 

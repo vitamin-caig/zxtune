@@ -226,7 +226,7 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Depacker->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       MegaLZ::DataDecoder decoder(data.SubView(0, MegaLZ::MAX_DECODED_SIZE));
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

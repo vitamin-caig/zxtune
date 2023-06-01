@@ -159,11 +159,11 @@ namespace Formats::Packed
       const Binary::View data(rawData);
       if (!Format->Match(data))
       {
-        return Container::Ptr();
+        return {};
       }
       if (!Sna128::Check(data))
       {
-        return Container::Ptr();
+        return {};
       }
       return Sna128::Decode(data);
     }

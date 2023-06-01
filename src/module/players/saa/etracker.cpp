@@ -486,7 +486,7 @@ namespace Module::ETracker
         auto chiptune = MakePtr<Chiptune>(dataBuilder.CaptureResult(), std::move(properties));
         return SAA::CreateHolder(std::move(chiptune));
       }
-      return Holder::Ptr();
+      return {};
     }
   };
 

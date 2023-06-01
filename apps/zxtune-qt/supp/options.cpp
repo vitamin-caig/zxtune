@@ -334,7 +334,7 @@ namespace
     {
       const std::lock_guard<std::mutex> lock(Guard);
       Delegates.insert(delegate);
-      return Subscription(this, [delegate = std::move(delegate)](auto&& owner) { owner->Unsubscribe(delegate); });
+      return {this, [delegate = std::move(delegate)](auto&& owner) { owner->Unsubscribe(delegate); }};
     }
 
     void SetValue(Identifier name, IntType val) override

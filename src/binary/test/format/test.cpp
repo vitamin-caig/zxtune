@@ -195,7 +195,7 @@ namespace
     {
       const auto format = Binary::CreateFormat(notation);
       const Binary::View sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
-      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
+      return {format->Match(sample), format->NextMatchOffset(sample)};
     }
     catch (const std::exception&)
     {
@@ -209,7 +209,7 @@ namespace
     {
       const Binary::Format::Ptr format = Binary::CreateMatchOnlyFormat(notation);
       const Binary::View sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
-      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
+      return {format->Match(sample), format->NextMatchOffset(sample)};
     }
     catch (const std::exception&)
     {
@@ -225,7 +225,7 @@ namespace
       auto foot = Binary::CreateFormat(footer);
       const auto format = Binary::CreateCompositeFormat(std::move(hdr), std::move(foot), minSize, maxSize);
       const Binary::View sample(SAMPLE, std::end(SAMPLE) - SAMPLE);
-      return FormatResult(format->Match(sample), format->NextMatchOffset(sample));
+      return {format->Match(sample), format->NextMatchOffset(sample)};
     }
     catch (const std::exception&)
     {

@@ -246,7 +246,7 @@ namespace Module::FFmpeg
     decoder->SetBlockSize(blockSize);
     decoder->SetExtraData(config);
     decoder->Init();
-    return Decoder::Ptr(std::move(decoder));
+    return decoder;
   }
 
   Decoder::Ptr CreateAtrac3PlusDecoder(uint_t channels, uint_t blockSize)
@@ -255,7 +255,7 @@ namespace Module::FFmpeg
     decoder->SetChannels(channels);
     decoder->SetBlockSize(blockSize);
     decoder->Init();
-    return Decoder::Ptr(std::move(decoder));
+    return decoder;
   }
 
   Decoder::Ptr CreateAtrac9Decoder(uint_t blockSize, Binary::View config)
@@ -264,6 +264,6 @@ namespace Module::FFmpeg
     decoder->SetBlockSize(blockSize);
     decoder->SetExtraData(config);
     decoder->Init();
-    return Decoder::Ptr(std::move(decoder));
+    return decoder;
   }
 }  // namespace Module::FFmpeg

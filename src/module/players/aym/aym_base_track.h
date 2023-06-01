@@ -60,7 +60,7 @@ namespace Module::AYM
 
     ChannelBuilder GetChannel(uint_t chan)
     {
-      return ChannelBuilder(chan, Table, Data);
+      return {chan, Table, Data};
     }
 
     const Devices::AYM::Registers& GetResult() const

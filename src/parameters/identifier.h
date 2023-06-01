@@ -65,7 +65,7 @@ namespace Parameters
       }
       else
       {
-        return Identifier();
+        return {};
       }
     }
 

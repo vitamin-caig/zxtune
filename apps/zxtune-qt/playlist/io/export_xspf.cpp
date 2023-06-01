@@ -93,7 +93,7 @@ namespace
 
     ElementHelper Subtag(const Char* tagName)
     {
-      return ElementHelper(Xml, tagName);
+      return {Xml, tagName};
     }
 
   private:

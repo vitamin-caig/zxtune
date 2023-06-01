@@ -146,7 +146,7 @@ namespace Formats::Archived
       std::size_t archiveSize = 0;
       if (!FastCheck(data.Start(), availSize, files, archiveSize))
       {
-        return Container::Ptr();
+        return {};
       }
       const TRDos::CatalogueBuilder::Ptr builder = TRDos::CatalogueBuilder::CreateGeneric();
       const Formats::Packed::Decoder::Ptr decoder = Packed::CreateHrust23Decoder();

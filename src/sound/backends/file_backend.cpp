@@ -305,7 +305,7 @@ namespace Sound::File
     VolumeControl::Ptr GetVolumeControl() const override
     {
       // Does not support volume control
-      return VolumeControl::Ptr();
+      return {};
     }
 
   private:

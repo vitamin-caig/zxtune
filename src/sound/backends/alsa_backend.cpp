@@ -506,7 +506,7 @@ namespace Sound::Alsa
     MixerElementsIterator GetElements() const
     {
       Require(MixDev.Get());
-      return MixerElementsIterator(AlsaApi, *MixDev.Get());
+      return {AlsaApi, *MixDev.Get()};
     }
 
   private:
@@ -572,7 +572,7 @@ namespace Sound::Alsa
     {
       if (!MixerElement)
       {
-        return Gain();
+        return {};
       }
       else
       {
@@ -591,7 +591,7 @@ namespace Sound::Alsa
         CheckResult(*AlsaApi,
                     AlsaApi->snd_mixer_selem_get_playback_volume(MixerElement, SND_MIXER_SCHN_FRONT_RIGHT, &rightVol),
                     THIS_LINE);
-        return Gain(Gain::Type(leftVol - minVol, volRange), Gain::Type(rightVol - minVol, volRange));
+        return {Gain::Type(leftVol - minVol, volRange), Gain::Type(rightVol - minVol, volRange)};
       }
     }
 
@@ -642,7 +642,7 @@ namespace Sound::Alsa
         return obj->GetVolume();
       }
       Dbg("Volume control is expired");
-      return Gain();
+      return {};
     }
 
     void SetVolume(const Gain& volume) override
@@ -691,7 +691,7 @@ namespace Sound::Alsa
         throw MakeFormattedError(THIS_LINE, translate("ALSA backend error: latency ({0}) is out of range ({1}..{2})."),
                                  static_cast<int_t>(val), LATENCY_MIN, LATENCY_MAX);
       }
-      return Time::Milliseconds(val);
+      return Time::Milliseconds{static_cast<uint_t>(val)};
     }
 
   private:
@@ -964,7 +964,7 @@ namespace Sound::Alsa
       }
       catch (const Error&)
       {
-        return Strings::Array();
+        return {};
       }
     }
 

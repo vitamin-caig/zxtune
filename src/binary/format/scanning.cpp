@@ -219,7 +219,7 @@ namespace Binary
         }
         else
         {
-          return Ptr();
+          return {};
         }
       }
       return MakePtr<ExactFormat>(std::move(tmp), startOffset, minSize);

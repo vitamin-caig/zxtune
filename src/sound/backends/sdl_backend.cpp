@@ -240,7 +240,7 @@ namespace Sound::Sdl
 
     VolumeControl::Ptr GetVolumeControl() const override
     {
-      return VolumeControl::Ptr();
+      return {};
     }
 
   private:

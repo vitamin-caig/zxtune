@@ -341,13 +341,13 @@ namespace
     if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
     {
       assert(!"Failed to open playlist");
-      return Playlist::IO::Container::Ptr();
+      return {};
     }
     XSPFReader reader(fileInfo, device);
     if (!reader.Parse(cb))
     {
       Dbg("Failed to parse");
-      return Playlist::IO::Container::Ptr();
+      return {};
     }
 
     auto items = reader.GetItems();
@@ -369,7 +369,7 @@ namespace Playlist::IO
     const QFileInfo info(filename);
     if (!info.isFile() || !info.isReadable() || !CheckXSPFByName(info.fileName()))
     {
-      return Container::Ptr();
+      return {};
     }
     return CreateXSPFPlaylist(std::move(provider), info, cb);
   }

@@ -491,20 +491,20 @@ namespace Playlist::IO
     const QFileInfo info(filename);
     if (!info.isFile() || !info.isReadable() || !CheckAYLByName(info.fileName()))
     {
-      return Container::Ptr();
+      return {};
     }
     QFile device(filename);
     if (!device.open(QIODevice::ReadOnly | QIODevice::Text))
     {
       assert(!"Failed to open playlist");
-      return Container::Ptr();
+      return {};
     }
     QTextStream stream(&device);
     const String header = FromQString(stream.readLine(0).simplified());
     const int vers = CheckAYLBySignature(header);
     if (vers < 0)
     {
-      return Container::Ptr();
+      return {};
     }
     Dbg("Processing AYL version {}", vers);
     const VersionLayer version(vers);

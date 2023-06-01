@@ -143,7 +143,7 @@ namespace Formats::Image
         {
           return Data.SubView(sizeof(*hdr) + hdr->AdditionalSize);
         }
-        return Binary::View(nullptr, 0);
+        return {nullptr, 0};
       }
 
     private:
@@ -299,12 +299,12 @@ namespace Formats::Image
     {
       if (!Format->Match(rawData))
       {
-        return Container::Ptr();
+        return {};
       }
       const LaserCompact52::Container container(rawData);
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       LaserCompact52::DataDecoder decoder(container);
       return CreateContainer(decoder.GetResult(), decoder.GetUsedSize());

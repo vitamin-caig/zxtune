@@ -102,7 +102,7 @@ namespace
       }
       else
       {
-        return Playlist::Item::Conversion::Options::Ptr();
+        return {};
       }
     }
 
@@ -273,7 +273,7 @@ namespace UI
     }
     else
     {
-      return Playlist::Item::Conversion::Options::Ptr();
+      return {};
     }
   }
 
@@ -287,7 +287,7 @@ namespace UI
   {
     if (item.GetState())
     {
-      return Playlist::Item::Conversion::Options::Ptr();
+      return {};
     }
     const QString type = ToQString(item.GetType()).toLower();
     const Formats formats(type);
@@ -300,7 +300,7 @@ namespace UI
     }
     else
     {
-      return Playlist::Item::Conversion::Options::Ptr();
+      return {};
     }
   }
 }  // namespace UI

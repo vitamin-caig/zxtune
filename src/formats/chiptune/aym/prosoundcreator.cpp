@@ -555,7 +555,7 @@ namespace Formats::Chiptune
 
       Iterator Get() const
       {
-        return Iterator(Container.begin(), Container.end());
+        return {Container.begin(), Container.end()};
       }
 
     private:

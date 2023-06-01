@@ -419,7 +419,7 @@ namespace Formats::Chiptune
         Ranges.AddService(offset, sizeof(*positions) + (length - 1) * sizeof(RawPositions::PosEntry));
         const RawPositions::PosEntry* const firstEntry = positions->Data;
         const RawPositions::PosEntry* const lastEntry = firstEntry + length;
-        return RangeIterator<const RawPositions::PosEntry*>(firstEntry, lastEntry);
+        return {firstEntry, lastEntry};
       }
 
       const RawPattern& GetPattern(uint_t index) const

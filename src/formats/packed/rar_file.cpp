@@ -132,7 +132,7 @@ namespace Formats::Packed
         if (data->Size() != outSize)
         {
           Dbg("Stored file sizes mismatch");
-          return Binary::Container::Ptr();
+          return {};
         }
         else
         {
@@ -187,7 +187,7 @@ namespace Formats::Packed
         catch (const std::exception& e)
         {
           Dbg("Failed to decode: {}", e.what());
-          return Binary::Container::Ptr();
+          return {};
         }
       }
 
@@ -226,7 +226,7 @@ namespace Formats::Packed
     {
       const auto* const self = safe_ptr_cast<const uint8_t*>(this);
       const uint8_t* const filename = self + (IsBigFile() ? sizeof(BigFileBlockHeader) : sizeof(FileBlockHeader));
-      return String(filename, filename + NameSize);
+      return {filename, filename + NameSize};
     }
 
     bool FileBlockHeader::IsValid() const
@@ -294,7 +294,7 @@ namespace Formats::Packed
       const Rar::Container container(rawData);
       if (!container.FastCheck())
       {
-        return Container::Ptr();
+        return {};
       }
       return CreateContainer(Decoder->Decompress(container), container.GetUsedSize());
     }

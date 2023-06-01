@@ -122,7 +122,7 @@ namespace Formats::Packed
     {
       if (!Format->Match(rawData))
       {
-        return Formats::Packed::Container::Ptr();
+        return {};
       }
       try
       {
@@ -160,7 +160,7 @@ namespace Formats::Packed
       {}
       catch (const std::exception&)
       {}
-      return Formats::Packed::Container::Ptr();
+      return {};
     }
 
   private:

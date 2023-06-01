@@ -67,7 +67,7 @@ namespace Module
       if (request < Position)
       {
         Position = request;
-        return Time::Microseconds(request.Get());
+        return Time::Microseconds{request.Get()};
       }
       else
       {
