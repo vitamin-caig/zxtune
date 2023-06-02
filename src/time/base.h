@@ -49,8 +49,7 @@ namespace Time
     {}
 
     // from the other types with the same tag and lesser or equal precision
-    template<class OtherUnit,
-             typename std::enable_if<PER_SECOND >= OtherUnit::PER_SECOND, const void*>::type p = nullptr>
+    template<class OtherUnit, std::enable_if_t<PER_SECOND >= OtherUnit::PER_SECOND, const void*> p = nullptr>
     constexpr Base(Base<OtherUnit, Tag> rh)
       : Value(Scale<OtherUnit, Unit>(rh.Get()))
     {}

@@ -120,6 +120,42 @@ int main()
         Test<uint64_t>("Ms => Ms", oms.Get(), ms.Get());
         Test<uint64_t, oms.Get(), ms.Get()>();
       }
+      {
+        constexpr const Time::Nanoseconds dns(4000000);
+        {
+          constexpr const auto ns_ns = ns + dns;
+          static_assert(std::is_same<decltype(ns_ns), decltype(ns)>::value, "Wrong common type");
+          Test<uint64_t>("Ns + ns", ns_ns.Get(), ns.Get() + dns.Get());
+          Test<uint64_t, ns_ns.Get(), ns.Get() + dns.Get()>();
+
+          constexpr const auto us_ns = us + dns;
+          static_assert(std::is_same<decltype(us_ns), decltype(ns)>::value, "Wrong common type");
+          Test<uint64_t>("Us + ns", us_ns.Get(), us.Get() * 1000 + dns.Get());
+          Test<uint64_t, us_ns.Get(), us.Get() * 1000 + dns.Get()>();
+
+          constexpr const auto ms_ns = ms + dns;
+          static_assert(std::is_same<decltype(ms_ns), decltype(ns)>::value, "Wrong common type");
+          Test<uint64_t>("Ms + ns", ms_ns.Get(), ms.Get() * 1000000uLL + dns.Get());
+          Test<uint64_t, ms_ns.Get(), ms.Get() * 1000000uLL + dns.Get()>();
+        }
+        constexpr const Time::Microseconds dus(5000000);
+        {
+          constexpr const auto ns_us = ns + dus;
+          static_assert(std::is_same<decltype(ns_us), decltype(ns)>::value, "Wrong common type");
+          Test<uint64_t>("Ns + us", ns_us.Get(), ns.Get() + dus.Get() * 1000);
+          Test<uint64_t, ns_us.Get(), ns.Get() + dus.Get() * 1000>();
+
+          constexpr const auto us_us = us + dus;
+          static_assert(std::is_same<decltype(us_us), decltype(us)>::value, "Wrong common type");
+          Test<uint64_t>("Us + us", us_us.Get(), us.Get() + dus.Get());
+          Test<uint64_t, us_us.Get(), us.Get() + dus.Get()>();
+
+          constexpr const auto ms_us = ms + dus;
+          static_assert(std::is_same<decltype(ms_us), decltype(us)>::value, "Wrong common type");
+          Test<uint64_t>("Ms + us", ms_us.Get(), ms.Get() * 1000 + dus.Get());
+          Test<uint64_t, ms_us.Get(), ms.Get() * 1000 + dus.Get()>();
+        }
+      }
     }
     std::cout << "---- Test for time duration ----" << std::endl;
     {

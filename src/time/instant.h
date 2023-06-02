@@ -35,7 +35,7 @@ namespace Time
     {}
 
     template<class OtherUnit>
-    const Instant& operator+=(Base<OtherUnit, DurationTag> rh)
+    const auto& operator+=(Base<OtherUnit, DurationTag> rh)
     {
       static_assert(PER_SECOND >= OtherUnit::PER_SECOND, "Invalid resolution");
       Value += Base<Unit, DurationTag>(rh).Get();
@@ -43,10 +43,10 @@ namespace Time
     }
 
     template<class OtherUnit>
-    Instant operator+(Base<OtherUnit, DurationTag> rh) const
+    constexpr auto operator+(Base<OtherUnit, DurationTag> rh) const
     {
-      static_assert(PER_SECOND >= OtherUnit::PER_SECOND, "Invalid resolution");
-      return Instant(Value + Base<Unit, DurationTag>(rh).Get());
+      using Return = std::conditional_t<PER_SECOND >= OtherUnit::PER_SECOND, Unit, OtherUnit>;
+      return Instant<Return>(this->template CastTo<Return>().Get() + rh.template CastTo<Return>().Get());
     }
   };
 
