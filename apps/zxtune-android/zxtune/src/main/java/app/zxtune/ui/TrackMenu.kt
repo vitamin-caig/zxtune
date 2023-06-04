@@ -29,7 +29,6 @@ class TrackMenu(private val fragment: Fragment) : MenuProvider {
 
     override fun onPrepareMenu(menu: Menu) = menu.run {
         model.metadata.observe(fragment.viewLifecycleOwner) { metadata ->
-            item(R.id.action_track).isEnabled = metadata != null
             if (metadata == null) {
                 return@observe
             }

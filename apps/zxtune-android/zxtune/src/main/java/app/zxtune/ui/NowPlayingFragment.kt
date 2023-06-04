@@ -21,11 +21,6 @@ class NowPlayingFragment : Fragment(), PagerTabListener {
         inflater.inflate(R.layout.now_playing, it, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        requireActivity().addMenuProvider(TrackMenu(this))
-    }
-
     override fun onTabVisibilityChanged(isVisible: Boolean) {
         requireView().findViewById<View>(R.id.spectrum).visibility =
             if (isVisible) View.VISIBLE else View.INVISIBLE

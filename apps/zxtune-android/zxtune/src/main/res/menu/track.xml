@@ -1,35 +1,23 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:sabd="http://schemas.android.com/apk/res-auto" >
-  <item
-    android:id="@+id/action_track"
-    android:title="@string/track"
-    sabd:showAsAction="always"
-    >
-    <menu>
-      <item
-        android:id="@+id/action_add"
-        android:icon="@drawable/ic_menu_add"
-        android:title="@string/add"
-        sabd:showAsAction="never"
-      />
-      <item
-        android:id="@+id/action_send"
-        android:icon="@drawable/ic_menu_send"
-        android:title="@string/send"
-        sabd:showAsAction="never"
-      />
-      <item
-        android:id="@+id/action_share"
-        android:icon="@drawable/ic_menu_share"
-        android:title="@string/share"
-        sabd:showAsAction="never"
-      />
-      <item
-        android:id="@+id/action_make_ringtone"
-        android:icon="@drawable/ic_menu_ringtone"
-        android:title="@string/ringtone_create_title"
-        sabd:showAsAction="never"
-      />
-    </menu>
-  </item>
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+            android:id="@+id/action_add"
+            android:icon="@drawable/ic_menu_add"
+            android:title="@string/add"
+            app:showAsAction="never" />
+    <item
+            android:id="@+id/action_send"
+            android:icon="@drawable/ic_menu_send"
+            android:title="@string/send"
+            app:showAsAction="never" />
+    <item
+            android:id="@+id/action_share"
+            android:icon="@drawable/ic_menu_share"
+            android:title="@string/share"
+            app:showAsAction="never" />
+    <item
+            android:id="@+id/action_make_ringtone"
+            android:icon="@drawable/ic_menu_ringtone"
+            android:title="@string/ringtone_create_title"
+            app:showAsAction="never" />
 </menu>

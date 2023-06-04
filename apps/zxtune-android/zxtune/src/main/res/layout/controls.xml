@@ -1,31 +1,41 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
-  android:layout_height="wrap_content"
-  android:orientation="horizontal"
-  >
-  <ImageButton
-          android:id="@+id/controls_prev"
-          android:src="@drawable/ic_prev"
-          style="@style/Button"
-          android:layout_weight="1"
-    />
-  <ImageButton
-          android:id="@+id/controls_play_pause"
-          android:src="@drawable/ic_play"
-          style="@style/Button"
-          android:layout_weight="1"
-    />
-  <ImageButton
-          android:id="@+id/controls_next"
-          android:src="@drawable/ic_next"
-          style="@style/Button"
-          android:layout_weight="1"
-    />
-  <ImageButton
-          android:id="@+id/controls_sequence_mode"
-          android:src="@drawable/ic_sequence_ordered"
-          style="@style/Button"
-          android:layout_weight="0"
-          android:layout_marginLeft="@dimen/spacing_full"
-    />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        tools:ignore="RtlHardcoded">
+
+    <ImageButton
+            android:id="@+id/controls_sequence_mode"
+            style="@style/Button"
+            android:layout_marginRight="@dimen/spacing_full"
+            android:layout_weight="0"
+            android:src="@drawable/ic_sequence_ordered" />
+
+    <ImageButton
+            android:id="@+id/controls_prev"
+            style="@style/Button"
+            android:layout_weight="1"
+            android:src="@drawable/ic_prev" />
+
+    <ImageButton
+            android:id="@+id/controls_play_pause"
+            style="@style/Button"
+            android:layout_weight="1"
+            android:src="@drawable/ic_play" />
+
+    <ImageButton
+            android:id="@+id/controls_next"
+            style="@style/Button"
+            android:layout_weight="1"
+            android:src="@drawable/ic_next" />
+
+    <ImageButton
+            android:id="@+id/controls_track_menu"
+            style="@style/Button"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="@dimen/spacing_full"
+            android:layout_weight="0"
+            android:src="@drawable/ic_track_menu" />
 </LinearLayout>

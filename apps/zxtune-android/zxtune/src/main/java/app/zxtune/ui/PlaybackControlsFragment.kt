@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import app.zxtune.R
 import app.zxtune.device.media.MediaModel
@@ -35,6 +36,7 @@ class PlaybackControlsFragment : Fragment() {
                 shuffle.bindController(controller)
             }
             playbackState.observe(viewLifecycleOwner, actions::bindState)
+            TrackContextMenu(this@PlaybackControlsFragment).install(view.findViewById(R.id.controls_track_menu))
         }
 
     private class Actions(view: View) {
@@ -120,6 +122,27 @@ class PlaybackControlsFragment : Fragment() {
             PlaybackStateCompat.SHUFFLE_MODE_GROUP -> PlaybackStateCompat.SHUFFLE_MODE_ALL
             PlaybackStateCompat.SHUFFLE_MODE_ALL -> PlaybackStateCompat.SHUFFLE_MODE_NONE
             else -> null
+        }
+    }
+
+    private class TrackContextMenu(fragment: Fragment) {
+        private val provider by lazy {
+            TrackMenu(fragment)
+        }
+        private lateinit var popup: PopupMenu
+
+        fun install(view: View) = view.setOnClickListener {
+            if (!this::popup.isInitialized) {
+                popup = PopupMenu(view.context, view).apply {
+                    provider.run {
+                        onCreateMenu(menu, menuInflater)
+                        onPrepareMenu(menu)
+                        setOnMenuItemClickListener(this::onMenuItemSelected)
+                    }
+                    setForceShowIcon(true)
+                }
+            }
+            popup.show()
         }
     }
 }
