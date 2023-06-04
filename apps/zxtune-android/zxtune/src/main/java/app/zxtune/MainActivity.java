@@ -28,7 +28,6 @@ import androidx.viewpager.widget.ViewPager;
 import app.zxtune.analytics.Analytics;
 import app.zxtune.device.Permission;
 import app.zxtune.device.media.MediaModel;
-import app.zxtune.ui.ApplicationMenu;
 import app.zxtune.ui.ViewPagerAdapter;
 
 public class MainActivity extends AppCompatActivity {
@@ -92,9 +91,6 @@ public class MainActivity extends AppCompatActivity {
       StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll().build());
       StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll().build());
     }
-
-    addMenuProvider(new ApplicationMenu(this));
-
     TRACE.endMethod();
   }
 

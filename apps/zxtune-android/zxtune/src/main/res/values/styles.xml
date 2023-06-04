@@ -1,41 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <style name="Theme.Dark" parent="Theme.AppCompat">
-    <item name="dialogTheme">@style/CustomDialog</item>
-  </style>
-  <style name="text_main" parent="android:style/TextAppearance.Medium">
-    <item name="android:singleLine">true</item>
-    <item name="android:textColor">@android:color/white</item>
-  </style>
-  <style name="text_aux" parent="android:style/TextAppearance.Small">
-    <item name="android:singleLine">true</item>
-    <item name="android:textColor">@android:color/white</item>
-  </style>
-  <style name="block">
-    <item name="android:layout_width">match_parent</item>
-    <item name="android:layout_height">@dimen/item_height</item>
-  </style>
-  <style name="Button" parent="android:style/Widget.DeviceDefault.Button.Borderless">
-    <item name="android:layout_height">match_parent</item>
-    <item name="android:layout_width">wrap_content</item>
-    <item name="android:minWidth">32dp</item>
-  </style>
-  <style name="Button.Breadcrumbs">
-    <item name="android:drawableRight">@drawable/breadcrumbs_delimiter</item>
-    <item name="android:drawablePadding">1dp</item>
-    <item name="android:padding">1dp</item>
-  </style>
-  <!-- buttons already has spacing_half margins -->
-  <style name="block_buttons" parent="block">
-    <item name="android:paddingLeft">@dimen/spacing_half</item>
-    <item name="android:paddingRight">@dimen/spacing_half</item>
-  </style>
-  <!-- http://stackoverflow.com/a/32711916/5758378 -->
-  <!-- defaults to true on api >= 23 -->
-  <style name="CustomDialog" parent="@style/Theme.AppCompat.Dialog">
-    <item name="windowNoTitle">false</item>
-  </style>
-  <style name="CustomDialog.NoTitle">
-    <item name="windowNoTitle">true</item>
-  </style>
+
+    <style name="Theme.Dark" parent="Theme.AppCompat.NoActionBar">
+        <item name="dialogTheme">@style/CustomDialog</item>
+    </style>
+
+    <style name="text_main" parent="android:style/TextAppearance.Medium">
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="text_aux" parent="android:style/TextAppearance.Small">
+        <item name="android:singleLine">true</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="block">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/item_height</item>
+    </style>
+
+    <style name="Button" parent="android:style/Widget.DeviceDefault.Button.Borderless">
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:minWidth">32dp</item>
+    </style>
+
+    <style name="Button.Breadcrumbs">
+        <item name="android:drawableRight">@drawable/breadcrumbs_delimiter</item>
+        <item name="android:drawablePadding">1dp</item>
+        <item name="android:padding">1dp</item>
+    </style>
+    <!-- buttons already has spacing_half margins -->
+    <style name="block_buttons" parent="block">
+        <item name="android:paddingLeft">@dimen/spacing_half</item>
+        <item name="android:paddingRight">@dimen/spacing_half</item>
+    </style>
+    <!-- http://stackoverflow.com/a/32711916/5758378 -->
+    <!-- defaults to true on api >= 23 -->
+    <style name="CustomDialog" parent="@style/Theme.AppCompat.Dialog">
+        <item name="windowNoTitle">false</item>
+    </style>
+
+    <style name="CustomDialog.NoTitle">
+        <item name="windowNoTitle">true</item>
+    </style>
 </resources>
