@@ -34,12 +34,5 @@
             android:name="app.zxtune.ui.SeekControlFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_above="@id/playback_controls"/>
-
-    <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/playback_controls"
-            android:name="app.zxtune.ui.PlaybackControlsFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"/>
 </RelativeLayout>
