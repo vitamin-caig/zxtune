@@ -154,7 +154,6 @@ namespace Sound::Wav
   public:
     FileStream(uint_t soundFreq, Binary::SeekableOutputStream::Ptr stream)
       : Stream(std::move(stream))
-      , DoneBytes(0)
     {
       // init struct
       std::memcpy(Format.Id, RIFF, sizeof(RIFF));
@@ -220,7 +219,7 @@ namespace Sound::Wav
 
   private:
     const Binary::SeekableOutputStream::Ptr Stream;
-    uint32_t DoneBytes;
+    uint32_t DoneBytes = 0;
     WaveFormat Format;
     ListMetadata Meta;
   };

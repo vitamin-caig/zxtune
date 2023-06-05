@@ -35,7 +35,6 @@ namespace
     explicit OverlayProgressImpl(QWidget& parent)
       : OverlayProgress(parent)
       , Palette()
-      , Value()
       , RefreshTimeout(Time::Milliseconds(1000))
     {
       setPalette(Qt::transparent);
@@ -139,7 +138,7 @@ namespace
     const QPalette Palette;
     QPoint Center;
     std::array<QLineF, STEPS_MAX> Lines;
-    int Value;
+    int Value = 0;
     Time::Elapsed RefreshTimeout;
   };
 }  // namespace

@@ -62,7 +62,6 @@ namespace Module
       , Model(std::move(model))
       , Order(Model->GetOrder())
       , Patterns(Model->GetPatterns())
-      , Loops()
     {
       Reset();
     }
@@ -260,7 +259,7 @@ namespace Module
     const class Pattern* CurPatternObject;
     const class Line* CurLineObject;
     Time::Microseconds TotalPlayed;
-    uint_t Loops;
+    uint_t Loops = 0;
   };
 
   class TrackStateIteratorImpl : public TrackStateIterator
@@ -319,8 +318,6 @@ namespace Module
       : FrameDuration(frameDuration)
       , Model(std::move(model))
       , Channels(channels)
-      , Frames()
-      , LoopFrameNum()
     {}
 
     Time::Milliseconds Duration() const override
@@ -368,8 +365,8 @@ namespace Module
     const Time::Microseconds FrameDuration;
     const TrackModel::Ptr Model;
     const uint_t Channels;
-    mutable uint_t Frames;
-    mutable uint_t LoopFrameNum;
+    mutable uint_t Frames = 0;
+    mutable uint_t LoopFrameNum = 0;
   };
 
   TrackInformation::Ptr CreateTrackInfoFixedChannels(Time::Microseconds frameDuration, TrackModel::Ptr model,

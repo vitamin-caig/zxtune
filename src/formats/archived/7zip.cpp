@@ -92,7 +92,6 @@ namespace Formats::Archived
         : Data(std::move(data))
         , Start(static_cast<const uint8_t*>(Data->Start()))
         , Limit(Data->Size())
-        , Position()
       {
         Read = DoRead;
         Seek = DoSeek;
@@ -142,7 +141,7 @@ namespace Formats::Archived
       const Binary::Data::Ptr Data;
       const uint8_t* const Start;
       const std::size_t Limit;
-      std::size_t Position;
+      std::size_t Position = 0;
     };
 
     class LookupStream : public CLookToRead

@@ -176,7 +176,6 @@ namespace Module::SoundTracker
     explicit EnvelopeState(uint_t& type, uint_t& tone)
       : Type(type)
       , Tone(tone)
-      , Enabled(0)
     {}
 
     void Reset()
@@ -231,7 +230,7 @@ namespace Module::SoundTracker
   private:
     uint_t& Type;
     uint_t& Tone;
-    uint_t Enabled;
+    uint_t Enabled = 0;
   };
 
   struct StateCursor
@@ -273,7 +272,6 @@ namespace Module::SoundTracker
   {
     explicit ChannelState(ModuleData::Ptr data, uint_t& envType, uint_t& envTone)
       : Data(std::move(data))
-      , Note()
       , CurSample(GetStubSample())
       , CurOrnament(GetStubOrnament())
       , EnvState(envType, envTone)
@@ -367,7 +365,7 @@ namespace Module::SoundTracker
 
   private:
     const ModuleData::Ptr Data;
-    uint_t Note;
+    uint_t Note = 0;
     StateCursor Cursor;
     const Sample* CurSample;
     const Ornament* CurOrnament;
@@ -382,8 +380,6 @@ namespace Module::SoundTracker
       , StateA(Data, EnvType, EnvTone)
       , StateB(Data, EnvType, EnvTone)
       , StateC(Data, EnvType, EnvTone)
-      , EnvType()
-      , EnvTone()
     {}
 
     void Reset() override
@@ -459,7 +455,7 @@ namespace Module::SoundTracker
     ChannelState StateA;
     ChannelState StateB;
     ChannelState StateC;
-    uint_t EnvType, EnvTone;
+    uint_t EnvType = 0, EnvTone = 0;
   };
 
   class Factory : public AYM::Factory

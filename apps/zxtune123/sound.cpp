@@ -100,7 +100,6 @@ namespace
       : Service(Sound::CreateGlobalService(configParams))
       , Params(new CommonBackendParameters(std::move(configParams)))
       , OptionsDescription("Sound options")
-      , Looped(false)
     {
       using namespace boost::program_options;
       auto opt = OptionsDescription.add_options();
@@ -217,7 +216,7 @@ namespace
     PerBackendOptions BackendOptions;
     Strings::Map SoundOptions;
 
-    bool Looped;
+    bool Looped = false;
 
     String UsedId;
   };

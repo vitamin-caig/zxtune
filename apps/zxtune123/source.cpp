@@ -187,8 +187,6 @@ namespace
       : Params(std::move(configParams))
       , Service(ZXTune::Service::Create(Params))
       , OptionsDescription("Input options")
-      , ShowProgress(false)
-      , YM(false)
     {
       using namespace boost::program_options;
       auto opt = OptionsDescription.add_options();
@@ -279,9 +277,9 @@ namespace
     boost::program_options::options_description OptionsDescription;
     Strings::Array Files;
     String ProvidersOptions;
-    bool ShowProgress;
+    bool ShowProgress = false;
     String CoreOptions;
-    bool YM;
+    bool YM = false;
   };
 }  // namespace
 

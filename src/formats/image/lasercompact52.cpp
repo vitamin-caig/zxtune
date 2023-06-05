@@ -51,8 +51,6 @@ namespace Formats::Image
     public:
       explicit BitStream(Binary::View data)
         : Stream(data)
-        , Bits()
-        , Mask()
       {}
 
       uint8_t GetByte()
@@ -110,8 +108,8 @@ namespace Formats::Image
 
     private:
       Binary::DataInputStream Stream;
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class Container

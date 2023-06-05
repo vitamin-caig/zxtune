@@ -126,7 +126,6 @@ namespace Formats::Packed
         , Header(container.GetHeader())
         , Limit(container.GetSize())
         , Result(FDI_MAX_SIZE)
-        , UsedSize(0)
       {
         IsValid = DecodeData();
       }
@@ -200,7 +199,7 @@ namespace Formats::Packed
       const RawHeader& Header;
       const std::size_t Limit;
       Binary::DataBuilder Result;
-      std::size_t UsedSize;
+      std::size_t UsedSize = 0;
     };
 
     const Char DESCRIPTION[] = "FDI (Full Disk Image)";

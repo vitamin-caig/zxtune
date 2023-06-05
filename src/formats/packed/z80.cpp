@@ -304,8 +304,6 @@ namespace Formats::Packed
       static const int_t NO_PAGE = -1;
 
       PlatformTraits(std::size_t additionalSize, uint_t hwMode, uint_t port7ffd)
-        : MinPages()
-        , Pages()
       {
         if (additionalSize == Version2_0::ADDITIONAL_SIZE)
         {
@@ -462,8 +460,8 @@ namespace Formats::Packed
       }
 
     private:
-      uint_t MinPages;
-      uint_t Pages;
+      uint_t MinPages = 0;
+      uint_t Pages = 0;
       std::vector<int_t> Numbers;
     };
 

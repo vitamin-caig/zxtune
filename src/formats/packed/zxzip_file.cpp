@@ -224,8 +224,6 @@ namespace Formats::Packed
     public:
       Bitstream(const uint8_t* data, std::size_t size)
         : SafeByteStream(data, size)
-        , Bits()
-        , Mask(128)
       {}
 
       bool GetBit()
@@ -267,8 +265,8 @@ namespace Formats::Packed
       }
 
     private:
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 128;
     };
 
     class ImplodeDataDecoder : public DataDecoder

@@ -92,7 +92,6 @@ namespace
     LinesSource(QTextStream& stream, const VersionLayer& version)
       : Stream(stream)
       , Version(version)
-      , Valid(true)
     {
       Next();
     }
@@ -133,7 +132,7 @@ namespace
     QTextStream& Stream;
     const VersionLayer& Version;
     String Line;
-    bool Valid;
+    bool Valid = true;
   };
 
   class AYLContainer
@@ -274,8 +273,6 @@ namespace
     ParametersFilter(const VersionLayer& version, Parameters::Visitor& delegate)
       : Version(version)
       , Delegate(delegate)
-      , FormatSpec()
-      , Offset()
     {}
 
     std::size_t GetFormatSpec() const
@@ -399,8 +396,8 @@ namespace
   private:
     const VersionLayer& Version;
     Parameters::Visitor& Delegate;
-    std::size_t FormatSpec;
-    std::size_t Offset;
+    std::size_t FormatSpec = 0;
+    std::size_t Offset = 0;
   };
 
   Parameters::Container::Ptr CreateProperties(const VersionLayer& version, const AYLContainer& aylItems)

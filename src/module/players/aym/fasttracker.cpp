@@ -315,7 +315,6 @@ namespace Module::FastTracker
   public:
     explicit DataRenderer(ModuleData::Ptr data)
       : Data(std::move(data))
-      , Transposition()
     {
       Reset();
     }
@@ -499,7 +498,7 @@ namespace Module::FastTracker
   private:
     const ModuleData::Ptr Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
-    int_t Transposition;
+    int_t Transposition = 0;
   };
 
   class Factory : public AYM::Factory

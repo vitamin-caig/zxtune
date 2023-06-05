@@ -89,7 +89,6 @@ namespace Analysis
       : Delegate(delegate)
       , Limit(Delegate.Size())
       , Content(static_cast<const uint8_t*>(Delegate.Start()))
-      , Offset(0)
     {}
 
     std::size_t GetOffset() const
@@ -138,7 +137,7 @@ namespace Analysis
     const Binary::Container& Delegate;
     const std::size_t Limit;
     const uint8_t* const Content;
-    std::size_t Offset;
+    std::size_t Offset = 0;
   };
 
   template<class Traits>

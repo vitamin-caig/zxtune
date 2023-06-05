@@ -45,7 +45,6 @@ namespace
       : Playlist::Item::Iterator(parent)
       , Model(model)
       , Index(NO_INDEX)
-      , State(Playlist::Item::STOPPED)
     {
       Require(connect(Model, SIGNAL(IndicesChanged(Playlist::Model::OldToNewIndexMap::Ptr)),
                       SLOT(UpdateIndices(Playlist::Model::OldToNewIndexMap::Ptr))));
@@ -194,7 +193,7 @@ namespace
   private:
     const Playlist::Model::Ptr Model;
     unsigned Index;
-    Playlist::Item::State State;
+    Playlist::Item::State State = Playlist::Item::STOPPED;
   };
 
   class ControllerImpl : public Playlist::Controller

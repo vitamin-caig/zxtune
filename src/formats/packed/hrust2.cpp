@@ -136,8 +136,6 @@ namespace Formats::Packed
     public:
       Bitstream(const uint8_t* data, std::size_t size)
         : ByteStream(data, size)
-        , Bits()
-        , Mask(0)
       {}
 
       uint_t GetBit()
@@ -196,8 +194,8 @@ namespace Formats::Packed
       }
 
     private:
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class RawDataDecoder
@@ -496,7 +494,6 @@ namespace Formats::Packed
       public:
         explicit DataDecoder(const Binary::Container& data)
           : Data(data)
-          , UsedSize()
         {
           if (Container(data.Start(), data.Size()).FastCheck())
           {
@@ -568,7 +565,7 @@ namespace Formats::Packed
       private:
         const Binary::Container& Data;
         Binary::Container::Ptr Result;
-        std::size_t UsedSize;
+        std::size_t UsedSize = 0;
       };
     }  // namespace Version3
   }    // namespace Hrust2

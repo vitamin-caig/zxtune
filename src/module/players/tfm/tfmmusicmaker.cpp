@@ -1094,8 +1094,6 @@ namespace Module::TFMMusicMaker
       , Data(std::move(data))
       , Order(*Data->Order)
       , Patterns(*Data->Patterns)
-      , NextLineState()
-      , Loops()
     {
       Reset();
     }
@@ -1355,9 +1353,9 @@ namespace Module::TFMMusicMaker
     const class Pattern* CurPatternObject;
     const class Line* CurLineObject;
     LoopState Loop;
-    const PlainTrackState* NextLineState;
+    const PlainTrackState* NextLineState = nullptr;
     Time::Microseconds TotalPlayed;
-    uint_t Loops;
+    uint_t Loops = 0;
   };
 
   class TrackStateIteratorImpl : public TrackStateIterator
@@ -1414,8 +1412,6 @@ namespace Module::TFMMusicMaker
     TrackInformation(Time::Microseconds frameDuration, ModuleData::Ptr data)
       : FrameDuration(frameDuration)
       , Data(std::move(data))
-      , Frames()
-      , LoopFrame()
     {}
 
     Time::Milliseconds Duration() const override
@@ -1462,8 +1458,8 @@ namespace Module::TFMMusicMaker
   private:
     const Time::Microseconds FrameDuration;
     const ModuleData::Ptr Data;
-    mutable uint_t Frames;
-    mutable uint_t LoopFrame;
+    mutable uint_t Frames = 0;
+    mutable uint_t LoopFrame = 0;
   };
 
   class Chiptune : public TFM::Chiptune

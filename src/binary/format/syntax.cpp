@@ -290,7 +290,6 @@ namespace Binary::FormatDSL
   public:
     RPNTranslation(FormatTokensVisitor& delegate)
       : Delegate(delegate)
-      , LastIsMatch(false)
     {}
 
     void Match(StringView val) override
@@ -383,7 +382,7 @@ namespace Binary::FormatDSL
   private:
     FormatTokensVisitor& Delegate;
     std::stack<Operator> Ops;
-    bool LastIsMatch;
+    bool LastIsMatch = false;
   };
 
   class SyntaxCheck : public FormatTokensVisitor
@@ -391,7 +390,6 @@ namespace Binary::FormatDSL
   public:
     explicit SyntaxCheck(FormatTokensVisitor& delegate)
       : Delegate(delegate)
-      , Position(0)
     {}
 
     void Match(StringView val) override
@@ -482,7 +480,7 @@ namespace Binary::FormatDSL
 
   private:
     FormatTokensVisitor& Delegate;
-    std::size_t Position;
+    std::size_t Position = 0;
     std::stack<std::size_t> GroupStarts;
     std::stack<Group> Groups;
   };

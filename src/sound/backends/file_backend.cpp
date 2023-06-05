@@ -101,7 +101,6 @@ namespace Sound::File
     public:
       explicit TrackableValue(bool trackable)
         : Trackable(trackable)
-        , Value(-1)
       {}
 
       bool Update(int_t newVal)
@@ -116,7 +115,7 @@ namespace Sound::File
 
     private:
       const bool Trackable;
-      int_t Value;
+      int_t Value = -1;
     };
 
   private:

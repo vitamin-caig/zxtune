@@ -80,7 +80,6 @@ namespace Module::TFD
       : Properties(props)
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
-      , Chip(0)
     {}
 
     Formats::Chiptune::MetaBuilder& GetMetaBuilder() override
@@ -118,7 +117,7 @@ namespace Module::TFD
     PropertiesHelper& Properties;
     MetaProperties Meta;
     const ModuleData::RWPtr Data;
-    uint_t Chip;
+    uint_t Chip = 0;
   };
 
   class Factory : public TFM::Factory

@@ -80,7 +80,6 @@ namespace Sound::Win32
 
     WaveOutDevice(Api::Ptr api, const ::WAVEFORMATEX& format, UINT device)
       : WinApi(std::move(api))
-      , Handle(nullptr)
     {
       Dbg("Opening device {} ({} Hz)", device, format.nSamplesPerSec);
       CheckMMResult(
@@ -177,7 +176,7 @@ namespace Sound::Win32
   private:
     const Api::Ptr WinApi;
     const SharedEvent Event;
-    ::HWAVEOUT Handle;
+    ::HWAVEOUT Handle = nullptr;
   };
 
   class WaveTarget
@@ -295,7 +294,6 @@ namespace Sound::Win32
     CycledWaveBuffer(WaveOutDevice::Ptr device, std::size_t count)
       : Device(std::move(device))
       , Buffers(count)
-      , Cursor()
     {
       for (auto& buf : Buffers)
       {
@@ -332,7 +330,7 @@ namespace Sound::Win32
     const WaveOutDevice::Ptr Device;
     using BuffersArray = std::vector<WaveTarget::Ptr>;
     BuffersArray Buffers;
-    std::size_t Cursor;
+    std::size_t Cursor = 0;
   };
 
   // volume controller implementation
@@ -551,7 +549,6 @@ namespace Sound::Win32
     explicit DevicesIterator(Api::Ptr api)
       : WinApi(std::move(api))
       , Limit(WinApi->waveOutGetNumDevs())
-      , Current()
     {
       if (Limit)
       {
@@ -585,7 +582,7 @@ namespace Sound::Win32
   private:
     const Api::Ptr WinApi;
     const int_t Limit;
-    int_t Current;
+    int_t Current = 0;
   };
 }  // namespace Sound::Win32
 

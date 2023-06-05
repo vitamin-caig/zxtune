@@ -159,8 +159,6 @@ namespace Sound::DirectSound
     explicit StreamBuffer(DirectSoundBufferPtr buff)
       : Buff(std::move(buff))
       , SleepPeriod(1)
-      , BuffSize(0)
-      , Cursor(0)
     {
       DSBCAPS caps;
       std::memset(&caps, 0, sizeof(caps));
@@ -293,8 +291,8 @@ namespace Sound::DirectSound
   private:
     const DirectSoundBufferPtr Buff;
     const std::chrono::milliseconds SleepPeriod;
-    std::size_t BuffSize;
-    std::size_t Cursor;
+    std::size_t BuffSize = 0;
+    std::size_t Cursor = 0;
   };
 
   // in centidecibell

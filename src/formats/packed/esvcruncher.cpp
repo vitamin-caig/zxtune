@@ -195,8 +195,6 @@ namespace Formats::Packed
       Bitstream(const uint8_t* data, std::size_t size)
         : Data(data)
         , Pos(Data + size)
-        , Bits()
-        , Mask(0)
       {}
 
       bool Eof() const
@@ -232,8 +230,8 @@ namespace Formats::Packed
     private:
       const uint8_t* const Data;
       const uint8_t* Pos;
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class Container

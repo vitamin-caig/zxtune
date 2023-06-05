@@ -190,7 +190,6 @@ namespace Formats::Packed
     public:
       StreamAdapter(const uint8_t* data, std::size_t size)
         : ByteStream(data, size)
-        , UsedData(0)
       {}
 
       std::size_t GetUsedData() const
@@ -211,15 +210,14 @@ namespace Formats::Packed
       }
 
     private:
-      std::size_t UsedData;
+      std::size_t UsedData = 0;
     };
 
     class RawDataDecoder
     {
     public:
       RawDataDecoder(const uint8_t* data, std::size_t dataSize, uint_t chunksCount)
-        : IsValid(true)
-        , Stream(data, dataSize)
+        : Stream(data, dataSize)
         , ChunksCount(chunksCount)
         , Decoded(2 * ChunksCount)
       {
@@ -379,7 +377,7 @@ namespace Formats::Packed
       }
 
     private:
-      bool IsValid;
+      bool IsValid = true;
       StreamAdapter Stream;
       const uint_t ChunksCount;
       Binary::DataBuilder Decoded;
@@ -422,8 +420,6 @@ namespace Formats::Packed
     public:
       Bitstream(const uint8_t* data, std::size_t size)
         : Source(data, size)
-        , Bits()
-        , Mask(0)
       {}
 
       std::size_t GetUsedData() const
@@ -465,8 +461,8 @@ namespace Formats::Packed
 
     private:
       StreamAdapter Source;
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     template<>
@@ -476,7 +472,6 @@ namespace Formats::Packed
       explicit DataDecoder(const Container<Version4Plus>& container)
         : Header(container.GetHeader())
         , DataOffset(0x14 + Header.RestDepackerSize)
-        , DataSize(0)
       {
         if (container.FastCheck() && DecodeHuffman(container.GetAvailableData() - DataOffset))
         {
@@ -520,7 +515,7 @@ namespace Formats::Packed
     private:
       const Version4Plus::RawHeader& Header;
       const uint_t DataOffset;
-      std::size_t DataSize;
+      std::size_t DataSize = 0;
       Binary::DataBuilder UnhuffmanData;
       std::unique_ptr<RawDataDecoder> Delegate;
     };

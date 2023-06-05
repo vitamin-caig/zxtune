@@ -320,8 +320,6 @@ namespace Formats::Chiptune
     {
     public:
       explicit VersionTraits(const Header& hdr)
-        : HasRestCmd()
-        , GlissVolParamsMask()
       {
         Analyze(hdr);
       }
@@ -395,8 +393,8 @@ namespace Formats::Chiptune
       }
 
     private:
-      bool HasRestCmd;
-      uint_t GlissVolParamsMask;
+      bool HasRestCmd = false;
+      uint_t GlissVolParamsMask = 0;
     };
 
     class Format

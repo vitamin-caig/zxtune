@@ -49,8 +49,6 @@ namespace Devices::Beeper
     explicit ChipImpl(ChipParameters::Ptr params)
       : Params(std::move(params))
       , Renderer(Clock, PSG)
-      , ClockFreq()
-      , SoundFreq()
     {
       SynchronizeParameters();
     }
@@ -127,8 +125,8 @@ namespace Devices::Beeper
     BeeperPSG PSG;
     Details::ClockSource<Stamp> Clock;
     Details::HQRenderer<Stamp, BeeperPSG> Renderer;
-    uint64_t ClockFreq;
-    uint_t SoundFreq;
+    uint64_t ClockFreq = 0;
+    uint_t SoundFreq = 0;
     Sound::Chunk RenderedData;
   };
 

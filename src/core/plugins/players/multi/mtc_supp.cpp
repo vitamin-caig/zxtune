@@ -56,8 +56,6 @@ namespace Module::MTC
   public:
     DataBuilder(const Parameters::Accessor& params, Parameters::Container::Ptr props)
       : Module(params, std::move(props))
-      , CurTrack()
-      , CurStream()
       , CurEntity(&Module)
     {}
 
@@ -259,7 +257,6 @@ namespace Module::MTC
       Track(const Parameters::Accessor& params, Parameters::Accessor::Ptr tuneProperties)
         : Params(params)
         , TuneProperties(std::move(tuneProperties))
-        , SelectedStream()
       {}
 
       Stream* AddStream(Binary::Container::Ptr data)
@@ -296,7 +293,7 @@ namespace Module::MTC
       const Parameters::Accessor& Params;
       const Parameters::Accessor::Ptr TuneProperties;
       std::list<Stream> Streams;
-      mutable const Stream* SelectedStream;
+      mutable const Stream* SelectedStream = nullptr;
     };
 
     class Tune : public TrackEntity
@@ -354,8 +351,8 @@ namespace Module::MTC
 
   private:
     Tune Module;
-    Track* CurTrack;
-    Stream* CurStream;
+    Track* CurTrack = nullptr;
+    Stream* CurStream = nullptr;
     TrackEntity* CurEntity;
   };
 

@@ -544,7 +544,6 @@ namespace ZXTune::Raw
 
     template<class Container>
     explicit LookaheadPluginsStorage(const Container& plugins)
-      : Offset()
     {
       for (const auto& plugin : plugins)
       {
@@ -578,7 +577,7 @@ namespace ZXTune::Raw
     }
 
   private:
-    std::size_t Offset;
+    std::size_t Offset = 0;
     PluginsList Plugins;
   };
 
@@ -665,7 +664,6 @@ namespace ZXTune::Raw
       : Params(params)
       , Players(PlayerPlugin::Enumerate())
       , Archives(plainArchivesDoubleAnalysis ? DoubleAnalyzedArchives::GetPlugins() : ArchivePlugin::Enumerate())
-      , Offset()
     {}
 
     std::pair<std::size_t, bool> Detect(DataLocation::Ptr input, ArchiveCallback& callback)
@@ -739,7 +737,7 @@ namespace ZXTune::Raw
     const Parameters::Accessor& Params;
     LookaheadPluginsStorage<PlayerPlugin> Players;
     LookaheadPluginsStorage<ArchivePlugin> Archives;
-    std::size_t Offset;
+    std::size_t Offset = 0;
   };
 
   class Scaner : public ArchivePlugin

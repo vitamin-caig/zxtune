@@ -62,8 +62,6 @@ namespace Formats::Packed
     public:
       explicit Bitstream(Binary::View data)
         : ByteStream(data.As<uint8_t>(), data.Size())
-        , Bits()
-        , Mask(0)
       {}
 
       uint8_t GetByte()
@@ -118,8 +116,8 @@ namespace Formats::Packed
       using ByteStream::GetProcessedBytes;
 
     private:
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class DataDecoder

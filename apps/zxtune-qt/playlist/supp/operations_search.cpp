@@ -40,7 +40,6 @@ namespace
       : Callback(cb)
       , Pred(std::move(pred))
       , Result(MakeRWPtr<Playlist::Model::IndexSet>())
-      , Done(0)
     {}
 
     void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
@@ -61,7 +60,7 @@ namespace
     Log::ProgressCallback& Callback;
     const Predicate::Ptr Pred;
     const Playlist::Model::IndexSet::RWPtr Result;
-    uint_t Done;
+    uint_t Done = 0;
   };
 
   class SearchOperation : public Playlist::Item::SelectionOperation

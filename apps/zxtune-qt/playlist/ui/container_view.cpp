@@ -46,7 +46,6 @@ namespace
   public:
     explicit PlaylistsIterator(QTabWidget& ctr)
       : Container(ctr)
-      , Index(-1)
     {
       GetNext();
     }
@@ -83,7 +82,7 @@ namespace
 
   private:
     QTabWidget& Container;
-    int Index;
+    int Index = -1;
     Playlist::Controller::Ptr Current;
   };
 
@@ -108,7 +107,6 @@ namespace
       , Container(Playlist::Container::Create(Options))
       , Session(Playlist::Session::Create())
       , ActionsMenu(new QMenu(this))
-      , ActivePlaylistView(nullptr)
     {
       // setup self
       setupUi(this);
@@ -508,7 +506,7 @@ namespace
     const Playlist::Session::Ptr Session;
     QMenu* const ActionsMenu;
     // state context
-    Playlist::UI::View* ActivePlaylistView;
+    Playlist::UI::View* ActivePlaylistView = nullptr;
   };
 }  // namespace
 

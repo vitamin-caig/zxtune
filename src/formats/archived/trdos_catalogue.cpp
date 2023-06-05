@@ -117,7 +117,6 @@ namespace TRDos
   public:
     explicit NamesGenerator(StringView name)
       : Name(name)
-      , Idx(1)
     {}
 
     String operator()() const
@@ -142,7 +141,7 @@ namespace TRDos
 
   private:
     const StringView Name;
-    unsigned Idx;
+    unsigned Idx = 1;
   };
 
   class CommonCatalogue : public Binary::BaseContainer<Formats::Archived::Container>

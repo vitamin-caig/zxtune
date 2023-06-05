@@ -127,7 +127,6 @@ namespace Devices::AYM
       : FrameDuration(frameDuration)
       , Builder(std::move(builder))
       , State(std::move(state))
-      , FramesToSkip(0)
     {
       Reset();
     }
@@ -189,7 +188,7 @@ namespace Devices::AYM
     const Time::Duration<TimeUnit> FrameDuration;
     const FramedDumpBuilder::Ptr Builder;
     const RenderState::Ptr State;
-    uint_t FramesToSkip;
+    uint_t FramesToSkip = 0;
     Stamp NextFrame;
   };
 

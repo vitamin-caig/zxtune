@@ -121,7 +121,6 @@ namespace Module::TFC
       : Properties(props)
       , Meta(props)
       , Data(MakeRWPtr<ModuleData>())
-      , Channel(0)
       , Frequency()
     {}
 
@@ -215,7 +214,7 @@ namespace Module::TFC
     PropertiesHelper& Properties;
     MetaProperties Meta;
     const ModuleData::RWPtr Data;
-    uint_t Channel;
+    uint_t Channel = 0;
     std::array<uint_t, 6> Frequency;
     Time::Microseconds FrameDuration = TFM::BASE_FRAME_DURATION;
   };

@@ -95,7 +95,6 @@ namespace
     ConvertVisitor(uint_t totalItems, String type, Sound::Service::Ptr service, Log::ProgressCallback& cb,
                    Playlist::Item::ConversionResultNotification::Ptr result)
       : TotalItems(totalItems)
-      , DoneItems(0)
       , Callback(cb)
       , Type(std::move(type))
       , Service(std::move(service))
@@ -143,7 +142,7 @@ namespace
 
   private:
     const uint_t TotalItems;
-    uint_t DoneItems;
+    uint_t DoneItems = 0;
     Log::ProgressCallback& Callback;
     const String Type;
     const Sound::Service::Ptr Service;

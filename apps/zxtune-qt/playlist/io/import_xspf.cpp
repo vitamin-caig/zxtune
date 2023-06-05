@@ -111,7 +111,6 @@ namespace
       : File(file)
       , BaseDir(File.absoluteDir())
       , XML(&device)
-      , Version(LAST_VERSION)
       , Properties(Parameters::Container::Create())
       , Items(MakeRWPtr<Playlist::IO::ContainerItems>())
     {
@@ -329,7 +328,7 @@ namespace
     const QDir BaseDir;
     QXmlStreamReader XML;
     // context
-    Parameters::IntType Version;
+    Parameters::IntType Version = LAST_VERSION;
     const Parameters::Container::Ptr Properties;
     const Playlist::IO::ContainerItems::RWPtr Items;
   };

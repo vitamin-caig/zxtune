@@ -239,9 +239,6 @@ namespace Module::SQTracker
     public:
       explicit MutablePatternHelper(PatternsBuilder& pat)
         : Pattern(pat)
-        , Tempo()
-        , Row()
-        , CurrentLine()
       {}
 
       void SetRow(uint_t row)
@@ -279,9 +276,9 @@ namespace Module::SQTracker
 
     private:
       PatternsBuilder& Pattern;
-      uint_t Tempo;
-      uint_t Row;
-      MutableLine* CurrentLine;
+      uint_t Tempo = 0;
+      uint_t Row = 0;
+      MutableLine* CurrentLine = nullptr;
     };
 
     void ConvertPattern(const Formats::Chiptune::SQTracker::PositionEntry& patAttrs, PatternsBuilder& builder) const

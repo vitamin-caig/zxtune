@@ -194,7 +194,6 @@ namespace
     ComparisonsCounter(const Playlist::Item::Comparer& delegate, Log::ProgressCallback& cb)
       : Delegate(delegate)
       , Callback(cb)
-      , Done(0)
     {}
 
     bool CompareItems(const Playlist::Item::Data& lh, const Playlist::Item::Data& rh) const override
@@ -206,7 +205,7 @@ namespace
   private:
     const Playlist::Item::Comparer& Delegate;
     Log::ProgressCallback& Callback;
-    mutable uint_t Done;
+    mutable uint_t Done = 0;
   };
 
   class SortOperation : public Playlist::Item::StorageModifyOperation
@@ -353,7 +352,6 @@ namespace
     explicit ModelImpl(QObject& parent)
       : Playlist::Model(parent)
       , Providers()
-      , FetchedItemsCount()
       , Container(Playlist::Item::Storage::Create())
       , AsyncExecution(Async::Activity::CreateStub())
       , Canceled(false)
@@ -740,7 +738,7 @@ namespace
   private:
     const DataProvidersSet Providers;
     mutable RWMutex SyncAccess;
-    std::size_t FetchedItemsCount;
+    std::size_t FetchedItemsCount = 0;
     Playlist::Item::Storage::Ptr Container;
     Async::Activity::Ptr AsyncExecution;
     std::atomic<bool> Canceled;

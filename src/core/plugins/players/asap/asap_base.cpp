@@ -48,9 +48,7 @@ namespace Module::ASAP
 
     AsapTune(StringView id, Binary::View data, int track)
       : Module(::ASAP_New())
-      , Info()
       , Track(track)
-      , Channels()
     {
       CheckError(::ASAP_Load(Module, String("dummy.").append(id).c_str(),
                              static_cast<const unsigned char*>(data.Start()), data.Size()),
@@ -156,9 +154,9 @@ namespace Module::ASAP
 
   private:
     struct ASAP* const Module;
-    const struct ASAPInfo* Info;
+    const struct ASAPInfo* Info = nullptr;
     int Track;
-    int Channels;
+    int Channels = 0;
   };
 
   const auto FRAME_DURATION = Time::Milliseconds(100);

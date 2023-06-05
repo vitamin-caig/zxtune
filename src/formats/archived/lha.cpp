@@ -144,8 +144,6 @@ namespace Formats::Archived
         : Data(data)
         , Input(data)
         , Reader(::lha_reader_new(Input.GetStream()), &::lha_reader_free)
-        , Current()
-        , Position()
       {
         Next();
       }
@@ -189,8 +187,8 @@ namespace Formats::Archived
       const Binary::Container& Data;
       const InputStreamWrapper Input;
       const std::shared_ptr<LHAReader> Reader;
-      LHAFileHeader* Current;
-      std::size_t Position;
+      LHAFileHeader* Current = nullptr;
+      std::size_t Position = 0;
     };
 
     class Container : public Binary::BaseContainer<Archived::Container>

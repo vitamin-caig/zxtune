@@ -76,7 +76,6 @@ namespace
       , Seeking(SeekControls::Create(*this, *Playback))
       , Analyzer(AnalyzerControl::Create(*this, *Playback))
       , MultiPlaylist(Playlist::UI::ContainerView::Create(*this, Options))
-      , Playing(false)
     {
       setupUi(this);
       State = UI::State::Create(*this);
@@ -296,7 +295,7 @@ namespace
     SeekControls* const Seeking;
     AnalyzerControl* const Analyzer;
     Playlist::UI::ContainerView* const MultiPlaylist;
-    bool Playing;
+    bool Playing = false;
     std::vector<WidgetOnToolbar> Toolbars;
   };
 }  // namespace

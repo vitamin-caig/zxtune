@@ -424,7 +424,6 @@ namespace Devices::DAC
     RenderersSet(const Sound::FixedChannelsMixer<Channels>& mixer, ChannelState* state)
       : LQ(mixer, state)
       , MQ(mixer, state)
-      , Current()
       , State(state)
     {}
 
@@ -464,7 +463,7 @@ namespace Devices::DAC
   private:
     LQRenderer<Channels> LQ;
     MQRenderer<Channels> MQ;
-    Renderer* Current;
+    Renderer* Current = nullptr;
     ChannelState* const State;
   };
 

@@ -50,7 +50,6 @@ namespace
     CmdlineIterator(int argc, const char* argv[])
       : Argc(argc)
       , Argv(argv)
-      , Pos()
     {}
 
     StringView Executable() const
@@ -100,7 +99,7 @@ namespace
   private:
     const int Argc;
     const char** Argv;
-    int Pos;
+    int Pos = 0;
   };
 
   StringView GetFilename(StringView path)

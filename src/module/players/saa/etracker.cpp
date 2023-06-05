@@ -231,7 +231,6 @@ namespace Module::ETracker
     explicit DataRenderer(ModuleData::Ptr data)
       : Data(std::move(data))
       , Noise()
-      , Transposition()
     {
       Reset();
     }
@@ -432,7 +431,7 @@ namespace Module::ETracker
     const ModuleData::Ptr Data;
     std::array<ChannelState, SAA::TRACK_CHANNELS> PlayerState;
     std::array<uint_t, 2> Noise;
-    uint_t Transposition;
+    uint_t Transposition = 0;
   };
 
   class Chiptune : public SAA::Chiptune

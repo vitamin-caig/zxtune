@@ -269,8 +269,6 @@ namespace Formats::Packed
     public:
       Bitstream(const uint8_t* data, std::size_t size)
         : ByteStream(data, size)
-        , Bits()
-        , Mask(0)
       {}
 
       uint_t GetBit()
@@ -294,8 +292,8 @@ namespace Formats::Packed
       }
 
     private:
-      uint_t Bits;
-      uint_t Mask;
+      uint_t Bits = 0;
+      uint_t Mask = 0;
     };
 
     class BitstreamDecoder

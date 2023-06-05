@@ -22,7 +22,6 @@ namespace
     ProgressModelVisitor(Playlist::Item::Visitor& delegate, Log::ProgressCallback& cb)
       : Delegate(delegate)
       , Callback(cb)
-      , Done(0)
     {}
 
     void OnItem(Playlist::Model::IndexType index, Playlist::Item::Data::Ptr data) override
@@ -34,7 +33,7 @@ namespace
   private:
     Playlist::Item::Visitor& Delegate;
     Log::ProgressCallback& Callback;
-    uint_t Done;
+    uint_t Done = 0;
   };
 }  // namespace
 

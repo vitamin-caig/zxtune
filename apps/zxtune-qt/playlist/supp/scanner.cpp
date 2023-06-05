@@ -178,7 +178,6 @@ namespace
   public:
     FilenamesSourceStatistic(FilenamesSource& delegate)
       : Delegate(delegate)
-      , GotFilenames(0)
     {}
 
     bool Empty() const override
@@ -199,7 +198,7 @@ namespace
 
   private:
     FilenamesSource& Delegate;
-    unsigned GotFilenames;
+    unsigned GotFilenames = 0;
   };
 
   class FilesQueue

@@ -1508,17 +1508,13 @@ namespace Formats::Chiptune
       struct BuildContext
       {
         std::vector<PatternObject>& Patterns;
-        PatternObject* CurPattern;
-        PatternLineObject* CurLine;
-        ChannelObject* CurChannel;
-        uint_t CurNoiseBase;
+        PatternObject* CurPattern = nullptr;
+        PatternLineObject* CurLine = nullptr;
+        ChannelObject* CurChannel = nullptr;
+        uint_t CurNoiseBase = 0;
 
         BuildContext(std::vector<PatternObject>& patterns)
           : Patterns(patterns)
-          , CurPattern()
-          , CurLine()
-          , CurChannel()
-          , CurNoiseBase()
         {}
 
         void SetPattern(uint_t idx)

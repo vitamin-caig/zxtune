@@ -38,8 +38,6 @@ namespace Formats::Chiptune::SoundTracker
       , UsedPatterns(0, MAX_PATTERNS_COUNT - 1)
       , UsedSamples(0, MAX_SAMPLES_COUNT - 1)
       , UsedOrnaments(0, MAX_ORNAMENTS_COUNT - 1)
-      , NonEmptyPatterns(false)
-      , NonEmptySamples(false)
     {
       UsedOrnaments.Insert(0);
     }
@@ -174,7 +172,7 @@ namespace Formats::Chiptune::SoundTracker
     Indices UsedPatterns;
     Indices UsedSamples;
     Indices UsedOrnaments;
-    bool NonEmptyPatterns;
-    bool NonEmptySamples;
+    bool NonEmptyPatterns = false;
+    bool NonEmptySamples = false;
   };
 }  // namespace Formats::Chiptune::SoundTracker

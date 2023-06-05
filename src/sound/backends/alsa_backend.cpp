@@ -285,8 +285,6 @@ namespace Sound::Alsa
     DeviceWrapper(Api::Ptr api, const Identifier& id)
       : AlsaApi(std::move(api))
       , Pcm(AlsaApi, id)
-      , CanPause(false)
-      , Format(SND_PCM_FORMAT_UNKNOWN)
     {}
 
     ~DeviceWrapper()
@@ -374,8 +372,8 @@ namespace Sound::Alsa
   private:
     const Api::Ptr AlsaApi;
     PCMDevice Pcm;
-    bool CanPause;
-    snd_pcm_format_t Format;
+    bool CanPause = false;
+    snd_pcm_format_t Format = SND_PCM_FORMAT_UNKNOWN;
   };
 
   class MixerElementsIterator
@@ -523,7 +521,6 @@ namespace Sound::Alsa
     Mixer(Api::Ptr api, const Identifier& id, StringView mixer)
       : AlsaApi(std::move(api))
       , Attached(AlsaApi, id.GetCard())
-      , MixerElement(nullptr)
     {
 
       Dbg("Opening mixer '{}'", mixer);
@@ -624,7 +621,7 @@ namespace Sound::Alsa
   private:
     const Api::Ptr AlsaApi;
     AttachedMixer Attached;
-    snd_mixer_elem_t* MixerElement;
+    snd_mixer_elem_t* MixerElement = nullptr;
   };
 
   class VolumeControl : public Sound::VolumeControl
@@ -806,7 +803,6 @@ namespace Sound::Alsa
   public:
     explicit CardsIterator(Api::Ptr api)
       : AlsaApi(std::move(api))
-      , Index(-1)
     {
       Next();
     }
@@ -860,7 +856,7 @@ namespace Sound::Alsa
 
   private:
     const Api::Ptr AlsaApi;
-    int Index;
+    int Index = -1;
     std::shared_ptr<snd_ctl_t> CurHandle;
     String CurName;
     String CurId;
@@ -872,7 +868,7 @@ namespace Sound::Alsa
     DevicesIterator(Api::Ptr api, const CardsIterator& card)
       : AlsaApi(std::move(api))
       , Card(card)
-      , Index(-1)
+
     {
       Next();
     }
@@ -919,7 +915,7 @@ namespace Sound::Alsa
   private:
     const Api::Ptr AlsaApi;
     const CardsIterator& Card;
-    int Index;
+    int Index = -1;
     String CurName;
   };
 

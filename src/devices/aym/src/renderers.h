@@ -23,13 +23,10 @@ namespace Devices::AYM
   {
   public:
     RenderersSet(ClockSource& clock, PSGType& psg)
-      : ClockFreq()
-      , SoundFreq()
-      , Clock(clock)
+      : Clock(clock)
       , LQ(clock, psg)
       , MQ(clock, psg)
       , HQ(clock, psg)
-      , Current()
     {}
 
     void Reset()
@@ -78,12 +75,12 @@ namespace Devices::AYM
     }
 
   private:
-    uint64_t ClockFreq;
-    uint_t SoundFreq;
+    uint64_t ClockFreq = 0;
+    uint_t SoundFreq = 0;
     ClockSource& Clock;
     Details::LQRenderer<Stamp, PSGType> LQ;
     Details::MQRenderer<Stamp, PSGType> MQ;
     Details::HQRenderer<Stamp, PSGType> HQ;
-    Details::Renderer<Stamp>* Current;
+    Details::Renderer<Stamp>* Current = nullptr;
   };
 }  // namespace Devices::AYM

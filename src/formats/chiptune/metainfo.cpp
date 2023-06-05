@@ -28,7 +28,6 @@ namespace Formats::Chiptune
   public:
     explicit Patcher(Binary::View src)
       : Source(src)
-      , SizeAddon(0)
     {}
 
     void InsertData(std::size_t offset, Binary::View data) override
@@ -112,7 +111,7 @@ namespace Formats::Chiptune
     BlobsMap Insertions;
     BlobsMap Overwrites;
     FixesMap LEWordFixes;
-    std::size_t SizeAddon;
+    std::size_t SizeAddon = 0;
   };
 }  // namespace Formats::Chiptune
 

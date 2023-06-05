@@ -183,7 +183,6 @@ namespace IFF
   public:
     explicit CompositeChunkSource(Identifier::Type id)
       : Id(id)
-      , TotalSize()
     {}
 
     void AddSubSource(ChunkSource::Ptr src)
@@ -213,7 +212,7 @@ namespace IFF
   private:
     const Identifier::Type Id;
     std::vector<ChunkSource::Ptr> Sources;
-    std::size_t TotalSize;
+    std::size_t TotalSize = 0;
   };
 
   class DataBuilder
@@ -464,7 +463,6 @@ namespace Formats::Chiptune
       explicit TuneParser(Builder& delegate)
         : Delegate(delegate)
         , Metadata(delegate)
-        , CurTrack()
       {}
 
       void OnChunk(const IFF::Identifier::Type& id, Binary::Container::Ptr content) override
@@ -491,7 +489,7 @@ namespace Formats::Chiptune
     private:
       Builder& Delegate;
       MetadataParser Metadata;
-      uint_t CurTrack;
+      uint_t CurTrack = 0;
     };
 
     class FileParser : public IFF::Visitor
@@ -499,7 +497,6 @@ namespace Formats::Chiptune
     public:
       explicit FileParser(Builder& delegate)
         : Delegate(delegate)
-        , CurTune()
       {}
 
       void OnChunk(const IFF::Identifier::Type& id, Binary::Container::Ptr content) override
@@ -520,7 +517,7 @@ namespace Formats::Chiptune
 
     private:
       Builder& Delegate;
-      uint_t CurTune;
+      uint_t CurTune = 0;
     };
 
     Formats::Chiptune::Container::Ptr Parse(const Binary::Container& data, Builder& target)

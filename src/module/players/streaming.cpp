@@ -31,8 +31,6 @@ namespace Module
 
     explicit FramedStreamStateCursor(FramedStream stream)
       : Stream(stream)
-      , CurFrame()
-      , Loops()
     {
       Reset();
     }
@@ -88,9 +86,9 @@ namespace Module
 
   private:
     const FramedStream Stream;
-    uint_t CurFrame;
+    uint_t CurFrame = 0;
     Time::Microseconds TotalPlayed;
-    uint_t Loops;
+    uint_t Loops = 0;
   };
 
   class FramedStreamInfo : public Information

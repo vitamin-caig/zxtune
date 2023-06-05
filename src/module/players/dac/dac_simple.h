@@ -26,7 +26,6 @@ namespace Module::DAC
 
     explicit SimpleModuleData(uint_t channels)
       : ChannelsCount(channels)
-      , InitialTempo()
     {}
 
     uint_t GetChannelsCount() const override
@@ -50,7 +49,7 @@ namespace Module::DAC
     }
 
     const uint_t ChannelsCount;
-    uint_t InitialTempo;
+    uint_t InitialTempo = 0;
     OrderList::Ptr Order;
     PatternsSet::Ptr Patterns;
     SparsedObjectsStorage<Devices::DAC::Sample::Ptr> Samples;

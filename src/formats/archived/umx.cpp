@@ -140,7 +140,6 @@ namespace Formats::Archived
         , Start(static_cast<const uint8_t*>(Data.Start()))
         , Cursor(Start)
         , Limit(Start + Data.Size())
-        , MaxUsedSize()
       {}
 
       // primitives
@@ -267,7 +266,7 @@ namespace Formats::Archived
       const uint8_t* const Start;
       const uint8_t* Cursor;
       const uint8_t* const Limit;
-      std::size_t MaxUsedSize;
+      std::size_t MaxUsedSize = 0;
     };
 
     class Format

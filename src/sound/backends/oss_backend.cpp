@@ -258,7 +258,6 @@ namespace Sound::Oss
   public:
     explicit BackendWorker(Parameters::Accessor::Ptr params)
       : Params(std::move(params))
-      , Format(-1)
       , VolumeController(new VolumeControl(StateMutex, MixHandle))
     {}
 
@@ -357,7 +356,7 @@ namespace Sound::Oss
     std::mutex StateMutex;
     AutoDescriptor MixHandle;
     AutoDescriptor DevHandle;
-    int Format;
+    int Format = -1;
     const VolumeControl::Ptr VolumeController;
   };
 

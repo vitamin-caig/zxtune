@@ -976,7 +976,6 @@ namespace Formats::Chiptune
     {
     public:
       explicit Areas(Binary::View data)
-        : BaseAddr(0)
       {
         const auto& header = *data.As<RawHeader>();
         const std::size_t firstPatternOffset = header.PatternsOffset;
@@ -1076,7 +1075,7 @@ namespace Formats::Chiptune
       }
 
     private:
-      std::size_t BaseAddr;
+      std::size_t BaseAddr = 0;
     };
 
     bool FastCheck(const Areas& areas)

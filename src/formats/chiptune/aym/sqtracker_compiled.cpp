@@ -527,18 +527,14 @@ namespace Formats::Chiptune
 
       struct ParserState
       {
-        uint_t Counter;
+        uint_t Counter = 0;
         std::size_t Cursor;
-        uint_t LastNote;
-        std::size_t LastNoteStart;
-        bool RepeatLastNote;
+        uint_t LastNote = 0;
+        std::size_t LastNoteStart = 0;
+        bool RepeatLastNote = false;
 
         ParserState(std::size_t cursor)
-          : Counter()
-          , Cursor(cursor)
-          , LastNote()
-          , LastNoteStart()
-          , RepeatLastNote()
+          : Cursor(cursor)
         {}
       };
 

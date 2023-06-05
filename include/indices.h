@@ -27,7 +27,6 @@ public:
     , Values(1 + (maximal - minimal) / BITS_PER_MASK)
     , MinValue(Maximal)
     , MaxValue(Minimal)
-    , Size(0)
   {}
 
   template<class It>
@@ -102,8 +101,6 @@ public:
   public:
     explicit Iterator(const Indices& cont)
       : Container(cont)
-      , Idx(0)
-      , Mask(1)
       , Ptr(&cont.Values.front())
     {
       SkipSparsed();
@@ -158,8 +155,8 @@ public:
 
   private:
     const Indices& Container;
-    uint_t Idx;
-    uint_t Mask;
+    uint_t Idx = 0;
+    uint_t Mask = 1;
     const uint_t* Ptr;
   };
 
@@ -193,5 +190,5 @@ private:
   std::vector<uint_t> Values;
   uint_t MinValue;
   uint_t MaxValue;
-  uint_t Size;
+  uint_t Size = 0;
 };

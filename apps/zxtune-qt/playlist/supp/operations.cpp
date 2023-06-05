@@ -108,7 +108,6 @@ namespace
     PropertyModelWithProgress(const PropertyModel<T>& delegate, Log::ProgressCallback& cb)
       : Delegate(delegate)
       , Callback(cb)
-      , Done(0)
     {}
 
     std::size_t CountItems() const override
@@ -154,7 +153,7 @@ namespace
   private:
     const PropertyModel<T>& Delegate;
     Log::ProgressCallback& Callback;
-    mutable uint_t Done;
+    mutable uint_t Done = 0;
   };
 
   template<class T>

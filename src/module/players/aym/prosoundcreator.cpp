@@ -371,8 +371,6 @@ namespace Module::ProSoundCreator
   public:
     explicit DataRenderer(ModuleData::Ptr data)
       : Data(std::move(data))
-      , EnvelopeTone()
-      , NoiseBase()
     {
       Reset();
     }
@@ -599,8 +597,8 @@ namespace Module::ProSoundCreator
   private:
     const ModuleData::Ptr Data;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
-    uint_t EnvelopeTone;
-    uint_t NoiseBase;
+    uint_t EnvelopeTone = 0;
+    uint_t NoiseBase = 0;
   };
 
   class Factory : public AYM::Factory

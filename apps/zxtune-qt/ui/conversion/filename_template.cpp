@@ -126,7 +126,6 @@ namespace
   public:
     explicit FilenameTemplateDialog(QWidget& parent)
       : QDialog(&parent)
-      , TemplateBuilder(nullptr)
     {
       TemplateBuilder = UI::FilenameTemplateWidget::Create(*this);
       auto* const buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, Qt::Horizontal, this);
@@ -146,7 +145,7 @@ namespace
     }
 
   private:
-    UI::FilenameTemplateWidget* TemplateBuilder;
+    UI::FilenameTemplateWidget* TemplateBuilder = nullptr;
   };
 }  // namespace
 

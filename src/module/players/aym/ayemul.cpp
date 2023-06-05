@@ -38,8 +38,6 @@ namespace Module::AYEMUL
   public:
     explicit AyDataChannel(Devices::AYM::Chip::Ptr chip)
       : Chip(std::move(chip))
-      , Register()
-      , Blocked()
     {}
 
     void Reset()
@@ -118,10 +116,10 @@ namespace Module::AYEMUL
 
   private:
     const Devices::AYM::Chip::Ptr Chip;
-    uint_t Register;
+    uint_t Register = 0;
     std::vector<Devices::AYM::DataChunk> Chunks;
     Devices::AYM::DataChunk State;
-    bool Blocked;
+    bool Blocked = false;
   };
 
   class BeeperDataChannel
@@ -129,8 +127,6 @@ namespace Module::AYEMUL
   public:
     explicit BeeperDataChannel(Devices::Beeper::Chip::Ptr chip)
       : Chip(std::move(chip))
-      , State(false)
-      , Blocked(false)
     {}
 
     void Reset()
@@ -179,8 +175,8 @@ namespace Module::AYEMUL
   private:
     const Devices::Beeper::Chip::Ptr Chip;
     std::vector<Devices::Beeper::DataChunk> Chunks;
-    bool State;
-    bool Blocked;
+    bool State = false;
+    bool Blocked = false;
   };
 
   class DataChannel
@@ -314,8 +310,6 @@ namespace Module::AYEMUL
   public:
     explicit CPCAYPort(DataChannel::Ptr channel)
       : Channel(std::move(channel))
-      , Data()
-      , Selector()
     {}
 
     void Reset()
@@ -376,8 +370,8 @@ namespace Module::AYEMUL
 
   private:
     const DataChannel::Ptr Channel;
-    uint8_t Data;
-    uint_t Selector;
+    uint8_t Data = '\0';
+    uint_t Selector = 0;
   };
 
   class PortsPlexer : public Devices::Z80::ChipIO
@@ -387,7 +381,6 @@ namespace Module::AYEMUL
       : Channel(channel)
       , ZX(channel)
       , CPC(std::move(channel))
-      , Current()
     {}
     using Ptr = std::shared_ptr<PortsPlexer>;
 
@@ -442,7 +435,7 @@ namespace Module::AYEMUL
     const DataChannel::Ptr Channel;
     ZXAYPort ZX;
     CPCAYPort CPC;
-    CPCAYPort* Current;
+    CPCAYPort* Current = nullptr;
   };
 
   class CPUParameters : public Devices::Z80::ChipParameters

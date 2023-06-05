@@ -258,9 +258,6 @@ namespace Module
   public:
     explicit PatternsBuilder(MutablePatternsSet::Ptr patterns)
       : Patterns(std::move(patterns))
-      , CurPattern()
-      , CurLine()
-      , CurChannel()
     {}
 
     PatternsBuilder(const PatternsBuilder&) = delete;
@@ -335,7 +332,7 @@ namespace Module
   private:
     MutablePatternsSet::Ptr Patterns;
     MutablePattern* CurPattern;
-    MutableLine* CurLine;
-    MutableCell* CurChannel;
+    MutableLine* CurLine = nullptr;
+    MutableCell* CurChannel = nullptr;
   };
 }  // namespace Module

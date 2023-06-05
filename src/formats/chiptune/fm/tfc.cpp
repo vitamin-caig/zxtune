@@ -134,7 +134,6 @@ namespace Formats::Chiptune
       explicit Container(Binary::View data)
         : Data(data)
         , Min(Data.Size())
-        , Max(0)
       {}
 
       std::size_t ParseFrameControl(std::size_t cursor, Builder& target, Context& context) const
@@ -270,7 +269,7 @@ namespace Formats::Chiptune
     private:
       const Binary::View Data;
       mutable std::size_t Min;
-      mutable std::size_t Max;
+      mutable std::size_t Max = 0;
     };
 
     String DecodeString(StringView str)

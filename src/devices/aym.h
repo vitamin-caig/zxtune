@@ -101,7 +101,6 @@ namespace Devices::AYM
     public:
       explicit IndicesIterator(const Registers& regs)
         : Mask(regs.Mask & ((1 << TOTAL) - 1))
-        , Idx(0)
       {
         SkipUnset();
       }
@@ -151,7 +150,7 @@ namespace Devices::AYM
 
     private:
       uint_t Mask;
-      uint_t Idx;
+      uint_t Idx = 0;
     };
 
   private:

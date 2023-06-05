@@ -270,7 +270,6 @@ namespace Module::ASCSoundMaster
   public:
     explicit DataRenderer(ModuleData::Ptr data)
       : Data(std::move(data))
-      , EnvelopeTone(0)
     {}
 
     void Reset() override
@@ -538,7 +537,7 @@ namespace Module::ASCSoundMaster
 
   private:
     const ModuleData::Ptr Data;
-    uint_t EnvelopeTone;
+    uint_t EnvelopeTone = 0;
     std::array<ChannelState, AYM::TRACK_CHANNELS> PlayerState;
   };
 
