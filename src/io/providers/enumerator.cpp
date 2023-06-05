@@ -64,7 +64,7 @@ namespace IO
                                     Log::ProgressCallback& cb) const override
     {
       Dbg("Opening path '{}'", path);
-      if (Identifier::Ptr id = Resolve(path))
+      if (const auto id = Resolve(path))
       {
         if (const DataProvider* provider = FindProvider(id->Scheme()))
         {
@@ -80,7 +80,7 @@ namespace IO
                                            Log::ProgressCallback& cb) const override
     {
       Dbg("Creating stream '{}'", path);
-      if (Identifier::Ptr id = Resolve(path))
+      if (const auto id = Resolve(path))
       {
         if (const DataProvider* provider = FindProvider(id->Scheme()))
         {

@@ -891,7 +891,7 @@ namespace Module::TFMMusicMaker
 
     void ProcessNoteEffects(uint_t quirk, uint_t idx, TFM::ChannelBuilder& channel)
     {
-      ChannelState& state = State.Channels[idx];
+      const auto& state = State.Channels[idx];
       if (state.NoteRetrig != NO_VALUE && 0 == quirk % state.NoteRetrig)
       {
         channel.KeyOff();

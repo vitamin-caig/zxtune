@@ -461,11 +461,11 @@ namespace
       item.AdjustedParameters = adjustedParams;
       const QString absItemPath = baseDir.absoluteFilePath(ToQString(itemPath));
       item.Path = FromQString(baseDir.cleanPath(absItemPath));
-      if (std::size_t formatSpec = filter.GetFormatSpec())
+      if (const auto formatSpec = filter.GetFormatSpec())
       {
         ApplyFormatSpecificData(formatSpec, item);
       }
-      if (std::size_t offset = filter.GetOffset())
+      if (const auto offset = filter.GetOffset())
       {
         ApplyOffset(offset, item);
       }

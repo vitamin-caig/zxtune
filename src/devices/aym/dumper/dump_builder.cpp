@@ -108,8 +108,7 @@ namespace Devices::AYM
         const uint8_t newVal = delta[reg] & GetValueMask(reg);
         if (Registers::ENV != reg && Base.Has(reg))
         {
-          uint8_t& base = Base[reg];
-          if (newVal == base)
+          if (newVal == Base[reg])
           {
             Delta.Reset(reg);
             continue;

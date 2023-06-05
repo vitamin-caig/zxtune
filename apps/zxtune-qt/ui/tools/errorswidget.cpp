@@ -117,7 +117,7 @@ namespace
     void paintEvent(QPaintEvent*) override
     {
       QPainter p(this);
-      QFontMetrics fm(font());
+      const QFontMetrics fm(font());
       const QString& fullText = text();
       const QSize& fullSize = fm.size(Qt::TextShowMnemonic, fullText);
       const QRect& availRect = contentsRect();

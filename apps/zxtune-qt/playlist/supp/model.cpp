@@ -624,10 +624,10 @@ namespace
     {
       Dbg("Sort data in column={} by order={}", column, static_cast<int>(order));
       const bool ascending = order == Qt::AscendingOrder;
-      if (Playlist::Item::Comparer::Ptr comparer = CreateComparerByColumn(column, ascending))
+      if (auto comparer = CreateComparerByColumn(column, ascending))
       {
-        const Playlist::Item::StorageModifyOperation::Ptr op = MakePtr<SortOperation>(comparer);
-        PerformOperation(op);
+        auto op = MakePtr<SortOperation>(std::move(comparer));
+        PerformOperation(std::move(op));
       }
     }
 
@@ -689,7 +689,6 @@ namespace
 
     void ExecuteOperation(Playlist::Item::StorageModifyOperation::Ptr operation) override
     {
-      Playlist::Model::OldToNewIndexMap::Ptr remapping;
       {
         emit OperationStarted();
         Playlist::Item::Storage::Ptr tmpStorage;

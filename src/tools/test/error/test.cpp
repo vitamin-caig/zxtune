@@ -64,11 +64,11 @@ int main()
 {
   try
   {
-    Error err0;
+    const Error err0;
     TestSuccess(err0);
     Error err1(LOCATIONS[0], TEXTS[0]);
     TestError(0, err1);
-    Error err2(LOCATIONS[1], TEXTS[1]);
+    const Error err2(LOCATIONS[1], TEXTS[1]);
     TestError(1, err2);
     err1.AddSuberror(err2);
     const Error& err3 = GetError();

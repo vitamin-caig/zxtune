@@ -259,7 +259,7 @@ namespace Devices::Z80
       const uint64_t limit = Clock.GetIntEnd();
       while (Clock.GetCurrentTick() < limit)
       {
-        if (uint_t tick = z80ex_int(Context.get()))
+        if (const uint_t tick = z80ex_int(Context.get()))
         {
           Clock.AdvanceTick(tick);
           continue;

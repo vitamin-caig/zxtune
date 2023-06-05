@@ -181,7 +181,7 @@ namespace Formats::Packed
       std::size_t GetPackedDataSize() const
       {
         const typename Version::RawHeader& header = GetHeader();
-        if (uint_t packed = header.GetPackedDataSize())
+        if (const uint_t packed = header.GetPackedDataSize())
         {
           return packed;
         }

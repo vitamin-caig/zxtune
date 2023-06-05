@@ -409,7 +409,7 @@ JNIEXPORT jboolean JNICALL Java_app_zxtune_core_jni_JniPlayer_render(JNIEnv* env
   return Jni::Call(env, [=]() {
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     using ArrayType = AutoArray<jshortArray, int16_t>;
-    ArrayType buf(env, buffer);
+    const ArrayType buf(env, buffer);
     Jni::CheckArgument(buf, "Empty render buffer");
     if (const auto player = Player::Storage::Instance().Find(playerHandle))
     {
@@ -429,7 +429,7 @@ JNIEXPORT jint JNICALL Java_app_zxtune_core_jni_JniPlayer_analyze(JNIEnv* env, j
     const auto playerHandle = NativePlayerJni::GetHandle(env, self);
     const auto player = Player::Storage::Instance().Find(playerHandle);
     using ArrayType = AutoArray<jbyteArray, uint8_t>;
-    ArrayType rawLevels(env, levels);
+    const ArrayType rawLevels(env, levels);
     if (rawLevels && player)
     {
       return player->Analyze(rawLevels.Size(), rawLevels.Data());

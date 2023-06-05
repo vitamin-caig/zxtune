@@ -487,10 +487,10 @@ namespace
     void WriteItems(const Playlist::IO::Container& container, Log::ProgressCallback& cb)
     {
       const uint64_t PERCENTS = 100;
-      ElementHelper tracklist(XML, XSPF::TRACKLIST_TAG);
+      const ElementHelper tracklist(XML, XSPF::TRACKLIST_TAG);
       const uint_t totalItems = container.GetItemsCount();
       uint_t doneItems = 0;
-      for (Playlist::Item::Collection::Ptr items = container.GetItems(); items->IsValid(); items->Next())
+      for (Playlist::Item::Collection::Ptr const items = container.GetItems(); items->IsValid(); items->Next())
       {
         const Playlist::Item::Data::Ptr item = items->Get();
         WriteItem(*item);

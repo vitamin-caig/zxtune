@@ -35,7 +35,7 @@ namespace
     {
       int fakeArgc = 1;
       char* fakeArgv[] = {""};
-      QApplication qapp(fakeArgc, fakeArgv);
+      const QApplication qapp(fakeArgc, fakeArgv);
       // storageLocation(DataLocation) is ${profile}/[${organizationName}/][${applicationName}/]
       // applicationName cannot be empty since qt4.8.7 (binary name is used instead)
       // So, do not set  organization name and override application name

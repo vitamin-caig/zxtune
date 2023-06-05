@@ -104,9 +104,9 @@ namespace
     void OnItem(Playlist::Model::IndexType /*index*/, Playlist::Item::Data::Ptr data) override
     {
       const String path = data->GetFullPath();
-      if (Module::Holder::Ptr holder = data->GetModule())
+      if (auto holder = data->GetModule())
       {
-        ConvertItem(path, holder);
+        ConvertItem(path, std::move(holder));
       }
       else
       {

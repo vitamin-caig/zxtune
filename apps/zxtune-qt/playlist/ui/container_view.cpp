@@ -436,7 +436,7 @@ namespace
     void SwitchToLastPlaylist()
     {
       Dbg("Move to another playlist");
-      if (int total = widgetsContainer->count())
+      if (const auto total = widgetsContainer->count())
       {
         ActivatePlaylist(total - 1);
       }

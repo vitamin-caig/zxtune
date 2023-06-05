@@ -141,7 +141,7 @@ namespace
     void FillDevices()
     {
       using namespace Sound;
-      for (Alsa::Device::Iterator::Ptr availableDevices = Alsa::EnumerateDevices(); availableDevices->IsValid();
+      for (const auto availableDevices = Alsa::EnumerateDevices(); availableDevices->IsValid();
            availableDevices->Next())
       {
         const Alsa::Device::Ptr cur = availableDevices->Get();

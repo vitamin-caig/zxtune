@@ -470,17 +470,17 @@ namespace
 
     void SelectFound() const override
     {
-      if (Playlist::Item::SelectionOperation::Ptr op = Playlist::UI::ExecuteSearchDialog(View))
+      if (auto op = Playlist::UI::ExecuteSearchDialog(View))
       {
-        ExecuteSelectOperation(op);
+        ExecuteSelectOperation(std::move(op));
       }
     }
 
     void SelectFoundInSelected() const override
     {
-      if (Playlist::Item::SelectionOperation::Ptr op = Playlist::UI::ExecuteSearchDialog(View, SelectedItems))
+      if (auto op = Playlist::UI::ExecuteSearchDialog(View, SelectedItems))
       {
-        ExecuteSelectOperation(op);
+        ExecuteSelectOperation(std::move(op));
       }
     }
 

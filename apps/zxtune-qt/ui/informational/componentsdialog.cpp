@@ -289,7 +289,7 @@ namespace
       // root
       QTreeWidgetItem* const backendItem = CreateRootItem(root, backend.Description(), backend.Status());
       // features
-      if (uint_t features = backend.Capabilities() & Sound::CAP_FEAT_MASK)
+      if (const uint_t features = backend.Capabilities() & Sound::CAP_FEAT_MASK)
       {
         QTreeWidgetItem* const featuresItem =
             CreateTreeWidgetItem(backendItem, QT_TRANSLATE_NOOP("ComponentsDialog", "Features"));
@@ -354,7 +354,7 @@ namespace
     {
       BackendsTreeHelper tree(*backendsTree);
       const Sound::Service::Ptr svc = Sound::CreateGlobalService(GlobalOptions::Instance().Get());
-      for (Sound::BackendInformation::Iterator::Ptr backends = svc->EnumerateBackends(); backends->IsValid();
+      for (const auto backends = svc->EnumerateBackends(); backends->IsValid();
            backends->Next())
       {
         const Sound::BackendInformation::Ptr backend = backends->Get();
@@ -366,7 +366,8 @@ namespace
     {
       ProvidersTreeHelper tree(*providersTree);
 
-      for (IO::Provider::Iterator::Ptr providers = IO::EnumerateProviders(); providers->IsValid(); providers->Next())
+      for (const auto providers = IO::EnumerateProviders(); providers->IsValid();
+           providers->Next())
       {
         const IO::Provider::Ptr provider = providers->Get();
         tree.AddProvider(*provider);

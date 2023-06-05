@@ -41,7 +41,7 @@ namespace
     template<class It>
     StubModeDispatcher(It cmdBegin, It cmdEnd)
     {
-      QDir curDir;
+      const QDir curDir;
       for (auto it = cmdBegin; it != cmdEnd; ++it)
       {
         const auto arg = ToQString(*it);

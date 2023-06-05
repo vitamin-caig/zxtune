@@ -135,7 +135,6 @@ namespace Module::NCSF
 
     void SetupState(const std::list<Binary::Container::Ptr>& blocks)
     {
-      ChunkBuilder builder;
       for (const auto& block : blocks)
       {
         SSeq = Formats::Chiptune::NitroComposerSoundFormat::ParseState(*block);

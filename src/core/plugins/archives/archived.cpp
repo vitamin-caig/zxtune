@@ -134,7 +134,7 @@ namespace ZXTune
       {
         if (const auto count = archive->CountFiles())
         {
-          ContainerDetectCallback detect(~std::size_t(0), Identifier, input, count, callback);
+          const ContainerDetectCallback detect(~std::size_t(0), Identifier, input, count, callback);
           archive->ExploreFiles(detect);
         }
         return Analysis::CreateMatchedResult(archive->Size());

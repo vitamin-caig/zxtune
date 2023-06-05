@@ -449,7 +449,7 @@ namespace Formats::Packed
 
       uint_t GetIndex()
       {
-        if (uint_t len = GetBits(3))
+        if (const uint_t len = GetBits(3))
         {
           return GetBits(len) | (1 << len);
         }

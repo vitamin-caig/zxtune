@@ -221,31 +221,31 @@ int main()
     std::cout << "---- Test for prefixed index ----" << std::endl;
     {
       {
-        Strings::PrefixedIndex composed("Prefix", 123);
+        const Strings::PrefixedIndex composed("Prefix", 123);
         Test(composed.IsValid(), "Composed IsValid");
         Test(composed.GetIndex() == 123, "Composed GetIndex");
         Test(composed.ToString() == "Prefix123", "Composed ToString");
       }
       {
-        Strings::PrefixedIndex parsed("Prefix", "Prefix456");
+        const Strings::PrefixedIndex parsed("Prefix", "Prefix456");
         Test(parsed.IsValid(), "Parsed IsValid");
         Test(parsed.GetIndex() == 456, "Parsed GetIndex");
         Test(parsed.ToString() == "Prefix456", "Parsed ToString");
       }
       {
-        Strings::PrefixedIndex garbage("Prefix", "Prefix456sub");
+        const Strings::PrefixedIndex garbage("Prefix", "Prefix456sub");
         Test(!garbage.IsValid(), "Garbage IsValid");
         Test(garbage.GetIndex() == 0, "Garbage GetIndex");
         Test(garbage.ToString() == "Prefix456sub", "Garbage ToString");
       }
       {
-        Strings::PrefixedIndex invalid("Prefix", "SomeString");
+        const Strings::PrefixedIndex invalid("Prefix", "SomeString");
         Test(!invalid.IsValid(), "Invalid IsValid");
         Test(invalid.GetIndex() == 0, "Invalid GetIndex");
         Test(invalid.ToString() == "SomeString", "Invalid ToString");
       }
       {
-        Strings::PrefixedIndex empty("Prefix", "Prefix");
+        const Strings::PrefixedIndex empty("Prefix", "Prefix");
         Test(!empty.IsValid(), "Empty IsValid");
         Test(empty.GetIndex() == 0, "Empty GetIndex");
         Test(empty.ToString() == "Prefix", "Empty ToString");

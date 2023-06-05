@@ -53,7 +53,7 @@ namespace Formats::Packed
 
       bool FastCheck() const
       {
-        if (std::size_t usedSize = GetUsedSize())
+        if (const auto usedSize = GetUsedSize())
         {
           return usedSize <= Data.Size();
         }

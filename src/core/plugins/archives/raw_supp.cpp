@@ -397,7 +397,7 @@ namespace ZXTune::Raw
     Analysis::Path::Ptr GetPath() const override
     {
       auto parentPath = Parent->GetPath();
-      if (std::size_t offset = Subdata->GetOffset())
+      if (const auto offset = Subdata->GetOffset())
       {
         const auto subPath = CreateFilename(offset);
         return parentPath->Append(subPath);

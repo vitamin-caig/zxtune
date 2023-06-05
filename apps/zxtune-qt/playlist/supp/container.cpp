@@ -105,7 +105,7 @@ namespace
     // do not track progress since view may not be created
     void Execute(Playlist::Item::Storage& storage, Log::ProgressCallback& cb) override
     {
-      if (Playlist::IO::Container::Ptr container = Playlist::IO::Open(Provider, Filename, cb))
+      if (const auto container = Playlist::IO::Open(Provider, Filename, cb))
       {
         const Parameters::Accessor::Ptr plParams = container->GetProperties();
         const QString name = GetPlaylistName(*plParams);

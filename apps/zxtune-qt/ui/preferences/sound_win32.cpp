@@ -115,7 +115,7 @@ namespace
     void FillDevices()
     {
       using namespace Sound;
-      for (Win32::Device::Iterator::Ptr availableDevices = Win32::EnumerateDevices(); availableDevices->IsValid();
+      for (const auto availableDevices = Win32::EnumerateDevices(); availableDevices->IsValid();
            availableDevices->Next())
       {
         const Win32::Device::Ptr cur = availableDevices->Get();

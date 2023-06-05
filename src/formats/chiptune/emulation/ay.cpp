@@ -313,12 +313,12 @@ namespace Formats::Chiptune
       {
         if (play)
         {
-          Im1Player player(init, play);
+          const Im1Player player(init, play);
           AddBlock(0, player.Data);
         }
         else
         {
-          Im2Player player(init);
+          const Im2Player player(init);
           AddBlock(0, player.Data);
         }
       }

@@ -205,7 +205,7 @@ namespace
 
     void Enumerate(Resource::Visitor& visitor) const
     {
-      ResourceVisitorAdapter adapter(visitor);
+      const ResourceVisitorAdapter adapter(visitor);
       Archive->ExploreFiles(adapter);
     }
 

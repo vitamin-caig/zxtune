@@ -98,7 +98,7 @@ namespace
     void FillDevices()
     {
       using namespace Sound;
-      for (DirectSound::Device::Iterator::Ptr availableDevices = DirectSound::EnumerateDevices();
+      for (const auto availableDevices = DirectSound::EnumerateDevices();
            availableDevices->IsValid(); availableDevices->Next())
       {
         const DirectSound::Device::Ptr cur = availableDevices->Get();

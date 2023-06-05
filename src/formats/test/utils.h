@@ -207,7 +207,7 @@ namespace Test
         res << "Archive size mismatch (expected " << archive.Size() << " real " << container->Size() << ")";
         throw std::runtime_error(res.str());
       }
-      ArchiveWalker walker(testNames, reference);
+      const ArchiveWalker walker(testNames, reference);
       container->ExploreFiles(walker);
     }
     else

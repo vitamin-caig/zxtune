@@ -523,7 +523,7 @@ namespace Update
   {
     try
     {
-      UpdateParameters params(GlobalOptions::Instance().Get());
+      const UpdateParameters params(GlobalOptions::Instance().Get());
       if (IO::ResolveUri(params.GetFeedUrl()))
       {
         std::unique_ptr<CheckOperation> res(new UpdateCheckOperation(parent, params));

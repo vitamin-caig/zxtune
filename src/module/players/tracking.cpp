@@ -218,7 +218,7 @@ namespace Module
       CurLineObject = CurPatternObject->GetLine(Plain.Line);
       if (CurLineObject)
       {
-        if (uint_t tempo = CurLineObject->GetTempo())
+        if (const auto tempo = CurLineObject->GetTempo())
         {
           Plain.Tempo = tempo;
         }

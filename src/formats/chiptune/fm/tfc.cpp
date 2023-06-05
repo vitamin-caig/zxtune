@@ -239,7 +239,7 @@ namespace Formats::Chiptune
           cursor += 2;
           target.SetFreq(freq);
         }
-        if (uint_t regs = (data & 0x3e) >> 1)
+        if (const uint_t regs = (data & 0x3e) >> 1)
         {
           for (uint_t i = 0; i != regs; ++i)
           {

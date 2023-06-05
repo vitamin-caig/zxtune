@@ -21,7 +21,7 @@ namespace Benchmark::Mixer
   {
     const typename Sound::FixedChannelsMixer<Channels>::Ptr mixer = Sound::FixedChannelsMatrixMixer<Channels>::Create();
 
-    typename Sound::MultichannelSample<Channels>::Type input;
+    const typename Sound::MultichannelSample<Channels>::Type input{};
     const Time::Timer timer;
     const uint_t totalFrames = uint64_t(duration.Get()) * soundFreq / duration.PER_SECOND;
     for (uint_t frame = 0; frame != totalFrames; ++frame)

@@ -328,7 +328,7 @@ namespace Formats::Packed
       {
         return {};
       }
-      Zip::DispatchedDataDecoder decoder(container);
+      const Zip::DispatchedDataDecoder decoder(container);
       return CreateContainer(decoder.Decompress(), container.GetFile().GetPackedSize());
     }
 

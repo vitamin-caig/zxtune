@@ -430,7 +430,7 @@ namespace Formats::Chiptune
             break;
           case CMD_SPECIAL:
           {
-            switch (uint_t param = note.GetParameter())
+            switch (const auto param = note.GetParameter())
             {
             case COMMAND_NONE:
               if (halftones == NOTE_EMPTY)

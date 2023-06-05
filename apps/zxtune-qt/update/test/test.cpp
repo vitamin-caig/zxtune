@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 {
   try
   {
-    QCoreApplication app(argc, argv);
+    const QCoreApplication app(argc, argv);
     TestFeed("single_entry");
   }
   catch (const std::exception& e)
