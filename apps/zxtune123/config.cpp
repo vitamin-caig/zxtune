@@ -164,7 +164,7 @@ namespace
     std::vector<Char> buffer(1024);
     for (;;)
     {
-      configFile->getline(&buffer[0], buffer.size());
+      configFile->getline(buffer.data(), buffer.size());
       if (const std::streamsize lineSize = configFile->gcount())
       {
         const auto endof = buffer.cbegin() + lineSize - 1;

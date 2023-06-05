@@ -33,7 +33,7 @@ namespace Binary::Base64
   {
     String result(CalculateConvertedSize(input.Size()), ' ');
     const auto* const in = input.As<uint8_t>();
-    char* const out = &result[0];
+    char* const out = result.data();
     Encode(in, in + input.Size(), out, out + result.size());
     return result;
   }

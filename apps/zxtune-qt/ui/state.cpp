@@ -167,7 +167,7 @@ namespace
     Binary::Dump val;
     if (options.FindValue(name, val) && !val.empty())
     {
-      return {safe_ptr_cast<const char*>(&val[0]), static_cast<int>(val.size())};
+      return {safe_ptr_cast<const char*>(val.data()), static_cast<int>(val.size())};
     }
     return {};
   }
