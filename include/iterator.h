@@ -216,11 +216,11 @@ inline typename ObjectIterator<T>::Ptr ObjectIterator<T>::CreateStub()
   return MakeSingletonPointer(instance);
 }
 
-template<class I, class V = typename std::iterator_traits<I>::value_type>
+template<class T, class V = typename std::iterator_traits<T>::value_type>
 class RangedObjectIteratorAdapter : public ObjectIterator<V>
 {
 public:
-  explicit RangedObjectIteratorAdapter(I from, I to)
+  explicit RangedObjectIteratorAdapter(T from, T to)
     : Range(from, to)
   {}
 
@@ -242,11 +242,11 @@ public:
   }
 
 private:
-  RangeIterator<I> Range;
+  RangeIterator<T> Range;
 };
 
-template<class I>
-typename RangedObjectIteratorAdapter<I>::Ptr CreateRangedObjectIteratorAdapter(I from, I to)
+template<class T>
+typename RangedObjectIteratorAdapter<T>::Ptr CreateRangedObjectIteratorAdapter(T from, T to)
 {
-  return typename RangedObjectIteratorAdapter<I>::Ptr(new RangedObjectIteratorAdapter<I>(from, to));
+  return typename RangedObjectIteratorAdapter<T>::Ptr(new RangedObjectIteratorAdapter<T>(from, to));
 }
