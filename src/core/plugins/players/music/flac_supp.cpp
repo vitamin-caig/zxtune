@@ -92,14 +92,14 @@ namespace Module::Flac
   };
 
   template<uint_t width>
-  static Sound::Sample MakeMonoSample(int32_t val)
+  Sound::Sample MakeMonoSample(int32_t val)
   {
     const auto converted = SampleTraits<width>::ConvertChannel(val);
     return Sound::Sample(converted, converted);
   }
 
   template<uint_t width>
-  static Sound::Sample MakeStereoSample(int32_t left, int32_t right)
+  Sound::Sample MakeStereoSample(int32_t left, int32_t right)
   {
     return Sound::Sample(SampleTraits<width>::ConvertChannel(left), SampleTraits<width>::ConvertChannel(right));
   }

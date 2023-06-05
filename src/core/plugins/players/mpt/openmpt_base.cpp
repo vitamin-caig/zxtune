@@ -373,8 +373,6 @@ namespace Module::Mpt
     }
   };
 
-  static LogStub LOG;
-
   void FillMetadata(const openmpt::module& module, PropertiesHelper& props)
   {
     props.SetTitle(DecodeString(module.get_metadata("title")));
@@ -419,6 +417,8 @@ namespace Module::Mpt
     {
       try
       {
+        static LogStub LOG;
+
         // TODO: specify type filter
         auto track = std::make_shared<openmpt::module>(static_cast<const uint8_t*>(container.Start()), container.Size(),
                                                        LOG, Controls);
