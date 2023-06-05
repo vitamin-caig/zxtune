@@ -107,7 +107,7 @@ namespace Formats::Archived
       }
       const auto* const hripHeader = safe_ptr_cast<const Header*>(data);
       if (0 != std::memcmp(hripHeader->ID, HRIP_ID, sizeof(HRIP_ID))
-          || !(0 == hripHeader->Catalogue || 1 == hripHeader->Catalogue) || !hripHeader->ArchiveSectors
+          || (0 != hripHeader->Catalogue && 1 != hripHeader->Catalogue) || !hripHeader->ArchiveSectors
           || !hripHeader->FilesCount)
       {
         return false;
