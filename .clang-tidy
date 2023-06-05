@@ -5,6 +5,7 @@
                     clang-analyzer-core.*,
                     modernize-*,
                     -modernize-avoid-c-arrays,
+                    -modernize-macro-to-enum,
                     -modernize-use-nodiscard,
                     -modernize-use-trailing-return-type,
                     performance-*,
@@ -12,6 +13,7 @@
                     -readability-container-size-empty,
                     -readability-convert-member-functions-to-static,
                     -readability-else-after-return,
+                    -readability-identifier-length,
                     -readability-implicit-bool-conversion,
                     -readability-magic-numbers,
                     -readability-named-parameter,
@@ -29,6 +31,7 @@
                     -misc-misplaced-const,
                     -misc-no-recursion,
                     -misc-non-private-member-variables-in-classes,
+                    -misc-unused-using-decls,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment
