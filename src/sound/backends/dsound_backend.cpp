@@ -581,7 +581,7 @@ namespace Sound::DirectSound
       const auto& mod = Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(module));
       Dbg("Detected device '{}' (uuid={} module='{}')", name, id, mod);
       DevicesArray& devices = *static_cast<DevicesArray*>(param);
-      devices.push_back(IdAndName(id, name));
+      devices.emplace_back(id, name);
       return TRUE;
     }
 

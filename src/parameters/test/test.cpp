@@ -127,7 +127,7 @@ namespace
     {
       Names.emplace_back(name.AsString());
       const auto* raw = val.As<uint8_t>();
-      Datas.emplace_back(Binary::Dump(raw, raw + val.Size()));
+      Datas.emplace_back(raw, raw + val.Size());
     }
 
     std::vector<String> Names;

@@ -305,7 +305,7 @@ namespace Binary::FormatDSL
     void GroupStart() override
     {
       FlushOperations();
-      Ops.push(Operator(GROUP_START));
+      Ops.emplace(GROUP_START);
       Delegate.GroupStart();
       LastIsMatch = false;
     }
@@ -408,7 +408,7 @@ namespace Binary::FormatDSL
     {
       Require(!GroupStarts.empty());
       Require(GroupStarts.top() != Position);
-      Groups.push(Group(GroupStarts.top(), Position));
+      Groups.emplace(GroupStarts.top(), Position);
       GroupStarts.pop();
       Delegate.GroupEnd();
     }

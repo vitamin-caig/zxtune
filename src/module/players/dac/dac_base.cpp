@@ -144,7 +144,7 @@ namespace Module::DAC
     {
       return ChannelDataBuilder(*existing);
     }
-    Data.push_back(ChannelData());
+    Data.emplace_back();
     ChannelData& newOne = Data.back();
     newOne.Channel = chan;
     return ChannelDataBuilder(newOne);

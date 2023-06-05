@@ -99,7 +99,7 @@ namespace Module::TFC
         const uint_t chip = idx < 3 ? 0 : 1;
         for (RangeIterator<Devices::FM::Registers::const_iterator> regs = Data[idx].Get(frameNum); regs; ++regs)
         {
-          result.push_back(Devices::TFM::Register(chip, *regs));
+          result.emplace_back(chip, *regs);
         }
       }
       res.swap(result);

@@ -198,12 +198,12 @@ namespace Module::TFM
 
   void ChannelBuilder::WriteChannelRegister(uint_t base, uint_t val)
   {
-    Registers.push_back(Devices::TFM::Register(Chip, base + Channel, val));
+    Registers.emplace_back(Chip, base + Channel, val);
   }
 
   void ChannelBuilder::WriteChipRegister(uint_t idx, uint_t val)
   {
-    Registers.push_back(Devices::TFM::Register(Chip, idx, val));
+    Registers.emplace_back(Chip, idx, val);
   }
 
   DataIterator::Ptr CreateDataIterator(TrackStateIterator::Ptr iterator, DataRenderer::Ptr renderer)

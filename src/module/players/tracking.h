@@ -60,7 +60,7 @@ namespace Module
 
     void AddCommand(uint_t type, int_t p1 = 0, int_t p2 = 0, int_t p3 = 0)
     {
-      Commands.push_back(Command(type, p1, p2, p3));
+      Commands.emplace_back(type, p1, p2, p3);
     }
 
     Command* FindCommand(uint_t type)

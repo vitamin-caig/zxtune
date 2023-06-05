@@ -468,7 +468,7 @@ namespace Sound
           while (*str)
           {
             const char* end = std::strchr(str, 0);
-            result.push_back(String(str, end));
+            result.emplace_back(str, end);
             str = end + 1;
           }
         }

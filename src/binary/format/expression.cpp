@@ -367,7 +367,7 @@ namespace Binary::FormatDSL
     void GroupEnd() override
     {
       Require(!GroupBegins.empty());
-      Groups.push(std::make_pair(GroupBegins.top(), Result.size()));
+      Groups.emplace(GroupBegins.top(), Result.size());
       GroupBegins.pop();
     }
 

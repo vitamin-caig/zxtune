@@ -112,7 +112,7 @@ namespace
       auto& info = Locales[trans.Language];
       info.language = trans.Language;
       info.encoding = SystemLocale.Encoding;
-      info.domains.push_back(gnu_gettext::messages_info::domain(trans.Domain));
+      info.domains.emplace_back(trans.Domain);
       info.callback = &LoadMessage;
       info.paths.assign(&EMPTY_PATH, &EMPTY_PATH + 1);
 

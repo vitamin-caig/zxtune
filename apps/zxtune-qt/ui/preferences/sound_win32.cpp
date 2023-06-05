@@ -119,7 +119,7 @@ namespace
            availableDevices->Next())
       {
         const Win32::Device::Ptr cur = availableDevices->Get();
-        Devices.push_back(Device(*cur));
+        Devices.emplace_back(*cur);
         devices->addItem(Devices.back().Name);
       }
     }

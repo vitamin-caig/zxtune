@@ -217,7 +217,7 @@ namespace
   private:
     void AddRawType(const QString& type)
     {
-      Types.push_back("");
+      Types.emplace_back("");
       Filters << MakeFilter(type);
     }
 
