@@ -532,7 +532,7 @@ namespace Sound::Win32
         Dbg("Failed to get device name");
         return String();
       }
-      const wchar_t* const name = caps.szPname;
+      const auto* const name = caps.szPname;
       static_assert(sizeof(*name) == sizeof(uint16_t), "Wide char size mismatch");
       return Strings::Utf16ToUtf8(safe_ptr_cast<const uint16_t*>(name));
     }
