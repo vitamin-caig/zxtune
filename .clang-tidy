@@ -36,6 +36,7 @@
                     readability-static-definition-in-anonymous-namespace,
                     bugprone-branch-clone,
                     bugprone-forward-declaration-namespace,
+                    bugprone-forwarding-reference-overload,
                     '
   CheckOptions:
     - key:          modernize-use-default-member-init.UseAssignment

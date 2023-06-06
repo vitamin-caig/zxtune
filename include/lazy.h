@@ -18,11 +18,6 @@ template<class T>
 class Lazy
 {
 public:
-  template<class F>
-  Lazy(F&& factory)
-    : Storage{std::forward<F>(factory)}
-  {}
-
   template<class F, class... P>
   Lazy(F&& func, P&&... p)
     : Storage{std::bind(std::forward<F>(func), std::forward<P>(p)...)}
