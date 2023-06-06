@@ -18,21 +18,19 @@
             android:id="@+id/visualizer"
             android:name="app.zxtune.ui.VisualizerFragment"
             style="@style/block"
-            android:layout_below="@id/main_top_panel"
-            />
+            android:layout_below="@id/main_top_panel" />
 
     <androidx.fragment.app.FragmentContainerView
             android:id="@+id/information"
-            android:name="app.zxtune.ui.InformationFragment"
+            android:name="app.zxtune.ui.BriefFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/visualizer"
-            android:layout_above="@id/seek_controls"/>
+            android:layout_above="@id/seek_controls" />
 
     <androidx.fragment.app.FragmentContainerView
             android:id="@+id/seek_controls"
             android:name="app.zxtune.ui.SeekControlFragment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"/>
+            android:layout_alignParentBottom="true" />
 </RelativeLayout>
