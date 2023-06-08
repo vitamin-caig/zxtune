@@ -15,7 +15,7 @@ libraries.common = analysis async \
                   formats_archived formats_archived_multitrack formats_chiptune formats_packed formats_multitrack \
                   io \
                   l10n_stub \
-                  module module_conversion module_players module_properties \
+                  module_conversion module_players module_properties \
                   parameters platform platform_application platform_version \
                   sound sound_backends strings \
                   tools
