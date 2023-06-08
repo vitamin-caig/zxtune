@@ -13,6 +13,7 @@
     <string name="send">发送</string>
     <string name="share">分享</string>
     <string name="sort">排序</string>
+    <string name="properties">物业</string>
     <string name="delete_all_items_query">删除所有项目?</string>
     <string name="delete_selected_items_query">删除选定的项目?</string>
     <!-- information-related -->

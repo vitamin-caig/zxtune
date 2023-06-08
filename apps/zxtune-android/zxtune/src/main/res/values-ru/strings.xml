@@ -13,6 +13,7 @@
     <string name="send">Отправить</string>
     <string name="share">Поделиться</string>
     <string name="sort">Сортировать</string>
+    <string name="properties">Свойства</string>
     <string name="delete_all_items_query">Удалить все элементы?</string>
     <string name="delete_selected_items_query">Удалить выбранные элементы?</string>
     <!-- information-related -->

@@ -2,12 +2,10 @@ package app.zxtune.ui
 
 import android.content.ContentResolver
 import android.content.Context
-import android.content.Intent
 import android.support.v4.media.MediaMetadataCompat
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
-import androidx.annotation.IdRes
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import app.zxtune.MainService
@@ -45,7 +43,19 @@ class TrackMenu(private val fragment: Fragment) : MenuProvider {
         }
     }
 
-    override fun onMenuItemSelected(menuItem: MenuItem) = false
+    override fun onMenuItemSelected(menuItem: MenuItem) = when (menuItem.itemId) {
+        R.id.action_properties -> {
+            model.metadata.value?.let {
+                showPropertiesDialog(it)
+            }
+            true
+        }
+
+        else -> false
+    }
+
+    private fun showPropertiesDialog(meta: MediaMetadataCompat) =
+        InformationFragment.show(activity, meta)
 }
 
 private fun maybeCreateAddCurrentTrackIntent(ctx: Context, metadata: MediaMetadataCompat) =

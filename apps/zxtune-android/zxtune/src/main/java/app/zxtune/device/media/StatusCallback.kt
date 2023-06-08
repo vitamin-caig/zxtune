@@ -65,6 +65,8 @@ internal class StatusCallback private constructor(
                 // Do not localize
                 putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "Unknown artist")
             }
+            putNonEmptyString(ModuleAttributes.TITLE, item.title)
+            putNonEmptyString(ModuleAttributes.AUTHOR, item.author)
             putNonEmptyString(ModuleAttributes.COMMENT, item.comment)
             putNonEmptyString(ModuleAttributes.PROGRAM, item.program)
             putNonEmptyString(ModuleAttributes.STRINGS, item.strings)

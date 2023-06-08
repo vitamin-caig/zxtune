@@ -20,4 +20,9 @@
             android:icon="@drawable/ic_menu_ringtone"
             android:title="@string/ringtone_create_title"
             app:showAsAction="never" />
+    <item
+            android:id="@+id/action_properties"
+            android:icon="@drawable/ic_menu_info"
+            android:title="@string/properties"
+            app:showAsAction="never" />
 </menu>
