@@ -11,6 +11,7 @@
 #pragma once
 
 // std includes
+#include <algorithm>
 #include <iterator>
 #include <type_traits>
 

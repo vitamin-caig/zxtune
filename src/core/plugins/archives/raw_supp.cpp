@@ -337,7 +337,7 @@ namespace ZXTune::Raw
 
   private:
     Log::ProgressCallback* const Delegate;
-    const Math::ScaleFunctor<std::size_t> ToPercent;
+    const Math::ScaleFunctor<uint64_t> ToPercent;
     const String Text;
   };
 
