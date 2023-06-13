@@ -13,6 +13,8 @@
 #include <l10n/control.h>
 #include <resource/api.h>
 #include <strings/split.h>
+// std includes
+#include <vector>
 
 namespace
 {
