@@ -48,12 +48,11 @@
 #include "debugger/dbg_types.h"
 #include "debugger/dbg_memory.h"
 #include "debugger/dbg_breakpoints.h"
-
-#include <string.h>
 #endif
 
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "osal/preproc.h"
 
