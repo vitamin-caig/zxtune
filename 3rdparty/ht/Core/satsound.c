@@ -103,7 +103,7 @@ static void location_check(struct SATSOUND_STATE *state) {
 #if defined(USE_STARSCREAM) || defined(USE_M68K)
     recompute_and_set_memory_maps(SATSOUNDSTATE);
 #else
-    C68k_Set_Fetch(SCPUSTATE, 0x00000, 0x7FFFF, RAMBYTEPTR);
+    C68k_Set_Fetch(SCPUSTATE, 0x00000, 0x7FFFF, (pointer)(RAMBYTEPTR));
 #endif
     yam_setram(YAMSTATE, (uint32*)(RAMBYTEPTR), 0x80000, EMU_ENDIAN_XOR(1) ^ 1, 0);
     state->myself = state;
@@ -230,7 +230,7 @@ void EMU_CALL satsound_clear_state(void *state) {
   C68k_Init(SCPUSTATE, NULL);
 
   C68k_Set_Callback_Param(SCPUSTATE, state);
-  C68k_Set_Fetch(SCPUSTATE, 0x00000, 0x7FFFF, RAMBYTEPTR);
+  C68k_Set_Fetch(SCPUSTATE, 0x00000, 0x7FFFF, (pointer)(RAMBYTEPTR));
   C68k_Set_ReadB(SCPUSTATE, satsound_cb_readb);
   C68k_Set_ReadW(SCPUSTATE, satsound_cb_readw);
   C68k_Set_WriteB(SCPUSTATE, satsound_cb_writeb);
