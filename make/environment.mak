@@ -67,8 +67,3 @@ mingw.x86_64.ld.flags = -m64
 # x86
 windows.x86.cxx.flags = /arch:IA32
 # x86_64
-
-#darwin
-# x86_64
-darwin.cxx.flags += -stdlib=libc++
-darwin.ld.flags += -stdlib=libc++

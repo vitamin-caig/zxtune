@@ -43,12 +43,10 @@ libraries += $(foreach lib,$(libraries.qt) $(libraries.qt.$(platform)),Qt5$(lib)
 ifneq (,$(findstring Core,$(libraries.qt)))
 libraries.windows += Qtmain kernel32 user32 shell32 uuid ole32 advapi32 ws2_32 oldnames
 libraries.mingw += kernel32 user32 shell32 uuid ole32 advapi32 ws2_32
-darwin.ld.flags += -framework AppKit -framework Security
 endif
 ifneq (,$(findstring Gui,$(libraries.qt)))
 libraries.windows += Qtmain gdi32 comdlg32 imm32 winspool ws2_32 ole32 user32 advapi32 oldnames
 libraries.mingw += gdi32 comdlg32 imm32 winspool ws2_32 ole32 uuid user32 advapi32
-darwin.ld.flags += -framework Carbon -framework SystemConfiguration
 endif
 
 # .ui -> .ui.h
