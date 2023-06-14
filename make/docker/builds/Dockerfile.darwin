@@ -1,65 +1,99 @@
-FROM debian:buster-slim
+FROM debian:bookworm-slim
 ARG cores=12
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-      ca-certificates wget git make zip bzip2 python3-minimal sudo \
-      xz-utils clang patch icnsutils graphicsmagick-imagemagick-compat genisoimage cmake zlib1g-dev libbz2-dev libxml2-dev libssl-dev && \
-    rm -rf /var/lib/apt/lists/* && \
+      ca-certificates gnupg2 wget git make zip bzip2 python3-minimal sudo ccache \
+      xz-utils patch icnsutils graphicsmagick-imagemagick-compat genisoimage cmake zlib1g-dev libxml2-dev libssl-dev clang \
+      nano less file && \
     useradd -m -s /bin/bash -U -G users,sudo -d /build build && \
-    echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers
+    echo '%sudo ALL = (root) NOPASSWD: ALL' >> /etc/sudoers && \
+    mkdir /ccache && chown build:users /ccache
+
+#ARG clang=16
+# emulate installation of clang package as if depends on clang-16
+#RUN echo "deb http://apt.llvm.org/bullseye/ llvm-toolchain-bullseye-${clang} main" >> /etc/apt/sources.list && \
+#    wget https://apt.llvm.org/llvm-snapshot.gpg.key -O /etc/apt/trusted.gpg.d/apt.llvm.org.asc && \
+#    apt-get update && \
+#    apt-get install -y --no-install-recommends \
+#      clang-${clang} libclang-common-${clang}-dev && \
+#    ln -s ../lib/llvm-${clang}/bin/clang /usr/bin/clang && \
+#    ln -s ../lib/llvm-${clang}/bin/clang++ /usr/bin/clang++
 
 USER build
+WORKDIR build
 
-ENV prebuilt=/build/prebuilt toolchains=/build/toolchains
+ENV prebuilt=/build/prebuilt toolchains=/build/toolchains CCACHE_DIR=/ccache
 
-#based on https://github.com/multiarch/crossbuild
-#Problems with wget -q https://github.com/phracker/MacOSX-SDKs
-#-sdk10.7 has no crt1.10.6.o which is on 10.10
-#-sdk10.10 has no libc++ which is on 10.7
-ENV OSX_VERSION_MIN=10.6 triplet=x86_64-apple-darwin14
-RUN mkdir -p ${toolchains}/${triplet} && cd ${toolchains} && \
-    git clone https://github.com/tpoechtrager/osxcross && \
-    ln -sT ${toolchains}/${triplet} osxcross/target && \
-    wget -q https://www.dropbox.com/s/yfbesd249w10lpc/MacOSX10.10.sdk.tar.xz -P osxcross/tarballs && \
-    (cd osxcross && git checkout 6a46fa5e && (yes "" | JOBS=${cores} ./build.sh) && \
-    mv tools target/ ) && \
-    rm -Rf osxcross
-
-ENV execprefix=${toolchains}/${triplet}/bin/${triplet}-
-
-RUN cd ${toolchains} && \
-    git clone https://github.com/vitamin-caig/libdmg-hfsplus.git && \
+RUN git clone --depth=1 https://github.com/vitamin-caig/libdmg-hfsplus.git && \
     (cd libdmg-hfsplus && cmake -DCMAKE_INSTALL_PREFIX=/usr/local . && make && sudo make install) && \
     rm -Rf libdmg-hfsplus
 
-ENV boost=1.70.0
-RUN cd /build && \
-    bash -c "wget -q https://dl.bintray.com/boostorg/release/${boost}/source/boost_\${boost//./_}.tar.bz2 -O - | tar -xj" && \
-    cd boost_* && ./bootstrap.sh --with-toolset=clang && \
-    echo "using clang : 7.0 : ${execprefix}clang : <archiver>${execprefix}ar <ranlib>${execprefix}ranlib <cxxflags>-stdlib=libc++ ;" > tools/build/src/user-config.jam
-RUN cd /build/boost_* && \
-    ./bjam toolset=clang-7.0 link=static threading=multi target-os=darwin variant=release address-model=64 --layout=system \
-      --with-filesystem --with-locale --with-program_options --with-system -j${cores} \
-      --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-darwin-x86_64/lib install && \
-    cd .. && rm -Rf boost_*
+ENV PATH=${toolchains}/osxcross/bin:${PATH}
 
-ENV qt=4.8.7
-#qt crossbuild is not supported now
-#root https://www.dropbox.com/sh/j879ottiu1tecsx/AAD4mXm8R1eTaslWKdGv3SiGa?dl=0
-RUN sudo apt-get update && \
-    sudo apt-get install -y --no-install-recommends libqt4-dev-bin && \
-    sudo rm -rf /var/lib/apt/lists/* && \
-    (wget -q "https://www.dropbox.com/sh/j879ottiu1tecsx/AADhIS1vKlMHNcFxPwN4Tuw6a/20180201/prebuilt/qt/qt-4.8.7-darwin-x86_64.tar.bz2?dl=0" -O - |\
-      tar -xj -C ${prebuilt})
+# See https://github.com/tpoechtrager/osxcross/issues/278
+RUN git clone https://github.com/tpoechtrager/osxcross && \
+    wget -q https://github.com/phracker/MacOSX-SDKs/releases/download/11.3/MacOSX11.3.sdk.tar.xz -P osxcross/tarballs && \
+    (cd osxcross && git checkout ed07994 && \
+      JOBS=${cores} TARGET_DIR=${toolchains}/osxcross UNATTENDED=1 ./build.sh) && \
+    (cd osxcross && \
+      JOBS=${cores} ./build_compiler_rt.sh && \
+      sudo mkdir -p /usr/lib/llvm-14/lib/clang/14.0.6/include && \
+      sudo mkdir -p /usr/lib/llvm-14/lib/clang/14.0.6/lib/darwin && \
+      sudo cp -rv build/compiler-rt/compiler-rt/include/sanitizer /usr/lib/llvm-14/lib/clang/14.0.6/include && \
+      sudo cp -rv build/compiler-rt/compiler-rt/build/lib/darwin  /usr/lib/llvm-14/lib/clang/14.0.6/lib ) && \
+    rm -Rf osxcross
+
+ARG arch=x86_64
+ENV execprefix=${arch}-apple-darwin20.4-
+
+ARG boost=1.82.0
+# osxcross calls wrong linker if --target option is specified, so strip it from scripts
+RUN wget -q https://github.com/boostorg/boost/releases/download/boost-${boost}/boost-${boost}.tar.xz -O - | tar -xJ && \
+    (cd boost* && \
+    ./bootstrap.sh --with-toolset=clang && \
+    sed -i '/init-flags-cross ..toolset/d' tools/build/src/tools/clang.jam && \
+    echo "using clang : osxcross : ${execprefix}clang++ : <archiver>${execprefix}ar ;" > tools/build/src/user-config.jam && \
+    ./b2 toolset=clang-osxcross link=static threading=multi target-os=darwin variant=release --layout=system \
+      --with-locale --with-program_options -j${cores} \
+      --includedir=${prebuilt}/boost-${boost}/include --libdir=${prebuilt}/boost-${boost}-darwin-${arch}/lib install) && \
+    rm -Rf boost*
+
+ARG qt=5.15.2
+RUN git clone --depth=1 --branch=v${qt} https://github.com/qt/qt5.git && \
+    (cd qt5 && \
+     ./init-repository --module-subset=qtbase,qtimageformats && \
+     sudo ln -s ${toolchains}/osxcross/bin/xcrun /usr/bin/ && \
+     (cd qtbase && \
+      sed -i '/isEmpty.QMAKE_XCODE_DEVELOPER_PATH/,+10d' mkspecs/features/mac/default_pre.prf && \
+      sed -i '/cache.QMAKE_XCODE_DEVELOPER_PATH/d' mkspecs/features/mac/default_post.prf && \
+      sed -i '/xcodebuild -license/d' mkspecs/features/mac/default_pre.prf && \
+      sed -i 's|2>&1|2>/dev/null|' mkspecs/features/mac/sdk.mk && \
+      sed -i '/\$\$arch_flags/d' mkspecs/features/mac/default_post.prf && \
+      sed -i '46i#include <limits>' src/corelib/global/qfloat16.h src/corelib/text/qbytearraymatcher.h src/corelib/global/qendian.h) && \
+     ./configure -v -platform linux-clang -xplatform macx-clang \
+      -device-option CROSS_COMPILE=${execprefix} -prefix ${prebuilt}/qt-${qt}-darwin-${arch} \
+      -release -opensource -static -confirm-license -no-rpath \
+      -no-dbus -no-opengl -no-openvg -no-sql-sqlite \
+      -no-ico -no-gif -no-tiff -no-openssl -no-pch -no-glib \
+      -no-directfb -no-evdev -no-tslib \
+      -no-feature-testlib -no-feature-sql \
+      -qt-pcre -qt-zlib -qt-libpng -qt-libjpeg -qt-webp -qt-freetype -qt-harfbuzz && \
+      make -j${cores} && make -j${cores} install) && \
+      rm -Rf qt5*
 
 #Sources
 RUN mkdir -p /build/zxtune && cd /build/zxtune && \
     git init && \
     git remote add --tags origin https://bitbucket.org/zxtune/zxtune.git && \
-    echo "platform=darwin\narch=x86_64\npackaging=dmg\ntools.python=python3\n"\
+    echo "platform=darwin\narch=${arch}\npackaging=dmg\ntools.python=python3\n"\
          "prebuilt.dir=${prebuilt}\ntoolchains.root=${toolchains}\n"\
-         "darwin.x86_64.execprefix=${execprefix}\nboost.version=${boost}\n"\
-         "qt.version=${qt}\ntools.uic=uic\ntools.moc=moc\ntools.rcc=rcc" > variables.mak
+         "boost.version=${boost}\nqt.version=${qt}\n"\
+         "darwin.${arch}.execprefix=${execprefix}\n"\
+         "cxx_flags=-mmacos-version-min=10.15\n"\
+         "ld_flags=-mmacos-version-min=10.15 \$(addprefix -framework ,GSS IOKit AppKit Security SystemConfiguration Cocoa CoreVideo IOSurface Metal Carbon QuartzCore)\n"\
+         "libraries.qt.system.darwin=qcocoa qmacstyle qtlibpng qtharfbuzz qtpcre2 qtfreetype gssapi_krb5 cups\n"\
+         "libraries.qt.darwin=ClipboardSupport PrintSupport AccessibilitySupport GraphicsSupport ThemeSupport FontDatabaseSupport\n"\
+         "qt.plugins=QMacStylePlugin QCocoaIntegrationPlugin" > variables.mak
 
 WORKDIR /build/zxtune
 COPY entrypoint.sh .
