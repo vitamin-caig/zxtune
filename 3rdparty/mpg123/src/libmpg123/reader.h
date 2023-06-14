@@ -54,24 +54,30 @@ struct reader_data
 {
 	off_t filelen; /* total file length or total buffer size */
 	off_t filepos; /* position in file or position in buffer chain */
+#ifndef NO_FILEIO
 	int   filept;
+#endif
 	/* Custom opaque I/O handle from the client. */
 	void *iohandle;
 	int   flags;
 	long timeout_sec;
 	ssize_t (*fdread) (mpg123_handle *, void *, size_t);
+#ifndef NO_FILEIO
 	/* User can replace the read and lseek functions. The r_* are the stored replacement functions or NULL. */
 	ssize_t (*r_read) (int fd, void *buf, size_t count);
 	off_t   (*r_lseek)(int fd, off_t offset, int whence);
+#endif
 	/* These are custom I/O routines for opaque user handles.
 	   They get picked if there's some iohandle set. */
 	ssize_t (*r_read_handle) (void *handle, void *buf, size_t count);
 	off_t   (*r_lseek_handle)(void *handle, off_t offset, int whence);
 	/* An optional cleaner for the handle on closing the stream. */
 	void    (*cleanup_handle)(void *handle);
+#ifndef NO_FILEIO
 	/* These two pointers are the actual workers (default map to POSIX read/lseek). */
 	ssize_t (*read) (int fd, void *buf, size_t count);
 	off_t   (*lseek)(int fd, off_t offset, int whence);
+#endif
 	/* Buffered readers want that abstracted, set internally. */
 	ssize_t (*fullread)(mpg123_handle *, unsigned char *, ssize_t);
 #ifndef NO_FEEDER

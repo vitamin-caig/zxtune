@@ -30,10 +30,11 @@
 
 static int default_init(mpg123_handle *fr);
 static off_t get_fileinfo(mpg123_handle *);
+#ifndef NO_FILEIO
 static ssize_t posix_read(int fd, void *buf, size_t count){ return read(fd, buf, count); }
 static off_t   posix_lseek(int fd, off_t offset, int whence){ return lseek(fd, offset, whence); }
 static off_t     nix_lseek(int fd, off_t offset, int whence){ return -1; }
-
+#endif
 static ssize_t plain_fullread(mpg123_handle *fr,unsigned char *buf, ssize_t count);
 
 /* Wrapper to decide between descriptor-based and external handle-based I/O. */
@@ -242,8 +243,8 @@ static void stream_close(mpg123_handle *fr)
 {
 #ifndef NO_FILEIO
 	if(fr->rdat.flags & READER_FD_OPENED) compat_close(fr->rdat.filept);
-#endif
 	fr->rdat.filept = 0;
+#endif
 
 #ifndef NO_FEEDER
 	if(fr->rdat.flags & READER_BUFFERED)  bc_reset(&fr->rdat.buffer);
@@ -1059,11 +1060,13 @@ static int default_init(mpg123_handle *fr)
 #endif
 	fr->rdat.fdread = plain_read;
 
+#ifndef NO_FILEIO
 	fr->rdat.read  = fr->rdat.r_read  != NULL ? fr->rdat.r_read  : posix_read;
 	fr->rdat.lseek = fr->rdat.r_lseek != NULL ? fr->rdat.r_lseek : posix_lseek;
 #ifndef NO_ICY
 	/* ICY streams of any sort shall not be seekable. */
 	if(fr->p.icy_interval > 0) fr->rdat.lseek = nix_lseek;
+#endif
 #endif
 
 	fr->rdat.filelen = fr->p.flags & MPG123_NO_PEEK_END ? -1 : get_fileinfo(fr);
@@ -1223,7 +1226,9 @@ int open_stream_handle(mpg123_handle *fr, void *iohandle)
 {
 	clear_icy(&fr->icy); /* can be done inside frame_clear ...? */
 	fr->rdat.filelen = -1;
+#ifndef NO_FILEIO
 	fr->rdat.filept  = -1;
+#endif
 	fr->rdat.iohandle = iohandle;
 	fr->rdat.flags = 0;
 	fr->rdat.flags |= READER_HANDLEIO;
@@ -1243,7 +1248,11 @@ static off_t io_seek(struct reader_data *rdat, off_t offset, int whence)
 		else return -1;
 	}
 	else
+#ifndef NO_FILEIO
 	return rdat->lseek(rdat->filept, offset, whence);
+#else
+        return -1;
+#endif
 }
 
 static ssize_t io_read(struct reader_data *rdat, void *buf, size_t count)
@@ -1257,5 +1266,9 @@ static ssize_t io_read(struct reader_data *rdat, void *buf, size_t count)
 		else return -1;
 	}
 	else
+#ifndef NO_FILEIO
 	return rdat->read(rdat->filept, buf, count);
+#else
+        return -1;
+#endif
 }

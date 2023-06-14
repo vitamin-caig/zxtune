@@ -593,6 +593,7 @@ int attribute_align_arg mpg123_open_feed(mpg123_handle *mh)
 	return open_feed(mh);
 }
 
+#ifndef NO_FILEIO
 int attribute_align_arg mpg123_replace_reader( mpg123_handle *mh,
                            ssize_t (*r_read) (int, void *, size_t),
                            off_t   (*r_lseek)(int, off_t, int) )
@@ -604,6 +605,7 @@ int attribute_align_arg mpg123_replace_reader( mpg123_handle *mh,
 	mh->rdat.r_lseek = r_lseek;
 	return MPG123_OK;
 }
+#endif
 
 int attribute_align_arg mpg123_replace_reader_handle( mpg123_handle *mh,
                            ssize_t (*r_read) (void*, void *, size_t),

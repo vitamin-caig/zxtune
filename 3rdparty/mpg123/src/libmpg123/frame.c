@@ -114,8 +114,10 @@ void frame_init_par(mpg123_handle *fr, mpg123_pars *mp)
 	/* frame_buffers is missing... that one needs cpu opt setting! */
 	/* after these... frame_reset is needed before starting full decode */
 	invalidate_format(&fr->af);
+#ifndef NO_FILEIO
 	fr->rdat.r_read = NULL;
 	fr->rdat.r_lseek = NULL;
+#endif
 	fr->rdat.iohandle = NULL;
 	fr->rdat.r_read_handle = NULL;
 	fr->rdat.r_lseek_handle = NULL;
