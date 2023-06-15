@@ -193,7 +193,7 @@ namespace Module::USF
 
     Sound::Chunk Render() override
     {
-      const auto avail = State->Consume(FRAME_DURATION);
+      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
       return Target->Apply(Engine.Render(GetSamples(avail)));
     }
 

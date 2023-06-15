@@ -56,9 +56,9 @@ namespace Module
       TotalPlayback = {};
     }
 
-    // Set range = 0 to enforce stream end
-    // Returns really consumed
-    Time::Microseconds Consume(Time::Microseconds range);
+    // Consumes and returns min(range, End - Position)
+    Time::Microseconds ConsumeUpTo(Time::Microseconds range);
+    Time::Microseconds ConsumeRest();
 
     // Returns delta to skip
     Time::Microseconds Seek(Time::AtMicrosecond request)
@@ -72,7 +72,7 @@ namespace Module
       else
       {
         const auto newPos = Time::AtMicrosecond(request.Get() % Limit.Get());
-        const auto delta = Time::Microseconds(newPos.Get() - Position.Get());
+        const auto delta = newPos - Position;
         Position = newPos;
         return delta;
       }

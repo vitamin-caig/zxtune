@@ -207,6 +207,11 @@ namespace Module::Mp3
       }
     }
 
+    Sound::Chunk MakeStub(Time::Microseconds duration)
+    {
+      return Sound::Chunk(TargetFreq * duration.Get() / duration.PER_SECOND);
+    }
+
   private:
     Sound::Converter& GetTarget(uint_t freq)
     {
@@ -243,21 +248,23 @@ namespace Module::Mp3
 
     Sound::Chunk Render() override
     {
-      for (;;)
+      // assume that rendered duration is lesser or equal to reported
+      auto frame = Tune.RenderNextFrame();
+      if (frame.Data.empty())
       {
-        auto frame = Tune.RenderNextFrame();
-        if (frame.Data.empty())
-        {
-          // force end/loop
-          State->Consume({});
-          Tune.Reset();
-          continue;
-        }
-        const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
-        State->Consume(rendered);
-        return Target.Apply(std::move(frame));
+        // premature end, force end/loop
+        const auto avail = State->ConsumeRest();
+        Tune.Reset();
+        return Target.MakeStub(avail);
       }
-      return {};
+      const auto rendered = Time::Microseconds::FromRatio(frame.Data.size(), frame.Frequency);
+      const auto loops = State->LoopCount();
+      State->ConsumeUpTo(rendered);
+      if (loops != State->LoopCount())
+      {
+        Tune.Reset();
+      }
+      return Target.Apply(std::move(frame));
     }
 
     void Reset() override

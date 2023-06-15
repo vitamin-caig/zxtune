@@ -199,13 +199,25 @@ namespace Module
     return MakePtr<TimedInfo>(duration, loopDuration);
   }
 
-  Time::Microseconds TimedState::Consume(Time::Microseconds range)
+  template<class Unit>
+  auto Modulo(Time::Instant<Unit> pos, Time::Instant<Unit> limit)
   {
-    const auto nextPos = range.Get() ? Position + range : Limit;
-    Position = Time::AtMicrosecond(nextPos.Get() % Limit.Get());
-    Loops += nextPos.Get() / Limit.Get();
-    TotalPlayback += range;
-    return range;
+    return std::make_pair(Time::Instant<Unit>(pos.Get() % limit.Get()), pos.Get() / limit.Get());
+  }
+
+  Time::Microseconds TimedState::ConsumeUpTo(Time::Microseconds range)
+  {
+    const Time::Microseconds avail = Limit - Position;
+    const auto toConsume = std::min(range, avail);
+    const auto delta = Modulo(Position + toConsume, Limit);
+    Position = delta.first;
+    Loops += delta.second;
+    return toConsume;
+  }
+
+  Time::Microseconds TimedState::ConsumeRest()
+  {
+    return ConsumeUpTo(Limit - Position);
   }
 
   Information::Ptr CreateSampledInfo(uint_t samplerate, uint64_t totalSamples)

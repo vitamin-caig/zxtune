@@ -148,7 +148,7 @@ namespace Module::V2M
     Sound::Chunk Render() override
     {
       const auto loops = State->LoopCount();
-      const auto avail = State->Consume(FRAME_DURATION);
+      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
       auto frame = Target->Apply(Engine.RenderFrame(GetSamples(avail)));
       if (State->LoopCount() != loops)
       {

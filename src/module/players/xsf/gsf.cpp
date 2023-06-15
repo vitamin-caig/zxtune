@@ -284,7 +284,7 @@ namespace Module::GSF
 
     Sound::Chunk Render() override
     {
-      const auto avail = State->Consume(FRAME_DURATION);
+      const auto avail = State->ConsumeUpTo(FRAME_DURATION);
       return Engine->Render(GetSamples(avail));
     }
 

@@ -560,7 +560,7 @@ namespace Module::AYEMUL
 
     Sound::Chunk Render() override
     {
-      State->Consume(FrameDuration);
+      State->ConsumeUpTo(FrameDuration);
       DeviceTime += FrameDuration;
       Comp->ExecuteFrameTill(DeviceTime);
       return Device->RenderFrameTill(DeviceTime);
